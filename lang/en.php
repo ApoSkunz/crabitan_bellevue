@@ -19,7 +19,7 @@ return [
     'nav.collection'  => 'Collection',
     'nav.news'        => 'News',
     'nav.savoir_faire' => 'Know-How',
-    'nav.chateau'     => 'The Estate',
+    'nav.chateau'     => 'Le château',
     'nav.cart'        => 'Cart',
     'nav.account'     => 'My account',
     'nav.login'       => 'Login',

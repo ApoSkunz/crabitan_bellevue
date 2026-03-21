@@ -21,16 +21,12 @@ $isActive    = static function (string $segment) use ($currentPath, $navLang): s
 <header class="site-header">
     <div class="header-main">
         <a href="/<?= htmlspecialchars($navLang) ?>" class="header-logo" aria-label="<?= htmlspecialchars(APP_NAME) ?>">
-            <img src="/assets/images/crabitan-bellevue-logo.png" alt="" width="48" height="48">
+            <img src="/assets/images/crabitan-bellevue-logo-modern.svg" alt="" width="48" height="48">
         </a>
 
         <p class="header-title" aria-hidden="true">Château Crabitan Bellevue</p>
 
         <div class="header-actions">
-            <a href="/<?= htmlspecialchars($navLang) ?>/contact" class="header-contact">
-                <?= htmlspecialchars(__('nav.contact')) ?>
-            </a>
-
             <nav class="lang-switch" aria-label="Langue / Language">
                 <?php foreach (['fr', 'en'] as $l) : ?>
                     <a
@@ -51,6 +47,10 @@ $isActive    = static function (string $segment) use ($currentPath, $navLang): s
                 <span class="icon-sun" aria-hidden="true">&#9728;</span>
                 <span class="icon-moon" aria-hidden="true">&#9790;</span>
             </button>
+
+            <a href="/<?= htmlspecialchars($navLang) ?>/contact" class="header-contact">
+                <?= htmlspecialchars(__('nav.contact')) ?>
+            </a>
 
             <?php if ($isLogged) : ?>
                 <button
@@ -92,30 +92,30 @@ $isActive    = static function (string $segment) use ($currentPath, $navLang): s
                 && $isActive('/panier') === '';
             ?>
             <a href="/<?= htmlspecialchars($navLang) ?>" class="header-nav__link<?= $isHome ? ' active' : '' ?>">
-                <?= htmlspecialchars(__('nav.home')) ?>
+                <span><?= htmlspecialchars(__('nav.home')) ?></span>
             </a>
             <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="header-nav__link<?= $isActive('/vins') ?>">
-                <?= htmlspecialchars(__('nav.wines')) ?>
+                <span><?= htmlspecialchars(__('nav.wines')) ?></span>
             </a>
             <a href="/<?= htmlspecialchars($navLang) ?>/le-chateau"
                class="header-nav__link<?= $isActive('/le-chateau') ?>">
-                <?= htmlspecialchars(__('nav.chateau')) ?>
+                <span><?= htmlspecialchars(__('nav.chateau')) ?></span>
             </a>
             <a href="/<?= htmlspecialchars($navLang) ?>/savoir-faire"
                class="header-nav__link<?= $isActive('/savoir-faire') ?>">
-                <?= htmlspecialchars(__('nav.savoir_faire')) ?>
+                <span><?= htmlspecialchars(__('nav.savoir_faire')) ?></span>
             </a>
             <a href="/<?= htmlspecialchars($navLang) ?>/vins/collection"
                class="header-nav__link<?= $isActive('/vins/collection') ?>">
-                <?= htmlspecialchars(__('nav.collection')) ?>
+                <span><?= htmlspecialchars(__('nav.collection')) ?></span>
             </a>
             <?php if ($isLogged) : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/panier"
                    class="header-nav__link<?= $isActive('/panier') ?>">
-                    <?= htmlspecialchars(__('nav.cart')) ?>
+                    <span><?= htmlspecialchars(__('nav.cart')) ?></span>
                 </a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/deconnexion" class="header-nav__link">
-                    <?= htmlspecialchars(__('nav.logout')) ?>
+                    <span><?= htmlspecialchars(__('nav.logout')) ?></span>
                 </a>
             <?php endif; ?>
         </div>

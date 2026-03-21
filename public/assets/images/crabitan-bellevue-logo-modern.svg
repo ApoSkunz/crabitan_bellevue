@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220">
+  <defs>
+    <!-- Masque principal : ouvertures maison -->
+    <mask id="bldg">
+      <rect width="200" height="220" fill="white"/>
+      <rect x="68" y="99" width="12" height="14" rx="1" fill="black"/>
+      <rect x="118" y="99" width="12" height="14" rx="1" fill="black"/>
+      <rect x="97" y="104" width="12" height="16" fill="black"/>
+      <ellipse cx="103" cy="104" rx="6" ry="4" fill="black"/>
+    </mask>
+
+    <!-- Masque pierres tour -->
+    <mask id="m-tower">
+      <rect x="142" y="78" width="20" height="42" fill="white"/>
+    </mask>
+
+    <!-- Masque pierres maison -->
+    <mask id="m-house">
+      <rect x="60" y="92" width="82" height="28" fill="white"/>
+      <rect x="68" y="99" width="12" height="14" rx="1" fill="black"/>
+      <rect x="118" y="99" width="12" height="14" rx="1" fill="black"/>
+      <rect x="97" y="104" width="12" height="16" fill="black"/>
+      <ellipse cx="103" cy="104" rx="6" ry="4" fill="black"/>
+    </mask>
+  </defs>
+
+  <!-- ── Double anneau ────────────────────────────────────────── -->
+  <circle cx="100" cy="110" r="97" fill="none" stroke="#c9a84c" stroke-width="2"/>
+  <circle cx="100" cy="110" r="92" fill="none" stroke="#c9a84c" stroke-width="0.75"/>
+
+  <!-- ── "Château" calligraphique ────────────────────────────── -->
+  <text
+    x="100" y="36"
+    font-family="'CAC Champagne', 'Brush Script MT', 'Palace Script MT', cursive"
+    font-size="13"
+    font-style="italic"
+    fill="#c9a84c"
+    text-anchor="middle"
+    letter-spacing="1">Château</text>
+
+  <!-- ── Filet ◆ haut ────────────────────────────────────────── -->
+  <line x1="58" y1="46" x2="87" y2="46" stroke="#c9a84c" stroke-width="0.75"/>
+  <polygon points="100,42.5 103.5,46 100,49.5 96.5,46" fill="#c9a84c"/>
+  <line x1="113" y1="46" x2="142" y2="46" stroke="#c9a84c" stroke-width="0.75"/>
+
+  <!-- ── Coq girouette (tour droite) ─────────────────────────── -->
+  <line x1="152" y1="60" x2="152" y2="56" stroke="#c9a84c" stroke-width="0.7"/>
+  <ellipse cx="151.5" cy="54" rx="2.2" ry="1.3" fill="#c9a84c"/>
+  <polygon points="149.5,54.5 146.5,52.5 149.5,55.5" fill="#c9a84c"/>
+  <circle cx="153.9" cy="52.5" r="1.3" fill="#c9a84c"/>
+  <polygon points="153.2,51.6 154,50.2 155.2,51.3 154,52" fill="#c9a84c"/>
+  <polygon points="155.1,52.5 156.8,53 155.1,53.4" fill="#c9a84c"/>
+  <polygon points="155,53.4 154.5,54.3 155.8,54" fill="#c9a84c"/>
+
+  <!-- ── Arbre feuillu gauche (style version précédente) ─────── -->
+  <circle cx="40" cy="91" r="13" fill="#c9a84c" opacity="0.9"/>
+  <circle cx="31" cy="85" r="9"  fill="#c9a84c" opacity="0.9"/>
+  <circle cx="49" cy="85" r="9"  fill="#c9a84c" opacity="0.9"/>
+  <circle cx="40" cy="77" r="10" fill="#c9a84c" opacity="0.9"/>
+  <rect x="37" y="104" width="5" height="16" fill="#c9a84c"/>
+
+  <!-- ── Bâtiment masqué ───────────────────────────────────────── -->
+  <g mask="url(#bldg)" fill="#c9a84c">
+    <!-- Toit trapézoïdal maison — éave alignée sur le corps (plus de débordement gauche) -->
+    <polygon points="60,92 142,92 134,76 68,76"/>
+    <!-- Corps maison -->
+    <rect x="60" y="92" width="82" height="28"/>
+    <!-- Toit conique tour droite -->
+    <polygon points="142,78 162,78 152,60"/>
+    <!-- Corps tour droite -->
+    <rect x="142" y="78" width="20" height="42"/>
+  </g>
+
+  <!-- ── Joints pierres tour ────────────────────────────────────── -->
+  <g mask="url(#m-tower)" stroke="rgba(255,246,205,0.38)" stroke-width="0.55" fill="none">
+    <line x1="142" y1="85"  x2="162" y2="85"/>
+    <line x1="142" y1="92"  x2="162" y2="92"/>
+    <line x1="142" y1="99"  x2="162" y2="99"/>
+    <line x1="142" y1="106" x2="162" y2="106"/>
+    <line x1="142" y1="113" x2="162" y2="113"/>
+    <line x1="152" y1="78"  x2="152" y2="85"/>
+    <line x1="147" y1="85"  x2="147" y2="92"/>
+    <line x1="157" y1="85"  x2="157" y2="92"/>
+    <line x1="152" y1="92"  x2="152" y2="99"/>
+    <line x1="147" y1="99"  x2="147" y2="106"/>
+    <line x1="157" y1="99"  x2="157" y2="106"/>
+    <line x1="152" y1="106" x2="152" y2="113"/>
+    <line x1="147" y1="113" x2="147" y2="120"/>
+    <line x1="157" y1="113" x2="157" y2="120"/>
+  </g>
+
+  <!-- ── Joints pierres maison ─────────────────────────────────── -->
+  <g mask="url(#m-house)" stroke="rgba(255,246,205,0.38)" stroke-width="0.55" fill="none">
+    <line x1="60" y1="97"  x2="142" y2="97"/>
+    <line x1="60" y1="102" x2="142" y2="102"/>
+    <line x1="60" y1="107" x2="142" y2="107"/>
+    <line x1="60" y1="112" x2="142" y2="112"/>
+    <line x1="60" y1="117" x2="142" y2="117"/>
+    <line x1="72"  y1="93" x2="72"  y2="97"/>
+    <line x1="84"  y1="93" x2="84"  y2="97"/>
+    <line x1="96"  y1="93" x2="96"  y2="97"/>
+    <line x1="108" y1="93" x2="108" y2="97"/>
+    <line x1="120" y1="93" x2="120" y2="97"/>
+    <line x1="132" y1="93" x2="132" y2="97"/>
+    <line x1="66"  y1="97" x2="66"  y2="102"/>
+    <line x1="78"  y1="97" x2="78"  y2="102"/>
+    <line x1="90"  y1="97" x2="90"  y2="102"/>
+    <line x1="114" y1="97" x2="114" y2="102"/>
+    <line x1="126" y1="97" x2="126" y2="102"/>
+    <line x1="138" y1="97" x2="138" y2="102"/>
+    <line x1="72"  y1="102" x2="72"  y2="107"/>
+    <line x1="84"  y1="102" x2="84"  y2="107"/>
+    <line x1="120" y1="102" x2="120" y2="107"/>
+    <line x1="132" y1="102" x2="132" y2="107"/>
+    <line x1="66"  y1="107" x2="66"  y2="112"/>
+    <line x1="78"  y1="107" x2="78"  y2="112"/>
+    <line x1="90"  y1="107" x2="90"  y2="112"/>
+    <line x1="114" y1="107" x2="114" y2="112"/>
+    <line x1="126" y1="107" x2="126" y2="112"/>
+    <line x1="138" y1="107" x2="138" y2="112"/>
+    <line x1="72"  y1="112" x2="72"  y2="117"/>
+    <line x1="84"  y1="112" x2="84"  y2="117"/>
+    <line x1="96"  y1="112" x2="96"  y2="117"/>
+    <line x1="108" y1="112" x2="108" y2="117"/>
+    <line x1="120" y1="112" x2="120" y2="117"/>
+    <line x1="132" y1="112" x2="132" y2="117"/>
+  </g>
+
+  <!-- ── Pieds de vigne — bud + feuille par bras ──────────────── -->
+  <line x1="30" y1="133" x2="170" y2="133"
+        stroke="#c9a84c" stroke-width="0.75" opacity="0.65" stroke-linecap="round"/>
+
+  <!-- Pied 1 — cx=37 -->
+  <line x1="37" y1="140" x2="37" y2="133" stroke="#c9a84c" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="37" y1="133" x2="31" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <line x1="37" y1="133" x2="43" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <circle cx="31" cy="127" r="1.7" fill="#c9a84c"/>
+  <circle cx="43" cy="127" r="1.7" fill="#c9a84c"/>
+
+  <!-- Pied 2 — cx=58 -->
+  <line x1="58" y1="140" x2="58" y2="133" stroke="#c9a84c" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="58" y1="133" x2="52" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <line x1="58" y1="133" x2="64" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <circle cx="52" cy="127" r="1.7" fill="#c9a84c"/>
+  <circle cx="64" cy="127" r="1.7" fill="#c9a84c"/>
+
+  <!-- Pied 3 — cx=79 -->
+  <line x1="79" y1="140" x2="79" y2="133" stroke="#c9a84c" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="79" y1="133" x2="73" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <line x1="79" y1="133" x2="85" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <circle cx="73" cy="127" r="1.7" fill="#c9a84c"/>
+  <circle cx="85" cy="127" r="1.7" fill="#c9a84c"/>
+
+  <!-- Pied 4 — cx=100 -->
+  <line x1="100" y1="140" x2="100" y2="133" stroke="#c9a84c" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="100" y1="133" x2="94"  y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <line x1="100" y1="133" x2="106" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <circle cx="94"  cy="127" r="1.7" fill="#c9a84c"/>
+  <circle cx="106" cy="127" r="1.7" fill="#c9a84c"/>
+
+  <!-- Pied 5 — cx=121 -->
+  <line x1="121" y1="140" x2="121" y2="133" stroke="#c9a84c" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="121" y1="133" x2="115" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <line x1="121" y1="133" x2="127" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <circle cx="115" cy="127" r="1.7" fill="#c9a84c"/>
+  <circle cx="127" cy="127" r="1.7" fill="#c9a84c"/>
+
+  <!-- Pied 6 — cx=142 -->
+  <line x1="142" y1="140" x2="142" y2="133" stroke="#c9a84c" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="142" y1="133" x2="136" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <line x1="142" y1="133" x2="148" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <circle cx="136" cy="127" r="1.7" fill="#c9a84c"/>
+  <circle cx="148" cy="127" r="1.7" fill="#c9a84c"/>
+
+  <!-- Pied 7 — cx=163 -->
+  <line x1="163" y1="140" x2="163" y2="133" stroke="#c9a84c" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="163" y1="133" x2="157" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <line x1="163" y1="133" x2="169" y2="127" stroke="#c9a84c" stroke-width="0.85" stroke-linecap="round"/>
+  <circle cx="157" cy="127" r="1.7" fill="#c9a84c"/>
+  <circle cx="169" cy="127" r="1.7" fill="#c9a84c"/>
+
+  <!-- ── Filet ◆ bas ──────────────────────────────────────────── -->
+  <line x1="58" y1="152" x2="87" y2="152" stroke="#c9a84c" stroke-width="0.75"/>
+  <polygon points="100,148.5 103.5,152 100,155.5 96.5,152" fill="#c9a84c"/>
+  <line x1="113" y1="152" x2="142" y2="152" stroke="#c9a84c" stroke-width="0.75"/>
+
+  <!-- ── "Crabitan" calligraphique ───────────────────────────── -->
+  <text
+    x="100" y="168"
+    font-family="'CAC Champagne', 'Brush Script MT', 'Palace Script MT', cursive"
+    font-size="13"
+    font-style="italic"
+    fill="#c9a84c"
+    text-anchor="middle"
+    letter-spacing="2">Crabitan</text>
+
+  <!-- ── Séparateur 3 points ──────────────────────────────────── -->
+  <circle cx="96"  cy="176" r="1.1" fill="#c9a84c" opacity="0.6"/>
+  <circle cx="100" cy="176" r="1.1" fill="#c9a84c" opacity="0.6"/>
+  <circle cx="104" cy="176" r="1.1" fill="#c9a84c" opacity="0.6"/>
+
+  <!-- ── "Bellevue" calligraphique ───────────────────────────── -->
+  <text
+    x="100" y="191"
+    font-family="'CAC Champagne', 'Brush Script MT', 'Palace Script MT', cursive"
+    font-size="13"
+    font-style="italic"
+    fill="#c9a84c"
+    text-anchor="middle"
+    letter-spacing="2">Bellevue</text>
+</svg>
