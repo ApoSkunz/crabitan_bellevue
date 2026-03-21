@@ -16,6 +16,8 @@
 // ============================================================
 @use 'components/button';
 @use 'components/cookie-banner';
+@use 'components/carousel';
+@use 'components/panel';
 
 // ============================================================
 // Layout
@@ -23,3 +25,4 @@
 @use 'layout/age-gate';
 @use 'layout/header';
 @use 'layout/footer';
+@use 'layout/home';

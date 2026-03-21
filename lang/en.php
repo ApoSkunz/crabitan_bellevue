@@ -13,16 +13,18 @@ return [
     'age_gate.error'         => 'You must be of legal drinking age to access this site. You will be redirected in 3 seconds.',
 
     // Navigation
-    'nav.home'       => 'Home',
-    'nav.contact'    => 'Contact',
-    'nav.wines'      => 'Our wines',
-    'nav.collection' => 'Collection',
-    'nav.news'       => 'News',
-    'nav.cart'       => 'Cart',
-    'nav.account'    => 'My account',
-    'nav.login'      => 'Login',
-    'nav.logout'     => 'Logout',
-    'nav.register'   => 'Register',
+    'nav.home'        => 'Home',
+    'nav.contact'     => 'Contact',
+    'nav.wines'       => 'Our wines',
+    'nav.collection'  => 'Collection',
+    'nav.news'        => 'News',
+    'nav.savoir_faire' => 'Know-How',
+    'nav.chateau'     => 'The Estate',
+    'nav.cart'        => 'Cart',
+    'nav.account'     => 'My account',
+    'nav.login'       => 'Login',
+    'nav.logout'      => 'Logout',
+    'nav.register'    => 'Register',
 
     // Auth
     'auth.login'             => 'Login',
@@ -105,12 +107,65 @@ return [
     // Footer
     'footer.legal_notice'    => 'Legal notice',
     'footer.sitemap'         => 'Sitemap',
+    'footer.carbon'          => 'Carbon Badge',
     'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. Drink responsibly.',
-    'footer.made_by'         => 'Made by Alexandre Solane',
+    'footer.made_by'         => 'Made by',
+    'footer.webmaster'       => 'Alexandre Solane',
 
     // General
     'btn.submit'   => 'Submit',
     'btn.save'     => 'Save',
     'btn.cancel'   => 'Cancel',
     'btn.back'     => 'Back',
+
+    // Homepage — Carousel
+    'home.carousel_alt'   => 'Château Crabitan Bellevue vineyard',
+    'home.carousel_title' => 'Château Crabitan Bellevue',
+    'home.carousel_sub'   => 'Bordeaux Wines — Sainte-Croix-du-Mont',
+
+    // Homepage — Wines section
+    'home.wines_tag'   => 'Vintage',
+    'home.wines_title' => 'Our Wines',
+    'home.wines_text'  => 'Sainte-Croix-du-Mont, a rare Bordeaux appellation on the right bank — clay-limestone hillsides'
+        . ' with breathtaking views. From Sauvignon Blanc to Merlot, discover the full range of Château Crabitan Bellevue,'
+        . ' authentic wines crafted with passion on these exceptional slopes.',
+    'home.wines_cta'   => 'Discover our wines',
+
+    // Homepage — History section
+    'home.history_tag'   => 'Estate',
+    'home.history_title' => 'Our History',
+    'home.history_text'  => 'For several generations, the Solane family has cultivated its vines on the'
+        . ' clay-limestone slopes of Sainte-Croix-du-Mont. An exceptional terroir producing wines of great finesse.',
+    'home.history_cta'   => 'Learn more',
+
+    // Homepage — Savoir-Faire section
+    'home.savoir_tag'   => 'Expertise',
+    'home.savoir_title' => 'Our Know-How',
+    'home.savoir_text'  => 'From vine to cellar, every step is mastered with rigour and passion.'
+        . ' Careful ageing in oak barrels for complex, balanced and elegant wines.',
+    'home.savoir_cta'   => 'Learn more',
+
+    // Homepage — Video section
+    'home.video_tag'   => 'The estate',
+    'home.video_title' => 'The Estate on Video',
+
+    // Homepage — News section
+    'home.news_tag'   => 'Latest news',
+    'home.news_title' => 'News',
+    'home.news_cta'   => 'All news',
+
+    // Homepage — Location section
+    'home.location_title'   => 'Where are we?',
+    'home.location_address' => 'Crabitan, 33410 Sainte-Croix-du-Mont',
+    'home.location_contact' => 'How to reach us?',
+    'home.location_phone'   => '+33 5 56 62 01 53',
+    'home.location_cta'     => 'Contact us',
+
+    // Account panel (drawer)
+    'panel.title'     => 'My account',
+    'panel.account'   => 'My profile',
+    'panel.orders'    => 'My orders',
+    'panel.addresses' => 'My addresses',
+    'panel.favorites' => 'My favourites',
+    'panel.logout'    => 'Log out',
 ];

@@ -1,14 +1,16 @@
 @use '../abstracts/mixins' as m;
 
 // ============================================================
-// Footer — fond noir, liens, mentions légales, badges
+// Footer — fond crème clair, rappel de l'élégance du header
+// Le footer est toujours clair (indépendant du thème jour/nuit)
 // ============================================================
 
 .site-footer {
-    background-color: var(--footer-bg);
-    border-top: 1px solid var(--color-border-gold);
+    background-color: #f5f0e8;
+    border-top: 1px solid rgba(160, 120, 40, 0.3);
     padding: 2.5rem 1.5rem 1.5rem;
     margin-top: auto;
+    color: #2a2218;
 }
 
 .footer-inner {
@@ -37,7 +39,7 @@
 // Badge HVE
 .footer-hve {
     img {
-        height: 56px;
+        height: 80px;
         width: auto;
     }
 }
@@ -57,11 +59,11 @@
         font-size: 0.8rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: var(--color-text-muted);
+        color: #5a5040;
         transition: color 200ms ease;
 
         &:hover {
-            color: var(--color-gold);
+            color: #a07828;
         }
     }
 }
@@ -73,15 +75,26 @@
     gap: 0.75rem;
 
     img {
-        height: 28px;
+        height: 40px;
         width: auto;
-        opacity: 0.7;
+        opacity: 0.85;
         transition: opacity 200ms ease;
-        filter: grayscale(0.3);
+        filter: grayscale(0.1);
 
         &:hover {
             opacity: 1;
         }
+    }
+}
+
+// Badge Website Carbon
+.footer-carbon {
+    display: flex;
+    justify-content: center;
+    margin: 0.75rem 0;
+
+    .carbonbadge {
+        font-size: 13px;
     }
 }
 
@@ -91,8 +104,8 @@
     background: linear-gradient(
         to right,
         transparent,
-        var(--color-border-gold) 20%,
-        var(--color-border-gold) 80%,
+        rgba(160, 120, 40, 0.35) 20%,
+        rgba(160, 120, 40, 0.35) 80%,
         transparent
     );
 }
@@ -115,13 +128,25 @@
 .footer-legal {
     font-size: 0.75rem;
     font-style: italic;
-    color: var(--color-text-muted);
+    color: #5a5040;
     line-height: 1.5;
     max-width: 60ch;
 }
 
 .footer-copyright {
     font-size: 0.75rem;
-    color: var(--color-text-muted);
+    color: #5a5040;
     white-space: nowrap;
+
+    // Lien webmaster
+    a {
+        color: #a07828;
+        transition: color 200ms ease;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+
+        &:hover {
+            color: #2a2218;
+        }
+    }
 }

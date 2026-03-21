@@ -1,12 +1,14 @@
 @use '../abstracts/mixins' as m;
 
 // ============================================================
-// Header — fond noir, typographie dorée, nav responsive
+// Header — fond noir fixe (indépendant du thème)
+// Couleurs hardcodées : le header est toujours sur --header-bg #080808
+// donc on n'utilise pas les tokens qui varient en thème clair
 // ============================================================
 
 .site-header {
     background-color: var(--header-bg);
-    border-bottom: 1px solid var(--color-border-gold);
+    border-bottom: 1px solid rgba(201, 168, 76, 0.35);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -23,42 +25,27 @@
     margin: 0 auto;
 }
 
-// Logo
+// Logo (icône uniquement)
 .header-logo {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
     flex-shrink: 0;
     @include m.focus-ring;
 
     img {
-        height: 48px;
+        height: 64px;
         width: auto;
-    }
-
-    &__text {
-        font-family: var(--font-serif);
-        font-size: 0.8rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--color-text-muted);
-        line-height: 1.3;
-        display: none;
-
-        @include m.bp('md') {
-            display: block;
-        }
     }
 }
 
 // Titre central
 .header-title {
     font-family: var(--font-serif);
-    font-size: clamp(0.75rem, 2vw, 1rem);
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
     font-variant: small-caps;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.22em;
     font-weight: 600;
-    color: var(--color-gold);
+    color: #c9a84c; // or fixe sur fond sombre
     text-align: center;
     flex: 1;
     display: none;
@@ -68,7 +55,7 @@
     }
 }
 
-// Actions droite : connexion + lang + thème
+// Actions droite : contact + connexion + lang + thème
 .header-actions {
     display: flex;
     align-items: center;
@@ -76,24 +63,49 @@
     flex-shrink: 0;
 }
 
-// Switcher de langue
+// Lien Contact en header
+.header-contact {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    color: rgba(245, 240, 232, 0.85); // blanc cassé fixe
+    transition: color 200ms ease;
+    display: none;
+    @include m.focus-ring;
+
+    @include m.bp('md') {
+        display: block;
+    }
+
+    &:hover {
+        color: #c9a84c;
+    }
+}
+
+// Switcher de langue — plus visible
 .lang-switch {
     display: flex;
-    gap: 0.25rem;
+    align-items: center;
+    gap: 0;
+    border: 1px solid rgba(201, 168, 76, 0.5);
 
     a {
-        font-size: 0.75rem;
-        letter-spacing: 0.08em;
-        color: var(--color-text-muted);
-        padding: 0.2em 0.4em;
-        border: 1px solid transparent;
-        transition: color 200ms ease, border-color 200ms ease;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        color: #f5f0e8; // blanc fixe sur fond sombre
+        padding: 0.35em 0.65em;
+        transition: color 200ms ease, background-color 200ms ease;
         @include m.focus-ring;
 
-        &:hover,
+        &:hover {
+            color: #c9a84c;
+        }
+
         &.active {
-            color: var(--color-gold);
-            border-color: var(--color-border-gold);
+            color: #c9a84c;
+            background-color: rgba(201, 168, 76, 0.12);
         }
     }
 }
@@ -101,19 +113,19 @@
 // Bouton theme day/night
 .theme-toggle {
     background: none;
-    border: 1px solid var(--color-border);
-    color: var(--color-text-muted);
-    width: 2rem;
-    height: 2rem;
+    border: 1px solid rgba(201, 168, 76, 0.5);
+    color: #f5f0e8; // blanc fixe sur fond sombre
+    width: 2.4rem;
+    height: 2.4rem;
     border-radius: 50%;
     @include m.flex-center;
-    font-size: 0.9rem;
-    transition: color 200ms ease, border-color 200ms ease;
+    font-size: 1.15rem;
+    transition: color 200ms ease, background-color 200ms ease;
     @include m.focus-ring;
 
     &:hover {
-        color: var(--color-gold);
-        border-color: var(--color-border-gold);
+        color: #c9a84c;
+        background-color: rgba(201, 168, 76, 0.12);
     }
 
     .icon-sun  { display: none; }
@@ -125,15 +137,23 @@
     }
 }
 
-// Barre de navigation secondaire
+// ============================================================
+// Barre de navigation — style "grand cru" avec séparateurs |
+// ============================================================
+
 .header-nav {
-    background-color: rgba(255, 255, 255, 0.04);
-    border-top: 1px solid var(--color-border);
+    background-color: rgba(0, 0, 0, 0.3);
+    border-top: 1px solid rgba(201, 168, 76, 0.25);
+    display: none;
+
+    @include m.bp('lg') {
+        display: block;
+    }
 }
 
 .header-nav__inner {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     gap: 0;
     max-width: 1400px;
@@ -150,22 +170,29 @@
 .header-nav__link {
     font-family: var(--font-serif);
     font-style: italic;
-    font-size: 0.9rem;
-    letter-spacing: 0.06em;
-    color: var(--color-text-muted);
-    padding: 0.6rem 1.25rem;
-    border-right: 1px solid var(--color-border);
+    font-size: 0.875rem;
+    letter-spacing: 0.08em;
+    color: #f5f0e8; // blanc fixe sur fond sombre
+    padding: 0.65rem 1.5rem;
+    border-right: 1px solid rgba(201, 168, 76, 0.35);
     white-space: nowrap;
-    transition: color 200ms ease;
+    position: relative;
+    transition: color 200ms ease, background-color 200ms ease, transform 200ms ease;
     @include m.focus-ring;
 
     &:first-child {
-        border-left: 1px solid var(--color-border);
+        border-left: 1px solid rgba(201, 168, 76, 0.35);
     }
 
-    &:hover,
+    &:hover {
+        color: #c9a84c;
+        background-color: rgba(8, 8, 8, 0.6);
+        transform: translateX(-2px);
+    }
+
     &.active {
-        color: var(--color-gold);
+        color: #c9a84c;
+        background-color: rgba(8, 8, 8, 0.4);
     }
 }
 
@@ -188,12 +215,12 @@
         display: block;
         width: 22px;
         height: 2px;
-        background-color: var(--color-text-muted);
-        transition: background-color 200ms ease;
+        background-color: rgba(245, 240, 232, 0.75);
+        transition: transform 200ms ease, opacity 200ms ease, background-color 200ms ease;
     }
 
     &:hover span {
-        background-color: var(--color-gold);
+        background-color: #c9a84c;
     }
 
     &[aria-expanded='true'] span:nth-child(1) {
@@ -207,10 +234,6 @@
     &[aria-expanded='true'] span:nth-child(3) {
         transform: translateY(-7px) rotate(-45deg);
     }
-
-    span {
-        transition: transform 200ms ease, opacity 200ms ease, background-color 200ms ease;
-    }
 }
 
 // Menu mobile dépliable
@@ -218,7 +241,7 @@
     display: none;
     flex-direction: column;
     background-color: var(--header-bg);
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid rgba(201, 168, 76, 0.2);
     padding: 1rem 1.5rem;
 
     &.is-open {
@@ -231,9 +254,9 @@
 
     a {
         padding: 0.75rem 0;
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 1px solid rgba(245, 240, 232, 0.07);
         font-size: 0.95rem;
-        color: var(--color-text-muted);
+        color: rgba(245, 240, 232, 0.85);
         font-family: var(--font-serif);
         font-style: italic;
         transition: color 200ms ease;
@@ -243,7 +266,7 @@
         }
 
         &:hover {
-            color: var(--color-gold);
+            color: #c9a84c;
         }
     }
 }

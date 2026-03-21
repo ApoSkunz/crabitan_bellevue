@@ -30,15 +30,17 @@
         }
     }
 
-    // Variante blanche (header)
+    // Variante blanche (header) — fond blanc, police dorée
     &--white {
         background-color: #ffffff;
-        color: #111111;
+        color: var(--color-gold);
         border-color: #ffffff;
+        font-weight: 600;
 
         &:hover {
             background-color: transparent;
             color: #ffffff;
+            border-color: #ffffff;
         }
     }
 
