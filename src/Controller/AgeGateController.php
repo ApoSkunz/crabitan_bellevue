@@ -9,11 +9,17 @@ use Core\Response;
 
 class AgeGateController extends Controller
 {
-    private const COOKIE_NAME = 'age_verified';
-    private const COOKIE_TTL  = 30 * 24 * 3600; // 30 jours
+    private const COOKIE_NAME     = 'age_verified';
+    private const COOKIE_REMEMBER = 'age_remember';
+    private const COOKIE_TTL      = 397 * 24 * 3600; // 13 mois — durée max CNIL/RGPD
 
     public function show(): void
     {
+        // Déjà vérifié → retour au site, pas de retour possible sur l'age gate
+        if (($_COOKIE[self::COOKIE_NAME] ?? '') === '1') {
+            Response::redirect('/' . DEFAULT_LANG);
+        }
+
         $redirect = $_GET['redirect'] ?? '/' . DEFAULT_LANG;
 
         $this->view('age-gate', [
@@ -27,18 +33,28 @@ class AgeGateController extends Controller
         $remember = !empty($_POST['remember']);
         $redirect = $_POST['redirect'] ?? '/' . DEFAULT_LANG;
 
-        // Mineur ou choix absent → retour sur la page age gate
+        // Mineur ou choix absent → redirection Google (JS disabled fallback)
         if ($legalAge !== '1') {
-            Response::redirect('/age-gate');
+            Response::redirect('https://www.google.com');
         }
 
-        setcookie(self::COOKIE_NAME, '1', [
-            'expires'  => $remember ? time() + self::COOKIE_TTL : 0,
+        $cookieBase = [
             'path'     => '/',
             'secure'   => isset($_SERVER['HTTPS']),
             'httponly' => true,
             'samesite' => 'Lax',
-        ]);
+        ];
+
+        setcookie(self::COOKIE_NAME, '1', array_merge($cookieBase, [
+            'expires' => $remember ? time() + self::COOKIE_TTL : 0,
+        ]));
+
+        // Cookie marqueur "remember" pour le sliding refresh en navigation
+        if ($remember) {
+            setcookie(self::COOKIE_REMEMBER, '1', array_merge($cookieBase, [
+                'expires' => time() + self::COOKIE_TTL,
+            ]));
+        }
 
         Response::redirect(filter_var($redirect, FILTER_SANITIZE_URL));
     }

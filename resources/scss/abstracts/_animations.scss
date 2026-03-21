@@ -1,17 +1,3 @@
-// Propriété CSS enregistrée pour la rotation du shimmer
-@property --shimmer-angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-}
-
-// Rotation du shimmer doré sur la bordure (age gate)
-@keyframes shimmer-rotate {
-    to {
-        --shimmer-angle: 360deg;
-    }
-}
-
 // Apparition en fondu
 @keyframes fade-in {
     from {

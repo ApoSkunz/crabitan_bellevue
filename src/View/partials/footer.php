@@ -17,10 +17,8 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
             </nav>
 
             <div class="footer-payments" aria-label="Moyens de paiement acceptés">
-                <img src="/assets/images/payment-cb.svg" alt="Carte Bleue" width="38">
-                <img src="/assets/images/payment-visa.svg" alt="Visa" width="38">
-                <img src="/assets/images/payment-mastercard.svg" alt="Mastercard" width="38">
-                <img src="/assets/images/payment-ca.svg" alt="Crédit Agricole up2pay" width="80">
+                <img src="/assets/images/payment-cbvisa.png" alt="CB, Visa, Mastercard" height="28">
+                <img src="/assets/images/payment-ca.png" alt="Crédit Agricole up2pay e-Transactions" height="28">
             </div>
         </div>
 
@@ -35,6 +33,9 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
         </div>
     </div>
 </footer>
+
+<?php require SRC_PATH . '/View/partials/cookie-banner.php'; ?>
+
 <script src="/assets/js/main.js"></script>
 </body>
 </html>

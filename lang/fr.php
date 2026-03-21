@@ -10,7 +10,7 @@ return [
     'age_gate.enter'         => 'Entrer',
     'age_gate.info_label'    => 'Informations légales',
     'age_gate.choice_legend' => 'Vérification de l\'âge',
-    'age_gate.error'         => 'Vous devez être en âge légal pour accéder à ce site.',
+    'age_gate.error'         => 'Vous devez être en âge légal pour accéder à ce site. Vous allez être redirigé dans 3 secondes.',
 
     // Navigation
     'nav.home'       => 'Accueil',
@@ -93,6 +93,14 @@ return [
     'validation.email'         => 'Adresse email invalide.',
     'validation.password_min'  => 'Le mot de passe doit contenir au moins 8 caractères.',
     'validation.password_match' => 'Les mots de passe ne correspondent pas.',
+
+    // Cookie banner
+    'cookie.banner_label' => 'Bandeau cookies',
+    'cookie.text'         => 'Ce site utilise Google Analytics pour mesurer son audience. Acceptez-vous l\'utilisation de ce cookie de suivi ?',
+    'cookie.learn_more'   => 'En savoir plus',
+    'cookie.accept'       => 'Accepter',
+    'cookie.refuse'       => 'Refuser',
+    'cookie.required'     => '⚠ Veuillez accepter ou refuser les cookies avant de continuer.',
 
     // Footer
     'footer.legal_notice'    => 'Mentions légales',

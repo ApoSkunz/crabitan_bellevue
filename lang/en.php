@@ -10,7 +10,7 @@ return [
     'age_gate.enter'         => 'Enter',
     'age_gate.info_label'    => 'Legal information',
     'age_gate.choice_legend' => 'Age verification',
-    'age_gate.error'         => 'You must be of legal drinking age to access this site.',
+    'age_gate.error'         => 'You must be of legal drinking age to access this site. You will be redirected in 3 seconds.',
 
     // Navigation
     'nav.home'       => 'Home',
@@ -93,6 +93,14 @@ return [
     'validation.email'          => 'Invalid email address.',
     'validation.password_min'   => 'Password must be at least 8 characters.',
     'validation.password_match' => 'Passwords do not match.',
+
+    // Cookie banner
+    'cookie.banner_label' => 'Cookie consent',
+    'cookie.text'         => 'This site uses Google Analytics to measure its audience. Do you accept the use of this tracking cookie?',
+    'cookie.learn_more'   => 'Learn more',
+    'cookie.accept'       => 'Accept',
+    'cookie.refuse'       => 'Decline',
+    'cookie.required'     => '⚠ Please accept or decline cookies before continuing.',
 
     // Footer
     'footer.legal_notice'    => 'Legal notice',
