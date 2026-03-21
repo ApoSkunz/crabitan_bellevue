@@ -8,15 +8,15 @@ require __DIR__ . '/../partials/header.php';
     <div class="auth-card">
         <h1><?= __('auth.reset_password') ?></h1>
 
-        <?php if (!$valid): ?>
+        <?php if (!$valid) : ?>
             <div class="alert alert--error" role="alert">
                 <?= htmlspecialchars($error ?? __('auth.reset_invalid')) ?>
             </div>
             <p class="auth-card__switch">
                 <a href="/<?= htmlspecialchars($lang) ?>/mot-de-passe-oublie"><?= __('auth.forgot_password') ?></a>
             </p>
-        <?php else: ?>
-            <?php if ($error): ?>
+        <?php else : ?>
+            <?php if ($error) : ?>
                 <div class="alert alert--error" role="alert">
                     <?= htmlspecialchars($error) ?>
                 </div>

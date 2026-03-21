@@ -9,9 +9,9 @@ class Request
     public readonly string $method;
     public readonly string $uri;
     public readonly string $path;
-    public readonly array  $query;
-    public readonly array  $body;
-    public readonly array  $headers;
+    public readonly array $query;
+    public readonly array $body;
+    public readonly array $headers;
 
     public function __construct()
     {

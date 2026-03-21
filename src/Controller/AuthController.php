@@ -341,13 +341,27 @@ class AuthController extends Controller
         string $company
     ): array {
         $errors = [];
-        if (strlen($lastname) < 2)  $errors['lastname']  = __('validation.required');
-        if (strlen($firstname) < 2) $errors['firstname'] = __('validation.required');
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = __('validation.email');
-        if (strlen($password) < 8)  $errors['password'] = __('validation.password_min');
-        if ($password !== $confirm) $errors['password_confirm'] = __('validation.password_match');
-        if (!in_array($gender, ['M', 'F', 'other', 'society'], true)) $errors['gender'] = __('validation.required');
-        if ($gender === 'society' && strlen($company) < 2) $errors['company_name'] = __('validation.required');
+        if (strlen($lastname) < 2) {
+            $errors['lastname']  = __('validation.required');
+        }
+        if (strlen($firstname) < 2) {
+            $errors['firstname'] = __('validation.required');
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = __('validation.email');
+        }
+        if (strlen($password) < 8) {
+            $errors['password'] = __('validation.password_min');
+        }
+        if ($password !== $confirm) {
+            $errors['password_confirm'] = __('validation.password_match');
+        }
+        if (!in_array($gender, ['M', 'F', 'other', 'society'], true)) {
+            $errors['gender'] = __('validation.required');
+        }
+        if ($gender === 'society' && strlen($company) < 2) {
+            $errors['company_name'] = __('validation.required');
+        }
         return $errors;
     }
 

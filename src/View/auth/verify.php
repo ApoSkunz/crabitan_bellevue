@@ -12,11 +12,11 @@ require __DIR__ . '/../partials/header.php';
             <?= htmlspecialchars($message) ?>
         </div>
 
-        <?php if ($success): ?>
+        <?php if ($success) : ?>
             <a href="/<?= htmlspecialchars($lang) ?>/connexion" class="btn btn--primary btn--full">
                 <?= __('auth.login') ?>
             </a>
-        <?php else: ?>
+        <?php else : ?>
             <p><?= __('auth.verify_contact') ?></p>
         <?php endif; ?>
     </div>

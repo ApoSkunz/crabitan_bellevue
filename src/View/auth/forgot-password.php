@@ -8,13 +8,13 @@ require __DIR__ . '/../partials/header.php';
     <div class="auth-card">
         <h1><?= __('auth.forgot_password') ?></h1>
 
-        <?php if ($info): ?>
+        <?php if ($info) : ?>
             <div class="alert alert--info" role="alert">
                 <?= htmlspecialchars($info) ?>
             </div>
         <?php endif; ?>
 
-        <?php if (!$info): ?>
+        <?php if (!$info) : ?>
             <form method="POST" action="/<?= htmlspecialchars($lang) ?>/mot-de-passe-oublie" novalidate>
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 

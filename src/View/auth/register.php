@@ -12,7 +12,7 @@ $v = fn(string $field) => htmlspecialchars($old[$field] ?? '');
     <div class="auth-card auth-card--wide">
         <h1><?= __('auth.register') ?></h1>
 
-        <?php if (!empty($errors['email']) && count($errors) === 1): ?>
+        <?php if (!empty($errors['email']) && count($errors) === 1) : ?>
             <div class="alert alert--error" role="alert">
                 <?= htmlspecialchars($errors['email']) ?>
             </div>
