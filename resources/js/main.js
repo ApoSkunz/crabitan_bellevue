@@ -69,7 +69,7 @@ function initAgeGate() {
             form.querySelectorAll('input, button').forEach(el => { el.disabled = true; });
 
             // Redirection après 3 secondes
-            setTimeout(() => { window.location.href = 'https://www.google.com'; }, 3000);
+            setTimeout(() => { window.location.href = 'https://www.google.com'; }, 3000); // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
             return;
         }
 
