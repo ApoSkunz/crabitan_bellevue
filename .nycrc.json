@@ -1,0 +1,7 @@
+{
+    "include": ["resources/js/**/*.js"],
+    "exclude": ["node_modules/**", "public/assets/**", "tests/**"],
+    "reporter": ["lcovonly", "text"],
+    "report-dir": "coverage",
+    "temp-dir": ".nyc_output"
+}

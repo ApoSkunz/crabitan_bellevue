@@ -1,0 +1,339 @@
+@use '../abstracts/mixins' as m;
+
+// ============================================================
+// Page age gate
+// ============================================================
+
+.age-gate-page {
+    background-color: #080808;
+    min-height: 100dvh;
+    overflow: hidden;
+}
+
+.age-gate {
+    position: relative;
+    width: 100%;
+    min-height: 100dvh;
+    padding: 2.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    animation: fade-in 0.6s ease both;
+
+    // 1er cadre doré : bords du viewport (position fixe, ne bouge pas au scroll)
+    &::before {
+        content: '';
+        position: fixed;
+        inset: 12px 12px 28px 12px; // bas remonté pour l'esthétique
+        border: 1px solid rgba(201, 168, 76, 0.4);
+        pointer-events: none;
+        z-index: 10;
+    }
+}
+
+// Citation — entre les deux cadres dorés (police script, 2.6em ancien site)
+.age-gate__quote {
+    font-family: var(--font-script);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    letter-spacing: 0.06em;
+    color: var(--color-gold);
+    text-align: center;
+    z-index: 1;
+    animation: shimmer-text 5s ease-in-out infinite;
+    max-width: 820px;
+}
+
+// ─── 2ème cadre doré : autour de la card ──────────────────────────────────
+// Les 4 spans font l'aller-retour sur la face intérieure de cette bordure
+.age-gate__card-wrapper {
+    position: relative;
+    width: min(700px, calc(100% - 2rem));
+    z-index: 1;
+    border: 1px solid rgba(201, 168, 76, 0.55);
+    box-shadow:
+        0 0 18px rgba(201, 168, 76, 0.1),
+        inset 0 0 30px rgba(0, 0, 0, 0.4);
+    overflow: hidden; // clip les spans à l'intérieur du cadre
+}
+
+// ─── 4 spans > enfants directs uniquement ─────────────────────────────────
+// IMPORTANT : > span (direct child) pour ne PAS affecter les <span> du formulaire
+.age-gate__card-wrapper > span {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+}
+
+// Arête haute
+.age-gate__card-wrapper > span:nth-child(1) { top: 0; left: 0; right: 0; height: 1px; }
+
+// Arête droite
+.age-gate__card-wrapper > span:nth-child(2) { top: 0; right: 0; bottom: 0; width: 1px; }
+
+// Arête basse
+.age-gate__card-wrapper > span:nth-child(3) { bottom: 0; left: 0; right: 0; height: 1px; }
+
+// Arête gauche
+.age-gate__card-wrapper > span:nth-child(4) { top: 0; left: 0; bottom: 0; width: 1px; }
+
+// Highlight blanc — arêtes horizontales (haut/bas)
+.age-gate__card-wrapper > span:nth-child(1)::before,
+.age-gate__card-wrapper > span:nth-child(3)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 30%;
+    background: rgba(255, 255, 255, 0.9);
+    animation: edge-h 2.6s ease-in-out 1 forwards;
+}
+
+// Highlight blanc — arêtes verticales (droite/gauche)
+.age-gate__card-wrapper > span:nth-child(2)::before,
+.age-gate__card-wrapper > span:nth-child(4)::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 30%;
+    background: rgba(255, 255, 255, 0.9);
+    animation: edge-v 2.6s ease-in-out 1 forwards;
+}
+
+// Aller-retour unique horizontal : gauche → droite → gauche → fondu
+@keyframes edge-h {
+    0%   { left: -30%; opacity: 1; }
+    45%  { left: 100%; opacity: 1; }
+    55%  { left: 100%; opacity: 1; }
+    95%  { left: -30%; opacity: 0.4; }
+    100% { left: -30%; opacity: 0; }
+}
+
+// Aller-retour unique vertical : haut → bas → haut → fondu
+@keyframes edge-v {
+    0%   { top: -30%; opacity: 1; }
+    45%  { top: 100%; opacity: 1; }
+    55%  { top: 100%; opacity: 1; }
+    95%  { top: -30%; opacity: 0.4; }
+    100% { top: -30%; opacity: 0; }
+}
+
+// ─── Card ─────────────────────────────────────────────────────────────────
+.age-gate__card {
+    background-color: #0e0e0e;
+    padding: 3rem 3.5rem;
+    position: relative;
+    overflow: hidden;
+
+    @include m.bp('md') {
+        padding: 3.5rem 4rem;
+    }
+
+    // Lumière oblique blanche au survol — large, s'arrête à ~50% de la card
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -70%;
+        width: 65%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.12);
+        transform: skewX(-20deg);
+        transition: left 0.6s ease;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    // Tout le contenu direct passe devant la lumière oblique
+    > * {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+.age-gate__card-wrapper:hover .age-gate__card::before {
+    left: -15%; // bord droit à ~50% : -15% + 65% = 50%
+}
+
+// Logo
+.age-gate__logo {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    img {
+        margin: 0 auto 0.75rem;
+        max-height: 130px;
+        width: auto;
+    }
+}
+
+.age-gate__logo-text {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+}
+
+// Texte intro
+.age-gate__intro {
+    font-size: 1rem;
+    color: var(--color-gold);
+    text-align: center;
+    line-height: 1.8;
+    margin-bottom: 2rem;
+    letter-spacing: 0.02em;
+    max-width: 50ch;
+    margin-inline: auto;
+}
+
+// Wrapper choices + erreur côte à côte
+.age-gate__choices-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+// Choix radios
+.age-gate__choices {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+}
+
+.age-gate__choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    cursor: pointer;
+    color: var(--color-gold);
+    font-size: 0.95rem;
+    line-height: 1.5;
+
+    input[type='radio'] {
+        margin-top: 0.2em;
+        accent-color: var(--color-gold);
+        width: 1.1rem;
+        height: 1.1rem;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+}
+
+// Message d'erreur — à droite des choices, vertical, responsive
+.age-gate__error {
+    font-size: 0.82rem;
+    color: #e05555;
+    line-height: 1.5;
+    flex-shrink: 0;
+    max-width: 180px;
+    border-left: 2px solid rgba(224, 85, 85, 0.4);
+    padding-left: 0.75rem;
+
+    &[hidden] { display: none; }
+
+    // Mobile : passe en dessous, pleine largeur
+    @include m.bp('md') {
+        // déjà côte à côte sur md+
+    }
+}
+
+@media (max-width: 575px) {
+    .age-gate-page {
+        overflow: auto;
+    }
+
+    .age-gate {
+        // padding-bottom = hauteur banner (~120px) + marge visuelle
+        // justify-content: center + padding-bottom asymétrique centre le contenu dans la zone visible
+        padding: 2rem 1rem 150px;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .age-gate::before {
+        inset: 12px 12px 155px 12px; // bas du cadre remonte au-dessus du cookie banner
+    }
+
+    .age-gate__quote {
+        font-size: 3rem;
+    }
+
+    .age-gate__logo {
+        margin-bottom: 1rem;
+
+        img {
+            max-height: 70px;
+        }
+    }
+
+    .age-gate__card {
+        padding: 1.75rem 1.5rem;
+    }
+
+    .age-gate__intro {
+        font-size: 0.85rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .age-gate__choice {
+        font-size: 0.85rem;
+    }
+
+    .age-gate__choices-wrap {
+        flex-direction: column;
+    }
+
+    .age-gate__error {
+        max-width: 100%;
+        border-left: none;
+        border-top: 2px solid rgba(224, 85, 85, 0.4);
+        padding-left: 0;
+        padding-top: 0.5rem;
+    }
+
+    // Footer en colonne : Se souvenir + Entrer empilés, jamais masqués par le banner
+    .age-gate__footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .age-gate__footer .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+// Footer formulaire
+.age-gate__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.age-gate__remember {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--color-gold);
+    cursor: pointer;
+
+    input[type='checkbox'] {
+        accent-color: var(--color-gold);
+        width: 0.95rem;
+        height: 0.95rem;
+        cursor: pointer;
+    }
+}

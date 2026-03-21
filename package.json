@@ -2,14 +2,28 @@
   "name": "crabitan-bellevue",
   "version": "0.0.0",
   "description": "Crabitan Bellevue - Site e-commerce vins",
+  "type": "module",
   "private": true,
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "lint": "eslint resources/js/ tests/E2E/ playwright.config.js",
+    "test": "playwright test"
+  },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
+    "nyc": "^17.0.0",
+    "vite-plugin-istanbul": "^6.0.2",
     "@semantic-release/changelog": "^6.0.0",
     "@semantic-release/commit-analyzer": "^13.0.0",
     "@semantic-release/git": "^10.0.0",
     "@semantic-release/github": "^10.0.0",
     "@semantic-release/release-notes-generator": "^14.0.0",
-    "semantic-release": "^24.0.0"
+    "eslint": "^10.1.0",
+    "globals": "^17.4.0",
+    "sass": "^1.83.0",
+    "semantic-release": "^24.0.0",
+    "vite": "^6.0.0"
   }
 }

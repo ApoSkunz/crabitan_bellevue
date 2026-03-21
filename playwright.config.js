@@ -1,7 +1,7 @@
 // @ts-check
-const { defineConfig, devices } = require('@playwright/test');
+import { defineConfig, devices } from '@playwright/test';
 
-module.exports = defineConfig({
+export default defineConfig({
     testDir: './tests/E2E',
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
@@ -12,7 +12,6 @@ module.exports = defineConfig({
     use: {
         baseURL: process.env.APP_URL || 'http://localhost:8000',
         trace: 'on-first-retry',
-        coverage: true,
     },
 
     projects: [

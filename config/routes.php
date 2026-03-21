@@ -6,69 +6,73 @@ declare(strict_types=1);
 // Routes publiques
 // ============================================================
 
+// Age gate
+$router->get('/age-gate', 'AgeGateController@show');
+$router->post('/age-gate', 'AgeGateController@confirm');
+
 // Home
-$router->get('/',         'HomeController@index');
-$router->get('/fr',       'HomeController@index');
-$router->get('/en',       'HomeController@index');
+$router->get('/', 'HomeController@index');
+$router->get('/fr', 'HomeController@index');
+$router->get('/en', 'HomeController@index');
 
 // Catalogue vins
-$router->get('/{lang}/vins',                  'WineController@index');
-$router->get('/{lang}/vins/collection',       'WineController@collection');
-$router->get('/{lang}/vins/{slug}',           'WineController@show');
+$router->get('/{lang}/vins', 'WineController@index');
+$router->get('/{lang}/vins/collection', 'WineController@collection');
+$router->get('/{lang}/vins/{slug}', 'WineController@show');
 
 // News
-$router->get('/{lang}/actualites',            'NewsController@index');
-$router->get('/{lang}/actualites/{slug}',     'NewsController@show');
+$router->get('/{lang}/actualites', 'NewsController@index');
+$router->get('/{lang}/actualites/{slug}', 'NewsController@show');
 
 // Auth
-$router->get( '/{lang}/connexion',            'AuthController@loginForm');
-$router->post('/{lang}/connexion',            'AuthController@login');
-$router->get( '/{lang}/inscription',          'AuthController@registerForm');
-$router->post('/{lang}/inscription',          'AuthController@register');
-$router->get( '/{lang}/deconnexion',          'AuthController@logout');
-$router->get( '/{lang}/verification/{token}', 'AuthController@verifyEmail');
-$router->get( '/{lang}/mot-de-passe-oublie',  'AuthController@forgotForm');
-$router->post('/{lang}/mot-de-passe-oublie',  'AuthController@forgot');
-$router->get( '/{lang}/reinitialisation/{token}', 'AuthController@resetForm');
+$router->get('/{lang}/connexion', 'AuthController@loginForm');
+$router->post('/{lang}/connexion', 'AuthController@login');
+$router->get('/{lang}/inscription', 'AuthController@registerForm');
+$router->post('/{lang}/inscription', 'AuthController@register');
+$router->get('/{lang}/deconnexion', 'AuthController@logout');
+$router->get('/{lang}/verification/{token}', 'AuthController@verifyEmail');
+$router->get('/{lang}/mot-de-passe-oublie', 'AuthController@forgotForm');
+$router->post('/{lang}/mot-de-passe-oublie', 'AuthController@forgot');
+$router->get('/{lang}/reinitialisation/{token}', 'AuthController@resetForm');
 $router->post('/{lang}/reinitialisation/{token}', 'AuthController@reset');
 
 // Panier
-$router->get( '/{lang}/panier',               'CartController@index');
-$router->post('/{lang}/panier/ajouter',       'CartController@add');
-$router->post('/{lang}/panier/modifier',      'CartController@update');
-$router->post('/{lang}/panier/supprimer',     'CartController@remove');
+$router->get('/{lang}/panier', 'CartController@index');
+$router->post('/{lang}/panier/ajouter', 'CartController@add');
+$router->post('/{lang}/panier/modifier', 'CartController@update');
+$router->post('/{lang}/panier/supprimer', 'CartController@remove');
 
 // Commande
-$router->get( '/{lang}/commande',             'OrderController@checkout');
-$router->post('/{lang}/commande/paiement',    'OrderController@payment');
-$router->get( '/{lang}/commande/confirmation','OrderController@confirmation');
+$router->get('/{lang}/commande', 'OrderController@checkout');
+$router->post('/{lang}/commande/paiement', 'OrderController@payment');
+$router->get('/{lang}/commande/confirmation', 'OrderController@confirmation');
 
 // Espace client
-$router->get( '/{lang}/mon-compte',           'AccountController@index');
-$router->get( '/{lang}/mon-compte/commandes', 'AccountController@orders');
-$router->get( '/{lang}/mon-compte/adresses',  'AccountController@addresses');
-$router->get( '/{lang}/mon-compte/favoris',   'AccountController@favorites');
+$router->get('/{lang}/mon-compte', 'AccountController@index');
+$router->get('/{lang}/mon-compte/commandes', 'AccountController@orders');
+$router->get('/{lang}/mon-compte/adresses', 'AccountController@addresses');
+$router->get('/{lang}/mon-compte/favoris', 'AccountController@favorites');
 
 // ============================================================
 // Routes API (AJAX)
 // ============================================================
-$router->post('/api/cart/add',       'Api\CartApiController@add');
-$router->post('/api/cart/update',    'Api\CartApiController@update');
-$router->post('/api/cart/remove',    'Api\CartApiController@remove');
+$router->post('/api/cart/add', 'Api\CartApiController@add');
+$router->post('/api/cart/update', 'Api\CartApiController@update');
+$router->post('/api/cart/remove', 'Api\CartApiController@remove');
 $router->post('/api/favorites/toggle', 'Api\FavoriteApiController@toggle');
 
 // ============================================================
 // Routes Admin
 // ============================================================
-$router->get( '/admin',                       'Admin\DashboardController@index');
-$router->get( '/admin/vins',                  'Admin\WineAdminController@index');
-$router->get( '/admin/vins/ajouter',          'Admin\WineAdminController@create');
-$router->post('/admin/vins/ajouter',          'Admin\WineAdminController@store');
-$router->get( '/admin/vins/{id}/modifier',    'Admin\WineAdminController@edit');
-$router->post('/admin/vins/{id}/modifier',    'Admin\WineAdminController@update');
-$router->get( '/admin/commandes',             'Admin\OrderAdminController@index');
-$router->get( '/admin/commandes/{id}',        'Admin\OrderAdminController@show');
+$router->get('/admin', 'Admin\DashboardController@index');
+$router->get('/admin/vins', 'Admin\WineAdminController@index');
+$router->get('/admin/vins/ajouter', 'Admin\WineAdminController@create');
+$router->post('/admin/vins/ajouter', 'Admin\WineAdminController@store');
+$router->get('/admin/vins/{id}/modifier', 'Admin\WineAdminController@edit');
+$router->post('/admin/vins/{id}/modifier', 'Admin\WineAdminController@update');
+$router->get('/admin/commandes', 'Admin\OrderAdminController@index');
+$router->get('/admin/commandes/{id}', 'Admin\OrderAdminController@show');
 $router->post('/admin/commandes/{id}/statut', 'Admin\OrderAdminController@updateStatus');
-$router->get( '/admin/comptes',               'Admin\AccountAdminController@index');
-$router->get( '/admin/tarifs',                'Admin\PricingAdminController@index');
-$router->post('/admin/tarifs',                'Admin\PricingAdminController@update');
+$router->get('/admin/comptes', 'Admin\AccountAdminController@index');
+$router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
+$router->post('/admin/tarifs', 'Admin\PricingAdminController@update');
