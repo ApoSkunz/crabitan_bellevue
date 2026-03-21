@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Middleware;
+
+use Core\Response;
+
+class AdminMiddleware
+{
+    /**
+     * Vérifie l'auth ET le rôle admin/super_admin.
+     * Retourne le payload JWT.
+     */
+    public static function handle(): array
+    {
+        $payload = AuthMiddleware::handle();
+
+        if (!in_array($payload['role'] ?? '', ['admin', 'super_admin'], true)) {
+            Response::abort(403, 'Accès refusé');
+        }
+
+        return $payload;
+    }
+}

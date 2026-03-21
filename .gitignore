@@ -18,3 +18,6 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+#TODO Remove at the end of project
+tree_former.txt

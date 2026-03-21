@@ -25,3 +25,8 @@ if (APP_ENV === 'development') {
 // Langue par défaut
 define('DEFAULT_LANG', 'fr');
 define('SUPPORTED_LANGS', ['fr', 'en']);
+
+// Session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
