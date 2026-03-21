@@ -2,9 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main, 'feat/**']
-  pull_request:
     branches: [main]
+  pull_request:
 
 jobs:
   quality:
@@ -75,3 +74,29 @@ jobs:
           DB_USER: root
           DB_PASS: root
         run: vendor/bin/phpunit --testsuite Integration
+
+  sca:
+    name: SCA — Dependency Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Composer audit (PHP deps)
+        run: composer audit
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: npm audit (JS deps)
+        run: npm audit --audit-level=high
