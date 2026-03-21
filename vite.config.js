@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import istanbul from 'vite-plugin-istanbul';
 
 const coveragePlugins = process.env.VITE_COVERAGE === 'true'
-    ? [istanbul({ include: 'resources/js/**', exclude: ['node_modules', 'tests'], extension: ['.js'], requireEnv: false })]
+    ? [istanbul({ include: 'resources/js/**', exclude: ['node_modules', 'tests'], extension: ['.js'], requireEnv: false, forceBuildInstrument: true })]
     : [];
 
 export default defineConfig({

@@ -5,9 +5,11 @@
  * Serves static files directly; routes everything else through index.php.
  */
 
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$uri      = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$realBase = realpath(__DIR__);
+$realFile = ($uri !== '/') ? realpath(__DIR__ . $uri) : false;
 
-if ($uri !== '/' && file_exists(__DIR__ . $uri)) {
+if ($realFile !== false && str_starts_with($realFile, $realBase . DIRECTORY_SEPARATOR)) {
     return false;
 }
 

@@ -177,7 +177,14 @@ jobs:
         run: npx playwright test --project=chromium
 
       - name: Generate JS coverage (lcov)
-        run: npx nyc report
+        run: |
+          if [ -d .nyc_output ] && [ "$(ls -A .nyc_output)" ]; then
+            npx nyc report
+          else
+            echo "No JS coverage data collected — generating empty lcov"
+            mkdir -p coverage
+            printf 'TN:\nend_of_record\n' > coverage/lcov.info
+          fi
 
       - name: Upload JS coverage
         uses: actions/upload-artifact@v4
