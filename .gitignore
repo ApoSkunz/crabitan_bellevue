@@ -1,0 +1,19 @@
+# Environnement
+.env
+
+# Dépendances
+/vendor/
+
+# Logs & stockage
+/storage/logs/*.log
+/storage/pdf/invoices/*.pdf
+/storage/uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
