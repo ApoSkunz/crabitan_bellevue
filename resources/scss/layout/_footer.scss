@@ -35,10 +35,10 @@
     text-align: center;
 
     @include m.bp('md') {
-        flex-direction: row;
-        justify-content: center;
-        gap: 3rem;
-        text-align: center;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 2rem;
     }
 }
 
@@ -50,7 +50,7 @@
     }
 }
 
-// Navigation footer
+// Navigation footer — colonne centrale du grid, liens centrés
 .footer-nav {
     display: flex;
     flex-wrap: wrap;
@@ -74,6 +74,7 @@
 .footer-payments {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.75rem;
 
     img {

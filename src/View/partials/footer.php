@@ -20,18 +20,11 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
                     <?= htmlspecialchars(__('footer.legal_notice')) ?></a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/plan-du-site">
                     <?= htmlspecialchars(__('footer.sitemap')) ?></a>
-                <a
-                    href="https://www.websitecarbon.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                ><?= htmlspecialchars(__('footer.carbon')) ?></a>
             </nav>
 
             <div class="footer-payments" aria-label="Moyens de paiement acceptés">
                 <img src="/assets/images/payment-cb-banner.png"
                     alt="CB, Visa, Mastercard" height="28" loading="lazy">
-                <img src="/assets/images/payment-ca-up2pay.png"
-                    alt="Crédit Agricole up2pay e-Transactions" height="28" loading="lazy">
             </div>
         </div>
 
