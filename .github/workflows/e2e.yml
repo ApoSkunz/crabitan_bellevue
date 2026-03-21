@@ -38,6 +38,14 @@ jobs:
       - name: Run E2E tests
         run: npx playwright test
 
+      - name: Upload JS coverage (lcov)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: js-coverage
+          path: coverage/lcov.info
+          retention-days: 7
+
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
         if: always()

@@ -73,7 +73,13 @@ jobs:
           DB_NAME: crabitan_test
           DB_USER: root
           DB_PASS: root
-        run: vendor/bin/phpunit --testsuite Integration
+        run: vendor/bin/phpunit --testsuite Integration --coverage-clover coverage/clover.xml
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   sca:
     name: SCA — Dependency Audit
