@@ -40,4 +40,8 @@ if ($ageVerified && isset($_COOKIE['age_remember'])) {
     setcookie('age_remember', '1', array_merge($cookieBase, ['expires' => time() + $ttl]));
 }
 
-$router->dispatch();
+try {
+    $router->dispatch();
+} catch (\Core\Exception\HttpException) {
+    exit;
+}

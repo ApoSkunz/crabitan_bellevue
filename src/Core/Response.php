@@ -11,14 +11,14 @@ class Response
         http_response_code($status);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        exit;
+        throw new \Core\Exception\HttpException($status);
     }
 
     public static function redirect(string $url, int $status = 302): never
     {
         http_response_code($status);
         header("Location: $url");
-        exit;
+        throw new \Core\Exception\HttpException($status, $url);
     }
 
     public static function abort(int $status = 404, string $message = 'Not Found'): never
@@ -26,7 +26,7 @@ class Response
         http_response_code($status);
         // TODO: renvoyer vers une vue d'erreur
         echo $message;
-        exit;
+        throw new \Core\Exception\HttpException($status, null, $message);
     }
 
     public static function view(string $template, array $data = [], int $status = 200): void
