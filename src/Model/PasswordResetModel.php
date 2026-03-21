@@ -14,8 +14,8 @@ class PasswordResetModel extends Model
     {
         $this->db->execute("DELETE FROM {$this->table} WHERE user_id = ?", [$userId]);
         $this->db->insert(
-            "INSERT INTO {$this->table} (user_id, token, expires_at) VALUES (?, ?, ?)",
-            [$userId, $token, date('Y-m-d H:i:s', time() + 3600)]
+            "INSERT INTO {$this->table} (user_id, token, expires_at) VALUES (?, ?, NOW() + INTERVAL 1 HOUR)",
+            [$userId, $token]
         );
     }
 
