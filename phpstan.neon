@@ -1,0 +1,13 @@
+parameters:
+    level: 5
+    phpVersion: 80400
+    paths:
+        - src
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    excludePaths:
+        - vendor
+        - src/View
+    treatPhpDocTypesAsCertain: false
+    dynamicConstantNames:
+        - APP_ENV

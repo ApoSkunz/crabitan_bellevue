@@ -8,7 +8,9 @@ class Router
 {
     private array $routes = [];
 
-    public function __construct(private Request $request) {}
+    public function __construct(private Request $request)
+    {
+    }
 
     public function get(string $path, string $action): void
     {
@@ -77,7 +79,7 @@ class Router
         [$class, $method] = explode('@', $action);
 
         // Résolution du namespace complet
-        $namespace = match(true) {
+        $namespace = match (true) {
             str_starts_with($class, 'Admin\\') => 'Controller\\' . $class,
             str_starts_with($class, 'Api\\')   => 'Controller\\' . $class,
             default                             => 'Controller\\' . $class,

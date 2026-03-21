@@ -1,0 +1,58 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  trufflehog:
+    name: TruffleHog Secret Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
+  sast:
+    name: SAST — Semgrep
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Semgrep
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: >-
+            p/php
+            p/owasp-top-ten
+            p/security-audit
+
+  legitify:
+    name: Legitify GitHub Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Legitify
+        uses: Legit-Labs/legitify@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          target: REPOSITORY
+          scorecard: true

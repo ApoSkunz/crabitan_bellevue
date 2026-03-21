@@ -6,7 +6,9 @@ namespace Core;
 
 abstract class Controller
 {
-    public function __construct(protected Request $request) {}
+    public function __construct(protected Request $request)
+    {
+    }
 
     protected function view(string $template, array $data = [], int $status = 200): void
     {

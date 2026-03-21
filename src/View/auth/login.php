@@ -8,13 +8,13 @@ require __DIR__ . '/../partials/header.php';
     <div class="auth-card">
         <h1><?= __('auth.login') ?></h1>
 
-        <?php if ($error): ?>
+        <?php if ($error) : ?>
             <div class="alert alert--error" role="alert">
                 <?= htmlspecialchars($error) ?>
             </div>
         <?php endif; ?>
 
-        <?php if ($info): ?>
+        <?php if ($info) : ?>
             <div class="alert alert--info" role="alert">
                 <?= htmlspecialchars($info) ?>
             </div>
