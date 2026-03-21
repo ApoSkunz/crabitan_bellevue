@@ -22,6 +22,16 @@ return [
     'auth.verify_email'      => 'Verify your email',
     'auth.invalid_credentials' => 'Invalid email or password',
     'auth.account_inactive'  => 'Please verify your email to activate your account',
+    'auth.email_taken'       => 'This email address is already in use',
+    'auth.register_success'  => 'Account created! Check your email to activate your account.',
+    'auth.verify_success'    => 'Your account is now active. You can log in.',
+    'auth.verify_invalid'    => 'Invalid or expired verification link.',
+    'auth.verify_contact'    => 'Contact us if you need assistance.',
+    'auth.already_verified'  => 'Your account is already active.',
+    'auth.reset_email_sent'  => 'If an account exists with this email, you will receive a reset link.',
+    'auth.reset_invalid'     => 'Invalid or expired reset link.',
+    'auth.password_invalid'  => 'Password too short or passwords do not match.',
+    'auth.password_updated'  => 'Password updated. You can now log in.',
 
     // Wines
     'wine.add_to_cart'  => 'Add to cart',
@@ -52,6 +62,25 @@ return [
     'error.404'    => 'Page not found',
     'error.500'    => 'Server error',
     'error.403'    => 'Access denied',
+    'error.csrf'   => 'Invalid request, please try again.',
+
+    // Forms
+    'form.lastname'         => 'Last name',
+    'form.firstname'        => 'First name',
+    'form.gender'           => 'Title',
+    'form.gender.m'         => 'Mr.',
+    'form.gender.f'         => 'Mrs.',
+    'form.gender.other'     => 'Other',
+    'form.gender.society'   => 'Company',
+    'form.company'          => 'Company name',
+    'form.password_confirm' => 'Confirm password',
+    'form.newsletter'       => 'I would like to receive news and offers from the estate',
+
+    // Validation
+    'validation.required'       => 'This field is required.',
+    'validation.email'          => 'Invalid email address.',
+    'validation.password_min'   => 'Password must be at least 8 characters.',
+    'validation.password_match' => 'Passwords do not match.',
 
     // General
     'btn.submit'   => 'Submit',

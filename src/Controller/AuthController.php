@@ -1,0 +1,386 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Controller;
+
+use Core\Controller;
+use Core\Jwt;
+use Core\Response;
+use Middleware\GuestMiddleware;
+use Model\AccountModel;
+use Model\PasswordResetModel;
+use Model\ConnectionModel;
+use Service\MailService;
+
+class AuthController extends Controller
+{
+    private AccountModel $accounts;
+    private PasswordResetModel $resets;
+    private ConnectionModel $connections;
+
+    public function __construct(\Core\Request $request)
+    {
+        parent::__construct($request);
+        $this->accounts    = new AccountModel();
+        $this->resets      = new PasswordResetModel();
+        $this->connections = new ConnectionModel();
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/connexion
+    // ----------------------------------------------------------------
+
+    public function loginForm(array $params): void
+    {
+        GuestMiddleware::handle();
+        $this->view('auth/login', [
+            'lang'  => $params['lang'],
+            'error' => $this->getFlash('error'),
+            'info'  => $this->getFlash('info'),
+            'csrf'  => $this->csrfToken(),
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/connexion
+    // ----------------------------------------------------------------
+
+    public function login(array $params): void
+    {
+        GuestMiddleware::handle();
+        $lang = $params['lang'];
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', __('error.csrf'));
+            Response::redirect("/{$lang}/connexion");
+        }
+
+        $email    = strtolower(trim($this->request->post('email', '')));
+        $password = $this->request->post('password', '');
+        $account  = $this->accounts->findByEmail($email);
+
+        if (!$account || !password_verify($password, $account['password'])) {
+            $this->flash('error', __('auth.invalid_credentials'));
+            Response::redirect("/{$lang}/connexion");
+        }
+
+        if (!$account['email_verified_at']) {
+            $this->flash('error', __('auth.account_inactive'));
+            Response::redirect("/{$lang}/connexion");
+        }
+
+        $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+        $token  = Jwt::generate((int) $account['id'], $account['role']);
+
+        setcookie('auth_token', $token, [
+            'expires'  => time() + $expiry,
+            'path'     => '/',
+            'secure'   => APP_ENV === 'production',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+
+        if ($account['lang'] !== $lang) {
+            $this->accounts->updateLang((int) $account['id'], $lang);
+        }
+
+        $ua = substr($_SERVER['HTTP_USER_AGENT'] ?? 'unknown', 0, 255);
+        $this->connections->create((int) $account['id'], $token, $ua, $expiry);
+
+        Response::redirect("/{$lang}/mon-compte");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/deconnexion
+    // ----------------------------------------------------------------
+
+    public function logout(array $params): void
+    {
+        $token = $_COOKIE['auth_token'] ?? null;
+
+        if ($token) {
+            $this->connections->revoke($token);
+            setcookie('auth_token', '', time() - 1, '/', '', APP_ENV === 'production', true);
+        }
+
+        Response::redirect('/' . $params['lang'] . '/connexion');
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/inscription
+    // ----------------------------------------------------------------
+
+    public function registerForm(array $params): void
+    {
+        GuestMiddleware::handle();
+        $this->view('auth/register', [
+            'lang'   => $params['lang'],
+            'errors' => $this->getFlashArray('errors'),
+            'old'    => $this->getFlashArray('old'),
+            'csrf'   => $this->csrfToken(),
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/inscription
+    // ----------------------------------------------------------------
+
+    public function register(array $params): void
+    {
+        GuestMiddleware::handle();
+        $lang = $params['lang'];
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', __('error.csrf'));
+            Response::redirect("/{$lang}/inscription");
+        }
+
+        $lastname    = trim($this->request->post('lastname', ''));
+        $firstname   = trim($this->request->post('firstname', ''));
+        $email       = strtolower(trim($this->request->post('email', '')));
+        $password    = $this->request->post('password', '');
+        $confirm     = $this->request->post('password_confirm', '');
+        $gender      = $this->request->post('gender', '');
+        $company     = trim($this->request->post('company_name', ''));
+        $newsletter  = $this->request->post('newsletter', '0') === '1' ? 1 : 0;
+
+        $errors = $this->validateRegister($lastname, $firstname, $email, $password, $confirm, $gender, $company);
+
+        if ($errors) {
+            $_SESSION['flash']['errors'] = $errors;
+            $_SESSION['flash']['old']    = compact('lastname', 'firstname', 'email', 'gender', 'company', 'newsletter');
+            Response::redirect("/{$lang}/inscription");
+        }
+
+        if ($this->accounts->findByEmail($email)) {
+            $_SESSION['flash']['errors'] = ['email' => __('auth.email_taken')];
+            $_SESSION['flash']['old']    = compact('lastname', 'firstname', 'email', 'gender', 'company', 'newsletter');
+            Response::redirect("/{$lang}/inscription");
+        }
+
+        $verificationToken = bin2hex(random_bytes(32));
+
+        $this->accounts->create(
+            $lastname,
+            $firstname,
+            $email,
+            password_hash($password, PASSWORD_BCRYPT),
+            $gender,
+            $gender === 'society' ? $company : null,
+            $lang,
+            $newsletter,
+            $verificationToken
+        );
+
+        $verifyUrl = APP_URL . "/{$lang}/verification/{$verificationToken}";
+
+        try {
+            $mail = new MailService();
+            $mail->sendEmailVerification($email, "{$firstname} {$lastname}", $verifyUrl, $lang);
+        } catch (\Throwable $e) {
+            error_log('Mail verification error: ' . $e->getMessage());
+        }
+
+        $this->flash('info', __('auth.register_success'));
+        Response::redirect("/{$lang}/connexion");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/verification/{token}
+    // ----------------------------------------------------------------
+
+    public function verifyEmail(array $params): void
+    {
+        $lang    = $params['lang'];
+        $token   = $params['token'] ?? '';
+        $account = $this->accounts->findByVerificationToken($token);
+
+        if (!$account) {
+            $this->view('auth/verify', [
+                'lang'    => $lang,
+                'success' => false,
+                'message' => __('auth.verify_invalid'),
+            ]);
+            return;
+        }
+
+        if ($account['email_verified_at']) {
+            $this->flash('info', __('auth.already_verified'));
+            Response::redirect("/{$lang}/connexion");
+        }
+
+        $this->accounts->verifyEmail((int) $account['id']);
+
+        $this->view('auth/verify', [
+            'lang'    => $lang,
+            'success' => true,
+            'message' => __('auth.verify_success'),
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/mot-de-passe-oublie
+    // ----------------------------------------------------------------
+
+    public function forgotForm(array $params): void
+    {
+        GuestMiddleware::handle();
+        $this->view('auth/forgot-password', [
+            'lang'  => $params['lang'],
+            'info'  => $this->getFlash('info'),
+            'error' => $this->getFlash('error'),
+            'csrf'  => $this->csrfToken(),
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/mot-de-passe-oublie
+    // ----------------------------------------------------------------
+
+    public function forgot(array $params): void
+    {
+        GuestMiddleware::handle();
+        $lang  = $params['lang'];
+
+        if (!$this->verifyCsrf()) {
+            Response::redirect("/{$lang}/mot-de-passe-oublie");
+        }
+
+        $email   = strtolower(trim($this->request->post('email', '')));
+        $account = $this->accounts->findByEmail($email);
+
+        // Toujours afficher le succès (anti-énumération)
+        $this->flash('info', __('auth.reset_email_sent'));
+
+        if ($account && $account['email_verified_at']) {
+            $token = bin2hex(random_bytes(32));
+            $this->resets->create((int) $account['id'], $token);
+            $resetUrl = APP_URL . "/{$lang}/reinitialisation/{$token}";
+
+            try {
+                $mail = new MailService();
+                $mail->sendPasswordReset(
+                    $account['email'],
+                    $account['firstname'] . ' ' . $account['lastname'],
+                    $resetUrl,
+                    $lang
+                );
+            } catch (\Throwable $e) {
+                error_log('Mail reset error: ' . $e->getMessage());
+            }
+        }
+
+        Response::redirect("/{$lang}/mot-de-passe-oublie");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/reinitialisation/{token}
+    // ----------------------------------------------------------------
+
+    public function resetForm(array $params): void
+    {
+        $lang  = $params['lang'];
+        $token = $params['token'] ?? '';
+        $reset = $this->resets->findByToken($token);
+
+        $this->view('auth/reset-password', [
+            'lang'  => $lang,
+            'valid' => (bool) $reset,
+            'token' => $token,
+            'error' => $this->getFlash('error'),
+            'csrf'  => $this->csrfToken(),
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/reinitialisation/{token}
+    // ----------------------------------------------------------------
+
+    public function reset(array $params): void
+    {
+        $lang  = $params['lang'];
+        $token = $params['token'] ?? '';
+
+        if (!$this->verifyCsrf()) {
+            Response::redirect("/{$lang}/reinitialisation/{$token}");
+        }
+
+        $reset = $this->resets->findByToken($token);
+
+        if (!$reset) {
+            Response::redirect("/{$lang}/connexion");
+        }
+
+        $password = $this->request->post('password', '');
+        $confirm  = $this->request->post('password_confirm', '');
+
+        if (strlen($password) < 8 || $password !== $confirm) {
+            $this->flash('error', __('auth.password_invalid'));
+            Response::redirect("/{$lang}/reinitialisation/{$token}");
+        }
+
+        $this->accounts->updatePassword((int) $reset['user_id'], password_hash($password, PASSWORD_BCRYPT));
+        $this->resets->deleteByUserId((int) $reset['user_id']);
+
+        $this->flash('info', __('auth.password_updated'));
+        Response::redirect("/{$lang}/connexion");
+    }
+
+    // ----------------------------------------------------------------
+    // Helpers privés
+    // ----------------------------------------------------------------
+
+    private function validateRegister(
+        string $lastname,
+        string $firstname,
+        string $email,
+        string $password,
+        string $confirm,
+        string $gender,
+        string $company
+    ): array {
+        $errors = [];
+        if (strlen($lastname) < 2)  $errors['lastname']  = __('validation.required');
+        if (strlen($firstname) < 2) $errors['firstname'] = __('validation.required');
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = __('validation.email');
+        if (strlen($password) < 8)  $errors['password'] = __('validation.password_min');
+        if ($password !== $confirm) $errors['password_confirm'] = __('validation.password_match');
+        if (!in_array($gender, ['M', 'F', 'other', 'society'], true)) $errors['gender'] = __('validation.required');
+        if ($gender === 'society' && strlen($company) < 2) $errors['company_name'] = __('validation.required');
+        return $errors;
+    }
+
+    private function csrfToken(): string
+    {
+        if (empty($_SESSION['csrf'])) {
+            $_SESSION['csrf'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf'];
+    }
+
+    private function verifyCsrf(): bool
+    {
+        $token = $this->request->post('csrf_token', '');
+        return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
+    }
+
+    private function flash(string $key, string $message): void
+    {
+        $_SESSION['flash'][$key] = $message;
+    }
+
+    private function getFlash(string $key): ?string
+    {
+        $msg = $_SESSION['flash'][$key] ?? null;
+        unset($_SESSION['flash'][$key]);
+        return $msg;
+    }
+
+    private function getFlashArray(string $key): array
+    {
+        $val = $_SESSION['flash'][$key] ?? [];
+        unset($_SESSION['flash'][$key]);
+        return is_array($val) ? $val : [];
+    }
+}
