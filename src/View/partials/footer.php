@@ -42,7 +42,24 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
         <div class="footer-divider" role="separator"></div>
 
         <div class="footer-bottom">
-            <p class="footer-legal"><?= htmlspecialchars(__('footer.alcohol_warning')) ?></p>
+            <div class="footer-legal">
+                <span class="footer-alcohol-pictos" aria-hidden="true">
+                    <!-- Pictogramme interdit aux moins de 18 ans -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="26" height="26" focusable="false">
+                        <circle cx="16" cy="16" r="14.5" fill="none" stroke="currentColor" stroke-width="2.2"/>
+                        <line x1="5.3" y1="5.3" x2="26.7" y2="26.7" stroke="currentColor" stroke-width="2.2"/>
+                        <text x="16" y="21.5" text-anchor="middle" font-size="11.5" font-weight="900" fill="currentColor" font-family="Arial,sans-serif">18</text>
+                    </svg>
+                    <!-- Pictogramme interdit aux femmes enceintes -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="26" height="26" focusable="false">
+                        <circle cx="16" cy="16" r="14.5" fill="none" stroke="currentColor" stroke-width="2.2"/>
+                        <line x1="5.3" y1="5.3" x2="26.7" y2="26.7" stroke="currentColor" stroke-width="2.2"/>
+                        <circle cx="16" cy="7.5" r="2.6" fill="currentColor"/>
+                        <path d="M13.8,11 C12.2,14.5 11.8,19 13.2,22 L15,22 C14.5,19 15.2,17 17,16.5 C20,16 21,18.5 20.5,22 L22.2,22 C23,19 22.5,14 20.5,11 Z" fill="currentColor"/>
+                    </svg>
+                </span>
+                <span><?= htmlspecialchars(__('footer.alcohol_warning')) ?></span>
+            </div>
             <p class="footer-copyright">
                 &copy; 2019&ndash;<?= date('Y') ?> <?= htmlspecialchars(APP_NAME) ?> &mdash;
                 <?= htmlspecialchars(__('footer.made_by')) ?>

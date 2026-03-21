@@ -187,6 +187,7 @@ function initCarousel() {
     }
 
     function startAuto() {
+        stopAuto(); // évite les intervalles multiples si startAuto est rappelé
         timer = setInterval(() => goTo(current + 1), DELAY);
     }
 

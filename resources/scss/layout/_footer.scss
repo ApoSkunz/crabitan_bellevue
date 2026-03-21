@@ -11,6 +11,11 @@
     padding: 2.5rem 1.5rem 1.5rem;
     margin-top: auto;
     color: #2a2218;
+
+    // En mode jour : même fond crème que la barre de navigation
+    [data-theme='light'] & {
+        background-color: var(--color-bg);
+    }
 }
 
 .footer-inner {
@@ -31,8 +36,9 @@
 
     @include m.bp('md') {
         flex-direction: row;
-        justify-content: space-between;
-        text-align: left;
+        justify-content: center;
+        gap: 3rem;
+        text-align: center;
     }
 }
 
@@ -50,10 +56,6 @@
     flex-wrap: wrap;
     gap: 0.25rem 1.25rem;
     justify-content: center;
-
-    @include m.bp('md') {
-        justify-content: flex-start;
-    }
 
     a {
         font-size: 0.8rem;
@@ -96,6 +98,28 @@
     .carbonbadge {
         font-size: 13px;
     }
+
+    // Surspécificité intentionnelle : le CSS du badge est injecté via JS (faible spécificité)
+    // Mode nuit — footer blanc (#fff) → partie CO₂ en crème, bouton en or
+    [data-theme='dark'] & #wcb_g {
+        background: #f5f0e8;
+        color: #2a2218;
+    }
+
+    // Mode jour — footer crème (#f5f0e8) → partie CO₂ en blanc, bouton en or
+    [data-theme='light'] & #wcb_g {
+        background: #ffffff;
+        color: #2a2218;
+    }
+
+    // Bouton "Website Carbon" : toujours or, texte sombre
+    [data-theme='dark'] & .carbonbadge a,
+    [data-theme='light'] & .carbonbadge a {
+        background: #c9a84c;
+        color: #2a2218;
+        border-color: #c9a84c;
+        font-weight: 700;
+    }
 }
 
 // Séparateur doré
@@ -110,7 +134,7 @@
     );
 }
 
-// Ligne bas : mention légale alcool + copyright
+// Ligne bas : mention légale alcool à gauche + copyright à droite
 .footer-bottom {
     display: flex;
     flex-direction: column;
@@ -121,22 +145,51 @@
     @include m.bp('md') {
         flex-direction: row;
         justify-content: space-between;
+        align-items: center;
         text-align: left;
+        gap: 1.5rem;
     }
 }
 
+// Conteneur avertissement alcool + pictogrammes
 .footer-legal {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.75rem;
     font-style: italic;
     color: #5a5040;
     line-height: 1.5;
-    max-width: 60ch;
+    max-width: 55ch;
+    flex-wrap: wrap;
+
+    @include m.bp('md') {
+        flex-wrap: nowrap;
+    }
+}
+
+// Pictogrammes interdiction alcool (-18 + femme enceinte)
+.footer-alcohol-pictos {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+    flex-shrink: 0;
+    color: #5a5040;
+
+    svg {
+        display: block;
+    }
 }
 
 .footer-copyright {
     font-size: 0.75rem;
     color: #5a5040;
     white-space: nowrap;
+    flex-shrink: 0;
+
+    @include m.bp('md') {
+        text-align: right;
+    }
 
     // Lien webmaster
     a {

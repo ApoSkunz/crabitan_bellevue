@@ -103,7 +103,6 @@ $carouselSlides = [
                 <span class="home-section__tag"><?= htmlspecialchars(__('home.wines_tag')) ?></span>
                 <h2 class="home-section__title"><?= htmlspecialchars(__('home.wines_title')) ?></h2>
                 <div class="home-section__divider"></div>
-                <p class="home-section__appellation">Appellation Sainte-Croix-du-Mont Contrôlée</p>
                 <p class="home-section__text"><?= htmlspecialchars(__('home.wines_text')) ?></p>
                 <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="btn btn--gold">
                     <?= htmlspecialchars(__('home.wines_cta')) ?>
@@ -184,6 +183,7 @@ $carouselSlides = [
                     class="home-video__element"
                     controls
                     preload="metadata"
+                    poster="/assets/images/proprietaire.jpeg"
                     aria-label="<?= htmlspecialchars(__('home.video_title')) ?>"
                 >
                     <source src="/assets/videos/chateau-crabitan-bellevue-1.mp4" type="video/mp4">
@@ -195,7 +195,7 @@ $carouselSlides = [
     <!-- ============================================================ -->
     <!-- SECTION ACTUALITÉS                                           -->
     <!-- ============================================================ -->
-    <section class="home-news home-section--dark" id="actualites">
+    <section class="home-news" id="actualites">
         <div class="container">
             <div class="home-news__header">
                 <span class="home-section__tag"><?= htmlspecialchars(__('home.news_tag')) ?></span>
@@ -243,7 +243,7 @@ $carouselSlides = [
     <!-- ============================================================ -->
     <!-- SECTION LOCALISATION                                         -->
     <!-- ============================================================ -->
-    <section class="home-location" id="localisation">
+    <section class="home-location home-section--dark" id="localisation">
         <div class="container">
             <h2 class="home-section__title text-center">
                 <?= htmlspecialchars(__('home.location_title')) ?>

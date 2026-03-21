@@ -15,8 +15,8 @@ return [
     // Navigation
     'nav.home'        => 'Home',
     'nav.contact'     => 'Contact',
-    'nav.wines'       => 'Our wines',
-    'nav.collection'  => 'Collection',
+    'nav.wines'       => 'Shop',
+    'nav.collection'  => 'Wine Collection',
     'nav.news'        => 'News',
     'nav.savoir_faire' => 'Know-How',
     'nav.chateau'     => 'Le château',
@@ -126,9 +126,11 @@ return [
     // Homepage — Wines section
     'home.wines_tag'   => 'Vintage',
     'home.wines_title' => 'Our Wines',
-    'home.wines_text'  => 'Sainte-Croix-du-Mont, a rare Bordeaux appellation on the right bank — clay-limestone hillsides'
-        . ' with breathtaking views. From Sauvignon Blanc to Merlot, discover the full range of Château Crabitan Bellevue,'
-        . ' authentic wines crafted with passion on these exceptional slopes.',
+    'home.wines_text'  => 'Perched on limestone cliffs above the Garonne, our vines express the full character'
+        . ' of the Sainte-Croix-du-Mont appellation. This exceptional terroir, shaped by fossilised oyster'
+        . ' limestone and gentle morning mists, creates the ideal conditions for Botrytis cinerea to flourish.'
+        . ' Alongside these remarkable sweet whites, Château Crabitan Bellevue crafts a range of red and dry'
+        . ' wines from the great Bordeaux varieties — Merlot, Cabernet Sauvignon and Sauvignon Blanc.',
     'home.wines_cta'   => 'Discover our wines',
 
     // Homepage — History section

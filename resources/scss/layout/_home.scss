@@ -197,9 +197,14 @@
 }
 
 // Section NOS VINS — image dézoomed pour voir les bouteilles
+// background-color sur le conteneur (pas sur l'img) pour ne pas être
+// affecté par le filter:brightness de l'img
+.home-section--wines .home-section__visual {
+    background-color: var(--color-bg);
+}
+
 .home-section--wines .home-section__visual img {
     object-fit: contain;
-    background-color: var(--color-surface);
 }
 
 // ============================================================
@@ -243,7 +248,7 @@
 
 // Card actualité
 .news-card {
-    background: var(--color-bg);
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-top: 2px solid var(--color-border-gold);
     display: flex;

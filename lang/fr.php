@@ -15,8 +15,8 @@ return [
     // Navigation
     'nav.home'        => 'Accueil',
     'nav.contact'     => 'Contact',
-    'nav.wines'       => 'Nos vins',
-    'nav.collection'  => 'Collection',
+    'nav.wines'       => 'Boutique',
+    'nav.collection'  => 'Collection des vins',
     'nav.news'        => 'Actualités',
     'nav.savoir_faire' => 'Savoir-Faire',
     'nav.chateau'     => 'Le Château',
@@ -126,9 +126,12 @@ return [
     // Homepage — Section Millésime / Nos vins
     'home.wines_tag'   => 'Millésime',
     'home.wines_title' => 'Nos Vins',
-    'home.wines_text'  => 'Sainte-Croix-du-Mont, appellation rare de la rive droite bordelaise, terre d\'argile et de calcaire'
-        . ' aux panoramas uniques. Du Sauvignon blanc au Merlot, découvrez la gamme complète du Château Crabitan Bellevue,'
-        . ' des vins authentiques élevés avec passion sur ces coteaux d\'exception.',
+    'home.wines_text'  => 'Juchés sur les falaises calcaires dominant la Garonne, nos vignes expriment toute'
+        . ' la noblesse de l\'appellation Sainte-Croix-du-Mont. Ce terroir d\'exception, façonné par des calcaires'
+        . ' à huîtres fossiles et la douceur des brumes matinales, réunit les conditions idéales au développement'
+        . ' du Botrytis cinerea. Aux côtés de ces blancs liquoreux,'
+        . ' le Château Crabitan Bellevue élabore une gamme de vins rouges et blancs secs issus des grands cépages'
+        . ' bordelais — Merlot, Cabernet Sauvignon et Sauvignon Blanc.',
     'home.wines_cta'   => 'Découvrir nos vins',
 
     // Homepage — Section Notre Histoire
