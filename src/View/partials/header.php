@@ -15,7 +15,7 @@ if ($token) {
 <header class="site-header">
     <div class="header-main">
         <a href="/<?= htmlspecialchars($navLang) ?>" class="header-logo" aria-label="<?= htmlspecialchars(APP_NAME) ?>">
-            <img src="/assets/images/logo.png" alt="" width="48" height="48">
+            <img src="/assets/images/crabitan-bellevue-logo.png" alt="" width="48" height="48">
             <span class="header-logo__text">Château<br>Crabitan&#8209;Bellevue</span>
         </a>
 
