@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Controller;
 
 use Core\Exception\HttpException;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -19,9 +21,9 @@ class AgeGateControllerTest extends TestCase
 
     private function bootstrapApp(): void
     {
-        define('ROOT_PATH', dirname(__DIR__, 3));
-        define('SRC_PATH', ROOT_PATH . '/src');
-        define('LANG_PATH', ROOT_PATH . '/lang');
+        defined('ROOT_PATH') || define('ROOT_PATH', dirname(__DIR__, 3));
+        defined('SRC_PATH')  || define('SRC_PATH', ROOT_PATH . '/src');
+        defined('LANG_PATH') || define('LANG_PATH', ROOT_PATH . '/lang');
 
         require_once ROOT_PATH . '/vendor/autoload.php';
         require_once ROOT_PATH . '/src/helpers.php';
@@ -35,10 +37,8 @@ class AgeGateControllerTest extends TestCase
 
     // ── show() ─────────────────────────────────────────────────────────────
 
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function testShowRedirectsIfAlreadyVerified(): void
     {
         $this->bootstrapApp();
@@ -58,10 +58,8 @@ class AgeGateControllerTest extends TestCase
         $this->assertNotNull($caught->location, 'show() doit fournir une URL de redirection');
     }
 
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function testShowRendersViewIfNotVerified(): void
     {
         $this->bootstrapApp();
@@ -82,10 +80,8 @@ class AgeGateControllerTest extends TestCase
 
     // ── confirm() ──────────────────────────────────────────────────────────
 
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function testConfirmMinorRedirectsToGoogle(): void
     {
         $this->bootstrapApp();
@@ -109,10 +105,8 @@ class AgeGateControllerTest extends TestCase
         );
     }
 
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function testConfirmAbsentChoiceRedirectsToGoogle(): void
     {
         $this->bootstrapApp();
@@ -132,10 +126,8 @@ class AgeGateControllerTest extends TestCase
         $this->assertStringContainsString('google.com', $caught->location ?? '');
     }
 
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function testConfirmMajorRedirectsToRequestedUrl(): void
     {
         $this->bootstrapApp();
@@ -161,10 +153,8 @@ class AgeGateControllerTest extends TestCase
         );
     }
 
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function testConfirmMajorWithRememberRedirectsToRequestedUrl(): void
     {
         $this->bootstrapApp();
@@ -186,10 +176,8 @@ class AgeGateControllerTest extends TestCase
         // La vérification des cookies age_verified/age_remember est couverte par les tests E2E
     }
 
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function testConfirmMajorWithoutRememberRedirectsToRequestedUrl(): void
     {
         $this->bootstrapApp();

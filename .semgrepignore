@@ -1,0 +1,6 @@
+# Build artifacts — scanned at source level (resources/js/, src/)
+public/assets/
+
+# Third-party
+vendor/
+node_modules/

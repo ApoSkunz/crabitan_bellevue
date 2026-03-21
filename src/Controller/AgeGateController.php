@@ -23,7 +23,7 @@ class AgeGateController extends Controller
         $redirect = $_GET['redirect'] ?? '/' . DEFAULT_LANG;
 
         $this->view('age-gate', [
-            'redirect' => filter_var($redirect, FILTER_SANITIZE_URL),
+            'redirect' => $this->sanitizeRedirect($redirect),
         ]);
     }
 
@@ -56,6 +56,21 @@ class AgeGateController extends Controller
             ]));
         }
 
-        Response::redirect(filter_var($redirect, FILTER_SANITIZE_URL));
+        Response::redirect($this->sanitizeRedirect($redirect));
+    }
+
+    /**
+     * Garantit un chemin relatif interne pour éviter les open redirects.
+     * Tout ce qui n'est pas un chemin absolu interne (/foo) est remplacé par la langue par défaut.
+     */
+    private function sanitizeRedirect(string $url): string
+    {
+        // Autoriser uniquement les chemins commençant par "/" mais pas "//"
+        // "//" serait interprété comme un URL sans protocole (open redirect)
+        if (!str_starts_with($url, '/') || str_starts_with($url, '//')) {
+            return '/' . DEFAULT_LANG;
+        }
+
+        return $url;
     }
 }

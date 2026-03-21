@@ -9,9 +9,9 @@ foreach ($env as $key => $value) {
 }
 
 // Environnement
-define('APP_ENV', $_ENV['APP_ENV']  ?? 'production');
-define('APP_URL', $_ENV['APP_URL']  ?? '');
-define('APP_NAME', $_ENV['APP_NAME'] ?? 'Crabitan Bellevue');
+defined('APP_ENV')  || define('APP_ENV', $_ENV['APP_ENV']   ?? 'production');
+defined('APP_URL')  || define('APP_URL', $_ENV['APP_URL']   ?? '');
+defined('APP_NAME') || define('APP_NAME', $_ENV['APP_NAME'] ?? 'Crabitan Bellevue');
 
 // Affichage des erreurs selon environnement
 if (APP_ENV === 'development') {

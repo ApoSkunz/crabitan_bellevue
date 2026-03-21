@@ -6,6 +6,7 @@ Exécuter dans cet ordre avant tout push :
 
 ```bash
 # 1. Build + linter JS/SCSS
+npm run lint
 npm run build
 
 # 2. Qualité PHP
