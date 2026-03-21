@@ -8,8 +8,6 @@ use Core\Database;
 use PHPUnit\Framework\TestCase;
 use Tests\Unit\Stubs\ConcreteModel;
 
-require_once __DIR__ . '/../Stubs/ConcreteModel.php';
-
 class ModelTest extends TestCase
 {
     private Database $dbMock;

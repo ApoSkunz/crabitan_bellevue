@@ -9,8 +9,6 @@ use Core\Request;
 use PHPUnit\Framework\TestCase;
 use Tests\Unit\Stubs\TestController;
 
-require_once __DIR__ . '/../Stubs/TestController.php';
-
 class ControllerTest extends TestCase
 {
     private TestController $controller;
