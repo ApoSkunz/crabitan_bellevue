@@ -18,11 +18,10 @@ Thumbs.db
 /coverage/
 /playwright-report/
 /test-results/
+/.phpunit.cache/
+.phpunit.result.cache
 
 # IDE
 .vscode/
 .idea/
 *.swp
-
-#TODO Remove at the end of project
-tree_former.txt
