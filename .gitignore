@@ -3,6 +3,7 @@
 
 # Dépendances
 /vendor/
+/node_modules/
 
 # Logs & stockage
 /storage/logs/*.log
