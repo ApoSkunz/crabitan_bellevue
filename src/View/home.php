@@ -211,7 +211,7 @@ $carouselSlides = [
                     $newsIntro = $introData[$navLang] ?? ($introData['fr'] ?? '');
                     $newsDate  = (new \DateTimeImmutable($item['created_at']))->format('d/m/Y');
                     $newsSlug  = $item['slug'] ?? '';
-                ?>
+                    ?>
                     <article class="news-card">
                         <div class="news-card__body">
                             <time class="news-card__date"><?= htmlspecialchars($newsDate) ?></time>

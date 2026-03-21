@@ -25,4 +25,30 @@ class NewsModel extends Model
             [$limit]
         );
     }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getBySlug(string $slug): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT id, title, text_content, slug, image_path, created_at
+             FROM {$this->table}
+             WHERE slug = ?",
+            [$slug]
+        );
+        return $row ?: null;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAll(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT id, title, text_content, slug, image_path, created_at
+             FROM {$this->table}
+             ORDER BY created_at DESC"
+        );
+    }
 }

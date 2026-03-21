@@ -163,6 +163,24 @@ return [
     'home.location_phone'   => '+33 5 56 62 01 53',
     'home.location_cta'     => 'Contact us',
 
+    // News
+    'news.read_more' => 'Read more',
+    'news.back'      => 'Back to news',
+    'news.empty'     => 'No news available at the moment.',
+
+    // Contact
+    'contact.tag' => 'Get in touch',
+
+    // Legal notice
+    'legal.editor_title'  => 'Website editor',
+    'legal.hosting_title' => 'Hosting',
+    'legal.hosting_info'  => 'This website is hosted by OVHcloud — 2 rue Kellermann, 59100 Roubaix — France.',
+    'legal.data_title'    => 'Personal data',
+    'legal.data_info'     => 'In accordance with GDPR, you have the right to access, rectify and delete your personal data. To exercise this right, contact us by phone or mail.',
+
+    // Webmaster
+    'webmaster.bio' => 'Website designed and developed by Alexandre Solane, full-stack web developer.',
+
     // Account panel (drawer)
     'panel.title'     => 'My account',
     'panel.account'   => 'My profile',

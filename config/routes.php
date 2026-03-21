@@ -15,6 +15,14 @@ $router->get('/', 'HomeController@index');
 $router->get('/fr', 'HomeController@index');
 $router->get('/en', 'HomeController@index');
 
+// Pages statiques
+$router->get('/{lang}/le-chateau', 'PageController@chateau');
+$router->get('/{lang}/savoir-faire', 'PageController@savoirFaire');
+$router->get('/{lang}/contact', 'PageController@contact');
+$router->get('/{lang}/mentions-legales', 'PageController@mentionsLegales');
+$router->get('/{lang}/plan-du-site', 'PageController@planDuSite');
+$router->get('/{lang}/webmaster', 'PageController@webmaster');
+
 // Catalogue vins
 $router->get('/{lang}/vins', 'WineController@index');
 $router->get('/{lang}/vins/collection', 'WineController@collection');

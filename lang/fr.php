@@ -165,6 +165,24 @@ return [
     'home.location_phone'   => '05 56 62 01 53',
     'home.location_cta'     => 'Contactez-nous',
 
+    // News
+    'news.read_more' => 'Lire la suite',
+    'news.back'      => 'Retour aux actualités',
+    'news.empty'     => 'Aucune actualité disponible pour le moment.',
+
+    // Contact
+    'contact.tag' => 'Nous joindre',
+
+    // Mentions légales
+    'legal.editor_title'  => 'Éditeur du site',
+    'legal.hosting_title' => 'Hébergement',
+    'legal.hosting_info'  => 'Ce site est hébergé par OVHcloud — 2 rue Kellermann, 59100 Roubaix — France.',
+    'legal.data_title'    => 'Données personnelles',
+    'legal.data_info'     => 'Conformément au RGPD, vous disposez d\'un droit d\'accès, de rectification et de suppression de vos données. Pour exercer ce droit, contactez-nous par téléphone ou courrier.',
+
+    // Webmaster
+    'webmaster.bio' => 'Site conçu et développé par Alexandre Solane, développeur web full-stack.',
+
     // Account panel (drawer)
     'panel.title'     => 'Mon espace',
     'panel.account'   => 'Mon compte',
