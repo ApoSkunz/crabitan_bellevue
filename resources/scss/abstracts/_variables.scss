@@ -1,0 +1,81 @@
+// ============================================================
+// Palette de base
+// ============================================================
+$gold:       #c9a84c;
+$gold-light: #e8c86a;
+$gold-dark:  #a07828;
+
+// ============================================================
+// Breakpoints (mobile-first)
+// ============================================================
+$breakpoints: (
+    'sm':  576px,
+    'md':  768px,
+    'lg':  992px,
+    'xl':  1200px,
+    'xxl': 1400px,
+);
+
+// ============================================================
+// Typographie
+// ============================================================
+$font-serif: 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
+$font-sans:  'Lato', system-ui, -apple-system, sans-serif;
+
+// ============================================================
+// Espacements
+// ============================================================
+$spacing-xs:  0.25rem;
+$spacing-sm:  0.5rem;
+$spacing-md:  1rem;
+$spacing-lg:  1.5rem;
+$spacing-xl:  2rem;
+$spacing-xxl: 3rem;
+
+// ============================================================
+// Transitions
+// ============================================================
+$transition-fast: 120ms ease;
+$transition-base: 200ms ease;
+$transition-slow: 350ms ease;
+
+// ============================================================
+// Thèmes — CSS custom properties
+// ============================================================
+
+// Thème nuit (défaut)
+:root,
+[data-theme='dark'] {
+    --color-bg:          #080808;
+    --color-surface:     #111111;
+    --color-surface-2:   #1a1a1a;
+    --color-gold:        #{$gold};
+    --color-gold-light:  #{$gold-light};
+    --color-gold-dark:   #{$gold-dark};
+    --color-text:        #f0ead8;
+    --color-text-muted:  #8a8070;
+    --color-border:      #2a2520;
+    --color-border-gold: rgba(201, 168, 76, 0.35);
+    --color-overlay:     rgba(0, 0, 0, 0.85);
+
+    --header-bg:         #0d0d0d;
+    --footer-bg:         #0a0a0a;
+}
+
+// Thème jour
+[data-theme='light'] {
+    --color-bg:          #faf8f4;
+    --color-surface:     #ffffff;
+    --color-surface-2:   #f5f0e8;
+    --color-gold:        #{$gold-dark};
+    --color-gold-light:  #{$gold};
+    --color-gold-dark:   #7a5818;
+    --color-text:        #1a1612;
+    --color-text-muted:  #6b6058;
+    --color-border:      #e8e0d0;
+    --color-border-gold: rgba(160, 120, 40, 0.4);
+    --color-overlay:     rgba(0, 0, 0, 0.5);
+
+    --header-bg:         #111111;
+    --footer-bg:         #111111;
+}

@@ -1,0 +1,48 @@
+@use 'sass:map';
+@use 'variables' as v;
+
+// Responsive breakpoint (mobile-first)
+@mixin bp($key) {
+    $value: map.get(v.$breakpoints, $key);
+
+    @media (min-width: #{$value}) {
+        @content;
+    }
+}
+
+// Accessible hidden (screen-reader only)
+@mixin sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+// Texte avec dégradé doré
+@mixin gold-text {
+    background: linear-gradient(135deg, var(--color-gold-light) 0%, var(--color-gold) 50%, var(--color-gold-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+// Flex centré
+@mixin flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// Focus visible accessible
+@mixin focus-ring {
+    &:focus-visible {
+        outline: 2px solid var(--color-gold);
+        outline-offset: 3px;
+        border-radius: 2px;
+    }
+}

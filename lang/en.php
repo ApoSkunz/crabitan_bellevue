@@ -1,8 +1,20 @@
 <?php
 
 return [
+    // Age gate
+    'age_gate.quote'         => 'Bringing Our Expertise To Your Table',
+    'age_gate.intro'         => 'To visit this site, you must be of legal drinking age in your country of residence.',
+    'age_gate.legal'         => 'I am of legal drinking age in my country of residence',
+    'age_gate.not_legal'     => 'I am not of legal drinking age in my country of residence',
+    'age_gate.remember'      => 'Remember me',
+    'age_gate.enter'         => 'Enter',
+    'age_gate.info_label'    => 'Legal information',
+    'age_gate.choice_legend' => 'Age verification',
+    'age_gate.error'         => 'You must be of legal drinking age to access this site.',
+
     // Navigation
     'nav.home'       => 'Home',
+    'nav.contact'    => 'Contact',
     'nav.wines'      => 'Our wines',
     'nav.collection' => 'Collection',
     'nav.news'       => 'News',
@@ -81,6 +93,12 @@ return [
     'validation.email'          => 'Invalid email address.',
     'validation.password_min'   => 'Password must be at least 8 characters.',
     'validation.password_match' => 'Passwords do not match.',
+
+    // Footer
+    'footer.legal_notice'    => 'Legal notice',
+    'footer.sitemap'         => 'Sitemap',
+    'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. Drink responsibly.',
+    'footer.made_by'         => 'Made by Alexandre Solane',
 
     // General
     'btn.submit'   => 'Submit',

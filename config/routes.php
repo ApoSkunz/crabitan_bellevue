@@ -6,6 +6,10 @@ declare(strict_types=1);
 // Routes publiques
 // ============================================================
 
+// Age gate
+$router->get( '/age-gate', 'AgeGateController@show');
+$router->post('/age-gate', 'AgeGateController@confirm');
+
 // Home
 $router->get('/',         'HomeController@index');
 $router->get('/fr',       'HomeController@index');

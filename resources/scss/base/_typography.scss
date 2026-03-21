@@ -1,0 +1,45 @@
+@use '../abstracts/variables' as v;
+
+:root {
+    --font-serif: #{v.$font-serif};
+    --font-sans:  #{v.$font-sans};
+}
+
+// ============================================================
+// Classes utilitaires
+// ============================================================
+
+.text-serif {
+    font-family: var(--font-serif);
+}
+
+.text-gold {
+    color: var(--color-gold);
+}
+
+.text-muted {
+    color: var(--color-text-muted);
+}
+
+.text-center {
+    text-align: center;
+}
+
+// Titre de section
+.section-title {
+    font-family: var(--font-serif);
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+}
+
+// Citation italique
+.quote {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+    letter-spacing: 0.06em;
+    color: var(--color-gold);
+}

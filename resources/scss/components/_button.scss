@@ -1,0 +1,56 @@
+@use '../abstracts/mixins' as m;
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    padding: 0.6em 1.6em;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+    border-radius: 0;
+    cursor: pointer;
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+
+    @include m.focus-ring;
+
+    // Variante dorée (CTA principal)
+    &--gold {
+        background-color: transparent;
+        color: var(--color-gold);
+        border-color: var(--color-gold);
+
+        &:hover {
+            background-color: var(--color-gold);
+            color: #080808;
+        }
+    }
+
+    // Variante blanche (header)
+    &--white {
+        background-color: #ffffff;
+        color: #111111;
+        border-color: #ffffff;
+
+        &:hover {
+            background-color: transparent;
+            color: #ffffff;
+        }
+    }
+
+    // Variante fantôme clair
+    &--ghost {
+        background-color: transparent;
+        color: var(--color-text);
+        border-color: var(--color-border);
+
+        &:hover {
+            border-color: var(--color-gold);
+            color: var(--color-gold);
+        }
+    }
+}

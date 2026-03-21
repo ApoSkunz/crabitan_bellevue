@@ -1,8 +1,20 @@
 <?php
 
 return [
+    // Age gate
+    'age_gate.quote'         => 'Apportez De Notre Savoir-Faire À Vos Repas',
+    'age_gate.intro'         => 'Pour visiter ce site, vous devez être en âge légal de consommer de l\'alcool dans votre pays de résidence.',
+    'age_gate.legal'         => 'Je suis en âge légal de consommer de l\'alcool dans mon pays de résidence',
+    'age_gate.not_legal'     => 'Je ne suis pas en âge légal de consommer de l\'alcool dans mon pays de résidence',
+    'age_gate.remember'      => 'Se souvenir de moi',
+    'age_gate.enter'         => 'Entrer',
+    'age_gate.info_label'    => 'Informations légales',
+    'age_gate.choice_legend' => 'Vérification de l\'âge',
+    'age_gate.error'         => 'Vous devez être en âge légal pour accéder à ce site.',
+
     // Navigation
     'nav.home'       => 'Accueil',
+    'nav.contact'    => 'Contact',
     'nav.wines'      => 'Nos vins',
     'nav.collection' => 'Collection',
     'nav.news'       => 'Actualités',
@@ -81,6 +93,12 @@ return [
     'validation.email'         => 'Adresse email invalide.',
     'validation.password_min'  => 'Le mot de passe doit contenir au moins 8 caractères.',
     'validation.password_match' => 'Les mots de passe ne correspondent pas.',
+
+    // Footer
+    'footer.legal_notice'    => 'Mentions légales',
+    'footer.sitemap'         => 'Plan du site',
+    'footer.alcohol_warning' => "L'abus d'alcool est dangereux pour la santé. À consommer avec modération.",
+    'footer.made_by'         => 'Réalisé par Alexandre Solane',
 
     // Général
     'btn.submit'   => 'Envoyer',

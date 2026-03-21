@@ -17,4 +17,17 @@ $router  = new Router($request);
 
 require_once ROOT_PATH . '/config/routes.php';
 
+// Vérification d'âge — obligatoire pour les sites vendant de l'alcool
+$path         = $request->getPath();
+$ageVerified  = ($_COOKIE['age_verified'] ?? '') === '1';
+$isPublicPath = str_starts_with($path, '/age-gate')
+    || str_starts_with($path, '/admin')
+    || str_starts_with($path, '/assets');
+
+if (!$ageVerified && !$isPublicPath) {
+    $redirect = rawurlencode($path !== '/' ? $path : '/fr');
+    header('Location: /age-gate?redirect=' . $redirect);
+    exit;
+}
+
 $router->dispatch();

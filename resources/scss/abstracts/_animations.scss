@@ -1,0 +1,50 @@
+// Propriété CSS enregistrée pour la rotation du shimmer
+@property --shimmer-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+// Rotation du shimmer doré sur la bordure (age gate)
+@keyframes shimmer-rotate {
+    to {
+        --shimmer-angle: 360deg;
+    }
+}
+
+// Apparition en fondu
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Pulsation dorée
+@keyframes gold-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 12px rgba(201, 168, 76, 0.25);
+    }
+
+    50% {
+        box-shadow: 0 0 28px rgba(201, 168, 76, 0.55);
+    }
+}
+
+// Scintillement du texte doré
+@keyframes shimmer-text {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.75;
+    }
+}
