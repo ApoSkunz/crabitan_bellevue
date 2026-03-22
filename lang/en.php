@@ -47,25 +47,83 @@ return [
     'auth.password_invalid'  => 'Password too short or passwords do not match.',
     'auth.password_updated'  => 'Password updated. You can now log in.',
 
-    // Wines
+    // Wines — Catalogue
     'wine.add_to_cart'  => 'Add to cart',
     'wine.out_of_stock' => 'Out of stock',
-    'wine.favorites'    => 'Favorites',
+    'wine.available'    => 'Available',
+    'wine.favorites'      => 'Favorites',
+    'wine.like_login'     => 'Please log in to like this wine.',
     'wine.vintage'      => 'Vintage',
     'wine.price'        => 'Price',
+    'wine.in_stock'     => 'in stock',
+    'wine.read_more'    => 'Learn more', // NOSONAR php:S1192 — same CTA label used intentionally across distinct translation keys
+    'wine.empty'        => 'No wines available at the moment.',
+    'wine.per_page'     => 'Per page:',
+    'wine.ttc_note'     => 'Prices inclusive of VAT, delivery included within mainland France. Discounts apply for orders in multiples of 12 bottles.',
+
+    // Wines — Colors
+    'wine.color.all'        => 'All wines',
     'wine.color.red'        => 'Red',
-    'wine.color.white'      => 'White',
+    'wine.color.white'      => 'Dry white',
     'wine.color.rosé'       => 'Rosé',
-    'wine.color.champagne'  => 'Champagne',
-    'wine.color.sparkling'  => 'Sparkling',
-    'wine.color.sweet'      => 'Sweet',
+    'wine.color.sweet'      => 'Sweet white',
+
+    // Wines — Filters
+    'wine.filter_label'  => 'Filter wines',
+    'wine.filter_show'   => 'Show:',
+    'wine.filter_sort'   => 'Sort by:',
+    'wine.filter_apply'  => 'Apply filter',
+    'wine.view_collection' => 'View by collection',
+
+    // Wines — Sort
+    'wine.sort.default'      => 'Crabitan Bellevue presents',
+    'wine.sort.price_asc'    => 'Price ascending',
+    'wine.sort.price_desc'   => 'Price descending',
+    'wine.sort.vintage_asc'  => 'Vintage ascending',
+    'wine.sort.vintage_desc' => 'Vintage descending',
+    'wine.sort.likes_desc'   => 'Most liked',
+
+    // Wines — Product sheet
+    'wine.zoom'          => 'Enlarge photo',
+    'wine.tasting'       => 'Tasting notes',
+    'wine.technical'     => 'Technical sheet',
+    'wine.appellation'   => 'Appellation',
+    'wine.variety'       => 'Grape variety',
+    'wine.area'          => 'Area',
+    'wine.age'           => 'Age of vines',
+    'wine.years'         => 'years',
+    'wine.soil'          => 'Soil',
+    'wine.pruning'       => 'Pruning',
+    'wine.harvest'       => 'Harvest',
+    'wine.vinification'  => 'Vinification',
+    'wine.aging'         => 'Ageing',
+    'wine.certification' => 'Certification',
+    'wine.download_sheet' => 'Download complete technical sheet',
+
+    // Wines — Collection
+    'wine.collection_nav'  => 'Navigate by wine type',
+    'wine.filter_avail'    => 'Availability:',
+    'wine.avail.all'       => 'All',
+    'wine.avail.available' => 'Available',
+    'wine.avail.out'       => 'Out of stock',
+
+    // Wines — Food pairing
+    'wine.pairing_title' => 'Food & Wine Pairing',
+    'wine.pairing.sweet' => 'Perfect as an aperitif, with foie gras, Roquefort or fruit desserts. Serve chilled at 8-10 °C.',
+    'wine.pairing.white' => 'Pairs beautifully with fish, seafood, chicken dishes and fresh goat\'s cheese. Serve at 10-12 °C.',
+    'wine.pairing.red'   => 'Excellent with grilled red meats, game, slow-cooked dishes and aged cheeses. Serve at 16-18 °C.',
+    'wine.pairing.rosé'  => 'Great with mixed salads, charcuterie, summer grills and Mediterranean cuisine. Serve chilled at 10-12 °C.',
 
     // Cart
-    'cart.title'    => 'Your cart',
-    'cart.empty'    => 'Your cart is empty',
-    'cart.total'    => 'Total',
-    'cart.checkout' => 'Proceed to checkout',
-    'cart.remove'   => 'Remove',
+    'cart.title'          => 'Your cart',
+    'cart.empty'          => 'Your cart is empty',
+    'cart.total'          => 'Total',
+    'cart.checkout'       => 'Proceed to checkout',
+    'cart.remove'         => 'Remove',
+    'cart.qty'            => 'Quantity',
+    'cart.login_required'  => 'Please log in to complete your order.',
+    'cart.added_offline'   => 'Added to cart. Log in to place your order.',
+    'cart.added'           => 'Added to cart!',
 
     // Order
     'order.confirm'   => 'Confirm order',

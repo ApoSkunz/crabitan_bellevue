@@ -13,7 +13,7 @@
     z-index: 100;
 }
 
-// Barre principale : logo | titre centré absolument | actions
+// Barre principale : [logo + lang + contact] | titre centré absolument | [theme + cart + compte + burger]
 .header-main {
     display: flex;
     align-items: center;
@@ -27,6 +27,18 @@
     @include m.bp('md') {
         gap: 1rem;
         padding: 0.6rem 1.25rem;
+    }
+}
+
+// Groupe gauche : logo + lang + contact
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+
+    @include m.bp('md') {
+        gap: 0.75rem;
     }
 }
 
@@ -71,7 +83,62 @@
     align-items: center;
     gap: 0.6rem;
     flex-shrink: 0;
-    margin-left: auto;
+}
+
+.header-cart {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid transparent;
+    transition: color 200ms ease, border-color 200ms ease;
+    background: none;
+    cursor: pointer;
+    font-size: inherit;
+    @include m.focus-ring;
+
+    &:hover,
+    &.active {
+        color: var(--color-gold);
+        border-color: var(--color-border-gold);
+    }
+
+    &__wrap {
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+    }
+
+    &__badge {
+        font-family: var(--font-sans);
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--color-gold);
+        line-height: 1;
+        min-width: 1ch;
+        text-align: center;
+    }
+
+    &__icon {
+        font-size: 1.3rem;
+        line-height: 1;
+    }
+
+    &__label {
+        font-family: var(--font-serif);
+        font-size: 0.95rem;
+        letter-spacing: 0.06em;
+        display: none;
+        white-space: nowrap;
+
+        @include m.bp('md') {
+            display: block;
+        }
+    }
 }
 
 // Switcher de langue
@@ -128,11 +195,11 @@
     }
 }
 
-// Lien Contact en header — après la lune, avant Connexion
+// Lien Contact en header — dans le groupe gauche avec le logo
 .header-contact {
     font-family: var(--font-serif);
     font-style: normal;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     letter-spacing: 0.06em;
     color: var(--color-text-muted);
     transition: color 200ms ease;
@@ -140,7 +207,7 @@
     white-space: nowrap;
     @include m.focus-ring;
 
-    @include m.bp('md') {
+    @include m.bp('lg') {
         display: block;
     }
 

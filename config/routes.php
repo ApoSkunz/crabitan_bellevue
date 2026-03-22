@@ -26,6 +26,7 @@ $router->get('/{lang}/webmaster', 'PageController@webmaster');
 // Catalogue vins
 $router->get('/{lang}/vins', 'WineController@index');
 $router->get('/{lang}/vins/collection', 'WineController@collection');
+$router->get('/{lang}/vins/{slug}/fiche-technique', 'WineController@technicalSheet');
 $router->get('/{lang}/vins/{slug}', 'WineController@show');
 
 // News

@@ -24,7 +24,13 @@ class Response
     public static function abort(int $status = 404, string $message = 'Not Found'): never
     {
         http_response_code($status);
-        echo $message;
+        $errorView = defined('SRC_PATH') ? SRC_PATH . '/View/errors/error.php' : null;
+        if ($errorView !== null && file_exists($errorView)) {
+            $statusCode = $status; // NOSONAR — exposed to included error view via PHP scope (php:S1481)
+            include_once $errorView;
+        } else {
+            echo $message;
+        }
         throw new \Core\Exception\HttpException($status, null, $message);
     }
 

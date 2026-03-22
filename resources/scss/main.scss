@@ -18,6 +18,7 @@
 @use 'components/cookie-banner';
 @use 'components/carousel';
 @use 'components/panel';
+@use 'components/modal';
 
 // ============================================================
 // Layout
@@ -26,3 +27,5 @@
 @use 'layout/header';
 @use 'layout/footer';
 @use 'layout/home';
+@use 'layout/wines';
+@use 'layout/error';

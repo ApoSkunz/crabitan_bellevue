@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars(APP_NAME) ?></title>
     <meta name="robots" content="noindex, nofollow">
-    <link rel="icon" type="image/png" href="/assets/images/crabitan-bellevue-logo.png">
+    <link rel="icon" type="image/png" href="/assets/images/logo/crabitan-bellevue-logo.png">
     <link rel="stylesheet" href="/assets/css/main.css">
 </head>
 <body class="age-gate-page">
@@ -17,7 +17,7 @@
         <span></span><span></span><span></span><span></span>
         <div class="age-gate__card">
             <div class="age-gate__logo">
-                <img src="/assets/images/crabitan-bellevue-logo.png" alt="<?= htmlspecialchars(APP_NAME) ?>" width="130" height="130">
+                <img src="/assets/images/logo/crabitan-bellevue-logo.png" alt="<?= htmlspecialchars(APP_NAME) ?>" width="130" height="130">
                 <p class="age-gate__logo-text">Château<br>Crabitan&#160;Bellevue</p>
             </div>
 

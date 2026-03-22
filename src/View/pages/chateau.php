@@ -18,7 +18,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
         <div class="home-section__inner container">
             <div class="home-section__visual">
                 <img
-                    src="/assets/images/vendanges-cheval.jpg"
+                    src="/assets/images/gallery/vendanges-cheval.jpg"
                     alt="Vendanges à cheval — Château Crabitan Bellevue"
                     loading="lazy"
                     width="600"

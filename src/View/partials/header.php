@@ -15,23 +15,35 @@ if ($token) {
 
 // Détection du lien actif dans la nav
 $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
-$isActive    = static function (string $segment) use ($currentPath): string {
-    return str_contains($currentPath, $segment) ? ' active' : '';
+$activeClass = ' active';
+$isActive    = static function (string $segment) use ($currentPath, $activeClass): string {
+    return str_contains($currentPath, $segment) ? $activeClass : '';
+};
+
+// Génère l'URL pour le switch de langue en remplaçant le préfixe lang dans l'URI courante
+$rawPath      = strtok($currentPath, '?') ?: '/';
+$pathSegments = explode('/', ltrim($rawPath, '/'));
+$langSwitch   = static function (string $targetLang) use ($pathSegments): string {
+    $supported = ['fr', 'en'];
+    if (in_array($pathSegments[0] ?? '', $supported, true)) {
+        $pathSegments[0] = $targetLang;
+        return '/' . implode('/', $pathSegments);
+    }
+    return '/' . $targetLang;
 };
 ?>
 <header class="site-header">
     <div class="header-main">
-        <a href="/<?= htmlspecialchars($navLang) ?>" class="header-logo" aria-label="<?= htmlspecialchars(APP_NAME) ?>">
-            <img src="/assets/images/crabitan-bellevue-logo-modern.svg" alt="" width="48" height="48">
-        </a>
+        <!-- Gauche : logo + langue + contact -->
+        <div class="header-left">
+            <a href="/<?= htmlspecialchars($navLang) ?>" class="header-logo" aria-label="<?= htmlspecialchars(APP_NAME) ?>">
+                <img src="/assets/images/logo/crabitan-bellevue-logo-modern.svg" alt="" width="48" height="48">
+            </a>
 
-        <p class="header-title" aria-hidden="true">Château Crabitan Bellevue</p>
-
-        <div class="header-actions">
             <nav class="lang-switch" aria-label="Langue / Language">
                 <?php foreach (['fr', 'en'] as $l) : ?>
                     <a
-                        href="/<?= htmlspecialchars($l) ?>"
+                        href="<?= htmlspecialchars($langSwitch($l)) ?>"
                         lang="<?= htmlspecialchars($l) ?>"
                         class="<?= $l === $navLang ? 'active' : '' ?>"
                         <?= $l === $navLang ? 'aria-current="true"' : '' ?>
@@ -39,6 +51,15 @@ $isActive    = static function (string $segment) use ($currentPath): string {
                 <?php endforeach; ?>
             </nav>
 
+            <a href="/<?= htmlspecialchars($navLang) ?>/contact" class="header-contact">
+                <?= htmlspecialchars(__('nav.contact')) ?>
+            </a>
+        </div>
+
+        <p class="header-title" aria-hidden="true">Château Crabitan Bellevue</p>
+
+        <!-- Droite : thème + panier + compte + burger -->
+        <div class="header-actions">
             <button
                 id="theme-toggle"
                 class="theme-toggle"
@@ -49,11 +70,18 @@ $isActive    = static function (string $segment) use ($currentPath): string {
                 <span class="icon-moon" aria-hidden="true">&#9790;</span>
             </button>
 
-            <a href="/<?= htmlspecialchars($navLang) ?>/contact" class="header-contact">
-                <?= htmlspecialchars(__('nav.contact')) ?>
-            </a>
-
             <?php if ($isLogged) : ?>
+                <a
+                    href="/<?= htmlspecialchars($navLang) ?>/panier"
+                    class="header-cart<?= str_contains($currentPath, '/panier') ? $activeClass : '' ?>"
+                    aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
+                >
+                    <span class="header-cart__wrap">
+                        <span class="header-cart__badge" id="header-cart-count">0</span>
+                        <span class="header-cart__icon">&#128722;</span>
+                    </span>
+                    <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
+                </a>
                 <button
                     id="account-panel-trigger"
                     class="btn btn--ghost"
@@ -64,6 +92,18 @@ $isActive    = static function (string $segment) use ($currentPath): string {
                     <?= htmlspecialchars(__('nav.account')) ?>
                 </button>
             <?php else : ?>
+                <button
+                    type="button"
+                    class="header-cart js-cart-login-prompt"
+                    aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
+                    data-login-url="/<?= htmlspecialchars($navLang) ?>/connexion"
+                >
+                    <span class="header-cart__wrap">
+                        <span class="header-cart__badge">0</span>
+                        <span class="header-cart__icon">&#128722;</span>
+                    </span>
+                    <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
+                </button>
                 <a href="/<?= htmlspecialchars($navLang) ?>/connexion" class="btn btn--white">
                     <?= htmlspecialchars(__('nav.login')) ?>
                 </a>
@@ -87,12 +127,13 @@ $isActive    = static function (string $segment) use ($currentPath): string {
     <nav class="header-nav" aria-label="Navigation principale">
         <div class="header-nav__inner">
             <?php
-            $isHome = (bool) preg_match('#^/' . preg_quote($navLang, '#') . '/?$#', $currentPath);
+            $isHome      = (bool) preg_match('#^/' . preg_quote($navLang, '#') . '/?$#', $currentPath);
+            $isWinesOnly = (bool) preg_match('#^/' . preg_quote($navLang, '#') . '/vins(?:\?|$)#', $currentPath);
             ?>
-            <a href="/<?= htmlspecialchars($navLang) ?>" class="header-nav__link<?= $isHome ? ' active' : '' ?>">
+            <a href="/<?= htmlspecialchars($navLang) ?>" class="header-nav__link<?= $isHome ? $activeClass : '' ?>">
                 <span><?= htmlspecialchars(__('nav.home')) ?></span>
             </a>
-            <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="header-nav__link<?= $isActive('/vins') ?>">
+            <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="header-nav__link<?= $isWinesOnly ? $activeClass : '' ?>">
                 <span><?= htmlspecialchars(__('nav.wines')) ?></span>
             </a>
             <a href="/<?= htmlspecialchars($navLang) ?>/le-chateau"
@@ -138,6 +179,60 @@ $isActive    = static function (string $segment) use ($currentPath): string {
     </nav>
 </header>
 
+<script>window.__userLogged = <?= $isLogged ? 'true' : 'false' ?>; window.__navLang = '<?= htmlspecialchars($navLang) ?>';</script>
+
+<!-- ============================================================ -->
+<!-- Modal ajout au panier                                         -->
+<!-- ============================================================ -->
+<!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
+<div
+    id="cart-modal"
+    class="cart-modal"
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cart-modal-title"
+>
+    <div class="cart-modal__backdrop" id="cart-modal-backdrop"></div>
+    <div class="cart-modal__inner">
+        <div class="cart-modal__header">
+            <!-- NOSONAR Web:S6850 — title content set dynamically by JS before modal opens -->
+            <h2 id="cart-modal-title" class="cart-modal__title"></h2>
+            <button id="cart-modal-close" class="cart-modal__close" type="button" aria-label="Fermer">&times;</button>
+        </div>
+        <div class="cart-modal__body">
+            <div class="cart-modal__product">
+                <div class="cart-modal__image-wrap">
+                    <img id="cart-modal-image" src="" alt="" class="cart-modal__image">
+                </div>
+                <div class="cart-modal__product-info">
+                    <p id="cart-modal-price" class="cart-modal__price"></p>
+                    <p id="cart-modal-total" class="cart-modal__total"></p>
+                    <div class="cart-modal__qty-wrap">
+                        <label for="cart-modal-qty"><?= htmlspecialchars(__('cart.qty')) ?></label>
+                        <div class="cart-modal__qty-controls">
+                            <button type="button" id="cart-qty-minus" class="cart-modal__qty-btn" aria-label="-">&#8722;</button>
+                            <input type="number" id="cart-modal-qty" name="qty" min="1" max="96" value="1" class="cart-modal__qty-input">
+                            <button type="button" id="cart-qty-plus" class="cart-modal__qty-btn" aria-label="+">&#43;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form method="POST" id="cart-modal-form" action="">
+            <input type="hidden" name="wine_id" id="cart-modal-wine-id" value="">
+            <input type="hidden" name="qty" id="cart-modal-qty-hidden" value="1">
+            <div class="cart-modal__footer">
+                <button type="button" id="cart-modal-cancel" class="btn btn--ghost"><?= htmlspecialchars(__('btn.cancel')) ?></button>
+                <button type="submit" class="btn btn--gold"><?= htmlspecialchars(__('wine.add_to_cart')) ?></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Toast notification -->
+<div id="cb-toast" class="cb-toast" aria-live="polite" aria-atomic="true" hidden></div>
+
 <?php if ($isLogged) : ?>
 <div
     id="account-panel"
@@ -161,7 +256,7 @@ $isActive    = static function (string $segment) use ($currentPath): string {
         </div>
 
         <div class="account-panel__logo">
-            <img src="/assets/images/crabitan-bellevue-logo.png" alt="" width="56" height="56">
+            <img src="/assets/images/logo/crabitan-bellevue-logo.png" alt="" width="56" height="56">
         </div>
 
         <nav class="account-panel__nav" aria-label="Navigation compte">

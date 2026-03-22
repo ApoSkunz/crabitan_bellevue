@@ -33,5 +33,8 @@ Thumbs.db
 # Scripts — rapports générés localement
 /scripts/
 
+# Features — spécifications locales
+/FEATURES/
+
 # Lighthouse CI — rapports locaux
 /.lighthouseci/

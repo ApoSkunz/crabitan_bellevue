@@ -1,0 +1,780 @@
+@use '../abstracts/mixins' as m;
+
+// ============================================================
+// Page hero commun (vins, collection, fiche)
+// ============================================================
+
+.page-hero {
+    padding: 4rem 1.5rem 3rem;
+    text-align: center;
+
+    &--dark {
+        background-color: var(--color-surface);
+    }
+}
+
+// ============================================================
+// Filtres catalogue
+// ============================================================
+
+.wines-filters {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-bg);
+
+    &__form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 1.25rem 2rem;
+    }
+
+    &__left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    &__right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-left: auto;
+        align-self: stretch;
+    }
+
+    &__bottom-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem 1.5rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    &__ttc-note {
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+        font-style: italic;
+    }
+
+    &__per-page {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.925rem;
+        color: var(--color-text-muted);
+
+        label {
+            font-family: var(--font-serif);
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        select {
+            background-color: var(--color-surface);
+            color: var(--color-text);
+            border: 1px solid var(--color-border-gold);
+            padding: 0.4rem 0.75rem;
+            font-family: var(--font-sans);
+            font-size: 0.925rem;
+            cursor: pointer;
+
+            &:focus {
+                outline: 2px solid var(--color-gold);
+                outline-offset: 2px;
+            }
+        }
+    }
+
+    &__colors {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+        border: none;
+        padding: 0;
+        margin: 0;
+
+        legend {
+            font-family: var(--font-serif);
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+            margin-bottom: 0.5rem;
+            width: 100%;
+        }
+    }
+
+    &__check {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.925rem;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        transition: color 200ms ease;
+
+        input[type='radio'] {
+            accent-color: var(--color-gold);
+        }
+
+        &.is-active,
+        &:hover {
+            color: var(--color-gold);
+        }
+    }
+
+    &__sort {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.925rem;
+        color: var(--color-text-muted);
+
+        label {
+            font-family: var(--font-serif);
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        select {
+            background-color: var(--color-surface);
+            color: var(--color-text);
+            border: 1px solid var(--color-border-gold);
+            padding: 0.4rem 0.75rem;
+            font-family: var(--font-sans);
+            font-size: 0.925rem;
+            cursor: pointer;
+
+            &:focus {
+                outline: 2px solid var(--color-gold);
+                outline-offset: 2px;
+            }
+        }
+    }
+
+    &__submit {
+        padding: 0.5rem 1.25rem;
+        font-size: 0.85rem;
+    }
+
+    &__collection-link {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        text-decoration: underline;
+        transition: color 200ms ease;
+
+        &:hover {
+            color: var(--color-gold);
+        }
+    }
+}
+
+// ============================================================
+// Grille de vins (catalogue + collection)
+// ============================================================
+
+.wines-catalog {
+    padding: 3rem 0 5rem;
+
+    &__empty {
+        text-align: center;
+        color: var(--color-text-muted);
+        padding: 3rem 0;
+        font-style: italic;
+    }
+}
+
+.wines-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 3rem;
+
+    &__btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2.25rem;
+        height: 2.25rem;
+        padding: 0 0.5rem;
+        border: 1px solid var(--color-border);
+        color: var(--color-text-muted);
+        text-decoration: none;
+        font-family: var(--font-serif);
+        font-size: 0.85rem;
+        transition: border-color 200ms ease, color 200ms ease;
+
+        &:hover:not(&--disabled):not(&--active) {
+            border-color: var(--color-border-gold);
+            color: var(--color-gold);
+        }
+
+        &--active {
+            border-color: var(--color-gold);
+            color: var(--color-gold);
+            pointer-events: none;
+        }
+
+        &--disabled {
+            opacity: 0.35;
+            cursor: default;
+        }
+    }
+
+    &__ellipsis {
+        color: var(--color-text-muted);
+        padding: 0 0.25rem;
+        font-size: 0.85rem;
+    }
+}
+
+.wines-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+
+    @include m.bp('md') {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @include m.bp('xl') {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    &--collection {
+        @include m.bp('xl') {
+            grid-template-columns: repeat(5, 1fr);
+        }
+    }
+}
+
+// ============================================================
+// Card vin
+// ============================================================
+
+.wine-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    transition: border-color 200ms ease, transform 200ms ease;
+    position: relative;
+
+    &:hover {
+        border-color: var(--color-border-gold);
+        transform: translateY(-2px);
+    }
+
+    &--out-of-stock {
+        opacity: 0.65;
+    }
+
+    &__inner {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        position: relative;
+        overflow: hidden;
+    }
+
+    &__image-wrap {
+        position: relative;
+        background-color: var(--color-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 280px;
+        overflow: hidden;
+
+        @include m.bp('lg') {
+            height: 320px;
+        }
+    }
+
+    &__image {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        display: block;
+        transition: transform 400ms ease;
+
+        .wine-card:hover & {
+            transform: scale(1.04);
+        }
+    }
+
+    &__badge {
+        position: absolute;
+        bottom: 0.5rem;
+        right: 0.5rem;
+        font-family: var(--font-serif);
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        border: 1px solid;
+
+        &--qty {
+            border-color: var(--color-gold);
+            color: var(--color-gold);
+            background-color: var(--color-surface);
+        }
+
+        &--out {
+            border-color: var(--color-text-muted);
+            color: var(--color-text-muted);
+            background-color: var(--color-surface);
+        }
+    }
+
+    &__cert {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        font-size: 0.65rem;
+        font-family: var(--font-serif);
+        letter-spacing: 0.06em;
+        color: var(--color-gold);
+        border: 1px solid var(--color-border-gold);
+        padding: 0.15rem 0.4rem;
+        background-color: var(--color-surface);
+    }
+
+    // Overlay au survol avec description
+    &__hover {
+        position: absolute;
+        inset: 0;
+        background-color: var(--color-overlay);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        opacity: 0;
+        transition: opacity 300ms ease;
+        text-align: center;
+
+        .wine-card:hover & {
+            opacity: 1;
+        }
+    }
+
+    &__description {
+        font-size: 0.8rem;
+        line-height: 1.5;
+        color: #f5f0e8; // toujours clair : overlay sombre dans les 2 thèmes
+        font-style: italic;
+    }
+
+    &__read-more {
+        font-family: var(--font-serif);
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        color: var(--color-gold);
+        text-transform: uppercase;
+    }
+
+    &__body {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        flex: 1;
+    }
+
+    &__color {
+        font-size: 0.65rem;
+        font-family: var(--font-serif);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--color-gold);
+    }
+
+    &__name {
+        font-family: var(--font-serif);
+        font-size: 0.9rem;
+        color: var(--color-text);
+        margin: 0;
+        line-height: 1.3;
+    }
+
+    &__vintage {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        font-family: var(--font-sans);
+    }
+
+    &__award {
+        font-size: 0.7rem;
+        color: var(--color-gold-light);
+        font-style: italic;
+        margin: 0;
+    }
+
+    &__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: auto;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--color-border);
+    }
+
+    &__price {
+        font-family: var(--font-serif);
+        font-size: 1rem;
+        color: var(--color-gold);
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    &__cart {
+        background: none;
+        border: 1px solid var(--color-border-gold);
+        color: var(--color-gold);
+        padding: 0.25rem 0.5rem;
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 200ms ease, color 200ms ease;
+
+        &:hover {
+            background-color: var(--color-gold);
+            color: var(--color-bg);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 2px;
+        }
+    }
+
+    &__likes {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+
+    &__likes-count {
+        font-size: 0.7rem;
+        color: var(--color-text-muted);
+        font-family: var(--font-sans);
+        min-width: 1ch;
+    }
+
+    &__heart {
+        background: none;
+        border: 1px solid var(--color-border);
+        color: var(--color-text-muted);
+        padding: 0.25rem 0.5rem;
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+        transition: color 200ms ease, border-color 200ms ease;
+
+        &:hover,
+        &[aria-pressed='true'] {
+            color: #c0392b;
+            border-color: #c0392b;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 2px;
+        }
+    }
+}
+
+// ============================================================
+// Collection — nav ancres + groupes
+// ============================================================
+
+.collection-nav {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+
+    &__list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        align-items: center;
+    }
+
+    &__anchor {
+        font-family: var(--font-serif);
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        transition: color 200ms ease;
+
+        &:hover {
+            color: var(--color-gold);
+        }
+
+        // Type absent de la page courante — lien vers vue filtrée par couleur
+        &--other-page {
+            opacity: 0.55;
+
+            &::after {
+                content: ' ↗';
+                font-size: 0.7em;
+            }
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+.page-wines-collection {
+    padding-bottom: 4rem;
+}
+
+.collection-group {
+    padding: 3rem 0 2rem;
+    scroll-margin-top: 12rem; // compense le header sticky + barre nav
+
+    & + & {
+        border-top: 1px solid var(--color-border);
+    }
+
+    &__title {
+        font-family: var(--font-script);
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        color: var(--color-gold);
+        margin-bottom: 0.5rem;
+    }
+
+    .wines-grid {
+        margin-top: 2rem;
+    }
+}
+
+// ============================================================
+// Fiche produit (show)
+// ============================================================
+
+.page-wine-show {
+    padding-bottom: 5rem;
+}
+
+.wine-detail {
+    padding-top: 2rem;
+
+    &__layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        margin-top: 2rem;
+
+        @include m.bp('lg') {
+            grid-template-columns: 360px 1fr;
+            gap: 5rem;
+        }
+    }
+
+    &__visual {
+        position: relative;
+        text-align: center;
+    }
+
+    &__image-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 460px;
+        background-color: var(--color-bg);
+        overflow: hidden;
+
+        @include m.bp('lg') {
+            height: 540px;
+        }
+    }
+
+    &__zoom-hint {
+        position: absolute;
+        bottom: 0.75rem;
+        right: 0.75rem;
+        font-size: 1.1rem;
+        color: var(--color-text-muted);
+        opacity: 0;
+        transition: opacity 200ms ease;
+        pointer-events: none;
+    }
+
+    &__image-wrap:hover &__zoom-hint {
+        opacity: 1;
+    }
+
+    &__image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        display: block;
+        cursor: zoom-in;
+        transition: transform 300ms ease;
+
+        &:hover {
+            transform: scale(1.03);
+        }
+    }
+
+    &__award-badge {
+        position: absolute;
+        bottom: -1rem;
+        right: 0;
+
+        img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+    }
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: clamp(1.4rem, 3vw, 2rem);
+        color: var(--color-text);
+        margin: 0.25rem 0 0;
+        line-height: 1.2;
+    }
+
+    &__vintage {
+        display: block;
+        font-size: 1.1rem;
+        color: var(--color-text-muted);
+        font-family: var(--font-sans);
+        font-weight: 400;
+    }
+
+    &__buy {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin: 1.5rem 0;
+    }
+
+    &__price {
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+        color: var(--color-gold);
+    }
+
+    &__stock {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+    }
+
+    &__out-of-stock {
+        font-style: italic;
+        color: var(--color-text-muted);
+        margin: 1rem 0;
+    }
+
+    &__ttc-note {
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+        font-style: italic;
+        margin: 0.5rem 0 1rem;
+    }
+
+    &__award {
+        font-size: 0.85rem;
+        color: var(--color-gold-light);
+        font-style: italic;
+        margin: 0.5rem 0 1rem;
+    }
+
+    &__section {
+        margin-top: 2rem;
+
+        &--extra {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            font-style: italic;
+
+            a {
+                color: var(--color-gold);
+            }
+        }
+    }
+
+    &__section-title {
+        font-family: var(--font-serif);
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--color-gold);
+        margin-bottom: 0.75rem;
+    }
+
+    &__text {
+        font-size: 0.95rem;
+        line-height: 1.7;
+        color: var(--color-text);
+        font-style: italic;
+    }
+
+    &__specs {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.5rem 1.5rem;
+        font-size: 0.85rem;
+        margin: 0;
+
+        dt {
+            font-family: var(--font-serif);
+            color: var(--color-gold);
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        dd {
+            color: var(--color-text);
+            margin: 0;
+        }
+    }
+
+    &__download {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        border: 1px solid var(--color-border);
+        padding: 0.5rem 1rem;
+        transition: color 200ms ease, border-color 200ms ease;
+
+        &:hover {
+            color: var(--color-gold);
+            border-color: var(--color-border-gold);
+        }
+    }
+}

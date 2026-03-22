@@ -92,7 +92,7 @@ $carouselSlides = [
         <div class="home-section__inner container">
             <div class="home-section__visual">
                 <img
-                    src="/assets/images/nos-vins.jpg"
+                    src="/assets/images/gallery/nos-vins.jpg"
                     alt="Gamme des vins du Château Crabitan Bellevue"
                     loading="lazy"
                     width="600"
@@ -127,7 +127,7 @@ $carouselSlides = [
             </div>
             <div class="home-section__visual home-section__visual--vintage">
                 <img
-                    src="/assets/images/vendanges-cheval.jpg"
+                    src="/assets/images/gallery/vendanges-cheval.jpg"
                     alt="Vendanges à cheval — Château Crabitan Bellevue"
                     loading="lazy"
                     width="600"
@@ -144,7 +144,7 @@ $carouselSlides = [
         <div class="home-section__inner container">
             <div class="home-section__visual">
                 <img
-                    src="/assets/images/chai-barriques.jpg"
+                    src="/assets/images/gallery/chai-barriques.jpg"
                     alt="Chai à barriques — Château Crabitan Bellevue"
                     loading="lazy"
                     width="600"
@@ -183,7 +183,7 @@ $carouselSlides = [
                     class="home-video__element"
                     controls
                     preload="metadata"
-                    poster="/assets/images/proprietaire.jpeg"
+                    poster="/assets/images/gallery/proprietaire.jpeg"
                     aria-label="<?= htmlspecialchars(__('home.video_title')) ?>"
                 >
                     <source src="/assets/videos/chateau-crabitan-bellevue-1.mp4" type="video/mp4">

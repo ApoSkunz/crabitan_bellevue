@@ -6,7 +6,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
         <div class="footer-main">
             <div class="footer-hve">
                 <img
-                    src="/assets/images/haute-valeur-environnementale.png"
+                    src="/assets/images/badges/haute-valeur-environnementale.png"
                     alt="Certification Haute Valeur Environnementale"
                     width="56" loading="lazy"
                 >
@@ -23,7 +23,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
             </nav>
 
             <div class="footer-payments" aria-label="Moyens de paiement acceptés">
-                <img src="/assets/images/payment-cb-banner.png"
+                <img src="/assets/images/payment/payment-cb-banner.png"
                     alt="CB, Visa, Mastercard" height="28" loading="lazy">
             </div>
         </div>
