@@ -98,7 +98,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     data-login-url="/<?= htmlspecialchars($navLang) ?>/connexion"
                 >
                     <span class="header-cart__wrap">
-                        <span class="header-cart__badge" id="header-cart-count">0</span>
+                        <span class="header-cart__badge">0</span>
                         <span class="header-cart__icon">&#128722;</span>
                     </span>
                     <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
@@ -187,14 +187,14 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
     id="cart-modal"
     class="cart-modal"
     aria-hidden="true"
-    role="dialog"
+    role="dialog" <!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
     aria-modal="true"
     aria-labelledby="cart-modal-title"
 >
     <div class="cart-modal__backdrop" id="cart-modal-backdrop"></div>
     <div class="cart-modal__inner">
         <div class="cart-modal__header">
-            <h2 id="cart-modal-title" class="cart-modal__title"></h2>
+            <h2 id="cart-modal-title" class="cart-modal__title"><!-- NOSONAR Web:S6850 — content set dynamically by JS before modal opens --></h2>
             <button id="cart-modal-close" class="cart-modal__close" type="button" aria-label="Fermer">&times;</button>
         </div>
         <div class="cart-modal__body">

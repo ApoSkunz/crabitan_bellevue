@@ -10,6 +10,17 @@ class WineModel extends Model
 {
     protected string $table = 'wines';
 
+    private const COND_AVAILABLE  = 'available = 1';
+    private const COND_OUT        = 'available = 0';
+    private const COND_COLOR      = 'wine_color = ?';
+    private const ORDER_DEFAULT   = 'wine_color DESC, vintage DESC';
+
+    /** @param string[] $conditions */
+    private function buildWhereClause(array $conditions): string
+    {
+        return $conditions !== [] ? 'WHERE ' . implode(' AND ', $conditions) : '';
+    }
+
     /**
      * Retourne les vins disponibles avec filtres, tri et pagination optionnels.
      *
@@ -24,11 +35,11 @@ class WineModel extends Model
         $where  = [];
         $params = [];
 
-        $where[] = 'available = 1';
+        $where[] = self::COND_AVAILABLE;
 
         $validColors = ['red', 'white', 'rosé', 'sweet'];
         if ($color !== null && in_array($color, $validColors, true)) {
-            $where[]  = 'wine_color = ?';
+            $where[]  = self::COND_COLOR;
             $params[] = $color;
         }
 
@@ -38,7 +49,7 @@ class WineModel extends Model
             'price_desc'   => 'price DESC, vintage DESC',
             'vintage_asc'  => 'vintage ASC',
             'vintage_desc' => 'vintage DESC',
-            default        => 'wine_color DESC, vintage DESC',
+            default        => self::ORDER_DEFAULT,
         };
 
         $limitClause = '';
@@ -54,7 +65,7 @@ class WineModel extends Model
                        oenological_comment, award, award_path,
                        0 AS likes_count
                 FROM {$this->table}
-                WHERE " . implode(' AND ', $where) . "
+                " . $this->buildWhereClause($where) . "
                 ORDER BY {$orderBy}{$limitClause}";
 
         return $this->db->fetchAll($sql, $params);
@@ -65,17 +76,17 @@ class WineModel extends Model
      */
     public function countAll(?string $color = null): int
     {
-        $where  = ['available = 1'];
+        $where  = [self::COND_AVAILABLE];
         $params = [];
 
         $validColors = ['red', 'white', 'rosé', 'sweet'];
         if ($color !== null && in_array($color, $validColors, true)) {
-            $where[]  = 'wine_color = ?';
+            $where[]  = self::COND_COLOR;
             $params[] = $color;
         }
 
         $row = $this->db->fetchOne(
-            "SELECT COUNT(*) AS total FROM {$this->table} WHERE " . implode(' AND ', $where),
+            "SELECT COUNT(*) AS total FROM {$this->table} " . $this->buildWhereClause($where),
             $params
         );
 
@@ -105,24 +116,24 @@ class WineModel extends Model
 
         $validColors = ['red', 'white', 'rosé', 'sweet'];
         if ($color !== null && in_array($color, $validColors, true)) {
-            $where[]  = 'wine_color = ?';
+            $where[]  = self::COND_COLOR;
             $params[] = $color;
         }
 
         if ($avail === 'available') {
-            $where[] = 'available = 1';
+            $where[] = self::COND_AVAILABLE;
         } elseif ($avail === 'out') {
-            $where[] = 'available = 0';
+            $where[] = self::COND_OUT;
         }
 
         $orderBy = match ($sort) {
             'likes_desc'   => 'wine_color DESC, likes_count DESC, vintage DESC',
             'vintage_asc'  => 'wine_color DESC, vintage ASC',
             'vintage_desc' => 'wine_color DESC, vintage DESC',
-            default        => 'wine_color DESC, vintage DESC',
+            default        => self::ORDER_DEFAULT,
         };
 
-        $whereClause  = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+        $whereClause  = $this->buildWhereClause($where);
         $limitClause  = '';
         if ($perPage > 0) {
             $limitClause  = ' LIMIT ? OFFSET ?';
@@ -158,17 +169,17 @@ class WineModel extends Model
 
         $validColors = ['red', 'white', 'rosé', 'sweet'];
         if ($color !== null && in_array($color, $validColors, true)) {
-            $where[]  = 'wine_color = ?';
+            $where[]  = self::COND_COLOR;
             $params[] = $color;
         }
 
         if ($avail === 'available') {
-            $where[] = 'available = 1';
+            $where[] = self::COND_AVAILABLE;
         } elseif ($avail === 'out') {
-            $where[] = 'available = 0';
+            $where[] = self::COND_OUT;
         }
 
-        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+        $whereClause = $this->buildWhereClause($where);
 
         $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total FROM {$this->table} {$whereClause}",
@@ -194,12 +205,12 @@ class WineModel extends Model
         $params = [];
 
         if ($avail === 'available') {
-            $where[] = 'available = 1';
+            $where[] = self::COND_AVAILABLE;
         } elseif ($avail === 'out') {
-            $where[] = 'available = 0';
+            $where[] = self::COND_OUT;
         }
 
-        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+        $whereClause = $this->buildWhereClause($where);
 
         $rows = $this->db->fetchAll(
             "SELECT wine_color, COUNT(*) AS cnt
@@ -252,7 +263,7 @@ class WineModel extends Model
             "SELECT id, label_name, wine_color, vintage, price, quantity,
                     available, image_path, slug, oenological_comment
              FROM {$this->table}
-             WHERE available = 1
+             WHERE " . self::COND_AVAILABLE . "
              ORDER BY id DESC
              LIMIT ?",
             [$limit]

@@ -196,4 +196,265 @@ class WineModelTest extends TestCase
 
         $this->assertCount(2, $result);
     }
+
+    // ----------------------------------------------------------------
+    // countAll
+    // ----------------------------------------------------------------
+
+    public function testCountAllReturnsTotal(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->stringContains('COUNT(*)'),
+                $this->equalTo([])
+            )
+            ->willReturn(['total' => 7]);
+
+        $result = $this->model->countAll();
+
+        $this->assertSame(7, $result);
+    }
+
+    public function testCountAllWithColorPassesParam(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->stringContains('wine_color = ?'),
+                $this->equalTo(['red'])
+            )
+            ->willReturn(['total' => 3]);
+
+        $result = $this->model->countAll('red');
+
+        $this->assertSame(3, $result);
+    }
+
+    public function testCountAllReturnsZeroOnMissingRow(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $result = $this->model->countAll();
+
+        $this->assertSame(0, $result);
+    }
+
+    // ----------------------------------------------------------------
+    // countAllByColor
+    // ----------------------------------------------------------------
+
+    public function testCountAllByColorNoFilters(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->logicalNot($this->stringContains('WHERE')),
+                $this->equalTo([])
+            )
+            ->willReturn(['total' => 12]);
+
+        $result = $this->model->countAllByColor();
+
+        $this->assertSame(12, $result);
+    }
+
+    public function testCountAllByColorWithAvailableFilter(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->stringContains('available = 1'),
+                $this->equalTo([])
+            )
+            ->willReturn(['total' => 5]);
+
+        $result = $this->model->countAllByColor(null, 'available');
+
+        $this->assertSame(5, $result);
+    }
+
+    public function testCountAllByColorWithOutFilter(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->stringContains('available = 0'),
+                $this->equalTo([])
+            )
+            ->willReturn(['total' => 2]);
+
+        $result = $this->model->countAllByColor(null, 'out');
+
+        $this->assertSame(2, $result);
+    }
+
+    public function testCountAllByColorWithColorAndAvail(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->logicalAnd(
+                    $this->stringContains('wine_color = ?'),
+                    $this->stringContains('available = 1')
+                ),
+                $this->equalTo(['sweet'])
+            )
+            ->willReturn(['total' => 4]);
+
+        $result = $this->model->countAllByColor('sweet', 'available');
+
+        $this->assertSame(4, $result);
+    }
+
+    // ----------------------------------------------------------------
+    // getColorFirstPages
+    // ----------------------------------------------------------------
+
+    public function testGetColorFirstPagesReturnsEmptyForZeroPerPage(): void
+    {
+        $result = $this->model->getColorFirstPages(null, 0);
+
+        $this->assertSame([], $result);
+    }
+
+    public function testGetColorFirstPagesSingleColorOnPage1(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([
+                ['wine_color' => 'white', 'cnt' => 5],
+            ]);
+
+        $result = $this->model->getColorFirstPages(null, 10);
+
+        $this->assertSame(['white' => 1], $result);
+    }
+
+    public function testGetColorFirstPagesMultipleColorsAcrossPages(): void
+    {
+        // sweet: 10 wines, white: 10 wines, red: 5 wines — perPage = 10
+        // sweet  starts at position 1  → page ceil(1/10)  = 1
+        // white  starts at position 11 → page ceil(11/10) = 2
+        // red    starts at position 21 → page ceil(21/10) = 3
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([
+                ['wine_color' => 'sweet', 'cnt' => 10],
+                ['wine_color' => 'white', 'cnt' => 10],
+                ['wine_color' => 'red',   'cnt' => 5],
+            ]);
+
+        $result = $this->model->getColorFirstPages(null, 10);
+
+        $this->assertSame(['sweet' => 1, 'white' => 2, 'red' => 3], $result);
+    }
+
+    public function testGetColorFirstPagesWithAvailableFilter(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('available = 1'),
+                $this->equalTo([])
+            )
+            ->willReturn([
+                ['wine_color' => 'red', 'cnt' => 3],
+            ]);
+
+        $result = $this->model->getColorFirstPages('available', 25);
+
+        $this->assertSame(['red' => 1], $result);
+    }
+
+    public function testGetColorFirstPagesWithOutFilter(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('available = 0'),
+                $this->equalTo([])
+            )
+            ->willReturn([]);
+
+        $result = $this->model->getColorFirstPages('out', 25);
+
+        $this->assertSame([], $result);
+    }
+
+    public function testGetColorFirstPagesAllOnSamePage(): void
+    {
+        // 3 wines per page, 1 wine each color — all fit on page 1
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([
+                ['wine_color' => 'sweet', 'cnt' => 1],
+                ['wine_color' => 'white', 'cnt' => 1],
+                ['wine_color' => 'red',   'cnt' => 1],
+            ]);
+
+        $result = $this->model->getColorFirstPages(null, 3);
+
+        $this->assertSame(['sweet' => 1, 'white' => 1, 'red' => 1], $result);
+    }
+
+    // ----------------------------------------------------------------
+    // getAllByColor — avail filter
+    // ----------------------------------------------------------------
+
+    public function testGetAllByColorWithAvailableFilter(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('available = 1'),
+                $this->anything()
+            )
+            ->willReturn([]);
+
+        $this->model->getAllByColor(null, 'default', 'available');
+    }
+
+    public function testGetAllByColorWithOutFilter(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('available = 0'),
+                $this->anything()
+            )
+            ->willReturn([]);
+
+        $this->model->getAllByColor(null, 'default', 'out');
+    }
+
+    public function testGetAllByColorWithPagination(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('LIMIT ? OFFSET ?'),
+                $this->equalTo([10, 20])
+            )
+            ->willReturn([]);
+
+        $this->model->getAllByColor(null, 'default', null, 10, 20);
+    }
 }

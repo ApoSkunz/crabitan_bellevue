@@ -104,16 +104,83 @@ class WineController extends Controller
 
         require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
 
-        $oeno   = json_decode($wine['oenological_comment'] ?? '{}', true) ?? [];
-        $soil   = json_decode($wine['soil']                ?? '{}', true) ?? [];
-        $pruning = json_decode($wine['pruning']            ?? '{}', true) ?? [];
-        $harvest = json_decode($wine['harvest']            ?? '{}', true) ?? [];
-        $vinif   = json_decode($wine['vinification']       ?? '{}', true) ?? [];
-        $barrel  = json_decode($wine['barrel_fermentation'] ?? '{}', true) ?? [];
-        $award   = json_decode($wine['award']              ?? '{}', true) ?? [];
-
         $l = fn(array $arr): string => $arr[$lang] ?? ($arr['fr'] ?? '');
 
+        $pdf  = $this->buildPdf($wine);
+        $logo = $this->stripAlpha(ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo.png');
+        if ($logo['path'] !== null) {
+            $pdf->Image($logo['path'], 15, 12, 18, 18, $logo['type']);
+        }
+        $this->renderPdfHeading($pdf, $wine, $lang);
+
+        $img = $this->stripAlpha(ROOT_PATH . '/public/assets/images/wines/' . $wine['image_path']);
+        if ($img['path'] !== null) {
+            $pdf->Ln(3);
+            $x = ($pdf->getPageWidth() - 35) / 2;
+            $pdf->Image($img['path'], $x, $pdf->GetY(), 35, 0, $img['type'], '', 'T', false, 300, '', false, false, 0, false, false, false);
+            $pdf->Ln(80);
+        } else {
+            $pdf->Ln(5);
+        }
+
+        $this->renderPdfContent($pdf, $wine, $lang, $l);
+
+        $filename = 'Fiche_Technique_' . $wine['label_name'] . '_' . $wine['vintage'] . '.pdf';
+        $pdf->Output($filename, 'D');
+        foreach (array_filter([$logo['tmp'], $img['tmp']]) as $tmp) {
+            if (is_file($tmp)) {
+                unlink($tmp);
+            }
+        }
+        exit;
+    }
+
+    // ----------------------------------------------------------------
+    // PDF helpers (technicalSheet)
+    // ----------------------------------------------------------------
+
+    /**
+     * Strip PNG alpha channel to JPEG for TCPDF compatibility.
+     *
+     * @return array{path: string|null, type: string, tmp: string|null}
+     */
+    private function stripAlpha(string $srcPath): array
+    {
+        $fallback = ['path' => is_file($srcPath) ? $srcPath : null, 'type' => 'PNG', 'tmp' => null];
+
+        if (!is_file($srcPath) || !function_exists('imagecreatefromstring')) {
+            return $fallback;
+        }
+        if (!str_ends_with(strtolower($srcPath), '.png')) {
+            return $fallback;
+        }
+
+        $data = @file_get_contents($srcPath);
+        if ($data === false) {
+            return $fallback;
+        }
+
+        $src = @imagecreatefromstring($data);
+        if ($src === false) {
+            return $fallback;
+        }
+
+        $dst = imagecreatetruecolor(imagesx($src), imagesy($src));
+        imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
+        imagealphablending($dst, true);
+        imagecopy($dst, $src, 0, 0, 0, 0, imagesx($src), imagesy($src));
+        imagedestroy($src);
+
+        $tmp = sys_get_temp_dir() . '/cb_img_' . md5($srcPath) . '.jpg'; // NOSONAR — md5 for temp filename only, not security-sensitive (others)
+        imagejpeg($dst, $tmp, 95);
+        imagedestroy($dst);
+
+        return ['path' => $tmp, 'type' => 'JPG', 'tmp' => $tmp];
+    }
+
+    /** @param array<string, mixed> $wine */
+    private function buildPdf(array $wine): TCPDF
+    {
         $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
         $pdf->SetCreator(APP_NAME);
         $pdf->SetAuthor(APP_NAME);
@@ -126,34 +193,12 @@ class WineController extends Controller
         $pdf->SetAutoPageBreak(true, 20);
         $pdf->AddPage();
 
-        // Logo (strip alpha if needed — imagecreatefromstring is more robust than imagecreatefrompng)
-        $logoPath = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo.png';
-        $tmpLogo  = null;
-        if (is_file($logoPath)) {
-            $logoImg  = $logoPath;
-            $logoType = 'PNG';
-            if (function_exists('imagecreatefromstring')) {
-                $logoData = @file_get_contents($logoPath);
-                if ($logoData !== false) {
-                    $lSrc = @imagecreatefromstring($logoData);
-                    if ($lSrc !== false) {
-                        $lDst = imagecreatetruecolor(imagesx($lSrc), imagesy($lSrc));
-                        imagefill($lDst, 0, 0, imagecolorallocate($lDst, 255, 255, 255));
-                        imagealphablending($lDst, true);
-                        imagecopy($lDst, $lSrc, 0, 0, 0, 0, imagesx($lSrc), imagesy($lSrc));
-                        imagedestroy($lSrc);
-                        $tmpLogo  = sys_get_temp_dir() . '/logo_' . md5($logoPath) . '.jpg';
-                        imagejpeg($lDst, $tmpLogo, 95);
-                        imagedestroy($lDst);
-                        $logoImg  = $tmpLogo;
-                        $logoType = 'JPG';
-                    }
-                }
-            }
-            $pdf->Image($logoImg, 15, 12, 18, 18, $logoType);
-        }
+        return $pdf;
+    }
 
-        // Château name + wine name
+    /** @param array<string, mixed> $wine */
+    private function renderPdfHeading(TCPDF $pdf, array $wine, string $lang): void
+    {
         $pdf->SetFont('helvetica', 'B', 18);
         $pdf->SetXY(36, 13);
         $pdf->Cell(0, 8, APP_NAME, 0, 1, 'L');
@@ -163,77 +208,38 @@ class WineController extends Controller
         $pdf->SetTextColor(160, 120, 50);
         $pdf->Cell(0, 6, strtoupper($lang === 'en' ? 'Technical Sheet' : 'Fiche Technique'), 0, 1, 'L');
         $pdf->SetTextColor(0, 0, 0);
-
         $pdf->Ln(10);
 
-        // Wine title block
         $pdf->SetFont('helvetica', 'B', 20);
         $pdf->Cell(0, 10, $wine['label_name'], 0, 1, 'C');
         $pdf->SetFont('helvetica', '', 14);
         $pdf->SetTextColor(100, 100, 100);
         $pdf->Cell(0, 7, (string) $wine['vintage'], 0, 1, 'C');
         $pdf->SetTextColor(0, 0, 0);
+    }
 
-        // Photo bouteille (strip alpha channel if GD available to avoid TCPDF error)
-        $imgPath = ROOT_PATH . '/public/assets/images/wines/' . $wine['image_path'];
-        $tmpImg  = null;
-        if (is_file($imgPath)) {
-            $useImg  = $imgPath;
-            $imgType = '';
-            if (function_exists('imagecreatefromstring') && str_ends_with(strtolower($imgPath), '.png')) {
-                $imgData = @file_get_contents($imgPath);
-                if ($imgData !== false) {
-                    $src = @imagecreatefromstring($imgData);
-                    if ($src !== false) {
-                        $dst = imagecreatetruecolor(imagesx($src), imagesy($src));
-                        imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
-                        imagealphablending($dst, true);
-                        imagecopy($dst, $src, 0, 0, 0, 0, imagesx($src), imagesy($src));
-                        imagedestroy($src);
-                        $tmpImg = sys_get_temp_dir() . '/wine_' . md5($imgPath) . '.jpg';
-                        imagejpeg($dst, $tmpImg, 95);
-                        imagedestroy($dst);
-                        $useImg  = $tmpImg;
-                        $imgType = 'JPG';
-                    }
-                }
-            }
-            $pdf->Ln(3);
-            $x = ($pdf->getPageWidth() - 35) / 2;
-            $pdf->Image(
-                $useImg,
-                $x,
-                $pdf->GetY(),
-                35,
-                0,
-                $imgType,
-                '',
-                'T',
-                false,
-                300,
-                '',
-                false,
-                false,
-                0,
-                false,
-                false,
-                false
-            );
-            $pdf->Ln(80);
-        } else {
-            $pdf->Ln(5);
-        }
+    /**
+     * @param array<string, mixed> $wine
+     * @param callable(array<string, string>): string $l
+     */
+    private function renderPdfContent(TCPDF $pdf, array $wine, string $lang, callable $l): void
+    {
+        $oeno    = json_decode($wine['oenological_comment'] ?? '{}', true) ?? [];
+        $soil    = json_decode($wine['soil']                ?? '{}', true) ?? [];
+        $pruning = json_decode($wine['pruning']             ?? '{}', true) ?? [];
+        $harvest = json_decode($wine['harvest']             ?? '{}', true) ?? [];
+        $vinif   = json_decode($wine['vinification']        ?? '{}', true) ?? [];
+        $barrel  = json_decode($wine['barrel_fermentation'] ?? '{}', true) ?? [];
+        $award   = json_decode($wine['award']               ?? '{}', true) ?? [];
 
-        // Séparateur
         $pdf->SetDrawColor(160, 120, 50);
         $pdf->SetLineWidth(0.5);
         $pdf->Line(15, $pdf->GetY(), 195, $pdf->GetY());
         $pdf->Ln(5);
 
-        // Appellation + certification
         $pdf->SetFont('helvetica', 'B', 10);
         $pdf->SetTextColor(160, 120, 50);
-        $pdf->Cell(0, 5, strtoupper($lang === 'en' ? 'Appellation' : 'Appellation'), 0, 1);
+        $pdf->Cell(0, 5, 'APPELLATION', 0, 1);
         $pdf->SetFont('helvetica', '', 10);
         $pdf->SetTextColor(0, 0, 0);
         $pdf->Cell(0, 5, $wine['city'] . ' — ' . $wine['variety_of_vine'], 0, 1);
@@ -243,10 +249,8 @@ class WineController extends Controller
             $pdf->Cell(0, 5, $wine['certification_label'], 0, 1);
             $pdf->SetTextColor(0, 0, 0);
         }
-
         $pdf->Ln(3);
 
-        // Commentaire oenologique
         $oenoText = $l($oeno);
         if ($oenoText !== '') {
             $pdf->SetFont('helvetica', 'B', 10);
@@ -258,7 +262,6 @@ class WineController extends Controller
             $pdf->Ln(3);
         }
 
-        // Fiche technique
         $pdf->SetFont('helvetica', 'B', 10);
         $pdf->SetTextColor(160, 120, 50);
         $pdf->Cell(0, 5, strtoupper($lang === 'en' ? 'Technical data' : 'Données techniques'), 0, 1);
@@ -267,15 +270,14 @@ class WineController extends Controller
 
         $areaFmt = number_format((float) $wine['area'], 2, ',', ' ') . ' ha';
         $specs = [
-            ($lang === 'en' ? 'Area'         : 'Superficie')      => $areaFmt,
-            ($lang === 'en' ? 'Age of vines' : 'Âge des vignes')  => $wine['age_of_vineyard'] . ' ans',
-            ($lang === 'en' ? 'Soil'          : 'Sol')          => $l($soil),
-            ($lang === 'en' ? 'Pruning'       : 'Taille')       => $l($pruning),
-            ($lang === 'en' ? 'Harvest'       : 'Vendanges')    => $l($harvest),
-            ($lang === 'en' ? 'Vinification'  : 'Vinification') => $l($vinif),
-            ($lang === 'en' ? 'Ageing'        : 'Élevage')      => $l($barrel),
+            ($lang === 'en' ? 'Area'         : 'Superficie')     => $areaFmt,
+            ($lang === 'en' ? 'Age of vines' : 'Âge des vignes') => $wine['age_of_vineyard'] . ' ans',
+            ($lang === 'en' ? 'Soil'         : 'Sol')            => $l($soil),
+            ($lang === 'en' ? 'Pruning'      : 'Taille')         => $l($pruning),
+            ($lang === 'en' ? 'Harvest'      : 'Vendanges')      => $l($harvest),
+            'Vinification'                                        => $l($vinif),
+            ($lang === 'en' ? 'Ageing'       : 'Élevage')        => $l($barrel),
         ];
-
         foreach ($specs as $label => $value) {
             if ($value === '' || $value === ' ha' || $value === ' ans') {
                 continue;
@@ -286,7 +288,6 @@ class WineController extends Controller
             $pdf->MultiCell(0, 5, $value, 0, 'L');
         }
 
-        // Médaille
         $awardText = $l($award);
         if ($awardText !== '') {
             $pdf->Ln(3);
@@ -298,21 +299,10 @@ class WineController extends Controller
             $pdf->Cell(0, 5, $awardText, 0, 1);
         }
 
-        // Footer discret
         $pdf->SetFont('helvetica', 'I', 7);
         $pdf->SetTextColor(150, 150, 150);
         $pdf->SetXY(15, $pdf->getPageHeight() - 15);
         $pdf->Cell(0, 5, APP_NAME . ' — ' . $wine['city'] . ' — crabitanbellevue.fr', 0, 0, 'C');
-
-        $filename = 'Fiche_Technique_' . $wine['label_name'] . '_' . $wine['vintage'] . '.pdf';
-        $pdf->Output($filename, 'D');
-        if ($tmpImg !== null && is_file($tmpImg)) {
-            unlink($tmpImg);
-        }
-        if ($tmpLogo !== null && is_file($tmpLogo)) {
-            unlink($tmpLogo);
-        }
-        exit;
     }
 
     // ----------------------------------------------------------------

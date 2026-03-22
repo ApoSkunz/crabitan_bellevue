@@ -20,10 +20,10 @@
         </include>
     </source>
 
-    <coverage>
-        <report>
-            <html outputDirectory="coverage"/>
-        </report>
-    </coverage>
+    <!--
+        Coverage report generation requires a driver (Xdebug / PCOV).
+        Run locally with: vendor/bin/phpunit tests/Unit/ - -coverage-clover coverage/clover-unit.xml
+        CI generates coverage automatically via workflow env vars.
+    -->
 
 </phpunit>

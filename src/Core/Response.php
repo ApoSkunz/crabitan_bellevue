@@ -26,8 +26,8 @@ class Response
         http_response_code($status);
         $errorView = defined('SRC_PATH') ? SRC_PATH . '/View/errors/error.php' : null;
         if ($errorView !== null && file_exists($errorView)) {
-            $statusCode = $status; // exposé à la vue
-            include $errorView;
+            $statusCode = $status; // NOSONAR — exposed to included error view via PHP scope (php:S1481)
+            include_once $errorView;
         } else {
             echo $message;
         }

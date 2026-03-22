@@ -20,6 +20,7 @@ $activePerPage = $activePerPage ?? 25;
 $page        = $page        ?? 1;
 $totalPages  = $totalPages  ?? 1;
 $colorPages  = $colorPages  ?? [];
+$cls         = '$cls; // single definition — used for radio filter active state
 ?>
 
 <main class="page-wines-collection" id="main-content">
@@ -39,13 +40,13 @@ $colorPages  = $colorPages  ?? [];
                     <fieldset class="wines-filters__colors">
                         <legend><?= htmlspecialchars(__('wine.filter_show')) ?></legend>
 
-                        <label class="wines-filters__check<?= $activeColor === null ? ' is-active' : '' ?>">
+                        <label class="wines-filters__check<?= $activeColor === null ? $cls : '' ?>">
                             <input type="radio" name="color" value="" <?= $activeColor === null ? 'checked' : '' ?>>
                             <?= htmlspecialchars(__('wine.color.all')) ?>
                         </label>
 
                         <?php foreach ($colorLabels as $val => $label) : ?>
-                            <label class="wines-filters__check<?= $activeColor === $val ? ' is-active' : '' ?>">
+                            <label class="wines-filters__check<?= $activeColor === $val ? $cls : '' ?>">
                                 <input type="radio" name="color" value="<?= htmlspecialchars($val) ?>" <?= $activeColor === $val ? 'checked' : '' ?>>
                                 <?= htmlspecialchars($label) ?>
                             </label>
@@ -62,7 +63,7 @@ $colorPages  = $colorPages  ?? [];
                             'out'       => __('wine.avail.out'),
                         ];
                         foreach ($availOptions as $val => $label) : ?>
-                            <label class="wines-filters__check<?= $activeAvail === $val ? ' is-active' : '' ?>">
+                            <label class="wines-filters__check<?= $activeAvail === $val ? $cls : '' ?>">
                                 <input type="radio" name="avail" value="<?= htmlspecialchars($val) ?>" <?= $activeAvail === $val ? 'checked' : '' ?>>
                                 <?= htmlspecialchars($label) ?>
                             </label>
