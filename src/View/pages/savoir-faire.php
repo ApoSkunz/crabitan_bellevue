@@ -39,12 +39,6 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
     <!-- Section 2 : La Vinification -->
     <section class="home-section home-section--dark" id="vinification">
         <div class="home-section__inner container home-section__inner--reverse">
-            <div class="home-section__content">
-                <span class="home-section__tag"><?= htmlspecialchars(__('savoir.vinif_tag')) ?></span>
-                <h2 class="home-section__title"><?= htmlspecialchars(__('savoir.vinif_title')) ?></h2>
-                <div class="home-section__divider"></div>
-                <p class="home-section__text"><?= htmlspecialchars(__('savoir.vinif_text')) ?></p>
-            </div>
             <div class="home-section__visual">
                 <img
                     src="/assets/images/carousel/raisins-recolte.jpg"
@@ -53,6 +47,12 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
                     width="600"
                     height="400"
                 >
+            </div>
+            <div class="home-section__content">
+                <span class="home-section__tag"><?= htmlspecialchars(__('savoir.vinif_tag')) ?></span>
+                <h2 class="home-section__title"><?= htmlspecialchars(__('savoir.vinif_title')) ?></h2>
+                <div class="home-section__divider"></div>
+                <p class="home-section__text"><?= htmlspecialchars(__('savoir.vinif_text')) ?></p>
             </div>
         </div>
     </section>

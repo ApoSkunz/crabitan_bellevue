@@ -5,7 +5,7 @@
 // ============================================================
 
 .age-gate-page {
-    background-color: #080808;
+    background-color: var(--color-bg);
     min-height: 100dvh;
     overflow: hidden;
 }
@@ -103,6 +103,16 @@
     animation: edge-v 2.6s ease-in-out 1 forwards;
 }
 
+// Light theme : highlight gold au lieu de blanc
+[data-theme='light'] {
+    .age-gate__card-wrapper > span:nth-child(1)::before,
+    .age-gate__card-wrapper > span:nth-child(3)::before,
+    .age-gate__card-wrapper > span:nth-child(2)::before,
+    .age-gate__card-wrapper > span:nth-child(4)::before {
+        background: rgba(201, 168, 76, 0.8);
+    }
+}
+
 // Aller-retour unique horizontal : gauche → droite → gauche → fondu
 @keyframes edge-h {
     0%   { left: -30%; opacity: 1; }
@@ -123,7 +133,7 @@
 
 // ─── Card ─────────────────────────────────────────────────────────────────
 .age-gate__card {
-    background-color: #0e0e0e;
+    background-color: var(--color-surface);
     padding: 3rem 3.5rem;
     position: relative;
     overflow: hidden;
@@ -141,6 +151,10 @@
         width: 65%;
         height: 100%;
         background: rgba(255, 255, 255, 0.12);
+
+        [data-theme='light'] & {
+            background: rgba(201, 168, 76, 0.08);
+        }
         transform: skewX(-20deg);
         transition: left 0.6s ease;
         pointer-events: none;
@@ -212,7 +226,7 @@
     align-items: flex-start;
     gap: 1rem;
     cursor: pointer;
-    color: var(--color-gold);
+    color: var(--color-text);
     font-size: 0.95rem;
     line-height: 1.5;
 
@@ -320,6 +334,24 @@
     flex-wrap: wrap;
     padding-top: 0.5rem;
     border-top: 1px solid var(--color-border);
+}
+
+.age-gate__topbar {
+    position: fixed;
+    top: 1rem;
+    right: 1.25rem;
+    z-index: 100;
+}
+
+.age-gate__intro-link {
+    margin-left: 0.25rem;
+    color: var(--color-gold);
+    text-decoration: underline;
+    font-size: inherit;
+
+    &:hover {
+        color: var(--color-text);
+    }
 }
 
 .age-gate__remember {

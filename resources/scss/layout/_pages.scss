@@ -1,6 +1,48 @@
 @use '../abstracts/mixins' as m;
 
 // ============================================================
+// Mode bare (mentions légales depuis cookie banner)
+// ============================================================
+
+.bare-legal {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+
+    &__bar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1.5rem;
+        background-color: var(--color-surface);
+        border-bottom: 1px solid var(--color-gold);
+        font-family: var(--font-serif);
+        font-size: 0.95rem;
+        letter-spacing: 0.06em;
+        color: var(--color-text);
+    }
+
+    &__close {
+        background: none;
+        border: 1px solid var(--color-gold);
+        color: var(--color-text);
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 0.85rem;
+        line-height: 1;
+
+        &:hover {
+            background-color: var(--color-gold);
+            color: var(--color-bg);
+        }
+    }
+}
+
+// ============================================================
 // Mentions légales
 // ============================================================
 

@@ -10,6 +10,7 @@ return [
     'age_gate.enter'         => 'Enter',
     'age_gate.info_label'    => 'Legal information',
     'age_gate.choice_legend' => 'Age verification',
+    'age_gate.legal_more'    => 'Learn more.',
     'age_gate.error'         => 'You must be of legal drinking age to access this site. You will be redirected in 3 seconds.',
 
     // Navigation
@@ -232,7 +233,8 @@ return [
     // Legal notice
     'legal.editor_title'  => 'Website editor',
     'legal.hosting_title' => 'Hosting',
-    'legal.hosting_info'  => 'This website is hosted by OVHcloud — 2 rue Kellermann, 59100 Roubaix — France.',
+    'legal.ai_mention'    => 'This website was developed with the assistance of Claude, an artificial intelligence model published by Anthropic.',
+    'legal.hosting_info'  => 'This website is hosted by IONOS (1&1 Internet SARL) — 7, place de la Gare, 57200 Sarreguemines — France. Phone: +33 (0)9 70 80 89 11. Contact: email@1and1.fr.',
     'legal.data_title'    => 'Personal data',
     'legal.data_info'     => 'In accordance with GDPR, you have the right to access, rectify and delete your personal data. To exercise this right, contact us by phone or mail.',
 
@@ -240,6 +242,9 @@ return [
     'chateau.origins_tag'    => 'Origins',
     'chateau.origins_title'  => 'A family of coopers',
     'chateau.origins_text'   => 'Originally small craftsmen coopers, the family settled in Crabitan on the heights of Sainte-Croix-du-Mont in 1870. The current tasting room is a testimony to the old family kitchen of their ancestors. The vineyard gradually grew over the generations through purchases, leasing and planting of new plots.',
+    'chateau.year1956_tag'   => '1956',
+    'chateau.year1956_title' => 'The Great Frost',
+    'chateau.year1956_text'  => 'In February 1956, the great frost devastated the Bordeaux vineyards. In Crabitan, as throughout the Gironde, the vines were decimated. The Solane family set about replanting the plots, beginning a patient and determined renewal of the estate.',
     'chateau.year1975_tag'   => '1975',
     'chateau.year1975_title' => 'Château Crabitan Bellevue',
     'chateau.year1975_text'  => 'The wines of the Clos de Crabitan were renamed Château Crabitan Bellevue and gained recognition with Bernard and Eliane at trade fairs and exhibitions, showcasing their outstanding quality-to-price ratio.',
@@ -248,7 +253,7 @@ return [
     'chateau.year1994_text'  => 'Meanwhile the tractor had replaced the oxen and horse for vineyard work, making daily tasks less arduous on these difficult clay slopes. Nicolas, the current estate manager, joined his parents in 1994 with the creation of GFA Bernard Solane et Fils.',
     'chateau.today_tag'      => 'Today',
     'chateau.today_title'    => 'Nicolas & Corinne',
-    'chateau.today_text'     => 'Every day, with the support of Corinne on the administrative side and their team in the cellar and vineyard, he strives to bring the grapes to their best maturity in order to make Crabitan Bellevue wines always pleasant to taste for visitors coming to the estate or those who discover them in more distant regions.',
+    'chateau.today_text'     => 'Every day, with the help of Corinne on the administrative side and their team in the cellar and vineyard, he strives to bring the grapes to perfect ripeness so that Crabitan Bellevue wines remain a pleasure to taste — whether for visitors at the estate or those who discover them further afield. Since 2020, the estate also offers online sales with direct delivery across France, so that everyone can receive their bottles at home.',
 
     // Savoir-Faire
     'savoir.vignoble_tag'   => 'The Vineyard',

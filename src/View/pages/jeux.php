@@ -4,23 +4,7 @@ require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 
-// 14 paires — images des vins du catalogue (slug utilisé comme identifiant)
-$memoPairs = [
-    'bordeaux-blanc-sec-2023',
-    'sainte-croix-du-mont-blanc-doux-2021',
-    'sainte-croix-du-mont-blanc-doux-2019',
-    'sainte-croix-du-mont-blanc-doux-2018',
-    'sainte-croix-du-mont-blanc-doux-2017',
-    'bordeaux-rouge-2020',
-    'bordeaux-rouge-2019',
-    'bordeaux-rouge-2018',
-    'bordeaux-rouge-2017',
-    'bordeaux-rouge-2016',
-    'bordeaux-rose-2023',
-    'bordeaux-rouge-2015',
-    'bordeaux-blanc-sec-2022',
-    'sainte-croix-du-mont-blanc-doux-2016',
-];
+$pairCount = count($wines ?? []);
 ?>
 
 <main class="page-jeux" id="main-content">
@@ -53,27 +37,27 @@ $memoPairs = [
         </div>
 
         <div class="memo-game__status" aria-live="polite">
-            <span id="memo-pairs-found">0</span> / 14 <?= htmlspecialchars(__('jeux.pairs_found')) ?>
+            <span id="memo-pairs-found">0</span> / <?= $pairCount ?> <?= htmlspecialchars(__('jeux.pairs_found')) ?>
         </div>
 
         <div class="memo-game__grid" id="memo-grid" role="list">
             <?php
             // Dupliquer + mélanger les paires
-            $cards = array_merge($memoPairs, $memoPairs);
+            $cards = array_merge($wines ?? [], $wines ?? []);
             shuffle($cards);
-            foreach ($cards as $i => $slug) :
+            foreach ($cards as $i => $wine) :
                 ?>
                 <button
                     class="memo-card"
                     type="button"
-                    data-slug="<?= htmlspecialchars($slug) ?>"
+                    data-slug="<?= htmlspecialchars($wine['slug']) ?>"
                     aria-label="Carte <?= $i + 1 ?>"
                     role="listitem"
                 >
                     <span class="memo-card__back" aria-hidden="true"></span>
                     <span class="memo-card__front">
                         <img
-                            src="/assets/images/wines/<?= htmlspecialchars($slug) ?>.png"
+                            src="<?= htmlspecialchars($wine['image_path']) ?>"
                             alt=""
                             loading="lazy"
                             width="120"
@@ -102,11 +86,12 @@ $memoPairs = [
 (function () {
     'use strict';
 
-    const DURATION = 2 * 60; // 2 minutes en secondes
-    const WIN_MSG  = <?= json_encode(__('jeux.win')) ?>;
-    const LOSE_MSG = <?= json_encode(__('jeux.lose')) ?>;
+    const DURATION   = 2 * 60; // 2 minutes en secondes
+    const PAIR_COUNT = <?= $pairCount ?>;
+    const WIN_MSG    = <?= json_encode(__('jeux.win')) ?>;
+    const LOSE_MSG   = <?= json_encode(__('jeux.lose')) ?>;
 
-    let timer, secondsLeft, flipped, locked, matched;
+    let timer, secondsLeft, flipped, locked, matched, timerStarted;
 
     function pad(n) {
         return String(n).padStart(2, '0');
@@ -134,9 +119,20 @@ $memoPairs = [
         showMessage(win ? WIN_MSG : LOSE_MSG, win);
     }
 
+    function startTimer() {
+        if (timerStarted) return;
+        timerStarted = true;
+        timer = setInterval(function () {
+            secondsLeft--;
+            updateTimer();
+            if (secondsLeft <= 0) endGame(false);
+        }, 1000);
+    }
+
     function flipCard(card) {
         if (locked || card.classList.contains('is-flipped') || card.classList.contains('is-matched')) return;
 
+        startTimer();
         card.classList.add('is-flipped');
         flipped.push(card);
 
@@ -152,7 +148,7 @@ $memoPairs = [
             document.getElementById('memo-pairs-found').textContent = matched;
             flipped = [];
             locked  = false;
-            if (matched === 14) endGame(true);
+            if (matched === PAIR_COUNT) endGame(true);
         } else {
             setTimeout(function () {
                 a.classList.remove('is-flipped');
@@ -165,10 +161,11 @@ $memoPairs = [
 
     function init() {
         clearInterval(timer);
-        secondsLeft = DURATION;
-        flipped     = [];
-        locked      = false;
-        matched     = 0;
+        secondsLeft  = DURATION;
+        flipped      = [];
+        locked       = false;
+        matched      = 0;
+        timerStarted = false;
 
         updateTimer();
 
@@ -191,11 +188,6 @@ $memoPairs = [
             cards.splice(j, 1);
         }
 
-        timer = setInterval(function () {
-            secondsLeft--;
-            updateTimer();
-            if (secondsLeft <= 0) endGame(false);
-        }, 1000);
     }
 
     document.getElementById('memo-restart').addEventListener('click', init);

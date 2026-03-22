@@ -10,9 +10,11 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
     <div class="cookie-banner__body">
         <p class="cookie-banner__text">
             <?= htmlspecialchars(__('cookie.text')) ?>
-            <a href="/assets/docs/mentions-legales.pdf" download="Mentions-Legales.pdf">
-                <?= htmlspecialchars(__('cookie.learn_more')) ?>
-            </a>
+            <a
+                href="/<?= htmlspecialchars($navLang) ?>/mentions-legales?bare=1"
+                target="_blank"
+                rel="noopener noreferrer"
+            ><?= htmlspecialchars(__('cookie.learn_more')) ?></a>
         </p>
         <p class="cookie-banner__required" hidden aria-live="polite">
             <?= htmlspecialchars(__('cookie.required')) ?>

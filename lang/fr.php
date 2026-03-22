@@ -10,6 +10,7 @@ return [
     'age_gate.enter'         => 'Entrer',
     'age_gate.info_label'    => 'Informations légales',
     'age_gate.choice_legend' => 'Vérification de l\'âge',
+    'age_gate.legal_more'    => 'En savoir plus.',
     'age_gate.error'         => 'Vous devez être en âge légal pour accéder à ce site. Vous allez être redirigé dans 3 secondes.',
 
     // Navigation
@@ -234,7 +235,8 @@ return [
     // Mentions légales
     'legal.editor_title'  => 'Éditeur du site',
     'legal.hosting_title' => 'Hébergement',
-    'legal.hosting_info'  => 'Ce site est hébergé par OVHcloud — 2 rue Kellermann, 59100 Roubaix — France.',
+    'legal.ai_mention'    => 'Ce site a été développé avec l\'assistance de Claude, un modèle d\'intelligence artificielle édité par Anthropic.',
+    'legal.hosting_info'  => 'Ce site est hébergé par IONOS (1&1 Internet SARL) — 7, place de la Gare, 57200 Sarreguemines — France. Téléphone : +33 (0)9 70 80 89 11. Contact : email@1and1.fr.',
     'legal.data_title'    => 'Données personnelles',
     'legal.data_info'     => 'Conformément au RGPD, vous disposez d\'un droit d\'accès, de rectification et de suppression de vos données. Pour exercer ce droit, contactez-nous par téléphone ou courrier.',
 
@@ -242,6 +244,9 @@ return [
     'chateau.origins_tag'    => 'Les Origines',
     'chateau.origins_title'  => 'Une famille de tonneliers',
     'chateau.origins_text'   => 'Tout d\'abord petits artisans tonneliers, la famille s\'est installée à Crabitan sur les hauteurs de Sainte-Croix-du-Mont en 1870. La salle de dégustation actuelle est un témoignage de l\'ancienne cuisine des aïeux de la famille. Le vignoble s\'est développé progressivement au fil des générations par l\'achat, la prise en fermage (location) et la plantation de parcelles de vigne.',
+    'chateau.year1956_tag'   => '1956',
+    'chateau.year1956_title' => 'La Grande Gelée',
+    'chateau.year1956_text'  => 'En février 1956, la grande gelée ravagea les vignobles bordelais. À Crabitan comme partout en Gironde, les pieds de vigne furent décimés. La famille Solane s\'attela à replanter les parcelles, amorçant un renouveau patient et déterminé du domaine.',
     'chateau.year1975_tag'   => '1975',
     'chateau.year1975_title' => 'Château Crabitan Bellevue',
     'chateau.year1975_text'  => 'Les vins du clos de Crabitan se renommèrent Château Crabitan Bellevue et se firent connaître avec Bernard et Eliane lors de salons et foires expositions en mettant en valeur leur bon rapport qualité/prix.',
@@ -250,7 +255,7 @@ return [
     'chateau.year1994_text'  => 'Entre temps le tracteur avait remplacé les bœufs et le cheval pour le travail de la vigne, ce qui dans ces coteaux argileux difficiles rendit les tâches quotidiennes moins ardues. Nicolas, gérant actuel du domaine, a rejoint ses parents en 1994 avec la création du GFA Bernard Solane et Fils.',
     'chateau.today_tag'      => 'Aujourd\'hui',
     'chateau.today_title'    => 'Nicolas & Corinne',
-    'chateau.today_text'     => 'Il s\'efforce chaque jour, avec le concours de Corinne à l\'administratif et de leur équipe au chai et au vignoble, d\'amener le raisin à la meilleure maturité afin de rendre les vins de Crabitan Bellevue toujours plaisants à déguster pour les visiteurs venant au domaine ou ceux qui les découvrent dans des régions plus lointaines.',
+    'chateau.today_text'     => 'Il s\'efforce chaque jour, avec le concours de Corinne à l\'administratif et de leur équipe au chai et au vignoble, d\'amener le raisin à la meilleure maturité afin de rendre les vins de Crabitan Bellevue toujours plaisants à déguster pour les visiteurs venant au domaine ou ceux qui les découvrent dans des régions plus lointaines. Depuis 2020, le domaine propose également la vente en ligne avec livraison directe en France, pour que chacun puisse recevoir ses bouteilles à domicile.',
 
     // Savoir-Faire
     'savoir.vignoble_tag'   => 'Le Vignoble',

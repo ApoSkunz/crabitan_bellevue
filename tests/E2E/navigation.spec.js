@@ -80,6 +80,14 @@ test.describe('Navigation — toutes les pages de la homepage', () => {
         await expectPageOk(page, '/fr/webmaster');
     });
 
+    test('/fr/support se charge', async ({ page }) => {
+        await expectPageOk(page, '/fr/support');
+    });
+
+    test('/fr/jeux se charge', async ({ page }) => {
+        await expectPageOk(page, '/fr/jeux');
+    });
+
     // ── Version anglaise ─────────────────────────────────────────────────────
 
     test('/en charge la homepage en anglais', async ({ page }) => {
