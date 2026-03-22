@@ -75,20 +75,22 @@ $colorLabels = [
                         </select>
                     </div>
 
-                    <div class="wines-filters__per-page">
-                        <label for="wines-per-page"><?= htmlspecialchars(__('wine.per_page')) ?></label>
-                        <select id="wines-per-page" name="per_page">
-                            <?php foreach ([10, 25, 50, 100] as $n) : ?>
-                                <option value="<?= $n ?>" <?= $activePerPage === $n ? 'selected' : '' ?>>
-                                    <?= $n ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                    <div class="wines-filters__bottom-row">
+                        <div class="wines-filters__per-page">
+                            <label for="wines-per-page"><?= htmlspecialchars(__('wine.per_page')) ?></label>
+                            <select id="wines-per-page" name="per_page">
+                                <?php foreach ([10, 25, 50, 100] as $n) : ?>
+                                    <option value="<?= $n ?>" <?= $activePerPage === $n ? 'selected' : '' ?>>
+                                        <?= $n ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-                    <a href="/<?= htmlspecialchars($navLang) ?>/vins/collection" class="wines-filters__collection-link">
-                        <?= htmlspecialchars(__('wine.view_collection')) ?>
-                    </a>
+                        <a href="/<?= htmlspecialchars($navLang) ?>/vins/collection" class="wines-filters__collection-link">
+                            <?= htmlspecialchars(__('wine.view_collection')) ?>
+                        </a>
+                    </div>
                 </div>
             </form>
 

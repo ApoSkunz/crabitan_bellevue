@@ -92,20 +92,22 @@ $totalPages  = $totalPages  ?? 1;
                         </select>
                     </div>
 
-                    <div class="wines-filters__per-page">
-                        <label for="collection-per-page"><?= htmlspecialchars(__('wine.per_page')) ?></label>
-                        <select id="collection-per-page" name="per_page">
-                            <?php foreach ([10, 25, 50, 100] as $n) : ?>
-                                <option value="<?= $n ?>" <?= $activePerPage === $n ? 'selected' : '' ?>>
-                                    <?= $n ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                    <div class="wines-filters__bottom-row">
+                        <div class="wines-filters__per-page">
+                            <label for="collection-per-page"><?= htmlspecialchars(__('wine.per_page')) ?></label>
+                            <select id="collection-per-page" name="per_page">
+                                <?php foreach ([10, 25, 50, 100] as $n) : ?>
+                                    <option value="<?= $n ?>" <?= $activePerPage === $n ? 'selected' : '' ?>>
+                                        <?= $n ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-                    <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="wines-filters__collection-link">
-                        &#8592; <?= htmlspecialchars(__('nav.wines')) ?>
-                    </a>
+                        <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="wines-filters__collection-link">
+                            &#8592; <?= htmlspecialchars(__('nav.wines')) ?>
+                        </a>
+                    </div>
                 </div>
             </form>
 
