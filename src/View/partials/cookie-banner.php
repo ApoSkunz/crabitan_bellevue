@@ -1,7 +1,3 @@
-<?php
-
-$navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
-?>
 <aside
     id="cookie-banner"
     class="cookie-banner"

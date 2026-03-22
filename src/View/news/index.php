@@ -2,7 +2,6 @@
 $pageTitle = __('nav.news');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
-$navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 ?>
 
 <main class="page-news" id="main-content">

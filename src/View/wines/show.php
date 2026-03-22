@@ -3,7 +3,6 @@ $wineName  = ($wine['label_name'] ?? '') . ' ' . ($wine['vintage'] ?? '');
 $pageTitle = $wineName;
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
-$navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 
 // Décodage des champs JSON
 $oeno    = json_decode($wine['oenological_comment'] ?? '{}', true) ?? [];

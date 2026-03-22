@@ -2,7 +2,6 @@
 $pageTitle = __('jeux.title');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
-$navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 
 $pairCount = count($wines ?? []);
 ?>
@@ -15,7 +14,14 @@ $pairCount = count($wines ?? []);
         </div>
     </div>
 
-    <section class="memo-game container" aria-labelledby="memo-title">
+    <section
+        class="memo-game container"
+        id="memo-game"
+        aria-labelledby="memo-title"
+        data-pair-count="<?= $pairCount ?>"
+        data-win-msg="<?= htmlspecialchars(__('jeux.win')) ?>"
+        data-lose-msg="<?= htmlspecialchars(__('jeux.lose')) ?>"
+    >
         <h2 id="memo-title" class="memo-game__title"><?= htmlspecialchars(__('jeux.memo_title')) ?></h2>
         <p class="memo-game__desc"><?= htmlspecialchars(__('jeux.memo_desc')) ?></p>
 
@@ -82,123 +88,5 @@ $pairCount = count($wines ?? []);
     </section>
 </main>
 
-<script>
-(function () {
-    'use strict';
-
-    const DURATION   = 2 * 60; // 2 minutes en secondes
-    const PAIR_COUNT = <?= $pairCount ?>;
-    const WIN_MSG    = <?= json_encode(__('jeux.win')) ?>;
-    const LOSE_MSG   = <?= json_encode(__('jeux.lose')) ?>;
-
-    let timer, secondsLeft, flipped, locked, matched, timerStarted;
-
-    function pad(n) {
-        return String(n).padStart(2, '0');
-    }
-
-    function updateTimer() {
-        const h = Math.floor(secondsLeft / 3600);
-        const m = Math.floor((secondsLeft % 3600) / 60);
-        const s = secondsLeft % 60;
-        document.getElementById('memo-hours').textContent   = pad(h);
-        document.getElementById('memo-minutes').textContent = pad(m);
-        document.getElementById('memo-seconds').textContent = pad(s);
-    }
-
-    function showMessage(msg, win) {
-        const el = document.getElementById('memo-message');
-        el.textContent = msg;
-        el.className   = 'memo-game__message memo-game__message--' + (win ? 'win' : 'lose');
-        el.hidden      = false;
-    }
-
-    function endGame(win) {
-        clearInterval(timer);
-        locked = true;
-        showMessage(win ? WIN_MSG : LOSE_MSG, win);
-    }
-
-    function startTimer() {
-        if (timerStarted) return;
-        timerStarted = true;
-        timer = setInterval(function () {
-            secondsLeft--;
-            updateTimer();
-            if (secondsLeft <= 0) endGame(false);
-        }, 1000);
-    }
-
-    function flipCard(card) {
-        if (locked || card.classList.contains('is-flipped') || card.classList.contains('is-matched')) return;
-
-        startTimer();
-        card.classList.add('is-flipped');
-        flipped.push(card);
-
-        if (flipped.length < 2) return;
-
-        locked = true;
-        const [a, b] = flipped;
-
-        if (a.dataset.slug === b.dataset.slug) {
-            a.classList.add('is-matched');
-            b.classList.add('is-matched');
-            matched++;
-            document.getElementById('memo-pairs-found').textContent = matched;
-            flipped = [];
-            locked  = false;
-            if (matched === PAIR_COUNT) endGame(true);
-        } else {
-            setTimeout(function () {
-                a.classList.remove('is-flipped');
-                b.classList.remove('is-flipped');
-                flipped = [];
-                locked  = false;
-            }, 900);
-        }
-    }
-
-    function init() {
-        clearInterval(timer);
-        secondsLeft  = DURATION;
-        flipped      = [];
-        locked       = false;
-        matched      = 0;
-        timerStarted = false;
-
-        updateTimer();
-
-        document.getElementById('memo-pairs-found').textContent = 0;
-
-        const msg = document.getElementById('memo-message');
-        msg.hidden    = true;
-        msg.textContent = '';
-
-        // Mélanger les cartes dans le DOM
-        const grid  = document.getElementById('memo-grid');
-        const cards = Array.from(grid.querySelectorAll('.memo-card'));
-        cards.forEach(function (c) {
-            c.classList.remove('is-flipped', 'is-matched');
-        });
-        // Shuffle DOM order
-        for (let i = cards.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            grid.appendChild(cards[j]);
-            cards.splice(j, 1);
-        }
-
-    }
-
-    document.getElementById('memo-restart').addEventListener('click', init);
-
-    document.getElementById('memo-grid').addEventListener('click', function (e) {
-        const card = e.target.closest('.memo-card');
-        if (card) flipCard(card);
-    });
-
-    init();
-}());
-</script>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

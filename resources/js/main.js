@@ -1,4 +1,5 @@
 import '../scss/main.scss';
+import { initCarbonBadge } from './carbon-badge.js';
 
 // ============================================================
 // Thème jour / nuit
@@ -563,4 +564,10 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartCount();
     initAnchorScroll();
     initFaqAccordion();
+    initCarbonBadge();
+
+    // Chargement à la demande — uniquement sur la page jeux
+    if (document.getElementById('memo-game')) {
+        import('./memo-game.js').then((m) => m.initMemoGame());
+    }
 });

@@ -183,6 +183,10 @@ return [
     'home.carousel_title' => 'Château Crabitan Bellevue',
     'home.carousel_sub'   => 'Vins de Bordeaux — Sainte-Croix-du-Mont',
 
+    'home.img_wines_alt'   => 'Gamme des vins du Château Crabitan Bellevue',
+    'home.img_harvest_alt' => 'Vendanges à cheval — Château Crabitan Bellevue',
+    'home.img_cellar_alt'  => 'Chai à barriques — Château Crabitan Bellevue',
+
     // Homepage — Section Millésime / Nos vins
     'home.wines_tag'   => 'Millésime',
     'home.wines_title' => 'Nos Vins',
@@ -256,6 +260,11 @@ return [
     'chateau.year1994_text'  => 'Entre temps le tracteur avait remplacé les bœufs et le cheval pour le travail de la vigne, ce qui dans ces coteaux argileux difficiles rendit les tâches quotidiennes moins ardues. Nicolas, gérant actuel du domaine, a rejoint ses parents en 1994 avec la création du GFA Bernard Solane et Fils.',
     'chateau.today_tag'      => 'Aujourd\'hui',
     'chateau.today_title'    => 'Nicolas & Corinne',
+    'chateau.img_origins_alt' => 'La famille Solane — fin XIXe siècle',
+    'chateau.img_1956_alt'   => 'Vendanges 1956 — Château Crabitan Bellevue',
+    'chateau.img_1975_alt'   => 'Vendanges années 1970 — Château Crabitan Bellevue',
+    'chateau.img_1994_alt'   => 'Le chai — Château Crabitan Bellevue',
+    'chateau.img_today_alt'  => 'Nicolas et Corinne Solane — Château Crabitan Bellevue',
     'chateau.today_text'     => 'Il s\'efforce chaque jour, avec le concours de Corinne à l\'administratif et de leur équipe au chai et au vignoble, d\'amener le raisin à la meilleure maturité afin de rendre les vins de Crabitan Bellevue toujours plaisants à déguster pour les visiteurs venant au domaine ou ceux qui les découvrent dans des régions plus lointaines. Depuis 2020, le domaine propose également la vente en ligne avec livraison directe en France, pour que chacun puisse recevoir ses bouteilles à domicile.',
 
     // Savoir-Faire
@@ -267,6 +276,9 @@ return [
     'savoir.vinif_text'     => 'La vendange est récoltée à parfaite maturité, vinifiée avec soin pour préserver l\'expression unique de chaque parcelle. Chaque vin est élaboré en respectant les traditions tout en intégrant les meilleures pratiques contemporaines, alliant précision technique et sensibilité au produit.',
     'savoir.elevage_tag'    => 'L\'Élevage',
     'savoir.elevage_title'  => 'La patience récompensée',
+    'savoir.img_vignoble_alt' => 'Le vignoble en été — Château Crabitan Bellevue',
+    'savoir.img_vinif_alt'   => 'Récolte des raisins — Château Crabitan Bellevue',
+    'savoir.img_elevage_alt' => 'Chai à barriques — Château Crabitan Bellevue',
     'savoir.elevage_text'   => 'Nos liquoreux sont élevés avec patience pour développer leur complexité et leur longueur en bouche. Les vins rouges bénéficient d\'un élevage adapté à chaque millésime, garantissant équilibre et élégance. Chaque bouteille est le fruit d\'un travail minutieux, de la vigne jusqu\'à la mise en bouteille.',
 
     // Support / FAQ

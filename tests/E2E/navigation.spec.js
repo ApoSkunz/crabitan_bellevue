@@ -1,16 +1,5 @@
 // @ts-check
-import { test, expect } from './support/fixtures.js';
-
-// ============================================================
-// Helpers
-// ============================================================
-
-async function setVerifiedCookie(context) {
-    const domain = new URL(process.env.APP_URL || 'http://localhost:8000').hostname;
-    await context.addCookies([
-        { name: 'age_verified', value: '1', domain, path: '/', httpOnly: true, sameSite: 'Lax' },
-    ]);
-}
+import { test, expect, setVerifiedCookie } from './support/fixtures.js';
 
 /**
  * Vérifie qu'une page se charge (status ≠ 404/500), a un header et un footer.

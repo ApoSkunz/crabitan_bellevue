@@ -1,16 +1,5 @@
 // @ts-check
-import { test, expect } from './support/fixtures.js';
-
-// ============================================================
-// Helpers
-// ============================================================
-
-async function setVerifiedCookie(context) {
-    const domain = new URL(process.env.APP_URL || 'http://localhost:8000').hostname;
-    await context.addCookies([
-        { name: 'age_verified', value: '1', domain, path: '/', httpOnly: true, sameSite: 'Lax' },
-    ]);
-}
+import { test, expect, setVerifiedCookie } from './support/fixtures.js';
 
 // ============================================================
 // Scénarios métiers — Catalogue & Vins
@@ -33,7 +22,10 @@ test.describe('Catalogue — navigation et filtres', () => {
         await page.goto('/fr/vins');
         const totalBefore = await page.locator('.wine-card').count();
         await page.locator('[data-color="red"], .filter-btn[data-color="red"]').first().click();
-        await page.waitForTimeout(300);
+        // Attendre que le filtre soit marqué actif avant de compter
+        await expect(
+            page.locator('[data-color="red"], .filter-btn[data-color="red"]').first()
+        ).toHaveClass(/active|selected|is-active/);
         const totalAfter = await page.locator('.wine-card').count();
         expect(totalAfter).toBeLessThanOrEqual(totalBefore);
     });
@@ -80,8 +72,11 @@ test.describe('Panier — ajout et consultation', () => {
         const countBefore = parseInt(
             (await page.locator('#cart-count').textContent() || '0').trim(), 10
         ) || 0;
-        await addBtn.click();
-        await page.waitForTimeout(400);
+        // Attendre la réponse AJAX de l'ajout au panier avant de lire le badge
+        await Promise.all([
+            page.waitForResponse(r => r.url().includes('/panier') && r.status() < 500).catch(() => {}),
+            addBtn.click(),
+        ]);
         const countAfter = parseInt(
             (await page.locator('#cart-count').textContent() || '0').trim(), 10
         ) || 0;

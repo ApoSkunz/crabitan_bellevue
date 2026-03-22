@@ -3,7 +3,6 @@ $pageTitle = null; // Pas de titre dans <title> sur la home (château seul suffi
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
-$navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 
 $carouselSlides = [
     [
@@ -93,7 +92,7 @@ $carouselSlides = [
             <div class="home-section__visual">
                 <img
                     src="/assets/images/gallery/nos-vins.jpg"
-                    alt="Gamme des vins du Château Crabitan Bellevue"
+                    alt="<?= htmlspecialchars(__('home.img_wines_alt')) ?>"
                     loading="lazy"
                     width="600"
                     height="400"
@@ -128,7 +127,7 @@ $carouselSlides = [
             <div class="home-section__visual home-section__visual--vintage">
                 <img
                     src="/assets/images/gallery/vendanges-cheval.jpg"
-                    alt="Vendanges à cheval — Château Crabitan Bellevue"
+                    alt="<?= htmlspecialchars(__('home.img_harvest_alt')) ?>"
                     loading="lazy"
                     width="600"
                     height="400"
@@ -145,7 +144,7 @@ $carouselSlides = [
             <div class="home-section__visual">
                 <img
                     src="/assets/images/gallery/chai-barriques.jpg"
-                    alt="Chai à barriques — Château Crabitan Bellevue"
+                    alt="<?= htmlspecialchars(__('home.img_cellar_alt')) ?>"
                     loading="lazy"
                     width="600"
                     height="400"

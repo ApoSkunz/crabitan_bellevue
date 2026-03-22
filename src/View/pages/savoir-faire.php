@@ -2,7 +2,6 @@
 $pageTitle = __('nav.savoir_faire');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
-$navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 ?>
 
 <main class="page-savoir-faire" id="main-content">
@@ -21,7 +20,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
             <div class="home-section__visual">
                 <img
                     src="/assets/images/carousel/vignoble-ete.jpg"
-                    alt="Le vignoble en été — Château Crabitan Bellevue"
+                    alt="<?= htmlspecialchars(__('savoir.img_vignoble_alt')) ?>"
                     loading="lazy"
                     width="600"
                     height="400"
@@ -42,7 +41,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
             <div class="home-section__visual">
                 <img
                     src="/assets/images/carousel/raisins-recolte.jpg"
-                    alt="Récolte des raisins — Château Crabitan Bellevue"
+                    alt="<?= htmlspecialchars(__('savoir.img_vinif_alt')) ?>"
                     loading="lazy"
                     width="600"
                     height="400"
@@ -63,7 +62,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
             <div class="home-section__visual">
                 <img
                     src="/assets/images/gallery/chai-barriques.jpg"
-                    alt="Chai à barriques — Château Crabitan Bellevue"
+                    alt="<?= htmlspecialchars(__('savoir.img_elevage_alt')) ?>"
                     loading="lazy"
                     width="600"
                     height="400"

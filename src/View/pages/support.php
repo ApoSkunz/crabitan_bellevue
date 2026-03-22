@@ -2,7 +2,6 @@
 $pageTitle = __('support.title');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
-$navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 
 $faqs = [];
 for ($i = 1; $i <= 11; $i++) {

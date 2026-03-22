@@ -183,6 +183,10 @@ return [
     'home.carousel_title' => 'Château Crabitan Bellevue',
     'home.carousel_sub'   => 'Bordeaux Wines — Sainte-Croix-du-Mont',
 
+    'home.img_wines_alt'   => 'Wine range at Château Crabitan Bellevue',
+    'home.img_harvest_alt' => 'Horse-drawn harvest — Château Crabitan Bellevue',
+    'home.img_cellar_alt'  => 'Barrel cellar — Château Crabitan Bellevue',
+
     // Homepage — Wines section
     'home.wines_tag'   => 'Vintage',
     'home.wines_title' => 'Our Wines',
@@ -254,6 +258,11 @@ return [
     'chateau.year1994_text'  => 'Meanwhile the tractor had replaced the oxen and horse for vineyard work, making daily tasks less arduous on these difficult clay slopes. Nicolas, the current estate manager, joined his parents in 1994 with the creation of GFA Bernard Solane et Fils.',
     'chateau.today_tag'      => 'Today',
     'chateau.today_title'    => 'Nicolas & Corinne',
+    'chateau.img_origins_alt' => 'The Solane family — late 19th century',
+    'chateau.img_1956_alt'   => 'Harvest 1956 — Château Crabitan Bellevue',
+    'chateau.img_1975_alt'   => 'Harvest in the 1970s — Château Crabitan Bellevue',
+    'chateau.img_1994_alt'   => 'The barrel cellar — Château Crabitan Bellevue',
+    'chateau.img_today_alt'  => 'Nicolas and Corinne Solane — Château Crabitan Bellevue',
     'chateau.today_text'     => 'Every day, with the help of Corinne on the administrative side and their team in the cellar and vineyard, he strives to bring the grapes to perfect ripeness so that Crabitan Bellevue wines remain a pleasure to taste — whether for visitors at the estate or those who discover them further afield. Since 2020, the estate also offers online sales with direct delivery across France, so that everyone can receive their bottles at home.',
 
     // Savoir-Faire
@@ -265,6 +274,9 @@ return [
     'savoir.vinif_text'     => 'The harvest is picked at perfect maturity, carefully vinified to preserve the unique expression of each plot. Each wine is crafted with respect for tradition while integrating the best contemporary practices, combining technical precision with a sensitivity to the product.',
     'savoir.elevage_tag'    => 'Ageing',
     'savoir.elevage_title'  => 'Patience rewarded',
+    'savoir.img_vignoble_alt' => 'The vineyard in summer — Château Crabitan Bellevue',
+    'savoir.img_vinif_alt'   => 'Grape harvest — Château Crabitan Bellevue',
+    'savoir.img_elevage_alt' => 'Barrel cellar — Château Crabitan Bellevue',
     'savoir.elevage_text'   => 'Our sweet whites are aged patiently to develop their complexity and length. The red wines benefit from ageing tailored to each vintage, ensuring balance and elegance. Each bottle is the result of meticulous work from vine to bottling.',
 
     // Support / FAQ

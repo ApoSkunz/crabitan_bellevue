@@ -2,7 +2,6 @@
 $pageTitle = __('nav.chateau');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
-$navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 ?>
 
 <main class="page-chateau" id="main-content">
@@ -21,7 +20,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
             <div class="home-section__visual home-section__visual--vintage">
                 <img
                     src="/assets/images/gallery/premiere-famille.jpg"
-                    alt="La famille Solane — fin XIXe siècle"
+                    alt="<?= htmlspecialchars(__('chateau.img_origins_alt')) ?>"
                     loading="lazy"
                     width="600"
                     height="400"
@@ -42,7 +41,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
             <div class="home-section__visual home-section__visual--vintage">
                 <img
                     src="/assets/images/gallery/vendanges-cheval.jpg"
-                    alt="Vendanges 1956 — Château Crabitan Bellevue"
+                    alt="<?= htmlspecialchars(__('chateau.img_1956_alt')) ?>"
                     loading="lazy"
                     width="600"
                     height="400"
@@ -63,7 +62,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
             <div class="home-section__visual home-section__visual--vintage">
                 <img
                     src="/assets/images/gallery/vendanges-1956.jpg"
-                    alt="Vendanges années 1970 — Château Crabitan Bellevue"
+                    alt="<?= htmlspecialchars(__('chateau.img_1975_alt')) ?>"
                     loading="lazy"
                     width="600"
                     height="400"
@@ -84,7 +83,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
             <div class="home-section__visual">
                 <img
                     src="/assets/images/gallery/chai-barriques.jpg"
-                    alt="Le chai — Château Crabitan Bellevue"
+                    alt="<?= htmlspecialchars(__('chateau.img_1994_alt')) ?>"
                     loading="lazy"
                     width="600"
                     height="400"
@@ -105,7 +104,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
             <div class="home-section__visual">
                 <img
                     src="/assets/images/gallery/proprietaire.jpeg"
-                    alt="Nicolas et Corinne Solane — Château Crabitan Bellevue"
+                    alt="<?= htmlspecialchars(__('chateau.img_today_alt')) ?>"
                     loading="lazy"
                     width="600"
                     height="400"
