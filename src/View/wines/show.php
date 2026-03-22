@@ -72,13 +72,13 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                 </h1>
                 <div class="home-section__divider"></div>
 
-                <?php if ($wine['available'] && $wine['quantity'] > 0) : ?>
+                <?php if ($wine['available']) : ?>
                     <div class="wine-detail__buy">
                         <strong class="wine-detail__price">
                             <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
                         </strong>
-                        <span class="wine-detail__stock">
-                            <?= (int) $wine['quantity'] ?> <?= htmlspecialchars(__('wine.in_stock')) ?>
+                        <span class="wine-detail__stock wine-detail__stock--available">
+                            <?= htmlspecialchars(__('wine.available')) ?>
                         </span>
                         <?php if ($isLogged) : ?>
                             <button type="button" class="btn btn--gold js-add-to-cart" data-wine-id="<?= (int) $wine['id'] ?>">

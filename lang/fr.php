@@ -50,12 +50,15 @@ return [
     // Vins — Catalogue
     'wine.add_to_cart'  => 'Ajouter au panier',
     'wine.out_of_stock' => 'Épuisé',
+    'wine.available'    => 'Disponible',
     'wine.favorites'    => 'Favoris',
     'wine.vintage'      => 'Millésime',
     'wine.price'        => 'Prix',
     'wine.in_stock'     => 'en stock',
     'wine.read_more'    => 'En savoir plus',
     'wine.empty'        => 'Aucun vin disponible pour le moment.',
+    'wine.per_page'     => 'Par page :',
+    'wine.ttc_note'     => 'Prix TTC, livraison comprise en France métropolitaine. Remises appliquées par multiples de 12 bouteilles.',
 
     // Vins — Couleurs
     'wine.color.all'        => 'Tous les vins',

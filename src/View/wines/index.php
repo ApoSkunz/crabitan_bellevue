@@ -27,55 +27,72 @@ $colorLabels = [
     <section class="wines-filters" aria-label="<?= htmlspecialchars(__('wine.filter_label')) ?>">
         <div class="container">
             <form class="wines-filters__form" method="GET" action="">
-                <fieldset class="wines-filters__colors">
-                    <legend><?= htmlspecialchars(__('wine.filter_show')) ?></legend>
+                <div class="wines-filters__left">
+                    <fieldset class="wines-filters__colors">
+                        <legend><?= htmlspecialchars(__('wine.filter_show')) ?></legend>
 
-                    <label class="wines-filters__check<?= $activeColor === null ? ' is-active' : '' ?>">
-                        <input type="radio" name="color" value="" <?= $activeColor === null ? 'checked' : '' ?>>
-                        <?= htmlspecialchars(__('wine.color.all')) ?>
-                    </label>
-
-                    <?php foreach ($colorLabels as $val => $label) : ?>
-                        <label class="wines-filters__check<?= $activeColor === $val ? ' is-active' : '' ?>">
-                            <input
-                                type="radio"
-                                name="color"
-                                value="<?= htmlspecialchars($val) ?>"
-                                <?= $activeColor === $val ? 'checked' : '' ?>
-                            >
-                            <?= htmlspecialchars($label) ?>
+                        <label class="wines-filters__check<?= $activeColor === null ? ' is-active' : '' ?>">
+                            <input type="radio" name="color" value="" <?= $activeColor === null ? 'checked' : '' ?>>
+                            <?= htmlspecialchars(__('wine.color.all')) ?>
                         </label>
-                    <?php endforeach; ?>
-                </fieldset>
 
-                <div class="wines-filters__sort">
-                    <label for="wines-sort"><?= htmlspecialchars(__('wine.filter_sort')) ?></label>
-                    <select id="wines-sort" name="sort">
-                        <?php
-                        $sortOptions = [
-                            'default'      => __('wine.sort.default'),
-                            'likes_desc'   => __('wine.sort.likes_desc'),
-                            'price_asc'    => __('wine.sort.price_asc'),
-                            'price_desc'   => __('wine.sort.price_desc'),
-                            'vintage_asc'  => __('wine.sort.vintage_asc'),
-                            'vintage_desc' => __('wine.sort.vintage_desc'),
-                        ];
-                        foreach ($sortOptions as $val => $label) : ?>
-                            <option value="<?= htmlspecialchars($val) ?>" <?= $activeSort === $val ? 'selected' : '' ?>>
+                        <?php foreach ($colorLabels as $val => $label) : ?>
+                            <label class="wines-filters__check<?= $activeColor === $val ? ' is-active' : '' ?>">
+                                <input
+                                    type="radio"
+                                    name="color"
+                                    value="<?= htmlspecialchars($val) ?>"
+                                    <?= $activeColor === $val ? 'checked' : '' ?>
+                                >
                                 <?= htmlspecialchars($label) ?>
-                            </option>
+                            </label>
                         <?php endforeach; ?>
-                    </select>
+                    </fieldset>
+
+                    <button type="submit" class="btn btn--gold wines-filters__submit">
+                        <?= htmlspecialchars(__('wine.filter_apply')) ?>
+                    </button>
                 </div>
 
-                <button type="submit" class="btn btn--gold wines-filters__submit">
-                    <?= htmlspecialchars(__('wine.filter_apply')) ?>
-                </button>
+                <div class="wines-filters__right">
+                    <div class="wines-filters__sort">
+                        <label for="wines-sort"><?= htmlspecialchars(__('wine.filter_sort')) ?></label>
+                        <select id="wines-sort" name="sort">
+                            <?php
+                            $sortOptions = [
+                                'default'      => __('wine.sort.default'),
+                                'likes_desc'   => __('wine.sort.likes_desc'),
+                                'price_asc'    => __('wine.sort.price_asc'),
+                                'price_desc'   => __('wine.sort.price_desc'),
+                                'vintage_asc'  => __('wine.sort.vintage_asc'),
+                                'vintage_desc' => __('wine.sort.vintage_desc'),
+                            ];
+                            foreach ($sortOptions as $val => $label) : ?>
+                                <option value="<?= htmlspecialchars($val) ?>" <?= $activeSort === $val ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($label) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-                <a href="/<?= htmlspecialchars($navLang) ?>/vins/collection" class="wines-filters__collection-link">
-                    <?= htmlspecialchars(__('wine.view_collection')) ?>
-                </a>
+                    <div class="wines-filters__per-page">
+                        <label for="wines-per-page"><?= htmlspecialchars(__('wine.per_page')) ?></label>
+                        <select id="wines-per-page" name="per_page">
+                            <?php foreach ([10, 25, 50, 100] as $n) : ?>
+                                <option value="<?= $n ?>" <?= $activePerPage === $n ? 'selected' : '' ?>>
+                                    <?= $n ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <a href="/<?= htmlspecialchars($navLang) ?>/vins/collection" class="wines-filters__collection-link">
+                        <?= htmlspecialchars(__('wine.view_collection')) ?>
+                    </a>
+                </div>
             </form>
+
+            <p class="wines-filters__ttc-note"><?= htmlspecialchars(__('wine.ttc_note')) ?></p>
         </div>
     </section>
 
@@ -95,7 +112,7 @@ $colorLabels = [
                         $award       = $awardData[$navLang] ?? ($awardData['fr'] ?? '');
                         $colorLabel  = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                         ?>
-                        <article class="wine-card<?= !$wine['available'] || $wine['quantity'] <= 0 ? ' wine-card--out-of-stock' : '' ?>">
+                        <article class="wine-card<?= !$wine['available'] ? ' wine-card--out-of-stock' : '' ?>">
                             <a
                                 href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>"
                                 class="wine-card__inner"
@@ -110,13 +127,9 @@ $colorLabels = [
                                         width="300"
                                         height="420"
                                     >
-                                    <?php if (!$wine['available'] || $wine['quantity'] <= 0) : ?>
+                                    <?php if (!$wine['available']) : ?>
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
-                                        </span>
-                                    <?php else : ?>
-                                        <span class="wine-card__badge wine-card__badge--qty">
-                                            <?= (int) $wine['quantity'] ?>
                                         </span>
                                     <?php endif; ?>
 
@@ -151,7 +164,7 @@ $colorLabels = [
                                         <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
                                     </strong>
                                     <div class="wine-card__actions">
-                                        <?php if ($wine['available'] && $wine['quantity'] > 0) : ?>
+                                        <?php if ($wine['available']) : ?>
                                             <?php if ($isLogged) : ?>
                                                 <button
                                                     type="button"
@@ -189,11 +202,12 @@ $colorLabels = [
 
             <?php if ($totalPages > 1) : ?>
                 <?php
-                $buildUrl = static function (int $p) use ($activeColor, $activeSort): string {
+                $buildUrl = static function (int $p) use ($activeColor, $activeSort, $activePerPage): string {
                     $qs = array_filter([
-                        'color' => $activeColor ?? '',
-                        'sort'  => $activeSort !== 'default' ? $activeSort : '',
-                        'page'  => $p > 1 ? (string) $p : '',
+                        'color'    => $activeColor ?? '',
+                        'sort'     => $activeSort !== 'default' ? $activeSort : '',
+                        'per_page' => $activePerPage !== 25 ? (string) $activePerPage : '',
+                        'page'     => $p > 1 ? (string) $p : '',
                     ]);
                     return '?' . http_build_query($qs);
                 };

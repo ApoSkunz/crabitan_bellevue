@@ -50,12 +50,15 @@ return [
     // Wines — Catalogue
     'wine.add_to_cart'  => 'Add to cart',
     'wine.out_of_stock' => 'Out of stock',
+    'wine.available'    => 'Available',
     'wine.favorites'    => 'Favorites',
     'wine.vintage'      => 'Vintage',
     'wine.price'        => 'Price',
     'wine.in_stock'     => 'in stock',
     'wine.read_more'    => 'Learn more',
     'wine.empty'        => 'No wines available at the moment.',
+    'wine.per_page'     => 'Per page:',
+    'wine.ttc_note'     => 'Prices inclusive of VAT, delivery included within mainland France. Discounts apply for orders in multiples of 12 bottles.',
 
     // Wines — Colors
     'wine.color.all'        => 'All wines',

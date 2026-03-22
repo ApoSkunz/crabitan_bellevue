@@ -75,7 +75,7 @@ $colorOrder = ['sweet', 'white', 'red', 'rosé'];
                         $awardData   = json_decode($wine['award'] ?? '{}', true) ?? [];
                         $award       = $awardData[$navLang] ?? ($awardData['fr'] ?? '');
                         ?>
-                        <article class="wine-card<?= !$wine['available'] || $wine['quantity'] <= 0 ? ' wine-card--out-of-stock' : '' ?>">
+                        <article class="wine-card<?= !$wine['available'] ? ' wine-card--out-of-stock' : '' ?>">
                             <a
                                 href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>"
                                 class="wine-card__inner"
@@ -90,13 +90,9 @@ $colorOrder = ['sweet', 'white', 'red', 'rosé'];
                                         width="300"
                                         height="420"
                                     >
-                                    <?php if (!$wine['available'] || $wine['quantity'] <= 0) : ?>
+                                    <?php if (!$wine['available']) : ?>
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
-                                        </span>
-                                    <?php else : ?>
-                                        <span class="wine-card__badge wine-card__badge--qty">
-                                            <?= (int) $wine['quantity'] ?>
                                         </span>
                                     <?php endif; ?>
                                 </div>
@@ -124,7 +120,7 @@ $colorOrder = ['sweet', 'white', 'red', 'rosé'];
                                         <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
                                     </strong>
                                     <div class="wine-card__actions">
-                                        <?php if ($wine['available'] && $wine['quantity'] > 0) : ?>
+                                        <?php if ($wine['available']) : ?>
                                             <?php if ($isLogged) : ?>
                                                 <button
                                                     type="button"

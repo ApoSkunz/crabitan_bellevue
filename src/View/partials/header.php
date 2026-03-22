@@ -66,6 +66,11 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
             </a>
 
             <?php if ($isLogged) : ?>
+                <a
+                    href="/<?= htmlspecialchars($navLang) ?>/panier"
+                    class="header-cart<?= str_contains($currentPath, '/panier') ? ' active' : '' ?>"
+                    aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
+                >&#128722;</a>
                 <button
                     id="account-panel-trigger"
                     class="btn btn--ghost"

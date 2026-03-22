@@ -15,7 +15,8 @@ class WineController extends Controller
     // GET /{lang}/vins
     // ----------------------------------------------------------------
 
-    private const PER_PAGE = 12;
+    private const VALID_PER_PAGE = [10, 25, 50, 100];
+    private const DEFAULT_PER_PAGE = 25;
 
     public function index(array $params): void
     {
@@ -24,21 +25,26 @@ class WineController extends Controller
 
         $color   = isset($_GET['color']) && $_GET['color'] !== '' ? $_GET['color'] : null;
         $sort    = $_GET['sort'] ?? 'default';
+        $perPage = (int) ($_GET['per_page'] ?? self::DEFAULT_PER_PAGE);
+        if (!in_array($perPage, self::VALID_PER_PAGE, true)) {
+            $perPage = self::DEFAULT_PER_PAGE;
+        }
         $page    = max(1, (int) ($_GET['page'] ?? 1));
-        $offset  = ($page - 1) * self::PER_PAGE;
+        $offset  = ($page - 1) * $perPage;
 
         $total      = $model->countAll($color);
-        $totalPages = (int) ceil($total / self::PER_PAGE);
-        $wines      = $model->getAll($color, $sort, self::PER_PAGE, $offset);
+        $totalPages = (int) ceil($total / $perPage);
+        $wines      = $model->getAll($color, $sort, $perPage, $offset);
 
         $this->view('wines/index', [
-            'lang'        => $lang,
-            'wines'       => $wines,
-            'activeColor' => $color,
-            'activeSort'  => $sort,
-            'page'        => $page,
-            'totalPages'  => $totalPages,
-            'total'       => $total,
+            'lang'          => $lang,
+            'wines'         => $wines,
+            'activeColor'   => $color,
+            'activeSort'    => $sort,
+            'activePerPage' => $perPage,
+            'page'          => $page,
+            'totalPages'    => $totalPages,
+            'total'         => $total,
         ]);
     }
 
@@ -125,18 +131,35 @@ class WineController extends Controller
         $pdf->Cell(0, 7, (string) $wine['vintage'], 0, 1, 'C');
         $pdf->SetTextColor(0, 0, 0);
 
-        // Photo bouteille
+        // Photo bouteille (strip alpha channel if GD available to avoid TCPDF error)
         $imgPath = ROOT_PATH . '/public/assets/images/wines/' . $wine['image_path'];
+        $tmpImg  = null;
         if (is_file($imgPath)) {
+            $useImg  = $imgPath;
+            $imgType = '';
+            if (function_exists('imagecreatefrompng') && str_ends_with(strtolower($imgPath), '.png')) {
+                $src = @imagecreatefrompng($imgPath);
+                if ($src !== false) {
+                    $dst = imagecreatetruecolor(imagesx($src), imagesy($src));
+                    imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
+                    imagecopy($dst, $src, 0, 0, 0, 0, imagesx($src), imagesy($src));
+                    $tmpImg = sys_get_temp_dir() . '/wine_' . md5($imgPath) . '.jpg';
+                    imagejpeg($dst, $tmpImg, 95);
+                    imagedestroy($src);
+                    imagedestroy($dst);
+                    $useImg  = $tmpImg;
+                    $imgType = 'JPG';
+                }
+            }
             $pdf->Ln(3);
             $x = ($pdf->getPageWidth() - 35) / 2;
             $pdf->Image(
-                $imgPath,
+                $useImg,
                 $x,
                 $pdf->GetY(),
                 35,
                 0,
-                '',
+                $imgType,
                 '',
                 'T',
                 false,
@@ -236,6 +259,9 @@ class WineController extends Controller
 
         $filename = 'Fiche_Technique_' . $wine['label_name'] . '_' . $wine['vintage'] . '.pdf';
         $pdf->Output($filename, 'D');
+        if ($tmpImg !== null && is_file($tmpImg)) {
+            unlink($tmpImg);
+        }
         exit;
     }
 

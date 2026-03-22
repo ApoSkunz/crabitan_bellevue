@@ -25,8 +25,60 @@
     &__form {
         display: flex;
         flex-wrap: wrap;
-        align-items: flex-end;
+        align-items: flex-start;
         gap: 1.25rem 2rem;
+    }
+
+    &__left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    &__right {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 0.75rem 1.5rem;
+        margin-left: auto;
+    }
+
+    &__ttc-note {
+        margin-top: 0.75rem;
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+        font-style: italic;
+    }
+
+    &__per-page {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+
+        label {
+            font-family: var(--font-serif);
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        select {
+            background-color: var(--color-surface);
+            color: var(--color-text);
+            border: 1px solid var(--color-border-gold);
+            padding: 0.4rem 0.75rem;
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            cursor: pointer;
+
+            &:focus {
+                outline: 2px solid var(--color-gold);
+                outline-offset: 2px;
+            }
+        }
     }
 
     &__colors {
@@ -108,7 +160,6 @@
         color: var(--color-text-muted);
         text-decoration: underline;
         transition: color 200ms ease;
-        margin-left: auto;
 
         &:hover {
             color: var(--color-gold);
