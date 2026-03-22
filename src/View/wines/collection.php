@@ -19,6 +19,7 @@ $activeAvail = $activeAvail ?? '';
 $activePerPage = $activePerPage ?? 25;
 $page        = $page        ?? 1;
 $totalPages  = $totalPages  ?? 1;
+$colorPages  = $colorPages  ?? [];
 ?>
 
 <main class="page-wines-collection" id="main-content">
@@ -119,17 +120,24 @@ $totalPages  = $totalPages  ?? 1;
         <div class="container">
             <ul class="collection-nav__list">
                 <?php
-                // Si le type est sur la page courante => ancre directe ; sinon => page 1 + ancre
-                $colNavUrl = static function (string $anchor) use ($navLang, $activeSort, $activeAvail, $activePerPage): string {
+                // Si le type est sur la page courante => ancre directe
+                // Sinon => page exacte où cette couleur apparaît (calculée via getColorFirstPages) + ancre
+                $colNavUrl = static function (string $color) use ($navLang, $activeSort, $activeAvail, $activePerPage, $colorPages): string {
+                    $targetPage = $colorPages[$color] ?? 1;
                     $qs = array_filter([
                         'sort'     => $activeSort !== 'default' ? $activeSort : '',
                         'avail'    => $activeAvail,
                         'per_page' => $activePerPage !== 25 ? (string) $activePerPage : '',
+                        'page'     => $targetPage > 1 ? (string) $targetPage : '',
                     ]);
                     $base = '/' . $navLang . '/vins/collection';
-                    return $base . ($qs !== [] ? '?' . http_build_query($qs) : '') . '#collection-' . $anchor;
+                    return $base . ($qs !== [] ? '?' . http_build_query($qs) : '') . '#collection-' . $color;
                 };
                 foreach ($colorOrder as $color) :
+                    // Masquer les couleurs sans vins en BDD (compte tenu du filtre dispo)
+                    if (!isset($colorPages[$color])) {
+                        continue;
+                    }
                     $onPage = isset($winesByColor[$color]);
                     $href   = $onPage ? '#collection-' . $color : $colNavUrl($color);
                     ?>

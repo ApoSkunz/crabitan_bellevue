@@ -71,6 +71,8 @@ class WineController extends Controller
         $total        = $model->countAllByColor($color, $avail);
         $totalPages   = (int) ceil($total / $perPage);
         $winesByColor = $model->getAllByColor($color, $sort, $avail, $perPage, $offset);
+        // Page de première apparition de chaque couleur (sans filtre couleur, pour les raccourcis nav)
+        $colorPages   = $model->getColorFirstPages($avail, $perPage);
 
         $this->view('wines/collection', [
             'lang'          => $lang,
@@ -81,6 +83,7 @@ class WineController extends Controller
             'activePerPage' => $perPage,
             'page'          => $page,
             'totalPages'    => $totalPages,
+            'colorPages'    => $colorPages,
         ]);
     }
 

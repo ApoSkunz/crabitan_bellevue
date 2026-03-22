@@ -438,11 +438,11 @@ function initCartLoginPrompt() {
             const loginUrl = btn.dataset.loginUrl || ('/' + (window.__navLang || 'fr') + '/connexion');
             showToast(
                 document.documentElement.lang === 'en'
-                    ? 'You will be redirected to the login page to access your cart…'
-                    : 'Vous allez être redirigé vers la connexion pour accéder au panier…',
+                    ? 'The cart requires an account. Redirecting to login…'
+                    : 'Le panier nécessite un compte. Redirection vers la connexion…',
                 false
             );
-            setTimeout(() => { window.location.href = loginUrl; }, 2000);
+            setTimeout(() => { window.location.href = loginUrl; }, 2500);
         });
     });
 }
@@ -498,6 +498,24 @@ function initWineZoom() {
 }
 
 // ============================================================
+// Anchor scroll — compensate sticky header on hash navigation
+// ============================================================
+
+function initAnchorScroll() {
+    if (!window.location.hash) return;
+    const target = document.getElementById(window.location.hash.slice(1));
+    if (!target) return;
+
+    // requestAnimationFrame ensures layout is computed before measuring
+    requestAnimationFrame(() => {
+        const header = document.querySelector('.site-header');
+        const offset = (header ? header.offsetHeight : 0) + 24;
+        const y = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: Math.max(0, y), behavior: 'instant' });
+    });
+}
+
+// ============================================================
 // Init
 // ============================================================
 
@@ -514,4 +532,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initFavoriteAuth();
     initWineZoom();
     updateCartCount();
+    initAnchorScroll();
 });

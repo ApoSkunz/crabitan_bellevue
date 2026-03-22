@@ -179,6 +179,48 @@ class WineModel extends Model
     }
 
     /**
+     * Retourne la page (1-based) où chaque couleur apparaît en premier dans la collection paginée.
+     * Basé sur ORDER BY wine_color DESC (tri primaire de getAllByColor), sans filtre couleur.
+     *
+     * @return array<string, int>  ex. ['white' => 1, 'sweet' => 1, 'rosé' => 2, 'red' => 3]
+     */
+    public function getColorFirstPages(?string $avail, int $perPage): array
+    {
+        if ($perPage <= 0) {
+            return [];
+        }
+
+        $where  = [];
+        $params = [];
+
+        if ($avail === 'available') {
+            $where[] = 'available = 1';
+        } elseif ($avail === 'out') {
+            $where[] = 'available = 0';
+        }
+
+        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        $rows = $this->db->fetchAll(
+            "SELECT wine_color, COUNT(*) AS cnt
+             FROM {$this->table}
+             {$whereClause}
+             GROUP BY wine_color
+             ORDER BY wine_color DESC",
+            $params
+        );
+
+        $result   = [];
+        $position = 1;
+        foreach ($rows as $row) {
+            $result[$row['wine_color']] = (int) ceil($position / $perPage);
+            $position += (int) $row['cnt'];
+        }
+
+        return $result;
+    }
+
+    /**
      * Retourne un vin complet par son slug.
      *
      * @return array<string, mixed>|null
