@@ -294,73 +294,62 @@ class WineControllerTest extends TestCase
         $this->bootstrapApp();
         $this->requireTcpdf();
         $method = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
+        $logo   = ['path' => null, 'type' => 'PNG', 'tmp' => null];
         ob_start();
-        $pdf = $method->invoke($this->makeController(), $this->makeFakeWine());
+        $pdf = $method->invoke($this->makeController(), $this->makeFakeWine(), $logo);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
 
-    public function testRenderPdfHeadingDoesNotThrow(): void
-    {
-        $this->bootstrapApp();
-        $this->requireTcpdf();
-        $ctrl      = $this->makeController();
-        $buildPdf  = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
-        $heading   = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfHeading');
-        ob_start();
-        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine());
-        $heading->invoke($ctrl, $pdf, $this->makeFakeWine(), 'fr');
-        $heading->invoke($ctrl, $pdf, $this->makeFakeWine(), 'en');
-        ob_end_clean();
-        $this->assertInstanceOf(\TCPDF::class, $pdf);
-    }
-
-    public function testRenderPdfSpecsSkipsEmptyAndRendersValues(): void
+    public function testRenderPdfBodyFrDoesNotThrow(): void
     {
         $this->bootstrapApp();
         $this->requireTcpdf();
         $ctrl       = $this->makeController();
         $buildPdf   = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
-        $renderSpecs = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfSpecs');
+        $renderBody = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfBody');
+        $logo = ['path' => null, 'type' => 'PNG', 'tmp' => null];
+        $img  = ['path' => null, 'type' => 'PNG', 'tmp' => null];
+        $l    = fn(array $arr): string => $arr['fr'] ?? '';
         ob_start();
-        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine());
-        $renderSpecs->invoke($ctrl, $pdf, [
-            'Superficie'     => ' ha',
-            'Âge des vignes' => ' ans',
-            'Sol'            => '',
-            'Taille'         => 'Guyot mixte',
-            'Vendanges'      => 'Manuelles',
-        ]);
+        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine(), $logo);
+        $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), $img, 'fr', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
 
-    public function testRenderPdfContentDoesNotThrow(): void
+    public function testRenderPdfBodyEnDoesNotThrow(): void
     {
         $this->bootstrapApp();
         $this->requireTcpdf();
-        $ctrl          = $this->makeController();
-        $buildPdf      = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
-        $renderContent = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfContent');
-        $l = fn(array $arr): string => $arr['fr'] ?? '';
+        $ctrl       = $this->makeController();
+        $buildPdf   = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
+        $renderBody = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfBody');
+        $logo = ['path' => null, 'type' => 'PNG', 'tmp' => null];
+        $img  = ['path' => null, 'type' => 'PNG', 'tmp' => null];
+        $l    = fn(array $arr): string => $arr['en'] ?? ($arr['fr'] ?? '');
         ob_start();
-        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine());
-        $renderContent->invoke($ctrl, $pdf, $this->makeFakeWine(), 'fr', $l);
+        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine(), $logo);
+        $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), $img, 'en', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
 
-    public function testRenderPdfContentEnglishDoesNotThrow(): void
+    public function testRenderPdfBodyWithMissingAwardDoesNotThrow(): void
     {
         $this->bootstrapApp();
         $this->requireTcpdf();
-        $ctrl          = $this->makeController();
-        $buildPdf      = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
-        $renderContent = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfContent');
-        $l = fn(array $arr): string => $arr['en'] ?? ($arr['fr'] ?? '');
+        $ctrl       = $this->makeController();
+        $buildPdf   = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
+        $renderBody = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfBody');
+        $logo = ['path' => null, 'type' => 'PNG', 'tmp' => null];
+        $img  = ['path' => null, 'type' => 'PNG', 'tmp' => null];
+        $l    = fn(array $arr): string => $arr['fr'] ?? '';
+        $wine = $this->makeFakeWine();
+        $wine['award'] = '{"fr":"","en":""}';
         ob_start();
-        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine());
-        $renderContent->invoke($ctrl, $pdf, $this->makeFakeWine(), 'en', $l);
+        $pdf = $buildPdf->invoke($ctrl, $wine, $logo);
+        $renderBody->invoke($ctrl, $pdf, $wine, $img, 'fr', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
