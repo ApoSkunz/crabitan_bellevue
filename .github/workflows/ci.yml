@@ -77,6 +77,11 @@ jobs:
         run: mysql -h 127.0.0.1 -u root -proot crabitan_test < database/schema.sql
 
       - name: PHPUnit (TU)
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: crabitan_test
+          DB_USER: root
+          DB_PASS: root
         run: vendor/bin/phpunit --testsuite Unit --coverage-clover coverage/clover-unit.xml
 
       - name: PHPUnit (TI)
