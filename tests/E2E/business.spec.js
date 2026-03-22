@@ -69,18 +69,21 @@ test.describe('Panier — ajout et consultation', () => {
 
     test('ajouter un vin au panier incrémente le compteur', async ({ page }) => {
         await page.goto('/fr/vins');
-        const countBefore = parseInt(
-            (await page.locator('#header-cart-count').textContent() || '0').trim(), 10
-        ) || 0;
+        // Non connecté : pas de badge DOM — vérifier le localStorage cb-cart
+        const countBefore = await page.evaluate(() => {
+            const raw = localStorage.getItem('cb-cart');
+            return raw ? JSON.parse(raw).reduce((s, i) => s + (i.qty || 1), 0) : 0;
+        });
         // Ouvrir la modale panier
         await page.locator('.js-add-to-cart').first().click();
         await expect(page.locator('#cart-modal')).toHaveAttribute('aria-hidden', 'false');
         // Soumettre (non connecté → localStorage, ferme la modale)
         await page.locator('#cart-modal-form button[type="submit"]').click();
         await expect(page.locator('#cart-modal')).toHaveAttribute('aria-hidden', 'true');
-        const countAfter = parseInt(
-            (await page.locator('#header-cart-count').textContent() || '0').trim(), 10
-        ) || 0;
+        const countAfter = await page.evaluate(() => {
+            const raw = localStorage.getItem('cb-cart');
+            return raw ? JSON.parse(raw).reduce((s, i) => s + (i.qty || 1), 0) : 0;
+        });
         expect(countAfter).toBeGreaterThan(countBefore);
     });
 
