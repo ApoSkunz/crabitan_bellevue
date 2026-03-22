@@ -7,8 +7,8 @@ $newsBody  = $bodyData[$navLang] ?? ($bodyData['fr'] ?? '');
 $newsDate  = (new \DateTimeImmutable($item['created_at']))->format('d/m/Y');
 
 $pageTitle = $newsTitle;
-require SRC_PATH . '/View/partials/head.php';
-require SRC_PATH . '/View/partials/header.php';
+require_once SRC_PATH . '/View/partials/head.php';
+require_once SRC_PATH . '/View/partials/header.php';
 ?>
 
 <main class="page-news-show" id="main-content">
@@ -28,4 +28,4 @@ require SRC_PATH . '/View/partials/header.php';
     </article>
 </main>
 
-<?php require SRC_PATH . '/View/partials/footer.php'; ?>
+<?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

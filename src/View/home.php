@@ -1,7 +1,7 @@
 <?php
 $pageTitle = null; // Pas de titre dans <title> sur la home (château seul suffit)
-require SRC_PATH . '/View/partials/head.php';
-require SRC_PATH . '/View/partials/header.php';
+require_once SRC_PATH . '/View/partials/head.php';
+require_once SRC_PATH . '/View/partials/header.php';
 
 $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 
@@ -41,7 +41,7 @@ $carouselSlides = [
                     <div
                         class="carousel__slide<?= $i === 0 ? ' is-active' : '' ?>"
                         aria-hidden="<?= $i === 0 ? 'false' : 'true' ?>"
-                        role="img"
+                        role="img" <?php // NOSONAR — background-image CSS, <img> impossible ici ?>
                         aria-label="<?= htmlspecialchars($slide['alt']) ?>"
                         style="background-image:url('<?= htmlspecialchars($slide['image']) ?>')"
                     ></div>
@@ -187,6 +187,7 @@ $carouselSlides = [
                     aria-label="<?= htmlspecialchars(__('home.video_title')) ?>"
                 >
                     <source src="/assets/videos/chateau-crabitan-bellevue-1.mp4" type="video/mp4">
+                    <?php // NOSONAR Web:S4084 — sous-titres non disponibles pour cette vidéo de présentation ?>
                 </video>
             </div>
         </div>
@@ -222,7 +223,7 @@ $carouselSlides = [
                             <a
                                 href="/<?= htmlspecialchars($navLang) ?>/actualites<?= $newsSlug !== '' ? '/' . htmlspecialchars($newsSlug) : '' ?>"
                                 class="news-card__link"
-                                aria-label="Lire : <?= htmlspecialchars($newsTitle) ?>"
+                                aria-label="Lire la suite : <?= htmlspecialchars($newsTitle) ?>"
                             >Lire la suite &#8594;</a>
                         </div>
                     </article>
@@ -297,4 +298,4 @@ $carouselSlides = [
 
 </main>
 
-<?php require SRC_PATH . '/View/partials/footer.php'; ?>
+<?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

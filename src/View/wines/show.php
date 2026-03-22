@@ -1,7 +1,7 @@
 <?php
 $pageTitle = $slug ?? '';
-require SRC_PATH . '/View/partials/head.php';
-require SRC_PATH . '/View/partials/header.php';
+require_once SRC_PATH . '/View/partials/head.php';
+require_once SRC_PATH . '/View/partials/header.php';
 $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 ?>
 
@@ -15,4 +15,4 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
     </section>
 </main>
 
-<?php require SRC_PATH . '/View/partials/footer.php'; ?>
+<?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
