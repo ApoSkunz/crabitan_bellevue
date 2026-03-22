@@ -6,16 +6,11 @@
 // ============================================================
 
 .site-footer {
-    background-color: #ffffff;
+    background-color: var(--footer-bg);
     border-top: 1px solid rgba(160, 120, 40, 0.3);
     padding: 2.5rem 1.5rem 1.5rem;
     margin-top: auto;
-    color: #2a2218;
-
-    // En mode jour : même fond crème que la barre de navigation
-    [data-theme='light'] & {
-        background-color: var(--color-bg);
-    }
+    color: var(--color-text);
 }
 
 .footer-inner {
@@ -61,11 +56,11 @@
         font-size: 0.8rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: #5a5040;
+        color: var(--color-text-muted);
         transition: color 200ms ease;
 
         &:hover {
-            color: #a07828;
+            color: var(--color-gold);
         }
     }
 }
@@ -159,7 +154,7 @@
     gap: 0.5rem;
     font-size: 0.75rem;
     font-style: italic;
-    color: #5a5040;
+    color: var(--color-text-muted);
     line-height: 1.5;
     max-width: 55ch;
     flex-wrap: wrap;
@@ -175,7 +170,7 @@
     gap: 0.3rem;
     align-items: center;
     flex-shrink: 0;
-    color: #5a5040;
+    color: var(--color-text-muted);
 
     svg {
         display: block;
@@ -184,7 +179,7 @@
 
 .footer-copyright {
     font-size: 0.75rem;
-    color: #5a5040;
+    color: var(--color-text-muted);
     white-space: nowrap;
     flex-shrink: 0;
 
@@ -194,13 +189,13 @@
 
     // Lien webmaster
     a {
-        color: #a07828;
+        color: var(--color-gold);
         transition: color 200ms ease;
         text-decoration: underline;
         text-underline-offset: 2px;
 
         &:hover {
-            color: #2a2218;
+            color: var(--color-text);
         }
     }
 }

@@ -104,29 +104,15 @@ class WineController extends Controller
 
         require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
 
-        $l = fn(array $arr): string => $arr[$lang] ?? ($arr['fr'] ?? '');
-
-        $pdf  = $this->buildPdf($wine);
+        $l    = fn(array $arr): string => $arr[$lang] ?? ($arr['fr'] ?? '');
         $logo = $this->stripAlpha(ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo.png');
-        if ($logo['path'] !== null) {
-            $pdf->Image($logo['path'], 15, 12, 18, 18, $logo['type']);
-        }
-        $this->renderPdfHeading($pdf, $wine, $lang);
+        $img  = $this->stripAlpha(ROOT_PATH . '/public/assets/images/wines/' . $wine['image_path']);
 
-        $img = $this->stripAlpha(ROOT_PATH . '/public/assets/images/wines/' . $wine['image_path']);
-        if ($img['path'] !== null) {
-            $pdf->Ln(3);
-            $x = ($pdf->getPageWidth() - 35) / 2;
-            $pdf->Image($img['path'], $x, $pdf->GetY(), 35, 0, $img['type'], '', 'T', false, 300, '', false, false, 0, false, false, false);
-            $pdf->Ln(80);
-        } else {
-            $pdf->Ln(5);
-        }
-
-        $this->renderPdfContent($pdf, $wine, $lang, $l);
+        $pdf = $this->buildPdf($wine, $logo);
+        $this->renderPdfBody($pdf, $wine, $img, $lang, $l);
 
         $filename = 'Fiche_Technique_' . $wine['label_name'] . '_' . $wine['vintage'] . '.pdf';
-        $pdf->Output($filename, 'D');
+        $pdf->Output($filename, 'I');
         foreach (array_filter([$logo['tmp'], $img['tmp']]) as $tmp) {
             if (is_file($tmp)) {
                 unlink($tmp);
@@ -141,86 +127,182 @@ class WineController extends Controller
 
     /**
      * Strip PNG alpha channel to JPEG for TCPDF compatibility.
+     * Tries GD first, then Imagick; if neither is available the image is
+     * skipped (path = null) rather than letting TCPDF crash.
      *
      * @return array{path: string|null, type: string, tmp: string|null}
      */
     private function stripAlpha(string $srcPath): array
     {
-        $fallback = ['path' => is_file($srcPath) ? $srcPath : null, 'type' => 'PNG', 'tmp' => null];
-
-        if (
-            !is_file($srcPath)
-            || !function_exists('imagecreatefromstring')
-            || !str_ends_with(strtolower($srcPath), '.png')
-        ) {
-            return $fallback;
+        if (!is_file($srcPath)) {
+            return ['path' => null, 'type' => 'PNG', 'tmp' => null];
+        }
+        if (!str_ends_with(strtolower($srcPath), '.png')) {
+            return ['path' => $srcPath, 'type' => 'PNG', 'tmp' => null];
         }
 
-        $data = @file_get_contents($srcPath);
-        $src  = $data !== false ? @imagecreatefromstring($data) : false;
-        if ($src === false) {
-            return $fallback;
-        }
-
-        $dst = imagecreatetruecolor(imagesx($src), imagesy($src));
-        imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
-        imagealphablending($dst, true);
-        imagecopy($dst, $src, 0, 0, 0, 0, imagesx($src), imagesy($src));
-        imagedestroy($src);
-
-        $tmp = sys_get_temp_dir() . '/cb_img_' . md5($srcPath) . '.jpg'; // NOSONAR — md5 for temp filename only, not security-sensitive (others)
-        imagejpeg($dst, $tmp, 95);
-        imagedestroy($dst);
-
-        return ['path' => $tmp, 'type' => 'JPG', 'tmp' => $tmp];
-    }
-
-    /** @param array<string, mixed> $wine */
-    private function buildPdf(array $wine): TCPDF
-    {
-        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-        $pdf->SetCreator(APP_NAME);
-        $pdf->SetAuthor(APP_NAME);
-        $pdf->SetTitle($wine['label_name'] . ' ' . $wine['vintage']);
-        $pdf->SetMargins(15, 20, 15);
-        $pdf->SetHeaderMargin(5);
-        $pdf->SetFooterMargin(10);
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(true);
-        $pdf->SetAutoPageBreak(true, 20);
-        $pdf->AddPage();
-
-        return $pdf;
-    }
-
-    /** @param array<string, mixed> $wine */
-    private function renderPdfHeading(TCPDF $pdf, array $wine, string $lang): void
-    {
-        $pdf->SetFont('helvetica', 'B', 18);
-        $pdf->SetXY(36, 13);
-        $pdf->Cell(0, 8, APP_NAME, 0, 1, 'L');
-
-        $pdf->SetFont('helvetica', '', 12);
-        $pdf->SetXY(36, 21);
-        $pdf->SetTextColor(160, 120, 50);
-        $pdf->Cell(0, 6, strtoupper($lang === 'en' ? 'Technical Sheet' : 'Fiche Technique'), 0, 1, 'L');
-        $pdf->SetTextColor(0, 0, 0);
-        $pdf->Ln(10);
-
-        $pdf->SetFont('helvetica', 'B', 20);
-        $pdf->Cell(0, 10, $wine['label_name'], 0, 1, 'C');
-        $pdf->SetFont('helvetica', '', 14);
-        $pdf->SetTextColor(100, 100, 100);
-        $pdf->Cell(0, 7, (string) $wine['vintage'], 0, 1, 'C');
-        $pdf->SetTextColor(0, 0, 0);
+        $converted = $this->convertPngToJpg($srcPath);
+        // Fallback: use original PNG directly (TCPDF handles alpha, slower but better than no image)
+        return $converted ?? ['path' => $srcPath, 'type' => 'PNG', 'tmp' => null];
     }
 
     /**
-     * @param array<string, mixed> $wine
-     * @param callable(array<string, string>): string $l
+     * Convert a PNG to JPEG using GD or Imagick.
+     * Returns null when no suitable extension is available.
+     *
+     * @return array{path: string, type: string, tmp: string}|null
      */
-    private function renderPdfContent(TCPDF $pdf, array $wine, string $lang, callable $l): void
+    private function convertPngToJpg(string $srcPath): ?array
     {
+        // NOSONAR — md5 used only to build a unique temp filename, not for security
+        $tmp = sys_get_temp_dir() . '/cb_img_' . md5($srcPath) . '.jpg';
+
+        if (function_exists('imagecreatefromstring')) {
+            $data = @file_get_contents($srcPath);
+            $src  = $data !== false ? @imagecreatefromstring($data) : false;
+            if ($src !== false) {
+                $dst = imagecreatetruecolor(imagesx($src), imagesy($src));
+                imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
+                imagealphablending($dst, true);
+                imagecopy($dst, $src, 0, 0, 0, 0, imagesx($src), imagesy($src));
+                imagedestroy($src);
+                imagejpeg($dst, $tmp, 95);
+                imagedestroy($dst);
+                return ['path' => $tmp, 'type' => 'JPG', 'tmp' => $tmp];
+            }
+        }
+
+        if (class_exists('Imagick', false)) {
+            try {
+                $img = new \Imagick($srcPath);
+                $img->setImageBackgroundColor(new \ImagickPixel('white'));
+                $img->mergeImageLayers(\Imagick::LAYERMETHOD_FLATTEN);
+                $img->setImageFormat('JPEG');
+                $img->writeImage($tmp);
+                $img->clear();
+                return ['path' => $tmp, 'type' => 'JPG', 'tmp' => $tmp];
+            } catch (\Throwable) {
+                // Imagick failed — fall through to null
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Build a TCPDF instance with cream background, custom header (logo + title)
+     * and footer with French tagline, repeated on every page.
+     *
+     * @param array<string, mixed>                                       $wine
+     * @param array{path: string|null, type: string, tmp: string|null}  $logo
+     */
+    private function buildPdf(array $wine, array $logo): TCPDF
+    {
+        $appName = APP_NAME;
+        $pdf = new class ($logo, $appName) extends TCPDF {
+            /**
+             * @param array{path: string|null, type: string, tmp: string|null} $logo
+             */
+            public function __construct(
+                private array $logo,
+                private string $appName,
+            ) {
+                parent::__construct('P', 'mm', 'A4', true, 'UTF-8', false);
+                $this->SetCreator($this->appName);
+                $this->SetAuthor($this->appName);
+                $this->SetMargins(15, 35, 15);
+                $this->SetHeaderMargin(5);
+                $this->SetFooterMargin(14);
+                $this->setPrintHeader(true);
+                $this->setPrintFooter(true);
+                $this->SetAutoPageBreak(true, 20);
+            }
+
+            public function Header(): void // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+            {
+                $pageW  = $this->getPageWidth();
+                $pageH  = $this->getPageHeight();
+
+                // Cream background — #f5f0e8
+                $this->SetFillColor(245, 240, 232);
+                $this->Rect(0, 0, $pageW, $pageH, 'F');
+
+                // Logo left
+                if ($this->logo['path'] !== null) {
+                    $this->Image($this->logo['path'], 13, 6, 16, 0, $this->logo['type']);
+                }
+
+                // Title centered
+                $this->SetFont('dejavusans', 'B', 13);
+                $this->SetTextColor(0, 0, 0);
+                $this->SetXY(10, 8);
+                $this->Cell($pageW - 20, 8, 'FICHE TECHNIQUE', 0, 0, 'C');
+
+                // Gold separator line under header
+                $this->SetDrawColor(201, 168, 76);
+                $this->SetLineWidth(0.5);
+                $this->Line(15, 28, $pageW - 15, 28);
+            }
+
+            public function Footer(): void // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+            {
+                $pageW = $this->getPageWidth();
+                $y     = $this->getPageHeight() - 12;
+
+                // Gold separator line above footer
+                $this->SetDrawColor(201, 168, 76);
+                $this->SetLineWidth(0.5);
+                $this->Line(15, $y - 2, $pageW - 15, $y - 2);
+
+                $this->SetFont('dejavusans', 'I', 8);
+                $this->SetTextColor(160, 130, 60);
+                $this->SetXY(15, $y);
+                $this->Cell($pageW - 30, 6, $this->appName . ' est ravi de vous offrir ces informations.', 0, 0, 'C');
+            }
+        };
+
+        $pdf->SetTitle($wine['label_name'] . ' ' . $wine['vintage']);
+        $pdf->AddPage();
+        return $pdf;
+    }
+
+    /**
+     * Render the full PDF body: dark banner, bottle image (left), fields (right).
+     * Designed to fit on a single A4 page.
+     *
+     * @param array<string, mixed>                        $wine
+     * @param array{path: string|null, type: string, tmp: string|null} $img
+     * @param callable(array<string, string>): string     $l
+     */
+    private function renderPdfBody(TCPDF $pdf, array $wine, array $img, string $lang, callable $l): void
+    {
+        $pageW = $pdf->getPageWidth();
+
+        // Château name in gold
+        $pdf->SetFont('dejavusans', 'B', 20);
+        $pdf->SetTextColor(201, 168, 76);
+        $pdf->SetX(15);
+        $pdf->Cell($pageW - 30, 10, APP_NAME, 0, 1, 'C');
+
+        // Subtitle: AOC label vintage
+        $pdf->SetFont('dejavusans', '', 11);
+        $pdf->SetTextColor(60, 60, 60);
+        $pdf->Cell(0, 6, 'AOC ' . $wine['label_name'] . ' ' . $wine['vintage'], 0, 1, 'C');
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->Ln(3);
+
+        // Two-column layout: bottle image left (25 mm wide), fields right
+        $startY = $pdf->GetY();
+        $imgCol = 15;
+        $imgW   = 25;
+        $fldCol = 44;
+        $fldW   = $pageW - $fldCol - 15;
+
+        if ($img['path'] !== null) {
+            $pdf->Image($img['path'], $imgCol, $startY, $imgW, 0, $img['type'], '', 'T', false, 300);
+        }
+
+        // Decode JSON fields
         $oeno    = json_decode($wine['oenological_comment'] ?? '{}', true) ?? [];
         $soil    = json_decode($wine['soil']                ?? '{}', true) ?? [];
         $pruning = json_decode($wine['pruning']             ?? '{}', true) ?? [];
@@ -229,82 +311,41 @@ class WineController extends Controller
         $barrel  = json_decode($wine['barrel_fermentation'] ?? '{}', true) ?? [];
         $award   = json_decode($wine['award']               ?? '{}', true) ?? [];
 
-        $pdf->SetDrawColor(160, 120, 50);
-        $pdf->SetLineWidth(0.5);
-        $pdf->Line(15, $pdf->GetY(), 195, $pdf->GetY());
-        $pdf->Ln(5);
+        $areaFmt = $wine['area'] ? number_format((float) $wine['area'], 2, ',', ' ') . ' ha' : '';
+        $ageStr  = $wine['age_of_vineyard'] ? $wine['age_of_vineyard'] . ' ans' : '';
 
-        $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->SetTextColor(160, 120, 50);
-        $pdf->Cell(0, 5, 'APPELLATION', 0, 1);
-        $pdf->SetFont('helvetica', '', 10);
-        $pdf->SetTextColor(0, 0, 0);
-        $pdf->Cell(0, 5, $wine['city'] . ' — ' . $wine['variety_of_vine'], 0, 1);
-        if ($wine['certification_label']) {
-            $pdf->SetFont('helvetica', 'I', 9);
-            $pdf->SetTextColor(80, 120, 60);
-            $pdf->Cell(0, 5, $wine['certification_label'], 0, 1);
-            $pdf->SetTextColor(0, 0, 0);
-        }
-        $pdf->Ln(3);
-
-        $oenoText = $l($oeno);
-        if ($oenoText !== '') {
-            $pdf->SetFont('helvetica', 'B', 10);
-            $pdf->SetTextColor(160, 120, 50);
-            $pdf->Cell(0, 5, strtoupper($lang === 'en' ? 'Tasting notes' : 'Dégustation'), 0, 1);
-            $pdf->SetFont('helvetica', '', 9);
-            $pdf->SetTextColor(0, 0, 0);
-            $pdf->MultiCell(0, 5, $oenoText, 0, 'L');
-            $pdf->Ln(3);
-        }
-
-        $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->SetTextColor(160, 120, 50);
-        $pdf->Cell(0, 5, strtoupper($lang === 'en' ? 'Technical data' : 'Données techniques'), 0, 1);
-        $pdf->SetTextColor(0, 0, 0);
-        $pdf->SetFont('helvetica', '', 9);
-
-        $areaFmt = number_format((float) $wine['area'], 2, ',', ' ') . ' ha';
-        $specs = [
-            ($lang === 'en' ? 'Area'         : 'Superficie')     => $areaFmt,
-            ($lang === 'en' ? 'Age of vines' : 'Âge des vignes') => $wine['age_of_vineyard'] . ' ans',
-            ($lang === 'en' ? 'Soil'         : 'Sol')            => $l($soil),
-            ($lang === 'en' ? 'Pruning'      : 'Taille')         => $l($pruning),
+        $fields = [
+            ($lang === 'en' ? 'Comment'      : 'Commentaire')    => $l($oeno),
+            ($lang === 'en' ? 'Award'        : 'Récompense')     => $l($award),
+            ($lang === 'en' ? 'Specificity'  : 'Spécificité')    => (string) ($wine['certification_label'] ?? ''),
+            ($lang === 'en' ? 'Commune'      : 'Commune')        => (string) ($wine['city'] ?? ''),
+            ($lang === 'en' ? 'Grape'        : 'Encépagement')   => (string) ($wine['variety_of_vine'] ?? ''),
             ($lang === 'en' ? 'Harvest'      : 'Vendanges')      => $l($harvest),
-            'Vinification'                                        => $l($vinif),
             ($lang === 'en' ? 'Ageing'       : 'Élevage')        => $l($barrel),
+            ($lang === 'en' ? 'Soil'         : 'Terroir')        => $l($soil),
+            ($lang === 'en' ? 'Pruning'      : 'Taille')         => $l($pruning),
+            ($lang === 'en' ? 'Area'         : 'Surface')        => $areaFmt,
+            ($lang === 'en' ? 'Age of vines' : 'Âge des vignes') => $ageStr,
+            'Vinification'                                        => $l($vinif),
         ];
-        $this->renderPdfSpecs($pdf, $specs);
 
-        $awardText = $l($award);
-        if ($awardText !== '') {
-            $pdf->Ln(3);
-            $pdf->SetFont('helvetica', 'B', 10);
-            $pdf->SetTextColor(160, 120, 50);
-            $pdf->Cell(0, 5, strtoupper($lang === 'en' ? 'Award' : 'Récompense'), 0, 1);
-            $pdf->SetFont('helvetica', 'I', 9);
-            $pdf->SetTextColor(0, 0, 0);
-            $pdf->Cell(0, 5, $awardText, 0, 1);
-        }
-
-        $pdf->SetFont('helvetica', 'I', 7);
-        $pdf->SetTextColor(150, 150, 150);
-        $pdf->SetXY(15, $pdf->getPageHeight() - 15);
-        $pdf->Cell(0, 5, APP_NAME . ' — ' . $wine['city'] . ' — crabitanbellevue.fr', 0, 0, 'C');
-    }
-
-    /** @param array<string, string> $specs */
-    private function renderPdfSpecs(TCPDF $pdf, array $specs): void
-    {
-        foreach ($specs as $label => $value) {
-            if ($value === '' || $value === ' ha' || $value === ' ans') {
-                continue;
+        // Render fields in the right column
+        $pdf->SetXY($fldCol, $startY);
+        foreach ($fields as $label => $value) {
+            $pdf->SetX($fldCol);
+            $pdf->SetFont('dejavusans', 'B', 9);
+            $pdf->SetTextColor(201, 168, 76);
+            $labelStr = $label . ' :';
+            $labelW   = $pdf->GetStringWidth($labelStr) + 1;
+            $pdf->Cell($labelW, 5, $labelStr, 0, 0);
+            $pdf->SetFont('dejavusans', '', 9);
+            $pdf->SetTextColor(40, 40, 40);
+            if ($value !== '') {
+                $pdf->MultiCell($fldW - $labelW, 5, ' ' . $value, 0, 'L');
+            } else {
+                $pdf->Ln(5);
             }
-            $pdf->SetFont('helvetica', 'B', 9);
-            $pdf->Cell(45, 5, $label . ' :', 0, 0);
-            $pdf->SetFont('helvetica', '', 9);
-            $pdf->MultiCell(0, 5, $value, 0, 'L');
+            $pdf->Ln(1);
         }
     }
 

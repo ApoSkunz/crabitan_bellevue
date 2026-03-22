@@ -12,7 +12,7 @@ INSERT INTO `wines`
     (`label_name`, `wine_color`, `format`, `vintage`, `price`, `quantity`, `available`,
      `certification_label`, `area`, `city`, `variety_of_vine`, `age_of_vineyard`,
      `oenological_comment`, `soil`, `pruning`, `harvest`, `vinification`,
-     `barrel_fermentation`, `award`, `award_path`, `extra_comment`,
+     `barrel_fermentation`, `award`, `extra_comment`,
      `technical_form_path`, `image_path`, `slug`)
 VALUES
 
