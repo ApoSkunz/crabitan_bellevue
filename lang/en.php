@@ -47,18 +47,57 @@ return [
     'auth.password_invalid'  => 'Password too short or passwords do not match.',
     'auth.password_updated'  => 'Password updated. You can now log in.',
 
-    // Wines
+    // Wines — Catalogue
     'wine.add_to_cart'  => 'Add to cart',
     'wine.out_of_stock' => 'Out of stock',
     'wine.favorites'    => 'Favorites',
     'wine.vintage'      => 'Vintage',
     'wine.price'        => 'Price',
+    'wine.in_stock'     => 'in stock',
+    'wine.read_more'    => 'Learn more',
+    'wine.empty'        => 'No wines available at the moment.',
+
+    // Wines — Colors
+    'wine.color.all'        => 'All wines',
     'wine.color.red'        => 'Red',
-    'wine.color.white'      => 'White',
+    'wine.color.white'      => 'Dry white',
     'wine.color.rosé'       => 'Rosé',
     'wine.color.champagne'  => 'Champagne',
     'wine.color.sparkling'  => 'Sparkling',
-    'wine.color.sweet'      => 'Sweet',
+    'wine.color.sweet'      => 'Sweet white',
+
+    // Wines — Filters
+    'wine.filter_label'  => 'Filter wines',
+    'wine.filter_show'   => 'Show:',
+    'wine.filter_sort'   => 'Sort by:',
+    'wine.filter_apply'  => 'Apply filter',
+    'wine.view_collection' => 'View by collection',
+
+    // Wines — Sort
+    'wine.sort.default'      => 'Crabitan Bellevue presents',
+    'wine.sort.price_asc'    => 'Price ascending',
+    'wine.sort.price_desc'   => 'Price descending',
+    'wine.sort.vintage_asc'  => 'Vintage ascending',
+    'wine.sort.vintage_desc' => 'Vintage descending',
+
+    // Wines — Product sheet
+    'wine.tasting'       => 'Tasting notes',
+    'wine.technical'     => 'Technical sheet',
+    'wine.appellation'   => 'Appellation',
+    'wine.variety'       => 'Grape variety',
+    'wine.area'          => 'Area',
+    'wine.age'           => 'Age of vines',
+    'wine.years'         => 'years',
+    'wine.soil'          => 'Soil',
+    'wine.pruning'       => 'Pruning',
+    'wine.harvest'       => 'Harvest',
+    'wine.vinification'  => 'Vinification',
+    'wine.aging'         => 'Ageing',
+    'wine.certification' => 'Certification',
+    'wine.download_sheet' => 'Download complete technical sheet',
+
+    // Wines — Collection
+    'wine.collection_nav' => 'Navigate by wine type',
 
     // Cart
     'cart.title'    => 'Your cart',

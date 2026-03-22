@@ -47,18 +47,57 @@ return [
     'auth.password_invalid'  => 'Mot de passe trop court ou les mots de passe ne correspondent pas.',
     'auth.password_updated'  => 'Mot de passe mis à jour. Vous pouvez vous connecter.',
 
-    // Vins
+    // Vins — Catalogue
     'wine.add_to_cart'  => 'Ajouter au panier',
     'wine.out_of_stock' => 'Épuisé',
     'wine.favorites'    => 'Favoris',
     'wine.vintage'      => 'Millésime',
     'wine.price'        => 'Prix',
-    'wine.color.red'        => 'Rouge',
-    'wine.color.white'      => 'Blanc',
-    'wine.color.rosé'       => 'Rosé',
+    'wine.in_stock'     => 'en stock',
+    'wine.read_more'    => 'En savoir plus',
+    'wine.empty'        => 'Aucun vin disponible pour le moment.',
+
+    // Vins — Couleurs
+    'wine.color.all'        => 'Tous les vins',
+    'wine.color.red'        => 'Rouges',
+    'wine.color.white'      => 'Blancs secs',
+    'wine.color.rosé'       => 'Rosés',
     'wine.color.champagne'  => 'Champagne',
-    'wine.color.sparkling'  => 'Pétillant',
-    'wine.color.sweet'      => 'Liquoreux',
+    'wine.color.sparkling'  => 'Pétillants',
+    'wine.color.sweet'      => 'Blancs doux',
+
+    // Vins — Filtres
+    'wine.filter_label'  => 'Filtrer les vins',
+    'wine.filter_show'   => 'Afficher :',
+    'wine.filter_sort'   => 'Résultats triés selon :',
+    'wine.filter_apply'  => 'Appliquer le filtre',
+    'wine.view_collection' => 'Vue par collection',
+
+    // Vins — Tri
+    'wine.sort.default'      => 'Crabitan Bellevue présente',
+    'wine.sort.price_asc'    => 'Prix croissant',
+    'wine.sort.price_desc'   => 'Prix décroissant',
+    'wine.sort.vintage_asc'  => 'Millésime croissant',
+    'wine.sort.vintage_desc' => 'Millésime décroissant',
+
+    // Vins — Fiche produit
+    'wine.tasting'       => 'Dégustation',
+    'wine.technical'     => 'Fiche technique',
+    'wine.appellation'   => 'Appellation',
+    'wine.variety'       => 'Encépagement',
+    'wine.area'          => 'Superficie',
+    'wine.age'           => 'Âge des vignes',
+    'wine.years'         => 'ans',
+    'wine.soil'          => 'Terroir',
+    'wine.pruning'       => 'Taille',
+    'wine.harvest'       => 'Vendanges',
+    'wine.vinification'  => 'Vinification',
+    'wine.aging'         => 'Élevage',
+    'wine.certification' => 'Certification',
+    'wine.download_sheet' => 'Télécharger la fiche technique complète',
+
+    // Vins — Collection
+    'wine.collection_nav' => 'Navigation par type de vin',
 
     // Panier
     'cart.title'    => 'Votre panier',

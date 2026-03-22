@@ -18,6 +18,18 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 $isActive    = static function (string $segment) use ($currentPath): string {
     return str_contains($currentPath, $segment) ? ' active' : '';
 };
+
+// Génère l'URL pour le switch de langue en remplaçant le préfixe lang dans l'URI courante
+$rawPath      = strtok($currentPath, '?') ?: '/';
+$pathSegments = explode('/', ltrim($rawPath, '/'));
+$langSwitch   = static function (string $targetLang) use ($pathSegments): string {
+    $supported = ['fr', 'en'];
+    if (in_array($pathSegments[0] ?? '', $supported, true)) {
+        $pathSegments[0] = $targetLang;
+        return '/' . implode('/', $pathSegments);
+    }
+    return '/' . $targetLang;
+};
 ?>
 <header class="site-header">
     <div class="header-main">
@@ -31,7 +43,7 @@ $isActive    = static function (string $segment) use ($currentPath): string {
             <nav class="lang-switch" aria-label="Langue / Language">
                 <?php foreach (['fr', 'en'] as $l) : ?>
                     <a
-                        href="/<?= htmlspecialchars($l) ?>"
+                        href="<?= htmlspecialchars($langSwitch($l)) ?>"
                         lang="<?= htmlspecialchars($l) ?>"
                         class="<?= $l === $navLang ? 'active' : '' ?>"
                         <?= $l === $navLang ? 'aria-current="true"' : '' ?>

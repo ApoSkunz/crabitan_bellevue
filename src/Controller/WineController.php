@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Controller;
 
 use Core\Controller;
+use Core\Response;
+use Model\WineModel;
 
 class WineController extends Controller
 {
@@ -14,8 +16,20 @@ class WineController extends Controller
 
     public function index(array $params): void
     {
-        $lang = $this->resolveLang($params);
-        $this->view('wines/index', ['lang' => $lang]);
+        $lang  = $this->resolveLang($params);
+        $model = new WineModel();
+
+        $color = isset($_GET['color']) && $_GET['color'] !== '' ? $_GET['color'] : null;
+        $sort  = $_GET['sort'] ?? 'default';
+
+        $wines = $model->getAll($color, $sort);
+
+        $this->view('wines/index', [
+            'lang'        => $lang,
+            'wines'       => $wines,
+            'activeColor' => $color,
+            'activeSort'  => $sort,
+        ]);
     }
 
     // ----------------------------------------------------------------
@@ -24,8 +38,15 @@ class WineController extends Controller
 
     public function collection(array $params): void
     {
-        $lang = $this->resolveLang($params);
-        $this->view('wines/collection', ['lang' => $lang]);
+        $lang  = $this->resolveLang($params);
+        $model = new WineModel();
+
+        $winesByColor = $model->getAllByColor();
+
+        $this->view('wines/collection', [
+            'lang'         => $lang,
+            'winesByColor' => $winesByColor,
+        ]);
     }
 
     // ----------------------------------------------------------------
@@ -34,9 +55,19 @@ class WineController extends Controller
 
     public function show(array $params): void
     {
-        $lang = $this->resolveLang($params);
-        $slug = $params['slug'] ?? '';
+        $lang  = $this->resolveLang($params);
+        $slug  = $params['slug'] ?? '';
+        $model = new WineModel();
 
-        $this->view('wines/show', ['lang' => $lang, 'slug' => $slug]);
+        $wine = $model->getBySlug($slug);
+
+        if ($wine === null) {
+            Response::abort(404);
+        }
+
+        $this->view('wines/show', [
+            'lang' => $lang,
+            'wine' => $wine,
+        ]);
     }
 }
