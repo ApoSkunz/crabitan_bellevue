@@ -297,6 +297,8 @@ jobs:
         run: sleep 2
 
       - name: Run Lighthouse CI
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx lhci autorun
 
       - name: Upload Lighthouse report
