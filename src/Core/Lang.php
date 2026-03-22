@@ -29,7 +29,7 @@ class Lang
 }
 
 // Helper global
-function __(string $key, array $replace = []): string // NOSONAR
+function __(string $key, array $replace = []): string // NOSONAR — helper global intentionnel, requis dans les vues
 {
     return Lang::get($key, $replace);
 }
