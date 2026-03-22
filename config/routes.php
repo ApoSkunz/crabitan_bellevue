@@ -11,7 +11,7 @@ $router->get('/age-gate', 'AgeGateController@show');
 $router->post('/age-gate', 'AgeGateController@confirm');
 
 // Home
-$router->get('/', 'HomeController@index');
+$router->get('/', 'HomeController@index'); // NOSONAR — 3 routes distinctes vers le même handler
 $router->get('/fr', 'HomeController@index');
 $router->get('/en', 'HomeController@index');
 

@@ -40,13 +40,13 @@ class Jwt
         ));
 
         if (!hash_equals($expectedSig, $signature)) {
-            throw new \RuntimeException('Signature JWT invalide');
+            throw new \Core\Exception\JwtException('Signature JWT invalide');
         }
 
         $data = json_decode(self::base64urlDecode($payload), true);
 
         if (isset($data['exp']) && $data['exp'] < time()) {
-            throw new \RuntimeException('Token JWT expiré');
+            throw new \Core\Exception\JwtException('Token JWT expiré');
         }
 
         return $data;

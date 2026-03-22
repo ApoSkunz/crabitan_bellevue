@@ -1,8 +1,8 @@
 <?php
 $pageTitle = __('auth.forgot_password');
 $noindex   = true;
-require __DIR__ . '/../partials/head.php';
-require __DIR__ . '/../partials/header.php';
+require_once __DIR__ . '/../partials/head.php';
+require_once __DIR__ . '/../partials/header.php';
 ?>
 <main class="auth-page">
     <div class="auth-card">
@@ -35,4 +35,4 @@ require __DIR__ . '/../partials/header.php';
         </p>
     </div>
 </main>
-<?php require __DIR__ . '/../partials/footer.php'; ?>
+<?php require_once __DIR__ . '/../partials/footer.php'; ?>

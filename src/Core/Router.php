@@ -79,11 +79,7 @@ class Router
         [$class, $method] = explode('@', $action);
 
         // Résolution du namespace complet
-        $namespace = match (true) {
-            str_starts_with($class, 'Admin\\') => 'Controller\\' . $class,
-            str_starts_with($class, 'Api\\')   => 'Controller\\' . $class,
-            default                             => 'Controller\\' . $class,
-        };
+        $namespace = 'Controller\\' . $class;
 
         if (!class_exists($namespace)) {
             Response::abort(500, "Controller $namespace introuvable");

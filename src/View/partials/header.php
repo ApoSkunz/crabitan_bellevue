@@ -9,6 +9,7 @@ if ($token) {
         \Core\Jwt::decode($token);
         $isLogged = true;
     } catch (\Throwable) {
+        // Token invalide ou expiré : l'utilisateur est traité comme non connecté
     }
 }
 
@@ -86,10 +87,7 @@ $isActive    = static function (string $segment) use ($currentPath, $navLang): s
     <nav class="header-nav" aria-label="Navigation principale">
         <div class="header-nav__inner">
             <?php
-            $isHome = $isActive('/vins') === ''
-                && $isActive('/savoir-faire') === ''
-                && $isActive('/le-chateau') === ''
-                && $isActive('/panier') === '';
+            $isHome = (bool) preg_match('#^/' . preg_quote($navLang, '#') . '/?$#', $currentPath);
             ?>
             <a href="/<?= htmlspecialchars($navLang) ?>" class="header-nav__link<?= $isHome ? ' active' : '' ?>">
                 <span><?= htmlspecialchars(__('nav.home')) ?></span>

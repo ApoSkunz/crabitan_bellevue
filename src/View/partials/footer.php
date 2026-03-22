@@ -32,7 +32,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
             <div id="wcb" class="carbonbadge"></div>
         </div>
 
-        <div class="footer-divider" role="separator"></div>
+        <hr class="footer-divider">
 
         <div class="footer-bottom">
             <div class="footer-legal">
@@ -64,7 +64,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
     </div>
 </footer>
 
-<?php require SRC_PATH . '/View/partials/cookie-banner.php'; ?>
+<?php require_once SRC_PATH . '/View/partials/cookie-banner.php'; ?>
 
 <script src="/assets/js/main.js"></script>
 <script>

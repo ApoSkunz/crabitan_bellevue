@@ -27,8 +27,8 @@
                 <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect) ?>">
 
                 <div class="age-gate__choices-wrap">
-                    <div class="age-gate__choices" role="group" aria-labelledby="age-gate-legend">
-                        <p id="age-gate-legend" class="sr-only"><?= htmlspecialchars(__('age_gate.choice_legend')) ?></p>
+                    <fieldset class="age-gate__choices">
+                        <legend class="sr-only"><?= htmlspecialchars(__('age_gate.choice_legend')) ?></legend>
 
                         <label class="age-gate__choice">
                             <input type="radio" name="legal_age" value="1" required>
@@ -39,7 +39,7 @@
                             <input type="radio" name="legal_age" value="0">
                             <span><?= htmlspecialchars(__('age_gate.not_legal')) ?></span>
                         </label>
-                    </div>
+                    </fieldset>
 
                     <p id="age-gate-error" class="age-gate__error" hidden>
                         <?= htmlspecialchars(__('age_gate.error')) ?>
@@ -58,7 +58,7 @@
     </div>
 </main>
 
-<?php require SRC_PATH . '/View/partials/cookie-banner.php'; ?>
+<?php require_once SRC_PATH . '/View/partials/cookie-banner.php'; ?>
 
 <script src="/assets/js/main.js"></script>
 </body>
