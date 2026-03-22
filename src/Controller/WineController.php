@@ -148,19 +148,16 @@ class WineController extends Controller
     {
         $fallback = ['path' => is_file($srcPath) ? $srcPath : null, 'type' => 'PNG', 'tmp' => null];
 
-        if (!is_file($srcPath) || !function_exists('imagecreatefromstring')) {
-            return $fallback;
-        }
-        if (!str_ends_with(strtolower($srcPath), '.png')) {
+        if (
+            !is_file($srcPath)
+            || !function_exists('imagecreatefromstring')
+            || !str_ends_with(strtolower($srcPath), '.png')
+        ) {
             return $fallback;
         }
 
         $data = @file_get_contents($srcPath);
-        if ($data === false) {
-            return $fallback;
-        }
-
-        $src = @imagecreatefromstring($data);
+        $src  = $data !== false ? @imagecreatefromstring($data) : false;
         if ($src === false) {
             return $fallback;
         }
@@ -278,15 +275,7 @@ class WineController extends Controller
             'Vinification'                                        => $l($vinif),
             ($lang === 'en' ? 'Ageing'       : 'Élevage')        => $l($barrel),
         ];
-        foreach ($specs as $label => $value) {
-            if ($value === '' || $value === ' ha' || $value === ' ans') {
-                continue;
-            }
-            $pdf->SetFont('helvetica', 'B', 9);
-            $pdf->Cell(45, 5, $label . ' :', 0, 0);
-            $pdf->SetFont('helvetica', '', 9);
-            $pdf->MultiCell(0, 5, $value, 0, 'L');
-        }
+        $this->renderPdfSpecs($pdf, $specs);
 
         $awardText = $l($award);
         if ($awardText !== '') {
@@ -303,6 +292,20 @@ class WineController extends Controller
         $pdf->SetTextColor(150, 150, 150);
         $pdf->SetXY(15, $pdf->getPageHeight() - 15);
         $pdf->Cell(0, 5, APP_NAME . ' — ' . $wine['city'] . ' — crabitanbellevue.fr', 0, 0, 'C');
+    }
+
+    /** @param array<string, string> $specs */
+    private function renderPdfSpecs(TCPDF $pdf, array $specs): void
+    {
+        foreach ($specs as $label => $value) {
+            if ($value === '' || $value === ' ha' || $value === ' ans') {
+                continue;
+            }
+            $pdf->SetFont('helvetica', 'B', 9);
+            $pdf->Cell(45, 5, $label . ' :', 0, 0);
+            $pdf->SetFont('helvetica', '', 9);
+            $pdf->MultiCell(0, 5, $value, 0, 'L');
+        }
     }
 
     // ----------------------------------------------------------------

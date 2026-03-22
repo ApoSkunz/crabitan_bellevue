@@ -163,4 +163,16 @@ class WineControllerTest extends IntegrationTestCase
         $this->makeController('/fr/vins/inexistant')
             ->show(['lang' => 'fr', 'slug' => 'inexistant']);
     }
+
+    // ----------------------------------------------------------------
+    // technicalSheet
+    // ----------------------------------------------------------------
+
+    public function testTechnicalSheetAborts404ForUnknownSlug(): void
+    {
+        $this->expectException(HttpException::class);
+
+        $this->makeController('/fr/vins/inexistant/fiche-technique')
+            ->technicalSheet(['lang' => 'fr', 'slug' => 'inexistant']);
+    }
 }

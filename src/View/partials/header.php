@@ -15,8 +15,9 @@ if ($token) {
 
 // Détection du lien actif dans la nav
 $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
-$isActive    = static function (string $segment) use ($currentPath): string {
-    return str_contains($currentPath, $segment) ? ' active' : '';
+$activeClass = ' active';
+$isActive    = static function (string $segment) use ($currentPath, $activeClass): string {
+    return str_contains($currentPath, $segment) ? $activeClass : '';
 };
 
 // Génère l'URL pour le switch de langue en remplaçant le préfixe lang dans l'URI courante
@@ -72,7 +73,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
             <?php if ($isLogged) : ?>
                 <a
                     href="/<?= htmlspecialchars($navLang) ?>/panier"
-                    class="header-cart<?= str_contains($currentPath, '/panier') ? ' active' : '' ?>"
+                    class="header-cart<?= str_contains($currentPath, '/panier') ? $activeClass : '' ?>"
                     aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
                 >
                     <span class="header-cart__wrap">
@@ -129,10 +130,10 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
             $isHome      = (bool) preg_match('#^/' . preg_quote($navLang, '#') . '/?$#', $currentPath);
             $isWinesOnly = (bool) preg_match('#^/' . preg_quote($navLang, '#') . '/vins(?:\?|$)#', $currentPath);
             ?>
-            <a href="/<?= htmlspecialchars($navLang) ?>" class="header-nav__link<?= $isHome ? ' active' : '' ?>">
+            <a href="/<?= htmlspecialchars($navLang) ?>" class="header-nav__link<?= $isHome ? $activeClass : '' ?>">
                 <span><?= htmlspecialchars(__('nav.home')) ?></span>
             </a>
-            <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="header-nav__link<?= $isWinesOnly ? ' active' : '' ?>">
+            <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="header-nav__link<?= $isWinesOnly ? $activeClass : '' ?>">
                 <span><?= htmlspecialchars(__('nav.wines')) ?></span>
             </a>
             <a href="/<?= htmlspecialchars($navLang) ?>/le-chateau"
