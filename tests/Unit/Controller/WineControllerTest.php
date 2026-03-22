@@ -201,4 +201,167 @@ class WineControllerTest extends TestCase
 
         $this->assertTrue(true);
     }
+
+    // ── PDF helpers via réflexion ────────────────────────────────────────────
+
+    private function requireTcpdf(): void
+    {
+        $path = defined('ROOT_PATH')
+            ? ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php'
+            : dirname(__DIR__, 3) . '/vendor/tecnickcom/tcpdf/tcpdf.php';
+        if (!class_exists(\TCPDF::class)) {
+            require_once $path;
+        }
+    }
+
+    /** @return array<string, mixed> */
+    private function makeFakeWine(): array
+    {
+        return [
+            'label_name'          => 'Test Wine',
+            'vintage'             => 2020,
+            'city'                => 'Sainte-Croix-du-Mont',
+            'variety_of_vine'     => 'Sémillon 98%',
+            'area'                => '7.50',
+            'age_of_vineyard'     => 30,
+            'certification_label' => 'HVE',
+            'oenological_comment' => '{"fr":"Notes de miel","en":"Honey notes"}',
+            'soil'                => '{"fr":"Argile","en":"Clay"}',
+            'pruning'             => '{"fr":"Guyot mixte","en":"Mixed Guyot"}',
+            'harvest'             => '{"fr":"Manuelles","en":"Manual"}',
+            'vinification'        => '{"fr":"Cuves inox","en":"Stainless steel"}',
+            'barrel_fermentation' => '{"fr":"36 mois","en":"36 months"}',
+            'award'               => '{"fr":"Médaille d\'or","en":"Gold medal"}',
+        ];
+    }
+
+    public function testStripAlphaReturnsFallbackForMissingFile(): void
+    {
+        $this->bootstrapApp();
+        $method = new \ReflectionMethod(\Controller\WineController::class, 'stripAlpha');
+        $result = $method->invoke($this->makeController(), '/tmp/cb_nonexistent_abc123.png');
+        $this->assertNull($result['path']);
+        $this->assertSame('PNG', $result['type']);
+        $this->assertNull($result['tmp']);
+    }
+
+    public function testStripAlphaReturnsFallbackForNonPngExtension(): void
+    {
+        $this->bootstrapApp();
+        $tmp = tempnam(sys_get_temp_dir(), 'cb_test') . '.jpg';
+        file_put_contents($tmp, 'fake-image-data');
+        try {
+            $method = new \ReflectionMethod(\Controller\WineController::class, 'stripAlpha');
+            $result = $method->invoke($this->makeController(), $tmp);
+            $this->assertSame($tmp, $result['path']);
+            $this->assertSame('PNG', $result['type']);
+            $this->assertNull($result['tmp']);
+        } finally {
+            if (is_file($tmp)) {
+                unlink($tmp);
+            }
+        }
+    }
+
+    public function testStripAlphaConvertsValidPng(): void
+    {
+        if (!function_exists('imagecreatetruecolor')) {
+            $this->markTestSkipped('Extension GD non disponible');
+        }
+        $this->bootstrapApp();
+        $src = imagecreatetruecolor(10, 10);
+        $tmp = tempnam(sys_get_temp_dir(), 'cb_test') . '.png';
+        imagepng($src, $tmp);
+        imagedestroy($src);
+        try {
+            $method = new \ReflectionMethod(\Controller\WineController::class, 'stripAlpha');
+            $result = $method->invoke($this->makeController(), $tmp);
+            $this->assertNotNull($result['path']);
+            $this->assertSame('JPG', $result['type']);
+            $this->assertNotNull($result['tmp']);
+            if ($result['tmp'] !== null && is_file($result['tmp'])) {
+                unlink($result['tmp']);
+            }
+        } finally {
+            if (is_file($tmp)) {
+                unlink($tmp);
+            }
+        }
+    }
+
+    public function testBuildPdfReturnsTCPDFInstance(): void
+    {
+        $this->bootstrapApp();
+        $this->requireTcpdf();
+        $method = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
+        ob_start();
+        $pdf = $method->invoke($this->makeController(), $this->makeFakeWine());
+        ob_end_clean();
+        $this->assertInstanceOf(\TCPDF::class, $pdf);
+    }
+
+    public function testRenderPdfHeadingDoesNotThrow(): void
+    {
+        $this->bootstrapApp();
+        $this->requireTcpdf();
+        $ctrl      = $this->makeController();
+        $buildPdf  = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
+        $heading   = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfHeading');
+        ob_start();
+        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine());
+        $heading->invoke($ctrl, $pdf, $this->makeFakeWine(), 'fr');
+        $heading->invoke($ctrl, $pdf, $this->makeFakeWine(), 'en');
+        ob_end_clean();
+        $this->assertInstanceOf(\TCPDF::class, $pdf);
+    }
+
+    public function testRenderPdfSpecsSkipsEmptyAndRendersValues(): void
+    {
+        $this->bootstrapApp();
+        $this->requireTcpdf();
+        $ctrl       = $this->makeController();
+        $buildPdf   = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
+        $renderSpecs = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfSpecs');
+        ob_start();
+        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine());
+        $renderSpecs->invoke($ctrl, $pdf, [
+            'Superficie'     => ' ha',
+            'Âge des vignes' => ' ans',
+            'Sol'            => '',
+            'Taille'         => 'Guyot mixte',
+            'Vendanges'      => 'Manuelles',
+        ]);
+        ob_end_clean();
+        $this->assertInstanceOf(\TCPDF::class, $pdf);
+    }
+
+    public function testRenderPdfContentDoesNotThrow(): void
+    {
+        $this->bootstrapApp();
+        $this->requireTcpdf();
+        $ctrl          = $this->makeController();
+        $buildPdf      = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
+        $renderContent = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfContent');
+        $l = fn(array $arr): string => $arr['fr'] ?? '';
+        ob_start();
+        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine());
+        $renderContent->invoke($ctrl, $pdf, $this->makeFakeWine(), 'fr', $l);
+        ob_end_clean();
+        $this->assertInstanceOf(\TCPDF::class, $pdf);
+    }
+
+    public function testRenderPdfContentEnglishDoesNotThrow(): void
+    {
+        $this->bootstrapApp();
+        $this->requireTcpdf();
+        $ctrl          = $this->makeController();
+        $buildPdf      = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
+        $renderContent = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfContent');
+        $l = fn(array $arr): string => $arr['en'] ?? ($arr['fr'] ?? '');
+        ob_start();
+        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine());
+        $renderContent->invoke($ctrl, $pdf, $this->makeFakeWine(), 'en', $l);
+        ob_end_clean();
+        $this->assertInstanceOf(\TCPDF::class, $pdf);
+    }
 }

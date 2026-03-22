@@ -66,8 +66,6 @@ return [
     'wine.color.red'        => 'Red',
     'wine.color.white'      => 'Dry white',
     'wine.color.rosé'       => 'Rosé',
-    'wine.color.champagne'  => 'Champagne',
-    'wine.color.sparkling'  => 'Sparkling',
     'wine.color.sweet'      => 'Sweet white',
 
     // Wines — Filters

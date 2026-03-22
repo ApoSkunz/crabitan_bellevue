@@ -66,8 +66,6 @@ return [
     'wine.color.red'        => 'Rouges',
     'wine.color.white'      => 'Blancs secs',
     'wine.color.rosé'       => 'Rosés',
-    'wine.color.champagne'  => 'Champagne',
-    'wine.color.sparkling'  => 'Pétillants',
     'wine.color.sweet'      => 'Blancs doux',
 
     // Vins — Filtres
