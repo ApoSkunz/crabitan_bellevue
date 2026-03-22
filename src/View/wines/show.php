@@ -99,6 +99,8 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     <p class="wine-detail__out-of-stock"><?= htmlspecialchars(__('wine.out_of_stock')) ?></p>
                 <?php endif; ?>
 
+                <p class="wine-detail__ttc-note"><?= htmlspecialchars(__('wine.ttc_note')) ?></p>
+
                 <?php if ($awardText !== '') : ?>
                     <p class="wine-detail__award">&#127942; <?= htmlspecialchars($awardText) ?></p>
                 <?php endif; ?>

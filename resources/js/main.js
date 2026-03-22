@@ -435,7 +435,14 @@ function initCartModal() {
 function initCartLoginPrompt() {
     document.querySelectorAll('.js-cart-login-prompt').forEach((btn) => {
         btn.addEventListener('click', () => {
-            window.location.href = btn.dataset.loginUrl || ('/' + (window.__navLang || 'fr') + '/connexion');
+            const loginUrl = btn.dataset.loginUrl || ('/' + (window.__navLang || 'fr') + '/connexion');
+            showToast(
+                document.documentElement.lang === 'en'
+                    ? 'You will be redirected to the login page to access your cart…'
+                    : 'Vous allez être redirigé vers la connexion pour accéder au panier…',
+                false
+            );
+            setTimeout(() => { window.location.href = loginUrl; }, 2000);
         });
     });
 }

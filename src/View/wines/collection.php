@@ -108,6 +108,8 @@ $totalPages  = $totalPages  ?? 1;
                     </a>
                 </div>
             </form>
+
+            <p class="wines-filters__ttc-note"><?= htmlspecialchars(__('wine.ttc_note')) ?></p>
         </div>
     </section>
 
@@ -116,9 +118,8 @@ $totalPages  = $totalPages  ?? 1;
             <ul class="collection-nav__list">
                 <?php
                 // Si le type est sur la page courante => ancre directe ; sinon => page 1 + ancre
-                $colNavUrl = static function (string $anchor) use ($navLang, $activeColor, $activeSort, $activeAvail, $activePerPage): string {
+                $colNavUrl = static function (string $anchor) use ($navLang, $activeSort, $activeAvail, $activePerPage): string {
                     $qs = array_filter([
-                        'color'    => $activeColor ?? '',
                         'sort'     => $activeSort !== 'default' ? $activeSort : '',
                         'avail'    => $activeAvail,
                         'per_page' => $activePerPage !== 25 ? (string) $activePerPage : '',

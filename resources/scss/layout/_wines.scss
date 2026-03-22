@@ -45,7 +45,7 @@
 
     &__ttc-note {
         margin-top: 0.75rem;
-        font-size: 0.75rem;
+        font-size: 0.875rem;
         color: var(--color-text-muted);
         font-style: italic;
     }
@@ -54,12 +54,12 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 0.85rem;
+        font-size: 0.925rem;
         color: var(--color-text-muted);
 
         label {
             font-family: var(--font-serif);
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             white-space: nowrap;
@@ -71,7 +71,7 @@
             border: 1px solid var(--color-border-gold);
             padding: 0.4rem 0.75rem;
             font-family: var(--font-sans);
-            font-size: 0.85rem;
+            font-size: 0.925rem;
             cursor: pointer;
 
             &:focus {
@@ -91,7 +91,7 @@
 
         legend {
             font-family: var(--font-serif);
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--color-text-muted);
@@ -104,7 +104,7 @@
         display: flex;
         align-items: center;
         gap: 0.4rem;
-        font-size: 0.85rem;
+        font-size: 0.925rem;
         color: var(--color-text-muted);
         cursor: pointer;
         transition: color 200ms ease;
@@ -123,12 +123,12 @@
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        font-size: 0.85rem;
+        font-size: 0.925rem;
         color: var(--color-text-muted);
 
         label {
             font-family: var(--font-serif);
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             white-space: nowrap;
@@ -140,7 +140,7 @@
             border: 1px solid var(--color-border-gold);
             padding: 0.4rem 0.75rem;
             font-family: var(--font-sans);
-            font-size: 0.85rem;
+            font-size: 0.925rem;
             cursor: pointer;
 
             &:focus {
@@ -556,6 +556,10 @@
         color: var(--color-gold);
         margin-bottom: 0.5rem;
     }
+
+    .wines-grid {
+        margin-top: 2rem;
+    }
 }
 
 // ============================================================
@@ -679,6 +683,13 @@
         font-style: italic;
         color: var(--color-text-muted);
         margin: 1rem 0;
+    }
+
+    &__ttc-note {
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+        font-style: italic;
+        margin: 0.5rem 0 1rem;
     }
 
     &__award {
