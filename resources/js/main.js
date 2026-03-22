@@ -519,6 +519,35 @@ function initAnchorScroll() {
 // Init
 // ============================================================
 
+// ============================================================
+// Support — FAQ accordéon
+// ============================================================
+
+function initFaqAccordion() {
+    const accordion = document.getElementById('faq-accordion');
+    if (!accordion) return;
+
+    accordion.querySelectorAll('.faq-accordion__trigger').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const expanded = btn.getAttribute('aria-expanded') === 'true';
+            const panelId  = btn.getAttribute('aria-controls');
+            const panel    = document.getElementById(panelId);
+
+            // Fermer tous les autres
+            accordion.querySelectorAll('.faq-accordion__trigger').forEach((other) => {
+                if (other !== btn) {
+                    other.setAttribute('aria-expanded', 'false');
+                    const otherId = other.getAttribute('aria-controls');
+                    document.getElementById(otherId).hidden = true;
+                }
+            });
+
+            btn.setAttribute('aria-expanded', String(!expanded));
+            panel.hidden = expanded;
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initThemeToggle();
@@ -533,4 +562,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initWineZoom();
     updateCartCount();
     initAnchorScroll();
+    initFaqAccordion();
 });

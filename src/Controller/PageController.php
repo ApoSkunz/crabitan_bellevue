@@ -38,6 +38,18 @@ class PageController extends Controller
         $this->view('pages/plan-du-site', ['lang' => $lang, 'noindex' => true]);
     }
 
+    public function support(array $params): void
+    {
+        $lang = $this->resolveLang($params);
+        $this->view('pages/support', ['lang' => $lang]);
+    }
+
+    public function jeux(array $params): void
+    {
+        $lang = $this->resolveLang($params);
+        $this->view('pages/jeux', ['lang' => $lang]);
+    }
+
     public function webmaster(array $params): void
     {
         $lang = $this->resolveLang($params);
