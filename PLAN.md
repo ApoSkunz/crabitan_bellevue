@@ -19,6 +19,57 @@ Refonte complète de crabitanbellevue.fr — site e-commerce de vins, PHP MVC cu
 | CI/CD                | GitHub Actions + semantic-release                  |
 | Dépendances auto     | Renovate (en dernier)                              |
 
+## Correspondance vues — ancienne → nouvelle
+
+Légende : ✅ Validé par Alexandre — 🔄 Implémenté, non encore validé — ⬜ À créer
+
+| Ancienne vue | Nouvelle vue | Statut |
+|---|---|---|
+| `Age-Verification.php` | `src/View/age-gate.php` | ✅ Validé |
+| `Legal-Notice.php` | `src/View/pages/mentions-legales.php` | ✅ Validé |
+| `Domain.php` _(Le Château)_ | `src/View/pages/chateau.php` | ✅ Validé |
+| `Knowledge.php` _(Savoir-faire)_ | `src/View/pages/savoir-faire.php` | ✅ Validé |
+| `Support.php` | `src/View/pages/support.php` | ✅ Validé |
+| — _(nouvelle)_ | `src/View/pages/politique-confidentialite.php` | ✅ Validé |
+| `Games.php` | `src/View/pages/jeux.php` | 🔄 Implémenté (images KO — à revalider) |
+| `Home.php` | `src/View/home.php` | 🔄 Implémenté |
+| `Contact.php` | `src/View/pages/contact.php` | 🔄 Implémenté |
+| `News.php` | `src/View/news/index.php` + `news/show.php` | 🔄 Implémenté |
+| `Wines.php` | `src/View/wines/index.php` + `wines/show.php` | 🔄 Implémenté |
+| `Collection.php` | `src/View/wines/collection.php` | 🔄 Implémenté |
+| `Sitemap.php` | `src/View/pages/plan-du-site.php` | 🔄 Implémenté |
+| `Webmaster.php` | `src/View/pages/webmaster.php` | 🔄 Implémenté |
+| — _(nouvelle)_ | `src/View/auth/login.php` | 🔄 Implémenté |
+| `Register.php` | `src/View/auth/register.php` | 🔄 Implémenté |
+| `Reset.php` | `src/View/auth/forgot-password.php` + `auth/reset-password.php` | 🔄 Implémenté |
+| `Verify.php` | `src/View/auth/verify.php` | 🔄 Implémenté |
+| `Bad-Request.php` | `src/View/errors/error.php` (400) | 🔄 Implémenté |
+| `Unauthorized.php` | `src/View/errors/error.php` (401) | 🔄 Implémenté |
+| `Access-Forbidden.php` | `src/View/errors/error.php` (403) | 🔄 Implémenté |
+| `Not-Found.php` | `src/View/errors/error.php` (404) | 🔄 Implémenté |
+| `Method-Not-Allowed.php` | `src/View/errors/error.php` (405) | 🔄 Implémenté |
+| `Server-Error.php` | `src/View/errors/error.php` (500) | 🔄 Implémenté |
+| `Cart.php` | _(à créer — feat/cart)_ | ⬜ À créer |
+| `Confirm-Shop.php` _(confirmation commande)_ | _(à créer — feat/order)_ | ⬜ À créer |
+| `Orders.php` | _(à créer — feat/account)_ | ⬜ À créer |
+| `Dashboard.php` _(espace client)_ | _(à créer — feat/account)_ | ⬜ À créer |
+| `Personal-Informations.php` | _(à créer — feat/account)_ | ⬜ À créer |
+| `Billing-Address.php` | _(à créer — feat/account)_ | ⬜ À créer |
+| `Delivery-Address.php` | _(à créer — feat/account)_ | ⬜ À créer |
+| `Change-Password.php` | _(à créer — feat/account)_ | ⬜ À créer |
+| `Newsletter.php` | _(à créer — feat/newsletter)_ | ⬜ À créer |
+| `Terms-Of-Sales.php` _(CGV)_ | _(à créer — feat/order)_ | ⬜ À créer |
+| `Admin-Dashboard.php` | _(à créer — feat/admin)_ | ⬜ À créer |
+| `News-Management.php` | _(à créer — feat/admin)_ | ⬜ À créer |
+| `Newsletter-Management.php` | _(à créer — feat/admin)_ | ⬜ À créer |
+| `Order-Management.php` | _(à créer — feat/admin)_ | ⬜ À créer |
+| `User-Management.php` | _(à créer — feat/admin)_ | ⬜ À créer |
+| `Wine-Management.php` | _(à créer — feat/admin)_ | ⬜ À créer |
+
+**6 validées — 18 implémentées à valider — 16 à créer**
+
+---
+
 ## Branches & statut
 
 | Branch                   | Statut        | Contenu                                                                          |
