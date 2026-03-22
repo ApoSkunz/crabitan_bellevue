@@ -55,16 +55,6 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     >
                     <span class="wine-detail__zoom-hint" aria-hidden="true">&#128269;</span>
                 </div>
-                <?php if ($awardText !== '' && $wine['award_path']) : ?>
-                    <div class="wine-detail__award-badge">
-                        <img
-                            src="/assets/images/awards/<?= htmlspecialchars($wine['award_path']) ?>"
-                            alt="<?= htmlspecialchars($awardText) ?>"
-                            width="80"
-                            height="80"
-                        >
-                    </div>
-                <?php endif; ?>
             </div>
 
             <!-- Colonne infos -->
@@ -180,6 +170,8 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>/fiche-technique"
                     class="wine-detail__download"
                     aria-label="<?= htmlspecialchars(__('wine.download_sheet') . ' : ' . $wineName) ?>"
+                    target="_blank"
+                    rel="noopener noreferrer"
                 >
                     &#128196; <?= htmlspecialchars(__('wine.download_sheet')) ?>
                 </a>

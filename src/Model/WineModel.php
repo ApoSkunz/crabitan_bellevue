@@ -62,7 +62,7 @@ class WineModel extends Model
         // likes_count sera remplacé par un subquery réel dans feat/account (table favorites)
         $sql = "SELECT id, label_name, wine_color, format, vintage, price, quantity,
                        available, certification_label, image_path, slug,
-                       oenological_comment, award, award_path,
+                       oenological_comment, award,
                        0 AS likes_count
                 FROM {$this->table}
                 " . $this->buildWhereClause($where) . "
@@ -242,7 +242,7 @@ class WineModel extends Model
             "SELECT id, label_name, wine_color, format, vintage, price, quantity,
                     available, certification_label, area, city, variety_of_vine,
                     age_of_vineyard, oenological_comment, soil, pruning, harvest,
-                    vinification, barrel_fermentation, award, award_path,
+                    vinification, barrel_fermentation, award,
                     extra_comment, technical_form_path, image_path, slug
              FROM {$this->table}
              WHERE slug = ?",

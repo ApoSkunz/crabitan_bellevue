@@ -95,7 +95,6 @@ CREATE TABLE `wines` (
   `vinification`         JSON           NOT NULL COMMENT '{"fr":"...","en":"..."}',
   `barrel_fermentation`  JSON           NOT NULL COMMENT '{"fr":"...","en":"..."}',
   `award`                JSON           NOT NULL COMMENT '{"fr":"...","en":"..."}',
-  `award_path`           VARCHAR(255)   DEFAULT NULL,
   `extra_comment`        JSON           NOT NULL COMMENT '{"fr":"...","en":"..."}',
   `technical_form_path`  VARCHAR(255)   DEFAULT NULL,
   `image_path`           VARCHAR(255)   NOT NULL,

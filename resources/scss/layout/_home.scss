@@ -196,6 +196,16 @@
     }
 }
 
+// Light theme — alternance blanc / crème (sections normales = blanc, --dark = crème)
+[data-theme='light'] .home-section,
+[data-theme='light'] .home-news {
+    background-color: var(--color-surface);
+}
+
+[data-theme='light'] .home-section--dark {
+    background-color: var(--color-bg);
+}
+
 // Section NOS VINS — image dézoomed pour voir les bouteilles
 // background-color sur le conteneur (pas sur l'img) pour ne pas être
 // affecté par le filter:brightness de l'img
