@@ -189,10 +189,10 @@ $colorLabels = [
 
             <?php if ($totalPages > 1) : ?>
                 <?php
-                $buildUrl = static function (int $p) use ($color, $sort): string {
+                $buildUrl = static function (int $p) use ($activeColor, $activeSort): string {
                     $qs = array_filter([
-                        'color' => $color ?? '',
-                        'sort'  => $sort !== 'default' ? $sort : '',
+                        'color' => $activeColor ?? '',
+                        'sort'  => $activeSort !== 'default' ? $activeSort : '',
                         'page'  => $p > 1 ? (string) $p : '',
                     ]);
                     return '?' . http_build_query($qs);
