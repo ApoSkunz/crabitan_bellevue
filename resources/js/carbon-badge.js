@@ -21,10 +21,22 @@ export function initCarbonBadge() {
     const url = encodeURIComponent(window.location.href);
 
     function renderResult(data) {
+        // Caster en nombre pour neutraliser tout contenu non numérique de l'API (XSS)
+        const co2 = parseFloat(data.c) || 0;
+        const pct = parseFloat(data.p) || 0;
+
         const g = document.getElementById('wcb_g');
+        if (g) {
+            g.textContent = '';
+            g.appendChild(document.createTextNode(co2 + 'g de CO'));
+            const sub = document.createElement('sub');
+            sub.textContent = '2';
+            g.appendChild(sub);
+            g.appendChild(document.createTextNode('/vue'));
+        }
+
         const p = document.getElementById('wcb_2');
-        if (g) g.innerHTML = data.c + 'g de CO<sub>2</sub>/vue';
-        if (p) p.insertAdjacentHTML('beforeEnd', 'Plus propre que ' + data.p + '% des pages testées');
+        if (p) p.textContent += 'Plus propre que ' + pct + '% des pages testées';
     }
 
     function fetchBadge(render = true) {
@@ -37,7 +49,7 @@ export function initCarbonBadge() {
             })
             .catch(() => {
                 const g = document.getElementById('wcb_g');
-                if (g) g.innerHTML = 'No result';
+                if (g) g.textContent = 'No result';
                 localStorage.removeItem('wcb_' + url);
             });
     }
