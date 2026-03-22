@@ -103,4 +103,13 @@ class PageControllerTest extends TestCase
         $this->callAction('webmaster', 'fr');
         $this->assertSame('fr', defined('CURRENT_LANG') ? CURRENT_LANG : 'undefined');
     }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testPolitiqueConfidentialiteResolvesLang(): void
+    {
+        $this->bootstrapApp();
+        $this->callAction('politiqueConfidentialite', 'fr');
+        $this->assertSame('fr', defined('CURRENT_LANG') ? CURRENT_LANG : 'undefined');
+    }
 }

@@ -39,8 +39,8 @@ class Response
         http_response_code($status);
         // Injecter $navLang automatiquement pour toutes les vues
         if (!isset($data['navLang'])) {
-            $data['navLang'] = $data['lang']
-                ?? (defined('CURRENT_LANG') ? CURRENT_LANG : (defined('DEFAULT_LANG') ? DEFAULT_LANG : 'fr'));
+            $fallback = defined('CURRENT_LANG') ? CURRENT_LANG : (defined('DEFAULT_LANG') ? DEFAULT_LANG : 'fr');
+            $data['navLang'] = $data['lang'] ?? $fallback;
         }
         extract($data, EXTR_SKIP);
         require SRC_PATH . '/View/' . $template . '.php'; // NOSONAR — require_once bloquerait le re-rendu en tests

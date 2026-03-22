@@ -53,24 +53,25 @@ $pairCount = count($wines ?? []);
             shuffle($cards);
             foreach ($cards as $i => $wine) :
                 ?>
-                <button
-                    class="memo-card"
-                    type="button"
-                    data-slug="<?= htmlspecialchars($wine['slug']) ?>"
-                    aria-label="Carte <?= $i + 1 ?>"
-                    role="listitem"
-                >
-                    <span class="memo-card__back" aria-hidden="true"></span>
-                    <span class="memo-card__front">
-                        <img
-                            src="<?= htmlspecialchars($wine['image_path']) ?>"
-                            alt=""
-                            loading="lazy"
-                            width="120"
-                            height="180"
-                        >
-                    </span>
-                </button>
+                <li>
+                    <button
+                        class="memo-card"
+                        type="button"
+                        data-slug="<?= htmlspecialchars($wine['slug']) ?>"
+                        aria-label="Carte <?= $i + 1 ?>"
+                    >
+                        <span class="memo-card__back" aria-hidden="true"></span>
+                        <span class="memo-card__front">
+                            <img
+                                src="<?= htmlspecialchars($wine['image_path']) ?>"
+                                alt=""
+                                loading="lazy"
+                                width="120"
+                                height="180"
+                            >
+                        </span>
+                    </button>
+                </li>
             <?php endforeach; ?>
         </div>
 
