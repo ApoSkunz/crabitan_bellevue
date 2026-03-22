@@ -5,6 +5,8 @@
 
 SET NAMES utf8mb4;
 
+TRUNCATE TABLE `wines`;
+
 INSERT INTO `wines`
     (`label_name`, `wine_color`, `format`, `vintage`, `price`, `quantity`, `available`,
      `certification_label`, `area`, `city`, `variety_of_vine`, `age_of_vineyard`,
