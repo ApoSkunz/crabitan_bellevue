@@ -20,7 +20,7 @@ $activePerPage = $activePerPage ?? 25;
 $page        = $page        ?? 1;
 $totalPages  = $totalPages  ?? 1;
 $colorPages  = $colorPages  ?? [];
-$cls         = '$cls; // single definition — used for radio filter active state
+$cls         = ' is-active'; // single definition — used for radio filter active state
 ?>
 
 <main class="page-wines-collection" id="main-content">
