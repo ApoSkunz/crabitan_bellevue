@@ -13,7 +13,7 @@ header('Retry-After: 3600');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maintenance — Château Crabitan Bellevue</title>
     <meta name="robots" content="noindex, nofollow">
-    <link rel="icon" type="image/png" href="/assets/images/crabitan-bellevue-logo.png">
+    <link rel="icon" type="image/png" href="/assets/images/logo/crabitan-bellevue-logo.png">
     <style>
         /* ---- Reset minimal ---- */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -116,7 +116,7 @@ header('Retry-After: 3600');
 <body>
     <main class="maint" role="main">
         <img
-            src="/assets/images/crabitan-bellevue-logo-modern.svg"
+            src="/assets/images/logo/crabitan-bellevue-logo-modern.svg"
             alt="Château Crabitan Bellevue"
             class="maint__logo"
             width="80"

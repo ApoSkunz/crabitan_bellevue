@@ -127,7 +127,7 @@ class WineController extends Controller
         $pdf->AddPage();
 
         // Logo (strip alpha if needed — imagecreatefromstring is more robust than imagecreatefrompng)
-        $logoPath = ROOT_PATH . '/public/assets/images/crabitan-bellevue-logo.png';
+        $logoPath = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo.png';
         $tmpLogo  = null;
         if (is_file($logoPath)) {
             $logoImg  = $logoPath;

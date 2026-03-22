@@ -56,7 +56,7 @@ $homeLbl = $lang === 'en' ? '← Back to home' : '← Retour à l\'accueil';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $statusCode ?> — <?= htmlspecialchars($title) ?> — <?= htmlspecialchars($appName) ?></title>
     <meta name="robots" content="noindex, nofollow">
-    <link rel="icon" type="image/png" href="/assets/images/crabitan-bellevue-logo.png">
+    <link rel="icon" type="image/png" href="/assets/images/logo/crabitan-bellevue-logo.png">
     <link rel="stylesheet" href="/assets/css/main.css">
     <script>
         // Restore theme preference without flash
@@ -71,7 +71,7 @@ $homeLbl = $lang === 'en' ? '← Back to home' : '← Retour à l\'accueil';
         <div class="error-page__inner">
             <a href="<?= htmlspecialchars($homeUrl) ?>" class="error-page__logo"
                aria-label="<?= htmlspecialchars($appName) ?>">
-                <img src="/assets/images/crabitan-bellevue-logo-modern.svg" alt="" width="72" height="72">
+                <img src="/assets/images/logo/crabitan-bellevue-logo-modern.svg" alt="" width="72" height="72">
             </a>
 
             <p class="error-page__code"><?= $statusCode ?></p>
