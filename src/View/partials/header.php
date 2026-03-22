@@ -15,7 +15,7 @@ if ($token) {
 
 // Détection du lien actif dans la nav
 $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
-$isActive    = static function (string $segment) use ($currentPath, $navLang): string {
+$isActive    = static function (string $segment) use ($currentPath): string {
     return str_contains($currentPath, $segment) ? ' active' : '';
 };
 ?>
@@ -148,7 +148,6 @@ $isActive    = static function (string $segment) use ($currentPath, $navLang): s
     <div class="account-panel__backdrop" id="account-panel-backdrop"></div>
     <aside
         class="account-panel__drawer"
-        role="complementary"
         aria-label="<?= htmlspecialchars(__('panel.title')) ?>"
     >
         <div class="account-panel__header">
