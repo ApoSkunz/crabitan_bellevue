@@ -6,6 +6,7 @@ namespace Tests\Unit\Model;
 
 use Core\Database;
 use Model\WineModel;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
 class WineModelTest extends TestCase
@@ -320,6 +321,7 @@ class WineModelTest extends TestCase
     // getColorFirstPages
     // ----------------------------------------------------------------
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testGetColorFirstPagesReturnsEmptyForZeroPerPage(): void
     {
         $result = $this->model->getColorFirstPages(null, 0);
