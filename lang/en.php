@@ -165,6 +165,7 @@ return [
 
     // Footer
     'footer.legal_notice'    => 'Legal notice',
+    'footer.privacy_policy'  => 'Privacy policy',
     'footer.sitemap'         => 'Sitemap',
     'footer.carbon'          => 'Carbon Badge',
     'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. Drink responsibly.',

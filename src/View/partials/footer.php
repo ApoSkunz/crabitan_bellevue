@@ -18,6 +18,8 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
                 <a href="/<?= htmlspecialchars($navLang) ?>/contact"><?= htmlspecialchars(__('nav.contact')) ?></a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mentions-legales">
                     <?= htmlspecialchars(__('footer.legal_notice')) ?></a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/politique-de-confidentialite">
+                    <?= htmlspecialchars(__('footer.privacy_policy')) ?></a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/plan-du-site">
                     <?= htmlspecialchars(__('footer.sitemap')) ?></a>
             </nav>

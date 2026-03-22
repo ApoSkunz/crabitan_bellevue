@@ -65,15 +65,8 @@ if (!$isBare) {
         </ul>
 
         <h2>III. Données à caractère personnel</h2>
-
-        <h3>1. Notre engagement : la protection de vos données</h3>
-        <p>La protection de vos données personnelles est notre priorité. Nous appliquons le principe de minimisation&nbsp;: nous ne collectons que les données strictement nécessaires à la finalité pour laquelle elles sont demandées. Aucune donnée superflue n&#8217;est conservée.</p>
-        <p>Les données collectées (nom, adresse e-mail, adresse de livraison, informations de paiement) le sont uniquement dans le cadre du traitement de votre commande, de votre inscription à notre newsletter ou de votre prise de contact. Elles ne sont ni vendues, ni cédées, ni partagées avec des tiers à des fins commerciales.</p>
-        <p>Les paiements par carte bancaire sont traités par un prestataire certifié PCI-DSS&nbsp;; nous ne stockons à aucun moment vos coordonnées bancaires complètes.</p>
-
-        <h3>2. Vos droits</h3>
-        <p>Conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi n°78-17 du 6 janvier 1978 modifiée, vous disposez d&#8217;un droit d&#8217;accès, de rectification, d&#8217;effacement, de portabilité et d&#8217;opposition au traitement de vos données. Pour exercer ces droits, adressez-vous à&nbsp;: GFA Bernard Solane et Fils, Château Crabitan, 33410 Sainte-Croix-du-Mont ou par email à <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a>.</p>
-        <p>Vous pouvez également vous désinscrire de notre newsletter à tout moment depuis l&#8217;espace « Mon Compte ».</p>
+        <p>La protection de vos données personnelles est notre priorité. Nous n&#8217;utilisons que les données strictement nécessaires (principe de minimisation, art. 5-1-c du RGPD). Les paiements par carte bancaire sont traités par un prestataire certifié PCI-DSS&nbsp;; vos coordonnées bancaires ne sont jamais stockées sur nos serveurs.</p>
+        <p>Pour connaître en détail les données collectées, leurs finalités, leur durée de conservation et exercer vos droits (accès, rectification, effacement, portabilité, opposition), consultez notre <a href="/<?= htmlspecialchars($navLang) ?>/politique-de-confidentialite"><?= htmlspecialchars(__('footer.privacy_policy')) ?></a>.</p>
 
         <h2>IV. Responsabilités</h2>
 

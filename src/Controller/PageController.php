@@ -34,6 +34,12 @@ class PageController extends Controller
         $this->view('pages/mentions-legales', ['lang' => $lang, 'noindex' => true, 'bare' => $bare]);
     }
 
+    public function politiqueConfidentialite(array $params): void
+    {
+        $lang = $this->resolveLang($params);
+        $this->view('pages/politique-confidentialite', ['lang' => $lang]);
+    }
+
     public function planDuSite(array $params): void
     {
         $lang = $this->resolveLang($params);
