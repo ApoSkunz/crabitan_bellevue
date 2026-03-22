@@ -57,11 +57,30 @@ class WineController extends Controller
         $lang  = $this->resolveLang($params);
         $model = new WineModel();
 
-        $winesByColor = $model->getAllByColor();
+        $color   = isset($_GET['color']) && $_GET['color'] !== '' ? $_GET['color'] : null;
+        $sort    = $_GET['sort'] ?? 'default';
+        $rawAvail = $_GET['avail'] ?? '';
+        $avail   = in_array($rawAvail, ['available', 'out'], true) ? $rawAvail : null;
+        $perPage = (int) ($_GET['per_page'] ?? 25);
+        if (!in_array($perPage, self::VALID_PER_PAGE, true)) {
+            $perPage = self::DEFAULT_PER_PAGE;
+        }
+        $page    = max(1, (int) ($_GET['page'] ?? 1));
+        $offset  = ($page - 1) * $perPage;
+
+        $total        = $model->countAllByColor($color, $avail);
+        $totalPages   = (int) ceil($total / $perPage);
+        $winesByColor = $model->getAllByColor($color, $sort, $avail, $perPage, $offset);
 
         $this->view('wines/collection', [
-            'lang'         => $lang,
-            'winesByColor' => $winesByColor,
+            'lang'          => $lang,
+            'winesByColor'  => $winesByColor,
+            'activeColor'   => $color,
+            'activeSort'    => $sort,
+            'activeAvail'   => $rawAvail,
+            'activePerPage' => $perPage,
+            'page'          => $page,
+            'totalPages'    => $totalPages,
         ]);
     }
 
@@ -104,10 +123,31 @@ class WineController extends Controller
         $pdf->SetAutoPageBreak(true, 20);
         $pdf->AddPage();
 
-        // Logo
+        // Logo (strip alpha if needed — imagecreatefromstring is more robust than imagecreatefrompng)
         $logoPath = ROOT_PATH . '/public/assets/images/crabitan-bellevue-logo.png';
+        $tmpLogo  = null;
         if (is_file($logoPath)) {
-            $pdf->Image($logoPath, 15, 12, 18, 18, 'PNG');
+            $logoImg  = $logoPath;
+            $logoType = 'PNG';
+            if (function_exists('imagecreatefromstring')) {
+                $logoData = @file_get_contents($logoPath);
+                if ($logoData !== false) {
+                    $lSrc = @imagecreatefromstring($logoData);
+                    if ($lSrc !== false) {
+                        $lDst = imagecreatetruecolor(imagesx($lSrc), imagesy($lSrc));
+                        imagefill($lDst, 0, 0, imagecolorallocate($lDst, 255, 255, 255));
+                        imagealphablending($lDst, true);
+                        imagecopy($lDst, $lSrc, 0, 0, 0, 0, imagesx($lSrc), imagesy($lSrc));
+                        imagedestroy($lSrc);
+                        $tmpLogo  = sys_get_temp_dir() . '/logo_' . md5($logoPath) . '.jpg';
+                        imagejpeg($lDst, $tmpLogo, 95);
+                        imagedestroy($lDst);
+                        $logoImg  = $tmpLogo;
+                        $logoType = 'JPG';
+                    }
+                }
+            }
+            $pdf->Image($logoImg, 15, 12, 18, 18, $logoType);
         }
 
         // Château name + wine name
@@ -137,18 +177,22 @@ class WineController extends Controller
         if (is_file($imgPath)) {
             $useImg  = $imgPath;
             $imgType = '';
-            if (function_exists('imagecreatefrompng') && str_ends_with(strtolower($imgPath), '.png')) {
-                $src = @imagecreatefrompng($imgPath);
-                if ($src !== false) {
-                    $dst = imagecreatetruecolor(imagesx($src), imagesy($src));
-                    imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
-                    imagecopy($dst, $src, 0, 0, 0, 0, imagesx($src), imagesy($src));
-                    $tmpImg = sys_get_temp_dir() . '/wine_' . md5($imgPath) . '.jpg';
-                    imagejpeg($dst, $tmpImg, 95);
-                    imagedestroy($src);
-                    imagedestroy($dst);
-                    $useImg  = $tmpImg;
-                    $imgType = 'JPG';
+            if (function_exists('imagecreatefromstring') && str_ends_with(strtolower($imgPath), '.png')) {
+                $imgData = @file_get_contents($imgPath);
+                if ($imgData !== false) {
+                    $src = @imagecreatefromstring($imgData);
+                    if ($src !== false) {
+                        $dst = imagecreatetruecolor(imagesx($src), imagesy($src));
+                        imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
+                        imagealphablending($dst, true);
+                        imagecopy($dst, $src, 0, 0, 0, 0, imagesx($src), imagesy($src));
+                        imagedestroy($src);
+                        $tmpImg = sys_get_temp_dir() . '/wine_' . md5($imgPath) . '.jpg';
+                        imagejpeg($dst, $tmpImg, 95);
+                        imagedestroy($dst);
+                        $useImg  = $tmpImg;
+                        $imgType = 'JPG';
+                    }
                 }
             }
             $pdf->Ln(3);
@@ -261,6 +305,9 @@ class WineController extends Controller
         $pdf->Output($filename, 'D');
         if ($tmpImg !== null && is_file($tmpImg)) {
             unlink($tmpImg);
+        }
+        if ($tmpLogo !== null && is_file($tmpLogo)) {
+            unlink($tmpLogo);
         }
         exit;
     }

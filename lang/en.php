@@ -51,7 +51,8 @@ return [
     'wine.add_to_cart'  => 'Add to cart',
     'wine.out_of_stock' => 'Out of stock',
     'wine.available'    => 'Available',
-    'wine.favorites'    => 'Favorites',
+    'wine.favorites'      => 'Favorites',
+    'wine.like_login'     => 'Please log in to like this wine.',
     'wine.vintage'      => 'Vintage',
     'wine.price'        => 'Price',
     'wine.in_stock'     => 'in stock',
@@ -85,6 +86,7 @@ return [
     'wine.sort.likes_desc'   => 'Most liked',
 
     // Wines — Product sheet
+    'wine.zoom'          => 'Enlarge photo',
     'wine.tasting'       => 'Tasting notes',
     'wine.technical'     => 'Technical sheet',
     'wine.appellation'   => 'Appellation',
@@ -101,14 +103,29 @@ return [
     'wine.download_sheet' => 'Download complete technical sheet',
 
     // Wines — Collection
-    'wine.collection_nav' => 'Navigate by wine type',
+    'wine.collection_nav'  => 'Navigate by wine type',
+    'wine.filter_avail'    => 'Availability:',
+    'wine.avail.all'       => 'All',
+    'wine.avail.available' => 'Available',
+    'wine.avail.out'       => 'Out of stock',
+
+    // Wines — Food pairing
+    'wine.pairing_title' => 'Food & Wine Pairing',
+    'wine.pairing.sweet' => 'Perfect as an aperitif, with foie gras, Roquefort or fruit desserts. Serve chilled at 8-10 °C.',
+    'wine.pairing.white' => 'Pairs beautifully with fish, seafood, chicken dishes and fresh goat\'s cheese. Serve at 10-12 °C.',
+    'wine.pairing.red'   => 'Excellent with grilled red meats, game, slow-cooked dishes and aged cheeses. Serve at 16-18 °C.',
+    'wine.pairing.rosé'  => 'Great with mixed salads, charcuterie, summer grills and Mediterranean cuisine. Serve chilled at 10-12 °C.',
 
     // Cart
-    'cart.title'    => 'Your cart',
-    'cart.empty'    => 'Your cart is empty',
-    'cart.total'    => 'Total',
-    'cart.checkout' => 'Proceed to checkout',
-    'cart.remove'   => 'Remove',
+    'cart.title'          => 'Your cart',
+    'cart.empty'          => 'Your cart is empty',
+    'cart.total'          => 'Total',
+    'cart.checkout'       => 'Proceed to checkout',
+    'cart.remove'         => 'Remove',
+    'cart.qty'            => 'Quantity',
+    'cart.login_required'  => 'Please log in to complete your order.',
+    'cart.added_offline'   => 'Added to cart. Log in to place your order.',
+    'cart.added'           => 'Added to cart!',
 
     // Order
     'order.confirm'   => 'Confirm order',

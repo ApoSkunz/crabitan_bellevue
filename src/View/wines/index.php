@@ -165,26 +165,22 @@ $colorLabels = [
                                     </strong>
                                     <div class="wine-card__actions">
                                         <?php if ($wine['available']) : ?>
-                                            <?php if ($isLogged) : ?>
-                                                <button
-                                                    type="button"
-                                                    class="wine-card__cart js-add-to-cart"
-                                                    data-wine-id="<?= (int) $wine['id'] ?>"
-                                                    aria-label="<?= htmlspecialchars(__('wine.add_to_cart') . ' : ' . $wine['label_name']) ?>"
-                                                >&#128722;</button>
-                                            <?php else : ?>
-                                                <a
-                                                    href="/<?= htmlspecialchars($navLang) ?>/connexion"
-                                                    class="wine-card__cart"
-                                                    aria-label="<?= htmlspecialchars(__('wine.add_to_cart') . ' : ' . $wine['label_name']) ?>"
-                                                >&#128722;</a>
-                                            <?php endif; ?>
+                                            <button
+                                                type="button"
+                                                class="wine-card__cart js-add-to-cart"
+                                                data-wine-id="<?= (int) $wine['id'] ?>"
+                                                data-wine-name="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
+                                                data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
+                                                data-wine-image="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                                                aria-label="<?= htmlspecialchars(__('wine.add_to_cart') . ' : ' . $wine['label_name']) ?>"
+                                            >&#128722;</button>
                                         <?php endif; ?>
                                         <span class="wine-card__likes">
                                             <button
                                                 type="button"
                                                 class="wine-card__heart js-favorite"
                                                 data-wine-id="<?= (int) $wine['id'] ?>"
+                                                data-login-msg="<?= htmlspecialchars(__('wine.like_login')) ?>"
                                                 aria-label="<?= htmlspecialchars(__('wine.favorites') . ' : ' . $wine['label_name']) ?>"
                                                 aria-pressed="false"
                                             >&#9825;</button>
@@ -211,7 +207,7 @@ $colorLabels = [
                     ]);
                     return '?' . http_build_query($qs);
                 };
-                ?>
+    ?>
                 <nav class="wines-pagination" aria-label="Pagination">
                     <?php if ($page > 1) : ?>
                         <a href="<?= htmlspecialchars($buildUrl($page - 1)) ?>" class="wines-pagination__btn" rel="prev">&larr;</a>

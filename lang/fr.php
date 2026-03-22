@@ -51,7 +51,8 @@ return [
     'wine.add_to_cart'  => 'Ajouter au panier',
     'wine.out_of_stock' => 'Épuisé',
     'wine.available'    => 'Disponible',
-    'wine.favorites'    => 'Favoris',
+    'wine.favorites'      => 'Favoris',
+    'wine.like_login'     => 'Connectez-vous pour aimer ce vin.',
     'wine.vintage'      => 'Millésime',
     'wine.price'        => 'Prix',
     'wine.in_stock'     => 'en stock',
@@ -85,6 +86,7 @@ return [
     'wine.sort.likes_desc'   => 'Les plus aimés',
 
     // Vins — Fiche produit
+    'wine.zoom'          => 'Agrandir la photo',
     'wine.tasting'       => 'Dégustation',
     'wine.technical'     => 'Fiche technique',
     'wine.appellation'   => 'Appellation',
@@ -101,14 +103,29 @@ return [
     'wine.download_sheet' => 'Télécharger la fiche technique complète',
 
     // Vins — Collection
-    'wine.collection_nav' => 'Navigation par type de vin',
+    'wine.collection_nav'  => 'Navigation par type de vin',
+    'wine.filter_avail'    => 'Disponibilité :',
+    'wine.avail.all'       => 'Tous',
+    'wine.avail.available' => 'Disponible',
+    'wine.avail.out'       => 'Épuisé',
+
+    // Vins — Accords mets & vins
+    'wine.pairing_title' => 'Accords mets & vins',
+    'wine.pairing.sweet' => 'Idéal à l\'apéritif, avec du foie gras, du roquefort ou des desserts aux fruits jaunes. Se déguste frais (8-10 °C).',
+    'wine.pairing.white' => 'Parfait avec les poissons, fruits de mer, volailles en sauce et fromages de chèvre frais. Servir à 10-12 °C.',
+    'wine.pairing.red'   => 'S\'accorde avec les viandes rouges grillées, le gibier, les plats mijotés et les fromages affinés. Servir à 16-18 °C.',
+    'wine.pairing.rosé'  => 'Excellent avec les salades composées, charcuteries, grillades estivales et cuisines méditerranéennes. Servir frais à 10-12 °C.',
 
     // Panier
-    'cart.title'    => 'Votre panier',
-    'cart.empty'    => 'Votre panier est vide',
-    'cart.total'    => 'Total',
-    'cart.checkout' => 'Passer commande',
-    'cart.remove'   => 'Supprimer',
+    'cart.title'         => 'Votre panier',
+    'cart.empty'         => 'Votre panier est vide',
+    'cart.total'         => 'Total',
+    'cart.checkout'      => 'Passer commande',
+    'cart.remove'        => 'Supprimer',
+    'cart.qty'           => 'Quantité',
+    'cart.login_required'  => 'Connectez-vous pour finaliser votre commande.',
+    'cart.added_offline'   => 'Ajouté au panier. Connectez-vous pour passer commande.',
+    'cart.added'           => 'Ajouté au panier !',
 
     // Commande
     'order.confirm'   => 'Confirmer la commande',

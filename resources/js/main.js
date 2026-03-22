@@ -261,6 +261,227 @@ function initAccountPanel() {
 }
 
 // ============================================================
+// Toast notification
+// ============================================================
+
+function showToast(msg, isError = false) {
+    const toast = document.getElementById('cb-toast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.className = 'cb-toast' + (isError ? ' cb-toast--error' : '');
+    toast.removeAttribute('hidden');
+    clearTimeout(toast.__timer);
+    toast.__timer = setTimeout(() => toast.setAttribute('hidden', ''), 3000);
+}
+
+// ============================================================
+// Panier hors connexion — localStorage
+// ============================================================
+
+const CART_KEY = 'cb-cart';
+
+function getLocalCart() {
+    try {
+        return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+    } catch {
+        return [];
+    }
+}
+
+function saveLocalCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+}
+
+function addToLocalCart(item) {
+    const cart    = getLocalCart();
+    const existing = cart.find((i) => i.id === item.id);
+    if (existing) {
+        existing.qty += item.qty;
+    } else {
+        cart.push(item);
+    }
+    saveLocalCart(cart);
+    updateCartCount();
+}
+
+function getLocalCartCount() {
+    return getLocalCart().reduce((sum, i) => sum + (i.qty || 1), 0);
+}
+
+function updateCartCount() {
+    const badge = document.getElementById('header-cart-count');
+    if (!badge) return;
+
+    const count = window.__userLogged ? 0 : getLocalCartCount();
+    badge.textContent = count;
+    if (count > 0) {
+        badge.removeAttribute('hidden');
+    } else {
+        badge.setAttribute('hidden', '');
+    }
+}
+
+// ============================================================
+// Cart modal — add-to-cart pop-in (ouvert pour tous)
+// ============================================================
+
+function initCartModal() {
+    const modal     = document.getElementById('cart-modal');
+    const backdrop  = document.getElementById('cart-modal-backdrop');
+    const closeBtn  = document.getElementById('cart-modal-close');
+    const cancelBtn = document.getElementById('cart-modal-cancel');
+    const form      = document.getElementById('cart-modal-form');
+    const titleEl   = document.getElementById('cart-modal-title');
+    const priceEl   = document.getElementById('cart-modal-price');
+    const imgEl     = document.getElementById('cart-modal-image');
+    const wineIdEl  = document.getElementById('cart-modal-wine-id');
+    const qtyInput  = document.getElementById('cart-modal-qty');
+    const qtyHidden = document.getElementById('cart-modal-qty-hidden');
+    const minusBtn  = document.getElementById('cart-qty-minus');
+    const plusBtn   = document.getElementById('cart-qty-plus');
+
+    if (!modal) return;
+
+    function openModal(btn) {
+        const wineId    = btn.dataset.wineId    || '';
+        const wineName  = btn.dataset.wineName  || '';
+        const winePrice = btn.dataset.winePrice || '';
+        const wineImage = btn.dataset.wineImage || '';
+
+        titleEl.textContent   = wineName;
+        priceEl.textContent   = winePrice;
+        imgEl.src             = wineImage;
+        imgEl.alt             = wineName;
+        wineIdEl.value        = wineId;
+        qtyInput.value        = 1;
+        qtyHidden.value       = 1;
+
+        form.action = '/' + (window.__navLang || 'fr') + '/panier/ajouter';
+
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        closeBtn.focus();
+    }
+
+    function closeModal() {
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    // Open on js-add-to-cart click (delegated) — tous les utilisateurs
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-add-to-cart');
+        if (!btn) return;
+        openModal(btn);
+    });
+
+    // Soumission du formulaire
+    form?.addEventListener('submit', (e) => {
+        if (!window.__userLogged) {
+            e.preventDefault();
+            addToLocalCart({
+                id:    parseInt(wineIdEl.value, 10),
+                qty:   parseInt(qtyHidden.value, 10) || 1,
+                name:  titleEl.textContent,
+                price: priceEl.textContent,
+                image: imgEl.src,
+            });
+            closeModal();
+            showToast(
+                document.documentElement.lang === 'en'
+                    ? 'Added to cart. Log in to place your order.'
+                    : 'Ajouté au panier. Connectez-vous pour passer commande.',
+                false
+            );
+        }
+        // Si connecté : le formulaire se soumet normalement vers le serveur
+    });
+
+    backdrop?.addEventListener('click', closeModal);
+    closeBtn?.addEventListener('click', closeModal);
+    cancelBtn?.addEventListener('click', closeModal);
+
+    // Qty controls
+    function updateQty(delta) {
+        const min = parseInt(qtyInput.min, 10) || 1;
+        const max = parseInt(qtyInput.max, 10) || 96;
+        const val = Math.min(max, Math.max(min, (parseInt(qtyInput.value, 10) || 1) + delta));
+        qtyInput.value  = val;
+        qtyHidden.value = val;
+    }
+
+    minusBtn?.addEventListener('click', () => updateQty(-1));
+    plusBtn?.addEventListener('click',  () => updateQty(1));
+    qtyInput?.addEventListener('input', () => { qtyHidden.value = qtyInput.value; });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+    });
+}
+
+// ============================================================
+// Cart login prompt (bouton panier header — non connecté)
+// ============================================================
+
+function initCartLoginPrompt() {
+    document.querySelectorAll('.js-cart-login-prompt').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            window.location.href = btn.dataset.loginUrl || ('/' + (window.__navLang || 'fr') + '/connexion');
+        });
+    });
+}
+
+// ============================================================
+// Like button — auth guard
+// ============================================================
+
+function initFavoriteAuth() {
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-favorite');
+        if (!btn) return;
+
+        if (!window.__userLogged) {
+            e.stopImmediatePropagation();
+            showToast(btn.dataset.loginMsg || 'Connectez-vous pour aimer ce vin.', false);
+        }
+    }, true); // capture phase so we intercept before any other handler
+}
+
+// ============================================================
+// Wine image zoom
+// ============================================================
+
+function initWineZoom() {
+    const overlay  = document.getElementById('wine-zoom-overlay');
+    const backdrop = document.getElementById('wine-zoom-backdrop');
+    const closeBtn = document.getElementById('wine-zoom-close');
+
+    if (!overlay) return;
+
+    function openZoom() {
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        closeBtn?.focus();
+    }
+
+    function closeZoom() {
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.js-wine-zoom').forEach((img) => {
+        img.addEventListener('click', openZoom);
+    });
+
+    backdrop?.addEventListener('click', closeZoom);
+    closeBtn?.addEventListener('click', closeZoom);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.getAttribute('aria-hidden') === 'false') closeZoom();
+    });
+}
+
+// ============================================================
 // Init
 // ============================================================
 
@@ -272,4 +493,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initCookieBanner();
     initCarousel();
     initAccountPanel();
+    initCartModal();
+    initCartLoginPrompt();
+    initFavoriteAuth();
+    initWineZoom();
+    updateCartCount();
 });

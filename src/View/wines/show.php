@@ -44,13 +44,17 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
 
             <!-- Colonne image -->
             <div class="wine-detail__visual">
-                <img
-                    src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
-                    alt="<?= htmlspecialchars($wineName) ?>"
-                    class="wine-detail__image"
-                    width="400"
-                    height="560"
-                >
+                <div class="wine-detail__image-wrap">
+                    <img
+                        src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                        alt="<?= htmlspecialchars($wineName) ?>"
+                        class="wine-detail__image js-wine-zoom"
+                        width="400"
+                        height="560"
+                        title="<?= htmlspecialchars(__('wine.zoom')) ?>"
+                    >
+                    <span class="wine-detail__zoom-hint" aria-hidden="true">&#128269;</span>
+                </div>
                 <?php if ($awardText !== '' && $wine['award_path']) : ?>
                     <div class="wine-detail__award-badge">
                         <img
@@ -80,15 +84,16 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                         <span class="wine-detail__stock wine-detail__stock--available">
                             <?= htmlspecialchars(__('wine.available')) ?>
                         </span>
-                        <?php if ($isLogged) : ?>
-                            <button type="button" class="btn btn--gold js-add-to-cart" data-wine-id="<?= (int) $wine['id'] ?>">
-                                <?= htmlspecialchars(__('wine.add_to_cart')) ?>
-                            </button>
-                        <?php else : ?>
-                            <a href="/<?= htmlspecialchars($navLang) ?>/connexion" class="btn btn--gold">
-                                <?= htmlspecialchars(__('wine.add_to_cart')) ?>
-                            </a>
-                        <?php endif; ?>
+                        <button
+                            type="button"
+                            class="btn btn--gold js-add-to-cart"
+                            data-wine-id="<?= (int) $wine['id'] ?>"
+                            data-wine-name="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
+                            data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
+                            data-wine-image="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                        >
+                            <?= htmlspecialchars(__('wine.add_to_cart')) ?>
+                        </button>
                     </div>
                 <?php else : ?>
                     <p class="wine-detail__out-of-stock"><?= htmlspecialchars(__('wine.out_of_stock')) ?></p>
@@ -102,6 +107,16 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     <div class="wine-detail__section">
                         <h2 class="wine-detail__section-title"><?= htmlspecialchars(__('wine.tasting')) ?></h2>
                         <p class="wine-detail__text"><?= htmlspecialchars($description) ?></p>
+                    </div>
+                <?php endif; ?>
+
+                <?php
+                $pairingKey  = 'wine.pairing.' . $wine['wine_color'];
+                $pairingText = __($pairingKey);
+                if ($pairingText !== $pairingKey) : ?>
+                    <div class="wine-detail__section">
+                        <h2 class="wine-detail__section-title"><?= htmlspecialchars(__('wine.pairing_title')) ?></h2>
+                        <p class="wine-detail__text"><?= htmlspecialchars($pairingText) ?></p>
                     </div>
                 <?php endif; ?>
 
@@ -170,5 +185,17 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
         </div>
     </section>
 </main>
+
+<!-- Zoom overlay -->
+<div id="wine-zoom-overlay" class="wine-zoom-overlay" aria-hidden="true" role="dialog" aria-label="<?= htmlspecialchars(__('wine.zoom')) ?>">
+    <div class="wine-zoom-overlay__backdrop" id="wine-zoom-backdrop"></div>
+    <button class="wine-zoom-overlay__close" id="wine-zoom-close" type="button" aria-label="Fermer">&times;</button>
+    <img
+        id="wine-zoom-img"
+        src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+        alt="<?= htmlspecialchars($wineName) ?>"
+        class="wine-zoom-overlay__image"
+    >
+</div>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

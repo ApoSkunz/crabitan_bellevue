@@ -84,17 +84,60 @@ class WineModel extends Model
 
     /**
      * Retourne les vins groupés par couleur (pour la page collection).
+     * Inclut tous les vins (disponibles ET indisponibles).
      *
+     * @param string|null $color   Filtre couleur optionnel
+     * @param string      $sort    Tri : 'default'|'likes_desc'|'vintage_asc'|'vintage_desc'
+     * @param string|null $avail   Filtre dispo : null = tous | 'available' | 'out'
+     * @param int         $perPage Limite totale (0 = pas de limite)
+     * @param int         $offset  Décalage pour la pagination
      * @return array<string, array<int, array<string, mixed>>>
      */
-    public function getAllByColor(): array
-    {
+    public function getAllByColor(
+        ?string $color = null,
+        string $sort = 'default',
+        ?string $avail = null,
+        int $perPage = 0,
+        int $offset = 0
+    ): array {
+        $where  = [];
+        $params = [];
+
+        $validColors = ['red', 'white', 'rosé', 'sweet'];
+        if ($color !== null && in_array($color, $validColors, true)) {
+            $where[]  = 'wine_color = ?';
+            $params[] = $color;
+        }
+
+        if ($avail === 'available') {
+            $where[] = 'available = 1';
+        } elseif ($avail === 'out') {
+            $where[] = 'available = 0';
+        }
+
+        $orderBy = match ($sort) {
+            'likes_desc'   => 'wine_color DESC, likes_count DESC, vintage DESC',
+            'vintage_asc'  => 'wine_color DESC, vintage ASC',
+            'vintage_desc' => 'wine_color DESC, vintage DESC',
+            default        => 'wine_color DESC, vintage DESC',
+        };
+
+        $whereClause  = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+        $limitClause  = '';
+        if ($perPage > 0) {
+            $limitClause  = ' LIMIT ? OFFSET ?';
+            $params[]     = $perPage;
+            $params[]     = $offset;
+        }
+
         $rows = $this->db->fetchAll(
             "SELECT id, label_name, wine_color, vintage, price, quantity,
-                    available, image_path, slug, oenological_comment, award
+                    available, image_path, slug, oenological_comment, award,
+                    0 AS likes_count
              FROM {$this->table}
-             WHERE available = 1
-             ORDER BY wine_color DESC, vintage DESC"
+             {$whereClause}
+             ORDER BY {$orderBy}{$limitClause}",
+            $params
         );
 
         $grouped = [];
@@ -103,6 +146,36 @@ class WineModel extends Model
         }
 
         return $grouped;
+    }
+
+    /**
+     * Compte les vins pour la pagination de la collection (mêmes filtres que getAllByColor).
+     */
+    public function countAllByColor(?string $color = null, ?string $avail = null): int
+    {
+        $where  = [];
+        $params = [];
+
+        $validColors = ['red', 'white', 'rosé', 'sweet'];
+        if ($color !== null && in_array($color, $validColors, true)) {
+            $where[]  = 'wine_color = ?';
+            $params[] = $color;
+        }
+
+        if ($avail === 'available') {
+            $where[] = 'available = 1';
+        } elseif ($avail === 'out') {
+            $where[] = 'available = 0';
+        }
+
+        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total FROM {$this->table} {$whereClause}",
+            $params
+        );
+
+        return (int) ($row['total'] ?? 0);
     }
 
     /**
