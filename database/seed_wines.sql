@@ -491,4 +491,4 @@ VALUES
  '{"fr":"8 mois en cuves inox","en":"8 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2023.png', 'bordeaux-rouge-2023', 6);
+ NULL, 'Wine_Bordeaux_Rouge_2023.png', 'bordeaux-rouge-2023');
