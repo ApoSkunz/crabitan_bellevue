@@ -25,12 +25,10 @@ $awardText    = $award[$navLang]   ?? ($award['fr']   ?? '');
 $extraText    = $extra[$navLang]   ?? ($extra['fr']   ?? '');
 
 $colorLabels = [
-    'sweet'      => __('wine.color.sweet'),
-    'white'      => __('wine.color.white'),
-    'red'        => __('wine.color.red'),
-    'rosé'       => __('wine.color.rosé'),
-    'sparkling'  => __('wine.color.sparkling'),
-    'champagne'  => __('wine.color.champagne'),
+    'sweet' => __('wine.color.sweet'),
+    'white' => __('wine.color.white'),
+    'red'   => __('wine.color.red'),
+    'rosé'  => __('wine.color.rosé'),
 ];
 $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
 ?>
@@ -82,9 +80,15 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                         <span class="wine-detail__stock">
                             <?= (int) $wine['quantity'] ?> <?= htmlspecialchars(__('wine.in_stock')) ?>
                         </span>
-                        <button type="button" class="btn btn--gold js-add-to-cart" data-wine-id="<?= (int) $wine['id'] ?>">
-                            <?= htmlspecialchars(__('wine.add_to_cart')) ?>
-                        </button>
+                        <?php if ($isLogged) : ?>
+                            <button type="button" class="btn btn--gold js-add-to-cart" data-wine-id="<?= (int) $wine['id'] ?>">
+                                <?= htmlspecialchars(__('wine.add_to_cart')) ?>
+                            </button>
+                        <?php else : ?>
+                            <a href="/<?= htmlspecialchars($navLang) ?>/connexion" class="btn btn--gold">
+                                <?= htmlspecialchars(__('wine.add_to_cart')) ?>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 <?php else : ?>
                     <p class="wine-detail__out-of-stock"><?= htmlspecialchars(__('wine.out_of_stock')) ?></p>
@@ -155,16 +159,13 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     </div>
                 <?php endif; ?>
 
-                <?php if ($wine['technical_form_path']) : ?>
-                    <a
-                        href="/assets/docs/<?= htmlspecialchars($wine['technical_form_path']) ?>"
-                        class="wine-detail__download"
-                        download
-                        aria-label="<?= htmlspecialchars(__('wine.download_sheet') . ' : ' . $wineName) ?>"
-                    >
-                        &#128196; <?= htmlspecialchars(__('wine.download_sheet')) ?>
-                    </a>
-                <?php endif; ?>
+                <a
+                    href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>/fiche-technique"
+                    class="wine-detail__download"
+                    aria-label="<?= htmlspecialchars(__('wine.download_sheet') . ' : ' . $wineName) ?>"
+                >
+                    &#128196; <?= htmlspecialchars(__('wine.download_sheet')) ?>
+                </a>
             </div>
         </div>
     </section>

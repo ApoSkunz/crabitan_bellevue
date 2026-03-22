@@ -100,7 +100,6 @@ CREATE TABLE `wines` (
   `technical_form_path`  VARCHAR(255)   DEFAULT NULL,
   `image_path`           VARCHAR(255)   NOT NULL,
   `slug`                 VARCHAR(255)   NOT NULL COMMENT 'URL SEO ex: bordeaux-chateau-x-2019',
-  `stock_alert_threshold` INT           NOT NULL DEFAULT 6 COMMENT 'Alerte admin sous ce seuil',
   `created_at`           DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`           DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

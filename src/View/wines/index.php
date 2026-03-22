@@ -5,12 +5,10 @@ require_once SRC_PATH . '/View/partials/header.php';
 $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 
 $colorLabels = [
-    'sweet'      => __('wine.color.sweet'),
-    'white'      => __('wine.color.white'),
-    'red'        => __('wine.color.red'),
-    'rosé'       => __('wine.color.rosé'),
-    'sparkling'  => __('wine.color.sparkling'),
-    'champagne'  => __('wine.color.champagne'),
+    'sweet' => __('wine.color.sweet'),
+    'white' => __('wine.color.white'),
+    'red'   => __('wine.color.red'),
+    'rosé'  => __('wine.color.rosé'),
 ];
 ?>
 
@@ -56,6 +54,7 @@ $colorLabels = [
                         <?php
                         $sortOptions = [
                             'default'      => __('wine.sort.default'),
+                            'likes_desc'   => __('wine.sort.likes_desc'),
                             'price_asc'    => __('wine.sort.price_asc'),
                             'price_desc'   => __('wine.sort.price_desc'),
                             'vintage_asc'  => __('wine.sort.vintage_asc'),
@@ -151,18 +150,80 @@ $colorLabels = [
                                     <strong class="wine-card__price">
                                         <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
                                     </strong>
-                                    <button
-                                        type="button"
-                                        class="wine-card__heart js-favorite"
-                                        data-wine-id="<?= (int) $wine['id'] ?>"
-                                        aria-label="<?= htmlspecialchars(__('wine.favorites') . ' : ' . $wine['label_name']) ?>"
-                                        aria-pressed="false"
-                                    >&#9825;</button>
+                                    <div class="wine-card__actions">
+                                        <?php if ($wine['available'] && $wine['quantity'] > 0) : ?>
+                                            <?php if ($isLogged) : ?>
+                                                <button
+                                                    type="button"
+                                                    class="wine-card__cart js-add-to-cart"
+                                                    data-wine-id="<?= (int) $wine['id'] ?>"
+                                                    aria-label="<?= htmlspecialchars(__('wine.add_to_cart') . ' : ' . $wine['label_name']) ?>"
+                                                >&#128722;</button>
+                                            <?php else : ?>
+                                                <a
+                                                    href="/<?= htmlspecialchars($navLang) ?>/connexion"
+                                                    class="wine-card__cart"
+                                                    aria-label="<?= htmlspecialchars(__('wine.add_to_cart') . ' : ' . $wine['label_name']) ?>"
+                                                >&#128722;</a>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                        <span class="wine-card__likes">
+                                            <button
+                                                type="button"
+                                                class="wine-card__heart js-favorite"
+                                                data-wine-id="<?= (int) $wine['id'] ?>"
+                                                aria-label="<?= htmlspecialchars(__('wine.favorites') . ' : ' . $wine['label_name']) ?>"
+                                                aria-pressed="false"
+                                            >&#9825;</button>
+                                            <span class="wine-card__likes-count" data-wine-id="<?= (int) $wine['id'] ?>">
+                                                <?= (int) ($wine['likes_count'] ?? 0) ?>
+                                            </span>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </article>
                     <?php endforeach; ?>
                 </div>
+            <?php endif; ?>
+
+            <?php if ($totalPages > 1) : ?>
+                <?php
+                $buildUrl = static function (int $p) use ($color, $sort): string {
+                    $qs = array_filter([
+                        'color' => $color ?? '',
+                        'sort'  => $sort !== 'default' ? $sort : '',
+                        'page'  => $p > 1 ? (string) $p : '',
+                    ]);
+                    return '?' . http_build_query($qs);
+                };
+                ?>
+                <nav class="wines-pagination" aria-label="Pagination">
+                    <?php if ($page > 1) : ?>
+                        <a href="<?= htmlspecialchars($buildUrl($page - 1)) ?>" class="wines-pagination__btn" rel="prev">&larr;</a>
+                    <?php else : ?>
+                        <span class="wines-pagination__btn wines-pagination__btn--disabled">&larr;</span>
+                    <?php endif; ?>
+
+                    <?php for ($p = 1; $p <= $totalPages; $p++) : ?>
+                        <?php if (abs($p - $page) <= 2 || $p === 1 || $p === $totalPages) : ?>
+                            <?php if (abs($p - $page) === 3) : ?>
+                                <span class="wines-pagination__ellipsis">&hellip;</span>
+                            <?php endif; ?>
+                            <a
+                                href="<?= htmlspecialchars($buildUrl($p)) ?>"
+                                class="wines-pagination__btn<?= $p === $page ? ' wines-pagination__btn--active' : '' ?>"
+                                <?= $p === $page ? 'aria-current="page"' : '' ?>
+                            ><?= $p ?></a>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+
+                    <?php if ($page < $totalPages) : ?>
+                        <a href="<?= htmlspecialchars($buildUrl($page + 1)) ?>" class="wines-pagination__btn" rel="next">&rarr;</a>
+                    <?php else : ?>
+                        <span class="wines-pagination__btn wines-pagination__btn--disabled">&rarr;</span>
+                    <?php endif; ?>
+                </nav>
             <?php endif; ?>
         </div>
     </section>

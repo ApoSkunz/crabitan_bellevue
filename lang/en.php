@@ -79,6 +79,7 @@ return [
     'wine.sort.price_desc'   => 'Price descending',
     'wine.sort.vintage_asc'  => 'Vintage ascending',
     'wine.sort.vintage_desc' => 'Vintage descending',
+    'wine.sort.likes_desc'   => 'Most liked',
 
     // Wines — Product sheet
     'wine.tasting'       => 'Tasting notes',

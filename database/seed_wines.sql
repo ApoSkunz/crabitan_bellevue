@@ -10,7 +10,7 @@ INSERT INTO `wines`
      `certification_label`, `area`, `city`, `variety_of_vine`, `age_of_vineyard`,
      `oenological_comment`, `soil`, `pruning`, `harvest`, `vinification`,
      `barrel_fermentation`, `award`, `award_path`, `extra_comment`,
-     `technical_form_path`, `image_path`, `slug`, `stock_alert_threshold`)
+     `technical_form_path`, `image_path`, `slug`)
 VALUES
 
 -- ============================================================
@@ -27,7 +27,7 @@ VALUES
  '{"fr":"48 mois en cuves inox","en":"48 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2000.png', 'sainte-croix-du-mont-2000', 3),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2000.png', 'sainte-croix-du-mont-2000'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2001, 35.00, 8, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 37,
@@ -39,7 +39,7 @@ VALUES
  '{"fr":"48 mois en cuves inox","en":"48 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2001.png', 'sainte-croix-du-mont-2001', 3),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2001.png', 'sainte-croix-du-mont-2001'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2003, 40.00, 6, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 35,
@@ -51,7 +51,7 @@ VALUES
  '{"fr":"48 mois en cuves inox","en":"48 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours de Bordeaux 2004","en":"Gold medal at the Bordeaux Competition 2004"}', 'GoldBordeaux2004.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2003.png', 'sainte-croix-du-mont-2003', 3),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2003.png', 'sainte-croix-du-mont-2003'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2005, 36.00, 24, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 33,
@@ -63,7 +63,7 @@ VALUES
  '{"fr":"42 mois en cuves inox","en":"42 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2005.png', 'sainte-croix-du-mont-2005', 3),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2005.png', 'sainte-croix-du-mont-2005'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2007, 34.00, 18, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 31,
@@ -75,7 +75,7 @@ VALUES
  '{"fr":"40 mois en cuves inox","en":"40 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Argent au Concours des Vins de Bordeaux 2008","en":"Silver medal at the Bordeaux Wine Competition 2008"}', 'SilverBordeaux2008.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2007.png', 'sainte-croix-du-mont-2007', 3),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2007.png', 'sainte-croix-du-mont-2007'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2008, 30.00, 36, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 30,
@@ -87,7 +87,7 @@ VALUES
  '{"fr":"38 mois en cuves inox","en":"38 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2008.png', 'sainte-croix-du-mont-2008', 3),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2008.png', 'sainte-croix-du-mont-2008'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2009, 32.00, 48, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 29,
@@ -99,7 +99,7 @@ VALUES
  '{"fr":"40 mois en cuves inox","en":"40 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours International de Lyon 2011","en":"Gold medal at the Lyon International Competition 2011"}', 'GoldLyon2011.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2009.png', 'sainte-croix-du-mont-2009', 3),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2009.png', 'sainte-croix-du-mont-2009'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2010, 30.00, 60, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 28,
@@ -111,7 +111,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours International de Lyon 2017","en":"Gold medal at the Lyon International Competition 2017"}', 'GoldLyon2017.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2010.png', 'sainte-croix-du-mont-2010', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2010.png', 'sainte-croix-du-mont-2010'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2011, 26.00, 72, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 27,
@@ -123,7 +123,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2011.png', 'sainte-croix-du-mont-2011', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2011.png', 'sainte-croix-du-mont-2011'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2012, 24.00, 84, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 26,
@@ -135,7 +135,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Argent au Concours des Vins de Bordeaux 2013","en":"Silver medal at the Bordeaux Wine Competition 2013"}', 'SilverBordeaux2013.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2012.png', 'sainte-croix-du-mont-2012', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2012.png', 'sainte-croix-du-mont-2012'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2013, 22.00, 96, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 25,
@@ -147,7 +147,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2013.png', 'sainte-croix-du-mont-2013', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2013.png', 'sainte-croix-du-mont-2013'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2014, 22.00, 108, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 24,
@@ -159,7 +159,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours des Vins de Bordeaux 2015","en":"Gold medal at the Bordeaux Wine Competition 2015"}', 'GoldBordeaux2015.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2014.png', 'sainte-croix-du-mont-2014', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2014.png', 'sainte-croix-du-mont-2014'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2015, 24.00, 120, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -171,7 +171,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours de Mâcon 2017","en":"Gold medal at the Mâcon Competition 2017"}', 'GoldMacon2017.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2015.png', 'sainte-croix-du-mont-2015', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2015.png', 'sainte-croix-du-mont-2015'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2016, 24.00, 144, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -183,7 +183,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Argent au Concours International de Lyon 2018","en":"Silver medal at the Lyon International Competition 2018"}', 'SilverLyon2018.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2016.png', 'sainte-croix-du-mont-2016', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2016.png', 'sainte-croix-du-mont-2016'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2017, 22.00, 180, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -195,7 +195,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2017.png', 'sainte-croix-du-mont-2017', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2017.png', 'sainte-croix-du-mont-2017'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2018, 22.00, 200, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -207,7 +207,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours de Bordeaux 2020","en":"Gold medal at the Bordeaux Competition 2020"}', 'GoldBordeaux2020.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2018.png', 'sainte-croix-du-mont-2018', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2018.png', 'sainte-croix-du-mont-2018'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2019, 22.00, 240, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -219,7 +219,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours International de Lyon 2021","en":"Gold medal at the Lyon International Competition 2021"}', 'GoldLyon2021.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2019.png', 'sainte-croix-du-mont-2019', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2019.png', 'sainte-croix-du-mont-2019'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2020, 20.00, 300, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -231,7 +231,7 @@ VALUES
  '{"fr":"24 mois en cuves inox","en":"24 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2020.png', 'sainte-croix-du-mont-2020', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2020.png', 'sainte-croix-du-mont-2020'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2021, 20.00, 360, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -243,7 +243,7 @@ VALUES
  '{"fr":"24 mois en cuves inox","en":"24 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Argent au Concours de Bordeaux 2023","en":"Silver medal at the Bordeaux Competition 2023"}', 'SilverBordeaux2023.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2021.png', 'sainte-croix-du-mont-2021', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2021.png', 'sainte-croix-du-mont-2021'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2022, 20.00, 420, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -255,7 +255,7 @@ VALUES
  '{"fr":"18 mois en cuves inox","en":"18 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2022.png', 'sainte-croix-du-mont-2022', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2022.png', 'sainte-croix-du-mont-2022'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2023, 20.00, 480, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -267,14 +267,14 @@ VALUES
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2023.png', 'sainte-croix-du-mont-2023', 6),
+ NULL, 'Wine_Sainte-Croix-du-Mont_2023.png', 'sainte-croix-du-mont-2023'),
 
 -- ============================================================
 -- Bordeaux Blanc Sec (white) — 9 vins
 -- ============================================================
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2016, 12.00, 60, 1,
- NULL, 3.50, 'Sainte-Croix-du-Mont', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
+ NULL, 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
  '{"fr":"Robe jaune pâle aux reflets verts. Nez frais et vif de buis, d\'agrumes et de pamplemousse. Bouche fraîche et tonique, belle vivacité, finale minérale et aromatique. Un blanc sec de belle typicité bordelaise.","en":"Pale yellow robe with green highlights. Fresh and lively nose of boxwood, citrus and grapefruit. Fresh and tonic palate, fine vivacity, mineral and aromatic finish. A dry white of fine Bordeaux typicity."}',
  '{"fr":"Argilo-calcaire","en":"Clay-limestone"}',
  '{"fr":"Guyot simple","en":"Single Guyot"}',
@@ -283,10 +283,10 @@ VALUES
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2016.png', 'bordeaux-blanc-2016', 6),
+ NULL, 'Wine_Bordeaux_Blanc_2016.png', 'bordeaux-blanc-2016'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2017, 12.00, 0, 0,
- NULL, 3.50, 'Sainte-Croix-du-Mont', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
+ NULL, 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
  '{"fr":"Robe jaune pâle brillante. Nez expressif de fleurs blanches, de pêche blanche et d\'agrumes frais. Bouche ronde et équilibrée, belle fraîcheur acidulée, finale florale persistante.","en":"Bright pale yellow robe. Expressive nose of white flowers, white peach and fresh citrus. Round and balanced palate, fine citrusy freshness, persistent floral finish."}',
  '{"fr":"Argilo-calcaire","en":"Clay-limestone"}',
  '{"fr":"Guyot simple","en":"Single Guyot"}',
@@ -295,10 +295,10 @@ VALUES
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2017.png', 'bordeaux-blanc-2017', 6),
+ NULL, 'Wine_Bordeaux_Blanc_2017.png', 'bordeaux-blanc-2017'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2018, 13.00, 84, 1,
- NULL, 3.50, 'Sainte-Croix-du-Mont', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
+ NULL, 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
  '{"fr":"Belle robe jaune pâle dorée. Nez ouvert de fruits exotiques, de mangue et de fruits de la passion. Bouche riche et ronde, belle matière, équilibre parfait entre rondeur et fraîcheur. Finale longue et fruitée.","en":"Beautiful pale golden yellow robe. Open nose of exotic fruits, mango and passion fruit. Rich and round palate, fine substance, perfect balance between roundness and freshness. Long and fruity finish."}',
  '{"fr":"Argilo-calcaire","en":"Clay-limestone"}',
  '{"fr":"Guyot simple","en":"Single Guyot"}',
@@ -307,10 +307,10 @@ VALUES
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2018.png', 'bordeaux-blanc-2018', 6),
+ NULL, 'Wine_Bordeaux_Blanc_2018.png', 'bordeaux-blanc-2018'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2019, 13.00, 96, 1,
- 'HVE', 3.50, 'Sainte-Croix-du-Mont', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
+ 'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
  '{"fr":"Robe jaune pâle lumineuse. Nez complexe de buis, de citron vert, de fleur de sureau. Bouche tendue et précise, très belle acidité, minéralité marquée. Un blanc sec de grande élégance.","en":"Luminous pale yellow robe. Complex nose of boxwood, lime, elderflower. Taut and precise palate, very fine acidity, marked minerality. A dry white of great elegance."}',
  '{"fr":"Argilo-calcaire","en":"Clay-limestone"}',
  '{"fr":"Guyot simple","en":"Single Guyot"}',
@@ -319,10 +319,10 @@ VALUES
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2019.png', 'bordeaux-blanc-2019', 6),
+ NULL, 'Wine_Bordeaux_Blanc_2019.png', 'bordeaux-blanc-2019'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2020, 14.00, 120, 1,
- 'HVE', 3.50, 'Sainte-Croix-du-Mont', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
+ 'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
  '{"fr":"Robe jaune pâle brillante aux reflets or. Nez intense de pêche, d\'abricot et de citron. Bouche généreuse et fraîche, belle longueur, finale épicée et minérale. Un millésime de grande expression aromatique.","en":"Bright pale yellow robe with golden highlights. Intense nose of peach, apricot and lemon. Generous and fresh palate, fine length, spiced and mineral finish. A vintage of great aromatic expression."}',
  '{"fr":"Argilo-calcaire","en":"Clay-limestone"}',
  '{"fr":"Guyot simple","en":"Single Guyot"}',
@@ -331,10 +331,10 @@ VALUES
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2020.png', 'bordeaux-blanc-2020', 6),
+ NULL, 'Wine_Bordeaux_Blanc_2020.png', 'bordeaux-blanc-2020'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2021, 14.00, 144, 1,
- 'HVE', 3.50, 'Sainte-Croix-du-Mont', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
+ 'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
  '{"fr":"Belle robe jaune pâle. Nez frais et expressif de buis, de pamplemousse et de fleurs blanches. Bouche vive et fraîche, belle acidité, texture soyeuse. Finale nette et aromatique.","en":"Beautiful pale yellow robe. Fresh and expressive nose of boxwood, grapefruit and white flowers. Lively and fresh palate, fine acidity, silky texture. Clean and aromatic finish."}',
  '{"fr":"Argilo-calcaire","en":"Clay-limestone"}',
  '{"fr":"Guyot simple","en":"Single Guyot"}',
@@ -343,10 +343,10 @@ VALUES
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2021.png', 'bordeaux-blanc-2021', 6),
+ NULL, 'Wine_Bordeaux_Blanc_2021.png', 'bordeaux-blanc-2021'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2022, 14.00, 180, 1,
- 'HVE', 3.50, 'Sainte-Croix-du-Mont', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
+ 'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
  '{"fr":"Robe jaune pâle aux reflets verts. Nez vif de citron vert, de buis et d\'herbes fraîches. Bouche fraîche et tendue, belle vivacité, persistance aromatique sur les agrumes. Idéal à l\'apéritif.","en":"Pale yellow robe with green highlights. Lively nose of lime, boxwood and fresh herbs. Fresh and taut palate, fine vivacity, aromatic persistence on citrus. Ideal as an aperitif."}',
  '{"fr":"Argilo-calcaire","en":"Clay-limestone"}',
  '{"fr":"Guyot simple","en":"Single Guyot"}',
@@ -355,10 +355,10 @@ VALUES
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2022.png', 'bordeaux-blanc-2022', 6),
+ NULL, 'Wine_Bordeaux_Blanc_2022.png', 'bordeaux-blanc-2022'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2023, 14.00, 240, 1,
- 'HVE', 3.50, 'Sainte-Croix-du-Mont', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
+ 'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
  '{"fr":"Robe jaune pâle cristalline. Nez jeune et dynamique de citron, de fleur d\'acacia et de fruits exotiques. Bouche fraîche et légère, belle vivacité, finale florale et minérale. À boire dans sa jeunesse.","en":"Crystalline pale yellow robe. Young and dynamic nose of lemon, acacia flower and exotic fruits. Fresh and light palate, fine vivacity, floral and mineral finish. To drink in its youth."}',
  '{"fr":"Argilo-calcaire","en":"Clay-limestone"}',
  '{"fr":"Guyot simple","en":"Single Guyot"}',
@@ -367,10 +367,10 @@ VALUES
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2023.png', 'bordeaux-blanc-2023', 6),
+ NULL, 'Wine_Bordeaux_Blanc_2023.png', 'bordeaux-blanc-2023'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2024, 14.00, 360, 1,
- 'HVE', 3.50, 'Sainte-Croix-du-Mont', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
+ 'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
  '{"fr":"Robe jaune pâle aux reflets verts. Nez frais et explosif de fruits exotiques, de citron et de fleurs de vigne. Bouche vive, tonique et aromatique. Le dernier millésime en cave, à découvrir dès maintenant.","en":"Pale yellow robe with green highlights. Fresh and explosive nose of exotic fruits, lemon and vine flowers. Lively, tonic and aromatic palate. The latest vintage in the cellar, to discover now."}',
  '{"fr":"Argilo-calcaire","en":"Clay-limestone"}',
  '{"fr":"Guyot simple","en":"Single Guyot"}',
@@ -379,14 +379,14 @@ VALUES
  '{"fr":"4 mois en cuves inox sur lies fines","en":"4 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2024.png', 'bordeaux-blanc-2024', 6),
+ NULL, 'Wine_Bordeaux_Blanc_2024.png', 'bordeaux-blanc-2024'),
 
 -- ============================================================
 -- Bordeaux Rouge (red) — 9 vins
 -- ============================================================
 
 ('Bordeaux Rouge', 'red', 'bottle', 2015, 14.00, 48, 1,
- NULL, 3.00, 'Sainte-Croix-du-Mont', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
+ NULL, 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
  '{"fr":"Belle robe grenat profonde aux reflets rubis. Nez expressif de fruits noirs, de cassis, de mûre et d\'épices. Bouche charnue et structurée, tanins fondus, belle longueur. Un rouge de belle complexité.","en":"Beautiful deep garnet robe with ruby highlights. Expressive nose of dark fruits, blackcurrant, blackberry and spices. Fleshy and structured palate, melted tannins, fine length. A red of fine complexity."}',
  '{"fr":"Argilo-calcaire à dominante de graves","en":"Clay-limestone with gravel dominant"}',
  '{"fr":"Guyot double","en":"Double Guyot"}',
@@ -395,10 +395,10 @@ VALUES
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2015.png', 'bordeaux-rouge-2015', 6),
+ NULL, 'Wine_Bordeaux_Rouge_2015.png', 'bordeaux-rouge-2015'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2016, 14.00, 0, 0,
- NULL, 3.00, 'Sainte-Croix-du-Mont', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
+ NULL, 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
  '{"fr":"Robe grenat intense et sombre. Grand millésime bordelais. Nez complexe de cassis, de prune, de réglisse et de notes fumées. Bouche concentrée, tanins serrés mais soyeux, finale longue et épicée. Excellent potentiel de garde.","en":"Intense and dark garnet robe. Great Bordeaux vintage. Complex nose of blackcurrant, plum, liquorice and smoky notes. Concentrated palate, tight but silky tannins, long and spiced finish. Excellent aging potential."}',
  '{"fr":"Argilo-calcaire à dominante de graves","en":"Clay-limestone with gravel dominant"}',
  '{"fr":"Guyot double","en":"Double Guyot"}',
@@ -407,10 +407,10 @@ VALUES
  '{"fr":"14 mois en cuves inox","en":"14 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2016.png', 'bordeaux-rouge-2016', 6),
+ NULL, 'Wine_Bordeaux_Rouge_2016.png', 'bordeaux-rouge-2016'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2017, 13.00, 72, 1,
- NULL, 3.00, 'Sainte-Croix-du-Mont', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
+ NULL, 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
  '{"fr":"Belle robe grenat aux reflets violets. Nez frais de fruits rouges, de cerise et de framboise, avec une légère touche végétale. Bouche souple et fruitée, tanins légers, finale fraîche. Un rouge de soif, à boire jeune.","en":"Beautiful garnet robe with violet highlights. Fresh nose of red fruits, cherry and raspberry, with a light vegetal touch. Supple and fruity palate, light tannins, fresh finish. A thirst-quenching red, to drink young."}',
  '{"fr":"Argilo-calcaire à dominante de graves","en":"Clay-limestone with gravel dominant"}',
  '{"fr":"Guyot double","en":"Double Guyot"}',
@@ -419,10 +419,10 @@ VALUES
  '{"fr":"10 mois en cuves inox","en":"10 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2017.png', 'bordeaux-rouge-2017', 6),
+ NULL, 'Wine_Bordeaux_Rouge_2017.png', 'bordeaux-rouge-2017'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2018, 13.00, 96, 1,
- 'HVE', 3.00, 'Sainte-Croix-du-Mont', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
+ 'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
  '{"fr":"Robe grenat profonde et brillante. Nez généreux de fruits noirs mûrs, de mûre, de cassis et d\'un beau boisé vanillé. Bouche ample et charnue, tanins fondus, belle persistance. Un millésime généreux et solaire.","en":"Deep and brilliant garnet robe. Generous nose of ripe dark fruits, blackberry, blackcurrant and beautiful vanilla wood. Ample and fleshy palate, melted tannins, fine persistence. A generous and sunny vintage."}',
  '{"fr":"Argilo-calcaire à dominante de graves","en":"Clay-limestone with gravel dominant"}',
  '{"fr":"Guyot double","en":"Double Guyot"}',
@@ -431,10 +431,10 @@ VALUES
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2018.png', 'bordeaux-rouge-2018', 6),
+ NULL, 'Wine_Bordeaux_Rouge_2018.png', 'bordeaux-rouge-2018'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2019, 13.00, 120, 1,
- 'HVE', 3.00, 'Sainte-Croix-du-Mont', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
+ 'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
  '{"fr":"Robe grenat intense aux reflets pourpres. Grand millésime. Nez complexe et envoûtant de fruits noirs, de cerise noire, de réglisse et d\'épices. Bouche concentrée, tanins fermes mais élégants, finale persistante. Un vin de grande garde.","en":"Intense garnet robe with purple highlights. Great vintage. Complex and captivating nose of dark fruits, black cherry, liquorice and spices. Concentrated palate, firm but elegant tannins, persistent finish. A wine for long cellaring."}',
  '{"fr":"Argilo-calcaire à dominante de graves","en":"Clay-limestone with gravel dominant"}',
  '{"fr":"Guyot double","en":"Double Guyot"}',
@@ -443,10 +443,10 @@ VALUES
  '{"fr":"14 mois en cuves inox","en":"14 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours de Bordeaux 2021","en":"Gold medal at the Bordeaux Competition 2021"}', 'GoldBordeaux2021.png',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2019.png', 'bordeaux-rouge-2019', 6),
+ NULL, 'Wine_Bordeaux_Rouge_2019.png', 'bordeaux-rouge-2019'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2020, 13.00, 144, 1,
- 'HVE', 3.00, 'Sainte-Croix-du-Mont', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
+ 'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
  '{"fr":"Robe grenat profonde. Nez frais et fruité de fruits rouges et noirs, de groseille et de poivre. Bouche équilibrée, tanins présents mais fondus, bonne longueur. Un millésime typique et plaisant.","en":"Deep garnet robe. Fresh and fruity nose of red and dark fruits, redcurrant and pepper. Balanced palate, present but melted tannins, good length. A typical and pleasant vintage."}',
  '{"fr":"Argilo-calcaire à dominante de graves","en":"Clay-limestone with gravel dominant"}',
  '{"fr":"Guyot double","en":"Double Guyot"}',
@@ -455,10 +455,10 @@ VALUES
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2020.png', 'bordeaux-rouge-2020', 6),
+ NULL, 'Wine_Bordeaux_Rouge_2020.png', 'bordeaux-rouge-2020'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2021, 13.00, 180, 1,
- 'HVE', 3.00, 'Sainte-Croix-du-Mont', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
+ 'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
  '{"fr":"Belle robe grenat aux reflets rubis. Nez élégant de cerise, de framboise et d\'épices douces. Bouche souple, fraîche et équilibrée, tanins fins. Un rouge accessible et agréable.","en":"Beautiful garnet robe with ruby highlights. Elegant nose of cherry, raspberry and sweet spices. Supple, fresh and balanced palate, fine tannins. An accessible and pleasant red."}',
  '{"fr":"Argilo-calcaire à dominante de graves","en":"Clay-limestone with gravel dominant"}',
  '{"fr":"Guyot double","en":"Double Guyot"}',
@@ -467,10 +467,10 @@ VALUES
  '{"fr":"10 mois en cuves inox","en":"10 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2021.png', 'bordeaux-rouge-2021', 6),
+ NULL, 'Wine_Bordeaux_Rouge_2021.png', 'bordeaux-rouge-2021'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2022, 13.00, 240, 1,
- 'HVE', 3.00, 'Sainte-Croix-du-Mont', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
+ 'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
  '{"fr":"Robe grenat brillante. Nez fruité et gourmand de fruits rouges bien mûrs, de prune et de chocolat. Bouche ample et ronde, tanins fondus, finale épicée et longue. Un rouge de belle harmonie.","en":"Brilliant garnet robe. Fruity and indulgent nose of well-ripened red fruits, plum and chocolate. Ample and round palate, melted tannins, spiced and long finish. A red of fine harmony."}',
  '{"fr":"Argilo-calcaire à dominante de graves","en":"Clay-limestone with gravel dominant"}',
  '{"fr":"Guyot double","en":"Double Guyot"}',
@@ -479,10 +479,10 @@ VALUES
  '{"fr":"10 mois en cuves inox","en":"10 months in stainless steel tanks"}',
  '{"fr":"","en":""}', NULL,
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2022.png', 'bordeaux-rouge-2022', 6),
+ NULL, 'Wine_Bordeaux_Rouge_2022.png', 'bordeaux-rouge-2022'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2023, 13.00, 300, 1,
- 'HVE', 3.00, 'Sainte-Croix-du-Mont', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
+ 'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
  '{"fr":"Robe grenat aux reflets violets, jeune et brillante. Nez expressif de fruits rouges, de cassis et de violette. Bouche souple et fraîche, tanins soyeux, belle longueur fruitée. Le dernier millésime, à apprécier maintenant ou à attendre.","en":"Garnet robe with violet highlights, young and brilliant. Expressive nose of red fruits, blackcurrant and violet. Supple and fresh palate, silky tannins, fine fruity length. The latest vintage, to enjoy now or to cellar."}',
  '{"fr":"Argilo-calcaire à dominante de graves","en":"Clay-limestone with gravel dominant"}',
  '{"fr":"Guyot double","en":"Double Guyot"}',

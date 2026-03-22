@@ -79,6 +79,7 @@ return [
     'wine.sort.price_desc'   => 'Prix décroissant',
     'wine.sort.vintage_asc'  => 'Millésime croissant',
     'wine.sort.vintage_desc' => 'Millésime décroissant',
+    'wine.sort.likes_desc'   => 'Les plus aimés',
 
     // Vins — Fiche produit
     'wine.tasting'       => 'Dégustation',

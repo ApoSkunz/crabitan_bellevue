@@ -144,11 +144,11 @@ class WineControllerTest extends IntegrationTestCase
 
     public function testShowRendersWineDetail(): void
     {
-        $this->insertWine('sainte-croix-du-mont-2020');
+        $this->insertWine('test-wine-detail-show');
 
         ob_start();
-        $this->makeController('/fr/vins/sainte-croix-du-mont-2020')
-            ->show(['lang' => 'fr', 'slug' => 'sainte-croix-du-mont-2020']);
+        $this->makeController('/fr/vins/test-wine-detail-show')
+            ->show(['lang' => 'fr', 'slug' => 'test-wine-detail-show']);
         $output = ob_get_clean();
 
         $this->assertStringContainsString('<main', $output);
