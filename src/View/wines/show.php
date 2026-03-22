@@ -189,7 +189,8 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
 </main>
 
 <!-- Zoom overlay -->
-<div id="wine-zoom-overlay" class="wine-zoom-overlay" aria-hidden="true" role="dialog" <!-- NOSONAR Web:S6819 — custom overlay with full JS focus/keyboard management; <dialog> migration deferred --> aria-label="<?= htmlspecialchars(__('wine.zoom')) ?>">
+<!-- NOSONAR Web:S6819 — custom overlay with full JS focus/keyboard management; <dialog> migration deferred -->
+<div id="wine-zoom-overlay" class="wine-zoom-overlay" aria-hidden="true" role="dialog" aria-label="<?= htmlspecialchars(__('wine.zoom')) ?>">
     <div class="wine-zoom-overlay__backdrop" id="wine-zoom-backdrop"></div>
     <button class="wine-zoom-overlay__close" id="wine-zoom-close" type="button" aria-label="Fermer">&times;</button>
     <img

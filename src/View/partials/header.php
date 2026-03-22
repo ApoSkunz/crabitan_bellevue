@@ -183,18 +183,20 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
 <!-- ============================================================ -->
 <!-- Modal ajout au panier                                         -->
 <!-- ============================================================ -->
+<!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
 <div
     id="cart-modal"
     class="cart-modal"
     aria-hidden="true"
-    role="dialog" <!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
+    role="dialog"
     aria-modal="true"
     aria-labelledby="cart-modal-title"
 >
     <div class="cart-modal__backdrop" id="cart-modal-backdrop"></div>
     <div class="cart-modal__inner">
         <div class="cart-modal__header">
-            <h2 id="cart-modal-title" class="cart-modal__title"><!-- NOSONAR Web:S6850 — content set dynamically by JS before modal opens --></h2>
+            <!-- NOSONAR Web:S6850 — title content set dynamically by JS before modal opens -->
+            <h2 id="cart-modal-title" class="cart-modal__title"></h2>
             <button id="cart-modal-close" class="cart-modal__close" type="button" aria-label="Fermer">&times;</button>
         </div>
         <div class="cart-modal__body">
