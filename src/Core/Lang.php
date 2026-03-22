@@ -12,7 +12,7 @@ class Lang
     {
         $file = LANG_PATH . '/' . $lang . '.php';
         if (file_exists($file)) {
-            self::$translations = require $file;
+            self::$translations = require $file; // NOSONAR — require_once retournerait true au 2e appel
         }
     }
 
@@ -29,7 +29,7 @@ class Lang
 }
 
 // Helper global
-function __(string $key, array $replace = []): string
+function __(string $key, array $replace = []): string // NOSONAR — helper global intentionnel, requis dans les vues
 {
     return Lang::get($key, $replace);
 }

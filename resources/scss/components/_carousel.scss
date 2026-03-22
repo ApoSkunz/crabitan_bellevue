@@ -1,0 +1,162 @@
+@use '../abstracts/mixins' as m;
+
+// ============================================================
+// Carousel héro — plein écran, transition fade, points dorés
+// ============================================================
+
+.hero-carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.carousel {
+    position: relative;
+    width: 100%;
+    height: clamp(340px, 65vh, 680px);
+    overflow: hidden;
+    background-color: var(--color-bg);
+}
+
+// Piste de slides
+.carousel__track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+// Chaque slide
+.carousel__slide {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 900ms ease;
+
+    // Dégradé sombre en bas pour lisibilité du titre
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            to bottom,
+            rgba(8, 8, 8, 0.15) 0%,
+            rgba(8, 8, 8, 0.65) 100%
+        );
+    }
+
+    &.is-active {
+        opacity: 1;
+        z-index: 1;
+    }
+}
+
+// Caption centré au-dessus du carousel
+.carousel__caption {
+    position: absolute;
+    bottom: 5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    text-align: center;
+    width: 90%;
+    max-width: 760px;
+    padding: 0 1rem;
+}
+
+.carousel__eyebrow {
+    font-family: var(--font-serif);
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+    margin-bottom: 0.5rem;
+}
+
+.carousel__title {
+    font-family: var(--font-serif);
+    font-size: clamp(1.8rem, 5vw, 3.5rem);
+    font-variant: small-caps;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    color: #f5f0e8;
+    line-height: 1.15;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.carousel__subtitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(0.85rem, 1.8vw, 1.1rem);
+    color: rgba(245, 240, 232, 0.8);
+    letter-spacing: 0.08em;
+    margin-bottom: 1.75rem;
+}
+
+.carousel__cta {
+    font-size: 0.8rem;
+}
+
+// Boutons prev / next
+.carousel__btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    background: rgba(8, 8, 8, 0.45);
+    border: 1px solid var(--color-border-gold);
+    color: #f5f0e8;
+    width: 2.75rem;
+    height: 2.75rem;
+    @include m.flex-center;
+    font-size: 1.6rem;
+    cursor: pointer;
+    transition: background-color 200ms ease, color 200ms ease;
+    @include m.focus-ring;
+
+    &:hover {
+        background: rgba(8, 8, 8, 0.85);
+        color: #c9a84c;
+        border-color: rgba(201, 168, 76, 0.7);
+    }
+
+    &--prev { left: 1rem; }
+    &--next { right: 1rem; }
+
+    @include m.bp('lg') {
+        &--prev { left: 2rem; }
+        &--next { right: 2rem; }
+    }
+}
+
+// Points de navigation
+.carousel__dots {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.carousel__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(245, 240, 232, 0.35);
+    border: 1px solid rgba(201, 168, 76, 0.5);
+    padding: 0;
+    cursor: pointer;
+    transition: background-color 300ms ease, transform 300ms ease;
+    @include m.focus-ring;
+
+    &.is-active,
+    &:hover {
+        background: var(--color-gold);
+        transform: scale(1.3);
+    }
+}

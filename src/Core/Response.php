@@ -24,7 +24,6 @@ class Response
     public static function abort(int $status = 404, string $message = 'Not Found'): never
     {
         http_response_code($status);
-        // TODO: renvoyer vers une vue d'erreur
         echo $message;
         throw new \Core\Exception\HttpException($status, null, $message);
     }
@@ -33,7 +32,7 @@ class Response
     {
         http_response_code($status);
         extract($data, EXTR_SKIP);
-        require SRC_PATH . '/View/' . $template . '.php';
+        require SRC_PATH . '/View/' . $template . '.php'; // NOSONAR — require_once bloquerait le re-rendu en tests
     }
 
     public static function setHeader(string $name, string $value): void

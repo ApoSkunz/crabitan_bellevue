@@ -1,14 +1,21 @@
 @use '../abstracts/mixins' as m;
 
 // ============================================================
-// Footer — fond noir, liens, mentions légales, badges
+// Footer — fond crème clair, rappel de l'élégance du header
+// Le footer est toujours clair (indépendant du thème jour/nuit)
 // ============================================================
 
 .site-footer {
-    background-color: var(--footer-bg);
-    border-top: 1px solid var(--color-border-gold);
+    background-color: #ffffff;
+    border-top: 1px solid rgba(160, 120, 40, 0.3);
     padding: 2.5rem 1.5rem 1.5rem;
     margin-top: auto;
+    color: #2a2218;
+
+    // En mode jour : même fond crème que la barre de navigation
+    [data-theme='light'] & {
+        background-color: var(--color-bg);
+    }
 }
 
 .footer-inner {
@@ -28,40 +35,37 @@
     text-align: center;
 
     @include m.bp('md') {
-        flex-direction: row;
-        justify-content: space-between;
-        text-align: left;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 2rem;
     }
 }
 
 // Badge HVE
 .footer-hve {
     img {
-        height: 56px;
+        height: 80px;
         width: auto;
     }
 }
 
-// Navigation footer
+// Navigation footer — colonne centrale du grid, liens centrés
 .footer-nav {
     display: flex;
     flex-wrap: wrap;
     gap: 0.25rem 1.25rem;
     justify-content: center;
 
-    @include m.bp('md') {
-        justify-content: flex-start;
-    }
-
     a {
         font-size: 0.8rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: var(--color-text-muted);
+        color: #5a5040;
         transition: color 200ms ease;
 
         &:hover {
-            color: var(--color-gold);
+            color: #a07828;
         }
     }
 }
@@ -70,18 +74,52 @@
 .footer-payments {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.75rem;
 
     img {
-        height: 28px;
+        height: 40px;
         width: auto;
-        opacity: 0.7;
+        opacity: 0.85;
         transition: opacity 200ms ease;
-        filter: grayscale(0.3);
+        filter: grayscale(0.1);
 
         &:hover {
             opacity: 1;
         }
+    }
+}
+
+// Badge Website Carbon
+.footer-carbon {
+    display: flex;
+    justify-content: center;
+    margin: 0.75rem 0;
+
+    .carbonbadge {
+        font-size: 13px;
+    }
+
+    // Surspécificité intentionnelle : le CSS du badge est injecté via JS (faible spécificité)
+    // Mode nuit — footer blanc (#fff) → partie CO₂ en crème, bouton en or
+    [data-theme='dark'] & #wcb_g {
+        background: #f5f0e8;
+        color: #2a2218;
+    }
+
+    // Mode jour — footer crème (#f5f0e8) → partie CO₂ en blanc, bouton en or
+    [data-theme='light'] & #wcb_g {
+        background: #ffffff;
+        color: #2a2218;
+    }
+
+    // Bouton "Website Carbon" : toujours or, texte sombre
+    [data-theme='dark'] & .carbonbadge a,
+    [data-theme='light'] & .carbonbadge a {
+        background: #c9a84c;
+        color: #2a2218;
+        border-color: #c9a84c;
+        font-weight: 700;
     }
 }
 
@@ -91,13 +129,13 @@
     background: linear-gradient(
         to right,
         transparent,
-        var(--color-border-gold) 20%,
-        var(--color-border-gold) 80%,
+        rgba(160, 120, 40, 0.35) 20%,
+        rgba(160, 120, 40, 0.35) 80%,
         transparent
     );
 }
 
-// Ligne bas : mention légale alcool + copyright
+// Ligne bas : mention légale alcool à gauche + copyright à droite
 .footer-bottom {
     display: flex;
     flex-direction: column;
@@ -108,20 +146,61 @@
     @include m.bp('md') {
         flex-direction: row;
         justify-content: space-between;
+        align-items: center;
         text-align: left;
+        gap: 1.5rem;
     }
 }
 
+// Conteneur avertissement alcool + pictogrammes
 .footer-legal {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.75rem;
     font-style: italic;
-    color: var(--color-text-muted);
+    color: #5a5040;
     line-height: 1.5;
-    max-width: 60ch;
+    max-width: 55ch;
+    flex-wrap: wrap;
+
+    @include m.bp('md') {
+        flex-wrap: nowrap;
+    }
+}
+
+// Pictogrammes interdiction alcool (-18 + femme enceinte)
+.footer-alcohol-pictos {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+    flex-shrink: 0;
+    color: #5a5040;
+
+    svg {
+        display: block;
+    }
 }
 
 .footer-copyright {
     font-size: 0.75rem;
-    color: var(--color-text-muted);
+    color: #5a5040;
     white-space: nowrap;
+    flex-shrink: 0;
+
+    @include m.bp('md') {
+        text-align: right;
+    }
+
+    // Lien webmaster
+    a {
+        color: #a07828;
+        transition: color 200ms ease;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+
+        &:hover {
+            color: #2a2218;
+        }
+    }
 }

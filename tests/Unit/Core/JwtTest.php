@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
+use Core\Exception\JwtException;
 use Core\Jwt;
 use PHPUnit\Framework\TestCase;
 
@@ -42,7 +43,7 @@ class JwtTest extends TestCase
 
     public function testDecodeThrowsOnInvalidSignature(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(JwtException::class);
         $this->expectExceptionMessage('Signature JWT invalide');
 
         $token = Jwt::encode(['sub' => 1]);
@@ -54,7 +55,7 @@ class JwtTest extends TestCase
 
     public function testDecodeThrowsOnExpiredToken(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(JwtException::class);
         $this->expectExceptionMessage('Token JWT expiré');
 
         $token = Jwt::encode(['sub' => 1, 'exp' => time() - 1]);

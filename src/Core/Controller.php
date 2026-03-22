@@ -34,4 +34,26 @@ abstract class Controller
     {
         return defined('CURRENT_LANG') ? CURRENT_LANG : DEFAULT_LANG;
     }
+
+    /**
+     * Résout la langue à partir des params de route ou de l'URI.
+     * Définit la constante CURRENT_LANG et charge les traductions si ce n'est pas déjà fait.
+     */
+    protected function resolveLang(array $params): string
+    {
+        if (isset($params['lang'])) {
+            $lang = $params['lang'];
+        } else {
+            $uri     = rtrim($_SERVER['REQUEST_URI'] ?? '/', '/') ?: '/';
+            $segment = explode('/', ltrim($uri, '/'))[0] ?? '';
+            $lang    = in_array($segment, SUPPORTED_LANGS, true) ? $segment : DEFAULT_LANG;
+        }
+
+        if (!defined('CURRENT_LANG')) {
+            define('CURRENT_LANG', $lang);
+            Lang::load($lang);
+        }
+
+        return $lang;
+    }
 }

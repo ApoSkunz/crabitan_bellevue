@@ -1,0 +1,31 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "http://localhost:8080/age-gate",
+        "http://localhost:8080/fr",
+        "http://localhost:8080/fr/le-chateau",
+        "http://localhost:8080/fr/savoir-faire",
+        "http://localhost:8080/fr/actualites",
+        "http://localhost:8080/fr/vins",
+        "http://localhost:8080/fr/contact",
+        "http://localhost:8080/fr/mentions-legales"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "chromeFlags": "--no-sandbox --disable-dev-shm-usage",
+        "extraHeaders": {
+          "Cookie": "age_verified=1"
+        }
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:accessibility": ["error", { "minScore": 0.9 }]
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

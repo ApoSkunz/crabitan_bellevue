@@ -1,8 +1,8 @@
 <?php
 $pageTitle = __('auth.register');
 $noindex   = true;
-require __DIR__ . '/../partials/head.php';
-require __DIR__ . '/../partials/header.php';
+require_once __DIR__ . '/../partials/head.php';
+require_once __DIR__ . '/../partials/header.php';
 $e = fn(string $field) => isset($errors[$field])
     ? '<span class="form-error">' . htmlspecialchars($errors[$field]) . '</span>'
     : '';
@@ -105,4 +105,4 @@ $v = fn(string $field) => htmlspecialchars($old[$field] ?? '');
     if (genderSelect.value === 'society') societyField.style.display = '';
 </script>
 
-<?php require __DIR__ . '/../partials/footer.php'; ?>
+<?php require_once __DIR__ . '/../partials/footer.php'; ?>

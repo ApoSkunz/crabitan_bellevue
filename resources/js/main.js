@@ -154,6 +154,113 @@ function initCookieBanner() {
 }
 
 // ============================================================
+// Carousel héro — transition fade automatique
+// ============================================================
+
+function initCarousel() {
+    const carousel = document.getElementById('hero-carousel');
+    if (!carousel) return;
+
+    const slides = carousel.querySelectorAll('.carousel__slide');
+    const dots   = carousel.querySelectorAll('.carousel__dot');
+    const prev   = document.getElementById('carousel-prev');
+    const next   = document.getElementById('carousel-next');
+
+    if (!slides.length) return;
+
+    let current  = 0;
+    let timer    = null;
+    const DELAY  = 5000;
+
+    function goTo(index) {
+        slides[current].classList.remove('is-active');
+        slides[current].setAttribute('aria-hidden', 'true');
+        dots[current].classList.remove('is-active');
+        dots[current].setAttribute('aria-selected', 'false');
+
+        current = (index + slides.length) % slides.length;
+
+        slides[current].classList.add('is-active');
+        slides[current].setAttribute('aria-hidden', 'false');
+        dots[current].classList.add('is-active');
+        dots[current].setAttribute('aria-selected', 'true');
+    }
+
+    function startAuto() {
+        stopAuto(); // évite les intervalles multiples si startAuto est rappelé
+        timer = setInterval(() => goTo(current + 1), DELAY);
+    }
+
+    function stopAuto() {
+        clearInterval(timer);
+    }
+
+    prev?.addEventListener('click', () => { stopAuto(); goTo(current - 1); startAuto(); });
+    next?.addEventListener('click', () => { stopAuto(); goTo(current + 1); startAuto(); });
+
+    dots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+            stopAuto();
+            goTo(parseInt(dot.dataset.slide, 10));
+            startAuto();
+        });
+    });
+
+    // Pause au survol
+    carousel.addEventListener('mouseenter', stopAuto);
+    carousel.addEventListener('mouseleave', startAuto);
+
+    // Navigation clavier
+    carousel.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft')  { stopAuto(); goTo(current - 1); startAuto(); }
+        if (e.key === 'ArrowRight') { stopAuto(); goTo(current + 1); startAuto(); }
+    });
+
+    startAuto();
+}
+
+// ============================================================
+// Account panel — drawer latéral
+// ============================================================
+
+function initAccountPanel() {
+    const trigger  = document.getElementById('account-panel-trigger');
+    const panel    = document.getElementById('account-panel');
+    const closeBtn = document.getElementById('account-panel-close');
+    const backdrop = document.getElementById('account-panel-backdrop');
+
+    if (!trigger || !panel) return;
+
+    function openPanel() {
+        panel.classList.add('is-open');
+        panel.setAttribute('aria-hidden', 'false');
+        trigger.setAttribute('aria-expanded', 'true');
+        closeBtn?.focus();
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closePanel() {
+        panel.classList.remove('is-open');
+        panel.setAttribute('aria-hidden', 'true');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.focus();
+        document.body.style.overflow = '';
+    }
+
+    trigger.addEventListener('click', () => {
+        panel.classList.contains('is-open') ? closePanel() : openPanel();
+    });
+
+    closeBtn?.addEventListener('click', closePanel);
+    backdrop?.addEventListener('click', closePanel);
+
+    // Fermeture avec Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && panel.classList.contains('is-open')) closePanel();
+    });
+}
+
+// ============================================================
 // Init
 // ============================================================
 
@@ -163,4 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initBurger();
     initAgeGate();
     initCookieBanner();
+    initCarousel();
+    initAccountPanel();
 });

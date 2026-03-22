@@ -13,16 +13,18 @@ return [
     'age_gate.error'         => 'Vous devez être en âge légal pour accéder à ce site. Vous allez être redirigé dans 3 secondes.',
 
     // Navigation
-    'nav.home'       => 'Accueil',
-    'nav.contact'    => 'Contact',
-    'nav.wines'      => 'Nos vins',
-    'nav.collection' => 'Collection',
-    'nav.news'       => 'Actualités',
-    'nav.cart'       => 'Panier',
-    'nav.account'    => 'Mon compte',
-    'nav.login'      => 'Connexion',
-    'nav.logout'     => 'Déconnexion',
-    'nav.register'   => 'Inscription',
+    'nav.home'        => 'Accueil',
+    'nav.contact'     => 'Contact',
+    'nav.wines'       => 'Boutique',
+    'nav.collection'  => 'Collection des vins',
+    'nav.news'        => 'Actualités',
+    'nav.savoir_faire' => 'Savoir-Faire',
+    'nav.chateau'     => 'Le Château',
+    'nav.cart'        => 'Panier',
+    'nav.account'     => 'Mon compte',
+    'nav.login'       => 'Connexion',
+    'nav.logout'      => 'Déconnexion',
+    'nav.register'    => 'Inscription',
 
     // Auth
     'auth.login'             => 'Connexion',
@@ -105,12 +107,87 @@ return [
     // Footer
     'footer.legal_notice'    => 'Mentions légales',
     'footer.sitemap'         => 'Plan du site',
+    'footer.carbon'          => 'Site Carbone',
     'footer.alcohol_warning' => "L'abus d'alcool est dangereux pour la santé. À consommer avec modération.",
-    'footer.made_by'         => 'Réalisé par Alexandre Solane',
+    'footer.made_by'         => 'Réalisé par',
+    'footer.webmaster'       => 'Alexandre Solane',
 
     // Général
     'btn.submit'   => 'Envoyer',
     'btn.save'     => 'Enregistrer',
     'btn.cancel'   => 'Annuler',
     'btn.back'     => 'Retour',
+
+    // Homepage — Carousel
+    'home.carousel_alt'   => 'Vignoble du Château Crabitan Bellevue',
+    'home.carousel_title' => 'Château Crabitan Bellevue',
+    'home.carousel_sub'   => 'Vins de Bordeaux — Sainte-Croix-du-Mont',
+
+    // Homepage — Section Millésime / Nos vins
+    'home.wines_tag'   => 'Millésime',
+    'home.wines_title' => 'Nos Vins',
+    'home.wines_text'  => 'Juchés sur les falaises calcaires dominant la Garonne, nos vignes expriment toute'
+        . ' la noblesse de l\'appellation Sainte-Croix-du-Mont. Ce terroir d\'exception, façonné par des calcaires'
+        . ' à huîtres fossiles et la douceur des brumes matinales, réunit les conditions idéales au développement'
+        . ' du Botrytis cinerea. Aux côtés de ces blancs liquoreux,'
+        . ' le Château Crabitan Bellevue élabore une gamme de vins rouges et blancs secs issus des grands cépages'
+        . ' bordelais — Merlot, Cabernet Sauvignon et Sauvignon Blanc.',
+    'home.wines_cta'   => 'Découvrir nos vins',
+
+    // Homepage — Section Notre Histoire
+    'home.history_tag'   => 'Domaine',
+    'home.history_title' => 'Notre Histoire',
+    'home.history_text'  => 'Depuis plusieurs générations, la famille Solane cultive ses vignes sur les coteaux'
+        . ' argilo-calcaires de Sainte-Croix-du-Mont. Une terre d\'exception qui donne naissance'
+        . ' à des vins d\'une grande finesse.',
+    'home.history_cta'   => 'En savoir plus',
+
+    // Homepage — Section Savoir-Faire
+    'home.savoir_tag'   => 'Le Métier',
+    'home.savoir_title' => 'Notre Savoir-Faire',
+    'home.savoir_text'  => 'De la vigne au chai, chaque étape est maîtrisée avec rigueur et passion.'
+        . ' Un élevage soigné en fûts de chêne pour des vins complexes, équilibrés et élégants.',
+    'home.savoir_cta'   => 'En savoir plus',
+
+    // Homepage — Section Vidéo
+    'home.video_tag'   => 'Le domaine',
+    'home.video_title' => 'Le Château en vidéo',
+
+    // Homepage — Section Actualités
+    'home.news_tag'   => 'À la une',
+    'home.news_title' => 'Actualités',
+    'home.news_cta'   => 'Toutes les actualités',
+
+    // Homepage — Section Localisation
+    'home.location_title'   => 'Où sommes-nous ?',
+    'home.location_address' => 'Crabitan, 33410 Sainte-Croix-du-Mont',
+    'home.location_contact' => 'Comment nous joindre ?',
+    'home.location_phone'   => '05 56 62 01 53',
+    'home.location_cta'     => 'Contactez-nous',
+
+    // News
+    'news.read_more' => 'Lire la suite',
+    'news.back'      => 'Retour aux actualités',
+    'news.empty'     => 'Aucune actualité disponible pour le moment.',
+
+    // Contact
+    'contact.tag' => 'Nous joindre',
+
+    // Mentions légales
+    'legal.editor_title'  => 'Éditeur du site',
+    'legal.hosting_title' => 'Hébergement',
+    'legal.hosting_info'  => 'Ce site est hébergé par OVHcloud — 2 rue Kellermann, 59100 Roubaix — France.',
+    'legal.data_title'    => 'Données personnelles',
+    'legal.data_info'     => 'Conformément au RGPD, vous disposez d\'un droit d\'accès, de rectification et de suppression de vos données. Pour exercer ce droit, contactez-nous par téléphone ou courrier.',
+
+    // Webmaster
+    'webmaster.bio' => 'Site conçu et développé par Alexandre Solane, développeur web full-stack.',
+
+    // Account panel (drawer)
+    'panel.title'     => 'Mon espace',
+    'panel.account'   => 'Mon compte',
+    'panel.orders'    => 'Mes commandes',
+    'panel.addresses' => 'Mes adresses',
+    'panel.favorites' => 'Mes favoris',
+    'panel.logout'    => 'Déconnexion',
 ];

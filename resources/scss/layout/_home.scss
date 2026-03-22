@@ -1,0 +1,392 @@
+@use '../abstracts/mixins' as m;
+
+// ============================================================
+// Container utilitaire
+// ============================================================
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+// ============================================================
+// Sections homepage — structure commune
+// ============================================================
+
+.home-section {
+    padding: 5rem 1.5rem;
+
+    &--dark {
+        background-color: var(--color-surface);
+    }
+
+    &__inner {
+        max-width: 1280px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        align-items: center;
+
+        @include m.bp('lg') {
+            grid-template-columns: 1fr 1fr;
+            gap: 5rem;
+        }
+
+        &--reverse {
+            @include m.bp('lg') {
+                direction: rtl; // inverse l'ordre visuellement
+
+                > * {
+                    direction: ltr; // remet le texte dans le bon sens
+                }
+            }
+        }
+    }
+
+    // Image / Visuel
+    &__visual {
+        overflow: hidden;
+        position: relative;
+
+        img {
+            width: 100%;
+            height: 360px;
+            object-fit: cover;
+            display: block;
+            transition: transform 600ms ease;
+            filter: brightness(0.92);
+
+            @include m.bp('lg') {
+                height: 440px;
+            }
+        }
+
+        // Encadrement doré au survol
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 1px solid transparent;
+            transition: border-color 400ms ease;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        &:hover img {
+            transform: scale(1.03);
+        }
+
+        &:hover::before {
+            border-color: var(--color-border-gold);
+        }
+
+        &--vintage img {
+            filter: sepia(0.25) brightness(0.9);
+        }
+    }
+
+    // Contenu textuel
+    &__content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    // Tag / label de section
+    &__tag {
+        font-family: var(--font-serif);
+        font-size: 0.7rem;
+        letter-spacing: 0.35em;
+        text-transform: uppercase;
+        color: var(--color-gold);
+        display: block;
+    }
+
+    // Titre
+    &__title {
+        font-family: var(--font-serif);
+        font-size: clamp(1.6rem, 3.5vw, 2.5rem);
+        font-weight: 400;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--color-text);
+        line-height: 1.2;
+    }
+
+    // Séparateur doré sous le titre
+    &__divider {
+        width: 3rem;
+        height: 1px;
+        background: var(--color-gold);
+        opacity: 0.6;
+
+        &--center {
+            margin: 0 auto;
+        }
+    }
+
+    // Corps du texte
+    &__text {
+        font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+        line-height: 1.85;
+        color: var(--color-text-muted);
+        max-width: 52ch;
+    }
+}
+
+// Badge appellation dans la section Nos Vins
+.home-section__appellation {
+    font-family: var(--font-serif);
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+    font-style: italic;
+    border: 1px solid var(--color-border-gold);
+    display: inline-block;
+    padding: 0.3em 0.85em;
+    margin-top: -0.5rem;
+}
+
+// ============================================================
+// Section Vidéo — lecteur natif élégant
+// ============================================================
+
+.home-video {
+    padding: 5rem 0;
+    overflow-x: clip;
+
+    &__header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    &__player {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        position: relative;
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border: 1px solid var(--color-border-gold);
+            pointer-events: none;
+        }
+    }
+
+    &__element {
+        display: block;
+        width: 100%;
+        max-height: 620px;
+        object-fit: cover;
+        background: var(--color-surface);
+
+        // Personnalisation de la barre de contrôles (Webkit)
+        &::-webkit-media-controls-panel {
+            background: linear-gradient(to top, rgba(8, 8, 8, 0.85), transparent);
+        }
+    }
+}
+
+// Section NOS VINS — image dézoomed pour voir les bouteilles
+// background-color sur le conteneur (pas sur l'img) pour ne pas être
+// affecté par le filter:brightness de l'img
+.home-section--wines .home-section__visual {
+    background-color: var(--color-bg);
+}
+
+.home-section--wines .home-section__visual img {
+    object-fit: contain;
+}
+
+// ============================================================
+// Section Actualités
+// ============================================================
+
+.home-news {
+    padding: 5rem 0;
+
+    &__header {
+        text-align: center;
+        margin-bottom: 3rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+
+        @include m.bp('md') {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        @include m.bp('lg') {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    &__cta {
+        text-align: center;
+        margin-top: 3rem;
+    }
+}
+
+// Card actualité
+.news-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-top: 2px solid var(--color-border-gold);
+    display: flex;
+    flex-direction: column;
+    transition: border-color 200ms ease, transform 200ms ease;
+
+    &:hover {
+        border-color: var(--color-border-gold);
+        transform: translateY(-3px);
+    }
+
+    &__body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    &__date {
+        font-size: 0.7rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--color-gold);
+    }
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: 1.05rem;
+        font-weight: 400;
+        letter-spacing: 0.05em;
+        color: var(--color-text);
+    }
+
+    &__intro {
+        font-size: 0.875rem;
+        line-height: 1.7;
+        color: var(--color-text-muted);
+    }
+
+    &__footer {
+        padding: 0.75rem 1.5rem 1.25rem;
+        border-top: 1px solid var(--color-border);
+    }
+
+    &__link {
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        color: var(--color-gold);
+        transition: color 200ms ease;
+
+        &:hover {
+            color: var(--color-gold-light);
+        }
+    }
+}
+
+// ============================================================
+// Section Localisation
+// ============================================================
+
+.home-location {
+    padding: 5rem 0;
+
+    .home-section__title {
+        margin-bottom: 0.75rem;
+    }
+
+    .home-section__divider--center {
+        margin-bottom: 3rem;
+    }
+
+    &__inner {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+        align-items: start;
+
+        @include m.bp('lg') {
+            grid-template-columns: 1.4fr 1fr;
+        }
+    }
+
+    &__map {
+        iframe {
+            display: block;
+            width: 100%;
+            height: 380px;
+            border: 1px solid var(--color-border-gold);
+            filter: grayscale(0.3) contrast(1.05);
+        }
+    }
+
+    &__info {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    &__address {
+        p {
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--color-text-muted);
+        }
+    }
+
+    &__name {
+        font-family: var(--font-serif);
+        font-variant: small-caps;
+        letter-spacing: 0.1em;
+        color: var(--color-gold) !important;
+        font-size: 1rem !important;
+        margin-bottom: 0.25rem;
+    }
+
+    &__contact {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    &__contact-title {
+        font-family: var(--font-serif);
+        font-size: 0.8rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+    }
+
+    &__contact a[href^='tel'] {
+        font-size: 1.1rem;
+        color: var(--color-text);
+        letter-spacing: 0.05em;
+        transition: color 200ms ease;
+
+        &:hover {
+            color: var(--color-gold);
+        }
+    }
+}

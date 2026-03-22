@@ -1,18 +1,45 @@
-name: E2E
+name: E2E (manual)
 
+# Ce workflow est déclenché manuellement uniquement.
+# Les E2E sur push/PR sont gérés par ci.yml (job e2e).
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
   e2e:
-    name: Playwright E2E
+    name: Playwright E2E — Manuel
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: crabitan_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run schema on test DB
+        run: mysql -h 127.0.0.1 -u root -proot crabitan_test < database/schema.sql
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -20,31 +47,47 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install JS dependencies
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: pdo_mysql
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          APP_ENV=test
+          APP_URL=http://localhost:8080
+          APP_NAME="Crabitan Bellevue"
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_NAME=crabitan_test
+          DB_USER=root
+          DB_PASS=root
+          JWT_SECRET=ci-test-secret-key
+          JWT_EXPIRY=3600
+          MAIL_HOST=localhost
+          MAIL_PORT=587
+          MAIL_USER=noreply@crabitanbellevue.fr
+          MAIL_PASS=unused
+          MAIL_FROM_NAME="Crabitan Bellevue"
+          CA_API_URL=
+          CA_API_KEY=
+          EOF
 
-      - name: Install PHP dependencies
-        run: composer install --no-interaction --prefer-dist
+      - name: Build assets
+        run: npm run build
 
-      - name: Run E2E tests
-        run: npx playwright test
+      - name: Start PHP server
+        run: php -S 0.0.0.0:8080 -t public/ public/router.php &
 
-      - name: Upload JS coverage (lcov)
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: js-coverage
-          path: coverage/lcov.info
-          retention-days: 7
+      - name: Wait for server
+        run: sleep 2
+
+      - name: Run Playwright (Chromium)
+        env:
+          APP_URL: http://localhost:8080
+        run: npx playwright test --project=chromium
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4

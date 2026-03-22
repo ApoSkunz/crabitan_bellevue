@@ -5,7 +5,6 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 <aside
     id="cookie-banner"
     class="cookie-banner"
-    role="region"
     aria-label="<?= htmlspecialchars(__('cookie.banner_label')) ?>"
 >
     <div class="cookie-banner__body">

@@ -34,7 +34,7 @@ class AccountModel extends Model
         );
     }
 
-    public function create(
+    public function create( // NOSONAR — 9 params nécessaires, DTO prévu avec feat/account
         string $lastname,
         string $firstname,
         string $email,

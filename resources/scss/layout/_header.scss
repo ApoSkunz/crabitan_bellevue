@@ -1,99 +1,102 @@
 @use '../abstracts/mixins' as m;
 
 // ============================================================
-// Header — fond noir, typographie dorée, nav responsive
+// Header — fond noir fixe (indépendant du thème)
+// Couleurs hardcodées : le header est toujours sur --header-bg #080808
 // ============================================================
 
 .site-header {
     background-color: var(--header-bg);
-    border-bottom: 1px solid var(--color-border-gold);
+    border-bottom: 1px solid rgba(201, 168, 76, 0.35);
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
-// Barre principale : logo | titre | actions
+// Barre principale : logo | titre centré absolument | actions
 .header-main {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 0.75rem 1.5rem;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
     max-width: 1400px;
     margin: 0 auto;
+    position: relative; // nécessaire pour l'absolutisation du titre
+
+    @include m.bp('md') {
+        gap: 1rem;
+        padding: 0.6rem 1.25rem;
+    }
 }
 
-// Logo
+// Logo (icône uniquement)
 .header-logo {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
     flex-shrink: 0;
     @include m.focus-ring;
 
     img {
-        height: 48px;
+        height: 108px;
         width: auto;
     }
-
-    &__text {
-        font-family: var(--font-serif);
-        font-size: 0.8rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--color-text-muted);
-        line-height: 1.3;
-        display: none;
-
-        @include m.bp('md') {
-            display: block;
-        }
-    }
 }
 
-// Titre central
+// Titre central — positionné au centre absolu du header
 .header-title {
     font-family: var(--font-serif);
-    font-size: clamp(0.75rem, 2vw, 1rem);
+    font-size: clamp(1.2rem, 2.5vw, 2rem);
     font-variant: small-caps;
-    letter-spacing: 0.2em;
-    font-weight: 600;
+    letter-spacing: 0.15em;
+    font-weight: 700;
     color: var(--color-gold);
     text-align: center;
-    flex: 1;
+    line-height: 1.15;
+    white-space: nowrap;
+    pointer-events: none;
     display: none;
 
-    @include m.bp('lg') {
+    @include m.bp('md') {
         display: block;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
     }
 }
 
-// Actions droite : connexion + lang + thème
+// Actions droite
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 // Switcher de langue
 .lang-switch {
     display: flex;
-    gap: 0.25rem;
+    align-items: center;
+    gap: 0;
+    border: 1px solid rgba(201, 168, 76, 0.55);
 
     a {
-        font-size: 0.75rem;
+        font-size: 0.95rem;
+        font-weight: 700;
         letter-spacing: 0.08em;
-        color: var(--color-text-muted);
-        padding: 0.2em 0.4em;
-        border: 1px solid transparent;
-        transition: color 200ms ease, border-color 200ms ease;
+        color: var(--color-text);
+        padding: 0.3em 0.6em;
+        transition: color 200ms ease, background-color 200ms ease;
         @include m.focus-ring;
 
-        &:hover,
+        &:hover {
+            color: var(--color-gold);
+        }
+
         &.active {
             color: var(--color-gold);
-            border-color: var(--color-border-gold);
+            background-color: rgba(201, 168, 76, 0.12);
         }
     }
 }
@@ -101,19 +104,19 @@
 // Bouton theme day/night
 .theme-toggle {
     background: none;
-    border: 1px solid var(--color-border);
-    color: var(--color-text-muted);
-    width: 2rem;
-    height: 2rem;
+    border: 1px solid rgba(201, 168, 76, 0.55);
+    color: var(--color-text);
+    width: 2.2rem;
+    height: 2.2rem;
     border-radius: 50%;
     @include m.flex-center;
-    font-size: 0.9rem;
-    transition: color 200ms ease, border-color 200ms ease;
+    font-size: 1.1rem;
+    transition: color 200ms ease, background-color 200ms ease;
     @include m.focus-ring;
 
     &:hover {
         color: var(--color-gold);
-        border-color: var(--color-border-gold);
+        background-color: rgba(201, 168, 76, 0.12);
     }
 
     .icon-sun  { display: none; }
@@ -125,20 +128,51 @@
     }
 }
 
-// Barre de navigation secondaire
+// Lien Contact en header — après la lune, avant Connexion
+.header-contact {
+    font-family: var(--font-serif);
+    font-style: normal;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    transition: color 200ms ease;
+    display: none;
+    white-space: nowrap;
+    @include m.focus-ring;
+
+    @include m.bp('md') {
+        display: block;
+    }
+
+    &:hover {
+        color: var(--color-gold);
+    }
+}
+
+// ============================================================
+// Barre de navigation — fond BLANC, Calichamp (CAC Champagne)
+// Hover : fond sombre + texte or + seul le texte se décale
+// ============================================================
+
 .header-nav {
-    background-color: rgba(255, 255, 255, 0.04);
-    border-top: 1px solid var(--color-border);
+    background-color: #ffffff; // blanc pur en dark mode
+    display: none;
+
+    @include m.bp('lg') {
+        display: block;
+    }
+
+    [data-theme='light'] & {
+        background-color: var(--color-bg); // crème en mode jour
+    }
 }
 
 .header-nav__inner {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
+    align-items: stretch;
+    width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 1.5rem;
     overflow-x: auto;
     scrollbar-width: none;
 
@@ -148,24 +182,53 @@
 }
 
 .header-nav__link {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-size: 0.9rem;
-    letter-spacing: 0.06em;
-    color: var(--color-text-muted);
-    padding: 0.6rem 1.25rem;
-    border-right: 1px solid var(--color-border);
+    flex: 1; // répartition équitable sur toute la largeur
+    font-family: var(--font-script); // CAC Champagne / Brush Script
+    font-size: 2rem;
+    letter-spacing: 0.04em;
+    color: #2a2218;
+    padding: 0.75rem 1rem;
+    text-align: center;
     white-space: nowrap;
-    transition: color 200ms ease;
+    position: relative;
+    transition: background-color 200ms ease, color 200ms ease;
     @include m.focus-ring;
 
-    &:first-child {
-        border-left: 1px solid var(--color-border);
+    // Séparateur vertical via ::after — charte : rgba(201, 168, 76, 0.55), pas toute la hauteur
+    &::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 15%;
+        height: 70%;
+        width: 2px;
+        background: rgba(201, 168, 76, 0.55);
+    }
+
+    &:last-child::after {
+        display: none;
+    }
+
+    // Seul le texte (span) se décale à gauche
+    span {
+        display: inline-block;
+        transition: transform 450ms ease;
     }
 
     &:hover,
+    &.active:hover {
+        background-color: var(--color-gold);
+        color: #ffffff;
+
+        span {
+            transform: translateX(-6px);
+        }
+    }
+
     &.active {
-        color: var(--color-gold);
+        background-color: rgba(201, 168, 76, 0.12);
+        color: #2a2218;
+        font-size: 2.2rem;
     }
 }
 
@@ -188,8 +251,8 @@
         display: block;
         width: 22px;
         height: 2px;
-        background-color: var(--color-text-muted);
-        transition: background-color 200ms ease;
+        background-color: var(--color-text);
+        transition: transform 200ms ease, opacity 200ms ease, background-color 200ms ease;
     }
 
     &:hover span {
@@ -207,10 +270,6 @@
     &[aria-expanded='true'] span:nth-child(3) {
         transform: translateY(-7px) rotate(-45deg);
     }
-
-    span {
-        transition: transform 200ms ease, opacity 200ms ease, background-color 200ms ease;
-    }
 }
 
 // Menu mobile dépliable
@@ -218,7 +277,7 @@
     display: none;
     flex-direction: column;
     background-color: var(--header-bg);
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid rgba(201, 168, 76, 0.2);
     padding: 1rem 1.5rem;
 
     &.is-open {
@@ -232,10 +291,9 @@
     a {
         padding: 0.75rem 0;
         border-bottom: 1px solid var(--color-border);
-        font-size: 0.95rem;
+        font-size: 1rem;
         color: var(--color-text-muted);
-        font-family: var(--font-serif);
-        font-style: italic;
+        font-family: var(--font-script);
         transition: color 200ms ease;
 
         &:last-child {
