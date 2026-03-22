@@ -21,11 +21,12 @@ test.describe('Catalogue — navigation et filtres', () => {
     test('le filtre couleur réduit la liste', async ({ page }) => {
         await page.goto('/fr/vins');
         const totalBefore = await page.locator('.wine-card').count();
-        await page.locator('[data-color="red"], .filter-btn[data-color="red"]').first().click();
-        // Attendre que le filtre soit marqué actif avant de compter
-        await expect(
-            page.locator('[data-color="red"], .filter-btn[data-color="red"]').first()
-        ).toHaveClass(/active|selected|is-active/);
+        // Le filtre est un formulaire GET — sélectionner la couleur puis soumettre
+        await page.locator('input[name="color"][value="red"]').check();
+        await Promise.all([
+            page.waitForNavigation(),
+            page.locator('.wines-filters__submit').click(),
+        ]);
         const totalAfter = await page.locator('.wine-card').count();
         expect(totalAfter).toBeLessThanOrEqual(totalBefore);
     });
@@ -68,19 +69,19 @@ test.describe('Panier — ajout et consultation', () => {
 
     test('ajouter un vin au panier incrémente le compteur', async ({ page }) => {
         await page.goto('/fr/vins');
-        const addBtn = page.locator('button[data-action="add-to-cart"], .btn-add-cart').first();
         const countBefore = parseInt(
-            (await page.locator('#cart-count').textContent() || '0').trim(), 10
+            (await page.locator('#header-cart-count').textContent() || '0').trim(), 10
         ) || 0;
-        // Attendre la réponse AJAX de l'ajout au panier avant de lire le badge
-        await Promise.all([
-            page.waitForResponse(r => r.url().includes('/panier') && r.status() < 500).catch(() => {}),
-            addBtn.click(),
-        ]);
+        // Ouvrir la modale panier
+        await page.locator('.js-add-to-cart').first().click();
+        await expect(page.locator('#cart-modal')).toHaveAttribute('aria-hidden', 'false');
+        // Soumettre (non connecté → localStorage, ferme la modale)
+        await page.locator('#cart-modal-form button[type="submit"]').click();
+        await expect(page.locator('#cart-modal')).toHaveAttribute('aria-hidden', 'true');
         const countAfter = parseInt(
-            (await page.locator('#cart-count').textContent() || '0').trim(), 10
+            (await page.locator('#header-cart-count').textContent() || '0').trim(), 10
         ) || 0;
-        expect(countAfter).toBeGreaterThanOrEqual(countBefore);
+        expect(countAfter).toBeGreaterThan(countBefore);
     });
 
 });
