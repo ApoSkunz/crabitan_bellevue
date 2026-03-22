@@ -1,0 +1,60 @@
+// ============================================================
+// Page d'erreur (400, 403, 404, 405, 429…)
+// ============================================================
+
+.error-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-bg);
+    padding: 2rem;
+
+    &__inner {
+        text-align: center;
+        max-width: 480px;
+    }
+
+    &__logo {
+        display: inline-block;
+        margin-bottom: 2rem;
+
+        img {
+            width: 72px;
+            height: auto;
+            opacity: 0.85;
+            transition: opacity 200ms ease;
+        }
+
+        &:hover img {
+            opacity: 1;
+        }
+    }
+
+    &__code {
+        font-family: var(--font-serif);
+        font-size: clamp(4rem, 15vw, 8rem);
+        color: var(--color-gold);
+        line-height: 1;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.05em;
+    }
+
+    &__title {
+        font-family: var(--font-script);
+        font-size: clamp(1.4rem, 4vw, 2.2rem);
+        color: var(--color-text);
+        margin: 1rem 0 0.75rem;
+    }
+
+    &__desc {
+        color: var(--color-text-muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    &__btn {
+        margin-top: 0.5rem;
+    }
+}

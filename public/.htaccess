@@ -2,6 +2,13 @@ Options -Indexes
 
 RewriteEngine On
 
+# ---- Mode maintenance (décommenter les 4 lignes ci-dessous pour activer) ----
+# RewriteCond %{REQUEST_URI} !^/maintenance\.php$
+# RewriteCond %{REQUEST_URI} !^/assets/
+# RewriteCond %{REMOTE_ADDR} !^YOUR\.IP\.HERE$
+# RewriteRule ^(.*)$ /maintenance.php [R=302,L]
+# ---- /Mode maintenance ----
+
 # Redirige tout vers index.php sauf fichiers/dossiers existants
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
