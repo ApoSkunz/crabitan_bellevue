@@ -39,6 +39,7 @@ Pas besoin de confirmation supplémentaire.
 - Commits : [Conventional Commits](https://www.conventionalcommits.org/) — `feat(scope):`, `fix(scope):`, etc.
 - Co-author sur chaque commit : `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
 - PHPCS PSR12 — les warnings "side effects" sur les fichiers d'entrée (`public/index.php`, `config/config.php`) sont acceptables
+- Faux positifs SonarCloud : annoter avec `// NOSONAR — <justification courte>` (la justification est obligatoire)
 - Faux positifs Semgrep : annoter avec `// nosemgrep: <rule-id>`
 - Ne jamais utiliser `--no-verify`, `--force-push` sur main, ni amender un commit déjà pushé
 
