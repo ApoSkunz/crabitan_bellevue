@@ -76,8 +76,8 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
                 >
                     <span class="header-cart__wrap">
+                        <span class="header-cart__badge" id="header-cart-count">0</span>
                         <span class="header-cart__icon">&#128722;</span>
-                        <span class="header-cart__badge" id="header-cart-count" hidden>0</span>
                     </span>
                     <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
                 </a>
@@ -98,8 +98,8 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     data-login-url="/<?= htmlspecialchars($navLang) ?>/connexion"
                 >
                     <span class="header-cart__wrap">
+                        <span class="header-cart__badge" id="header-cart-count">0</span>
                         <span class="header-cart__icon">&#128722;</span>
-                        <span class="header-cart__badge" id="header-cart-count" hidden>0</span>
                     </span>
                     <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
                 </button>
@@ -204,6 +204,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                 </div>
                 <div class="cart-modal__product-info">
                     <p id="cart-modal-price" class="cart-modal__price"></p>
+                    <p id="cart-modal-total" class="cart-modal__total"></p>
                     <div class="cart-modal__qty-wrap">
                         <label for="cart-modal-qty"><?= htmlspecialchars(__('cart.qty')) ?></label>
                         <div class="cart-modal__qty-controls">

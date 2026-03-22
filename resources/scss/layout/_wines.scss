@@ -522,7 +522,25 @@
         &:hover {
             color: var(--color-gold);
         }
+
+        // Type absent de la page courante — lien vers page 1
+        &--other-page {
+            opacity: 0.55;
+
+            &::after {
+                content: ' ↗';
+                font-size: 0.7em;
+            }
+
+            &:hover {
+                opacity: 1;
+            }
+        }
     }
+}
+
+.page-wines-collection {
+    padding-bottom: 4rem;
 }
 
 .collection-group {

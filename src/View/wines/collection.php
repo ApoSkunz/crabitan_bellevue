@@ -114,13 +114,27 @@ $totalPages  = $totalPages  ?? 1;
     <nav class="collection-nav" aria-label="<?= htmlspecialchars(__('wine.collection_nav')) ?>">
         <div class="container">
             <ul class="collection-nav__list">
-                <?php foreach ($colorOrder as $color) :
-                    if (!isset($winesByColor[$color])) {
-                        continue;
-                    }
+                <?php
+                // Si le type est sur la page courante => ancre directe ; sinon => page 1 + ancre
+                $colNavUrl = static function (string $anchor) use ($navLang, $activeColor, $activeSort, $activeAvail, $activePerPage): string {
+                    $qs = array_filter([
+                        'color'    => $activeColor ?? '',
+                        'sort'     => $activeSort !== 'default' ? $activeSort : '',
+                        'avail'    => $activeAvail,
+                        'per_page' => $activePerPage !== 25 ? (string) $activePerPage : '',
+                    ]);
+                    $base = '/' . $navLang . '/vins/collection';
+                    return $base . ($qs !== [] ? '?' . http_build_query($qs) : '') . '#collection-' . $anchor;
+                };
+                foreach ($colorOrder as $color) :
+                    $onPage = isset($winesByColor[$color]);
+                    $href   = $onPage ? '#collection-' . $color : $colNavUrl($color);
                     ?>
                     <li>
-                        <a href="#collection-<?= htmlspecialchars($color) ?>" class="collection-nav__anchor">
+                        <a
+                            href="<?= htmlspecialchars($href) ?>"
+                            class="collection-nav__anchor<?= !$onPage ? ' collection-nav__anchor--other-page' : '' ?>"
+                        >
                             <?= htmlspecialchars($colorLabels[$color] ?? $color) ?>
                         </a>
                     </li>

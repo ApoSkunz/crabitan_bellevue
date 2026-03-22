@@ -311,14 +311,7 @@ function getLocalCartCount() {
 function updateCartCount() {
     const badge = document.getElementById('header-cart-count');
     if (!badge) return;
-
-    const count = window.__userLogged ? 0 : getLocalCartCount();
-    badge.textContent = count;
-    if (count > 0) {
-        badge.removeAttribute('hidden');
-    } else {
-        badge.setAttribute('hidden', '');
-    }
+    badge.textContent = window.__userLogged ? 0 : getLocalCartCount();
 }
 
 // ============================================================
@@ -333,6 +326,7 @@ function initCartModal() {
     const form      = document.getElementById('cart-modal-form');
     const titleEl   = document.getElementById('cart-modal-title');
     const priceEl   = document.getElementById('cart-modal-price');
+    const totalEl   = document.getElementById('cart-modal-total');
     const imgEl     = document.getElementById('cart-modal-image');
     const wineIdEl  = document.getElementById('cart-modal-wine-id');
     const qtyInput  = document.getElementById('cart-modal-qty');
@@ -341,6 +335,19 @@ function initCartModal() {
     const plusBtn   = document.getElementById('cart-qty-plus');
 
     if (!modal) return;
+
+    // Parse "15,50 €" → 15.50 (float)
+    function parsePrice(str) {
+        return parseFloat((str || '0').replace(/\s/g, '').replace(',', '.').replace('€', '')) || 0;
+    }
+
+    function refreshTotal() {
+        if (!totalEl) return;
+        const unitPrice = parsePrice(priceEl.textContent);
+        const qty       = parseInt(qtyInput.value, 10) || 1;
+        const total     = (unitPrice * qty).toFixed(2).replace('.', ',');
+        totalEl.textContent = 'Total : ' + total + ' €';
+    }
 
     function openModal(btn) {
         const wineId    = btn.dataset.wineId    || '';
@@ -355,6 +362,8 @@ function initCartModal() {
         wineIdEl.value        = wineId;
         qtyInput.value        = 1;
         qtyHidden.value       = 1;
+
+        refreshTotal();
 
         form.action = '/' + (window.__navLang || 'fr') + '/panier/ajouter';
 
@@ -410,9 +419,9 @@ function initCartModal() {
         qtyHidden.value = val;
     }
 
-    minusBtn?.addEventListener('click', () => updateQty(-1));
-    plusBtn?.addEventListener('click',  () => updateQty(1));
-    qtyInput?.addEventListener('input', () => { qtyHidden.value = qtyInput.value; });
+    minusBtn?.addEventListener('click', () => { updateQty(-1); refreshTotal(); });
+    plusBtn?.addEventListener('click',  () => { updateQty(1);  refreshTotal(); });
+    qtyInput?.addEventListener('input', () => { qtyHidden.value = qtyInput.value; refreshTotal(); });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
