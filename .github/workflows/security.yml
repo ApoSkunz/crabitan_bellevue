@@ -60,18 +60,22 @@ jobs:
 
       - name: Init project
         run: |
-          php exakat.phar init -p project -R .
-          echo "=== projects/ après init ===" && find projects/ -type f 2>/dev/null || echo "projects/ introuvable"
+          php exakat.phar init -p project -R ${{ github.workspace }} 2>&1
+          echo "--- workspace ---" && ls -la ${{ github.workspace }}
+          echo "--- search projects dir in workspace ---"
+          find ${{ github.workspace }} -maxdepth 4 -name "projects" -type d 2>/dev/null || true
+          echo "--- search projects dir in HOME ---"
+          find $HOME -maxdepth 4 -name "projects" -type d 2>/dev/null || true
 
       - name: Run analysis
-        run: |
-          php exakat.phar project -p project
-          echo "=== projects/ après analyse ===" && find projects/ -type f 2>/dev/null || echo "projects/ introuvable"
+        run: php exakat.phar project -p project 2>&1
 
       - name: Generate report
         run: |
-          php exakat.phar report -p project -format Text
-          echo "=== projects/ après report ===" && find projects/ -type f 2>/dev/null || echo "projects/ introuvable"
+          php exakat.phar report -p project -format Text 2>&1
+          echo "--- all files created by exakat ---"
+          find ${{ github.workspace }} -maxdepth 5 -newer exakat.phar -type f 2>/dev/null || true
+          find $HOME -maxdepth 5 -newer exakat.phar -type f 2>/dev/null || true
 
       - name: Upload Exakat Report
         uses: actions/upload-artifact@v4
