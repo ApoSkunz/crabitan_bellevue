@@ -39,7 +39,8 @@ class Response
         http_response_code($status);
         // Injecter $navLang automatiquement pour toutes les vues
         if (!isset($data['navLang'])) {
-            $fallback = defined('CURRENT_LANG') ? CURRENT_LANG : (defined('DEFAULT_LANG') ? DEFAULT_LANG : 'fr');
+            $default = defined('DEFAULT_LANG') ? DEFAULT_LANG : 'fr';
+            $fallback = defined('CURRENT_LANG') ? CURRENT_LANG : $default;
             $data['navLang'] = $data['lang'] ?? $fallback;
         }
         extract($data, EXTR_SKIP);

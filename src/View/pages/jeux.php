@@ -46,7 +46,7 @@ $pairCount = count($wines ?? []);
             <span id="memo-pairs-found">0</span> / <?= $pairCount ?> <?= htmlspecialchars(__('jeux.pairs_found')) ?>
         </div>
 
-        <div class="memo-game__grid" id="memo-grid" role="list">
+        <ul class="memo-game__grid" id="memo-grid">
             <?php
             // Dupliquer + mélanger les paires
             $cards = array_merge($wines ?? [], $wines ?? []);
@@ -73,7 +73,7 @@ $pairCount = count($wines ?? []);
                     </button>
                 </li>
             <?php endforeach; ?>
-        </div>
+        </ul>
 
         <div class="memo-game__message" id="memo-message" aria-live="assertive" hidden></div>
 
