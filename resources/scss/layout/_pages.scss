@@ -181,12 +181,14 @@
 
 .sitemap-wines {
     background-color: var(--color-bg);
+    margin-left: 25%;
+    margin-right: 25%;
 }
 
 .sitemap-wine-row {
     display: flex;
     align-items: center;
-    min-height: 320px;
+    min-height: 180px;
     overflow: hidden;
 
     &--reverse {
@@ -194,9 +196,9 @@
     }
 
     &__img {
-        flex: 0 0 45%;
-        max-width: 45%;
-        height: 320px;
+        flex: 0 0 22%;
+        max-width: 22%;
+        height: 180px;
         overflow: hidden;
 
         img {
@@ -204,7 +206,6 @@
             height: 100%;
             object-fit: contain;
             object-position: center;
-            background-color: var(--color-surface);
             transition: transform 400ms ease;
         }
     }
@@ -215,12 +216,12 @@
 
     &__body {
         flex: 1;
-        padding: 2rem 3rem;
+        padding: 1rem 2rem;
         text-align: center;
 
         a {
             font-family: var(--font-serif);
-            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            font-size: clamp(0.95rem, 2vw, 1.25rem);
             font-weight: 400;
             letter-spacing: 0.06em;
             color: var(--color-text);
@@ -233,11 +234,17 @@
         }
     }
 
+    // Couleurs de survol par type de vin
+    &--sweet &__body a:hover  { color: #c4912a; }   // ambre/miel
+    &--red   &__body a:hover  { color: #8b1a2a; }   // bordeaux
+    &--white &__body a:hover  { color: #b8963e; }   // paille dorée
+    &--rose  &__body a:hover  { color: #c97a8a; }   // rosé/saumon
+
     @include m.bp('md') {
-        min-height: 380px;
+        min-height: 220px;
 
         &__img {
-            height: 380px;
+            height: 220px;
         }
     }
 }
@@ -343,9 +350,28 @@
         transform: scale(1.05);
     }
 
+    &--soft-zoom:hover img {
+        transform: scale(1.02);
+    }
+
+    &--fit img {
+        object-fit: contain;
+    }
+
     &:hover &__label {
         background-color: rgba(201, 168, 76, 0.9);
         color: var(--color-bg);
+    }
+
+    &--banner {
+        aspect-ratio: 5 / 2;
+        display: block;
+
+        .sitemap-card__label {
+            font-size: 0.88rem;
+            letter-spacing: 0.2em;
+            padding: 0.8rem 1.25rem;
+        }
     }
 }
 

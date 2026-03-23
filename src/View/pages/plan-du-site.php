@@ -13,7 +13,7 @@ $wineImages = $wineImages ?? [];
  */
 $wineImg = static function (?array $wine, string $fallback): string {
     return ($wine !== null && !empty($wine['image_path']))
-        ? htmlspecialchars($wine['image_path'])
+        ? '/assets/images/wines/' . htmlspecialchars($wine['image_path'])
         : $fallback;
 };
 ?>
@@ -30,7 +30,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
     <!-- Nos vins — alternating rows (images depuis la BDD) -->
     <section class="sitemap-wines" aria-label="<?= htmlspecialchars(__('sitemap.section_wines')) ?>">
 
-        <div class="sitemap-wine-row">
+        <div class="sitemap-wine-row sitemap-wine-row--sweet">
             <div class="sitemap-wine-row__img">
                 <img src="<?= $wineImg($wineImages['sweet'] ?? null, '/assets/images/gallery/nos-vins.jpg') ?>"
                      alt="<?= htmlspecialchars(__('wine.color.sweet')) ?>" loading="lazy">
@@ -42,7 +42,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
             </div>
         </div>
 
-        <div class="sitemap-wine-row sitemap-wine-row--reverse">
+        <div class="sitemap-wine-row sitemap-wine-row--reverse sitemap-wine-row--red">
             <div class="sitemap-wine-row__img">
                 <img src="<?= $wineImg($wineImages['red'] ?? null, '/assets/images/gallery/nos-vins.jpg') ?>"
                      alt="<?= htmlspecialchars(__('wine.color.red')) ?>" loading="lazy">
@@ -54,7 +54,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
             </div>
         </div>
 
-        <div class="sitemap-wine-row">
+        <div class="sitemap-wine-row sitemap-wine-row--white">
             <div class="sitemap-wine-row__img">
                 <img src="<?= $wineImg($wineImages['white'] ?? null, '/assets/images/gallery/nos-vins.jpg') ?>"
                      alt="<?= htmlspecialchars(__('wine.color.white')) ?>" loading="lazy">
@@ -66,7 +66,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
             </div>
         </div>
 
-        <div class="sitemap-wine-row sitemap-wine-row--reverse">
+        <div class="sitemap-wine-row sitemap-wine-row--reverse sitemap-wine-row--rose">
             <div class="sitemap-wine-row__img">
                 <img src="<?= $wineImg($wineImages['rosé'] ?? null, '/assets/images/gallery/nos-vins.jpg') ?>"
                      alt="<?= htmlspecialchars(__('wine.color.rosé')) ?>" loading="lazy">
@@ -78,7 +78,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
             </div>
         </div>
 
-        <div class="sitemap-wine-row">
+        <div class="sitemap-wine-row sitemap-wine-row--collection">
             <div class="sitemap-wine-row__img">
                 <img src="<?= $wineImg($wineImages['collection'] ?? null, '/assets/images/gallery/nos-vins.jpg') ?>"
                      alt="<?= htmlspecialchars(__('nav.collection')) ?>" loading="lazy">
@@ -112,8 +112,9 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.savoir_faire')) ?></span>
             </a>
 
-            <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="sitemap-card">
-                <img src="/assets/images/gallery/nos-vins.jpg"
+            <a href="/<?= htmlspecialchars($navLang) ?>/vins"
+               class="sitemap-card sitemap-card--soft-zoom sitemap-card--fit">
+                <img src="/assets/images/gallery/exposition-vins.jpg"
                      alt="<?= htmlspecialchars(__('nav.wines')) ?>" loading="lazy">
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.wines')) ?></span>
             </a>
@@ -130,7 +131,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
         <div class="sitemap-grid sitemap-grid--4">
 
             <a href="/<?= htmlspecialchars($navLang) ?>" class="sitemap-card">
-                <img src="/assets/images/gallery/vignoble-tournesols.jpg"
+                <img src="/assets/images/gallery/domaine-ancien.jpg"
                      alt="<?= htmlspecialchars(__('nav.home')) ?>" loading="lazy">
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.home')) ?></span>
             </a>
@@ -148,7 +149,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/actualites" class="sitemap-card">
-                <img src="/assets/images/gallery/vignoble-automne-brume.jpg"
+                <img src="/assets/images/gallery/domaine-noir-blanc.jpg"
                      alt="<?= htmlspecialchars(__('nav.news')) ?>" loading="lazy">
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.news')) ?></span>
             </a>
@@ -164,14 +165,20 @@ $wineImg = static function (?array $wine, string $fallback): string {
         </h2>
         <div class="sitemap-grid sitemap-grid--4">
 
-            <a href="/<?= htmlspecialchars($navLang) ?>/support" class="sitemap-card">
-                <img src="/assets/images/carousel/vignoble-automne.jpg"
+            <a href="/<?= htmlspecialchars($navLang) ?>/jeux" class="sitemap-card">
+                <img src="/assets/images/gallery/apercu-vins.jpg"
+                     alt="<?= htmlspecialchars(__('jeux.title')) ?>" loading="lazy">
+                <span class="sitemap-card__label"><?= htmlspecialchars(__('jeux.title')) ?></span>
+            </a>
+
+            <a href="/<?= htmlspecialchars($navLang) ?>/support" class="sitemap-card sitemap-card--fit">
+                <img src="/assets/images/gallery/etiquette-1933.jpg"
                      alt="<?= htmlspecialchars(__('support.title')) ?>" loading="lazy">
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('support.title')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/plan-du-site" class="sitemap-card">
-                <img src="/assets/images/gallery/vignoble-allee-automne.jpg"
+                <img src="/assets/images/gallery/anciens-proprietaires.jpg"
                      alt="<?= htmlspecialchars(__('footer.sitemap')) ?>" loading="lazy">
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.sitemap')) ?></span>
             </a>
@@ -183,7 +190,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/politique-de-confidentialite" class="sitemap-card">
-                <img src="/assets/images/carousel/vignoble-hiver.jpg"
+                <img src="/assets/images/gallery/chien-vignes.jpg"
                      alt="<?= htmlspecialchars(__('footer.privacy_policy')) ?>" loading="lazy">
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.privacy_policy')) ?></span>
             </a>
@@ -191,18 +198,6 @@ $wineImg = static function (?array $wine, string $fallback): string {
         </div>
     </section>
 
-    <!-- Jeux -->
-    <section class="sitemap-cards-section sitemap-cards-section--dark container">
-        <div class="sitemap-grid sitemap-grid--2">
-
-            <a href="/<?= htmlspecialchars($navLang) ?>/jeux" class="sitemap-card">
-                <img src="/assets/images/gallery/nos-vins.jpg"
-                     alt="<?= htmlspecialchars(__('jeux.title')) ?>" loading="lazy">
-                <span class="sitemap-card__label"><?= htmlspecialchars(__('jeux.title')) ?></span>
-            </a>
-
-        </div>
-    </section>
 
 </main>
 
