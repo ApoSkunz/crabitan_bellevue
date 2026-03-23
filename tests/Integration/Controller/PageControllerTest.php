@@ -120,4 +120,62 @@ class PageControllerTest extends IntegrationTestCase
         $this->assertStringContainsString('<main', $output);
         $this->assertStringContainsString('webmaster', $output);
     }
+
+    // ----------------------------------------------------------------
+    // politiqueConfidentialite
+    // ----------------------------------------------------------------
+
+    public function testPolitiqueConfidentialiteRendersView(): void
+    {
+        ob_start();
+        $this->makeController('/fr/politique-confidentialite')->politiqueConfidentialite(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<main', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // mentionsLegales — mode bare
+    // ----------------------------------------------------------------
+
+    public function testMentionsLegalesBareMode(): void
+    {
+        $controller = $this->makeController('/fr/mentions-legales');
+        $_GET['bare'] = '';
+
+        ob_start();
+        $controller->mentionsLegales(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $_GET = [];
+        $this->assertStringContainsString('bare-legal', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // support
+    // ----------------------------------------------------------------
+
+    public function testSupportRendersView(): void
+    {
+        ob_start();
+        $this->makeController('/fr/support')->support(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<main', $output);
+        $this->assertStringContainsString('support', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // jeux
+    // ----------------------------------------------------------------
+
+    public function testJeuxRendersView(): void
+    {
+        ob_start();
+        $this->makeController('/fr/jeux')->jeux(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<main', $output);
+        $this->assertStringContainsString('memo', $output);
+    }
 }

@@ -108,6 +108,34 @@ class WineModelTest extends TestCase
         $this->model->getAll(null, 'vintage_desc');
     }
 
+    public function testGetAllSortLikesDescBuildsCorrectOrder(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('likes_count DESC'),
+                $this->anything()
+            )
+            ->willReturn([]);
+
+        $this->model->getAll(null, 'likes_desc');
+    }
+
+    public function testGetAllWithLimitUsesLimitClause(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('LIMIT ? OFFSET ?'),
+                $this->equalTo([14, 0])
+            )
+            ->willReturn([]);
+
+        $this->model->getAll(null, 'default', 14);
+    }
+
     // ----------------------------------------------------------------
     // getBySlug
     // ----------------------------------------------------------------

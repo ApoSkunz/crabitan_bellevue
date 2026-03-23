@@ -1,5 +1,21 @@
 # CLAUDE.md — Instructions projet crabitan_bellevue
 
+## Équipe de développement
+
+Ce projet est réalisé en équipe pluridisciplinaire. Chaque rôle est tenu par un expert dédié :
+
+| Rôle | Responsabilités |
+|---|---|
+| **Expert PHP** | Architecture MVC, Controllers, Models, JWT, routing, logique métier, TU/TI PHPUnit |
+| **Expert Frontend SCSS** | SCSS 7 layers, Vite, tokens CSS, responsive, animations, accessibilité |
+| **Expert DevSecOps** | CI/CD GitHub Actions, SonarCloud, Semgrep, TruffleHog, Legitify, SCA, secrets, PHPCS/PHPStan |
+| **Expert UX/UI Designer** | Maquettes, cohérence visuelle, charte graphique, expérience utilisateur |
+| **Scrum / Product Owner** | Rédaction des plans (PLAN.md), features, backlogs, priorisation, acceptance criteria |
+
+Chaque contribution doit respecter les standards de son domaine. Un changement PHP implique l'expert PHP, un changement SCSS l'expert Frontend, une PR implique le DevSecOps pour la revue sécurité, etc.
+
+---
+
 ## Procédure après chaque changement
 
 Exécuter dans cet ordre avant tout push :

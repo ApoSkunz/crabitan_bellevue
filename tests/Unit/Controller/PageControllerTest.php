@@ -112,4 +112,22 @@ class PageControllerTest extends TestCase
         $this->callAction('politiqueConfidentialite', 'fr');
         $this->assertSame('fr', defined('CURRENT_LANG') ? CURRENT_LANG : 'undefined');
     }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSupportResolvesLang(): void
+    {
+        $this->bootstrapApp();
+        $this->callAction('support', 'fr');
+        $this->assertSame('fr', defined('CURRENT_LANG') ? CURRENT_LANG : 'undefined');
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testJeuxResolvesLang(): void
+    {
+        $this->bootstrapApp();
+        $this->callAction('jeux', 'fr');
+        $this->assertSame('fr', defined('CURRENT_LANG') ? CURRENT_LANG : 'undefined');
+    }
 }
