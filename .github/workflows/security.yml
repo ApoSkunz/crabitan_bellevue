@@ -31,41 +31,45 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
 
   exakat:
     name: Exakat PHP Analysis
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # ✅ Utiliser Docker prêt à l'emploi
-      - name: Set up Docker
-        uses: docker/setup-docker@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
 
-      - name: Run Exakat
-        run: |
-          # Créer un projet Exakat
-          docker run --rm -v ${{ github.workspace }}:/project exakat/exakat project --bootstrap
-          # Lancer l'analyse
-          docker run --rm -v ${{ github.workspace }}:/project exakat/exakat project --analyze
-          # Générer un rapport HTML
-          docker run --rm -v ${{ github.workspace }}:/project exakat/exakat project --report html
+      - name: Download Exakat
+        run: curl -o exakat.phar https://www.exakat.io/versions/exakat.phar
+
+      - name: Init project
+        run: php exakat.phar init -p project -R ${{ github.workspace }}
+
+      - name: Run analysis
+        run: php exakat.phar project -p project
+
+      - name: Generate report
+        run: php exakat.phar report -p project -format Text > exakat-report.txt 2>&1 || true
 
       - name: Upload Exakat Report
         uses: actions/upload-artifact@v4
         with:
           name: exakat-report
-          path: ./exakat/report/html
+          path: exakat-report.txt
 
   sast:
     name: SAST — Semgrep
