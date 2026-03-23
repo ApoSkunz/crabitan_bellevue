@@ -59,19 +59,25 @@ jobs:
           php exakat.phar version
 
       - name: Init project
-        run: php exakat.phar init -p project -R ${{ github.workspace }}
+        run: |
+          php exakat.phar init -p project -R .
+          echo "=== projects/ après init ===" && find projects/ -type f 2>/dev/null || echo "projects/ introuvable"
 
       - name: Run analysis
-        run: php exakat.phar project -p project
+        run: |
+          php exakat.phar project -p project
+          echo "=== projects/ après analyse ===" && find projects/ -type f 2>/dev/null || echo "projects/ introuvable"
 
       - name: Generate report
-        run: php exakat.phar report -p project -format Text
+        run: |
+          php exakat.phar report -p project -format Text
+          echo "=== projects/ après report ===" && find projects/ -type f 2>/dev/null || echo "projects/ introuvable"
 
       - name: Upload Exakat Report
         uses: actions/upload-artifact@v4
         with:
           name: exakat-report
-          path: projects/project/
+          path: projects/
           if-no-files-found: warn
 
   sast:
