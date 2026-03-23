@@ -54,7 +54,9 @@ jobs:
           php-version: '8.4'
 
       - name: Download Exakat
-        run: curl -o exakat.phar https://www.exakat.io/versions/exakat.phar
+        run: |
+          curl -o exakat.phar https://www.exakat.io/versions/exakat.phar
+          php exakat.phar version
 
       - name: Init project
         run: php exakat.phar init -p project -R ${{ github.workspace }}
@@ -63,13 +65,14 @@ jobs:
         run: php exakat.phar project -p project
 
       - name: Generate report
-        run: php exakat.phar report -p project -format Text > exakat-report.txt 2>&1 || true
+        run: php exakat.phar report -p project -format Text
 
       - name: Upload Exakat Report
         uses: actions/upload-artifact@v4
         with:
           name: exakat-report
-          path: exakat-report.txt
+          path: projects/project/
+          if-no-files-found: warn
 
   sast:
     name: SAST — Semgrep
