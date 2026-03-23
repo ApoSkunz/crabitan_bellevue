@@ -2,7 +2,6 @@
 $pageTitle = __('footer.sitemap');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
-$navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 ?>
 
 <main class="page-sitemap" id="main-content">
@@ -28,6 +27,7 @@ $navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
                 <li><a href="/<?= htmlspecialchars($navLang) ?>/actualites"><?= htmlspecialchars(__('nav.news')) ?></a></li>
                 <li><a href="/<?= htmlspecialchars($navLang) ?>/contact"><?= htmlspecialchars(__('nav.contact')) ?></a></li>
                 <li><a href="/<?= htmlspecialchars($navLang) ?>/mentions-legales"><?= htmlspecialchars(__('footer.legal_notice')) ?></a></li>
+                <li><a href="/<?= htmlspecialchars($navLang) ?>/politique-de-confidentialite"><?= htmlspecialchars(__('footer.privacy_policy')) ?></a></li>
             </ul>
         </nav>
     </section>

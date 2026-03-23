@@ -20,7 +20,10 @@ $router->get('/{lang}/le-chateau', 'PageController@chateau');
 $router->get('/{lang}/savoir-faire', 'PageController@savoirFaire');
 $router->get('/{lang}/contact', 'PageController@contact');
 $router->get('/{lang}/mentions-legales', 'PageController@mentionsLegales');
+$router->get('/{lang}/politique-de-confidentialite', 'PageController@politiqueConfidentialite');
 $router->get('/{lang}/plan-du-site', 'PageController@planDuSite');
+$router->get('/{lang}/support', 'PageController@support');
+$router->get('/{lang}/jeux', 'PageController@jeux');
 $router->get('/{lang}/webmaster', 'PageController@webmaster');
 
 // Catalogue vins

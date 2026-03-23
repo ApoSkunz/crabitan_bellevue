@@ -133,6 +133,9 @@ jobs:
       - name: Run schema on test DB
         run: mysql -h 127.0.0.1 -u root -proot crabitan_test < database/schema.sql
 
+      - name: Seed wines for E2E
+        run: mysql -h 127.0.0.1 -u root -proot crabitan_test < database/seed_wines.sql
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

@@ -20,9 +20,13 @@ class AgeGateController extends Controller
             Response::redirect('/' . DEFAULT_LANG);
         }
 
-        $redirect = $_GET['redirect'] ?? '/' . DEFAULT_LANG;
+        $lang     = in_array($_GET['lang'] ?? '', ['fr', 'en'], true) ? $_GET['lang'] : DEFAULT_LANG;
+        $redirect = $_GET['redirect'] ?? '/' . $lang;
+
+        \Core\Lang::load($lang);
 
         $this->view('age-gate', [
+            'lang'     => $lang,
             'redirect' => $this->sanitizeRedirect($redirect),
         ]);
     }

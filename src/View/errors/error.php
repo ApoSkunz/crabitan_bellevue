@@ -1,4 +1,5 @@
 <?php
+
 // Standalone error page — ne dépend pas de __() ni des partials
 $statusCode = $statusCode ?? 404;
 

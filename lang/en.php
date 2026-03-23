@@ -2,7 +2,7 @@
 
 return [
     // Age gate
-    'age_gate.quote'         => 'Bringing Our Expertise To Your Table',
+    'age_gate.quote'         => 'The art and passion of wine, to elevate your table',
     'age_gate.intro'         => 'To visit this site, you must be of legal drinking age in your country of residence.',
     'age_gate.legal'         => 'I am of legal drinking age in my country of residence',
     'age_gate.not_legal'     => 'I am not of legal drinking age in my country of residence',
@@ -10,6 +10,7 @@ return [
     'age_gate.enter'         => 'Enter',
     'age_gate.info_label'    => 'Legal information',
     'age_gate.choice_legend' => 'Age verification',
+    'age_gate.legal_more'    => 'Learn more.',
     'age_gate.error'         => 'You must be of legal drinking age to access this site. You will be redirected in 3 seconds.',
 
     // Navigation
@@ -164,6 +165,7 @@ return [
 
     // Footer
     'footer.legal_notice'    => 'Legal notice',
+    'footer.privacy_policy'  => 'Privacy policy',
     'footer.sitemap'         => 'Sitemap',
     'footer.carbon'          => 'Carbon Badge',
     'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. Drink responsibly.',
@@ -180,6 +182,10 @@ return [
     'home.carousel_alt'   => 'Château Crabitan Bellevue vineyard',
     'home.carousel_title' => 'Château Crabitan Bellevue',
     'home.carousel_sub'   => 'Bordeaux Wines — Sainte-Croix-du-Mont',
+
+    'home.img_wines_alt'   => 'Wine range at Château Crabitan Bellevue',
+    'home.img_harvest_alt' => 'Horse-drawn harvest — Château Crabitan Bellevue',
+    'home.img_cellar_alt'  => 'Barrel cellar — Château Crabitan Bellevue',
 
     // Homepage — Wines section
     'home.wines_tag'   => 'Vintage',
@@ -232,9 +238,85 @@ return [
     // Legal notice
     'legal.editor_title'  => 'Website editor',
     'legal.hosting_title' => 'Hosting',
-    'legal.hosting_info'  => 'This website is hosted by OVHcloud — 2 rue Kellermann, 59100 Roubaix — France.',
+    'legal.ai_mention'    => 'This website was developed with the assistance of Claude, an artificial intelligence model published by Anthropic.',
+    'legal.hosting_info'  => 'This website is hosted by IONOS (1&1 Internet SARL) — 7, place de la Gare, 57200 Sarreguemines — France. Phone: +33 (0)9 70 80 89 11. Contact: email@1and1.fr.',
     'legal.data_title'    => 'Personal data',
     'legal.data_info'     => 'In accordance with GDPR, you have the right to access, rectify and delete your personal data. To exercise this right, contact us by phone or mail.',
+
+    // Le Château
+    'chateau.origins_tag'    => 'Origins',
+    'chateau.origins_title'  => 'A family of coopers',
+    'chateau.origins_text'   => 'Originally small craftsmen coopers, the family settled in Crabitan on the heights of Sainte-Croix-du-Mont in 1870. The current tasting room is a testimony to the old family kitchen of their ancestors. The vineyard gradually grew over the generations through purchases, leasing and planting of new plots.',
+    'chateau.year1956_tag'   => '1956',
+    'chateau.year1956_title' => 'The Great Frost',
+    'chateau.year1956_text'  => 'In February 1956, the great frost devastated the Bordeaux vineyards. In Crabitan, as throughout the Gironde, the vines were decimated. The Solane family set about replanting the plots, beginning a patient and determined renewal of the estate.',
+    'chateau.year1975_tag'   => '1975',
+    'chateau.year1975_title' => 'Château Crabitan Bellevue',
+    'chateau.year1975_text'  => 'The wines of the Clos de Crabitan were renamed Château Crabitan Bellevue and gained recognition with Bernard and Eliane at trade fairs and exhibitions, showcasing their outstanding quality-to-price ratio.',
+    'chateau.year1994_tag'   => '1994',
+    'chateau.year1994_title' => 'GFA Bernard Solane et Fils',
+    'chateau.year1994_text'  => 'Meanwhile the tractor had replaced the oxen and horse for vineyard work, making daily tasks less arduous on these difficult clay slopes. Nicolas, the current estate manager, joined his parents in 1994 with the creation of GFA Bernard Solane et Fils.',
+    'chateau.today_tag'      => 'Today',
+    'chateau.today_title'    => 'Nicolas & Corinne',
+    'chateau.img_origins_alt' => 'The Solane family — late 19th century',
+    'chateau.img_1956_alt'   => 'Harvest 1956 — Château Crabitan Bellevue',
+    'chateau.img_1975_alt'   => 'Harvest in the 1970s — Château Crabitan Bellevue',
+    'chateau.img_1994_alt'   => 'The barrel cellar — Château Crabitan Bellevue',
+    'chateau.img_today_alt'  => 'Nicolas and Corinne Solane — Château Crabitan Bellevue',
+    'chateau.today_text'     => 'Every day, with the help of Corinne on the administrative side and their team in the cellar and vineyard, he strives to bring the grapes to perfect ripeness so that Crabitan Bellevue wines remain a pleasure to taste — whether for visitors at the estate or those who discover them further afield. Since 2020, the estate also offers online sales with direct delivery across France, so that everyone can receive their bottles at home.',
+
+    // Savoir-Faire
+    'savoir.vignoble_tag'   => 'The Vineyard',
+    'savoir.vignoble_title' => 'An exceptional terroir',
+    'savoir.vignoble_text'  => 'Located on the heights of Sainte-Croix-du-Mont, our vines benefit from an ideal exposure and clay-limestone soil. These slopes shaped over centuries give the grapes an incomparable aromatic richness and concentration, the foundation of all our wines.',
+    'savoir.vinif_tag'      => 'Winemaking',
+    'savoir.vinif_title'    => 'The art of winemaking',
+    'savoir.vinif_text'     => 'The harvest is picked at perfect maturity, carefully vinified to preserve the unique expression of each plot. Each wine is crafted with respect for tradition while integrating the best contemporary practices, combining technical precision with a sensitivity to the product.',
+    'savoir.elevage_tag'    => 'Ageing',
+    'savoir.elevage_title'  => 'Patience rewarded',
+    'savoir.img_vignoble_alt' => 'The vineyard in summer — Château Crabitan Bellevue',
+    'savoir.img_vinif_alt'   => 'Grape harvest — Château Crabitan Bellevue',
+    'savoir.img_elevage_alt' => 'Barrel cellar — Château Crabitan Bellevue',
+    'savoir.elevage_text'   => 'Our sweet whites are aged patiently to develop their complexity and length. The red wines benefit from ageing tailored to each vintage, ensuring balance and elegance. Each bottle is the result of meticulous work from vine to bottling.',
+
+    // Support / FAQ
+    'support.title'           => 'Support',
+    'support.faq_title'       => 'Frequently asked questions',
+    'support.q1'              => 'I have forgotten my password',
+    'support.a1'              => 'You can reset your password by clicking on "Forgot password" on the Login page.',
+    'support.q2'              => 'I did not receive my account validation email',
+    'support.a2'              => 'You can request a new validation email (valid 48h) from the Login page by clicking on "I did not receive my validation email".',
+    'support.q3'              => 'I want to change my password',
+    'support.a3'              => 'You can change your password from "My profile" › "Change my password".',
+    'support.q4'              => 'I want to unsubscribe from the newsletter',
+    'support.a4'              => 'You can unsubscribe from our newsletter from the "Newsletter" section or from "My account" › click here.',
+    'support.q5'              => 'I want to update my personal details',
+    'support.a5'              => 'You can update all your details from "My profile" › "Edit my details".',
+    'support.q6'              => 'I want to delete my account',
+    'support.a6'              => 'You can delete your account from "My profile" accessible from "My account".',
+    'support.q7'              => 'I want to add a delivery address',
+    'support.a7'              => 'You can add a delivery address from "My addresses" › "My account".',
+    'support.q8'              => 'I want to delete a delivery address',
+    'support.a8'              => 'You can delete a delivery address from "My addresses" › "My account".',
+    'support.q9'              => 'I want to add a billing address',
+    'support.a9'              => 'You can add a billing address from "My addresses" › "My account".',
+    'support.q10'             => 'I want to delete a billing address',
+    'support.a10'             => 'You can delete a billing address from "My addresses" › "My account".',
+    'support.q11'             => 'I want to view my orders',
+    'support.a11'             => 'You can view all your orders from "My orders" › "My account".',
+
+    // Jeux
+    'jeux.title'       => 'Games',
+    'jeux.memo_title'  => 'Memory',
+    'jeux.memo_desc'   => 'Find the 14 pairs of wine bottles before time runs out.',
+    'jeux.hours'       => 'hours',
+    'jeux.minutes'     => 'minutes',
+    'jeux.seconds'     => 'seconds',
+    'jeux.start'       => 'Start',
+    'jeux.restart'     => 'Play again',
+    'jeux.win'         => 'Congratulations! You found all the pairs.',
+    'jeux.lose'        => 'Time\'s up! Try again.',
+    'jeux.pairs_found' => 'pairs found',
 
     // Webmaster
     'webmaster.bio' => 'Website designed and developed by Alexandre Solane, full-stack web developer.',

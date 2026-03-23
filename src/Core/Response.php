@@ -37,6 +37,12 @@ class Response
     public static function view(string $template, array $data = [], int $status = 200): void
     {
         http_response_code($status);
+        // Injecter $navLang automatiquement pour toutes les vues
+        if (!isset($data['navLang'])) {
+            $default = defined('DEFAULT_LANG') ? DEFAULT_LANG : 'fr';
+            $fallback = defined('CURRENT_LANG') ? CURRENT_LANG : $default;
+            $data['navLang'] = $data['lang'] ?? $fallback;
+        }
         extract($data, EXTR_SKIP);
         require SRC_PATH . '/View/' . $template . '.php'; // NOSONAR — require_once bloquerait le re-rendu en tests
     }

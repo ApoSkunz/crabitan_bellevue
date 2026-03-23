@@ -2,7 +2,6 @@
 $pageTitle = __('nav.collection');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
-$navLang = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 
 $colorLabels = [
     'sweet' => __('wine.color.sweet'),

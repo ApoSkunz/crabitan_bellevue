@@ -1,16 +1,5 @@
 // @ts-check
-import { test, expect } from './support/fixtures.js';
-
-// ============================================================
-// Helpers
-// ============================================================
-
-async function setVerifiedCookie(context) {
-    const domain = new URL(process.env.APP_URL || 'http://localhost:8000').hostname;
-    await context.addCookies([
-        { name: 'age_verified', value: '1', domain, path: '/', httpOnly: true, sameSite: 'Lax' },
-    ]);
-}
+import { test, expect, setVerifiedCookie } from './support/fixtures.js';
 
 /**
  * Vérifie qu'une page se charge (status ≠ 404/500), a un header et un footer.
@@ -78,6 +67,14 @@ test.describe('Navigation — toutes les pages de la homepage', () => {
 
     test('/fr/webmaster se charge', async ({ page }) => {
         await expectPageOk(page, '/fr/webmaster');
+    });
+
+    test('/fr/support se charge', async ({ page }) => {
+        await expectPageOk(page, '/fr/support');
+    });
+
+    test('/fr/jeux se charge', async ({ page }) => {
+        await expectPageOk(page, '/fr/jeux');
     });
 
     // ── Version anglaise ─────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="<?= htmlspecialchars(defined('CURRENT_LANG') ? CURRENT_LANG : 'fr') ?>" data-theme="dark">
+<html lang="<?= htmlspecialchars($lang ?? 'fr') ?>" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,8 +10,33 @@
 </head>
 <body class="age-gate-page">
 
+<nav class="age-gate__lang" aria-label="Langue / Language">
+    <?php foreach (['fr', 'en'] as $l) :
+        $href = '/age-gate?' . http_build_query(['lang' => $l, 'redirect' => $redirect]);
+    ?>
+        <a
+            href="<?= htmlspecialchars($href) ?>"
+            lang="<?= htmlspecialchars($l) ?>"
+            class="<?= $l === ($lang ?? 'fr') ? 'active' : '' ?>"
+            <?= $l === ($lang ?? 'fr') ? 'aria-current="true"' : '' ?>
+        ><?= strtoupper($l) ?></a>
+    <?php endforeach; ?>
+</nav>
+
+<div class="age-gate__topbar">
+    <button
+        id="theme-toggle"
+        class="theme-toggle"
+        type="button"
+        aria-label="Basculer le thème jour / nuit"
+    >
+        <span class="icon-sun" aria-hidden="true">&#9728;</span>
+        <span class="icon-moon" aria-hidden="true">&#9790;</span>
+    </button>
+</div>
+
 <main class="age-gate" role="main">
-    <p class="age-gate__quote">&ldquo; <?= htmlspecialchars(__('age_gate.quote')) ?> &rdquo;</p>
+    <p class="age-gate__quote"><?= htmlspecialchars(__('age_gate.quote')) ?></p>
 
     <div class="age-gate__card-wrapper">
         <span></span><span></span><span></span><span></span>
@@ -56,6 +81,7 @@
             </form>
         </div>
     </div>
+
 </main>
 
 <?php require_once SRC_PATH . '/View/partials/cookie-banner.php'; ?>

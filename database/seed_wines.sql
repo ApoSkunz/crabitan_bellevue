@@ -28,7 +28,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox, contrôle thermique strict","en":"Fermentation with indigenous yeasts in stainless steel tanks, strict temperature control"}',
  '{"fr":"48 mois en cuves inox","en":"48 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2000.png', 'sainte-croix-du-mont-2000'),
 
@@ -40,7 +40,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox, contrôle thermique strict","en":"Fermentation with indigenous yeasts in stainless steel tanks, strict temperature control"}',
  '{"fr":"48 mois en cuves inox","en":"48 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2001.png', 'sainte-croix-du-mont-2001'),
 
@@ -52,7 +52,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"48 mois en cuves inox","en":"48 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Or au Concours de Bordeaux 2004","en":"Gold medal at the Bordeaux Competition 2004"}', 'GoldBordeaux2004.png',
+ '{"fr":"Médaille d\'Or au Concours de Bordeaux 2004","en":"Gold medal at the Bordeaux Competition 2004"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2003.png', 'sainte-croix-du-mont-2003'),
 
@@ -64,7 +64,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox, contrôle thermique strict","en":"Fermentation with indigenous yeasts in stainless steel tanks, strict temperature control"}',
  '{"fr":"42 mois en cuves inox","en":"42 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2005.png', 'sainte-croix-du-mont-2005'),
 
@@ -76,7 +76,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox, contrôle thermique strict","en":"Fermentation with indigenous yeasts in stainless steel tanks, strict temperature control"}',
  '{"fr":"40 mois en cuves inox","en":"40 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Argent au Concours des Vins de Bordeaux 2008","en":"Silver medal at the Bordeaux Wine Competition 2008"}', 'SilverBordeaux2008.png',
+ '{"fr":"Médaille d\'Argent au Concours des Vins de Bordeaux 2008","en":"Silver medal at the Bordeaux Wine Competition 2008"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2007.png', 'sainte-croix-du-mont-2007'),
 
@@ -88,7 +88,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"38 mois en cuves inox","en":"38 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2008.png', 'sainte-croix-du-mont-2008'),
 
@@ -100,7 +100,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox, contrôle thermique strict","en":"Fermentation with indigenous yeasts in stainless steel tanks, strict temperature control"}',
  '{"fr":"40 mois en cuves inox","en":"40 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Or au Concours International de Lyon 2011","en":"Gold medal at the Lyon International Competition 2011"}', 'GoldLyon2011.png',
+ '{"fr":"Médaille d\'Or au Concours International de Lyon 2011","en":"Gold medal at the Lyon International Competition 2011"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2009.png', 'sainte-croix-du-mont-2009'),
 
@@ -112,7 +112,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Or au Concours International de Lyon 2017","en":"Gold medal at the Lyon International Competition 2017"}', 'GoldLyon2017.png',
+ '{"fr":"Médaille d\'Or au Concours International de Lyon 2017","en":"Gold medal at the Lyon International Competition 2017"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2010.png', 'sainte-croix-du-mont-2010'),
 
@@ -124,7 +124,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2011.png', 'sainte-croix-du-mont-2011'),
 
@@ -136,7 +136,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Argent au Concours des Vins de Bordeaux 2013","en":"Silver medal at the Bordeaux Wine Competition 2013"}', 'SilverBordeaux2013.png',
+ '{"fr":"Médaille d\'Argent au Concours des Vins de Bordeaux 2013","en":"Silver medal at the Bordeaux Wine Competition 2013"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2012.png', 'sainte-croix-du-mont-2012'),
 
@@ -148,7 +148,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2013.png', 'sainte-croix-du-mont-2013'),
 
@@ -160,7 +160,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Or au Concours des Vins de Bordeaux 2015","en":"Gold medal at the Bordeaux Wine Competition 2015"}', 'GoldBordeaux2015.png',
+ '{"fr":"Médaille d\'Or au Concours des Vins de Bordeaux 2015","en":"Gold medal at the Bordeaux Wine Competition 2015"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2014.png', 'sainte-croix-du-mont-2014'),
 
@@ -172,7 +172,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Or au Concours de Mâcon 2017","en":"Gold medal at the Mâcon Competition 2017"}', 'GoldMacon2017.png',
+ '{"fr":"Médaille d\'Or au Concours de Mâcon 2017","en":"Gold medal at the Mâcon Competition 2017"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2015.png', 'sainte-croix-du-mont-2015'),
 
@@ -184,7 +184,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Argent au Concours International de Lyon 2018","en":"Silver medal at the Lyon International Competition 2018"}', 'SilverLyon2018.png',
+ '{"fr":"Médaille d\'Argent au Concours International de Lyon 2018","en":"Silver medal at the Lyon International Competition 2018"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2016.png', 'sainte-croix-du-mont-2016'),
 
@@ -196,7 +196,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2017.png', 'sainte-croix-du-mont-2017'),
 
@@ -208,7 +208,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Or au Concours de Bordeaux 2020","en":"Gold medal at the Bordeaux Competition 2020"}', 'GoldBordeaux2020.png',
+ '{"fr":"Médaille d\'Or au Concours de Bordeaux 2020","en":"Gold medal at the Bordeaux Competition 2020"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2018.png', 'sainte-croix-du-mont-2018'),
 
@@ -220,7 +220,7 @@ VALUES
  '{"fr":"Manuelles (4 tries successives)","en":"Manual (4 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox, contrôle thermique strict","en":"Fermentation with indigenous yeasts in stainless steel tanks, strict temperature control"}',
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Or au Concours International de Lyon 2021","en":"Gold medal at the Lyon International Competition 2021"}', 'GoldLyon2021.png',
+ '{"fr":"Médaille d\'Or au Concours International de Lyon 2021","en":"Gold medal at the Lyon International Competition 2021"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2019.png', 'sainte-croix-du-mont-2019'),
 
@@ -232,7 +232,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"24 mois en cuves inox","en":"24 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2020.png', 'sainte-croix-du-mont-2020'),
 
@@ -244,7 +244,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"24 mois en cuves inox","en":"24 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Argent au Concours de Bordeaux 2023","en":"Silver medal at the Bordeaux Competition 2023"}', 'SilverBordeaux2023.png',
+ '{"fr":"Médaille d\'Argent au Concours de Bordeaux 2023","en":"Silver medal at the Bordeaux Competition 2023"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2021.png', 'sainte-croix-du-mont-2021'),
 
@@ -256,7 +256,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"18 mois en cuves inox","en":"18 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2022.png', 'sainte-croix-du-mont-2022'),
 
@@ -268,7 +268,7 @@ VALUES
  '{"fr":"Manuelles (3 tries successives)","en":"Manual (3 successive selections)"}',
  '{"fr":"Fermentation avec levures indigènes en cuves inox","en":"Fermentation with indigenous yeasts in stainless steel tanks"}',
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Sainte-Croix-du-Mont_2023.png', 'sainte-croix-du-mont-2023'),
 
@@ -284,7 +284,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation à basse température en cuves inox","en":"Low temperature fermentation in stainless steel tanks"}',
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Blanc_2016.png', 'bordeaux-blanc-2016'),
 
@@ -296,7 +296,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation à basse température en cuves inox","en":"Low temperature fermentation in stainless steel tanks"}',
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Blanc_2017.png', 'bordeaux-blanc-2017'),
 
@@ -308,7 +308,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation à basse température en cuves inox","en":"Low temperature fermentation in stainless steel tanks"}',
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Blanc_2018.png', 'bordeaux-blanc-2018'),
 
@@ -320,7 +320,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation à basse température en cuves inox","en":"Low temperature fermentation in stainless steel tanks"}',
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Blanc_2019.png', 'bordeaux-blanc-2019'),
 
@@ -332,7 +332,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation à basse température en cuves inox","en":"Low temperature fermentation in stainless steel tanks"}',
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Blanc_2020.png', 'bordeaux-blanc-2020'),
 
@@ -344,7 +344,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation à basse température en cuves inox","en":"Low temperature fermentation in stainless steel tanks"}',
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Blanc_2021.png', 'bordeaux-blanc-2021'),
 
@@ -356,7 +356,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation à basse température en cuves inox","en":"Low temperature fermentation in stainless steel tanks"}',
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Blanc_2022.png', 'bordeaux-blanc-2022'),
 
@@ -368,7 +368,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation à basse température en cuves inox","en":"Low temperature fermentation in stainless steel tanks"}',
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Blanc_2023.png', 'bordeaux-blanc-2023'),
 
@@ -380,7 +380,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation à basse température en cuves inox","en":"Low temperature fermentation in stainless steel tanks"}',
  '{"fr":"4 mois en cuves inox sur lies fines","en":"4 months in stainless steel tanks on fine lees"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Blanc_2024.png', 'bordeaux-blanc-2024'),
 
@@ -396,7 +396,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation en cuves inox, macération 18 jours, remontages réguliers","en":"Fermentation in stainless steel tanks, 18-day maceration, regular pumping over"}',
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Rouge_2015.png', 'bordeaux-rouge-2015'),
 
@@ -408,7 +408,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation en cuves inox, macération 21 jours, remontages réguliers","en":"Fermentation in stainless steel tanks, 21-day maceration, regular pumping over"}',
  '{"fr":"14 mois en cuves inox","en":"14 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Rouge_2016.png', 'bordeaux-rouge-2016'),
 
@@ -420,7 +420,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation en cuves inox, macération 15 jours","en":"Fermentation in stainless steel tanks, 15-day maceration"}',
  '{"fr":"10 mois en cuves inox","en":"10 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Rouge_2017.png', 'bordeaux-rouge-2017'),
 
@@ -432,7 +432,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation en cuves inox, macération 18 jours, remontages réguliers","en":"Fermentation in stainless steel tanks, 18-day maceration, regular pumping over"}',
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Rouge_2018.png', 'bordeaux-rouge-2018'),
 
@@ -444,7 +444,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation en cuves inox, macération 21 jours, remontages réguliers","en":"Fermentation in stainless steel tanks, 21-day maceration, regular pumping over"}',
  '{"fr":"14 mois en cuves inox","en":"14 months in stainless steel tanks"}',
- '{"fr":"Médaille d\'Or au Concours de Bordeaux 2021","en":"Gold medal at the Bordeaux Competition 2021"}', 'GoldBordeaux2021.png',
+ '{"fr":"Médaille d\'Or au Concours de Bordeaux 2021","en":"Gold medal at the Bordeaux Competition 2021"}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Rouge_2019.png', 'bordeaux-rouge-2019'),
 
@@ -456,7 +456,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation en cuves inox, macération 15 jours","en":"Fermentation in stainless steel tanks, 15-day maceration"}',
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Rouge_2020.png', 'bordeaux-rouge-2020'),
 
@@ -468,7 +468,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation en cuves inox, macération 15 jours","en":"Fermentation in stainless steel tanks, 15-day maceration"}',
  '{"fr":"10 mois en cuves inox","en":"10 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Rouge_2021.png', 'bordeaux-rouge-2021'),
 
@@ -480,7 +480,7 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation en cuves inox, macération 15 jours","en":"Fermentation in stainless steel tanks, 15-day maceration"}',
  '{"fr":"10 mois en cuves inox","en":"10 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Rouge_2022.png', 'bordeaux-rouge-2022'),
 
@@ -492,6 +492,6 @@ VALUES
  '{"fr":"Mécaniques","en":"Machine harvest"}',
  '{"fr":"Fermentation en cuves inox, macération 15 jours","en":"Fermentation in stainless steel tanks, 15-day maceration"}',
  '{"fr":"8 mois en cuves inox","en":"8 months in stainless steel tanks"}',
- '{"fr":"","en":""}', NULL,
+ '{"fr":"","en":""}',
  '{"fr":"","en":""}',
  NULL, 'Wine_Bordeaux_Rouge_2023.png', 'bordeaux-rouge-2023');

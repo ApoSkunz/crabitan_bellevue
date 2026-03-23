@@ -6,6 +6,7 @@ namespace Tests\Unit\Model;
 
 use Core\Database;
 use Model\WineModel;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
 class WineModelTest extends TestCase
@@ -105,6 +106,34 @@ class WineModelTest extends TestCase
             ->willReturn([]);
 
         $this->model->getAll(null, 'vintage_desc');
+    }
+
+    public function testGetAllSortLikesDescBuildsCorrectOrder(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('likes_count DESC'),
+                $this->anything()
+            )
+            ->willReturn([]);
+
+        $this->model->getAll(null, 'likes_desc');
+    }
+
+    public function testGetAllWithLimitUsesLimitClause(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('LIMIT ? OFFSET ?'),
+                $this->equalTo([14, 0])
+            )
+            ->willReturn([]);
+
+        $this->model->getAll(null, 'default', 14);
     }
 
     // ----------------------------------------------------------------
@@ -320,6 +349,7 @@ class WineModelTest extends TestCase
     // getColorFirstPages
     // ----------------------------------------------------------------
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testGetColorFirstPagesReturnsEmptyForZeroPerPage(): void
     {
         $result = $this->model->getColorFirstPages(null, 0);
