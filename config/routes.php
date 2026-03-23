@@ -19,6 +19,7 @@ $router->get('/en', 'HomeController@index');
 $router->get('/{lang}/le-chateau', 'PageController@chateau');
 $router->get('/{lang}/savoir-faire', 'PageController@savoirFaire');
 $router->get('/{lang}/contact', 'PageController@contact');
+$router->post('/{lang}/contact', 'PageController@contactPost');
 $router->get('/{lang}/mentions-legales', 'PageController@mentionsLegales');
 $router->get('/{lang}/politique-de-confidentialite', 'PageController@politiqueConfidentialite');
 $router->get('/{lang}/plan-du-site', 'PageController@planDuSite');

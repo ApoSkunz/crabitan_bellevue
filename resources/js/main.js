@@ -502,6 +502,91 @@ function initWineZoom() {
 // Anchor scroll — compensate sticky header on hash navigation
 // ============================================================
 
+// ============================================================
+// Formulaire de contact — validation + fetch + feedback
+// ============================================================
+
+function initContactForm() {
+    const form     = document.getElementById('contact-form');
+    if (!form) return;
+
+    const feedback = document.getElementById('contact-feedback');
+    const submit   = document.getElementById('contact-submit');
+    const label    = submit?.querySelector('.btn__label');
+    const spinner  = submit?.querySelector('.btn__spinner');
+
+    const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
+
+    function showFeedback(msg, isSuccess) {
+        feedback.textContent = msg;
+        feedback.className   = 'contact-form__feedback contact-form__feedback--' + (isSuccess ? 'success' : 'error');
+        feedback.hidden      = false;
+    }
+
+    function setLoading(on) {
+        submit.disabled  = on;
+        label.hidden     = on;
+        spinner.hidden   = !on;
+    }
+
+    function markInvalid(field) {
+        const group = field.closest('.contact-form__group, .contact-form__fieldset, .contact-form__rgpd');
+        if (!group) return;
+        group.classList.remove('is-invalid');
+        void group.offsetWidth; // force reflow pour re-déclencher l'animation
+        group.classList.add('is-invalid');
+        field.addEventListener('change', () => group.classList.remove('is-invalid'), { once: true });
+        field.addEventListener('input',  () => group.classList.remove('is-invalid'), { once: true });
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Validation client
+        let valid = true;
+        requiredFields.forEach((field) => {
+            const empty = field.type === 'checkbox'
+                ? !field.checked
+                : (field.type === 'radio'
+                    ? !form.querySelector(`input[name="${field.name}"]:checked`)
+                    : field.value.trim() === '');
+            if (empty) {
+                valid = false;
+                markInvalid(field);
+            }
+        });
+
+        if (!valid) {
+            showFeedback(form.dataset.msgFields, false);
+            (form.closest('section') ?? form).scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+        }
+
+        setLoading(true);
+        feedback.hidden = true;
+
+        try {
+            const res  = await fetch(form.action, {
+                method:  'POST',
+                body:    new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showFeedback(data.message || form.dataset.msgSuccess, true);
+                form.reset();
+            } else {
+                showFeedback(data.message || form.dataset.msgError, false);
+            }
+        } catch {
+            showFeedback(form.dataset.msgError, false);
+        } finally {
+            setLoading(false);
+        }
+    });
+}
+
 function initAnchorScroll() {
     if (!window.location.hash) return;
     const target = document.getElementById(window.location.hash.slice(1));
@@ -562,6 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFavoriteAuth();
     initWineZoom();
     updateCartCount();
+    initContactForm();
     initAnchorScroll();
     initFaqAccordion();
     initCarbonBadge();

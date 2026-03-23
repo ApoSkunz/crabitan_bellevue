@@ -251,6 +251,11 @@ return [
     'contact.subject.visit'        => 'Estate visit',
     'contact.subject.press'   => 'Press / Partnership',
     'contact.subject.other'   => 'Other',
+    'contact.success'         => 'Your message has been sent. You will receive a summary by email.',
+    'contact.error_fields'    => 'Please fill in all required fields.',
+    'contact.error_smtp'      => 'An error occurred while sending. Please try again or contact us by phone.',
+    'contact.mail_owner_subject'  => 'New contact message',
+    'contact.mail_confirm_subject' => 'We have received your message',
 
     // Legal notice
     'legal.editor_title'  => 'Website editor',

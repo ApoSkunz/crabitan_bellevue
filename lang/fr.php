@@ -253,6 +253,11 @@ return [
     'contact.subject.visit'        => 'Visite du domaine',
     'contact.subject.press'   => 'Presse / Partenariat',
     'contact.subject.other'   => 'Autre',
+    'contact.success'         => 'Votre message a bien été envoyé. Vous recevrez un récapitulatif par email.',
+    'contact.error_fields'    => 'Veuillez remplir tous les champs obligatoires.',
+    'contact.error_smtp'      => 'Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou nous contacter par téléphone.',
+    'contact.mail_owner_subject'  => 'Nouveau message de contact',
+    'contact.mail_confirm_subject' => 'Nous avons bien reçu votre message',
 
     // Mentions légales
     'legal.editor_title'  => 'Éditeur du site',

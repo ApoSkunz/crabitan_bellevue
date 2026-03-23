@@ -14,14 +14,21 @@ require_once SRC_PATH . '/View/partials/header.php';
     </div>
 
     <!-- Formulaire de contact -->
-    <section class="contact-form-section" id="contact-form">
+    <section class="contact-form-section" id="contact-form-section">
         <div class="container">
             <h2 class="contact-form__title"><?= htmlspecialchars(__('contact.section_form')) ?></h2>
             <div class="home-section__divider home-section__divider--center"></div>
 
-            <form class="contact-form" method="post" action="/<?= htmlspecialchars($navLang) ?>/contact" novalidate>
+            <div class="contact-form__feedback" id="contact-feedback" role="alert" aria-live="polite" hidden></div>
 
-                <fieldset class="contact-form__fieldset">
+            <form class="contact-form" id="contact-form"
+                  method="post" action="/<?= htmlspecialchars($navLang) ?>/contact" novalidate
+                  data-msg-success="<?= htmlspecialchars(__('contact.success')) ?>"
+                  data-msg-fields="<?= htmlspecialchars(__('contact.error_fields')) ?>"
+                  data-msg-error="<?= htmlspecialchars(__('contact.error_smtp')) ?>">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf ?? '') ?>">
+
+                <fieldset class="contact-form__fieldset" tabindex="-1">
                     <legend class="contact-form__legend"><?= htmlspecialchars(__('form.gender')) ?></legend>
                     <div class="contact-form__radios">
                         <label class="contact-form__radio">
@@ -99,8 +106,9 @@ require_once SRC_PATH . '/View/partials/header.php';
                 </div>
 
                 <div class="contact-form__submit">
-                    <button type="submit" class="btn btn--gold">
-                        <?= htmlspecialchars(__('btn.submit')) ?>
+                    <button type="submit" class="btn btn--gold" id="contact-submit">
+                        <span class="btn__label"><?= htmlspecialchars(__('btn.submit')) ?></span>
+                        <span class="btn__spinner" aria-hidden="true" hidden></span>
                     </button>
                 </div>
 
@@ -109,7 +117,7 @@ require_once SRC_PATH . '/View/partials/header.php';
     </section>
 
     <!-- Localisation -->
-    <section class="contact-section home-section" id="contact-location">
+    <section class="contact-section home-section home-section--surface" id="contact-location">
         <div class="container">
             <div class="home-location__inner">
 
