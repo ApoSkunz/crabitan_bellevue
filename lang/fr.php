@@ -2,7 +2,7 @@
 
 return [
     // Age gate
-    'age_gate.quote'         => 'Apportez De Notre Savoir-Faire À Vos Repas',
+    'age_gate.quote'         => 'L\'art et la passion du vin, pour sublimer votre table',
     'age_gate.intro'         => 'Pour visiter ce site, vous devez être en âge légal de consommer de l\'alcool dans votre pays de résidence.',
     'age_gate.legal'         => 'Je suis en âge légal de consommer de l\'alcool dans mon pays de résidence',
     'age_gate.not_legal'     => 'Je ne suis pas en âge légal de consommer de l\'alcool dans mon pays de résidence',

@@ -172,6 +172,38 @@
     left: -15%; // bord droit à ~50% : -15% + 65% = 50%
 }
 
+// Sélecteur de langue — coin supérieur gauche de la page (symétrique au theme-toggle)
+.age-gate__lang {
+    position: fixed;
+    top: 1rem;
+    left: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    z-index: 100;
+    border: 1px solid rgba(201, 168, 76, 0.55);
+
+    a {
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--color-text);
+        text-decoration: none;
+        padding: 0.3em 0.6em;
+        transition: color 200ms ease, background-color 200ms ease;
+
+        &.active {
+            color: var(--color-gold);
+            background-color: rgba(201, 168, 76, 0.12);
+        }
+
+        &:not(.active):hover {
+            color: var(--color-gold);
+        }
+    }
+}
+
 // Logo
 .age-gate__logo {
     text-align: center;

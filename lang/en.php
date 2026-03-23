@@ -2,7 +2,7 @@
 
 return [
     // Age gate
-    'age_gate.quote'         => 'Bringing Our Expertise To Your Table',
+    'age_gate.quote'         => 'The art and passion of wine, to elevate your table',
     'age_gate.intro'         => 'To visit this site, you must be of legal drinking age in your country of residence.',
     'age_gate.legal'         => 'I am of legal drinking age in my country of residence',
     'age_gate.not_legal'     => 'I am not of legal drinking age in my country of residence',
