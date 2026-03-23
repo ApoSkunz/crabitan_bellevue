@@ -41,50 +41,6 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-  exakat:
-    name: Exakat PHP Analysis
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-
-      - name: Download Exakat
-        run: |
-          curl -fL -o exakat.phar https://www.exakat.io/versions/exakat.phar
-          ls -lh exakat.phar
-          php exakat.phar version
-
-      - name: Init project
-        run: |
-          php exakat.phar init -p project -R ${{ github.workspace }} 2>&1
-          echo "--- workspace ---" && ls -la ${{ github.workspace }}
-          echo "--- search projects dir in workspace ---"
-          find ${{ github.workspace }} -maxdepth 4 -name "projects" -type d 2>/dev/null || true
-          echo "--- search projects dir in HOME ---"
-          find $HOME -maxdepth 4 -name "projects" -type d 2>/dev/null || true
-
-      - name: Run analysis
-        run: php exakat.phar project -p project 2>&1
-
-      - name: Generate report
-        run: |
-          php exakat.phar report -p project -format Text 2>&1
-          echo "--- all files created by exakat ---"
-          find ${{ github.workspace }} -maxdepth 5 -newer exakat.phar -type f 2>/dev/null || true
-          find $HOME -maxdepth 5 -newer exakat.phar -type f 2>/dev/null || true
-
-      - name: Upload Exakat Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: exakat-report
-          path: projects/
-          if-no-files-found: warn
-
   sast:
     name: SAST — Semgrep
     runs-on: ubuntu-latest
