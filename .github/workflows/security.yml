@@ -55,7 +55,8 @@ jobs:
 
       - name: Download Exakat
         run: |
-          curl -o exakat.phar https://www.exakat.io/versions/exakat.phar
+          curl -fL -o exakat.phar https://www.exakat.io/versions/exakat.phar
+          ls -lh exakat.phar
           php exakat.phar version
 
       - name: Init project
