@@ -99,6 +99,7 @@ return [
     'wine.vinification'  => 'Vinification',
     'wine.aging'         => 'Élevage',
     'wine.certification' => 'Certification',
+    'wine.cuvee_speciale'  => 'Cuvée Spéciale',
     'wine.download_sheet' => 'Télécharger la fiche technique complète',
 
     // Vins — Collection

@@ -16,6 +16,9 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
+ALTER TABLE `wines`
+    ADD COLUMN IF NOT EXISTS `is_cuvee_speciale` TINYINT(1) NOT NULL DEFAULT 0;
+
 DELETE FROM `favorites`;
 DELETE FROM `carts`;
 DELETE FROM `wines`;
@@ -566,6 +569,19 @@ VALUES
  '{"fr":"Cuvée spéciale","en":"Cuvée spéciale"}',
  '', 'Wine_Côtes de Bordeaux Rouge_2020_6a71fd0c7991438d6d191568b920fa14.png',
  'cotes-bordeaux-rouge-2020-cuvee-speciale');
+
+UPDATE `wines` SET `is_cuvee_speciale` = 1 WHERE `slug` IN (
+    'sainte-croix-du-mont-2014-cuvee-speciale',
+    'cotes-bordeaux-rouge-2014-cuvee-speciale',
+    'sainte-croix-du-mont-2015-cuvee-speciale',
+    'cotes-bordeaux-rouge-2015-cuvee-speciale',
+    'cotes-bordeaux-rouge-2016-cuvee-speciale',
+    'cotes-bordeaux-rouge-2017-cuvee-speciale',
+    'sainte-croix-du-mont-2016-cuvee-speciale',
+    'cotes-bordeaux-rouge-2018-cuvee-speciale',
+    'cotes-bordeaux-rouge-2019-cuvee-speciale',
+    'cotes-bordeaux-rouge-2020-cuvee-speciale'
+);
 
 -- Réinitialise l'AUTO_INCREMENT
 ALTER TABLE `wines` AUTO_INCREMENT = 39;

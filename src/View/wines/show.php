@@ -90,6 +90,10 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
 
                 <p class="wine-detail__ttc-note"><?= htmlspecialchars(__('wine.ttc_note')) ?></p>
 
+                <?php if (!empty($wine['is_cuvee_speciale'])) : ?>
+                    <p class="wine-card__extra"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></p>
+                <?php endif; ?>
+
                 <?php if ($awardText !== '') : ?>
                     <p class="wine-detail__award">&#127942; <?= htmlspecialchars($awardText) ?></p>
                 <?php endif; ?>

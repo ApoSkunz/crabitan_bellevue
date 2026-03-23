@@ -99,6 +99,7 @@ return [
     'wine.vinification'  => 'Vinification',
     'wine.aging'         => 'Ageing',
     'wine.certification' => 'Certification',
+    'wine.cuvee_speciale'  => 'Special Cuvée',
     'wine.download_sheet' => 'Download complete technical sheet',
 
     // Wines — Collection

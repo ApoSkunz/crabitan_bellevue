@@ -413,8 +413,16 @@
         font-family: var(--font-sans);
     }
 
+    &__extra {
+        font-size: 0.75rem;
+        font-style: italic;
+        color: var(--color-text-muted);
+        letter-spacing: 0.04em;
+        margin: 0.1rem 0 0;
+    }
+
     &__award {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         color: var(--color-gold-light);
         font-style: italic;
         margin: 0;
@@ -708,6 +716,10 @@
         color: var(--color-gold-light);
         font-style: italic;
         margin: 0.5rem 0 1rem;
+    }
+
+    .wine-card__extra {
+        font-size: 0.9rem;
     }
 
     &__section {
