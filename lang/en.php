@@ -233,7 +233,23 @@ return [
     'news.empty'     => 'No news available at the moment.',
 
     // Contact
-    'contact.tag' => 'Get in touch',
+    'contact.tag'            => 'Get in touch',
+    'contact.section_where'  => 'Where are we?',
+    'contact.itinerary'      => 'Find your route by clicking here',
+    'contact.section_form'   => 'How to reach us?',
+    'contact.form_address'   => 'Address',
+    'contact.form_city'      => 'City',
+    'contact.form_country'   => 'Country',
+    'contact.form_phone'     => 'Phone number',
+    'contact.form_subject'   => 'Subject',
+    'contact.form_message'   => 'Your message',
+    'contact.form_rgpd'      => 'By sending this message, I agree that the information entered in this form may be used to contact me.',
+    'contact.subject.general' => 'General enquiry',
+    'contact.subject.order'   => 'Order question',
+    'contact.subject.bon_commande' => 'Order form',
+    'contact.subject.visit'        => 'Estate visit',
+    'contact.subject.press'   => 'Press / Partnership',
+    'contact.subject.other'   => 'Other',
 
     // Legal notice
     'legal.editor_title'  => 'Website editor',
@@ -318,8 +334,33 @@ return [
     'jeux.lose'        => 'Time\'s up! Try again.',
     'jeux.pairs_found' => 'pairs found',
 
+    // Sitemap
+    'sitemap.intro'            => 'Browse all pages on our website',
+    'sitemap.section_wines'    => 'Our wines',
+    'sitemap.section_main'     => 'Main pages',
+    'sitemap.section_annex'    => 'Secondary pages',
+    'sitemap.section_other'    => 'Other pages',
+    'sitemap.wine_sweet'       => 'Discover the sweet complexity of our Sainte-Croix-du-Mont',
+    'sitemap.wine_red'         => 'Discover the character of our Red wines',
+    'sitemap.wine_white'       => 'Discover the lightness of our White wines',
+    'sitemap.wine_rose'        => 'Discover the freshness of our Rosé wines',
+    'sitemap.wine_collection'  => 'Dive into the heart of our collection',
+
     // Webmaster
-    'webmaster.bio' => 'Website designed and developed by Alexandre Solane, full-stack web developer.',
+    'webmaster.bio'           => 'Website designed and developed by Alexandre Solane, full-stack web developer.',
+    'webmaster.job_title'     => 'DevSecOps &amp; SRE Engineer',
+    'webmaster.intro'         =>
+        'Passionate about computing since my first introductory classes in high school,'
+        . ' sparked by a mathematics teacher who ignited my curiosity…',
+    'webmaster.years_old'     => 'years old',
+    'webmaster.exp_title'     => 'Professional Experience',
+    'webmaster.edu_title'     => 'Education',
+    'webmaster.skills_title'  => 'Technical Skills',
+    'webmaster.contact_title' => 'Get in touch',
+    'webmaster.contact_text'  =>
+        'To discuss a project, an opportunity, or simply connect,'
+        . ' feel free to send me a private message on LinkedIn.',
+    'webmaster.contact_btn'   => 'Send a LinkedIn message',
 
     // Account panel (drawer)
     'panel.title'     => 'My account',

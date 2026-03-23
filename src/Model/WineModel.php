@@ -269,4 +269,45 @@ class WineModel extends Model
             [$limit]
         );
     }
+
+    /**
+     * Retourne un vin aléatoire disponible pour une couleur donnée (plan du site).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getRandomByColor(string $color): ?array
+    {
+        $validColors = ['red', 'white', 'rosé', 'sweet'];
+        if (!in_array($color, $validColors, true)) {
+            return null;
+        }
+
+        $row = $this->db->fetchOne(
+            "SELECT image_path, slug FROM {$this->table}
+             WHERE " . self::COND_AVAILABLE . "
+             AND " . self::COND_COLOR . "
+             AND image_path IS NOT NULL AND image_path != ''
+             ORDER BY RAND() LIMIT 1",
+            [$color]
+        );
+
+        return $row ?: null;
+    }
+
+    /**
+     * Retourne un vin aléatoire disponible toutes couleurs (plan du site — collection).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getRandom(): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT image_path, slug FROM {$this->table}
+             WHERE " . self::COND_AVAILABLE . "
+             AND image_path IS NOT NULL AND image_path != ''
+             ORDER BY RAND() LIMIT 1"
+        );
+
+        return $row ?: null;
+    }
 }

@@ -42,8 +42,20 @@ class PageController extends Controller
 
     public function planDuSite(array $params): void
     {
-        $lang = $this->resolveLang($params);
-        $this->view('pages/plan-du-site', ['lang' => $lang, 'noindex' => true]);
+        $lang  = $this->resolveLang($params);
+        $model = new WineModel();
+        $wineImages = [
+            'sweet'      => $model->getRandomByColor('sweet'),
+            'red'        => $model->getRandomByColor('red'),
+            'white'      => $model->getRandomByColor('white'),
+            'rosé'       => $model->getRandomByColor('rosé'),
+            'collection' => $model->getRandom(),
+        ];
+        $this->view('pages/plan-du-site', [
+            'lang'       => $lang,
+            'noindex'    => true,
+            'wineImages' => $wineImages,
+        ]);
     }
 
     public function support(array $params): void
