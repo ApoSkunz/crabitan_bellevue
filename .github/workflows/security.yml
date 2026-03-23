@@ -36,10 +36,33 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          languages: php, javascript
+          languages: javascript
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
+
+  exakat:
+    name: Exakat PHP Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run Exakat
+        run: |
+          # Installer Docker si nécessaire
+          sudo apt-get update && sudo apt-get install -y docker.io
+          # Créer un projet Exakat
+          docker run --rm -v ${{ github.workspace }}:/project exakat/exakat project --bootstrap
+          # Lancer l'analyse
+          docker run --rm -v ${{ github.workspace }}:/project exakat/exakat project --analyze
+          # Générer un rapport HTML
+          docker run --rm -v ${{ github.workspace }}:/project exakat/exakat project --report html
+      - name: Upload Exakat Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: exakat-report
+          path: ./exakat/report/html
 
   sast:
     name: SAST — Semgrep
