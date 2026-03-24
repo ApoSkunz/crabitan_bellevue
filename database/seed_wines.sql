@@ -13,7 +13,7 @@ INSERT INTO `wines`
      `certification_label`, `area`, `city`, `variety_of_vine`, `age_of_vineyard`,
      `oenological_comment`, `soil`, `pruning`, `harvest`, `vinification`,
      `barrel_fermentation`, `award`, `extra_comment`,
-     `technical_form_path`, `image_path`, `slug`)
+     `image_path`, `slug`)
 VALUES
 
 -- ============================================================
@@ -30,7 +30,7 @@ VALUES
  '{"fr":"48 mois en cuves inox","en":"48 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2000.png', 'sainte-croix-du-mont-2000'),
+ 'Wine_Sainte-Croix-du-Mont_2000.png', 'sainte-croix-du-mont-2000'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2001, 35.00, 8, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 37,
@@ -42,7 +42,7 @@ VALUES
  '{"fr":"48 mois en cuves inox","en":"48 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2001.png', 'sainte-croix-du-mont-2001'),
+ 'Wine_Sainte-Croix-du-Mont_2001.png', 'sainte-croix-du-mont-2001'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2003, 40.00, 6, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 35,
@@ -54,7 +54,7 @@ VALUES
  '{"fr":"48 mois en cuves inox","en":"48 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours de Bordeaux 2004","en":"Gold medal at the Bordeaux Competition 2004"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2003.png', 'sainte-croix-du-mont-2003'),
+ 'Wine_Sainte-Croix-du-Mont_2003.png', 'sainte-croix-du-mont-2003'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2005, 36.00, 24, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 33,
@@ -66,7 +66,7 @@ VALUES
  '{"fr":"42 mois en cuves inox","en":"42 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2005.png', 'sainte-croix-du-mont-2005'),
+ 'Wine_Sainte-Croix-du-Mont_2005.png', 'sainte-croix-du-mont-2005'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2007, 34.00, 18, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 31,
@@ -78,7 +78,7 @@ VALUES
  '{"fr":"40 mois en cuves inox","en":"40 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Argent au Concours des Vins de Bordeaux 2008","en":"Silver medal at the Bordeaux Wine Competition 2008"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2007.png', 'sainte-croix-du-mont-2007'),
+ 'Wine_Sainte-Croix-du-Mont_2007.png', 'sainte-croix-du-mont-2007'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2008, 30.00, 36, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 30,
@@ -90,7 +90,7 @@ VALUES
  '{"fr":"38 mois en cuves inox","en":"38 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2008.png', 'sainte-croix-du-mont-2008'),
+ 'Wine_Sainte-Croix-du-Mont_2008.png', 'sainte-croix-du-mont-2008'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2009, 32.00, 48, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 29,
@@ -102,7 +102,7 @@ VALUES
  '{"fr":"40 mois en cuves inox","en":"40 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours International de Lyon 2011","en":"Gold medal at the Lyon International Competition 2011"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2009.png', 'sainte-croix-du-mont-2009'),
+ 'Wine_Sainte-Croix-du-Mont_2009.png', 'sainte-croix-du-mont-2009'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2010, 30.00, 60, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 28,
@@ -114,7 +114,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours International de Lyon 2017","en":"Gold medal at the Lyon International Competition 2017"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2010.png', 'sainte-croix-du-mont-2010'),
+ 'Wine_Sainte-Croix-du-Mont_2010.png', 'sainte-croix-du-mont-2010'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2011, 26.00, 72, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 27,
@@ -126,7 +126,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2011.png', 'sainte-croix-du-mont-2011'),
+ 'Wine_Sainte-Croix-du-Mont_2011.png', 'sainte-croix-du-mont-2011'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2012, 24.00, 84, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 26,
@@ -138,7 +138,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Argent au Concours des Vins de Bordeaux 2013","en":"Silver medal at the Bordeaux Wine Competition 2013"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2012.png', 'sainte-croix-du-mont-2012'),
+ 'Wine_Sainte-Croix-du-Mont_2012.png', 'sainte-croix-du-mont-2012'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2013, 22.00, 96, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 25,
@@ -150,7 +150,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2013.png', 'sainte-croix-du-mont-2013'),
+ 'Wine_Sainte-Croix-du-Mont_2013.png', 'sainte-croix-du-mont-2013'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2014, 22.00, 108, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 95%, Muscadelle 5%', 24,
@@ -162,7 +162,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours des Vins de Bordeaux 2015","en":"Gold medal at the Bordeaux Wine Competition 2015"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2014.png', 'sainte-croix-du-mont-2014'),
+ 'Wine_Sainte-Croix-du-Mont_2014.png', 'sainte-croix-du-mont-2014'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2015, 24.00, 120, 1,
  NULL, 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -174,7 +174,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours de Mâcon 2017","en":"Gold medal at the Mâcon Competition 2017"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2015.png', 'sainte-croix-du-mont-2015'),
+ 'Wine_Sainte-Croix-du-Mont_2015.png', 'sainte-croix-du-mont-2015'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2016, 24.00, 144, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -186,7 +186,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Argent au Concours International de Lyon 2018","en":"Silver medal at the Lyon International Competition 2018"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2016.png', 'sainte-croix-du-mont-2016'),
+ 'Wine_Sainte-Croix-du-Mont_2016.png', 'sainte-croix-du-mont-2016'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2017, 22.00, 180, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -198,7 +198,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2017.png', 'sainte-croix-du-mont-2017'),
+ 'Wine_Sainte-Croix-du-Mont_2017.png', 'sainte-croix-du-mont-2017'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2018, 22.00, 200, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -210,7 +210,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours de Bordeaux 2020","en":"Gold medal at the Bordeaux Competition 2020"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2018.png', 'sainte-croix-du-mont-2018'),
+ 'Wine_Sainte-Croix-du-Mont_2018.png', 'sainte-croix-du-mont-2018'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2019, 22.00, 240, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -222,7 +222,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours International de Lyon 2021","en":"Gold medal at the Lyon International Competition 2021"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2019.png', 'sainte-croix-du-mont-2019'),
+ 'Wine_Sainte-Croix-du-Mont_2019.png', 'sainte-croix-du-mont-2019'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2020, 20.00, 300, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -234,7 +234,7 @@ VALUES
  '{"fr":"24 mois en cuves inox","en":"24 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2020.png', 'sainte-croix-du-mont-2020'),
+ 'Wine_Sainte-Croix-du-Mont_2020.png', 'sainte-croix-du-mont-2020'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2021, 20.00, 360, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -246,7 +246,7 @@ VALUES
  '{"fr":"24 mois en cuves inox","en":"24 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Argent au Concours de Bordeaux 2023","en":"Silver medal at the Bordeaux Competition 2023"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2021.png', 'sainte-croix-du-mont-2021'),
+ 'Wine_Sainte-Croix-du-Mont_2021.png', 'sainte-croix-du-mont-2021'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2022, 20.00, 420, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -258,7 +258,7 @@ VALUES
  '{"fr":"18 mois en cuves inox","en":"18 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2022.png', 'sainte-croix-du-mont-2022'),
+ 'Wine_Sainte-Croix-du-Mont_2022.png', 'sainte-croix-du-mont-2022'),
 
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2023, 20.00, 480, 1,
  'HVE', 7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
@@ -270,7 +270,7 @@ VALUES
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Sainte-Croix-du-Mont_2023.png', 'sainte-croix-du-mont-2023'),
+ 'Wine_Sainte-Croix-du-Mont_2023.png', 'sainte-croix-du-mont-2023'),
 
 -- ============================================================
 -- Bordeaux Blanc Sec (white) — 9 vins
@@ -286,7 +286,7 @@ VALUES
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2016.png', 'bordeaux-blanc-2016'),
+ 'Wine_Bordeaux_Blanc_2016.png', 'bordeaux-blanc-2016'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2017, 12.00, 0, 0,
  NULL, 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
@@ -298,7 +298,7 @@ VALUES
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2017.png', 'bordeaux-blanc-2017'),
+ 'Wine_Bordeaux_Blanc_2017.png', 'bordeaux-blanc-2017'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2018, 13.00, 84, 1,
  NULL, 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
@@ -310,7 +310,7 @@ VALUES
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2018.png', 'bordeaux-blanc-2018'),
+ 'Wine_Bordeaux_Blanc_2018.png', 'bordeaux-blanc-2018'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2019, 13.00, 96, 1,
  'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
@@ -322,7 +322,7 @@ VALUES
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2019.png', 'bordeaux-blanc-2019'),
+ 'Wine_Bordeaux_Blanc_2019.png', 'bordeaux-blanc-2019'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2020, 14.00, 120, 1,
  'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
@@ -334,7 +334,7 @@ VALUES
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2020.png', 'bordeaux-blanc-2020'),
+ 'Wine_Bordeaux_Blanc_2020.png', 'bordeaux-blanc-2020'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2021, 14.00, 144, 1,
  'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
@@ -346,7 +346,7 @@ VALUES
  '{"fr":"8 mois en cuves inox sur lies fines","en":"8 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2021.png', 'bordeaux-blanc-2021'),
+ 'Wine_Bordeaux_Blanc_2021.png', 'bordeaux-blanc-2021'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2022, 14.00, 180, 1,
  'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
@@ -358,7 +358,7 @@ VALUES
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2022.png', 'bordeaux-blanc-2022'),
+ 'Wine_Bordeaux_Blanc_2022.png', 'bordeaux-blanc-2022'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2023, 14.00, 240, 1,
  'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
@@ -370,7 +370,7 @@ VALUES
  '{"fr":"6 mois en cuves inox sur lies fines","en":"6 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2023.png', 'bordeaux-blanc-2023'),
+ 'Wine_Bordeaux_Blanc_2023.png', 'bordeaux-blanc-2023'),
 
 ('Bordeaux Blanc Sec', 'white', 'bottle', 2024, 14.00, 360, 1,
  'HVE', 3.50, 'Bordeaux', 'Sauvignon Blanc 80%, Sémillon 20%', 22,
@@ -382,7 +382,7 @@ VALUES
  '{"fr":"4 mois en cuves inox sur lies fines","en":"4 months in stainless steel tanks on fine lees"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Blanc_2024.png', 'bordeaux-blanc-2024'),
+ 'Wine_Bordeaux_Blanc_2024.png', 'bordeaux-blanc-2024'),
 
 -- ============================================================
 -- Bordeaux Rouge (red) — 9 vins
@@ -398,7 +398,7 @@ VALUES
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2015.png', 'bordeaux-rouge-2015'),
+ 'Wine_Bordeaux_Rouge_2015.png', 'bordeaux-rouge-2015'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2016, 14.00, 0, 0,
  NULL, 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
@@ -410,7 +410,7 @@ VALUES
  '{"fr":"14 mois en cuves inox","en":"14 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2016.png', 'bordeaux-rouge-2016'),
+ 'Wine_Bordeaux_Rouge_2016.png', 'bordeaux-rouge-2016'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2017, 13.00, 72, 1,
  NULL, 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
@@ -422,7 +422,7 @@ VALUES
  '{"fr":"10 mois en cuves inox","en":"10 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2017.png', 'bordeaux-rouge-2017'),
+ 'Wine_Bordeaux_Rouge_2017.png', 'bordeaux-rouge-2017'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2018, 13.00, 96, 1,
  'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
@@ -434,7 +434,7 @@ VALUES
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2018.png', 'bordeaux-rouge-2018'),
+ 'Wine_Bordeaux_Rouge_2018.png', 'bordeaux-rouge-2018'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2019, 13.00, 120, 1,
  'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
@@ -446,7 +446,7 @@ VALUES
  '{"fr":"14 mois en cuves inox","en":"14 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours de Bordeaux 2021","en":"Gold medal at the Bordeaux Competition 2021"}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2019.png', 'bordeaux-rouge-2019'),
+ 'Wine_Bordeaux_Rouge_2019.png', 'bordeaux-rouge-2019'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2020, 13.00, 144, 1,
  'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
@@ -458,7 +458,7 @@ VALUES
  '{"fr":"12 mois en cuves inox","en":"12 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2020.png', 'bordeaux-rouge-2020'),
+ 'Wine_Bordeaux_Rouge_2020.png', 'bordeaux-rouge-2020'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2021, 13.00, 180, 1,
  'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
@@ -470,7 +470,7 @@ VALUES
  '{"fr":"10 mois en cuves inox","en":"10 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2021.png', 'bordeaux-rouge-2021'),
+ 'Wine_Bordeaux_Rouge_2021.png', 'bordeaux-rouge-2021'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2022, 13.00, 240, 1,
  'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
@@ -482,7 +482,7 @@ VALUES
  '{"fr":"10 mois en cuves inox","en":"10 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2022.png', 'bordeaux-rouge-2022'),
+ 'Wine_Bordeaux_Rouge_2022.png', 'bordeaux-rouge-2022'),
 
 ('Bordeaux Rouge', 'red', 'bottle', 2023, 13.00, 300, 1,
  'HVE', 3.00, 'Bordeaux', 'Merlot 70%, Cabernet Sauvignon 30%', 20,
@@ -494,4 +494,4 @@ VALUES
  '{"fr":"8 mois en cuves inox","en":"8 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- NULL, 'Wine_Bordeaux_Rouge_2023.png', 'bordeaux-rouge-2023');
+ 'Wine_Bordeaux_Rouge_2023.png', 'bordeaux-rouge-2023');

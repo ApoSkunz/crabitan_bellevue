@@ -244,7 +244,7 @@ class WineModel extends Model
                     available, certification_label, area, city, variety_of_vine,
                     age_of_vineyard, oenological_comment, soil, pruning, harvest,
                     vinification, barrel_fermentation, award,
-                    extra_comment, is_cuvee_speciale, technical_form_path, image_path, slug
+                    extra_comment, is_cuvee_speciale, image_path, slug
              FROM {$this->table}
              WHERE slug = ?",
             [$slug]

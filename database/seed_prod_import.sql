@@ -35,7 +35,7 @@ INSERT INTO `wines`
      `certification_label`, `area`, `city`, `variety_of_vine`, `age_of_vineyard`,
      `oenological_comment`, `soil`, `pruning`, `harvest`, `vinification`,
      `barrel_fermentation`, `award`, `extra_comment`,
-     `technical_form_path`, `image_path`, `slug`)
+     `image_path`, `slug`)
 VALUES
 
 -- Sainte-Croix-du-Mont 2010
@@ -49,7 +49,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or au Concours International de Lyon 2017","en":"Gold medal at the 2017 Lyon International Competition"}',
  '{"fr":"","en":""}',
- '', 'Wine_Sainte-Croix-du-Mont_2010_67ae7a94a14795068e5ed25b3b5e6a92.png',
+ 'Wine_Sainte-Croix-du-Mont_2010_67ae7a94a14795068e5ed25b3b5e6a92.png',
  'sainte-croix-du-mont-2010'),
 
 -- Sainte-Croix-du-Mont 2013
@@ -63,7 +63,7 @@ VALUES
  '{"fr":"36 mois en cuves inox (20% d\'élevage en fût de chêne)","en":"36 months in stainless steel vats (20% aging in oak barrels)"}',
  '{"fr":"Médaille d\'Or au Concours de Bordeaux 2015","en":"Gold Medal at the Concours de Bordeaux 2015"}',
  '{"fr":"","en":""}',
- '', 'Wine_Sainte-Croix-du-Mont_2013_75c3faa024e1d039a6338161316830d3.png',
+ 'Wine_Sainte-Croix-du-Mont_2013_75c3faa024e1d039a6338161316830d3.png',
  'sainte-croix-du-mont-2013'),
 
 -- Premières Côtes de Bordeaux Blanc 2014
@@ -77,7 +77,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- '', 'Wine_Premières Côtes de Bordeaux Blanc_2014_10238315a21860ff3f5c95b2efabf820.png',
+ 'Wine_Premières Côtes de Bordeaux Blanc_2014_10238315a21860ff3f5c95b2efabf820.png',
  'premieres-cotes-bordeaux-blanc-2014'),
 
 -- Sainte-Croix-du-Mont 2014 Cuvée Spéciale
@@ -91,7 +91,7 @@ VALUES
  '{"fr":"Sélection des meilleurs lots de l\'année et passage 12 mois en fûts de chêne","en":"Selection of the best lots of the year and passing 12 months in oak barrels"}',
  '{"fr":"Médaille d\'Or Lyon 2017","en":"Gold medal Lyon 2017"}',
  '{"fr":"Cuvée Spéciale","en":"Special Cuvée"}',
- '', 'Wine_Sainte-Croix-du-Mont_2014_b77c86b19ee68ad74858bd5c2616c69b.png',
+ 'Wine_Sainte-Croix-du-Mont_2014_b77c86b19ee68ad74858bd5c2616c69b.png',
  'sainte-croix-du-mont-2014-cuvee-speciale'),
 
 -- Sainte-Croix-du-Mont 2014
@@ -105,7 +105,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- '', 'Wine_Sainte-Croix-du-Mont_2014_c621a1170fee481938baca6667964ed8.png',
+ 'Wine_Sainte-Croix-du-Mont_2014_c621a1170fee481938baca6667964ed8.png',
  'sainte-croix-du-mont-2014'),
 
 -- Côtes de Bordeaux Rouge 2014 Cuvée Spéciale
@@ -119,7 +119,7 @@ VALUES
  '{"fr":"12 mois en fûts de chêne (25% de fûts neufs) après sélection de nos meilleures parcelles de l\'année","en":"12 months in oak barrels (25% new barrels) after selection of our best plots of the year"}',
  '{"fr":"","en":""}',
  '{"fr":"Cuvée Spéciale","en":"Special Cuvée"}',
- '', 'Wine_Côtes de Bordeaux Rouge_2014_f6c84dbdd93797346f602405e7c4c8c7.png',
+ 'Wine_Côtes de Bordeaux Rouge_2014_f6c84dbdd93797346f602405e7c4c8c7.png',
  'cotes-bordeaux-rouge-2014-cuvee-speciale'),
 
 -- Bordeaux Rouge 2016
@@ -133,7 +133,7 @@ VALUES
  '{"fr":"24 mois en cuves inox","en":"24 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- '', 'Wine_Bordeaux Rouge_2016_421762234a1334f53b577f3a5527fc6a.png',
+ 'Wine_Bordeaux Rouge_2016_421762234a1334f53b577f3a5527fc6a.png',
  'bordeaux-rouge-2016'),
 
 -- Vin de Pays de l'Atlantique 2017 (Rosé)
@@ -147,7 +147,7 @@ VALUES
  '{"fr":"5 mois en cuves inox","en":"5 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"Existe aussi en BIB (Bag-In-Box) de 5L.","en":"Also available in 5L BIB (Bag-In-Box)."}',
- '', 'Wine_Vin de Pays de l\'Atlantique_2017_e393a2abe0d1a1b4be051e1773aad3ba.png',
+ 'Wine_Vin de Pays de l\'Atlantique_2017_e393a2abe0d1a1b4be051e1773aad3ba.png',
  'vin-pays-atlantique-rose-2017'),
 
 -- Bordeaux Blanc 2018
@@ -161,7 +161,7 @@ VALUES
  '{"fr":"3 mois en cuves inox","en":"3 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"Existe aussi en BIB (Bag-In-Box) de 5L.","en":"Also available in 5L BIB (Bag-In-Box)."}',
- '', 'Wine_Bordeaux Blanc_2018_7f3ae9aa116216bfad1ec737c746dd20.png',
+ 'Wine_Bordeaux Blanc_2018_7f3ae9aa116216bfad1ec737c746dd20.png',
  'bordeaux-blanc-2018'),
 
 -- Bordeaux Rouge 2017
@@ -175,7 +175,7 @@ VALUES
  '{"fr":"24 mois en cuves Inox","en":"24 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- '', 'Wine_Bordeaux Rouge_2017_ae56077be992be9357190ca829658593.png',
+ 'Wine_Bordeaux Rouge_2017_ae56077be992be9357190ca829658593.png',
  'bordeaux-rouge-2017'),
 
 -- Sainte-Croix-du-Mont 2015 Cuvée Spéciale
@@ -189,7 +189,7 @@ VALUES
  '{"fr":"Sélection des meilleurs lots de l\'année et passage 12 mois en fûts de chêne","en":"Selection of the best lots of the year and passing 12 months in oak barrels"}',
  '{"fr":"Médaille d\'Or Paris 2019","en":"Gold Medal Paris 2019"}',
  '{"fr":"Cuvée Spéciale","en":"Special Cuvée"}',
- '', 'Wine_Sainte-Croix-du-Mont_2015_ecd4d5722452d9e74f9860b58071e626.png',
+ 'Wine_Sainte-Croix-du-Mont_2015_ecd4d5722452d9e74f9860b58071e626.png',
  'sainte-croix-du-mont-2015-cuvee-speciale'),
 
 -- Vin de Pays de l'Atlantique 2019 (Rosé)
@@ -203,7 +203,7 @@ VALUES
  '{"fr":"5 mois en cuves inox","en":"5 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"Existe aussi en BIB (Bag-In-Box) de 5L.","en":"Also available in 5L BIB (Bag-In-Box)."}',
- '', 'Wine_Vin de Pays de l\'Atlantique_2019_4a1ce290f10038fd000f17fd7ff13448.png',
+ 'Wine_Vin de Pays de l\'Atlantique_2019_4a1ce290f10038fd000f17fd7ff13448.png',
  'vin-pays-atlantique-rose-2019'),
 
 -- Côtes de Bordeaux Rouge 2015 Cuvée Spéciale
@@ -217,7 +217,7 @@ VALUES
  '{"fr":"12 mois en fûts de chêne (25% de fûts neufs) après sélection de nos meilleures parcelles de l\'année","en":"12 months in oak barrels (25% new barrels) after selection of our best plots of the year"}',
  '{"fr":"","en":""}',
  '{"fr":"Cuvée Spéciale","en":"Special Cuvée"}',
- '', 'Wine_Côtes de Bordeaux Rouge_2015_324831ce953b22fa81f2e5ea7efdcf32.png',
+ 'Wine_Côtes de Bordeaux Rouge_2015_324831ce953b22fa81f2e5ea7efdcf32.png',
  'cotes-bordeaux-rouge-2015-cuvee-speciale'),
 
 -- Bordeaux Blanc 2019
@@ -231,7 +231,7 @@ VALUES
  '{"fr":"3 mois en cuves inox","en":"3 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"Existe aussi en BIB (Bag-In-Box) de 5L.","en":"Also available in 5L BIB (Bag-In-Box)."}',
- '', 'Wine_Bordeaux Blanc_2019_73b268b17fd35d7ad8b97533416c2a09.png',
+ 'Wine_Bordeaux Blanc_2019_73b268b17fd35d7ad8b97533416c2a09.png',
  'bordeaux-blanc-2019'),
 
 -- Premières Côtes de Bordeaux Blanc 2015
@@ -245,7 +245,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- '', 'Wine_Premières Côtes de Bordeaux Blanc_2015_90aeceecdc213ae9bb60d72b6c2fbe87.png',
+ 'Wine_Premières Côtes de Bordeaux Blanc_2015_90aeceecdc213ae9bb60d72b6c2fbe87.png',
  'premieres-cotes-bordeaux-blanc-2015'),
 
 -- Sainte-Croix-du-Mont 2015
@@ -259,7 +259,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 months in stainless steel tanks"}',
  '{"fr":"Médaille d\'Or Macon 2017","en":"Gold Medal Macon 2017"}',
  '{"fr":"","en":""}',
- '', 'Wine_Sainte-Croix-du-Mont_2015_c34d68ee8a0915f54c3b35b37ebb2140.png',
+ 'Wine_Sainte-Croix-du-Mont_2015_c34d68ee8a0915f54c3b35b37ebb2140.png',
  'sainte-croix-du-mont-2015'),
 
 -- Côtes de Bordeaux Rouge 2016 Cuvée Spéciale
@@ -273,7 +273,7 @@ VALUES
  '{"fr":"12 mois en fûts de chêne","en":"12 mois en futs de chêne"}',
  '{"fr":"","en":""}',
  '{"fr":"Cuvée Spéciale","en":"Cuvée Spéciale"}',
- '', 'Wine_Côtes de Bordeaux Rouge_2016_2d47d13f14e5dea7b63b7023190ee408.png',
+ 'Wine_Côtes de Bordeaux Rouge_2016_2d47d13f14e5dea7b63b7023190ee408.png',
  'cotes-bordeaux-rouge-2016-cuvee-speciale'),
 
 -- Bordeaux Blanc 2020
@@ -287,7 +287,7 @@ VALUES
  '{"fr":"6 mois en cuves inox","en":"6 mois en cuves inox"}',
  '{"fr":"","en":""}',
  '{"fr":"Existe également en Bib de 5 litres","en":"Existe également en Bib de 5 litres"}',
- '', 'Wine_Bordeaux Blanc_2020_a753befa1d63b7dbd6cb95be911ae6d0.png',
+ 'Wine_Bordeaux Blanc_2020_a753befa1d63b7dbd6cb95be911ae6d0.png',
  'bordeaux-blanc-2020'),
 
 -- Bordeaux Rouge 2018
@@ -301,7 +301,7 @@ VALUES
  '{"fr":"24 mois en cuve inox","en":"24 months in stainless steel tanks"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- '', 'Wine_Bordeaux Rouge_2018_13b1fb44c6cea4d065747b287f62480a.png',
+ 'Wine_Bordeaux Rouge_2018_13b1fb44c6cea4d065747b287f62480a.png',
  'bordeaux-rouge-2018'),
 
 -- Sainte-Croix-du-Mont 2021 (Rosé)
@@ -315,7 +315,7 @@ VALUES
  '{"fr":"3 mois en cuve","en":"3 mois en cuve"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- '', 'Wine_Sainte-Croix-du-Mont_2021_19bd27113deeb9b43f7224dfaf14c045.png',
+ 'Wine_Sainte-Croix-du-Mont_2021_19bd27113deeb9b43f7224dfaf14c045.png',
  'sainte-croix-du-mont-rose-2021'),
 
 -- Sainte-Croix-du-Mont 2016
@@ -329,7 +329,7 @@ VALUES
  '{"fr":"36 mois en cuves","en":"36 mois en cuves"}',
  '{"fr":"","en":""}',
  '{"fr":"","en":""}',
- '', 'Wine_Sainte-Croix-du-Mont_2016_5d20efcf2f2b79d2f95536eed2a13f4f.png',
+ 'Wine_Sainte-Croix-du-Mont_2016_5d20efcf2f2b79d2f95536eed2a13f4f.png',
  'sainte-croix-du-mont-2016'),
 
 -- Bordeaux Rouge 2019
@@ -343,7 +343,7 @@ VALUES
  '{"fr":"24 mois en cuves Inox","en":"24 mois en Cuves Inoxs"}',
  '{"fr":" ","en":" "}',
  '{"fr":"  ","en":"  "}',
- '', 'Wine_Bordeaux Rouge_2019_8738262f0bbc95e17a83b2ab02c0786a.png',
+ 'Wine_Bordeaux Rouge_2019_8738262f0bbc95e17a83b2ab02c0786a.png',
  'bordeaux-rouge-2019'),
 
 -- Bordeaux Blanc 2021
@@ -357,7 +357,7 @@ VALUES
  '{"fr":"6 mois en cuves inox","en":"6 months in stainless steel vats"}',
  '{"fr":" ","en":"0"}',
  '{"fr":" ","en":"0"}',
- '', 'Wine_Bordeaux Blanc_2021_c029d830535f1e9e62763fd89f524c6e.png',
+ 'Wine_Bordeaux Blanc_2021_c029d830535f1e9e62763fd89f524c6e.png',
  'bordeaux-blanc-2021'),
 
 -- Vin de Pays de l'Atlantique 2022 (Rosé)
@@ -371,7 +371,7 @@ VALUES
  '{"fr":"2 mois en cuves inox","en":"2 mois en cuves inox"}',
  '{"fr":"*","en":"*"}',
  '{"fr":"*","en":"*"}',
- '', 'Wine_Vin de Pays de l\'Atlantique_2022_7db0baf4664663ab00d3502828a3f3bc.png',
+ 'Wine_Vin de Pays de l\'Atlantique_2022_7db0baf4664663ab00d3502828a3f3bc.png',
  'vin-pays-atlantique-rose-2022'),
 
 -- Côtes de Bordeaux Rouge 2017 Cuvée Spéciale
@@ -385,7 +385,7 @@ VALUES
  '{"fr":"12 mois en barriques","en":"12 mois en barriques"}',
  '{"fr":"Médaille d\'Or Paris 2020","en":"Médaille d\'Or Paris 2020"}',
  '{"fr":"","en":""}',
- '', 'Wine_Côtes de Bordeaux Rouge_2017_ea0fd676b0c276b2e4781c1d8027e5dd.png',
+ 'Wine_Côtes de Bordeaux Rouge_2017_ea0fd676b0c276b2e4781c1d8027e5dd.png',
  'cotes-bordeaux-rouge-2017-cuvee-speciale'),
 
 -- Premières Côtes de Bordeaux Blanc 2017
@@ -399,7 +399,7 @@ VALUES
  '{"fr":"36 mois en cuves inox","en":"36 mois en cuves inox"}',
  '{"fr":"Médaille d\'Or Bordeaux 2018","en":"Médaille d\'Or Bordeaux 2018"}',
  '{"fr":"","en":""}',
- '', 'Wine_Premières Côtes de Bordeaux Blanc_2017_59cd069458da9e276c96389a3a1aebd2.png',
+ 'Wine_Premières Côtes de Bordeaux Blanc_2017_59cd069458da9e276c96389a3a1aebd2.png',
  'premieres-cotes-bordeaux-blanc-2017'),
 
 -- Bordeaux Blanc 2022
@@ -413,7 +413,7 @@ VALUES
  '{"fr":"4 mois en cuves inox","en":"4 mois en cuves inox"}',
  '{"fr":"Médaille d\'Argent CGA Paris 2023","en":"Médaille d\'Argent CGA Paris 2023"}',
  '{"fr":"À déguster avec des huîtres du bassin d\'Arcachon","en":"A déguster avec des huitres du bassin d\'Arcahon"}',
- '', 'Wine_Bordeaux Blanc_2022_61d86aed9dfec852b0185620024d47f4.png',
+ 'Wine_Bordeaux Blanc_2022_61d86aed9dfec852b0185620024d47f4.png',
  'bordeaux-blanc-2022'),
 
 -- Sainte-Croix-du-Mont 2016 Cuvée Spéciale
@@ -427,7 +427,7 @@ VALUES
  '{"fr":"12 mois en barriques et 3 ans en cuves","en":"12 mois en barriques et 3 ans en cuves"}',
  '{"fr":"Médaille d\'argent Bordeaux","en":"Médaille d\'argent Bordeaux"}',
  '{"fr":"Cuvée Spéciale","en":"Cuvée Spéciale"}',
- '', 'Wine_Sainte-Croix-du-Mont_2016_528bb90fbcb9f726b165700436f190e8.png',
+ 'Wine_Sainte-Croix-du-Mont_2016_528bb90fbcb9f726b165700436f190e8.png',
  'sainte-croix-du-mont-2016-cuvee-speciale'),
 
 -- Côtes de Bordeaux Rouge 2018 Cuvée Spéciale
@@ -441,7 +441,7 @@ VALUES
  '{"fr":"12 mois en barriques","en":"12 mois en barriques"}',
  '{"fr":"Médaille d\'argent Bordeaux","en":"Médaille d\'argent Bordeaux"}',
  '{"fr":"Cuvée Spéciale","en":"Cuvée Spéciale"}',
- '', 'Wine_Côtes de Bordeaux Rouge_2018_6074a0d584087023d5746ebc00d774b3.png',
+ 'Wine_Côtes de Bordeaux Rouge_2018_6074a0d584087023d5746ebc00d774b3.png',
  'cotes-bordeaux-rouge-2018-cuvee-speciale'),
 
 -- Bordeaux Rouge 2020
@@ -455,7 +455,7 @@ VALUES
  '{"fr":"36 mois en cuves et barriques","en":"36 mois en cuves"}',
  '{"fr":"Médaille d\'Or CGA Paris 2022","en":"Médaille d\'Or CGA Paris 2022"}',
  '{"fr":"","en":""}',
- '', 'Wine_Bordeaux Rouge_2020_3afb48525a1d22de6a93bb132ce35957.png',
+ 'Wine_Bordeaux Rouge_2020_3afb48525a1d22de6a93bb132ce35957.png',
  'bordeaux-rouge-2020'),
 
 -- Sainte-Croix-du-Mont 2017
@@ -469,7 +469,7 @@ VALUES
  '{"fr":"63 mois en cuves et barriques","en":"36 mois en cuves"}',
  '{"fr":"Médaille d\'Or Bordeaux — 2 * Guide Hachette","en":"Médaille d\'Or Bordeaux"}',
  '{"fr":" ","en":" "}',
- '', 'Wine_Sainte-Croix-du-Mont_2017_5b2273c2a72f87f0d3856c032e88eddd.png',
+ 'Wine_Sainte-Croix-du-Mont_2017_5b2273c2a72f87f0d3856c032e88eddd.png',
  'sainte-croix-du-mont-2017'),
 
 -- Vin de Pays de l'Atlantique 2023 (Rosé)
@@ -483,7 +483,7 @@ VALUES
  '{"fr":"5 mois en cuves inox","en":"5 mois en cuves inox"}',
  '{"fr":" ","en":" "}',
  '{"fr":" ","en":" "}',
- '', 'Wine_Sainte-Croix-du-Mont_2023_bcd739729f70fdbf1730a5d05a1d9d70.png',
+ 'Wine_Sainte-Croix-du-Mont_2023_bcd739729f70fdbf1730a5d05a1d9d70.png',
  'vin-pays-atlantique-rose-2023'),
 
 -- Bordeaux Blanc 2023
@@ -497,7 +497,7 @@ VALUES
  '{"fr":"5 mois en cuves inox","en":"5 mois en cuves inox"}',
  '{"fr":"     ","en":"     "}',
  '{"fr":" ","en":" "}',
- '', 'Wine_Bordeaux Blanc_2023_a199f1c1a6d03a211385ff1f31d227f8.png',
+ 'Wine_Bordeaux Blanc_2023_a199f1c1a6d03a211385ff1f31d227f8.png',
  'bordeaux-blanc-2023'),
 
 -- Côtes de Bordeaux Rouge 2019 Cuvée Spéciale
@@ -511,7 +511,7 @@ VALUES
  '{"fr":"12 mois en barrique et 24 mois en cuve","en":"12 mois en barrique et 24 mois en cuve"}',
  '{"fr":"Médaille d\'Or Bordeaux","en":"Médaille d\'Or Bordeaux"}',
  '{"fr":"","en":""}',
- '', 'Wine_Côtes de Bordeaux Rouge_2019_c370e0c109a2d12c2b3457682e981913.png',
+ 'Wine_Côtes de Bordeaux Rouge_2019_c370e0c109a2d12c2b3457682e981913.png',
  'cotes-bordeaux-rouge-2019-cuvee-speciale'),
 
 -- Bordeaux Blanc 2024
@@ -525,7 +525,7 @@ VALUES
  '{"fr":"5 mois en cuves inox","en":"5 mois en cuves inox"}',
  '{"fr":"Médaille d\'Or Bordeaux","en":"Médaille d\'Or Bordeaux"}',
  '{"fr":"","en":""}',
- '', 'Wine_Bordeaux Blanc_2024_5954f86fb10716610ae55c99d1b69454.png',
+ 'Wine_Bordeaux Blanc_2024_5954f86fb10716610ae55c99d1b69454.png',
  'bordeaux-blanc-2024'),
 
 -- Sainte-Croix-du-Mont 2018 ⚠️ image absente de resources_publique
@@ -539,7 +539,7 @@ VALUES
  '{"fr":"72 mois en cuves et barriques","en":"72 mois en cuves et barriques"}',
  '{"fr":"Médaille d\'Argent Lyon — 2 * Guide Hachette","en":"Médaille d\'Argent Lyon et 2 *Guide Hachette"}',
  '{"fr":"   ","en":"   "}',
- '', 'Wine_Sainte-Croix-du-Mont_2018_658de46ecb6c802896343d2de714b701.png',
+ 'Wine_Sainte-Croix-du-Mont_2018_658de46ecb6c802896343d2de714b701.png',
  'sainte-croix-du-mont-2018'),
 
 -- Vin de Pays de l'Atlantique 2024 (Rosé) ⚠️ image absente de resources_publique
@@ -553,7 +553,7 @@ VALUES
  '{"fr":"3 mois en cuves","en":"3 mois en cuves"}',
  '{"fr":"   ","en":"   "}',
  '{"fr":"   ","en":"   "}',
- '', 'Wine_Vin de Pays de l\'Atlantique_2024_810517101934c7ebf2e0475c4b89f4a1.png',
+ 'Wine_Vin de Pays de l\'Atlantique_2024_810517101934c7ebf2e0475c4b89f4a1.png',
  'vin-pays-atlantique-rose-2024'),
 
 -- Côtes de Bordeaux Rouge 2020 Cuvée Spéciale ⚠️ image absente de resources_publique
@@ -567,7 +567,7 @@ VALUES
  '{"fr":"12 mois en fûts de chêne","en":"12 mois en fûts de chêne"}',
  '{"fr":"Médaille d\'Or Bordeaux 2023 et coup de cœur Guide Hachette","en":"Médaille d\'Or Bordeaux 2023 et coup de coeur guide hachette"}',
  '{"fr":"Cuvée spéciale","en":"Cuvée spéciale"}',
- '', 'Wine_Côtes de Bordeaux Rouge_2020_6a71fd0c7991438d6d191568b920fa14.png',
+ 'Wine_Côtes de Bordeaux Rouge_2020_6a71fd0c7991438d6d191568b920fa14.png',
  'cotes-bordeaux-rouge-2020-cuvee-speciale');
 
 UPDATE `wines` SET `is_cuvee_speciale` = 1 WHERE `slug` IN (
