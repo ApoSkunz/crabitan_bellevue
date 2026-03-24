@@ -272,7 +272,7 @@ function showToast(msg, isError = false) {
     toast.className = 'cb-toast' + (isError ? ' cb-toast--error' : '');
     toast.removeAttribute('hidden');
     clearTimeout(toast.__timer);
-    toast.__timer = setTimeout(() => toast.setAttribute('hidden', ''), 3000);
+    toast.__timer = setTimeout(() => toast.setAttribute('hidden', ''), 1500);
 }
 
 // ============================================================
@@ -444,11 +444,11 @@ function initCartLoginPrompt() {
             const loginUrl = btn.dataset.loginUrl || ('/' + (window.__navLang || 'fr') + '/connexion');
             showToast(
                 document.documentElement.lang === 'en'
-                    ? 'The cart requires an account. Redirecting to login…'
-                    : 'Le panier nécessite un compte. Redirection vers la connexion…',
+                    ? 'Please log in to complete your order.'
+                    : 'Connectez-vous pour finaliser votre commande.',
                 false
             );
-            setTimeout(() => { window.location.href = loginUrl; }, 2500); // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression — loginUrl is server-rendered via htmlspecialchars(), not user input // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
+            setTimeout(() => { window.location.href = loginUrl; }, 1500); // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression — loginUrl is server-rendered via htmlspecialchars(), not user input // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
         });
     });
 }
