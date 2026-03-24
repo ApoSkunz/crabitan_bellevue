@@ -60,6 +60,15 @@ class AgeGateController extends Controller
             ]));
         }
 
+        // Cookie intro pour l'animation d'arrivée (readable by JS → httponly: false)
+        setcookie('age_intro', '1', [
+            'expires'  => time() + 30,
+            'path'     => '/',
+            'secure'   => isset($_SERVER['HTTPS']),
+            'httponly' => false,
+            'samesite' => 'Lax',
+        ]);
+
         Response::redirect($this->sanitizeRedirect($redirect));
     }
 

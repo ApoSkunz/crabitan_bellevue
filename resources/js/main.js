@@ -117,7 +117,12 @@ function shakeCookieBanner(banner) {
     // Force reflow pour relancer l'animation
     void banner.offsetWidth;
     banner.classList.add('is-shaking');
-    banner.addEventListener('animationend', () => banner.classList.remove('is-shaking'), { once: true });
+    banner.addEventListener('animationend', (e) => {
+        if (e.animationName !== 'cookie-shake') return;
+        banner.classList.remove('is-shaking');
+        // Empêche le CSS "animation: fade-in" de rejouer quand is-shaking est retiré
+        banner.style.animationName = 'none';
+    }, { once: true });
 }
 
 function initCookieBanner() {
@@ -639,7 +644,46 @@ function initFaqAccordion() {
     });
 }
 
+// ============================================================
+// Page intro overlay — animation d'arrivée post age-gate
+// ============================================================
+
+function initPageIntro() {
+    const hasCookie = document.cookie.split('; ').some((c) => c.startsWith('age_intro=1'));
+    if (!hasCookie) return;
+
+    // Consommer le cookie immédiatement (TTL 30s, on ne veut pas rejouer l'anim)
+    document.cookie = 'age_intro=; path=/; max-age=0; SameSite=Lax';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'page-intro';
+    overlay.setAttribute('aria-hidden', 'true');
+
+    const img = document.createElement('img');
+    img.src       = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
+    img.alt       = '';
+    img.width     = 180;
+    img.height    = 180;
+    img.className = 'page-intro__logo';
+    overlay.appendChild(img);
+
+    const welcome = document.createElement('p');
+    welcome.className   = 'page-intro__welcome';
+    welcome.textContent = document.documentElement.lang === 'en' ? 'Welcome' : 'Bienvenue';
+    overlay.appendChild(welcome);
+
+    document.body.appendChild(overlay);
+
+    // Suppression après la fin de l'animation de l'overlay uniquement
+    // (animationend bubble — on filtre sur e.target pour ignorer les enfants)
+    overlay.addEventListener('animationend', (e) => {
+        if (e.target !== overlay) return;
+        overlay.remove();
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    initPageIntro();
     initTheme();
     initThemeToggle();
     initBurger();
