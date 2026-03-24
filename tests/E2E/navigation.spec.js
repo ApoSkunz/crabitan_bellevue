@@ -112,9 +112,8 @@ test.describe('Navigation — toutes les pages de la homepage', () => {
 
     test('le plan du site liste les URLs principales', async ({ page }) => {
         await page.goto('/fr/plan-du-site');
-        await expect(page.locator('.sitemap-list')).toBeVisible();
-        const items = page.locator('.sitemap-list a');
-        const count = await items.count();
+        await expect(page.locator('.sitemap-card').first()).toBeVisible();
+        const count = await page.locator('.sitemap-card').count();
         expect(count).toBeGreaterThanOrEqual(5);
     });
 
