@@ -28,8 +28,7 @@ class CartController extends Controller
 
     public function add(array $params): void
     {
-        $lang = $this->resolveLang($params);
-        $this->redirect('/' . $lang . '/panier');
+        $this->redirectToCart($params);
     }
 
     // ----------------------------------------------------------------
@@ -38,8 +37,7 @@ class CartController extends Controller
 
     public function update(array $params): void
     {
-        $lang = $this->resolveLang($params);
-        $this->redirect('/' . $lang . '/panier');
+        $this->redirectToCart($params);
     }
 
     // ----------------------------------------------------------------
@@ -47,6 +45,13 @@ class CartController extends Controller
     // ----------------------------------------------------------------
 
     public function remove(array $params): void
+    {
+        $this->redirectToCart($params);
+    }
+
+    // ----------------------------------------------------------------
+
+    private function redirectToCart(array $params): void
     {
         $lang = $this->resolveLang($params);
         $this->redirect('/' . $lang . '/panier');

@@ -13,7 +13,7 @@
 <nav class="age-gate__lang" aria-label="Langue / Language">
     <?php foreach (['fr', 'en'] as $l) :
         $href = '/age-gate?' . http_build_query(['lang' => $l, 'redirect' => $redirect]);
-    ?>
+        ?>
         <a
             href="<?= htmlspecialchars($href) ?>"
             lang="<?= htmlspecialchars($l) ?>"

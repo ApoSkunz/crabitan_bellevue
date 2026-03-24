@@ -6,6 +6,8 @@ require_once SRC_PATH . '/View/partials/header.php';
 /** @var array<string, array<string,string>|null> $wineImages */
 $wineImages = $wineImages ?? [];
 
+$fallbackWineImg = '/assets/images/gallery/nos-vins.jpg';
+
 /**
  * Retourne le src d'une image de vin ou un fallback gallery.
  *
@@ -32,7 +34,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--sweet">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['sweet'] ?? null, '/assets/images/gallery/nos-vins.jpg') ?>"
+                <img src="<?= $wineImg($wineImages['sweet'] ?? null, $fallbackWineImg) ?>"
                      alt="<?= htmlspecialchars(__('wine.color.sweet')) ?>" loading="lazy">
             </div>
             <div class="sitemap-wine-row__body">
@@ -44,7 +46,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--reverse sitemap-wine-row--red">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['red'] ?? null, '/assets/images/gallery/nos-vins.jpg') ?>"
+                <img src="<?= $wineImg($wineImages['red'] ?? null, $fallbackWineImg) ?>"
                      alt="<?= htmlspecialchars(__('wine.color.red')) ?>" loading="lazy">
             </div>
             <div class="sitemap-wine-row__body">
@@ -56,7 +58,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--white">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['white'] ?? null, '/assets/images/gallery/nos-vins.jpg') ?>"
+                <img src="<?= $wineImg($wineImages['white'] ?? null, $fallbackWineImg) ?>"
                      alt="<?= htmlspecialchars(__('wine.color.white')) ?>" loading="lazy">
             </div>
             <div class="sitemap-wine-row__body">
@@ -68,7 +70,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--reverse sitemap-wine-row--rose">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['rosé'] ?? null, '/assets/images/gallery/nos-vins.jpg') ?>"
+                <img src="<?= $wineImg($wineImages['rosé'] ?? null, $fallbackWineImg) ?>"
                      alt="<?= htmlspecialchars(__('wine.color.rosé')) ?>" loading="lazy">
             </div>
             <div class="sitemap-wine-row__body">
@@ -80,7 +82,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--collection">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['collection'] ?? null, '/assets/images/gallery/nos-vins.jpg') ?>"
+                <img src="<?= $wineImg($wineImages['collection'] ?? null, $fallbackWineImg) ?>"
                      alt="<?= htmlspecialchars(__('nav.collection')) ?>" loading="lazy">
             </div>
             <div class="sitemap-wine-row__body">

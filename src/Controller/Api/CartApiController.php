@@ -11,18 +11,20 @@ use Core\Controller;
  */
 class CartApiController extends Controller
 {
-    public function add(array $params): void
+    private const MSG_NOT_IMPLEMENTED = 'Not implemented';
+
+    public function add(array $params): void // NOSONAR — stub, $params requis par le router
     {
-        $this->json(['success' => false, 'message' => 'Not implemented'], 501);
+        $this->json(['success' => false, 'message' => self::MSG_NOT_IMPLEMENTED], 501);
     }
 
-    public function update(array $params): void
+    public function update(array $params): void // NOSONAR — stub, $params requis par le router
     {
-        $this->json(['success' => false, 'message' => 'Not implemented'], 501);
+        $this->json(['success' => false, 'message' => self::MSG_NOT_IMPLEMENTED], 501);
     }
 
-    public function remove(array $params): void
+    public function remove(array $params): void // NOSONAR — stub, $params requis par le router
     {
-        $this->json(['success' => false, 'message' => 'Not implemented'], 501);
+        $this->json(['success' => false, 'message' => self::MSG_NOT_IMPLEMENTED], 501);
     }
 }
