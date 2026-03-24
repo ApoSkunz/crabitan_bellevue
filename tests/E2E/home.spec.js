@@ -6,7 +6,7 @@ import { test, expect } from './support/fixtures.js';
 // ============================================================
 
 async function visitVerified(page, context, path = '/fr') {
-    const domain = new URL(process.env.APP_URL || 'http://localhost:8000').hostname;
+    const domain = new URL(process.env.APP_URL || 'http://crabitan.local').hostname;
     await context.addCookies([
         { name: 'age_verified', value: '1', domain, path: '/', httpOnly: true, sameSite: 'Lax' },
     ]);

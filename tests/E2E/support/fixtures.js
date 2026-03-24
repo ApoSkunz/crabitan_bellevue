@@ -11,7 +11,7 @@ import { randomUUID } from 'crypto';
  * @param {import('@playwright/test').BrowserContext} context
  */
 export async function setVerifiedCookie(context) {
-    const domain = new URL(process.env.APP_URL || 'http://localhost:8000').hostname;
+    const domain = new URL(process.env.APP_URL || 'http://crabitan.local').hostname;
     await context.addCookies([
         { name: 'age_verified', value: '1', domain, path: '/', httpOnly: true, sameSite: 'Lax' },
     ]);

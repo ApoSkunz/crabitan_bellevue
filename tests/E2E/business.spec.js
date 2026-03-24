@@ -23,10 +23,8 @@ test.describe('Catalogue — navigation et filtres', () => {
         const totalBefore = await page.locator('.wine-card').count();
         // Le filtre est un formulaire GET — sélectionner la couleur puis soumettre
         await page.locator('input[name="color"][value="red"]').check();
-        await Promise.all([
-            page.waitForNavigation(),
-            page.locator('.wines-filters__submit').click(),
-        ]);
+        await page.locator('.wines-filters__submit').click();
+        await page.waitForLoadState('load');
         const totalAfter = await page.locator('.wine-card').count();
         expect(totalAfter).toBeLessThanOrEqual(totalBefore);
     });
@@ -67,23 +65,26 @@ test.describe('Panier — ajout et consultation', () => {
         await expect(page).not.toHaveURL(/\/age-gate/);
     });
 
-    test('ajouter un vin au panier incrémente le compteur', async ({ page }) => {
+    test('ajouter un vin au panier incrémente le compteur', async ({ page, context }) => {
         await page.goto('/fr/vins');
-        // Non connecté : pas de badge DOM — vérifier le localStorage cb-cart
-        const countBefore = await page.evaluate(() => {
-            const raw = localStorage.getItem('cb-cart');
-            return raw ? JSON.parse(raw).reduce((s, i) => s + (i.qty || 1), 0) : 0;
-        });
+        // Non connecté : panier stocké en cookie cb-cart — lu via context.cookies()
+        async function readCartCount() {
+            const cookies = await context.cookies();
+            const cartCookie = cookies.find((c) => c.name === 'cb-cart');
+            if (!cartCookie) return 0;
+            try {
+                const cart = JSON.parse(decodeURIComponent(cartCookie.value));
+                return /** @type {{qty?:number}[]} */ (cart).reduce((s, i) => s + (i.qty || 1), 0);
+            } catch { return 0; }
+        }
+        const countBefore = await readCartCount();
         // Ouvrir la modale panier
         await page.locator('.js-add-to-cart').first().click();
         await expect(page.locator('#cart-modal')).toHaveAttribute('aria-hidden', 'false');
-        // Soumettre (non connecté → localStorage, ferme la modale)
+        // Soumettre (non connecté → cookie cb-cart, ferme la modale)
         await page.locator('#cart-modal-form button[type="submit"]').click();
         await expect(page.locator('#cart-modal')).toHaveAttribute('aria-hidden', 'true');
-        const countAfter = await page.evaluate(() => {
-            const raw = localStorage.getItem('cb-cart');
-            return raw ? JSON.parse(raw).reduce((s, i) => s + (i.qty || 1), 0) : 0;
-        });
+        const countAfter = await readCartCount();
         expect(countAfter).toBeGreaterThan(countBefore);
     });
 
@@ -186,17 +187,18 @@ test.describe('Contact — formulaire', () => {
         await setVerifiedCookie(context);
     });
 
-    // TODO: formulaire de contact pas encore implémenté dans la vue
-    test.skip('le formulaire de contact est présent', async ({ page }) => {
+    test('le formulaire de contact est présent', async ({ page }) => {
         await page.goto('/fr/contact');
-        await expect(page.locator('main form')).toBeVisible();
+        await expect(page.locator('#contact-form')).toBeVisible();
     });
 
-    test.skip('soumettre le formulaire vide affiche une erreur de validation HTML5', async ({ page }) => {
+    test('soumettre le formulaire vide affiche un message d\'erreur de validation', async ({ page }) => {
         await page.goto('/fr/contact');
-        await page.locator('main form button[type="submit"]').click();
-        // La validation HTML5 native empêche la soumission — URL inchangée
-        await expect(page).toHaveURL(/\/contact/);
+        await page.locator('#contact-submit').click();
+        // Validation JS côté client — #contact-feedback visible avec classe error
+        const feedback = page.locator('#contact-feedback');
+        await expect(feedback).toBeVisible();
+        await expect(feedback).toHaveClass(/contact-form__feedback--error/);
     });
 
 });

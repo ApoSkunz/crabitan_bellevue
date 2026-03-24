@@ -14,7 +14,7 @@ async function resetState(context, page) {
 
 /** Pose le cookie age_verified directement (simule un utilisateur déjà vérifié) */
 async function setVerifiedCookie(context, remember = false) {
-    const domain = new URL(process.env.APP_URL || 'http://localhost:8000').hostname;
+    const domain = new URL(process.env.APP_URL || 'http://crabitan.local').hostname;
     const ttl = 397 * 24 * 3600; // 13 mois
     const cookies = [
         { name: 'age_verified', value: '1', domain, path: '/', httpOnly: true, sameSite: 'Lax' },
