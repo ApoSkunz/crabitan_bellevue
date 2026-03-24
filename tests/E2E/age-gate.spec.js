@@ -69,19 +69,21 @@ test.describe('Age Gate — comportements', () => {
         await expect(page.locator('.cookie-banner__required')).toBeVisible();
     });
 
-    test('accepter cookies → localStorage cb-cookie-consent = accepted', async ({ page, context }) => {
+    test('accepter cookies → cookie cb-cookie-consent = accepted', async ({ page, context }) => {
         await resetState(context, page);
         await page.locator('#cookie-accept').click();
-        const consent = await page.evaluate(() => localStorage.getItem('cb-cookie-consent'));
-        expect(consent).toBe('accepted');
+        const cookies = await context.cookies();
+        const consent = cookies.find((c) => c.name === 'cb-cookie-consent');
+        expect(decodeURIComponent(consent?.value ?? '')).toBe('accepted');
         await expect(page.locator('#cookie-banner')).toHaveClass(/is-hidden/);
     });
 
-    test('refuser cookies → localStorage cb-cookie-consent = refused', async ({ page, context }) => {
+    test('refuser cookies → cookie cb-cookie-consent = refused', async ({ page, context }) => {
         await resetState(context, page);
         await page.locator('#cookie-refuse').click();
-        const consent = await page.evaluate(() => localStorage.getItem('cb-cookie-consent'));
-        expect(consent).toBe('refused');
+        const cookies = await context.cookies();
+        const consent = cookies.find((c) => c.name === 'cb-cookie-consent');
+        expect(decodeURIComponent(consent?.value ?? '')).toBe('refused');
         await expect(page.locator('#cookie-banner')).toHaveClass(/is-hidden/);
     });
 

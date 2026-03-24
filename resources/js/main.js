@@ -75,7 +75,7 @@ function initAgeGate() {
         }
 
         // Cookie banner : réponse obligatoire avant d'entrer
-        if (!localStorage.getItem(COOKIE_CONSENT_KEY)) {
+        if (!getConsentCookie()) {
             e.preventDefault();
             if (typeof window.__cookieBannerPending === 'function') {
                 window.__cookieBannerPending();
@@ -111,6 +111,17 @@ function loadGoogleAnalytics() {
 // ============================================================
 
 const COOKIE_CONSENT_KEY = 'cb-cookie-consent';
+const COOKIE_CONSENT_TTL = 397 * 24 * 3600; // 13 mois — durée max CNIL/RGPD
+
+function getConsentCookie() {
+    const match = document.cookie.split('; ').find((c) => c.startsWith(COOKIE_CONSENT_KEY + '='));
+    return match ? decodeURIComponent(match.slice(COOKIE_CONSENT_KEY.length + 1)) : null;
+}
+
+function setConsentCookie(value) {
+    document.cookie = COOKIE_CONSENT_KEY + '=' + encodeURIComponent(value)
+        + '; path=/; max-age=' + COOKIE_CONSENT_TTL + '; SameSite=Lax';
+}
 
 function shakeCookieBanner(banner) {
     banner.classList.remove('is-shaking');
@@ -129,7 +140,7 @@ function initCookieBanner() {
     const banner = document.getElementById('cookie-banner');
     if (!banner) return;
 
-    const existing = localStorage.getItem(COOKIE_CONSENT_KEY);
+    const existing = getConsentCookie();
 
     // Déjà répondu : charger GA si accepté et masquer le bandeau
     if (existing) {
@@ -141,13 +152,13 @@ function initCookieBanner() {
     const requiredMsg = banner.querySelector('.cookie-banner__required');
 
     document.getElementById('cookie-accept')?.addEventListener('click', () => {
-        localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+        setConsentCookie('accepted');
         loadGoogleAnalytics();
         banner.classList.add('is-hidden');
     });
 
     document.getElementById('cookie-refuse')?.addEventListener('click', () => {
-        localStorage.setItem(COOKIE_CONSENT_KEY, 'refused');
+        setConsentCookie('refused');
         banner.classList.add('is-hidden');
     });
 
@@ -319,7 +330,7 @@ function getLocalCartCount() {
 }
 
 function updateCartCount() {
-    const badge = document.getElementById('header-cart-count');
+    const badge = document.querySelector('.header-cart__count');
     if (!badge) return;
     const count = window.__userLogged ? 0 : getLocalCartCount();
     badge.textContent = count;
