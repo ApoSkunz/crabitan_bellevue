@@ -48,11 +48,29 @@ Rapporter le résultat. Si tout est vert, attendre le mot **"go push"**.
 ## Push
 
 Quand l'utilisateur dit **"go push"** :
-- `git add` / `git mv` / `git rm` les fichiers concernés
+- Découper en **commits atomiques** — un commit = une responsabilité (ex : schéma BDD, modèle, contrôleur, vue, CI, i18n...)
+- `git add` fichiers par fichiers (jamais `git add .` en bloc)
 - `git commit` avec message conventionnel (feat/fix/refactor/chore...)
 - `git push origin <branche>`
 
 Pas besoin de confirmation supplémentaire.
+
+### Règle de découpage des commits
+
+Regrouper par **couche ou domaine fonctionnel**, dans cet ordre conseillé :
+
+| Commit | Contenu typique |
+|---|---|
+| `chore(db):` | schema.sql, migrations, seeds |
+| `feat(model):` | nouveau Model ou méthodes ajoutées |
+| `feat(controller):` | Controller(s) créés ou modifiés |
+| `feat(view):` | Vues / templates |
+| `feat(routes):` | config/routes.php |
+| `feat(i18n):` | lang/fr.php, lang/en.php |
+| `feat(ci):` | GitHub Actions workflows |
+| `docs:` | README, PLAN.md, CLAUDE.md |
+
+Un seul fichier modifié peut faire l'objet d'un commit séparé si son changement est orthogonal aux autres.
 
 ## Conventions
 
