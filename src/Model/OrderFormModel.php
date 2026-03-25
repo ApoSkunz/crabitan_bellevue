@@ -66,7 +66,7 @@ class OrderFormModel extends Model
     public function getLatest(): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT * FROM {$this->table} ORDER BY uploaded_at DESC LIMIT 1"
+            "SELECT * FROM {$this->table} ORDER BY uploaded_at DESC, id DESC LIMIT 1"
         );
         return $row ?: null;
     }
