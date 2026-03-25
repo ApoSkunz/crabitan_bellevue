@@ -28,6 +28,10 @@ $router->get('/admin/actualites/{id}/modifier', 'Admin\NewsAdminController@edit'
 $router->post('/admin/actualites/{id}/modifier', 'Admin\NewsAdminController@update');
 $router->get('/admin/newsletter', 'Admin\NewsletterAdminController@index');
 $router->post('/admin/newsletter/envoyer', 'Admin\NewsletterAdminController@send');
+$router->get('/admin/bons-de-commande', 'Admin\OrderFormAdminController@index');
+$router->post('/admin/bons-de-commande/ajouter', 'Admin\OrderFormAdminController@upload');
+$router->post('/admin/bons-de-commande/{id}/supprimer', 'Admin\OrderFormAdminController@delete');
+$router->get('/admin/bons-de-commande/{id}/telecharger', 'Admin\OrderFormAdminController@download');
 
 // ============================================================
 // Routes publiques
@@ -99,3 +103,6 @@ $router->post('/api/cart/add', 'Api\CartApiController@add');
 $router->post('/api/cart/update', 'Api\CartApiController@update');
 $router->post('/api/cart/remove', 'Api\CartApiController@remove');
 $router->post('/api/favorites/toggle', 'Api\FavoriteApiController@toggle');
+
+// Bons de commande (téléchargement public, servi via PHP)
+$router->get('/bons-de-commande/{id}/telecharger', 'OrderFormController@download');
