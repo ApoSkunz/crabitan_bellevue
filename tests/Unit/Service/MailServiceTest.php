@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service;
 
-use PHPUnit\Framework\Attributes\PreserveGlobalState;
-use PHPUnit\Framework\Attributes\RunInSeparateProcess;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPUnit\Framework\Attributes\BackupGlobals;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use ReflectionProperty;
 use Service\MailService;
 
 /**
  * Tests unitaires de la logique de construction des corps d'email.
- * Les méthodes testées sont privées (pur string building, sans SMTP).
+ * Les méthodes privées de construction de HTML sont testées via Reflection.
+ * Les méthodes publiques (sendContact*, __construct else branch) sont couvertes
+ * sans subprocess pour que Xdebug/PCOV collecte correctement la couverture.
  */
 class MailServiceTest extends TestCase
 {
@@ -23,6 +26,20 @@ class MailServiceTest extends TestCase
     {
         $this->service    = new MailService();
         $this->reflection = new ReflectionClass(MailService::class);
+    }
+
+    /**
+     * Injecte un mock PHPMailer dont send() ne lance pas d'exception,
+     * permettant de couvrir les lignes de construction du corps sans SMTP réel.
+     */
+    private function injectMockMailer(MailService $service): void
+    {
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setAccessible(true);
+        $prop->setValue($service, $stub);
     }
 
     private function callPrivate(string $method, mixed ...$args): string
@@ -128,67 +145,81 @@ class MailServiceTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // __construct — branche sans MAIL_USER (SMTPAuth = false)
+    // __construct — branche else : MAIL_USER vide → SMTPAuth = false
+    // BackupGlobals restaure $_ENV après le test sans subprocess.
     // ----------------------------------------------------------------
 
-    #[RunInSeparateProcess]
-    #[PreserveGlobalState(false)]
+    #[BackupGlobals(true)]
     public function testConstructElseBranchWithEmptyMailUser(): void
     {
-        $_ENV['MAIL_HOST']      = 'localhost';
-        $_ENV['MAIL_PORT']      = '587';
-        $_ENV['MAIL_USER']      = '';
-        $_ENV['MAIL_PASS']      = '';
-        $_ENV['MAIL_FROM_NAME'] = 'Test';
-        $_ENV['APP_URL']        = 'http://crabitan.local';
+        $_ENV['MAIL_USER'] = '';
+        $_ENV['APP_URL']   = 'http://crabitan.local';
 
         $service = new MailService();
         $this->assertInstanceOf(MailService::class, $service);
+
+        // Vérifie via Reflection que SMTPAuth est bien false
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setAccessible(true);
+        /** @var PHPMailer $mailer */
+        $mailer = $prop->getValue($service);
+        $this->assertFalse($mailer->SMTPAuth);
+        $this->assertSame('', $mailer->SMTPSecure);
     }
 
     // ----------------------------------------------------------------
-    // sendContactToOwner — couverture du corps HTML
+    // sendContactToOwner — corps HTML couvert sans SMTP réel
     // ----------------------------------------------------------------
 
-    #[RunInSeparateProcess]
-    #[PreserveGlobalState(false)]
     public function testSendContactToOwnerCoversBodyLines(): void
     {
-        $this->expectException(\Exception::class);
-        $service = new MailService();
-        $service->sendContactToOwner(
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendContactToOwner(
             'Jean',
             'Dupont',
             'jean@example.com',
-            'Question',
-            'Un message de test',
+            'Question test',
+            'Un message de test.',
             'fr'
         );
+
+        $this->assertTrue(true); // pas d'exception = corps construit et send() mocké OK
     }
 
     // ----------------------------------------------------------------
     // sendContactConfirmation — branche FR
     // ----------------------------------------------------------------
 
-    #[RunInSeparateProcess]
-    #[PreserveGlobalState(false)]
     public function testSendContactConfirmationFrCoversBody(): void
     {
-        $this->expectException(\Exception::class);
-        $service = new MailService();
-        $service->sendContactConfirmation('jean@example.com', 'Jean', 'Question', 'fr');
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendContactConfirmation(
+            'jean@example.com',
+            'Jean',
+            'Question test',
+            'fr'
+        );
+
+        $this->assertTrue(true);
     }
 
     // ----------------------------------------------------------------
     // sendContactConfirmation — branche EN
     // ----------------------------------------------------------------
 
-    #[RunInSeparateProcess]
-    #[PreserveGlobalState(false)]
     public function testSendContactConfirmationEnCoversBody(): void
     {
-        $this->expectException(\Exception::class);
-        $service = new MailService();
-        $service->sendContactConfirmation('jean@example.com', 'Jean', 'Question', 'en');
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendContactConfirmation(
+            'jean@example.com',
+            'Jean',
+            'Question test',
+            'en'
+        );
+
+        $this->assertTrue(true);
     }
 }
