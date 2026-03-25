@@ -16,6 +16,7 @@ $paymentLabels = [
     'virement' => 'Virement',
     'cheque'   => 'Chèque',
 ];
+if (!function_exists('buildPaginationUrl')) :
 function buildPaginationUrl(int $p, ?string $status, string $search, ?string $payment, int $perPage): string
 {
     $q = ['page' => $p];
@@ -33,6 +34,7 @@ function buildPaginationUrl(int $p, ?string $status, string $search, ?string $pa
     }
     return '/admin/commandes?' . http_build_query($q);
 }
+endif;
 ?>
 
 <?php if ($flash) : ?>

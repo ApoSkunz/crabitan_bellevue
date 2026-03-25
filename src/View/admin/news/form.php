@@ -9,10 +9,12 @@ $action = $isEdit
 $titleData   = json_decode($article['title'] ?? '{}', true) ?? ['fr' => '', 'en' => ''];
 $contentData = json_decode($article['text_content'] ?? '{}', true) ?? ['fr' => '', 'en' => ''];
 
+if (!function_exists('hasError')) :
 function hasError(array $errors, string $key): bool
 {
     return isset($errors[$key]);
 }
+endif;
 $errClass = ' is-error';
 ?>
 

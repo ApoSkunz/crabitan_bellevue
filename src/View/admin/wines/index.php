@@ -4,6 +4,7 @@
 $totalPages  = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
 $colorLabels = ['red' => 'Rouge', 'white' => 'Blanc', 'rosé' => 'Rosé', 'sweet' => 'Liquoreux'];
 
+if (!function_exists('wineListUrl')) :
 function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): string
 {
     $q = ['page' => $page];
@@ -18,6 +19,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
     }
     return '/admin/vins?' . http_build_query($q);
 }
+endif;
 ?>
 
 <?php if ($flash) : ?>
