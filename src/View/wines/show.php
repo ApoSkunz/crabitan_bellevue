@@ -1,4 +1,5 @@
 <?php
+$isAdmin   = $isAdmin ?? false;
 $wineName  = ($wine['label_name'] ?? '') . ' ' . ($wine['vintage'] ?? '');
 $pageTitle = $wineName;
 require_once SRC_PATH . '/View/partials/head.php';

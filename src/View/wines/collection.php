@@ -1,4 +1,5 @@
 <?php
+$isAdmin   = $isAdmin ?? false;
 $pageTitle = __('nav.collection');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
