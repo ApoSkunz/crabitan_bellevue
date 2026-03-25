@@ -105,13 +105,14 @@ class NewsModel extends Model
     {
         $this->db->execute(
             "UPDATE {$this->table}
-             SET title = ?, text_content = ?, image_path = ?, link_path = ?, updated_at = NOW()
+             SET title = ?, text_content = ?, image_path = ?, link_path = ?, slug = ?, updated_at = NOW()
              WHERE id = ?",
             [
                 $data['title'],
                 $data['text_content'],
                 $data['image_path'] ?: null,
                 $data['link_path'] ?: null,
+                $data['slug'],
                 $id,
             ]
         );

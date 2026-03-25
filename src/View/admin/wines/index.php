@@ -13,7 +13,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
     if ($avail !== null && $avail !== '') {
         $q['available'] = $avail;
     }
-    if ($perPage !== 25) {
+    if ($perPage !== 10) {
         $q['per_page'] = $perPage;
     }
     return '/admin/vins?' . http_build_query($q);
@@ -51,12 +51,12 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
 
     <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
         <?php foreach ([10, 25, 50] as $n) : ?>
-            <option value="<?= $n ?>" <?= $perPage === $n ? 'selected' : '' ?>><?= $n ?> / page</option>
+            <option value="<?= $n ?>" <?= (int)$perPage === $n ? 'selected' : '' ?>><?= $n ?> / page</option>
         <?php endforeach; ?>
     </select>
 
     <button type="submit" class="admin-filters__btn">Filtrer</button>
-    <?php if ($color || $available || $perPage !== 20) : ?>
+    <?php if ($color || $available || $perPage !== 10) : ?>
         <a href="/admin/vins" class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
     <?php endif; ?>
 </form>

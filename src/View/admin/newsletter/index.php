@@ -24,12 +24,26 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
         <?php if ($total === 0) : ?>
             <p style="font-size:0.85rem;color:#8a7a60;">Aucun abonné — aucun envoi possible.</p>
         <?php else : ?>
-            <form id="nl-form" method="POST" action="/admin/newsletter/envoyer" class="admin-form">
+            <form id="nl-form" method="POST" action="/admin/newsletter/envoyer"
+                  class="admin-form" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <div class="admin-field" style="margin-bottom:1rem;">
                     <label class="admin-field__label" for="nl-subject">Objet *</label>
                     <input type="text" id="nl-subject" name="subject" required
                            class="admin-field__input" placeholder="Ex : Nouveaux millésimes disponibles…">
+                </div>
+                <div class="admin-field" style="margin-bottom:1rem;">
+                    <label class="admin-field__label" for="nl-image">
+                        Image — jpg / png / webp
+                        <span style="font-weight:400;font-size:0.72rem;">(optionnel — affichée en bas du corps, avant le désabonnement)</span>
+                    </label>
+                    <input type="file" id="nl-image" name="nl_image"
+                           accept="image/jpeg,image/png,image/webp"
+                           class="admin-field__input"
+                           onchange="previewNlImage(this)">
+                    <img id="nl-image-preview" src="" alt=""
+                         style="display:none;max-height:120px;max-width:320px;object-fit:cover;
+                                margin-top:0.5rem;border:1px solid rgba(0,0,0,0.1);border-radius:4px;">
                 </div>
                 <div class="admin-field" style="margin-bottom:1rem;">
                     <label class="admin-field__label" for="nl-body">Contenu *</label>
@@ -139,6 +153,16 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
 </div>
 
 <script>
+function previewNlImage(input) {
+    const preview = document.getElementById('nl-image-preview');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+
 function openNlModal() {
     const subject = document.getElementById('nl-subject').value.trim();
     const body    = document.getElementById('nl-body').value.trim();

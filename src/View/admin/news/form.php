@@ -57,11 +57,9 @@ function hasError(array $errors, string $key): bool
                        class="admin-field__input"
                        style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
                        value="<?= htmlspecialchars($article['slug'] ?? '') ?>">
-                <?php if ($isEdit) : ?>
-                    <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.25rem;">
-                        Le slug est figé à la création et ne change plus. Le preview ci-dessus reflète la valeur actuelle en base.
-                    </p>
-                <?php endif; ?>
+                <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.25rem;">
+                    Mis à jour automatiquement depuis le titre FR à chaque enregistrement.
+                </p>
             </div>
         </div>
 

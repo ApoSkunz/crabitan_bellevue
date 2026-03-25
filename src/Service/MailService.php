@@ -120,8 +120,11 @@ class MailService
         $this->send($to, $name, $subject, $htmlBody);
     }
 
-    public function buildNewsletterHtml(string $title, string $htmlContent): string
-    {
+    public function buildNewsletterHtml(
+        string $title,
+        string $htmlContent,
+        ?string $imageUrl = null
+    ): string {
         $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — URL de fallback local dev uniquement, jamais en production
         $logoUrl     = $appUrl . '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
         $urlPrivacy  = $appUrl . '/fr/politique-confidentialite';
@@ -130,6 +133,13 @@ class MailService
         $urlUnsub    = $appUrl . '/fr/mon-compte';
         $year        = date('Y');
         $safeTitle   = htmlspecialchars($title, ENT_QUOTES);
+        // Image optionnelle : centrée dans le bloc blanc, avant le séparateur/désabonnement
+        $safeImage = $imageUrl !== null ? htmlspecialchars($imageUrl, ENT_QUOTES) : null;
+        $imageHtml = $safeImage !== null
+            ? "<img src=\"{$safeImage}\" alt=\"\" width=\"192\""
+              . " style=\"display:block;width:192px;max-width:100%;height:auto;"
+              . "margin:24px auto 0;border:0;border-radius:4px;\">"
+            : '';
 
         return <<<HTML
 <!DOCTYPE html>
@@ -170,6 +180,7 @@ class MailService
               <div style="font-size:15px;line-height:1.7;color:#3d3425;margin-top:16px;">
                 {$htmlContent}
               </div>
+              {$imageHtml}
               <!-- Divider -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:32px;">
                 <tr><td style="border-top:1px solid #ede8df;padding-bottom:20px;"></td></tr>

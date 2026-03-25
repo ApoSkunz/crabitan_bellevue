@@ -24,7 +24,7 @@ class WineAdminController extends AdminController
     ];
 
     private const ALLOWED_PER_PAGE = [10, 25, 50];
-    private const DEFAULT_PER_PAGE = 25;
+    private const DEFAULT_PER_PAGE = 10;
 
     /** @var string[] */
     private const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp'];

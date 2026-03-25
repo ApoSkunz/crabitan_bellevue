@@ -584,6 +584,7 @@
 
     &--full {
         grid-column: 1 / -1;
+        display: flex;
         flex-direction: row;
         flex-wrap: wrap;
         align-items: center;

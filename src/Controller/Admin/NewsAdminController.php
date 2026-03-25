@@ -213,10 +213,8 @@ class NewsAdminController extends AdminController
             $contentEn = $this->translateText($contentFr);
         }
 
-        // Slug : généré à la création, conservé à la modification
-        $slug = $existing !== null
-            ? ($existing['slug'] ?? $this->generateSlug($titleFr))
-            : $this->generateSlug($titleFr);
+        // Slug : généré (ou régénéré) depuis le titre FR à chaque enregistrement
+        $slug = $this->generateSlug($titleFr);
 
         // Upload image
         ['path' => $imagePath, 'error' => $imgError] = $this->handleImageUpload(

@@ -98,14 +98,6 @@ class AuthController extends Controller
             $expiry
         );
 
-        $this->flash('info', __('auth.login_success'));
-
-        if (in_array($account['role'], ['admin', 'super_admin'], true)) {
-            // Si redirect_back vaut exactement /{lang} (= homepage, pas de page spécifique),
-            // on envoie l'admin sur le dashboard. Sinon on reste sur la page courante.
-            Response::redirect($safeBack === "/{$lang}" ? '/admin' : $safeBack);
-        }
-
         Response::redirect($safeBack);
     }
 

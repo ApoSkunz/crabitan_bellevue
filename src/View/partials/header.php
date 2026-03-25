@@ -220,6 +220,8 @@ document.addEventListener('DOMContentLoaded', function () {
     loginForm.addEventListener('submit', function () {
         var btn = loginForm.querySelector('button[type="submit"]');
         if (!btn) return;
+        var inner = loginForm.closest('.login-modal__inner');
+        if (inner) inner.classList.add('cb-loading');
         btn.disabled = true;
         btn.innerHTML =
             '<span style="display:inline-block;width:.85em;height:.85em;border:2px solid currentColor;'
@@ -228,7 +230,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-<style>@keyframes cb-spin{to{transform:rotate(360deg)}}</style>
+<style>
+@keyframes cb-spin{to{transform:rotate(360deg)}}
+.login-modal__inner.cb-loading{opacity:.6;pointer-events:none;}
+.login-modal__inner.cb-loading .login-modal__submit{opacity:1;pointer-events:auto;}
+</style>
 
 <!-- ============================================================ -->
 <!-- Modal ajout au panier                                         -->

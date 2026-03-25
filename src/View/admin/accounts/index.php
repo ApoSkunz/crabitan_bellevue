@@ -17,7 +17,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
     if ($search !== '') {
         $q['search'] = $search;
     }
-    if ($perPage !== 25) {
+    if ($perPage !== 10) {
         $q['per_page'] = $perPage;
     }
     return '/admin/comptes?' . http_build_query($q);
@@ -58,13 +58,13 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
 
     <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
         <?php foreach ([10, 25, 50] as $n) : ?>
-            <option value="<?= $n ?>" <?= $perPage === $n ? 'selected' : '' ?>><?= $n ?> / page</option>
+            <option value="<?= $n ?>" <?= (int)$perPage === $n ? 'selected' : '' ?>><?= $n ?> / page</option>
         <?php endforeach; ?>
     </select>
 
     <button type="submit" class="admin-filters__btn">Filtrer</button>
     <?php if ($role || ($type ?? null) || $search) : ?>
-        <a href="/admin/comptes<?= $perPage !== 25 ? '?per_page=' . $perPage : '' ?>"
+        <a href="/admin/comptes<?= $perPage !== 10 ? '?per_page=' . $perPage : '' ?>"
            class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
     <?php endif; ?>
 </form>

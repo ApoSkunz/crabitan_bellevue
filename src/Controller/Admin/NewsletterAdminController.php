@@ -70,12 +70,21 @@ class NewsletterAdminController extends AdminController
             Response::redirect('/admin/newsletter');
         }
 
+        $allowed  = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $destDir  = ROOT_PATH . '/public/assets/images/newsletter/';
+        $imageUrl = $this->uploadNewsletterImage($_FILES['nl_image'] ?? [], $allowed, $destDir, $appUrl);
+
         $all     = $this->accounts->getNewsletterSubscribers(10000, 0);
         $mailer  = new MailService();
         $sent    = 0;
         $failed  = 0;
 
-        $htmlBody = $mailer->buildNewsletterHtml($subject, nl2br(htmlspecialchars($body, ENT_QUOTES)));
+        $htmlBody = $mailer->buildNewsletterHtml(
+            $subject,
+            nl2br(htmlspecialchars($body, ENT_QUOTES)),
+            $imageUrl
+        );
 
         foreach ($all as $sub) {
             $name = $sub['account_type'] === 'company'
@@ -98,5 +107,29 @@ class NewsletterAdminController extends AdminController
 
         $this->flash('success', $msg);
         Response::redirect('/admin/newsletter');
+    }
+
+    /**
+     * @param array<string, mixed> $file
+     * @param array<string, string> $allowed
+     */
+    private function uploadNewsletterImage(array $file, array $allowed, string $destDir, string $appUrl): ?string
+    {
+        if (empty($file['tmp_name'])) {
+            return null;
+        }
+        $finfo    = new \finfo(\FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($file['tmp_name']);
+        if (!isset($allowed[$mimeType])) {
+            return null;
+        }
+        if (!is_dir($destDir)) {
+            mkdir($destDir, 0755, true);
+        }
+        $filename = 'nl_' . bin2hex(random_bytes(8)) . '.' . $allowed[$mimeType];
+        if (!move_uploaded_file($file['tmp_name'], $destDir . $filename)) {
+            return null;
+        }
+        return $appUrl . '/assets/images/newsletter/' . $filename;
     }
 }
