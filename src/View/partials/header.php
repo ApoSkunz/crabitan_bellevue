@@ -4,6 +4,14 @@ $navLang     = $lang ?? $currentLang;
 $token       = $_COOKIE['auth_token'] ?? null;
 $isLogged    = false;
 
+// CSRF pour la modal connexion (session démarrée dans config.php)
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+$modalCsrf  = $_SESSION['csrf'];
+$modalError = $_SESSION['flash']['modal_error'] ?? null;
+unset($_SESSION['flash']['modal_error']);
+
 if ($token) {
     try {
         \Core\Jwt::decode($token);
@@ -104,9 +112,15 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     </span>
                     <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
                 </button>
-                <a href="/<?= htmlspecialchars($navLang) ?>/connexion" class="btn btn--white">
+                <button
+                    id="login-modal-trigger"
+                    type="button"
+                    class="btn btn--white"
+                    aria-expanded="false"
+                    aria-controls="login-modal"
+                >
                     <?= htmlspecialchars(__('nav.login')) ?>
-                </a>
+                </button>
             <?php endif; ?>
 
             <button
@@ -179,7 +193,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
     </nav>
 </header>
 
-<script>window.__userLogged = <?= $isLogged ? 'true' : 'false' ?>; window.__navLang = '<?= htmlspecialchars($navLang) ?>';</script>
+<script>window.__userLogged = <?= $isLogged ? 'true' : 'false' ?>; window.__navLang = '<?= htmlspecialchars($navLang) ?>'; window.__authModalError = <?= $modalError ? 'true' : 'false' ?>;</script>
 
 <!-- ============================================================ -->
 <!-- Modal ajout au panier                                         -->
@@ -229,6 +243,75 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
         </form>
     </div>
 </div>
+
+<!-- ============================================================ -->
+<!-- Modal connexion                                               -->
+<!-- ============================================================ -->
+<?php if (!$isLogged) : ?>
+<!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
+<div
+    id="login-modal"
+    class="login-modal"
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="login-modal-title"
+>
+    <div class="login-modal__backdrop" id="login-modal-backdrop"></div>
+    <div class="login-modal__inner">
+        <div class="login-modal__header">
+            <!-- NOSONAR Web:S6850 — title is static translated string, not dynamic -->
+            <h2 id="login-modal-title" class="login-modal__title"><?= htmlspecialchars(__('auth.login')) ?></h2>
+            <button id="login-modal-close" class="login-modal__close" type="button" aria-label="Fermer">&times;</button>
+        </div>
+        <div class="login-modal__body">
+            <div class="login-modal__social">
+                <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
+                    <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
+                        <?= htmlspecialchars(__('auth.modal.google')) ?>
+                    </button>
+                </span>
+                <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
+                    <button type="button" class="btn btn-social btn-social--apple" disabled aria-disabled="true">
+                        <?= htmlspecialchars(__('auth.modal.apple')) ?>
+                    </button>
+                </span>
+            </div>
+            <p class="login-modal__or"><span><?= htmlspecialchars(__('auth.modal.or')) ?></span></p>
+            <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/connexion" class="login-modal__form">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+                <?php if ($modalError) : ?>
+                    <div class="alert alert--error" role="alert"><?= htmlspecialchars($modalError) ?></div>
+                <?php endif; ?>
+                <div class="login-modal__field">
+                    <label for="login-modal-email"><?= htmlspecialchars(__('auth.email')) ?></label>
+                    <input type="email" id="login-modal-email" name="email" required autocomplete="email">
+                </div>
+                <div class="login-modal__field">
+                    <label for="login-modal-password"><?= htmlspecialchars(__('auth.password')) ?></label>
+                    <div class="login-modal__password-wrap">
+                        <input type="password" id="login-modal-password" name="password" required autocomplete="current-password">
+                        <button type="button" class="login-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="login-modal-password">
+                            <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
+                            <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                        </button>
+                    </div>
+                </div>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mot-de-passe-oublie" class="login-modal__forgot">
+                    <?= htmlspecialchars(__('auth.forgot_password')) ?>
+                </a>
+                <button type="submit" class="btn btn--gold login-modal__submit"><?= htmlspecialchars(__('auth.login')) ?></button>
+            </form>
+            <div class="login-modal__register">
+                <p class="login-modal__register-label"><?= htmlspecialchars(__('auth.modal.no_account')) ?></p>
+                <a href="/<?= htmlspecialchars($navLang) ?>/inscription" class="btn btn--ghost login-modal__register-btn">
+                    <?= htmlspecialchars(__('auth.modal.sign_up')) ?>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Toast notification -->
 <div id="cb-toast" class="cb-toast" aria-live="polite" aria-atomic="true" hidden></div>

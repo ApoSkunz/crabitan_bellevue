@@ -48,6 +48,12 @@ return [
     'auth.reset_invalid'     => 'Lien de réinitialisation invalide ou expiré.',
     'auth.password_invalid'  => 'Mot de passe trop court ou les mots de passe ne correspondent pas.',
     'auth.password_updated'  => 'Mot de passe mis à jour. Vous pouvez vous connecter.',
+    'auth.modal.or'          => 'ou',
+    'auth.modal.google'      => 'Continuer avec Google',
+    'auth.modal.apple'       => 'Continuer avec Apple',
+    'auth.modal.social_soon' => 'Bientôt disponible',
+    'auth.modal.no_account'  => 'Pas encore de compte ?',
+    'auth.modal.sign_up'     => 'S\'inscrire',
 
     // Vins — Catalogue
     'wine.add_to_cart'  => 'Ajouter au panier',

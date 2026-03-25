@@ -451,6 +451,56 @@ function initCartModal() {
 }
 
 // ============================================================
+// Login modal — header trigger (non connecté)
+// ============================================================
+
+function initLoginModal() {
+    const trigger  = document.getElementById('login-modal-trigger');
+    const modal    = document.getElementById('login-modal');
+    const closeBtn = document.getElementById('login-modal-close');
+    const backdrop = document.getElementById('login-modal-backdrop');
+
+    if (!trigger || !modal) return;
+
+    function openModal() {
+        modal.setAttribute('aria-hidden', 'false');
+        trigger.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+        closeBtn?.focus();
+    }
+
+    function closeModal() {
+        modal.setAttribute('aria-hidden', 'true');
+        trigger.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+        trigger.focus();
+    }
+
+    if (window.__authModalError) openModal();
+
+    trigger.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    backdrop?.addEventListener('click', closeModal);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+    });
+
+    // Toggle password visibility
+    modal.querySelectorAll('.login-modal__pwd-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            btn.querySelector('.pwd-eye--show').hidden = isHidden;
+            btn.querySelector('.pwd-eye--hide').hidden = !isHidden;
+            btn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+        });
+    });
+}
+
+// ============================================================
 // Cart login prompt (bouton panier header — non connecté)
 // ============================================================
 
@@ -702,6 +752,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCookieBanner();
     initCarousel();
     initAccountPanel();
+    initLoginModal();
     initCartModal();
     initCartLoginPrompt();
     initFavoriteAuth();
