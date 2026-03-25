@@ -198,7 +198,7 @@ class MailService
         string $ctaLabel,
         string $footnote
     ): string {
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/');
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — URL de fallback local dev uniquement, jamais en production
         $logoUrl  = $appUrl . '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
         $urlPrivacy  = $appUrl . '/fr/politique-confidentialite';
         $urlLegal    = $appUrl . '/fr/mentions-legales';
