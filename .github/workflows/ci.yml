@@ -82,7 +82,10 @@ jobs:
           DB_NAME: crabitan_bellevue
           DB_USER: root
           DB_PASS: root
-        run: vendor/bin/phpunit --testsuite Unit --coverage-clover coverage/clover-unit.xml
+          XDEBUG_MODE: coverage
+        run: |
+          mkdir -p coverage
+          vendor/bin/phpunit --testsuite Unit --coverage-clover coverage/clover-unit.xml
 
       - name: PHPUnit (TI)
         env:
@@ -90,9 +93,19 @@ jobs:
           DB_NAME: crabitan_bellevue
           DB_USER: root
           DB_PASS: root
+          XDEBUG_MODE: coverage
         run: vendor/bin/phpunit --testsuite Integration --coverage-clover coverage/clover-integration.xml
 
+      - name: Debug coverage files
+        if: always()
+        run: |
+          echo "=== coverage/ contents ==="
+          ls -lh coverage/ || echo "directory missing"
+          echo "=== clover-unit.xml head ==="
+          head -5 coverage/clover-unit.xml 2>/dev/null || echo "file missing"
+
       - name: Upload PHP coverage
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: php-coverage
