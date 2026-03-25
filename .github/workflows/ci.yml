@@ -30,7 +30,7 @@ jobs:
         run: vendor/bin/phpcs
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
@@ -142,7 +142,7 @@ jobs:
         run: mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/seed_wines_prod.sql
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
@@ -270,7 +270,7 @@ jobs:
         run: mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/schema.sql
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
@@ -340,7 +340,7 @@ jobs:
         run: composer audit
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
