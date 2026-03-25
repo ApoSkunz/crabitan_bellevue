@@ -26,14 +26,17 @@ class PricingModel extends Model
         float $withdrawalPrice,
         string $labelFr,
         string $labelEn,
-        bool $active
+        bool $active,
+        int $minQuantity,
+        ?int $maxQuantity
     ): void {
         $label = json_encode(['fr' => $labelFr, 'en' => $labelEn]);
         $this->db->execute(
             "UPDATE {$this->table}
-             SET delivery_price = ?, withdrawal_price = ?, label = ?, active = ?
+             SET delivery_price = ?, withdrawal_price = ?, label = ?, active = ?,
+                 min_quantity = ?, max_quantity = ?
              WHERE id = ?",
-            [$deliveryPrice, $withdrawalPrice, $label, $active ? 1 : 0, $id]
+            [$deliveryPrice, $withdrawalPrice, $label, $active ? 1 : 0, $minQuantity, $maxQuantity, $id]
         );
     }
 }

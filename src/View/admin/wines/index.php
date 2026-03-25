@@ -13,7 +13,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
     if ($avail !== null && $avail !== '') {
         $q['available'] = $avail;
     }
-    if ($perPage !== 20) {
+    if ($perPage !== 25) {
         $q['per_page'] = $perPage;
     }
     return '/admin/vins?' . http_build_query($q);

@@ -172,7 +172,7 @@ $maxYear = (int) date('Y');
                 </p>
             </div>
 
-            <div class="admin-field admin-field--full" style="display:flex;gap:2rem;align-items:center;flex-wrap:wrap;">
+            <div class="admin-field admin-field--full" style="grid-column:1/-1;display:flex;gap:2rem;align-items:center;flex-wrap:wrap;">
                 <div class="admin-field__check">
                     <input type="hidden" name="available" value="0">
                     <input type="checkbox" id="available" name="available" value="1"

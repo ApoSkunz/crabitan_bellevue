@@ -103,9 +103,22 @@ function pricingLabel(mixed $raw, string $lang): string
                         <input type="hidden" name="id[]" value="<?= (int) $rule['id'] ?>">
                         <tr>
                             <td><?= htmlspecialchars($formatLabels[$rule['format']] ?? $rule['format']) ?></td>
-                            <td><?= (int) $rule['min_quantity'] ?></td>
                             <td>
-                                <?= $rule['max_quantity'] !== null ? (int) $rule['max_quantity'] : '∞' ?>
+                                <input type="number"
+                                       name="min_qty_<?= (int) $rule['id'] ?>"
+                                       min="0" step="1"
+                                       value="<?= (int) $rule['min_quantity'] ?>">
+                            </td>
+                            <td>
+                                <?php if ($rule['max_quantity'] !== null) : ?>
+                                    <input type="number"
+                                           name="max_qty_<?= (int) $rule['id'] ?>"
+                                           min="1" step="1"
+                                           value="<?= (int) $rule['max_quantity'] ?>">
+                                <?php else : ?>
+                                    <span title="Illimité" style="color:#8a7a60;">∞</span>
+                                    <input type="hidden" name="max_qty_<?= (int) $rule['id'] ?>" value="">
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <input type="number"

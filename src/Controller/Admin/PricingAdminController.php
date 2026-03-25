@@ -63,8 +63,11 @@ class PricingAdminController extends AdminController
                 $labelFr    = trim($this->request->post("label_fr_{$id}", ''));
                 $labelEn    = trim($this->request->post("label_en_{$id}", ''));
                 $active     = $this->request->post("active_{$id}", '0') === '1';
+                $minQty     = max(0, (int) $this->request->post("min_qty_{$id}", '0'));
+                $maxQtyRaw  = $this->request->post("max_qty_{$id}", '');
+                $maxQty     = ($maxQtyRaw !== '' && (int) $maxQtyRaw > 0) ? (int) $maxQtyRaw : null;
 
-                $this->pricing->update($id, $delivery, $withdrawal, $labelFr, $labelEn, $active);
+                $this->pricing->update($id, $delivery, $withdrawal, $labelFr, $labelEn, $active, $minQty, $maxQty);
             }
         }
 

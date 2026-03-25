@@ -59,7 +59,7 @@ function hasError(array $errors, string $key): bool
                        value="<?= htmlspecialchars($article['slug'] ?? '') ?>">
                 <?php if ($isEdit) : ?>
                     <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.25rem;">
-                        Le slug est recalculé automatiquement à chaque enregistrement.
+                        Le slug est figé à la création et ne change plus. Le preview ci-dessus reflète la valeur actuelle en base.
                     </p>
                 <?php endif; ?>
             </div>

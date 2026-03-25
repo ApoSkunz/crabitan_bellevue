@@ -24,7 +24,7 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
         <?php if ($total === 0) : ?>
             <p style="font-size:0.85rem;color:#8a7a60;">Aucun abonné — aucun envoi possible.</p>
         <?php else : ?>
-            <form method="POST" action="/admin/newsletter/envoyer" class="admin-form">
+            <form id="nl-form" method="POST" action="/admin/newsletter/envoyer" class="admin-form">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <div class="admin-field" style="margin-bottom:1rem;">
                     <label class="admin-field__label" for="nl-subject">Objet *</label>
@@ -41,12 +41,41 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
                     </p>
                 </div>
                 <div class="admin-form__actions">
-                    <button type="submit" class="admin-btn admin-btn--primary"
-                            onclick="return confirm('Envoyer à <?= $total ?> abonné<?= $total > 1 ? 's' : '' ?> ?')">
+                    <button type="button" class="admin-btn admin-btn--primary"
+                            onclick="openNlModal()">
                         Envoyer à <?= $total ?> abonné<?= $total > 1 ? 's' : '' ?>
                     </button>
                 </div>
             </form>
+
+            <!-- Modal de confirmation -->
+            <div id="nl-modal" role="dialog" aria-modal="true" aria-labelledby="nl-modal-title"
+                 style="display:none;position:fixed;inset:0;z-index:9999;
+                        background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
+                <div style="background:#fff;border-radius:6px;padding:2rem 2.5rem;max-width:440px;width:90%;
+                             box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+                    <h2 id="nl-modal-title"
+                        style="font-family:var(--font-serif);font-size:1.05rem;color:#1a1208;margin:0 0 0.75rem;">
+                        Confirmer l'envoi
+                    </h2>
+                    <p style="font-size:0.9rem;color:#3d3425;margin:0 0 0.5rem;">
+                        Objet : <strong id="nl-modal-subject" style="color:#1a1208;">—</strong>
+                    </p>
+                    <p style="font-size:0.9rem;color:#3d3425;margin:0 0 1.5rem;">
+                        Cette newsletter sera envoyée à
+                        <strong style="color:#c9a84c;"><?= $total ?> abonné<?= $total > 1 ? 's' : '' ?></strong>.
+                        Cette action est irréversible.
+                    </p>
+                    <div style="display:flex;gap:1rem;justify-content:flex-end;">
+                        <button type="button" class="admin-btn admin-btn--outline"
+                                onclick="closeNlModal()">Annuler</button>
+                        <button type="button" class="admin-btn admin-btn--primary"
+                                onclick="document.getElementById('nl-form').submit()">
+                            Confirmer l'envoi
+                        </button>
+                    </div>
+                </div>
+            </div>
         <?php endif; ?>
     </div>
 </div>
@@ -108,5 +137,28 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+function openNlModal() {
+    const subject = document.getElementById('nl-subject').value.trim();
+    const body    = document.getElementById('nl-body').value.trim();
+    if (!subject || !body) {
+        return; // la validation HTML5 du form prendra le relais si on soumettait
+    }
+    document.getElementById('nl-modal-subject').textContent = subject || '—';
+    const modal = document.getElementById('nl-modal');
+    modal.style.display = 'flex';
+    document.addEventListener('keydown', nlModalEsc);
+}
+
+function closeNlModal() {
+    document.getElementById('nl-modal').style.display = 'none';
+    document.removeEventListener('keydown', nlModalEsc);
+}
+
+function nlModalEsc(e) {
+    if (e.key === 'Escape') closeNlModal();
+}
+</script>
 
 <?php require_once SRC_PATH . '/View/admin/_close.php'; ?>

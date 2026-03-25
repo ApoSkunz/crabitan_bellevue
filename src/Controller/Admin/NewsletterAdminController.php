@@ -99,5 +99,4 @@ class NewsletterAdminController extends AdminController
         $this->flash('success', $msg);
         Response::redirect('/admin/newsletter');
     }
-
 }
