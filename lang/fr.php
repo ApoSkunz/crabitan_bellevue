@@ -39,6 +39,7 @@ return [
     'auth.invalid_credentials' => 'Email ou mot de passe incorrect',
     'auth.account_inactive'  => 'Veuillez vérifier votre email pour activer votre compte',
     'auth.email_taken'       => 'Cette adresse email est déjà utilisée',
+    'auth.login_success'     => 'Connexion réussie',
     'auth.register_success'  => 'Compte créé ! Consultez votre email pour activer votre compte.',
     'auth.verify_success'    => 'Votre compte est activé. Vous pouvez vous connecter.',
     'auth.verify_invalid'    => 'Lien de vérification invalide ou expiré.',
@@ -273,6 +274,9 @@ return [
     'contact.error_smtp'      => 'Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou nous contacter par téléphone.',
     'contact.mail_owner_subject'  => 'Nouveau message de contact',
     'contact.mail_confirm_subject' => 'Nous avons bien reçu votre message',
+    'contact.order_form_title'    => 'Bon de commande',
+    'contact.order_form_desc'     => 'Téléchargez notre bon de commande pour passer une commande par courrier ou par email.',
+    'contact.order_form_btn'      => 'Télécharger le bon de commande (PDF)',
 
     // Mentions légales
     'legal.editor_title'  => 'Éditeur du site',

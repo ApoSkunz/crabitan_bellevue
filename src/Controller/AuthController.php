@@ -36,10 +36,9 @@ class AuthController extends Controller
         GuestMiddleware::handle();
         $lang = $params['lang'];
 
-        $rawBack  = $this->request->post('redirect_back', '');
-        $safeBack = (preg_match('#^/[^/]#', $rawBack) && !str_contains($rawBack, '://'))
-            ? $rawBack
-            : "/{$lang}";
+        $rawBack   = $this->request->post('redirect_back', '');
+        $validBack = preg_match('#^/[^/]#', $rawBack) && !str_contains($rawBack, '://');
+        $safeBack  = $validBack ? $rawBack : "/{$lang}";
 
         if (!$this->verifyCsrf()) {
             $this->flash('modal_error', __('error.csrf'));
@@ -99,7 +98,7 @@ class AuthController extends Controller
             $expiry
         );
 
-        Response::redirect("/{$lang}/mon-compte");
+        Response::redirect($safeBack);
     }
 
     // ----------------------------------------------------------------

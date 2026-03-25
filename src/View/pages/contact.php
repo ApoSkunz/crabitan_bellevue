@@ -116,6 +116,29 @@ require_once SRC_PATH . '/View/partials/header.php';
         </div>
     </section>
 
+    <!-- Bon de commande -->
+    <?php if ($latestOrderForm !== null) : ?>
+    <section class="contact-section home-section home-section--dark" id="bon-de-commande">
+        <div class="container">
+            <h2 class="home-section__title home-section__title--sm">
+                <?= htmlspecialchars(__('contact.order_form_title')) ?>
+            </h2>
+            <div class="home-section__divider home-section__divider--center"></div>
+            <p style="text-align:center;margin-bottom:1.5rem;color:var(--color-text-muted);">
+                <?= htmlspecialchars(__('contact.order_form_desc')) ?>
+                (<?= (int) $latestOrderForm['year'] ?><?= $latestOrderForm['label'] !== null ? ' — ' . htmlspecialchars($latestOrderForm['label']) : '' ?>)
+            </p>
+            <div style="text-align:center;">
+                <a href="/bons-de-commande/<?= (int) $latestOrderForm['id'] ?>/telecharger"
+                   class="btn btn--gold"
+                   target="_blank" rel="noopener">
+                    <?= htmlspecialchars(__('contact.order_form_btn')) ?>
+                </a>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
+
     <!-- Localisation -->
     <section class="contact-section home-section home-section--surface" id="contact-location">
         <div class="container">

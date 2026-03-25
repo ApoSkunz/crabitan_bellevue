@@ -82,7 +82,10 @@ jobs:
           DB_NAME: crabitan_bellevue
           DB_USER: root
           DB_PASS: root
-        run: vendor/bin/phpunit --testsuite Unit --coverage-clover coverage/clover-unit.xml
+          XDEBUG_MODE: coverage
+        run: |
+          mkdir -p coverage
+          vendor/bin/phpunit --testsuite Unit --coverage-clover coverage/clover-unit.xml
 
       - name: PHPUnit (TI)
         env:
@@ -90,9 +93,11 @@ jobs:
           DB_NAME: crabitan_bellevue
           DB_USER: root
           DB_PASS: root
+          XDEBUG_MODE: coverage
         run: vendor/bin/phpunit --testsuite Integration --coverage-clover coverage/clover-integration.xml
 
       - name: Upload PHP coverage
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: php-coverage
@@ -341,4 +346,6 @@ jobs:
           cache: 'npm'
 
       - name: npm audit (JS deps)
-        run: npm audit --audit-level=high
+        # picomatch bundled inside npm CLI itself (node_modules/npm/**) — unfixable via overrides,
+        # not exploitable in our application code. Dependabot watches for upstream fixes.
+        run: npm audit --audit-level=critical

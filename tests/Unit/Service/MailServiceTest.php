@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service;
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPUnit\Framework\Attributes\BackupGlobals;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use ReflectionProperty;
 use Service\MailService;
 
 /**
  * Tests unitaires de la logique de construction des corps d'email.
- * Les méthodes testées sont privées (pur string building, sans SMTP).
+ * Les méthodes privées de construction de HTML sont testées via Reflection.
+ * Les méthodes publiques (sendContact*, __construct else branch) sont couvertes
+ * sans subprocess pour que Xdebug/PCOV collecte correctement la couverture.
  */
 class MailServiceTest extends TestCase
 {
@@ -21,6 +26,20 @@ class MailServiceTest extends TestCase
     {
         $this->service    = new MailService();
         $this->reflection = new ReflectionClass(MailService::class);
+    }
+
+    /**
+     * Injecte un mock PHPMailer dont send() ne lance pas d'exception,
+     * permettant de couvrir les lignes de construction du corps sans SMTP réel.
+     */
+    private function injectMockMailer(MailService $service): void
+    {
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setAccessible(true);
+        $prop->setValue($service, $stub);
     }
 
     private function callPrivate(string $method, mixed ...$args): string
@@ -123,5 +142,134 @@ class MailServiceTest extends TestCase
         $body = $this->callPrivate('resetBodyEn', '<img src=x>', 'https://x.com');
         $this->assertStringContainsString('&lt;img src=x&gt;', $body);
         $this->assertStringNotContainsString('<img src=x', $body);
+    }
+
+    // ----------------------------------------------------------------
+    // __construct — branche else : MAIL_USER vide → SMTPAuth = false
+    // BackupGlobals restaure $_ENV après le test sans subprocess.
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testConstructElseBranchWithEmptyMailUser(): void
+    {
+        $_ENV['MAIL_USER'] = '';
+        $_ENV['APP_URL']   = 'http://crabitan.local';
+
+        $service = new MailService();
+        $this->assertInstanceOf(MailService::class, $service);
+
+        // Vérifie via Reflection que SMTPAuth est bien false
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setAccessible(true);
+        /** @var PHPMailer $mailer */
+        $mailer = $prop->getValue($service);
+        $this->assertFalse($mailer->SMTPAuth);
+        $this->assertSame('', $mailer->SMTPSecure);
+    }
+
+    // ----------------------------------------------------------------
+    // sendContactToOwner — corps HTML couvert sans SMTP réel
+    // ----------------------------------------------------------------
+
+    public function testSendContactToOwnerCoversBodyLines(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendContactToOwner(
+            'Jean',
+            'Dupont',
+            'jean@example.com',
+            'Question test',
+            'Un message de test.',
+            'fr'
+        );
+
+        $this->assertTrue(true); // pas d'exception = corps construit et send() mocké OK
+    }
+
+    // ----------------------------------------------------------------
+    // sendContactConfirmation — branche FR
+    // ----------------------------------------------------------------
+
+    public function testSendContactConfirmationFrCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendContactConfirmation(
+            'jean@example.com',
+            'Jean',
+            'Question test',
+            'fr'
+        );
+
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendContactConfirmation — branche EN
+    // ----------------------------------------------------------------
+
+    public function testSendContactConfirmationEnCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendContactConfirmation(
+            'jean@example.com',
+            'Jean',
+            'Question test',
+            'en'
+        );
+
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendNewsletter — délègue à send()
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendNewsletter(
+            'abonne@example.com',
+            'Marie',
+            'Notre actualité du mois',
+            '<p>Contenu HTML test</p>'
+        );
+
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // buildNewsletterHtml — sans image
+    // ----------------------------------------------------------------
+
+    public function testBuildNewsletterHtmlWithoutImage(): void
+    {
+        $html = $this->service->buildNewsletterHtml(
+            'Lettre de mars',
+            '<p>Bonjour, voici nos nouvelles.</p>'
+        );
+
+        $this->assertStringContainsString('Lettre de mars', $html);
+        $this->assertStringContainsString('Bonjour, voici nos nouvelles.', $html);
+        $this->assertStringContainsString('<!DOCTYPE html>', $html);
+    }
+
+    // ----------------------------------------------------------------
+    // buildNewsletterHtml — avec image (branche $imageUrl !== null)
+    // ----------------------------------------------------------------
+
+    public function testBuildNewsletterHtmlWithImage(): void
+    {
+        $html = $this->service->buildNewsletterHtml(
+            'Lettre avec image',
+            '<p>Contenu.</p>',
+            'https://example.com/image.jpg'
+        );
+
+        $this->assertStringContainsString('https://example.com/image.jpg', $html);
+        $this->assertStringContainsString('<img', $html);
     }
 }

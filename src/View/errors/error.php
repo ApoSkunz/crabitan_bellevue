@@ -57,7 +57,7 @@ $homeLbl = $lang === 'en' ? '← Back to home' : '← Retour à l\'accueil';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $statusCode ?> — <?= htmlspecialchars($title) ?> — <?= htmlspecialchars($appName) ?></title>
     <meta name="robots" content="noindex, nofollow">
-    <link rel="icon" type="image/png" href="/assets/images/logo/crabitan-bellevue-logo.png">
+    <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/css/main.css">
     <script>
         // Restore theme preference without flash

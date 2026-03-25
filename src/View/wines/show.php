@@ -1,4 +1,5 @@
 <?php
+$isAdmin   = $isAdmin ?? false;
 $wineName  = ($wine['label_name'] ?? '') . ' ' . ($wine['vintage'] ?? '');
 $pageTitle = $wineName;
 require_once SRC_PATH . '/View/partials/head.php';
@@ -73,6 +74,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                         <span class="wine-detail__stock wine-detail__stock--available">
                             <?= htmlspecialchars(__('wine.available')) ?>
                         </span>
+                        <?php if (!$isAdmin) : ?>
                         <button
                             type="button"
                             class="btn btn--gold js-add-to-cart"
@@ -83,6 +85,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                         >
                             <?= htmlspecialchars(__('wine.add_to_cart')) ?>
                         </button>
+                        <?php endif; ?>
                     </div>
                 <?php else : ?>
                     <p class="wine-detail__out-of-stock"><?= htmlspecialchars(__('wine.out_of_stock')) ?></p>

@@ -34,9 +34,9 @@ class Response
         throw new \Core\Exception\HttpException($status, null, $message);
     }
 
-    public static function view(string $template, array $data = [], int $status = 200): void
+    public static function view(string $template, array $data = [], int $httpStatus = 200): void
     {
-        http_response_code($status);
+        http_response_code($httpStatus);
         // Injecter $navLang automatiquement pour toutes les vues
         if (!isset($data['navLang'])) {
             $default = defined('DEFAULT_LANG') ? DEFAULT_LANG : 'fr';

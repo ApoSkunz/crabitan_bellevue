@@ -133,4 +133,120 @@ class AccountModel extends Model
             [$id]
         );
     }
+
+    // ----------------------------------------------------------------
+    // Méthodes admin
+    // ----------------------------------------------------------------
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForAdmin(int $limit, int $offset, ?string $role, ?string $search, ?string $type = null): array
+    {
+        [$where, $params] = $this->buildAdminFilters($role, $search, $type);
+        $params[] = $limit;
+        $params[] = $offset;
+
+        return $this->db->fetchAll(
+            $this->withProfile() . "
+             {$where}
+             ORDER BY a.created_at DESC
+             LIMIT ? OFFSET ?",
+            $params
+        );
+    }
+
+    public function countForAdmin(?string $role, ?string $search, ?string $type = null): int
+    {
+        [$where, $params] = $this->buildAdminFilters($role, $search, $type);
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total FROM {$this->table} a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             {$where}",
+            $params
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    public function updateRole(int $id, string $role): void
+    {
+        $valid = ['customer', 'admin', 'super_admin'];
+        if (!in_array($role, $valid, true)) {
+            return;
+        }
+        $this->db->execute(
+            "UPDATE {$this->table} SET role = ? WHERE id = ?",
+            [$role, $id]
+        );
+    }
+
+    public function countTotal(): int
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total FROM {$this->table} WHERE deleted_at IS NULL"
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    // ----------------------------------------------------------------
+    // Newsletter
+    // ----------------------------------------------------------------
+
+    /** @return array<int, array<string, mixed>> */
+    public function getNewsletterSubscribers(int $limit, int $offset): array
+    {
+        return $this->db->fetchAll(
+            "SELECT a.id, a.email, a.account_type, a.lang, a.created_at,
+                    ai.firstname, ai.lastname,
+                    ac.company_name
+             FROM {$this->table} a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             WHERE a.newsletter = 1 AND a.deleted_at IS NULL
+             ORDER BY a.created_at DESC
+             LIMIT ? OFFSET ?",
+            [$limit, $offset]
+        );
+    }
+
+    public function countNewsletterSubscribers(): int
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total FROM {$this->table}
+             WHERE newsletter = 1 AND deleted_at IS NULL"
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /** @return array{string, array<int, mixed>} */
+    private function buildAdminFilters(?string $role, ?string $search, ?string $type = null): array
+    {
+        $conds  = ['a.deleted_at IS NULL'];
+        $params = [];
+
+        $validRoles = ['customer', 'admin', 'super_admin'];
+        if ($role !== null && in_array($role, $validRoles, true)) {
+            $conds[]  = 'a.role = ?';
+            $params[] = $role;
+        }
+
+        $validTypes = ['individual', 'company'];
+        if ($type !== null && in_array($type, $validTypes, true)) {
+            $conds[]  = 'a.account_type = ?';
+            $params[] = $type;
+        }
+
+        if ($search !== null && $search !== '') {
+            $like     = '%' . $search . '%';
+            $conds[]  = '(a.email LIKE ? OR ai.lastname LIKE ? OR ai.firstname LIKE ? OR ac.company_name LIKE ?)';
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        $where = 'WHERE ' . implode(' AND ', $conds);
+        return [$where, $params];
+    }
 }

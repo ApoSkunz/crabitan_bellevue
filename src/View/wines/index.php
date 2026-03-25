@@ -1,4 +1,5 @@
 <?php
+$isAdmin   = $isAdmin ?? false;
 $pageTitle = __('nav.wines');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
@@ -168,7 +169,7 @@ $colorLabels = [
                                         <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
                                     </strong>
                                     <div class="wine-card__actions">
-                                        <?php if ($wine['available']) : ?>
+                                        <?php if ($wine['available'] && !$isAdmin) : ?>
                                             <button
                                                 type="button"
                                                 class="wine-card__cart js-add-to-cart"

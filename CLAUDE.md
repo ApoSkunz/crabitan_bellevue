@@ -11,6 +11,7 @@ Ce projet est réalisé en équipe pluridisciplinaire. Chaque rôle est tenu par
 | **Expert DevSecOps** | CI/CD GitHub Actions, SonarCloud, Semgrep, TruffleHog, Legitify, SCA, secrets, PHPCS/PHPStan |
 | **Expert UX/UI Designer** | Maquettes, cohérence visuelle, charte graphique, expérience utilisateur |
 | **Scrum / Product Owner** | Rédaction des plans (PLAN.md), features, backlogs, priorisation, acceptance criteria |
+| **Expert QA** | Stratégie de tests, rédaction TU/TI/E2E, couverture de code (SonarCloud ≥ 80%), revue des cas limites, non-régression |
 | **Expert Red Team** | Analyse des failles applicatives (OWASP, injection, auth bypass, XSS, CSRF, IDOR…), pentest, rapports de vulnérabilités |
 | **Expert Blue Team** | Recommandations de protection, durcissement applicatif, monitoring, réponse aux rapports Red Team |
 | **Architecte Génie Logicielle** | Patterns, SOLID, couplage/cohésion, qualité de code, revue d'architecture MVC, refactoring structurel |
@@ -30,7 +31,7 @@ npm run lint
 npm run build
 
 # 2. Qualité PHP
-vendor/bin/phpcs --standard=PSR12 src/ config/ public/index.php tests/
+vendor/bin/phpcs
 php -d memory_limit=512M vendor/phpstan/phpstan/phpstan.phar analyse --configuration=phpstan.neon
 
 # 3. Tests unitaires
@@ -48,11 +49,29 @@ Rapporter le résultat. Si tout est vert, attendre le mot **"go push"**.
 ## Push
 
 Quand l'utilisateur dit **"go push"** :
-- `git add` / `git mv` / `git rm` les fichiers concernés
+- Découper en **commits atomiques** — un commit = une responsabilité (ex : schéma BDD, modèle, contrôleur, vue, CI, i18n...)
+- `git add` fichiers par fichiers (jamais `git add .` en bloc)
 - `git commit` avec message conventionnel (feat/fix/refactor/chore...)
 - `git push origin <branche>`
 
 Pas besoin de confirmation supplémentaire.
+
+### Règle de découpage des commits
+
+Regrouper par **couche ou domaine fonctionnel**, dans cet ordre conseillé :
+
+| Commit | Contenu typique |
+|---|---|
+| `chore(db):` | schema.sql, migrations, seeds |
+| `feat(model):` | nouveau Model ou méthodes ajoutées |
+| `feat(controller):` | Controller(s) créés ou modifiés |
+| `feat(view):` | Vues / templates |
+| `feat(routes):` | config/routes.php |
+| `feat(i18n):` | lang/fr.php, lang/en.php |
+| `feat(ci):` | GitHub Actions workflows |
+| `docs:` | README, PLAN.md, CLAUDE.md |
+
+Un seul fichier modifié peut faire l'objet d'un commit séparé si son changement est orthogonal aux autres.
 
 ## Conventions
 

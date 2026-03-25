@@ -93,9 +93,10 @@ class AuthControllerTest extends IntegrationTestCase
         $this->insertVerifiedAccount('login@example.com', 'Password123!');
 
         $_POST = [
-            'email'      => 'login@example.com',
-            'password'   => 'Password123!',
-            'csrf_token' => self::CSRF,
+            'email'         => 'login@example.com',
+            'password'      => 'Password123!',
+            'csrf_token'    => self::CSRF,
+            'redirect_back' => '/fr/mon-compte',
         ];
 
         try {

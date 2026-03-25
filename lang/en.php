@@ -39,6 +39,7 @@ return [
     'auth.invalid_credentials' => 'Invalid email or password',
     'auth.account_inactive'  => 'Please verify your email to activate your account',
     'auth.email_taken'       => 'This email address is already in use',
+    'auth.login_success'     => 'Successfully logged in',
     'auth.register_success'  => 'Account created! Check your email to activate your account.',
     'auth.verify_success'    => 'Your account is now active. You can log in.',
     'auth.verify_invalid'    => 'Invalid or expired verification link.',
@@ -271,6 +272,9 @@ return [
     'contact.error_smtp'      => 'An error occurred while sending. Please try again or contact us by phone.',
     'contact.mail_owner_subject'  => 'New contact message',
     'contact.mail_confirm_subject' => 'We have received your message',
+    'contact.order_form_title'    => 'Order Form',
+    'contact.order_form_desc'     => 'Download our order form to place an order by mail or email.',
+    'contact.order_form_btn'      => 'Download order form (PDF)',
 
     // Legal notice
     'legal.editor_title'  => 'Website editor',

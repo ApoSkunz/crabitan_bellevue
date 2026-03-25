@@ -3,6 +3,7 @@ $currentLang = defined('CURRENT_LANG') ? CURRENT_LANG : 'fr';
 $navLang     = $lang ?? $currentLang;
 $token       = $_COOKIE['auth_token'] ?? null;
 $isLogged    = false;
+$isAdmin     = false;
 
 // CSRF pour la modal connexion (session démarrée dans config.php)
 if (empty($_SESSION['csrf'])) {
@@ -27,8 +28,9 @@ if ($resetOpen) {
 
 if ($token) {
     try {
-        \Core\Jwt::decode($token);
-        $isLogged = true;
+        $jwtPayload = \Core\Jwt::decode($token);
+        $isLogged   = true;
+        $isAdmin    = in_array($jwtPayload['role'] ?? '', ['admin', 'super_admin'], true);
     } catch (\Throwable) {
         // Token invalide ou expiré : l'utilisateur est traité comme non connecté
     }
@@ -92,6 +94,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
             </button>
 
             <?php if ($isLogged) : ?>
+                <?php if (!$isAdmin) : ?>
                 <a
                     href="/<?= htmlspecialchars($navLang) ?>/panier"
                     class="header-cart<?= str_contains($currentPath, '/panier') ? $activeClass : '' ?>"
@@ -103,6 +106,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     </span>
                     <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
                 </a>
+                <?php endif; ?>
                 <button
                     id="account-panel-trigger"
                     class="btn btn--ghost"
@@ -175,15 +179,6 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                class="header-nav__link<?= $isActive('/vins/collection') ?>">
                 <span><?= htmlspecialchars(__('nav.collection')) ?></span>
             </a>
-            <?php if ($isLogged) : ?>
-                <a href="/<?= htmlspecialchars($navLang) ?>/panier"
-                   class="header-nav__link<?= $isActive('/panier') ?>">
-                    <span><?= htmlspecialchars(__('nav.cart')) ?></span>
-                </a>
-                <a href="/<?= htmlspecialchars($navLang) ?>/deconnexion" class="header-nav__link">
-                    <span><?= htmlspecialchars(__('nav.logout')) ?></span>
-                </a>
-            <?php endif; ?>
         </div>
     </nav>
 
@@ -196,7 +191,9 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
         <a href="/<?= htmlspecialchars($navLang) ?>/actualites"><?= htmlspecialchars(__('nav.news')) ?></a>
         <a href="/<?= htmlspecialchars($navLang) ?>/contact"><?= htmlspecialchars(__('nav.contact')) ?></a>
         <?php if ($isLogged) : ?>
+            <?php if (!$isAdmin) : ?>
             <a href="/<?= htmlspecialchars($navLang) ?>/panier"><?= htmlspecialchars(__('nav.cart')) ?></a>
+            <?php endif; ?>
             <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte"><?= htmlspecialchars(__('nav.account')) ?></a>
             <a href="/<?= htmlspecialchars($navLang) ?>/deconnexion"><?= htmlspecialchars(__('nav.logout')) ?></a>
         <?php else : ?>
@@ -216,6 +213,28 @@ window.__resetOpen        = <?= $resetOpen ? 'true' : 'false' ?>;
 window.__resetToken       = <?= json_encode($resetToken) ?>;
 window.__resetValid       = <?= $resetValid ? 'true' : 'false' ?>;
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var loginForm = document.querySelector('.login-modal__form[action*="connexion"]');
+    if (!loginForm) return;
+    loginForm.addEventListener('submit', function () {
+        var btn = loginForm.querySelector('button[type="submit"]');
+        if (!btn) return;
+        var inner = loginForm.closest('.login-modal__inner');
+        if (inner) inner.classList.add('cb-loading');
+        btn.disabled = true;
+        btn.innerHTML =
+            '<span style="display:inline-block;width:.85em;height:.85em;border:2px solid currentColor;'
+            + 'border-top-color:transparent;border-radius:50%;animation:cb-spin .6s linear infinite;'
+            + 'vertical-align:middle;margin-right:.4em;"></span>Connexion en cours\u2026';
+    });
+});
+</script>
+<style>
+@keyframes cb-spin{to{transform:rotate(360deg)}}
+.login-modal__inner.cb-loading{opacity:.6;pointer-events:none;}
+.login-modal__inner.cb-loading .login-modal__submit{opacity:1;pointer-events:auto;}
+</style>
 
 <!-- ============================================================ -->
 <!-- Modal ajout au panier                                         -->
@@ -632,23 +651,28 @@ window.__resetValid       = <?= $resetValid ? 'true' : 'false' ?>;
             >&times;</button>
         </div>
 
-        <div class="account-panel__logo">
-            <img src="/assets/images/logo/crabitan-bellevue-logo.png" alt="" width="56" height="56">
-        </div>
-
         <nav class="account-panel__nav" aria-label="Navigation compte">
-            <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">
-                <?= htmlspecialchars(__('panel.account')) ?>
-            </a>
-            <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/commandes">
-                <?= htmlspecialchars(__('panel.orders')) ?>
-            </a>
-            <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/adresses">
-                <?= htmlspecialchars(__('panel.addresses')) ?>
-            </a>
-            <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/favoris">
-                <?= htmlspecialchars(__('panel.favorites')) ?>
-            </a>
+            <?php if ($isAdmin) : ?>
+                <span class="account-panel__section-label">Administration</span>
+                <a href="/admin">Tableau de bord</a>
+                <a href="/admin/vins">Vins</a>
+                <a href="/admin/commandes">Commandes</a>
+                <a href="/admin/comptes">Comptes</a>
+                <a href="/admin/tarifs">Tarifs</a>
+            <?php else : ?>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">
+                    <?= htmlspecialchars(__('panel.account')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/commandes">
+                    <?= htmlspecialchars(__('panel.orders')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/adresses">
+                    <?= htmlspecialchars(__('panel.addresses')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/favoris">
+                    <?= htmlspecialchars(__('panel.favorites')) ?>
+                </a>
+            <?php endif; ?>
             <a href="/<?= htmlspecialchars($navLang) ?>/deconnexion" class="account-panel__logout">
                 <?= htmlspecialchars(__('panel.logout')) ?>
             </a>

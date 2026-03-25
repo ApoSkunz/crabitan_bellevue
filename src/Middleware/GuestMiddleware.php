@@ -22,8 +22,11 @@ class GuestMiddleware
         }
 
         try {
-            Jwt::decode($token);
-            $lang = defined('CURRENT_LANG') ? CURRENT_LANG : 'fr';
+            $payload = Jwt::decode($token);
+            $lang    = defined('CURRENT_LANG') ? CURRENT_LANG : 'fr';
+            if (in_array($payload['role'] ?? '', ['admin', 'super_admin'], true)) {
+                Response::redirect('/admin');
+            }
             Response::redirect("/{$lang}/mon-compte");
         } catch (HttpException $e) {
             throw $e;

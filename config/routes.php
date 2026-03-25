@@ -3,6 +3,37 @@
 declare(strict_types=1);
 
 // ============================================================
+// Routes Admin — déclarées EN PREMIER pour éviter le match
+// de /{lang}/... sur les segments commençant par "admin"
+// ============================================================
+$router->get('/admin', 'Admin\DashboardController@index');
+$router->get('/admin/vins', 'Admin\WineAdminController@index');
+$router->get('/admin/vins/ajouter', 'Admin\WineAdminController@create');
+$router->post('/admin/vins/ajouter', 'Admin\WineAdminController@store');
+$router->get('/admin/vins/{id}/modifier', 'Admin\WineAdminController@edit');
+$router->post('/admin/vins/{id}/modifier', 'Admin\WineAdminController@update');
+$router->get('/admin/commandes', 'Admin\OrderAdminController@index');
+$router->get('/admin/commandes/{id}', 'Admin\OrderAdminController@show');
+$router->post('/admin/commandes/{id}/statut', 'Admin\OrderAdminController@updateStatus');
+$router->post('/admin/commandes/{id}/facture', 'Admin\OrderAdminController@uploadInvoice');
+$router->get('/admin/commandes/{id}/facture/telecharger', 'Admin\OrderAdminController@downloadInvoice');
+$router->get('/admin/comptes', 'Admin\AccountAdminController@index');
+$router->post('/admin/comptes/{id}/verifier', 'Admin\AccountAdminController@verify');
+$router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
+$router->post('/admin/tarifs', 'Admin\PricingAdminController@update');
+$router->get('/admin/actualites', 'Admin\NewsAdminController@index');
+$router->get('/admin/actualites/ajouter', 'Admin\NewsAdminController@create');
+$router->post('/admin/actualites/ajouter', 'Admin\NewsAdminController@store');
+$router->get('/admin/actualites/{id}/modifier', 'Admin\NewsAdminController@edit');
+$router->post('/admin/actualites/{id}/modifier', 'Admin\NewsAdminController@update');
+$router->get('/admin/newsletter', 'Admin\NewsletterAdminController@index');
+$router->post('/admin/newsletter/envoyer', 'Admin\NewsletterAdminController@send');
+$router->get('/admin/bons-de-commande', 'Admin\OrderFormAdminController@index');
+$router->post('/admin/bons-de-commande/ajouter', 'Admin\OrderFormAdminController@upload');
+$router->post('/admin/bons-de-commande/{id}/supprimer', 'Admin\OrderFormAdminController@delete');
+$router->get('/admin/bons-de-commande/{id}/telecharger', 'Admin\OrderFormAdminController@download');
+
+// ============================================================
 // Routes publiques
 // ============================================================
 
@@ -61,6 +92,7 @@ $router->get('/{lang}/commande/confirmation', 'OrderController@confirmation');
 // Espace client
 $router->get('/{lang}/mon-compte', 'AccountController@index');
 $router->get('/{lang}/mon-compte/commandes', 'AccountController@orders');
+$router->get('/{lang}/mon-compte/commandes/{id}/facture', 'InvoiceController@download');
 $router->get('/{lang}/mon-compte/adresses', 'AccountController@addresses');
 $router->get('/{lang}/mon-compte/favoris', 'AccountController@favorites');
 
@@ -72,18 +104,5 @@ $router->post('/api/cart/update', 'Api\CartApiController@update');
 $router->post('/api/cart/remove', 'Api\CartApiController@remove');
 $router->post('/api/favorites/toggle', 'Api\FavoriteApiController@toggle');
 
-// ============================================================
-// Routes Admin
-// ============================================================
-$router->get('/admin', 'Admin\DashboardController@index');
-$router->get('/admin/vins', 'Admin\WineAdminController@index');
-$router->get('/admin/vins/ajouter', 'Admin\WineAdminController@create');
-$router->post('/admin/vins/ajouter', 'Admin\WineAdminController@store');
-$router->get('/admin/vins/{id}/modifier', 'Admin\WineAdminController@edit');
-$router->post('/admin/vins/{id}/modifier', 'Admin\WineAdminController@update');
-$router->get('/admin/commandes', 'Admin\OrderAdminController@index');
-$router->get('/admin/commandes/{id}', 'Admin\OrderAdminController@show');
-$router->post('/admin/commandes/{id}/statut', 'Admin\OrderAdminController@updateStatus');
-$router->get('/admin/comptes', 'Admin\AccountAdminController@index');
-$router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
-$router->post('/admin/tarifs', 'Admin\PricingAdminController@update');
+// Bons de commande (téléchargement public, servi via PHP)
+$router->get('/bons-de-commande/{id}/telecharger', 'OrderFormController@download');

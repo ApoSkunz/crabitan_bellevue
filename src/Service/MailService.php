@@ -115,6 +115,117 @@ class MailService
         $this->send($to, $firstname, $subjectLine, $body);
     }
 
+    public function sendNewsletter(string $to, string $name, string $subject, string $htmlBody): void
+    {
+        $this->send($to, $name, $subject, $htmlBody);
+    }
+
+    public function buildNewsletterHtml(
+        string $title,
+        string $htmlContent,
+        ?string $imageUrl = null
+    ): string {
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $logoUrl     = $appUrl . '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
+        $urlPrivacy  = $appUrl . '/fr/politique-confidentialite';
+        $urlLegal    = $appUrl . '/fr/mentions-legales';
+        $urlSupport  = $appUrl . '/fr/support';
+        $urlUnsub    = $appUrl . '/fr/mon-compte';
+        $year        = date('Y');
+        $safeTitle   = htmlspecialchars($title, ENT_QUOTES);
+        // Image optionnelle : centrée dans le bloc blanc, avant le séparateur/désabonnement
+        $safeImage = $imageUrl !== null ? htmlspecialchars($imageUrl, ENT_QUOTES) : null;
+        $imageHtml = $safeImage !== null
+            ? "<img src=\"{$safeImage}\" alt=\"\" width=\"192\""
+              . " style=\"display:block;width:192px;max-width:100%;height:auto;"
+              . "margin:24px auto 0;border:0;border-radius:4px;\">"
+            : '';
+
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{$safeTitle}</title>
+  <style>
+    .footer-link:hover { color: #c9a84c !important; text-decoration: underline !important; }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f0e8;font-family:Georgia,serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+         style="background-color:#f5f0e8;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+
+          <!-- Header logo -->
+          <tr>
+            <td align="center" style="padding-bottom:28px;">
+              <a href="{$appUrl}" style="display:inline-block;text-decoration:none;">
+                <img src="{$logoUrl}" alt="Château Crabitan Bellevue" width="200" height="auto"
+                     style="display:block;border:0;max-width:200px;">
+              </a>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding-top:20px;border-bottom:1px solid #c9a84c;"></td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="background-color:#ffffff;border:1px solid #ddd5c4;padding:40px 36px;">
+              <p style="margin:0 0 8px;font-size:11px;letter-spacing:3px;
+                 text-transform:uppercase;color:#8a7a60;">{$safeTitle}</p>
+              <div style="font-size:15px;line-height:1.7;color:#3d3425;margin-top:16px;">
+                {$htmlContent}
+              </div>
+              {$imageHtml}
+              <!-- Divider -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:32px;">
+                <tr><td style="border-top:1px solid #ede8df;padding-bottom:20px;"></td></tr>
+              </table>
+              <p style="margin:0;font-size:12px;color:#8a7a60;line-height:1.6;">
+                Vous recevez cet email car vous êtes abonné(e) à la newsletter du Château Crabitan Bellevue.<br>
+                <a href="{$urlUnsub}" style="color:#c9a84c;">Gérer mes préférences de communication</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="margin:0 0 10px;">
+                <a href="{$urlPrivacy}" class="footer-link"
+                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
+                >Politique de confidentialité</a>
+                <span style="color:#c4b89a;padding:0 8px;">|</span>
+                <a href="{$urlLegal}" class="footer-link"
+                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
+                >Mentions légales</a>
+                <span style="color:#c4b89a;padding:0 8px;">|</span>
+                <a href="{$urlSupport}" class="footer-link"
+                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
+                >Assistance</a>
+              </p>
+              <p style="margin:0 0 6px;font-size:11px;color:#a89880;letter-spacing:1px;">
+                © {$year} Château Crabitan Bellevue — Sainte-Croix-du-Mont, Gironde
+              </p>
+              <p style="margin:0;font-size:10px;color:#b8aa95;">
+                Ce mail est généré automatiquement. Veuillez ne pas y répondre.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+HTML;
+    }
+
     private function send(string $to, string $name, string $subject, string $body): void
     {
         $this->mailer->clearAddresses();
@@ -198,7 +309,7 @@ class MailService
         string $ctaLabel,
         string $footnote
     ): string {
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — URL de fallback local dev uniquement, jamais en production
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $logoUrl  = $appUrl . '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
         $urlPrivacy  = $appUrl . '/fr/politique-confidentialite';
         $urlLegal    = $appUrl . '/fr/mentions-legales';
