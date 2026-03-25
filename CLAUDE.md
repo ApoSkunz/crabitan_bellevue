@@ -11,8 +11,12 @@ Ce projet est réalisé en équipe pluridisciplinaire. Chaque rôle est tenu par
 | **Expert DevSecOps** | CI/CD GitHub Actions, SonarCloud, Semgrep, TruffleHog, Legitify, SCA, secrets, PHPCS/PHPStan |
 | **Expert UX/UI Designer** | Maquettes, cohérence visuelle, charte graphique, expérience utilisateur |
 | **Scrum / Product Owner** | Rédaction des plans (PLAN.md), features, backlogs, priorisation, acceptance criteria |
+| **Expert Red Team** | Analyse des failles applicatives (OWASP, injection, auth bypass, XSS, CSRF, IDOR…), pentest, rapports de vulnérabilités |
+| **Expert Blue Team** | Recommandations de protection, durcissement applicatif, monitoring, réponse aux rapports Red Team |
+| **Architecte Génie Logicielle** | Patterns, SOLID, couplage/cohésion, qualité de code, revue d'architecture MVC, refactoring structurel |
+| **Architecte BDD MySQL** | Schéma, normalisation, index, performances, migrations, intégrité référentielle, requêtes optimisées |
 
-Chaque contribution doit respecter les standards de son domaine. Un changement PHP implique l'expert PHP, un changement SCSS l'expert Frontend, une PR implique le DevSecOps pour la revue sécurité, etc.
+Chaque contribution doit respecter les standards de son domaine. Un changement PHP implique l'expert PHP, un changement SCSS l'expert Frontend, une PR implique le DevSecOps pour la revue sécurité. Les failles détectées par le Red Team sont traitées avec le Blue Team avant tout merge.
 
 ---
 

@@ -154,8 +154,7 @@ class WineController extends Controller
      */
     private function convertPngToJpg(string $srcPath): ?array
     {
-        // NOSONAR — md5 used only to build a unique temp filename, not for security
-        $tmp = sys_get_temp_dir() . '/cb_img_' . md5($srcPath) . '.jpg';
+        $tmp = sys_get_temp_dir() . '/cb_img_' . md5($srcPath) . '.jpg'; // NOSONAR — temp filename only
 
         if (function_exists('imagecreatefromstring')) {
             $data = @file_get_contents($srcPath);
@@ -267,6 +266,42 @@ class WineController extends Controller
     }
 
     /**
+     * Build the label → value field map for the PDF body.
+     *
+     * @param array<string, mixed>                        $wine
+     * @param callable(array<string, string>): string     $l
+     * @return array<string, string>
+     */
+    private function buildPdfFields(array $wine, string $lang, callable $l): array
+    {
+        $oeno    = json_decode($wine['oenological_comment'] ?? '{}', true) ?? [];
+        $soil    = json_decode($wine['soil']                ?? '{}', true) ?? [];
+        $pruning = json_decode($wine['pruning']             ?? '{}', true) ?? [];
+        $harvest = json_decode($wine['harvest']             ?? '{}', true) ?? [];
+        $vinif   = json_decode($wine['vinification']        ?? '{}', true) ?? [];
+        $barrel  = json_decode($wine['barrel_fermentation'] ?? '{}', true) ?? [];
+        $award   = json_decode($wine['award']               ?? '{}', true) ?? [];
+
+        $areaFmt = $wine['area'] ? number_format((float) $wine['area'], 2, ',', ' ') . ' ha' : '';
+        $ageStr  = $wine['age_of_vineyard'] ? $wine['age_of_vineyard'] . ' ans' : '';
+
+        return [
+            ($lang === 'en' ? 'Comment'      : 'Commentaire')    => $l($oeno),
+            ($lang === 'en' ? 'Award'        : 'Récompense')     => $l($award),
+            ($lang === 'en' ? 'Specificity'  : 'Spécificité')    => (string) ($wine['certification_label'] ?? ''),
+            'Commune'                                             => (string) ($wine['city'] ?? ''),
+            ($lang === 'en' ? 'Grape'        : 'Encépagement')   => (string) ($wine['variety_of_vine'] ?? ''),
+            ($lang === 'en' ? 'Harvest'      : 'Vendanges')      => $l($harvest),
+            ($lang === 'en' ? 'Ageing'       : 'Élevage')        => $l($barrel),
+            ($lang === 'en' ? 'Soil'         : 'Terroir')        => $l($soil),
+            ($lang === 'en' ? 'Pruning'      : 'Taille')         => $l($pruning),
+            ($lang === 'en' ? 'Area'         : 'Surface')        => $areaFmt,
+            ($lang === 'en' ? 'Age of vines' : 'Âge des vignes') => $ageStr,
+            'Vinification'                                        => $l($vinif),
+        ];
+    }
+
+    /**
      * Render the full PDF body: dark banner, bottle image (left), fields (right).
      * Designed to fit on a single A4 page.
      *
@@ -302,32 +337,7 @@ class WineController extends Controller
             $pdf->Image($img['path'], $imgCol, $startY, $imgW, 0, $img['type'], '', 'T', false, 300);
         }
 
-        // Decode JSON fields
-        $oeno    = json_decode($wine['oenological_comment'] ?? '{}', true) ?? [];
-        $soil    = json_decode($wine['soil']                ?? '{}', true) ?? [];
-        $pruning = json_decode($wine['pruning']             ?? '{}', true) ?? [];
-        $harvest = json_decode($wine['harvest']             ?? '{}', true) ?? [];
-        $vinif   = json_decode($wine['vinification']        ?? '{}', true) ?? [];
-        $barrel  = json_decode($wine['barrel_fermentation'] ?? '{}', true) ?? [];
-        $award   = json_decode($wine['award']               ?? '{}', true) ?? [];
-
-        $areaFmt = $wine['area'] ? number_format((float) $wine['area'], 2, ',', ' ') . ' ha' : '';
-        $ageStr  = $wine['age_of_vineyard'] ? $wine['age_of_vineyard'] . ' ans' : '';
-
-        $fields = [
-            ($lang === 'en' ? 'Comment'      : 'Commentaire')    => $l($oeno),
-            ($lang === 'en' ? 'Award'        : 'Récompense')     => $l($award),
-            ($lang === 'en' ? 'Specificity'  : 'Spécificité')    => (string) ($wine['certification_label'] ?? ''),
-            ($lang === 'en' ? 'Commune'      : 'Commune')        => (string) ($wine['city'] ?? ''),
-            ($lang === 'en' ? 'Grape'        : 'Encépagement')   => (string) ($wine['variety_of_vine'] ?? ''),
-            ($lang === 'en' ? 'Harvest'      : 'Vendanges')      => $l($harvest),
-            ($lang === 'en' ? 'Ageing'       : 'Élevage')        => $l($barrel),
-            ($lang === 'en' ? 'Soil'         : 'Terroir')        => $l($soil),
-            ($lang === 'en' ? 'Pruning'      : 'Taille')         => $l($pruning),
-            ($lang === 'en' ? 'Area'         : 'Surface')        => $areaFmt,
-            ($lang === 'en' ? 'Age of vines' : 'Âge des vignes') => $ageStr,
-            'Vinification'                                        => $l($vinif),
-        ];
+        $fields = $this->buildPdfFields($wine, $lang, $l);
 
         // Render fields in the right column
         $pdf->SetXY($fldCol, $startY);

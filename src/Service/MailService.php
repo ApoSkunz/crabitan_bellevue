@@ -51,6 +51,57 @@ class MailService
         $this->send($to, $name, $subject, $body);
     }
 
+    public function sendContactToOwner(
+        string $firstname,
+        string $lastname,
+        string $email,
+        string $subject,
+        string $message,
+        string $lang
+    ): void {
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
+        $subjectLine = ($lang === 'fr' ? 'Nouveau message de contact' : 'New contact message')
+            . ' — ' . htmlspecialchars($subject, ENT_QUOTES);
+
+        $safeName    = htmlspecialchars($firstname . ' ' . $lastname, ENT_QUOTES);
+        $safeEmail   = htmlspecialchars($email, ENT_QUOTES);
+        $safeSubject = htmlspecialchars($subject, ENT_QUOTES);
+        $safeMessage = nl2br(htmlspecialchars($message, ENT_QUOTES));
+
+        $body = "<p><strong>De :</strong> {$safeName} ({$safeEmail})</p>"
+            . "<p><strong>Objet :</strong> {$safeSubject}</p>"
+            . "<hr>"
+            . "<p>{$safeMessage}</p>";
+
+        $this->send($ownerEmail, APP_NAME, $subjectLine, $body);
+    }
+
+    public function sendContactConfirmation(
+        string $to,
+        string $firstname,
+        string $subject,
+        string $lang
+    ): void {
+        $safeName    = htmlspecialchars($firstname, ENT_QUOTES);
+        $safeSubject = htmlspecialchars($subject, ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subjectLine = 'Nous avons bien reçu votre message';
+            $body = "<p>Bonjour {$safeName},</p>"
+                . "<p>Nous avons bien reçu votre message concernant <strong>{$safeSubject}</strong>.</p>"
+                . "<p>Notre équipe vous répondra dans les meilleurs délais.</p>"
+                . "<p>Cordialement,<br>L'équipe du Château Crabitan Bellevue</p>";
+        } else {
+            $subjectLine = 'We have received your message';
+            $body = "<p>Hello {$safeName},</p>"
+                . "<p>We have received your message regarding <strong>{$safeSubject}</strong>.</p>"
+                . "<p>Our team will get back to you as soon as possible.</p>"
+                . "<p>Best regards,<br>The Château Crabitan Bellevue team</p>";
+        }
+
+        $this->send($to, $firstname, $subjectLine, $body);
+    }
+
     private function send(string $to, string $name, string $subject, string $body): void
     {
         $this->mailer->clearAddresses();

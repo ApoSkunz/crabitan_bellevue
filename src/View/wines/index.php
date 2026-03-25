@@ -157,6 +157,9 @@ $colorLabels = [
                                     <?= htmlspecialchars($wine['label_name']) ?>
                                     <span class="wine-card__vintage"><?= (int) $wine['vintage'] ?></span>
                                 </h2>
+                                <?php if (!empty($wine['is_cuvee_speciale'])) : ?>
+                                    <p class="wine-card__extra"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></p>
+                                <?php endif; ?>
                                 <?php if ($award !== '') : ?>
                                     <p class="wine-card__award">&#127942; <?= htmlspecialchars($award) ?></p>
                                 <?php endif; ?>

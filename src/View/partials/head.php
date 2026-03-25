@@ -15,8 +15,8 @@
             || str_ends_with($host, '.test');
     if (!$isLocal) :
         ?>
-    <!-- Global site tag (gtag.js) - Google Analytics --><!-- NOSONAR Web:SRI — external Google Analytics script; SRI not applicable to dynamically-versioned CDN assets -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-174142197-1"></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-174142197-1"></script><!-- NOSONAR — Google Analytics CDN; SRI not applicable to dynamically-versioned assets -->
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }

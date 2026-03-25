@@ -77,7 +77,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
                 >
                     <span class="header-cart__wrap">
-                        <span class="header-cart__badge" id="header-cart-count">0</span>
+                        <span class="header-cart__badge" class="header-cart__count">0</span>
                         <span class="header-cart__icon">&#128722;</span>
                     </span>
                     <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
@@ -99,7 +99,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     data-login-url="/<?= htmlspecialchars($navLang) ?>/connexion"
                 >
                     <span class="header-cart__wrap">
-                        <span class="header-cart__badge">0</span>
+                        <span class="header-cart__badge" class="header-cart__count">0</span>
                         <span class="header-cart__icon">&#128722;</span>
                     </span>
                     <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>

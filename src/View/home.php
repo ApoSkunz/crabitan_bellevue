@@ -178,6 +178,7 @@ $carouselSlides = [
                 // Déposer le fichier vidéo dans /assets/videos/domaine.mp4
                 // (format MP4 H.264 recommandé, et optionnellement .webm pour Firefox)
                 ?>
+                <!-- NOSONAR Web:S4084 — sous-titres non disponibles pour cette vidéo de présentation -->
                 <video
                     class="home-video__element"
                     controls
@@ -186,7 +187,6 @@ $carouselSlides = [
                     aria-label="<?= htmlspecialchars(__('home.video_title')) ?>"
                 >
                     <source src="/assets/videos/chateau-crabitan-bellevue-1.mp4" type="video/mp4">
-                    <?php // NOSONAR Web:S4084 — sous-titres non disponibles pour cette vidéo de présentation ?>
                 </video>
             </div>
         </div>
@@ -222,8 +222,7 @@ $carouselSlides = [
                             <a
                                 href="/<?= htmlspecialchars($navLang) ?>/actualites<?= $newsSlug !== '' ? '/' . htmlspecialchars($newsSlug) : '' ?>"
                                 class="news-card__link"
-                                aria-label="Lire la suite : <?= htmlspecialchars($newsTitle) ?>"
-                            >Lire la suite &#8594;</a>
+                            >Lire la suite &#8594;<span class="sr-only"> : <?= htmlspecialchars($newsTitle) ?></span></a>
                         </div>
                     </article>
                 <?php endforeach; ?>

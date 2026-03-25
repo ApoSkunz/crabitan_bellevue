@@ -13,7 +13,111 @@ require_once SRC_PATH . '/View/partials/header.php';
         </div>
     </div>
 
-    <section class="contact-section home-section" id="contact">
+    <!-- Formulaire de contact -->
+    <section class="contact-form-section" id="contact-form-section">
+        <div class="container">
+            <h2 class="contact-form__title"><?= htmlspecialchars(__('contact.section_form')) ?></h2>
+            <div class="home-section__divider home-section__divider--center"></div>
+
+            <div class="contact-form__feedback" id="contact-feedback" role="alert" aria-live="polite" hidden></div>
+
+            <form class="contact-form" id="contact-form"
+                  method="post" action="/<?= htmlspecialchars($navLang) ?>/contact" novalidate
+                  data-msg-success="<?= htmlspecialchars(__('contact.success')) ?>"
+                  data-msg-fields="<?= htmlspecialchars(__('contact.error_fields')) ?>"
+                  data-msg-error="<?= htmlspecialchars(__('contact.error_smtp')) ?>">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf ?? '') ?>">
+
+                <fieldset class="contact-form__fieldset" tabindex="-1">
+                    <legend class="contact-form__legend"><?= htmlspecialchars(__('form.gender')) ?></legend>
+                    <div class="contact-form__radios">
+                        <label class="contact-form__radio">
+                            <input type="radio" name="gender" value="m" required>
+                            <span><?= htmlspecialchars(__('form.gender.m')) ?></span>
+                        </label>
+                        <label class="contact-form__radio">
+                            <input type="radio" name="gender" value="f">
+                            <span><?= htmlspecialchars(__('form.gender.f')) ?></span>
+                        </label>
+                        <label class="contact-form__radio">
+                            <input type="radio" name="gender" value="other">
+                            <span><?= htmlspecialchars(__('form.gender.other')) ?></span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <div class="contact-form__row">
+                    <div class="contact-form__group">
+                        <label for="contact-firstname"><?= htmlspecialchars(__('form.firstname')) ?> *</label>
+                        <input type="text" id="contact-firstname" name="firstname"
+                               autocomplete="given-name" required>
+                    </div>
+                    <div class="contact-form__group">
+                        <label for="contact-lastname"><?= htmlspecialchars(__('form.lastname')) ?> *</label>
+                        <input type="text" id="contact-lastname" name="lastname"
+                               autocomplete="family-name" required>
+                    </div>
+                </div>
+
+                <div class="contact-form__row">
+                    <div class="contact-form__group">
+                        <label for="contact-email"><?= htmlspecialchars(__('auth.email')) ?> *</label>
+                        <input type="email" id="contact-email" name="email"
+                               autocomplete="email" required>
+                    </div>
+                    <div class="contact-form__group">
+                        <label for="contact-subject"><?= htmlspecialchars(__('contact.form_subject')) ?> *</label>
+                        <select id="contact-subject" name="subject" required>
+                            <option value="" disabled selected>
+                                <?= htmlspecialchars(__('contact.form_subject')) ?>
+                            </option>
+                            <option value="general">
+                                <?= htmlspecialchars(__('contact.subject.general')) ?>
+                            </option>
+                            <option value="order">
+                                <?= htmlspecialchars(__('contact.subject.order')) ?>
+                            </option>
+                            <option value="bon_commande">
+                                <?= htmlspecialchars(__('contact.subject.bon_commande')) ?>
+                            </option>
+                            <option value="visit">
+                                <?= htmlspecialchars(__('contact.subject.visit')) ?>
+                            </option>
+                            <option value="press">
+                                <?= htmlspecialchars(__('contact.subject.press')) ?>
+                            </option>
+                            <option value="other">
+                                <?= htmlspecialchars(__('contact.subject.other')) ?>
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="contact-form__group">
+                    <label for="contact-message"><?= htmlspecialchars(__('contact.form_message')) ?> *</label>
+                    <textarea id="contact-message" name="message" rows="6" required></textarea>
+                </div>
+
+                <div class="contact-form__rgpd">
+                    <label class="contact-form__checkbox">
+                        <input type="checkbox" name="rgpd" value="1" required>
+                        <span><?= htmlspecialchars(__('contact.form_rgpd')) ?></span>
+                    </label>
+                </div>
+
+                <div class="contact-form__submit">
+                    <button type="submit" class="btn btn--gold" id="contact-submit">
+                        <span class="btn__label"><?= htmlspecialchars(__('btn.submit')) ?></span>
+                        <span class="btn__spinner" aria-hidden="true" hidden></span>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </section>
+
+    <!-- Localisation -->
+    <section class="contact-section home-section home-section--surface" id="contact-location">
         <div class="container">
             <div class="home-location__inner">
 
@@ -25,7 +129,7 @@ require_once SRC_PATH . '/View/partials/header.php';
                     </div>
                     <div class="home-location__contact">
                         <h2 class="home-location__contact-title">
-                            <?= htmlspecialchars(__('home.location_contact')) ?>
+                            <?= htmlspecialchars(__('contact.section_where')) ?>
                         </h2>
                         <p>
                             <?php $phoneRaw = preg_replace('/\s/', '', __('home.location_phone')) ?? ''; ?>

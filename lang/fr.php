@@ -99,6 +99,7 @@ return [
     'wine.vinification'  => 'Vinification',
     'wine.aging'         => 'Élevage',
     'wine.certification' => 'Certification',
+    'wine.cuvee_speciale'  => 'Cuvée Spéciale',
     'wine.download_sheet' => 'Télécharger la fiche technique complète',
 
     // Vins — Collection
@@ -235,7 +236,28 @@ return [
     'news.empty'     => 'Aucune actualité disponible pour le moment.',
 
     // Contact
-    'contact.tag' => 'Nous joindre',
+    'contact.tag'            => 'Nous joindre',
+    'contact.section_where'  => 'Où sommes-nous ?',
+    'contact.itinerary'      => 'Trouver votre itinéraire en cliquant ici',
+    'contact.section_form'   => 'Comment nous joindre ?',
+    'contact.form_address'   => 'Adresse',
+    'contact.form_city'      => 'Ville',
+    'contact.form_country'   => 'Pays',
+    'contact.form_phone'     => 'Numéro de téléphone',
+    'contact.form_subject'   => 'Objet du contact',
+    'contact.form_message'   => 'Votre message',
+    'contact.form_rgpd'      => "En envoyant ce message, j'accepte que les informations saisies dans ce formulaire soient exploitées pour être contacté.",
+    'contact.subject.general' => 'Renseignement général',
+    'contact.subject.order'   => 'Question sur une commande',
+    'contact.subject.bon_commande' => 'Bon de commande',
+    'contact.subject.visit'        => 'Visite du domaine',
+    'contact.subject.press'   => 'Presse / Partenariat',
+    'contact.subject.other'   => 'Autre',
+    'contact.success'         => 'Votre message a bien été envoyé. Vous recevrez un récapitulatif par email.',
+    'contact.error_fields'    => 'Veuillez remplir tous les champs obligatoires.',
+    'contact.error_smtp'      => 'Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou nous contacter par téléphone.',
+    'contact.mail_owner_subject'  => 'Nouveau message de contact',
+    'contact.mail_confirm_subject' => 'Nous avons bien reçu votre message',
 
     // Mentions légales
     'legal.editor_title'  => 'Éditeur du site',
@@ -320,8 +342,33 @@ return [
     'jeux.lose'        => 'Temps écoulé ! Réessayez.',
     'jeux.pairs_found' => 'paires trouvées',
 
+    // Plan du site
+    'sitemap.intro'            => 'Retrouvez les différentes pages de notre site',
+    'sitemap.section_wines'    => 'Nos vins',
+    'sitemap.section_main'     => 'Pages principales',
+    'sitemap.section_annex'    => 'Pages annexes',
+    'sitemap.section_other'    => 'Autres pages',
+    'sitemap.wine_sweet'       => 'Découvrez la douce complexité des Sainte-Croix-du-Mont',
+    'sitemap.wine_red'         => 'Découvrez le caractère de nos vins Rouges',
+    'sitemap.wine_white'       => 'Découvrez la légèreté de nos vins Blancs',
+    'sitemap.wine_rose'        => 'Découvrez la fraîcheur de nos vins Rosés',
+    'sitemap.wine_collection'  => 'Plongez au cœur de notre collection',
+
     // Webmaster
-    'webmaster.bio' => 'Site conçu et développé par Alexandre Solane, développeur web full-stack.',
+    'webmaster.bio'           => 'Site conçu et développé par Alexandre Solane, développeur web full-stack.',
+    'webmaster.job_title'     => 'Ingénieur DevSecOps &amp; SRE',
+    'webmaster.intro'         =>
+        'Passionné d\'informatique depuis mes premiers cours d\'initiation en seconde'
+        . ' générale, grâce à mon professeur de mathématiques qui a su éveiller ma curiosité…',
+    'webmaster.years_old'     => 'ans',
+    'webmaster.exp_title'     => 'Expérience professionnelle',
+    'webmaster.edu_title'     => 'Formation',
+    'webmaster.skills_title'  => 'Compétences techniques',
+    'webmaster.contact_title' => 'Me contacter',
+    'webmaster.contact_text'  =>
+        'Pour échanger sur un projet, une opportunité ou simplement discuter,'
+        . ' envoyez-moi un message privé sur LinkedIn.',
+    'webmaster.contact_btn'   => 'Envoyer un message LinkedIn',
 
     // Account panel (drawer)
     'panel.title'     => 'Mon espace',

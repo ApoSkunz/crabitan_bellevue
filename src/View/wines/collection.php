@@ -202,6 +202,11 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
                                         </span>
                                     <?php endif; ?>
+                                    <?php if (!empty($wine['certification_label'])) : ?>
+                                        <span class="wine-card__cert">
+                                            <?= htmlspecialchars($wine['certification_label']) ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
 
                                 <div class="wine-card__hover">
@@ -219,6 +224,9 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                     <?= htmlspecialchars($wine['label_name']) ?>
                                     <span class="wine-card__vintage"><?= (int) $wine['vintage'] ?></span>
                                 </h3>
+                                <?php if (!empty($wine['is_cuvee_speciale'])) : ?>
+                                    <p class="wine-card__extra"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></p>
+                                <?php endif; ?>
                                 <?php if ($award !== '') : ?>
                                     <p class="wine-card__award">&#127942; <?= htmlspecialchars($award) ?></p>
                                 <?php endif; ?>

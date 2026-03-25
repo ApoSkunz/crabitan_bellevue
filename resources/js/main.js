@@ -75,7 +75,7 @@ function initAgeGate() {
         }
 
         // Cookie banner : réponse obligatoire avant d'entrer
-        if (!localStorage.getItem(COOKIE_CONSENT_KEY)) {
+        if (!getConsentCookie()) {
             e.preventDefault();
             if (typeof window.__cookieBannerPending === 'function') {
                 window.__cookieBannerPending();
@@ -111,20 +111,36 @@ function loadGoogleAnalytics() {
 // ============================================================
 
 const COOKIE_CONSENT_KEY = 'cb-cookie-consent';
+const COOKIE_CONSENT_TTL = 397 * 24 * 3600; // 13 mois — durée max CNIL/RGPD
+
+function getConsentCookie() {
+    const match = document.cookie.split('; ').find((c) => c.startsWith(COOKIE_CONSENT_KEY + '='));
+    return match ? decodeURIComponent(match.slice(COOKIE_CONSENT_KEY.length + 1)) : null;
+}
+
+function setConsentCookie(value) {
+    document.cookie = COOKIE_CONSENT_KEY + '=' + encodeURIComponent(value)
+        + '; path=/; max-age=' + COOKIE_CONSENT_TTL + '; SameSite=Lax';
+}
 
 function shakeCookieBanner(banner) {
     banner.classList.remove('is-shaking');
     // Force reflow pour relancer l'animation
     void banner.offsetWidth;
     banner.classList.add('is-shaking');
-    banner.addEventListener('animationend', () => banner.classList.remove('is-shaking'), { once: true });
+    banner.addEventListener('animationend', (e) => {
+        if (e.animationName !== 'cookie-shake') return;
+        banner.classList.remove('is-shaking');
+        // Empêche le CSS "animation: fade-in" de rejouer quand is-shaking est retiré
+        banner.style.animationName = 'none';
+    }, { once: true });
 }
 
 function initCookieBanner() {
     const banner = document.getElementById('cookie-banner');
     if (!banner) return;
 
-    const existing = localStorage.getItem(COOKIE_CONSENT_KEY);
+    const existing = getConsentCookie();
 
     // Déjà répondu : charger GA si accepté et masquer le bandeau
     if (existing) {
@@ -136,13 +152,13 @@ function initCookieBanner() {
     const requiredMsg = banner.querySelector('.cookie-banner__required');
 
     document.getElementById('cookie-accept')?.addEventListener('click', () => {
-        localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+        setConsentCookie('accepted');
         loadGoogleAnalytics();
         banner.classList.add('is-hidden');
     });
 
     document.getElementById('cookie-refuse')?.addEventListener('click', () => {
-        localStorage.setItem(COOKIE_CONSENT_KEY, 'refused');
+        setConsentCookie('refused');
         banner.classList.add('is-hidden');
     });
 
@@ -272,29 +288,33 @@ function showToast(msg, isError = false) {
     toast.className = 'cb-toast' + (isError ? ' cb-toast--error' : '');
     toast.removeAttribute('hidden');
     clearTimeout(toast.__timer);
-    toast.__timer = setTimeout(() => toast.setAttribute('hidden', ''), 3000);
+    toast.__timer = setTimeout(() => toast.setAttribute('hidden', ''), 1500);
 }
 
 // ============================================================
-// Panier hors connexion — localStorage
+// Panier hors connexion — cookies
 // ============================================================
 
-const CART_KEY = 'cb-cart';
+const CART_KEY    = 'cb-cart';
+const CART_MAX_AGE = 7 * 24 * 3600; // 7 jours
 
 function getLocalCart() {
+    const match = document.cookie.split('; ').find((c) => c.startsWith(CART_KEY + '='));
+    if (!match) return [];
     try {
-        return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+        return JSON.parse(decodeURIComponent(match.slice(CART_KEY.length + 1)));
     } catch {
         return [];
     }
 }
 
 function saveLocalCart(cart) {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    const val = encodeURIComponent(JSON.stringify(cart));
+    document.cookie = CART_KEY + '=' + val + '; path=/; max-age=' + CART_MAX_AGE + '; SameSite=Lax';
 }
 
 function addToLocalCart(item) {
-    const cart    = getLocalCart();
+    const cart     = getLocalCart();
     const existing = cart.find((i) => i.id === item.id);
     if (existing) {
         existing.qty += item.qty;
@@ -310,9 +330,10 @@ function getLocalCartCount() {
 }
 
 function updateCartCount() {
-    const badge = document.getElementById('header-cart-count');
+    const badge = document.querySelector('.header-cart__count');
     if (!badge) return;
-    badge.textContent = window.__userLogged ? 0 : getLocalCartCount();
+    const count = window.__userLogged ? 0 : getLocalCartCount();
+    badge.textContent = count;
 }
 
 // ============================================================
@@ -399,8 +420,8 @@ function initCartModal() {
             closeModal();
             showToast(
                 document.documentElement.lang === 'en'
-                    ? 'Added to cart. Log in to place your order.'
-                    : 'Ajouté au panier. Connectez-vous pour passer commande.',
+                    ? 'Added to cart!'
+                    : 'Ajouté au panier !',
                 false
             );
         }
@@ -439,11 +460,11 @@ function initCartLoginPrompt() {
             const loginUrl = btn.dataset.loginUrl || ('/' + (window.__navLang || 'fr') + '/connexion');
             showToast(
                 document.documentElement.lang === 'en'
-                    ? 'The cart requires an account. Redirecting to login…'
-                    : 'Le panier nécessite un compte. Redirection vers la connexion…',
+                    ? 'Please log in to complete your order.'
+                    : 'Connectez-vous pour finaliser votre commande.',
                 false
             );
-            setTimeout(() => { window.location.href = loginUrl; }, 2500); // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression — loginUrl is server-rendered via htmlspecialchars(), not user input // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
+            setTimeout(() => { window.location.href = loginUrl; }, 1500); // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression — loginUrl is server-rendered via htmlspecialchars(), not user input // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
         });
     });
 }
@@ -502,6 +523,91 @@ function initWineZoom() {
 // Anchor scroll — compensate sticky header on hash navigation
 // ============================================================
 
+// ============================================================
+// Formulaire de contact — validation + fetch + feedback
+// ============================================================
+
+function initContactForm() {
+    const form     = document.getElementById('contact-form');
+    if (!form) return;
+
+    const feedback = document.getElementById('contact-feedback');
+    const submit   = document.getElementById('contact-submit');
+    const label    = submit?.querySelector('.btn__label');
+    const spinner  = submit?.querySelector('.btn__spinner');
+
+    const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
+
+    function showFeedback(msg, isSuccess) {
+        feedback.textContent = msg;
+        feedback.className   = 'contact-form__feedback contact-form__feedback--' + (isSuccess ? 'success' : 'error');
+        feedback.hidden      = false;
+    }
+
+    function setLoading(on) {
+        submit.disabled  = on;
+        label.hidden     = on;
+        spinner.hidden   = !on;
+    }
+
+    function markInvalid(field) {
+        const group = field.closest('.contact-form__group, .contact-form__fieldset, .contact-form__rgpd');
+        if (!group) return;
+        group.classList.remove('is-invalid');
+        void group.offsetWidth; // force reflow pour re-déclencher l'animation
+        group.classList.add('is-invalid');
+        field.addEventListener('change', () => group.classList.remove('is-invalid'), { once: true });
+        field.addEventListener('input',  () => group.classList.remove('is-invalid'), { once: true });
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Validation client
+        let valid = true;
+        requiredFields.forEach((field) => {
+            const empty = field.type === 'checkbox'
+                ? !field.checked
+                : (field.type === 'radio'
+                    ? !form.querySelector(`input[name="${field.name}"]:checked`)
+                    : field.value.trim() === '');
+            if (empty) {
+                valid = false;
+                markInvalid(field);
+            }
+        });
+
+        if (!valid) {
+            showFeedback(form.dataset.msgFields, false);
+            (form.closest('section') ?? form).scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+        }
+
+        setLoading(true);
+        feedback.hidden = true;
+
+        try {
+            const res  = await fetch(form.action, {
+                method:  'POST',
+                body:    new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showFeedback(data.message || form.dataset.msgSuccess, true);
+                form.reset();
+            } else {
+                showFeedback(data.message || form.dataset.msgError, false);
+            }
+        } catch {
+            showFeedback(form.dataset.msgError, false);
+        } finally {
+            setLoading(false);
+        }
+    });
+}
+
 function initAnchorScroll() {
     if (!window.location.hash) return;
     const target = document.getElementById(window.location.hash.slice(1));
@@ -549,7 +655,46 @@ function initFaqAccordion() {
     });
 }
 
+// ============================================================
+// Page intro overlay — animation d'arrivée post age-gate
+// ============================================================
+
+function initPageIntro() {
+    const hasCookie = document.cookie.split('; ').some((c) => c.startsWith('age_intro=1'));
+    if (!hasCookie) return;
+
+    // Consommer le cookie immédiatement (TTL 30s, on ne veut pas rejouer l'anim)
+    document.cookie = 'age_intro=; path=/; max-age=0; SameSite=Lax';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'page-intro';
+    overlay.setAttribute('aria-hidden', 'true');
+
+    const img = document.createElement('img');
+    img.src       = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
+    img.alt       = '';
+    img.width     = 180;
+    img.height    = 180;
+    img.className = 'page-intro__logo';
+    overlay.appendChild(img);
+
+    const welcome = document.createElement('p');
+    welcome.className   = 'page-intro__welcome';
+    welcome.textContent = document.documentElement.lang === 'en' ? 'Welcome' : 'Bienvenue';
+    overlay.appendChild(welcome);
+
+    document.body.appendChild(overlay);
+
+    // Suppression après la fin de l'animation de l'overlay uniquement
+    // (animationend bubble — on filtre sur e.target pour ignorer les enfants)
+    overlay.addEventListener('animationend', (e) => {
+        if (e.target !== overlay) return;
+        overlay.remove();
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    initPageIntro();
     initTheme();
     initThemeToggle();
     initBurger();
@@ -562,6 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFavoriteAuth();
     initWineZoom();
     updateCartCount();
+    initContactForm();
     initAnchorScroll();
     initFaqAccordion();
     initCarbonBadge();

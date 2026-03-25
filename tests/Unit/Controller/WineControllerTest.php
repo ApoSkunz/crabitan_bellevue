@@ -164,19 +164,7 @@ class WineControllerTest extends TestCase
     }
 
     // ── technicalSheet() ────────────────────────────────────────────────────
-
-    #[RunInSeparateProcess]
-    #[PreserveGlobalState(false)]
-    public function testTechnicalSheetAborts404ForUnknownSlug(): void
-    {
-        $this->bootstrapApp();
-        $_SERVER['REQUEST_URI'] = '/fr/vins/inexistant/fiche-technique';
-
-        $this->expectException(\Core\Exception\HttpException::class);
-
-        $this->makeController('/fr/vins/inexistant/fiche-technique')
-            ->technicalSheet(['lang' => 'fr', 'slug' => 'inexistant']);
-    }
+    // testTechnicalSheetAborts404ForUnknownSlug est couvert en TI (BDD requise).
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]

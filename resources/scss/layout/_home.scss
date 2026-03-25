@@ -206,6 +206,10 @@
     background-color: var(--color-bg);
 }
 
+.home-section--surface {
+    background-color: var(--color-surface);
+}
+
 // Section NOS VINS — image dézoomed pour voir les bouteilles
 // background-color sur le conteneur (pas sur l'img) pour ne pas être
 // affecté par le filter:brightness de l'img

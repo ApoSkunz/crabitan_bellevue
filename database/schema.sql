@@ -96,7 +96,7 @@ CREATE TABLE `wines` (
   `barrel_fermentation`  JSON           NOT NULL COMMENT '{"fr":"...","en":"..."}',
   `award`                JSON           NOT NULL COMMENT '{"fr":"...","en":"..."}',
   `extra_comment`        JSON           NOT NULL COMMENT '{"fr":"...","en":"..."}',
-  `technical_form_path`  VARCHAR(255)   DEFAULT NULL,
+  `is_cuvee_speciale`    TINYINT(1)     NOT NULL DEFAULT 0,
   `image_path`           VARCHAR(255)   NOT NULL,
   `slug`                 VARCHAR(255)   NOT NULL COMMENT 'URL SEO ex: bordeaux-chateau-x-2019',
   `created_at`           DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,

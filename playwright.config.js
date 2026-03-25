@@ -10,7 +10,7 @@ export default defineConfig({
     reporter: 'html',
 
     use: {
-        baseURL: process.env.APP_URL || 'http://localhost:8000',
+        baseURL: process.env.APP_URL || 'http://crabitan.local',
         trace: 'on-first-retry',
     },
 
