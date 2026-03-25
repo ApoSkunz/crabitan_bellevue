@@ -141,9 +141,9 @@ class AccountModel extends Model
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function getForAdmin(int $limit, int $offset, ?string $role, ?string $search): array
+    public function getForAdmin(int $limit, int $offset, ?string $role, ?string $search, ?string $type = null): array
     {
-        [$where, $params] = $this->buildAdminFilters($role, $search);
+        [$where, $params] = $this->buildAdminFilters($role, $search, $type);
         $params[] = $limit;
         $params[] = $offset;
 
@@ -156,9 +156,9 @@ class AccountModel extends Model
         );
     }
 
-    public function countForAdmin(?string $role, ?string $search): int
+    public function countForAdmin(?string $role, ?string $search, ?string $type = null): int
     {
-        [$where, $params] = $this->buildAdminFilters($role, $search);
+        [$where, $params] = $this->buildAdminFilters($role, $search, $type);
         $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total FROM {$this->table} a
              LEFT JOIN account_individuals ai ON ai.account_id = a.id
@@ -220,7 +220,7 @@ class AccountModel extends Model
     }
 
     /** @return array{string, array<int, mixed>} */
-    private function buildAdminFilters(?string $role, ?string $search): array
+    private function buildAdminFilters(?string $role, ?string $search, ?string $type = null): array
     {
         $conds  = ['a.deleted_at IS NULL'];
         $params = [];
@@ -229,6 +229,12 @@ class AccountModel extends Model
         if ($role !== null && in_array($role, $validRoles, true)) {
             $conds[]  = 'a.role = ?';
             $params[] = $role;
+        }
+
+        $validTypes = ['individual', 'company'];
+        if ($type !== null && in_array($type, $validTypes, true)) {
+            $conds[]  = 'a.account_type = ?';
+            $params[] = $type;
         }
 
         if ($search !== null && $search !== '') {

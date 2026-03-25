@@ -38,7 +38,8 @@ function hasError(array $errors, string $key): bool
                     <label class="admin-field__label" for="title_fr">Français *</label>
                     <input type="text" id="title_fr" name="title_fr" required
                            class="admin-field__input<?= hasError($errors, 'title_fr') ? ' is-error' : '' ?>"
-                           value="<?= htmlspecialchars($titleData['fr'] ?? '') ?>">
+                           value="<?= htmlspecialchars($titleData['fr'] ?? '') ?>"
+                           oninput="updateNewsSlug(this.value)">
                     <?php if (hasError($errors, 'title_fr')) : ?>
                         <span class="admin-field__error"><?= htmlspecialchars($errors['title_fr']) ?></span>
                     <?php endif; ?>
@@ -49,6 +50,18 @@ function hasError(array $errors, string $key): bool
                            class="admin-field__input"
                            value="<?= htmlspecialchars($titleData['en'] ?? '') ?>">
                 </div>
+            </div>
+            <div class="admin-field" style="margin-top:0.75rem;">
+                <label class="admin-field__label" for="news-slug-preview">Slug (généré depuis le titre FR)</label>
+                <input type="text" id="news-slug-preview" readonly
+                       class="admin-field__input"
+                       style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                       value="<?= htmlspecialchars($article['slug'] ?? '') ?>">
+                <?php if ($isEdit) : ?>
+                    <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.25rem;">
+                        Le slug est recalculé automatiquement à chaque enregistrement.
+                    </p>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -131,6 +144,18 @@ function hasError(array $errors, string $key): bool
 </div>
 
 <script>
+function toSlug(str) {
+    return str.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .substring(0, 80);
+}
+
+function updateNewsSlug(val) {
+    document.getElementById('news-slug-preview').value = toSlug(val);
+}
+
 function previewImage(input) {
     const preview = document.getElementById('image-preview');
     if (input.files && input.files[0]) {

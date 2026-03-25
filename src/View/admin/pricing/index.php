@@ -25,6 +25,51 @@ function pricingLabel(mixed $raw, string $lang): string
 </div>
 
 <!-- ================================================================
+     Tableau de référence lisible
+================================================================ -->
+<?php if (!empty($rules)) : ?>
+<div class="admin-card" style="margin-bottom:1.5rem;">
+    <div class="admin-card__header"><h2>Récapitulatif des tarifs actuels</h2></div>
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Format</th>
+                    <th>Tranche</th>
+                    <th>Label (FR)</th>
+                    <th>Livraison (€)</th>
+                    <th>Retrait cave (€)</th>
+                    <th>Actif</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($rules as $rule) : ?>
+                <tr style="<?= $rule['active'] ? '' : 'opacity:0.45;' ?>">
+                    <td><?= htmlspecialchars($formatLabels[$rule['format']] ?? $rule['format']) ?></td>
+                    <td style="white-space:nowrap;">
+                        <?= (int) $rule['min_quantity'] ?>
+                        –
+                        <?= $rule['max_quantity'] !== null ? (int) $rule['max_quantity'] : '∞' ?>
+                    </td>
+                    <td><?= htmlspecialchars(pricingLabel($rule['label'], 'fr')) ?></td>
+                    <td><?= number_format((float) $rule['delivery_price'], 2, ',', ' ') ?>&nbsp;€</td>
+                    <td><?= number_format((float) $rule['withdrawal_price'], 2, ',', ' ') ?>&nbsp;€</td>
+                    <td style="text-align:center;">
+                        <?php if ($rule['active']) : ?>
+                            <span style="color:#15803d;font-size:0.85rem;">✓</span>
+                        <?php else : ?>
+                            <span style="color:#b91c1c;font-size:0.85rem;">✗</span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- ================================================================
      Formulaire inline de mise à jour
 ================================================================ -->
 <div class="admin-card admin-pricing-form">

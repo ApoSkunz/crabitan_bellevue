@@ -22,12 +22,13 @@ class AccountAdminController extends AdminController
         $accounts   = new AccountModel();
         $page       = max(1, (int) $this->request->get('page', 1));
         $role       = $this->request->get('role') ?: null;
+        $type       = $this->request->get('type') ?: null;
         $search     = trim($this->request->get('search', ''));
         $perPageReq = (int) $this->request->get('per_page', self::DEFAULT_PER_PAGE);
         $perPage    = in_array($perPageReq, self::ALLOWED_PER_PAGE, true) ? $perPageReq : self::DEFAULT_PER_PAGE;
 
-        $total = $accounts->countForAdmin($role, $search ?: null);
-        $list  = $accounts->getForAdmin($perPage, ($page - 1) * $perPage, $role, $search ?: null);
+        $total = $accounts->countForAdmin($role, $search ?: null, $type);
+        $list  = $accounts->getForAdmin($perPage, ($page - 1) * $perPage, $role, $search ?: null, $type);
 
         $this->view('admin/accounts/index', [
             'adminUser'    => $adminUser,
@@ -39,6 +40,7 @@ class AccountAdminController extends AdminController
             'page'         => $page,
             'perPage'      => $perPage,
             'role'         => $role,
+            'type'         => $type,
             'search'       => $search,
             'currentRole'  => $adminUser['role'] ?? '',
             'flash'        => $this->getFlash('success'),

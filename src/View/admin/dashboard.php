@@ -28,7 +28,7 @@ $totalOrders  = array_sum($ordersByStatus);
     </div>
     <div class="admin-stat-card admin-stat-card--green">
         <div class="admin-stat-card__label">CA (30 derniers jours)</div>
-        <div class="admin-stat-card__value"><?= number_format($revenue30, 0, ',', '\u00a0') ?>&nbsp;€</div>
+        <div class="admin-stat-card__value"><?= number_format($revenue30, 0, ',', ' ') ?>&nbsp;€</div>
         <div class="admin-stat-card__sub">Hors annulées / remboursées</div>
     </div>
     <div class="admin-stat-card admin-stat-card--blue">
@@ -91,7 +91,7 @@ $totalOrders  = array_sum($ordersByStatus);
                         <td><code style="font-size:0.8rem;"><?= htmlspecialchars($order['order_reference']) ?></code></td>
                         <td><?= htmlspecialchars($order['firstname'] ?: $order['email']) ?></td>
                         <td><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($order['status']) ?></span></td>
-                        <td><?= number_format((float) $order['price'], 2, ',', '\u00a0') ?>&nbsp;€</td>
+                        <td><?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€</td>
                         <td style="white-space:nowrap;"><?= date('d/m/Y', strtotime($order['ordered_at'])) ?></td>
                         <td><a href="/admin/commandes/<?= (int) $order['id'] ?>" class="admin-btn admin-btn--outline admin-btn--sm">Voir</a></td>
                     </tr>

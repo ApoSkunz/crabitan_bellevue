@@ -162,15 +162,23 @@ $maxYear = (int) date('Y');
             </div>
 
             <div class="admin-field">
+                <label class="admin-field__label" for="slug-preview">Slug (généré automatiquement)</label>
+                <input type="text" id="slug-preview" readonly
+                       class="admin-field__input"
+                       style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                       value="<?= fieldVal($wine, 'slug') ?>">
+                <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.25rem;">
+                    Généré depuis l'appellation + millésime<?= $isEdit ? ' — mis à jour à chaque modification' : '' ?>.
+                </p>
+            </div>
+
+            <div class="admin-field admin-field--full" style="display:flex;gap:2rem;align-items:center;flex-wrap:wrap;">
                 <div class="admin-field__check">
                     <input type="hidden" name="available" value="0">
                     <input type="checkbox" id="available" name="available" value="1"
                            <?= ($wine['available'] ?? 1) ? 'checked' : '' ?>>
                     <label for="available">Disponible à la vente</label>
                 </div>
-            </div>
-
-            <div class="admin-field">
                 <div class="admin-field__check">
                     <input type="hidden" name="is_cuvee_speciale" value="0">
                     <input type="checkbox" id="is_cuvee_speciale" name="is_cuvee_speciale" value="1"
@@ -271,11 +279,30 @@ const APPELLATION_COLORS = <?= json_encode(array_map(
 ), JSON_UNESCAPED_UNICODE) ?>;
 const APPELLATION_VALUES = <?= json_encode($appellations, JSON_UNESCAPED_UNICODE) ?>;
 
+function toSlug(str) {
+    return str.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+function updateSlugPreview() {
+    const appellation = document.getElementById('appellation').value;
+    const vintage     = document.getElementById('vintage').value;
+    if (appellation && vintage) {
+        document.getElementById('slug-preview').value = toSlug(appellation + '-' + vintage);
+    }
+}
+
 function onAppellationChange(val) {
     document.getElementById('wine_color').value = APPELLATION_VALUES[val] || '';
     const preview = document.getElementById('color-preview');
     preview.innerHTML = val ? 'Couleur\u00a0: <strong>' + (APPELLATION_COLORS[val] || '') + '</strong>' : '';
+    updateSlugPreview();
 }
+
+document.getElementById('vintage').addEventListener('input', updateSlugPreview);
+updateSlugPreview();
 
 function previewImage(input) {
     const preview = document.getElementById('image-preview');
