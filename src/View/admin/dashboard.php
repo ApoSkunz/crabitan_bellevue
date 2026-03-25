@@ -58,7 +58,7 @@ $totalOrders  = array_sum($ordersByStatus);
         ];
         foreach ($statusLabels as $key => $label) :
             $cnt = $ordersByStatus[$key] ?? 0;
-        ?>
+            ?>
             <a href="/admin/commandes?status=<?= urlencode($key) ?>" style="text-decoration:none;">
                 <span class="badge badge--<?= htmlspecialchars($key) ?>"><?= htmlspecialchars($label) ?> (<?= $cnt ?>)</span>
             </a>
