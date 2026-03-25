@@ -36,7 +36,10 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: javascript
+          languages: javascript, php
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -53,7 +56,19 @@ jobs:
         run: pip install semgrep
 
       - name: Semgrep Scan
-        run: semgrep --config p/php --config p/owasp-top-ten --config p/security-audit --error .
+        run: |
+          semgrep \
+            --config p/php \
+            --config p/owasp-top-ten \
+            --config p/security-audit \
+            --config p/phpcs-security-audit \
+            --config p/jwt \
+            --config p/sql-injection \
+            --config p/xss \
+            --config p/command-injection \
+            --config p/secrets \
+            --error \
+            .
 
   legitify:
     name: Legitify GitHub Security

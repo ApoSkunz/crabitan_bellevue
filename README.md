@@ -5,6 +5,7 @@ Site e-commerce de vins — [crabitanbellevue.fr](https://crabitanbellevue.fr)
 ## CI/CD
 
 [![CI](https://github.com/ApoSkunz/crabitan_bellevue/actions/workflows/ci.yml/badge.svg)](https://github.com/ApoSkunz/crabitan_bellevue/actions/workflows/ci.yml)
+[![E2E](https://github.com/ApoSkunz/crabitan_bellevue/actions/workflows/e2e.yml/badge.svg)](https://github.com/ApoSkunz/crabitan_bellevue/actions/workflows/e2e.yml)
 [![Release](https://github.com/ApoSkunz/crabitan_bellevue/actions/workflows/release.yml/badge.svg)](https://github.com/ApoSkunz/crabitan_bellevue/actions/workflows/release.yml)
 
 ## Sécurité
