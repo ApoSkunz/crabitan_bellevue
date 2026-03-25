@@ -154,7 +154,7 @@ class WineController extends Controller
      */
     private function convertPngToJpg(string $srcPath): ?array
     {
-        $tmp = sys_get_temp_dir() . '/cb_img_' . md5($srcPath) . '.jpg'; // NOSONAR — temp filename only
+        $tmp = sys_get_temp_dir() . '/cb_img_' . md5($srcPath) . '.jpg'; // NOSONAR — temp filename only // nosemgrep: php.lang.security.weak-crypto.weak-crypto
 
         if (function_exists('imagecreatefromstring')) {
             $data = @file_get_contents($srcPath);
