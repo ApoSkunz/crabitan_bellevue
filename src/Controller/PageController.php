@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Controller;
 
 use Core\Controller;
+use Model\OrderFormModel;
 use Model\WineModel;
 use Service\MailService;
 
@@ -25,7 +26,11 @@ class PageController extends Controller
     public function contact(array $params): void
     {
         $lang = $this->resolveLang($params);
-        $this->view('pages/contact', ['lang' => $lang, 'csrf' => $this->csrfToken()]);
+        $this->view('pages/contact', [
+            'lang'          => $lang,
+            'csrf'          => $this->csrfToken(),
+            'latestOrderForm' => (new OrderFormModel())->getLatest(),
+        ]);
     }
 
     public function contactPost(array $params): void
