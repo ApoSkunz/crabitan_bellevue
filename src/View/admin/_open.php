@@ -8,11 +8,13 @@ $pageTitle    = $pageTitle    ?? 'Admin';
 $breadcrumbs  = $breadcrumbs  ?? [];
 
 $navItems = [
-    'dashboard' => ['url' => '/admin',            'label' => 'Tableau de bord', 'icon' => '◈'],
-    'wines'     => ['url' => '/admin/vins',        'label' => 'Vins',            'icon' => '◉'],
-    'orders'    => ['url' => '/admin/commandes',   'label' => 'Commandes',       'icon' => '◎'],
-    'accounts'  => ['url' => '/admin/comptes',     'label' => 'Comptes',         'icon' => '◍'],
-    'pricing'   => ['url' => '/admin/tarifs',      'label' => 'Tarifs',          'icon' => '◇'],
+    'dashboard'    => ['url' => '/admin',               'label' => 'Tableau de bord', 'icon' => '◈'],
+    'wines'        => ['url' => '/admin/vins',           'label' => 'Vins',            'icon' => '◉'],
+    'orders'       => ['url' => '/admin/commandes',      'label' => 'Commandes',       'icon' => '◎'],
+    'accounts'     => ['url' => '/admin/comptes',        'label' => 'Comptes',         'icon' => '◍'],
+    'pricing'      => ['url' => '/admin/tarifs',         'label' => 'Tarifs',          'icon' => '◇'],
+    'news'         => ['url' => '/admin/actualites',     'label' => 'Actualités',      'icon' => '◻'],
+    'newsletter'   => ['url' => '/admin/newsletter',     'label' => 'Newsletter',      'icon' => '◼'],
 ];
 
 $adminInitial = strtoupper(substr($adminUser['name'] ?? 'A', 0, 1));
@@ -27,6 +29,17 @@ $adminRole    = $adminUser['role'] ?? 'admin';
     <title><?= htmlspecialchars($pageTitle) ?> — Admin · Crabitan Bellevue</title>
     <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/css/main.css">
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.admin-flash--success').forEach(function (el) {
+            setTimeout(function () {
+                el.style.transition = 'opacity 400ms ease';
+                el.style.opacity = '0';
+                setTimeout(function () { el.remove(); }, 420);
+            }, 2500);
+        });
+    });
+    </script>
 </head>
 <body>
 

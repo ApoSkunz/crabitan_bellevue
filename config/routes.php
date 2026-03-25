@@ -16,8 +16,16 @@ $router->get('/admin/commandes', 'Admin\OrderAdminController@index');
 $router->get('/admin/commandes/{id}', 'Admin\OrderAdminController@show');
 $router->post('/admin/commandes/{id}/statut', 'Admin\OrderAdminController@updateStatus');
 $router->get('/admin/comptes', 'Admin\AccountAdminController@index');
+$router->post('/admin/comptes/{id}/verifier', 'Admin\AccountAdminController@verify');
 $router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
 $router->post('/admin/tarifs', 'Admin\PricingAdminController@update');
+$router->get('/admin/actualites', 'Admin\NewsAdminController@index');
+$router->get('/admin/actualites/ajouter', 'Admin\NewsAdminController@create');
+$router->post('/admin/actualites/ajouter', 'Admin\NewsAdminController@store');
+$router->get('/admin/actualites/{id}/modifier', 'Admin\NewsAdminController@edit');
+$router->post('/admin/actualites/{id}/modifier', 'Admin\NewsAdminController@update');
+$router->get('/admin/newsletter', 'Admin\NewsletterAdminController@index');
+$router->post('/admin/newsletter/envoyer', 'Admin\NewsletterAdminController@send');
 
 // ============================================================
 // Routes publiques
@@ -88,4 +96,3 @@ $router->post('/api/cart/add', 'Api\CartApiController@add');
 $router->post('/api/cart/update', 'Api\CartApiController@update');
 $router->post('/api/cart/remove', 'Api\CartApiController@remove');
 $router->post('/api/favorites/toggle', 'Api\FavoriteApiController@toggle');
-

@@ -115,6 +115,11 @@ class MailService
         $this->send($to, $firstname, $subjectLine, $body);
     }
 
+    public function sendNewsletter(string $to, string $name, string $subject, string $htmlBody): void
+    {
+        $this->send($to, $name, $subject, $htmlBody);
+    }
+
     private function send(string $to, string $name, string $subject, string $body): void
     {
         $this->mailer->clearAddresses();

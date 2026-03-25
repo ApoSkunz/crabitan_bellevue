@@ -99,6 +99,10 @@ class AuthController extends Controller
             $expiry
         );
 
+        if (in_array($account['role'], ['admin', 'super_admin'], true)) {
+            Response::redirect('/admin');
+        }
+
         Response::redirect("/{$lang}/mon-compte");
     }
 

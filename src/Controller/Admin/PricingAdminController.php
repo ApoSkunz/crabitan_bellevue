@@ -58,11 +58,11 @@ class PricingAdminController extends AdminController
                 if ($id <= 0) {
                     continue;
                 }
-                $delivery    = (float) str_replace(',', '.', $this->request->post("delivery_{$id}", '0'));
-                $withdrawal  = (float) str_replace(',', '.', $this->request->post("withdrawal_{$id}", '0'));
-                $labelFr     = trim($this->request->post("label_fr_{$id}", ''));
-                $labelEn     = trim($this->request->post("label_en_{$id}", ''));
-                $active      = $this->request->post("active_{$id}", '0') === '1';
+                $delivery   = (float) str_replace(',', '.', $this->request->post("delivery_{$id}", '0'));
+                $withdrawal = (float) str_replace(',', '.', $this->request->post("withdrawal_{$id}", '0'));
+                $labelFr    = trim($this->request->post("label_fr_{$id}", ''));
+                $labelEn    = trim($this->request->post("label_en_{$id}", ''));
+                $active     = $this->request->post("active_{$id}", '0') === '1';
 
                 $this->pricing->update($id, $delivery, $withdrawal, $labelFr, $labelEn, $active);
             }

@@ -1,8 +1,23 @@
 <?php require_once SRC_PATH . '/View/admin/_open.php'; ?>
 
 <?php
-$totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
+$totalPages  = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
 $colorLabels = ['red' => 'Rouge', 'white' => 'Blanc', 'rosé' => 'Rosé', 'sweet' => 'Liquoreux'];
+
+function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): string
+{
+    $q = ['page' => $page];
+    if ($color) {
+        $q['color'] = $color;
+    }
+    if ($avail !== null && $avail !== '') {
+        $q['available'] = $avail;
+    }
+    if ($perPage !== 20) {
+        $q['per_page'] = $perPage;
+    }
+    return '/admin/vins?' . http_build_query($q);
+}
 ?>
 
 <?php if ($flash) : ?>
@@ -27,8 +42,21 @@ $colorLabels = ['red' => 'Rouge', 'white' => 'Blanc', 'rosé' => 'Rosé', 'sweet
             </option>
         <?php endforeach; ?>
     </select>
+
+    <select name="available" class="admin-filters__select" aria-label="Filtrer par statut">
+        <option value="">Tous les statuts</option>
+        <option value="available" <?= $available === 'available' ? 'selected' : '' ?>>Disponible</option>
+        <option value="out"       <?= $available === 'out' ? 'selected' : '' ?>>Indisponible</option>
+    </select>
+
+    <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
+        <?php foreach ([10, 25, 50] as $n) : ?>
+            <option value="<?= $n ?>" <?= $perPage === $n ? 'selected' : '' ?>><?= $n ?> / page</option>
+        <?php endforeach; ?>
+    </select>
+
     <button type="submit" class="admin-filters__btn">Filtrer</button>
-    <?php if ($color) : ?>
+    <?php if ($color || $available || $perPage !== 20) : ?>
         <a href="/admin/vins" class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
     <?php endif; ?>
 </form>
@@ -39,11 +67,11 @@ $colorLabels = ['red' => 'Rouge', 'white' => 'Blanc', 'rosé' => 'Rosé', 'sweet
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Nom</th>
+                    <th>Appellation</th>
                     <th>Couleur</th>
                     <th>Millésime</th>
                     <th>Prix</th>
-                    <th>Stock</th>
+                    <th>Qté produite</th>
                     <th>Statut</th>
                     <th></th>
                 </tr>
@@ -64,7 +92,7 @@ $colorLabels = ['red' => 'Rouge', 'white' => 'Blanc', 'rosé' => 'Rosé', 'sweet
                         <td><?= htmlspecialchars($colorLabels[$wine['wine_color']] ?? $wine['wine_color']) ?></td>
                         <td><?= (int) $wine['vintage'] ?></td>
                         <td><?= number_format((float) $wine['price'], 2, ',', ' ') ?>&nbsp;€</td>
-                        <td><?= (int) $wine['quantity'] ?></td>
+                        <td><?= number_format((int) $wine['quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
                         <td>
                             <span class="badge badge--<?= $wine['available'] ? 'available' : 'out' ?>">
                                 <?= $wine['available'] ? 'Disponible' : 'Indisponible' ?>
@@ -72,8 +100,11 @@ $colorLabels = ['red' => 'Rouge', 'white' => 'Blanc', 'rosé' => 'Rosé', 'sweet
                         </td>
                         <td>
                             <div class="admin-actions">
-                                <a href="/admin/vins/<?= (int) $wine['id'] ?>/modifier" class="admin-btn admin-btn--outline admin-btn--sm">Modifier</a>
-                                <a href="/fr/vins/<?= htmlspecialchars($wine['slug']) ?>" class="admin-btn admin-btn--outline admin-btn--sm" target="_blank" rel="noopener">↗</a>
+                                <a href="/admin/vins/<?= (int) $wine['id'] ?>/modifier"
+                                   class="admin-btn admin-btn--outline admin-btn--sm">Modifier</a>
+                                <a href="/fr/vins/<?= htmlspecialchars($wine['slug']) ?>"
+                                   class="admin-btn admin-btn--outline admin-btn--sm"
+                                   target="_blank" rel="noopener">↗</a>
                             </div>
                         </td>
                     </tr>
@@ -85,13 +116,13 @@ $colorLabels = ['red' => 'Rouge', 'white' => 'Blanc', 'rosé' => 'Rosé', 'sweet
 
     <?php if ($totalPages > 1) : ?>
         <div class="admin-pagination">
-            <a href="?page=<?= max(1, $page - 1) ?><?= $color ? '&color=' . urlencode($color) : '' ?>"
+            <a href="<?= htmlspecialchars(wineListUrl(max(1, $page - 1), $color, $available, $perPage)) ?>"
                class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>">‹</a>
             <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
-                <a href="?page=<?= $i ?><?= $color ? '&color=' . urlencode($color) : '' ?>"
+                <a href="<?= htmlspecialchars(wineListUrl($i, $color, $available, $perPage)) ?>"
                    class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"><?= $i ?></a>
             <?php endfor; ?>
-            <a href="?page=<?= min($totalPages, $page + 1) ?><?= $color ? '&color=' . urlencode($color) : '' ?>"
+            <a href="<?= htmlspecialchars(wineListUrl(min($totalPages, $page + 1), $color, $available, $perPage)) ?>"
                class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>">›</a>
         </div>
     <?php endif; ?>

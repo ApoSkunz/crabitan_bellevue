@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Controller\Admin;
 
+use Core\Response;
 use Model\AccountModel;
 
 class AccountAdminController extends AdminController
 {
-    private const PER_PAGE = 25;
+    private const ALLOWED_PER_PAGE = [10, 25, 50];
+    private const DEFAULT_PER_PAGE = 25;
 
     // ----------------------------------------------------------------
     // GET /admin/comptes
@@ -16,15 +18,16 @@ class AccountAdminController extends AdminController
 
     public function index(array $params): void
     {
-        $adminUser = $this->requireAdmin();
-        $accounts  = new AccountModel();
-
-        $page   = max(1, (int) $this->request->get('page', 1));
-        $role   = $this->request->get('role') ?: null;
-        $search = trim($this->request->get('search', ''));
+        $adminUser  = $this->requireAdmin();
+        $accounts   = new AccountModel();
+        $page       = max(1, (int) $this->request->get('page', 1));
+        $role       = $this->request->get('role') ?: null;
+        $search     = trim($this->request->get('search', ''));
+        $perPageReq = (int) $this->request->get('per_page', self::DEFAULT_PER_PAGE);
+        $perPage    = in_array($perPageReq, self::ALLOWED_PER_PAGE, true) ? $perPageReq : self::DEFAULT_PER_PAGE;
 
         $total = $accounts->countForAdmin($role, $search ?: null);
-        $list  = $accounts->getForAdmin(self::PER_PAGE, ($page - 1) * self::PER_PAGE, $role, $search ?: null);
+        $list  = $accounts->getForAdmin($perPage, ($page - 1) * $perPage, $role, $search ?: null);
 
         $this->view('admin/accounts/index', [
             'adminUser'    => $adminUser,
@@ -34,9 +37,37 @@ class AccountAdminController extends AdminController
             'accounts'     => $list,
             'total'        => $total,
             'page'         => $page,
-            'perPage'      => self::PER_PAGE,
+            'perPage'      => $perPage,
             'role'         => $role,
             'search'       => $search,
+            'currentRole'  => $adminUser['role'] ?? '',
+            'flash'        => $this->getFlash('success'),
+            'flashError'   => $this->getFlash('error'),
         ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /admin/comptes/{id}/verifier  (super_admin uniquement)
+    // ----------------------------------------------------------------
+
+    public function verify(array $params): void
+    {
+        $adminUser = $this->requireAdmin();
+
+        if (($adminUser['role'] ?? '') !== 'super_admin') {
+            $this->abort(403, 'Réservé au super administrateur.');
+        }
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', 'Token CSRF invalide.');
+            Response::redirect('/admin/comptes');
+        }
+
+        $id      = (int) $params['id'];
+        $account = new AccountModel();
+        $account->verifyEmail($id);
+
+        $this->flash('success', "Compte #{$id} vérifié avec succès.");
+        Response::redirect('/admin/comptes');
     }
 }

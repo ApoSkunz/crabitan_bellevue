@@ -160,7 +160,10 @@ class AccountModel extends Model
     {
         [$where, $params] = $this->buildAdminFilters($role, $search);
         $row = $this->db->fetchOne(
-            "SELECT COUNT(*) AS total FROM {$this->table} a {$where}",
+            "SELECT COUNT(*) AS total FROM {$this->table} a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             {$where}",
             $params
         );
         return (int) ($row['total'] ?? 0);
@@ -182,6 +185,36 @@ class AccountModel extends Model
     {
         $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total FROM {$this->table} WHERE deleted_at IS NULL"
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    // ----------------------------------------------------------------
+    // Newsletter
+    // ----------------------------------------------------------------
+
+    /** @return array<int, array<string, mixed>> */
+    public function getNewsletterSubscribers(int $limit, int $offset): array
+    {
+        return $this->db->fetchAll(
+            "SELECT a.id, a.email, a.account_type, a.lang, a.created_at,
+                    ai.firstname, ai.lastname,
+                    ac.company_name
+             FROM {$this->table} a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             WHERE a.newsletter = 1 AND a.deleted_at IS NULL
+             ORDER BY a.created_at DESC
+             LIMIT ? OFFSET ?",
+            [$limit, $offset]
+        );
+    }
+
+    public function countNewsletterSubscribers(): int
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total FROM {$this->table}
+             WHERE newsletter = 1 AND deleted_at IS NULL"
         );
         return (int) ($row['total'] ?? 0);
     }

@@ -333,7 +333,7 @@ class WineModel extends Model
      *
      * @return array<int, array<string, mixed>>
      */
-    public function getForAdmin(?string $color, int $limit, int $offset): array
+    public function getForAdmin(?string $color, ?string $available, int $limit, int $offset): array
     {
         $where  = [];
         $params = [];
@@ -344,22 +344,28 @@ class WineModel extends Model
             $params[] = $color;
         }
 
+        if ($available === 'available') {
+            $where[] = self::COND_AVAILABLE;
+        } elseif ($available === 'out') {
+            $where[] = self::COND_OUT;
+        }
+
         $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
-        $params[] = $limit;
-        $params[] = $offset;
+        $params[]    = $limit;
+        $params[]    = $offset;
 
         return $this->db->fetchAll(
             "SELECT id, label_name, wine_color, format, vintage, price,
                     quantity, available, image_path, slug, is_cuvee_speciale
              FROM {$this->table}
              {$whereClause}
-             ORDER BY wine_color DESC, vintage DESC
+             ORDER BY available DESC, id DESC
              LIMIT ? OFFSET ?",
             $params
         );
     }
 
-    public function countForAdmin(?string $color): int
+    public function countForAdmin(?string $color, ?string $available = null): int
     {
         $where  = [];
         $params = [];
@@ -368,6 +374,12 @@ class WineModel extends Model
         if ($color !== null && in_array($color, $validColors, true)) {
             $where[]  = self::COND_COLOR;
             $params[] = $color;
+        }
+
+        if ($available === 'available') {
+            $where[] = self::COND_AVAILABLE;
+        } elseif ($available === 'out') {
+            $where[] = self::COND_OUT;
         }
 
         $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
