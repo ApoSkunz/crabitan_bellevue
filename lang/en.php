@@ -48,6 +48,12 @@ return [
     'auth.reset_invalid'     => 'Invalid or expired reset link.',
     'auth.password_invalid'  => 'Password too short or passwords do not match.',
     'auth.password_updated'  => 'Password updated. You can now log in.',
+    'auth.modal.or'          => 'or',
+    'auth.modal.google'      => 'Continue with Google',
+    'auth.modal.apple'       => 'Continue with Apple',
+    'auth.modal.social_soon' => 'Coming soon',
+    'auth.modal.no_account'  => 'Don\'t have an account?',
+    'auth.modal.sign_up'     => 'Sign up',
 
     // Wines — Catalogue
     'wine.add_to_cart'  => 'Add to cart',

@@ -28,21 +28,6 @@ class AuthController extends Controller
     }
 
     // ----------------------------------------------------------------
-    // GET /{lang}/connexion
-    // ----------------------------------------------------------------
-
-    public function loginForm(array $params): void
-    {
-        GuestMiddleware::handle();
-        $this->view('auth/login', [
-            'lang'  => $params['lang'],
-            'error' => $this->getFlash('error'),
-            'info'  => $this->getFlash('info'),
-            'csrf'  => $this->csrfToken(),
-        ]);
-    }
-
-    // ----------------------------------------------------------------
     // POST /{lang}/connexion
     // ----------------------------------------------------------------
 
@@ -52,8 +37,8 @@ class AuthController extends Controller
         $lang = $params['lang'];
 
         if (!$this->verifyCsrf()) {
-            $this->flash('error', __('error.csrf'));
-            Response::redirect("/{$lang}/connexion");
+            $this->flash('modal_error', __('error.csrf'));
+            Response::redirect("/{$lang}");
         }
 
         $email    = strtolower(trim($this->request->post('email', '')));
@@ -61,13 +46,13 @@ class AuthController extends Controller
         $account  = $this->accounts->findByEmail($email);
 
         if (!$account || $account['password'] === null || !password_verify($password, $account['password'])) {
-            $this->flash('error', __('auth.invalid_credentials'));
-            Response::redirect("/{$lang}/connexion");
+            $this->flash('modal_error', __('auth.invalid_credentials'));
+            Response::redirect("/{$lang}");
         }
 
         if (!$account['email_verified_at']) {
-            $this->flash('error', __('auth.account_inactive'));
-            Response::redirect("/{$lang}/connexion");
+            $this->flash('modal_error', __('auth.account_inactive'));
+            Response::redirect("/{$lang}");
         }
 
         $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);

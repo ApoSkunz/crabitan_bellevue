@@ -38,7 +38,6 @@ $router->get('/{lang}/actualites', 'NewsController@index');
 $router->get('/{lang}/actualites/{slug}', 'NewsController@show');
 
 // Auth
-$router->get('/{lang}/connexion', 'AuthController@loginForm');
 $router->post('/{lang}/connexion', 'AuthController@login');
 $router->get('/{lang}/inscription', 'AuthController@registerForm');
 $router->post('/{lang}/inscription', 'AuthController@register');
