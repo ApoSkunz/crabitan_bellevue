@@ -20,22 +20,23 @@ class ConnectionModelTest extends IntegrationTestCase
 
         $accountModel = new AccountModel();
         $this->userId = (int)$accountModel->create(
-            'Conn',
-            'User',
+            'individual',
             'conn@example.com',
             password_hash('pass', PASSWORD_BCRYPT),
-            'M',
-            null,
             'fr',
             0,
-            bin2hex(random_bytes(16))
+            bin2hex(random_bytes(16)),
+            'M',
+            'Conn',
+            'User',
+            ''
         );
     }
 
     public function testCreateConnection(): void
     {
         $token = bin2hex(random_bytes(32));
-        $this->model->create($this->userId, $token, 'Mozilla/5.0', 3600);
+        $this->model->create($this->userId, $token, null, null, 'Mozilla/5.0', null, 'password', 3600);
 
         $row = self::$db->fetchOne(
             "SELECT * FROM connections WHERE token = ?",
@@ -50,7 +51,7 @@ class ConnectionModelTest extends IntegrationTestCase
     public function testRevokeConnection(): void
     {
         $token = bin2hex(random_bytes(32));
-        $this->model->create($this->userId, $token, 'Mozilla/5.0', 3600);
+        $this->model->create($this->userId, $token, null, null, 'Mozilla/5.0', null, 'password', 3600);
         $this->model->revoke($token);
 
         $row = self::$db->fetchOne(
@@ -73,8 +74,8 @@ class ConnectionModelTest extends IntegrationTestCase
         $token1 = bin2hex(random_bytes(32));
         $token2 = bin2hex(random_bytes(32));
 
-        $this->model->create($this->userId, $token1, 'Chrome', 3600);
-        $this->model->create($this->userId, $token2, 'Firefox', 3600);
+        $this->model->create($this->userId, $token1, null, null, 'Chrome', null, 'password', 3600);
+        $this->model->create($this->userId, $token2, null, null, 'Firefox', null, 'password', 3600);
 
         $rows = self::$db->fetchAll(
             "SELECT * FROM connections WHERE user_id = ?",

@@ -20,15 +20,16 @@ class AccountModelTest extends IntegrationTestCase
     private function createAccount(string $email = 'test@example.com'): string
     {
         return $this->model->create(
-            'Dupont',
-            'Jean',
+            'individual',
             $email,
             password_hash('password123', PASSWORD_BCRYPT),
-            'M',
-            null,
             'fr',
             0,
-            bin2hex(random_bytes(16))
+            bin2hex(random_bytes(16)),
+            'M',
+            'Dupont',
+            'Jean',
+            ''
         );
     }
 
@@ -57,11 +58,16 @@ class AccountModelTest extends IntegrationTestCase
 
     public function testFindByVerificationToken(): void
     {
-        $token = bin2hex(random_bytes(16));
+        $token     = bin2hex(random_bytes(16));
+        $accountId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, lang, newsletter, email_verification_token)
+             VALUES ('token@example.com', 'h', 'fr', 0, ?)",
+            [$token]
+        );
         self::$db->insert(
-            "INSERT INTO accounts (lastname, firstname, email, password, gender, lang, newsletter, email_verification_token)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            ['Token', 'User', 'token@example.com', 'h', 'M', 'fr', 0, $token]
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Token', 'User', 'M')",
+            [$accountId]
         );
 
         $account = $this->model->findByVerificationToken($token);

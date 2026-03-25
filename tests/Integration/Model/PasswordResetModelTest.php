@@ -21,15 +21,16 @@ class PasswordResetModelTest extends IntegrationTestCase
         // Créer un compte de base pour les FK
         $accountModel = new AccountModel();
         $this->userId = (int)$accountModel->create(
-            'Reset',
-            'User',
+            'individual',
             'reset@example.com',
             password_hash('pass', PASSWORD_BCRYPT),
-            'M',
-            null,
             'fr',
             0,
-            bin2hex(random_bytes(16))
+            bin2hex(random_bytes(16)),
+            'M',
+            'Reset',
+            'User',
+            ''
         );
     }
 

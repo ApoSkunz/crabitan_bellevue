@@ -57,20 +57,31 @@ class AuthControllerTest extends IntegrationTestCase
         string $role = 'customer'
     ): int {
         $id = (int) self::$db->insert(
-            "INSERT INTO accounts (lastname, firstname, email, password, role, gender, lang, email_verified_at)
-             VALUES ('Test', 'User', ?, ?, ?, 'M', 'fr', NOW())",
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES (?, ?, ?, 'fr', NOW())",
             [$email, password_hash($password, PASSWORD_BCRYPT), $role]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Test', 'User', 'M')",
+            [$id]
         );
         return $id;
     }
 
     private function insertUnverifiedAccount(string $email = 'unverified@example.com'): int
     {
-        return (int) self::$db->insert(
-            "INSERT INTO accounts (lastname, firstname, email, password, role, gender, lang, email_verification_token)
-             VALUES ('Unverified', 'User', ?, ?, 'customer', 'M', 'fr', ?)",
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verification_token)
+             VALUES (?, ?, 'customer', 'fr', ?)",
             [$email, password_hash('Password1!', PASSWORD_BCRYPT), bin2hex(random_bytes(16))]
         );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Unverified', 'User', 'M')",
+            [$id]
+        );
+        return $id;
     }
 
     // ----------------------------------------------------------------
@@ -158,13 +169,13 @@ class AuthControllerTest extends IntegrationTestCase
     public function testRegisterCreatesAccountAndRedirects(): void
     {
         $_POST = [
+            'account_type'     => 'individual',
+            'civility'         => 'F',
             'lastname'         => 'Dupont',
             'firstname'        => 'Marie',
             'email'            => 'marie@example.com',
             'password'         => 'Password1!',
             'password_confirm' => 'Password1!',
-            'gender'           => 'F',
-            'company_name'     => '',
             'newsletter'       => '0',
             'csrf_token'       => self::CSRF,
         ];
@@ -178,7 +189,10 @@ class AuthControllerTest extends IntegrationTestCase
         }
 
         $account = self::$db->fetchOne(
-            "SELECT * FROM accounts WHERE email = ?",
+            "SELECT a.email, a.email_verified_at, ai.lastname
+             FROM accounts a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             WHERE a.email = ?",
             ['marie@example.com']
         );
         $this->assertNotFalse($account);
@@ -191,13 +205,13 @@ class AuthControllerTest extends IntegrationTestCase
         $this->insertVerifiedAccount('taken@example.com');
 
         $_POST = [
+            'account_type'     => 'individual',
+            'civility'         => 'M',
             'lastname'         => 'Autre',
             'firstname'        => 'Person',
             'email'            => 'taken@example.com',
             'password'         => 'Password1!',
             'password_confirm' => 'Password1!',
-            'gender'           => 'M',
-            'company_name'     => '',
             'newsletter'       => '0',
             'csrf_token'       => self::CSRF,
         ];
@@ -220,8 +234,8 @@ class AuthControllerTest extends IntegrationTestCase
         $userId = $this->insertVerifiedAccount('logout@example.com');
         $token  = Jwt::generate($userId, 'customer');
         self::$db->insert(
-            "INSERT INTO connections (user_id, token, client_machine, status, expired_at)
-             VALUES (?, ?, 'test', 'active', DATE_ADD(NOW(), INTERVAL 1 HOUR))",
+            "INSERT INTO connections (user_id, token, auth_method, status, expired_at)
+             VALUES (?, ?, 'password', 'active', DATE_ADD(NOW(), INTERVAL 1 HOUR))",
             [$userId, $token]
         );
 
@@ -260,10 +274,15 @@ class AuthControllerTest extends IntegrationTestCase
     public function testVerifyEmailActivatesAccount(): void
     {
         $verificationToken = bin2hex(random_bytes(16));
-        self::$db->insert(
-            "INSERT INTO accounts (lastname, firstname, email, password, role, gender, lang, email_verification_token)
-             VALUES ('V', 'User', 'verify@example.com', 'hash', 'customer', 'M', 'fr', ?)",
+        $accountId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verification_token)
+             VALUES ('verify@example.com', 'hash', 'customer', 'fr', ?)",
             [$verificationToken]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'V', 'User', 'M')",
+            [$accountId]
         );
 
         ob_start();
@@ -295,10 +314,16 @@ class AuthControllerTest extends IntegrationTestCase
     public function testVerifyEmailAlreadyVerifiedRedirects(): void
     {
         $verificationToken = bin2hex(random_bytes(16));
-        $sql = "INSERT INTO accounts"
-            . " (lastname, firstname, email, password, role, gender, lang, email_verified_at, email_verification_token)"
-            . " VALUES ('AV', 'User', 'already@example.com', 'hash', 'customer', 'M', 'fr', NOW(), ?)";
-        self::$db->insert($sql, [$verificationToken]);
+        $accountId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at, email_verification_token)
+             VALUES ('already@example.com', 'hash', 'customer', 'fr', NOW(), ?)",
+            [$verificationToken]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'AV', 'User', 'M')",
+            [$accountId]
+        );
 
         try {
             $this->makeController('GET', '/fr/verification/' . $verificationToken)

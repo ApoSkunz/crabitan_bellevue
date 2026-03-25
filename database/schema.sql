@@ -4,6 +4,12 @@
 -- Engine   : InnoDB (support FK, transactions)
 -- ============================================================
 
+CREATE DATABASE IF NOT EXISTS `crabitan_bellevue`
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE `crabitan_bellevue`;
+
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
 START TRANSACTION;
@@ -11,40 +17,70 @@ SET time_zone = "+00:00";
 SET NAMES utf8mb4;
 
 -- ============================================================
--- Table : accounts
--- Utilisateurs (clients, admins, super_admin)
--- gender 'society' : compte entreprise (affichage raison sociale,
---   visuels distincts). Peut évoluer vers un rôle dédié en v4.
--- company_name : rempli uniquement si gender = 'society'
+-- Table : accounts (centrale)
+-- Credentials + infos communes à tous les types de comptes.
+-- Le profil détaillé est dans account_individuals ou account_companies.
+-- password NULL : auth sociale uniquement (Google / Apple).
 -- ============================================================
 CREATE TABLE `accounts` (
   `id`                       INT            NOT NULL AUTO_INCREMENT,
-  `lastname`                 VARCHAR(100)   NOT NULL,
-  `firstname`                VARCHAR(100)   NOT NULL,
-  `company_name`             VARCHAR(255)   DEFAULT NULL COMMENT 'Raison sociale, rempli si gender = society',
   `email`                    VARCHAR(255)   NOT NULL,
-  `password`                 VARCHAR(255)   NOT NULL,
+  `password`                 VARCHAR(255)   DEFAULT NULL COMMENT 'NULL si auth sociale uniquement',
+  `account_type`             ENUM('individual','company') NOT NULL DEFAULT 'individual',
   `role`                     ENUM('super_admin','admin','customer') NOT NULL DEFAULT 'customer',
-  `gender`                   ENUM('M','F','other','society')        NOT NULL,
-  `lang`                     ENUM('fr','en')                        NOT NULL DEFAULT 'fr',
-  `newsletter`               TINYINT(1)     NOT NULL DEFAULT 0,
+  `lang`                     ENUM('fr','en')              NOT NULL DEFAULT 'fr',
+  `newsletter`               TINYINT(1)                   NOT NULL DEFAULT 0,
   `email_verification_token` VARCHAR(255)   DEFAULT NULL,
   `email_verified_at`        DATETIME       DEFAULT NULL,
   `google_id`                VARCHAR(255)   DEFAULT NULL COMMENT 'Google OAuth ID',
+  `apple_id`                 VARCHAR(255)   DEFAULT NULL COMMENT 'Apple Sign In ID',
   `deleted_at`               DATETIME       DEFAULT NULL COMMENT 'Soft delete',
   `created_at`               DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`               DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_accounts_email` (`email`),
+  UNIQUE KEY `uq_accounts_email`     (`email`),
   UNIQUE KEY `uq_accounts_google_id` (`google_id`),
-  INDEX `idx_accounts_role` (`role`),
-  INDEX `idx_accounts_deleted` (`deleted_at`)
+  UNIQUE KEY `uq_accounts_apple_id`  (`apple_id`),
+  INDEX `idx_accounts_role`          (`role`),
+  INDEX `idx_accounts_deleted`       (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : account_individuals
+-- Profil particulier (1:1 avec accounts)
+-- ============================================================
+CREATE TABLE `account_individuals` (
+  `id`         INT                   NOT NULL AUTO_INCREMENT,
+  `account_id` INT                   NOT NULL,
+  `lastname`   VARCHAR(100)          NOT NULL,
+  `firstname`  VARCHAR(100)          NOT NULL,
+  `civility`   ENUM('M','F','other') NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_account_individuals_account` (`account_id`),
+  CONSTRAINT `fk_account_individuals_account`
+    FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : account_companies
+-- Profil société (1:1 avec accounts)
+-- SIRET facultatif — utile pour facturation pro (restaurateurs, cavistes…)
+-- ============================================================
+CREATE TABLE `account_companies` (
+  `id`           INT          NOT NULL AUTO_INCREMENT,
+  `account_id`   INT          NOT NULL,
+  `company_name` VARCHAR(255) NOT NULL,
+  `siret`        VARCHAR(14)  DEFAULT NULL COMMENT 'SIRET facultatif — facturation pro',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_account_companies_account` (`account_id`),
+  CONSTRAINT `fk_account_companies_account`
+    FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
 -- Table : addresses
 -- Adresses de facturation ET de livraison (mutualisées)
--- gender 'society' aligné sur accounts pour les comptes entreprise
+-- civility : civilité de la personne sur l'étiquette d'envoi
 -- ============================================================
 CREATE TABLE `addresses` (
   `id`           INT            NOT NULL AUTO_INCREMENT,
@@ -52,7 +88,7 @@ CREATE TABLE `addresses` (
   `type`         ENUM('billing','delivery') NOT NULL,
   `firstname`    VARCHAR(100)   NOT NULL,
   `lastname`     VARCHAR(100)   NOT NULL,
-  `gender`       ENUM('M','F','other','society') NOT NULL,
+  `civility`     ENUM('M','F','other') NOT NULL,
   `street`       VARCHAR(255)   NOT NULL,
   `city`         VARCHAR(100)   NOT NULL,
   `zip_code`     VARCHAR(10)    NOT NULL,
@@ -179,20 +215,31 @@ CREATE TABLE `orders` (
 
 -- ============================================================
 -- Table : connections
--- Sessions JWT actives
+-- Sessions JWT actives + historique appareil
+-- device_token : UUID cookie longue durée (90j) — identifiant appareil,
+--   plus fiable que l'IP (4G/CGNAT = IP instable).
+-- ip_address : audit/affichage uniquement, pas pour la détection.
+-- is_trusted : appareil marqué de confiance par l'utilisateur (pas d'alerte).
 -- ============================================================
 CREATE TABLE `connections` (
-  `id`             INT            NOT NULL AUTO_INCREMENT,
-  `user_id`        INT            NOT NULL,
-  `token`          VARCHAR(255)   NOT NULL,
-  `client_machine` VARCHAR(255)   NOT NULL,
-  `status`         ENUM('active','expired','revoked') NOT NULL DEFAULT 'active',
-  `created_at`     DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `expired_at`     DATETIME       NOT NULL,
+  `id`           INT            NOT NULL AUTO_INCREMENT,
+  `user_id`      INT            NOT NULL,
+  `token`        VARCHAR(255)   NOT NULL,
+  `device_token` VARCHAR(64)    DEFAULT NULL COMMENT 'UUID cookie 90j — identifiant appareil',
+  `ip_address`   VARCHAR(45)    DEFAULT NULL COMMENT 'IPv4 ou IPv6 — audit uniquement',
+  `user_agent`   TEXT           DEFAULT NULL,
+  `device_name`  VARCHAR(255)   DEFAULT NULL COMMENT 'Ex : Chrome · Windows',
+  `auth_method`  ENUM('password','google','apple') NOT NULL DEFAULT 'password',
+  `is_trusted`   TINYINT(1)     NOT NULL DEFAULT 0,
+  `status`       ENUM('active','expired','revoked') NOT NULL DEFAULT 'active',
+  `last_used_at` DATETIME       DEFAULT NULL,
+  `created_at`   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expired_at`   DATETIME       NOT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_connections_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
-  INDEX `idx_connections_token` (`token`),
-  INDEX `idx_connections_user_status` (`user_id`, `status`)
+  INDEX `idx_connections_token`        (`token`),
+  INDEX `idx_connections_device_token` (`device_token`),
+  INDEX `idx_connections_user_status`  (`user_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================

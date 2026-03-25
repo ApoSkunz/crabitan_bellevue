@@ -60,7 +60,7 @@ class AuthController extends Controller
         $password = $this->request->post('password', '');
         $account  = $this->accounts->findByEmail($email);
 
-        if (!$account || !password_verify($password, $account['password'])) {
+        if (!$account || $account['password'] === null || !password_verify($password, $account['password'])) {
             $this->flash('error', __('auth.invalid_credentials'));
             Response::redirect("/{$lang}/connexion");
         }
@@ -85,8 +85,29 @@ class AuthController extends Controller
             $this->accounts->updateLang((int) $account['id'], $lang);
         }
 
-        $ua = substr($_SERVER['HTTP_USER_AGENT'] ?? 'unknown', 0, 255);
-        $this->connections->create((int) $account['id'], $token, $ua, $expiry);
+        $deviceToken = $_COOKIE['device_token'] ?? null;
+        if ($deviceToken === null) {
+            $deviceToken = bin2hex(random_bytes(32));
+            setcookie('device_token', $deviceToken, [
+                'expires'  => time() + (90 * 24 * 3600),
+                'path'     => '/',
+                'secure'   => APP_ENV === 'production',
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+        }
+
+        $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+        $this->connections->create(
+            (int) $account['id'],
+            $token,
+            $deviceToken,
+            $_SERVER['REMOTE_ADDR'] ?? null,
+            $ua,
+            $this->deriveDeviceName($ua),
+            'password',
+            $expiry
+        );
 
         Response::redirect("/{$lang}/mon-compte");
     }
@@ -136,48 +157,61 @@ class AuthController extends Controller
             Response::redirect("/{$lang}/inscription");
         }
 
-        $lastname    = trim($this->request->post('lastname', ''));
-        $firstname   = trim($this->request->post('firstname', ''));
+        $accountType = $this->request->post('account_type', '');
         $email       = strtolower(trim($this->request->post('email', '')));
         $password    = $this->request->post('password', '');
         $confirm     = $this->request->post('password_confirm', '');
-        $gender      = $this->request->post('gender', '');
+        $civility    = $this->request->post('civility', '');
+        $lastname    = trim($this->request->post('lastname', ''));
+        $firstname   = trim($this->request->post('firstname', ''));
         $company     = trim($this->request->post('company_name', ''));
         $newsletter  = $this->request->post('newsletter', '0') === '1' ? 1 : 0;
 
-        $errors = $this->validateRegister($lastname, $firstname, $email, $password, $confirm, $gender, $company);
+        $errors = $this->validateRegister(
+            $accountType,
+            $email,
+            $password,
+            $confirm,
+            $civility,
+            $lastname,
+            $firstname,
+            $company
+        );
+        $old = compact('accountType', 'civility', 'lastname', 'firstname', 'email', 'company', 'newsletter');
 
         if ($errors) {
             $_SESSION['flash']['errors'] = $errors;
-            $_SESSION['flash']['old']    = compact('lastname', 'firstname', 'email', 'gender', 'company', 'newsletter');
+            $_SESSION['flash']['old']    = $old;
             Response::redirect("/{$lang}/inscription");
         }
 
         if ($this->accounts->findByEmail($email)) {
             $_SESSION['flash']['errors'] = ['email' => __('auth.email_taken')];
-            $_SESSION['flash']['old']    = compact('lastname', 'firstname', 'email', 'gender', 'company', 'newsletter');
+            $_SESSION['flash']['old']    = $old;
             Response::redirect("/{$lang}/inscription");
         }
 
         $verificationToken = bin2hex(random_bytes(32));
+        $displayName       = $accountType === 'company' ? $company : "{$firstname} {$lastname}";
 
         $this->accounts->create(
-            $lastname,
-            $firstname,
+            $accountType,
             $email,
             password_hash($password, PASSWORD_BCRYPT),
-            $gender,
-            $gender === 'society' ? $company : null,
             $lang,
             $newsletter,
-            $verificationToken
+            $verificationToken,
+            $civility,
+            $lastname,
+            $firstname,
+            $company
         );
 
         $verifyUrl = APP_URL . "/{$lang}/verification/{$verificationToken}";
 
         try {
             $mail = new MailService();
-            $mail->sendEmailVerification($email, "{$firstname} {$lastname}", $verifyUrl, $lang);
+            $mail->sendEmailVerification($email, $displayName, $verifyUrl, $lang);
         } catch (\Throwable $e) {
             error_log('Mail verification error: ' . $e->getMessage());
         }
@@ -259,10 +293,13 @@ class AuthController extends Controller
             $resetUrl = APP_URL . "/{$lang}/reinitialisation/{$token}";
 
             try {
+                $displayName = $account['account_type'] === 'company'
+                    ? ($account['company_name'] ?? 'Client')
+                    : (($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
                 $mail = new MailService();
                 $mail->sendPasswordReset(
                     $account['email'],
-                    $account['firstname'] . ' ' . $account['lastname'],
+                    $displayName,
                     $resetUrl,
                     $lang
                 );
@@ -332,20 +369,19 @@ class AuthController extends Controller
     // ----------------------------------------------------------------
 
     private function validateRegister(
-        string $lastname,
-        string $firstname,
+        string $accountType,
         string $email,
         string $password,
         string $confirm,
-        string $gender,
+        string $civility,
+        string $lastname,
+        string $firstname,
         string $company
     ): array {
         $errors = [];
-        if (strlen($lastname) < 2) {
-            $errors['lastname']  = __('validation.required');
-        }
-        if (strlen($firstname) < 2) {
-            $errors['firstname'] = __('validation.required');
+
+        if (!in_array($accountType, ['individual', 'company'], true)) {
+            $errors['account_type'] = __('validation.required');
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = __('validation.email');
@@ -356,13 +392,42 @@ class AuthController extends Controller
         if ($password !== $confirm) {
             $errors['password_confirm'] = __('validation.password_match');
         }
-        if (!in_array($gender, ['M', 'F', 'other', 'society'], true)) {
-            $errors['gender'] = __('validation.required');
+        if ($accountType === 'individual') {
+            if (strlen($lastname) < 2) {
+                $errors['lastname'] = __('validation.required');
+            }
+            if (strlen($firstname) < 2) {
+                $errors['firstname'] = __('validation.required');
+            }
+            if (!in_array($civility, ['M', 'F', 'other'], true)) {
+                $errors['civility'] = __('validation.required');
+            }
         }
-        if ($gender === 'society' && strlen($company) < 2) {
+        if ($accountType === 'company' && strlen($company) < 2) {
             $errors['company_name'] = __('validation.required');
         }
+
         return $errors;
+    }
+
+    private function deriveDeviceName(string $ua): string
+    {
+        $browser = match (true) {
+            str_contains($ua, 'Edg')                                        => 'Edge',
+            str_contains($ua, 'Chrome') && !str_contains($ua, 'Chromium')  => 'Chrome',
+            str_contains($ua, 'Firefox')                                    => 'Firefox',
+            str_contains($ua, 'Safari') && !str_contains($ua, 'Chrome')    => 'Safari',
+            default                                                         => 'Browser',
+        };
+        $os = match (true) {
+            str_contains($ua, 'iPhone') || str_contains($ua, 'iPad') => 'iOS',
+            str_contains($ua, 'Android')                              => 'Android',
+            str_contains($ua, 'Windows')                              => 'Windows',
+            str_contains($ua, 'Macintosh')                            => 'macOS',
+            str_contains($ua, 'Linux')                                => 'Linux',
+            default                                                   => 'Unknown',
+        };
+        return "{$browser} · {$os}";
     }
 
     private function csrfToken(): string
