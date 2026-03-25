@@ -3,7 +3,7 @@
 <?php
 $formatLabels = ['bottle' => 'Bouteille', 'bib' => 'Bag-in-Box'];
 
-if (!function_exists('pricingLabel')) :
+if (!function_exists('pricingLabel')) {
 function pricingLabel(mixed $raw, string $lang): string
 {
     if (!is_string($raw)) {
@@ -12,7 +12,7 @@ function pricingLabel(mixed $raw, string $lang): string
     $data = json_decode($raw, true) ?? [];
     return $data[$lang] ?? $data['fr'] ?? '';
 }
-endif;
+}
 ?>
 
 <?php if ($flash) : ?>

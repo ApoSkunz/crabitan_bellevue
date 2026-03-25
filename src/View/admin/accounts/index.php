@@ -5,7 +5,7 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
 $roleLabels = ['customer' => 'Client', 'admin' => 'Admin', 'super_admin' => 'Super Admin'];
 $isSuperAdmin = $currentRole === 'super_admin';
 
-if (!function_exists('accountUrl')) :
+if (!function_exists('accountUrl')) {
 function accountUrl(int $p, ?string $role, ?string $type, string $search, int $perPage): string
 {
     $q = ['page' => $p];
@@ -23,7 +23,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
     }
     return '/admin/comptes?' . http_build_query($q);
 }
-endif;
+}
 ?>
 
 <?php if ($flash ?? null) : ?>

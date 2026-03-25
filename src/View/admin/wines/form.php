@@ -28,19 +28,19 @@ foreach ($jsonFields as $field) {
     $decoded[$field] = is_string($raw) ? (json_decode($raw, true) ?? ['fr' => '', 'en' => '']) : ['fr' => '', 'en' => ''];
 }
 
-if (!function_exists('fieldVal')) :
+if (!function_exists('fieldVal')) {
 function fieldVal(mixed $wine, string $key, mixed $default = ''): string
 {
     return htmlspecialchars((string) ($wine[$key] ?? $default));
 }
-endif;
+}
 
-if (!function_exists('hasError')) :
+if (!function_exists('hasError')) {
 function hasError(array $errors, string $key): bool
 {
     return isset($errors[$key]);
 }
-endif;
+}
 
 $errClass = ' is-error';
 $maxYear = (int) date('Y');

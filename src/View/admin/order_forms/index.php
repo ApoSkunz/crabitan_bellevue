@@ -50,13 +50,13 @@
 
 <!-- Filtres pagination -->
 <?php
-if (!function_exists('buildPageUrl')) :
+if (!function_exists('buildPageUrl')) {
 function buildPageUrl(int $page, int $perPage): string
 {
     $q = http_build_query(array_filter(['page' => $page > 1 ? $page : null, 'per_page' => $perPage !== 10 ? $perPage : null]));
     return '/admin/bons-de-commande' . ($q !== '' ? '?' . $q : '');
 }
-endif;
+}
 ?>
 <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
     <form method="GET" action="/admin/bons-de-commande" style="display:flex;align-items:center;gap:0.5rem;">
