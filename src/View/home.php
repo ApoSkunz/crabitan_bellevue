@@ -47,6 +47,8 @@ $carouselSlides = [
                 <?php endforeach; ?>
             </div>
 
+            <div id="weather-widget" class="carousel__weather" aria-label="Météo locale" hidden></div>
+
             <div class="carousel__caption">
                 <p class="carousel__eyebrow">Sainte-Croix-du-Mont</p>
                 <h1 class="carousel__title"><?= htmlspecialchars(__('home.carousel_title')) ?></h1>

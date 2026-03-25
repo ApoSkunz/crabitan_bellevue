@@ -871,6 +871,77 @@ function initPageIntro() {
 }
 
 // ============================================================
+// Widget météo — carousel héro (Open-Meteo, sans clé API)
+// ============================================================
+
+const WMO_FR = {
+    0: 'Ensoleillé', 1: 'Peu nuageux', 2: 'Nuageux', 3: 'Couvert',
+    45: 'Brouillard', 48: 'Brouillard givrant',
+    51: 'Bruine légère', 53: 'Bruine', 55: 'Bruine dense',
+    61: 'Pluie légère', 63: 'Pluie', 65: 'Pluie forte',
+    71: 'Neige légère', 73: 'Neige', 75: 'Neige forte', 77: 'Grésil',
+    80: 'Averses légères', 81: 'Averses', 82: 'Averses fortes',
+    85: 'Averses de neige', 86: 'Averses de neige fortes',
+    95: 'Orageux', 96: 'Orage avec grêle', 99: 'Orage violent',
+};
+
+const WMO_EN = {
+    0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+    45: 'Foggy', 48: 'Freezing fog',
+    51: 'Light drizzle', 53: 'Drizzle', 55: 'Dense drizzle',
+    61: 'Light rain', 63: 'Rain', 65: 'Heavy rain',
+    71: 'Light snow', 73: 'Snow', 75: 'Heavy snow', 77: 'Snow grains',
+    80: 'Light showers', 81: 'Showers', 82: 'Heavy showers',
+    85: 'Snow showers', 86: 'Heavy snow showers',
+    95: 'Thunderstorm', 96: 'Thunderstorm & hail', 99: 'Violent storm',
+};
+
+const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin',
+    'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const MONTHS_EN = ['January','February','March','April','May','June',
+    'July','August','September','October','November','December'];
+
+async function initWeatherWidget() {
+    const widget = document.getElementById('weather-widget');
+    if (!widget) return;
+
+    const lang   = window.__navLang === 'en' ? 'en' : 'fr';
+    const months = lang === 'en' ? MONTHS_EN : MONTHS_FR;
+    const wmo    = lang === 'en' ? WMO_EN : WMO_FR;
+    const month  = months[new Date().getMonth()];
+
+    try {
+        const res  = await fetch(
+            'https://api.open-meteo.com/v1/forecast'
+            + '?latitude=44.58&longitude=-0.27'
+            + '&current=weather_code,wind_speed_10m'
+            + '&daily=temperature_2m_min,temperature_2m_max'
+            + '&timezone=Europe%2FParis'
+        );
+        if (!res.ok) return;
+        const data  = await res.json();
+        const code  = data.current?.weather_code ?? 0;
+        const wind  = Math.round(data.current?.wind_speed_10m ?? 0);
+        const tmin  = Math.round(data.daily?.temperature_2m_min?.[0] ?? 0);
+        const tmax  = Math.round(data.daily?.temperature_2m_max?.[0] ?? 0);
+        const cond  = wmo[code] ?? (lang === 'en' ? 'Unknown' : 'Inconnu');
+
+        const line1 = document.createElement('span');
+        line1.className = 'carousel__weather-top';
+        line1.textContent = `${month} \u2014 ${cond}`;
+
+        const line2 = document.createElement('span');
+        line2.className = 'carousel__weather-bottom';
+        line2.textContent = `${tmin}\u00b0 \u2192 ${tmax}\u00b0 \u00b7 ${wind}\u00a0km/h`;
+
+        widget.replaceChildren(line1, line2);
+        widget.removeAttribute('hidden');
+    } catch {
+        // Silencieux — le widget reste masqué si l'API est inaccessible
+    }
+}
+
+// ============================================================
 // Reset password modal
 // ============================================================
 
@@ -934,6 +1005,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCookieBanner();
     initCarousel();
     initAccountPanel();
+    initWeatherWidget();
     initLoginModal();
     initRegisterModal();
     initResetModal();

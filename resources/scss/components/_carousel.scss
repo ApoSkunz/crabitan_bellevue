@@ -132,6 +132,42 @@
     }
 }
 
+// Widget météo — superposé en haut à gauche du carousel
+.carousel__weather {
+    position: absolute;
+    top: 1.25rem;
+    left: 1.5rem;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    pointer-events: none;
+
+    &[hidden] { display: none; }
+}
+
+.carousel__weather-top {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #f5f0e8;
+    text-shadow: 0 1px 3px rgba(8, 8, 8, 0.9);
+    white-space: nowrap;
+}
+
+.carousel__weather-bottom {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(245, 240, 232, 0.95);
+    text-shadow: 0 1px 3px rgba(8, 8, 8, 0.9);
+    white-space: nowrap;
+}
+
 // Points de navigation
 .carousel__dots {
     position: absolute;

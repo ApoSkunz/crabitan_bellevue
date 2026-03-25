@@ -230,7 +230,7 @@
     }
 
     [data-theme='light'] & {
-        background-color: var(--color-bg); // crème en mode jour
+        background-color: var(--color-gold); // or — contraste avec les pages beige/blanc
     }
 }
 
@@ -296,6 +296,27 @@
         background-color: rgba(201, 168, 76, 0.12);
         color: #2a2218;
         font-size: 2.2rem;
+    }
+
+    // Light theme : fond or par défaut → hover sur fond sombre (inversion)
+    [data-theme='light'] & {
+        color: #2a2218;
+
+        // Séparateurs sombres sur fond or
+        &::after {
+            background: rgba(42, 34, 24, 0.2);
+        }
+
+        &:hover,
+        &.active:hover {
+            background-color: #2a2218;
+            color: #f5f0e8;
+        }
+
+        &.active {
+            background-color: rgba(42, 34, 24, 0.12);
+            color: #2a2218;
+        }
     }
 }
 
