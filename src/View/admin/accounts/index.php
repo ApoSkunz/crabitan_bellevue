@@ -94,9 +94,11 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
             <?php else : ?>
                 <?php foreach ($accounts as $account) : ?>
                     <?php
-                    $displayName = $account['account_type'] === 'company'
-                        ? ($account['company_name'] ?? '—')
-                        : (trim($account['firstname'] . ' ' . $account['lastname']) ?: '—');
+                    if ($account['account_type'] === 'company') {
+                        $displayName = $account['company_name'] ?? '—';
+                    } else {
+                        $displayName = trim($account['firstname'] . ' ' . $account['lastname']) ?: '—';
+                    }
                     $roleBadge = match ($account['role']) {
                         'super_admin' => 'super',
                         'admin'       => 'admin',

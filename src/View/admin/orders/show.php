@@ -87,7 +87,9 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                         <?= htmlspecialchars($order['bill_street'] ?? '') ?><br>
                         <?= htmlspecialchars($order['bill_zip'] ?? '') ?> <?= htmlspecialchars($order['bill_city'] ?? '') ?><br>
                         <?= htmlspecialchars($order['bill_country'] ?? '') ?>
-                        <?php if ($order['bill_phone'] ?? '') : ?><br><?= htmlspecialchars($order['bill_phone']) ?><?php endif; ?>
+                        <?php if ($order['bill_phone'] ?? '') :
+                            ?><br><?= htmlspecialchars($order['bill_phone']) ?><?php
+                        endif; ?>
                     </p>
                 </div>
                 <?php if ($order['del_street'] ?? null) : ?>

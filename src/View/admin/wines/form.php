@@ -38,6 +38,7 @@ function hasError(array $errors, string $key): bool
     return isset($errors[$key]);
 }
 
+$errClass = ' is-error';
 $maxYear = (int) date('Y');
 ?>
 
@@ -62,7 +63,7 @@ $maxYear = (int) date('Y');
             <div class="admin-field admin-field--full">
                 <label class="admin-field__label" for="appellation">Appellation *</label>
                 <select id="appellation" name="appellation" required
-                        class="admin-field__select<?= hasError($errors, 'appellation') ? ' is-error' : '' ?>"
+                        class="admin-field__select<?= hasError($errors, 'appellation') ? $errClass : '' ?>"
                         onchange="onAppellationChange(this.value)">
                     <option value="">— Choisir une appellation —</option>
                     <?php foreach ($appellations as $label => $color) : ?>
@@ -97,7 +98,7 @@ $maxYear = (int) date('Y');
                 <label class="admin-field__label" for="vintage">Millésime * (max <?= $maxYear ?>)</label>
                 <input type="number" id="vintage" name="vintage" required
                        min="1900" max="<?= $maxYear ?>"
-                       class="admin-field__input<?= hasError($errors, 'vintage') ? ' is-error' : '' ?>"
+                       class="admin-field__input<?= hasError($errors, 'vintage') ? $errClass : '' ?>"
                        value="<?= fieldVal($wine, 'vintage', date('Y')) ?>">
                 <?php if (hasError($errors, 'vintage')) : ?>
                     <span class="admin-field__error"><?= htmlspecialchars($errors['vintage']) ?></span>
@@ -108,7 +109,7 @@ $maxYear = (int) date('Y');
                 <label class="admin-field__label" for="price">Prix (€) *</label>
                 <input type="number" id="price" name="price" required
                        min="0.10" step="0.10"
-                       class="admin-field__input<?= hasError($errors, 'price') ? ' is-error' : '' ?>"
+                       class="admin-field__input<?= hasError($errors, 'price') ? $errClass : '' ?>"
                        value="<?= fieldVal($wine, 'price', '0.00') ?>">
                 <?php if (hasError($errors, 'price')) : ?>
                     <span class="admin-field__error"><?= htmlspecialchars($errors['price']) ?></span>
@@ -118,7 +119,7 @@ $maxYear = (int) date('Y');
             <div class="admin-field">
                 <label class="admin-field__label" for="quantity">Quantité produite (bt) *</label>
                 <input type="number" id="quantity" name="quantity" required min="0"
-                       class="admin-field__input<?= hasError($errors, 'quantity') ? ' is-error' : '' ?>"
+                       class="admin-field__input<?= hasError($errors, 'quantity') ? $errClass : '' ?>"
                        value="<?= fieldVal($wine, 'quantity', '0') ?>">
                 <?php if (hasError($errors, 'quantity')) : ?>
                     <span class="admin-field__error"><?= htmlspecialchars($errors['quantity']) ?></span>
@@ -195,14 +196,14 @@ $maxYear = (int) date('Y');
             <?php if ($isEdit && !empty($wine['image_path'])) : ?>
                 <div style="margin-bottom:1rem;">
                     <p style="font-size:0.75rem;color:#8a7a60;margin-bottom:0.5rem;">Image actuelle :</p>
-                    <img id="image-preview"
+                    <img class="js-image-preview"
                          src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
-                         alt="Image actuelle"
+                         alt="Aperçu actuel"
                          style="max-height:160px;max-width:240px;object-fit:contain;
                                 border:1px solid rgba(0,0,0,0.1);border-radius:4px;">
                 </div>
             <?php else : ?>
-                <img id="image-preview" src="" alt=""
+                <img class="js-image-preview" src="" alt=""
                      style="display:none;max-height:160px;max-width:240px;object-fit:contain;
                             border:1px solid rgba(0,0,0,0.1);border-radius:4px;margin-bottom:0.75rem;">
             <?php endif; ?>
@@ -213,7 +214,7 @@ $maxYear = (int) date('Y');
                 </label>
                 <input type="file" id="image" name="image"
                        accept="image/jpeg,image/png,image/webp"
-                       class="admin-field__input<?= hasError($errors, 'image') ? ' is-error' : '' ?>"
+                       class="admin-field__input<?= hasError($errors, 'image') ? $errClass : '' ?>"
                        onchange="previewImage(this)">
                 <?php if (hasError($errors, 'image')) : ?>
                     <span class="admin-field__error"><?= htmlspecialchars($errors['image']) ?></span>
@@ -242,7 +243,7 @@ $maxYear = (int) date('Y');
                         <div class="admin-field">
                             <label class="admin-field__label" for="<?= $field ?>_fr">Français<?= $isRequired ? ' *' : '' ?></label>
                             <textarea id="<?= $field ?>_fr" name="<?= $field ?>_fr"
-                                      class="admin-field__textarea<?= hasError($errors, $field . '_fr') ? ' is-error' : '' ?>" rows="3"
+                                      class="admin-field__textarea<?= hasError($errors, $field . '_fr') ? $errClass : '' ?>" rows="3"
                                       <?= $isRequired ? 'required' : '' ?>><?= htmlspecialchars($decoded[$field]['fr'] ?? '') ?></textarea>
                             <?php if (hasError($errors, $field . '_fr')) : ?>
                                 <span class="admin-field__error"><?= htmlspecialchars($errors[$field . '_fr']) ?></span>
@@ -306,7 +307,7 @@ document.getElementById('vintage').addEventListener('input', updateSlugPreview);
 updateSlugPreview();
 
 function previewImage(input) {
-    const preview = document.getElementById('image-preview');
+    const preview = document.querySelector('.js-image-preview');
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) { preview.src = e.target.result; preview.style.display = ''; };

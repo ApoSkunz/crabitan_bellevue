@@ -13,6 +13,7 @@ function hasError(array $errors, string $key): bool
 {
     return isset($errors[$key]);
 }
+$errClass = ' is-error';
 ?>
 
 <?php if (!empty($errors)) : ?>
@@ -37,7 +38,7 @@ function hasError(array $errors, string $key): bool
                 <div class="admin-field">
                     <label class="admin-field__label" for="title_fr">Français *</label>
                     <input type="text" id="title_fr" name="title_fr" required
-                           class="admin-field__input<?= hasError($errors, 'title_fr') ? ' is-error' : '' ?>"
+                           class="admin-field__input<?= hasError($errors, 'title_fr') ? $errClass : '' ?>"
                            value="<?= htmlspecialchars($titleData['fr'] ?? '') ?>"
                            oninput="updateNewsSlug(this.value)">
                     <?php if (hasError($errors, 'title_fr')) : ?>
@@ -71,7 +72,7 @@ function hasError(array $errors, string $key): bool
                 <div class="admin-field">
                     <label class="admin-field__label" for="text_content_fr">Français *</label>
                     <textarea id="text_content_fr" name="text_content_fr" required
-                              class="admin-field__textarea<?= hasError($errors, 'text_content_fr') ? ' is-error' : '' ?>"
+                              class="admin-field__textarea<?= hasError($errors, 'text_content_fr') ? $errClass : '' ?>"
                               rows="8"><?= htmlspecialchars($contentData['fr'] ?? '') ?></textarea>
                     <?php if (hasError($errors, 'text_content_fr')) : ?>
                         <span class="admin-field__error"><?= htmlspecialchars($errors['text_content_fr']) ?></span>
@@ -94,13 +95,13 @@ function hasError(array $errors, string $key): bool
             <?php if ($isEdit && !empty($article['image_path'])) : ?>
                 <div style="margin-bottom:1rem;">
                     <p style="font-size:0.75rem;color:#8a7a60;margin-bottom:0.5rem;">Image actuelle :</p>
-                    <img id="image-preview"
+                    <img class="js-image-preview"
                          src="/assets/images/news/<?= htmlspecialchars($article['image_path']) ?>"
                          alt="" style="max-height:140px;max-width:220px;object-fit:cover;
                                        border:1px solid rgba(0,0,0,0.1);border-radius:4px;">
                 </div>
             <?php else : ?>
-                <img id="image-preview" src="" alt=""
+                <img class="js-image-preview" src="" alt=""
                      style="display:none;max-height:140px;max-width:220px;object-fit:cover;
                             border:1px solid rgba(0,0,0,0.1);border-radius:4px;margin-bottom:0.75rem;">
             <?php endif; ?>
@@ -112,7 +113,7 @@ function hasError(array $errors, string $key): bool
                 </label>
                 <input type="file" id="image" name="image"
                        accept="image/jpeg,image/png,image/webp"
-                       class="admin-field__input<?= hasError($errors, 'image') ? ' is-error' : '' ?>"
+                       class="admin-field__input<?= hasError($errors, 'image') ? $errClass : '' ?>"
                        onchange="previewImage(this)">
                 <?php if (hasError($errors, 'image')) : ?>
                     <span class="admin-field__error"><?= htmlspecialchars($errors['image']) ?></span>
@@ -157,7 +158,7 @@ function updateNewsSlug(val) {
 }
 
 function previewImage(input) {
-    const preview = document.getElementById('image-preview');
+    const preview = document.querySelector('.js-image-preview');
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) { preview.src = e.target.result; preview.style.display = ''; };

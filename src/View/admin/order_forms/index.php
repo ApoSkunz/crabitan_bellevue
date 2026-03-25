@@ -58,8 +58,8 @@ function buildPageUrl(int $page, int $perPage): string
 ?>
 <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
     <form method="GET" action="/admin/bons-de-commande" style="display:flex;align-items:center;gap:0.5rem;">
-        <label style="font-size:0.8rem;color:#8a7a60;">Par page :</label>
-        <select name="per_page" class="admin-field__select" style="padding:0.25rem 0.5rem;font-size:0.85rem;"
+        <label for="per-page-select" style="font-size:0.8rem;color:#8a7a60;">Par page :</label>
+        <select id="per-page-select" name="per_page" class="admin-field__select" style="padding:0.25rem 0.5rem;font-size:0.85rem;"
                 onchange="this.form.submit()">
             <?php foreach ([10, 25, 50] as $opt) : ?>
                 <option value="<?= $opt ?>" <?= $perPage === $opt ? 'selected' : '' ?>><?= $opt ?></option>

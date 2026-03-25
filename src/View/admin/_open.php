@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Admin layout — ouverture
  * Variables attendues : $pageTitle, $adminSection, $adminUser, $breadcrumbs
  */
+
 $adminSection = $adminSection ?? 'dashboard';
 $pageTitle    = $pageTitle    ?? 'Admin';
 $breadcrumbs  = $breadcrumbs  ?? [];
@@ -63,7 +65,7 @@ $adminRole    = $adminUser['role'] ?? 'admin';
     <aside class="admin-sidebar" aria-label="Navigation admin">
 
         <div class="admin-sidebar__logo">
-            <a href="/admin" class="admin-sidebar__brand" aria-label="Accueil admin">
+            <a href="/admin" class="admin-sidebar__brand" aria-label="Crabitan Bellevue — accueil admin">
                 Crabitan Bellevue
             </a>
             <p class="admin-sidebar__title">Back-office</p>
