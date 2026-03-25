@@ -2,6 +2,20 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.10.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.9.0...v0.10.0) (2026-03-25)
+
+
+### Bug Fixes
+
+* **security:** mot de passe minimum 12 caractères + PLAN.md docs mis à jour ([a3e61b9](https://github.com/ApoSkunz/crabitan_bellevue/commit/a3e61b9cfade113719b1cfd66017ff3aa8c9bc42))
+
+
+### Features
+
+* **auth:** modal inscription + suppression vue /inscription ([50f96bf](https://github.com/ApoSkunz/crabitan_bellevue/commit/50f96bf0bd48698d5e6198ca45f7dc78fb52747b))
+* **auth:** modal mot de passe oublié + vérification email + reset modal + MailHog ([26f68cd](https://github.com/ApoSkunz/crabitan_bellevue/commit/26f68cd78d43a4403a8b4cbe5d0d143b1158ee81))
+* **ui:** widget météo carousel + nav bar or en light theme ([400ebd5](https://github.com/ApoSkunz/crabitan_bellevue/commit/400ebd53c0b49f87c5b3e14028d49c2e62c75c52)), closes [#c9a84c](https://github.com/ApoSkunz/crabitan_bellevue/issues/c9a84c) [#2a2218](https://github.com/ApoSkunz/crabitan_bellevue/issues/2a2218)
+
 # [0.9.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.8.1...v0.9.0) (2026-03-25)
 
 
