@@ -9,6 +9,7 @@ use Model\OrderModel;
 
 class OrderAdminController extends AdminController
 {
+    private const ADMIN_URL         = '/admin/commandes';
     private const DEFAULT_PER_PAGE  = 10;
     private const ALLOWED_PER_PAGES = [10, 25, 50];
 
@@ -24,7 +25,7 @@ class OrderAdminController extends AdminController
     // GET /admin/commandes
     // ----------------------------------------------------------------
 
-    public function index(array $params): void
+    public function index(array $_params): void
     {
         $adminUser = $this->requireAdmin();
 
@@ -75,7 +76,7 @@ class OrderAdminController extends AdminController
             'pageTitle'    => 'Commande #' . $order['order_reference'],
             'breadcrumbs'  => [
                 ['label' => 'Admin', 'url' => '/admin'],
-                ['label' => 'Commandes', 'url' => '/admin/commandes'],
+                ['label' => 'Commandes', 'url' => self::ADMIN_URL],
                 ['label' => '#' . $order['order_reference']],
             ],
             'order'     => $order,
@@ -95,7 +96,7 @@ class OrderAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/commandes/' . $params['id']);
+            Response::redirect(self::ADMIN_URL . '/' . $params['id']);
         }
 
         $id     = (int) $params['id'];
@@ -103,7 +104,7 @@ class OrderAdminController extends AdminController
 
         $this->orders->updateStatus($id, $status);
         $this->flash('success', 'Statut mis à jour.');
-        Response::redirect('/admin/commandes/' . $id);
+        Response::redirect(self::ADMIN_URL . '/' . $id);
     }
 
     // ----------------------------------------------------------------
@@ -116,7 +117,7 @@ class OrderAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/commandes/' . $params['id']);
+            Response::redirect(self::ADMIN_URL . '/' . $params['id']);
         }
 
         $id    = (int) $params['id'];
@@ -129,14 +130,14 @@ class OrderAdminController extends AdminController
         $file = $_FILES['invoice'] ?? [];
         if (empty($file['tmp_name'])) {
             $this->flash('error', 'Aucun fichier sélectionné.');
-            Response::redirect('/admin/commandes/' . $id);
+            Response::redirect(self::ADMIN_URL . '/' . $id);
         }
 
         $finfo    = new \finfo(\FILEINFO_MIME_TYPE);
         $mimeType = $finfo->file($file['tmp_name']);
         if ($mimeType !== 'application/pdf') {
             $this->flash('error', 'Seuls les fichiers PDF sont acceptés.');
-            Response::redirect('/admin/commandes/' . $id);
+            Response::redirect(self::ADMIN_URL . '/' . $id);
         }
 
         $destDir = ROOT_PATH . '/storage/invoices/';
@@ -154,12 +155,12 @@ class OrderAdminController extends AdminController
         $destPath = $destDir . $filename;
         if (!move_uploaded_file($file['tmp_name'], $destPath)) {
             $this->flash('error', 'Erreur lors de l\'enregistrement du fichier.');
-            Response::redirect('/admin/commandes/' . $id);
+            Response::redirect(self::ADMIN_URL . '/' . $id);
         }
 
         $this->orders->updateInvoice($id, 'storage/invoices/' . $filename);
         $this->flash('success', 'Facture uploadée avec succès.');
-        Response::redirect('/admin/commandes/' . $id);
+        Response::redirect(self::ADMIN_URL . '/' . $id);
     }
 
     // ----------------------------------------------------------------

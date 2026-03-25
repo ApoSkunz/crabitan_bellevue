@@ -9,6 +9,10 @@ use Model\NewsModel;
 
 class NewsAdminController extends AdminController
 {
+    private const ADMIN_BASE      = '/admin';
+    private const ADMIN_URL       = '/admin/actualites';
+    private const FORM_VIEW       = 'admin/news/form';
+    private const SECTION_TITLE   = 'Actualités';
     private const PER_PAGE        = 15;
     private const ALLOWED_MIME    = ['image/jpeg', 'image/png', 'image/webp'];
     private const MIME_EXT        = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
@@ -25,7 +29,7 @@ class NewsAdminController extends AdminController
     // GET /admin/actualites
     // ----------------------------------------------------------------
 
-    public function index(array $params): void
+    public function index(array $_params): void
     {
         $adminUser = $this->requireAdmin();
         $page      = max(1, (int) $this->request->get('page', 1));
@@ -35,8 +39,8 @@ class NewsAdminController extends AdminController
         $this->view('admin/news/index', [
             'adminUser'    => $adminUser,
             'adminSection' => 'news',
-            'pageTitle'    => 'Actualités',
-            'breadcrumbs'  => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Actualités']],
+            'pageTitle'    => self::SECTION_TITLE,
+            'breadcrumbs'  => [['label' => 'Admin', 'url' => self::ADMIN_BASE], ['label' => 'Actualités']],
             'articles'     => $articles,
             'total'        => $total,
             'page'         => $page,
@@ -50,17 +54,17 @@ class NewsAdminController extends AdminController
     // GET /admin/actualites/ajouter
     // ----------------------------------------------------------------
 
-    public function create(array $params): void
+    public function create(array $_params): void
     {
         $adminUser = $this->requireAdmin();
 
-        $this->view('admin/news/form', [
+        $this->view(self::FORM_VIEW, [
             'adminUser'    => $adminUser,
             'adminSection' => 'news',
             'pageTitle'    => 'Ajouter un article',
             'breadcrumbs'  => [
-                ['label' => 'Admin', 'url' => '/admin'],
-                ['label' => 'Actualités', 'url' => '/admin/actualites'],
+                ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                ['label' => self::SECTION_TITLE, 'url' => self::ADMIN_URL],
                 ['label' => 'Ajouter'],
             ],
             'article'   => null,
@@ -73,7 +77,7 @@ class NewsAdminController extends AdminController
     // POST /admin/actualites/ajouter
     // ----------------------------------------------------------------
 
-    public function store(array $params): void
+    public function store(array $_params): void
     {
         $adminUser = $this->requireAdmin();
 
@@ -85,13 +89,13 @@ class NewsAdminController extends AdminController
         [$data, $errors] = $this->parseNewsForm(null);
 
         if ($errors !== []) {
-            $this->view('admin/news/form', [
+            $this->view(self::FORM_VIEW, [
                 'adminUser'    => $adminUser,
                 'adminSection' => 'news',
                 'pageTitle'    => 'Ajouter un article',
                 'breadcrumbs'  => [
-                    ['label' => 'Admin', 'url' => '/admin'],
-                    ['label' => 'Actualités', 'url' => '/admin/actualites'],
+                    ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                    ['label' => self::SECTION_TITLE, 'url' => self::ADMIN_URL],
                     ['label' => 'Ajouter'],
                 ],
                 'article'   => $data,
@@ -104,7 +108,7 @@ class NewsAdminController extends AdminController
         $this->news->create($data);
         $titleFr = json_decode($data['title'], true)['fr'] ?? '';
         $this->flash('success', "Article « {$titleFr} » ajouté avec succès.");
-        Response::redirect('/admin/actualites');
+        Response::redirect(self::ADMIN_URL);
     }
 
     // ----------------------------------------------------------------
@@ -120,13 +124,13 @@ class NewsAdminController extends AdminController
             $this->abort(404, 'Article introuvable');
         }
 
-        $this->view('admin/news/form', [
+        $this->view(self::FORM_VIEW, [
             'adminUser'    => $adminUser,
             'adminSection' => 'news',
             'pageTitle'    => 'Modifier un article',
             'breadcrumbs'  => [
-                ['label' => 'Admin', 'url' => '/admin'],
-                ['label' => 'Actualités', 'url' => '/admin/actualites'],
+                ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                ['label' => self::SECTION_TITLE, 'url' => self::ADMIN_URL],
                 ['label' => 'Modifier'],
             ],
             'article'   => $article,
@@ -157,13 +161,13 @@ class NewsAdminController extends AdminController
         [$data, $errors] = $this->parseNewsForm($article);
 
         if ($errors !== []) {
-            $this->view('admin/news/form', [
+            $this->view(self::FORM_VIEW, [
                 'adminUser'    => $adminUser,
                 'adminSection' => 'news',
                 'pageTitle'    => 'Modifier un article',
                 'breadcrumbs'  => [
-                    ['label' => 'Admin', 'url' => '/admin'],
-                    ['label' => 'Actualités', 'url' => '/admin/actualites'],
+                    ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                    ['label' => self::SECTION_TITLE, 'url' => self::ADMIN_URL],
                     ['label' => 'Modifier'],
                 ],
                 'article'   => array_merge($article, $data),
@@ -176,7 +180,7 @@ class NewsAdminController extends AdminController
         $this->news->update($id, $data);
         $titleFr = json_decode($data['title'], true)['fr'] ?? '';
         $this->flash('success', "Article « {$titleFr} » mis à jour avec succès.");
-        Response::redirect('/admin/actualites');
+        Response::redirect(self::ADMIN_URL);
     }
 
     // ----------------------------------------------------------------
@@ -252,6 +256,7 @@ class NewsAdminController extends AdminController
     /**
      * @return array{path: string, error: string|null}
      */
+    // NOSONAR — php:S1142 : early returns sur validation MIME/upload sont intentionnels
     private function handleImageUpload(string $title, ?string $existingPath, bool $required): array
     {
         $file = $_FILES['image'] ?? [];
@@ -321,6 +326,7 @@ class NewsAdminController extends AdminController
                 return (string) $data['responseData']['translatedText'];
             }
         } catch (\Throwable) {
+            // L'API MyMemory est optionnelle — on retourne le texte original en cas d'échec
         }
         return $text;
     }

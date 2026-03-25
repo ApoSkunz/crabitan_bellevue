@@ -23,6 +23,9 @@ class WineAdminController extends AdminController
         'Bordeaux Rouge'                    => 'red',
     ];
 
+    private const ADMIN_BASE       = '/admin';
+    private const ADMIN_URL        = '/admin/vins';
+    private const FORM_VIEW        = 'admin/wines/form';
     private const ALLOWED_PER_PAGE = [10, 25, 50];
     private const DEFAULT_PER_PAGE = 10;
 
@@ -57,7 +60,7 @@ class WineAdminController extends AdminController
     // GET /admin/vins
     // ----------------------------------------------------------------
 
-    public function index(array $params): void
+    public function index(array $_params): void
     {
         $adminUser  = $this->requireAdmin();
         $page       = max(1, (int) $this->request->get('page', 1));
@@ -73,7 +76,7 @@ class WineAdminController extends AdminController
             'adminUser'    => $adminUser,
             'adminSection' => 'wines',
             'pageTitle'    => 'Gestion des vins',
-            'breadcrumbs'  => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Vins']],
+            'breadcrumbs'  => [['label' => 'Admin', 'url' => self::ADMIN_BASE], ['label' => 'Vins']],
             'wines'        => $wines,
             'total'        => $total,
             'page'         => $page,
@@ -89,17 +92,17 @@ class WineAdminController extends AdminController
     // GET /admin/vins/ajouter
     // ----------------------------------------------------------------
 
-    public function create(array $params): void
+    public function create(array $_params): void
     {
         $adminUser = $this->requireAdmin();
 
-        $this->view('admin/wines/form', [
+        $this->view(self::FORM_VIEW, [
             'adminUser'    => $adminUser,
             'adminSection' => 'wines',
             'pageTitle'    => 'Ajouter un vin',
             'breadcrumbs'  => [
-                ['label' => 'Admin', 'url' => '/admin'],
-                ['label' => 'Vins', 'url' => '/admin/vins'],
+                ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                ['label' => 'Vins', 'url' => self::ADMIN_URL],
                 ['label' => 'Ajouter'],
             ],
             'wine'         => null,
@@ -113,7 +116,7 @@ class WineAdminController extends AdminController
     // POST /admin/vins/ajouter
     // ----------------------------------------------------------------
 
-    public function store(array $params): void
+    public function store(array $_params): void
     {
         $adminUser = $this->requireAdmin();
 
@@ -125,13 +128,13 @@ class WineAdminController extends AdminController
         [$data, $errors] = $this->parseWineForm(null);
 
         if ($errors !== []) {
-            $this->view('admin/wines/form', [
+            $this->view(self::FORM_VIEW, [
                 'adminUser'    => $adminUser,
                 'adminSection' => 'wines',
                 'pageTitle'    => 'Ajouter un vin',
                 'breadcrumbs'  => [
-                    ['label' => 'Admin', 'url' => '/admin'],
-                    ['label' => 'Vins', 'url' => '/admin/vins'],
+                    ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                    ['label' => 'Vins', 'url' => self::ADMIN_URL],
                     ['label' => 'Ajouter'],
                 ],
                 'wine'         => $data,
@@ -145,7 +148,7 @@ class WineAdminController extends AdminController
         $this->wines->create($data);
         $cuveeMark = $data['is_cuvee_speciale'] ? ' — Cuvée Spéciale' : '';
         $this->flash('success', "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » ajouté avec succès.");
-        Response::redirect('/admin/vins');
+        Response::redirect(self::ADMIN_URL);
     }
 
     // ----------------------------------------------------------------
@@ -161,13 +164,13 @@ class WineAdminController extends AdminController
             $this->abort(404, 'Vin introuvable');
         }
 
-        $this->view('admin/wines/form', [
+        $this->view(self::FORM_VIEW, [
             'adminUser'    => $adminUser,
             'adminSection' => 'wines',
             'pageTitle'    => 'Modifier — ' . $wine['label_name'],
             'breadcrumbs'  => [
-                ['label' => 'Admin', 'url' => '/admin'],
-                ['label' => 'Vins', 'url' => '/admin/vins'],
+                ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                ['label' => 'Vins', 'url' => self::ADMIN_URL],
                 ['label' => 'Modifier'],
             ],
             'wine'         => $wine,
@@ -199,13 +202,13 @@ class WineAdminController extends AdminController
         [$data, $errors] = $this->parseWineForm($wine);
 
         if ($errors !== []) {
-            $this->view('admin/wines/form', [
+            $this->view(self::FORM_VIEW, [
                 'adminUser'    => $adminUser,
                 'adminSection' => 'wines',
                 'pageTitle'    => 'Modifier — ' . $wine['label_name'],
                 'breadcrumbs'  => [
-                    ['label' => 'Admin', 'url' => '/admin'],
-                    ['label' => 'Vins', 'url' => '/admin/vins'],
+                    ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                    ['label' => 'Vins', 'url' => self::ADMIN_URL],
                     ['label' => 'Modifier'],
                 ],
                 'wine'         => array_merge($wine, $data),
@@ -219,7 +222,7 @@ class WineAdminController extends AdminController
         $this->wines->update($id, $data);
         $cuveeMark = $data['is_cuvee_speciale'] ? ' — Cuvée Spéciale' : '';
         $this->flash('success', "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » mis à jour avec succès.");
-        Response::redirect('/admin/vins');
+        Response::redirect(self::ADMIN_URL);
     }
 
     // ----------------------------------------------------------------
@@ -232,6 +235,7 @@ class WineAdminController extends AdminController
      * @param array<string, mixed>|null $existing  Données actuelles en BDD (modifier)
      * @return array{array<string, mixed>, array<string, string>}
      */
+    // NOSONAR — php:S3776 : complexité cognitive nécessaire pour valider tous les champs du formulaire vin
     private function parseWineForm(?array $existing): array
     {
         $r      = $this->request;
@@ -257,7 +261,6 @@ class WineAdminController extends AdminController
         $variety   = trim($r->post('variety_of_vine', ''));
         $age       = (int) $r->post('age_of_vineyard', 0);
         $isCuvee   = $r->post('is_cuvee_speciale', '0') === '1' ? 1 : 0;
-        $slug      = trim($r->post('slug', ''));
 
         if ($vintage < 1900 || $vintage > (int) date('Y')) {
             $errors['vintage'] = 'Millésime invalide (1900 – ' . date('Y') . ').';
@@ -344,7 +347,7 @@ class WineAdminController extends AdminController
      *
      * @return array{path: string, error: string|null}
      */
-    private function handleImageUpload(
+    private function handleImageUpload( // NOSONAR — php:S1142 : early returns sur validation MIME/upload sont intentionnels
         string $appellation,
         int $vintage,
         ?string $existingPath,
@@ -414,6 +417,7 @@ class WineAdminController extends AdminController
                 return (string) $data['responseData']['translatedText'];
             }
         } catch (\Throwable) {
+            // L'API MyMemory est optionnelle — on retourne le texte original en cas d'échec
         }
         return $text;
     }

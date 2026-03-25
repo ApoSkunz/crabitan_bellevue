@@ -21,7 +21,7 @@ class PricingAdminController extends AdminController
     // GET /admin/tarifs
     // ----------------------------------------------------------------
 
-    public function index(array $params): void
+    public function index(array $_params): void
     {
         $adminUser = $this->requireAdmin();
 
@@ -41,7 +41,7 @@ class PricingAdminController extends AdminController
     // POST /admin/tarifs
     // ----------------------------------------------------------------
 
-    public function update(array $params): void
+    public function update(array $_params): void
     {
         $this->requireAdmin();
 

@@ -10,7 +10,7 @@ use Model\WineModel;
 
 class DashboardController extends AdminController
 {
-    public function index(array $params): void
+    public function index(array $_params): void
     {
         $adminUser = $this->requireAdmin();
 

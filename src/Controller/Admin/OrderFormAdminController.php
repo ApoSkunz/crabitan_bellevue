@@ -24,10 +24,11 @@ class OrderFormAdminController extends AdminController
     // GET /admin/bons-de-commande
     // ----------------------------------------------------------------
 
+    private const ADMIN_URL         = '/admin/bons-de-commande';
     private const DEFAULT_PER_PAGE  = 10;
     private const ALLOWED_PER_PAGES = [10, 25, 50];
 
-    public function index(array $params): void
+    public function index(array $_params): void
     {
         $adminUser = $this->requireAdmin();
 
@@ -62,13 +63,13 @@ class OrderFormAdminController extends AdminController
     // POST /admin/bons-de-commande/ajouter
     // ----------------------------------------------------------------
 
-    public function upload(array $params): void
+    public function upload(array $_params): void
     {
         $this->requireAdmin();
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/bons-de-commande');
+            Response::redirect(self::ADMIN_URL);
         }
 
         $year  = (int) ($_POST['year'] ?? 0);
@@ -77,19 +78,19 @@ class OrderFormAdminController extends AdminController
 
         if ($year < 2000 || $year > 2100) {
             $this->flash('error', 'Année invalide.');
-            Response::redirect('/admin/bons-de-commande');
+            Response::redirect(self::ADMIN_URL);
         }
 
         $file = $_FILES['pdf'] ?? null;
         if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
             $this->flash('error', 'Aucun fichier reçu ou erreur d\'upload.');
-            Response::redirect('/admin/bons-de-commande');
+            Response::redirect(self::ADMIN_URL);
         }
 
         $mime = mime_content_type($file['tmp_name']);
         if ($mime !== 'application/pdf') {
             $this->flash('error', 'Le fichier doit être un PDF.');
-            Response::redirect('/admin/bons-de-commande');
+            Response::redirect(self::ADMIN_URL);
         }
 
         if (!is_dir($this->storageDir)) {
@@ -102,12 +103,12 @@ class OrderFormAdminController extends AdminController
 
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
             $this->flash('error', 'Erreur lors de la sauvegarde du fichier.');
-            Response::redirect('/admin/bons-de-commande');
+            Response::redirect(self::ADMIN_URL);
         }
 
         $this->forms->create($year, $label, $filename);
         $this->flash('success', 'Bon de commande ajouté.');
-        Response::redirect('/admin/bons-de-commande');
+        Response::redirect(self::ADMIN_URL);
     }
 
     // ----------------------------------------------------------------
@@ -120,7 +121,7 @@ class OrderFormAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/bons-de-commande');
+            Response::redirect(self::ADMIN_URL);
         }
 
         $id   = (int) ($params['id'] ?? 0);
@@ -128,7 +129,7 @@ class OrderFormAdminController extends AdminController
 
         if ($form === null) {
             $this->flash('error', 'Bon de commande introuvable.');
-            Response::redirect('/admin/bons-de-commande');
+            Response::redirect(self::ADMIN_URL);
         }
 
         $path = $this->storageDir . '/' . $form['filename'];
@@ -138,7 +139,7 @@ class OrderFormAdminController extends AdminController
 
         $this->forms->delete($id);
         $this->flash('success', 'Bon de commande supprimé.');
-        Response::redirect('/admin/bons-de-commande');
+        Response::redirect(self::ADMIN_URL);
     }
 
     // ----------------------------------------------------------------

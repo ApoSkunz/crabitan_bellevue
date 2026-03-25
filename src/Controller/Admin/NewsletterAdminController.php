@@ -10,7 +10,8 @@ use Service\MailService;
 
 class NewsletterAdminController extends AdminController
 {
-    private const PER_PAGE = 25;
+    private const ADMIN_URL = '/admin/newsletter';
+    private const PER_PAGE  = 25;
 
     private AccountModel $accounts;
 
@@ -24,7 +25,7 @@ class NewsletterAdminController extends AdminController
     // GET /admin/newsletter
     // ----------------------------------------------------------------
 
-    public function index(array $params): void
+    public function index(array $_params): void
     {
         $adminUser   = $this->requireAdmin();
         $page        = max(1, (int) $this->request->get('page', 1));
@@ -53,13 +54,13 @@ class NewsletterAdminController extends AdminController
     // POST /admin/newsletter/envoyer
     // ----------------------------------------------------------------
 
-    public function send(array $params): void
+    public function send(array $_params): void
     {
         $this->requireAdmin();
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/newsletter');
+            Response::redirect(self::ADMIN_URL);
         }
 
         $subject = trim($this->request->post('subject', ''));
@@ -67,7 +68,7 @@ class NewsletterAdminController extends AdminController
 
         if ($subject === '' || $body === '') {
             $this->flash('error', 'Objet et contenu sont obligatoires.');
-            Response::redirect('/admin/newsletter');
+            Response::redirect(self::ADMIN_URL);
         }
 
         $allowed  = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
@@ -106,13 +107,14 @@ class NewsletterAdminController extends AdminController
         }
 
         $this->flash('success', $msg);
-        Response::redirect('/admin/newsletter');
+        Response::redirect(self::ADMIN_URL);
     }
 
     /**
      * @param array<string, mixed> $file
      * @param array<string, string> $allowed
      */
+    // NOSONAR — php:S1142 : early returns sur validation MIME/upload sont intentionnels
     private function uploadNewsletterImage(array $file, array $allowed, string $destDir, string $appUrl): ?string
     {
         if (empty($file['tmp_name'])) {

@@ -16,7 +16,7 @@ class AccountAdminController extends AdminController
     // GET /admin/comptes
     // ----------------------------------------------------------------
 
-    public function index(array $params): void
+    public function index(array $_params): void
     {
         $adminUser  = $this->requireAdmin();
         $accounts   = new AccountModel();
