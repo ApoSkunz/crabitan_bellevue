@@ -161,7 +161,7 @@ return [
     'form.civility.other'          => 'Other',
     'form.company'                 => 'Company name',
     'form.password_confirm'        => 'Confirm password',
-    'form.password_hint'           => 'Minimum 8 characters, including one uppercase letter, one number and one special character.',
+    'form.password_hint'           => 'Minimum 12 characters, including one uppercase letter, one number and one special character.',
     'form.newsletter'              => 'I would like to receive news and offers from the estate',
 
     // Validation

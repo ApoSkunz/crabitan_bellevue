@@ -28,13 +28,13 @@ require_once __DIR__ . '/../partials/header.php';
                 <div class="form-group">
                     <label for="password"><?= __('auth.password') ?></label>
                     <input type="password" id="password" name="password"
-                           autocomplete="new-password" required minlength="8" autofocus>
+                           autocomplete="new-password" required minlength="12" autofocus>
                 </div>
 
                 <div class="form-group">
                     <label for="password_confirm"><?= __('form.password_confirm') ?></label>
                     <input type="password" id="password_confirm" name="password_confirm"
-                           autocomplete="new-password" required minlength="8">
+                           autocomplete="new-password" required minlength="12">
                 </div>
 
                 <button type="submit" class="btn btn--primary btn--full">

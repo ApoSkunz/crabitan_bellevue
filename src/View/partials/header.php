@@ -449,7 +449,7 @@ window.__flashInfo        = <?= $flashInfo ? json_encode(htmlspecialchars($flash
                     <label for="reg-password"><?= htmlspecialchars(__('auth.password')) ?></label>
                     <div class="register-modal__password-wrap">
                         <input type="password" id="reg-password" name="password"
-                               autocomplete="new-password" required minlength="8">
+                               autocomplete="new-password" required minlength="12">
                         <button type="button" class="register-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="reg-password">
                             <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
                             <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
@@ -465,7 +465,7 @@ window.__flashInfo        = <?= $flashInfo ? json_encode(htmlspecialchars($flash
                     <label for="reg-password-confirm"><?= htmlspecialchars(__('form.password_confirm')) ?></label>
                     <div class="register-modal__password-wrap">
                         <input type="password" id="reg-password-confirm" name="password_confirm"
-                               autocomplete="new-password" required minlength="8">
+                               autocomplete="new-password" required minlength="12">
                         <button type="button" class="register-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="reg-password-confirm">
                             <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
                             <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>

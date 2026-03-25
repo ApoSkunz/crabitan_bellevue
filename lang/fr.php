@@ -161,7 +161,7 @@ return [
     'form.civility.other'          => 'Autre',
     'form.company'                 => 'Raison sociale',
     'form.password_confirm'        => 'Confirmer le mot de passe',
-    'form.password_hint'           => 'Minimum 8 caractères, dont une majuscule, un chiffre et un caractère spécial.',
+    'form.password_hint'           => 'Minimum 12 caractères, dont une majuscule, un chiffre et un caractère spécial.',
     'form.newsletter'              => 'Je souhaite recevoir les actualités et offres du domaine',
 
     // Validation

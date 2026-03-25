@@ -322,7 +322,7 @@ class AuthController extends Controller
         $password = $this->request->post('password', '');
         $confirm  = $this->request->post('password_confirm', '');
 
-        if (strlen($password) < 8 || $password !== $confirm) {
+        if (strlen($password) < 12 || $password !== $confirm) {
             $this->flash('error', __('auth.password_invalid'));
             Response::redirect("/{$lang}/reinitialisation/{$token}");
         }
@@ -356,7 +356,7 @@ class AuthController extends Controller
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = __('validation.email');
         }
-        if (strlen($password) < 8) {
+        if (strlen($password) < 12) {
             $errors['password'] = __('validation.password_min');
         }
         if ($password !== $confirm) {
