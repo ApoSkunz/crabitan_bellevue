@@ -25,7 +25,7 @@ class NewsletterAdminController extends AdminController
     // GET /admin/newsletter
     // ----------------------------------------------------------------
 
-    public function index(array $_params): void
+    public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser   = $this->requireAdmin();
         $page        = max(1, (int) $this->request->get('page', 1));
@@ -54,7 +54,7 @@ class NewsletterAdminController extends AdminController
     // POST /admin/newsletter/envoyer
     // ----------------------------------------------------------------
 
-    public function send(array $_params): void
+    public function send(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $this->requireAdmin();
 
@@ -114,9 +114,12 @@ class NewsletterAdminController extends AdminController
      * @param array<string, mixed> $file
      * @param array<string, string> $allowed
      */
-    // NOSONAR — php:S1142 : early returns sur validation MIME/upload sont intentionnels
-    private function uploadNewsletterImage(array $file, array $allowed, string $destDir, string $appUrl): ?string
-    {
+    private function uploadNewsletterImage( // NOSONAR — php:S1142 : early returns validation MIME/upload intentionnels
+        array $file,
+        array $allowed,
+        string $destDir,
+        string $appUrl
+    ): ?string {
         if (empty($file['tmp_name'])) {
             return null;
         }

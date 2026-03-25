@@ -28,7 +28,7 @@ class OrderFormAdminController extends AdminController
     private const DEFAULT_PER_PAGE  = 10;
     private const ALLOWED_PER_PAGES = [10, 25, 50];
 
-    public function index(array $_params): void
+    public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
 
@@ -63,7 +63,7 @@ class OrderFormAdminController extends AdminController
     // POST /admin/bons-de-commande/ajouter
     // ----------------------------------------------------------------
 
-    public function upload(array $_params): void
+    public function upload(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $this->requireAdmin();
 

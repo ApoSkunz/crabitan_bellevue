@@ -60,7 +60,7 @@ class WineAdminController extends AdminController
     // GET /admin/vins
     // ----------------------------------------------------------------
 
-    public function index(array $_params): void
+    public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser  = $this->requireAdmin();
         $page       = max(1, (int) $this->request->get('page', 1));
@@ -92,7 +92,7 @@ class WineAdminController extends AdminController
     // GET /admin/vins/ajouter
     // ----------------------------------------------------------------
 
-    public function create(array $_params): void
+    public function create(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
 
@@ -116,7 +116,7 @@ class WineAdminController extends AdminController
     // POST /admin/vins/ajouter
     // ----------------------------------------------------------------
 
-    public function store(array $_params): void
+    public function store(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
 
@@ -235,8 +235,7 @@ class WineAdminController extends AdminController
      * @param array<string, mixed>|null $existing  Données actuelles en BDD (modifier)
      * @return array{array<string, mixed>, array<string, string>}
      */
-    // NOSONAR — php:S3776 : complexité cognitive nécessaire pour valider tous les champs du formulaire vin
-    private function parseWineForm(?array $existing): array
+    private function parseWineForm(?array $existing): array // NOSONAR — php:S3776 : complexité cognitive nécessaire, champs formulaire vin
     {
         $r      = $this->request;
         $errors = [];

@@ -29,7 +29,7 @@ class NewsAdminController extends AdminController
     // GET /admin/actualites
     // ----------------------------------------------------------------
 
-    public function index(array $_params): void
+    public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
         $page      = max(1, (int) $this->request->get('page', 1));
@@ -54,7 +54,7 @@ class NewsAdminController extends AdminController
     // GET /admin/actualites/ajouter
     // ----------------------------------------------------------------
 
-    public function create(array $_params): void
+    public function create(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
 
@@ -77,7 +77,7 @@ class NewsAdminController extends AdminController
     // POST /admin/actualites/ajouter
     // ----------------------------------------------------------------
 
-    public function store(array $_params): void
+    public function store(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
 
@@ -256,9 +256,11 @@ class NewsAdminController extends AdminController
     /**
      * @return array{path: string, error: string|null}
      */
-    // NOSONAR — php:S1142 : early returns sur validation MIME/upload sont intentionnels
-    private function handleImageUpload(string $title, ?string $existingPath, bool $required): array
-    {
+    private function handleImageUpload( // NOSONAR — php:S1142 : early returns validation MIME/upload intentionnels
+        string $title,
+        ?string $existingPath,
+        bool $required
+    ): array {
         $file = $_FILES['image'] ?? [];
 
         if (empty($file['tmp_name'])) {

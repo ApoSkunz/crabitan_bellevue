@@ -10,7 +10,7 @@ use Model\WineModel;
 
 class DashboardController extends AdminController
 {
-    public function index(array $_params): void
+    public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
 

@@ -25,7 +25,7 @@ class OrderAdminController extends AdminController
     // GET /admin/commandes
     // ----------------------------------------------------------------
 
-    public function index(array $_params): void
+    public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
 

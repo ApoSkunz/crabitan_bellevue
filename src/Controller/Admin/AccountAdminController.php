@@ -16,7 +16,7 @@ class AccountAdminController extends AdminController
     // GET /admin/comptes
     // ----------------------------------------------------------------
 
-    public function index(array $_params): void
+    public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser  = $this->requireAdmin();
         $accounts   = new AccountModel();
