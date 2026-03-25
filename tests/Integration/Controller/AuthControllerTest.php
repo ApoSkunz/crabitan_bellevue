@@ -122,7 +122,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr/connexion', $e->location);
+            $this->assertSame('/fr', $e->location);
         }
     }
 
@@ -141,7 +141,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr/connexion', $e->location);
+            $this->assertSame('/fr', $e->location);
         }
     }
 
@@ -158,7 +158,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr/connexion', $e->location);
+            $this->assertSame('/fr', $e->location);
         }
     }
 
@@ -185,7 +185,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr/connexion', $e->location);
+            $this->assertSame('/fr', $e->location);
         }
 
         $account = self::$db->fetchOne(
@@ -246,7 +246,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr/connexion', $e->location);
+            $this->assertSame('/fr', $e->location);
         }
 
         $connection = self::$db->fetchOne(
@@ -263,7 +263,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr/connexion', $e->location);
+            $this->assertSame('/fr', $e->location);
         }
     }
 
@@ -331,7 +331,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr/connexion', $e->location);
+            $this->assertSame('/fr', $e->location);
         }
     }
 
@@ -403,7 +403,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr/connexion', $e->location);
+            $this->assertSame('/fr', $e->location);
         }
 
         // Password reset token deleted
@@ -452,7 +452,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr/connexion', $e->location);
+            $this->assertSame('/fr', $e->location);
         }
     }
 }

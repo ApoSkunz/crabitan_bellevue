@@ -110,7 +110,7 @@ class AuthController extends Controller
             setcookie('auth_token', '', time() - 1, '/', '', APP_ENV === 'production', true);
         }
 
-        Response::redirect('/' . $params['lang'] . '/connexion');
+        Response::redirect('/' . $params['lang']);
     }
 
     // ----------------------------------------------------------------
@@ -202,7 +202,7 @@ class AuthController extends Controller
         }
 
         $this->flash('info', __('auth.register_success'));
-        Response::redirect("/{$lang}/connexion");
+        Response::redirect("/{$lang}");
     }
 
     // ----------------------------------------------------------------
@@ -226,7 +226,7 @@ class AuthController extends Controller
 
         if ($account['email_verified_at']) {
             $this->flash('info', __('auth.already_verified'));
-            Response::redirect("/{$lang}/connexion");
+            Response::redirect("/{$lang}");
         }
 
         $this->accounts->verifyEmail((int) $account['id']);
@@ -331,7 +331,7 @@ class AuthController extends Controller
         $reset = $this->resets->findByToken($token);
 
         if (!$reset) {
-            Response::redirect("/{$lang}/connexion");
+            Response::redirect("/{$lang}");
         }
 
         $password = $this->request->post('password', '');
@@ -346,7 +346,7 @@ class AuthController extends Controller
         $this->resets->deleteByUserId((int) $reset['user_id']);
 
         $this->flash('info', __('auth.password_updated'));
-        Response::redirect("/{$lang}/connexion");
+        Response::redirect("/{$lang}");
     }
 
     // ----------------------------------------------------------------

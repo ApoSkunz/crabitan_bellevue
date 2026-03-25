@@ -38,20 +38,6 @@ class AuthControllerFormTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
-    // loginForm
-    // ----------------------------------------------------------------
-
-    public function testLoginFormRendersView(): void
-    {
-        ob_start();
-        $this->makeController('/fr/connexion')->loginForm(['lang' => 'fr']);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('<form', $output);
-        $this->assertStringContainsString('connexion', $output);
-    }
-
-    // ----------------------------------------------------------------
     // registerForm
     // ----------------------------------------------------------------
 
