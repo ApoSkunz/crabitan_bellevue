@@ -14,11 +14,13 @@ class WineModel extends Model
     private const COND_OUT        = 'available = 0';
     private const COND_COLOR      = 'wine_color = ?';
     private const ORDER_DEFAULT   = 'wine_color DESC, vintage DESC';
+    private const SQL_WHERE       = 'WHERE ';
+    private const SQL_AND         = ' AND ';
 
     /** @param string[] $conditions */
     private function buildWhereClause(array $conditions): string
     {
-        return $conditions !== [] ? 'WHERE ' . implode(' AND ', $conditions) : '';
+        return $conditions !== [] ? self::SQL_WHERE . implode(self::SQL_AND, $conditions) : '';
     }
 
     /**
@@ -350,7 +352,7 @@ class WineModel extends Model
             $where[] = self::COND_OUT;
         }
 
-        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+        $whereClause = $this->buildWhereClause($where);
         $params[]    = $limit;
         $params[]    = $offset;
 
@@ -382,7 +384,7 @@ class WineModel extends Model
             $where[] = self::COND_OUT;
         }
 
-        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+        $whereClause = $this->buildWhereClause($where);
 
         $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total FROM {$this->table} {$whereClause}",

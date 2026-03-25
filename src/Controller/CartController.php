@@ -38,7 +38,7 @@ class CartController extends Controller
     // POST /{lang}/panier/modifier
     // ----------------------------------------------------------------
 
-    public function update(array $params): void
+    public function update(array $params): void // NOSONAR — php:S4144 : stub intentionnel, feat/cart à venir
     {
         $this->denyAdmin();
         $this->redirectToCart($params);
@@ -48,7 +48,7 @@ class CartController extends Controller
     // POST /{lang}/panier/supprimer
     // ----------------------------------------------------------------
 
-    public function remove(array $params): void
+    public function remove(array $params): void // NOSONAR — php:S4144 : stub intentionnel, feat/cart à venir
     {
         $this->denyAdmin();
         $this->redirectToCart($params);

@@ -20,7 +20,7 @@ class PricingModel extends Model
         );
     }
 
-    public function update(
+    public function update( // NOSONAR — php:S107 : 8 params couvrent exactement les colonnes de la table pricing_rules
         int $id,
         float $deliveryPrice,
         float $withdrawalPrice,
