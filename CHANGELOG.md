@@ -2,6 +2,46 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.11.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.10.0...v0.11.0) (2026-03-25)
+
+
+### Bug Fixes
+
+* **admin:** champs EN readonly + badges CI + fix TI login redirect ([118117b](https://github.com/ApoSkunz/crabitan_bellevue/commit/118117b5d08fbcc0d45f30739a24113a1bc10b57))
+* **admin:** retours UX round 4 — dashboard CA, filtres, tarifs, slugs, newsletter ([ab502b3](https://github.com/ApoSkunz/crabitan_bellevue/commit/ab502b36adf5ad95c06532bc9e2a558077ece902))
+* **admin:** retours UX round 5 — per_page, checkboxes, tarifs, slug, modal newsletter, favicon ([0529d57](https://github.com/ApoSkunz/crabitan_bellevue/commit/0529d5759337075799bda7d8ee7955fedef588d1))
+* **admin:** UX rounds 6-7 — per_page, checkboxes, slug BDD, login redirect, newsletter image ([bd9c43f](https://github.com/ApoSkunz/crabitan_bellevue/commit/bd9c43f003741763be9311137a7226a550336abe))
+* **auth:** admin reste sur la page courante après connexion ([70b45f5](https://github.com/ApoSkunz/crabitan_bellevue/commit/70b45f5cecffcf82c3970f09b56ef28eada92df4))
+* **ci:** CodeQL — retrait PHP (non supporté), revert à javascript uniquement ([10ccba6](https://github.com/ApoSkunz/crabitan_bellevue/commit/10ccba64aa4640b59a5f4e224d4ef61820cd9d81))
+* **model:** OrderFormModel.getLatest() — id DESC comme tiebreaker ([5dc7247](https://github.com/ApoSkunz/crabitan_bellevue/commit/5dc7247468994045b67bcc288270ea8f7a10f325))
+* **panel:** label Administration centré et doré + masquage panier admins ([f02971b](https://github.com/ApoSkunz/crabitan_bellevue/commit/f02971b2c67810b0adbf2f4eb9ac1a27c8051c3d))
+* **phpcs:** indentation ligne 61 dashboard.php ([dda3496](https://github.com/ApoSkunz/crabitan_bellevue/commit/dda34960a8a057718a45c6be814425ab05c4ad75))
+* **sast:** nosemgrep md5 dans WineController — usage filename uniquement ([42d2a76](https://github.com/ApoSkunz/crabitan_bellevue/commit/42d2a7643ec042f3ae3ae3ae1196fc2d759a3ac1))
+* **sca:** override tmp@^0.2.4 — corrige GHSA-52f5-9888-hmc6 (symlink write) ([bd6ec2b](https://github.com/ApoSkunz/crabitan_bellevue/commit/bd6ec2bb34e2607a0b027a0179b34156c017df77))
+* **security:** chmod 0750 sur mkdir storage/ — invoices et order_forms ([545de77](https://github.com/ApoSkunz/crabitan_bellevue/commit/545de778968ce53637ffa46b8174c5c1a11cd527))
+* **sonar:** controllers admin — constants S1192, \$_params S1172, NOSONAR S1142/S3776 ([fb5f3f5](https://github.com/ApoSkunz/crabitan_bellevue/commit/fb5f3f53755bd77838b40e197dc0b0285c107922))
+* **sonar:** models/service/cart — NOSONAR S107/S4144, buildWhereClause S1192 ([c404600](https://github.com/ApoSkunz/crabitan_bellevue/commit/c40460030c791d918c779a70bf646c37f1a818f7))
+* **sonar:** NOSONAR S1172/S1142/S3776 sur lignes déclarées (15 × \$_params + 3 méthodes) ([d488ac3](https://github.com/ApoSkunz/crabitan_bellevue/commit/d488ac31acb7b2a7968f13029aa000f453acecf3))
+* **sonar:** S3973 — accolades sur guards function_exists dans vues admin ([96b54b4](https://github.com/ApoSkunz/crabitan_bellevue/commit/96b54b4cd05164f8beeb669232cdb98b0a40fb08))
+* **sonar:** vues admin — duplicate id S7930, is-error S1192, accessibilité S6851/S6853/S7927 ([3003efb](https://github.com/ApoSkunz/crabitan_bellevue/commit/3003efb4e015bff2ee025fc840f7d5e0ffff137b))
+* **view:** \$isAdmin par défaut dans vues vins publiques ([a142f6a](https://github.com/ApoSkunz/crabitan_bellevue/commit/a142f6a90e088fae89d10601090ae207d44cba0c))
+* **view:** guards function_exists sur fonctions inline des vues admin (redéclaration PHPUnit) ([5aadbf6](https://github.com/ApoSkunz/crabitan_bellevue/commit/5aadbf69944bcc48a8097c0ba251f4d39b50662c))
+
+
+### Features
+
+* **admin:** back-office complet + masquage panier pour admins ([366c1c1](https://github.com/ApoSkunz/crabitan_bellevue/commit/366c1c1e8026d1bb23d2705a502ff92ba71ccdb0))
+* **admin:** commandes — per_page, filtre paiement, facture PDF sécurisée ([934cece](https://github.com/ApoSkunz/crabitan_bellevue/commit/934cece603dd247121ccb2c15add1e2a27433945))
+* **admin:** favicon CB doré, CA annuel dashboard, suppression delivery_tracking ([7311f9d](https://github.com/ApoSkunz/crabitan_bellevue/commit/7311f9db8b1947f7c4225bcefabe939195a1f127)), closes [#c9a84c](https://github.com/ApoSkunz/crabitan_bellevue/issues/c9a84c)
+* **admin:** news/newsletter CRUD + traduction backend + fix 500 super_admin + seeds enrichis ([1bf03e3](https://github.com/ApoSkunz/crabitan_bellevue/commit/1bf03e353f9297b91769b39949cffa6c9de67aac))
+* **auth:** rester sur la page après connexion + spinner + toast succès ([a913879](https://github.com/ApoSkunz/crabitan_bellevue/commit/a9138793dc399e2aef538227584fe3ce7c561a29))
+* **ci:** E2E badge auto + Semgrep exhaustif + CodeQL PHP ([da28f24](https://github.com/ApoSkunz/crabitan_bellevue/commit/da28f241783bb3e7b4a2dc2e8fff89cb84d7a00b))
+* **controller:** bons de commande — admin CRUD + download public + contact ([c4d3a7b](https://github.com/ApoSkunz/crabitan_bellevue/commit/c4d3a7bb0f3ee0e3096b7c249410e7ed413a257a))
+* **i18n:** clés contact.order_form_* fr/en pour section bon de commande ([168bf23](https://github.com/ApoSkunz/crabitan_bellevue/commit/168bf2350581542630db6c60e2f49dac6d29b8d8))
+* **model:** OrderFormModel — CRUD + pagination bons de commande ([7c9bd99](https://github.com/ApoSkunz/crabitan_bellevue/commit/7c9bd99cbe5cde8a0181fad664002cb50398960c))
+* **routes:** bons de commande — routes admin + download public ([ebe6d9f](https://github.com/ApoSkunz/crabitan_bellevue/commit/ebe6d9fd099a76abc96c1d5968d112644ac2315b))
+* **view:** bons de commande — vue admin + nav + section contact ([65830ed](https://github.com/ApoSkunz/crabitan_bellevue/commit/65830ed9362a7045c2a0f8a45671d93223f5198f))
+
 # [0.10.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.9.0...v0.10.0) (2026-03-25)
 
 
