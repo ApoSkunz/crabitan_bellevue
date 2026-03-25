@@ -93,7 +93,7 @@ class OrderFormAdminController extends AdminController
         }
 
         if (!is_dir($this->storageDir)) {
-            mkdir($this->storageDir, 0755, true);
+            mkdir($this->storageDir, 0750, true);
         }
 
         $labelSlug  = $label !== null ? '_' . preg_replace('/[^a-z0-9]/i', '_', $label) : '';

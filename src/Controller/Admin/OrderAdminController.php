@@ -141,7 +141,7 @@ class OrderAdminController extends AdminController
 
         $destDir = ROOT_PATH . '/storage/invoices/';
         if (!is_dir($destDir)) {
-            mkdir($destDir, 0755, true);
+            mkdir($destDir, 0750, true);
         }
 
         // Remove old invoice file if it exists
