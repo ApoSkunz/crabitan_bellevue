@@ -272,6 +272,9 @@ return [
     'contact.error_smtp'      => 'An error occurred while sending. Please try again or contact us by phone.',
     'contact.mail_owner_subject'  => 'New contact message',
     'contact.mail_confirm_subject' => 'We have received your message',
+    'contact.order_form_title'    => 'Order Form',
+    'contact.order_form_desc'     => 'Download our order form to place an order by mail or email.',
+    'contact.order_form_btn'      => 'Download order form (PDF)',
 
     // Legal notice
     'legal.editor_title'  => 'Website editor',

@@ -274,6 +274,9 @@ return [
     'contact.error_smtp'      => 'Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou nous contacter par téléphone.',
     'contact.mail_owner_subject'  => 'Nouveau message de contact',
     'contact.mail_confirm_subject' => 'Nous avons bien reçu votre message',
+    'contact.order_form_title'    => 'Bon de commande',
+    'contact.order_form_desc'     => 'Téléchargez notre bon de commande pour passer une commande par courrier ou par email.',
+    'contact.order_form_btn'      => 'Télécharger le bon de commande (PDF)',
 
     // Mentions légales
     'legal.editor_title'  => 'Éditeur du site',
