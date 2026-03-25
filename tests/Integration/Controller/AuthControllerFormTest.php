@@ -38,20 +38,6 @@ class AuthControllerFormTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
-    // registerForm
-    // ----------------------------------------------------------------
-
-    public function testRegisterFormRendersView(): void
-    {
-        ob_start();
-        $this->makeController('/fr/inscription')->registerForm(['lang' => 'fr']);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('<form', $output);
-        $this->assertStringContainsString('inscription', $output);
-    }
-
-    // ----------------------------------------------------------------
     // forgotForm
     // ----------------------------------------------------------------
 

@@ -53,7 +53,9 @@ return [
     'auth.modal.apple'       => 'Continue with Apple',
     'auth.modal.social_soon' => 'Coming soon',
     'auth.modal.no_account'  => 'Don\'t have an account?',
-    'auth.modal.sign_up'     => 'Sign up',
+    'auth.modal.sign_up'      => 'Sign up',
+    'auth.modal.have_account' => 'Already have an account?',
+    'auth.modal.sign_in'      => 'Sign in',
 
     // Wines — Catalogue
     'wine.add_to_cart'  => 'Add to cart',

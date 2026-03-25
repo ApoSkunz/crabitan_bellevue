@@ -53,7 +53,9 @@ return [
     'auth.modal.apple'       => 'Continuer avec Apple',
     'auth.modal.social_soon' => 'Bientôt disponible',
     'auth.modal.no_account'  => 'Pas encore de compte ?',
-    'auth.modal.sign_up'     => 'S\'inscrire',
+    'auth.modal.sign_up'      => 'S\'inscrire',
+    'auth.modal.have_account' => 'Déjà un compte ?',
+    'auth.modal.sign_in'      => 'Se connecter',
 
     // Vins — Catalogue
     'wine.add_to_cart'  => 'Ajouter au panier',

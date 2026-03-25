@@ -221,7 +221,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr/inscription', $e->location);
+            $this->assertSame('/fr', $e->location);
         }
     }
 

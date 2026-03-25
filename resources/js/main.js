@@ -478,6 +478,23 @@ function initLoginModal() {
 
     if (window.__authModalError) openModal();
 
+    // Switch vers register modal
+    document.getElementById('login-to-register')?.addEventListener('click', () => {
+        closeModal();
+        document.getElementById('register-modal')?.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('register-modal-close')?.focus();
+    });
+
+    // Boutons mobile nav
+    document.querySelectorAll('[data-open-modal="login-modal"]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.getElementById('header-nav-mobile')?.classList.remove('is-open');
+            document.getElementById('header-burger')?.setAttribute('aria-expanded', 'false');
+            openModal();
+        });
+    });
+
     trigger.addEventListener('click', openModal);
     closeBtn?.addEventListener('click', closeModal);
     backdrop?.addEventListener('click', closeModal);
@@ -496,6 +513,84 @@ function initLoginModal() {
             btn.querySelector('.pwd-eye--show').hidden = isHidden;
             btn.querySelector('.pwd-eye--hide').hidden = !isHidden;
             btn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+        });
+    });
+}
+
+// ============================================================
+// Register modal
+// ============================================================
+
+function initRegisterModal() {
+    const modal    = document.getElementById('register-modal');
+    const closeBtn = document.getElementById('register-modal-close');
+    const backdrop = document.getElementById('register-modal-backdrop');
+    const toLogin  = document.getElementById('register-to-login');
+
+    if (!modal) return;
+
+    function openModal() {
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        closeBtn?.focus();
+    }
+
+    function closeModal() {
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    // Switch vers login modal
+    toLogin?.addEventListener('click', () => {
+        closeModal();
+        const loginModal = document.getElementById('login-modal');
+        const loginTrigger = document.getElementById('login-modal-trigger');
+        if (loginModal) {
+            loginModal.setAttribute('aria-hidden', 'false');
+            loginTrigger?.setAttribute('aria-expanded', 'true');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('login-modal-close')?.focus();
+        }
+    });
+
+    closeBtn?.addEventListener('click', closeModal);
+    backdrop?.addEventListener('click', closeModal);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+    });
+
+    // Toggle individual / company fields
+    modal.querySelectorAll('[name="account_type"]').forEach((radio) => {
+        radio.addEventListener('change', () => {
+            const isCompany = radio.value === 'company';
+            modal.querySelector('.js-reg-individual')?.toggleAttribute('hidden', isCompany);
+            modal.querySelector('.js-reg-company')?.toggleAttribute('hidden', !isCompany);
+        });
+    });
+
+    // Toggle password visibility
+    modal.querySelectorAll('.register-modal__pwd-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            btn.querySelector('.pwd-eye--show').hidden = isHidden;
+            btn.querySelector('.pwd-eye--hide').hidden = !isHidden;
+            btn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+        });
+    });
+
+    // Auto-open si erreurs de soumission
+    if (window.__authRegisterOpen) openModal();
+
+    // Boutons mobile nav
+    document.querySelectorAll('[data-open-modal="register-modal"]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.getElementById('header-nav-mobile')?.classList.remove('is-open');
+            document.getElementById('header-burger')?.setAttribute('aria-expanded', 'false');
+            openModal();
         });
     });
 }
@@ -744,6 +839,7 @@ function initPageIntro() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (window.__flashInfo) showToast(window.__flashInfo, false);
     initPageIntro();
     initTheme();
     initThemeToggle();
@@ -753,6 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCarousel();
     initAccountPanel();
     initLoginModal();
+    initRegisterModal();
     initCartModal();
     initCartLoginPrompt();
     initFavoriteAuth();

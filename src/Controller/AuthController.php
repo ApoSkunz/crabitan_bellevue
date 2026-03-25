@@ -114,21 +114,6 @@ class AuthController extends Controller
     }
 
     // ----------------------------------------------------------------
-    // GET /{lang}/inscription
-    // ----------------------------------------------------------------
-
-    public function registerForm(array $params): void
-    {
-        GuestMiddleware::handle();
-        $this->view('auth/register', [
-            'lang'   => $params['lang'],
-            'errors' => $this->getFlashArray('errors'),
-            'old'    => $this->getFlashArray('old'),
-            'csrf'   => $this->csrfToken(),
-        ]);
-    }
-
-    // ----------------------------------------------------------------
     // POST /{lang}/inscription
     // ----------------------------------------------------------------
 
@@ -138,8 +123,8 @@ class AuthController extends Controller
         $lang = $params['lang'];
 
         if (!$this->verifyCsrf()) {
-            $this->flash('error', __('error.csrf'));
-            Response::redirect("/{$lang}/inscription");
+            $this->flash('modal_error', __('error.csrf'));
+            Response::redirect("/{$lang}");
         }
 
         $accountType = $this->request->post('account_type', '');
@@ -165,15 +150,15 @@ class AuthController extends Controller
         $old = compact('accountType', 'civility', 'lastname', 'firstname', 'email', 'company', 'newsletter');
 
         if ($errors) {
-            $_SESSION['flash']['errors'] = $errors;
-            $_SESSION['flash']['old']    = $old;
-            Response::redirect("/{$lang}/inscription");
+            $_SESSION['flash']['register_errors'] = $errors;
+            $_SESSION['flash']['register_old']    = $old;
+            Response::redirect("/{$lang}");
         }
 
         if ($this->accounts->findByEmail($email)) {
-            $_SESSION['flash']['errors'] = ['email' => __('auth.email_taken')];
-            $_SESSION['flash']['old']    = $old;
-            Response::redirect("/{$lang}/inscription");
+            $_SESSION['flash']['register_errors'] = ['email' => __('auth.email_taken')];
+            $_SESSION['flash']['register_old']    = $old;
+            Response::redirect("/{$lang}");
         }
 
         $verificationToken = bin2hex(random_bytes(32));
@@ -441,10 +426,4 @@ class AuthController extends Controller
         return $msg;
     }
 
-    private function getFlashArray(string $key): array
-    {
-        $val = $_SESSION['flash'][$key] ?? [];
-        unset($_SESSION['flash'][$key]);
-        return is_array($val) ? $val : [];
-    }
 }

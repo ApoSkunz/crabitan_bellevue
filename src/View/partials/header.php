@@ -8,9 +8,13 @@ $isLogged    = false;
 if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
 }
-$modalCsrf  = $_SESSION['csrf'];
-$modalError = $_SESSION['flash']['modal_error'] ?? null;
-unset($_SESSION['flash']['modal_error']);
+$modalCsrf      = $_SESSION['csrf'];
+$modalError     = $_SESSION['flash']['modal_error'] ?? null;
+$registerErrors = $_SESSION['flash']['register_errors'] ?? [];
+$registerOld    = $_SESSION['flash']['register_old'] ?? [];
+$registerOpen   = !empty($registerErrors) || !empty($registerOld);
+$flashInfo      = $_SESSION['flash']['info'] ?? null;
+unset($_SESSION['flash']['modal_error'], $_SESSION['flash']['register_errors'], $_SESSION['flash']['register_old'], $_SESSION['flash']['info']);
 
 if ($token) {
     try {
@@ -187,13 +191,19 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
             <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte"><?= htmlspecialchars(__('nav.account')) ?></a>
             <a href="/<?= htmlspecialchars($navLang) ?>/deconnexion"><?= htmlspecialchars(__('nav.logout')) ?></a>
         <?php else : ?>
-            <a href="/<?= htmlspecialchars($navLang) ?>/connexion"><?= htmlspecialchars(__('nav.login')) ?></a>
-            <a href="/<?= htmlspecialchars($navLang) ?>/inscription"><?= htmlspecialchars(__('nav.register')) ?></a>
+            <button type="button" class="header-nav--mobile__modal-btn" data-open-modal="login-modal"><?= htmlspecialchars(__('nav.login')) ?></button>
+            <button type="button" class="header-nav--mobile__modal-btn" data-open-modal="register-modal"><?= htmlspecialchars(__('nav.register')) ?></button>
         <?php endif; ?>
     </nav>
 </header>
 
-<script>window.__userLogged = <?= $isLogged ? 'true' : 'false' ?>; window.__navLang = '<?= htmlspecialchars($navLang) ?>'; window.__authModalError = <?= $modalError ? 'true' : 'false' ?>;</script>
+<script>
+window.__userLogged       = <?= $isLogged ? 'true' : 'false' ?>;
+window.__navLang          = '<?= htmlspecialchars($navLang) ?>';
+window.__authModalError   = <?= $modalError ? 'true' : 'false' ?>;
+window.__authRegisterOpen = <?= $registerOpen ? 'true' : 'false' ?>;
+window.__flashInfo        = <?= $flashInfo ? json_encode(htmlspecialchars($flashInfo)) : 'null' ?>;
+</script>
 
 <!-- ============================================================ -->
 <!-- Modal ajout au panier                                         -->
@@ -304,9 +314,184 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
             </form>
             <div class="login-modal__register">
                 <p class="login-modal__register-label"><?= htmlspecialchars(__('auth.modal.no_account')) ?></p>
-                <a href="/<?= htmlspecialchars($navLang) ?>/inscription" class="btn btn--ghost login-modal__register-btn">
+                <button type="button" id="login-to-register" class="btn btn--ghost login-modal__register-btn">
                     <?= htmlspecialchars(__('auth.modal.sign_up')) ?>
-                </a>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Modal inscription                                             -->
+<!-- ============================================================ -->
+<!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
+<div
+    id="register-modal"
+    class="register-modal"
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="register-modal-title"
+>
+    <div class="register-modal__backdrop" id="register-modal-backdrop"></div>
+    <div class="register-modal__inner">
+        <div class="register-modal__header">
+            <!-- NOSONAR Web:S6850 — title is static translated string -->
+            <h2 id="register-modal-title" class="register-modal__title"><?= htmlspecialchars(__('auth.register')) ?></h2>
+            <button id="register-modal-close" class="register-modal__close" type="button" aria-label="Fermer">&times;</button>
+        </div>
+        <div class="register-modal__body">
+            <div class="register-modal__social">
+                <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
+                    <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
+                        <?= htmlspecialchars(__('auth.modal.google')) ?>
+                    </button>
+                </span>
+                <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
+                    <button type="button" class="btn btn-social btn-social--apple" disabled aria-disabled="true">
+                        <?= htmlspecialchars(__('auth.modal.apple')) ?>
+                    </button>
+                </span>
+            </div>
+            <p class="register-modal__or"><span><?= htmlspecialchars(__('auth.modal.or')) ?></span></p>
+            <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/inscription" class="register-modal__form" novalidate>
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+
+                <?php if (!empty($registerErrors['email']) && count($registerErrors) === 1) : ?>
+                    <div class="alert alert--error" role="alert"><?= htmlspecialchars($registerErrors['email']) ?></div>
+                <?php elseif (!empty($registerErrors)) : ?>
+                    <div class="alert alert--error" role="alert"><?= htmlspecialchars(reset($registerErrors)) ?></div>
+                <?php endif; ?>
+
+                <!-- Type de compte -->
+                <div class="register-modal__field register-modal__field--radio">
+                    <span class="register-modal__label"><?= htmlspecialchars(__('form.account_type')) ?></span>
+                    <div class="register-modal__radio-group">
+                        <label class="register-modal__radio">
+                            <input type="radio" name="account_type" value="individual"
+                                <?= ($registerOld['accountType'] ?? 'individual') !== 'company' ? 'checked' : '' ?>>
+                            <?= htmlspecialchars(__('form.account_type.individual')) ?>
+                        </label>
+                        <label class="register-modal__radio">
+                            <input type="radio" name="account_type" value="company"
+                                <?= ($registerOld['accountType'] ?? '') === 'company' ? 'checked' : '' ?>>
+                            <?= htmlspecialchars(__('form.account_type.company')) ?>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Champs particulier -->
+                <div class="js-reg-individual"<?= ($registerOld['accountType'] ?? '') === 'company' ? ' hidden' : '' ?>>
+                    <div class="register-modal__field register-modal__field--radio">
+                        <span class="register-modal__label"><?= htmlspecialchars(__('form.civility')) ?></span>
+                        <div class="register-modal__radio-group">
+                            <?php foreach (['M' => __('form.civility.m'), 'F' => __('form.civility.f'), 'other' => __('form.civility.other')] as $val => $label) : ?>
+                                <label class="register-modal__radio">
+                                    <input type="radio" name="civility" value="<?= htmlspecialchars($val) ?>"
+                                        <?= ($registerOld['civility'] ?? '') === $val ? 'checked' : '' ?>>
+                                    <?= htmlspecialchars($label) ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php if (!empty($registerErrors['civility'])) : ?>
+                            <span class="register-modal__error"><?= htmlspecialchars($registerErrors['civility']) ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="register-modal__row">
+                        <div class="register-modal__field">
+                            <label for="reg-lastname"><?= htmlspecialchars(__('form.lastname')) ?></label>
+                            <input type="text" id="reg-lastname" name="lastname"
+                                   value="<?= htmlspecialchars($registerOld['lastname'] ?? '') ?>"
+                                   autocomplete="family-name">
+                            <?php if (!empty($registerErrors['lastname'])) : ?>
+                                <span class="register-modal__error"><?= htmlspecialchars($registerErrors['lastname']) ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="register-modal__field">
+                            <label for="reg-firstname"><?= htmlspecialchars(__('form.firstname')) ?></label>
+                            <input type="text" id="reg-firstname" name="firstname"
+                                   value="<?= htmlspecialchars($registerOld['firstname'] ?? '') ?>"
+                                   autocomplete="given-name">
+                            <?php if (!empty($registerErrors['firstname'])) : ?>
+                                <span class="register-modal__error"><?= htmlspecialchars($registerErrors['firstname']) ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Champs entreprise -->
+                <div class="js-reg-company"<?= ($registerOld['accountType'] ?? '') !== 'company' ? ' hidden' : '' ?>>
+                    <div class="register-modal__field">
+                        <label for="reg-company"><?= htmlspecialchars(__('form.company')) ?></label>
+                        <input type="text" id="reg-company" name="company_name"
+                               value="<?= htmlspecialchars($registerOld['company'] ?? '') ?>"
+                               autocomplete="organization">
+                        <?php if (!empty($registerErrors['company_name'])) : ?>
+                            <span class="register-modal__error"><?= htmlspecialchars($registerErrors['company_name']) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="register-modal__field">
+                    <label for="reg-email"><?= htmlspecialchars(__('auth.email')) ?></label>
+                    <input type="email" id="reg-email" name="email"
+                           value="<?= htmlspecialchars($registerOld['email'] ?? '') ?>"
+                           autocomplete="email" required>
+                    <?php if (!empty($registerErrors['email'])) : ?>
+                        <span class="register-modal__error"><?= htmlspecialchars($registerErrors['email']) ?></span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Mot de passe -->
+                <div class="register-modal__field">
+                    <label for="reg-password"><?= htmlspecialchars(__('auth.password')) ?></label>
+                    <div class="register-modal__password-wrap">
+                        <input type="password" id="reg-password" name="password"
+                               autocomplete="new-password" required minlength="8">
+                        <button type="button" class="register-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="reg-password">
+                            <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
+                            <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                        </button>
+                    </div>
+                    <?php if (!empty($registerErrors['password'])) : ?>
+                        <span class="register-modal__error"><?= htmlspecialchars($registerErrors['password']) ?></span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Confirmation mot de passe -->
+                <div class="register-modal__field">
+                    <label for="reg-password-confirm"><?= htmlspecialchars(__('form.password_confirm')) ?></label>
+                    <div class="register-modal__password-wrap">
+                        <input type="password" id="reg-password-confirm" name="password_confirm"
+                               autocomplete="new-password" required minlength="8">
+                        <button type="button" class="register-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="reg-password-confirm">
+                            <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
+                            <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <p class="register-modal__hint"><?= htmlspecialchars(__('form.password_hint')) ?></p>
+
+                <!-- Newsletter -->
+                <label class="register-modal__newsletter">
+                    <input type="checkbox" name="newsletter" value="1"
+                           <?= !empty($registerOld['newsletter']) ? 'checked' : '' ?>>
+                    <?= htmlspecialchars(__('form.newsletter')) ?>
+                </label>
+
+                <button type="submit" class="btn btn--gold register-modal__submit">
+                    <?= htmlspecialchars(__('auth.register')) ?>
+                </button>
+            </form>
+
+            <div class="register-modal__login">
+                <p class="register-modal__login-label"><?= htmlspecialchars(__('auth.modal.have_account')) ?></p>
+                <button type="button" id="register-to-login" class="btn btn--ghost register-modal__login-btn">
+                    <?= htmlspecialchars(__('auth.modal.sign_in')) ?>
+                </button>
             </div>
         </div>
     </div>
