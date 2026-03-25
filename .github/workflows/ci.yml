@@ -98,7 +98,7 @@ jobs:
 
       - name: Upload PHP coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: php-coverage
           path: coverage/clover-*.xml
@@ -200,7 +200,7 @@ jobs:
           fi
 
       - name: Upload JS coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: js-coverage
           path: coverage/lcov.info
@@ -315,7 +315,7 @@ jobs:
         run: npx lhci autorun
 
       - name: Upload Lighthouse report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: lighthouse-report
