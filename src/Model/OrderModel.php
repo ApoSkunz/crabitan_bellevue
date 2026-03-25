@@ -153,6 +153,21 @@ class OrderModel extends Model
     }
 
     /**
+     * Chiffre d'affaires pour une année civile donnée (commandes non annulées/remboursées).
+     */
+    public function getRevenueByYear(int $year): float
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COALESCE(SUM(price), 0) AS total
+             FROM {$this->table}
+             WHERE status NOT IN ('cancelled', 'refunded')
+               AND YEAR(ordered_at) = ?",
+            [$year]
+        );
+        return (float) ($row['total'] ?? 0);
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function getRecent(int $limit = 8): array

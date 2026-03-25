@@ -27,7 +27,7 @@ $adminRole    = $adminUser['role'] ?? 'admin';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex,nofollow">
     <title><?= htmlspecialchars($pageTitle) ?> — Admin · Crabitan Bellevue</title>
-    <link rel="icon" href="/assets/images/logo/crabitan-bellevue-logo-modern.svg" type="image/svg+xml">
+    <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/css/main.css">
     <script>
     document.addEventListener('DOMContentLoaded', function () {

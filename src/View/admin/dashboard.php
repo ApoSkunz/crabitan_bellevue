@@ -27,9 +27,12 @@ $totalOrders  = array_sum($ordersByStatus);
         <div class="admin-stat-card__sub"><?= $totalOrders ?> au total</div>
     </div>
     <div class="admin-stat-card admin-stat-card--green">
-        <div class="admin-stat-card__label">CA (30 derniers jours)</div>
-        <div class="admin-stat-card__value"><?= number_format($revenue30, 0, ',', ' ') ?>&nbsp;€</div>
-        <div class="admin-stat-card__sub">Hors annulées / remboursées</div>
+        <div class="admin-stat-card__label">CA <?= date('Y') ?></div>
+        <div class="admin-stat-card__value"><?= number_format($revenueYear, 0, ',', ' ') ?>&nbsp;€</div>
+        <div class="admin-stat-card__sub" style="display:flex;flex-direction:column;gap:2px;">
+            <span><?= date('Y') - 1 ?> : <?= number_format($revenueLastYear, 0, ',', ' ') ?>&nbsp;€</span>
+            <span>30 j : <?= number_format($revenue30, 0, ',', ' ') ?>&nbsp;€</span>
+        </div>
     </div>
     <div class="admin-stat-card admin-stat-card--blue">
         <div class="admin-stat-card__label">Comptes clients</div>
