@@ -125,6 +125,29 @@
             background-color: rgba(201, 168, 76, 0.06);
         }
 
+        &.account-panel__section-label {
+            display: block;
+            padding: 0.75rem 1.5rem 0.4rem;
+            font-family: var(--font-sans);
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            text-align: center;
+            color: var(--color-gold);
+            border-bottom: none;
+            cursor: default;
+
+            &:hover {
+                background-color: transparent;
+                color: var(--color-gold);
+            }
+
+            [data-theme='light'] & {
+                color: #c9a84c;
+            }
+        }
+
         &.account-panel__logout {
             margin-top: auto;
             color: var(--color-text-muted);

@@ -133,4 +133,81 @@ class AccountModel extends Model
             [$id]
         );
     }
+
+    // ----------------------------------------------------------------
+    // Méthodes admin
+    // ----------------------------------------------------------------
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForAdmin(int $limit, int $offset, ?string $role, ?string $search): array
+    {
+        [$where, $params] = $this->buildAdminFilters($role, $search);
+        $params[] = $limit;
+        $params[] = $offset;
+
+        return $this->db->fetchAll(
+            $this->withProfile() . "
+             {$where}
+             ORDER BY a.created_at DESC
+             LIMIT ? OFFSET ?",
+            $params
+        );
+    }
+
+    public function countForAdmin(?string $role, ?string $search): int
+    {
+        [$where, $params] = $this->buildAdminFilters($role, $search);
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total FROM {$this->table} a {$where}",
+            $params
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    public function updateRole(int $id, string $role): void
+    {
+        $valid = ['customer', 'admin', 'super_admin'];
+        if (!in_array($role, $valid, true)) {
+            return;
+        }
+        $this->db->execute(
+            "UPDATE {$this->table} SET role = ? WHERE id = ?",
+            [$role, $id]
+        );
+    }
+
+    public function countTotal(): int
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total FROM {$this->table} WHERE deleted_at IS NULL"
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /** @return array{string, array<int, mixed>} */
+    private function buildAdminFilters(?string $role, ?string $search): array
+    {
+        $conds  = ['a.deleted_at IS NULL'];
+        $params = [];
+
+        $validRoles = ['customer', 'admin', 'super_admin'];
+        if ($role !== null && in_array($role, $validRoles, true)) {
+            $conds[]  = 'a.role = ?';
+            $params[] = $role;
+        }
+
+        if ($search !== null && $search !== '') {
+            $like     = '%' . $search . '%';
+            $conds[]  = '(a.email LIKE ? OR ai.lastname LIKE ? OR ai.firstname LIKE ? OR ac.company_name LIKE ?)';
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        $where = 'WHERE ' . implode(' AND ', $conds);
+        return [$where, $params];
+    }
 }

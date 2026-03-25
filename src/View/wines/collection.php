@@ -235,7 +235,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                         <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
                                     </strong>
                                     <div class="wine-card__actions">
-                                        <?php if ($wine['available']) : ?>
+                                        <?php if ($wine['available'] && !$isAdmin) : ?>
                                             <button
                                                 type="button"
                                                 class="wine-card__cart js-add-to-cart"

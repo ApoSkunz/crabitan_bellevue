@@ -311,4 +311,155 @@ class WineModel extends Model
 
         return $row ?: null;
     }
+
+    // ----------------------------------------------------------------
+    // Méthodes admin
+    // ----------------------------------------------------------------
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getById(int $id): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT * FROM {$this->table} WHERE id = ?",
+            [$id]
+        );
+        return $row ?: null;
+    }
+
+    /**
+     * Tous les vins pour le back-office (disponibles + indisponibles), paginés.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForAdmin(?string $color, int $limit, int $offset): array
+    {
+        $where  = [];
+        $params = [];
+
+        $validColors = ['red', 'white', 'rosé', 'sweet'];
+        if ($color !== null && in_array($color, $validColors, true)) {
+            $where[]  = self::COND_COLOR;
+            $params[] = $color;
+        }
+
+        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+        $params[] = $limit;
+        $params[] = $offset;
+
+        return $this->db->fetchAll(
+            "SELECT id, label_name, wine_color, format, vintage, price,
+                    quantity, available, image_path, slug, is_cuvee_speciale
+             FROM {$this->table}
+             {$whereClause}
+             ORDER BY wine_color DESC, vintage DESC
+             LIMIT ? OFFSET ?",
+            $params
+        );
+    }
+
+    public function countForAdmin(?string $color): int
+    {
+        $where  = [];
+        $params = [];
+
+        $validColors = ['red', 'white', 'rosé', 'sweet'];
+        if ($color !== null && in_array($color, $validColors, true)) {
+            $where[]  = self::COND_COLOR;
+            $params[] = $color;
+        }
+
+        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total FROM {$this->table} {$whereClause}",
+            $params
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function create(array $data): int
+    {
+        return (int) $this->db->insert(
+            "INSERT INTO {$this->table}
+             (label_name, wine_color, format, vintage, price, quantity, available,
+              certification_label, area, city, variety_of_vine, age_of_vineyard,
+              oenological_comment, soil, pruning, harvest, vinification,
+              barrel_fermentation, award, extra_comment,
+              is_cuvee_speciale, image_path, slug)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            [
+                $data['label_name'],
+                $data['wine_color'],
+                $data['format'],
+                $data['vintage'],
+                $data['price'],
+                $data['quantity'],
+                $data['available'],
+                $data['certification_label'] ?: null,
+                $data['area'],
+                $data['city'],
+                $data['variety_of_vine'],
+                $data['age_of_vineyard'],
+                $data['oenological_comment'],
+                $data['soil'],
+                $data['pruning'],
+                $data['harvest'],
+                $data['vinification'],
+                $data['barrel_fermentation'],
+                $data['award'],
+                $data['extra_comment'],
+                $data['is_cuvee_speciale'],
+                $data['image_path'],
+                $data['slug'],
+            ]
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function update(int $id, array $data): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET label_name = ?, wine_color = ?, format = ?, vintage = ?, price = ?,
+                 quantity = ?, available = ?, certification_label = ?,
+                 area = ?, city = ?, variety_of_vine = ?, age_of_vineyard = ?,
+                 oenological_comment = ?, soil = ?, pruning = ?, harvest = ?,
+                 vinification = ?, barrel_fermentation = ?, award = ?, extra_comment = ?,
+                 is_cuvee_speciale = ?, image_path = ?, slug = ?
+             WHERE id = ?",
+            [
+                $data['label_name'],
+                $data['wine_color'],
+                $data['format'],
+                $data['vintage'],
+                $data['price'],
+                $data['quantity'],
+                $data['available'],
+                $data['certification_label'] ?: null,
+                $data['area'],
+                $data['city'],
+                $data['variety_of_vine'],
+                $data['age_of_vineyard'],
+                $data['oenological_comment'],
+                $data['soil'],
+                $data['pruning'],
+                $data['harvest'],
+                $data['vinification'],
+                $data['barrel_fermentation'],
+                $data['award'],
+                $data['extra_comment'],
+                $data['is_cuvee_speciale'],
+                $data['image_path'],
+                $data['slug'],
+                $id,
+            ]
+        );
+    }
 }

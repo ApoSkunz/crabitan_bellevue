@@ -3,6 +3,23 @@
 declare(strict_types=1);
 
 // ============================================================
+// Routes Admin — déclarées EN PREMIER pour éviter le match
+// de /{lang}/... sur les segments commençant par "admin"
+// ============================================================
+$router->get('/admin', 'Admin\DashboardController@index');
+$router->get('/admin/vins', 'Admin\WineAdminController@index');
+$router->get('/admin/vins/ajouter', 'Admin\WineAdminController@create');
+$router->post('/admin/vins/ajouter', 'Admin\WineAdminController@store');
+$router->get('/admin/vins/{id}/modifier', 'Admin\WineAdminController@edit');
+$router->post('/admin/vins/{id}/modifier', 'Admin\WineAdminController@update');
+$router->get('/admin/commandes', 'Admin\OrderAdminController@index');
+$router->get('/admin/commandes/{id}', 'Admin\OrderAdminController@show');
+$router->post('/admin/commandes/{id}/statut', 'Admin\OrderAdminController@updateStatus');
+$router->get('/admin/comptes', 'Admin\AccountAdminController@index');
+$router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
+$router->post('/admin/tarifs', 'Admin\PricingAdminController@update');
+
+// ============================================================
 // Routes publiques
 // ============================================================
 
@@ -72,18 +89,3 @@ $router->post('/api/cart/update', 'Api\CartApiController@update');
 $router->post('/api/cart/remove', 'Api\CartApiController@remove');
 $router->post('/api/favorites/toggle', 'Api\FavoriteApiController@toggle');
 
-// ============================================================
-// Routes Admin
-// ============================================================
-$router->get('/admin', 'Admin\DashboardController@index');
-$router->get('/admin/vins', 'Admin\WineAdminController@index');
-$router->get('/admin/vins/ajouter', 'Admin\WineAdminController@create');
-$router->post('/admin/vins/ajouter', 'Admin\WineAdminController@store');
-$router->get('/admin/vins/{id}/modifier', 'Admin\WineAdminController@edit');
-$router->post('/admin/vins/{id}/modifier', 'Admin\WineAdminController@update');
-$router->get('/admin/commandes', 'Admin\OrderAdminController@index');
-$router->get('/admin/commandes/{id}', 'Admin\OrderAdminController@show');
-$router->post('/admin/commandes/{id}/statut', 'Admin\OrderAdminController@updateStatus');
-$router->get('/admin/comptes', 'Admin\AccountAdminController@index');
-$router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
-$router->post('/admin/tarifs', 'Admin\PricingAdminController@update');
