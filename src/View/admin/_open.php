@@ -14,7 +14,8 @@ $navIcons = [
     'accounts'   => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="4.5" r="2.5"/><path d="M2 13.5c0-3.038 2.462-5.5 5.5-5.5s5.5 2.462 5.5 5.5"/></svg>',
     'pricing'    => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5h5.5l6 6-5.5 5.5-6-6V1.5z"/><circle cx="4.5" cy="4.5" r="1" fill="currentColor" stroke="none"/></svg>',
     'news'       => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="2.5" width="12" height="10" rx="1"/><line x1="4" y1="5.5" x2="11" y2="5.5"/><line x1="4" y1="8" x2="11" y2="8"/><line x1="4" y1="10.5" x2="8" y2="10.5"/></svg>',
-    'newsletter' => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="3.5" width="12" height="8" rx="1"/><path d="M1.5 5l6 4 6-4"/></svg>',
+    'newsletter'   => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="3.5" width="12" height="8" rx="1"/><path d="M1.5 5l6 4 6-4"/></svg>',
+    'order_forms'  => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="1.5" width="10" height="12" rx="1"/><line x1="5" y1="5" x2="10" y2="5"/><line x1="5" y1="7.5" x2="10" y2="7.5"/><line x1="5" y1="10" x2="8" y2="10"/><path d="M9.5 9.5l1.5 1.5" stroke-linecap="round"/><path d="M11 11l1.5-1.5" stroke-linecap="round"/></svg>',
 ];
 
 $navItems = [
@@ -24,7 +25,8 @@ $navItems = [
     'accounts'   => ['url' => '/admin/comptes',      'label' => 'Comptes'],
     'pricing'    => ['url' => '/admin/tarifs',       'label' => 'Tarifs'],
     'news'       => ['url' => '/admin/actualites',   'label' => 'Actualités'],
-    'newsletter' => ['url' => '/admin/newsletter',   'label' => 'Newsletter'],
+    'newsletter'  => ['url' => '/admin/newsletter',          'label' => 'Newsletter'],
+    'order_forms' => ['url' => '/admin/bons-de-commande',    'label' => 'Bons de commande'],
 ];
 
 $adminInitial = strtoupper(substr($adminUser['name'] ?? 'A', 0, 1));
