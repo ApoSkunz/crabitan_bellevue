@@ -16,9 +16,6 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-ALTER TABLE `wines`
-    ADD COLUMN IF NOT EXISTS `is_cuvee_speciale` TINYINT(1) NOT NULL DEFAULT 0;
-
 DELETE FROM `favorites`;
 DELETE FROM `carts`;
 DELETE FROM `wines`;
