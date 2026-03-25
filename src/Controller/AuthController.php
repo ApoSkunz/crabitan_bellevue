@@ -36,10 +36,9 @@ class AuthController extends Controller
         GuestMiddleware::handle();
         $lang = $params['lang'];
 
-        $rawBack  = $this->request->post('redirect_back', '');
-        $safeBack = (preg_match('#^/[^/]#', $rawBack) && !str_contains($rawBack, '://'))
-            ? $rawBack
-            : "/{$lang}";
+        $rawBack   = $this->request->post('redirect_back', '');
+        $validBack = preg_match('#^/[^/]#', $rawBack) && !str_contains($rawBack, '://');
+        $safeBack  = $validBack ? $rawBack : "/{$lang}";
 
         if (!$this->verifyCsrf()) {
             $this->flash('modal_error', __('error.csrf'));
@@ -99,11 +98,14 @@ class AuthController extends Controller
             $expiry
         );
 
+        $this->flash('info', __('auth.login_success'));
+
         if (in_array($account['role'], ['admin', 'super_admin'], true)) {
-            Response::redirect('/admin');
+            // Si redirect_back vaut exactement /{lang} (= homepage, pas de page spécifique),
+            // on envoie l'admin sur le dashboard. Sinon on reste sur la page courante.
+            Response::redirect($safeBack === "/{$lang}" ? '/admin' : $safeBack);
         }
 
-        $this->flash('info', __('auth.login_success'));
         Response::redirect($safeBack);
     }
 
