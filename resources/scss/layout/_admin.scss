@@ -582,7 +582,13 @@
     flex-direction: column;
     gap: 0.3rem;
 
-    &--full { grid-column: 1 / -1; }
+    &--full {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2rem;
+    }
 }
 
 .admin-field__label {

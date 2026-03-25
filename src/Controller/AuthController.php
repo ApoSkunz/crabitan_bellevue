@@ -103,7 +103,8 @@ class AuthController extends Controller
             Response::redirect('/admin');
         }
 
-        Response::redirect("/{$lang}/mon-compte");
+        $this->flash('info', __('auth.login_success'));
+        Response::redirect($safeBack);
     }
 
     // ----------------------------------------------------------------

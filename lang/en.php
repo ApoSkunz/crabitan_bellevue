@@ -39,6 +39,7 @@ return [
     'auth.invalid_credentials' => 'Invalid email or password',
     'auth.account_inactive'  => 'Please verify your email to activate your account',
     'auth.email_taken'       => 'This email address is already in use',
+    'auth.login_success'     => 'Successfully logged in',
     'auth.register_success'  => 'Account created! Check your email to activate your account.',
     'auth.verify_success'    => 'Your account is now active. You can log in.',
     'auth.verify_invalid'    => 'Invalid or expired verification link.',

@@ -213,6 +213,22 @@ window.__resetOpen        = <?= $resetOpen ? 'true' : 'false' ?>;
 window.__resetToken       = <?= json_encode($resetToken) ?>;
 window.__resetValid       = <?= $resetValid ? 'true' : 'false' ?>;
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var loginForm = document.querySelector('.login-modal__form[action*="connexion"]');
+    if (!loginForm) return;
+    loginForm.addEventListener('submit', function () {
+        var btn = loginForm.querySelector('button[type="submit"]');
+        if (!btn) return;
+        btn.disabled = true;
+        btn.innerHTML =
+            '<span style="display:inline-block;width:.85em;height:.85em;border:2px solid currentColor;'
+            + 'border-top-color:transparent;border-radius:50%;animation:cb-spin .6s linear infinite;'
+            + 'vertical-align:middle;margin-right:.4em;"></span>Connexion en cours\u2026';
+    });
+});
+</script>
+<style>@keyframes cb-spin{to{transform:rotate(360deg)}}</style>
 
 <!-- ============================================================ -->
 <!-- Modal ajout au panier                                         -->

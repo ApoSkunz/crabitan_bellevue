@@ -39,6 +39,7 @@ return [
     'auth.invalid_credentials' => 'Email ou mot de passe incorrect',
     'auth.account_inactive'  => 'Veuillez vérifier votre email pour activer votre compte',
     'auth.email_taken'       => 'Cette adresse email est déjà utilisée',
+    'auth.login_success'     => 'Connexion réussie',
     'auth.register_success'  => 'Compte créé ! Consultez votre email pour activer votre compte.',
     'auth.verify_success'    => 'Votre compte est activé. Vous pouvez vous connecter.',
     'auth.verify_invalid'    => 'Lien de vérification invalide ou expiré.',
