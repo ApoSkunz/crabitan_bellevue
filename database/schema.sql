@@ -309,4 +309,20 @@ CREATE TABLE `password_reset` (
   INDEX `idx_password_reset_expires` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ============================================================
+-- Table : order_forms
+-- Bons de commande PDF (tarifs annuels, plusieurs versions par an)
+-- Servis via PHP — stockés dans storage/order_forms/ (hors public/)
+-- ============================================================
+CREATE TABLE `order_forms` (
+  `id`          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `year`        SMALLINT UNSIGNED NOT NULL COMMENT 'Millésime tarifaire ex: 2026',
+  `label`       VARCHAR(100)  DEFAULT NULL COMMENT 'Version optionnelle ex: V2, Mise à jour printemps',
+  `filename`    VARCHAR(255)  NOT NULL,
+  `uploaded_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_order_forms_year` (`year`),
+  INDEX `idx_order_forms_uploaded` (`uploaded_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 COMMIT;
