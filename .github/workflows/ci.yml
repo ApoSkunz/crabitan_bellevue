@@ -96,14 +96,6 @@ jobs:
           XDEBUG_MODE: coverage
         run: vendor/bin/phpunit --testsuite Integration --coverage-clover coverage/clover-integration.xml
 
-      - name: Debug coverage files
-        if: always()
-        run: |
-          echo "=== coverage/ contents ==="
-          ls -lh coverage/ || echo "directory missing"
-          echo "=== clover-unit.xml head ==="
-          head -5 coverage/clover-unit.xml 2>/dev/null || echo "file missing"
-
       - name: Upload PHP coverage
         if: always()
         uses: actions/upload-artifact@v4
