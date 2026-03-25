@@ -188,4 +188,25 @@ class NewsAdminControllerTest extends AdminIntegrationTestCase
 
         $this->assertStringContainsString('<form', $output);
     }
+
+    // ----------------------------------------------------------------
+    // update — CSRF valide, données valides → redirect 302
+    // ----------------------------------------------------------------
+
+    public function testUpdateSuccessRedirects(): void
+    {
+        $id = $this->insertArticle();
+        $_POST['csrf_token']        = self::CSRF_TOKEN;
+        $_POST['title_fr']          = 'Titre mis à jour';
+        $_POST['title_en']          = 'Updated title';
+        $_POST['text_content_fr']   = 'Contenu mis à jour';
+        $_POST['text_content_en']   = 'Updated content';
+        $_POST['link_path']         = '';
+        $_FILES = [];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->update(['id' => (string) $id]);
+    }
 }

@@ -14,6 +14,14 @@ class PricingAdminControllerTest extends AdminIntegrationTestCase
         return new PricingAdminController($this->makeRequest($method, '/admin/tarifs'));
     }
 
+    private function insertPricingRule(): int
+    {
+        return (int) self::$db->insert(
+            "INSERT INTO pricing_rules (format, min_quantity, max_quantity, delivery_price, withdrawal_price, label, active)
+             VALUES ('bottle', 1, 5, 5.00, 0.00, '{\"fr\":\"Petite commande\",\"en\":\"Small order\"}', 1)"
+        );
+    }
+
     // ----------------------------------------------------------------
     // index
     // ----------------------------------------------------------------
@@ -66,6 +74,30 @@ class PricingAdminControllerTest extends AdminIntegrationTestCase
     {
         $_POST['csrf_token'] = self::CSRF_TOKEN;
         $_POST['id'] = [0, -1];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->update([]);
+    }
+
+    // ----------------------------------------------------------------
+    // update — id valide → mise à jour réelle + redirect 302
+    // ----------------------------------------------------------------
+
+    public function testUpdateWithRealIdUpdatesAndRedirects(): void
+    {
+        $id = $this->insertPricingRule();
+
+        $_POST['csrf_token']              = self::CSRF_TOKEN;
+        $_POST['id']                      = [$id];
+        $_POST["delivery_{$id}"]          = '6.00';
+        $_POST["withdrawal_{$id}"]        = '0.00';
+        $_POST["label_fr_{$id}"]          = 'Petite commande';
+        $_POST["label_en_{$id}"]          = 'Small order';
+        $_POST["active_{$id}"]            = '1';
+        $_POST["min_qty_{$id}"]           = '1';
+        $_POST["max_qty_{$id}"]           = '5';
 
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(302);

@@ -149,4 +149,26 @@ class OrderFormAdminControllerTest extends AdminIntegrationTestCase
             ob_end_clean();
         }
     }
+
+    // ----------------------------------------------------------------
+    // download — enregistrement existant mais fichier physique absent
+    // ----------------------------------------------------------------
+
+    public function testDownloadAborts404WhenFileNotFound(): void
+    {
+        // Insère un enregistrement avec un nom de fichier qui n'existe pas sur disque
+        $id = (int) self::$db->insert(
+            "INSERT INTO order_forms (year, label, filename) VALUES (2099, 'TI', 'nonexistent_ti_file.pdf')"
+        );
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(404);
+
+        ob_start();
+        try {
+            $this->makeController()->download(['id' => (string) $id]);
+        } finally {
+            ob_end_clean();
+        }
+    }
 }

@@ -19,6 +19,17 @@ class AccountAdminControllerTest extends AdminIntegrationTestCase
     // index
     // ----------------------------------------------------------------
 
+    public function testIndexWithValidPerPageRendersView(): void
+    {
+        $_GET['per_page'] = '25';
+
+        ob_start();
+        $this->makeController()->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('admin-table', $output);
+    }
+
     public function testIndexRendersAccountsList(): void
     {
         ob_start();
@@ -75,7 +86,6 @@ class AccountAdminControllerTest extends AdminIntegrationTestCase
 
     public function testVerifyRedirectsOnInvalidCsrfAsSuperAdmin(): void
     {
-        // Remplacer le cookie par un super_admin
         $superAdminId = $this->insertAdminAccount('super_admin', 'superadmin@test.local');
         $_COOKIE['auth_token'] = Jwt::generate($superAdminId, 'super_admin');
         $_POST['csrf_token'] = 'wrong';
@@ -84,5 +94,22 @@ class AccountAdminControllerTest extends AdminIntegrationTestCase
         $this->expectExceptionCode(302);
 
         $this->makeController('POST')->verify(['id' => '999']);
+    }
+
+    // ----------------------------------------------------------------
+    // verify — super_admin, CSRF valide → redirect 302
+    // ----------------------------------------------------------------
+
+    public function testVerifySuccessAsSuperAdmin(): void
+    {
+        $superAdminId = $this->insertAdminAccount('super_admin', 'superadmin@test.local');
+        $_COOKIE['auth_token']  = Jwt::generate($superAdminId, 'super_admin');
+        $_POST['csrf_token']    = self::CSRF_TOKEN;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        // id = adminId (compte valide à vérifier)
+        $this->makeController('POST')->verify(['id' => (string) $this->adminId]);
     }
 }

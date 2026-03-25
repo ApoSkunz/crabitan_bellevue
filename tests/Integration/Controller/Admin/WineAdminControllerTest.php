@@ -215,4 +215,37 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
 
         $this->assertStringContainsString('<form', $output);
     }
+
+    // ----------------------------------------------------------------
+    // update — CSRF valide, données valides → redirect 302
+    // ----------------------------------------------------------------
+
+    public function testUpdateSuccessRedirects(): void
+    {
+        $id = $this->insertWine();
+        $_POST['csrf_token']          = self::CSRF_TOKEN;
+        $_POST['appellation']         = 'Bordeaux Rouge';
+        $_POST['wine_color']          = 'red';
+        $_POST['format']              = 'bottle';
+        $_POST['vintage']             = '2022';
+        $_POST['price']               = '18.50';
+        $_POST['quantity']            = '60';
+        $_POST['area']                = '0.50';
+        $_POST['city']                = 'Saint-Émilion';
+        $_POST['variety_of_vine']     = 'Merlot';
+        $_POST['age_of_vineyard']     = '20';
+        $_POST['certification_label'] = 'AOC';
+        $_POST['available']           = '1';
+        $_POST['is_cuvee_speciale']   = '0';
+        foreach (['oenological_comment', 'soil', 'pruning', 'harvest', 'vinification', 'barrel_fermentation'] as $f) {
+            $_POST["{$f}_fr"] = "Valeur FR {$f}";
+            $_POST["{$f}_en"] = "EN value {$f}";
+        }
+        $_FILES = [];
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->update(['id' => (string) $id]);
+    }
 }
