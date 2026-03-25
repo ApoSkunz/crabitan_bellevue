@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service;
 
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Service\MailService;
@@ -123,5 +125,70 @@ class MailServiceTest extends TestCase
         $body = $this->callPrivate('resetBodyEn', '<img src=x>', 'https://x.com');
         $this->assertStringContainsString('&lt;img src=x&gt;', $body);
         $this->assertStringNotContainsString('<img src=x', $body);
+    }
+
+    // ----------------------------------------------------------------
+    // __construct — branche sans MAIL_USER (SMTPAuth = false)
+    // ----------------------------------------------------------------
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testConstructElseBranchWithEmptyMailUser(): void
+    {
+        $_ENV['MAIL_HOST']      = 'localhost';
+        $_ENV['MAIL_PORT']      = '587';
+        $_ENV['MAIL_USER']      = '';
+        $_ENV['MAIL_PASS']      = '';
+        $_ENV['MAIL_FROM_NAME'] = 'Test';
+        $_ENV['APP_URL']        = 'http://crabitan.local';
+
+        $service = new MailService();
+        $this->assertInstanceOf(MailService::class, $service);
+    }
+
+    // ----------------------------------------------------------------
+    // sendContactToOwner — couverture du corps HTML
+    // ----------------------------------------------------------------
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSendContactToOwnerCoversBodyLines(): void
+    {
+        $this->expectException(\Exception::class);
+        $service = new MailService();
+        $service->sendContactToOwner(
+            'Jean',
+            'Dupont',
+            'jean@example.com',
+            'Question',
+            'Un message de test',
+            'fr'
+        );
+    }
+
+    // ----------------------------------------------------------------
+    // sendContactConfirmation — branche FR
+    // ----------------------------------------------------------------
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSendContactConfirmationFrCoversBody(): void
+    {
+        $this->expectException(\Exception::class);
+        $service = new MailService();
+        $service->sendContactConfirmation('jean@example.com', 'Jean', 'Question', 'fr');
+    }
+
+    // ----------------------------------------------------------------
+    // sendContactConfirmation — branche EN
+    // ----------------------------------------------------------------
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSendContactConfirmationEnCoversBody(): void
+    {
+        $this->expectException(\Exception::class);
+        $service = new MailService();
+        $service->sendContactConfirmation('jean@example.com', 'Jean', 'Question', 'en');
     }
 }

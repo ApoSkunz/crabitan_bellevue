@@ -47,4 +47,20 @@ class GuestMiddlewareTest extends TestCase
 
         GuestMiddleware::handle();
     }
+
+    // ----------------------------------------------------------------
+    // Rôle admin → redirect /admin (branche non couverte)
+    // ----------------------------------------------------------------
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testHandleRedirectsToAdminWhenRoleIsAdmin(): void
+    {
+        $_COOKIE['auth_token'] = Jwt::generate(1, 'admin');
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        GuestMiddleware::handle();
+    }
 }
