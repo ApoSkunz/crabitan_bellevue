@@ -487,4 +487,208 @@ class WineModelTest extends TestCase
 
         $this->model->getAllByColor(null, 'default', null, 10, 20);
     }
+
+    // ----------------------------------------------------------------
+    // getById (admin)
+    // ----------------------------------------------------------------
+
+    public function testGetByIdReturnsWine(): void
+    {
+        $row = ['id' => 5, 'label_name' => 'Bordeaux Rouge', 'vintage' => 2021];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with($this->stringContains('WHERE id = ?'), [5])
+            ->willReturn($row);
+
+        $this->assertSame($row, $this->model->getById(5));
+    }
+
+    public function testGetByIdReturnsNullWhenNotFound(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $this->assertNull($this->model->getById(999));
+    }
+
+    // ----------------------------------------------------------------
+    // getForAdmin
+    // ----------------------------------------------------------------
+
+    public function testGetForAdminNoFiltersPassesLimitAndOffset(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('LIMIT ? OFFSET ?'),
+                $this->equalTo([10, 0])
+            )
+            ->willReturn([]);
+
+        $this->model->getForAdmin(null, null, 10, 0);
+    }
+
+    public function testGetForAdminWithColorFilter(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('wine_color = ?'),
+                $this->equalTo(['red', 10, 0])
+            )
+            ->willReturn([]);
+
+        $this->model->getForAdmin('red', null, 10, 0);
+    }
+
+    public function testGetForAdminIgnoresInvalidColor(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->logicalNot($this->stringContains('wine_color = ?')),
+                $this->equalTo([10, 0])
+            )
+            ->willReturn([]);
+
+        $this->model->getForAdmin('invalid', null, 10, 0);
+    }
+
+    public function testGetForAdminWithAvailableFilter(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('available = 1'),
+                $this->equalTo([10, 0])
+            )
+            ->willReturn([]);
+
+        $this->model->getForAdmin(null, 'available', 10, 0);
+    }
+
+    public function testGetForAdminWithOutFilter(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('available = 0'),
+                $this->equalTo([10, 0])
+            )
+            ->willReturn([]);
+
+        $this->model->getForAdmin(null, 'out', 10, 0);
+    }
+
+    // ----------------------------------------------------------------
+    // countForAdmin
+    // ----------------------------------------------------------------
+
+    public function testCountForAdminNoFilters(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->stringContains('COUNT(*)'),
+                $this->equalTo([])
+            )
+            ->willReturn(['total' => 12]);
+
+        $this->assertSame(12, $this->model->countForAdmin(null));
+    }
+
+    public function testCountForAdminWithColorAndAvail(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->logicalAnd(
+                    $this->stringContains('wine_color = ?'),
+                    $this->stringContains('available = 1')
+                ),
+                $this->equalTo(['white'])
+            )
+            ->willReturn(['total' => 3]);
+
+        $this->assertSame(3, $this->model->countForAdmin('white', 'available'));
+    }
+
+    public function testCountForAdminReturnsZeroOnFalse(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $this->assertSame(0, $this->model->countForAdmin(null));
+    }
+
+    // ----------------------------------------------------------------
+    // create (admin)
+    // ----------------------------------------------------------------
+
+    public function testCreateInsertsAndReturnsId(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('insert')
+            ->with($this->stringContains('INSERT INTO'))
+            ->willReturn('8');
+
+        $data = [
+            'label_name' => 'Bordeaux Rouge', 'wine_color' => 'red', 'format' => 'bottle',
+            'vintage' => 2022, 'price' => 15.0, 'quantity' => 500, 'available' => 1,
+            'certification_label' => 'AOC', 'area' => 1.5, 'city' => 'Bellevue',
+            'variety_of_vine' => 'Merlot', 'age_of_vineyard' => 20,
+            'oenological_comment' => '{}', 'soil' => '{}', 'pruning' => '{}',
+            'harvest' => '{}', 'vinification' => '{}', 'barrel_fermentation' => '{}',
+            'award' => '{}', 'extra_comment' => '{}', 'is_cuvee_speciale' => 0,
+            'image_path' => 'img.jpg', 'slug' => 'bordeaux-rouge-2022',
+        ];
+
+        $id = $this->model->create($data);
+        $this->assertSame(8, $id);
+    }
+
+    // ----------------------------------------------------------------
+    // update (admin)
+    // ----------------------------------------------------------------
+
+    public function testUpdateExecutesWithIdAsLastParam(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->stringContains('WHERE id = ?'),
+                $this->callback(function (array $params): bool {
+                    $this->assertSame(7, end($params)); // id is last
+                    return true;
+                })
+            );
+
+        $data = [
+            'label_name' => 'Bordeaux Rouge', 'wine_color' => 'red', 'format' => 'bottle',
+            'vintage' => 2022, 'price' => 16.0, 'quantity' => 500, 'available' => 1,
+            'certification_label' => 'AOC', 'area' => 1.5, 'city' => 'Bellevue',
+            'variety_of_vine' => 'Merlot', 'age_of_vineyard' => 20,
+            'oenological_comment' => '{}', 'soil' => '{}', 'pruning' => '{}',
+            'harvest' => '{}', 'vinification' => '{}', 'barrel_fermentation' => '{}',
+            'award' => '{}', 'extra_comment' => '{}', 'is_cuvee_speciale' => 0,
+            'image_path' => 'img.jpg', 'slug' => 'bordeaux-rouge-2022',
+        ];
+
+        $this->model->update(7, $data);
+    }
 }
