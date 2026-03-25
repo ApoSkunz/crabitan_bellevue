@@ -222,4 +222,54 @@ class MailServiceTest extends TestCase
 
         $this->assertTrue(true);
     }
+
+    // ----------------------------------------------------------------
+    // sendNewsletter — délègue à send()
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendNewsletter(
+            'abonne@example.com',
+            'Marie',
+            'Notre actualité du mois',
+            '<p>Contenu HTML test</p>'
+        );
+
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // buildNewsletterHtml — sans image
+    // ----------------------------------------------------------------
+
+    public function testBuildNewsletterHtmlWithoutImage(): void
+    {
+        $html = $this->service->buildNewsletterHtml(
+            'Lettre de mars',
+            '<p>Bonjour, voici nos nouvelles.</p>'
+        );
+
+        $this->assertStringContainsString('Lettre de mars', $html);
+        $this->assertStringContainsString('Bonjour, voici nos nouvelles.', $html);
+        $this->assertStringContainsString('<!DOCTYPE html>', $html);
+    }
+
+    // ----------------------------------------------------------------
+    // buildNewsletterHtml — avec image (branche $imageUrl !== null)
+    // ----------------------------------------------------------------
+
+    public function testBuildNewsletterHtmlWithImage(): void
+    {
+        $html = $this->service->buildNewsletterHtml(
+            'Lettre avec image',
+            '<p>Contenu.</p>',
+            'https://example.com/image.jpg'
+        );
+
+        $this->assertStringContainsString('https://example.com/image.jpg', $html);
+        $this->assertStringContainsString('<img', $html);
+    }
 }
