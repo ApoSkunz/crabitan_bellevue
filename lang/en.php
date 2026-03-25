@@ -48,12 +48,15 @@ return [
     'auth.reset_invalid'     => 'Invalid or expired reset link.',
     'auth.password_invalid'  => 'Password too short or passwords do not match.',
     'auth.password_updated'  => 'Password updated. You can now log in.',
+    'auth.forgot_instructions' => 'Enter your email address and we\'ll send you a reset link.',
     'auth.modal.or'          => 'or',
     'auth.modal.google'      => 'Continue with Google',
     'auth.modal.apple'       => 'Continue with Apple',
     'auth.modal.social_soon' => 'Coming soon',
     'auth.modal.no_account'  => 'Don\'t have an account?',
-    'auth.modal.sign_up'     => 'Sign up',
+    'auth.modal.sign_up'      => 'Sign up',
+    'auth.modal.have_account' => 'Already have an account?',
+    'auth.modal.sign_in'      => 'Sign in',
 
     // Wines — Catalogue
     'wine.add_to_cart'  => 'Add to cart',
@@ -159,13 +162,13 @@ return [
     'form.civility.other'          => 'Other',
     'form.company'                 => 'Company name',
     'form.password_confirm'        => 'Confirm password',
-    'form.password_hint'           => 'Minimum 8 characters, including one uppercase letter, one number and one special character.',
+    'form.password_hint'           => 'Minimum 12 characters, including one uppercase letter, one number and one special character.',
     'form.newsletter'              => 'I would like to receive news and offers from the estate',
 
     // Validation
     'validation.required'       => 'This field is required.',
     'validation.email'          => 'Invalid email address.',
-    'validation.password_min'   => 'Password must be at least 8 characters.',
+    'validation.password_min'   => 'Password must be at least 12 characters.',
     'validation.password_match' => 'Passwords do not match.',
 
     // Cookie banner

@@ -39,7 +39,6 @@ $router->get('/{lang}/actualites/{slug}', 'NewsController@show');
 
 // Auth
 $router->post('/{lang}/connexion', 'AuthController@login');
-$router->get('/{lang}/inscription', 'AuthController@registerForm');
 $router->post('/{lang}/inscription', 'AuthController@register');
 $router->get('/{lang}/deconnexion', 'AuthController@logout');
 $router->get('/{lang}/verification/{token}', 'AuthController@verifyEmail');

@@ -13,8 +13,11 @@ require_once __DIR__ . '/../partials/header.php';
                 <?= htmlspecialchars($error ?? __('auth.reset_invalid')) ?>
             </div>
             <p class="auth-card__switch">
-                <a href="/<?= htmlspecialchars($lang) ?>/mot-de-passe-oublie"><?= __('auth.forgot_password') ?></a>
+                <a href="/<?= htmlspecialchars($lang) ?>/mot-de-passe-oublie">
+                    <?= __('auth.forgot_password') ?>
+                </a>
             </p>
+
         <?php else : ?>
             <?php if ($error) : ?>
                 <div class="alert alert--error" role="alert">
@@ -22,22 +25,24 @@ require_once __DIR__ . '/../partials/header.php';
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="/<?= htmlspecialchars($lang) ?>/reinitialisation/<?= htmlspecialchars($token) ?>" novalidate>
+            <form method="POST"
+                  action="/<?= htmlspecialchars($lang) ?>/reinitialisation/<?= htmlspecialchars($token) ?>"
+                  novalidate>
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 
                 <div class="form-group">
                     <label for="password"><?= __('auth.password') ?></label>
                     <input type="password" id="password" name="password"
-                           autocomplete="new-password" required minlength="8" autofocus>
+                           autocomplete="new-password" required minlength="12" autofocus>
                 </div>
 
                 <div class="form-group">
                     <label for="password_confirm"><?= __('form.password_confirm') ?></label>
                     <input type="password" id="password_confirm" name="password_confirm"
-                           autocomplete="new-password" required minlength="8">
+                           autocomplete="new-password" required minlength="12">
                 </div>
 
-                <button type="submit" class="btn btn--primary btn--full">
+                <button type="submit" class="btn btn--gold btn--full" style="margin-top:0.5rem;">
                     <?= __('btn.save') ?>
                 </button>
             </form>

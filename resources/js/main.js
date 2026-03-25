@@ -281,14 +281,14 @@ function initAccountPanel() {
 // Toast notification
 // ============================================================
 
-function showToast(msg, isError = false) {
+function showToast(msg, isError = false, duration = 1500) {
     const toast = document.getElementById('cb-toast');
     if (!toast) return;
     toast.textContent = msg;
     toast.className = 'cb-toast' + (isError ? ' cb-toast--error' : '');
     toast.removeAttribute('hidden');
     clearTimeout(toast.__timer);
-    toast.__timer = setTimeout(() => toast.setAttribute('hidden', ''), 1500);
+    toast.__timer = setTimeout(() => toast.setAttribute('hidden', ''), duration);
 }
 
 // ============================================================
@@ -455,28 +455,74 @@ function initCartModal() {
 // ============================================================
 
 function initLoginModal() {
-    const trigger  = document.getElementById('login-modal-trigger');
-    const modal    = document.getElementById('login-modal');
-    const closeBtn = document.getElementById('login-modal-close');
-    const backdrop = document.getElementById('login-modal-backdrop');
+    const trigger      = document.getElementById('login-modal-trigger');
+    const modal        = document.getElementById('login-modal');
+    const closeBtn     = document.getElementById('login-modal-close');
+    const backdrop     = document.getElementById('login-modal-backdrop');
+    const titleEl      = document.getElementById('login-modal-title');
+    const loginPanel   = document.getElementById('login-panel');
+    const forgotPanel  = document.getElementById('forgot-panel');
 
     if (!trigger || !modal) return;
 
+    function showLoginPanel() {
+        loginPanel?.removeAttribute('hidden');
+        forgotPanel?.setAttribute('hidden', '');
+        if (titleEl) titleEl.textContent = titleEl.dataset.titleLogin || titleEl.textContent;
+    }
+
+    function showForgotPanel() {
+        loginPanel?.setAttribute('hidden', '');
+        forgotPanel?.removeAttribute('hidden');
+        if (titleEl) titleEl.textContent = titleEl.dataset.titleForgot || titleEl.textContent;
+        document.getElementById('forgot-modal-email')?.focus();
+    }
+
     function openModal() {
+        showLoginPanel();
         modal.setAttribute('aria-hidden', 'false');
         trigger.setAttribute('aria-expanded', 'true');
         document.body.style.overflow = 'hidden';
         closeBtn?.focus();
     }
 
+    function openModalForgot() {
+        modal.setAttribute('aria-hidden', 'false');
+        trigger.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+        showForgotPanel();
+    }
+
     function closeModal() {
         modal.setAttribute('aria-hidden', 'true');
         trigger.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
+        showLoginPanel();
         trigger.focus();
     }
 
-    if (window.__authModalError) openModal();
+    if (window.__authModalError || new URLSearchParams(window.location.search).get('login') === '1') openModal();
+
+    // Switch vers panel mot de passe oublié
+    document.getElementById('forgot-password-btn')?.addEventListener('click', showForgotPanel);
+    document.getElementById('forgot-back-btn')?.addEventListener('click', showLoginPanel);
+
+    // Switch vers register modal
+    document.getElementById('login-to-register')?.addEventListener('click', () => {
+        closeModal();
+        document.getElementById('register-modal')?.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('register-modal-close')?.focus();
+    });
+
+    // Boutons mobile nav
+    document.querySelectorAll('[data-open-modal="login-modal"]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.getElementById('header-nav-mobile')?.classList.remove('is-open');
+            document.getElementById('header-burger')?.setAttribute('aria-expanded', 'false');
+            openModal();
+        });
+    });
 
     trigger.addEventListener('click', openModal);
     closeBtn?.addEventListener('click', closeModal);
@@ -496,6 +542,87 @@ function initLoginModal() {
             btn.querySelector('.pwd-eye--show').hidden = isHidden;
             btn.querySelector('.pwd-eye--hide').hidden = !isHidden;
             btn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+        });
+    });
+
+    // Expose pour le reset modal (token invalide → ouvrir panel forgot)
+    window.__openLoginModalForgot = openModalForgot;
+}
+
+// ============================================================
+// Register modal
+// ============================================================
+
+function initRegisterModal() {
+    const modal    = document.getElementById('register-modal');
+    const closeBtn = document.getElementById('register-modal-close');
+    const backdrop = document.getElementById('register-modal-backdrop');
+    const toLogin  = document.getElementById('register-to-login');
+
+    if (!modal) return;
+
+    function openModal() {
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        closeBtn?.focus();
+    }
+
+    function closeModal() {
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    // Switch vers login modal
+    toLogin?.addEventListener('click', () => {
+        closeModal();
+        const loginModal = document.getElementById('login-modal');
+        const loginTrigger = document.getElementById('login-modal-trigger');
+        if (loginModal) {
+            loginModal.setAttribute('aria-hidden', 'false');
+            loginTrigger?.setAttribute('aria-expanded', 'true');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('login-modal-close')?.focus();
+        }
+    });
+
+    closeBtn?.addEventListener('click', closeModal);
+    backdrop?.addEventListener('click', closeModal);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+    });
+
+    // Toggle individual / company fields
+    modal.querySelectorAll('[name="account_type"]').forEach((radio) => {
+        radio.addEventListener('change', () => {
+            const isCompany = radio.value === 'company';
+            modal.querySelector('.js-reg-individual')?.toggleAttribute('hidden', isCompany);
+            modal.querySelector('.js-reg-company')?.toggleAttribute('hidden', !isCompany);
+        });
+    });
+
+    // Toggle password visibility
+    modal.querySelectorAll('.register-modal__pwd-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            btn.querySelector('.pwd-eye--show').hidden = isHidden;
+            btn.querySelector('.pwd-eye--hide').hidden = !isHidden;
+            btn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+        });
+    });
+
+    // Auto-open si erreurs de soumission
+    if (window.__authRegisterOpen) openModal();
+
+    // Boutons mobile nav
+    document.querySelectorAll('[data-open-modal="register-modal"]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.getElementById('header-nav-mobile')?.classList.remove('is-open');
+            document.getElementById('header-burger')?.setAttribute('aria-expanded', 'false');
+            openModal();
         });
     });
 }
@@ -743,7 +870,133 @@ function initPageIntro() {
     });
 }
 
+// ============================================================
+// Widget météo — carousel héro (Open-Meteo, sans clé API)
+// ============================================================
+
+const WMO_FR = {
+    0: 'Ensoleillé', 1: 'Peu nuageux', 2: 'Nuageux', 3: 'Couvert',
+    45: 'Brouillard', 48: 'Brouillard givrant',
+    51: 'Bruine légère', 53: 'Bruine', 55: 'Bruine dense',
+    61: 'Pluie légère', 63: 'Pluie', 65: 'Pluie forte',
+    71: 'Neige légère', 73: 'Neige', 75: 'Neige forte', 77: 'Grésil',
+    80: 'Averses légères', 81: 'Averses', 82: 'Averses fortes',
+    85: 'Averses de neige', 86: 'Averses de neige fortes',
+    95: 'Orageux', 96: 'Orage avec grêle', 99: 'Orage violent',
+};
+
+const WMO_EN = {
+    0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+    45: 'Foggy', 48: 'Freezing fog',
+    51: 'Light drizzle', 53: 'Drizzle', 55: 'Dense drizzle',
+    61: 'Light rain', 63: 'Rain', 65: 'Heavy rain',
+    71: 'Light snow', 73: 'Snow', 75: 'Heavy snow', 77: 'Snow grains',
+    80: 'Light showers', 81: 'Showers', 82: 'Heavy showers',
+    85: 'Snow showers', 86: 'Heavy snow showers',
+    95: 'Thunderstorm', 96: 'Thunderstorm & hail', 99: 'Violent storm',
+};
+
+const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin',
+    'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const MONTHS_EN = ['January','February','March','April','May','June',
+    'July','August','September','October','November','December'];
+
+async function initWeatherWidget() {
+    const widget = document.getElementById('weather-widget');
+    if (!widget) return;
+
+    const lang   = window.__navLang === 'en' ? 'en' : 'fr';
+    const months = lang === 'en' ? MONTHS_EN : MONTHS_FR;
+    const wmo    = lang === 'en' ? WMO_EN : WMO_FR;
+    const month  = months[new Date().getMonth()];
+
+    try {
+        const res  = await fetch(
+            'https://api.open-meteo.com/v1/forecast'
+            + '?latitude=44.58&longitude=-0.27'
+            + '&current=weather_code,wind_speed_10m'
+            + '&daily=temperature_2m_min,temperature_2m_max'
+            + '&timezone=Europe%2FParis'
+        );
+        if (!res.ok) return;
+        const data  = await res.json();
+        const code  = data.current?.weather_code ?? 0;
+        const wind  = Math.round(data.current?.wind_speed_10m ?? 0);
+        const tmin  = Math.round(data.daily?.temperature_2m_min?.[0] ?? 0);
+        const tmax  = Math.round(data.daily?.temperature_2m_max?.[0] ?? 0);
+        const cond  = wmo[code] ?? (lang === 'en' ? 'Unknown' : 'Inconnu');
+
+        const line1 = document.createElement('span');
+        line1.className = 'carousel__weather-top';
+        line1.textContent = `${month} \u2014 ${cond}`;
+
+        const line2 = document.createElement('span');
+        line2.className = 'carousel__weather-bottom';
+        line2.textContent = `${tmin}\u00b0 \u2192 ${tmax}\u00b0 \u00b7 ${wind}\u00a0km/h`;
+
+        widget.replaceChildren(line1, line2);
+        widget.removeAttribute('hidden');
+    } catch {
+        // Silencieux — le widget reste masqué si l'API est inaccessible
+    }
+}
+
+// ============================================================
+// Reset password modal
+// ============================================================
+
+function initResetModal() {
+    const modal    = document.getElementById('reset-modal');
+    const closeBtn = document.getElementById('reset-modal-close');
+    const backdrop = document.getElementById('reset-modal-backdrop');
+    const form     = document.getElementById('reset-modal-form');
+
+    if (!modal) return;
+
+    if (form && window.__resetToken) {
+        form.action = '/' + window.__navLang + '/reinitialisation/' + window.__resetToken;
+    }
+
+    function openModal() {
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        closeBtn?.focus();
+    }
+
+    function closeModal() {
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    if (window.__resetOpen) openModal();
+
+    closeBtn?.addEventListener('click', closeModal);
+    backdrop?.addEventListener('click', closeModal);
+
+    document.getElementById('reset-to-forgot')?.addEventListener('click', () => {
+        closeModal();
+        if (typeof window.__openLoginModalForgot === 'function') window.__openLoginModalForgot();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+    });
+
+    modal.querySelectorAll('.login-modal__pwd-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            btn.querySelector('.pwd-eye--show').hidden = isHidden;
+            btn.querySelector('.pwd-eye--hide').hidden = !isHidden;
+            btn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    if (window.__flashInfo) showToast(window.__flashInfo, false, 2000);
     initPageIntro();
     initTheme();
     initThemeToggle();
@@ -752,7 +1005,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initCookieBanner();
     initCarousel();
     initAccountPanel();
+    initWeatherWidget();
     initLoginModal();
+    initRegisterModal();
+    initResetModal();
     initCartModal();
     initCartLoginPrompt();
     initFavoriteAuth();

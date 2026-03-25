@@ -97,7 +97,8 @@ class MailServiceTest extends TestCase
     public function testResetBodyFrEscapesXss(): void
     {
         $body = $this->callPrivate('resetBodyFr', '<img src=x onerror=1>', 'https://x.com');
-        $this->assertStringNotContainsString('<img', $body);
+        $this->assertStringContainsString('&lt;img src=x onerror=1&gt;', $body);
+        $this->assertStringNotContainsString('<img src=x', $body);
     }
 
     // ----------------------------------------------------------------
@@ -120,6 +121,7 @@ class MailServiceTest extends TestCase
     public function testResetBodyEnEscapesXss(): void
     {
         $body = $this->callPrivate('resetBodyEn', '<img src=x>', 'https://x.com');
-        $this->assertStringNotContainsString('<img', $body);
+        $this->assertStringContainsString('&lt;img src=x&gt;', $body);
+        $this->assertStringNotContainsString('<img src=x', $body);
     }
 }

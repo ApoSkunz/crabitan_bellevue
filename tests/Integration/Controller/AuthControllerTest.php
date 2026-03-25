@@ -53,7 +53,7 @@ class AuthControllerTest extends IntegrationTestCase
 
     private function insertVerifiedAccount(
         string $email = 'user@example.com',
-        string $password = 'Password1!',
+        string $password = 'Password123!',
         string $role = 'customer'
     ): int {
         $id = (int) self::$db->insert(
@@ -74,7 +74,7 @@ class AuthControllerTest extends IntegrationTestCase
         $id = (int) self::$db->insert(
             "INSERT INTO accounts (email, password, role, lang, email_verification_token)
              VALUES (?, ?, 'customer', 'fr', ?)",
-            [$email, password_hash('Password1!', PASSWORD_BCRYPT), bin2hex(random_bytes(16))]
+            [$email, password_hash('Password123!', PASSWORD_BCRYPT), bin2hex(random_bytes(16))]
         );
         self::$db->insert(
             "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
@@ -90,11 +90,11 @@ class AuthControllerTest extends IntegrationTestCase
 
     public function testLoginSuccessRedirectsToAccount(): void
     {
-        $this->insertVerifiedAccount('login@example.com', 'Password1!');
+        $this->insertVerifiedAccount('login@example.com', 'Password123!');
 
         $_POST = [
             'email'      => 'login@example.com',
-            'password'   => 'Password1!',
+            'password'   => 'Password123!',
             'csrf_token' => self::CSRF,
         ];
 
@@ -132,7 +132,7 @@ class AuthControllerTest extends IntegrationTestCase
 
         $_POST = [
             'email'      => 'noverify@example.com',
-            'password'   => 'Password1!',
+            'password'   => 'Password123!',
             'csrf_token' => self::CSRF,
         ];
 
@@ -149,7 +149,7 @@ class AuthControllerTest extends IntegrationTestCase
     {
         $_POST = [
             'email'      => 'nobody@example.com',
-            'password'   => 'Password1!',
+            'password'   => 'Password123!',
             'csrf_token' => self::CSRF,
         ];
 
@@ -174,8 +174,8 @@ class AuthControllerTest extends IntegrationTestCase
             'lastname'         => 'Dupont',
             'firstname'        => 'Marie',
             'email'            => 'marie@example.com',
-            'password'         => 'Password1!',
-            'password_confirm' => 'Password1!',
+            'password'         => 'Password123!',
+            'password_confirm' => 'Password123!',
             'newsletter'       => '0',
             'csrf_token'       => self::CSRF,
         ];
@@ -210,8 +210,8 @@ class AuthControllerTest extends IntegrationTestCase
             'lastname'         => 'Autre',
             'firstname'        => 'Person',
             'email'            => 'taken@example.com',
-            'password'         => 'Password1!',
-            'password_confirm' => 'Password1!',
+            'password'         => 'Password123!',
+            'password_confirm' => 'Password123!',
             'newsletter'       => '0',
             'csrf_token'       => self::CSRF,
         ];
@@ -221,7 +221,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr/inscription', $e->location);
+            $this->assertSame('/fr', $e->location);
         }
     }
 
@@ -403,7 +403,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr', $e->location);
+            $this->assertSame('/fr?login=1', $e->location);
         }
 
         // Password reset token deleted
@@ -435,7 +435,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertStringContainsString('/fr/reinitialisation/', $e->location ?? '');
+            $this->assertSame('/fr?modal=reset', $e->location);
         }
     }
 
@@ -452,7 +452,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr', $e->location);
+            $this->assertSame('/fr?modal=reset', $e->location);
         }
     }
 }

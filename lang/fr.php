@@ -48,12 +48,15 @@ return [
     'auth.reset_invalid'     => 'Lien de réinitialisation invalide ou expiré.',
     'auth.password_invalid'  => 'Mot de passe trop court ou les mots de passe ne correspondent pas.',
     'auth.password_updated'  => 'Mot de passe mis à jour. Vous pouvez vous connecter.',
+    'auth.forgot_instructions' => 'Saisissez votre adresse email et nous vous enverrons un lien de réinitialisation.',
     'auth.modal.or'          => 'ou',
     'auth.modal.google'      => 'Continuer avec Google',
     'auth.modal.apple'       => 'Continuer avec Apple',
     'auth.modal.social_soon' => 'Bientôt disponible',
     'auth.modal.no_account'  => 'Pas encore de compte ?',
-    'auth.modal.sign_up'     => 'S\'inscrire',
+    'auth.modal.sign_up'      => 'S\'inscrire',
+    'auth.modal.have_account' => 'Déjà un compte ?',
+    'auth.modal.sign_in'      => 'Se connecter',
 
     // Vins — Catalogue
     'wine.add_to_cart'  => 'Ajouter au panier',
@@ -159,13 +162,13 @@ return [
     'form.civility.other'          => 'Autre',
     'form.company'                 => 'Raison sociale',
     'form.password_confirm'        => 'Confirmer le mot de passe',
-    'form.password_hint'           => 'Minimum 8 caractères, dont une majuscule, un chiffre et un caractère spécial.',
+    'form.password_hint'           => 'Minimum 12 caractères, dont une majuscule, un chiffre et un caractère spécial.',
     'form.newsletter'              => 'Je souhaite recevoir les actualités et offres du domaine',
 
     // Validation
     'validation.required'      => 'Ce champ est requis.',
     'validation.email'         => 'Adresse email invalide.',
-    'validation.password_min'  => 'Le mot de passe doit contenir au moins 8 caractères.',
+    'validation.password_min'  => 'Le mot de passe doit contenir au moins 12 caractères.',
     'validation.password_match' => 'Les mots de passe ne correspondent pas.',
 
     // Cookie banner

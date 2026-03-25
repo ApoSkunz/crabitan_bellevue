@@ -8,9 +8,22 @@ $isLogged    = false;
 if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
 }
-$modalCsrf  = $_SESSION['csrf'];
-$modalError = $_SESSION['flash']['modal_error'] ?? null;
-unset($_SESSION['flash']['modal_error']);
+$modalCsrf      = $_SESSION['csrf'];
+$modalError     = $_SESSION['flash']['modal_error'] ?? null;
+$registerErrors = $_SESSION['flash']['register_errors'] ?? [];
+$registerOld    = $_SESSION['flash']['register_old'] ?? [];
+$registerOpen   = !empty($registerErrors) || !empty($registerOld);
+$flashInfo      = $_SESSION['flash']['info'] ?? null;
+unset($_SESSION['flash']['modal_error'], $_SESSION['flash']['register_errors'], $_SESSION['flash']['register_old'], $_SESSION['flash']['info']);
+
+$resetModalData = $_SESSION['reset_modal'] ?? null;
+$resetOpen      = isset($_GET['modal']) && $_GET['modal'] === 'reset' && $resetModalData !== null;
+$resetToken     = $resetModalData['token'] ?? '';
+$resetValid     = $resetModalData['valid'] ?? false;
+$resetError     = $resetModalData['error'] ?? null;
+if ($resetOpen) {
+    $_SESSION['reset_modal']['error'] = null;
+}
 
 if ($token) {
     try {
@@ -187,13 +200,22 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
             <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte"><?= htmlspecialchars(__('nav.account')) ?></a>
             <a href="/<?= htmlspecialchars($navLang) ?>/deconnexion"><?= htmlspecialchars(__('nav.logout')) ?></a>
         <?php else : ?>
-            <a href="/<?= htmlspecialchars($navLang) ?>/connexion"><?= htmlspecialchars(__('nav.login')) ?></a>
-            <a href="/<?= htmlspecialchars($navLang) ?>/inscription"><?= htmlspecialchars(__('nav.register')) ?></a>
+            <button type="button" class="header-nav--mobile__modal-btn" data-open-modal="login-modal"><?= htmlspecialchars(__('nav.login')) ?></button>
+            <button type="button" class="header-nav--mobile__modal-btn" data-open-modal="register-modal"><?= htmlspecialchars(__('nav.register')) ?></button>
         <?php endif; ?>
     </nav>
 </header>
 
-<script>window.__userLogged = <?= $isLogged ? 'true' : 'false' ?>; window.__navLang = '<?= htmlspecialchars($navLang) ?>'; window.__authModalError = <?= $modalError ? 'true' : 'false' ?>;</script>
+<script>
+window.__userLogged       = <?= $isLogged ? 'true' : 'false' ?>;
+window.__navLang          = '<?= htmlspecialchars($navLang) ?>';
+window.__authModalError   = <?= $modalError ? 'true' : 'false' ?>;
+window.__authRegisterOpen = <?= $registerOpen ? 'true' : 'false' ?>;
+window.__flashInfo        = <?= $flashInfo ? json_encode(htmlspecialchars($flashInfo)) : 'null' ?>;
+window.__resetOpen        = <?= $resetOpen ? 'true' : 'false' ?>;
+window.__resetToken       = <?= json_encode($resetToken) ?>;
+window.__resetValid       = <?= $resetValid ? 'true' : 'false' ?>;
+</script>
 
 <!-- ============================================================ -->
 <!-- Modal ajout au panier                                         -->
@@ -260,12 +282,105 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
     <div class="login-modal__backdrop" id="login-modal-backdrop"></div>
     <div class="login-modal__inner">
         <div class="login-modal__header">
-            <!-- NOSONAR Web:S6850 — title is static translated string, not dynamic -->
-            <h2 id="login-modal-title" class="login-modal__title"><?= htmlspecialchars(__('auth.login')) ?></h2>
+            <!-- NOSONAR Web:S6850 — title updated dynamically by JS when switching panels -->
+            <h2 id="login-modal-title" class="login-modal__title"
+                data-title-login="<?= htmlspecialchars(__('auth.login')) ?>"
+                data-title-forgot="<?= htmlspecialchars(__('auth.forgot_password')) ?>"
+            ><?= htmlspecialchars(__('auth.login')) ?></h2>
             <button id="login-modal-close" class="login-modal__close" type="button" aria-label="Fermer">&times;</button>
         </div>
         <div class="login-modal__body">
-            <div class="login-modal__social">
+            <!-- Panel connexion -->
+            <div id="login-panel">
+                <div class="login-modal__social">
+                    <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
+                        <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
+                            <?= htmlspecialchars(__('auth.modal.google')) ?>
+                        </button>
+                    </span>
+                    <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
+                        <button type="button" class="btn btn-social btn-social--apple" disabled aria-disabled="true">
+                            <?= htmlspecialchars(__('auth.modal.apple')) ?>
+                        </button>
+                    </span>
+                </div>
+                <p class="login-modal__or"><span><?= htmlspecialchars(__('auth.modal.or')) ?></span></p>
+                <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/connexion" class="login-modal__form">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+                    <input type="hidden" name="redirect_back" value="<?= htmlspecialchars(strtok($_SERVER['REQUEST_URI'] ?? '/', '?')) ?>">
+                    <?php if ($modalError) : ?>
+                        <div class="alert alert--error" role="alert"><?= htmlspecialchars($modalError) ?></div>
+                    <?php endif; ?>
+                    <div class="login-modal__field">
+                        <label for="login-modal-email"><?= htmlspecialchars(__('auth.email')) ?></label>
+                        <input type="email" id="login-modal-email" name="email" required autocomplete="email">
+                    </div>
+                    <div class="login-modal__field">
+                        <label for="login-modal-password"><?= htmlspecialchars(__('auth.password')) ?></label>
+                        <div class="login-modal__password-wrap">
+                            <input type="password" id="login-modal-password" name="password" required autocomplete="current-password">
+                            <button type="button" class="login-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="login-modal-password">
+                                <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
+                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="forgot-password-btn" class="login-modal__forgot">
+                        <?= htmlspecialchars(__('auth.forgot_password')) ?>
+                    </button>
+                    <button type="submit" class="btn btn--gold login-modal__submit"><?= htmlspecialchars(__('auth.login')) ?></button>
+                </form>
+                <div class="login-modal__register">
+                    <p class="login-modal__register-label"><?= htmlspecialchars(__('auth.modal.no_account')) ?></p>
+                    <button type="button" id="login-to-register" class="btn btn--ghost login-modal__register-btn">
+                        <?= htmlspecialchars(__('auth.modal.sign_up')) ?>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel mot de passe oublié -->
+            <div id="forgot-panel" hidden>
+                <button type="button" id="forgot-back-btn" class="login-modal__back">
+                    &#8592; <?= htmlspecialchars(__('btn.back')) ?>
+                </button>
+                <p class="login-modal__forgot-desc"><?= htmlspecialchars(__('auth.forgot_instructions')) ?></p>
+                <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/mot-de-passe-oublie"
+                      id="forgot-modal-form" class="login-modal__form">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+                    <div class="login-modal__field">
+                        <label for="forgot-modal-email"><?= htmlspecialchars(__('auth.email')) ?></label>
+                        <input type="email" id="forgot-modal-email" name="email" required autocomplete="email">
+                    </div>
+                    <button type="submit" class="btn btn--gold login-modal__submit">
+                        <?= htmlspecialchars(__('btn.submit')) ?>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Modal inscription                                             -->
+<!-- ============================================================ -->
+<!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
+<div
+    id="register-modal"
+    class="register-modal"
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="register-modal-title"
+>
+    <div class="register-modal__backdrop" id="register-modal-backdrop"></div>
+    <div class="register-modal__inner">
+        <div class="register-modal__header">
+            <!-- NOSONAR Web:S6850 — title is static translated string -->
+            <h2 id="register-modal-title" class="register-modal__title"><?= htmlspecialchars(__('auth.register')) ?></h2>
+            <button id="register-modal-close" class="register-modal__close" type="button" aria-label="Fermer">&times;</button>
+        </div>
+        <div class="register-modal__body">
+            <div class="register-modal__social">
                 <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
                     <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
                         <?= htmlspecialchars(__('auth.modal.google')) ?>
@@ -277,37 +392,216 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     </button>
                 </span>
             </div>
-            <p class="login-modal__or"><span><?= htmlspecialchars(__('auth.modal.or')) ?></span></p>
-            <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/connexion" class="login-modal__form">
+            <p class="register-modal__or"><span><?= htmlspecialchars(__('auth.modal.or')) ?></span></p>
+            <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/inscription" class="register-modal__form" novalidate>
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
-                <?php if ($modalError) : ?>
-                    <div class="alert alert--error" role="alert"><?= htmlspecialchars($modalError) ?></div>
+
+                <?php if (!empty($registerErrors['email']) && count($registerErrors) === 1) : ?>
+                    <div class="alert alert--error" role="alert"><?= htmlspecialchars($registerErrors['email']) ?></div>
+                <?php elseif (!empty($registerErrors)) : ?>
+                    <div class="alert alert--error" role="alert"><?= htmlspecialchars(reset($registerErrors)) ?></div>
                 <?php endif; ?>
-                <div class="login-modal__field">
-                    <label for="login-modal-email"><?= htmlspecialchars(__('auth.email')) ?></label>
-                    <input type="email" id="login-modal-email" name="email" required autocomplete="email">
+
+                <!-- Type de compte -->
+                <div class="register-modal__field register-modal__field--radio">
+                    <span class="register-modal__label"><?= htmlspecialchars(__('form.account_type')) ?></span>
+                    <div class="register-modal__radio-group">
+                        <label class="register-modal__radio">
+                            <input type="radio" name="account_type" value="individual"
+                                <?= ($registerOld['accountType'] ?? 'individual') !== 'company' ? 'checked' : '' ?>>
+                            <?= htmlspecialchars(__('form.account_type.individual')) ?>
+                        </label>
+                        <label class="register-modal__radio">
+                            <input type="radio" name="account_type" value="company"
+                                <?= ($registerOld['accountType'] ?? '') === 'company' ? 'checked' : '' ?>>
+                            <?= htmlspecialchars(__('form.account_type.company')) ?>
+                        </label>
+                    </div>
                 </div>
-                <div class="login-modal__field">
-                    <label for="login-modal-password"><?= htmlspecialchars(__('auth.password')) ?></label>
-                    <div class="login-modal__password-wrap">
-                        <input type="password" id="login-modal-password" name="password" required autocomplete="current-password">
-                        <button type="button" class="login-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="login-modal-password">
+
+                <!-- Champs particulier -->
+                <div class="js-reg-individual"<?= ($registerOld['accountType'] ?? '') === 'company' ? ' hidden' : '' ?>>
+                    <div class="register-modal__field register-modal__field--radio">
+                        <span class="register-modal__label"><?= htmlspecialchars(__('form.civility')) ?></span>
+                        <div class="register-modal__radio-group">
+                            <?php foreach (['M' => __('form.civility.m'), 'F' => __('form.civility.f'), 'other' => __('form.civility.other')] as $val => $label) : ?>
+                                <label class="register-modal__radio">
+                                    <input type="radio" name="civility" value="<?= htmlspecialchars($val) ?>"
+                                        <?= ($registerOld['civility'] ?? '') === $val ? 'checked' : '' ?>>
+                                    <?= htmlspecialchars($label) ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php if (!empty($registerErrors['civility'])) : ?>
+                            <span class="register-modal__error"><?= htmlspecialchars($registerErrors['civility']) ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="register-modal__row">
+                        <div class="register-modal__field">
+                            <label for="reg-lastname"><?= htmlspecialchars(__('form.lastname')) ?></label>
+                            <input type="text" id="reg-lastname" name="lastname"
+                                   value="<?= htmlspecialchars($registerOld['lastname'] ?? '') ?>"
+                                   autocomplete="family-name">
+                            <?php if (!empty($registerErrors['lastname'])) : ?>
+                                <span class="register-modal__error"><?= htmlspecialchars($registerErrors['lastname']) ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="register-modal__field">
+                            <label for="reg-firstname"><?= htmlspecialchars(__('form.firstname')) ?></label>
+                            <input type="text" id="reg-firstname" name="firstname"
+                                   value="<?= htmlspecialchars($registerOld['firstname'] ?? '') ?>"
+                                   autocomplete="given-name">
+                            <?php if (!empty($registerErrors['firstname'])) : ?>
+                                <span class="register-modal__error"><?= htmlspecialchars($registerErrors['firstname']) ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Champs entreprise -->
+                <div class="js-reg-company"<?= ($registerOld['accountType'] ?? '') !== 'company' ? ' hidden' : '' ?>>
+                    <div class="register-modal__field">
+                        <label for="reg-company"><?= htmlspecialchars(__('form.company')) ?></label>
+                        <input type="text" id="reg-company" name="company_name"
+                               value="<?= htmlspecialchars($registerOld['company'] ?? '') ?>"
+                               autocomplete="organization">
+                        <?php if (!empty($registerErrors['company_name'])) : ?>
+                            <span class="register-modal__error"><?= htmlspecialchars($registerErrors['company_name']) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="register-modal__field">
+                    <label for="reg-email"><?= htmlspecialchars(__('auth.email')) ?></label>
+                    <input type="email" id="reg-email" name="email"
+                           value="<?= htmlspecialchars($registerOld['email'] ?? '') ?>"
+                           autocomplete="email" required>
+                    <?php if (!empty($registerErrors['email'])) : ?>
+                        <span class="register-modal__error"><?= htmlspecialchars($registerErrors['email']) ?></span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Mot de passe -->
+                <div class="register-modal__field">
+                    <label for="reg-password"><?= htmlspecialchars(__('auth.password')) ?></label>
+                    <div class="register-modal__password-wrap">
+                        <input type="password" id="reg-password" name="password"
+                               autocomplete="new-password" required minlength="12">
+                        <button type="button" class="register-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="reg-password">
+                            <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
+                            <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                        </button>
+                    </div>
+                    <?php if (!empty($registerErrors['password'])) : ?>
+                        <span class="register-modal__error"><?= htmlspecialchars($registerErrors['password']) ?></span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Confirmation mot de passe -->
+                <div class="register-modal__field">
+                    <label for="reg-password-confirm"><?= htmlspecialchars(__('form.password_confirm')) ?></label>
+                    <div class="register-modal__password-wrap">
+                        <input type="password" id="reg-password-confirm" name="password_confirm"
+                               autocomplete="new-password" required minlength="12">
+                        <button type="button" class="register-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="reg-password-confirm">
                             <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
                             <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
                         </button>
                     </div>
                 </div>
-                <a href="/<?= htmlspecialchars($navLang) ?>/mot-de-passe-oublie" class="login-modal__forgot">
-                    <?= htmlspecialchars(__('auth.forgot_password')) ?>
-                </a>
-                <button type="submit" class="btn btn--gold login-modal__submit"><?= htmlspecialchars(__('auth.login')) ?></button>
+
+                <p class="register-modal__hint"><?= htmlspecialchars(__('form.password_hint')) ?></p>
+
+                <!-- Newsletter -->
+                <label class="register-modal__newsletter">
+                    <input type="checkbox" name="newsletter" value="1"
+                           <?= !empty($registerOld['newsletter']) ? 'checked' : '' ?>>
+                    <?= htmlspecialchars(__('form.newsletter')) ?>
+                </label>
+
+                <button type="submit" class="btn btn--gold register-modal__submit">
+                    <?= htmlspecialchars(__('auth.register')) ?>
+                </button>
             </form>
-            <div class="login-modal__register">
-                <p class="login-modal__register-label"><?= htmlspecialchars(__('auth.modal.no_account')) ?></p>
-                <a href="/<?= htmlspecialchars($navLang) ?>/inscription" class="btn btn--ghost login-modal__register-btn">
-                    <?= htmlspecialchars(__('auth.modal.sign_up')) ?>
-                </a>
+
+            <div class="register-modal__login">
+                <p class="register-modal__login-label"><?= htmlspecialchars(__('auth.modal.have_account')) ?></p>
+                <button type="button" id="register-to-login" class="btn btn--ghost register-modal__login-btn">
+                    <?= htmlspecialchars(__('auth.modal.sign_in')) ?>
+                </button>
             </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if (!$isLogged) : ?>
+<!-- ============================================================ -->
+<!-- Modal réinitialisation mot de passe                          -->
+<!-- ============================================================ -->
+<!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
+<div
+    id="reset-modal"
+    class="login-modal"
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="reset-modal-title"
+>
+    <div class="login-modal__backdrop" id="reset-modal-backdrop"></div>
+    <div class="login-modal__inner">
+        <div class="login-modal__header">
+            <!-- NOSONAR Web:S6850 — title is static translated string -->
+            <h2 id="reset-modal-title" class="login-modal__title">
+                <?= htmlspecialchars(__('auth.reset_password')) ?>
+            </h2>
+            <button id="reset-modal-close" class="login-modal__close" type="button" aria-label="Fermer">&times;</button>
+        </div>
+        <div class="login-modal__body">
+            <?php if (!$resetValid) : ?>
+                <div class="alert alert--error" role="alert">
+                    <?= htmlspecialchars(__('auth.reset_invalid')) ?>
+                </div>
+                <button type="button" id="reset-to-forgot"
+                        class="btn btn--gold btn--full" style="margin-top:0.75rem;">
+                    <?= htmlspecialchars(__('auth.forgot_password')) ?>
+                </button>
+            <?php else : ?>
+                <?php if ($resetError) : ?>
+                    <div class="alert alert--error" role="alert"><?= htmlspecialchars($resetError) ?></div>
+                <?php endif; ?>
+                <form id="reset-modal-form" method="POST" action="" class="login-modal__form" novalidate>
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+                    <div class="login-modal__field">
+                        <label for="reset-modal-password"><?= htmlspecialchars(__('auth.password')) ?></label>
+                        <div class="login-modal__password-wrap">
+                            <input type="password" id="reset-modal-password" name="password"
+                                   required minlength="12" autocomplete="new-password">
+                            <button type="button" class="login-modal__pwd-toggle"
+                                    aria-label="Afficher le mot de passe" data-target="reset-modal-password">
+                                <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
+                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="login-modal__field">
+                        <label for="reset-modal-confirm"><?= htmlspecialchars(__('form.password_confirm')) ?></label>
+                        <div class="login-modal__password-wrap">
+                            <input type="password" id="reset-modal-confirm" name="password_confirm"
+                                   required minlength="12" autocomplete="new-password">
+                            <button type="button" class="login-modal__pwd-toggle"
+                                    aria-label="Afficher le mot de passe" data-target="reset-modal-confirm">
+                                <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
+                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn--gold login-modal__submit">
+                        <?= htmlspecialchars(__('btn.save')) ?>
+                    </button>
+                </form>
+            <?php endif; ?>
         </div>
     </div>
 </div>

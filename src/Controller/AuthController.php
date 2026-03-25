@@ -36,9 +36,14 @@ class AuthController extends Controller
         GuestMiddleware::handle();
         $lang = $params['lang'];
 
+        $rawBack  = $this->request->post('redirect_back', '');
+        $safeBack = (preg_match('#^/[^/]#', $rawBack) && !str_contains($rawBack, '://'))
+            ? $rawBack
+            : "/{$lang}";
+
         if (!$this->verifyCsrf()) {
             $this->flash('modal_error', __('error.csrf'));
-            Response::redirect("/{$lang}");
+            Response::redirect($safeBack);
         }
 
         $email    = strtolower(trim($this->request->post('email', '')));
@@ -47,12 +52,12 @@ class AuthController extends Controller
 
         if (!$account || $account['password'] === null || !password_verify($password, $account['password'])) {
             $this->flash('modal_error', __('auth.invalid_credentials'));
-            Response::redirect("/{$lang}");
+            Response::redirect($safeBack);
         }
 
         if (!$account['email_verified_at']) {
             $this->flash('modal_error', __('auth.account_inactive'));
-            Response::redirect("/{$lang}");
+            Response::redirect($safeBack);
         }
 
         $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
@@ -114,21 +119,6 @@ class AuthController extends Controller
     }
 
     // ----------------------------------------------------------------
-    // GET /{lang}/inscription
-    // ----------------------------------------------------------------
-
-    public function registerForm(array $params): void
-    {
-        GuestMiddleware::handle();
-        $this->view('auth/register', [
-            'lang'   => $params['lang'],
-            'errors' => $this->getFlashArray('errors'),
-            'old'    => $this->getFlashArray('old'),
-            'csrf'   => $this->csrfToken(),
-        ]);
-    }
-
-    // ----------------------------------------------------------------
     // POST /{lang}/inscription
     // ----------------------------------------------------------------
 
@@ -138,8 +128,8 @@ class AuthController extends Controller
         $lang = $params['lang'];
 
         if (!$this->verifyCsrf()) {
-            $this->flash('error', __('error.csrf'));
-            Response::redirect("/{$lang}/inscription");
+            $this->flash('modal_error', __('error.csrf'));
+            Response::redirect("/{$lang}");
         }
 
         $accountType = $this->request->post('account_type', '');
@@ -165,15 +155,15 @@ class AuthController extends Controller
         $old = compact('accountType', 'civility', 'lastname', 'firstname', 'email', 'company', 'newsletter');
 
         if ($errors) {
-            $_SESSION['flash']['errors'] = $errors;
-            $_SESSION['flash']['old']    = $old;
-            Response::redirect("/{$lang}/inscription");
+            $_SESSION['flash']['register_errors'] = $errors;
+            $_SESSION['flash']['register_old']    = $old;
+            Response::redirect("/{$lang}");
         }
 
         if ($this->accounts->findByEmail($email)) {
-            $_SESSION['flash']['errors'] = ['email' => __('auth.email_taken')];
-            $_SESSION['flash']['old']    = $old;
-            Response::redirect("/{$lang}/inscription");
+            $_SESSION['flash']['register_errors'] = ['email' => __('auth.email_taken')];
+            $_SESSION['flash']['register_old']    = $old;
+            Response::redirect("/{$lang}");
         }
 
         $verificationToken = bin2hex(random_bytes(32));
@@ -245,12 +235,7 @@ class AuthController extends Controller
     public function forgotForm(array $params): void
     {
         GuestMiddleware::handle();
-        $this->view('auth/forgot-password', [
-            'lang'  => $params['lang'],
-            'info'  => $this->getFlash('info'),
-            'error' => $this->getFlash('error'),
-            'csrf'  => $this->csrfToken(),
-        ]);
+        Response::redirect('/' . $params['lang']);
     }
 
     // ----------------------------------------------------------------
@@ -293,7 +278,7 @@ class AuthController extends Controller
             }
         }
 
-        Response::redirect("/{$lang}/mot-de-passe-oublie");
+        Response::redirect("/{$lang}");
     }
 
     // ----------------------------------------------------------------
@@ -306,13 +291,13 @@ class AuthController extends Controller
         $token = $params['token'] ?? '';
         $reset = $this->resets->findByToken($token);
 
-        $this->view('auth/reset-password', [
-            'lang'  => $lang,
-            'valid' => (bool) $reset,
+        $_SESSION['reset_modal'] = [
             'token' => $token,
-            'error' => $this->getFlash('error'),
-            'csrf'  => $this->csrfToken(),
-        ]);
+            'valid' => (bool) $reset,
+            'error' => null,
+        ];
+
+        Response::redirect("/{$lang}?modal=reset");
     }
 
     // ----------------------------------------------------------------
@@ -331,22 +316,29 @@ class AuthController extends Controller
         $reset = $this->resets->findByToken($token);
 
         if (!$reset) {
-            Response::redirect("/{$lang}");
+            $_SESSION['reset_modal'] = ['token' => $token, 'valid' => false, 'error' => null];
+            Response::redirect("/{$lang}?modal=reset");
         }
 
         $password = $this->request->post('password', '');
         $confirm  = $this->request->post('password_confirm', '');
 
-        if (strlen($password) < 8 || $password !== $confirm) {
-            $this->flash('error', __('auth.password_invalid'));
-            Response::redirect("/{$lang}/reinitialisation/{$token}");
+        if (strlen($password) < 12) {
+            $_SESSION['reset_modal'] = ['token' => $token, 'valid' => true, 'error' => __('validation.password_min')];
+            Response::redirect("/{$lang}?modal=reset");
+        }
+
+        if ($password !== $confirm) {
+            $_SESSION['reset_modal'] = ['token' => $token, 'valid' => true, 'error' => __('validation.password_match')];
+            Response::redirect("/{$lang}?modal=reset");
         }
 
         $this->accounts->updatePassword((int) $reset['user_id'], password_hash($password, PASSWORD_BCRYPT));
         $this->resets->deleteByUserId((int) $reset['user_id']);
 
+        unset($_SESSION['reset_modal']);
         $this->flash('info', __('auth.password_updated'));
-        Response::redirect("/{$lang}");
+        Response::redirect("/{$lang}?login=1");
     }
 
     // ----------------------------------------------------------------
@@ -371,7 +363,7 @@ class AuthController extends Controller
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = __('validation.email');
         }
-        if (strlen($password) < 8) {
+        if (strlen($password) < 12) {
             $errors['password'] = __('validation.password_min');
         }
         if ($password !== $confirm) {
@@ -415,14 +407,6 @@ class AuthController extends Controller
         return "{$browser} · {$os}";
     }
 
-    private function csrfToken(): string
-    {
-        if (empty($_SESSION['csrf'])) {
-            $_SESSION['csrf'] = bin2hex(random_bytes(32));
-        }
-        return $_SESSION['csrf'];
-    }
-
     private function verifyCsrf(): bool
     {
         $token = $this->request->post('csrf_token', '');
@@ -432,19 +416,5 @@ class AuthController extends Controller
     private function flash(string $key, string $message): void
     {
         $_SESSION['flash'][$key] = $message;
-    }
-
-    private function getFlash(string $key): ?string
-    {
-        $msg = $_SESSION['flash'][$key] ?? null;
-        unset($_SESSION['flash'][$key]);
-        return $msg;
-    }
-
-    private function getFlashArray(string $key): array
-    {
-        $val = $_SESSION['flash'][$key] ?? [];
-        unset($_SESSION['flash'][$key]);
-        return is_array($val) ? $val : [];
     }
 }
