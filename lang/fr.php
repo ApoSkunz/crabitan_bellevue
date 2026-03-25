@@ -48,6 +48,7 @@ return [
     'auth.reset_invalid'     => 'Lien de réinitialisation invalide ou expiré.',
     'auth.password_invalid'  => 'Mot de passe trop court ou les mots de passe ne correspondent pas.',
     'auth.password_updated'  => 'Mot de passe mis à jour. Vous pouvez vous connecter.',
+    'auth.forgot_instructions' => 'Saisissez votre adresse email et nous vous enverrons un lien de réinitialisation.',
     'auth.modal.or'          => 'ou',
     'auth.modal.google'      => 'Continuer avec Google',
     'auth.modal.apple'       => 'Continuer avec Apple',
@@ -167,7 +168,7 @@ return [
     // Validation
     'validation.required'      => 'Ce champ est requis.',
     'validation.email'         => 'Adresse email invalide.',
-    'validation.password_min'  => 'Le mot de passe doit contenir au moins 8 caractères.',
+    'validation.password_min'  => 'Le mot de passe doit contenir au moins 12 caractères.',
     'validation.password_match' => 'Les mots de passe ne correspondent pas.',
 
     // Cookie banner

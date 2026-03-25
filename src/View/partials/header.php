@@ -16,6 +16,15 @@ $registerOpen   = !empty($registerErrors) || !empty($registerOld);
 $flashInfo      = $_SESSION['flash']['info'] ?? null;
 unset($_SESSION['flash']['modal_error'], $_SESSION['flash']['register_errors'], $_SESSION['flash']['register_old'], $_SESSION['flash']['info']);
 
+$resetModalData = $_SESSION['reset_modal'] ?? null;
+$resetOpen      = isset($_GET['modal']) && $_GET['modal'] === 'reset' && $resetModalData !== null;
+$resetToken     = $resetModalData['token'] ?? '';
+$resetValid     = $resetModalData['valid'] ?? false;
+$resetError     = $resetModalData['error'] ?? null;
+if ($resetOpen) {
+    $_SESSION['reset_modal']['error'] = null;
+}
+
 if ($token) {
     try {
         \Core\Jwt::decode($token);
@@ -203,6 +212,9 @@ window.__navLang          = '<?= htmlspecialchars($navLang) ?>';
 window.__authModalError   = <?= $modalError ? 'true' : 'false' ?>;
 window.__authRegisterOpen = <?= $registerOpen ? 'true' : 'false' ?>;
 window.__flashInfo        = <?= $flashInfo ? json_encode(htmlspecialchars($flashInfo)) : 'null' ?>;
+window.__resetOpen        = <?= $resetOpen ? 'true' : 'false' ?>;
+window.__resetToken       = <?= json_encode($resetToken) ?>;
+window.__resetValid       = <?= $resetValid ? 'true' : 'false' ?>;
 </script>
 
 <!-- ============================================================ -->
@@ -270,53 +282,79 @@ window.__flashInfo        = <?= $flashInfo ? json_encode(htmlspecialchars($flash
     <div class="login-modal__backdrop" id="login-modal-backdrop"></div>
     <div class="login-modal__inner">
         <div class="login-modal__header">
-            <!-- NOSONAR Web:S6850 — title is static translated string, not dynamic -->
-            <h2 id="login-modal-title" class="login-modal__title"><?= htmlspecialchars(__('auth.login')) ?></h2>
+            <!-- NOSONAR Web:S6850 — title updated dynamically by JS when switching panels -->
+            <h2 id="login-modal-title" class="login-modal__title"
+                data-title-login="<?= htmlspecialchars(__('auth.login')) ?>"
+                data-title-forgot="<?= htmlspecialchars(__('auth.forgot_password')) ?>"
+            ><?= htmlspecialchars(__('auth.login')) ?></h2>
             <button id="login-modal-close" class="login-modal__close" type="button" aria-label="Fermer">&times;</button>
         </div>
         <div class="login-modal__body">
-            <div class="login-modal__social">
-                <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
-                    <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
-                        <?= htmlspecialchars(__('auth.modal.google')) ?>
-                    </button>
-                </span>
-                <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
-                    <button type="button" class="btn btn-social btn-social--apple" disabled aria-disabled="true">
-                        <?= htmlspecialchars(__('auth.modal.apple')) ?>
-                    </button>
-                </span>
-            </div>
-            <p class="login-modal__or"><span><?= htmlspecialchars(__('auth.modal.or')) ?></span></p>
-            <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/connexion" class="login-modal__form">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
-                <?php if ($modalError) : ?>
-                    <div class="alert alert--error" role="alert"><?= htmlspecialchars($modalError) ?></div>
-                <?php endif; ?>
-                <div class="login-modal__field">
-                    <label for="login-modal-email"><?= htmlspecialchars(__('auth.email')) ?></label>
-                    <input type="email" id="login-modal-email" name="email" required autocomplete="email">
-                </div>
-                <div class="login-modal__field">
-                    <label for="login-modal-password"><?= htmlspecialchars(__('auth.password')) ?></label>
-                    <div class="login-modal__password-wrap">
-                        <input type="password" id="login-modal-password" name="password" required autocomplete="current-password">
-                        <button type="button" class="login-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="login-modal-password">
-                            <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
-                            <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+            <!-- Panel connexion -->
+            <div id="login-panel">
+                <div class="login-modal__social">
+                    <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
+                        <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
+                            <?= htmlspecialchars(__('auth.modal.google')) ?>
                         </button>
-                    </div>
+                    </span>
+                    <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
+                        <button type="button" class="btn btn-social btn-social--apple" disabled aria-disabled="true">
+                            <?= htmlspecialchars(__('auth.modal.apple')) ?>
+                        </button>
+                    </span>
                 </div>
-                <a href="/<?= htmlspecialchars($navLang) ?>/mot-de-passe-oublie" class="login-modal__forgot">
-                    <?= htmlspecialchars(__('auth.forgot_password')) ?>
-                </a>
-                <button type="submit" class="btn btn--gold login-modal__submit"><?= htmlspecialchars(__('auth.login')) ?></button>
-            </form>
-            <div class="login-modal__register">
-                <p class="login-modal__register-label"><?= htmlspecialchars(__('auth.modal.no_account')) ?></p>
-                <button type="button" id="login-to-register" class="btn btn--ghost login-modal__register-btn">
-                    <?= htmlspecialchars(__('auth.modal.sign_up')) ?>
+                <p class="login-modal__or"><span><?= htmlspecialchars(__('auth.modal.or')) ?></span></p>
+                <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/connexion" class="login-modal__form">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+                    <input type="hidden" name="redirect_back" value="<?= htmlspecialchars(strtok($_SERVER['REQUEST_URI'] ?? '/', '?')) ?>">
+                    <?php if ($modalError) : ?>
+                        <div class="alert alert--error" role="alert"><?= htmlspecialchars($modalError) ?></div>
+                    <?php endif; ?>
+                    <div class="login-modal__field">
+                        <label for="login-modal-email"><?= htmlspecialchars(__('auth.email')) ?></label>
+                        <input type="email" id="login-modal-email" name="email" required autocomplete="email">
+                    </div>
+                    <div class="login-modal__field">
+                        <label for="login-modal-password"><?= htmlspecialchars(__('auth.password')) ?></label>
+                        <div class="login-modal__password-wrap">
+                            <input type="password" id="login-modal-password" name="password" required autocomplete="current-password">
+                            <button type="button" class="login-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="login-modal-password">
+                                <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
+                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="forgot-password-btn" class="login-modal__forgot">
+                        <?= htmlspecialchars(__('auth.forgot_password')) ?>
+                    </button>
+                    <button type="submit" class="btn btn--gold login-modal__submit"><?= htmlspecialchars(__('auth.login')) ?></button>
+                </form>
+                <div class="login-modal__register">
+                    <p class="login-modal__register-label"><?= htmlspecialchars(__('auth.modal.no_account')) ?></p>
+                    <button type="button" id="login-to-register" class="btn btn--ghost login-modal__register-btn">
+                        <?= htmlspecialchars(__('auth.modal.sign_up')) ?>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel mot de passe oublié -->
+            <div id="forgot-panel" hidden>
+                <button type="button" id="forgot-back-btn" class="login-modal__back">
+                    &#8592; <?= htmlspecialchars(__('btn.back')) ?>
                 </button>
+                <p class="login-modal__forgot-desc"><?= htmlspecialchars(__('auth.forgot_instructions')) ?></p>
+                <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/mot-de-passe-oublie"
+                      id="forgot-modal-form" class="login-modal__form">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+                    <div class="login-modal__field">
+                        <label for="forgot-modal-email"><?= htmlspecialchars(__('auth.email')) ?></label>
+                        <input type="email" id="forgot-modal-email" name="email" required autocomplete="email">
+                    </div>
+                    <button type="submit" class="btn btn--gold login-modal__submit">
+                        <?= htmlspecialchars(__('btn.submit')) ?>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -493,6 +531,77 @@ window.__flashInfo        = <?= $flashInfo ? json_encode(htmlspecialchars($flash
                     <?= htmlspecialchars(__('auth.modal.sign_in')) ?>
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if (!$isLogged) : ?>
+<!-- ============================================================ -->
+<!-- Modal réinitialisation mot de passe                          -->
+<!-- ============================================================ -->
+<!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
+<div
+    id="reset-modal"
+    class="login-modal"
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="reset-modal-title"
+>
+    <div class="login-modal__backdrop" id="reset-modal-backdrop"></div>
+    <div class="login-modal__inner">
+        <div class="login-modal__header">
+            <!-- NOSONAR Web:S6850 — title is static translated string -->
+            <h2 id="reset-modal-title" class="login-modal__title">
+                <?= htmlspecialchars(__('auth.reset_password')) ?>
+            </h2>
+            <button id="reset-modal-close" class="login-modal__close" type="button" aria-label="Fermer">&times;</button>
+        </div>
+        <div class="login-modal__body">
+            <?php if (!$resetValid) : ?>
+                <div class="alert alert--error" role="alert">
+                    <?= htmlspecialchars(__('auth.reset_invalid')) ?>
+                </div>
+                <button type="button" id="reset-to-forgot"
+                        class="btn btn--gold btn--full" style="margin-top:0.75rem;">
+                    <?= htmlspecialchars(__('auth.forgot_password')) ?>
+                </button>
+            <?php else : ?>
+                <?php if ($resetError) : ?>
+                    <div class="alert alert--error" role="alert"><?= htmlspecialchars($resetError) ?></div>
+                <?php endif; ?>
+                <form id="reset-modal-form" method="POST" action="" class="login-modal__form" novalidate>
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+                    <div class="login-modal__field">
+                        <label for="reset-modal-password"><?= htmlspecialchars(__('auth.password')) ?></label>
+                        <div class="login-modal__password-wrap">
+                            <input type="password" id="reset-modal-password" name="password"
+                                   required minlength="12" autocomplete="new-password">
+                            <button type="button" class="login-modal__pwd-toggle"
+                                    aria-label="Afficher le mot de passe" data-target="reset-modal-password">
+                                <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
+                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="login-modal__field">
+                        <label for="reset-modal-confirm"><?= htmlspecialchars(__('form.password_confirm')) ?></label>
+                        <div class="login-modal__password-wrap">
+                            <input type="password" id="reset-modal-confirm" name="password_confirm"
+                                   required minlength="12" autocomplete="new-password">
+                            <button type="button" class="login-modal__pwd-toggle"
+                                    aria-label="Afficher le mot de passe" data-target="reset-modal-confirm">
+                                <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
+                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn--gold login-modal__submit">
+                        <?= htmlspecialchars(__('btn.save')) ?>
+                    </button>
+                </form>
+            <?php endif; ?>
         </div>
     </div>
 </div>

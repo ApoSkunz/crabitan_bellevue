@@ -403,7 +403,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr', $e->location);
+            $this->assertSame('/fr?login=1', $e->location);
         }
 
         // Password reset token deleted
@@ -435,7 +435,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertStringContainsString('/fr/reinitialisation/', $e->location ?? '');
+            $this->assertSame('/fr?modal=reset', $e->location);
         }
     }
 
@@ -452,7 +452,7 @@ class AuthControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertSame('/fr', $e->location);
+            $this->assertSame('/fr?modal=reset', $e->location);
         }
     }
 }

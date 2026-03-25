@@ -1,0 +1,152 @@
+@use '../abstracts/variables';
+@use '../abstracts/mixins' as m;
+
+// ============================================================
+// Auth pages — verify + reset-password
+// ============================================================
+
+// ---- Page verify (full page avec header/footer) ----
+
+.auth-page {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 1rem;
+}
+
+.auth-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border-gold);
+    width: min(480px, 100%);
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+
+    h1 {
+        font-family: var(--font-serif);
+        font-size: clamp(1.1rem, 3vw, 1.4rem);
+        color: var(--color-text);
+        margin: 0;
+        letter-spacing: 0.04em;
+    }
+
+    p {
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    &__switch {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        margin: 0;
+
+        a {
+            color: var(--color-gold);
+            text-decoration: none;
+
+            &:hover { text-decoration: underline; }
+        }
+    }
+}
+
+// ---- Statut icône (verify) ----
+
+.auth-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+
+    &__icon {
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        flex-shrink: 0;
+
+        &--success {
+            background-color: rgba(39, 174, 96, 0.12);
+            border: 2px solid #27ae60;
+            color: #27ae60;
+        }
+
+        &--error {
+            background-color: rgba(192, 57, 43, 0.12);
+            border: 2px solid #c0392b;
+            color: #c0392b;
+        }
+    }
+
+    &__message {
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+        line-height: 1.6;
+        margin: 0;
+    }
+}
+
+// ---- Alerts (réutilisables) ----
+
+.alert {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid transparent;
+    text-align: left;
+
+    &--success {
+        background-color: rgba(39, 174, 96, 0.08);
+        border-color: #27ae60;
+        color: #27ae60;
+    }
+
+    &--error {
+        background-color: rgba(192, 57, 43, 0.08);
+        border-color: #c0392b;
+        color: #c0392b;
+    }
+}
+
+// ---- Form groups (reset-password) ----
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    text-align: left;
+
+    label {
+        font-size: 0.75rem;
+        font-family: var(--font-serif);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+    }
+
+    input[type='password'],
+    input[type='text'],
+    input[type='email'] {
+        background-color: var(--color-bg);
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+        padding: 0.65rem 0.75rem;
+        font-size: 0.9rem;
+        font-family: var(--font-sans);
+        transition: border-color 200ms ease;
+        width: 100%;
+
+        &:focus {
+            outline: none;
+            border-color: var(--color-gold);
+        }
+    }
+}
+

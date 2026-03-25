@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Integration\Controller;
 
 use Controller\AuthController;
+use Core\Exception\HttpException;
 use Core\Request;
 use Tests\Integration\IntegrationTestCase;
 
@@ -41,20 +42,22 @@ class AuthControllerFormTest extends IntegrationTestCase
     // forgotForm
     // ----------------------------------------------------------------
 
-    public function testForgotFormRendersView(): void
+    public function testForgotFormRedirectsToHome(): void
     {
-        ob_start();
-        $this->makeController('/fr/mot-de-passe-oublie')->forgotForm(['lang' => 'fr']);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('<form', $output);
+        try {
+            $this->makeController('/fr/mot-de-passe-oublie')->forgotForm(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr', $e->location);
+        }
     }
 
     // ----------------------------------------------------------------
     // resetForm — token valide
     // ----------------------------------------------------------------
 
-    public function testResetFormWithValidTokenRendersForm(): void
+    public function testResetFormWithValidTokenRedirectsToModal(): void
     {
         $userId = (int) self::$db->insert(
             "INSERT INTO accounts (email, password, role, lang, email_verified_at)
@@ -73,26 +76,29 @@ class AuthControllerFormTest extends IntegrationTestCase
             [$userId, $token]
         );
 
-        ob_start();
-        $this->makeController('/fr/reinitialisation/' . $token)
-            ->resetForm(['lang' => 'fr', 'token' => $token]);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('<form', $output);
+        try {
+            $this->makeController('/fr/reinitialisation/' . $token)
+                ->resetForm(['lang' => 'fr', 'token' => $token]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr?modal=reset', $e->location);
+        }
     }
 
     // ----------------------------------------------------------------
     // resetForm — token invalide (affiche message d'erreur, pas de form)
     // ----------------------------------------------------------------
 
-    public function testResetFormWithInvalidTokenRendersError(): void
+    public function testResetFormWithInvalidTokenRedirectsToModal(): void
     {
-        ob_start();
-        $this->makeController('/fr/reinitialisation/badtoken')
-            ->resetForm(['lang' => 'fr', 'token' => 'badtoken']);
-        $output = ob_get_clean();
-
-        $this->assertIsString($output);
-        $this->assertStringNotContainsString('<form', $output);
+        try {
+            $this->makeController('/fr/reinitialisation/badtoken')
+                ->resetForm(['lang' => 'fr', 'token' => 'badtoken']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr?modal=reset', $e->location);
+        }
     }
 }

@@ -281,14 +281,14 @@ function initAccountPanel() {
 // Toast notification
 // ============================================================
 
-function showToast(msg, isError = false) {
+function showToast(msg, isError = false, duration = 1500) {
     const toast = document.getElementById('cb-toast');
     if (!toast) return;
     toast.textContent = msg;
     toast.className = 'cb-toast' + (isError ? ' cb-toast--error' : '');
     toast.removeAttribute('hidden');
     clearTimeout(toast.__timer);
-    toast.__timer = setTimeout(() => toast.setAttribute('hidden', ''), 1500);
+    toast.__timer = setTimeout(() => toast.setAttribute('hidden', ''), duration);
 }
 
 // ============================================================
@@ -455,28 +455,57 @@ function initCartModal() {
 // ============================================================
 
 function initLoginModal() {
-    const trigger  = document.getElementById('login-modal-trigger');
-    const modal    = document.getElementById('login-modal');
-    const closeBtn = document.getElementById('login-modal-close');
-    const backdrop = document.getElementById('login-modal-backdrop');
+    const trigger      = document.getElementById('login-modal-trigger');
+    const modal        = document.getElementById('login-modal');
+    const closeBtn     = document.getElementById('login-modal-close');
+    const backdrop     = document.getElementById('login-modal-backdrop');
+    const titleEl      = document.getElementById('login-modal-title');
+    const loginPanel   = document.getElementById('login-panel');
+    const forgotPanel  = document.getElementById('forgot-panel');
 
     if (!trigger || !modal) return;
 
+    function showLoginPanel() {
+        loginPanel?.removeAttribute('hidden');
+        forgotPanel?.setAttribute('hidden', '');
+        if (titleEl) titleEl.textContent = titleEl.dataset.titleLogin || titleEl.textContent;
+    }
+
+    function showForgotPanel() {
+        loginPanel?.setAttribute('hidden', '');
+        forgotPanel?.removeAttribute('hidden');
+        if (titleEl) titleEl.textContent = titleEl.dataset.titleForgot || titleEl.textContent;
+        document.getElementById('forgot-modal-email')?.focus();
+    }
+
     function openModal() {
+        showLoginPanel();
         modal.setAttribute('aria-hidden', 'false');
         trigger.setAttribute('aria-expanded', 'true');
         document.body.style.overflow = 'hidden';
         closeBtn?.focus();
     }
 
+    function openModalForgot() {
+        modal.setAttribute('aria-hidden', 'false');
+        trigger.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+        showForgotPanel();
+    }
+
     function closeModal() {
         modal.setAttribute('aria-hidden', 'true');
         trigger.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
+        showLoginPanel();
         trigger.focus();
     }
 
-    if (window.__authModalError) openModal();
+    if (window.__authModalError || new URLSearchParams(window.location.search).get('login') === '1') openModal();
+
+    // Switch vers panel mot de passe oublié
+    document.getElementById('forgot-password-btn')?.addEventListener('click', showForgotPanel);
+    document.getElementById('forgot-back-btn')?.addEventListener('click', showLoginPanel);
 
     // Switch vers register modal
     document.getElementById('login-to-register')?.addEventListener('click', () => {
@@ -515,6 +544,9 @@ function initLoginModal() {
             btn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
         });
     });
+
+    // Expose pour le reset modal (token invalide → ouvrir panel forgot)
+    window.__openLoginModalForgot = openModalForgot;
 }
 
 // ============================================================
@@ -838,8 +870,62 @@ function initPageIntro() {
     });
 }
 
+// ============================================================
+// Reset password modal
+// ============================================================
+
+function initResetModal() {
+    const modal    = document.getElementById('reset-modal');
+    const closeBtn = document.getElementById('reset-modal-close');
+    const backdrop = document.getElementById('reset-modal-backdrop');
+    const form     = document.getElementById('reset-modal-form');
+
+    if (!modal) return;
+
+    if (form && window.__resetToken) {
+        form.action = '/' + window.__navLang + '/reinitialisation/' + window.__resetToken;
+    }
+
+    function openModal() {
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        closeBtn?.focus();
+    }
+
+    function closeModal() {
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    if (window.__resetOpen) openModal();
+
+    closeBtn?.addEventListener('click', closeModal);
+    backdrop?.addEventListener('click', closeModal);
+
+    document.getElementById('reset-to-forgot')?.addEventListener('click', () => {
+        closeModal();
+        if (typeof window.__openLoginModalForgot === 'function') window.__openLoginModalForgot();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+    });
+
+    modal.querySelectorAll('.login-modal__pwd-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            btn.querySelector('.pwd-eye--show').hidden = isHidden;
+            btn.querySelector('.pwd-eye--hide').hidden = !isHidden;
+            btn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.__flashInfo) showToast(window.__flashInfo, false);
+    if (window.__flashInfo) showToast(window.__flashInfo, false, 2000);
     initPageIntro();
     initTheme();
     initThemeToggle();
@@ -850,6 +936,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAccountPanel();
     initLoginModal();
     initRegisterModal();
+    initResetModal();
     initCartModal();
     initCartLoginPrompt();
     initFavoriteAuth();
