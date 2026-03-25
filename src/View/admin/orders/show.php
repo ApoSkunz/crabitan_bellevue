@@ -10,7 +10,12 @@ $statusLabels = [
     'cancelled'  => 'Annulée',
     'refunded'   => 'Remboursée',
 ];
-$allStatuses = array_keys($statusLabels);
+$allStatuses   = array_keys($statusLabels);
+$paymentLabels = [
+    'card'     => 'Carte bancaire',
+    'virement' => 'Virement',
+    'cheque'   => 'Chèque',
+];
 
 // Contenu du panier (snapshot JSON)
 $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
@@ -117,7 +122,7 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                         <span style="font-size:0.8rem;color:#8a7a60;"><?= htmlspecialchars($order['email']) ?></span>
                     </dd>
                     <dt>Paiement</dt>
-                    <dd><?= htmlspecialchars($order['payment_method']) ?></dd>
+                    <dd><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></dd>
                     <dt>Montant</dt>
                     <dd><strong><?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€</strong></dd>
                     <dt>Date</dt>
@@ -131,7 +136,7 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
         </div>
 
         <!-- Changement de statut -->
-        <div class="admin-card">
+        <div class="admin-card" style="margin-bottom:1.5rem;">
             <div class="admin-card__header"><h2>Changer le statut</h2></div>
             <div class="admin-card__body">
                 <form method="POST" action="/admin/commandes/<?= (int) $order['id'] ?>/statut">
@@ -152,6 +157,46 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                 </form>
             </div>
         </div>
+
+        <!-- Facture -->
+        <?php if ($order['status'] !== 'cancelled') : ?>
+        <div class="admin-card">
+            <div class="admin-card__header"><h2>Facture</h2></div>
+            <div class="admin-card__body">
+                <?php if (!empty($order['path_invoice'])) : ?>
+                    <p style="font-size:0.85rem;color:#3d3425;margin-bottom:1rem;">
+                        Facture disponible.
+                    </p>
+                    <a href="/admin/commandes/<?= (int) $order['id'] ?>/facture/telecharger"
+                       target="_blank"
+                       class="admin-btn admin-btn--outline"
+                       style="display:block;text-align:center;margin-bottom:1rem;">
+                        Télécharger / Ouvrir le PDF
+                    </a>
+                <?php else : ?>
+                    <p style="font-size:0.85rem;color:#8a7a60;margin-bottom:1rem;">
+                        Aucune facture uploadée.
+                    </p>
+                <?php endif; ?>
+                <form method="POST"
+                      action="/admin/commandes/<?= (int) $order['id'] ?>/facture"
+                      enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
+                    <div class="admin-field" style="margin-bottom:1rem;">
+                        <label class="admin-field__label" for="invoice">
+                            <?= !empty($order['path_invoice']) ? 'Remplacer la facture' : 'Uploader une facture' ?>
+                            <span style="font-weight:400;font-size:0.72rem;">(PDF uniquement)</span>
+                        </label>
+                        <input type="file" id="invoice" name="invoice" accept="application/pdf"
+                               class="admin-field__input" required>
+                    </div>
+                    <button type="submit" class="admin-btn admin-btn--primary" style="width:100%;">
+                        Enregistrer la facture
+                    </button>
+                </form>
+            </div>
+        </div>
+        <?php endif; ?>
 
     </div>
 

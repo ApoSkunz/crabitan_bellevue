@@ -15,6 +15,8 @@ $router->post('/admin/vins/{id}/modifier', 'Admin\WineAdminController@update');
 $router->get('/admin/commandes', 'Admin\OrderAdminController@index');
 $router->get('/admin/commandes/{id}', 'Admin\OrderAdminController@show');
 $router->post('/admin/commandes/{id}/statut', 'Admin\OrderAdminController@updateStatus');
+$router->post('/admin/commandes/{id}/facture', 'Admin\OrderAdminController@uploadInvoice');
+$router->get('/admin/commandes/{id}/facture/telecharger', 'Admin\OrderAdminController@downloadInvoice');
 $router->get('/admin/comptes', 'Admin\AccountAdminController@index');
 $router->post('/admin/comptes/{id}/verifier', 'Admin\AccountAdminController@verify');
 $router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
@@ -86,6 +88,7 @@ $router->get('/{lang}/commande/confirmation', 'OrderController@confirmation');
 // Espace client
 $router->get('/{lang}/mon-compte', 'AccountController@index');
 $router->get('/{lang}/mon-compte/commandes', 'AccountController@orders');
+$router->get('/{lang}/mon-compte/commandes/{id}/facture', 'InvoiceController@download');
 $router->get('/{lang}/mon-compte/adresses', 'AccountController@addresses');
 $router->get('/{lang}/mon-compte/favoris', 'AccountController@favorites');
 

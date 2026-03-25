@@ -10,9 +10,9 @@ abstract class Controller
     {
     }
 
-    protected function view(string $template, array $data = [], int $status = 200): void
+    protected function view(string $template, array $data = [], int $httpStatus = 200): void
     {
-        Response::view($template, $data, $status);
+        Response::view($template, $data, $httpStatus);
     }
 
     protected function json(mixed $data, int $status = 200): never

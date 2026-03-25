@@ -14,12 +14,16 @@ class OrderModel extends Model
         'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded',
     ];
 
+    public const VALID_PAYMENT_METHODS = [
+        'card', 'virement', 'cheque',
+    ];
+
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function getForAdmin(int $page, int $perPage, ?string $status, ?string $search): array
+    public function getForAdmin(int $page, int $perPage, ?string $status, ?string $search, ?string $payment = null): array
     {
-        [$where, $params] = $this->buildAdminFilters($status, $search);
+        [$where, $params] = $this->buildAdminFilters($status, $search, $payment);
         $offset = ($page - 1) * $perPage;
         $params[] = $perPage;
         $params[] = $offset;
@@ -41,9 +45,9 @@ class OrderModel extends Model
         );
     }
 
-    public function countForAdmin(?string $status, ?string $search): int
+    public function countForAdmin(?string $status, ?string $search, ?string $payment = null): int
     {
-        [$where, $params] = $this->buildAdminFilters($status, $search);
+        [$where, $params] = $this->buildAdminFilters($status, $search, $payment);
         $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total
              FROM {$this->table} o
@@ -81,6 +85,28 @@ class OrderModel extends Model
              LEFT JOIN addresses d ON d.id = o.id_delivery_address
              WHERE o.id = ?",
             [$id]
+        );
+        return $row ?: null;
+    }
+
+    public function updateInvoice(int $id, string $path): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET path_invoice = ? WHERE id = ?",
+            [$path, $id]
+        );
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findByIdForUser(int $orderId, int $userId): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT id, order_reference, path_invoice, user_id
+             FROM {$this->table}
+             WHERE id = ? AND user_id = ?",
+            [$orderId, $userId]
         );
         return $row ?: null;
     }
@@ -146,7 +172,7 @@ class OrderModel extends Model
     }
 
     /** @return array{string, array<int, mixed>} */
-    private function buildAdminFilters(?string $status, ?string $search): array
+    private function buildAdminFilters(?string $status, ?string $search, ?string $payment = null): array
     {
         $conds  = [];
         $params = [];
@@ -154,6 +180,11 @@ class OrderModel extends Model
         if ($status !== null && in_array($status, self::VALID_STATUSES, true)) {
             $conds[]  = 'o.status = ?';
             $params[] = $status;
+        }
+
+        if ($payment !== null && in_array($payment, self::VALID_PAYMENT_METHODS, true)) {
+            $conds[]  = 'o.payment_method = ?';
+            $params[] = $payment;
         }
 
         if ($search !== null && $search !== '') {
