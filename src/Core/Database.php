@@ -11,6 +11,7 @@ class Database
 {
     private static ?Database $instance = null;
     private PDO $pdo;
+    private int $transactionDepth = 0;
 
     private function __construct()
     {
@@ -66,16 +67,23 @@ class Database
 
     public function beginTransaction(): void
     {
-        $this->pdo->beginTransaction();
+        if ($this->transactionDepth === 0) {
+            $this->pdo->beginTransaction();
+        }
+        $this->transactionDepth++;
     }
 
     public function commit(): void
     {
-        $this->pdo->commit();
+        $this->transactionDepth--;
+        if ($this->transactionDepth === 0) {
+            $this->pdo->commit();
+        }
     }
 
     public function rollback(): void
     {
+        $this->transactionDepth = 0;
         $this->pdo->rollBack();
     }
 }

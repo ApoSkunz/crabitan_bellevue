@@ -85,9 +85,14 @@ class AuthControllerFormTest extends IntegrationTestCase
     public function testResetFormWithValidTokenRendersForm(): void
     {
         $userId = (int) self::$db->insert(
-            "INSERT INTO accounts (lastname, firstname, email, password, role, gender, lang, email_verified_at)
-             VALUES ('R', 'User', 'resetform@example.com', 'hash', 'customer', 'M', 'fr', NOW())",
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES ('resetform@example.com', 'hash', 'customer', 'fr', NOW())",
             []
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'R', 'User', 'M')",
+            [$userId]
         );
         $token = bin2hex(random_bytes(32));
         self::$db->insert(

@@ -44,12 +44,13 @@ class AuthControllerValidationTest extends TestCase
     private function makeController(array $post): AuthController
     {
         $_POST = array_merge([
+            'account_type'     => 'individual',
+            'civility'         => 'M',
             'lastname'         => 'Dupont',
             'firstname'        => 'Jean',
             'email'            => 'jean@example.com',
             'password'         => 'Password1!',
             'password_confirm' => 'Password1!',
-            'gender'           => 'M',
             'company_name'     => '',
             'newsletter'       => '0',
             'csrf_token'       => 'test-csrf-token',
@@ -72,6 +73,20 @@ class AuthControllerValidationTest extends TestCase
         }
         $this->assertNotNull($caught, 'Expected HttpException to be thrown by register()');
         return $caught;
+    }
+
+    public function testRegisterFailsWithInvalidAccountType(): void
+    {
+        $e = $this->callRegister($this->makeController(['account_type' => 'unknown']));
+        $this->assertSame(302, $e->status);
+        $this->assertArrayHasKey('account_type', $_SESSION['flash']['errors']);
+    }
+
+    public function testRegisterFailsWithInvalidCivility(): void
+    {
+        $e = $this->callRegister($this->makeController(['civility' => 'unknown']));
+        $this->assertSame(302, $e->status);
+        $this->assertArrayHasKey('civility', $_SESSION['flash']['errors']);
     }
 
     public function testRegisterFailsWithShortLastname(): void
@@ -109,17 +124,27 @@ class AuthControllerValidationTest extends TestCase
         $this->assertArrayHasKey('password_confirm', $_SESSION['flash']['errors']);
     }
 
-    public function testRegisterFailsWithInvalidGender(): void
+    public function testRegisterFailsForCompanyWithoutCompanyName(): void
     {
-        $e = $this->callRegister($this->makeController(['gender' => 'unknown']));
-        $this->assertSame(302, $e->status);
-        $this->assertArrayHasKey('gender', $_SESSION['flash']['errors']);
-    }
-
-    public function testRegisterFailsForSocietyWithoutCompanyName(): void
-    {
-        $e = $this->callRegister($this->makeController(['gender' => 'society', 'company_name' => 'A']));
+        $e = $this->callRegister($this->makeController(['account_type' => 'company', 'company_name' => 'A']));
         $this->assertSame(302, $e->status);
         $this->assertArrayHasKey('company_name', $_SESSION['flash']['errors']);
+    }
+
+    public function testIndividualFieldsNotValidatedForCompany(): void
+    {
+        // Pour un compte société, lastname/firstname/civility ne sont pas requis
+        $e = $this->callRegister($this->makeController([
+            'account_type' => 'company',
+            'company_name' => 'SARL Test',
+            'civility'     => '',
+            'lastname'     => '',
+            'firstname'    => '',
+        ]));
+        $this->assertSame(302, $e->status);
+        $errors = $_SESSION['flash']['errors'] ?? [];
+        $this->assertArrayNotHasKey('lastname', $errors);
+        $this->assertArrayNotHasKey('firstname', $errors);
+        $this->assertArrayNotHasKey('civility', $errors);
     }
 }

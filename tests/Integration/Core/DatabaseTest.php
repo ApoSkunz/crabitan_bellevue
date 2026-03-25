@@ -19,9 +19,9 @@ class DatabaseTest extends IntegrationTestCase
     public function testInsertAndFetchOne(): void
     {
         $id = self::$db->insert(
-            "INSERT INTO accounts (lastname, firstname, email, password, gender, lang, newsletter)
-             VALUES (?, ?, ?, ?, ?, ?, ?)",
-            ['Test', 'Integration', 'db@test.com', 'hashed', 'M', 'fr', 0]
+            "INSERT INTO accounts (email, lang, newsletter)
+             VALUES (?, ?, ?)",
+            ['db@test.com', 'fr', 0]
         );
 
         $this->assertNotEmpty($id);
@@ -34,14 +34,14 @@ class DatabaseTest extends IntegrationTestCase
     public function testFetchAll(): void
     {
         self::$db->insert(
-            "INSERT INTO accounts (lastname, firstname, email, password, gender, lang, newsletter)
-             VALUES (?, ?, ?, ?, ?, ?, ?)",
-            ['A', 'One', 'all1@test.com', 'h', 'M', 'fr', 0]
+            "INSERT INTO accounts (email, lang, newsletter)
+             VALUES (?, ?, ?)",
+            ['all1@test.com', 'fr', 0]
         );
         self::$db->insert(
-            "INSERT INTO accounts (lastname, firstname, email, password, gender, lang, newsletter)
-             VALUES (?, ?, ?, ?, ?, ?, ?)",
-            ['B', 'Two', 'all2@test.com', 'h', 'F', 'fr', 0]
+            "INSERT INTO accounts (email, lang, newsletter)
+             VALUES (?, ?, ?)",
+            ['all2@test.com', 'fr', 0]
         );
 
         $rows = self::$db->fetchAll(
@@ -55,9 +55,9 @@ class DatabaseTest extends IntegrationTestCase
     public function testExecuteReturnsRowCount(): void
     {
         $id = self::$db->insert(
-            "INSERT INTO accounts (lastname, firstname, email, password, gender, lang, newsletter)
-             VALUES (?, ?, ?, ?, ?, ?, ?)",
-            ['Del', 'Me', 'delete@test.com', 'h', 'M', 'fr', 0]
+            "INSERT INTO accounts (email, lang, newsletter)
+             VALUES (?, ?, ?)",
+            ['delete@test.com', 'fr', 0]
         );
 
         $affected = self::$db->execute("DELETE FROM accounts WHERE id = ?", [(int)$id]);
