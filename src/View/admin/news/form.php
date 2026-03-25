@@ -45,10 +45,11 @@ function hasError(array $errors, string $key): bool
                     <?php endif; ?>
                 </div>
                 <div class="admin-field">
-                    <label class="admin-field__label" for="title_en">Anglais <span style="font-weight:400;font-size:0.72rem;">(auto si vide)</span></label>
+                    <label class="admin-field__label" for="title_en">Anglais <span style="font-weight:400;font-size:0.72rem;">(traduit automatiquement)</span></label>
                     <input type="text" id="title_en" name="title_en"
                            class="admin-field__input"
-                           value="<?= htmlspecialchars($titleData['en'] ?? '') ?>">
+                           style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                           value="<?= htmlspecialchars($titleData['en'] ?? '') ?>" readonly>
                 </div>
             </div>
             <div class="admin-field" style="margin-top:0.75rem;">
@@ -77,10 +78,11 @@ function hasError(array $errors, string $key): bool
                     <?php endif; ?>
                 </div>
                 <div class="admin-field">
-                    <label class="admin-field__label" for="text_content_en">Anglais <span style="font-weight:400;font-size:0.72rem;">(auto si vide)</span></label>
+                    <label class="admin-field__label" for="text_content_en">Anglais <span style="font-weight:400;font-size:0.72rem;">(traduit automatiquement)</span></label>
                     <textarea id="text_content_en" name="text_content_en"
                               class="admin-field__textarea"
-                              rows="8"><?= htmlspecialchars($contentData['en'] ?? '') ?></textarea>
+                              style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                              rows="8" readonly><?= htmlspecialchars($contentData['en'] ?? '') ?></textarea>
                 </div>
             </div>
         </div>

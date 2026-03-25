@@ -229,7 +229,7 @@ $maxYear = (int) date('Y');
             <h3>Descriptions bilingues</h3>
             <p style="font-size:0.75rem;color:#8a7a60;margin-bottom:1rem;">
                 Les champs marqués * sont obligatoires. La version EN est traduite automatiquement
-                lors de l'enregistrement si elle est laissée vide.
+                lors de l'enregistrement (champ non éditable).
             </p>
             <?php foreach ($jsonFields as $field) : ?>
                 <?php $isRequired = in_array($field, $jsonRequired, true); ?>
@@ -249,10 +249,11 @@ $maxYear = (int) date('Y');
                             <?php endif; ?>
                         </div>
                         <div class="admin-field">
-                            <label class="admin-field__label" for="<?= $field ?>_en">Anglais <span style="font-weight:400;font-size:0.72rem;">(auto si vide)</span></label>
+                            <label class="admin-field__label" for="<?= $field ?>_en">Anglais <span style="font-weight:400;font-size:0.72rem;">(traduit automatiquement)</span></label>
                             <textarea id="<?= $field ?>_en" name="<?= $field ?>_en"
                                       class="admin-field__textarea"
-                                      rows="3"><?= htmlspecialchars($decoded[$field]['en'] ?? '') ?></textarea>
+                                      style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                                      rows="3" readonly><?= htmlspecialchars($decoded[$field]['en'] ?? '') ?></textarea>
                         </div>
                     </div>
                 </div>
