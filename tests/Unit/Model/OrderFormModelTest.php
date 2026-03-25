@@ -177,7 +177,7 @@ class OrderFormModelTest extends TestCase
         $this->dbMock
             ->expects($this->once())
             ->method('fetchOne')
-            ->with($this->stringContains('ORDER BY uploaded_at DESC LIMIT 1'))
+            ->with($this->stringContains('ORDER BY uploaded_at DESC, id DESC LIMIT 1'))
             ->willReturn($row);
 
         $this->assertSame($row, $this->model->getLatest());
