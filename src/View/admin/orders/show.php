@@ -127,10 +127,6 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                     <dd><strong><?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€</strong></dd>
                     <dt>Date</dt>
                     <dd><?= date('d/m/Y à H:i', strtotime($order['ordered_at'])) ?></dd>
-                    <?php if ($order['delivery_tracking'] ?? '') : ?>
-                    <dt>Suivi</dt>
-                    <dd><code style="font-size:0.8rem;"><?= htmlspecialchars($order['delivery_tracking']) ?></code></dd>
-                    <?php endif; ?>
                 </dl>
             </div>
         </div>

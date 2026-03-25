@@ -200,7 +200,6 @@ CREATE TABLE `orders` (
   `id_billing_address`  INT            NOT NULL,
   `id_delivery_address` INT            DEFAULT NULL,
   `status`              ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded') NOT NULL DEFAULT 'pending',
-  `delivery_tracking`   VARCHAR(255)   DEFAULT NULL,
   `path_invoice`        VARCHAR(255)   DEFAULT NULL,
   `ordered_at`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`          DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
