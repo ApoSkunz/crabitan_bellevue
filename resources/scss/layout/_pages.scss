@@ -201,6 +201,11 @@
     }
 }
 
+// Jeux — hero plus compact (pas de section de contenu dessous)
+.page-jeux .page-hero {
+    padding-bottom: 1rem;
+}
+
 // Contact — hero blanc, section géolocalisation beige
 .page-contact .page-hero--dark {
     background-color: #ffffff;

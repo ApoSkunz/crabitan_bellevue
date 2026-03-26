@@ -46,7 +46,7 @@ $pairCount = count($wines ?? []);
             <span id="memo-pairs-found">0</span> / <?= $pairCount ?> <?= htmlspecialchars(__('jeux.pairs_found')) ?>
         </div>
 
-        <ul class="memo-game__grid" id="memo-grid">
+        <ul class="memo-game__grid" id="memo-grid" hidden>
             <?php
             // Dupliquer + mélanger les paires
             $cards = array_merge($wines ?? [], $wines ?? []);
@@ -63,8 +63,8 @@ $pairCount = count($wines ?? []);
                         <span class="memo-card__back" aria-hidden="true"></span>
                         <span class="memo-card__front">
                             <img
-                                src="<?= htmlspecialchars($wine['image_path']) ?>"
-                                alt=""
+                                src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                                alt="<?= htmlspecialchars($wine['label_name']) ?>"
                                 loading="lazy"
                                 width="120"
                                 height="180"
@@ -78,11 +78,10 @@ $pairCount = count($wines ?? []);
         <div class="memo-game__message" id="memo-message" aria-live="assertive" hidden></div>
 
         <div class="memo-game__actions">
-            <button
-                type="button"
-                class="btn btn--gold"
-                id="memo-restart"
-            >
+            <button type="button" class="btn btn--gold" id="memo-start">
+                <?= htmlspecialchars(__('jeux.start')) ?>
+            </button>
+            <button type="button" class="btn btn--gold" id="memo-restart" hidden>
                 <?= htmlspecialchars(__('jeux.restart')) ?>
             </button>
         </div>

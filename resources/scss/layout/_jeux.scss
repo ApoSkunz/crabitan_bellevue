@@ -5,13 +5,13 @@
 // ============================================================
 
 .memo-game {
-    padding: 3rem 1.5rem 5rem;
+    padding: 1rem 1.5rem 5rem;
     max-width: 1100px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2rem;
+    gap: 1.25rem;
 
     &__title {
         font-family: var(--font-serif);
@@ -86,6 +86,9 @@
         grid-template-columns: repeat(4, 1fr);
         gap: 1rem;
         width: 100%;
+        margin: 0;
+        padding: 0;
+        list-style: none;
 
         @include m.bp('sm') {
             grid-template-columns: repeat(4, 1fr);
@@ -116,6 +119,8 @@
 
 // Carte mémo
 .memo-card {
+    display: block;
+    width: 100%;
     position: relative;
     aspect-ratio: 2 / 3;
     cursor: pointer;

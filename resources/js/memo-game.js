@@ -39,6 +39,8 @@ export function initMemoGame() {
     function endGame(win) {
         clearInterval(timer);
         locked = true;
+        document.getElementById('memo-grid').hidden = true;
+        document.getElementById('memo-restart').hidden = false;
         showMessage(win ? WIN_MSG : LOSE_MSG, win);
     }
 
@@ -98,19 +100,35 @@ export function initMemoGame() {
         msg.hidden      = true;
         msg.textContent = '';
 
-        // Mélanger les cartes dans le DOM
+        // Réinitialiser l'état des cartes
         const grid  = document.getElementById('memo-grid');
-        const cards = Array.from(grid.querySelectorAll('.memo-card'));
-        cards.forEach((c) => c.classList.remove('is-flipped', 'is-matched'));
+        grid.querySelectorAll('.memo-card').forEach((c) => c.classList.remove('is-flipped', 'is-matched'));
 
-        for (let i = cards.length - 1; i > 0; i--) {
+        // Mélanger les <li> (enfants directs de la grille, pas les boutons)
+        const items = Array.from(grid.children);
+        for (let i = items.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            grid.appendChild(cards[j]);
-            cards.splice(j, 1);
+            grid.appendChild(items[j]);
+            items.splice(j, 1);
         }
     }
 
-    document.getElementById('memo-restart').addEventListener('click', init);
+    function startGame() {
+        init();
+        document.getElementById('memo-grid').hidden = false;
+        document.getElementById('memo-start').hidden = true;
+        document.getElementById('memo-restart').hidden = true;
+    }
+
+    function resetToStart() {
+        init();
+        document.getElementById('memo-grid').hidden = true;
+        document.getElementById('memo-start').hidden = false;
+        document.getElementById('memo-restart').hidden = true;
+    }
+
+    document.getElementById('memo-start').addEventListener('click', startGame);
+    document.getElementById('memo-restart').addEventListener('click', resetToStart);
     document.getElementById('memo-grid').addEventListener('click', (e) => {
         const card = e.target.closest('.memo-card');
         if (card) flipCard(card);
