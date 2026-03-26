@@ -122,4 +122,112 @@ class NewsModelTest extends IntegrationTestCase
         $this->assertSame('new-news', $results[0]['slug']);
         $this->assertSame('old-news', $results[1]['slug']);
     }
+
+    // ── getPrev() ───────────────────────────────────────────────────────────
+
+    public function testGetPrevReturnsNewerArticle(): void
+    {
+        self::$db->execute("DELETE FROM news WHERE 1=1");
+
+        self::$db->execute(
+            "INSERT INTO news (title, text_content, slug, created_at) VALUES (?, ?, ?, ?)",
+            [json_encode(['fr' => 'Ancien']), json_encode(['fr' => '']), 'older-article', '2020-01-01 00:00:00']
+        );
+        self::$db->execute(
+            "INSERT INTO news (title, text_content, slug, created_at) VALUES (?, ?, ?, ?)",
+            [json_encode(['fr' => 'Récent']), json_encode(['fr' => '']), 'newer-article', '2025-01-01 00:00:00']
+        );
+
+        $prev = $this->model->getPrev('older-article');
+
+        $this->assertNotNull($prev, "getPrev() doit retourner l'article plus récent");
+        $this->assertSame('newer-article', $prev['slug']);
+    }
+
+    public function testGetPrevReturnsNullWhenNoPreviousExists(): void
+    {
+        self::$db->execute("DELETE FROM news WHERE 1=1");
+        $this->insertNews('only-article');
+
+        $prev = $this->model->getPrev('only-article');
+
+        $this->assertNull($prev, "getPrev() doit retourner null quand il n'y a pas d'article plus récent");
+    }
+
+    // ── getNext() ───────────────────────────────────────────────────────────
+
+    public function testGetNextReturnsOlderArticle(): void
+    {
+        self::$db->execute("DELETE FROM news WHERE 1=1");
+
+        self::$db->execute(
+            "INSERT INTO news (title, text_content, slug, created_at) VALUES (?, ?, ?, ?)",
+            [json_encode(['fr' => 'Récent']), json_encode(['fr' => '']), 'newer-article', '2025-01-01 00:00:00']
+        );
+        self::$db->execute(
+            "INSERT INTO news (title, text_content, slug, created_at) VALUES (?, ?, ?, ?)",
+            [json_encode(['fr' => 'Ancien']), json_encode(['fr' => '']), 'older-article', '2020-01-01 00:00:00']
+        );
+
+        $next = $this->model->getNext('newer-article');
+
+        $this->assertNotNull($next, "getNext() doit retourner l'article plus ancien");
+        $this->assertSame('older-article', $next['slug']);
+    }
+
+    public function testGetNextReturnsNullWhenNoNextExists(): void
+    {
+        self::$db->execute("DELETE FROM news WHERE 1=1");
+        $this->insertNews('only-article');
+
+        $next = $this->model->getNext('only-article');
+
+        $this->assertNull($next, "getNext() doit retourner null quand il n'y a pas d'article plus ancien");
+    }
+
+    // ── create() ────────────────────────────────────────────────────────────
+
+    public function testCreateInsertsNewsAndReturnsId(): void
+    {
+        $id = $this->model->create([
+            'title'        => json_encode(['fr' => 'Article créé', 'en' => 'Created article']),
+            'text_content' => json_encode(['fr' => 'Contenu', 'en' => 'Content']),
+            'image_path'   => null,
+            'link_path'    => null,
+            'slug'         => 'article-cree-test',
+        ]);
+
+        $this->assertGreaterThan(0, $id, 'create() doit retourner un ID positif');
+
+        $found = $this->model->getBySlug('article-cree-test');
+        $this->assertNotNull($found);
+        $this->assertSame('article-cree-test', $found['slug']);
+    }
+
+    // ── update() ────────────────────────────────────────────────────────────
+
+    public function testUpdateModifiesExistingNews(): void
+    {
+        $id = $this->model->create([
+            'title'        => json_encode(['fr' => 'Avant mise à jour', 'en' => 'Before update']),
+            'text_content' => json_encode(['fr' => 'Texte original', 'en' => 'Original text']),
+            'image_path'   => null,
+            'link_path'    => null,
+            'slug'         => 'avant-maj-test',
+        ]);
+
+        $this->model->update($id, [
+            'title'        => json_encode(['fr' => 'Après mise à jour', 'en' => 'After update']),
+            'text_content' => json_encode(['fr' => 'Nouveau texte', 'en' => 'New text']),
+            'image_path'   => 'photo.jpg',
+            'link_path'    => '/fr/vins',
+            'slug'         => 'apres-maj-test',
+        ]);
+
+        $found = $this->model->getBySlug('apres-maj-test');
+        $this->assertNotNull($found, 'update() doit modifier le slug');
+        /** @var array<string, string> $decodedTitle */
+        $decodedTitle = json_decode($found['title'], true);
+        $this->assertSame('Après mise à jour', $decodedTitle['fr']);
+    }
 }
