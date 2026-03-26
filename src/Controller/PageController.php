@@ -58,11 +58,13 @@ class PageController extends Controller
         }
 
         try {
-            $mail = new MailService();
+            $mail = $this->newMailService();
             $mail->sendContactToOwner($firstname, $lastname, $email, $subject, $message, $lang);
             $mail->sendContactConfirmation($email, $firstname, $subject, $lang, $message);
         } catch (\Core\Exception\HttpException $e) {
-            throw $e;
+            // @codeCoverageIgnoreStart
+            throw $e; // MailService ne lance jamais HttpException — garde fou défensif
+            // @codeCoverageIgnoreEnd
         } catch (\Exception $e) {
             $this->json(['success' => false, 'message' => __('contact.error_smtp')], 500);
         }
@@ -146,5 +148,10 @@ class PageController extends Controller
     {
         $lang = $this->resolveLang($params);
         $this->view('pages/webmaster', ['lang' => $lang, 'noindex' => true]);
+    }
+
+    protected function newMailService(): MailService
+    {
+        return new MailService();
     }
 }
