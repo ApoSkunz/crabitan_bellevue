@@ -314,6 +314,23 @@ class WineModel extends Model
         return $row ?: null;
     }
 
+    /**
+     * Retourne $limit vins aléatoires disponibles ayant une image (jeu mémoire).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRandomForMemo(int $limit = 14): array
+    {
+        return $this->db->fetchAll(
+            "SELECT slug, image_path, label_name
+             FROM {$this->table}
+             WHERE image_path IS NOT NULL AND image_path != ''
+             ORDER BY RAND()
+             LIMIT ?",
+            [$limit]
+        );
+    }
+
     // ----------------------------------------------------------------
     // Méthodes admin
     // ----------------------------------------------------------------

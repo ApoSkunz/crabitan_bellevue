@@ -144,6 +144,10 @@
     pointer-events: none;
 
     &[hidden] { display: none; }
+
+    .carousel__weather-credit {
+        pointer-events: auto;
+    }
 }
 
 .carousel__weather-top {
@@ -166,6 +170,21 @@
     color: rgba(245, 240, 232, 0.95);
     text-shadow: 0 1px 3px rgba(8, 8, 8, 0.9);
     white-space: nowrap;
+}
+
+.carousel__weather-credit {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    color: rgba(245, 240, 232, 0.55);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    margin-top: 0.35rem;
+    padding: 0.2rem 0;
+    text-shadow: 0 1px 3px rgba(8, 8, 8, 0.8);
+    transition: color 200ms ease;
+
+    &:hover { color: rgba(245, 240, 232, 0.9); }
 }
 
 // Points de navigation

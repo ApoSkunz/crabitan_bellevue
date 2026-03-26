@@ -715,10 +715,18 @@ function initContactForm() {
 
     const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
 
+    const rgpdError = document.getElementById('rgpd-error');
+    const rgpdInput = form.querySelector('input[name="rgpd"]');
+
+    let feedbackTimer = null;
     function showFeedback(msg, isSuccess) {
+        clearTimeout(feedbackTimer);
         feedback.textContent = msg;
         feedback.className   = 'contact-form__feedback contact-form__feedback--' + (isSuccess ? 'success' : 'error');
         feedback.hidden      = false;
+        if (isSuccess) {
+            feedbackTimer = setTimeout(() => { feedback.hidden = true; }, 3000);
+        }
     }
 
     function setLoading(on) {
@@ -737,11 +745,16 @@ function initContactForm() {
         field.addEventListener('input',  () => group.classList.remove('is-invalid'), { once: true });
     }
 
+    if (rgpdInput && rgpdError) {
+        rgpdInput.addEventListener('change', () => { rgpdError.hidden = true; });
+    }
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         // Validation client
         let valid = true;
+        let onlyRgpdMissing = true;
         requiredFields.forEach((field) => {
             const empty = field.type === 'checkbox'
                 ? !field.checked
@@ -751,14 +764,24 @@ function initContactForm() {
             if (empty) {
                 valid = false;
                 markInvalid(field);
+                if (field.name !== 'rgpd') onlyRgpdMissing = false;
             }
         });
 
         if (!valid) {
-            showFeedback(form.dataset.msgFields, false);
-            (form.closest('section') ?? form).scrollIntoView({ behavior: 'smooth', block: 'start' });
+            feedback.hidden = true;
+            if (rgpdInput && !rgpdInput.checked && rgpdError) {
+                rgpdError.hidden = false;
+            }
+            if (!onlyRgpdMissing) {
+                showFeedback(form.dataset.msgFields, false);
+                (form.closest('section') ?? form).scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                rgpdError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
             return;
         }
+        if (rgpdError) rgpdError.hidden = true;
 
         setLoading(true);
         feedback.hidden = true;
@@ -871,30 +894,8 @@ function initPageIntro() {
 }
 
 // ============================================================
-// Widget météo — carousel héro (Open-Meteo, sans clé API)
+// Widget météo — carousel héro (proxy /api/meteo → WeatherAPI.com)
 // ============================================================
-
-const WMO_FR = {
-    0: 'Ensoleillé', 1: 'Peu nuageux', 2: 'Nuageux', 3: 'Couvert',
-    45: 'Brouillard', 48: 'Brouillard givrant',
-    51: 'Bruine légère', 53: 'Bruine', 55: 'Bruine dense',
-    61: 'Pluie légère', 63: 'Pluie', 65: 'Pluie forte',
-    71: 'Neige légère', 73: 'Neige', 75: 'Neige forte', 77: 'Grésil',
-    80: 'Averses légères', 81: 'Averses', 82: 'Averses fortes',
-    85: 'Averses de neige', 86: 'Averses de neige fortes',
-    95: 'Orageux', 96: 'Orage avec grêle', 99: 'Orage violent',
-};
-
-const WMO_EN = {
-    0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
-    45: 'Foggy', 48: 'Freezing fog',
-    51: 'Light drizzle', 53: 'Drizzle', 55: 'Dense drizzle',
-    61: 'Light rain', 63: 'Rain', 65: 'Heavy rain',
-    71: 'Light snow', 73: 'Snow', 75: 'Heavy snow', 77: 'Snow grains',
-    80: 'Light showers', 81: 'Showers', 82: 'Heavy showers',
-    85: 'Snow showers', 86: 'Heavy snow showers',
-    95: 'Thunderstorm', 96: 'Thunderstorm & hail', 99: 'Violent storm',
-};
 
 const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin',
     'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
@@ -907,34 +908,25 @@ async function initWeatherWidget() {
 
     const lang   = window.__navLang === 'en' ? 'en' : 'fr';
     const months = lang === 'en' ? MONTHS_EN : MONTHS_FR;
-    const wmo    = lang === 'en' ? WMO_EN : WMO_FR;
     const month  = months[new Date().getMonth()];
 
     try {
-        const res  = await fetch(
-            'https://api.open-meteo.com/v1/forecast'
-            + '?latitude=44.58&longitude=-0.27'
-            + '&current=weather_code,wind_speed_10m'
-            + '&daily=temperature_2m_min,temperature_2m_max'
-            + '&timezone=Europe%2FParis'
-        );
+        const res = await fetch('/api/meteo?lang=' + lang);
         if (!res.ok) return;
-        const data  = await res.json();
-        const code  = data.current?.weather_code ?? 0;
-        const wind  = Math.round(data.current?.wind_speed_10m ?? 0);
-        const tmin  = Math.round(data.daily?.temperature_2m_min?.[0] ?? 0);
-        const tmax  = Math.round(data.daily?.temperature_2m_max?.[0] ?? 0);
-        const cond  = wmo[code] ?? (lang === 'en' ? 'Unknown' : 'Inconnu');
+        const data = await res.json();
+        if (data.error) return;
 
         const line1 = document.createElement('span');
         line1.className = 'carousel__weather-top';
-        line1.textContent = `${month} \u2014 ${cond}`;
+        line1.textContent = `${month} \u2014 ${data.condition}`;
 
         const line2 = document.createElement('span');
         line2.className = 'carousel__weather-bottom';
-        line2.textContent = `${tmin}\u00b0 \u2192 ${tmax}\u00b0 \u00b7 ${wind}\u00a0km/h`;
+        line2.textContent = `${data.tmin}\u00b0 \u2192 ${data.tmax}\u00b0 \u00b7 ${data.wind}\u00a0km/h`;
 
+        const credit = widget.querySelector('.carousel__weather-credit');
         widget.replaceChildren(line1, line2);
+        if (credit) widget.append(credit);
         widget.removeAttribute('hidden');
     } catch {
         // Silencieux — le widget reste masqué si l'API est inaccessible
@@ -1022,5 +1014,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Chargement à la demande — uniquement sur la page jeux
     if (document.getElementById('memo-game')) {
         import('./memo-game.js').then((m) => m.initMemoGame());
+    }
+    if (document.getElementById('runner-game')) {
+        import('./runner-game.js').then((m) => m.initRunnerGame());
+    }
+    if (document.getElementById('labour-chrono-game')) {
+        import('./labour-chrono.js').then((m) => m.initLabourChronoGame());
+    }
+    if (document.getElementById('tonneau-catapulte-game')) {
+        import('./tonneau-catapulte.js').then((m) => m.initTonneauCatapulteGame());
+    }
+    if (document.getElementById('vendange-express-game')) {
+        import('./vendange-express.js').then((m) => m.initVendangeExpressGame());
     }
 });

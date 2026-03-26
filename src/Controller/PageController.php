@@ -58,13 +58,17 @@ class PageController extends Controller
         }
 
         try {
-            $mail = new MailService();
+            $mail = $this->newMailService();
             $mail->sendContactToOwner($firstname, $lastname, $email, $subject, $message, $lang);
-            $mail->sendContactConfirmation($email, $firstname, $subject, $lang);
-            $this->json(['success' => true, 'message' => __('contact.success')]);
+            $mail->sendContactConfirmation($email, $firstname, $subject, $lang, $message);
+        } catch (\Core\Exception\HttpException $e) {
+            // @codeCoverageIgnoreStart
+            throw $e; // MailService ne lance jamais HttpException — garde fou défensif
+            // @codeCoverageIgnoreEnd
         } catch (\Exception $e) {
             $this->json(['success' => false, 'message' => __('contact.error_smtp')], 500);
         }
+        $this->json(['success' => true, 'message' => __('contact.success')]);
     }
 
     private function csrfToken(): string
@@ -120,15 +124,34 @@ class PageController extends Controller
 
     public function jeux(array $params): void
     {
-        $lang  = $this->resolveLang($params);
-        $model = new WineModel();
-        $wines = $model->getAll(null, 'default', 14);
-        $this->view('pages/jeux', ['lang' => $lang, 'wines' => $wines]);
+        $lang        = $this->resolveLang($params);
+        $wineModel        = new WineModel();
+        $scoreModel       = new \Model\GameScoreModel();
+        $wines            = $wineModel->getRandomForMemo(9);
+        $wrVendangeuse    = $scoreModel->getBestScore('vendangeuse');
+        $wrMemo           = $scoreModel->getBestScore('memo');
+        $wrLabour            = $scoreModel->getBestScore('labour');
+        $wrCatapulte         = $scoreModel->getBestScore('catapulte');
+        $wrVendangeExpress   = $scoreModel->getBestScore('vendangeexpress');
+        $this->view('pages/jeux', [
+            'lang'              => $lang,
+            'wines'             => $wines,
+            'wrVendangeuse'     => $wrVendangeuse,
+            'wrMemo'            => $wrMemo,
+            'wrLabour'          => $wrLabour,
+            'wrCatapulte'       => $wrCatapulte,
+            'wrVendangeExpress' => $wrVendangeExpress,
+        ]);
     }
 
     public function webmaster(array $params): void
     {
         $lang = $this->resolveLang($params);
         $this->view('pages/webmaster', ['lang' => $lang, 'noindex' => true]);
+    }
+
+    protected function newMailService(): MailService
+    {
+        return new MailService();
     }
 }

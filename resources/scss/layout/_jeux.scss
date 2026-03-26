@@ -5,13 +5,13 @@
 // ============================================================
 
 .memo-game {
-    padding: 3rem 1.5rem 5rem;
+    padding: 1rem 1.5rem 5rem;
     max-width: 1100px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2rem;
+    gap: 1.25rem;
 
     &__title {
         font-family: var(--font-serif);
@@ -80,19 +80,18 @@
         letter-spacing: 0.05em;
     }
 
-    // Grille 4 colonnes
+    // Grille 9 paires — 3 colonnes mobile, 6 colonnes desktop (3 rangées × 6)
     &__grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 1rem;
         width: 100%;
-
-        @include m.bp('sm') {
-            grid-template-columns: repeat(4, 1fr);
-        }
+        margin: 0;
+        padding: 0;
+        list-style: none;
 
         @include m.bp('lg') {
-            grid-template-columns: repeat(7, 1fr);
+            grid-template-columns: repeat(6, 1fr);
         }
     }
 
@@ -112,10 +111,182 @@
         display: flex;
         justify-content: center;
     }
+
+    &__wr {
+        font-size: 0.8rem;
+        font-style: italic;
+        color: var(--color-text-muted);
+        letter-spacing: 0.04em;
+        text-align: center;
+    }
+}
+
+// ============================================================
+// Séparateur entre les deux jeux
+// ============================================================
+
+.jeux-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 600px;
+    margin: 0 auto 0.5rem;
+    padding: 0 1.5rem;
+
+    &__line {
+        flex: 1;
+        height: 1px;
+        background: var(--color-border-gold);
+    }
+
+    &__ornament {
+        color: var(--color-gold);
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+    }
+}
+
+// ============================================================
+// Runner — La Vendangeuse
+// ============================================================
+
+.runner-game {
+    padding: 1rem 1.5rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+
+    &__canvas {
+        display: block;
+        width: 100%;
+        max-width: 900px;
+        height: 260px;
+        border: 1px solid var(--color-border-gold);
+        border-radius: 2px;
+        cursor: pointer;
+
+        &:focus {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 3px;
+        }
+    }
+}
+
+// ============================================================
+// Labour Chrono — vue de dessus
+// ============================================================
+
+.labour-chrono-game {
+    padding: 1rem 1.5rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+
+    &__canvas {
+        display: block;
+        width: 100%;
+        max-width: 900px;
+        height: 280px;
+        border: 1px solid var(--color-border-gold);
+        border-radius: 2px;
+        cursor: pointer;
+        touch-action: none;
+
+        &:focus {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 3px;
+        }
+    }
+}
+
+// ============================================================
+// Tonneau Catapulte
+// ============================================================
+
+.tonneau-catapulte-game {
+    padding: 1rem 1.5rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+
+    &__canvas {
+        display: block;
+        width: 100%;
+        max-width: 900px;
+        height: 280px;
+        border: 1px solid var(--color-border-gold);
+        border-radius: 2px;
+        cursor: pointer;
+        touch-action: none;
+
+        &:focus {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 3px;
+        }
+    }
+}
+
+// ============================================================
+// Vendange Express
+// ============================================================
+
+.vendange-express-game {
+    padding: 1rem 1.5rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+
+    &__canvas {
+        display: block;
+        width: 100%;
+        max-width: 900px;
+        height: 420px;
+        border: 1px solid var(--color-border-gold);
+        border-radius: 2px;
+        cursor: pointer;
+        touch-action: none;
+
+        &:focus {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 3px;
+        }
+    }
+}
+
+// ============================================================
+// Animations mémo — mauvaise paire (rouge) + bonne paire (or)
+// ============================================================
+
+@keyframes memo-wrong-shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-6px); }
+    40%       { transform: translateX(6px); }
+    60%       { transform: translateX(-4px); }
+    80%       { transform: translateX(4px); }
+}
+
+@keyframes memo-match-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(var(--color-gold-rgb, 180, 140, 60), 0.7); }
+    60%  { box-shadow: 0 0 0 12px rgba(var(--color-gold-rgb, 180, 140, 60), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--color-gold-rgb, 180, 140, 60), 0); }
 }
 
 // Carte mémo
 .memo-card {
+    display: block;
+    width: 100%;
     position: relative;
     aspect-ratio: 2 / 3;
     cursor: pointer;
@@ -163,6 +334,21 @@
     &.is-matched {
         .memo-card__front {
             border-color: var(--color-gold);
+        }
+    }
+
+    &.is-wrong {
+        animation: memo-wrong-shake 400ms ease;
+
+        .memo-card__front {
+            border-color: #c0392b;
+            background-color: rgba(192, 57, 43, 0.08);
+        }
+    }
+
+    &.is-matched-flash {
+        .memo-card__front {
+            animation: memo-match-pulse 500ms ease-out;
         }
     }
 }

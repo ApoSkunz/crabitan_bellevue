@@ -157,6 +157,10 @@ return [
     'form.account_type'            => 'Account type',
     'form.account_type.individual' => 'Individual',
     'form.account_type.company'    => 'Professional',
+    'form.gender'                  => 'Title',
+    'form.gender.m'                => 'Mr.',
+    'form.gender.f'                => 'Mrs.',
+    'form.gender.other'            => 'Other',
     'form.civility'                => 'Title',
     'form.civility.m'              => 'Mr.',
     'form.civility.f'              => 'Mrs.',
@@ -245,9 +249,10 @@ return [
     'home.location_cta'     => 'Contact us',
 
     // News
-    'news.read_more' => 'Read more',
-    'news.back'      => 'Back to news',
-    'news.empty'     => 'No news available at the moment.',
+    'news.read_more'  => 'Read more',
+    'news.back'       => 'Back to news',
+    'news.empty'      => 'No news available at the moment.',
+    'news.nav_label'  => 'Navigate between articles',
 
     // Contact
     'contact.tag'            => 'Get in touch',
@@ -269,6 +274,7 @@ return [
     'contact.subject.other'   => 'Other',
     'contact.success'         => 'Your message has been sent. You will receive a summary by email.',
     'contact.error_fields'    => 'Please fill in all required fields.',
+    'contact.error_rgpd'      => 'You must accept the processing of your data.',
     'contact.error_smtp'      => 'An error occurred while sending. Please try again or contact us by phone.',
     'contact.mail_owner_subject'  => 'New contact message',
     'contact.mail_confirm_subject' => 'We have received your message',
@@ -348,8 +354,8 @@ return [
 
     // Jeux
     'jeux.title'       => 'Games',
-    'jeux.memo_title'  => 'Memory',
-    'jeux.memo_desc'   => 'Find the 14 pairs of wine bottles before time runs out.',
+    'jeux.memo_title'  => 'The Secret Cave',
+    'jeux.memo_desc'   => 'Memorise the cards for 3 seconds, then find the 9 pairs of wine bottles before time runs out. Beware — each wrong pair costs you 5 seconds!',
     'jeux.hours'       => 'hours',
     'jeux.minutes'     => 'minutes',
     'jeux.seconds'     => 'seconds',
@@ -357,7 +363,15 @@ return [
     'jeux.restart'     => 'Play again',
     'jeux.win'         => 'Congratulations! You found all the pairs.',
     'jeux.lose'        => 'Time\'s up! Try again.',
-    'jeux.pairs_found' => 'pairs found',
+    'jeux.pairs_found'    => 'pairs found',
+    'jeux.runner_title'   => 'The Grape Harvester',
+    'jeux.runner_desc'    => 'Help the grape harvester jump over the vines. Click or press Space to jump.',
+    'jeux.labour_title'    => 'Plowing Chrono',
+    'jeux.labour_desc'     => 'Switch lanes with ↑↓. Collect grapes (+20), barrels (+100) and shields (5 s immunity). Survive as long as possible!',
+    'jeux.catapulte_title' => 'Barrel Catapult',
+    'jeux.catapulte_desc'  => 'Adjust angle with ↑↓, hold Space to charge power, release to launch the barrel as far as possible!',
+    'jeux.vendangeexpress_title' => 'Harvest Express',
+    'jeux.vendangeexpress_desc'  => 'Grapes and bottles are falling from the vines! Move the crate with ← → to catch them all. 10 lives — don\'t let anything drop!',
 
     // Sitemap
     'sitemap.intro'            => 'Browse all pages on our website',

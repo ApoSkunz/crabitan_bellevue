@@ -6,8 +6,8 @@ on:
   pull_request:
 
 jobs:
-  quality:
-    name: Code Quality
+  quality-php:
+    name: Code Quality — PHP
     runs-on: ubuntu-latest
 
     steps:
@@ -28,6 +28,14 @@ jobs:
 
       - name: PHP_CodeSniffer
         run: vendor/bin/phpcs
+
+  quality-js:
+    name: Code Quality — JS/SCSS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -58,6 +66,10 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
+      mailhog:
+        image: mailhog/mailhog:latest
+        ports:
+          - 1025:1025
 
     steps:
       - name: Checkout
@@ -93,6 +105,8 @@ jobs:
           DB_NAME: crabitan_bellevue
           DB_USER: root
           DB_PASS: root
+          MAIL_HOST: localhost
+          MAIL_PORT: '1025'
           XDEBUG_MODE: coverage
         run: vendor/bin/phpunit --testsuite Integration --coverage-clover coverage/clover-integration.xml
 
@@ -182,12 +196,20 @@ jobs:
         run: php -S 0.0.0.0:8080 -t public/ public/router.php &
 
       - name: Wait for server
-        run: sleep 2
+        run: curl --retry 15 --retry-delay 1 --retry-connrefused --silent --output /dev/null http://localhost:8080/
 
       - name: Run Playwright (Chromium)
         env:
           APP_URL: http://localhost:8080
         run: npx playwright test --project=chromium
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
 
       - name: Generate JS coverage (lcov)
         run: |
@@ -307,7 +329,7 @@ jobs:
         run: php -S 0.0.0.0:8080 -t public/ public/router.php &
 
       - name: Wait for server
-        run: sleep 2
+        run: curl --retry 15 --retry-delay 1 --retry-connrefused --silent --output /dev/null http://localhost:8080/
 
       - name: Run Lighthouse CI
         env:

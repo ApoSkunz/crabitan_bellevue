@@ -114,11 +114,23 @@ Renommer en `mailhog.exe` et placer dans `C:\tools\`
 
 ### Démarrage
 
+**Sous Windows (terminal séparé ou en arrière-plan) :**
+
 ```bash
+# Option 1 — ouvrir un nouveau terminal et lancer
 mailhog
-# Interface web : http://localhost:8025
-# SMTP : localhost:1025
+
+# Option 2 — lancer en arrière-plan (PowerShell)
+Start-Process mailhog -WindowStyle Hidden
+
+# Option 3 — binaire direct (si placé dans C:\tools\)
+Start-Process "C:\tools\mailhog.exe" -WindowStyle Hidden
 ```
+
+> Une fois démarré, ne pas fermer la fenêtre (option 1) ou vérifier le processus via `Get-Process mailhog`.
+>
+> - Interface web : http://localhost:8025
+> - SMTP : localhost:1025
 
 ### Configuration `.env` pour dev
 
@@ -205,7 +217,8 @@ vendor/bin/phpunit tests/Unit/
 # Tests d'intégration (BDD active requise)
 vendor/bin/phpunit tests/Integration/
 
-# Tests E2E (XAMPP + APP_URL actifs)
+# Tests E2E (XAMPP + APP_URL actifs + MailHog démarré)
+mailhog &          # SMTP localhost:1025 — interface http://localhost:8025
 npx playwright test
 ```
 

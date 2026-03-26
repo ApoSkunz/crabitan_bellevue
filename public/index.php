@@ -44,4 +44,7 @@ try {
     $router->dispatch();
 } catch (\Core\Exception\HttpException) {
     exit;
+} catch (\Throwable $e) {
+    error_log('[500] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+    \Core\Response::abort(500, 'Internal Server Error');
 }

@@ -7,8 +7,13 @@ namespace Service;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class MailService
+class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont des seams de testabilité, pas de la logique métier
 {
+    private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
+    private const URL_PRIVACY = '/fr/politique-confidentialite';
+    private const URL_LEGAL   = '/fr/mentions-legales';
+    private const URL_SUPPORT = '/fr/support';
+
     private PHPMailer $mailer;
 
     public function __construct()
@@ -73,46 +78,60 @@ class MailService
         string $lang
     ): void {
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
-        $subjectLine = ($lang === 'fr' ? 'Nouveau message de contact' : 'New contact message')
-            . ' — ' . htmlspecialchars($subject, ENT_QUOTES);
+
+        $subjectLabel = $this->resolveSubjectLabel($subject, $lang);
+        $subjectLine  = 'Contact site : ' . $subjectLabel;
 
         $safeName    = htmlspecialchars($firstname . ' ' . $lastname, ENT_QUOTES);
         $safeEmail   = htmlspecialchars($email, ENT_QUOTES);
-        $safeSubject = htmlspecialchars($subject, ENT_QUOTES);
+        $safeSubject = htmlspecialchars($subjectLabel, ENT_QUOTES);
         $safeMessage = nl2br(htmlspecialchars($message, ENT_QUOTES));
 
-        $body = "<p><strong>De :</strong> {$safeName} ({$safeEmail})</p>"
-            . "<p><strong>Objet :</strong> {$safeSubject}</p>"
-            . "<hr>"
-            . "<p>{$safeMessage}</p>";
+        $msgBody = "<strong>De :</strong> {$safeName} ({$safeEmail})<br>"
+            . "<strong>Objet :</strong> {$safeSubject}<br><br>"
+            . $safeMessage;
 
-        $this->send($ownerEmail, APP_NAME, $subjectLine, $body);
+        $body = $this->emailSimpleLayout(
+            'Nouveau message',
+            "Message reçu via le site",
+            $msgBody
+        );
+
+        $this->send($ownerEmail, APP_NAME, $subjectLine, $body, null, $email);
     }
 
     public function sendContactConfirmation(
         string $to,
         string $firstname,
         string $subject,
-        string $lang
+        string $lang,
+        string $userMessage = ''
     ): void {
         $safeName    = htmlspecialchars($firstname, ENT_QUOTES);
-        $safeSubject = htmlspecialchars($subject, ENT_QUOTES);
+        $isOrderForm = $subject === 'bon_commande';
+        $subjectLabel = htmlspecialchars($this->resolveSubjectLabel($subject, $lang), ENT_QUOTES);
 
-        if ($lang === 'fr') {
-            $subjectLine = 'Nous avons bien reçu votre message';
-            $body = "<p>Bonjour {$safeName},</p>"
-                . "<p>Nous avons bien reçu votre message concernant <strong>{$safeSubject}</strong>.</p>"
-                . "<p>Notre équipe vous répondra dans les meilleurs délais.</p>"
-                . "<p>Cordialement,<br>L'équipe du Château Crabitan Bellevue</p>";
-        } else {
-            $subjectLine = 'We have received your message';
-            $body = "<p>Hello {$safeName},</p>"
-                . "<p>We have received your message regarding <strong>{$safeSubject}</strong>.</p>"
-                . "<p>Our team will get back to you as soon as possible.</p>"
-                . "<p>Best regards,<br>The Château Crabitan Bellevue team</p>";
+        $lines = $this->buildConfirmationLines($isOrderForm, $lang, $subjectLabel);
+        $recap = $isOrderForm ? '' : $this->buildRecapBlock($userMessage, $lang);
+
+        $body = $this->emailSimpleLayout(
+            'Confirmation',
+            $lang === 'fr' ? "Bonjour {$safeName}," : "Hello {$safeName},",
+            $lines['message'] . $recap
+        );
+
+        $attachmentPath = null;
+        if ($isOrderForm) {
+            $latest = $this->newOrderFormModel()->getLatest();
+            if ($latest !== null) {
+                $path = ROOT_PATH . '/storage/order_forms/' . $latest['filename'];
+                if (file_exists($path)) {
+                    $attachmentPath = $path;
+                }
+            }
         }
 
-        $this->send($to, $firstname, $subjectLine, $body);
+        $this->send($to, $firstname, $lines['subjectLine'], $body, $attachmentPath);
     }
 
     public function sendNewsletter(string $to, string $name, string $subject, string $htmlBody): void
@@ -125,14 +144,13 @@ class MailService
         string $htmlContent,
         ?string $imageUrl = null
     ): string {
-        $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
-        $logoUrl     = $appUrl . '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
-        $urlPrivacy  = $appUrl . '/fr/politique-confidentialite';
-        $urlLegal    = $appUrl . '/fr/mentions-legales';
-        $urlSupport  = $appUrl . '/fr/support';
-        $urlUnsub    = $appUrl . '/fr/mon-compte';
-        $year        = date('Y');
-        $safeTitle   = htmlspecialchars($title, ENT_QUOTES);
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $logoUrl    = $appUrl . self::LOGO_PATH;
+        $urlPrivacy = $appUrl . self::URL_PRIVACY;
+        $urlLegal   = $appUrl . self::URL_LEGAL;
+        $urlSupport = $appUrl . self::URL_SUPPORT;
+        $urlUnsub   = $appUrl . '/fr/mon-compte';
+        $safeTitle  = htmlspecialchars($title, ENT_QUOTES);
         // Image optionnelle : centrée dans le bloc blanc, avant le séparateur/désabonnement
         $safeImage = $imageUrl !== null ? htmlspecialchars($imageUrl, ENT_QUOTES) : null;
         $imageHtml = $safeImage !== null
@@ -141,36 +159,13 @@ class MailService
               . "margin:24px auto 0;border:0;border-radius:4px;\">"
             : '';
 
-        return <<<HTML
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{$safeTitle}</title>
-  <style>
-    .footer-link:hover { color: #c9a84c !important; text-decoration: underline !important; }
-  </style>
-</head>
-<body style="margin:0;padding:0;background-color:#f5f0e8;font-family:Georgia,serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-         style="background-color:#f5f0e8;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+        $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport);
+
+        $inner = <<<INNER
 
           <!-- Header logo -->
-          <tr>
-            <td align="center" style="padding-bottom:28px;">
-              <a href="{$appUrl}" style="display:inline-block;text-decoration:none;">
-                <img src="{$logoUrl}" alt="Château Crabitan Bellevue" width="200" height="auto"
-                     style="display:block;border:0;max-width:200px;">
-              </a>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr><td style="padding-top:20px;border-bottom:1px solid #c9a84c;"></td></tr>
-              </table>
-            </td>
-          </tr>
+          {$headerHtml}
 
           <!-- Body -->
           <tr>
@@ -193,48 +188,73 @@ class MailService
           </tr>
 
           <!-- Footer -->
-          <tr>
-            <td align="center" style="padding-top:24px;">
-              <p style="margin:0 0 10px;">
-                <a href="{$urlPrivacy}" class="footer-link"
-                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Politique de confidentialité</a>
-                <span style="color:#c4b89a;padding:0 8px;">|</span>
-                <a href="{$urlLegal}" class="footer-link"
-                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Mentions légales</a>
-                <span style="color:#c4b89a;padding:0 8px;">|</span>
-                <a href="{$urlSupport}" class="footer-link"
-                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Assistance</a>
-              </p>
-              <p style="margin:0 0 6px;font-size:11px;color:#a89880;letter-spacing:1px;">
-                © {$year} Château Crabitan Bellevue — Sainte-Croix-du-Mont, Gironde
-              </p>
-              <p style="margin:0;font-size:10px;color:#b8aa95;">
-                Ce mail est généré automatiquement. Veuillez ne pas y répondre.
-              </p>
-            </td>
-          </tr>
+          {$footerHtml}
 
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-HTML;
+INNER;
+
+        return $this->emailWrap($safeTitle, $inner);
     }
 
-    private function send(string $to, string $name, string $subject, string $body): void
-    {
+    private function send(
+        string $to,
+        string $name,
+        string $subject,
+        string $body,
+        ?string $attachmentPath = null,
+        ?string $replyTo = null
+    ): void {
         $this->mailer->clearAddresses();
+        $this->mailer->clearAttachments();
+        $this->mailer->clearReplyTos();
         $this->mailer->addAddress($to, $name);
+        if ($replyTo !== null) {
+            $this->mailer->addReplyTo($replyTo);
+        }
         $this->mailer->isHTML(true);
         $this->mailer->Subject = $subject;
         $this->mailer->Body    = $body;
         $this->mailer->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], "\n", $body));
+        if ($attachmentPath !== null) {
+            $this->mailer->addAttachment($attachmentPath);
+        }
         $this->mailer->send();
+    }
+
+    private function emailSimpleLayout(string $title, string $greeting, string $message): string
+    {
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $logoUrl    = $appUrl . self::LOGO_PATH;
+        $urlPrivacy = $appUrl . self::URL_PRIVACY;
+        $urlLegal   = $appUrl . self::URL_LEGAL;
+        $urlSupport = $appUrl . self::URL_SUPPORT;
+
+        $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport);
+
+        $inner = <<<INNER
+
+          <!-- Header logo -->
+          {$headerHtml}
+
+          <!-- Body -->
+          <tr>
+            <td style="background-color:#ffffff;border:1px solid #ddd5c4;padding:40px 36px;">
+              <p style="margin:0 0 8px;font-size:11px;letter-spacing:3px;
+                 text-transform:uppercase;color:#8a7a60;">{$title}</p>
+              <p style="margin:0 0 24px;font-size:22px;color:#1a1208;font-family:Georgia,serif;">{$greeting}</p>
+              <p style="margin:0 0 32px;font-size:15px;line-height:1.7;color:#3d3425;">{$message}</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="border-top:1px solid #ede8df;"></td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          {$footerHtml}
+
+INNER;
+
+        return $this->emailWrap($title, $inner);
     }
 
     private function verificationBodyFr(string $name, string $url): string
@@ -309,43 +329,19 @@ HTML;
         string $ctaLabel,
         string $footnote
     ): string {
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
-        $logoUrl  = $appUrl . '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
-        $urlPrivacy  = $appUrl . '/fr/politique-confidentialite';
-        $urlLegal    = $appUrl . '/fr/mentions-legales';
-        $urlSupport  = $appUrl . '/fr/support';
-        $year        = date('Y');
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $logoUrl    = $appUrl . self::LOGO_PATH;
+        $urlPrivacy = $appUrl . self::URL_PRIVACY;
+        $urlLegal   = $appUrl . self::URL_LEGAL;
+        $urlSupport = $appUrl . self::URL_SUPPORT;
 
-        return <<<HTML
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{$title}</title>
-  <style>
-    .footer-link:hover { color: #c9a84c !important; text-decoration: underline !important; }
-  </style>
-</head>
-<body style="margin:0;padding:0;background-color:#f5f0e8;font-family:Georgia,serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-         style="background-color:#f5f0e8;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+        $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport);
+
+        $inner = <<<INNER
 
           <!-- Header logo -->
-          <tr>
-            <td align="center" style="padding-bottom:28px;">
-              <a href="{$appUrl}" style="display:inline-block;text-decoration:none;">
-                <img src="{$logoUrl}" alt="Château Crabitan Bellevue" width="200" height="auto"
-                     style="display:block;border:0;max-width:200px;">
-              </a>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr><td style="padding-top:20px;border-bottom:1px solid #c9a84c;"></td></tr>
-              </table>
-            </td>
-          </tr>
+          {$headerHtml}
 
           <!-- Body -->
           <tr>
@@ -386,6 +382,51 @@ HTML;
           </tr>
 
           <!-- Footer -->
+          {$footerHtml}
+
+INNER;
+
+        return $this->emailWrap($title, $inner);
+    }
+
+    protected function newOrderFormModel(): \Model\OrderFormModel
+    {
+        return new \Model\OrderFormModel();
+    }
+
+    private function emailWrap(string $title, string $innerContent): string
+    {
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{$title}</title>
+  <style>
+    .footer-link:hover { color: #c9a84c !important; text-decoration: underline !important; }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f0e8;font-family:Georgia,serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+         style="background-color:#f5f0e8;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+{$innerContent}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+HTML;
+    }
+
+    private function emailFooterHtml(string $urlPrivacy, string $urlLegal, string $urlSupport): string
+    {
+        $year = date('Y');
+        return <<<HTML
           <tr>
             <td align="center" style="padding-top:24px;">
               <p style="margin:0 0 10px;">
@@ -409,13 +450,78 @@ HTML;
               </p>
             </td>
           </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
 HTML;
+    }
+
+    private function emailHeaderHtml(string $appUrl, string $logoUrl): string
+    {
+        return <<<HTML
+          <tr>
+            <td align="center" style="padding-bottom:28px;">
+              <a href="{$appUrl}" style="display:inline-block;text-decoration:none;">
+                <img src="{$logoUrl}" alt="Château Crabitan Bellevue" width="200" height="auto"
+                     style="display:block;border:0;max-width:200px;">
+              </a>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding-top:20px;border-bottom:1px solid #c9a84c;"></td></tr>
+              </table>
+            </td>
+          </tr>
+HTML;
+    }
+
+    private function resolveSubjectLabel(string $subject, string $lang): string
+    {
+        $labels = [
+            'general'      => ['fr' => 'Renseignement général',    'en' => 'General enquiry'],
+            'order'        => ['fr' => 'Question sur une commande', 'en' => 'Order enquiry'],
+            'bon_commande' => ['fr' => 'Bon de commande',           'en' => 'Order form'],
+            'visit'        => ['fr' => 'Visite du domaine',         'en' => 'Estate visit'],
+            'press'        => ['fr' => 'Presse / Partenariat',      'en' => 'Press / Partnership'],
+            'other'        => ['fr' => 'Autre',                     'en' => 'Other'],
+        ];
+        return $labels[$subject][$lang] ?? ($labels[$subject]['fr'] ?? $subject);
+    }
+
+    /**
+     * @return array{subjectLine: string, message: string}
+     */
+    private function buildConfirmationLines(bool $isOrderForm, string $lang, string $subjectLabel): array
+    {
+        if ($lang === 'fr') {
+            return [
+                'subjectLine' => $isOrderForm
+                    ? 'Votre bon de commande Crabitan Bellevue'
+                    : 'Nous avons bien reçu votre message',
+                'message'     => $isOrderForm
+                    ? 'Merci pour votre intérêt. Vous trouverez notre bon de commande en pièce jointe.'
+                    : "Nous avons bien reçu votre message concernant <strong>{$subjectLabel}</strong>."
+                      . '<br>Notre équipe vous répondra dans les meilleurs délais.',
+            ];
+        }
+        return [
+            'subjectLine' => $isOrderForm
+                ? 'Your Crabitan Bellevue order form'
+                : 'We have received your message',
+            'message'     => $isOrderForm
+                ? 'Thank you for your interest. Please find our order form attached.'
+                : "We have received your message regarding <strong>{$subjectLabel}</strong>."
+                  . '<br>Our team will get back to you as soon as possible.',
+        ];
+    }
+
+    private function buildRecapBlock(string $userMessage, string $lang): string
+    {
+        if ($userMessage === '') {
+            return '';
+        }
+        $safeMsg    = nl2br(htmlspecialchars($userMessage, ENT_QUOTES));
+        $recapLabel = $lang === 'fr' ? 'Votre message' : 'Your message';
+        return "<div style=\"margin-top:20px;padding:16px 20px;background:#f5f0e8;"
+            . "border-left:3px solid #c9a84c;font-size:14px;color:#5a4e3a;line-height:1.7;\">"
+            . "<p style=\"margin:0 0 8px;font-size:11px;letter-spacing:2px;text-transform:uppercase;"
+            . "color:#8a7a60;\">{$recapLabel}</p>"
+            . "<p style=\"margin:0;\">{$safeMsg}</p>"
+            . "</div>";
     }
 }

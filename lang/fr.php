@@ -157,6 +157,10 @@ return [
     'form.account_type'            => 'Statut',
     'form.account_type.individual' => 'Particulier',
     'form.account_type.company'    => 'Professionnel',
+    'form.gender'                  => 'Civilité',
+    'form.gender.m'                => 'Monsieur',
+    'form.gender.f'                => 'Madame',
+    'form.gender.other'            => 'Autre',
     'form.civility'                => 'Civilité',
     'form.civility.m'              => 'Monsieur',
     'form.civility.f'              => 'Madame',
@@ -247,9 +251,10 @@ return [
     'home.location_cta'     => 'Contactez-nous',
 
     // News
-    'news.read_more' => 'Lire la suite',
-    'news.back'      => 'Retour aux actualités',
-    'news.empty'     => 'Aucune actualité disponible pour le moment.',
+    'news.read_more'  => 'Lire la suite',
+    'news.back'       => 'Retour aux actualités',
+    'news.empty'      => 'Aucune actualité disponible pour le moment.',
+    'news.nav_label'  => 'Navigation entre les actualités',
 
     // Contact
     'contact.tag'            => 'Nous joindre',
@@ -271,6 +276,7 @@ return [
     'contact.subject.other'   => 'Autre',
     'contact.success'         => 'Votre message a bien été envoyé. Vous recevrez un récapitulatif par email.',
     'contact.error_fields'    => 'Veuillez remplir tous les champs obligatoires.',
+    'contact.error_rgpd'      => 'Vous devez accepter le traitement de vos données.',
     'contact.error_smtp'      => 'Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou nous contacter par téléphone.',
     'contact.mail_owner_subject'  => 'Nouveau message de contact',
     'contact.mail_confirm_subject' => 'Nous avons bien reçu votre message',
@@ -350,8 +356,8 @@ return [
 
     // Jeux
     'jeux.title'       => 'Jeux',
-    'jeux.memo_title'  => 'Mémo',
-    'jeux.memo_desc'   => 'Vous devez retrouver les 14 paires de bouteilles de vin avant la fin du temps imparti.',
+    'jeux.memo_title'  => 'La Cave aux Secrets',
+    'jeux.memo_desc'   => 'Mémorisez les cartes pendant 3 secondes, puis retrouvez les 9 paires de bouteilles avant la fin du temps imparti. Attention, chaque mauvaise paire coûte 5 secondes !',
     'jeux.hours'       => 'heures',
     'jeux.minutes'     => 'minutes',
     'jeux.seconds'     => 'secondes',
@@ -359,7 +365,15 @@ return [
     'jeux.restart'     => 'Rejouer',
     'jeux.win'         => 'Félicitations ! Vous avez trouvé toutes les paires.',
     'jeux.lose'        => 'Temps écoulé ! Réessayez.',
-    'jeux.pairs_found' => 'paires trouvées',
+    'jeux.pairs_found'    => 'paires trouvées',
+    'jeux.runner_title'   => 'La Vendangeuse',
+    'jeux.runner_desc'    => 'Aidez la vendangeuse à sauter par-dessus les vignes. Cliquez ou appuyez sur Espace pour sauter.',
+    'jeux.labour_title'    => 'Labour Chrono',
+    'jeux.labour_desc'     => 'Changez de rangée avec ↑↓. Récoltez raisins (+20), barriques (+100) et boucliers (5 s d\'immunité). Survivez le plus longtemps possible !',
+    'jeux.catapulte_title' => 'Tonneau Catapulte',
+    'jeux.catapulte_desc'  => 'Ajustez l\'angle avec ↑↓, maintenez Espace pour charger, relâchez pour lancer le tonneau le plus loin !',
+    'jeux.vendangeexpress_title' => 'Vendange Express',
+    'jeux.vendangeexpress_desc'  => 'Les raisins et bouteilles tombent des vignes ! Déplacez la caisse avec ← → pour tout attraper. 10 vies — ne laissez rien passer !',
 
     // Plan du site
     'sitemap.intro'            => 'Retrouvez les différentes pages de notre site',
