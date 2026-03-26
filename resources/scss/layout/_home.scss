@@ -287,6 +287,10 @@
         letter-spacing: 0.15em;
         text-transform: uppercase;
         color: var(--color-gold);
+
+        &--lg {
+            font-size: 0.95rem;
+        }
     }
 
     &__title {
@@ -317,6 +321,124 @@
         &:hover {
             color: var(--color-gold-light);
         }
+    }
+}
+
+// ============================================================
+// Page actualités — liste
+// ============================================================
+
+.news-list {
+    padding: 3rem 0 5rem;
+
+    &__empty {
+        text-align: center;
+        color: var(--color-text-muted);
+        font-style: italic;
+        padding: 3rem 0;
+    }
+}
+
+// ============================================================
+// Page actualité — détail (show)
+// ============================================================
+
+.page-news-show {
+    padding-bottom: 5rem;
+}
+
+.news-article {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 0;
+
+    &__header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 2.5rem;
+    }
+
+    &__back {
+        font-size: 0.8rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--color-gold);
+        text-decoration: none;
+        transition: color 200ms ease;
+
+        &:hover { color: var(--color-gold-light); }
+    }
+
+    // Bloc image + texte côte à côte
+    &__content {
+        &--with-image {
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            gap: 2.5rem;
+            align-items: start;
+
+            @media (max-width: 640px) {
+                grid-template-columns: 1fr;
+            }
+        }
+    }
+
+    &__image {
+        margin: 0;
+        align-self: center;
+
+        img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border: 1px solid var(--color-border-gold);
+        }
+    }
+
+    &__body {
+        font-size: 1rem;
+        line-height: 1.85;
+        color: var(--color-text);
+        white-space: pre-line;
+
+        p, br + br {
+            margin-bottom: 1.25rem;
+        }
+    }
+
+    &__nav {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 3.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--color-border-gold);
+    }
+
+    &__nav-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        max-width: 45%;
+        text-decoration: none;
+        color: var(--color-text-muted);
+        font-size: 1rem;
+        line-height: 1.4;
+        transition: color 200ms ease;
+
+        &:hover { color: var(--color-gold); }
+
+        &--prev { text-align: left; }
+        &--next { text-align: right; margin-left: auto; }
+
+        &--disabled { visibility: hidden; }
+    }
+
+    &__nav-arrow {
+        flex-shrink: 0;
+        color: var(--color-gold);
+        font-size: 1rem;
     }
 }
 
