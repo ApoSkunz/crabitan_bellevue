@@ -348,8 +348,8 @@ return [
 
     // Jeux
     'jeux.title'       => 'Games',
-    'jeux.memo_title'  => 'Memory',
-    'jeux.memo_desc'   => 'Find the 14 pairs of wine bottles before time runs out.',
+    'jeux.memo_title'  => 'The Secret Cave',
+    'jeux.memo_desc'   => 'Memorise the cards for 3 seconds, then find the 9 pairs of wine bottles before time runs out. Beware — each wrong pair costs you 5 seconds!',
     'jeux.hours'       => 'hours',
     'jeux.minutes'     => 'minutes',
     'jeux.seconds'     => 'seconds',
@@ -360,8 +360,12 @@ return [
     'jeux.pairs_found'    => 'pairs found',
     'jeux.runner_title'   => 'The Grape Harvester',
     'jeux.runner_desc'    => 'Help the grape harvester jump over the vines. Click or press Space to jump.',
-    'jeux.tracteur_title' => 'The Vineyard Tractor',
-    'jeux.tracteur_desc'  => 'Hold click or Space to accelerate. Don\'t let the tractor tip over!',
+    'jeux.labour_title'    => 'Plowing Chrono',
+    'jeux.labour_desc'     => 'Switch lanes with ↑↓. Collect grapes (+20), barrels (+100) and shields (5 s immunity). Survive as long as possible!',
+    'jeux.catapulte_title' => 'Barrel Catapult',
+    'jeux.catapulte_desc'  => 'Adjust angle with ↑↓, hold Space to charge power, release to launch the barrel as far as possible!',
+    'jeux.vendangeexpress_title' => 'Harvest Express',
+    'jeux.vendangeexpress_desc'  => 'Grapes and bottles are falling from the vines! Move the crate with ← → to catch them all. 10 lives — don\'t let anything drop!',
 
     // Sitemap
     'sitemap.intro'            => 'Browse all pages on our website',

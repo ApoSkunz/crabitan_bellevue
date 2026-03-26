@@ -350,8 +350,8 @@ return [
 
     // Jeux
     'jeux.title'       => 'Jeux',
-    'jeux.memo_title'  => 'Mémo',
-    'jeux.memo_desc'   => 'Vous devez retrouver les 14 paires de bouteilles de vin avant la fin du temps imparti.',
+    'jeux.memo_title'  => 'La Cave aux Secrets',
+    'jeux.memo_desc'   => 'Mémorisez les cartes pendant 3 secondes, puis retrouvez les 9 paires de bouteilles avant la fin du temps imparti. Attention, chaque mauvaise paire coûte 5 secondes !',
     'jeux.hours'       => 'heures',
     'jeux.minutes'     => 'minutes',
     'jeux.seconds'     => 'secondes',
@@ -362,8 +362,12 @@ return [
     'jeux.pairs_found'    => 'paires trouvées',
     'jeux.runner_title'   => 'La Vendangeuse',
     'jeux.runner_desc'    => 'Aidez la vendangeuse à sauter par-dessus les vignes. Cliquez ou appuyez sur Espace pour sauter.',
-    'jeux.tracteur_title' => 'Le Tracteur des Vignes',
-    'jeux.tracteur_desc'  => 'Maintenez le clic ou Espace pour accélérer. Ne laissez pas le tracteur se renverser !',
+    'jeux.labour_title'    => 'Labour Chrono',
+    'jeux.labour_desc'     => 'Changez de rangée avec ↑↓. Récoltez raisins (+20), barriques (+100) et boucliers (5 s d\'immunité). Survivez le plus longtemps possible !',
+    'jeux.catapulte_title' => 'Tonneau Catapulte',
+    'jeux.catapulte_desc'  => 'Ajustez l\'angle avec ↑↓, maintenez Espace pour charger, relâchez pour lancer le tonneau le plus loin !',
+    'jeux.vendangeexpress_title' => 'Vendange Express',
+    'jeux.vendangeexpress_desc'  => 'Les raisins et bouteilles tombent des vignes ! Déplacez la caisse avec ← → pour tout attraper. 10 vies — ne laissez rien passer !',
 
     // Plan du site
     'sitemap.intro'            => 'Retrouvez les différentes pages de notre site',
