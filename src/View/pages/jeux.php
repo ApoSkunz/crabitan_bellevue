@@ -117,14 +117,48 @@ $pairCount = count($wines ?? []);
         <span class="jeux-divider__line"></span>
     </div>
 
-    <section class="hill-climb-game container" id="hill-climb-game" aria-labelledby="hill-climb-title">
-        <h2 id="hill-climb-title" class="memo-game__title"><?= htmlspecialchars(__('jeux.tracteur_title')) ?></h2>
-        <p class="memo-game__desc"><?= htmlspecialchars(__('jeux.tracteur_desc')) ?></p>
+    <section class="labour-chrono-game container" id="labour-chrono-game" aria-labelledby="labour-title">
+        <h2 id="labour-title" class="memo-game__title"><?= htmlspecialchars(__('jeux.labour_title')) ?></h2>
+        <p class="memo-game__desc"><?= htmlspecialchars(__('jeux.labour_desc')) ?></p>
         <canvas
-            id="hill-climb-canvas"
-            class="hill-climb-game__canvas"
-            aria-label="<?= htmlspecialchars(__('jeux.tracteur_title')) ?>"
-            data-world-record="<?= (int) ($wrTracteur ?? 0) ?>"
+            id="labour-chrono-canvas"
+            class="labour-chrono-game__canvas"
+            aria-label="<?= htmlspecialchars(__('jeux.labour_title')) ?>"
+            data-world-record="<?= (int) ($wrLabour ?? 0) ?>"
+        ></canvas>
+    </section>
+
+    <div class="jeux-divider" aria-hidden="true">
+        <span class="jeux-divider__line"></span>
+        <span class="jeux-divider__ornament">✦</span>
+        <span class="jeux-divider__line"></span>
+    </div>
+
+    <section class="tonneau-catapulte-game container" id="tonneau-catapulte-game" aria-labelledby="catapulte-title">
+        <h2 id="catapulte-title" class="memo-game__title"><?= htmlspecialchars(__('jeux.catapulte_title')) ?></h2>
+        <p class="memo-game__desc"><?= htmlspecialchars(__('jeux.catapulte_desc')) ?></p>
+        <canvas
+            id="tonneau-catapulte-canvas"
+            class="tonneau-catapulte-game__canvas"
+            aria-label="<?= htmlspecialchars(__('jeux.catapulte_title')) ?>"
+            data-world-record="<?= (int) ($wrCatapulte ?? 0) ?>"
+        ></canvas>
+    </section>
+
+    <div class="jeux-divider" aria-hidden="true">
+        <span class="jeux-divider__line"></span>
+        <span class="jeux-divider__ornament">✦</span>
+        <span class="jeux-divider__line"></span>
+    </div>
+
+    <section class="vendange-express-game container" id="vendange-express-game" aria-labelledby="vendange-express-title">
+        <h2 id="vendange-express-title" class="memo-game__title"><?= htmlspecialchars(__('jeux.vendangeexpress_title')) ?></h2>
+        <p class="memo-game__desc"><?= htmlspecialchars(__('jeux.vendangeexpress_desc')) ?></p>
+        <canvas
+            id="vendange-express-canvas"
+            class="vendange-express-game__canvas"
+            aria-label="<?= htmlspecialchars(__('jeux.vendangeexpress_title')) ?>"
+            data-world-record="<?= (int) ($wrVendangeExpress ?? 0) ?>"
         ></canvas>
     </section>
 </main>
