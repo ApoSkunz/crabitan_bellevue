@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.12.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.12.0...v0.12.1) (2026-03-26)
+
+
+### Bug Fixes
+
+* **ci:** CodeQL — ajout permissions security-events:write + actions:read ([175e4ec](https://github.com/ApoSkunz/crabitan_bellevue/commit/175e4ec09678b01991a39651526707b41491ebc8))
+
 # [0.12.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.11.0...v0.12.0) (2026-03-26)
 
 
