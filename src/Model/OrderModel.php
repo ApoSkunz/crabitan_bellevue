@@ -186,6 +186,31 @@ class OrderModel extends Model
         );
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForUser(int $userId, int $page, int $perPage): array
+    {
+        $offset = ($page - 1) * $perPage;
+        return $this->db->fetchAll(
+            "SELECT id, order_reference, status, price, payment_method, ordered_at, path_invoice
+             FROM {$this->table}
+             WHERE user_id = ?
+             ORDER BY ordered_at DESC
+             LIMIT ? OFFSET ?",
+            [$userId, $perPage, $offset]
+        );
+    }
+
+    public function countForUser(int $userId): int
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total FROM {$this->table} WHERE user_id = ?",
+            [$userId]
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
     /** @return array{string, array<int, mixed>} */
     private function buildAdminFilters(?string $status, ?string $search, ?string $payment = null): array
     {

@@ -44,4 +44,26 @@ class ConnectionModel extends Model
             [$token]
         );
     }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getActiveForUser(int $userId): array
+    {
+        return $this->db->fetchAll(
+            "SELECT id, device_name, ip_address, auth_method, created_at, expired_at
+             FROM {$this->table}
+             WHERE user_id = ? AND status = 'active' AND expired_at > NOW()
+             ORDER BY created_at DESC",
+            [$userId]
+        );
+    }
+
+    public function revokeById(int $id, int $userId): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET status = 'revoked' WHERE id = ? AND user_id = ?",
+            [$id, $userId]
+        );
+    }
 }
