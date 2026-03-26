@@ -332,8 +332,8 @@ function getLocalCartCount() {
 function updateCartCount() {
     const badge = document.querySelector('.header-cart__count');
     if (!badge) return;
-    const count = window.__userLogged ? 0 : getLocalCartCount();
-    badge.textContent = count;
+    const count = getLocalCartCount();
+    badge.textContent = count > 0 ? count : '';
 }
 
 // ============================================================
@@ -358,6 +358,8 @@ function initCartModal() {
 
     if (!modal) return;
 
+    let currentCuvee = '';
+
     // Parse "15,50 €" → 15.50 (float)
     function parsePrice(str) {
         return parseFloat((str || '0').replace(/\s/g, '').replace(',', '.').replace('€', '')) || 0;
@@ -376,6 +378,7 @@ function initCartModal() {
         const wineName  = btn.dataset.wineName  || '';
         const winePrice = btn.dataset.winePrice || '';
         const wineImage = btn.dataset.wineImage || '';
+        currentCuvee    = btn.dataset.wineCuvee || '';
 
         titleEl.textContent   = wineName;
         priceEl.textContent   = winePrice;
@@ -384,6 +387,16 @@ function initCartModal() {
         wineIdEl.value        = wineId;
         qtyInput.value        = 1;
         qtyHidden.value       = 1;
+
+        const cuveeEl = document.getElementById('cart-modal-cuvee');
+        if (cuveeEl) {
+            if (currentCuvee) {
+                cuveeEl.textContent = '\u2605 ' + currentCuvee;
+                cuveeEl.hidden = false;
+            } else {
+                cuveeEl.hidden = true;
+            }
+        }
 
         refreshTotal();
 
@@ -397,6 +410,29 @@ function initCartModal() {
     function closeModal() {
         modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+        const successEl = document.getElementById('cart-modal-success');
+        const bodyEl    = modal.querySelector('.cart-modal__body');
+        const footerEl  = modal.querySelector('.cart-modal__footer');
+        if (successEl) successEl.hidden = true;
+        if (bodyEl)    bodyEl.hidden    = false;
+        if (footerEl)  footerEl.hidden  = false;
+    }
+
+    function showCartSuccess(qty) {
+        const successEl = document.getElementById('cart-modal-success');
+        const msgEl     = document.getElementById('cart-modal-success-msg');
+        const bodyEl    = modal.querySelector('.cart-modal__body');
+        const footerEl  = modal.querySelector('.cart-modal__footer');
+        const isEn      = document.documentElement.lang === 'en';
+        const msg = isEn
+            ? qty + ' bottle' + (qty > 1 ? 's' : '') + ' added to your cart!'
+            : qty + ' bouteille' + (qty > 1 ? 's' : '') + ' ajout\u00e9e' + (qty > 1 ? 's' : '') + ' au panier\u00a0!';
+        if (msgEl)     msgEl.textContent = msg;
+        if (bodyEl)    bodyEl.hidden     = true;
+        if (footerEl)  footerEl.hidden   = true;
+        if (successEl) successEl.hidden  = false;
+        updateCartCount();
+        setTimeout(closeModal, 1200);
     }
 
     // Open on js-add-to-cart click (delegated) — tous les utilisateurs
@@ -406,26 +442,18 @@ function initCartModal() {
         openModal(btn);
     });
 
-    // Soumission du formulaire
+    // Soumission du formulaire — toujours interceptée (cart côté serveur non encore implémenté)
     form?.addEventListener('submit', (e) => {
-        if (!window.__userLogged) {
-            e.preventDefault();
-            addToLocalCart({
-                id:    parseInt(wineIdEl.value, 10),
-                qty:   parseInt(qtyHidden.value, 10) || 1,
-                name:  titleEl.textContent,
-                price: priceEl.textContent,
-                image: imgEl.src,
-            });
-            closeModal();
-            showToast(
-                document.documentElement.lang === 'en'
-                    ? 'Added to cart!'
-                    : 'Ajouté au panier !',
-                false
-            );
-        }
-        // Si connecté : le formulaire se soumet normalement vers le serveur
+        e.preventDefault();
+        const qty = parseInt(qtyHidden.value, 10) || 1;
+        addToLocalCart({
+            id:    parseInt(wineIdEl.value, 10),
+            qty,
+            name:  titleEl.textContent,
+            price: priceEl.textContent,
+            image: imgEl.src,
+        });
+        showCartSuccess(qty);
     });
 
     backdrop?.addEventListener('click', closeModal);
@@ -660,6 +688,86 @@ function initFavoriteAuth() {
             showToast(btn.dataset.loginMsg || 'Connectez-vous pour aimer ce vin.', false);
         }
     }, true); // capture phase so we intercept before any other handler
+}
+
+// ============================================================
+// Favoris — toggle AJAX (connecté uniquement)
+// ============================================================
+
+function initFavoriteToggle() {
+    // Cœur brisé au survol des boutons déjà likés
+    document.addEventListener('mouseover', (e) => {
+        const btn = e.target.closest('.js-favorite.is-liked');
+        if (!btn) return;
+        const iconEl = btn.querySelector('.js-favorite-icon');
+        if (iconEl) iconEl.textContent = '\uD83D\uDC94';
+        else        btn.textContent    = '\uD83D\uDC94';
+    });
+    document.addEventListener('mouseout', (e) => {
+        const btn = e.target.closest('.js-favorite.is-liked');
+        if (!btn) return;
+        const iconEl = btn.querySelector('.js-favorite-icon');
+        if (iconEl) iconEl.textContent = '\u2665';
+        else        btn.textContent    = '\u2665';
+    });
+
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-favorite');
+        if (!btn || !window.__userLogged) return;
+
+        const wineId = parseInt(btn.dataset.wineId, 10);
+        if (!wineId) return;
+
+        btn.disabled = true;
+
+        fetch('/api/favorites/toggle', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ wine_id: wineId }),
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (!data.success) return;
+                const liked   = data.liked;
+                const iconEl  = btn.querySelector('.js-favorite-icon');
+                const labelEl = btn.querySelector('.js-favorite-label');
+                const isEn    = document.documentElement.lang === 'en';
+
+                btn.dataset.liked = liked ? 'true' : 'false';
+                btn.classList.toggle('is-liked', liked);
+                btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
+
+                if (iconEl)       iconEl.textContent  = liked ? '\u2665' : '\u2661';
+                else              btn.textContent      = liked ? '\u2665' : '\u2661';
+                if (labelEl) labelEl.textContent = liked
+                    ? (isEn ? 'Remove from favourites' : 'Retirer des favoris')
+                    : (isEn ? 'Add to favourites'      : 'Ajouter aux favoris');
+
+                // Sync all other buttons + counters for this wine on the page
+                document.querySelectorAll(`.js-favorite[data-wine-id="${wineId}"]`).forEach((other) => {
+                    if (other === btn) return;
+                    other.dataset.liked = liked ? 'true' : 'false';
+                    other.classList.toggle('is-liked', liked);
+                    other.setAttribute('aria-pressed', liked ? 'true' : 'false');
+                    const otherIcon = other.querySelector('.js-favorite-icon');
+                    if (otherIcon) otherIcon.textContent = liked ? '\u2665' : '\u2661';
+                    else           other.textContent      = liked ? '\u2665' : '\u2661';
+                });
+                document.querySelectorAll(`.wine-card__likes-count[data-wine-id="${wineId}"]`).forEach((counter) => {
+                    const current = parseInt(counter.textContent, 10) || 0;
+                    counter.textContent = liked ? current + 1 : Math.max(0, current - 1);
+                });
+            })
+            .catch(() => {
+                showToast(
+                    document.documentElement.lang === 'en'
+                        ? 'An error occurred. Please try again.'
+                        : 'Une erreur est survenue. Veuillez r\u00e9essayer.',
+                    false
+                );
+            })
+            .finally(() => { btn.disabled = false; });
+    });
 }
 
 // ============================================================
@@ -1004,6 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCartModal();
     initCartLoginPrompt();
     initFavoriteAuth();
+    initFavoriteToggle();
     initWineZoom();
     updateCartCount();
     initContactForm();
