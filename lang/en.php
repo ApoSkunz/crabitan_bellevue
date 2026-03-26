@@ -358,8 +358,10 @@ return [
     'jeux.win'         => 'Congratulations! You found all the pairs.',
     'jeux.lose'        => 'Time\'s up! Try again.',
     'jeux.pairs_found'    => 'pairs found',
-    'jeux.runner_title'   => 'The Winemaker',
-    'jeux.runner_desc'    => 'Help the winemaker jump over the vines. Click or press Space to jump.',
+    'jeux.runner_title'   => 'The Grape Harvester',
+    'jeux.runner_desc'    => 'Help the grape harvester jump over the vines. Click or press Space to jump.',
+    'jeux.tracteur_title' => 'The Vineyard Tractor',
+    'jeux.tracteur_desc'  => 'Hold click or Space to accelerate. Don\'t let the tractor tip over!',
 
     // Sitemap
     'sitemap.intro'            => 'Browse all pages on our website',

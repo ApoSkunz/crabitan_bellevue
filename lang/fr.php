@@ -360,8 +360,10 @@ return [
     'jeux.win'         => 'Félicitations ! Vous avez trouvé toutes les paires.',
     'jeux.lose'        => 'Temps écoulé ! Réessayez.',
     'jeux.pairs_found'    => 'paires trouvées',
-    'jeux.runner_title'   => 'La Vigneronne',
-    'jeux.runner_desc'    => 'Aidez la vigneronne à sauter par-dessus les vignes. Cliquez ou appuyez sur Espace pour sauter.',
+    'jeux.runner_title'   => 'La Vendangeuse',
+    'jeux.runner_desc'    => 'Aidez la vendangeuse à sauter par-dessus les vignes. Cliquez ou appuyez sur Espace pour sauter.',
+    'jeux.tracteur_title' => 'Le Tracteur des Vignes',
+    'jeux.tracteur_desc'  => 'Maintenez le clic ou Espace pour accélérer. Ne laissez pas le tracteur se renverser !',
 
     // Plan du site
     'sitemap.intro'            => 'Retrouvez les différentes pages de notre site',
