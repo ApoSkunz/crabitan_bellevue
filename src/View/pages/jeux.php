@@ -14,6 +14,12 @@ $pairCount = count($wines ?? []);
         </div>
     </div>
 
+    <div class="jeux-divider" aria-hidden="true">
+        <span class="jeux-divider__line"></span>
+        <span class="jeux-divider__ornament">✦</span>
+        <span class="jeux-divider__line"></span>
+    </div>
+
     <section
         class="memo-game container"
         id="memo-game"
@@ -21,6 +27,7 @@ $pairCount = count($wines ?? []);
         data-pair-count="<?= $pairCount ?>"
         data-win-msg="<?= htmlspecialchars(__('jeux.win')) ?>"
         data-lose-msg="<?= htmlspecialchars(__('jeux.lose')) ?>"
+        data-world-record="<?= (int) ($wrMemo ?? 0) ?>"
     >
         <h2 id="memo-title" class="memo-game__title"><?= htmlspecialchars(__('jeux.memo_title')) ?></h2>
         <p class="memo-game__desc"><?= htmlspecialchars(__('jeux.memo_desc')) ?></p>
@@ -86,17 +93,40 @@ $pairCount = count($wines ?? []);
             </button>
         </div>
     </section>
+
+    <div class="jeux-divider" aria-hidden="true">
+        <span class="jeux-divider__line"></span>
+        <span class="jeux-divider__ornament">✦</span>
+        <span class="jeux-divider__line"></span>
+    </div>
+
+    <section class="runner-game container" id="runner-game" aria-labelledby="runner-title">
+        <h2 id="runner-title" class="memo-game__title"><?= htmlspecialchars(__('jeux.runner_title')) ?></h2>
+        <p class="memo-game__desc"><?= htmlspecialchars(__('jeux.runner_desc')) ?></p>
+        <canvas
+            id="runner-canvas"
+            class="runner-game__canvas"
+            aria-label="<?= htmlspecialchars(__('jeux.runner_title')) ?>"
+            data-world-record="<?= (int) ($wrVendangeuse ?? 0) ?>"
+        ></canvas>
+    </section>
+
+    <div class="jeux-divider" aria-hidden="true">
+        <span class="jeux-divider__line"></span>
+        <span class="jeux-divider__ornament">✦</span>
+        <span class="jeux-divider__line"></span>
+    </div>
+
+    <section class="hill-climb-game container" id="hill-climb-game" aria-labelledby="hill-climb-title">
+        <h2 id="hill-climb-title" class="memo-game__title"><?= htmlspecialchars(__('jeux.tracteur_title')) ?></h2>
+        <p class="memo-game__desc"><?= htmlspecialchars(__('jeux.tracteur_desc')) ?></p>
+        <canvas
+            id="hill-climb-canvas"
+            class="hill-climb-game__canvas"
+            aria-label="<?= htmlspecialchars(__('jeux.tracteur_title')) ?>"
+            data-world-record="<?= (int) ($wrTracteur ?? 0) ?>"
+        ></canvas>
+    </section>
 </main>
-
-
-<section class="runner-game container" id="runner-game" aria-labelledby="runner-title">
-    <h2 id="runner-title" class="memo-game__title"><?= htmlspecialchars(__('jeux.runner_title')) ?></h2>
-    <p class="memo-game__desc"><?= htmlspecialchars(__('jeux.runner_desc')) ?></p>
-    <canvas
-        id="runner-canvas"
-        class="runner-game__canvas"
-        aria-label="<?= htmlspecialchars(__('jeux.runner_title')) ?>"
-    ></canvas>
-</section>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
