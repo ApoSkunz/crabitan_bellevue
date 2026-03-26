@@ -314,11 +314,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="login-modal__social">
                     <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
                         <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
+                            <img src="/assets/images/login/Google__G__logo.png" alt="" width="18" height="18">
                             <?= htmlspecialchars(__('auth.modal.google')) ?>
                         </button>
                     </span>
                     <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
                         <button type="button" class="btn btn-social btn-social--apple" disabled aria-disabled="true">
+                            <img src="/assets/images/login/Apple_logo_black.svg" alt="" width="16" height="18" class="btn-social__apple-logo">
                             <?= htmlspecialchars(__('auth.modal.apple')) ?>
                         </button>
                     </span>
@@ -339,8 +341,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="login-modal__password-wrap">
                             <input type="password" id="login-modal-password" name="password" required autocomplete="current-password">
                             <button type="button" class="login-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="login-modal-password">
-                                <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
-                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                                <span class="pwd-eye pwd-eye--show" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
                             </button>
                         </div>
                     </div>
@@ -402,11 +404,13 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="register-modal__social">
                 <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
                     <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
+                        <img src="/assets/images/login/Google__G__logo.png" alt="" width="18" height="18">
                         <?= htmlspecialchars(__('auth.modal.google')) ?>
                     </button>
                 </span>
                 <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
                     <button type="button" class="btn btn-social btn-social--apple" disabled aria-disabled="true">
+                        <img src="/assets/images/login/Apple_logo_black.svg" alt="" width="16" height="18" class="btn-social__apple-logo">
                         <?= htmlspecialchars(__('auth.modal.apple')) ?>
                     </button>
                 </span>
@@ -599,8 +603,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                    required minlength="12" autocomplete="new-password">
                             <button type="button" class="login-modal__pwd-toggle"
                                     aria-label="Afficher le mot de passe" data-target="reset-modal-password">
-                                <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
-                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                                <span class="pwd-eye pwd-eye--show" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
                             </button>
                         </div>
                     </div>
@@ -611,8 +615,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                    required minlength="12" autocomplete="new-password">
                             <button type="button" class="login-modal__pwd-toggle"
                                     aria-label="Afficher le mot de passe" data-target="reset-modal-confirm">
-                                <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
-                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                                <span class="pwd-eye pwd-eye--show" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                                <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
                             </button>
                         </div>
                     </div>
