@@ -122,7 +122,7 @@ class PageController extends Controller
     {
         $lang  = $this->resolveLang($params);
         $model = new WineModel();
-        $wines = $model->getAll(null, 'default', 14);
+        $wines = $model->getRandomForMemo(14);
         $this->view('pages/jeux', ['lang' => $lang, 'wines' => $wines]);
     }
 
