@@ -7,7 +7,7 @@ namespace Service;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class MailService
+class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont des seams de testabilité, pas de la logique métier
 {
     private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
     private const URL_PRIVACY = '/fr/politique-confidentialite';
@@ -122,7 +122,7 @@ class MailService
 
         $attachmentPath = null;
         if ($isOrderForm) {
-            $latest = (new \Model\OrderFormModel())->getLatest();
+            $latest = $this->newOrderFormModel()->getLatest();
             if ($latest !== null) {
                 $path = ROOT_PATH . '/storage/order_forms/' . $latest['filename'];
                 if (file_exists($path)) {
@@ -387,6 +387,11 @@ INNER;
 INNER;
 
         return $this->emailWrap($title, $inner);
+    }
+
+    protected function newOrderFormModel(): \Model\OrderFormModel
+    {
+        return new \Model\OrderFormModel();
     }
 
     private function emailWrap(string $title, string $innerContent): string

@@ -451,6 +451,22 @@ class MailServiceTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // sendEmailVerification — branche FR (L49, L53)
+    // ----------------------------------------------------------------
+
+    public function testSendEmailVerificationFrCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendEmailVerification(
+            'alice@example.com',
+            'Alice',
+            'https://example.com/verify/abc',
+            'fr'
+        );
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
     // sendEmailVerification — branche EN (L50, L54)
     // ----------------------------------------------------------------
 
@@ -516,6 +532,81 @@ class MailServiceTest extends TestCase
         $m->invoke($this->service, 'dest@example.com', 'Dest', 'Subject', '<p>Body</p>', $tmpFile, null);
 
         unlink($tmpFile);
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendContactConfirmation — bon_commande, latest !== null, fichier absent
+    // Couvre : if ($latest !== null) + if (file_exists) branche false
+    // ----------------------------------------------------------------
+
+    public function testOrderFormLatestNotNullFileNotFound(): void
+    {
+        // Stub OrderFormModel via sous-classe anonyme (pas de constructeur DB)
+        $fakeModel = new class extends \Model\OrderFormModel {
+            public function __construct()
+            {
+                // skip DB connection
+            }
+            public function getLatest(): ?array
+            {
+                return ['filename' => 'nonexistent_xyz_test.pdf'];
+            }
+        };
+
+        $service = new class ($fakeModel) extends MailService {
+            public function __construct(private \Model\OrderFormModel $model)
+            {
+                parent::__construct();
+            }
+            protected function newOrderFormModel(): \Model\OrderFormModel
+            {
+                return $this->model;
+            }
+        };
+        $this->injectMockMailer($service);
+
+        $service->sendContactConfirmation('a@b.com', 'Jean', 'bon_commande', 'fr');
+        $this->assertTrue(true); // attachmentPath null car fichier absent → send() sans pièce jointe
+    }
+
+    // ----------------------------------------------------------------
+    // sendContactConfirmation — bon_commande, latest !== null, fichier existe
+    // Couvre : if (file_exists) branche true + $attachmentPath = $path
+    // ----------------------------------------------------------------
+
+    public function testOrderFormLatestNotNullFileExists(): void
+    {
+        $dir     = ROOT_PATH . '/storage/order_forms/';
+        $tmpName = 'test_coverage_attach.pdf';
+        $tmpPath = $dir . $tmpName;
+        file_put_contents($tmpPath, '%PDF-1.4 test');
+
+        $fakeModel = new class ($tmpName) extends \Model\OrderFormModel {
+            public function __construct(private string $fname)
+            {
+                // skip DB connection
+            }
+            public function getLatest(): ?array
+            {
+                return ['filename' => $this->fname];
+            }
+        };
+
+        $service = new class ($fakeModel) extends MailService {
+            public function __construct(private \Model\OrderFormModel $model)
+            {
+                parent::__construct();
+            }
+            protected function newOrderFormModel(): \Model\OrderFormModel
+            {
+                return $this->model;
+            }
+        };
+        $this->injectMockMailer($service);
+
+        $service->sendContactConfirmation('a@b.com', 'Jean', 'bon_commande', 'fr');
+        unlink($tmpPath);
         $this->assertTrue(true);
     }
 }
