@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Controller;
 
 use Core\Controller;
-use Core\Response;
 use Model\GameScoreModel;
 
 class GameScoreController extends Controller
@@ -18,10 +17,8 @@ class GameScoreController extends Controller
      * Body JSON : {"game":"vendangeuse","score":123}
      * Réponse   : {"record":456,"new_record":true}
      */
-    public function save(array $params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+    public function save(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
-        header('Content-Type: application/json; charset=utf-8');
-
         $body  = (string) file_get_contents('php://input');
         $data  = json_decode($body, true);
 
@@ -29,35 +26,29 @@ class GameScoreController extends Controller
         $score = isset($data['score']) ? (int) $data['score']          : -1;
 
         if (!in_array($game, self::ALLOWED_GAMES, true) || $score < 0 || $score > self::MAX_SCORE) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Invalid payload']);
-            return;
+            $this->json(['error' => 'Invalid payload'], 400);
         }
 
         $model     = new GameScoreModel();
         $newRecord = $model->updateIfBetter($game, $score);
         $record    = $model->getBestScore($game);
 
-        echo json_encode(['record' => $record, 'new_record' => $newRecord]);
+        $this->json(['record' => $record, 'new_record' => $newRecord]);
     }
 
     /**
      * GET /api/jeux/score?game=vendangeuse
      */
-    public function get(array $params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+    public function get(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
-        header('Content-Type: application/json; charset=utf-8');
-
         $game = isset($_GET['game']) ? trim((string) $_GET['game']) : '';
 
         if (!in_array($game, self::ALLOWED_GAMES, true)) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Unknown game']);
-            return;
+            $this->json(['error' => 'Unknown game'], 400);
         }
 
         $model  = new GameScoreModel();
         $record = $model->getBestScore($game);
-        echo json_encode(['record' => $record]);
+        $this->json(['record' => $record]);
     }
 }
