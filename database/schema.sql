@@ -119,7 +119,7 @@ CREATE TABLE `wines` (
   `price`                DECIMAL(10,2)  NOT NULL,
   `quantity`             INT            NOT NULL DEFAULT 0,
   `available`            TINYINT(1)     NOT NULL DEFAULT 1,
-  `certification_label`  VARCHAR(255)   DEFAULT NULL,
+  `certification_label`  ENUM('AOC','IGP','STG','AOP') NOT NULL DEFAULT 'AOC',
   `area`                 DECIMAL(10,2)  NOT NULL COMMENT 'Superficie en hectares',
   `city`                 VARCHAR(255)   NOT NULL,
   `variety_of_vine`      VARCHAR(255)   NOT NULL,
