@@ -67,6 +67,33 @@ jobs:
             --error \
             .
 
+  exakat:
+    name: SAST — Exakat PHP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: tokenizer, mbstring, json
+          coverage: none
+
+      - name: Download Exakat
+        run: |
+          curl -Lo exakat.phar https://www.exakat.io/versions/exakat.phar
+          php exakat.phar doctor
+
+      - name: Run Exakat CI checks
+        run: |
+          php exakat.phar ci-checks \
+            -p . \
+            --ignore-dirs vendor,node_modules,coverage,public/assets \
+            -r Text
+
   legitify:
     name: Legitify GitHub Security
     runs-on: ubuntu-latest

@@ -6,8 +6,8 @@ on:
   pull_request:
 
 jobs:
-  quality:
-    name: Code Quality
+  quality-php:
+    name: Code Quality — PHP
     runs-on: ubuntu-latest
 
     steps:
@@ -28,6 +28,14 @@ jobs:
 
       - name: PHP_CodeSniffer
         run: vendor/bin/phpcs
+
+  quality-js:
+    name: Code Quality — JS/SCSS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -188,7 +196,7 @@ jobs:
         run: php -S 0.0.0.0:8080 -t public/ public/router.php &
 
       - name: Wait for server
-        run: sleep 2
+        run: curl --retry 15 --retry-delay 1 --retry-connrefused --silent --output /dev/null http://localhost:8080/
 
       - name: Run Playwright (Chromium)
         env:
@@ -313,7 +321,7 @@ jobs:
         run: php -S 0.0.0.0:8080 -t public/ public/router.php &
 
       - name: Wait for server
-        run: sleep 2
+        run: curl --retry 15 --retry-delay 1 --retry-connrefused --silent --output /dev/null http://localhost:8080/
 
       - name: Run Lighthouse CI
         env:
