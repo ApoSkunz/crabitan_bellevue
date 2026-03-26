@@ -47,8 +47,9 @@ $carouselSlides = [
                 <?php endforeach; ?>
             </div>
 
-            <div id="weather-widget" class="carousel__weather" aria-label="Météo locale" hidden></div>
-            <a href="https://open-meteo.com/" class="carousel__weather-credit" target="_blank" rel="noopener noreferrer">Weather data by Open-Meteo.com</a>
+            <div id="weather-widget" class="carousel__weather" aria-label="Météo locale" hidden>
+                <a href="https://www.weatherapi.com/" title="Weather API" class="carousel__weather-credit" target="_blank" rel="noopener noreferrer">Powered by WeatherAPI.com</a>
+            </div>
 
             <div class="carousel__caption">
                 <p class="carousel__eyebrow">Sainte-Croix-du-Mont</p>
