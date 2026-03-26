@@ -10,7 +10,7 @@ use Model\GameScoreModel;
 
 class GameScoreController extends Controller
 {
-    private const ALLOWED_GAMES = ['vendangeuse', 'memo', 'tracteur'];
+    private const ALLOWED_GAMES = ['vendangeuse', 'memo', 'labour', 'catapulte', 'vendangeexpress'];
     private const MAX_SCORE     = 99999;
 
     /**

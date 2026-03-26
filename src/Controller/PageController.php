@@ -123,16 +123,20 @@ class PageController extends Controller
         $lang        = $this->resolveLang($params);
         $wineModel        = new WineModel();
         $scoreModel       = new \Model\GameScoreModel();
-        $wines            = $wineModel->getRandomForMemo(14);
+        $wines            = $wineModel->getRandomForMemo(9);
         $wrVendangeuse    = $scoreModel->getBestScore('vendangeuse');
         $wrMemo           = $scoreModel->getBestScore('memo');
-        $wrTracteur       = $scoreModel->getBestScore('tracteur');
+        $wrLabour            = $scoreModel->getBestScore('labour');
+        $wrCatapulte         = $scoreModel->getBestScore('catapulte');
+        $wrVendangeExpress   = $scoreModel->getBestScore('vendangeexpress');
         $this->view('pages/jeux', [
-            'lang'         => $lang,
-            'wines'        => $wines,
-            'wrVendangeuse' => $wrVendangeuse,
-            'wrMemo'       => $wrMemo,
-            'wrTracteur'   => $wrTracteur,
+            'lang'              => $lang,
+            'wines'             => $wines,
+            'wrVendangeuse'     => $wrVendangeuse,
+            'wrMemo'            => $wrMemo,
+            'wrLabour'          => $wrLabour,
+            'wrCatapulte'       => $wrCatapulte,
+            'wrVendangeExpress' => $wrVendangeExpress,
         ]);
     }
 
