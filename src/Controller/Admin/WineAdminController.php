@@ -23,6 +23,9 @@ class WineAdminController extends AdminController
         'Bordeaux Rouge'                    => 'red',
     ];
 
+    /** @var string[] */
+    private const CERT_LABELS = ['AOC', 'IGP', 'STG', 'AOP'];
+
     private const ADMIN_BASE       = '/admin';
     private const ADMIN_URL        = '/admin/vins';
     private const FORM_VIEW        = 'admin/wines/form';
@@ -269,6 +272,9 @@ class WineAdminController extends AdminController
         }
         if ($quantity < 0) {
             $errors['quantity'] = 'Quantité invalide.';
+        }
+        if (!in_array($certLabel, self::CERT_LABELS, true)) {
+            $errors['certification_label'] = 'Appellation invalide. Valeurs autorisées : ' . implode(', ', self::CERT_LABELS) . '.';
         }
         // Slug : toujours auto en création, conservé en modification
         $slug = $existing !== null

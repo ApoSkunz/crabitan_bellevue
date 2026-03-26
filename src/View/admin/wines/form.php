@@ -159,11 +159,20 @@ $maxYear = (int) date('Y');
             </div>
 
             <div class="admin-field">
-                <label class="admin-field__label" for="certification_label">Label / Certification *</label>
-                <input type="text" id="certification_label" name="certification_label" required
-                       placeholder="ex: AOC, IGP…"
-                       class="admin-field__input"
-                       value="<?= fieldVal($wine, 'certification_label') ?>">
+                <label class="admin-field__label" for="certification_label">Appellation *</label>
+                <select id="certification_label" name="certification_label" required
+                        class="admin-field__select<?= hasError($errors, 'certification_label') ? $errClass : '' ?>">
+                    <option value="">— Choisir une appellation —</option>
+                    <?php foreach (['AOC', 'IGP', 'STG', 'AOP'] as $certOpt) : ?>
+                        <option value="<?= $certOpt ?>"
+                            <?= fieldVal($wine, 'certification_label') === $certOpt ? 'selected' : '' ?>>
+                            <?= $certOpt ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if (hasError($errors, 'certification_label')) : ?>
+                    <span class="admin-field__error"><?= htmlspecialchars($errors['certification_label']) ?></span>
+                <?php endif; ?>
             </div>
 
             <div class="admin-field">
