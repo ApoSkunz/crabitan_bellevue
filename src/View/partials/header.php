@@ -101,7 +101,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
                 >
                     <span class="header-cart__wrap">
-                        <span class="header-cart__badge" class="header-cart__count">0</span>
+                        <span class="header-cart__badge header-cart__count">0</span>
                         <span class="header-cart__icon">&#128722;</span>
                     </span>
                     <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
@@ -124,7 +124,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     data-login-url="/<?= htmlspecialchars($navLang) ?>/connexion"
                 >
                     <span class="header-cart__wrap">
-                        <span class="header-cart__badge" class="header-cart__count">0</span>
+                        <span class="header-cart__badge header-cart__count">0</span>
                         <span class="header-cart__icon">&#128722;</span>
                     </span>
                     <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
@@ -251,8 +251,11 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="cart-modal__backdrop" id="cart-modal-backdrop"></div>
     <div class="cart-modal__inner">
         <div class="cart-modal__header">
-            <!-- NOSONAR Web:S6850 — title content set dynamically by JS before modal opens -->
-            <h2 id="cart-modal-title" class="cart-modal__title"></h2>
+            <div class="cart-modal__title-wrap">
+                <!-- NOSONAR Web:S6850 — title content set dynamically by JS before modal opens -->
+                <h2 id="cart-modal-title" class="cart-modal__title"></h2>
+                <p id="cart-modal-cuvee" class="cart-modal__cuvee" hidden></p>
+            </div>
             <button id="cart-modal-close" class="cart-modal__close" type="button" aria-label="Fermer">&times;</button>
         </div>
         <div class="cart-modal__body">
@@ -273,6 +276,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
             </div>
+        </div>
+        <div id="cart-modal-success" class="cart-modal__success" hidden>
+            <span class="cart-modal__success-icon">✓</span>
+            <p id="cart-modal-success-msg" class="cart-modal__success-msg"></p>
         </div>
         <form method="POST" id="cart-modal-form" action="">
             <input type="hidden" name="wine_id" id="cart-modal-wine-id" value="">
