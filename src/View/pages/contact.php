@@ -103,6 +103,8 @@ require_once SRC_PATH . '/View/partials/header.php';
                         <input type="checkbox" name="rgpd" value="1" required>
                         <span><?= htmlspecialchars(__('contact.form_rgpd')) ?></span>
                     </label>
+                    <p class="contact-form__rgpd-error" id="rgpd-error" hidden
+                       aria-live="polite"><?= htmlspecialchars(__('contact.error_rgpd')) ?></p>
                 </div>
 
                 <div class="contact-form__submit">
