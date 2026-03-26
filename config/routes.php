@@ -95,6 +95,10 @@ $router->get('/{lang}/mon-compte/commandes', 'AccountController@orders');
 $router->get('/{lang}/mon-compte/commandes/{id}/facture', 'InvoiceController@download');
 $router->get('/{lang}/mon-compte/adresses', 'AccountController@addresses');
 $router->get('/{lang}/mon-compte/favoris', 'AccountController@favorites');
+$router->get('/{lang}/mon-compte/securite', 'AccountController@security');
+$router->post('/{lang}/mon-compte/securite/mot-de-passe', 'AccountController@changePassword');
+$router->post('/{lang}/mon-compte/securite/session/{id}/revoquer', 'AccountController@revokeSession');
+$router->get('/{lang}/mon-compte/export', 'AccountController@exportData');
 
 // ============================================================
 // Routes API (AJAX)
