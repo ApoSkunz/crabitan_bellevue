@@ -359,7 +359,9 @@ return [
     'jeux.restart'     => 'Rejouer',
     'jeux.win'         => 'Félicitations ! Vous avez trouvé toutes les paires.',
     'jeux.lose'        => 'Temps écoulé ! Réessayez.',
-    'jeux.pairs_found' => 'paires trouvées',
+    'jeux.pairs_found'    => 'paires trouvées',
+    'jeux.runner_title'   => 'La Vigneronne',
+    'jeux.runner_desc'    => 'Aidez la vigneronne à sauter par-dessus les vignes. Cliquez ou appuyez sur Espace pour sauter.',
 
     // Plan du site
     'sitemap.intro'            => 'Retrouvez les différentes pages de notre site',

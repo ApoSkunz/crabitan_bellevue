@@ -1023,4 +1023,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('memo-game')) {
         import('./memo-game.js').then((m) => m.initMemoGame());
     }
+    if (document.getElementById('runner-game')) {
+        import('./runner-game.js').then((m) => m.initRunnerGame());
+    }
 });

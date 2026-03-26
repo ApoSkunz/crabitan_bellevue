@@ -89,4 +89,14 @@ $pairCount = count($wines ?? []);
 </main>
 
 
+<section class="runner-game container" id="runner-game" aria-labelledby="runner-title">
+    <h2 id="runner-title" class="memo-game__title"><?= htmlspecialchars(__('jeux.runner_title')) ?></h2>
+    <p class="memo-game__desc"><?= htmlspecialchars(__('jeux.runner_desc')) ?></p>
+    <canvas
+        id="runner-canvas"
+        class="runner-game__canvas"
+        aria-label="<?= htmlspecialchars(__('jeux.runner_title')) ?>"
+    ></canvas>
+</section>
+
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

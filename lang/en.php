@@ -357,7 +357,9 @@ return [
     'jeux.restart'     => 'Play again',
     'jeux.win'         => 'Congratulations! You found all the pairs.',
     'jeux.lose'        => 'Time\'s up! Try again.',
-    'jeux.pairs_found' => 'pairs found',
+    'jeux.pairs_found'    => 'pairs found',
+    'jeux.runner_title'   => 'The Winemaker',
+    'jeux.runner_desc'    => 'Help the winemaker jump over the vines. Click or press Space to jump.',
 
     // Sitemap
     'sitemap.intro'            => 'Browse all pages on our website',
