@@ -245,9 +245,10 @@ return [
     'home.location_cta'     => 'Contact us',
 
     // News
-    'news.read_more' => 'Read more',
-    'news.back'      => 'Back to news',
-    'news.empty'     => 'No news available at the moment.',
+    'news.read_more'  => 'Read more',
+    'news.back'       => 'Back to news',
+    'news.empty'      => 'No news available at the moment.',
+    'news.nav_label'  => 'Navigate between articles',
 
     // Contact
     'contact.tag'            => 'Get in touch',

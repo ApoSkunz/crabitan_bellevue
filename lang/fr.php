@@ -247,9 +247,10 @@ return [
     'home.location_cta'     => 'Contactez-nous',
 
     // News
-    'news.read_more' => 'Lire la suite',
-    'news.back'      => 'Retour aux actualités',
-    'news.empty'     => 'Aucune actualité disponible pour le moment.',
+    'news.read_more'  => 'Lire la suite',
+    'news.back'       => 'Retour aux actualités',
+    'news.empty'      => 'Aucune actualité disponible pour le moment.',
+    'news.nav_label'  => 'Navigation entre les actualités',
 
     // Contact
     'contact.tag'            => 'Nous joindre',
