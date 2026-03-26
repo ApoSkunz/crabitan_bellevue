@@ -48,6 +48,7 @@ $carouselSlides = [
             </div>
 
             <div id="weather-widget" class="carousel__weather" aria-label="Météo locale" hidden></div>
+            <a href="https://open-meteo.com/" class="carousel__weather-credit" target="_blank" rel="noopener noreferrer">Weather data by Open-Meteo.com</a>
 
             <div class="carousel__caption">
                 <p class="carousel__eyebrow">Sainte-Croix-du-Mont</p>

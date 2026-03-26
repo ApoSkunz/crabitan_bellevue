@@ -168,6 +168,21 @@
     white-space: nowrap;
 }
 
+.carousel__weather-credit {
+    position: absolute;
+    bottom: 1rem;
+    left: 1.5rem;
+    z-index: 2;
+    font-family: var(--font-sans);
+    font-size: 0.6rem;
+    color: rgba(245, 240, 232, 0.45);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 200ms ease;
+
+    &:hover { color: rgba(245, 240, 232, 0.8); }
+}
+
 // Points de navigation
 .carousel__dots {
     position: absolute;
