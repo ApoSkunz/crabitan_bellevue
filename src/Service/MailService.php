@@ -144,14 +144,13 @@ class MailService
         string $htmlContent,
         ?string $imageUrl = null
     ): string {
-        $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $logoUrl    = $appUrl . self::LOGO_PATH;
         $urlPrivacy = $appUrl . self::URL_PRIVACY;
         $urlLegal   = $appUrl . self::URL_LEGAL;
         $urlSupport = $appUrl . self::URL_SUPPORT;
-        $urlUnsub    = $appUrl . '/fr/mon-compte';
-        $year        = date('Y');
-        $safeTitle   = htmlspecialchars($title, ENT_QUOTES);
+        $urlUnsub   = $appUrl . '/fr/mon-compte';
+        $safeTitle  = htmlspecialchars($title, ENT_QUOTES);
         // Image optionnelle : centrée dans le bloc blanc, avant le séparateur/désabonnement
         $safeImage = $imageUrl !== null ? htmlspecialchars($imageUrl, ENT_QUOTES) : null;
         $imageHtml = $safeImage !== null
@@ -160,36 +159,13 @@ class MailService
               . "margin:24px auto 0;border:0;border-radius:4px;\">"
             : '';
 
-        return <<<HTML
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{$safeTitle}</title>
-  <style>
-    .footer-link:hover { color: #c9a84c !important; text-decoration: underline !important; }
-  </style>
-</head>
-<body style="margin:0;padding:0;background-color:#f5f0e8;font-family:Georgia,serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-         style="background-color:#f5f0e8;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+        $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport);
+
+        $inner = <<<INNER
 
           <!-- Header logo -->
-          <tr>
-            <td align="center" style="padding-bottom:28px;">
-              <a href="{$appUrl}" style="display:inline-block;text-decoration:none;">
-                <img src="{$logoUrl}" alt="Château Crabitan Bellevue" width="200" height="auto"
-                     style="display:block;border:0;max-width:200px;">
-              </a>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr><td style="padding-top:20px;border-bottom:1px solid #c9a84c;"></td></tr>
-              </table>
-            </td>
-          </tr>
+          {$headerHtml}
 
           <!-- Body -->
           <tr>
@@ -212,37 +188,11 @@ class MailService
           </tr>
 
           <!-- Footer -->
-          <tr>
-            <td align="center" style="padding-top:24px;">
-              <p style="margin:0 0 10px;">
-                <a href="{$urlPrivacy}" class="footer-link"
-                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Politique de confidentialité</a>
-                <span style="color:#c4b89a;padding:0 8px;">|</span>
-                <a href="{$urlLegal}" class="footer-link"
-                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Mentions légales</a>
-                <span style="color:#c4b89a;padding:0 8px;">|</span>
-                <a href="{$urlSupport}" class="footer-link"
-                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Assistance</a>
-              </p>
-              <p style="margin:0 0 6px;font-size:11px;color:#a89880;letter-spacing:1px;">
-                © {$year} Château Crabitan Bellevue — Sainte-Croix-du-Mont, Gironde
-              </p>
-              <p style="margin:0;font-size:10px;color:#b8aa95;">
-                Ce mail est généré automatiquement. Veuillez ne pas y répondre.
-              </p>
-            </td>
-          </tr>
+          {$footerHtml}
 
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-HTML;
+INNER;
+
+        return $this->emailWrap($safeTitle, $inner);
     }
 
     private function send(
@@ -272,43 +222,19 @@ HTML;
 
     private function emailSimpleLayout(string $title, string $greeting, string $message): string
     {
-        $appUrl  = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $logoUrl    = $appUrl . self::LOGO_PATH;
         $urlPrivacy = $appUrl . self::URL_PRIVACY;
         $urlLegal   = $appUrl . self::URL_LEGAL;
         $urlSupport = $appUrl . self::URL_SUPPORT;
-        $year       = date('Y');
 
-        return <<<HTML
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{$title}</title>
-  <style>
-    .footer-link:hover { color: #c9a84c !important; text-decoration: underline !important; }
-  </style>
-</head>
-<body style="margin:0;padding:0;background-color:#f5f0e8;font-family:Georgia,serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-         style="background-color:#f5f0e8;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+        $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport);
+
+        $inner = <<<INNER
 
           <!-- Header logo -->
-          <tr>
-            <td align="center" style="padding-bottom:28px;">
-              <a href="{$appUrl}" style="display:inline-block;text-decoration:none;">
-                <img src="{$logoUrl}" alt="Château Crabitan Bellevue" width="200" height="auto"
-                     style="display:block;border:0;max-width:200px;">
-              </a>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr><td style="padding-top:20px;border-bottom:1px solid #c9a84c;"></td></tr>
-              </table>
-            </td>
-          </tr>
+          {$headerHtml}
 
           <!-- Body -->
           <tr>
@@ -324,37 +250,11 @@ HTML;
           </tr>
 
           <!-- Footer -->
-          <tr>
-            <td align="center" style="padding-top:24px;">
-              <p style="margin:0 0 10px;">
-                <a href="{$urlPrivacy}" class="footer-link"
-                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Politique de confidentialité</a>
-                <span style="color:#c4b89a;padding:0 8px;">|</span>
-                <a href="{$urlLegal}" class="footer-link"
-                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Mentions légales</a>
-                <span style="color:#c4b89a;padding:0 8px;">|</span>
-                <a href="{$urlSupport}" class="footer-link"
-                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Assistance</a>
-              </p>
-              <p style="margin:0 0 6px;font-size:11px;color:#a89880;letter-spacing:1px;">
-                © {$year} Château Crabitan Bellevue — Sainte-Croix-du-Mont, Gironde
-              </p>
-              <p style="margin:0;font-size:10px;color:#b8aa95;">
-                Ce mail est généré automatiquement. Veuillez ne pas y répondre.
-              </p>
-            </td>
-          </tr>
+          {$footerHtml}
 
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-HTML;
+INNER;
+
+        return $this->emailWrap($title, $inner);
     }
 
     private function verificationBodyFr(string $name, string $url): string
@@ -429,43 +329,19 @@ HTML;
         string $ctaLabel,
         string $footnote
     ): string {
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $logoUrl    = $appUrl . self::LOGO_PATH;
         $urlPrivacy = $appUrl . self::URL_PRIVACY;
         $urlLegal   = $appUrl . self::URL_LEGAL;
         $urlSupport = $appUrl . self::URL_SUPPORT;
-        $year        = date('Y');
 
-        return <<<HTML
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{$title}</title>
-  <style>
-    .footer-link:hover { color: #c9a84c !important; text-decoration: underline !important; }
-  </style>
-</head>
-<body style="margin:0;padding:0;background-color:#f5f0e8;font-family:Georgia,serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-         style="background-color:#f5f0e8;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+        $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport);
+
+        $inner = <<<INNER
 
           <!-- Header logo -->
-          <tr>
-            <td align="center" style="padding-bottom:28px;">
-              <a href="{$appUrl}" style="display:inline-block;text-decoration:none;">
-                <img src="{$logoUrl}" alt="Château Crabitan Bellevue" width="200" height="auto"
-                     style="display:block;border:0;max-width:200px;">
-              </a>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr><td style="padding-top:20px;border-bottom:1px solid #c9a84c;"></td></tr>
-              </table>
-            </td>
-          </tr>
+          {$headerHtml}
 
           <!-- Body -->
           <tr>
@@ -506,6 +382,46 @@ HTML;
           </tr>
 
           <!-- Footer -->
+          {$footerHtml}
+
+INNER;
+
+        return $this->emailWrap($title, $inner);
+    }
+
+    private function emailWrap(string $title, string $innerContent): string
+    {
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{$title}</title>
+  <style>
+    .footer-link:hover { color: #c9a84c !important; text-decoration: underline !important; }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f0e8;font-family:Georgia,serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+         style="background-color:#f5f0e8;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+{$innerContent}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+HTML;
+    }
+
+    private function emailFooterHtml(string $urlPrivacy, string $urlLegal, string $urlSupport): string
+    {
+        $year = date('Y');
+        return <<<HTML
           <tr>
             <td align="center" style="padding-top:24px;">
               <p style="margin:0 0 10px;">
@@ -529,13 +445,23 @@ HTML;
               </p>
             </td>
           </tr>
+HTML;
+    }
 
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
+    private function emailHeaderHtml(string $appUrl, string $logoUrl): string
+    {
+        return <<<HTML
+          <tr>
+            <td align="center" style="padding-bottom:28px;">
+              <a href="{$appUrl}" style="display:inline-block;text-decoration:none;">
+                <img src="{$logoUrl}" alt="Château Crabitan Bellevue" width="200" height="auto"
+                     style="display:block;border:0;max-width:200px;">
+              </a>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding-top:20px;border-bottom:1px solid #c9a84c;"></td></tr>
+              </table>
+            </td>
+          </tr>
 HTML;
     }
 
