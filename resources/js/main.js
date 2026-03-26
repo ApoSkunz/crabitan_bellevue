@@ -715,10 +715,18 @@ function initContactForm() {
 
     const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
 
+    const rgpdError = document.getElementById('rgpd-error');
+    const rgpdInput = form.querySelector('input[name="rgpd"]');
+
+    let feedbackTimer = null;
     function showFeedback(msg, isSuccess) {
+        clearTimeout(feedbackTimer);
         feedback.textContent = msg;
         feedback.className   = 'contact-form__feedback contact-form__feedback--' + (isSuccess ? 'success' : 'error');
         feedback.hidden      = false;
+        if (isSuccess) {
+            feedbackTimer = setTimeout(() => { feedback.hidden = true; }, 3000);
+        }
     }
 
     function setLoading(on) {
@@ -737,11 +745,16 @@ function initContactForm() {
         field.addEventListener('input',  () => group.classList.remove('is-invalid'), { once: true });
     }
 
+    if (rgpdInput && rgpdError) {
+        rgpdInput.addEventListener('change', () => { rgpdError.hidden = true; });
+    }
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         // Validation client
         let valid = true;
+        let onlyRgpdMissing = true;
         requiredFields.forEach((field) => {
             const empty = field.type === 'checkbox'
                 ? !field.checked
@@ -751,14 +764,24 @@ function initContactForm() {
             if (empty) {
                 valid = false;
                 markInvalid(field);
+                if (field.name !== 'rgpd') onlyRgpdMissing = false;
             }
         });
 
         if (!valid) {
-            showFeedback(form.dataset.msgFields, false);
-            (form.closest('section') ?? form).scrollIntoView({ behavior: 'smooth', block: 'start' });
+            feedback.hidden = true;
+            if (rgpdInput && !rgpdInput.checked && rgpdError) {
+                rgpdError.hidden = false;
+            }
+            if (!onlyRgpdMissing) {
+                showFeedback(form.dataset.msgFields, false);
+                (form.closest('section') ?? form).scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                rgpdError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
             return;
         }
+        if (rgpdError) rgpdError.hidden = true;
 
         setLoading(true);
         feedback.hidden = true;
