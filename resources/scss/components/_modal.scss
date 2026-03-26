@@ -649,8 +649,23 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 0.6rem;
     width: 100%;
     padding: 0.65rem 1rem;
+
+    img {
+        display: block;
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    &__apple-logo {
+        @media (prefers-color-scheme: dark) {
+            filter: invert(1);
+        }
+    }
     border: 1px solid var(--color-border);
     background-color: var(--color-bg);
     color: var(--color-text);
