@@ -116,8 +116,7 @@ class NewsModel extends Model
 
     public function countForAdmin(): int
     {
-        $row = $this->db->fetchOne("SELECT COUNT(*) AS total FROM {$this->table}");
-        return (int) ($row['total'] ?? 0);
+        return $this->countAll();
     }
 
     /** @return array<string, mixed>|null */
