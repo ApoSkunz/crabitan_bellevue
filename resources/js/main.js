@@ -1026,7 +1026,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('runner-game')) {
         import('./runner-game.js').then((m) => m.initRunnerGame());
     }
-    if (document.getElementById('hill-climb-game')) {
-        import('./hill-climb.js').then((m) => m.initHillClimbGame());
+    if (document.getElementById('labour-chrono-game')) {
+        import('./labour-chrono.js').then((m) => m.initLabourChronoGame());
+    }
+    if (document.getElementById('tonneau-catapulte-game')) {
+        import('./tonneau-catapulte.js').then((m) => m.initTonneauCatapulteGame());
+    }
+    if (document.getElementById('vendange-express-game')) {
+        import('./vendange-express.js').then((m) => m.initVendangeExpressGame());
     }
 });
