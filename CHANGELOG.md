@@ -2,6 +2,50 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.12.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.11.0...v0.12.0) (2026-03-26)
+
+
+### Bug Fixes
+
+* **core:** index.php — catch \Throwable → page 500 branded pour toute exception non gérée ([1ad8d04](https://github.com/ApoSkunz/crabitan_bellevue/commit/1ad8d047bca52a29de44a2ffe79a7fe6d14d43f9))
+
+
+### Features
+
+* **controller+view:** vins admin — appellation restreinte AOC/IGP/STG/AOP ([4e672f4](https://github.com/ApoSkunz/crabitan_bellevue/commit/4e672f4646355d703d3f850464b39fddaec4c816))
+* **controller:** contact — passe $message à sendContactConfirmation pour le récapitulatif client ([610ea63](https://github.com/ApoSkunz/crabitan_bellevue/commit/610ea63ed93064915ffbd4ffdea2698241be5ee6))
+* **controller:** GameScoreController API POST/GET + routes + PageController WR ([7003d89](https://github.com/ApoSkunz/crabitan_bellevue/commit/7003d89d5a4f82db623f15659011acf8cec36c24))
+* **controller:** jeux — wrVendangeExpress + ALLOWED_GAMES vendangeexpress + 9 paires mémo ([fdd154b](https://github.com/ApoSkunz/crabitan_bellevue/commit/fdd154b28f550728979cf73c961816d84f6e0430))
+* **controller:** WeatherController — proxy /api/meteo vers WeatherAPI.com (clé serveur) ([946c726](https://github.com/ApoSkunz/crabitan_bellevue/commit/946c726572b76ad3bb0f062cd7f49670ab71f154))
+* **game:** Labour Chrono + Tonneau Catapulte + Vendange Express + La Cave aux Secrets ([a92b598](https://github.com/ApoSkunz/crabitan_bellevue/commit/a92b5982de2e94dcc82cb93a9a5e523744656624))
+* **game:** lazy-import Labour Chrono, Tonneau Catapulte, Vendange Express dans main.js ([03fc5bd](https://github.com/ApoSkunz/crabitan_bellevue/commit/03fc5bd6e38f29e14ebdf4b57123401049326442))
+* **game:** vendangeuse — pause/play/rejouer + accélération réduite + fix keyboard scope ([431ccb9](https://github.com/ApoSkunz/crabitan_bellevue/commit/431ccb93c0af43faed4177823d71775d8ea7d42a))
+* **game:** world record mémo + jeu Trial tracteur canvas 2D ([e88e9be](https://github.com/ApoSkunz/crabitan_bellevue/commit/e88e9bee2118ea9ffa3940eba47af427cec8ae17))
+* **i18n:** contact — clé contact.error_rgpd FR/EN ([123b7b6](https://github.com/ApoSkunz/crabitan_bellevue/commit/123b7b6a5d82bb97267c69a2f1dccbdbf59682cb))
+* **i18n:** jeux — Labour Chrono, Tonneau Catapulte, Vendange Express, La Cave aux Secrets (mémo renommé) ([aef293d](https://github.com/ApoSkunz/crabitan_bellevue/commit/aef293de9443000091b67fbb3eacc0acc5ee8b26))
+* **i18n:** jeux tracteur_title/desc FR+EN ([5b8ea0c](https://github.com/ApoSkunz/crabitan_bellevue/commit/5b8ea0ce0219c9de52c57dbc1deb50bf6a4eaa56))
+* **i18n:** news — clé news.nav_label FR/EN ([8040dc7](https://github.com/ApoSkunz/crabitan_bellevue/commit/8040dc7aa6865efee30b34ce13306b36e75590b4))
+* **jeux:** add runner game La Vigneronne — canvas 2D T-Rex style ([a5ccc7c](https://github.com/ApoSkunz/crabitan_bellevue/commit/a5ccc7c6ae342f9b0259ccde45721a7912d7a548))
+* **jeux:** bouton Démarrer/Rejouer + fix shuffle + espacement + images ([2e93921](https://github.com/ApoSkunz/crabitan_bellevue/commit/2e93921074f5db11f46bfaddfa06f76fe8b14e74))
+* **js:** contact — erreur RGPD inline + secousse + succès 3 s + pas de banner global si seul champ manquant ([ccd3e39](https://github.com/ApoSkunz/crabitan_bellevue/commit/ccd3e39916b519a64e4b7a6df4b81dd96534f64a))
+* **js:** widget météo — migration Open-Meteo → proxy /api/meteo, suppression tables WMO ([5450218](https://github.com/ApoSkunz/crabitan_bellevue/commit/545021810b9aad9263b7d83d54ae49be94ba9fd0))
+* **model,controller:** news — pagination 9/page + getPrev/getNext pour nav article ([04ee523](https://github.com/ApoSkunz/crabitan_bellevue/commit/04ee5230b2bf442317cd33a2167d8b8c7157934c))
+* **model:** add WineModel::getRandomForMemo() — 14 vins aléatoires avec image ([baebea9](https://github.com/ApoSkunz/crabitan_bellevue/commit/baebea9045f6f3dbd915a0b8cc24d1e84be07e7c))
+* **model:** GameScoreModel — getBestScore + updateIfBetter (upsert) ([a5605f4](https://github.com/ApoSkunz/crabitan_bellevue/commit/a5605f4b875b47f081fae8b7b5937c3c8ddb9a53))
+* **routes:** ajout GET /api/meteo → WeatherController@current ([9f2f4ab](https://github.com/ApoSkunz/crabitan_bellevue/commit/9f2f4ab065afa43afb48ce02c544e4c84711896c))
+* **scss:** btn-social — gap + taille logo + inversion Apple logo dark mode ([0fd9227](https://github.com/ApoSkunz/crabitan_bellevue/commit/0fd92274c8f462004b1298f4cd1ed96044a8a13b))
+* **scss:** contact — style message erreur inline RGPD + shake sur checkbox ([66f717a](https://github.com/ApoSkunz/crabitan_bellevue/commit/66f717afb76111b2de7e495ad52d03b36ee80604))
+* **scss:** jeux — Labour Chrono, Tonneau Catapulte, Vendange Express canvas + animations mémo is-wrong/is-matched-flash + grille 9 paires 3×6 ([15b4e01](https://github.com/ApoSkunz/crabitan_bellevue/commit/15b4e0139d434e12b0283c82d355c8cd035c5554))
+* **scss:** news — .news-list padding, .news-article layout image+texte, nav prev/next, date--lg ([cf4de5d](https://github.com/ApoSkunz/crabitan_bellevue/commit/cf4de5db799932c63ecb92a572344238a7f19dc9))
+* **service:** MailService — email owner HTML branded + Reply-To + sujet "Contact site : {label}" + recap client + pièce jointe bon de commande ([329b3df](https://github.com/ApoSkunz/crabitan_bellevue/commit/329b3df2654184c3e304f92fbbba2583ccc98f4a))
+* **view,scss,js:** météo — attribution WeatherAPI.com sous le widget, cliquable, taille lisible ([e287143](https://github.com/ApoSkunz/crabitan_bellevue/commit/e287143d6acb86a51c14b9d5bd21e69b67b8fca4))
+* **view,scss:** météo — attribution Open-Meteo CC BY 4.0 + style lien discret carousel ([e33576b](https://github.com/ApoSkunz/crabitan_bellevue/commit/e33576b0a88d6391d57a2e15c000931af4b6aef8))
+* **view:** contact — message d'erreur inline sous la case RGPD ([31b5b54](https://github.com/ApoSkunz/crabitan_bellevue/commit/31b5b54ef44e2fdbd916d8558f3be188cea47a90))
+* **view:** jeux — section hill-climb tracteur + data-world-record ([e4b2521](https://github.com/ApoSkunz/crabitan_bellevue/commit/e4b25211cf77f12f47f59191ea9731d7ec1b93f5))
+* **view:** jeux — sections Labour Chrono, Tonneau Catapulte, Vendange Express + suppression hill-climb ([9590f2f](https://github.com/ApoSkunz/crabitan_bellevue/commit/9590f2f4598e94a92ed70c6f3f35cb50bd2fb94f))
+* **view:** modals — icônes SVG œil/œil-barré + logos Google/Apple sur boutons sociaux ([e4b795b](https://github.com/ApoSkunz/crabitan_bellevue/commit/e4b795bee5f0a8eb78cb08184fcbd5d79c5602d5))
+* **view:** news — pagination liste + vue détail image/texte côte à côte + nav prev/next ([d434e26](https://github.com/ApoSkunz/crabitan_bellevue/commit/d434e26ee2b95cba47c97d32985064ca508a05db))
+
 # [0.11.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.10.0...v0.11.0) (2026-03-25)
 
 
