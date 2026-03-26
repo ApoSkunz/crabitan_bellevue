@@ -9,6 +9,11 @@ use PHPMailer\PHPMailer\Exception;
 
 class MailService
 {
+    private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
+    private const URL_PRIVACY = '/fr/politique-confidentialite';
+    private const URL_LEGAL   = '/fr/mentions-legales';
+    private const URL_SUPPORT = '/fr/support';
+
     private PHPMailer $mailer;
 
     public function __construct()
@@ -74,17 +79,8 @@ class MailService
     ): void {
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
 
-        $subjectLabels = [
-            'general'      => ['fr' => 'Renseignement général',       'en' => 'General enquiry'],
-            'order'        => ['fr' => 'Question sur une commande',    'en' => 'Order enquiry'],
-            'bon_commande' => ['fr' => 'Bon de commande',              'en' => 'Order form'],
-            'visit'        => ['fr' => 'Visite du domaine',            'en' => 'Estate visit'],
-            'press'        => ['fr' => 'Presse / Partenariat',         'en' => 'Press / Partnership'],
-            'other'        => ['fr' => 'Autre',                        'en' => 'Other'],
-        ];
-        $subjectLabel = $subjectLabels[$subject][$lang] ?? ($subjectLabels[$subject]['fr'] ?? $subject);
-
-        $subjectLine = 'Contact site : ' . $subjectLabel;
+        $subjectLabel = $this->resolveSubjectLabel($subject, $lang);
+        $subjectLine  = 'Contact site : ' . $subjectLabel;
 
         $safeName    = htmlspecialchars($firstname . ' ' . $lastname, ENT_QUOTES);
         $safeEmail   = htmlspecialchars($email, ENT_QUOTES);
@@ -113,56 +109,15 @@ class MailService
     ): void {
         $safeName    = htmlspecialchars($firstname, ENT_QUOTES);
         $isOrderForm = $subject === 'bon_commande';
+        $subjectLabel = htmlspecialchars($this->resolveSubjectLabel($subject, $lang), ENT_QUOTES);
 
-        // Traduction du libellé de sujet pour l'affichage dans l'email
-        $subjectLabels = [
-            'general'      => ['fr' => 'Renseignement général',       'en' => 'General enquiry'],
-            'order'        => ['fr' => 'Question sur une commande',    'en' => 'Order enquiry'],
-            'bon_commande' => ['fr' => 'Bon de commande',              'en' => 'Order form'],
-            'visit'        => ['fr' => 'Visite du domaine',            'en' => 'Estate visit'],
-            'press'        => ['fr' => 'Presse / Partenariat',         'en' => 'Press / Partnership'],
-            'other'        => ['fr' => 'Autre',                        'en' => 'Other'],
-        ];
-        $subjectLabel = htmlspecialchars(
-            $subjectLabels[$subject][$lang] ?? ($subjectLabels[$subject]['fr'] ?? $subject),
-            ENT_QUOTES
-        );
-
-        // Bloc récapitulatif du message (hors bon de commande)
-        $recapBlock = '';
-        if (!$isOrderForm && $userMessage !== '') {
-            $safeMsg    = nl2br(htmlspecialchars($userMessage, ENT_QUOTES));
-            $recapLabel = $lang === 'fr' ? 'Votre message' : 'Your message';
-            $recapBlock = "<div style=\"margin-top:20px;padding:16px 20px;background:#f5f0e8;"
-                . "border-left:3px solid #c9a84c;font-size:14px;color:#5a4e3a;line-height:1.7;\">"
-                . "<p style=\"margin:0 0 8px;font-size:11px;letter-spacing:2px;text-transform:uppercase;"
-                . "color:#8a7a60;\">{$recapLabel}</p>"
-                . "<p style=\"margin:0;\">{$safeMsg}</p>"
-                . "</div>";
-        }
-
-        if ($lang === 'fr') {
-            $subjectLine = $isOrderForm
-                ? 'Votre bon de commande Crabitan Bellevue'
-                : 'Nous avons bien reçu votre message';
-            $message = $isOrderForm
-                ? "Merci pour votre intérêt. Vous trouverez notre bon de commande en pièce jointe."
-                : "Nous avons bien reçu votre message concernant <strong>{$subjectLabel}</strong>."
-                  . "<br>Notre équipe vous répondra dans les meilleurs délais.";
-        } else {
-            $subjectLine = $isOrderForm
-                ? 'Your Crabitan Bellevue order form'
-                : 'We have received your message';
-            $message = $isOrderForm
-                ? "Thank you for your interest. Please find our order form attached."
-                : "We have received your message regarding <strong>{$subjectLabel}</strong>."
-                  . "<br>Our team will get back to you as soon as possible.";
-        }
+        $lines = $this->buildConfirmationLines($isOrderForm, $lang, $subjectLabel);
+        $recap = $isOrderForm ? '' : $this->buildRecapBlock($userMessage, $lang);
 
         $body = $this->emailSimpleLayout(
-            $lang === 'fr' ? 'Confirmation' : 'Confirmation',
+            'Confirmation',
             $lang === 'fr' ? "Bonjour {$safeName}," : "Hello {$safeName},",
-            $message . $recapBlock
+            $lines['message'] . $recap
         );
 
         $attachmentPath = null;
@@ -176,7 +131,7 @@ class MailService
             }
         }
 
-        $this->send($to, $firstname, $subjectLine, $body, $attachmentPath);
+        $this->send($to, $firstname, $lines['subjectLine'], $body, $attachmentPath);
     }
 
     public function sendNewsletter(string $to, string $name, string $subject, string $htmlBody): void
@@ -190,10 +145,10 @@ class MailService
         ?string $imageUrl = null
     ): string {
         $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
-        $logoUrl     = $appUrl . '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
-        $urlPrivacy  = $appUrl . '/fr/politique-confidentialite';
-        $urlLegal    = $appUrl . '/fr/mentions-legales';
-        $urlSupport  = $appUrl . '/fr/support';
+        $logoUrl    = $appUrl . self::LOGO_PATH;
+        $urlPrivacy = $appUrl . self::URL_PRIVACY;
+        $urlLegal   = $appUrl . self::URL_LEGAL;
+        $urlSupport = $appUrl . self::URL_SUPPORT;
         $urlUnsub    = $appUrl . '/fr/mon-compte';
         $year        = date('Y');
         $safeTitle   = htmlspecialchars($title, ENT_QUOTES);
@@ -318,10 +273,10 @@ HTML;
     private function emailSimpleLayout(string $title, string $greeting, string $message): string
     {
         $appUrl  = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
-        $logoUrl = $appUrl . '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
-        $urlPrivacy = $appUrl . '/fr/politique-confidentialite';
-        $urlLegal   = $appUrl . '/fr/mentions-legales';
-        $urlSupport = $appUrl . '/fr/support';
+        $logoUrl    = $appUrl . self::LOGO_PATH;
+        $urlPrivacy = $appUrl . self::URL_PRIVACY;
+        $urlLegal   = $appUrl . self::URL_LEGAL;
+        $urlSupport = $appUrl . self::URL_SUPPORT;
         $year       = date('Y');
 
         return <<<HTML
@@ -475,10 +430,10 @@ HTML;
         string $footnote
     ): string {
         $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
-        $logoUrl  = $appUrl . '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
-        $urlPrivacy  = $appUrl . '/fr/politique-confidentialite';
-        $urlLegal    = $appUrl . '/fr/mentions-legales';
-        $urlSupport  = $appUrl . '/fr/support';
+        $logoUrl    = $appUrl . self::LOGO_PATH;
+        $urlPrivacy = $appUrl . self::URL_PRIVACY;
+        $urlLegal   = $appUrl . self::URL_LEGAL;
+        $urlSupport = $appUrl . self::URL_SUPPORT;
         $year        = date('Y');
 
         return <<<HTML
@@ -582,5 +537,60 @@ HTML;
 </body>
 </html>
 HTML;
+    }
+
+    private function resolveSubjectLabel(string $subject, string $lang): string
+    {
+        $labels = [
+            'general'      => ['fr' => 'Renseignement général',    'en' => 'General enquiry'],
+            'order'        => ['fr' => 'Question sur une commande', 'en' => 'Order enquiry'],
+            'bon_commande' => ['fr' => 'Bon de commande',           'en' => 'Order form'],
+            'visit'        => ['fr' => 'Visite du domaine',         'en' => 'Estate visit'],
+            'press'        => ['fr' => 'Presse / Partenariat',      'en' => 'Press / Partnership'],
+            'other'        => ['fr' => 'Autre',                     'en' => 'Other'],
+        ];
+        return $labels[$subject][$lang] ?? ($labels[$subject]['fr'] ?? $subject);
+    }
+
+    /**
+     * @return array{subjectLine: string, message: string}
+     */
+    private function buildConfirmationLines(bool $isOrderForm, string $lang, string $subjectLabel): array
+    {
+        if ($lang === 'fr') {
+            return [
+                'subjectLine' => $isOrderForm
+                    ? 'Votre bon de commande Crabitan Bellevue'
+                    : 'Nous avons bien reçu votre message',
+                'message'     => $isOrderForm
+                    ? 'Merci pour votre intérêt. Vous trouverez notre bon de commande en pièce jointe.'
+                    : "Nous avons bien reçu votre message concernant <strong>{$subjectLabel}</strong>."
+                      . '<br>Notre équipe vous répondra dans les meilleurs délais.',
+            ];
+        }
+        return [
+            'subjectLine' => $isOrderForm
+                ? 'Your Crabitan Bellevue order form'
+                : 'We have received your message',
+            'message'     => $isOrderForm
+                ? 'Thank you for your interest. Please find our order form attached.'
+                : "We have received your message regarding <strong>{$subjectLabel}</strong>."
+                  . '<br>Our team will get back to you as soon as possible.',
+        ];
+    }
+
+    private function buildRecapBlock(string $userMessage, string $lang): string
+    {
+        if ($userMessage === '') {
+            return '';
+        }
+        $safeMsg    = nl2br(htmlspecialchars($userMessage, ENT_QUOTES));
+        $recapLabel = $lang === 'fr' ? 'Votre message' : 'Your message';
+        return "<div style=\"margin-top:20px;padding:16px 20px;background:#f5f0e8;"
+            . "border-left:3px solid #c9a84c;font-size:14px;color:#5a4e3a;line-height:1.7;\">"
+            . "<p style=\"margin:0 0 8px;font-size:11px;letter-spacing:2px;text-transform:uppercase;"
+            . "color:#8a7a60;\">{$recapLabel}</p>"
+            . "<p style=\"margin:0;\">{$safeMsg}</p>"
+            . "</div>";
     }
 }
