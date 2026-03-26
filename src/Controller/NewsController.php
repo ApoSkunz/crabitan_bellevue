@@ -15,12 +15,22 @@ class NewsController extends Controller
 
     public function index(array $params): void
     {
-        $lang = $this->resolveLang($params);
+        $lang      = $this->resolveLang($params);
+        $perPage   = 9;
+        $page      = max(1, (int) ($_GET['page'] ?? 1));
 
-        $newsModel = new NewsModel();
-        $news      = $newsModel->getAll();
+        $newsModel  = new NewsModel();
+        $total      = $newsModel->countAll();
+        $totalPages = (int) ceil($total / $perPage);
+        $page       = min($page, max(1, $totalPages));
+        $news       = $newsModel->getPaginated($perPage, ($page - 1) * $perPage);
 
-        $this->view('news/index', ['lang' => $lang, 'news' => $news]);
+        $this->view('news/index', [
+            'lang'       => $lang,
+            'news'       => $news,
+            'page'       => $page,
+            'totalPages' => $totalPages,
+        ]);
     }
 
     // ----------------------------------------------------------------
@@ -39,6 +49,11 @@ class NewsController extends Controller
             $this->abort(404);
         }
 
-        $this->view('news/show', ['lang' => $lang, 'item' => $item]);
+        $this->view('news/show', [
+            'lang' => $lang,
+            'item' => $item,
+            'prev' => $newsModel->getPrev($slug),
+            'next' => $newsModel->getNext($slug),
+        ]);
     }
 }

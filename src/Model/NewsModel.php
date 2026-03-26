@@ -52,6 +52,52 @@ class NewsModel extends Model
         );
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getPaginated(int $limit, int $offset): array
+    {
+        return $this->db->fetchAll(
+            "SELECT id, title, text_content, slug, image_path, created_at
+             FROM {$this->table}
+             ORDER BY created_at DESC
+             LIMIT ? OFFSET ?",
+            [$limit, $offset]
+        );
+    }
+
+    public function countAll(): int
+    {
+        $row = $this->db->fetchOne("SELECT COUNT(*) AS total FROM {$this->table}");
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /** @return array<string, mixed>|null */
+    public function getPrev(string $slug): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT slug, title FROM {$this->table}
+             WHERE created_at > (SELECT created_at FROM {$this->table} WHERE slug = ?)
+             ORDER BY created_at ASC
+             LIMIT 1",
+            [$slug]
+        );
+        return $row ?: null;
+    }
+
+    /** @return array<string, mixed>|null */
+    public function getNext(string $slug): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT slug, title FROM {$this->table}
+             WHERE created_at < (SELECT created_at FROM {$this->table} WHERE slug = ?)
+             ORDER BY created_at DESC
+             LIMIT 1",
+            [$slug]
+        );
+        return $row ?: null;
+    }
+
     // ----------------------------------------------------------------
     // Méthodes admin
     // ----------------------------------------------------------------
