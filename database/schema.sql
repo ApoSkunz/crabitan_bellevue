@@ -325,4 +325,22 @@ CREATE TABLE `order_forms` (
   INDEX `idx_order_forms_uploaded` (`uploaded_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ============================================================
+-- Table : game_scores
+-- Meilleur score mondial par jeu (sans pseudo — public)
+-- ============================================================
+CREATE TABLE `game_scores` (
+  `id`          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `game`        VARCHAR(50)   NOT NULL COMMENT 'Identifiant du jeu ex: vendangeuse',
+  `score`       INT UNSIGNED  NOT NULL DEFAULT 0,
+  `achieved_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_game` (`game`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `game_scores` (`game`, `score`) VALUES
+    ('vendangeuse', 0),
+    ('memo', 0),
+    ('tracteur', 0);
+
 COMMIT;
