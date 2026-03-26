@@ -60,11 +60,13 @@ class PageController extends Controller
         try {
             $mail = new MailService();
             $mail->sendContactToOwner($firstname, $lastname, $email, $subject, $message, $lang);
-            $mail->sendContactConfirmation($email, $firstname, $subject, $lang);
-            $this->json(['success' => true, 'message' => __('contact.success')]);
+            $mail->sendContactConfirmation($email, $firstname, $subject, $lang, $message);
+        } catch (\Core\Exception\HttpException $e) {
+            throw $e;
         } catch (\Exception $e) {
             $this->json(['success' => false, 'message' => __('contact.error_smtp')], 500);
         }
+        $this->json(['success' => true, 'message' => __('contact.success')]);
     }
 
     private function csrfToken(): string
