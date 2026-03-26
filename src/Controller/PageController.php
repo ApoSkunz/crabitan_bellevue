@@ -120,10 +120,20 @@ class PageController extends Controller
 
     public function jeux(array $params): void
     {
-        $lang  = $this->resolveLang($params);
-        $model = new WineModel();
-        $wines = $model->getRandomForMemo(14);
-        $this->view('pages/jeux', ['lang' => $lang, 'wines' => $wines]);
+        $lang        = $this->resolveLang($params);
+        $wineModel        = new WineModel();
+        $scoreModel       = new \Model\GameScoreModel();
+        $wines            = $wineModel->getRandomForMemo(14);
+        $wrVendangeuse    = $scoreModel->getBestScore('vendangeuse');
+        $wrMemo           = $scoreModel->getBestScore('memo');
+        $wrTracteur       = $scoreModel->getBestScore('tracteur');
+        $this->view('pages/jeux', [
+            'lang'         => $lang,
+            'wines'        => $wines,
+            'wrVendangeuse' => $wrVendangeuse,
+            'wrMemo'       => $wrMemo,
+            'wrTracteur'   => $wrTracteur,
+        ]);
     }
 
     public function webmaster(array $params): void

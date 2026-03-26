@@ -103,6 +103,8 @@ $router->post('/api/cart/add', 'Api\CartApiController@add');
 $router->post('/api/cart/update', 'Api\CartApiController@update');
 $router->post('/api/cart/remove', 'Api\CartApiController@remove');
 $router->post('/api/favorites/toggle', 'Api\FavoriteApiController@toggle');
+$router->post('/api/jeux/score',       'GameScoreController@save');
+$router->get('/api/jeux/score',        'GameScoreController@get');
 
 // Bons de commande (téléchargement public, servi via PHP)
 $router->get('/bons-de-commande/{id}/telecharger', 'OrderFormController@download');
