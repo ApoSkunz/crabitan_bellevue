@@ -1026,4 +1026,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('runner-game')) {
         import('./runner-game.js').then((m) => m.initRunnerGame());
     }
+    if (document.getElementById('hill-climb-game')) {
+        import('./hill-climb.js').then((m) => m.initHillClimbGame());
+    }
 });

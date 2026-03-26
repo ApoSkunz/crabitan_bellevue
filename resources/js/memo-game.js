@@ -13,6 +13,38 @@ export function initMemoGame() {
     const PAIR_COUNT = parseInt(section.dataset.pairCount, 10);
     const WIN_MSG    = section.dataset.winMsg;
     const LOSE_MSG   = section.dataset.loseMsg;
+    let worldRecord  = parseInt(section.dataset.worldRecord, 10) || 0;
+
+    // Affichage du record mondial
+    const wrEl = document.createElement('p');
+    wrEl.className = 'memo-game__wr';
+    section.querySelector('.memo-game__actions').insertAdjacentElement('afterend', wrEl);
+
+    function updateWRDisplay() {
+        if (worldRecord > 0) {
+            wrEl.textContent = `Record mondial : ${worldRecord} sec restantes`;
+            wrEl.hidden = false;
+        } else {
+            wrEl.hidden = true;
+        }
+    }
+    updateWRDisplay();
+
+    function submitMemoScore(secs) {
+        fetch('/api/jeux/score', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ game: 'memo', score: secs }),
+        })
+            .then((r) => r.json())
+            .then((d) => {
+                if (d.record !== undefined) {
+                    worldRecord = d.record;
+                    updateWRDisplay();
+                }
+            })
+            .catch(() => { /* non-bloquant */ });
+    }
 
     let timer, secondsLeft, flipped, locked, matched, timerStarted;
 
@@ -41,6 +73,7 @@ export function initMemoGame() {
         locked = true;
         document.getElementById('memo-grid').hidden = true;
         document.getElementById('memo-restart').hidden = false;
+        if (win) submitMemoScore(secondsLeft);
         showMessage(win ? WIN_MSG : LOSE_MSG, win);
     }
 

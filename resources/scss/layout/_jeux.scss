@@ -115,10 +115,43 @@
         display: flex;
         justify-content: center;
     }
+
+    &__wr {
+        font-size: 0.8rem;
+        font-style: italic;
+        color: var(--color-text-muted);
+        letter-spacing: 0.04em;
+        text-align: center;
+    }
 }
 
 // ============================================================
-// Runner — La Vigneronne
+// Séparateur entre les deux jeux
+// ============================================================
+
+.jeux-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 600px;
+    margin: 0 auto 0.5rem;
+    padding: 0 1.5rem;
+
+    &__line {
+        flex: 1;
+        height: 1px;
+        background: var(--color-border-gold);
+    }
+
+    &__ornament {
+        color: var(--color-gold);
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+    }
+}
+
+// ============================================================
+// Runner — La Vendangeuse
 // ============================================================
 
 .runner-game {
@@ -138,6 +171,36 @@
         border: 1px solid var(--color-border-gold);
         border-radius: 2px;
         cursor: pointer;
+
+        &:focus {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 3px;
+        }
+    }
+}
+
+// ============================================================
+// Hill Climb — Le Tracteur des Vignes
+// ============================================================
+
+.hill-climb-game {
+    padding: 1rem 1.5rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+
+    &__canvas {
+        display: block;
+        width: 100%;
+        max-width: 900px;
+        height: 280px;
+        border: 1px solid var(--color-border-gold);
+        border-radius: 2px;
+        cursor: pointer;
+        touch-action: none;
 
         &:focus {
             outline: 2px solid var(--color-gold);
