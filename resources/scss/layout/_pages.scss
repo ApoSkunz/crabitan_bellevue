@@ -176,6 +176,17 @@
             border-color: #c0392b;
             animation: shake 350ms ease;
         }
+
+        .contact-form__checkbox {
+            animation: shake 350ms ease;
+        }
+    }
+
+    // Message d'erreur inline sous la case RGPD
+    &__rgpd-error {
+        margin: 0.4rem 0 0;
+        font-size: 0.82rem;
+        color: #c0392b;
     }
 
 
