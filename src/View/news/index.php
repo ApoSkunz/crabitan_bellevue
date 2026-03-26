@@ -43,6 +43,41 @@ require_once SRC_PATH . '/View/partials/header.php';
                     <p class="news-list__empty"><?= htmlspecialchars(__('news.empty')) ?></p>
                 <?php endif; ?>
             </div>
+
+            <?php if ($totalPages > 1) :
+                $buildUrl = static function (int $p) use ($navLang): string {
+                    $qs = array_filter(['page' => $p > 1 ? (string) $p : '']);
+                    $query = http_build_query($qs);
+                    return '/' . $navLang . '/actualites' . ($query !== '' ? '?' . $query : '');
+                };
+            ?>
+                <nav class="wines-pagination" aria-label="Pagination">
+                    <?php if ($page > 1) : ?>
+                        <a href="<?= htmlspecialchars($buildUrl($page - 1)) ?>" class="wines-pagination__btn" rel="prev">&larr;</a>
+                    <?php else : ?>
+                        <span class="wines-pagination__btn wines-pagination__btn--disabled">&larr;</span>
+                    <?php endif; ?>
+
+                    <?php for ($p = 1; $p <= $totalPages; $p++) : ?>
+                        <?php if (abs($p - $page) <= 2 || $p === 1 || $p === $totalPages) : ?>
+                            <?php if (abs($p - $page) === 3) : ?>
+                                <span class="wines-pagination__ellipsis">&hellip;</span>
+                            <?php endif; ?>
+                            <a
+                                href="<?= htmlspecialchars($buildUrl($p)) ?>"
+                                class="wines-pagination__btn<?= $p === $page ? ' wines-pagination__btn--active' : '' ?>"
+                                <?= $p === $page ? 'aria-current="page"' : '' ?>
+                            ><?= $p ?></a>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+
+                    <?php if ($page < $totalPages) : ?>
+                        <a href="<?= htmlspecialchars($buildUrl($page + 1)) ?>" class="wines-pagination__btn" rel="next">&rarr;</a>
+                    <?php else : ?>
+                        <span class="wines-pagination__btn wines-pagination__btn--disabled">&rarr;</span>
+                    <?php endif; ?>
+                </nav>
+            <?php endif; ?>
         </div>
     </section>
 </main>
