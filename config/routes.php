@@ -91,14 +91,24 @@ $router->get('/{lang}/commande/confirmation', 'OrderController@confirmation');
 
 // Espace client
 $router->get('/{lang}/mon-compte', 'AccountController@index');
+$router->get('/{lang}/mon-compte/profil', 'AccountController@profile');
+$router->post('/{lang}/mon-compte/profil', 'AccountController@updateProfile');
 $router->get('/{lang}/mon-compte/commandes', 'AccountController@orders');
+$router->get('/{lang}/mon-compte/commandes/{id}', 'AccountController@orderDetail');
+$router->post('/{lang}/mon-compte/commandes/{id}/annuler', 'AccountController@cancelOrder');
 $router->get('/{lang}/mon-compte/commandes/{id}/facture', 'InvoiceController@download');
 $router->get('/{lang}/mon-compte/adresses', 'AccountController@addresses');
+$router->post('/{lang}/mon-compte/adresses/ajouter', 'AccountController@addAddress');
+$router->get('/{lang}/mon-compte/adresses/{id}/modifier', 'AccountController@editAddress');
+$router->post('/{lang}/mon-compte/adresses/{id}/modifier', 'AccountController@updateAddress');
+$router->post('/{lang}/mon-compte/adresses/{id}/supprimer', 'AccountController@deleteAddress');
 $router->get('/{lang}/mon-compte/favoris', 'AccountController@favorites');
 $router->get('/{lang}/mon-compte/securite', 'AccountController@security');
 $router->post('/{lang}/mon-compte/securite/mot-de-passe', 'AccountController@changePassword');
 $router->post('/{lang}/mon-compte/securite/session/{id}/revoquer', 'AccountController@revokeSession');
-$router->get('/{lang}/mon-compte/export', 'AccountController@exportData');
+$router->post('/{lang}/mon-compte/securite/supprimer-compte', 'AccountController@deleteAccount');
+$router->get('/{lang}/mon-compte/export', 'AccountController@exportPage');
+$router->get('/{lang}/mon-compte/export/telecharger', 'AccountController@exportData');
 
 // ============================================================
 // Routes API (AJAX)
