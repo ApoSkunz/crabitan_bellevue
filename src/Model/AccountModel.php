@@ -118,6 +118,40 @@ class AccountModel extends Model
         );
     }
 
+    public function updateIndividualProfile(int $id, string $civility, string $firstname, string $lastname): void
+    {
+        $this->db->execute(
+            "UPDATE account_individuals SET civility = ?, firstname = ?, lastname = ?
+             WHERE account_id = ?",
+            [$civility, $firstname, $lastname, $id]
+        );
+    }
+
+    public function updateCompanyProfile(int $id, string $companyName, ?string $siret): void
+    {
+        $this->db->execute(
+            "UPDATE account_companies SET company_name = ?, siret = ? WHERE account_id = ?",
+            [$companyName, $siret, $id]
+        );
+    }
+
+    public function updateNewsletter(int $id, bool $subscribe): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET newsletter = ? WHERE id = ?",
+            [$subscribe ? 1 : 0, $id]
+        );
+    }
+
+    public function revokeAllSessions(int $id): void
+    {
+        // Utilisé lors de la suppression de compte pour révoquer toutes les sessions actives
+        $this->db->execute(
+            "UPDATE connections SET status = 'revoked' WHERE user_id = ? AND status = 'active'",
+            [$id]
+        );
+    }
+
     public function updateLang(int $id, string $lang): void
     {
         $this->db->execute(

@@ -51,12 +51,21 @@ class ConnectionModel extends Model
     public function getActiveForUser(int $userId): array
     {
         return $this->db->fetchAll(
-            "SELECT id, device_name, ip_address, auth_method, created_at, expired_at
+            "SELECT id, token, device_name, ip_address, auth_method, created_at, expired_at
              FROM {$this->table}
              WHERE user_id = ? AND status = 'active' AND expired_at > NOW()
              ORDER BY created_at DESC",
             [$userId]
         );
+    }
+
+    public function getTokenById(int $id, int $userId): ?string
+    {
+        $row = $this->db->fetchOne(
+            "SELECT token FROM {$this->table} WHERE id = ? AND user_id = ?",
+            [$id, $userId]
+        );
+        return $row ? (string) $row['token'] : null;
     }
 
     public function revokeById(int $id, int $userId): void

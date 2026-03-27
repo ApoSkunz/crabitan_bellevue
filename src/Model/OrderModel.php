@@ -189,26 +189,119 @@ class OrderModel extends Model
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function getForUser(int $userId, int $page, int $perPage): array
+    public function getForUser(int $userId, int $page, int $perPage, ?string $period = null, ?int $year = null): array
     {
-        $offset = ($page - 1) * $perPage;
+        [$where, $params] = $this->buildUserFilters($userId, $period, $year);
+        $offset   = ($page - 1) * $perPage;
+        $params[] = $perPage;
+        $params[] = $offset;
         return $this->db->fetchAll(
             "SELECT id, order_reference, status, price, payment_method, ordered_at, path_invoice
              FROM {$this->table}
-             WHERE user_id = ?
+             {$where}
              ORDER BY ordered_at DESC
              LIMIT ? OFFSET ?",
-            [$userId, $perPage, $offset]
+            $params
         );
     }
 
-    public function countForUser(int $userId): int
+    public function countForUser(int $userId, ?string $period = null, ?int $year = null): int
     {
+        [$where, $params] = $this->buildUserFilters($userId, $period, $year);
         $row = $this->db->fetchOne(
-            "SELECT COUNT(*) AS total FROM {$this->table} WHERE user_id = ?",
-            [$userId]
+            "SELECT COUNT(*) AS total FROM {$this->table} {$where}",
+            $params
         );
         return (int) ($row['total'] ?? 0);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function findDetailForUser(int $orderId, int $userId): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT o.*,
+                    b.civility  AS bill_civility,  b.firstname AS bill_firstname, b.lastname AS bill_lastname,
+                    b.street    AS bill_street,     b.city      AS bill_city,
+                    b.zip_code  AS bill_zip,        b.country   AS bill_country,  b.phone AS bill_phone,
+                    d.civility  AS del_civility,    d.firstname AS del_firstname,  d.lastname AS del_lastname,
+                    d.street    AS del_street,      d.city      AS del_city,
+                    d.zip_code  AS del_zip,         d.country   AS del_country
+             FROM {$this->table} o
+             LEFT JOIN addresses b ON b.id = o.id_billing_address
+             LEFT JOIN addresses d ON d.id = o.id_delivery_address
+             WHERE o.id = ? AND o.user_id = ?",
+            [$orderId, $userId]
+        );
+        return $row ?: null;
+    }
+
+    public function cancelForUser(int $orderId, int $userId): bool
+    {
+        $cancellable = ['pending', 'paid', 'processing'];
+        $row = $this->db->fetchOne(
+            "SELECT status FROM {$this->table} WHERE id = ? AND user_id = ?",
+            [$orderId, $userId]
+        );
+        if (!$row || !in_array($row['status'], $cancellable, true)) {
+            return false;
+        }
+        $this->db->execute(
+            "UPDATE {$this->table} SET status = 'cancelled', updated_at = NOW() WHERE id = ? AND user_id = ?",
+            [$orderId, $userId]
+        );
+        return true;
+    }
+
+    public function hasActiveOrdersForUser(int $userId): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS cnt FROM {$this->table}
+             WHERE user_id = ? AND status IN ('pending','paid','processing','shipped')",
+            [$userId]
+        );
+        return (int) ($row['cnt'] ?? 0) > 0;
+    }
+
+    public function hasActiveOrderForAddress(int $addressId): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS cnt FROM {$this->table}
+             WHERE (id_billing_address = ? OR id_delivery_address = ?)
+               AND status IN ('pending','paid','processing','shipped')",
+            [$addressId, $addressId]
+        );
+        return (int) ($row['cnt'] ?? 0) > 0;
+    }
+
+    /**
+     * @return array<int, int>  Liste des années distinctes pour un utilisateur
+     */
+    public function getAvailableYearsForUser(int $userId): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT DISTINCT YEAR(ordered_at) AS yr FROM {$this->table}
+             WHERE user_id = ? ORDER BY yr DESC",
+            [$userId]
+        );
+        return array_column($rows, 'yr');
+    }
+
+    /** @return array{string, array<int, mixed>} */
+    private function buildUserFilters(int $userId, ?string $period, ?int $year): array
+    {
+        $conds  = ['user_id = ?'];
+        $params = [$userId];
+
+        if ($period === '3months') {
+            $conds[]  = 'ordered_at >= DATE_SUB(NOW(), INTERVAL 3 MONTH)';
+        } elseif ($period === 'year' && $year !== null) {
+            $conds[]  = 'YEAR(ordered_at) = ?';
+            $params[] = $year;
+        }
+
+        return ['WHERE ' . implode(' AND ', $conds), $params];
     }
 
     /** @return array{string, array<int, mixed>} */

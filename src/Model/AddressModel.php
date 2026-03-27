@@ -18,7 +18,7 @@ class AddressModel extends Model
     public function getByUser(int $userId): array
     {
         return $this->db->fetchAll(
-            "SELECT * FROM {$this->table} WHERE user_id = ? ORDER BY type ASC, id ASC",
+            "SELECT * FROM {$this->table} WHERE user_id = ? AND saved = 1 ORDER BY type ASC, id ASC",
             [$userId]
         );
     }
@@ -81,8 +81,9 @@ class AddressModel extends Model
 
     public function deleteForUser(int $id, int $userId): void
     {
+        // Soft-delete : on masque l'adresse (saved=0) pour préserver les FK des commandes historiques
         $this->db->execute(
-            "DELETE FROM {$this->table} WHERE id = ? AND user_id = ?",
+            "UPDATE {$this->table} SET saved = 0 WHERE id = ? AND user_id = ?",
             [$id, $userId]
         );
     }
