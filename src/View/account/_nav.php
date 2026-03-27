@@ -5,6 +5,7 @@
  */
 $nav = [
     'index'    => ['url' => "/{$lang}/mon-compte",           'label' => __('panel.account')],
+    'profile'  => ['url' => "/{$lang}/mon-compte/profil",    'label' => __('account.profile')],
     'orders'   => ['url' => "/{$lang}/mon-compte/commandes", 'label' => __('panel.orders')],
     'addresses'=> ['url' => "/{$lang}/mon-compte/adresses",  'label' => __('panel.addresses')],
     'favorites'=> ['url' => "/{$lang}/mon-compte/favoris",   'label' => __('panel.favorites')],
@@ -20,7 +21,7 @@ $nav = [
             <?= $item['label'] ?>
         </a>
     <?php endforeach; ?>
-    <a class="account-nav__link account-nav__link--export"
+    <a class="account-nav__link account-nav__link--export<?= ($activeSection ?? '') === 'export' ? ' account-nav__link--active' : '' ?>"
        href="/<?= htmlspecialchars($lang) ?>/mon-compte/export">
         <?= __('account.export') ?>
     </a>

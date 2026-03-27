@@ -49,12 +49,13 @@ require_once __DIR__ . '/../partials/header.php';
                                     <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
                                 </span>
                                 <button
-                                    class="btn btn--ghost btn--sm js-favorite-toggle"
+                                    class="btn btn--ghost btn--sm js-favorite is-liked"
                                     data-wine-id="<?= (int) $wine['wine_id'] ?>"
                                     data-liked="true"
+                                    aria-pressed="true"
                                     aria-label="<?= __('account.remove_favorite') ?>"
                                 >
-                                    <?= __('account.remove_favorite') ?>
+                                    <span class="js-favorite-label"><?= __('account.remove_favorite') ?></span>
                                 </button>
                             </div>
                         </li>

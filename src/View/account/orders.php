@@ -5,6 +5,12 @@ require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 
 /** @var array<int, array<string, mixed>> $orders */
+/** @var int   $page    */
+/** @var int   $pages   */
+/** @var int   $total   */
+/** @var int   $perPage */
+/** @var string $period */
+/** @var array<int, int> $years */
 $statusColors = [
     'pending'    => 'grey',
     'paid'       => 'blue',
@@ -14,6 +20,17 @@ $statusColors = [
     'cancelled'  => 'red',
     'refunded'   => 'red',
 ];
+
+// Reconstruit l'URL de pagination en conservant les filtres actifs
+function ordersUrl(int $p, int $perPage, string $period): string
+{
+    $q = http_build_query(array_filter([
+        'page'     => $p,
+        'per_page' => $perPage !== 10 ? $perPage : null,
+        'period'   => $period !== 'all' ? $period : null,
+    ]));
+    return '?' . $q;
+}
 ?>
 <main class="account-page">
     <div class="account-shell">
@@ -23,6 +40,38 @@ $statusColors = [
             <header class="account-header">
                 <h1 class="account-header__title"><?= __('panel.orders') ?></h1>
             </header>
+
+            <!-- Filtres -->
+            <form class="account-filters" method="GET" action="">
+                <div class="account-filters__group">
+                    <label for="filter-period"><?= __('account.filter_period') ?></label>
+                    <select id="filter-period" name="period" onchange="this.form.submit()">
+                        <option value="all"<?= $period === 'all' ? ' selected' : '' ?>>
+                            <?= __('account.filter_all') ?>
+                        </option>
+                        <option value="3months"<?= $period === '3months' ? ' selected' : '' ?>>
+                            <?= __('account.filter_3months') ?>
+                        </option>
+                        <?php foreach ($years as $yr) : ?>
+                            <option value="<?= (int) $yr ?>"<?= $period === (string) $yr ? ' selected' : '' ?>>
+                                <?= (int) $yr ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="account-filters__group">
+                    <label for="filter-per-page"><?= __('account.per_page') ?></label>
+                    <select id="filter-per-page" name="per_page" onchange="this.form.submit()">
+                        <?php foreach ([10, 25, 50] as $n) : ?>
+                            <option value="<?= $n ?>"<?= $perPage === $n ? ' selected' : '' ?>>
+                                <?= $n ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <input type="hidden" name="page" value="1">
+            </form>
 
             <?php if ($orders === []) : ?>
                 <p class="account-empty"><?= __('account.orders_empty') ?></p>
@@ -36,6 +85,7 @@ $statusColors = [
                                 <th><?= __('account.order_status') ?></th>
                                 <th><?= __('account.order_price') ?></th>
                                 <th><?= __('account.order_invoice') ?></th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -63,6 +113,12 @@ $statusColors = [
                                             <span class="account-table__na">—</span>
                                         <?php endif; ?>
                                     </td>
+                                    <td>
+                                        <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>"
+                                           class="btn btn--ghost btn--sm">
+                                            <?= __('account.order_detail_link') ?>
+                                        </a>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -72,11 +128,13 @@ $statusColors = [
                 <?php if ($pages > 1) : ?>
                     <nav class="account-pagination" aria-label="<?= __('account.pagination') ?>">
                         <?php if ($page > 1) : ?>
-                            <a class="account-pagination__link" href="?page=<?= $page - 1 ?>">←</a>
+                            <a class="account-pagination__link"
+                               href="<?= ordersUrl($page - 1, $perPage, $period) ?>">←</a>
                         <?php endif; ?>
                         <span class="account-pagination__info"><?= $page ?> / <?= $pages ?></span>
                         <?php if ($page < $pages) : ?>
-                            <a class="account-pagination__link" href="?page=<?= $page + 1 ?>">→</a>
+                            <a class="account-pagination__link"
+                               href="<?= ordersUrl($page + 1, $perPage, $period) ?>">→</a>
                         <?php endif; ?>
                     </nav>
                 <?php endif; ?>
