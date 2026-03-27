@@ -1095,6 +1095,85 @@ function initResetModal() {
     });
 }
 
+// ============================================================
+// Espace compte — toggle mot de passe (page sécurité)
+// ============================================================
+
+function initAccountPasswordToggle() {
+    document.querySelectorAll('.form-pwd-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            btn.querySelector('.pwd-eye--show').hidden = isHidden;
+            btn.querySelector('.pwd-eye--hide').hidden = !isHidden;
+        });
+    });
+}
+
+// ============================================================
+// Espace compte — confirmation avant soumission (data-confirm)
+// ============================================================
+
+function initConfirmForms() {
+    document.addEventListener('submit', (e) => {
+        const form = e.target.closest('form[data-confirm]');
+        if (!form) return;
+        const msg = form.dataset.confirm;
+        if (msg && !window.confirm(msg)) { // nosemgrep: javascript.browser.security.window-confirm.window-confirm
+            e.preventDefault();
+        }
+    });
+}
+
+// ============================================================
+// Espace compte — toggle formulaire ajout adresse
+// ============================================================
+
+function initAddressAddToggle() {
+    const section = document.getElementById('address-add-form');
+    if (!section) return;
+
+    document.querySelectorAll('.js-address-add-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const isHidden = section.hidden;
+            section.hidden = !isHidden;
+            if (!isHidden) return;
+            section.querySelector('input:not([type="hidden"]),[select]')?.focus();
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+}
+
+// ============================================================
+// Espace compte — suppression carte favori après unlike
+// ============================================================
+
+function initAccountFavoritesRemove() {
+    const grid = document.querySelector('.account-favorites-grid');
+    if (!grid) return;
+
+    // Observer les changements de data-liked sur les boutons de la grille
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((m) => {
+            if (m.type !== 'attributes' || m.attributeName !== 'data-liked') return;
+            const btn = m.target;
+            if (btn.dataset.liked === 'false') {
+                const card = btn.closest('.account-favorite-card')?.closest('li');
+                if (!card) return;
+                card.style.transition = 'opacity .3s';
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 320);
+            }
+        });
+    });
+
+    grid.querySelectorAll('.js-favorite').forEach((btn) => {
+        observer.observe(btn, { attributes: true });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     if (window.__flashInfo) showToast(window.__flashInfo, false, 2000);
     initPageIntro();
@@ -1113,6 +1192,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initCartLoginPrompt();
     initFavoriteAuth();
     initFavoriteToggle();
+    initAccountFavoritesRemove();
+    initAccountPasswordToggle();
+    initConfirmForms();
+    initAddressAddToggle();
     initWineZoom();
     updateCartCount();
     initContactForm();
