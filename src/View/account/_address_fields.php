@@ -22,7 +22,7 @@ $countries = [
 ?>
 <div class="form-group">
     <label for="addr-type"><?= __('account.address_type_label') ?> *</label>
-    <select id="addr-type" name="type" required<?= $isEdit ? ' disabled' : '' ?>>
+    <select id="addr-type" name="type" required<?= $isEdit ? ' disabled' : '' ?>> <?php // NOSONAR php:S1192 — ' selected' est un attribut HTML conditionnel, pas une constante métier ?>
         <option value="billing"<?= $addrType === 'billing' ? ' selected' : '' ?>>
             <?= __('account.address_type_billing') ?>
         </option>

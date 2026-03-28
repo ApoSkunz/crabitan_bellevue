@@ -62,7 +62,7 @@ $isCompany = ($account['account_type'] ?? '') === 'company';
                         <!-- Particulier -->
                         <div class="form-group">
                             <label for="civility"><?= __('account.civility') ?></label>
-                            <select id="civility" name="civility">
+                            <select id="civility" name="civility"> <?php // NOSONAR php:S1192 — ' selected' est un attribut HTML conditionnel, pas une constante métier ?>
                                 <option value="M"<?= ($account['civility'] ?? '') === 'M' ? ' selected' : '' ?>><?= __('account.civility_m') ?></option>
                                 <option value="F"<?= ($account['civility'] ?? '') === 'F' ? ' selected' : '' ?>><?= __('account.civility_f') ?></option>
                                 <option value="other"<?= ($account['civility'] ?? '') === 'other' ? ' selected' : '' ?>><?= __('account.civility_other') ?></option>

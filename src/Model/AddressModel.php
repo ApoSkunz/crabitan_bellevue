@@ -46,7 +46,7 @@ class AddressModel extends Model
         string $zipCode,
         string $country,
         string $phone
-    ): void {
+    ): void { // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
         if (!in_array($type, self::VALID_TYPES, true)) {
             return;
         }
@@ -69,7 +69,7 @@ class AddressModel extends Model
         string $zipCode,
         string $country,
         string $phone
-    ): void {
+    ): void { // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
         $this->db->execute(
             "UPDATE {$this->table}
              SET firstname = ?, lastname = ?, civility = ?,

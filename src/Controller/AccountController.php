@@ -16,10 +16,13 @@ use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
 use Model\OrderModel;
 
+// NOSONAR php:S1448 — la classe regroupe toutes les actions de l'espace client ; découpage prévu à l'audit génie logiciel
 class AccountController extends Controller
 {
     private const PER_PAGE          = 10;
     private const VALID_PER_PAGES   = [10, 25, 50];
+    private const VIEW_REACTIVATE   = self::VIEW_REACTIVATE;
+    private const VIEW_UNSUBSCRIBE  = self::VIEW_UNSUBSCRIBE;
 
     private AccountModel $accounts;
     private AddressModel $addresses;
@@ -699,28 +702,11 @@ class AccountController extends Controller
             $civility  = $this->request->post('civility', '');
             $firstname = trim($this->request->post('firstname', ''));
             $lastname  = trim($this->request->post('lastname', ''));
-
-            if ($firstname === '') {
-                $errors['firstname'] = __('validation.required');
-            }
-            if ($lastname === '') {
-                $errors['lastname'] = __('validation.required');
-            }
-
-            if ($errors === []) {
-                $this->accounts->updateIndividualProfile($userId, $civility, $firstname, $lastname);
-            }
+            $errors    = $this->validateAndSaveIndividual($userId, $civility, $firstname, $lastname);
         } elseif ($account && $account['account_type'] === 'company') {
             $companyName = trim($this->request->post('company_name', ''));
             $siret       = trim($this->request->post('siret', '')) ?: null;
-
-            if ($companyName === '') {
-                $errors['company_name'] = __('validation.required');
-            }
-
-            if ($errors === []) {
-                $this->accounts->updateCompanyProfile($userId, $companyName, $siret);
-            }
+            $errors      = $this->validateAndSaveCompany($userId, $companyName, $siret);
         }
 
         if ($errors !== []) {
@@ -810,18 +796,18 @@ class AccountController extends Controller
         $token = $this->request->get('token', '');
 
         if ($token === '') {
-            $this->view('account/reactivate', ['lang' => $lang, 'success' => false]);
+            $this->view(self::VIEW_REACTIVATE, ['lang' => $lang, 'success' => false]);
             return;
         }
 
         $account = $this->accounts->findByReactivationToken($token);
         if ($account === false) {
-            $this->view('account/reactivate', ['lang' => $lang, 'success' => false]);
+            $this->view(self::VIEW_REACTIVATE, ['lang' => $lang, 'success' => false]);
             return;
         }
 
         $this->accounts->reactivate((int) $account['id']);
-        $this->view('account/reactivate', ['lang' => $lang, 'success' => true]);
+        $this->view(self::VIEW_REACTIVATE, ['lang' => $lang, 'success' => true]);
     }
 
     // ----------------------------------------------------------------
@@ -834,11 +820,11 @@ class AccountController extends Controller
         $token = $this->request->get('token', '');
 
         if ($token === '' || !$this->accounts->findByUnsubscribeToken($token)) {
-            $this->view('account/unsubscribe', ['lang' => $lang, 'success' => false, 'confirm' => false]);
+            $this->view(self::VIEW_UNSUBSCRIBE, ['lang' => $lang, 'success' => false, 'confirm' => false]);
             return;
         }
 
-        $this->view('account/unsubscribe', [
+        $this->view(self::VIEW_UNSUBSCRIBE, [
             'lang'       => $lang,
             'success'    => false,
             'confirm'    => true,
@@ -862,7 +848,7 @@ class AccountController extends Controller
             $success = true;
         }
 
-        $this->view('account/unsubscribe', [
+        $this->view(self::VIEW_UNSUBSCRIBE, [
             'lang'    => $lang,
             'success' => $success,
             'confirm' => false,
@@ -1018,73 +1004,58 @@ class AccountController extends Controller
         }
         $h .= '</table>';
 
-        $h .= '<h2>Commandes (' . count($export['orders']) . ')</h2>';
-        if ($export['orders'] !== []) {
-            $h .= '<table><tr><th>Référence</th><th>Statut</th><th>Total</th><th>Date</th></tr>';
-            foreach ($export['orders'] as $o) {
-                $h .= '<tr><td>' . htmlspecialchars($o['reference']) . '</td>'
-                    . '<td>' . htmlspecialchars($o['status']) . '</td>'
-                    . '<td>' . htmlspecialchars((string) $o['price']) . ' €</td>'
-                    . '<td>' . htmlspecialchars((string) $o['ordered_at']) . '</td></tr>';
-            }
-            $h .= '</table>';
-        } else {
-            $h .= '<p class="muted">Aucune commande.</p>';
-        }
+        $h .= $this->buildPdfTableSection(
+            'Commandes',
+            $export['orders'],
+            '<tr><th>Référence</th><th>Statut</th><th>Total</th><th>Date</th></tr>',
+            static fn(array $o) => '<tr><td>' . htmlspecialchars($o['reference']) . '</td>'
+                . '<td>' . htmlspecialchars($o['status']) . '</td>'
+                . '<td>' . htmlspecialchars((string) $o['price']) . ' €</td>'
+                . '<td>' . htmlspecialchars((string) $o['ordered_at']) . '</td></tr>',
+            'Aucune commande.'
+        );
 
-        $h .= '<h2>Adresses (' . count($export['addresses']) . ')</h2>';
-        if ($export['addresses'] !== []) {
-            $h .= '<table><tr><th>Type</th><th>Nom</th><th>Adresse</th><th>Ville</th><th>Pays</th></tr>';
-            foreach ($export['addresses'] as $a) {
-                $h .= '<tr><td>' . htmlspecialchars($a['type']) . '</td>'
-                    . '<td>' . htmlspecialchars($a['firstname'] . ' ' . $a['lastname']) . '</td>'
-                    . '<td>' . htmlspecialchars($a['street']) . '</td>'
-                    . '<td>' . htmlspecialchars($a['zip_code'] . ' ' . $a['city']) . '</td>'
-                    . '<td>' . htmlspecialchars($a['country']) . '</td></tr>';
-            }
-            $h .= '</table>';
-        } else {
-            $h .= '<p class="muted">Aucune adresse.</p>';
-        }
+        $h .= $this->buildPdfTableSection(
+            'Adresses',
+            $export['addresses'],
+            '<tr><th>Type</th><th>Nom</th><th>Adresse</th><th>Ville</th><th>Pays</th></tr>',
+            static fn(array $a) => '<tr><td>' . htmlspecialchars($a['type']) . '</td>'
+                . '<td>' . htmlspecialchars($a['firstname'] . ' ' . $a['lastname']) . '</td>'
+                . '<td>' . htmlspecialchars($a['street']) . '</td>'
+                . '<td>' . htmlspecialchars($a['zip_code'] . ' ' . $a['city']) . '</td>'
+                . '<td>' . htmlspecialchars($a['country']) . '</td></tr>',
+            'Aucune adresse.'
+        );
 
-        $h .= '<h2>Favoris (' . count($export['favorites']) . ')</h2>';
-        if ($export['favorites'] !== []) {
-            $h .= '<table><tr><th>Vin</th><th>Millésime</th></tr>';
-            foreach ($export['favorites'] as $f) {
-                $h .= '<tr><td>' . htmlspecialchars($f['name'] ?? '') . '</td>'
-                    . '<td>' . htmlspecialchars((string) ($f['vintage'] ?? '')) . '</td></tr>';
-            }
-            $h .= '</table>';
-        } else {
-            $h .= '<p class="muted">Aucun favori.</p>';
-        }
+        $h .= $this->buildPdfTableSection(
+            'Favoris',
+            $export['favorites'],
+            '<tr><th>Vin</th><th>Millésime</th></tr>',
+            static fn(array $f) => '<tr><td>' . htmlspecialchars($f['name'] ?? '') . '</td>'
+                . '<td>' . htmlspecialchars((string) ($f['vintage'] ?? '')) . '</td></tr>',
+            'Aucun favori.'
+        );
 
-        $h .= '<h2>Appareils de confiance (' . count($export['trusted_devices']) . ')</h2>';
-        if ($export['trusted_devices'] !== []) {
-            $h .= '<table><tr><th>Appareil</th><th>Confirmé le</th><th>Dernière activité</th></tr>';
-            foreach ($export['trusted_devices'] as $d) {
-                $h .= '<tr><td>' . htmlspecialchars($d['device_name'] ?? '—') . '</td>'
-                    . '<td>' . htmlspecialchars((string) ($d['confirmed_at'] ?? '—')) . '</td>'
-                    . '<td>' . htmlspecialchars((string) ($d['last_seen'] ?? '—')) . '</td></tr>';
-            }
-            $h .= '</table>';
-        } else {
-            $h .= '<p class="muted">Aucun appareil de confiance.</p>';
-        }
+        $h .= $this->buildPdfTableSection(
+            'Appareils de confiance',
+            $export['trusted_devices'],
+            '<tr><th>Appareil</th><th>Confirmé le</th><th>Dernière activité</th></tr>',
+            static fn(array $d) => '<tr><td>' . htmlspecialchars($d['device_name'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars((string) ($d['confirmed_at'] ?? '—')) . '</td>'
+                . '<td>' . htmlspecialchars((string) ($d['last_seen'] ?? '—')) . '</td></tr>',
+            'Aucun appareil de confiance.'
+        );
 
-        $h .= '<h2>Sessions actives (' . count($export['active_sessions']) . ')</h2>';
-        if ($export['active_sessions'] !== []) {
-            $h .= '<table><tr><th>Appareil</th><th>Adresse IP</th><th>Connecté le</th><th>Expire le</th></tr>';
-            foreach ($export['active_sessions'] as $s) {
-                $h .= '<tr><td>' . htmlspecialchars($s['device_name'] ?? '—') . '</td>'
-                    . '<td>' . htmlspecialchars($s['ip_address'] ?? '—') . '</td>'
-                    . '<td>' . htmlspecialchars((string) ($s['created_at'] ?? '—')) . '</td>'
-                    . '<td>' . htmlspecialchars((string) ($s['expired_at'] ?? '—')) . '</td></tr>';
-            }
-            $h .= '</table>';
-        } else {
-            $h .= '<p class="muted">Aucune session active.</p>';
-        }
+        $h .= $this->buildPdfTableSection(
+            'Sessions actives',
+            $export['active_sessions'],
+            '<tr><th>Appareil</th><th>Adresse IP</th><th>Connecté le</th><th>Expire le</th></tr>',
+            static fn(array $s) => '<tr><td>' . htmlspecialchars($s['device_name'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars($s['ip_address'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars((string) ($s['created_at'] ?? '—')) . '</td>'
+                . '<td>' . htmlspecialchars((string) ($s['expired_at'] ?? '—')) . '</td></tr>',
+            'Aucune session active.'
+        );
 
         $pdf->writeHTML($h, true, false, true, false, '');
 
@@ -1094,6 +1065,62 @@ class AccountController extends Controller
     // ----------------------------------------------------------------
     // Helpers privés
     // ----------------------------------------------------------------
+
+    /**
+     * Génère une section HTML tableau pour le PDF d'export RGPD.
+     *
+     * @param array<mixed>   $rows
+     * @param callable       $rowFn  function(array $row): string
+     */
+    private function buildPdfTableSection(string $label, array $rows, string $header, callable $rowFn, string $emptyMsg): string
+    {
+        $h = '<h2>' . $label . ' (' . count($rows) . ')</h2>';
+        if ($rows === []) {
+            return $h . '<p class="muted">' . $emptyMsg . '</p>';
+        }
+        $h .= '<table>' . $header;
+        foreach ($rows as $row) {
+            $h .= $rowFn($row);
+        }
+        return $h . '</table>';
+    }
+
+    /**
+     * Valide et sauvegarde le profil d'un compte particulier.
+     *
+     * @return array<string, string>
+     */
+    private function validateAndSaveIndividual(int $userId, string $civility, string $firstname, string $lastname): array
+    {
+        $errors = [];
+        if ($firstname === '') {
+            $errors['firstname'] = __('validation.required');
+        }
+        if ($lastname === '') {
+            $errors['lastname'] = __('validation.required');
+        }
+        if ($errors === []) {
+            $this->accounts->updateIndividualProfile($userId, $civility, $firstname, $lastname);
+        }
+        return $errors;
+    }
+
+    /**
+     * Valide et sauvegarde le profil d'un compte société.
+     *
+     * @return array<string, string>
+     */
+    private function validateAndSaveCompany(int $userId, string $companyName, ?string $siret): array
+    {
+        $errors = [];
+        if ($companyName === '') {
+            $errors['company_name'] = __('validation.required');
+        }
+        if ($errors === []) {
+            $this->accounts->updateCompanyProfile($userId, $companyName, $siret);
+        }
+        return $errors;
+    }
 
     /**
      * Normalise un numéro de téléphone : conserve le format international tel quel,

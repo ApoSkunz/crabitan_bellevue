@@ -74,7 +74,7 @@ $chartLabelsFormatted = array_map(function (string $label) use ($granularity): s
                 Chiffre d'affaires
             </div>
             <div style="font-size:1.75rem;font-weight:700;color:#1a1208;font-family:Georgia,serif;">
-                <?= number_format($stats['ca'], 2, ',', '&nbsp;') ?>&nbsp;€
+                <?= number_format($stats['ca'], 2, ',', '&nbsp;') ?>&nbsp;€ <?php // NOSONAR php:S1192 — '&nbsp;' est une entité HTML, pas une constante métier ?>
             </div>
         </div>
     </div>

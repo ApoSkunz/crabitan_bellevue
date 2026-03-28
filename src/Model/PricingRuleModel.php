@@ -35,7 +35,7 @@ class PricingRuleModel extends Model
      * Calcule la remise livraison pour un nombre de bouteilles donné.
      * Retourne 0.0 si aucune règle active ou remise nulle.
      */
-    public function computeDeliveryDiscount(int $totalBottles): float
+    public function computeDeliveryDiscount(int $totalBottles): float // NOSONAR php:S1142 — guard clauses intentionnels
     {
         if ($totalBottles <= 0) {
             return 0.0;

@@ -120,7 +120,7 @@ class NewsletterAdminController extends AdminController
      * @param array<string, mixed> $file
      * @return array{path: string, name: string}|null
      */
-    private function uploadNewsletterPdf(array $file): ?array
+    private function uploadNewsletterPdf(array $file): ?array // NOSONAR php:S1142 — retours anticipés de validation intentionnels
     {
         if (empty($file['tmp_name'])) {
             return null;

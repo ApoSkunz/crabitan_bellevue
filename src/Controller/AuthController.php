@@ -66,17 +66,7 @@ class AuthController extends Controller
             Response::redirect($safeBack);
         }
 
-        $deviceToken = $_COOKIE['device_token'] ?? null;
-        if ($deviceToken === null) {
-            $deviceToken = bin2hex(random_bytes(32));
-            setcookie('device_token', $deviceToken, [
-                'expires'  => time() + (90 * 24 * 3600),
-                'path'     => '/',
-                'secure'   => APP_ENV === 'production',
-                'httponly' => true,
-                'samesite' => 'Lax',
-            ]);
-        }
+        $deviceToken = $this->resolveDeviceToken();
 
         $ua               = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
         $deviceName       = $this->deriveDeviceName($ua);
@@ -87,39 +77,7 @@ class AuthController extends Controller
         // MFA requis : appareil non de confiance, qu'il soit connu ou non.
         // Le JWT n'est PAS émis ici — la connexion est bloquée jusqu'à validation du lien email.
         if (!$trusted) {
-            $confirmToken = bin2hex(random_bytes(32));
-            $this->deviceConfirmTokens->create(
-                (int) $account['id'],
-                $deviceToken,
-                $deviceName,
-                $confirmToken,
-                $safeBack,
-                $lang
-            );
-
-            try {
-                $displayName = $account['account_type'] === 'company'
-                    ? ($account['company_name'] ?? 'Client')
-                    : (trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? '')));
-                $mail = new MailService();
-                $mail->sendNewDeviceAlert(
-                    $account['email'],
-                    $displayName,
-                    $deviceName,
-                    $_SERVER['REMOTE_ADDR'] ?? null,
-                    $lang,
-                    $confirmToken
-                );
-            } catch (\Throwable $e) {
-                error_log('Mail new device alert error: ' . $e->getMessage());
-            }
-
-            $_SESSION['pending_device'] = [
-                'device_name' => $deviceName,
-                'mfa_token'   => $confirmToken,
-            ];
-
-            Response::redirect("/{$lang}/mon-compte/nouvel-appareil");
+            $this->handleUntrustedDevice($account, $deviceToken, $deviceName, $lang, $safeBack);
         }
 
         // Appareil connu ou de confiance : émission du JWT et connexion immédiate.
@@ -467,5 +425,71 @@ class AuthController extends Controller
     private function flash(string $key, string $message): void
     {
         $_SESSION['flash'][$key] = $message;
+    }
+
+    /**
+     * Retourne le device token existant depuis le cookie, ou en génère un nouveau.
+     */
+    private function resolveDeviceToken(): string
+    {
+        $token = $_COOKIE['device_token'] ?? null;
+        if ($token !== null) {
+            return $token;
+        }
+        $token = bin2hex(random_bytes(32));
+        setcookie('device_token', $token, [
+            'expires'  => time() + (90 * 24 * 3600),
+            'path'     => '/',
+            'secure'   => APP_ENV === 'production',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        return $token;
+    }
+
+    /**
+     * Crée un token de confirmation appareil, envoie l'email MFA et redirige.
+     *
+     * @param array<string, mixed> $account
+     */
+    private function handleUntrustedDevice(
+        array $account,
+        string $deviceToken,
+        string $deviceName,
+        string $lang,
+        string $safeBack
+    ): void {
+        $confirmToken = bin2hex(random_bytes(32));
+        $this->deviceConfirmTokens->create(
+            (int) $account['id'],
+            $deviceToken,
+            $deviceName,
+            $confirmToken,
+            $safeBack,
+            $lang
+        );
+
+        try {
+            $displayName = $account['account_type'] === 'company'
+                ? ($account['company_name'] ?? 'Client')
+                : (trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? '')));
+            $mail = new MailService();
+            $mail->sendNewDeviceAlert(
+                $account['email'],
+                $displayName,
+                $deviceName,
+                $_SERVER['REMOTE_ADDR'] ?? null,
+                $lang,
+                $confirmToken
+            );
+        } catch (\Throwable $e) {
+            error_log('Mail new device alert error: ' . $e->getMessage());
+        }
+
+        $_SESSION['pending_device'] = [
+            'device_name' => $deviceName,
+            'mfa_token'   => $confirmToken,
+        ];
+        Response::redirect("/{$lang}/mon-compte/nouvel-appareil");
     }
 }

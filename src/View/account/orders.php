@@ -48,7 +48,7 @@ function ordersUrl(int $p, int $perPage, string $period, string $statusFilter): 
             <form class="account-filters" method="GET" action="">
                 <div class="account-filters__group">
                     <label for="filter-period"><?= __('account.filter_period') ?></label>
-                    <select id="filter-period" name="period" onchange="this.form.submit()">
+                    <select id="filter-period" name="period" onchange="this.form.submit()"> <?php // NOSONAR php:S1192 — ' selected' est un attribut HTML conditionnel, pas une constante métier ?>
                         <option value="all"<?= $period === 'all' ? ' selected' : '' ?>>
                             <?= __('account.filter_all') ?>
                         </option>

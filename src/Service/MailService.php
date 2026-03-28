@@ -9,6 +9,7 @@ use PHPMailer\PHPMailer\Exception;
 
 class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont des seams de testabilité, pas de la logique métier
 {
+    private const BTN_STYLE_PRIMARY = 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;';
     private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
     private const URL_PRIVACY = '/fr/politique-confidentialite';
     private const URL_LEGAL   = '/fr/mentions-legales';
@@ -175,7 +176,7 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
                   . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
                   . '<a href="' . $safeReactUrl . '" style="display:inline-block;padding:14px 36px;'
-                  . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
+                  . self::BTN_STYLE_PRIMARY
                   . 'color:#1a1208;text-decoration:none;font-weight:bold;">Annuler la suppression</a>'
                   . '</td></tr></table>'
                 : '';
@@ -197,7 +198,7 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
                   . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
                   . '<a href="' . $safeReactUrl . '" style="display:inline-block;padding:14px 36px;'
-                  . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
+                  . self::BTN_STYLE_PRIMARY
                   . 'color:#1a1208;text-decoration:none;font-weight:bold;">Cancel deletion</a>'
                   . '</td></tr></table>'
                 : '';
@@ -264,7 +265,7 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
             ? '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
               . "<a href=\"{$confirmUrl}\" style=\"display:inline-block;padding:14px 36px;"
-              . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
+              . self::BTN_STYLE_PRIMARY
               . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
               . ($lang === 'fr' ? 'Confirmer cet appareil' : 'Confirm this device')
               . '</a></td></tr></table>'
@@ -278,7 +279,7 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
             : '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
               . "<a href=\"{$securityUrl}\" style=\"display:inline-block;padding:14px 36px;"
-              . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
+              . self::BTN_STYLE_PRIMARY
               . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
               . $manageLabel
               . '</a></td></tr></table>';

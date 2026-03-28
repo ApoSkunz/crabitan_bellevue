@@ -12,6 +12,9 @@ use Model\TrustedDeviceModel;
 
 class ProfileAdminController extends AdminController
 {
+    private const ADMIN_URL    = '/admin';
+    private const SECURITY_URL = '/admin/securite';
+
     private AccountModel $accounts;
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
@@ -61,7 +64,7 @@ class ProfileAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Jeton CSRF invalide.');
-            Response::redirect('/admin/securite');
+            Response::redirect(self::SECURITY_URL);
         }
 
         $current = $this->request->post('current_password', '');
@@ -72,22 +75,22 @@ class ProfileAdminController extends AdminController
 
         if (!$account || !password_verify($current, $account['password'] ?? '')) {
             $this->flash('error', 'Mot de passe actuel incorrect.');
-            Response::redirect('/admin/securite');
+            Response::redirect(self::SECURITY_URL);
         }
 
         if (strlen($new) < 12) {
             $this->flash('error', 'Le nouveau mot de passe doit contenir au moins 12 caractères.');
-            Response::redirect('/admin/securite');
+            Response::redirect(self::SECURITY_URL);
         }
 
         if ($new !== $confirm) {
             $this->flash('error', 'Les mots de passe ne correspondent pas.');
-            Response::redirect('/admin/securite');
+            Response::redirect(self::SECURITY_URL);
         }
 
         $this->accounts->updatePassword($adminUser['id'], password_hash($new, PASSWORD_BCRYPT));
         $this->flash('success', 'Mot de passe mis à jour avec succès.');
-        Response::redirect('/admin/securite');
+        Response::redirect(self::SECURITY_URL);
     }
 
     // ----------------------------------------------------------------
@@ -107,11 +110,11 @@ class ProfileAdminController extends AdminController
             $currentToken = $_COOKIE['auth_token'] ?? null;
             if ($tokenOfRevoked !== null && $currentToken !== null && $tokenOfRevoked === $currentToken) {
                 CookieHelper::clear();
-                Response::redirect('/admin');
+                Response::redirect(self::ADMIN_URL);
             }
         }
 
-        Response::redirect('/admin/securite');
+        Response::redirect(self::SECURITY_URL);
     }
 
     // ----------------------------------------------------------------
@@ -123,12 +126,12 @@ class ProfileAdminController extends AdminController
         $adminUser = $this->requireAdmin();
 
         if (!$this->verifyCsrf()) {
-            Response::redirect('/admin/securite');
+            Response::redirect(self::SECURITY_URL);
         }
 
         $this->accounts->revokeAllSessions($adminUser['id']);
         CookieHelper::clear();
-        Response::redirect('/admin');
+        Response::redirect(self::ADMIN_URL);
     }
 
     // ----------------------------------------------------------------
@@ -145,7 +148,7 @@ class ProfileAdminController extends AdminController
             $this->trustedDevices->untrust($userId, $deviceToken);
         }
 
-        Response::redirect('/admin/securite#appareils');
+        Response::redirect(self::SECURITY_URL . '#appareils');
     }
 
     // ----------------------------------------------------------------
@@ -157,12 +160,12 @@ class ProfileAdminController extends AdminController
         $adminUser = $this->requireAdmin();
 
         if (!$this->verifyCsrf()) {
-            Response::redirect('/admin/securite');
+            Response::redirect(self::SECURITY_URL);
         }
 
         $this->trustedDevices->deleteAllForUser($adminUser['id']);
         $this->flash('success', 'Tous les appareils de confiance ont été supprimés.');
-        Response::redirect('/admin/securite#appareils');
+        Response::redirect(self::SECURITY_URL . '#appareils');
     }
 
     // ----------------------------------------------------------------
@@ -176,7 +179,7 @@ class ProfileAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Jeton CSRF invalide.');
-            Response::redirect('/admin/securite');
+            Response::redirect(self::SECURITY_URL);
         }
 
         $password = $this->request->post('password', '');
@@ -188,13 +191,13 @@ class ProfileAdminController extends AdminController
             || !password_verify($password, (string) $account['password'])
         ) {
             $this->flash('error', 'Mot de passe incorrect.');
-            Response::redirect('/admin/securite');
+            Response::redirect(self::SECURITY_URL);
         }
 
         $this->accounts->revokeAllSessions($userId);
         $this->trustedDevices->deleteAllForUser($userId);
         CookieHelper::clear();
 
-        Response::redirect('/admin');
+        Response::redirect(self::ADMIN_URL);
     }
 }

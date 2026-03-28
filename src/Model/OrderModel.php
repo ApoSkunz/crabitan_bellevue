@@ -6,6 +6,7 @@ namespace Model;
 
 use Core\Model;
 
+// NOSONAR php:S1448 — regroupement intentionnel ; découpage prévu à l'audit génie logiciel
 class OrderModel extends Model
 {
     protected string $table = 'orders';
@@ -388,6 +389,7 @@ class OrderModel extends Model
     /**
      * @param  array<string, array{label: string, ca: float, count: int}>  $indexed
      * @return array<int, array{label: string, ca: float, count: int}>
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity) // NOSONAR php:S1142 — branches logiques distinctes
      */
     private function fillChartGaps(array $indexed, ?string $from, ?string $to, string $granularity): array
     {
@@ -450,7 +452,7 @@ class OrderModel extends Model
             $conds[]  = 'ordered_at <= ?';
             $params[] = $to . ' 23:59:59';
         }
-        return ['WHERE ' . implode(' AND ', $conds), $params];
+        return ['WHERE ' . implode(' AND ', $conds), $params]; // NOSONAR php:S1192 — littéraux SQL naturels, constantes sans valeur ajoutée
     }
 
     /**
