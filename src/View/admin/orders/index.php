@@ -3,13 +3,14 @@
 <?php
 $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
 $statusLabels = [
-    'pending'    => 'En attente',
-    'paid'       => 'Payée',
-    'processing' => 'En préparation',
-    'shipped'    => 'Expédiée',
-    'delivered'  => 'Livrée',
-    'cancelled'  => 'Annulée',
-    'refunded'   => 'Remboursée',
+    'pending'          => 'En attente',
+    'paid'             => 'Payée',
+    'processing'       => 'En préparation',
+    'shipped'          => 'Expédiée',
+    'delivered'        => 'Livrée',
+    'cancelled'        => 'Annulée',
+    'refunded'         => 'Remboursée',
+    'return_requested' => 'Retour en cours',
 ];
 $paymentLabels = [
     'card'     => 'Carte bancaire',

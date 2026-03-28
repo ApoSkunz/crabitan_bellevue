@@ -2,13 +2,14 @@
 
 <?php
 $statusLabels = [
-    'pending'    => 'En attente',
-    'paid'       => 'Payée',
-    'processing' => 'En préparation',
-    'shipped'    => 'Expédiée',
-    'delivered'  => 'Livrée',
-    'cancelled'  => 'Annulée',
-    'refunded'   => 'Remboursée',
+    'pending'          => 'En attente',
+    'paid'             => 'Payée',
+    'processing'       => 'En préparation',
+    'shipped'          => 'Expédiée',
+    'delivered'        => 'Livrée',
+    'cancelled'        => 'Annulée',
+    'refunded'         => 'Remboursée',
+    'return_requested' => 'Retour en cours',
 ];
 $allStatuses   = array_keys($statusLabels);
 $paymentLabels = [
