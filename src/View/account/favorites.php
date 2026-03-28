@@ -21,7 +21,7 @@ require_once __DIR__ . '/../partials/header.php';
                     <?= __('account.discover_wines') ?>
                 </a>
             <?php else : ?>
-                <ul class="account-favorites-grid" role="list">
+                <ul class="account-favorites-grid">
                     <?php foreach ($favorites as $wine) : ?>
                         <li class="account-favorite-card">
                             <?php if ($wine['image_path']) : ?>

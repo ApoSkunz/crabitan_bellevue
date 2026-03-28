@@ -34,8 +34,8 @@ $isCompany = ($account['account_type'] ?? '') === 'company';
 
                     <!-- Email (lecture seule + lien mailto support) -->
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" value="<?= htmlspecialchars($account['email'] ?? '') ?>"
+                        <label for="profile-email">Email</label>
+                        <input type="email" id="profile-email" value="<?= htmlspecialchars($account['email'] ?? '') ?>"
                                disabled class="form-input--readonly">
                         <?php
                             $mailtoSubject = rawurlencode(__('account.email_change_subject'));

@@ -96,7 +96,7 @@ $deleteError = $errors['delete'] ?? null;
                 <?php if ($sessions === []) : ?>
                     <p class="account-empty"><?= __('account.no_sessions') ?></p>
                 <?php else : ?>
-                    <ul class="account-sessions" role="list">
+                    <ul class="account-sessions">
                         <?php foreach ($sessions as $session) : ?>
                             <?php
                             $isCurrent       = isset($currentToken)
@@ -152,7 +152,7 @@ $deleteError = $errors['delete'] ?? null;
                 <?php if ($trustedDevices === []) : ?>
                     <p class="account-empty"><?= __('account.trusted_devices_empty') ?></p>
                 <?php else : ?>
-                    <ul class="account-sessions" role="list">
+                    <ul class="account-sessions">
                         <?php foreach ($trustedDevices as $device) : ?>
                             <?php $isCurrentDevice = isset($currentDeviceToken)
                                 && $device['device_token'] === $currentDeviceToken; ?>
