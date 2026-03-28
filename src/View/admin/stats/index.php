@@ -258,6 +258,8 @@ $chartLabelsFormatted = array_map(function (string $label) use ($granularity): s
 </script>
 <?php endif; ?>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script> <!-- NOSONAR others — SRI intentionnellement absent : version épinglée @4.4.4, intégrité couverte par la politique CSP du serveur -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
+        integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt"
+        crossorigin="anonymous" defer></script>
 
 <?php require_once SRC_PATH . '/View/admin/_close.php'; ?>

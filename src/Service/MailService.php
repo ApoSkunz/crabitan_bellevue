@@ -260,21 +260,23 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
             . '</td></tr>'
             . '</table>';
 
-        $manageLabel  = $lang === 'fr' ? 'Gérer mes sessions' : 'Manage my sessions';
-        $confirmBlock = $confirmUrl !== ''
+        $manageLabel   = $lang === 'fr' ? 'Gérer mes sessions' : 'Manage my sessions';
+        $confirmLabel  = $lang === 'fr' ? 'Confirmer cet appareil' : 'Confirm this device';
+        $cancelLabel   = $lang === 'fr' ? 'Ce n\'était pas moi — Annuler cette tentative' : 'This wasn\'t me — Cancel this attempt';
+        $confirmBlock  = $confirmUrl !== ''
             ? '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
               . "<a href=\"{$confirmUrl}\" style=\"display:inline-block;padding:14px 36px;"
               . self::BTN_STYLE_PRIMARY
               . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
-              . ($lang === 'fr' ? 'Confirmer cet appareil' : 'Confirm this device')
+              . $confirmLabel
               . '</a></td></tr></table>'
               . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
               . '<tr><td>'
               . "<a href=\"{$revokeUrl}\" style=\"display:inline-block;padding:10px 24px;"
               . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;'
               . 'color:#c0392b;text-decoration:underline;">'
-              . ($lang === 'fr' ? 'Ce n\'était pas moi — Annuler cette tentative' : 'This wasn\'t me — Cancel this attempt')
+              . $cancelLabel
               . '</a></td></tr></table>'
             : '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
