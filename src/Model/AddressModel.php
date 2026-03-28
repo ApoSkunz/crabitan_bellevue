@@ -35,7 +35,7 @@ class AddressModel extends Model
         return $row ?: null;
     }
 
-    public function create(
+    public function create( // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
         int $userId,
         string $type,
         string $firstname,
@@ -46,7 +46,7 @@ class AddressModel extends Model
         string $zipCode,
         string $country,
         string $phone
-    ): void { // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
+    ): void {
         if (!in_array($type, self::VALID_TYPES, true)) {
             return;
         }
@@ -58,7 +58,7 @@ class AddressModel extends Model
         );
     }
 
-    public function update(
+    public function update( // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
         int $id,
         int $userId,
         string $firstname,
@@ -69,7 +69,7 @@ class AddressModel extends Model
         string $zipCode,
         string $country,
         string $phone
-    ): void { // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
+    ): void {
         $this->db->execute(
             "UPDATE {$this->table}
              SET firstname = ?, lastname = ?, civility = ?,

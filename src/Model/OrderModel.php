@@ -6,8 +6,7 @@ namespace Model;
 
 use Core\Model;
 
-// NOSONAR php:S1448 — regroupement intentionnel ; découpage prévu à l'audit génie logiciel
-class OrderModel extends Model
+class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionnel ; découpage prévu à l'audit génie logiciel
 {
     protected string $table = 'orders';
 
