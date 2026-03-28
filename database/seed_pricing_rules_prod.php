@@ -47,8 +47,9 @@ $rules = [
         'format'           => 'bottle',
         'min_quantity'     => 1,
         'max_quantity'     => 23,
-        'delivery_price'   => 0.00,   // pas de remise
-        'withdrawal_price' => 2.20,   // 2,20 €/bt
+        'delivery_price'   => 0.00,
+        'price_type'       => 'fixed',
+        'withdrawal_price' => 2.20,
         'label'            => json_encode([
             'fr' => 'Moins de 2 caisses — pas de remise livraison',
             'en' => 'Less than 2 cases — no delivery discount',
@@ -60,7 +61,8 @@ $rules = [
         'format'           => 'bottle',
         'min_quantity'     => 24,
         'max_quantity'     => 35,
-        'delivery_price'   => 15.00,  // 15 € fixe
+        'delivery_price'   => 15.00,
+        'price_type'       => 'fixed',
         'withdrawal_price' => 2.20,
         'label'            => json_encode([
             'fr' => '2 caisses — 15 € de remise livraison',
@@ -73,7 +75,8 @@ $rules = [
         'format'           => 'bottle',
         'min_quantity'     => 36,
         'max_quantity'     => 47,
-        'delivery_price'   => 42.00,  // 42 € fixe
+        'delivery_price'   => 42.00,
+        'price_type'       => 'fixed',
         'withdrawal_price' => 2.20,
         'label'            => json_encode([
             'fr' => '3 caisses — 42 € de remise livraison',
@@ -86,7 +89,8 @@ $rules = [
         'format'           => 'bottle',
         'min_quantity'     => 48,
         'max_quantity'     => 71,
-        'delivery_price'   => 1.30,   // 1,30 €/bt (appliqué × quantité dans le panier)
+        'delivery_price'   => 1.30,
+        'price_type'       => 'per_bottle',
         'withdrawal_price' => 2.20,
         'label'            => json_encode([
             'fr' => '4 à 5 caisses — 1,30 € / bouteille',
@@ -100,6 +104,7 @@ $rules = [
         'min_quantity'     => 72,
         'max_quantity'     => 131,
         'delivery_price'   => 1.50,
+        'price_type'       => 'per_bottle',
         'withdrawal_price' => 2.20,
         'label'            => json_encode([
             'fr' => '6 à 10 caisses — 1,50 € / bouteille',
@@ -113,6 +118,7 @@ $rules = [
         'min_quantity'     => 132,
         'max_quantity'     => 311,
         'delivery_price'   => 1.80,
+        'price_type'       => 'per_bottle',
         'withdrawal_price' => 2.20,
         'label'            => json_encode([
             'fr' => '11 à 25 caisses — 1,80 € / bouteille',
@@ -126,6 +132,7 @@ $rules = [
         'min_quantity'     => 312,
         'max_quantity'     => null,
         'delivery_price'   => 1.80,
+        'price_type'       => 'per_bottle',
         'withdrawal_price' => 2.20,
         'label'            => json_encode([
             'fr' => 'Plus de 25 caisses — 1,80 € / bouteille',
@@ -137,8 +144,8 @@ $rules = [
 
 $stmt = $pdo->prepare(
     "INSERT INTO pricing_rules
-     (format, min_quantity, max_quantity, delivery_price, withdrawal_price, label, active)
-     VALUES (?, ?, ?, ?, ?, ?, ?)"
+     (format, min_quantity, max_quantity, delivery_price, price_type, withdrawal_price, label, active)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 );
 
 foreach ($rules as $rule) {
@@ -147,6 +154,7 @@ foreach ($rules as $rule) {
         $rule['min_quantity'],
         $rule['max_quantity'],
         $rule['delivery_price'],
+        $rule['price_type'],
         $rule['withdrawal_price'],
         $rule['label'],
         $rule['active'],
