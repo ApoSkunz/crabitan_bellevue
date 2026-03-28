@@ -106,6 +106,60 @@ Un seul fichier modifié peut faire l'objet d'un commit séparé si son changeme
 - Faux positifs Semgrep : annoter avec `// nosemgrep: <rule-id>`
 - Ne jamais utiliser `--no-verify`, `--force-push` sur main, ni amender un commit déjà pushé
 
+## Backlog
+
+Le backlog du projet est géré localement dans `BACKLOG/` (gitignored).
+
+### Structure
+
+```
+BACKLOG/
+  EPIC-{nom}/
+    README.md                    ← objectif, périmètre, suivi 4 colonnes par feature
+    FEATURES/{feature}/
+      README.md                  ← routes, branche git, suivi 4 colonnes par US
+      us-{sujet}.md              ← User Story (rôle / action / bénéfice + critères d'acceptation)
+    ENABLERS/{enabler}/
+      README.md                  ← contexte technique, suivi 4 colonnes par US
+      us-{sujet}.md              ← tâche technique découpée
+```
+
+### Colonnes de suivi d'avancement
+
+Chaque README contient un tableau avec 4 colonnes :
+
+| Colonne | Responsable | Signification |
+|---|---|---|
+| 🤖 Claude | Claude IA | Implémenté et fonctionnel selon l'auto-évaluation |
+| ✅ PO | Alexandre | Recette métier validée par le PO |
+| 🎭 E2E | Expert QA | Tests Playwright couvrant nominal + erreur |
+| 🚀 Livré | DevSecOps | Mergé sur main, déployable en production |
+
+États : `✅ Fait` · `🔄 En cours` · `⬜ À faire` · `❌ Bloqué`
+
+### Mise à jour du statut au fil de l'eau
+
+**Claude met à jour la colonne 🤖 Claude en temps réel**, sans attendre la fin d'une session :
+- Dès qu'une US est implémentée et fonctionnelle → passer son statut à `✅ Fait` dans le `us-{sujet}.md` ET dans le tableau du `README.md` de la feature/enabler concerné
+- Dès qu'une feature est complète → mettre à jour le `README.md` de l'EPIC
+- Si une US est en cours d'implémentation → `🔄 En cours`
+- Si une US est bloquée → `❌ Bloqué` avec une note explicative
+
+Ne jamais laisser un statut obsolète : chaque livraison partielle doit se refléter immédiatement dans `BACKLOG/`.
+
+### Rôle Scrum/PO
+
+Quand on travaille sur le backlog (nouvelle feature, US, enabler) :
+- L'expert **Scrum/PO** rédige ou met à jour les fichiers `BACKLOG/`
+- Mettre à jour le `README.md` de l'EPIC et de la Feature concernés après chaque livraison
+- Ne pas modifier manuellement `BACKLOG/README.md` — le regénérer si les totaux changent
+
+### Audit cyber
+
+L'enabler `BACKLOG/EPIC-qualite-infrastructure/ENABLERS/audit-cyber/` est à réaliser **en dernier**, après que tous les autres EPICs sont `✅ Claude`. C'est Claude IA qui conduit l'audit (Expert Red Team) et produit le rapport dans `docs/audit-cyber-[date].md`.
+
+---
+
 ## Stack
 
 - PHP 8.4, MVC custom (Core\Router, Controller, Response, Lang, JWT)

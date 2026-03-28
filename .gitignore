@@ -1,5 +1,5 @@
 # Environnement
-.env
+.env*
 
 # Dépendances
 /vendor/
@@ -34,7 +34,6 @@ Thumbs.db
 /scripts/
 
 # Specs & backlog locaux (non versionnés)
-/FEATURES/
 /BACKLOG/
 
 # Base de données — schéma, migrations et seeds en local uniquement
