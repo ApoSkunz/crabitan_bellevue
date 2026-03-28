@@ -29,8 +29,8 @@
       ],
       "numberOfRuns": 1,
       "puppeteerScript": "./lighthouse-auth.js",
-      "settings": {
-        "chromeFlags": "--no-sandbox --disable-dev-shm-usage"
+      "puppeteerLaunchOptions": {
+        "args": ["--no-sandbox", "--disable-dev-shm-usage"]
       }
     },
     "assert": {
