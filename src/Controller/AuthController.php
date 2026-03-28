@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Controller;
 
 use Core\Controller;
+use Core\CookieHelper;
 use Core\Jwt;
 use Core\Response;
 use Middleware\GuestMiddleware;
 use Model\AccountModel;
 use Model\PasswordResetModel;
 use Model\ConnectionModel;
+use Model\TrustedDeviceModel;
+use Model\DeviceConfirmTokenModel;
 use Service\MailService;
 
 class AuthController extends Controller
@@ -18,13 +21,17 @@ class AuthController extends Controller
     private AccountModel $accounts;
     private PasswordResetModel $resets;
     private ConnectionModel $connections;
+    private TrustedDeviceModel $trustedDevices;
+    private DeviceConfirmTokenModel $deviceConfirmTokens;
 
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
-        $this->accounts    = new AccountModel();
-        $this->resets      = new PasswordResetModel();
-        $this->connections = new ConnectionModel();
+        $this->accounts            = new AccountModel();
+        $this->resets              = new PasswordResetModel();
+        $this->connections         = new ConnectionModel();
+        $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
+        $this->trustedDevices      = new TrustedDeviceModel();
     }
 
     // ----------------------------------------------------------------
@@ -59,21 +66,6 @@ class AuthController extends Controller
             Response::redirect($safeBack);
         }
 
-        $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
-        $token  = Jwt::generate((int) $account['id'], $account['role']);
-
-        setcookie('auth_token', $token, [
-            'expires'  => time() + $expiry,
-            'path'     => '/',
-            'secure'   => APP_ENV === 'production',
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]);
-
-        if ($account['lang'] !== $lang) {
-            $this->accounts->updateLang((int) $account['id'], $lang);
-        }
-
         $deviceToken = $_COOKIE['device_token'] ?? null;
         if ($deviceToken === null) {
             $deviceToken = bin2hex(random_bytes(32));
@@ -86,17 +78,77 @@ class AuthController extends Controller
             ]);
         }
 
-        $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+        $ua               = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+        $deviceName       = $this->deriveDeviceName($ua);
+        $isFirstEverLogin = !(bool) ($account['has_connected'] ?? false);
+        $isAlreadyTrusted = $this->trustedDevices->isTrusted((int) $account['id'], $deviceToken);
+        $trusted          = $isFirstEverLogin || $isAlreadyTrusted;
+
+        // MFA requis : appareil non de confiance, qu'il soit connu ou non.
+        // Le JWT n'est PAS émis ici — la connexion est bloquée jusqu'à validation du lien email.
+        if (!$trusted) {
+            $confirmToken = bin2hex(random_bytes(32));
+            $this->deviceConfirmTokens->create(
+                (int) $account['id'],
+                $deviceToken,
+                $deviceName,
+                $confirmToken,
+                $safeBack,
+                $lang
+            );
+
+            try {
+                $displayName = $account['account_type'] === 'company'
+                    ? ($account['company_name'] ?? 'Client')
+                    : (trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? '')));
+                $mail = new MailService();
+                $mail->sendNewDeviceAlert(
+                    $account['email'],
+                    $displayName,
+                    $deviceName,
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $lang,
+                    $confirmToken
+                );
+            } catch (\Throwable $e) {
+                error_log('Mail new device alert error: ' . $e->getMessage());
+            }
+
+            $_SESSION['pending_device'] = [
+                'device_name' => $deviceName,
+                'mfa_token'   => $confirmToken,
+            ];
+
+            Response::redirect("/{$lang}/mon-compte/nouvel-appareil");
+        }
+
+        // Appareil connu ou de confiance : émission du JWT et connexion immédiate.
+        $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+        $token  = Jwt::generate((int) $account['id'], $account['role']);
+
+        CookieHelper::set($token, $expiry);
+
+        if ($account['lang'] !== $lang) {
+            $this->accounts->updateLang((int) $account['id'], $lang);
+        }
+
         $this->connections->create(
             (int) $account['id'],
             $token,
             $deviceToken,
             $_SERVER['REMOTE_ADDR'] ?? null,
             $ua,
-            $this->deriveDeviceName($ua),
+            $deviceName,
             'password',
             $expiry
         );
+
+        if ($isFirstEverLogin) {
+            $this->accounts->markAsConnected((int) $account['id']);
+            $this->trustedDevices->trust((int) $account['id'], $deviceToken, $deviceName);
+        } elseif ($isAlreadyTrusted) {
+            $this->trustedDevices->updateLastSeen((int) $account['id'], $deviceToken);
+        }
 
         Response::redirect($safeBack);
     }
@@ -111,7 +163,7 @@ class AuthController extends Controller
 
         if ($token) {
             $this->connections->revoke($token);
-            setcookie('auth_token', '', time() - 1, '/', '', APP_ENV === 'production', true);
+            CookieHelper::clear();
         }
 
         Response::redirect('/' . $params['lang']);
