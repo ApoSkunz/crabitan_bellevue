@@ -256,7 +256,7 @@ class AuthController extends Controller
         // Toujours afficher le succès (anti-énumération)
         $this->flash('info', __('auth.reset_email_sent'));
 
-        if ($account && $account['email_verified_at']) {
+        if ($account && $account['email_verified_at'] && $account['role'] === 'customer') {
             $token = bin2hex(random_bytes(32));
             $this->resets->create((int) $account['id'], $token);
             $resetUrl = APP_URL . "/{$lang}/reinitialisation/{$token}";

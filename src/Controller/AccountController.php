@@ -40,7 +40,7 @@ class AccountController extends Controller
 
     public function index(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
 
@@ -61,7 +61,7 @@ class AccountController extends Controller
 
     public function orders(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
 
@@ -99,7 +99,7 @@ class AccountController extends Controller
 
     public function orderDetail(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
         $id      = (int) ($params['id'] ?? 0);
@@ -131,7 +131,7 @@ class AccountController extends Controller
 
     public function cancelOrder(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
         $id      = (int) ($params['id'] ?? 0);
@@ -158,7 +158,7 @@ class AccountController extends Controller
 
     public function addresses(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
 
@@ -180,7 +180,7 @@ class AccountController extends Controller
 
     public function addAddress(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
         $back    = "/{$lang}/mon-compte/adresses";
@@ -216,7 +216,7 @@ class AccountController extends Controller
 
     public function editAddress(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
         $id      = (int) ($params['id'] ?? 0);
@@ -239,7 +239,7 @@ class AccountController extends Controller
 
     public function updateAddress(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
         $id      = (int) ($params['id'] ?? 0);
@@ -280,7 +280,7 @@ class AccountController extends Controller
 
     public function deleteAddress(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
         $id      = (int) ($params['id'] ?? 0);
@@ -312,7 +312,7 @@ class AccountController extends Controller
 
     public function favorites(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
 
@@ -328,7 +328,7 @@ class AccountController extends Controller
 
     public function security(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
 
@@ -352,7 +352,7 @@ class AccountController extends Controller
 
     public function changePassword(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
         $back    = "/{$lang}/mon-compte/securite";
@@ -401,7 +401,7 @@ class AccountController extends Controller
 
     public function revokeSession(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
         $id      = (int) ($params['id'] ?? 0);
@@ -427,7 +427,7 @@ class AccountController extends Controller
 
     public function profile(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
 
@@ -450,7 +450,7 @@ class AccountController extends Controller
 
     public function updateProfile(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
         $back    = "/{$lang}/mon-compte/profil";
@@ -508,7 +508,7 @@ class AccountController extends Controller
 
     public function deleteAccount(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
         $back    = "/{$lang}/mon-compte/securite";
@@ -618,7 +618,7 @@ class AccountController extends Controller
 
     public function exportPage(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $lang    = $params['lang'];
 
         $this->view('account/export', [
@@ -633,7 +633,7 @@ class AccountController extends Controller
 
     public function exportData(array $params): void
     {
-        $payload = AuthMiddleware::handle();
+        $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
 
         $account   = $this->accounts->findById($userId);
@@ -800,6 +800,15 @@ class AccountController extends Controller
     // ----------------------------------------------------------------
     // Helpers privés
     // ----------------------------------------------------------------
+
+    private function requireCustomer(): array
+    {
+        $payload = AuthMiddleware::handle();
+        if (($payload['role'] ?? '') !== 'customer') {
+            Response::abort(404);
+        }
+        return $payload;
+    }
 
     private function verifyCsrf(): bool
     {
