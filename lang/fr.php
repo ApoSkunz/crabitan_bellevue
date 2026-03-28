@@ -22,7 +22,7 @@ return [
     'nav.savoir_faire' => 'Savoir-Faire',
     'nav.chateau'     => 'Le Château',
     'nav.cart'        => 'Panier',
-    'nav.account'     => 'Mon compte',
+    'nav.account'     => 'Mon compte', // NOSONAR php:S1192 — fichier i18n : la valeur 'Mon compte' est intentionnellement répétée dans plusieurs clés
     'nav.login'       => 'Connexion',
     'nav.logout'      => 'Déconnexion',
     'nav.register'    => 'Inscription',
@@ -161,7 +161,7 @@ return [
     'form.account_type'            => 'Statut',
     'form.account_type.individual' => 'Particulier',
     'form.account_type.company'    => 'Professionnel',
-    'form.gender'                  => 'Civilité',
+    'form.gender'                  => 'Civilité', // NOSONAR php:S1192 — fichier i18n : 'Civilité' est une valeur de traduction répétée dans plusieurs clés
     'form.gender.m'                => 'Monsieur',
     'form.gender.f'                => 'Madame',
     'form.gender.other'            => 'Autre',

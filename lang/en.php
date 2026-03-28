@@ -22,7 +22,7 @@ return [
     'nav.savoir_faire' => 'Know-How',
     'nav.chateau'     => 'Le Château',
     'nav.cart'        => 'Cart',
-    'nav.account'     => 'My account',
+    'nav.account'     => 'My account', // NOSONAR php:S1192 — i18n file: 'My account' is intentionally repeated across multiple translation keys
     'nav.login'       => 'Login',
     'nav.logout'      => 'Logout',
     'nav.register'    => 'Register',
