@@ -93,9 +93,8 @@ class AccountController extends Controller
         }
 
         $rawStatus    = $this->request->get('status', '');
-        $statusFilter = in_array($rawStatus, ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested'], true)
-            ? $rawStatus
-            : null;
+        $validStatuses = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested'];
+        $statusFilter  = in_array($rawStatus, $validStatuses, true) ? $rawStatus : null;
 
         $total = $this->orders->countForUser($userId, $period === 'all' ? null : $period, $year, $statusFilter);
         $pages = max(1, (int) ceil($total / $perPage));
