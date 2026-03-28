@@ -7,7 +7,7 @@ http_response_code(503);
 header('Retry-After: 3600');
 ?>
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,20 +15,32 @@ header('Retry-After: 3600');
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" type="image/png" href="/assets/images/logo/crabitan-bellevue-logo.png">
     <style>
-        /* ---- Reset minimal ---- */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* ---- Tokens (dark uniquement — page standalone) ---- */
+        /* ---- Tokens light (défaut) ---- */
         :root {
+            --bg:           #faf8f4;
+            --surface:      #ffffff;
+            --gold:         #9a7520;
+            --gold-light:   #b8901e;
+            --gold-deco:    #c9a84c;
+            --text:         #1a1410;
+            --text-muted:   #6b5e4e;
+            --border-gold:  rgba(139, 105, 20, 0.30);
+            --font-serif:   Georgia, 'Times New Roman', serif;
+            --font-sans:    'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* ---- Tokens dark ---- */
+        [data-theme="dark"] {
             --bg:           #0a0805;
             --surface:      #13100c;
             --gold:         #c9a84c;
             --gold-light:   #e2c47a;
+            --gold-deco:    #c9a84c;
             --text:         #e8e0d0;
             --text-muted:   #8a7f72;
             --border-gold:  rgba(201, 168, 76, 0.35);
-            --font-serif:   Georgia, 'Times New Roman', serif;
-            --font-sans:    'Helvetica Neue', Arial, sans-serif;
         }
 
         /* ---- Page ---- */
@@ -42,7 +54,38 @@ header('Retry-After: 3600');
             align-items: center;
             justify-content: center;
             padding: 2rem;
+            transition: background-color 0.25s, color 0.25s;
         }
+
+        /* ---- Toggle thème ---- */
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: 1px solid rgba(201, 168, 76, 0.55);
+            border-radius: 50%;
+            width: 2.2rem;
+            height: 2.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text);
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .theme-toggle:hover {
+            color: var(--gold-deco);
+            background-color: rgba(201, 168, 76, 0.12);
+        }
+
+        .icon-sun  { display: none; }
+        .icon-moon { display: block; }
+
+        [data-theme="light"] .icon-sun  { display: block; }
+        [data-theme="light"] .icon-moon { display: none; }
 
         /* ---- Contenu central ---- */
         .maint {
@@ -51,16 +94,15 @@ header('Retry-After: 3600');
         }
 
         .maint__logo {
-            width: 80px;
+            width: 160px;
             height: auto;
             margin-bottom: 2.5rem;
-            opacity: 0.9;
         }
 
         .maint__divider {
             width: 60px;
             height: 2px;
-            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            background: linear-gradient(90deg, transparent, var(--gold-deco), transparent);
             margin: 1.25rem auto;
         }
 
@@ -114,13 +156,19 @@ header('Retry-After: 3600');
     </style>
 </head>
 <body>
+    <button class="theme-toggle" id="js-theme-toggle" type="button"
+            aria-label="Basculer le thème jour / nuit">
+        <span class="icon-sun"  aria-hidden="true">&#9728;</span>
+        <span class="icon-moon" aria-hidden="true">&#9790;</span>
+    </button>
+
     <main class="maint" role="main">
         <img
             src="/assets/images/logo/crabitan-bellevue-logo-modern.svg"
             alt="Château Crabitan Bellevue"
             class="maint__logo"
-            width="80"
-            height="80"
+            width="160"
+            height="160"
         >
 
         <h1 class="maint__title">Château Crabitan Bellevue</h1>
@@ -130,12 +178,12 @@ header('Retry-After: 3600');
 
         <div class="maint__message">
             <p>
-                Notre site est actuellement en <strong>maintenance</strong>.<br>
-                Nous serons de retour très prochainement.
+                Notre site est actuellement en <strong>maintenance</strong><br>
+                Nous serons de retour très prochainement
             </p>
             <p class="maint__lang">
-                Our website is currently under maintenance.<br>
-                We will be back shortly.
+                Our website is currently under maintenance<br>
+                We will be back shortly
             </p>
         </div>
 
@@ -143,5 +191,28 @@ header('Retry-After: 3600');
             <p class="maint__footer">Château Crabitan Bellevue &mdash; Sainte-Croix-du-Mont</p>
         </div>
     </main>
+
+    <script>
+    (function () {
+        var THEME_KEY = 'cb-theme';
+        var btn  = document.getElementById('js-theme-toggle');
+        var html = document.documentElement;
+
+        function applyTheme(theme) {
+            html.setAttribute('data-theme', theme);
+            try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+        }
+
+        // Priorité : localStorage (même clé que le site) → préférence système → light
+        var stored = null;
+        try { stored = localStorage.getItem(THEME_KEY); } catch (e) {}
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(stored || (prefersDark ? 'dark' : 'light'));
+
+        btn.addEventListener('click', function () {
+            applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+        });
+    })();
+    </script>
 </body>
 </html>
