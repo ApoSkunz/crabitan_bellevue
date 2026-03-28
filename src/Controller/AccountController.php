@@ -77,19 +77,25 @@ class AccountController extends Controller
             $period = 'year';
         }
 
-        $total = $this->orders->countForUser($userId, $period === 'all' ? null : $period, $year);
+        $rawStatus    = $this->request->get('status', '');
+        $statusFilter = in_array($rawStatus, ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested'], true)
+            ? $rawStatus
+            : null;
+
+        $total = $this->orders->countForUser($userId, $period === 'all' ? null : $period, $year, $statusFilter);
         $pages = max(1, (int) ceil($total / $perPage));
         $page  = min(max(1, (int) $this->request->get('page', '1')), $pages);
 
         $this->view('account/orders', [
-            'lang'    => $lang,
-            'orders'  => $this->orders->getForUser($userId, $page, $perPage, $period === 'all' ? null : $period, $year),
-            'page'    => $page,
-            'pages'   => $pages,
-            'total'   => $total,
-            'perPage' => $perPage,
-            'period'  => $this->request->get('period', 'all'),
-            'years'   => $this->orders->getAvailableYearsForUser($userId),
+            'lang'         => $lang,
+            'orders'       => $this->orders->getForUser($userId, $page, $perPage, $period === 'all' ? null : $period, $year, $statusFilter),
+            'page'         => $page,
+            'pages'        => $pages,
+            'total'        => $total,
+            'perPage'      => $perPage,
+            'period'       => $this->request->get('period', 'all'),
+            'statusFilter' => $rawStatus,
+            'years'        => $this->orders->getAvailableYearsForUser($userId),
         ]);
     }
 
@@ -109,19 +115,22 @@ class AccountController extends Controller
             Response::redirect("/{$lang}/mon-compte/commandes");
         }
 
-        $items = json_decode((string) ($order['content'] ?? '[]'), true) ?: [];
+        $items            = json_decode((string) ($order['content'] ?? '[]'), true) ?: [];
+        $shippingDiscount = (float) ($order['shipping_discount'] ?? 0);
 
         $success = $_SESSION['flash']['order_success'] ?? null;
         $error   = $_SESSION['flash']['order_error']   ?? null;
         unset($_SESSION['flash']['order_success'], $_SESSION['flash']['order_error']);
 
         $this->view('account/order_detail', [
-            'lang'    => $lang,
-            'order'   => $order,
-            'items'   => $items,
-            'success' => $success,
-            'error'   => $error,
-            'csrf'    => $_SESSION['csrf'] ?? '',
+            'lang'             => $lang,
+            'order'            => $order,
+            'items'            => $items,
+            'shippingDiscount' => $shippingDiscount > 0.0 ? $shippingDiscount : null,
+            'success'          => $success,
+            'error'            => $error,
+            'csrf'             => $_SESSION['csrf'] ?? '',
+            'ownerEmail'       => $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '',
         ]);
     }
 
