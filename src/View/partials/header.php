@@ -678,6 +678,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">
                     <?= htmlspecialchars(__('panel.account')) ?>
                 </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/profil">
+                    <?= htmlspecialchars(__('panel.profile')) ?>
+                </a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/commandes">
                     <?= htmlspecialchars(__('panel.orders')) ?>
                 </a>
@@ -686,6 +689,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 </a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/favoris">
                     <?= htmlspecialchars(__('panel.favorites')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/securite">
+                    <?= htmlspecialchars(__('panel.security')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/export">
+                    <?= htmlspecialchars(__('panel.export')) ?>
                 </a>
             <?php endif; ?>
             <a href="/<?= htmlspecialchars($navLang) ?>/deconnexion" class="account-panel__logout">
