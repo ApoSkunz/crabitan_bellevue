@@ -97,7 +97,7 @@ jobs:
           XDEBUG_MODE: coverage
         run: |
           mkdir -p coverage
-          vendor/bin/phpunit --testsuite Unit --coverage-clover coverage/clover-unit.xml
+          vendor/bin/phpunit --testsuite Unit --coverage-clover coverage/clover-unit.xml --display-warnings --display-skipped
 
       - name: PHPUnit (TI)
         env:
@@ -108,7 +108,7 @@ jobs:
           MAIL_HOST: localhost
           MAIL_PORT: '1025'
           XDEBUG_MODE: coverage
-        run: vendor/bin/phpunit --testsuite Integration --coverage-clover coverage/clover-integration.xml
+        run: vendor/bin/phpunit --testsuite Integration --coverage-clover coverage/clover-integration.xml --display-warnings --display-skipped
 
       - name: Upload PHP coverage
         if: always()
