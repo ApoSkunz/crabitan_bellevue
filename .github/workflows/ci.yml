@@ -107,6 +107,7 @@ jobs:
           DB_PASS: root
           MAIL_HOST: localhost
           MAIL_PORT: '1025'
+          MAIL_USER: ''
           XDEBUG_MODE: coverage
         run: vendor/bin/phpunit --testsuite Integration --coverage-clover coverage/clover-integration.xml --display-warnings --display-skipped
 

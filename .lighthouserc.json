@@ -28,7 +28,7 @@
         "http://localhost:8080/fr/mon-compte/export"
       ],
       "numberOfRuns": 1,
-      "puppeteerScript": "./lighthouse-auth.js",
+      "puppeteerScript": "./lighthouse-auth.cjs",
       "puppeteerLaunchOptions": {
         "args": ["--no-sandbox", "--disable-dev-shm-usage"]
       }
