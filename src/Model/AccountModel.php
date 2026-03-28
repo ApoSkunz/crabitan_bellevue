@@ -272,7 +272,7 @@ class AccountModel extends Model
 
         $this->db->execute(
             "UPDATE account_individuals
-             SET firstname = 'Supprimé', lastname = 'Supprimé', civility = ''
+             SET firstname = 'Supprimé', lastname = 'Supprimé', civility = 'other'
              WHERE account_id IN ({$placeholders})",
             $ids
         );

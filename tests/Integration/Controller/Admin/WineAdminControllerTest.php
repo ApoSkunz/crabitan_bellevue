@@ -521,7 +521,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $id = $this->insertWine();
         $_POST['csrf_token']          = self::CSRF_TOKEN;
         $_POST['appellation']         = 'Bordeaux Rouge';
-        $_POST['format']              = 'magnum';
+        $_POST['format']              = 'bib';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '18,50'; // virgule comme séparateur décimal
         $_POST['quantity']            = '60';

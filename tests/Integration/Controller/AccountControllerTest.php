@@ -458,7 +458,7 @@ class AccountControllerTest extends IntegrationTestCase
         $_POST = [
             'firstname'  => 'Alice',
             'lastname'   => 'Martin',
-            'civility'   => 'Mme',
+            'civility'   => 'F',
             'newsletter' => '0',
             'csrf_token' => self::CSRF,
         ];
@@ -504,7 +504,7 @@ class AccountControllerTest extends IntegrationTestCase
         $_POST = [
             'firstname'  => 'Alice',
             'lastname'   => '',
-            'civility'   => 'Mme',
+            'civility'   => 'F',
             'newsletter' => '0',
             'csrf_token' => self::CSRF,
         ];
@@ -573,7 +573,7 @@ class AccountControllerTest extends IntegrationTestCase
         $_POST = [
             'firstname'  => 'Alice',
             'lastname'   => 'Martin',
-            'civility'   => 'Mme',
+            'civility'   => 'F',
             'newsletter' => '0',
             'csrf_token' => 'wrong-csrf-token',
         ];
@@ -880,7 +880,7 @@ class AccountControllerTest extends IntegrationTestCase
         $this->loginAs($userId);
 
         $_POST = [
-            'civility'   => 'Mme',
+            'civility'   => 'F',
             'firstname'  => 'Alice',
             'lastname'   => 'Martin',
             'street'     => '5 avenue de l\'Opéra',
