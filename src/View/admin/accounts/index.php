@@ -83,6 +83,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                     <th>Rôle</th>
                     <th>Langue</th>
                     <th>Vérifié</th>
+                    <th>Connecté</th>
                     <th>Inscrit le</th>
                     <?php if ($isSuperAdmin) : ?>
                         <th></th>
@@ -91,7 +92,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
             </thead>
             <tbody>
             <?php if (empty($accounts)) : ?>
-                <tr><td colspan="<?= $isSuperAdmin ? 9 : 8 ?>"
+                <tr><td colspan="<?= $isSuperAdmin ? 10 : 9 ?>"
                         style="text-align:center;color:#8a7a60;padding:2rem;">Aucun compte trouvé</td></tr>
             <?php else : ?>
                 <?php foreach ($accounts as $account) : ?>
@@ -125,6 +126,13 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                         </td>
                         <td>
                             <?php if ($verified) : ?>
+                                <span style="color:#15803d;font-size:0.8rem;">✓</span>
+                            <?php else : ?>
+                                <span style="color:#b91c1c;font-size:0.8rem;">✗</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php if (!empty($account['has_connected'])) : ?>
                                 <span style="color:#15803d;font-size:0.8rem;">✓</span>
                             <?php else : ?>
                                 <span style="color:#b91c1c;font-size:0.8rem;">✗</span>
