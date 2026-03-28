@@ -518,17 +518,31 @@ return [
     'account.export_item_addresses' => 'Your saved addresses',
     'account.export_item_favorites' => 'Your favourite wines',
     'account.export_retention'   => 'Retention period: your order data is retained for 10 years in accordance with accounting legal obligations. Other data is deleted within 30 days of account closure.',
-    'account.export_download'    => 'Download my data (JSON)',
+    'account.export_download'    => 'Download my data (ZIP)',
     'account.export_at'          => 'Generated on',
+    'account.export_intro'       => 'In accordance with the General Data Protection Regulation (GDPR – Art. 20), you may download all your personal data.',
 
     // Account deletion
     'account.danger_zone'        => 'Danger zone',
     'account.delete_account'     => 'Delete my account',
-    'account.delete_account_info'=> 'This action is irreversible. Your account will be deactivated and your personal data deleted in accordance with GDPR (Art. 17).',
+    'account.delete_account_info'=> 'This action is irreversible. Your account will be deactivated immediately and your personal data anonymised within 30 days in accordance with GDPR (Art. 17).',
     'account.delete_account_blocked' => 'Block deletion',
     'account.delete_blocked_orders'  => 'Unable to delete your account: you have active orders. Please wait for delivery or contact us.',
     'account.delete_account_confirm' => 'Are you sure you want to permanently delete your account? This action cannot be undone.',
     'account.delete_account_btn'     => 'Permanently delete my account',
+    'account.delete_modal_title'     => 'Confirm account deletion',
+    'account.delete_modal_body'      => 'Your account will be deactivated immediately. Your personal data will be anonymised within 30 days; order data is retained for 10 years (legal accounting requirement). Enter your password to confirm.',
+    'account.delete_confirm_password'=> 'Your password',
+    'account.delete_confirm_btn'           => 'Yes, delete my account',
+    'account.delete_confirm_text_label'    => 'To confirm, type SUPPRESSION',
+    'account.delete_wrong_password'        => 'Incorrect password. Deletion has been cancelled.',
+    'account.delete_wrong_confirm_text'    => 'Please type exactly "SUPPRESSION" to confirm.',
+
+    // Newsletter unsubscribe
+    'newsletter.unsubscribe_title' => 'Newsletter unsubscribe',
+    'newsletter.unsubscribed'      => 'You have been successfully unsubscribed from the Château Crabitan Bellevue newsletter.',
+    'newsletter.unsubscribe_error' => 'This unsubscribe link is invalid or has already been used. Manage your preferences from your account.',
+    'newsletter.manage_link'       => 'Manage my communication preferences',
 
     // Order statuses
     'order.status.pending'    => 'Pending',

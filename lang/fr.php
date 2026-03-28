@@ -520,17 +520,31 @@ return [
     'account.export_item_addresses' => 'Vos adresses enregistrées',
     'account.export_item_favorites' => 'Vos vins favoris',
     'account.export_retention'   => 'Durée de conservation : vos données de commandes sont conservées 10 ans conformément aux obligations légales comptables. Les autres données sont supprimées dans les 30 jours suivant la fermeture de votre compte.',
-    'account.export_download'    => 'Télécharger mes données (JSON)',
+    'account.export_download'    => 'Télécharger mes données (ZIP)',
     'account.export_at'          => 'Généré le',
+    'account.export_intro'       => 'Conformément au Règlement Général sur la Protection des Données (RGPD – Art. 20), vous pouvez télécharger l\'ensemble de vos données personnelles.',
 
     // Suppression de compte
     'account.danger_zone'        => 'Zone dangereuse',
     'account.delete_account'     => 'Supprimer mon compte',
-    'account.delete_account_info'=> 'Cette action est irréversible. Votre compte sera désactivé et vos données personnelles seront supprimées conformément au RGPD (Art. 17).',
+    'account.delete_account_info'=> 'Cette action est irréversible. Votre compte sera désactivé immédiatement et vos données personnelles anonymisées dans 30 jours conformément au RGPD (Art. 17).',
     'account.delete_account_blocked' => 'Bloquer la suppression',
     'account.delete_blocked_orders'  => 'Impossible de supprimer votre compte : vous avez des commandes en cours. Attendez leur livraison ou contactez-nous.',
     'account.delete_account_confirm' => 'Êtes-vous certain de vouloir supprimer définitivement votre compte ? Cette action est irréversible.',
     'account.delete_account_btn'     => 'Supprimer définitivement mon compte',
+    'account.delete_modal_title'     => 'Confirmer la suppression',
+    'account.delete_modal_body'      => 'Votre compte sera désactivé immédiatement. Vos données personnelles seront anonymisées sous 30 jours, vos données de commandes conservées 10 ans (obligation comptable). Saisissez votre mot de passe pour confirmer.',
+    'account.delete_confirm_password'=> 'Votre mot de passe',
+    'account.delete_confirm_btn'           => 'Oui, supprimer mon compte',
+    'account.delete_confirm_text_label'    => 'Pour confirmer, saisissez SUPPRESSION',
+    'account.delete_wrong_password'        => 'Mot de passe incorrect. La suppression a été annulée.',
+    'account.delete_wrong_confirm_text'    => 'Veuillez saisir exactement « SUPPRESSION » pour confirmer.',
+
+    // Newsletter désabonnement
+    'newsletter.unsubscribe_title' => 'Désabonnement newsletter',
+    'newsletter.unsubscribed'      => 'Vous avez bien été désabonné(e) de la newsletter du Château Crabitan Bellevue.',
+    'newsletter.unsubscribe_error' => 'Ce lien de désabonnement est invalide ou a déjà été utilisé. Gérez vos préférences depuis votre espace compte.',
+    'newsletter.manage_link'       => 'Gérer mes préférences de communication',
 
     // Statuts commande
     'order.status.pending'    => 'En attente',
