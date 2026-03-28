@@ -1,11 +1,13 @@
 # Stratégie de tests — Crabitan Bellevue
 
-**Objectif :** 80 % de coverage global sur le code source PHP et JS.
-**Quality Gate SonarCloud :** new code ≥ 80 % (configuré dans l'interface SonarCloud).
+> Les règles d'obligation (quand écrire, ratios cibles, objectif ≥ 80 %) sont dans `CLAUDE.md` § *Standards de code obligatoires*.
+> Ce fichier documente les détails techniques : exclusions, conventions de nommage, outillage.
 
 ---
 
 ## Exclusions du coverage
+
+Ces chemins sont exclus du calcul de couverture (SonarCloud + PHPUnit) :
 
 - `src/View/**` — templates PHP
 - `lang/**` — fichiers de traduction
@@ -15,48 +17,29 @@
 
 ---
 
-## TU — Tests Unitaires (PHPUnit, sans BDD)
+## TU — Conventions
 
-**Périmètre :** logique métier isolée, mocks pour les dépendances externes.
-**Quand écrire :** dès qu'une classe a de la logique interne (validations, transformations, conditions).
+**Convention de nommage des méthodes :** `test_{méthode}_{condition}_{résultatAttendu}`
 
-**Règles :**
-- Tout `if/else`, toute validation, toute transformation → TU.
-- 1 classe source = au moins 1 fichier de test.
-- Nommer les méthodes : `test_{méthode}_{condition}_{résultatAttendu}`.
-
----
-
-## TI — Tests d'Intégration (PHPUnit + BDD réelle)
-
-**Périmètre :** flows complets avec vraie BDD MySQL, isolation par transaction rollback (`IntegrationTestCase`).
-**Quand écrire :** dès qu'une classe lit ou écrit en base de données.
-
-**Règles :**
-- Tout nouveau `Model` → TI CRUD complet.
-- Tout nouveau `Controller` → TI pour chaque action (nominal + cas d'erreur).
-- Ne jamais mocker la BDD — les TI doivent frapper la vraie base de test.
+```php
+public function test_validate_emailVide_retourneFalse(): void { … }
+public function test_calculate_remiseNulle_retournePrixBase(): void { … }
+```
 
 ---
 
-## E2E — Tests bout en bout (Playwright, Chromium)
+## TI — Outillage
 
-**Périmètre :** parcours utilisateur dans le navigateur, serveur PHP réel + BDD.
-**Contribution coverage :** JS uniquement (via Istanbul/nyc → `coverage/lcov.info`).
-**Quand écrire :** à chaque feature front-end — 1 spec = parcours nominal + 1 cas d'erreur critique minimum.
-
-**Règles :**
-- E2E = parcours nominaux uniquement. Les cas d'erreur détaillés restent dans TU/TI.
-- 1 feature = 1 fichier spec dédié dans `tests/E2E/`.
-- Les specs E2E sont liées aux features du BACKLOG — voir `EPIC-qualite-infrastructure/ENABLERS/e2e-coverage/`.
+- Isolation par **transaction rollback** via `IntegrationTestCase` (rollback après chaque test, BDD propre)
+- Ne jamais mocker la BDD — les TI doivent frapper la vraie base de test (`crabitan_bellevue_test`)
+- Credentials CI : `DB_HOST=127.0.0.1`, `DB_USER=root`, `DB_PASS=root`
 
 ---
 
-## Ratios cibles
+## E2E — Outillage
 
-| Type | Ratio cible |
-|---|---|
-| TU | 1 classe métier = 1 fichier test minimum |
-| TI | 1 Model = TI CRUD · 1 Controller = TI par action |
-| E2E | 1 feature front = 1 spec (nominal + 1 erreur critique) |
-| Coverage global | ≥ 80 % (SonarCloud quality gate) |
+- Navigateur : **Chromium** uniquement en CI (`--project=chromium`)
+- Coverage JS : Istanbul/nyc → `coverage/lcov.info` (uploadé comme artifact CI)
+- 1 feature = 1 fichier spec dans `tests/E2E/`
+- E2E = parcours nominaux. Les cas d'erreur détaillés restent dans TU/TI
+- Specs liées aux features BACKLOG : `EPIC-qualite-infrastructure/ENABLERS/e2e-coverage/`
