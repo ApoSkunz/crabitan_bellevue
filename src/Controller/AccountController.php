@@ -518,6 +518,26 @@ class AccountController extends Controller
             Response::redirect($back);
         }
 
+        // Vérification du texte de confirmation « SUPPRESSION »
+        $confirmText = $this->request->post('confirm_text', '');
+        if ($confirmText !== 'SUPPRESSION') {
+            $_SESSION['flash']['security_errors'] = ['delete' => __('account.delete_wrong_confirm_text')];
+            Response::redirect($back);
+        }
+
+        // Vérification du mot de passe saisi dans le modal de confirmation
+        $confirmPwd = $this->request->post('confirm_password', '');
+        $account    = $this->accounts->findById($userId);
+
+        if (
+            !$account
+            || $account['password'] === null
+            || !password_verify($confirmPwd, (string) $account['password'])
+        ) {
+            $_SESSION['flash']['security_errors'] = ['delete' => __('account.delete_wrong_password')];
+            Response::redirect($back);
+        }
+
         if ($this->orders->hasActiveOrdersForUser($userId)) {
             $_SESSION['flash']['security_errors'] = ['delete' => __('account.delete_blocked_orders')];
             Response::redirect($back);
@@ -526,13 +546,70 @@ class AccountController extends Controller
         // Révoquer toutes les sessions
         $this->accounts->revokeAllSessions($userId);
 
-        // Soft-delete du compte
+        // Soft-delete + programmation anonymisation J+30
         $this->accounts->delete($userId);
+
+        // Email de confirmation RGPD Art. 17
+        $name = $account['firstname'] ?? $account['company_name'] ?? 'Client';
+        try {
+            (new \Service\MailService())->sendAccountDeletionConfirmation(
+                (string) $account['email'],
+                (string) $name,
+                $lang
+            );
+        } catch (\Throwable) {
+            // L'envoi de l'email ne bloque pas la suppression
+        }
 
         // Supprimer le cookie
         setcookie('auth_token', '', time() - 3600, '/', '', true, true);
 
         Response::redirect("/{$lang}");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/newsletter/desabonnement?token=xxx  — confirmation
+    // ----------------------------------------------------------------
+
+    public function unsubscribePage(array $params): void
+    {
+        $lang  = $params['lang'];
+        $token = $this->request->get('token', '');
+
+        if ($token === '' || !$this->accounts->findByUnsubscribeToken($token)) {
+            $this->view('account/unsubscribe', ['lang' => $lang, 'success' => false, 'confirm' => false]);
+            return;
+        }
+
+        $this->view('account/unsubscribe', [
+            'lang'       => $lang,
+            'success'    => false,
+            'confirm'    => true,
+            'unsubToken' => $token,
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/newsletter/desabonnement  — désabonnement effectif
+    // ----------------------------------------------------------------
+
+    public function unsubscribe(array $params): void
+    {
+        $lang       = $params['lang'];
+        $unsubToken = $this->request->post('unsub_token', '');
+        $account    = $unsubToken !== '' ? $this->accounts->findByUnsubscribeToken($unsubToken) : false;
+        $success = false;
+
+        if ($account !== false) {
+            $this->accounts->unsubscribeByToken($unsubToken);
+            $success = true;
+        }
+
+        $this->view('account/unsubscribe', [
+            'lang'    => $lang,
+            'success' => $success,
+            'confirm' => false,
+        ]);
     }
 
     // ----------------------------------------------------------------
@@ -562,19 +639,20 @@ class AccountController extends Controller
         $account   = $this->accounts->findById($userId);
         $addresses = $this->addresses->getByUser($userId);
         $favorites = $this->favorites->getByUser($userId);
-        $orders    = $this->orders->getForUser($userId, 1, PHP_INT_MAX);
+        $orders    = $this->orders->getForUser($userId, 1, 9999);
 
         $export = [
             'exported_at' => date('c'),
             'account'     => [
-                'email'        => $account['email']        ?? null,
-                'account_type' => $account['account_type'] ?? null,
-                'lang'         => $account['lang']         ?? null,
-                'created_at'   => $account['created_at']   ?? null,
-                'firstname'    => $account['firstname']    ?? null,
-                'lastname'     => $account['lastname']     ?? null,
-                'civility'     => $account['civility']     ?? null,
-                'company_name' => $account['company_name'] ?? null,
+                'Email'                  => $account['email']        ?? null,
+                'Type de compte'         => $account['account_type'] ?? null,
+                'Langue'                 => $account['lang']         ?? null,
+                'Date de création'       => $account['created_at']   ?? null,
+                'Prénom'                 => $account['firstname']    ?? null,
+                'Nom'                    => $account['lastname']     ?? null,
+                'Civilité'               => $account['civility']     ?? null,
+                'Raison sociale'         => $account['company_name'] ?? null,
+                'Newsletter'             => ($account['newsletter'] ?? 0) ? 'Oui' : 'Non',
             ],
             'addresses' => array_map(fn($a) => [
                 'type'      => $a['type'],
@@ -599,14 +677,124 @@ class AccountController extends Controller
             ], $favorites),
         ];
 
-        $json     = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $filename = 'mes-donnees-' . date('Y-m-d') . '.json';
+        $date     = date('Y-m-d');
+        $basename = 'mes-donnees-' . $date;
+        $json     = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '{}';
 
-        header('Content-Type: application/json; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Content-Length: ' . strlen($json));
-        echo $json;
+        if (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        if (class_exists('ZipArchive')) {
+            $pdf    = $this->buildExportPdf($export, $date);
+            $tmpZip = tempnam(sys_get_temp_dir(), 'cbv_export_');
+            $zip    = new \ZipArchive();
+            $zip->open($tmpZip, \ZipArchive::OVERWRITE);
+            $zip->addFromString($basename . '.json', $json);
+            $zip->addFromString($basename . '.pdf', $pdf);
+            $zip->close();
+
+            $content = (string) file_get_contents($tmpZip);
+            unlink($tmpZip);
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="' . $basename . '.zip"');
+        } else {
+            // Fallback si l'extension zip n'est pas activée
+            $content = $json;
+            header('Content-Type: application/json; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $basename . '.json"');
+        }
+
+        header('Content-Length: ' . strlen($content));
+        echo $content;
         exit;
+    }
+
+    /**
+     * Génère un PDF lisible (RGPD Art. 20 — portabilité) via TCPDF.
+     * @param array<string, mixed> $export
+     */
+    private function buildExportPdf(array $export, string $date): string
+    {
+        $pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetCreator('Crabitan Bellevue');
+        $pdf->SetAuthor('Crabitan Bellevue');
+        $pdf->SetTitle('Mes données personnelles — ' . $date);
+        $pdf->SetMargins(15, 20, 15);
+        $pdf->SetAutoPageBreak(true, 15);
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->AddPage();
+
+        $gold = [193, 161, 75];
+        $dark = [30, 30, 30];
+
+        $h = '<style>
+            body { font-family: dejavusans; font-size: 10pt; color: #1e1e1e; }
+            h1 { font-size: 16pt; color: #c1a14b; margin-bottom: 4px; }
+            h2 { font-size: 11pt; color: #c1a14b; margin-top: 14px; margin-bottom: 4px; border-bottom: 1px solid #c1a14b; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+            th { background: #f5f0e8; font-weight: bold; padding: 4px 6px; text-align: left; }
+            td { padding: 4px 6px; border-bottom: 1px solid #e8e0d0; }
+            .muted { color: #888; font-size: 9pt; }
+        </style>';
+
+        $acc = $export['account'];
+        $name = trim(($acc['firstname'] ?? '') . ' ' . ($acc['lastname'] ?? $acc['company_name'] ?? ''));
+
+        $h .= '<h1>Mes données personnelles</h1>';
+        $h .= '<p class="muted">Exporté le ' . htmlspecialchars($date) . ' — RGPD Art. 20</p>';
+
+        $h .= '<h2>Compte</h2><table><tr><th>Champ</th><th>Valeur</th></tr>';
+        foreach ($acc as $k => $v) {
+            $h .= '<tr><td>' . htmlspecialchars($k) . '</td><td>' . htmlspecialchars((string) ($v ?? '—')) . '</td></tr>';
+        }
+        $h .= '</table>';
+
+        $h .= '<h2>Commandes (' . count($export['orders']) . ')</h2>';
+        if ($export['orders'] !== []) {
+            $h .= '<table><tr><th>Référence</th><th>Statut</th><th>Total</th><th>Date</th></tr>';
+            foreach ($export['orders'] as $o) {
+                $h .= '<tr><td>' . htmlspecialchars($o['reference']) . '</td>'
+                    . '<td>' . htmlspecialchars($o['status']) . '</td>'
+                    . '<td>' . htmlspecialchars((string) $o['price']) . ' €</td>'
+                    . '<td>' . htmlspecialchars((string) $o['ordered_at']) . '</td></tr>';
+            }
+            $h .= '</table>';
+        } else {
+            $h .= '<p class="muted">Aucune commande.</p>';
+        }
+
+        $h .= '<h2>Adresses (' . count($export['addresses']) . ')</h2>';
+        if ($export['addresses'] !== []) {
+            $h .= '<table><tr><th>Type</th><th>Nom</th><th>Adresse</th><th>Ville</th><th>Pays</th></tr>';
+            foreach ($export['addresses'] as $a) {
+                $h .= '<tr><td>' . htmlspecialchars($a['type']) . '</td>'
+                    . '<td>' . htmlspecialchars($a['firstname'] . ' ' . $a['lastname']) . '</td>'
+                    . '<td>' . htmlspecialchars($a['street']) . '</td>'
+                    . '<td>' . htmlspecialchars($a['zip_code'] . ' ' . $a['city']) . '</td>'
+                    . '<td>' . htmlspecialchars($a['country']) . '</td></tr>';
+            }
+            $h .= '</table>';
+        } else {
+            $h .= '<p class="muted">Aucune adresse.</p>';
+        }
+
+        $h .= '<h2>Favoris (' . count($export['favorites']) . ')</h2>';
+        if ($export['favorites'] !== []) {
+            $h .= '<table><tr><th>Vin</th><th>Millésime</th></tr>';
+            foreach ($export['favorites'] as $f) {
+                $h .= '<tr><td>' . htmlspecialchars($f['name'] ?? '') . '</td>'
+                    . '<td>' . htmlspecialchars((string) ($f['vintage'] ?? '')) . '</td></tr>';
+            }
+            $h .= '</table>';
+        } else {
+            $h .= '<p class="muted">Aucun favori.</p>';
+        }
+
+        $pdf->writeHTML($h, true, false, true, false, '');
+
+        return $pdf->Output('', 'S'); // retourne le PDF comme string
     }
 
     // ----------------------------------------------------------------
