@@ -455,6 +455,12 @@
         flex-direction: column;
         gap: 0.4rem;
         flex: 1;
+
+        // Bouton retirer : hover rouge au lieu de doré
+        .btn--ghost:hover {
+            border-color: #c0392b;
+            color: #c0392b;
+        }
     }
 
     &__name {
@@ -475,5 +481,368 @@
         font-size: 0.9rem;
         color: var(--color-gold);
         margin-bottom: auto;
+    }
+}
+
+// ----------------------------------------------------------------
+// Champ mot de passe avec bouton œil (sécurité / profil)
+// ----------------------------------------------------------------
+
+.form-group--pwd {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.form-pwd-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    input {
+        width: 100%;
+        padding-right: 2.75rem;
+    }
+}
+
+.form-pwd-toggle {
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0.15rem;
+    display: flex;
+    align-items: center;
+    transition: color 200ms ease;
+
+    &:hover { color: var(--color-gold); }
+}
+
+// ----------------------------------------------------------------
+// Filtres commandes
+// ----------------------------------------------------------------
+
+.account-filters {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-end;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.account-filters__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--color-text-muted);
+        font-family: var(--font-serif);
+    }
+
+    select {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border-gold);
+        color: var(--color-text);
+        padding: 0.4rem 0.75rem;
+        font-size: 0.875rem;
+        border-radius: 2px;
+        cursor: pointer;
+
+        &:focus {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 1px;
+        }
+    }
+}
+
+// ----------------------------------------------------------------
+// Boutons adresses
+// ----------------------------------------------------------------
+
+.account-address-card__actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+
+// ----------------------------------------------------------------
+// Boutons formulaire adresse
+// ----------------------------------------------------------------
+
+.account-form__actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+// ----------------------------------------------------------------
+// Page export RGPD
+// ----------------------------------------------------------------
+
+.account-export {
+    &__intro {
+        color: var(--color-text-muted);
+        font-size: 0.95rem;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+    }
+
+    &__list {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+
+        li {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            padding-left: 1.2rem;
+            position: relative;
+
+            &::before {
+                content: '–';
+                position: absolute;
+                left: 0;
+                color: var(--color-gold);
+            }
+        }
+    }
+
+    &__retention {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        line-height: 1.6;
+        border-left: 2px solid var(--color-border-gold);
+        padding-left: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    &__generated {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        margin-bottom: 1.5rem;
+    }
+}
+
+// ----------------------------------------------------------------
+// Détail commande — en-tête + méta (DL/DT/DD)
+// ----------------------------------------------------------------
+
+.order-detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.order-detail-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.4rem 1.5rem;
+    align-items: baseline;
+
+    dt {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--color-text-muted);
+        font-family: var(--font-serif);
+        white-space: nowrap;
+    }
+
+    dd {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--color-text);
+    }
+}
+
+// ----------------------------------------------------------------
+// Timeline statut commande
+// ----------------------------------------------------------------
+
+.order-timeline {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    @media (max-width: 600px) {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    &__step {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        text-align: center;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 7px;
+            left: 50%;
+            right: -50%;
+            height: 2px;
+            background: var(--color-border);
+            z-index: 0;
+        }
+
+        &:last-child::before { display: none; }
+
+        &--done::before { background: var(--color-gold); }
+
+        @media (max-width: 600px) {
+            flex-direction: row;
+            gap: 0.75rem;
+            align-items: center;
+            text-align: left;
+
+            &::before { display: none; }
+        }
+    }
+
+    &__dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid var(--color-border);
+        background: var(--color-bg);
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+        transition: border-color 200ms ease, background 200ms ease;
+
+        .order-timeline__step--done & {
+            background: var(--color-gold);
+            border-color: var(--color-gold);
+        }
+
+        .order-timeline__step--current & {
+            border-color: var(--color-gold);
+            box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.25);
+        }
+    }
+
+    &__label {
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+
+        .order-timeline__step--done    & { color: var(--color-text); }
+        .order-timeline__step--current & { color: var(--color-gold); font-weight: 600; }
+
+        @media (max-width: 600px) { margin-top: 0; }
+    }
+}
+
+// ----------------------------------------------------------------
+// Adresses dans le détail commande
+// ----------------------------------------------------------------
+
+.order-addresses {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.order-address {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    line-height: 1.8;
+    font-style: normal;
+}
+
+// ----------------------------------------------------------------
+// Ligne total + badges dans le tableau commande
+// ----------------------------------------------------------------
+
+.order-total-row td {
+    background: var(--color-surface);
+    border-top: 2px solid var(--color-border-gold);
+}
+
+.account-table__vintage,
+.account-table__format {
+    display: inline-block;
+    margin-left: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    background: rgba(138, 128, 112, 0.15);
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+}
+
+// ----------------------------------------------------------------
+// Modal suppression de compte
+// ----------------------------------------------------------------
+
+.account-delete-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &[hidden] { display: none; }
+
+    &__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+    }
+
+    &__inner {
+        position: relative;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border-gold);
+        width: min(460px, 95vw);
+        padding: 2rem;
+        z-index: 1;
+        border-radius: 2px;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: 1.2rem;
+        font-weight: 400;
+        color: var(--color-text);
+        margin: 0;
+    }
+
+    &__body {
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    &__actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
     }
 }
