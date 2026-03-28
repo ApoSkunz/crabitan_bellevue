@@ -889,7 +889,7 @@ class AccountController extends Controller
     // GET /{lang}/mon-compte/export/telecharger
     // ----------------------------------------------------------------
 
-    public function exportData(array $params): void
+    public function exportData(array $params): void // NOSONAR php:S1172 — paramètre requis par convention du routeur
     {
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
@@ -997,9 +997,6 @@ class AccountController extends Controller
         $pdf->setPrintFooter(false);
         $pdf->AddPage();
 
-        $gold = [193, 161, 75];
-        $dark = [30, 30, 30];
-
         $h = '<style>
             body { font-family: dejavusans; font-size: 10pt; color: #1e1e1e; }
             h1 { font-size: 16pt; color: #c1a14b; margin-bottom: 4px; }
@@ -1011,7 +1008,6 @@ class AccountController extends Controller
         </style>';
 
         $acc = $export['account'];
-        $name = trim(($acc['firstname'] ?? '') . ' ' . ($acc['lastname'] ?? $acc['company_name'] ?? ''));
 
         $h .= '<h1>Mes données personnelles</h1>';
         $h .= '<p class="muted">Exporté le ' . htmlspecialchars($date) . ' — RGPD Art. 20</p>';

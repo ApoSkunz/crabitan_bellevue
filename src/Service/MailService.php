@@ -259,6 +259,7 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
             . '</td></tr>'
             . '</table>';
 
+        $manageLabel  = $lang === 'fr' ? 'Gérer mes sessions' : 'Manage my sessions';
         $confirmBlock = $confirmUrl !== ''
             ? '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
@@ -279,7 +280,7 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
               . "<a href=\"{$securityUrl}\" style=\"display:inline-block;padding:14px 36px;"
               . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
               . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
-              . ($lang === 'fr' ? 'Gérer mes sessions' : 'Manage my sessions')
+              . $manageLabel
               . '</a></td></tr></table>';
 
         if ($lang === 'fr') {
@@ -290,7 +291,6 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
                 . $confirmBlock;
             $body = $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message);
         } else {
-            $safeDate = htmlspecialchars(date('m/d/Y \a\t H:i'), ENT_QUOTES);
             $message = 'A sign-in from an unrecognised device was detected on your account.'
                 . ' If this was you, confirm the device to stop receiving these alerts.'
                 . '<br><br>'
