@@ -154,6 +154,14 @@ class AccountModel extends Model
         );
     }
 
+    public function markAsConnected(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET has_connected = 1 WHERE id = ?",
+            [$id]
+        );
+    }
+
     public function updateLang(int $id, string $lang): void
     {
         $this->db->execute(
@@ -167,7 +175,40 @@ class AccountModel extends Model
         return $this->db->execute(
             "UPDATE {$this->table}
              SET deleted_at = NOW(),
-                 scheduled_deletion_at = DATE_ADD(NOW(), INTERVAL 30 DAY)
+                 scheduled_deletion_at = DATE_ADD(NOW(), INTERVAL 30 DAY),
+                 reactivation_token = ?
+             WHERE id = ?",
+            [bin2hex(random_bytes(32)), $id]
+        );
+    }
+
+    public function getReactivationToken(int $id): ?string
+    {
+        $row = $this->db->fetchOne(
+            "SELECT reactivation_token FROM {$this->table} WHERE id = ?",
+            [$id]
+        );
+        return $row !== false ? ($row['reactivation_token'] ?? null) : null;
+    }
+
+    public function findByReactivationToken(string $token): array|false
+    {
+        return $this->db->fetchOne(
+            "SELECT id, email, lang FROM {$this->table}
+             WHERE reactivation_token = ?
+               AND deleted_at IS NOT NULL
+               AND scheduled_deletion_at > NOW()",
+            [$token]
+        );
+    }
+
+    public function reactivate(int $id): int
+    {
+        return $this->db->execute(
+            "UPDATE {$this->table}
+             SET deleted_at = NULL,
+                 scheduled_deletion_at = NULL,
+                 reactivation_token = NULL
              WHERE id = ?",
             [$id]
         );

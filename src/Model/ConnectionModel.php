@@ -51,7 +51,7 @@ class ConnectionModel extends Model
     public function getActiveForUser(int $userId): array
     {
         return $this->db->fetchAll(
-            "SELECT id, token, device_name, ip_address, auth_method, created_at, expired_at
+            "SELECT id, token, device_token, device_name, ip_address, auth_method, created_at, expired_at
              FROM {$this->table}
              WHERE user_id = ? AND status = 'active' AND expired_at > NOW()
              ORDER BY created_at DESC",
@@ -68,11 +68,43 @@ class ConnectionModel extends Model
         return $row ? (string) $row['token'] : null;
     }
 
+    public function getLatestByDeviceToken(int $userId, string $deviceToken): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT device_token, device_name FROM {$this->table}
+             WHERE user_id = ? AND device_token = ?
+             ORDER BY created_at DESC LIMIT 1",
+            [$userId, $deviceToken]
+        );
+        return $row ?: null;
+    }
+
     public function revokeById(int $id, int $userId): void
     {
         $this->db->execute(
             "UPDATE {$this->table} SET status = 'revoked' WHERE id = ? AND user_id = ?",
             [$id, $userId]
         );
+    }
+
+    /**
+     * Vérifie si ce device_token a déjà été utilisé par cet utilisateur (toute session, tout statut).
+     */
+    public function isKnownDevice(int $userId, string $deviceToken): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT id FROM {$this->table} WHERE user_id = ? AND device_token = ? LIMIT 1",
+            [$userId, $deviceToken]
+        );
+        return (bool) $row;
+    }
+
+    public function hasAnyConnection(int $userId): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT id FROM {$this->table} WHERE user_id = ? LIMIT 1",
+            [$userId]
+        );
+        return (bool) $row;
     }
 }
