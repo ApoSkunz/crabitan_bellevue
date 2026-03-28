@@ -39,7 +39,8 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
             $this->mailer->SMTPSecure = '';
         }
 
-        $host        = parse_url($_ENV['APP_URL'] ?? 'localhost', PHP_URL_HOST);
+        $appUrl      = $_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'http://localhost');
+        $host        = parse_url($appUrl, PHP_URL_HOST) ?? 'localhost';
         $fromAddress = $mailUser !== '' ? $mailUser : ('noreply@' . $host);
         $this->mailer->setFrom($fromAddress, $_ENV['MAIL_FROM_NAME'] ?? 'Crabitan Bellevue');
     }
