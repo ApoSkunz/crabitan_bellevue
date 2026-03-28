@@ -68,6 +68,49 @@ Avant toute implémentation, identifier le ou les experts concernés et adopter 
 
 ---
 
+## Standards de code obligatoires
+
+Ces règles s'appliquent **à chaque nouvelle classe ou méthode**, sans exception.
+
+### PHPDoc
+
+Toute classe et toute méthode publique doit avoir un bloc PHPDoc :
+
+```php
+/**
+ * Courte description de la classe.
+ */
+class MonController extends Controller
+{
+    /**
+     * Courte description de l'action.
+     *
+     * @param int $id Identifiant de la ressource
+     * @return Response
+     */
+    public function show(int $id): Response { … }
+}
+```
+
+- `@param` et `@return` obligatoires sur les méthodes publiques
+- `@throws` si la méthode peut lever une exception
+- Les méthodes privées/protégées simples : PHPDoc recommandé, non bloquant
+
+### Tests (TU / TI)
+
+**Objectif coverage : ≥ 80 % (quality gate SonarCloud)**
+
+| Règle | Obligation |
+|---|---|
+| Toute classe avec logique (`if`, validation, transformation) | → TU dans `tests/Unit/` |
+| Tout nouveau `Model` | → TI CRUD complet dans `tests/Integration/` |
+| Tout nouveau `Controller` | → TI par action (nominal + cas d'erreur) |
+| Toute feature front | → spec E2E Playwright (nominal + 1 erreur critique) |
+
+Les tests **ne se reportent pas** — ils sont écrits dans le même commit que le code qu'ils couvrent.
+
+---
+
 ## Workflow
 
 ### 1. Vérifications avant push
