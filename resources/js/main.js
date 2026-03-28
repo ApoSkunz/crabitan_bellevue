@@ -1154,24 +1154,97 @@ function initAccountFavoritesRemove() {
     const grid = document.querySelector('.account-favorites-grid');
     if (!grid) return;
 
-    // Observer les changements de data-liked sur les boutons de la grille
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((m) => {
-            if (m.type !== 'attributes' || m.attributeName !== 'data-liked') return;
-            const btn = m.target;
-            if (btn.dataset.liked === 'false') {
-                const card = btn.closest('.account-favorite-card')?.closest('li');
+    grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-account-fav-remove');
+        if (!btn) return;
+
+        const wineId = parseInt(btn.dataset.wineId, 10);
+        if (!wineId) return;
+
+        btn.disabled = true;
+
+        fetch('/api/favorites/toggle', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ wine_id: wineId }),
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (!data.success || data.liked) {
+                    btn.disabled = false;
+                    return;
+                }
+                const card = btn.closest('li');
                 if (!card) return;
                 card.style.transition = 'opacity .3s';
                 card.style.opacity = '0';
-                setTimeout(() => card.remove(), 320);
-            }
-        });
+                setTimeout(() => {
+                    card.remove();
+                    if (!grid.querySelector('li')) {
+                        grid.closest('.account-content')
+                            ?.querySelector('.account-empty')
+                            ?.removeAttribute('hidden');
+                    }
+                }, 320);
+            })
+            .catch(() => { btn.disabled = false; });
+    });
+}
+
+// ============================================================
+// Espace compte — modal confirmation suppression de compte
+// ============================================================
+
+function initDeleteAccountModal() {
+    const modal     = document.getElementById('delete-modal');
+    if (!modal) return;
+
+    const openBtn   = document.getElementById('js-open-delete-modal');
+    const closeBtn  = document.getElementById('js-close-delete-modal');
+    const backdrop  = document.getElementById('js-delete-modal-backdrop');
+    const submitBtn = document.getElementById('js-delete-submit');
+    const confirmTxt = modal.querySelector('input[name="confirm_text"]');
+
+    const pwdGroup = document.getElementById('js-delete-pwd-group');
+    const pwdInput = modal.querySelector('input[name="confirm_password"]');
+
+    function checkConfirmText() {
+        if (!submitBtn || !confirmTxt) return;
+        const ok = confirmTxt.value.trim().toUpperCase() === 'SUPPRESSION';
+        if (pwdGroup) {
+            pwdGroup.style.display = ok ? '' : 'none';
+            if (ok && pwdInput) pwdInput.focus();
+        }
+        submitBtn.disabled = !ok;
+    }
+
+    function openModal() {
+        modal.hidden = false;
+        (confirmTxt ?? modal.querySelector('input[name="confirm_password"]'))?.focus();
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        if (pwdInput) pwdInput.value = '';
+        if (confirmTxt) {
+            confirmTxt.value = '';
+            checkConfirmText();
+        }
+    }
+
+    confirmTxt?.addEventListener('input', checkConfirmText);
+
+    openBtn?.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    backdrop?.addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.hidden) closeModal();
     });
 
-    grid.querySelectorAll('.js-favorite').forEach((btn) => {
-        observer.observe(btn, { attributes: true });
-    });
+    // Auto-ouvrir si erreur de validation (retour serveur)
+    if (modal.hasAttribute('data-has-error')) {
+        openModal();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1194,6 +1267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFavoriteToggle();
     initAccountFavoritesRemove();
     initAccountPasswordToggle();
+    initDeleteAccountModal();
     initConfirmForms();
     initAddressAddToggle();
     initWineZoom();
