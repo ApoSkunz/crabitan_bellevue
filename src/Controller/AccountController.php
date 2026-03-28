@@ -436,11 +436,12 @@ class AccountController extends Controller
         unset($_SESSION['flash']['profile_success'], $_SESSION['flash']['profile_errors']);
 
         $this->view('account/profile', [
-            'lang'    => $lang,
-            'account' => $this->accounts->findById($userId),
-            'errors'  => $errors,
-            'success' => $success,
-            'csrf'    => $_SESSION['csrf'] ?? '',
+            'lang'       => $lang,
+            'account'    => $this->accounts->findById($userId),
+            'errors'     => $errors,
+            'success'    => $success,
+            'csrf'       => $_SESSION['csrf'] ?? '',
+            'ownerEmail' => $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '',
         ]);
     }
 
