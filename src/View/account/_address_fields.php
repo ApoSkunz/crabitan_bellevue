@@ -10,6 +10,8 @@ $addrType = $v['type'] ?? '';
 // Téléphone : afficher tel quel (format international stocké)
 $phoneDisplay = $v['phone'] ?? '';
 
+$selected = static fn(bool $c): string => $c ? ' selected' : '';
+
 $countries = [
     'France', 'Belgique', 'Luxembourg', 'Suisse', 'Allemagne', 'Pays-Bas',
     'Espagne', 'Italie', 'Royaume-Uni', 'Portugal', 'Autriche', 'Irlande',
@@ -22,11 +24,11 @@ $countries = [
 ?>
 <div class="form-group">
     <label for="addr-type"><?= __('account.address_type_label') ?> *</label>
-    <select id="addr-type" name="type" required<?= $isEdit ? ' disabled' : '' ?>> <?php // NOSONAR php:S1192 — ' selected' est un attribut HTML conditionnel, pas une constante métier ?>
-        <option value="billing"<?= $addrType === 'billing' ? ' selected' : '' ?>>
+    <select id="addr-type" name="type" required<?= $isEdit ? ' disabled' : '' ?>>
+        <option value="billing"<?= $selected($addrType === 'billing') ?>>
             <?= __('account.address_type_billing') ?>
         </option>
-        <option value="delivery"<?= $addrType === 'delivery' ? ' selected' : '' ?>>
+        <option value="delivery"<?= $selected($addrType === 'delivery') ?>>
             <?= __('account.address_type_delivery') ?>
         </option>
     </select>
@@ -37,10 +39,10 @@ $countries = [
 
 <div class="form-group">
     <label for="addr-civility"><?= __('account.civility') ?></label>
-    <select id="addr-civility" name="civility">
-        <option value="M"<?= ($v['civility'] ?? '') === 'M' ? ' selected' : '' ?>><?= __('account.civility_m') ?></option>
-        <option value="F"<?= ($v['civility'] ?? '') === 'F' ? ' selected' : '' ?>><?= __('account.civility_f') ?></option>
-        <option value="other"<?= ($v['civility'] ?? '') === 'other' ? ' selected' : '' ?>><?= __('account.civility_other') ?></option>
+    <select id="addr-civility" name="civility" autocomplete="honorific-prefix">
+        <option value="M"<?= $selected(($v['civility'] ?? '') === 'M') ?>><?= __('account.civility_m') ?></option>
+        <option value="F"<?= $selected(($v['civility'] ?? '') === 'F') ?>><?= __('account.civility_f') ?></option>
+        <option value="other"<?= $selected(($v['civility'] ?? '') === 'other') ?>><?= __('account.civility_other') ?></option>
     </select>
 </div>
 
@@ -100,7 +102,7 @@ $countries = [
     <label for="addr-street"><?= __('account.address_street') ?> *</label>
     <input type="text" id="addr-street" name="street"
            value="<?= htmlspecialchars($v['street'] ?? '') ?>"
-           required autocomplete="street-address">
+           required autocomplete="address-line1">
 </div>
 
 <div class="form-group">

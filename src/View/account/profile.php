@@ -9,6 +9,7 @@ require_once __DIR__ . '/../partials/header.php';
 /** @var string|null $success */
 /** @var string $csrf */
 $isCompany = ($account['account_type'] ?? '') === 'company';
+$selected  = static fn(bool $c): string => $c ? ' selected' : '';
 ?>
 <main class="account-page">
     <div class="account-shell">
@@ -62,10 +63,10 @@ $isCompany = ($account['account_type'] ?? '') === 'company';
                         <!-- Particulier -->
                         <div class="form-group">
                             <label for="civility"><?= __('account.civility') ?></label>
-                            <select id="civility" name="civility"> <?php // NOSONAR php:S1192 — ' selected' est un attribut HTML conditionnel, pas une constante métier ?>
-                                <option value="M"<?= ($account['civility'] ?? '') === 'M' ? ' selected' : '' ?>><?= __('account.civility_m') ?></option>
-                                <option value="F"<?= ($account['civility'] ?? '') === 'F' ? ' selected' : '' ?>><?= __('account.civility_f') ?></option>
-                                <option value="other"<?= ($account['civility'] ?? '') === 'other' ? ' selected' : '' ?>><?= __('account.civility_other') ?></option>
+                            <select id="civility" name="civility" autocomplete="honorific-prefix">
+                                <option value="M"<?= $selected(($account['civility'] ?? '') === 'M') ?>><?= __('account.civility_m') ?></option>
+                                <option value="F"<?= $selected(($account['civility'] ?? '') === 'F') ?>><?= __('account.civility_f') ?></option>
+                                <option value="other"<?= $selected(($account['civility'] ?? '') === 'other') ?>><?= __('account.civility_other') ?></option>
                             </select>
                         </div>
 

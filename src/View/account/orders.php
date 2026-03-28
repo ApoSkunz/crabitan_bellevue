@@ -12,6 +12,8 @@ require_once __DIR__ . '/../partials/header.php';
 /** @var string $period       */
 /** @var string $statusFilter */
 /** @var array<int, int> $years */
+$selected = static fn(bool $c): string => $c ? ' selected' : '';
+
 $statusColors = [
     'pending'          => 'grey',
     'paid'             => 'blue',
@@ -48,15 +50,15 @@ function ordersUrl(int $p, int $perPage, string $period, string $statusFilter): 
             <form class="account-filters" method="GET" action="">
                 <div class="account-filters__group">
                     <label for="filter-period"><?= __('account.filter_period') ?></label>
-                    <select id="filter-period" name="period" onchange="this.form.submit()"> <?php // NOSONAR php:S1192 — ' selected' est un attribut HTML conditionnel, pas une constante métier ?>
-                        <option value="all"<?= $period === 'all' ? ' selected' : '' ?>>
+                    <select id="filter-period" name="period" onchange="this.form.submit()">
+                        <option value="all"<?= $selected($period === 'all') ?>>
                             <?= __('account.filter_all') ?>
                         </option>
-                        <option value="3months"<?= $period === '3months' ? ' selected' : '' ?>>
+                        <option value="3months"<?= $selected($period === '3months') ?>>
                             <?= __('account.filter_3months') ?>
                         </option>
                         <?php foreach ($years as $yr) : ?>
-                            <option value="<?= (int) $yr ?>"<?= $period === (string) $yr ? ' selected' : '' ?>>
+                            <option value="<?= (int) $yr ?>"<?= $selected($period === (string) $yr) ?>>
                                 <?= (int) $yr ?>
                             </option>
                         <?php endforeach; ?>
@@ -66,11 +68,11 @@ function ordersUrl(int $p, int $perPage, string $period, string $statusFilter): 
                 <div class="account-filters__group">
                     <label for="filter-status"><?= __('account.filter_status') ?></label>
                     <select id="filter-status" name="status" onchange="this.form.submit()">
-                        <option value=""<?= $statusFilter === '' ? ' selected' : '' ?>>
+                        <option value=""<?= $selected($statusFilter === '') ?>>
                             <?= __('account.filter_status_all') ?>
                         </option>
                         <?php foreach (['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'] as $s) : ?>
-                            <option value="<?= $s ?>"<?= $statusFilter === $s ? ' selected' : '' ?>>
+                            <option value="<?= $s ?>"<?= $selected($statusFilter === $s) ?>>
                                 <?= __('order.status.' . $s) ?>
                             </option>
                         <?php endforeach; ?>
@@ -81,7 +83,7 @@ function ordersUrl(int $p, int $perPage, string $period, string $statusFilter): 
                     <label for="filter-per-page"><?= __('account.per_page') ?></label>
                     <select id="filter-per-page" name="per_page" onchange="this.form.submit()">
                         <?php foreach ([10, 25, 50] as $n) : ?>
-                            <option value="<?= $n ?>"<?= $perPage === $n ? ' selected' : '' ?>>
+                            <option value="<?= $n ?>"<?= $selected($perPage === $n) ?>>
                                 <?= $n ?>
                             </option>
                         <?php endforeach; ?>
