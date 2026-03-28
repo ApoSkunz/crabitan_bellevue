@@ -94,8 +94,12 @@ function buildPaginationUrl(int $p, ?string $status, string $search, ?string $pa
                     <tr>
                         <td><code style="font-size:0.8rem;"><?= htmlspecialchars($order['order_reference']) ?></code></td>
                         <td>
-                            <div><?= htmlspecialchars(trim($order['firstname'] . ' ' . $order['lastname'])) ?></div>
-                            <div style="font-size:0.75rem;color:#8a7a60;"><?= htmlspecialchars($order['email']) ?></div>
+                            <?php if (str_ends_with((string) ($order['email'] ?? ''), '@purged.invalid')) : ?>
+                                <em style="color:#8a7a60;font-size:0.85rem;">Compte anonymisé</em>
+                            <?php else : ?>
+                                <div><?= htmlspecialchars(trim($order['firstname'] . ' ' . $order['lastname'])) ?></div>
+                                <div style="font-size:0.75rem;color:#8a7a60;"><?= htmlspecialchars($order['email']) ?></div>
+                            <?php endif; ?>
                         </td>
                         <td><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span></td>
                         <td style="font-size:0.8rem;"><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></td>
