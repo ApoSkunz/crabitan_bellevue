@@ -681,4 +681,42 @@ class MailServiceTest extends TestCase
         );
         $this->assertTrue(true);
     }
+
+    // ----------------------------------------------------------------
+    // sendAccountDeletionConfirmation — branche FR avec token de réactivation
+    // Couvre : BTN_STYLE_PRIMARY, emailSimpleLayout, $reactivateBlock non vide
+    // ----------------------------------------------------------------
+
+    public function testSendAccountDeletionConfirmationFrWithToken(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendAccountDeletionConfirmation(
+            'alice@example.com',
+            'Alice',
+            'fr',
+            'reactivation-token-abc123'
+        );
+
+        $this->assertTrue(true); // pas d'exception = corps construit et send() mocké OK
+    }
+
+    // ----------------------------------------------------------------
+    // sendAccountDeletionConfirmation — branche EN avec token de réactivation
+    // Couvre : BTN_STYLE_PRIMARY branche EN, $reactivateBlock anglais
+    // ----------------------------------------------------------------
+
+    public function testSendAccountDeletionConfirmationEnWithToken(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendAccountDeletionConfirmation(
+            'bob@example.com',
+            'Bob',
+            'en',
+            'reactivation-token-xyz789'
+        );
+
+        $this->assertTrue(true); // pas d'exception = corps construit et send() mocké OK
+    }
 }

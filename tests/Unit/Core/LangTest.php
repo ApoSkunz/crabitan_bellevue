@@ -14,6 +14,13 @@ class LangTest extends TestCase
         Lang::load('fr');
     }
 
+    protected function tearDown(): void
+    {
+        $prop = new \ReflectionProperty(Lang::class, 'translations');
+        $prop->setAccessible(true);
+        $prop->setValue(null, []);
+    }
+
     public function testLoadAndGetExistingKey(): void
     {
         $this->assertSame('Accueil', Lang::get('nav.home'));

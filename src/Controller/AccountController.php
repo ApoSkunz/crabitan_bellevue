@@ -21,8 +21,8 @@ class AccountController extends Controller
 {
     private const PER_PAGE          = 10;
     private const VALID_PER_PAGES   = [10, 25, 50];
-    private const VIEW_REACTIVATE   = self::VIEW_REACTIVATE;
-    private const VIEW_UNSUBSCRIBE  = self::VIEW_UNSUBSCRIBE;
+    private const VIEW_REACTIVATE   = 'account/reactivate';
+    private const VIEW_UNSUBSCRIBE  = 'account/unsubscribe';
 
     private AccountModel $accounts;
     private AddressModel $addresses;

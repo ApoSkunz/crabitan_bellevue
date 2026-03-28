@@ -389,8 +389,8 @@ class OrderModel extends Model
     /**
      * @param  array<string, array{label: string, ca: float, count: int}>  $indexed
      * @return array<int, array{label: string, ca: float, count: int}>
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity) // NOSONAR php:S1142 — branches logiques distinctes
      */
+    // NOSONAR php:S1142 — branches logiques distinctes, refactoring sans valeur
     private function fillChartGaps(array $indexed, ?string $from, ?string $to, string $granularity): array
     {
         $result = [];

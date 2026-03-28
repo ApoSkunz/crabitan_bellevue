@@ -163,6 +163,65 @@ class AuthControllerTest extends IntegrationTestCase
         }
     }
 
+    public function testLoginFailsWithInvalidCsrf(): void
+    {
+        $this->insertVerifiedAccount('csrf-login@example.com');
+
+        $_POST = [
+            'email'      => 'csrf-login@example.com',
+            'password'   => 'Password123!',
+            'csrf_token' => 'wrong-token',
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr', $e->location);
+        }
+    }
+
+    public function testLoginWithSafeRedirectBack(): void
+    {
+        $this->insertVerifiedAccount('redirect@example.com', 'Password123!');
+
+        $_POST = [
+            'email'         => 'redirect@example.com',
+            'password'      => 'Password123!',
+            'csrf_token'    => self::CSRF,
+            'redirect_back' => '/fr/vins',
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr/vins', $e->location);
+        }
+    }
+
+    public function testLoginWithUnsafeRedirectBackFallsToLang(): void
+    {
+        $this->insertVerifiedAccount('unsafe-back@example.com', 'Password123!');
+
+        $_POST = [
+            'email'         => 'unsafe-back@example.com',
+            'password'      => 'Password123!',
+            'csrf_token'    => self::CSRF,
+            'redirect_back' => 'https://evil.com/phish',
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr', $e->location);
+        }
+    }
+
     // ----------------------------------------------------------------
     // register()
     // ----------------------------------------------------------------
@@ -211,6 +270,161 @@ class AuthControllerTest extends IntegrationTestCase
             'lastname'         => 'Autre',
             'firstname'        => 'Person',
             'email'            => 'taken@example.com',
+            'password'         => 'Password123!',
+            'password_confirm' => 'Password123!',
+            'newsletter'       => '0',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->register(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr', $e->location);
+        }
+    }
+
+    public function testRegisterFailsWithInvalidCsrf(): void
+    {
+        $_POST = [
+            'account_type'     => 'individual',
+            'civility'         => 'M',
+            'lastname'         => 'Test',
+            'firstname'        => 'Csrf',
+            'email'            => 'csrftest@example.com',
+            'password'         => 'Password123!',
+            'password_confirm' => 'Password123!',
+            'newsletter'       => '0',
+            'csrf_token'       => 'bad-csrf-token',
+        ];
+
+        try {
+            $this->makeController()->register(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr', $e->location);
+        }
+    }
+
+    public function testRegisterFailsWithValidationErrors(): void
+    {
+        // Mot de passe trop court, email invalide
+        $_POST = [
+            'account_type'     => 'individual',
+            'civility'         => 'M',
+            'lastname'         => 'A', // trop court
+            'firstname'        => 'B', // trop court
+            'email'            => 'not-an-email',
+            'password'         => 'short',
+            'password_confirm' => 'short',
+            'newsletter'       => '0',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->register(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr', $e->location);
+        }
+
+        // Aucun compte ne doit avoir été créé
+        $account = self::$db->fetchOne(
+            "SELECT id FROM accounts WHERE email = ?",
+            ['not-an-email']
+        );
+        $this->assertFalse($account);
+    }
+
+    public function testRegisterFailsWithPasswordMismatch(): void
+    {
+        $_POST = [
+            'account_type'     => 'individual',
+            'civility'         => 'M',
+            'lastname'         => 'Martin',
+            'firstname'        => 'Paul',
+            'email'            => 'pwmatch@example.com',
+            'password'         => 'Password123!',
+            'password_confirm' => 'Different456!',
+            'newsletter'       => '0',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->register(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr', $e->location);
+        }
+    }
+
+    public function testRegisterCompanyTypeCreatesAccount(): void
+    {
+        $_POST = [
+            'account_type'     => 'company',
+            'civility'         => '',
+            'lastname'         => '',
+            'firstname'        => '',
+            'company_name'     => 'Château Dupont SARL',
+            'email'            => 'company@example.com',
+            'password'         => 'Password123!',
+            'password_confirm' => 'Password123!',
+            'newsletter'       => '1',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->register(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr', $e->location);
+        }
+
+        $account = self::$db->fetchOne(
+            "SELECT email, account_type FROM accounts WHERE email = ?",
+            ['company@example.com']
+        );
+        $this->assertNotFalse($account);
+        $this->assertSame('company', $account['account_type']);
+    }
+
+    public function testRegisterCompanyFailsWithoutCompanyName(): void
+    {
+        $_POST = [
+            'account_type'     => 'company',
+            'civility'         => '',
+            'lastname'         => '',
+            'firstname'        => '',
+            'company_name'     => 'A', // trop court
+            'email'            => 'company-short@example.com',
+            'password'         => 'Password123!',
+            'password_confirm' => 'Password123!',
+            'newsletter'       => '0',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->register(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr', $e->location);
+        }
+    }
+
+    public function testRegisterWithInvalidAccountTypeProducesError(): void
+    {
+        $_POST = [
+            'account_type'     => 'unknown_type',
+            'civility'         => 'M',
+            'lastname'         => 'Test',
+            'firstname'        => 'User',
+            'email'            => 'invalid-type@example.com',
             'password'         => 'Password123!',
             'password_confirm' => 'Password123!',
             'newsletter'       => '0',
@@ -455,5 +669,361 @@ class AuthControllerTest extends IntegrationTestCase
             $this->assertSame(302, $e->status);
             $this->assertSame('/fr?modal=reset', $e->location);
         }
+    }
+
+    public function testResetFailsWhenPasswordsDontMatch(): void
+    {
+        $userId = $this->insertVerifiedAccount('resetmatch@example.com', 'OldPassword1!');
+        $token  = bin2hex(random_bytes(32));
+        self::$db->insert(
+            "INSERT INTO password_reset (user_id, token, expires_at)
+             VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))",
+            [$userId, $token]
+        );
+
+        $_POST = [
+            'password'         => 'NewPassword1!',
+            'password_confirm' => 'DifferentPass2!',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->reset(['lang' => 'fr', 'token' => $token]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr?modal=reset', $e->location);
+        }
+    }
+
+    public function testResetFailsWithInvalidCsrf(): void
+    {
+        $userId = $this->insertVerifiedAccount('resetcsrf@example.com');
+        $token  = bin2hex(random_bytes(32));
+        self::$db->insert(
+            "INSERT INTO password_reset (user_id, token, expires_at)
+             VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))",
+            [$userId, $token]
+        );
+
+        $_POST = [
+            'password'         => 'NewPassword1!',
+            'password_confirm' => 'NewPassword1!',
+            'csrf_token'       => 'bad-csrf',
+        ];
+
+        try {
+            $this->makeController()->reset(['lang' => 'fr', 'token' => $token]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertStringContainsString('/fr/reinitialisation/', $e->location);
+        }
+    }
+
+    public function testForgotFailsWithInvalidCsrf(): void
+    {
+        $_POST = [
+            'email'      => 'someuser@example.com',
+            'csrf_token' => 'bad-token',
+        ];
+
+        try {
+            $this->makeController()->forgot(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            // Redirige vers la page de reset (non vers /fr)
+            $this->assertStringContainsString('/fr', $e->location);
+        }
+    }
+
+    public function testForgotDoesNotCreateTokenForUnverifiedAccount(): void
+    {
+        $userId = $this->insertUnverifiedAccount('unverified-forgot@example.com');
+
+        $_POST = [
+            'email'      => 'unverified-forgot@example.com',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->forgot(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // Aucun token de réinitialisation ne doit avoir été créé
+        $reset = self::$db->fetchOne(
+            "SELECT * FROM password_reset WHERE user_id = ?",
+            [$userId]
+        );
+        $this->assertFalse($reset);
+    }
+
+    // ----------------------------------------------------------------
+    // forgotForm()
+    // ----------------------------------------------------------------
+
+    public function testForgotFormRedirectsToLang(): void
+    {
+        try {
+            $this->makeController('GET', '/fr/mot-de-passe-oublie')->forgotForm(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr', $e->location);
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // resetForm()
+    // ----------------------------------------------------------------
+
+    public function testResetFormWithValidTokenSetsSessionAndRedirects(): void
+    {
+        $userId = $this->insertVerifiedAccount('resetform@example.com');
+        $token  = bin2hex(random_bytes(32));
+        self::$db->insert(
+            "INSERT INTO password_reset (user_id, token, expires_at)
+             VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))",
+            [$userId, $token]
+        );
+
+        try {
+            $this->makeController('GET', "/fr/reinitialisation/{$token}")->resetForm(['lang' => 'fr', 'token' => $token]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr?modal=reset', $e->location);
+        }
+
+        $this->assertTrue($_SESSION['reset_modal']['valid']);
+        $this->assertSame($token, $_SESSION['reset_modal']['token']);
+    }
+
+    public function testResetFormWithInvalidTokenSetsValidFalse(): void
+    {
+        try {
+            $this->makeController('GET', '/fr/reinitialisation/badtoken')->resetForm(['lang' => 'fr', 'token' => 'badtoken']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr?modal=reset', $e->location);
+        }
+
+        $this->assertFalse($_SESSION['reset_modal']['valid']);
+    }
+
+    // ----------------------------------------------------------------
+    // forgot() — compte company (branche displayName company)
+    // ----------------------------------------------------------------
+
+    public function testForgotCreatesResetTokenForCompanyAccount(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at, account_type)
+             VALUES ('company-forgot@example.com', ?, 'customer', 'fr', NOW(), 'company')",
+            [password_hash('Password123!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_companies (account_id, company_name) VALUES (?, 'Test SARL')",
+            [$id]
+        );
+
+        $_POST = [
+            'email'      => 'company-forgot@example.com',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->forgot(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        $reset = self::$db->fetchOne(
+            "SELECT * FROM password_reset WHERE user_id = ?",
+            [$id]
+        );
+        $this->assertNotFalse($reset);
+    }
+
+    public function testForgotDoesNotCreateTokenForAdminRole(): void
+    {
+        $userId = $this->insertVerifiedAccount('admin-forgot@example.com', 'Password123!', 'admin');
+
+        $_POST = [
+            'email'      => 'admin-forgot@example.com',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->forgot(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // Admin role → la condition account['role'] === 'customer' est false → pas de token
+        $reset = self::$db->fetchOne(
+            "SELECT * FROM password_reset WHERE user_id = ?",
+            [$userId]
+        );
+        $this->assertFalse($reset);
+    }
+
+    // ----------------------------------------------------------------
+    // login() — updateLang branch (lang différente du compte)
+    // ----------------------------------------------------------------
+
+    public function testLoginUpdatesLangWhenAccountLangDiffers(): void
+    {
+        // Account with lang = 'fr', login in 'en' → updateLang must be called
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES ('langdiff@example.com', ?, 'customer', 'fr', NOW())",
+            [password_hash('Password123!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Lang', 'User', 'M')",
+            [$id]
+        );
+
+        $_POST = [
+            'email'      => 'langdiff@example.com',
+            'password'   => 'Password123!',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController('POST', '/en/wines')->login(['lang' => 'en']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        $account = self::$db->fetchOne(
+            "SELECT lang FROM accounts WHERE id = ?",
+            [$id]
+        );
+        $this->assertSame('en', $account['lang']);
+    }
+
+    // ----------------------------------------------------------------
+    // login() — already trusted device (isAlreadyTrusted branch)
+    // ----------------------------------------------------------------
+
+    public function testLoginWithAlreadyTrustedDeviceUpdatesLastSeen(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at, has_connected)
+             VALUES ('trusted@example.com', ?, 'customer', 'fr', NOW(), 1)",
+            [password_hash('Password123!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Trust', 'User', 'M')",
+            [$id]
+        );
+
+        $deviceToken = bin2hex(random_bytes(16));
+        self::$db->insert(
+            "INSERT INTO trusted_devices (user_id, device_token, device_name, last_seen)
+             VALUES (?, ?, 'Chrome · Windows', NOW())",
+            [$id, $deviceToken]
+        );
+
+        $_COOKIE['device_token'] = $deviceToken;
+        $_POST = [
+            'email'      => 'trusted@example.com',
+            'password'   => 'Password123!',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // last_seen_at should have been updated (row still exists)
+        $device = self::$db->fetchOne(
+            "SELECT last_seen FROM trusted_devices WHERE user_id = ? AND device_token = ?",
+            [$id, $deviceToken]
+        );
+        $this->assertNotFalse($device);
+    }
+
+    // ----------------------------------------------------------------
+    // login() — untrusted device (handleUntrustedDevice / MFA branch)
+    // ----------------------------------------------------------------
+
+    public function testLoginWithUntrustedDeviceRedirectsToNewDevice(): void
+    {
+        // has_connected = 1, device_token not in trusted_devices → MFA required
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at, has_connected)
+             VALUES ('untrusted@example.com', ?, 'customer', 'fr', NOW(), 1)",
+            [password_hash('Password123!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Untrust', 'User', 'M')",
+            [$id]
+        );
+
+        // device_token cookie not present → resolveDeviceToken generates a new one
+        $_COOKIE = [];
+        $_POST = [
+            'email'      => 'untrusted@example.com',
+            'password'   => 'Password123!',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertStringContainsString('nouvel-appareil', $e->location);
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // register() — newsletter = '1' (branche newsletter)
+    // ----------------------------------------------------------------
+
+    public function testRegisterIndividualWithNewsletterSubscribed(): void
+    {
+        $_POST = [
+            'account_type'     => 'individual',
+            'civility'         => 'M',
+            'lastname'         => 'Abonne',
+            'firstname'        => 'Pierre',
+            'email'            => 'newsletter-yes@example.com',
+            'password'         => 'Password123!',
+            'password_confirm' => 'Password123!',
+            'newsletter'       => '1',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->register(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        $account = self::$db->fetchOne(
+            "SELECT newsletter FROM accounts WHERE email = ?",
+            ['newsletter-yes@example.com']
+        );
+        $this->assertNotFalse($account);
+        $this->assertSame(1, (int)$account['newsletter']);
     }
 }
