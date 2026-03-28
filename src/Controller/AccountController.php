@@ -175,11 +175,17 @@ class AccountController extends Controller
         $error   = $_SESSION['flash']['address_error']   ?? null;
         unset($_SESSION['flash']['address_success'], $_SESSION['flash']['address_error']);
 
+        $addressList = $this->addresses->getByUser($userId);
+        $addressIds  = array_map(fn ($a) => (int) $a['id'], $addressList);
+        $lockedIds   = $this->orders->getAddressIdsWithActiveOrders($addressIds);
+
         $this->view('account/addresses', [
             'lang'      => $lang,
-            'addresses' => $this->addresses->getByUser($userId),
+            'addresses' => $addressList,
+            'lockedIds' => $lockedIds,
             'success'   => $success,
             'error'     => $error,
+            'csrf'      => $_SESSION['csrf'] ?? '',
         ]);
     }
 
@@ -207,10 +213,15 @@ class AccountController extends Controller
         $city      = trim($this->request->post('city', ''));
         $zipCode   = trim($this->request->post('zip_code', ''));
         $country   = trim($this->request->post('country', 'France'));
-        $phone     = trim($this->request->post('phone', ''));
+        $phone     = $this->normalizePhone(trim($this->request->post('phone', '')));
 
-        if ($firstname === '' || $lastname === '' || $street === '' || $city === '' || $zipCode === '') {
+        if ($firstname === '' || $lastname === '' || $street === '' || $city === '' || $zipCode === '' || $phone === '') {
             $_SESSION['flash']['address_error'] = __('account.address_required_fields');
+            Response::redirect($back);
+        }
+
+        if ($country === 'France' && !$this->isValidFranceMetroZip($zipCode)) {
+            $_SESSION['flash']['address_error'] = __('account.address_zip_invalid');
             Response::redirect($back);
         }
 
@@ -271,10 +282,20 @@ class AccountController extends Controller
         $city      = trim($this->request->post('city', ''));
         $zipCode   = trim($this->request->post('zip_code', ''));
         $country   = trim($this->request->post('country', 'France'));
-        $phone     = trim($this->request->post('phone', ''));
+        $phone     = $this->normalizePhone(trim($this->request->post('phone', '')));
 
-        if ($firstname === '' || $lastname === '' || $street === '' || $city === '' || $zipCode === '') {
+        if ($firstname === '' || $lastname === '' || $street === '' || $city === '' || $zipCode === '' || $phone === '') {
             $_SESSION['flash']['address_error'] = __('account.address_required_fields');
+            Response::redirect($back);
+        }
+
+        if ($country === 'France' && !$this->isValidFranceMetroZip($zipCode)) {
+            $_SESSION['flash']['address_error'] = __('account.address_zip_invalid');
+            Response::redirect($back);
+        }
+
+        if ($this->orders->hasActiveOrderForAddress($id)) {
+            $_SESSION['flash']['address_error'] = __('account.address_edit_blocked');
             Response::redirect($back);
         }
 
@@ -810,6 +831,29 @@ class AccountController extends Controller
     // ----------------------------------------------------------------
     // Helpers privés
     // ----------------------------------------------------------------
+
+    /**
+     * Normalise un numéro de téléphone : conserve le format international tel quel,
+     * nettoie simplement les espaces superflus. Accepte +33, +49, 06, etc.
+     */
+    private function normalizePhone(string $phone): string
+    {
+        // Réduction des espaces multiples, trim
+        return trim((string) preg_replace('/\s{2,}/', ' ', $phone));
+    }
+
+    /**
+     * France métropolitaine hors Corse : 01000–95999, sauf 20xxx (Corse) et 97/98xxx (DOM-TOM).
+     */
+    private function isValidFranceMetroZip(string $zip): bool
+    {
+        if (!preg_match('/^\d{5}$/', $zip)) {
+            return false;
+        }
+        $num    = (int) $zip;
+        $prefix = (int) substr($zip, 0, 2);
+        return $num >= 1000 && $num <= 95999 && $prefix !== 20;
+    }
 
     private function requireCustomer(): array
     {

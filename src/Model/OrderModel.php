@@ -264,6 +264,31 @@ class OrderModel extends Model
         return (int) ($row['cnt'] ?? 0) > 0;
     }
 
+    /**
+     * Retourne les IDs d'adresses parmi celles fournies qui sont liées à une commande active.
+     *
+     * @param  array<int, int>  $addressIds
+     * @return array<int, int>
+     */
+    public function getAddressIdsWithActiveOrders(array $addressIds): array
+    {
+        if ($addressIds === []) {
+            return [];
+        }
+        $ph   = implode(',', array_fill(0, count($addressIds), '?'));
+        $rows = $this->db->fetchAll(
+            "SELECT DISTINCT id_billing_address AS addr_id FROM {$this->table}
+             WHERE id_billing_address IN ({$ph})
+               AND status IN ('pending','paid','processing','shipped')
+             UNION
+             SELECT DISTINCT id_delivery_address FROM {$this->table}
+             WHERE id_delivery_address IN ({$ph})
+               AND status IN ('pending','paid','processing','shipped')",
+            array_merge($addressIds, $addressIds)
+        );
+        return array_map('intval', array_column($rows, 'addr_id'));
+    }
+
     public function hasActiveOrderForAddress(int $addressId): bool
     {
         $row = $this->db->fetchOne(
