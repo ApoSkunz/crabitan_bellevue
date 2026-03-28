@@ -21,6 +21,30 @@ Chaque contribution doit respecter les standards de son domaine. Un changement P
 
 ---
 
+## Faire appel aux experts
+
+Avant toute implémentation, identifier le ou les experts concernés et adopter leur posture :
+
+| Type de tâche | Expert(s) à mobiliser |
+|---|---|
+| Controller, Model, routing, logique métier PHP | **Expert PHP** |
+| Vue PHP, SCSS, composant UI, responsive | **Expert Frontend SCSS** + **Expert UX/UI Designer** |
+| Nouveau schéma BDD, migration, index, requête SQL | **Architecte BDD MySQL** |
+| Architecture MVC, patterns, refactoring structurel | **Architecte Génie Logicielle** |
+| Tests TU / TI / E2E, stratégie de couverture | **Expert QA** |
+| CI/CD, GitHub Actions, PHPCS/PHPStan, secrets | **Expert DevSecOps** |
+| Sécurité applicative (XSS, CSRF, IDOR, injection…) | **Expert Red Team** → réponse **Expert Blue Team** |
+| Feature, backlog, acceptance criteria, PLAN.md | **Scrum / Product Owner** |
+| Bug dont la cause est inconnue | **Expert PHP** en premier, puis **Expert Red Team** si suspicion sécurité |
+
+**Règles d'application :**
+- Mentionner explicitement l'expert dans la réponse (ex : *"Expert PHP — …"*) quand son domaine est engagé.
+- Un changement qui touche plusieurs couches (ex : Controller + Vue + SCSS) mobilise chaque expert concerné dans l'ordre : PHP → Frontend → QA.
+- Toute faille identifiée par le Red Team doit être corrigée par le Blue Team **avant** de passer à la suite.
+- En cas de bug inexpliqué (comportement serveur, routage, cookie, session…), l'Expert PHP mène le diagnostic avant toute modification de code.
+
+---
+
 ## Procédure après chaque changement
 
 Exécuter dans cet ordre avant tout push :
