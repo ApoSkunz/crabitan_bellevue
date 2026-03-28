@@ -491,16 +491,25 @@
         background: none;
         border: 1px solid var(--color-border);
         color: var(--color-text-muted);
-        padding: 0.25rem 0.5rem;
+        width: 2.2rem;
+        height: 2.2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
         cursor: pointer;
         font-size: 1rem;
         line-height: 1;
         transition: color 200ms ease, border-color 200ms ease;
 
-        &:hover,
-        &[aria-pressed='true'] {
+        &:hover {
             color: #c0392b;
             border-color: #c0392b;
+        }
+
+        &.is-liked {
+            color: #e05c7a;
+            border-color: #e05c7a;
         }
 
         &:focus-visible {
@@ -680,11 +689,34 @@
     }
 
     &__buy {
+        margin: 1.5rem 0 0.5rem;
+    }
+
+    &__actions {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.75rem;
         flex-wrap: wrap;
-        margin: 1.5rem 0;
+        margin-top: 0.75rem;
+
+        .js-favorite {
+            color: var(--color-text-muted);
+            border-color: var(--color-border);
+            font-size: 0.9rem;
+            transition: color 200ms ease, border-color 200ms ease;
+
+            &:hover {
+                color: #e05c7a;
+                border-color: rgba(224, 92, 122, 0.5);
+            }
+
+            &.is-liked {
+                color: #e05c7a;
+                border-color: rgba(224, 92, 122, 0.5);
+            }
+
+            &.is-liked .js-favorite-icon { color: #e05c7a; }
+        }
     }
 
     &__price {

@@ -75,16 +75,31 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                             <?= htmlspecialchars(__('wine.available')) ?>
                         </span>
                         <?php if (!$isAdmin) : ?>
-                        <button
-                            type="button"
-                            class="btn btn--gold js-add-to-cart"
-                            data-wine-id="<?= (int) $wine['id'] ?>"
-                            data-wine-name="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
-                            data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
-                            data-wine-image="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
-                        >
-                            <?= htmlspecialchars(__('wine.add_to_cart')) ?>
-                        </button>
+                        <div class="wine-detail__actions">
+                            <button
+                                type="button"
+                                class="btn btn--gold js-add-to-cart"
+                                data-wine-id="<?= (int) $wine['id'] ?>"
+                                data-wine-name="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
+                                data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
+                                data-wine-image="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                                data-wine-cuvee="<?= !empty($wine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
+                            >
+                                <?= htmlspecialchars(__('wine.add_to_cart')) ?>
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn--ghost js-favorite<?= ($isLiked ?? false) ? ' is-liked' : '' ?>"
+                                data-wine-id="<?= (int) $wine['id'] ?>"
+                                data-liked="<?= ($isLiked ?? false) ? 'true' : 'false' ?>"
+                                data-login-msg="<?= htmlspecialchars(__('wine.favorite_login')) ?>"
+                                aria-label="<?= htmlspecialchars(($isLiked ?? false) ? __('account.remove_favorite') : __('wine.add_favorite')) ?>"
+                                aria-pressed="<?= ($isLiked ?? false) ? 'true' : 'false' ?>"
+                            >
+                                <span class="js-favorite-icon"><?= ($isLiked ?? false) ? '♥' : '♡' ?></span>
+                                <span class="js-favorite-label"><?= htmlspecialchars(($isLiked ?? false) ? __('account.remove_favorite') : __('wine.add_favorite')) ?></span>
+                            </button>
+                        </div>
                         <?php endif; ?>
                     </div>
                 <?php else : ?>
@@ -122,14 +137,16 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                 <div class="wine-detail__section">
                     <h2 class="wine-detail__section-title"><?= htmlspecialchars(__('wine.technical')) ?></h2>
                     <dl class="wine-detail__specs">
+                        <?php if ($wine['certification_label']) : ?>
+                            <dt><?= htmlspecialchars(__('wine.certification')) ?></dt>
+                            <dd><?= htmlspecialchars($wine['certification_label']) ?></dd>
+                        <?php endif; ?>
+
                         <dt><?= htmlspecialchars(__('wine.appellation')) ?></dt>
                         <dd><?= htmlspecialchars($wine['city']) ?></dd>
 
                         <dt><?= htmlspecialchars(__('wine.variety')) ?></dt>
                         <dd><?= htmlspecialchars($wine['variety_of_vine']) ?></dd>
-
-                        <dt><?= htmlspecialchars(__('wine.area')) ?></dt>
-                        <dd><?= number_format((float) $wine['area'], 2, ',', ' ') ?> ha</dd>
 
                         <dt><?= htmlspecialchars(__('wine.age')) ?></dt>
                         <dd><?= (int) $wine['age_of_vineyard'] ?> <?= htmlspecialchars(__('wine.years')) ?></dd>
@@ -137,11 +154,6 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                         <?php if ($soilText !== '') : ?>
                             <dt><?= htmlspecialchars(__('wine.soil')) ?></dt>
                             <dd><?= htmlspecialchars($soilText) ?></dd>
-                        <?php endif; ?>
-
-                        <?php if ($pruningText !== '') : ?>
-                            <dt><?= htmlspecialchars(__('wine.pruning')) ?></dt>
-                            <dd><?= htmlspecialchars($pruningText) ?></dd>
                         <?php endif; ?>
 
                         <?php if ($harvestText !== '') : ?>
@@ -159,9 +171,17 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                             <dd><?= htmlspecialchars($barrelText) ?></dd>
                         <?php endif; ?>
 
-                        <?php if ($wine['certification_label']) : ?>
-                            <dt><?= htmlspecialchars(__('wine.certification')) ?></dt>
-                            <dd><?= htmlspecialchars($wine['certification_label']) ?></dd>
+                        <dt><?= htmlspecialchars(__('wine.area')) ?></dt>
+                        <dd><?= number_format((float) $wine['area'], 2, ',', ' ') ?> ha</dd>
+
+                        <?php if ($pruningText !== '') : ?>
+                            <dt><?= htmlspecialchars(__('wine.pruning')) ?></dt>
+                            <dd><?= htmlspecialchars($pruningText) ?></dd>
+                        <?php endif; ?>
+
+                        <?php if (!empty($wine['quantity'])) : ?>
+                            <dt><?= htmlspecialchars(__('wine.quantity')) ?></dt>
+                            <dd><?= number_format((int) $wine['quantity'], 0, ',', ' ') ?> <?= htmlspecialchars(__('wine.bottles')) ?></dd>
                         <?php endif; ?>
                     </dl>
                 </div>

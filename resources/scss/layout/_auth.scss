@@ -83,6 +83,13 @@
             border: 2px solid #c0392b;
             color: #c0392b;
         }
+
+        &--loading {
+            border: 3px solid rgba(201, 168, 76, 0.25);
+            border-top-color: var(--color-gold);
+            animation: mfa-spin 0.85s linear infinite;
+            background: transparent;
+        }
     }
 
     &__message {
@@ -91,6 +98,10 @@
         line-height: 1.6;
         margin: 0;
     }
+}
+
+@keyframes mfa-spin {
+    to { transform: rotate(360deg); }
 }
 
 // ---- Alerts (réutilisables) ----

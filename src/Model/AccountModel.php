@@ -76,9 +76,11 @@ class AccountModel extends Model
         try {
             $accountId = $this->db->insert(
                 "INSERT INTO {$this->table}
-                 (email, password, account_type, role, lang, newsletter, email_verification_token)
-                 VALUES (?, ?, ?, 'customer', ?, ?, ?)",
-                [$email, $hashedPassword, $accountType, $lang, $newsletter, $verificationToken]
+                 (email, password, account_type, role, lang, newsletter,
+                  email_verification_token, newsletter_unsubscribe_token)
+                 VALUES (?, ?, ?, 'customer', ?, ?, ?, ?)",
+                [$email, $hashedPassword, $accountType, $lang, $newsletter,
+                 $verificationToken, bin2hex(random_bytes(32))]
             );
 
             if ($accountType === 'company') {
@@ -118,6 +120,48 @@ class AccountModel extends Model
         );
     }
 
+    public function updateIndividualProfile(int $id, string $civility, string $firstname, string $lastname): void
+    {
+        $this->db->execute(
+            "UPDATE account_individuals SET civility = ?, firstname = ?, lastname = ?
+             WHERE account_id = ?",
+            [$civility, $firstname, $lastname, $id]
+        );
+    }
+
+    public function updateCompanyProfile(int $id, string $companyName, ?string $siret): void
+    {
+        $this->db->execute(
+            "UPDATE account_companies SET company_name = ?, siret = ? WHERE account_id = ?",
+            [$companyName, $siret, $id]
+        );
+    }
+
+    public function updateNewsletter(int $id, bool $subscribe): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET newsletter = ? WHERE id = ?",
+            [$subscribe ? 1 : 0, $id]
+        );
+    }
+
+    public function revokeAllSessions(int $id): void
+    {
+        // Utilisé lors de la suppression de compte pour révoquer toutes les sessions actives
+        $this->db->execute(
+            "UPDATE connections SET status = 'revoked' WHERE user_id = ? AND status = 'active'",
+            [$id]
+        );
+    }
+
+    public function markAsConnected(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET has_connected = 1 WHERE id = ?",
+            [$id]
+        );
+    }
+
     public function updateLang(int $id, string $lang): void
     {
         $this->db->execute(
@@ -129,9 +173,124 @@ class AccountModel extends Model
     public function delete(int $id): int
     {
         return $this->db->execute(
-            "UPDATE {$this->table} SET deleted_at = NOW() WHERE id = ?",
+            "UPDATE {$this->table}
+             SET deleted_at = NOW(),
+                 scheduled_deletion_at = DATE_ADD(NOW(), INTERVAL 30 DAY),
+                 reactivation_token = ?
+             WHERE id = ?",
+            [bin2hex(random_bytes(32)), $id]
+        );
+    }
+
+    public function getReactivationToken(int $id): ?string
+    {
+        $row = $this->db->fetchOne(
+            "SELECT reactivation_token FROM {$this->table} WHERE id = ?",
             [$id]
         );
+        return $row !== false ? ($row['reactivation_token'] ?? null) : null;
+    }
+
+    public function findByReactivationToken(string $token): array|false
+    {
+        return $this->db->fetchOne(
+            "SELECT id, email, lang FROM {$this->table}
+             WHERE reactivation_token = ?
+               AND deleted_at IS NOT NULL
+               AND scheduled_deletion_at > NOW()",
+            [$token]
+        );
+    }
+
+    public function reactivate(int $id): int
+    {
+        return $this->db->execute(
+            "UPDATE {$this->table}
+             SET deleted_at = NULL,
+                 scheduled_deletion_at = NULL,
+                 reactivation_token = NULL
+             WHERE id = ?",
+            [$id]
+        );
+    }
+
+    public function findByUnsubscribeToken(string $token): array|false
+    {
+        return $this->db->fetchOne(
+            "SELECT id, email, lang FROM {$this->table}
+             WHERE newsletter_unsubscribe_token = ? AND deleted_at IS NULL",
+            [$token]
+        );
+    }
+
+    public function unsubscribeByToken(string $token): bool
+    {
+        // Désinscrit ET invalide le token (rotation) pour éviter toute réutilisation du lien
+        $rows = $this->db->execute(
+            "UPDATE {$this->table}
+             SET newsletter = 0,
+                 newsletter_unsubscribe_token = ?
+             WHERE newsletter_unsubscribe_token = ? AND deleted_at IS NULL",
+            [bin2hex(random_bytes(32)), $token]
+        );
+        return $rows > 0;
+    }
+
+    /**
+     * Anonymise les comptes dont la suppression programmée est échue.
+     * Les données de commandes sont conservées (obligations légales comptables — 10 ans).
+     */
+    public function purgeScheduledDeletions(): int
+    {
+        $accounts = $this->db->fetchAll(
+            "SELECT id FROM {$this->table}
+             WHERE scheduled_deletion_at IS NOT NULL
+               AND scheduled_deletion_at < NOW()"
+        );
+
+        if ($accounts === []) {
+            return 0;
+        }
+
+        $ids          = array_column($accounts, 'id');
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET email = CONCAT('deleted_', id, '@purged.invalid'),
+                 password = NULL,
+                 newsletter = 0,
+                 newsletter_unsubscribe_token = NULL,
+                 email_verification_token = NULL,
+                 google_id = NULL,
+                 apple_id = NULL,
+                 scheduled_deletion_at = NULL
+             WHERE id IN ({$placeholders})",
+            $ids
+        );
+
+        $this->db->execute(
+            "UPDATE account_individuals
+             SET firstname = 'Supprimé', lastname = 'Supprimé', civility = ''
+             WHERE account_id IN ({$placeholders})",
+            $ids
+        );
+
+        $this->db->execute(
+            "UPDATE account_companies
+             SET company_name = 'Supprimé', siret = NULL
+             WHERE account_id IN ({$placeholders})",
+            $ids
+        );
+
+        // Suppression des adresses sauvegardées (données personnelles, non nécessaires à la comptabilité)
+        // Les snapshots adresses/facturation dans orders.content sont conservés pour obligation comptable.
+        $this->db->execute(
+            "DELETE FROM addresses WHERE user_id IN ({$placeholders})",
+            $ids
+        );
+
+        return count($ids);
     }
 
     // ----------------------------------------------------------------
@@ -198,6 +357,7 @@ class AccountModel extends Model
     {
         return $this->db->fetchAll(
             "SELECT a.id, a.email, a.account_type, a.lang, a.created_at,
+                    a.newsletter_unsubscribe_token,
                     ai.firstname, ai.lastname,
                     ac.company_name
              FROM {$this->table} a

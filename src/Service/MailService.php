@@ -134,22 +134,188 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
         $this->send($to, $firstname, $lines['subjectLine'], $body, $attachmentPath);
     }
 
-    public function sendNewsletter(string $to, string $name, string $subject, string $htmlBody): void
-    {
-        $this->send($to, $name, $subject, $htmlBody);
+    public function sendNewsletter(
+        string $to,
+        string $name,
+        string $subject,
+        string $htmlBody,
+        ?string $attachmentPath = null,
+        ?string $attachmentName = null
+    ): void {
+        $this->send($to, $name, $subject, $htmlBody, $attachmentPath, null, $attachmentName);
+    }
+
+    public function sendAccountDeletionConfirmation(
+        string $to,
+        string $name,
+        string $lang,
+        string $reactivationToken = ''
+    ): void {
+        $subject = $lang === 'fr'
+            ? 'Confirmation de suppression de votre compte'
+            : 'Account deletion confirmation';
+
+        $safeName  = htmlspecialchars($name, ENT_QUOTES);
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $reactUrl  = $reactivationToken !== ''
+            ? $appUrl . '/' . $lang . '/compte/reactiver?token=' . urlencode($reactivationToken)
+            : '';
+        $safeReactUrl = htmlspecialchars($reactUrl, ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $rgpdText = 'Votre demande de suppression de compte a bien été enregistrée.'
+                . ' Conformément au RGPD (Art. 17), vos données personnelles (nom, e-mail, adresses…)'
+                . ' seront supprimées dans un délai de <strong>30 jours</strong>.<br><br>'
+                . 'Vos commandes sont conservées 10 ans conformément aux obligations légales,'
+                . ' mais anonymisées — sans aucun lien vers votre identité.<br><br>';
+            $reactivateBlock = $reactUrl !== ''
+                ? 'Vous avez 30 jours pour annuler cette demande en cliquant sur le bouton ci-dessous.'
+                  . ' Passé ce délai, vos données personnelles seront définitivement supprimées.'
+                  . '<br><br>'
+                  . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+                  . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                  . '<a href="' . $safeReactUrl . '" style="display:inline-block;padding:14px 36px;'
+                  . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
+                  . 'color:#1a1208;text-decoration:none;font-weight:bold;">Annuler la suppression</a>'
+                  . '</td></tr></table>'
+                : '';
+            $body = $this->emailSimpleLayout(
+                'Suppression de compte',
+                "Bonjour {$safeName},",
+                $rgpdText . $reactivateBlock
+            );
+        } else {
+            $rgpdText = 'Your account deletion request has been registered.'
+                . ' In accordance with GDPR (Art. 17), your personal data (name, email, addresses…)'
+                . ' will be permanently deleted within <strong>30 days</strong>.<br><br>'
+                . 'Your orders are retained for 10 years as required by law,'
+                . ' but anonymised — with no link to your identity.<br><br>';
+            $reactivateBlock = $reactUrl !== ''
+                ? 'You have 30 days to cancel this request by clicking the button below.'
+                  . ' After this period, your personal data will be permanently deleted.'
+                  . '<br><br>'
+                  . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+                  . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                  . '<a href="' . $safeReactUrl . '" style="display:inline-block;padding:14px 36px;'
+                  . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
+                  . 'color:#1a1208;text-decoration:none;font-weight:bold;">Cancel deletion</a>'
+                  . '</td></tr></table>'
+                : '';
+            $body = $this->emailSimpleLayout(
+                'Account deletion',
+                "Hello {$safeName},",
+                $rgpdText . $reactivateBlock
+            );
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    public function sendNewDeviceAlert(
+        string $to,
+        string $name,
+        string $deviceName,
+        ?string $ipAddress,
+        string $lang,
+        string $deviceToken = ''
+    ): void {
+        $subject = $lang === 'fr'
+            ? 'Sécurité — Nouvelle connexion depuis un appareil inconnu'
+            : 'Security — New sign-in from an unrecognised device';
+
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $confirmUrl  = $deviceToken !== ''
+            ? htmlspecialchars(
+                $appUrl . '/' . $lang . '/mon-compte/appareil/confirmer?token=' . urlencode($deviceToken),
+                ENT_QUOTES
+            )
+            : '';
+        $revokeUrl   = $deviceToken !== ''
+            ? htmlspecialchars(
+                $appUrl . '/' . $lang . '/mon-compte/appareil/annuler?token=' . urlencode($deviceToken),
+                ENT_QUOTES
+            )
+            : htmlspecialchars($appUrl . '/' . $lang . '/mon-compte/securite', ENT_QUOTES);
+        $securityUrl = htmlspecialchars($appUrl . '/' . $lang . '/mon-compte/securite', ENT_QUOTES);
+        $safeName    = htmlspecialchars($name, ENT_QUOTES);
+        $safeDevice  = htmlspecialchars($deviceName, ENT_QUOTES);
+        $safeIp      = htmlspecialchars($ipAddress ?? 'N/A', ENT_QUOTES);
+        $safeDate    = htmlspecialchars(date('d/m/Y à H:i'), ENT_QUOTES);
+
+        $infoBlock = '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">'
+            . '<tr><td style="padding:12px 16px;background:#f5f0e8;border-left:3px solid #c9a84c;">'
+            . '<p style="margin:0 0 6px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8a7a60;">'
+            . ($lang === 'fr' ? 'Appareil' : 'Device') . '</p>'
+            . "<p style=\"margin:0;font-size:14px;color:#3d3425;\">{$safeDevice}</p>"
+            . '</td></tr>'
+            . '<tr><td style="padding:12px 16px;background:#f5f0e8;border-left:3px solid #c9a84c;border-top:1px solid #ede8df;">'
+            . '<p style="margin:0 0 6px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8a7a60;">'
+            . ($lang === 'fr' ? 'Adresse IP' : 'IP address') . '</p>'
+            . "<p style=\"margin:0;font-size:14px;color:#3d3425;\">{$safeIp}</p>"
+            . '</td></tr>'
+            . '<tr><td style="padding:12px 16px;background:#f5f0e8;border-left:3px solid #c9a84c;border-top:1px solid #ede8df;">'
+            . '<p style="margin:0 0 6px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8a7a60;">Date</p>'
+            . "<p style=\"margin:0;font-size:14px;color:#3d3425;\">{$safeDate}</p>"
+            . '</td></tr>'
+            . '</table>';
+
+        $confirmBlock = $confirmUrl !== ''
+            ? '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
+              . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+              . "<a href=\"{$confirmUrl}\" style=\"display:inline-block;padding:14px 36px;"
+              . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
+              . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+              . ($lang === 'fr' ? 'Confirmer cet appareil' : 'Confirm this device')
+              . '</a></td></tr></table>'
+              . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+              . '<tr><td>'
+              . "<a href=\"{$revokeUrl}\" style=\"display:inline-block;padding:10px 24px;"
+              . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;'
+              . 'color:#c0392b;text-decoration:underline;">'
+              . ($lang === 'fr' ? 'Ce n\'était pas moi — Annuler cette tentative' : 'This wasn\'t me — Cancel this attempt')
+              . '</a></td></tr></table>'
+            : '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+              . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+              . "<a href=\"{$securityUrl}\" style=\"display:inline-block;padding:14px 36px;"
+              . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
+              . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+              . ($lang === 'fr' ? 'Gérer mes sessions' : 'Manage my sessions')
+              . '</a></td></tr></table>';
+
+        if ($lang === 'fr') {
+            $message = 'Une connexion depuis un appareil inconnu a été détectée sur votre compte.'
+                . ' Si c\'était bien vous, confirmez cet appareil pour ne plus recevoir d\'alerte.'
+                . '<br><br>'
+                . $infoBlock
+                . $confirmBlock;
+            $body = $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message);
+        } else {
+            $safeDate = htmlspecialchars(date('m/d/Y \a\t H:i'), ENT_QUOTES);
+            $message = 'A sign-in from an unrecognised device was detected on your account.'
+                . ' If this was you, confirm the device to stop receiving these alerts.'
+                . '<br><br>'
+                . $infoBlock
+                . $confirmBlock;
+            $body = $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message);
+        }
+
+        $this->send($to, $name, $subject, $body);
     }
 
     public function buildNewsletterHtml(
         string $title,
         string $htmlContent,
-        ?string $imageUrl = null
+        ?string $imageUrl = null,
+        ?string $unsubToken = null
     ): string {
         $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $logoUrl    = $appUrl . self::LOGO_PATH;
         $urlPrivacy = $appUrl . self::URL_PRIVACY;
         $urlLegal   = $appUrl . self::URL_LEGAL;
         $urlSupport = $appUrl . self::URL_SUPPORT;
-        $urlUnsub   = $appUrl . '/fr/mon-compte';
+        $urlUnsub   = $unsubToken !== null
+            ? $appUrl . '/fr/newsletter/desabonnement?token=' . urlencode($unsubToken)
+            : $appUrl . '/fr/mon-compte';
         $safeTitle  = htmlspecialchars($title, ENT_QUOTES);
         // Image optionnelle : centrée dans le bloc blanc, avant le séparateur/désabonnement
         $safeImage = $imageUrl !== null ? htmlspecialchars($imageUrl, ENT_QUOTES) : null;
@@ -182,7 +348,7 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
               </table>
               <p style="margin:0;font-size:12px;color:#8a7a60;line-height:1.6;">
                 Vous recevez cet email car vous êtes abonné(e) à la newsletter du Château Crabitan Bellevue.<br>
-                <a href="{$urlUnsub}" style="color:#c9a84c;">Gérer mes préférences de communication</a>
+                <a href="{$urlUnsub}" style="color:#c9a84c;">Se désinscrire de la newsletter</a>
               </p>
             </td>
           </tr>
@@ -201,7 +367,8 @@ INNER;
         string $subject,
         string $body,
         ?string $attachmentPath = null,
-        ?string $replyTo = null
+        ?string $replyTo = null,
+        ?string $attachmentName = null
     ): void {
         $this->mailer->clearAddresses();
         $this->mailer->clearAttachments();
@@ -215,7 +382,7 @@ INNER;
         $this->mailer->Body    = $body;
         $this->mailer->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], "\n", $body));
         if ($attachmentPath !== null) {
-            $this->mailer->addAttachment($attachmentPath);
+            $this->mailer->addAttachment($attachmentPath, $attachmentName ?? '');
         }
         $this->mailer->send();
     }

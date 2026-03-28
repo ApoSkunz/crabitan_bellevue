@@ -101,7 +101,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
                 >
                     <span class="header-cart__wrap">
-                        <span class="header-cart__badge" class="header-cart__count">0</span>
+                        <span class="header-cart__badge header-cart__count">0</span>
                         <span class="header-cart__icon">&#128722;</span>
                     </span>
                     <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
@@ -124,7 +124,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     data-login-url="/<?= htmlspecialchars($navLang) ?>/connexion"
                 >
                     <span class="header-cart__wrap">
-                        <span class="header-cart__badge" class="header-cart__count">0</span>
+                        <span class="header-cart__badge header-cart__count">0</span>
                         <span class="header-cart__icon">&#128722;</span>
                     </span>
                     <span class="header-cart__label"><?= htmlspecialchars(__('nav.cart')) ?></span>
@@ -251,8 +251,11 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="cart-modal__backdrop" id="cart-modal-backdrop"></div>
     <div class="cart-modal__inner">
         <div class="cart-modal__header">
-            <!-- NOSONAR Web:S6850 — title content set dynamically by JS before modal opens -->
-            <h2 id="cart-modal-title" class="cart-modal__title"></h2>
+            <div class="cart-modal__title-wrap">
+                <!-- NOSONAR Web:S6850 — title content set dynamically by JS before modal opens -->
+                <h2 id="cart-modal-title" class="cart-modal__title"></h2>
+                <p id="cart-modal-cuvee" class="cart-modal__cuvee" hidden></p>
+            </div>
             <button id="cart-modal-close" class="cart-modal__close" type="button" aria-label="Fermer">&times;</button>
         </div>
         <div class="cart-modal__body">
@@ -273,6 +276,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
             </div>
+        </div>
+        <div id="cart-modal-success" class="cart-modal__success" hidden>
+            <span class="cart-modal__success-icon">✓</span>
+            <p id="cart-modal-success-msg" class="cart-modal__success-msg"></p>
         </div>
         <form method="POST" id="cart-modal-form" action="">
             <input type="hidden" name="wine_id" id="cart-modal-wine-id" value="">
@@ -512,8 +519,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         <input type="password" id="reg-password" name="password"
                                autocomplete="new-password" required minlength="12">
                         <button type="button" class="register-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="reg-password">
-                            <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
-                            <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                            <span class="pwd-eye pwd-eye--show" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                            <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
                         </button>
                     </div>
                     <?php if (!empty($registerErrors['password'])) : ?>
@@ -528,8 +535,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         <input type="password" id="reg-password-confirm" name="password_confirm"
                                autocomplete="new-password" required minlength="12">
                         <button type="button" class="register-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="reg-password-confirm">
-                            <span class="pwd-eye pwd-eye--show" aria-hidden="true">&#128065;</span>
-                            <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden>&#128064;</span>
+                            <span class="pwd-eye pwd-eye--show" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                            <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
                         </button>
                     </div>
                 </div>
@@ -663,9 +670,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/admin/commandes">Commandes</a>
                 <a href="/admin/comptes">Comptes</a>
                 <a href="/admin/tarifs">Tarifs</a>
+                <a href="/admin/actualites">Actualités</a>
+                <a href="/admin/newsletter">Newsletter</a>
+                <a href="/admin/bons-de-commande">Bons de commande</a>
+                <a href="/admin/mon-profil">Mon profil</a>
             <?php else : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">
                     <?= htmlspecialchars(__('panel.account')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/profil">
+                    <?= htmlspecialchars(__('panel.profile')) ?>
                 </a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/commandes">
                     <?= htmlspecialchars(__('panel.orders')) ?>
@@ -675,6 +689,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 </a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/favoris">
                     <?= htmlspecialchars(__('panel.favorites')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/securite">
+                    <?= htmlspecialchars(__('panel.security')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/export">
+                    <?= htmlspecialchars(__('panel.export')) ?>
                 </a>
             <?php endif; ?>
             <a href="/<?= htmlspecialchars($navLang) ?>/deconnexion" class="account-panel__logout">

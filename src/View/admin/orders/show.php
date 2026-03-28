@@ -2,13 +2,14 @@
 
 <?php
 $statusLabels = [
-    'pending'    => 'En attente',
-    'paid'       => 'Payée',
-    'processing' => 'En préparation',
-    'shipped'    => 'Expédiée',
-    'delivered'  => 'Livrée',
-    'cancelled'  => 'Annulée',
-    'refunded'   => 'Remboursée',
+    'pending'          => 'En attente',
+    'paid'             => 'Payée',
+    'processing'       => 'En préparation',
+    'shipped'          => 'Expédiée',
+    'delivered'        => 'Livrée',
+    'cancelled'        => 'Annulée',
+    'refunded'         => 'Remboursée',
+    'return_requested' => 'Retour en cours',
 ];
 $allStatuses   = array_keys($statusLabels);
 $paymentLabels = [
@@ -120,8 +121,13 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                     <dd><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span></dd>
                     <dt>Client</dt>
                     <dd>
-                        <?= htmlspecialchars(trim($order['firstname'] . ' ' . $order['lastname'])) ?><br>
-                        <span style="font-size:0.8rem;color:#8a7a60;"><?= htmlspecialchars($order['email']) ?></span>
+                        <?php $isAnonymized = str_ends_with((string) ($order['email'] ?? ''), '@purged.invalid'); ?>
+                        <?php if ($isAnonymized) : ?>
+                            <em style="color:#8a7a60;">Compte anonymisé (RGPD)</em>
+                        <?php else : ?>
+                            <?= htmlspecialchars(trim($order['firstname'] . ' ' . $order['lastname'])) ?><br>
+                            <span style="font-size:0.8rem;color:#8a7a60;"><?= htmlspecialchars($order['email']) ?></span>
+                        <?php endif; ?>
                     </dd>
                     <dt>Paiement</dt>
                     <dd><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></dd>

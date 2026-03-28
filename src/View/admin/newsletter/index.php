@@ -29,8 +29,9 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <div class="admin-field" style="margin-bottom:1rem;">
                     <label class="admin-field__label" for="nl-subject">Objet *</label>
-                    <input type="text" id="nl-subject" name="subject" required
+                    <input type="text" id="nl-subject" name="subject"
                            class="admin-field__input" placeholder="Ex : Nouveaux millésimes disponibles…">
+                    <span id="nl-subject-error" class="admin-field__error" style="display:none;">Ce champ est obligatoire.</span>
                 </div>
                 <div class="admin-field" style="margin-bottom:1rem;">
                     <label class="admin-field__label" for="nl-image">
@@ -46,10 +47,22 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
                                 margin-top:0.5rem;border:1px solid rgba(0,0,0,0.1);border-radius:4px;">
                 </div>
                 <div class="admin-field" style="margin-bottom:1rem;">
+                    <label class="admin-field__label" for="nl-pdf">
+                        Pièce jointe PDF
+                        <span style="font-weight:400;font-size:0.72rem;">(optionnel — max 10 Mo)</span>
+                    </label>
+                    <input type="file" id="nl-pdf" name="nl_pdf"
+                           accept="application/pdf"
+                           class="admin-field__input"
+                           onchange="updateNlPdfName(this)">
+                    <p id="nl-pdf-name" style="display:none;font-size:0.78rem;color:#3d3425;margin-top:0.25rem;"></p>
+                </div>
+                <div class="admin-field" style="margin-bottom:1rem;">
                     <label class="admin-field__label" for="nl-body">Contenu *</label>
-                    <textarea id="nl-body" name="body" required
+                    <textarea id="nl-body" name="body"
                               class="admin-field__textarea" rows="8"
                               placeholder="Rédigez votre newsletter…"></textarea>
+                    <span id="nl-body-error" class="admin-field__error" style="display:none;">Ce champ est obligatoire.</span>
                     <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.25rem;">
                         Le texte sera envoyé en HTML avec mise en page Crabitan Bellevue.
                     </p>
@@ -75,11 +88,15 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
                     <p style="font-size:0.9rem;color:#3d3425;margin:0 0 0.5rem;">
                         Objet : <strong id="nl-modal-subject" style="color:#1a1208;">—</strong>
                     </p>
-                    <p style="font-size:0.9rem;color:#3d3425;margin:0 0 1.5rem;">
+                    <p style="font-size:0.9rem;color:#3d3425;margin:0 0 0.5rem;">
                         Cette newsletter sera envoyée à
                         <strong style="color:#c9a84c;"><?= $total ?> abonné<?= $total > 1 ? 's' : '' ?></strong>.
                         Cette action est irréversible.
                     </p>
+                    <p id="nl-modal-pdf" style="display:none;font-size:0.85rem;color:#3d3425;margin:0 0 1rem;">
+                        Pièce jointe : <strong id="nl-modal-pdf-name" style="color:#1a1208;"></strong>
+                    </p>
+                    <p style="margin:0 0 1.5rem;"></p>
                     <div style="display:flex;gap:1rem;justify-content:flex-end;">
                         <button type="button" class="admin-btn admin-btn--outline"
                                 onclick="closeNlModal()">Annuler</button>
@@ -162,14 +179,58 @@ function previewNlImage(input) {
     }
 }
 
+function updateNlPdfName(input) {
+    const el = document.getElementById('nl-pdf-name');
+    if (input.files && input.files[0]) {
+        el.textContent = input.files[0].name;
+        el.style.display = 'block';
+    } else {
+        el.style.display = 'none';
+    }
+}
 
 function openNlModal() {
-    const subject = document.getElementById('nl-subject').value.trim();
-    const body    = document.getElementById('nl-body').value.trim();
-    if (!subject || !body) {
-        return; // la validation HTML5 du form prendra le relais si on soumettait
+    const subjectInput = document.getElementById('nl-subject');
+    const bodyInput    = document.getElementById('nl-body');
+    const subject      = subjectInput.value.trim();
+    const body         = bodyInput.value.trim();
+    let hasError = false;
+
+    const subjectErr = document.getElementById('nl-subject-error');
+    const bodyErr    = document.getElementById('nl-body-error');
+
+    if (!subject) {
+        subjectInput.classList.add('is-error');
+        subjectErr.style.display = 'block';
+        hasError = true;
+    } else {
+        subjectInput.classList.remove('is-error');
+        subjectErr.style.display = 'none';
     }
+    if (!body) {
+        bodyInput.classList.add('is-error');
+        bodyErr.style.display = 'block';
+        hasError = true;
+    } else {
+        bodyInput.classList.remove('is-error');
+        bodyErr.style.display = 'none';
+    }
+    if (hasError) {
+        subjectInput.closest('.admin-form').querySelector('.admin-field__error[style*="block"]')
+            ?.closest('.admin-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
     document.getElementById('nl-modal-subject').textContent = subject || '—';
+    const pdfInput  = document.getElementById('nl-pdf');
+    const modalPdf  = document.getElementById('nl-modal-pdf');
+    const modalPdfName = document.getElementById('nl-modal-pdf-name');
+    if (pdfInput.files && pdfInput.files[0]) {
+        modalPdfName.textContent = pdfInput.files[0].name;
+        modalPdf.style.display = 'block';
+    } else {
+        modalPdf.style.display = 'none';
+    }
     const modal = document.getElementById('nl-modal');
     modal.style.display = 'flex';
     document.addEventListener('keydown', nlModalEsc);

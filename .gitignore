@@ -1,5 +1,5 @@
 # Environnement
-.env
+.env*
 
 # Dépendances
 /vendor/
@@ -33,8 +33,11 @@ Thumbs.db
 # Scripts — rapports générés localement
 /scripts/
 
-# Features — spécifications locales
-/FEATURES/
+# Specs & backlog locaux (non versionnés)
+/BACKLOG/
+
+# Base de données — schéma, migrations et seeds en local uniquement
+/database/
 
 # Lighthouse CI — rapports locaux
 /.lighthouseci/
