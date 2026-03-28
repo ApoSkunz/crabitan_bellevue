@@ -160,31 +160,40 @@ composer install
 # Dépendances JS
 npm install
 
-# Copier et configurer l'environnement
-cp .env.example .env
-# Éditer .env avec vos valeurs (DB, SMTP, JWT_SECRET, APP_URL...)
+# Créer et configurer l'environnement (voir section "Variables .env essentielles" ci-dessous)
+cp /dev/null .env
 ```
 
 ### Variables `.env` essentielles
 
 ```dotenv
+# Application
 APP_URL=http://crabitan.local
 APP_NAME="Château Crabitan Bellevue"
-APP_ENV=development
+APP_ENV=development              # development | production
 
+# Base de données
 DB_HOST=localhost
+DB_PORT=3306                     # optionnel, 3306 par défaut
 DB_NAME=crabitan_bellevue
 DB_USER=root
-DB_PASS=
+DB_PASS=                         # vide en dev local XAMPP
 
-JWT_SECRET=votre_secret_jwt_32_caracteres_minimum
+# Authentification JWT
+JWT_SECRET=                      # chaîne aléatoire ≥ 32 caractères — NE PAS VERSIONNER
+JWT_EXPIRY=3600                  # durée de vie du token en secondes (optionnel)
 
+# Emails (MailHog en dev, SMTP IONOS en prod)
 MAIL_HOST=localhost
 MAIL_PORT=1025
 MAIL_USER=
-MAIL_PASS=
+MAIL_PASS=                       # NE PAS VERSIONNER
+MAIL_ENCRYPTION=                 # vide en dev, tls en prod
 MAIL_FROM_NAME="Château Crabitan Bellevue"
 CONTACT_OWNER_EMAIL=test@localhost
+
+# API tierce (optionnel)
+WEATHER_API_KEY=                 # clé OpenWeatherMap — NE PAS VERSIONNER
 ```
 
 ---
