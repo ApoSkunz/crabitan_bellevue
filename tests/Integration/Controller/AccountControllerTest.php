@@ -1630,4 +1630,159 @@ class AccountControllerTest extends IntegrationTestCase
         $this->assertIsString($output);
         $this->assertNotEmpty($output);
     }
+
+    // ----------------------------------------------------------------
+    // resetSecurity()
+    // ----------------------------------------------------------------
+
+    /**
+     * Un CSRF invalide flash une erreur et redirige.
+     */
+    public function testResetSecurityInvalidCsrfRedirects(): void
+    {
+        $userId = $this->insertCustomer('reset.sec.csrf@test.local');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => 'bad', 'password' => 'Password123!'];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/mon-compte/securite/reinitialiser')
+            ->resetSecurity(['lang' => 'fr']);
+    }
+
+    /**
+     * Un mot de passe incorrect flash une erreur et redirige.
+     */
+    public function testResetSecurityWrongPasswordRedirects(): void
+    {
+        $userId = $this->insertCustomer('reset.sec.pwd@test.local');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF, 'password' => 'WrongPassword!'];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/mon-compte/securite/reinitialiser')
+            ->resetSecurity(['lang' => 'fr']);
+    }
+
+    /**
+     * Un mot de passe correct révoque tout et redirige vers /fr.
+     */
+    public function testResetSecuritySuccessRedirects(): void
+    {
+        $userId = $this->insertCustomer('reset.sec.ok@test.local');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF, 'password' => 'Password123!'];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/mon-compte/securite/reinitialiser')
+            ->resetSecurity(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // deleteAccount()
+    // ----------------------------------------------------------------
+
+    /**
+     * Un CSRF invalide redirige.
+     */
+    public function testDeleteAccountInvalidCsrfRedirects(): void
+    {
+        $userId = $this->insertCustomer('del.acc.csrf@test.local');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => 'bad'];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/mon-compte/securite/supprimer-compte')
+            ->deleteAccount(['lang' => 'fr']);
+    }
+
+    /**
+     * Un texte de confirmation incorrect redirige.
+     */
+    public function testDeleteAccountWrongConfirmTextRedirects(): void
+    {
+        $userId = $this->insertCustomer('del.acc.txt@test.local');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'csrf_token'       => self::CSRF,
+            'confirm_text'     => 'WRONG',
+            'confirm_password' => 'Password123!',
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/mon-compte/securite/supprimer-compte')
+            ->deleteAccount(['lang' => 'fr']);
+    }
+
+    /**
+     * Un mot de passe incorrect redirige.
+     */
+    public function testDeleteAccountWrongPasswordRedirects(): void
+    {
+        $userId = $this->insertCustomer('del.acc.pwd@test.local');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'csrf_token'       => self::CSRF,
+            'confirm_text'     => 'SUPPRESSION',
+            'confirm_password' => 'WrongPass!',
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/mon-compte/securite/supprimer-compte')
+            ->deleteAccount(['lang' => 'fr']);
+    }
+
+    /**
+     * Tout valide sans commandes actives : soft-delete et redirect vers /fr.
+     */
+    public function testDeleteAccountSuccessRedirects(): void
+    {
+        $userId = $this->insertCustomer('del.acc.ok@test.local');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'csrf_token'       => self::CSRF,
+            'confirm_text'     => 'SUPPRESSION',
+            'confirm_password' => 'Password123!',
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/mon-compte/securite/supprimer-compte')
+            ->deleteAccount(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // exportData() — guard seulement (exit dans la branche authentifiée)
+    // ----------------------------------------------------------------
+
+    /**
+     * Un utilisateur non authentifié est redirigé vers /connexion.
+     */
+    public function testExportDataUnauthenticatedRedirects(): void
+    {
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('GET', '/fr/mon-compte/export/telecharger')
+            ->exportData(['lang' => 'fr']);
+    }
 }
