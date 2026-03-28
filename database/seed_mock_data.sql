@@ -630,22 +630,21 @@ INSERT INTO `accounts`
     (`id`, `email`, `password`, `account_type`, `role`, `lang`, `newsletter`,
      `email_verified_at`, `has_connected`, `created_at`)
 VALUES
--- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Mot de passe de test unifié : Dev123456789! — données mock uniquement, jamais en production
 -- Super admin
-(1, 'superadmin@dev.local',       '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'super_admin', 'fr', 0, '2026-01-01 08:00:00', 1, '2026-01-01 08:00:00'),
+(1, 'superadmin@dev.local',       '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'super_admin', 'fr', 0, '2026-01-01 08:00:00', 1, '2026-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Admin
-(2, 'admin@dev.local',            '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'admin',       'fr', 0, '2026-01-01 08:00:00', 1, '2026-01-01 08:00:00'),
+(2, 'admin@dev.local',            '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'admin',       'fr', 0, '2026-01-01 08:00:00', 1, '2026-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client vérifié avec commandes
-(3, 'client.verifie@dev.local',   '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'fr', 1, '2026-01-10 10:00:00', 1, '2026-01-10 10:00:00'),
+(3, 'client.verifie@dev.local',   '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'fr', 1, '2026-01-10 10:00:00', 1, '2026-01-10 10:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client non vérifié (email non confirmé)
-(4, 'client.nouveau@dev.local',   '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'fr', 0, NULL,                 0, '2026-02-01 09:00:00'),
+(4, 'client.nouveau@dev.local',   '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'fr', 0, NULL,                 0, '2026-02-01 09:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client société
-(5, 'societe@dev.local',          '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'company',    'customer',    'fr', 1, '2026-01-15 14:00:00', 1, '2026-01-15 14:00:00'),
+(5, 'societe@dev.local',          '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'company',    'customer',    'fr', 1, '2026-01-15 14:00:00', 1, '2026-01-15 14:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client EN
-(6, 'customer.en@dev.local',      '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'en', 0, '2026-02-10 11:00:00', 1, '2026-02-10 11:00:00'),
+(6, 'customer.en@dev.local',      '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'en', 0, '2026-02-10 11:00:00', 1, '2026-02-10 11:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client soft-deleted (en attente de suppression)
-(7, 'client.supprime@dev.local',  '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'fr', 0, '2026-01-20 08:00:00', 1, '2026-01-20 08:00:00');
+(7, 'client.supprime@dev.local',  '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'fr', 0, '2026-01-20 08:00:00', 1, '2026-01-20 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 
 -- Soft delete du compte 7
 UPDATE `accounts`
