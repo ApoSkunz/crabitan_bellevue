@@ -5,6 +5,7 @@ require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 
 /** @var array<int, array<string, mixed>> $addresses */
+/** @var array<int, int> $lockedIds */
 /** @var string $csrf */
 $billing  = array_values(array_filter($addresses, fn($a) => $a['type'] === 'billing'));
 $delivery = array_values(array_filter($addresses, fn($a) => $a['type'] === 'delivery'));
@@ -60,7 +61,8 @@ $delivery = array_values(array_filter($addresses, fn($a) => $a['type'] === 'deli
                             </h2>
                             <div class="account-address-list">
                                 <?php foreach ($group as $addr) : ?>
-                                    <article class="account-address-card">
+                                    <?php $isLocked = in_array((int) $addr['id'], $lockedIds, true); ?>
+                                    <article class="account-address-card<?= $isLocked ? ' account-address-card--locked' : '' ?>">
                                         <p class="account-address-card__name">
                                             <?= htmlspecialchars(
                                                 $addr['civility'] . ' '
@@ -75,20 +77,26 @@ $delivery = array_values(array_filter($addresses, fn($a) => $a['type'] === 'deli
                                             <p><?= htmlspecialchars($addr['phone']) ?></p>
                                         <?php endif; ?>
 
-                                        <div class="account-address-card__actions">
-                                            <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/adresses/<?= (int) $addr['id'] ?>/modifier"
-                                               class="btn btn--ghost btn--sm">
-                                                <?= __('account.address_edit') ?>
-                                            </a>
-                                            <form method="POST"
-                                                  action="/<?= htmlspecialchars($lang) ?>/mon-compte/adresses/<?= (int) $addr['id'] ?>/supprimer"
-                                                  data-confirm="<?= htmlspecialchars(__('account.address_delete_confirm')) ?>">
-                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-                                                <button type="submit" class="btn btn--ghost btn--sm btn--danger">
-                                                    <?= __('account.address_delete') ?>
-                                                </button>
-                                            </form>
-                                        </div>
+                                        <?php if ($isLocked) : ?>
+                                            <p class="account-address-card__locked-notice">
+                                                <?= __('account.address_locked_notice') ?>
+                                            </p>
+                                        <?php else : ?>
+                                            <div class="account-address-card__actions">
+                                                <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/adresses/<?= (int) $addr['id'] ?>/modifier"
+                                                   class="btn btn--ghost btn--sm">
+                                                    <?= __('account.address_edit') ?>
+                                                </a>
+                                                <form method="POST"
+                                                      action="/<?= htmlspecialchars($lang) ?>/mon-compte/adresses/<?= (int) $addr['id'] ?>/supprimer"
+                                                      data-confirm="<?= htmlspecialchars(__('account.address_delete_confirm')) ?>">
+                                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+                                                    <button type="submit" class="btn btn--ghost btn--sm btn--danger">
+                                                        <?= __('account.address_delete') ?>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        <?php endif; ?>
                                     </article>
                                 <?php endforeach; ?>
                             </div>
