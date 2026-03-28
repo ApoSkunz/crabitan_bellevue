@@ -264,12 +264,16 @@ $devices = ['Chrome · Windows', 'Safari · macOS', 'Safari · iPhone', 'Chrome 
 $ips     = ['82.65.12.34', '90.45.23.56', '176.31.45.67', '188.73.34.90', '78.120.45.23'];
 
 foreach (array_slice($accountIds, 0, 12) as $accountId) {
-    $nbSessions = rand(1, 3);
+    $nbSessions  = rand(1, 3);
+    $firstDevice = null; // premier device_token → sera mis en appareil de confiance
     for ($s = 0; $s < $nbSessions; $s++) {
         $agentIdx = rand(0, count($agents) - 1);
         $token    = bin2hex(random_bytes(32));
         $device   = bin2hex(random_bytes(16));
         $expiry   = date('Y-m-d H:i:s', strtotime('+1 hour'));
+        if ($firstDevice === null) {
+            $firstDevice = ['token' => $device, 'name' => $devices[$agentIdx]];
+        }
         try {
             $pdo->prepare(
                 "INSERT INTO connections
@@ -284,6 +288,18 @@ foreach (array_slice($accountIds, 0, 12) as $accountId) {
             ]);
         } catch (\Throwable) {
         }
+    }
+    // Marque le compte comme déjà connecté et enregistre l'appareil principal de confiance.
+    // La migration 006 ne tourne qu'une seule fois ; le seed doit le faire lui-même.
+    try {
+        $pdo->prepare("UPDATE accounts SET has_connected = 1 WHERE id = ?")->execute([$accountId]);
+        if ($firstDevice !== null) {
+            $pdo->prepare(
+                "INSERT IGNORE INTO trusted_devices (user_id, device_token, device_name)
+                 VALUES (?, ?, ?)"
+            )->execute([$accountId, $firstDevice['token'], $firstDevice['name']]);
+        }
+    } catch (\Throwable) {
     }
     echo "  OK    connexions pour account #{$accountId}\n";
 }

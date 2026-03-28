@@ -23,26 +23,33 @@ SET NAMES utf8mb4;
 -- password NULL : auth sociale uniquement (Google / Apple).
 -- ============================================================
 CREATE TABLE `accounts` (
-  `id`                       INT            NOT NULL AUTO_INCREMENT,
-  `email`                    VARCHAR(255)   NOT NULL,
-  `password`                 VARCHAR(255)   DEFAULT NULL COMMENT 'NULL si auth sociale uniquement',
-  `account_type`             ENUM('individual','company') NOT NULL DEFAULT 'individual',
-  `role`                     ENUM('super_admin','admin','customer') NOT NULL DEFAULT 'customer',
-  `lang`                     ENUM('fr','en')              NOT NULL DEFAULT 'fr',
-  `newsletter`               TINYINT(1)                   NOT NULL DEFAULT 0,
-  `email_verification_token` VARCHAR(255)   DEFAULT NULL,
-  `email_verified_at`        DATETIME       DEFAULT NULL,
-  `google_id`                VARCHAR(255)   DEFAULT NULL COMMENT 'Google OAuth ID',
-  `apple_id`                 VARCHAR(255)   DEFAULT NULL COMMENT 'Apple Sign In ID',
-  `deleted_at`               DATETIME       DEFAULT NULL COMMENT 'Soft delete',
-  `created_at`               DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at`               DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `id`                           INT            NOT NULL AUTO_INCREMENT,
+  `email`                        VARCHAR(255)   NOT NULL,
+  `password`                     VARCHAR(255)   DEFAULT NULL COMMENT 'NULL si auth sociale uniquement',
+  `account_type`                 ENUM('individual','company') NOT NULL DEFAULT 'individual',
+  `role`                         ENUM('super_admin','admin','customer') NOT NULL DEFAULT 'customer',
+  `lang`                         ENUM('fr','en')              NOT NULL DEFAULT 'fr',
+  `newsletter`                   TINYINT(1)     NOT NULL DEFAULT 0,
+  `newsletter_unsubscribe_token` VARCHAR(64)    DEFAULT NULL COMMENT 'Token désabonnement newsletter (RGPD Art. 21)',
+  `email_verification_token`     VARCHAR(255)   DEFAULT NULL,
+  `email_verified_at`            DATETIME       DEFAULT NULL,
+  `google_id`                    VARCHAR(255)   DEFAULT NULL COMMENT 'Google OAuth ID',
+  `apple_id`                     VARCHAR(255)   DEFAULT NULL COMMENT 'Apple Sign In ID',
+  `deleted_at`                   DATETIME       DEFAULT NULL COMMENT 'Soft delete',
+  `scheduled_deletion_at`        DATETIME       DEFAULT NULL COMMENT 'Date de purge effective (J+30 après deleted_at)',
+  `reactivation_token`           VARCHAR(64)    DEFAULT NULL COMMENT 'Token annulation suppression compte (valide 30 jours)',
+  `created_at`                   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`                   DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `has_connected`                TINYINT(1)     NOT NULL DEFAULT 0 COMMENT 'Vrai dès la première connexion réussie',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_accounts_email`     (`email`),
   UNIQUE KEY `uq_accounts_google_id` (`google_id`),
   UNIQUE KEY `uq_accounts_apple_id`  (`apple_id`),
   INDEX `idx_accounts_role`          (`role`),
-  INDEX `idx_accounts_deleted`       (`deleted_at`)
+  INDEX `idx_accounts_deleted`       (`deleted_at`),
+  INDEX `idx_accounts_unsub_token`   (`newsletter_unsubscribe_token`),
+  INDEX `idx_accounts_sched_del`     (`scheduled_deletion_at`),
+  INDEX `idx_accounts_reactiv_token` (`reactivation_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -220,7 +227,7 @@ CREATE TABLE `orders` (
 -- device_token : UUID cookie longue durée (90j) — identifiant appareil,
 --   plus fiable que l'IP (4G/CGNAT = IP instable).
 -- ip_address : audit/affichage uniquement, pas pour la détection.
--- is_trusted : appareil marqué de confiance par l'utilisateur (pas d'alerte).
+-- La notion de confiance est portée par trusted_devices (table séparée).
 -- ============================================================
 CREATE TABLE `connections` (
   `id`           INT            NOT NULL AUTO_INCREMENT,
@@ -231,7 +238,6 @@ CREATE TABLE `connections` (
   `user_agent`   TEXT           DEFAULT NULL,
   `device_name`  VARCHAR(255)   DEFAULT NULL COMMENT 'Ex : Chrome · Windows',
   `auth_method`  ENUM('password','google','apple') NOT NULL DEFAULT 'password',
-  `is_trusted`   TINYINT(1)     NOT NULL DEFAULT 0,
   `status`       ENUM('active','expired','revoked') NOT NULL DEFAULT 'active',
   `last_used_at` DATETIME       DEFAULT NULL,
   `created_at`   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -241,6 +247,48 @@ CREATE TABLE `connections` (
   INDEX `idx_connections_token`        (`token`),
   INDEX `idx_connections_device_token` (`device_token`),
   INDEX `idx_connections_user_status`  (`user_id`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : trusted_devices
+-- Appareils explicitement confirmés par l'utilisateur.
+-- Séparé de connections : la confiance survit aux révocations de sessions.
+-- confirmed_at : date du premier trust (email ou auto première connexion).
+-- last_seen    : mis à jour à chaque connexion depuis cet appareil.
+-- ============================================================
+CREATE TABLE `trusted_devices` (
+  `id`           INT(11)      NOT NULL AUTO_INCREMENT,
+  `user_id`      INT(11)      NOT NULL,
+  `device_token` VARCHAR(64)  NOT NULL,
+  `device_name`  VARCHAR(255) DEFAULT NULL,
+  `confirmed_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_seen`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_user_device` (`user_id`, `device_token`),
+  INDEX `idx_td_user`         (`user_id`),
+  CONSTRAINT `fk_td_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : device_confirm_tokens
+-- Tokens MFA émis lors d'une connexion depuis un appareil inconnu et non de confiance.
+-- Le JWT n'est émis qu'après validation du lien email. Expiration : 15 minutes.
+-- ============================================================
+CREATE TABLE `device_confirm_tokens` (
+  `id`           INT(11)      NOT NULL AUTO_INCREMENT,
+  `user_id`      INT(11)      NOT NULL,
+  `device_token` VARCHAR(64)  NOT NULL,
+  `device_name`  VARCHAR(255) DEFAULT NULL,
+  `token`        VARCHAR(64)  NOT NULL,
+  `redirect_url` VARCHAR(500) DEFAULT NULL,
+  `lang`         VARCHAR(5)   NOT NULL DEFAULT 'fr',
+  `expires_at`   DATETIME     NOT NULL,
+  `confirmed_at` DATETIME     NULL     DEFAULT NULL COMMENT 'Rempli quand le lien email a été cliqué',
+  `created_at`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_dct_token` (`token`),
+  INDEX `idx_dct_user` (`user_id`),
+  CONSTRAINT `fk_dct_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
