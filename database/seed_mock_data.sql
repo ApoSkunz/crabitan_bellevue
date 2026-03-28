@@ -630,6 +630,8 @@ INSERT INTO `accounts`
     (`id`, `email`, `password`, `account_type`, `role`, `lang`, `newsletter`,
      `email_verified_at`, `has_connected`, `created_at`)
 VALUES
+-- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+-- Mot de passe de test unifié : Dev123456789! — données mock uniquement, jamais en production
 -- Super admin
 (1, 'superadmin@dev.local',       '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'super_admin', 'fr', 0, '2026-01-01 08:00:00', 1, '2026-01-01 08:00:00'),
 -- Admin
