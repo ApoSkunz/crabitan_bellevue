@@ -19,7 +19,7 @@
     display: grid;
     grid-template-columns: 220px 1fr;
     gap: 3rem;
-    align-items: start;
+    align-items: stretch;
 
     @media (max-width: 768px) {
         grid-template-columns: 1fr;
@@ -44,13 +44,14 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    align-self: start;
     position: sticky;
-    top: 100px;
+    top: var(--account-nav-top, 200px);
 
     @media (max-width: 768px) {
+        position: static;
         flex-direction: row;
         flex-wrap: wrap;
-        position: static;
         gap: 0.5rem;
     }
 
@@ -355,6 +356,91 @@
     flex-direction: column;
     gap: 1.25rem;
     max-width: 400px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--color-text-muted);
+        font-family: var(--font-serif);
+    }
+
+    input:not([type='checkbox']),
+    select,
+    textarea {
+        width: 100%;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+        padding: 0.6rem 0.85rem;
+        font-size: 0.9rem;
+        font-family: var(--font-sans);
+        border-radius: 2px;
+        transition: border-color 200ms ease, box-shadow 200ms ease;
+        appearance: auto;
+
+        &:focus {
+            outline: none;
+            border-color: var(--color-gold);
+            box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.15);
+        }
+
+        &:disabled,
+        &.form-input--readonly {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: rgba(0, 0, 0, 0.03);
+        }
+    }
+}
+
+.form-hint {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+
+    a {
+        color: var(--color-gold);
+        text-decoration: none;
+
+        &:hover { text-decoration: underline; }
+    }
+}
+
+.form-error {
+    font-size: 0.78rem;
+    color: #ff6060;
+    margin: 0;
+}
+
+.form-group--checkbox {
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.form-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+
+    input[type='checkbox'] {
+        flex-shrink: 0;
+        margin-top: 0.15rem;
+        accent-color: var(--color-gold);
+        width: 1rem;
+        height: 1rem;
+        cursor: pointer;
+    }
 }
 
 // ----------------------------------------------------------------
