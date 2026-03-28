@@ -32,6 +32,8 @@ $router->get('/admin/bons-de-commande', 'Admin\OrderFormAdminController@index');
 $router->post('/admin/bons-de-commande/ajouter', 'Admin\OrderFormAdminController@upload');
 $router->post('/admin/bons-de-commande/{id}/supprimer', 'Admin\OrderFormAdminController@delete');
 $router->get('/admin/bons-de-commande/{id}/telecharger', 'Admin\OrderFormAdminController@download');
+$router->get('/admin/mon-profil', 'Admin\ProfileAdminController@index');
+$router->post('/admin/mon-profil/mot-de-passe', 'Admin\ProfileAdminController@changePassword');
 
 // ============================================================
 // Routes publiques
