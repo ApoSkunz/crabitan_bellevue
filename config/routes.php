@@ -109,6 +109,8 @@ $router->post('/{lang}/mon-compte/securite/session/{id}/revoquer', 'AccountContr
 $router->post('/{lang}/mon-compte/securite/supprimer-compte', 'AccountController@deleteAccount');
 $router->get('/{lang}/mon-compte/export', 'AccountController@exportPage');
 $router->get('/{lang}/mon-compte/export/telecharger', 'AccountController@exportData');
+$router->get('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribePage');
+$router->post('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribe');
 
 // ============================================================
 // Routes API (AJAX)
