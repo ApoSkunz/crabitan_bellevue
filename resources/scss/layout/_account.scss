@@ -806,8 +806,8 @@
     }
 
     &__dot {
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
         border: 2px solid var(--color-border);
         background: var(--color-bg);
@@ -828,8 +828,8 @@
     }
 
     &__label {
-        margin-top: 0.5rem;
-        font-size: 0.75rem;
+        margin-top: 0.4rem;
+        font-size: 0.72rem;
         color: var(--color-text-muted);
 
         .order-timeline__step--done    & { color: var(--color-text); }
@@ -863,6 +863,23 @@
 .order-total-row td {
     background: var(--color-surface);
     border-top: 2px solid var(--color-border-gold);
+}
+
+.order-discount-row td {
+    color: var(--color-gold);
+    font-size: 0.9rem;
+}
+
+.order-invoice-bottom {
+    margin-top: 1rem;
+    text-align: right;
+}
+
+.order-contact-notice {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+
+    a { color: var(--color-gold); text-decoration: underline; }
 }
 
 .account-table__vintage,
