@@ -120,8 +120,8 @@ foreach ($clients as $i => $client) {
 
         $stmt = $pdo->prepare(
             "INSERT INTO accounts (email, password, lang, role, account_type, newsletter,
-                                   email_verified_at, created_at, updated_at)
-             VALUES (?, ?, 'fr', 'customer', ?, ?, ?, NOW(), NOW())"
+                                   email_verified_at, newsletter_unsubscribe_token, created_at, updated_at)
+             VALUES (?, ?, 'fr', 'customer', ?, ?, ?, ?, NOW(), NOW())"
         );
         $stmt->execute([
             $client['email'],
@@ -129,6 +129,7 @@ foreach ($clients as $i => $client) {
             $type,
             $client['newsletter'],
             $verified,
+            bin2hex(random_bytes(32)),
         ]);
         $accountId = (int) $pdo->lastInsertId();
 
