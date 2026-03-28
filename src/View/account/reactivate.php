@@ -13,7 +13,7 @@ require_once __DIR__ . '/../partials/header.php';
             </div>
             <h1><?= __('account.reactivate_success_title') ?></h1>
             <p><?= __('account.reactivate_success_body') ?></p>
-            <a class="btn btn--primary btn--sm" href="/<?= htmlspecialchars($lang) ?>/connexion"
+            <a class="btn btn--primary btn--sm" href="/<?= htmlspecialchars($lang) ?>"
                style="display:block;text-align:center;margin-top:1.5rem;">
                 <?= __('account.reactivate_login_btn') ?>
             </a>

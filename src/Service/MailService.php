@@ -164,13 +164,13 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
 
         if ($lang === 'fr') {
             $rgpdText = 'Votre demande de suppression de compte a bien été enregistrée.'
-                . ' Conformément au RGPD (Art. 17), vos données personnelles seront anonymisées'
-                . ' dans un délai de <strong>30 jours</strong>.<br><br>'
-                . 'Vos données de commandes sont conservées 10 ans conformément aux obligations'
-                . ' légales comptables.<br><br>';
+                . ' Conformément au RGPD (Art. 17), vos données personnelles (nom, e-mail, adresses…)'
+                . ' seront supprimées dans un délai de <strong>30 jours</strong>.<br><br>'
+                . 'Vos commandes sont conservées 10 ans conformément aux obligations légales,'
+                . ' mais anonymisées — sans aucun lien vers votre identité.<br><br>';
             $reactivateBlock = $reactUrl !== ''
                 ? 'Vous avez 30 jours pour annuler cette demande en cliquant sur le bouton ci-dessous.'
-                  . ' Passé ce délai, vos données personnelles seront anonymisées définitivement.'
+                  . ' Passé ce délai, vos données personnelles seront définitivement supprimées.'
                   . '<br><br>'
                   . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
@@ -186,13 +186,13 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
             );
         } else {
             $rgpdText = 'Your account deletion request has been registered.'
-                . ' In accordance with GDPR (Art. 17), your personal data will be anonymised'
-                . ' within <strong>30 days</strong>.<br><br>'
-                . 'Your order data is retained for 10 years in accordance with legal accounting'
-                . ' obligations.<br><br>';
+                . ' In accordance with GDPR (Art. 17), your personal data (name, email, addresses…)'
+                . ' will be permanently deleted within <strong>30 days</strong>.<br><br>'
+                . 'Your orders are retained for 10 years as required by law,'
+                . ' but anonymised — with no link to your identity.<br><br>';
             $reactivateBlock = $reactUrl !== ''
                 ? 'You have 30 days to cancel this request by clicking the button below.'
-                  . ' After this period, your personal data will be permanently anonymised.'
+                  . ' After this period, your personal data will be permanently deleted.'
                   . '<br><br>'
                   . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
