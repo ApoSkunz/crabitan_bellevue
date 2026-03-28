@@ -31,7 +31,7 @@ require_once __DIR__ . '/../partials/header.php';
                 </p>
 
                 <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/export/telecharger"
-                   class="btn btn--primary">
+                   class="btn btn--gold">
                     <?= __('account.export_download') ?>
                 </a>
             </section>

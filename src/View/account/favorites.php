@@ -28,7 +28,7 @@ require_once __DIR__ . '/../partials/header.php';
                                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>">
                                     <img
                                         class="account-favorite-card__img"
-                                        src="/<?= htmlspecialchars($wine['image_path']) ?>"
+                                        src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
                                         alt="<?= htmlspecialchars($wine['name']) ?>"
                                         loading="lazy"
                                         width="120"
@@ -49,13 +49,11 @@ require_once __DIR__ . '/../partials/header.php';
                                     <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
                                 </span>
                                 <button
-                                    class="btn btn--ghost btn--sm js-favorite is-liked"
+                                    class="btn btn--ghost btn--sm js-account-fav-remove"
                                     data-wine-id="<?= (int) $wine['wine_id'] ?>"
-                                    data-liked="true"
-                                    aria-pressed="true"
                                     aria-label="<?= __('account.remove_favorite') ?>"
                                 >
-                                    <span class="js-favorite-label"><?= __('account.remove_favorite') ?></span>
+                                    <?= __('account.remove_favorite') ?>
                                 </button>
                             </div>
                         </li>
