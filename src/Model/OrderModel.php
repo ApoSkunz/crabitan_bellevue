@@ -11,7 +11,7 @@ class OrderModel extends Model
     protected string $table = 'orders';
 
     private const VALID_STATUSES = [
-        'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded',
+        'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested',
     ];
 
     public const VALID_PAYMENT_METHODS = [
@@ -189,9 +189,9 @@ class OrderModel extends Model
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function getForUser(int $userId, int $page, int $perPage, ?string $period = null, ?int $year = null): array
+    public function getForUser(int $userId, int $page, int $perPage, ?string $period = null, ?int $year = null, ?string $status = null): array
     {
-        [$where, $params] = $this->buildUserFilters($userId, $period, $year);
+        [$where, $params] = $this->buildUserFilters($userId, $period, $year, $status);
         $offset   = ($page - 1) * $perPage;
         $params[] = $perPage;
         $params[] = $offset;
@@ -205,9 +205,9 @@ class OrderModel extends Model
         );
     }
 
-    public function countForUser(int $userId, ?string $period = null, ?int $year = null): int
+    public function countForUser(int $userId, ?string $period = null, ?int $year = null, ?string $status = null): int
     {
-        [$where, $params] = $this->buildUserFilters($userId, $period, $year);
+        [$where, $params] = $this->buildUserFilters($userId, $period, $year, $status);
         $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total FROM {$this->table} {$where}",
             $params
@@ -239,7 +239,7 @@ class OrderModel extends Model
 
     public function cancelForUser(int $orderId, int $userId): bool
     {
-        $cancellable = ['pending', 'paid', 'processing'];
+        $cancellable = ['pending'];
         $row = $this->db->fetchOne(
             "SELECT status FROM {$this->table} WHERE id = ? AND user_id = ?",
             [$orderId, $userId]
@@ -289,7 +289,7 @@ class OrderModel extends Model
     }
 
     /** @return array{string, array<int, mixed>} */
-    private function buildUserFilters(int $userId, ?string $period, ?int $year): array
+    private function buildUserFilters(int $userId, ?string $period, ?int $year, ?string $status = null): array
     {
         $conds  = ['user_id = ?'];
         $params = [$userId];
@@ -299,6 +299,11 @@ class OrderModel extends Model
         } elseif ($period === 'year' && $year !== null) {
             $conds[]  = 'YEAR(ordered_at) = ?';
             $params[] = $year;
+        }
+
+        if ($status !== null && in_array($status, self::VALID_STATUSES, true)) {
+            $conds[]  = 'status = ?';
+            $params[] = $status;
         }
 
         return ['WHERE ' . implode(' AND ', $conds), $params];
