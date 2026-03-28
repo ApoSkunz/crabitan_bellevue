@@ -26,11 +26,19 @@ if ($resetOpen) {
     $_SESSION['reset_modal']['error'] = null;
 }
 
+$isCompany = false;
+
 if ($token) {
     try {
         $jwtPayload = \Core\Jwt::decode($token);
         $isLogged   = true;
         $isAdmin    = in_array($jwtPayload['role'] ?? '', ['admin', 'super_admin'], true);
+
+        if (!$isAdmin) {
+            $headerUserId      = (int) ($jwtPayload['sub'] ?? 0);
+            $headerAccountData = (new \Model\AccountModel())->findById($headerUserId);
+            $isCompany         = $headerAccountData && ($headerAccountData['account_type'] ?? '') === 'company';
+        }
     } catch (\Throwable) {
         // Token invalide ou expiré : l'utilisateur est traité comme non connecté
     }
@@ -681,12 +689,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/profil">
                     <?= htmlspecialchars(__('panel.profile')) ?>
                 </a>
+                <?php if (!$isCompany) : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/commandes">
                     <?= htmlspecialchars(__('panel.orders')) ?>
                 </a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/adresses">
                     <?= htmlspecialchars(__('panel.addresses')) ?>
                 </a>
+                <?php endif; ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/favoris">
                     <?= htmlspecialchars(__('panel.favorites')) ?>
                 </a>
