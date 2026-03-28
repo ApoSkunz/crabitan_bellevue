@@ -1131,6 +1131,16 @@ function initConfirmForms() {
 // Espace compte — toggle formulaire ajout adresse
 // ============================================================
 
+function initAlertAutoDismiss() {
+    document.querySelectorAll('.alert--success').forEach((el) => {
+        setTimeout(() => {
+            el.style.transition = 'opacity 400ms ease';
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 400);
+        }, 2500);
+    });
+}
+
 function initAddressAddToggle() {
     const section = document.getElementById('address-add-form');
     if (!section) return;
@@ -1270,6 +1280,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDeleteAccountModal();
     initConfirmForms();
     initAddressAddToggle();
+    initAlertAutoDismiss();
     initWineZoom();
     updateCartCount();
     initContactForm();
