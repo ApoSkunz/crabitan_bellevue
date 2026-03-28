@@ -12,6 +12,36 @@ $nav = [
     'security' => ['url' => "/{$lang}/mon-compte/securite",  'label' => __('account.security')],
 ];
 ?>
+<script>
+(function () {
+    function setNavTop() {
+        var header = document.querySelector('.site-header');
+        if (header) {
+            document.documentElement.style.setProperty(
+                '--account-nav-top',
+                (header.getBoundingClientRect().height + 16) + 'px'
+            );
+        }
+    }
+    setNavTop();
+    window.addEventListener('resize', setNavTop);
+})();
+</script>
+<script>
+(function () {
+    function setNavTop() {
+        var h = document.querySelector('.site-header');
+        if (h) {
+            document.documentElement.style.setProperty(
+                '--account-nav-top',
+                (h.getBoundingClientRect().height + 16) + 'px'
+            );
+        }
+    }
+    setNavTop();
+    window.addEventListener('resize', setNavTop);
+})();
+</script>
 <nav class="account-nav" aria-label="<?= __('account.nav_label') ?>">
     <?php foreach ($nav as $key => $item) : ?>
         <a

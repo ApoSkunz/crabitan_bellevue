@@ -32,12 +32,30 @@ $isCompany = ($account['account_type'] ?? '') === 'company';
                       novalidate>
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 
-                    <!-- Email (lecture seule) -->
+                    <!-- Email (lecture seule + lien mailto support) -->
                     <div class="form-group">
                         <label>Email</label>
                         <input type="email" value="<?= htmlspecialchars($account['email'] ?? '') ?>"
                                disabled class="form-input--readonly">
-                        <p class="form-hint"><?= __('account.email_readonly') ?></p>
+                        <?php
+                            $mailtoSubject = rawurlencode(__('account.email_change_subject'));
+                            $mailtoBody    = rawurlencode(
+                                ($lang === 'fr'
+                                    ? "Bonjour,\n\nJe souhaite modifier mon adresse e-mail.\nAdresse actuelle : "
+                                    : "Hello,\n\nI would like to change my email address.\nCurrent address: ")
+                                . ($account['email'] ?? '')
+                                . ($lang === 'fr'
+                                    ? "\nNouvelle adresse souhaitée : \n\nCordialement."
+                                    : "\nRequested new address: \n\nKind regards.")
+                            );
+                            $mailtoHref = 'mailto:' . htmlspecialchars($ownerEmail ?? '')
+                                        . '?subject=' . $mailtoSubject
+                                        . '&body=' . $mailtoBody;
+                        ?>
+                        <p class="form-hint">
+                            <?= __('account.email_readonly') ?>
+                            <a href="<?= $mailtoHref ?>"><?= __('account.email_change_request_btn') ?></a>
+                        </p>
                     </div>
 
                     <?php if (!$isCompany) : ?>
