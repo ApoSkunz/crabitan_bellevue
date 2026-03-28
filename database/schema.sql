@@ -61,7 +61,7 @@ CREATE TABLE `account_individuals` (
   `account_id` INT                   NOT NULL,
   `lastname`   VARCHAR(100)          NOT NULL,
   `firstname`  VARCHAR(100)          NOT NULL,
-  `civility`   ENUM('M','F','other') NOT NULL,
+  `civility`   ENUM('M','F','other') NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_account_individuals_account` (`account_id`),
   CONSTRAINT `fk_account_individuals_account`
@@ -95,7 +95,7 @@ CREATE TABLE `addresses` (
   `type`         ENUM('billing','delivery') NOT NULL,
   `firstname`    VARCHAR(100)   NOT NULL,
   `lastname`     VARCHAR(100)   NOT NULL,
-  `civility`     ENUM('M','F','other') NOT NULL,
+  `civility`     ENUM('M','F','other') NULL DEFAULT NULL,
   `street`       VARCHAR(255)   NOT NULL,
   `city`         VARCHAR(100)   NOT NULL,
   `zip_code`     VARCHAR(10)    NOT NULL,
