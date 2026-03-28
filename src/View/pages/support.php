@@ -4,7 +4,7 @@ require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
 $faqs = [];
-for ($i = 1; $i <= 11; $i++) {
+for ($i = 1; $i <= 13; $i++) {
     $faqs[] = ['q' => __('support.q' . $i), 'a' => __('support.a' . $i)];
 }
 ?>
