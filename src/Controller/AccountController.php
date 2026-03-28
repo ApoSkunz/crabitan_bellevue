@@ -47,17 +47,23 @@ class AccountController extends Controller
 
     public function index(array $params): void
     {
-        $payload = $this->requireCustomer();
-        $userId  = (int) $payload['sub'];
-        $lang    = $params['lang'];
+        $payload   = $this->requireCustomer();
+        $userId    = (int) $payload['sub'];
+        $lang      = $params['lang'];
 
-        $account = $this->accounts->findById($userId);
+        $account   = $this->accounts->findById($userId);
+        $isCompany = $account && $account['account_type'] === 'company';
+
+        $info = $_SESSION['flash']['info'] ?? null;
+        unset($_SESSION['flash']['info']);
 
         $this->view('account/index', [
             'lang'          => $lang,
             'account'       => $account,
-            'orderCount'    => $this->orders->countForUser($userId),
-            'addressCount'  => count($this->addresses->getByUser($userId)),
+            'isCompany'     => $isCompany,
+            'info'          => $info,
+            'orderCount'    => $isCompany ? 0 : $this->orders->countForUser($userId),
+            'addressCount'  => $isCompany ? 0 : count($this->addresses->getByUser($userId)),
             'favoriteCount' => $this->favorites->countForUser($userId),
         ]);
     }
@@ -71,6 +77,8 @@ class AccountController extends Controller
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
+
+        $this->requireIndividual($userId, $lang);
 
         $perPage = (int) $this->request->get('per_page', (string) self::PER_PAGE);
         if (!in_array($perPage, self::VALID_PER_PAGES, true)) {
@@ -117,6 +125,8 @@ class AccountController extends Controller
         $lang    = $params['lang'];
         $id      = (int) ($params['id'] ?? 0);
 
+        $this->requireIndividual($userId, $lang);
+
         $order = $this->orders->findDetailForUser($id, $userId);
         if (!$order) {
             Response::redirect("/{$lang}/mon-compte/commandes");
@@ -153,6 +163,8 @@ class AccountController extends Controller
         $id      = (int) ($params['id'] ?? 0);
         $back    = "/{$lang}/mon-compte/commandes/{$id}";
 
+        $this->requireIndividual($userId, $lang);
+
         if (!$this->verifyCsrf()) {
             $_SESSION['flash']['order_error'] = __('error.csrf');
             Response::redirect($back);
@@ -177,6 +189,8 @@ class AccountController extends Controller
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
+
+        $this->requireIndividual($userId, $lang);
 
         $success = $_SESSION['flash']['address_success'] ?? null;
         $error   = $_SESSION['flash']['address_error']   ?? null;
@@ -206,6 +220,8 @@ class AccountController extends Controller
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
         $back    = "/{$lang}/mon-compte/adresses";
+
+        $this->requireIndividual($userId, $lang);
 
         if (!$this->verifyCsrf()) {
             $_SESSION['flash']['address_error'] = __('error.csrf');
@@ -248,6 +264,8 @@ class AccountController extends Controller
         $lang    = $params['lang'];
         $id      = (int) ($params['id'] ?? 0);
 
+        $this->requireIndividual($userId, $lang);
+
         $address = $this->addresses->findByIdForUser($id, $userId);
         if (!$address) {
             Response::redirect("/{$lang}/mon-compte/adresses");
@@ -271,6 +289,8 @@ class AccountController extends Controller
         $lang    = $params['lang'];
         $id      = (int) ($params['id'] ?? 0);
         $back    = "/{$lang}/mon-compte/adresses";
+
+        $this->requireIndividual($userId, $lang);
 
         if (!$this->verifyCsrf()) {
             $_SESSION['flash']['address_error'] = __('error.csrf');
@@ -323,6 +343,8 @@ class AccountController extends Controller
         $id      = (int) ($params['id'] ?? 0);
         $back    = "/{$lang}/mon-compte/adresses";
 
+        $this->requireIndividual($userId, $lang);
+
         if (!$this->verifyCsrf()) {
             $_SESSION['flash']['address_error'] = __('error.csrf');
             Response::redirect($back);
@@ -355,6 +377,7 @@ class AccountController extends Controller
 
         $this->view('account/favorites', [
             'lang'      => $lang,
+            'account'   => $this->accounts->findById($userId),
             'favorites' => $this->favorites->getByUser($userId),
         ]);
     }
@@ -375,6 +398,7 @@ class AccountController extends Controller
 
         $this->view('account/security', [
             'lang'               => $lang,
+            'account'            => $this->accounts->findById($userId),
             'sessions'           => $this->connections->getActiveForUser($userId),
             'trustedDevices'     => $this->trustedDevices->getForUser($userId),
             'currentToken'       => $_COOKIE['auth_token'] ?? null,
@@ -856,8 +880,9 @@ class AccountController extends Controller
         $lang    = $params['lang'];
 
         $this->view('account/export', [
-            'lang' => $lang,
-            'csrf' => $_SESSION['csrf'] ?? '',
+            'lang'    => $lang,
+            'account' => $this->accounts->findById((int) $payload['sub']),
+            'csrf'    => $_SESSION['csrf'] ?? '',
         ]);
     }
 
@@ -1105,6 +1130,20 @@ class AccountController extends Controller
             Response::abort(404);
         }
         return $payload;
+    }
+
+    /**
+     * Redirige les comptes société vers le dashboard avec un message d'info.
+     * Les vues commandes et adresses sont réservées aux comptes particuliers ;
+     * les sociétés passeront par le panier B2B (message dédié à ce moment-là).
+     */
+    private function requireIndividual(int $userId, string $lang): void
+    {
+        $account = $this->accounts->findById($userId);
+        if ($account && $account['account_type'] === 'company') {
+            $_SESSION['flash']['info'] = __('account.b2b_restricted');
+            Response::redirect("/{$lang}/mon-compte");
+        }
     }
 
     private function verifyCsrf(): bool

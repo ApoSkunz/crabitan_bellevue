@@ -428,6 +428,7 @@ return [
     'account.orders_title'       => 'Mes commandes',
     'account.addresses_title'    => 'Mes adresses',
     'account.favorites_title'    => 'Mes favoris',
+    'account.b2b_restricted'     => 'Les commandes et adresses sont gérées lors de votre passage en caisse. Votre espace personnel reste disponible.',
     'account.orders_empty'       => 'Vous n\'avez pas encore passé de commande.',
     'account.addresses_empty'    => 'Vous n\'avez pas encore enregistré d\'adresse.',
     'account.favorites_empty'    => 'Vous n\'avez pas encore ajouté de vin en favori.',

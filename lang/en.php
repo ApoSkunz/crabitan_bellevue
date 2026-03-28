@@ -426,6 +426,7 @@ return [
     'account.orders_title'       => 'My orders',
     'account.addresses_title'    => 'My addresses',
     'account.favorites_title'    => 'My favourites',
+    'account.b2b_restricted'     => 'Orders and addresses are managed at checkout. Your personal account remains available.',
     'account.orders_empty'       => 'You have not placed any orders yet.',
     'account.addresses_empty'    => 'You have not saved any address yet.',
     'account.favorites_empty'    => 'You have not added any wine to your favourites yet.',

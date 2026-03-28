@@ -16,6 +16,10 @@ require_once __DIR__ . '/../partials/header.php';
         <?php require_once __DIR__ . '/_nav.php'; ?>
 
         <div class="account-content">
+            <?php if ($info ?? null) : ?>
+                <p class="alert alert--info"><?= htmlspecialchars($info) ?></p>
+            <?php endif; ?>
+
             <header class="account-header">
                 <h1 class="account-header__title"><?= __('account.welcome') ?></h1>
                 <?php if ($displayName !== '') : ?>
@@ -24,6 +28,7 @@ require_once __DIR__ . '/../partials/header.php';
             </header>
 
             <div class="account-dashboard">
+                <?php if (!$isCompany) : ?>
                 <a class="account-card" href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes">
                     <span class="account-card__count"><?= (int) $orderCount ?></span>
                     <span class="account-card__label"><?= __('panel.orders') ?></span>
@@ -33,6 +38,7 @@ require_once __DIR__ . '/../partials/header.php';
                     <span class="account-card__count"><?= (int) $addressCount ?></span>
                     <span class="account-card__label"><?= __('panel.addresses') ?></span>
                 </a>
+                <?php endif; ?>
 
                 <a class="account-card" href="/<?= htmlspecialchars($lang) ?>/mon-compte/favoris">
                     <span class="account-card__count"><?= (int) $favoriteCount ?></span>
