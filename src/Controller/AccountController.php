@@ -870,10 +870,12 @@ class AccountController extends Controller
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
 
-        $account   = $this->accounts->findById($userId);
-        $addresses = $this->addresses->getByUser($userId);
-        $favorites = $this->favorites->getByUser($userId);
-        $orders    = $this->orders->getForUser($userId, 1, 9999);
+        $account        = $this->accounts->findById($userId);
+        $addresses      = $this->addresses->getByUser($userId);
+        $favorites      = $this->favorites->getByUser($userId);
+        $orders         = $this->orders->getForUser($userId, 1, 9999);
+        $trustedDevices = $this->trustedDevices->getForUser($userId);
+        $sessions       = $this->connections->getActiveForUser($userId);
 
         $export = [
             'exported_at' => date('c'),
@@ -909,6 +911,17 @@ class AccountController extends Controller
                 'name'    => $f['name'],
                 'vintage' => $f['vintage'],
             ], $favorites),
+            'trusted_devices' => array_map(fn($d) => [
+                'device_name'  => $d['device_name'],
+                'confirmed_at' => $d['confirmed_at'],
+                'last_seen'    => $d['last_seen'],
+            ], $trustedDevices),
+            'active_sessions' => array_map(fn($s) => [
+                'device_name' => $s['device_name'],
+                'ip_address'  => $s['ip_address'],
+                'created_at'  => $s['created_at'],
+                'expired_at'  => $s['expired_at'],
+            ], $sessions),
         ];
 
         $date     = date('Y-m-d');
@@ -1024,6 +1037,33 @@ class AccountController extends Controller
             $h .= '</table>';
         } else {
             $h .= '<p class="muted">Aucun favori.</p>';
+        }
+
+        $h .= '<h2>Appareils de confiance (' . count($export['trusted_devices']) . ')</h2>';
+        if ($export['trusted_devices'] !== []) {
+            $h .= '<table><tr><th>Appareil</th><th>Confirmé le</th><th>Dernière activité</th></tr>';
+            foreach ($export['trusted_devices'] as $d) {
+                $h .= '<tr><td>' . htmlspecialchars($d['device_name'] ?? '—') . '</td>'
+                    . '<td>' . htmlspecialchars((string) ($d['confirmed_at'] ?? '—')) . '</td>'
+                    . '<td>' . htmlspecialchars((string) ($d['last_seen'] ?? '—')) . '</td></tr>';
+            }
+            $h .= '</table>';
+        } else {
+            $h .= '<p class="muted">Aucun appareil de confiance.</p>';
+        }
+
+        $h .= '<h2>Sessions actives (' . count($export['active_sessions']) . ')</h2>';
+        if ($export['active_sessions'] !== []) {
+            $h .= '<table><tr><th>Appareil</th><th>Adresse IP</th><th>Connecté le</th><th>Expire le</th></tr>';
+            foreach ($export['active_sessions'] as $s) {
+                $h .= '<tr><td>' . htmlspecialchars($s['device_name'] ?? '—') . '</td>'
+                    . '<td>' . htmlspecialchars($s['ip_address'] ?? '—') . '</td>'
+                    . '<td>' . htmlspecialchars((string) ($s['created_at'] ?? '—')) . '</td>'
+                    . '<td>' . htmlspecialchars((string) ($s['expired_at'] ?? '—')) . '</td></tr>';
+            }
+            $h .= '</table>';
+        } else {
+            $h .= '<p class="muted">Aucune session active.</p>';
         }
 
         $pdf->writeHTML($h, true, false, true, false, '');

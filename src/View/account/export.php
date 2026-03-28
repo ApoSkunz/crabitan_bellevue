@@ -22,6 +22,8 @@ require_once __DIR__ . '/../partials/header.php';
                     <li><?= __('account.export_item_orders') ?></li>
                     <li><?= __('account.export_item_addresses') ?></li>
                     <li><?= __('account.export_item_favorites') ?></li>
+                    <li><?= __('account.export_item_trusted_devices') ?></li>
+                    <li><?= __('account.export_item_sessions') ?></li>
                 </ul>
 
                 <p class="account-export__retention"><?= __('account.export_retention') ?></p>
