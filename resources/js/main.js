@@ -333,7 +333,7 @@ function updateCartCount() {
     const badge = document.querySelector('.header-cart__count');
     if (!badge) return;
     const count = getLocalCartCount();
-    badge.textContent = count > 0 ? count : '';
+    badge.textContent = count;
 }
 
 // ============================================================
