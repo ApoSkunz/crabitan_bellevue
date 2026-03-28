@@ -35,10 +35,25 @@ class AuthMiddlewareTest extends TestCase
         $token = Jwt::generate(1, 'customer');
         $_COOKIE['auth_token'] = $token;
 
-        $payload = AuthMiddleware::handle();
+        // Injecte un checker qui simule une session active en base
+        $payload = AuthMiddleware::handle(fn() => true);
 
         $this->assertSame(1, $payload['sub']);
         $this->assertSame('customer', $payload['role']);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testHandleRedirectsWhenSessionRevoked(): void
+    {
+        $token = Jwt::generate(1, 'customer');
+        $_COOKIE['auth_token'] = $token;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        // Simule une session révoquée en base
+        AuthMiddleware::handle(fn() => false);
     }
 
     #[RunInSeparateProcess]
