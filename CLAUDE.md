@@ -1,5 +1,17 @@
 # CLAUDE.md — Instructions projet crabitan_bellevue
 
+## Initialisation de session
+
+Au début de chaque nouvelle session, lire systématiquement :
+
+1. `CLAUDE.md` (ce fichier) — automatiquement chargé par Claude Code
+2. `docs/SETUP-DEV.md` — environnement local, variables `.env`, commandes
+3. `docs/TESTING-STRATEGY.md` — règles TU/TI/E2E, ratios cibles
+
+> Ces lectures garantissent un contexte complet avant toute modification de code.
+
+---
+
 ## Stack technique
 
 - **Backend** : PHP 8.4, MVC custom (`Core\Router`, `Controller`, `Response`, `Lang`, `JWT`)
@@ -203,6 +215,15 @@ Ne jamais laisser un statut obsolète.
 
 Ne jamais ignorer un besoin en supposant qu'il sera tracé plus tard.
 
-### Audit cyber
+### Audits finaux
 
-L'enabler `BACKLOG/EPIC-qualite-infrastructure/ENABLERS/audit-cyber/` est à réaliser **en dernier**, après que tous les autres EPICs sont `✅ Claude`. Claude IA conduit l'audit (Expert Red Team) et produit le rapport dans `docs/audit-cyber-[date].md`.
+Les 4 audits suivants sont à réaliser **en dernier**, après que tous les EPICs fonctionnels sont `✅ Claude`. Ils s'exécutent dans cet ordre :
+
+| Audit | Enabler | Expert | Rapport produit |
+|---|---|---|---|
+| BDD | `audit-bdd/` | Architecte BDD MySQL | `docs/audit-bdd-[date].md` |
+| Génie Logiciel | `audit-genie-logiciel/` | Architecte Génie Logicielle | `docs/audit-genie-logiciel-[date].md` |
+| QA | `audit-qa/` | Expert QA | `docs/audit-qa-[date].md` |
+| Cybersécurité | `audit-cyber/` | Expert Red Team → Blue Team | `docs/audit-cyber-[date].md` |
+
+L'audit cyber reste le tout dernier — il valide l'ensemble avant déploiement.
