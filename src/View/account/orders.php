@@ -5,29 +5,32 @@ require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 
 /** @var array<int, array<string, mixed>> $orders */
-/** @var int   $page    */
-/** @var int   $pages   */
-/** @var int   $total   */
-/** @var int   $perPage */
-/** @var string $period */
+/** @var int    $page         */
+/** @var int    $pages        */
+/** @var int    $total        */
+/** @var int    $perPage      */
+/** @var string $period       */
+/** @var string $statusFilter */
 /** @var array<int, int> $years */
 $statusColors = [
-    'pending'    => 'grey',
-    'paid'       => 'blue',
-    'processing' => 'orange',
-    'shipped'    => 'purple',
-    'delivered'  => 'green',
-    'cancelled'  => 'red',
-    'refunded'   => 'red',
+    'pending'          => 'grey',
+    'paid'             => 'blue',
+    'processing'       => 'orange',
+    'shipped'          => 'purple',
+    'delivered'        => 'green',
+    'cancelled'        => 'red',
+    'refunded'         => 'red',
+    'return_requested' => 'orange',
 ];
 
 // Reconstruit l'URL de pagination en conservant les filtres actifs
-function ordersUrl(int $p, int $perPage, string $period): string
+function ordersUrl(int $p, int $perPage, string $period, string $statusFilter): string
 {
     $q = http_build_query(array_filter([
         'page'     => $p,
         'per_page' => $perPage !== 10 ? $perPage : null,
         'period'   => $period !== 'all' ? $period : null,
+        'status'   => $statusFilter !== '' ? $statusFilter : null,
     ]));
     return '?' . $q;
 }
@@ -55,6 +58,20 @@ function ordersUrl(int $p, int $perPage, string $period): string
                         <?php foreach ($years as $yr) : ?>
                             <option value="<?= (int) $yr ?>"<?= $period === (string) $yr ? ' selected' : '' ?>>
                                 <?= (int) $yr ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="account-filters__group">
+                    <label for="filter-status"><?= __('account.filter_status') ?></label>
+                    <select id="filter-status" name="status" onchange="this.form.submit()">
+                        <option value=""<?= $statusFilter === '' ? ' selected' : '' ?>>
+                            <?= __('account.filter_status_all') ?>
+                        </option>
+                        <?php foreach (['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'] as $s) : ?>
+                            <option value="<?= $s ?>"<?= $statusFilter === $s ? ' selected' : '' ?>>
+                                <?= __('order.status.' . $s) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -106,7 +123,8 @@ function ordersUrl(int $p, int $perPage, string $period): string
                                     <td>
                                         <?php if ($order['path_invoice']) : ?>
                                             <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/facture"
-                                               class="btn btn--ghost btn--sm">
+                                               class="btn btn--ghost btn--sm"
+                                               target="_blank" rel="noopener noreferrer">
                                                 <?= __('account.download_invoice') ?>
                                             </a>
                                         <?php else : ?>
@@ -129,12 +147,12 @@ function ordersUrl(int $p, int $perPage, string $period): string
                     <nav class="account-pagination" aria-label="<?= __('account.pagination') ?>">
                         <?php if ($page > 1) : ?>
                             <a class="account-pagination__link"
-                               href="<?= ordersUrl($page - 1, $perPage, $period) ?>">←</a>
+                               href="<?= ordersUrl($page - 1, $perPage, $period, $statusFilter) ?>">←</a>
                         <?php endif; ?>
                         <span class="account-pagination__info"><?= $page ?> / <?= $pages ?></span>
                         <?php if ($page < $pages) : ?>
                             <a class="account-pagination__link"
-                               href="<?= ordersUrl($page + 1, $perPage, $period) ?>">→</a>
+                               href="<?= ordersUrl($page + 1, $perPage, $period, $statusFilter) ?>">→</a>
                         <?php endif; ?>
                     </nav>
                 <?php endif; ?>

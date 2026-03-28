@@ -6,18 +6,25 @@ require_once __DIR__ . '/../partials/header.php';
 
 /** @var array<string, mixed> $order */
 /** @var array<int, array<string, mixed>> $items */
+/** @var float|null $shippingDiscount */
 $statusColors = [
-    'pending'    => 'grey',
-    'paid'       => 'blue',
-    'processing' => 'orange',
-    'shipped'    => 'purple',
-    'delivered'  => 'green',
-    'cancelled'  => 'red',
-    'refunded'   => 'red',
+    'pending'          => 'grey',
+    'paid'             => 'blue',
+    'processing'       => 'orange',
+    'shipped'          => 'purple',
+    'delivered'        => 'green',
+    'cancelled'        => 'red',
+    'refunded'         => 'red',
+    'return_requested' => 'orange',
 ];
 $timeline = ['pending', 'paid', 'processing', 'shipped', 'delivered'];
-$currentIdx = array_search($order['status'], $timeline, true);
-$cancellable = in_array($order['status'], ['pending', 'paid', 'processing'], true);
+$currentIdx  = array_search($order['status'], $timeline, true);
+$cancellable = $order['status'] === 'pending';
+$paymentMap  = [
+    'card'     => __('account.payment.card'),
+    'virement' => __('account.payment.virement'),
+    'cheque'   => __('account.payment.cheque'),
+];
 ?>
 <main class="account-page">
     <div class="account-shell">
@@ -56,15 +63,9 @@ $cancellable = in_array($order['status'], ['pending', 'paid', 'processing'], tru
                         </dd>
 
                         <dt><?= __('account.order_payment') ?></dt>
-                        <dd><?= htmlspecialchars(ucfirst($order['payment_method'] ?? '')) ?></dd>
+                        <dd><?= htmlspecialchars($paymentMap[$order['payment_method'] ?? ''] ?? ucfirst($order['payment_method'] ?? '')) ?></dd>
                     </dl>
 
-                    <?php if ($order['path_invoice']) : ?>
-                        <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/facture"
-                           class="btn btn--ghost btn--sm">
-                            <?= __('account.download_invoice') ?>
-                        </a>
-                    <?php endif; ?>
                 </div>
             </section>
 
@@ -118,6 +119,19 @@ $cancellable = in_array($order['status'], ['pending', 'paid', 'processing'], tru
                             <?php endforeach; ?>
                         </tbody>
                         <tfoot>
+                            <?php
+                            $itemsSubtotal = array_reduce($items, fn ($carry, $i) => $carry + (float) ($i['price'] ?? 0) * (int) ($i['qty'] ?? 0), 0.0);
+                            ?>
+                            <tr>
+                                <td colspan="3"><?= __('account.order_subtotal') ?></td>
+                                <td><?= number_format($itemsSubtotal, 2, ',', ' ') ?> €</td>
+                            </tr>
+                            <?php if ($shippingDiscount !== null && $shippingDiscount > 0.0) : ?>
+                                <tr class="order-discount-row">
+                                    <td colspan="3"><?= __('account.order_shipping_discount') ?></td>
+                                    <td>− <?= number_format($shippingDiscount, 2, ',', ' ') ?> €</td>
+                                </tr>
+                            <?php endif; ?>
                             <tr class="order-total-row">
                                 <td colspan="3"><strong><?= __('account.order_total') ?></strong></td>
                                 <td><strong><?= number_format((float) $order['price'], 2, ',', ' ') ?> €</strong></td>
@@ -125,6 +139,15 @@ $cancellable = in_array($order['status'], ['pending', 'paid', 'processing'], tru
                         </tfoot>
                     </table>
                 </div>
+                <?php if ($order['path_invoice']) : ?>
+                    <p class="order-invoice-bottom">
+                        <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/facture"
+                           class="btn btn--ghost btn--sm"
+                           target="_blank" rel="noopener noreferrer">
+                            <?= __('account.download_invoice_detail') ?>
+                        </a>
+                    </p>
+                <?php endif; ?>
             </section>
 
             <!-- Adresses -->
@@ -155,7 +178,7 @@ $cancellable = in_array($order['status'], ['pending', 'paid', 'processing'], tru
                 <?php endif; ?>
             </div>
 
-            <!-- Annulation -->
+            <!-- Annulation (uniquement si en attente de paiement) -->
             <?php if ($cancellable) : ?>
                 <section class="account-section account-section--danger">
                     <h2 class="account-section__title"><?= __('account.order_cancel_btn') ?></h2>
@@ -168,6 +191,31 @@ $cancellable = in_array($order['status'], ['pending', 'paid', 'processing'], tru
                             <?= __('account.order_cancel_btn') ?>
                         </button>
                     </form>
+                </section>
+            <?php elseif (!in_array($order['status'], ['delivered', 'cancelled', 'refunded'], true)) : ?>
+                <section class="account-section">
+                    <p class="order-contact-notice">
+                        <?= __('account.order_contact_for_cancel') ?>
+                        <?php
+                        $mailtoSubject = rawurlencode(__('account.order_contact_subject') . ' ' . htmlspecialchars($order['order_reference']));
+                        $mailtoHref    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . '?subject=' . $mailtoSubject;
+                        ?>
+                        <a href="<?= $mailtoHref ?>"><?= __('account.order_contact_link') ?></a>
+                    </p>
+                </section>
+            <?php endif; ?>
+
+            <!-- Retour -->
+            <?php if ($order['status'] === 'delivered') : ?>
+                <section class="account-section">
+                    <p class="order-contact-notice">
+                        <?= __('account.order_return_notice') ?>
+                        <?php
+                        $mailtoSubjectReturn = rawurlencode(__('account.order_return_subject') . ' ' . htmlspecialchars($order['order_reference']));
+                        $mailtoHrefReturn    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . '?subject=' . $mailtoSubjectReturn;
+                        ?>
+                        <a href="<?= $mailtoHrefReturn ?>"><?= __('account.order_contact_link') ?></a>
+                    </p>
                 </section>
             <?php endif; ?>
         </div>
