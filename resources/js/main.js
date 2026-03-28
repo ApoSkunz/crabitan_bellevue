@@ -1117,13 +1117,70 @@ function initAccountPasswordToggle() {
 // ============================================================
 
 function initConfirmForms() {
+    // Injecte un modal de confirmation générique (réutilise les styles .account-delete-modal)
+    const modal = document.createElement('div');
+    modal.id = 'js-confirm-modal';
+    modal.className = 'account-delete-modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'js-confirm-modal-title');
+    modal.hidden = true;
+    modal.innerHTML = `
+        <div class="account-delete-modal__backdrop" id="js-confirm-backdrop"></div>
+        <div class="account-delete-modal__inner">
+            <h2 id="js-confirm-modal-title" class="account-delete-modal__title"></h2>
+            <p class="account-delete-modal__body" id="js-confirm-modal-body"></p>
+            <div class="account-delete-modal__actions">
+                <button type="button" class="btn btn--danger" id="js-confirm-ok">Confirmer</button>
+                <button type="button" class="btn btn--ghost" id="js-confirm-cancel">Annuler</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+
+    const titleEl    = modal.querySelector('#js-confirm-modal-title');
+    const bodyEl     = modal.querySelector('#js-confirm-modal-body');
+    const okBtn      = modal.querySelector('#js-confirm-ok');
+    const cancelBtn  = modal.querySelector('#js-confirm-cancel');
+    const backdrop   = modal.querySelector('#js-confirm-backdrop');
+
+    let pendingForm = null;
+
+    function openConfirm(form, msg) {
+        pendingForm = form;
+        // Le message peut contenir un pipe "Titre|Corps" ou être une simple string
+        const parts = msg.split('|');
+        if (titleEl) titleEl.textContent = parts[0] ?? '';
+        if (bodyEl)  bodyEl.textContent  = parts[1] ?? '';
+        modal.hidden = false;
+        okBtn?.focus();
+    }
+
+    function closeConfirm() {
+        modal.hidden = true;
+        pendingForm  = null;
+    }
+
+    okBtn?.addEventListener('click', () => {
+        if (pendingForm) {
+            // Soumettre le formulaire en bypassant l'écouteur submit
+            pendingForm.removeAttribute('data-confirm');
+            pendingForm.submit();
+        }
+        closeConfirm();
+    });
+
+    cancelBtn?.addEventListener('click', closeConfirm);
+    backdrop?.addEventListener('click', closeConfirm);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.hidden) closeConfirm();
+    });
+
     document.addEventListener('submit', (e) => {
         const form = e.target.closest('form[data-confirm]');
         if (!form) return;
-        const msg = form.dataset.confirm;
-        if (msg && !window.confirm(msg)) { // nosemgrep: javascript.browser.security.window-confirm.window-confirm
-            e.preventDefault();
-        }
+        e.preventDefault();
+        openConfirm(form, form.dataset.confirm ?? '');
     });
 }
 
@@ -1202,6 +1259,39 @@ function initAccountFavoritesRemove() {
 }
 
 // ============================================================
+// Espace compte — modal réinitialisation sécurité
+// ============================================================
+
+function initResetSecurityModal() {
+    const modal    = document.getElementById('reset-security-modal');
+    if (!modal) return;
+
+    const openBtn  = document.getElementById('js-open-reset-modal');
+    const closeBtn = document.getElementById('js-close-reset-modal');
+    const backdrop = document.getElementById('js-reset-security-backdrop');
+    const pwdInput = modal.querySelector('input[name="password"]');
+
+    function openModal() {
+        modal.hidden = false;
+        pwdInput?.focus();
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        if (pwdInput) pwdInput.value = '';
+    }
+
+    openBtn?.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    backdrop?.addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.hidden) closeModal();
+    });
+
+    if (modal.hasAttribute('data-has-error')) openModal();
+}
+
+// ============================================================
 // Espace compte — modal confirmation suppression de compte
 // ============================================================
 
@@ -1277,6 +1367,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFavoriteToggle();
     initAccountFavoritesRemove();
     initAccountPasswordToggle();
+    initResetSecurityModal();
     initDeleteAccountModal();
     initConfirmForms();
     initAddressAddToggle();

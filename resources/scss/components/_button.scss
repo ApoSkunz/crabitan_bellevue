@@ -90,8 +90,9 @@
         border-color: #c0392b;
 
         &:hover {
-            background-color: #c0392b;
-            color: #fff;
+            background-color: rgba(192, 57, 43, 0.08);
+            color: #080808;
+            border-color: #a93226;
         }
     }
 
