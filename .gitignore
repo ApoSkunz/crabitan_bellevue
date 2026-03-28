@@ -36,8 +36,16 @@ Thumbs.db
 # Specs & backlog locaux (non versionnés)
 /BACKLOG/
 
-# Base de données — schéma, migrations et seeds en local uniquement
-/database/
+# Base de données — seeds et scripts locaux uniquement (schema + seed_mock_data versionnés)
+/database/migrate_*.sql
+/database/migrations/
+/database/seed_dev_data.php
+/database/seed_news_prod.sql
+/database/seed_order_forms.sql
+/database/seed_orders_camille.php
+/database/seed_pricing_rules_prod.php
+/database/seed_users_dev.php
+/database/seed_wines_prod.sql
 
 # Lighthouse CI — rapports locaux
 /.lighthouseci/
