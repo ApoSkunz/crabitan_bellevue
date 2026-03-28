@@ -113,7 +113,21 @@ Les tests **ne se reportent pas** — ils sont écrits dans le même commit que 
 
 ## Workflow
 
-### 1. Vérifications avant push
+### 1. Ordre des tâches par feature
+
+Pour chaque feature ou correction, respecter cet ordre **sans exception** :
+
+| Étape | Contenu |
+|---|---|
+| **1. Dev** | Implémenter le code (Controller, Model, Vue, i18n, SCSS…) + PHPDoc |
+| **2. Lint + TU/TI** | Linter, PHPCS/PHPStan, écrire et passer les tests unitaires et d'intégration |
+| **3. BACKLOG** | Créer l'US si non tracée · Mettre à jour la colonne 🤖 dans `us-*.md` et `README.md` · **obligatoire avant le commit** |
+| **4. E2E** | Écrire et passer la spec Playwright (nominal + 1 erreur critique) |
+| **5. Commit** | `git add` fichier par fichier · commit(s) atomiques (push local uniquement) |
+
+> **E2E différable** : si XAMPP n'est pas actif, l'étape E2E peut être reportée à la session suivante. Le BACKLOG (étape 3) et le commit (étape 5) ne sont pas différables. Indiquer `🔄 En cours` dans la colonne 🎭 si la spec E2E n'est pas encore écrite.
+
+### 2. Vérifications avant push
 
 Exécuter dans cet ordre :
 
@@ -136,9 +150,9 @@ vendor/bin/phpunit tests/Integration/
 npx playwright test
 ```
 
-Rapporter le résultat. Si tout est vert, attendre le mot **"go push"**.
+Rapporter ✅ ou les erreurs complètes. Si tout est vert, attendre le mot **"go push"**.
 
-### 2. Branches
+### 3. Branches
 
 Convention de nommage :
 
@@ -152,7 +166,7 @@ Convention de nommage :
 
 Une branche = un sujet. Ne jamais travailler directement sur `main`.
 
-### 3. Commits
+### 4. Commits
 
 Quand l'utilisateur dit **"go push"** :
 - Découper en **commits atomiques** — un commit = une responsabilité
@@ -178,7 +192,7 @@ Pas besoin de confirmation supplémentaire.
 
 Un seul fichier modifié peut faire l'objet d'un commit séparé si son changement est orthogonal aux autres.
 
-### 4. Annotations qualité
+### 5. Annotations qualité
 
 - **PHPCS PSR12** — warnings "side effects" sur `public/index.php` et `config/config.php` acceptables
 - **Faux positifs SonarCloud** : `// NOSONAR — <justification courte>` (justification obligatoire)
