@@ -76,9 +76,11 @@ class AccountModel extends Model
         try {
             $accountId = $this->db->insert(
                 "INSERT INTO {$this->table}
-                 (email, password, account_type, role, lang, newsletter, email_verification_token)
-                 VALUES (?, ?, ?, 'customer', ?, ?, ?)",
-                [$email, $hashedPassword, $accountType, $lang, $newsletter, $verificationToken]
+                 (email, password, account_type, role, lang, newsletter,
+                  email_verification_token, newsletter_unsubscribe_token)
+                 VALUES (?, ?, ?, 'customer', ?, ?, ?, ?)",
+                [$email, $hashedPassword, $accountType, $lang, $newsletter,
+                 $verificationToken, bin2hex(random_bytes(32))]
             );
 
             if ($accountType === 'company') {
@@ -163,9 +165,91 @@ class AccountModel extends Model
     public function delete(int $id): int
     {
         return $this->db->execute(
-            "UPDATE {$this->table} SET deleted_at = NOW() WHERE id = ?",
+            "UPDATE {$this->table}
+             SET deleted_at = NOW(),
+                 scheduled_deletion_at = DATE_ADD(NOW(), INTERVAL 30 DAY)
+             WHERE id = ?",
             [$id]
         );
+    }
+
+    public function findByUnsubscribeToken(string $token): array|false
+    {
+        return $this->db->fetchOne(
+            "SELECT id, email, lang FROM {$this->table}
+             WHERE newsletter_unsubscribe_token = ? AND deleted_at IS NULL",
+            [$token]
+        );
+    }
+
+    public function unsubscribeByToken(string $token): bool
+    {
+        // Désinscrit ET invalide le token (rotation) pour éviter toute réutilisation du lien
+        $rows = $this->db->execute(
+            "UPDATE {$this->table}
+             SET newsletter = 0,
+                 newsletter_unsubscribe_token = ?
+             WHERE newsletter_unsubscribe_token = ? AND deleted_at IS NULL",
+            [bin2hex(random_bytes(32)), $token]
+        );
+        return $rows > 0;
+    }
+
+    /**
+     * Anonymise les comptes dont la suppression programmée est échue.
+     * Les données de commandes sont conservées (obligations légales comptables — 10 ans).
+     */
+    public function purgeScheduledDeletions(): int
+    {
+        $accounts = $this->db->fetchAll(
+            "SELECT id FROM {$this->table}
+             WHERE scheduled_deletion_at IS NOT NULL
+               AND scheduled_deletion_at < NOW()"
+        );
+
+        if ($accounts === []) {
+            return 0;
+        }
+
+        $ids          = array_column($accounts, 'id');
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET email = CONCAT('deleted_', id, '@purged.invalid'),
+                 password = NULL,
+                 newsletter = 0,
+                 newsletter_unsubscribe_token = NULL,
+                 email_verification_token = NULL,
+                 google_id = NULL,
+                 apple_id = NULL,
+                 scheduled_deletion_at = NULL
+             WHERE id IN ({$placeholders})",
+            $ids
+        );
+
+        $this->db->execute(
+            "UPDATE account_individuals
+             SET firstname = 'Supprimé', lastname = 'Supprimé', civility = ''
+             WHERE account_id IN ({$placeholders})",
+            $ids
+        );
+
+        $this->db->execute(
+            "UPDATE account_companies
+             SET company_name = 'Supprimé', siret = NULL
+             WHERE account_id IN ({$placeholders})",
+            $ids
+        );
+
+        // Suppression des adresses sauvegardées (données personnelles, non nécessaires à la comptabilité)
+        // Les snapshots adresses/facturation dans orders.content sont conservés pour obligation comptable.
+        $this->db->execute(
+            "DELETE FROM addresses WHERE user_id IN ({$placeholders})",
+            $ids
+        );
+
+        return count($ids);
     }
 
     // ----------------------------------------------------------------
@@ -232,6 +316,7 @@ class AccountModel extends Model
     {
         return $this->db->fetchAll(
             "SELECT a.id, a.email, a.account_type, a.lang, a.created_at,
+                    a.newsletter_unsubscribe_token,
                     ai.firstname, ai.lastname,
                     ac.company_name
              FROM {$this->table} a

@@ -16,7 +16,8 @@ class FavoriteModel extends Model
     public function getByUser(int $userId): array
     {
         return $this->db->fetchAll(
-            "SELECT f.wine_id, w.name, w.slug, w.color, w.vintage, w.price, w.image_path
+            "SELECT f.wine_id, w.label_name AS name, w.slug, w.wine_color AS color,
+                    w.vintage, w.price, w.image_path
              FROM {$this->table} f
              JOIN wines w ON w.id = f.wine_id
              WHERE f.user_id = ?
