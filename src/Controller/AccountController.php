@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Controller;
 
 use Core\Controller;
+use Core\CookieHelper;
 use Core\Response;
 use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\AddressModel;
 use Model\ConnectionModel;
 use Model\FavoriteModel;
+use Model\TrustedDeviceModel;
+use Model\DeviceConfirmTokenModel;
 use Model\OrderModel;
 
 class AccountController extends Controller
@@ -23,15 +26,19 @@ class AccountController extends Controller
     private FavoriteModel $favorites;
     private OrderModel $orders;
     private ConnectionModel $connections;
+    private TrustedDeviceModel $trustedDevices;
+    private DeviceConfirmTokenModel $deviceConfirmTokens;
 
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
-        $this->accounts    = new AccountModel();
-        $this->addresses   = new AddressModel();
-        $this->favorites   = new FavoriteModel();
-        $this->orders      = new OrderModel();
-        $this->connections = new ConnectionModel();
+        $this->accounts            = new AccountModel();
+        $this->addresses           = new AddressModel();
+        $this->favorites           = new FavoriteModel();
+        $this->orders              = new OrderModel();
+        $this->connections         = new ConnectionModel();
+        $this->trustedDevices      = new TrustedDeviceModel();
+        $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
     }
 
     // ----------------------------------------------------------------
@@ -367,12 +374,14 @@ class AccountController extends Controller
         unset($_SESSION['flash']['security_success'], $_SESSION['flash']['security_errors']);
 
         $this->view('account/security', [
-            'lang'         => $lang,
-            'sessions'     => $this->connections->getActiveForUser($userId),
-            'currentToken' => $_COOKIE['auth_token'] ?? null,
-            'errors'       => $errors,
-            'success'      => $success,
-            'csrf'         => $_SESSION['csrf'] ?? '',
+            'lang'               => $lang,
+            'sessions'           => $this->connections->getActiveForUser($userId),
+            'trustedDevices'     => $this->trustedDevices->getForUser($userId),
+            'currentToken'       => $_COOKIE['auth_token'] ?? null,
+            'currentDeviceToken' => $_COOKIE['device_token'] ?? null,
+            'errors'             => $errors,
+            'success'            => $success,
+            'csrf'               => $_SESSION['csrf'] ?? '',
         ]);
     }
 
@@ -426,6 +435,27 @@ class AccountController extends Controller
     }
 
     // ----------------------------------------------------------------
+    // POST /{lang}/mon-compte/securite/sessions/revoquer-toutes
+    // ----------------------------------------------------------------
+
+    public function revokeAllUserSessions(array $params): void
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
+
+        if (!$this->verifyCsrf()) {
+            Response::redirect("/{$lang}/mon-compte/securite");
+        }
+
+        $this->accounts->revokeAllSessions($userId);
+
+        // La session courante est révoquée aussi → déconnecter
+        CookieHelper::clear();
+        Response::redirect("/{$lang}");
+    }
+
+    // ----------------------------------------------------------------
     // POST /{lang}/mon-compte/securite/session/{id}/revoquer
     // ----------------------------------------------------------------
 
@@ -443,12 +473,159 @@ class AccountController extends Controller
             // Si la session révoquée est la session courante → déconnecter
             $currentToken = $_COOKIE['auth_token'] ?? null;
             if ($tokenOfRevoked !== null && $currentToken !== null && $tokenOfRevoked === $currentToken) {
-                setcookie('auth_token', '', time() - 3600, '/', '', true, true);
-                Response::redirect("/{$lang}/connexion");
+                CookieHelper::clear();
+                Response::redirect("/{$lang}");
             }
         }
 
         Response::redirect("/{$lang}/mon-compte/securite");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/mon-compte/nouvel-appareil
+    // ----------------------------------------------------------------
+
+    public function newDevice(array $params): void
+    {
+        // Pas d'auth requise : l'utilisateur n'est pas encore connecté lors du MFA
+        $lang    = $params['lang'];
+        $pending = $_SESSION['pending_device'] ?? null;
+
+        if (!$pending) {
+            Response::redirect("/{$lang}");
+        }
+
+        $this->view('account/new_device', [
+            'lang'       => $lang,
+            'deviceName' => $pending['device_name'] ?? '',
+            'mfaToken'   => $pending['mfa_token']   ?? '',
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/mon-compte/appareil/confirmer  (lien email MFA)
+    // ----------------------------------------------------------------
+
+    public function confirmDevice(array $params): void
+    {
+        // Pas d'auth requise. Ce handler marque UNIQUEMENT le token comme confirmé.
+        // Le JWT est émis par /api/mfa/poll sur la page d'attente (polling async).
+        $lang  = $params['lang'];
+        $token = $_GET['token'] ?? '';
+
+        $confirmed = $this->deviceConfirmTokens->confirm($token);
+
+        $this->view('account/device_confirmed', [
+            'lang'    => $lang,
+            'success' => $confirmed,
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/mon-compte/securite/appareils/retirer-confiance
+    // ----------------------------------------------------------------
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/mon-compte/appareil/annuler  (lien "Ce n'était pas moi")
+    // ----------------------------------------------------------------
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/mon-compte/securite/reinitialiser
+    // ----------------------------------------------------------------
+
+    public function resetSecurity(array $params): void
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
+
+        if (!$this->verifyCsrf()) {
+            $_SESSION['flash']['security_errors'] = ['csrf' => __('error.csrf')];
+            Response::redirect("/{$lang}/mon-compte/securite");
+        }
+
+        $password = $this->request->post('password', '');
+        $account  = $this->accounts->findById($userId);
+
+        if (
+            !$account
+            || $account['password'] === null
+            || !password_verify($password, (string) $account['password'])
+        ) {
+            $_SESSION['flash']['security_errors'] = ['reset_password' => __('account.wrong_current_password')];
+            Response::redirect("/{$lang}/mon-compte/securite");
+        }
+
+        // Révoque toutes les sessions actives
+        $this->accounts->revokeAllSessions($userId);
+
+        // Supprime tous les appareils de confiance
+        $this->trustedDevices->deleteAllForUser($userId);
+
+        // Déconnecte l'utilisateur courant
+        \Core\CookieHelper::clear();
+
+        $_SESSION['flash']['info'] = __('account.security_reset_done');
+        Response::redirect("/{$lang}");
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/mon-compte/securite/appareils/supprimer-toutes
+    // ----------------------------------------------------------------
+
+    public function untrustAllDevices(array $params): void
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
+
+        if (!$this->verifyCsrf()) {
+            $_SESSION['flash']['security_errors'] = ['csrf' => __('error.csrf')];
+            Response::redirect("/{$lang}/mon-compte/securite");
+        }
+
+        $this->trustedDevices->deleteAllForUser($userId);
+        $_SESSION['flash']['security_success'] = __('account.untrust_all_done');
+        Response::redirect("/{$lang}/mon-compte/securite#appareils");
+    }
+
+    // ----------------------------------------------------------------
+
+    public function cancelMfa(array $params): void
+    {
+        // Pas d'auth requise — révoque le token MFA pour invalider le lien de confirmation.
+        $lang  = $params['lang'];
+        $token = $_GET['token'] ?? '';
+
+        $revoked = false;
+        if ($token !== '') {
+            $record = $this->deviceConfirmTokens->findByToken($token);
+            if ($record) {
+                $this->deviceConfirmTokens->deleteByToken($token);
+                $revoked = true;
+            }
+        }
+
+        $this->view('account/mfa_cancelled', [
+            'lang'    => $lang,
+            'revoked' => $revoked,
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+
+    public function untrustDevice(array $params): void
+    {
+        $payload     = $this->requireCustomer();
+        $userId      = (int) $payload['sub'];
+        $lang        = $params['lang'];
+        $deviceToken = $this->request->post('device_token', '');
+
+        if ($this->verifyCsrf() && $deviceToken !== '') {
+            $this->trustedDevices->untrust($userId, $deviceToken);
+        }
+
+        Response::redirect("/{$lang}/mon-compte/securite#appareils");
     }
 
     // ----------------------------------------------------------------
@@ -580,22 +757,48 @@ class AccountController extends Controller
         // Soft-delete + programmation anonymisation J+30
         $this->accounts->delete($userId);
 
-        // Email de confirmation RGPD Art. 17
-        $name = $account['firstname'] ?? $account['company_name'] ?? 'Client';
+        // Email de confirmation RGPD Art. 17 avec lien de réactivation
+        $name             = $account['firstname'] ?? $account['company_name'] ?? 'Client';
+        $reactivationToken = $this->accounts->getReactivationToken($userId) ?? '';
         try {
             (new \Service\MailService())->sendAccountDeletionConfirmation(
                 (string) $account['email'],
                 (string) $name,
-                $lang
+                $lang,
+                $reactivationToken
             );
         } catch (\Throwable) {
             // L'envoi de l'email ne bloque pas la suppression
         }
 
         // Supprimer le cookie
-        setcookie('auth_token', '', time() - 3600, '/', '', true, true);
+        CookieHelper::clear();
 
         Response::redirect("/{$lang}");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/compte/reactiver?token=xxx
+    // ----------------------------------------------------------------
+
+    public function reactivateAccount(array $params): void
+    {
+        $lang  = $params['lang'];
+        $token = $this->request->get('token', '');
+
+        if ($token === '') {
+            $this->view('account/reactivate', ['lang' => $lang, 'success' => false]);
+            return;
+        }
+
+        $account = $this->accounts->findByReactivationToken($token);
+        if ($account === false) {
+            $this->view('account/reactivate', ['lang' => $lang, 'success' => false]);
+            return;
+        }
+
+        $this->accounts->reactivate((int) $account['id']);
+        $this->view('account/reactivate', ['lang' => $lang, 'success' => true]);
     }
 
     // ----------------------------------------------------------------
