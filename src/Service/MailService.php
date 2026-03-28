@@ -134,22 +134,64 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
         $this->send($to, $firstname, $lines['subjectLine'], $body, $attachmentPath);
     }
 
-    public function sendNewsletter(string $to, string $name, string $subject, string $htmlBody): void
+    public function sendNewsletter(
+        string $to,
+        string $name,
+        string $subject,
+        string $htmlBody,
+        ?string $attachmentPath = null,
+        ?string $attachmentName = null
+    ): void {
+        $this->send($to, $name, $subject, $htmlBody, $attachmentPath, null, $attachmentName);
+    }
+
+    public function sendAccountDeletionConfirmation(string $to, string $name, string $lang): void
     {
-        $this->send($to, $name, $subject, $htmlBody);
+        $subject = $lang === 'fr'
+            ? 'Confirmation de suppression de votre compte'
+            : 'Account deletion confirmation';
+
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+
+        $body = $lang === 'fr'
+            ? $this->emailSimpleLayout(
+                'Suppression de compte',
+                "Bonjour {$safeName},",
+                'Votre demande de suppression de compte a bien été enregistrée.'
+                . ' Conformément au RGPD (Art. 17), vos données personnelles seront anonymisées'
+                . ' dans un délai de <strong>30 jours</strong>.<br><br>'
+                . 'Vos données de commandes sont conservées 10 ans conformément aux obligations'
+                . ' légales comptables.<br><br>'
+                . 'Si cette demande est une erreur, contactez notre support dans les 30 jours.'
+            )
+            : $this->emailSimpleLayout(
+                'Account deletion',
+                "Hello {$safeName},",
+                'Your account deletion request has been registered.'
+                . ' In accordance with GDPR (Art. 17), your personal data will be anonymised'
+                . ' within <strong>30 days</strong>.<br><br>'
+                . 'Your order data is retained for 10 years in accordance with legal accounting'
+                . ' obligations.<br><br>'
+                . 'If this request was made in error, please contact our support within 30 days.'
+            );
+
+        $this->send($to, $name, $subject, $body);
     }
 
     public function buildNewsletterHtml(
         string $title,
         string $htmlContent,
-        ?string $imageUrl = null
+        ?string $imageUrl = null,
+        ?string $unsubToken = null
     ): string {
         $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $logoUrl    = $appUrl . self::LOGO_PATH;
         $urlPrivacy = $appUrl . self::URL_PRIVACY;
         $urlLegal   = $appUrl . self::URL_LEGAL;
         $urlSupport = $appUrl . self::URL_SUPPORT;
-        $urlUnsub   = $appUrl . '/fr/mon-compte';
+        $urlUnsub   = $unsubToken !== null
+            ? $appUrl . '/fr/newsletter/desabonnement?token=' . urlencode($unsubToken)
+            : $appUrl . '/fr/mon-compte';
         $safeTitle  = htmlspecialchars($title, ENT_QUOTES);
         // Image optionnelle : centrée dans le bloc blanc, avant le séparateur/désabonnement
         $safeImage = $imageUrl !== null ? htmlspecialchars($imageUrl, ENT_QUOTES) : null;
@@ -182,7 +224,7 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
               </table>
               <p style="margin:0;font-size:12px;color:#8a7a60;line-height:1.6;">
                 Vous recevez cet email car vous êtes abonné(e) à la newsletter du Château Crabitan Bellevue.<br>
-                <a href="{$urlUnsub}" style="color:#c9a84c;">Gérer mes préférences de communication</a>
+                <a href="{$urlUnsub}" style="color:#c9a84c;">Se désinscrire de la newsletter</a>
               </p>
             </td>
           </tr>
@@ -201,7 +243,8 @@ INNER;
         string $subject,
         string $body,
         ?string $attachmentPath = null,
-        ?string $replyTo = null
+        ?string $replyTo = null,
+        ?string $attachmentName = null
     ): void {
         $this->mailer->clearAddresses();
         $this->mailer->clearAttachments();
@@ -215,7 +258,7 @@ INNER;
         $this->mailer->Body    = $body;
         $this->mailer->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], "\n", $body));
         if ($attachmentPath !== null) {
-            $this->mailer->addAttachment($attachmentPath);
+            $this->mailer->addAttachment($attachmentPath, $attachmentName ?? '');
         }
         $this->mailer->send();
     }
