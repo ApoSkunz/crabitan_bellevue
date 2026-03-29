@@ -2,6 +2,45 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.15.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.14.0...v0.15.0) (2026-03-29)
+
+
+### Bug Fixes
+
+* **admin:** politique MDP ANSSI sur changement de mot de passe admin ([7803a1c](https://github.com/ApoSkunz/crabitan_bellevue/commit/7803a1c1fa7546fdd3f1a0b73296b1e6c1dbb005))
+* **charts:** enregistrer LineController et BarController dans Chart.js ([d6651a6](https://github.com/ApoSkunz/crabitan_bellevue/commit/d6651a6cb0da26c03a8d24a5eaa3e4f7ca89ae1e))
+* **ci:** audit Red/Blue — corriger YAML malformé persist-credentials ([ce9bf10](https://github.com/ApoSkunz/crabitan_bellevue/commit/ce9bf10411619bedd52eeb6783d3a9566d42d0af))
+* **ci:** audit Red/Blue — ré-intégrer Exakat version épinglée + corriger YAML ([f807d07](https://github.com/ApoSkunz/crabitan_bellevue/commit/f807d07cfd9c3f91ac713300f7747d4db7e7f620))
+* **ci:** durcissement workflows — permissions, pinning, timeouts, Scorecard, SLSA L2 ([45592f4](https://github.com/ApoSkunz/crabitan_bellevue/commit/45592f41d968ab2758e7cf0f55cb63a8131b8529))
+* **ci:** Exakat fallback URL + supprimer Legitify (upload-artifact@v3 deprecated) ([228b85b](https://github.com/ApoSkunz/crabitan_bellevue/commit/228b85b20ed16a85e9ac61e790473a7dffdf6062))
+* **ci:** Exakat graceful skip si indisponible + Legitify CLI binary (bypass action v3) ([23f0e3e](https://github.com/ApoSkunz/crabitan_bellevue/commit/23f0e3e6bdf79ba3f4868687f40b490c48eebe75))
+* **ci:** Legitify --github-token + dépréciation \$context stream wrappers PHP 8.2 ([a2dcc50](https://github.com/ApoSkunz/crabitan_bellevue/commit/a2dcc507514e607e7ed224f0d414814371984679)), closes [--#token](https://github.com/--/issues/token)
+* **ci:** nosemgrep SHA SonarCloud + npm audit critical uniquement ([ade8c68](https://github.com/ApoSkunz/crabitan_bellevue/commit/ade8c68ebe84ec581b3a88e2f184a1cf72e1d8d3))
+* **ci:** rétablir Legitify non-bloquant + npm audit omit=dev ([5a2a443](https://github.com/ApoSkunz/crabitan_bellevue/commit/5a2a4437034d05c595860b69a2a58d8edb916eb6))
+* **controller:** newsletter vin — filtre comptes société + gestion slug dupliqué ([80ff1a6](https://github.com/ApoSkunz/crabitan_bellevue/commit/80ff1a6b0cecb56ab86b62a496168a53b79f6b2a))
+* **controller:** NOSONAR inline sur error_log (S4792) et http URL (S5332) ([be27f18](https://github.com/ApoSkunz/crabitan_bellevue/commit/be27f18235378effd16d05c797aad8ed4cf0adb4))
+* **controller:** SonarCloud — nested ternary, moveUploadedFile seam, string constants ([42a4536](https://github.com/ApoSkunz/crabitan_bellevue/commit/42a453681056a1c75a8670ae8324b74b64d8f310))
+* **e2e:** age-gate — intercept soumission formulaire, secouer cookie banner si pas de consentement ([1c5bb6f](https://github.com/ApoSkunz/crabitan_bellevue/commit/1c5bb6fc4ac8cafec63394866a7e8516fcad161c)), closes [#age-gate-form](https://github.com/ApoSkunz/crabitan_bellevue/issues/age-gate-form)
+* **mail:** newsletter vin — appellation, cuvée spéciale, récompense, filtre société ([09166f3](https://github.com/ApoSkunz/crabitan_bellevue/commit/09166f3866d96ae14f94a2905527057efdcb55d8))
+* **service:** SonarCloud — variables inutilisées, constante BTN_STYLE, resolveAwardText, regex \d ([999e240](https://github.com/ApoSkunz/crabitan_bellevue/commit/999e240d88edadc4373f9406283b135086809f40))
+* **test:** TI newsletter — aligner subject avec préfixe branding du controller ([eaa964c](https://github.com/ApoSkunz/crabitan_bellevue/commit/eaa964c368314bccd15b28ff7b7b48b009e74463))
+* **upload:** corriger translittération accents noms fichiers images (strtr) ([ebb8d0a](https://github.com/ApoSkunz/crabitan_bellevue/commit/ebb8d0a2eceec2d391686d478c7b48c56db2ae6b))
+* **upload:** translittérer les accents dans les noms de fichiers images ([b1f26e6](https://github.com/ApoSkunz/crabitan_bellevue/commit/b1f26e648d74b04fd45b3bd5110087555ed0cf70))
+* **view:** admin — chargement main.js, erreur slug dupliqué, lien Sécurité header ([c9c860b](https://github.com/ApoSkunz/crabitan_bellevue/commit/c9c860b6ce61cd56e6ad37b973e2b90e31cc2a39))
+
+
+### Features
+
+* **admin-nav:** ajouter lien Statistiques CA dans account-panel__nav ([8ccf894](https://github.com/ApoSkunz/crabitan_bellevue/commit/8ccf894f86a445723fafdb08ea8735251cf16ecd))
+* **admin:** email transactionnel au client sur changement de statut commande ([d450da8](https://github.com/ApoSkunz/crabitan_bellevue/commit/d450da899edbb30231ad7a394c3e70c53c0149f7))
+* **auth:** case 'Se souvenir de moi' — JWT et cookie 30 jours ([d3ec08a](https://github.com/ApoSkunz/crabitan_bellevue/commit/d3ec08a76c3da252be39dbb6cc4b1f1f1f664ab1))
+* **auth:** politique mot de passe ANSSI MDP 2021 ([7cfd321](https://github.com/ApoSkunz/crabitan_bellevue/commit/7cfd321d5e8baf397b093df450cdcbc7450b63ef))
+* **mail:** newsletter nouveau vin — objet branding, salutation Cher(e), intro château ([699b16f](https://github.com/ApoSkunz/crabitan_bellevue/commit/699b16f41b92a71fca5669672b5d64590e8be9c7))
+* **mail:** templates email statut commande et newsletter nouveau vin ([679ed6d](https://github.com/ApoSkunz/crabitan_bellevue/commit/679ed6dae768815cd459a814e134ec952baca6d6))
+* **model:** OrderModel::getById() inclut la langue du compte client ([a7e86cc](https://github.com/ApoSkunz/crabitan_bellevue/commit/a7e86cc45a22b8f8fcffdfaa61a4e3f00a4753cc))
+* **newsletter:** audit marketing — objet, salutation prénom, champ titre ([576bc02](https://github.com/ApoSkunz/crabitan_bellevue/commit/576bc02b7111d58bfb9eb5f5c2db85ca7a3add9e))
+* **ux:** cookie banner non bloquant sur la page age-gate ([31ef49b](https://github.com/ApoSkunz/crabitan_bellevue/commit/31ef49b2e92a2accdf7171ce5033edcb1c744c8a))
+
 # [0.14.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.13.0...v0.14.0) (2026-03-29)
 
 
