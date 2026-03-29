@@ -10,6 +10,8 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -36,3 +38,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
         run: npx semantic-release
+
+      - name: Build assets for provenance
+        run: |
+          find public/assets -type f \( -name "*.js" -o -name "*.css" \) \
+            -exec sha256sum {} \; > build-checksums.txt
+          echo "Build checksums generated"
+
+      - name: Generate SLSA provenance (L2)
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'build-checksums.txt'

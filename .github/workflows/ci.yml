@@ -5,10 +5,17 @@ on:
     branches: [main]
   pull_request:
 
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality-php:
     name: Code Quality — PHP
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -32,6 +39,7 @@ jobs:
   quality-js:
     name: Code Quality — JS/SCSS
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -52,6 +60,7 @@ jobs:
   tests:
     name: Tests (TU + TI)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     services:
       mysql:
@@ -121,6 +130,7 @@ jobs:
   e2e:
     name: E2E + JS Coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     services:
       mysql:
@@ -232,6 +242,7 @@ jobs:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
     needs: [tests, e2e]
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -252,7 +263,7 @@ jobs:
           path: coverage/
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -261,6 +272,7 @@ jobs:
     name: Lighthouse — Accessibilité
     if: false   # standby — ESM/Puppeteer conflict en cours d'investigation
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     services:
       mysql:
@@ -354,6 +366,7 @@ jobs:
   sca:
     name: SCA — Dependency Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -377,4 +390,4 @@ jobs:
       - name: npm audit (JS deps)
         # picomatch bundled inside npm CLI itself (node_modules/npm/**) — unfixable via overrides,
         # not exploitable in our application code. Dependabot watches for upstream fixes.
-        run: npm audit --audit-level=critical
+        run: npm audit --audit-level=high
