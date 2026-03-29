@@ -2167,6 +2167,74 @@ class AccountControllerTest extends IntegrationTestCase
         }
     }
 
+    // ----------------------------------------------------------------
+    // returnSlip — chemins 404
+    // ----------------------------------------------------------------
+
+    /**
+     * Commande inexistante → 404.
+     */
+    public function testReturnSlipAborts404WhenOrderNotFound(): void
+    {
+        $userId = $this->insertCustomer('slip.notfound@test.local');
+        $this->loginAs($userId);
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(404);
+
+        ob_start();
+        try {
+            $this->makeController('GET', '/fr/mon-compte/commandes/999999/fiche-retour')
+                ->returnSlip(['lang' => 'fr', 'id' => '999999']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * Commande avec statut 'pending' (ni return_requested ni delivered) → 404.
+     */
+    public function testReturnSlipAborts404WhenStatusInvalid(): void
+    {
+        $userId    = $this->insertCustomer('slip.pending@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'pending');
+        $this->loginAs($userId);
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(404);
+
+        ob_start();
+        try {
+            $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}/fiche-retour")
+                ->returnSlip(['lang' => 'fr', 'id' => (string) $orderId]);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * Commande delivered mais hors fenêtre (> 15 jours) → 404.
+     */
+    public function testReturnSlipAborts404WhenDeliveredOutsideWindow(): void
+    {
+        $userId    = $this->insertCustomer('slip.expired@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 20 DAY');
+        $this->loginAs($userId);
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(404);
+
+        ob_start();
+        try {
+            $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}/fiche-retour")
+                ->returnSlip(['lang' => 'fr', 'id' => (string) $orderId]);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
     /**
      * Un CSRF invalide ne modifie pas le statut de la commande.
      */
