@@ -17,7 +17,10 @@ $statusColors = [
     'refunded'         => 'red',
     'return_requested' => 'orange',
 ];
-$timeline = ['pending', 'paid', 'processing', 'shipped', 'delivered'];
+$isReturnFlow = in_array($order['status'], ['return_requested', 'refunded'], true);
+$timeline     = $isReturnFlow
+    ? ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', 'refunded']
+    : ['pending', 'paid', 'processing', 'shipped', 'delivered'];
 $currentIdx  = array_search($order['status'], $timeline, true);
 $cancellable = $order['status'] === 'pending';
 /** @var bool $cancellableReturn */
@@ -71,8 +74,8 @@ $paymentMap  = [
                 </div>
             </section>
 
-            <!-- Timeline statut (commandes non annulées/remboursées) -->
-            <?php if (!in_array($order['status'], ['cancelled', 'refunded'], true)) : ?>
+            <!-- Timeline statut (commandes non annulées) -->
+            <?php if ($order['status'] !== 'cancelled') : ?>
                 <section class="account-section">
                     <ol class="order-timeline" aria-label="<?= __('account.order_status') ?>">
                         <?php foreach ($timeline as $idx => $step) : ?>
@@ -221,7 +224,7 @@ $paymentMap  = [
                         </button>
                     </form>
                 </section>
-            <?php elseif ($order['status'] === 'delivered') : ?>
+            <?php elseif ($order['status'] === 'return_requested') : ?>
                 <section class="account-section">
                     <p class="order-contact-notice">
                         <?= __('account.order_return_notice') ?>
