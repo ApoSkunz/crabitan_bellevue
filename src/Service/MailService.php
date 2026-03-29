@@ -26,8 +26,8 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
 
         $this->mailer = new PHPMailer(true);
         $this->mailer->isSMTP();
-        $this->mailer->Host    = $_ENV['MAIL_HOST'];
-        $this->mailer->Port    = (int) $_ENV['MAIL_PORT'];
+        $this->mailer->Host    = $_ENV['MAIL_HOST'] ?? 'localhost';
+        $this->mailer->Port    = (int) ($_ENV['MAIL_PORT'] ?? 25);
         $this->mailer->CharSet = 'UTF-8';
 
         if ($mailUser !== '') {
@@ -156,7 +156,8 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
      * @param string              $toEmail    Adresse email du destinataire
      * @param string              $toName     Nom affiché du destinataire
      * @param string              $unsubToken Token de désabonnement
-     * @param array<string,mixed> $wine       Données du vin (label_name, vintage, price, image_path, slug)
+     * @param array<string,mixed> $wine       Données du vin (label_name, vintage, certification_label,
+     *                                        is_cuvee_speciale, award, image_path, slug)
      * @param string              $appUrl     URL de base de l'application
      * @param string              $lang       Langue du destinataire ('fr' ou 'en')
      * @return void
@@ -171,11 +172,20 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
     ): void {
         $appUrl      = rtrim($appUrl, '/');
         $labelName   = htmlspecialchars((string) ($wine['label_name'] ?? ''), ENT_QUOTES);
-        $appellation = htmlspecialchars((string) ($wine['label_name'] ?? ''), ENT_QUOTES);
+        $appellation = htmlspecialchars((string) ($wine['certification_label'] ?? ''), ENT_QUOTES);
         $vintage     = (int) ($wine['vintage'] ?? 0);
-        $price       = number_format((float) ($wine['price'] ?? 0), 2, ',', ' ');
         $slug        = rawurlencode((string) ($wine['slug'] ?? ''));
         $imagePath   = (string) ($wine['image_path'] ?? '');
+        $isCuvee     = (bool) ($wine['is_cuvee_speciale'] ?? false);
+
+        // Champ award : JSON bilingue {"fr":"...","en":"..."}
+        $awardRaw  = $wine['award'] ?? null;
+        $awardData = [];
+        if ($awardRaw !== null && $awardRaw !== '' && $awardRaw !== '[]') {
+            $decoded   = is_array($awardRaw) ? $awardRaw : (json_decode((string) $awardRaw, true) ?? []);
+            $awardData = is_array($decoded) ? $decoded : [];
+        }
+        $awardText = htmlspecialchars(trim((string) ($awardData[$lang] ?? '')), ENT_QUOTES);
 
         if ($lang === 'fr') {
             $subject      = sprintf('Nouveau vin disponible : %s %d', $wine['label_name'] ?? '', $vintage);
@@ -185,7 +195,9 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
             $intro        = "Un nouveau vin vient d'être ajouté à notre sélection et est disponible dès maintenant.";
             $labelLabel   = 'Appellation';
             $vintageLabel = 'Millésime';
-            $priceLabel   = 'Prix';
+            $cuveeLabel   = 'Cuvée Spéciale';
+            $awardLabel   = 'Récompense';
+            $cuveeValue   = 'Oui';
             $emailTitle   = 'Nouveau vin disponible';
         } else {
             $subject      = sprintf('New wine available: %s %d', $wine['label_name'] ?? '', $vintage);
@@ -195,7 +207,9 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
             $intro        = 'A new wine has just been added to our selection and is now available.';
             $labelLabel   = 'Appellation';
             $vintageLabel = 'Vintage';
-            $priceLabel   = 'Price';
+            $cuveeLabel   = 'Special Cuvée';
+            $awardLabel   = 'Award';
+            $cuveeValue   = 'Yes';
             $emailTitle   = 'New wine available';
         }
 
@@ -207,23 +221,24 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
                 . "height:auto;margin:24px auto 16px;border:0;border-radius:4px;\">";
         }
 
-        $infoTable = '<table style="width:100%;border-collapse:collapse;margin:16px 0 24px;">'
-            . "<tr style=\"background:#f5f0e8;\">"
-            . "<td style=\"padding:8px 12px;font-size:12px;letter-spacing:1px;"
-            . "text-transform:uppercase;color:#8a7a60;width:40%;\">{$labelLabel}</td>"
-            . "<td style=\"padding:8px 12px;font-size:14px;color:#3d3425;\">{$appellation}</td>"
-            . "</tr>"
-            . "<tr style=\"border-top:1px solid #ede8df;\">"
-            . "<td style=\"padding:8px 12px;font-size:12px;letter-spacing:1px;"
-            . "text-transform:uppercase;color:#8a7a60;\">{$vintageLabel}</td>"
-            . "<td style=\"padding:8px 12px;font-size:14px;color:#3d3425;\">{$vintage}</td>"
-            . "</tr>"
-            . "<tr style=\"border-top:1px solid #ede8df;background:#f5f0e8;\">"
-            . "<td style=\"padding:8px 12px;font-size:12px;letter-spacing:1px;"
-            . "text-transform:uppercase;color:#8a7a60;\">{$priceLabel}</td>"
-            . "<td style=\"padding:8px 12px;font-size:14px;color:#3d3425;\">{$price}&nbsp;€</td>"
-            . "</tr>"
-            . "</table>";
+        // Lignes du tableau : appellation + millésime + récompense (si applicable)
+        // La cuvée spéciale apparaît en sous-titre sous le nom du vin, pas dans le tableau
+        $infoRows = [[$labelLabel, $appellation], [$vintageLabel, (string) $vintage]];
+        if ($awardText !== '') {
+            $infoRows[] = [$awardLabel, $awardText];
+        }
+
+        $infoTable = '<table style="width:100%;border-collapse:collapse;margin:16px 0 24px;">';
+        foreach ($infoRows as $i => [$rowLabel, $rowValue]) {
+            $bg     = $i % 2 === 0 ? 'background:#f5f0e8;' : '';
+            $border = $i > 0 ? 'border-top:1px solid #ede8df;' : '';
+            $infoTable .= "<tr style=\"{$bg}\">"
+                . "<td style=\"padding:8px 12px;font-size:12px;letter-spacing:1px;"
+                . "text-transform:uppercase;color:#8a7a60;width:40%;{$border}\">{$rowLabel}</td>"
+                . "<td style=\"padding:8px 12px;font-size:14px;color:#3d3425;{$border}\">{$rowValue}</td>"
+                . "</tr>";
+        }
+        $infoTable .= '</table>';
 
         $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
@@ -243,6 +258,10 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
             . "<h2 style=\"margin:0 0 4px;font-family:Georgia,serif;font-size:20px;color:#1a1208;\">"
             . "{$labelName} {$vintage}"
             . "</h2>"
+            . ($isCuvee
+                ? "<p style=\"margin:0 0 12px;font-size:13px;letter-spacing:2px;text-transform:uppercase;"
+                  . "color:#c9a84c;font-family:Georgia,serif;\">{$cuveeLabel}</p>"
+                : '')
             . $imageHtml
             . $infoTable
             . $ctaBtn;
