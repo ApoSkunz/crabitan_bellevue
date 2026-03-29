@@ -1218,6 +1218,27 @@ class AccountControllerTest extends IntegrationTestCase
             ->changePassword(['lang' => 'fr']);
     }
 
+    /**
+     * Un token CSRF invalide sur changePassword redirige sans modifier le mot de passe.
+     */
+    public function testChangePasswordInvalidCsrfRedirects(): void
+    {
+        $userId = $this->insertCustomer('chpwd.csrf@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'current_password'     => 'Password123!',
+            'new_password'         => 'NewPassword123456!',
+            'new_password_confirm' => 'NewPassword123456!',
+            'csrf_token'           => 'invalid-csrf',
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/securite/mot-de-passe')
+            ->changePassword(['lang' => 'fr']);
+    }
+
     // ----------------------------------------------------------------
     // revokeAllUserSessions() POST
     // ----------------------------------------------------------------
@@ -1271,6 +1292,22 @@ class AccountControllerTest extends IntegrationTestCase
         $this->loginAs($userId);
 
         $_POST = ['csrf_token' => self::CSRF];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/securite/appareils/supprimer-toutes')
+            ->untrustAllDevices(['lang' => 'fr']);
+    }
+
+    /**
+     * Un token CSRF invalide sur untrustAllDevices redirige sans supprimer les appareils.
+     */
+    public function testUntrustAllDevicesInvalidCsrfRedirects(): void
+    {
+        $userId = $this->insertCustomer('untrust.csrf@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => 'invalid-csrf'];
 
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(302);
