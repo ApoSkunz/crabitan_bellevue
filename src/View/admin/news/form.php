@@ -96,7 +96,7 @@ $errClass = ' is-error';
 
         <!-- ---- Image ---- -->
         <div class="admin-form__section">
-            <h3>Image <?= !$isEdit ? '*' : '' ?></h3>
+            <h3>Image</h3>
 
             <?php if ($isEdit && !empty($article['image_path'])) : ?>
                 <div style="margin-bottom:1rem;">
