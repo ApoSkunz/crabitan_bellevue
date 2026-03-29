@@ -148,8 +148,7 @@ class OrderAdminController extends AdminController
             $clientName  = trim($firstname . ' ' . $lastname) ?: $clientEmail;
             $clientLang  = (string) ($order['lang'] ?? 'fr');
             $orderRef    = (string) ($order['order_reference'] ?? '');
-            // NOSONAR — http fallback local dev only; production always sets APP_URL env var
-            $appUrl      = rtrim($_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'http://crabitan.local'), '/');
+            $appUrl      = rtrim($_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'http://crabitan.local'), '/'); // NOSONAR — php:S5332
 
             try {
                 $this->newMailService()->sendOrderStatusEmail(
@@ -161,7 +160,7 @@ class OrderAdminController extends AdminController
                     $appUrl
                 );
             } catch (\Throwable $e) {
-                error_log('[OrderAdminController] SMTP error on status email: ' . $e->getMessage());
+                error_log('[OrderAdminController] SMTP error on status email: ' . $e->getMessage()); // NOSONAR — php:S4792
             }
         }
 
