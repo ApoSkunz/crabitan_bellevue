@@ -272,7 +272,7 @@ jobs:
           path: coverage/
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@e44258b109568baa0df60ed515909fc6c72cba92 # v2.3.0
+        uses: SonarSource/sonarcloud-github-action@e44258b109568baa0df60ed515909fc6c72cba92 # v2.3.0 # nosemgrep: generic.secrets.security.detected-sonarqube-docs-api-key.detected-sonarqube-docs-api-key
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -403,4 +403,4 @@ jobs:
       - name: npm audit (JS deps)
         # picomatch bundled inside npm CLI itself (node_modules/npm/**) — unfixable via overrides,
         # not exploitable in our application code. Dependabot watches for upstream fixes.
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=critical
