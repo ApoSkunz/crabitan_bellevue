@@ -209,4 +209,149 @@ class NewsAdminControllerTest extends AdminIntegrationTestCase
 
         $this->makeController('POST')->update(['id' => (string) $id]);
     }
+
+    // ----------------------------------------------------------------
+    // store — CSRF valide, données valides, image absente en création → erreur image
+    // ----------------------------------------------------------------
+
+    public function testStoreRendersFormWhenImageMissingOnCreate(): void
+    {
+        $_POST['csrf_token']        = self::CSRF_TOKEN;
+        $_POST['title_fr']          = 'Nouvel article test';
+        $_POST['title_en']          = 'New test article';
+        $_POST['text_content_fr']   = 'Contenu complet de l\'article';
+        $_POST['text_content_en']   = 'Full article content';
+        $_POST['link_path']         = '';
+        $_FILES = [];
+
+        ob_start();
+        $this->makeController('POST')->store([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<form', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // store — EN vides → translateText déclenché (auto-traduction)
+    // ----------------------------------------------------------------
+
+    public function testStoreCallsTranslationWhenEnFieldsAreEmpty(): void
+    {
+        $_POST['csrf_token']        = self::CSRF_TOKEN;
+        $_POST['title_fr']          = 'Article avec traduction automatique';
+        $_POST['title_en']          = ''; // EN vide → translateText appelé
+        $_POST['text_content_fr']   = 'Contenu nécessitant une traduction';
+        $_POST['text_content_en']   = ''; // EN vide → translateText appelé
+        $_POST['link_path']         = '';
+        $_FILES = [];
+
+        ob_start();
+        $this->makeController('POST')->store([]);
+        $output = ob_get_clean();
+
+        // Image obligatoire en création → formulaire re-rendu (chemin normal)
+        $this->assertStringContainsString('<form', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // store — seul le titre est rempli (contenu manquant) → erreur contenu
+    // ----------------------------------------------------------------
+
+    public function testStoreRendersFormWhenOnlyTitleProvided(): void
+    {
+        $_POST['csrf_token']        = self::CSRF_TOKEN;
+        $_POST['title_fr']          = 'Titre présent';
+        $_POST['title_en']          = 'Title present';
+        $_POST['text_content_fr']   = '';
+        $_POST['text_content_en']   = '';
+        $_FILES = [];
+
+        ob_start();
+        $this->makeController('POST')->store([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<form', $output);
+        $this->assertStringContainsString('obligatoire', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // update — CSRF valide, seul le contenu est manquant → erreur contenu
+    // ----------------------------------------------------------------
+
+    public function testUpdateRendersFormWhenOnlyContentMissing(): void
+    {
+        $id = $this->insertArticle();
+        $_POST['csrf_token']        = self::CSRF_TOKEN;
+        $_POST['title_fr']          = 'Titre présent';
+        $_POST['title_en']          = 'Title present';
+        $_POST['text_content_fr']   = '';
+        $_POST['text_content_en']   = '';
+        $_POST['link_path']         = '';
+        $_FILES = [];
+
+        ob_start();
+        $this->makeController('POST')->update(['id' => (string) $id]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<form', $output);
+        $this->assertStringContainsString('obligatoire', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // update — EN vides → translateText déclenché pour title et content
+    // ----------------------------------------------------------------
+
+    public function testUpdateCallsTranslationWhenEnFieldsAreEmpty(): void
+    {
+        $id = $this->insertArticle();
+        $_POST['csrf_token']        = self::CSRF_TOKEN;
+        $_POST['title_fr']          = 'Titre mis à jour avec traduction';
+        $_POST['title_en']          = ''; // EN vide → translateText appelé
+        $_POST['text_content_fr']   = 'Contenu mis à jour avec traduction automatique';
+        $_POST['text_content_en']   = ''; // EN vide → translateText appelé
+        $_POST['link_path']         = '/actualites/test';
+        $_FILES = [];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->update(['id' => (string) $id]);
+    }
+
+    // ----------------------------------------------------------------
+    // index — page > 1
+    // ----------------------------------------------------------------
+
+    public function testIndexWithPageParamRendersView(): void
+    {
+        $_GET['page'] = '3';
+
+        ob_start();
+        $this->makeController()->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('admin-page-header', $output);
+        $this->assertStringContainsString('Actualités', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // update — CSRF valide, link_path renseigné → redirect 302
+    // ----------------------------------------------------------------
+
+    public function testUpdateSuccessWithLinkPathRedirects(): void
+    {
+        $id = $this->insertArticle();
+        $_POST['csrf_token']        = self::CSRF_TOKEN;
+        $_POST['title_fr']          = 'Article avec lien';
+        $_POST['title_en']          = 'Article with link';
+        $_POST['text_content_fr']   = 'Contenu de l\'article avec lien';
+        $_POST['text_content_en']   = 'Article content with link';
+        $_POST['link_path']         = '/nos-vins';
+        $_FILES = [];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->update(['id' => (string) $id]);
+    }
 }

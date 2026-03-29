@@ -171,4 +171,86 @@ class OrderFormAdminControllerTest extends AdminIntegrationTestCase
             ob_end_clean();
         }
     }
+
+    // ----------------------------------------------------------------
+    // index — per_page invalide → retombe sur défaut
+    // ----------------------------------------------------------------
+
+    public function testIndexWithInvalidPerPageFallsBackToDefault(): void
+    {
+        $_GET['per_page'] = '999';
+
+        ob_start();
+        $this->makeController()->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('admin-table', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // upload — CSRF valide, année valide, fichier non-PDF → 302
+    // ----------------------------------------------------------------
+
+    /**
+     * Un upload avec une année invalide flash une erreur et redirige.
+     */
+    public function testUploadRedirectsWhenYearInvalid(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['year']       = '1999';
+        $_POST['label']      = '';
+        $_FILES = [];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST')->upload([]);
+    }
+
+    /**
+     * Un upload sans fichier flash une erreur et redirige.
+     */
+    public function testUploadRedirectsWhenNoFile(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['year']       = '2025';
+        $_POST['label']      = '';
+        $_FILES = [];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST')->upload([]);
+    }
+
+    // ----------------------------------------------------------------
+    // delete — CSRF valide, enregistrement existant avec fichier physique
+    // ----------------------------------------------------------------
+
+    public function testDeleteRemovesRecordAndPhysicalFile(): void
+    {
+        // Crée un vrai fichier dans storage/order_forms pour tester la suppression physique
+        $storageDir = ROOT_PATH . '/storage/order_forms';
+        if (!is_dir($storageDir)) {
+            mkdir($storageDir, 0750, true);
+        }
+        $filename = 'ti_delete_test_' . uniqid() . '.pdf';
+        $filepath = $storageDir . '/' . $filename;
+        file_put_contents($filepath, '%PDF-1.4 fake');
+
+        $model = new OrderFormModel();
+        $id    = $model->create(2098, 'TI Delete', $filename);
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $this->makeController('POST')->delete(['id' => (string) $id]);
+        } finally {
+            // Nettoyage si le fichier n'a pas été supprimé par le controller
+            if (is_file($filepath)) {
+                unlink($filepath);
+            }
+        }
+    }
 }

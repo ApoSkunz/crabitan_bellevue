@@ -61,12 +61,11 @@ class WineModel extends Model
             $params[]     = $offset;
         }
 
-        // likes_count sera remplacé par un subquery réel dans feat/account (table favorites)
-        $sql = "SELECT id, label_name, wine_color, format, vintage, price, quantity,
-                       available, certification_label, image_path, slug,
-                       oenological_comment, award, extra_comment, is_cuvee_speciale,
-                       0 AS likes_count
-                FROM {$this->table}
+        $sql = "SELECT w.id, w.label_name, w.wine_color, w.format, w.vintage, w.price, w.quantity,
+                       w.available, w.certification_label, w.image_path, w.slug,
+                       w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
+                       (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
+                FROM {$this->table} w
                 " . $this->buildWhereClause($where) . "
                 ORDER BY {$orderBy}{$limitClause}";
 
@@ -144,11 +143,11 @@ class WineModel extends Model
         }
 
         $rows = $this->db->fetchAll(
-            "SELECT id, label_name, wine_color, vintage, price, quantity,
-                    available, certification_label, image_path, slug,
-                    oenological_comment, award, extra_comment, is_cuvee_speciale,
-                    0 AS likes_count
-             FROM {$this->table}
+            "SELECT w.id, w.label_name, w.wine_color, w.vintage, w.price, w.quantity,
+                    w.available, w.certification_label, w.image_path, w.slug,
+                    w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
+                    (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
+             FROM {$this->table} w
              {$whereClause}
              ORDER BY {$orderBy}{$limitClause}",
             $params

@@ -1,0 +1,969 @@
+// ============================================================
+// Layout — Espace client (/mon-compte/*)
+// ============================================================
+
+.account-page {
+    min-height: calc(100vh - 80px);
+    padding: 4rem 1.5rem 6rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+// ----------------------------------------------------------------
+// Shell deux colonnes nav + contenu
+// ----------------------------------------------------------------
+
+.account-shell {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 3rem;
+    align-items: stretch;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+.account-content {
+    min-width: 0;
+}
+
+.account-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+// ----------------------------------------------------------------
+// Navigation latérale
+// ----------------------------------------------------------------
+
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-self: start;
+    position: sticky;
+    top: var(--account-nav-top, 200px);
+
+    @media (max-width: 768px) {
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    &__link {
+        display: block;
+        padding: 0.6rem 1rem;
+        border-radius: 4px;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 200ms ease, background 200ms ease;
+
+        &:hover {
+            color: var(--color-text);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        &--active {
+            color: var(--color-gold);
+            background: rgba(201, 168, 76, 0.08);
+            font-weight: 600;
+        }
+
+        &--export {
+            margin-top: 1rem;
+            border-top: 1px solid var(--color-border);
+            padding-top: 1rem;
+
+            @media (max-width: 768px) {
+                margin-top: 0;
+                border-top: none;
+                padding-top: 0.6rem;
+            }
+        }
+
+        &--logout {
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+
+            &:hover { color: #ff6060; }
+        }
+    }
+}
+
+// ----------------------------------------------------------------
+// Header de section
+// ----------------------------------------------------------------
+
+.account-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+
+    &__back {
+        display: inline-block;
+        margin-bottom: 1rem;
+        color: var(--color-text-muted);
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: color 200ms ease;
+
+        &:hover { color: var(--color-gold); }
+    }
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        font-weight: 400;
+        color: var(--color-text);
+        margin: 0;
+    }
+
+    &__name {
+        margin-top: 0.4rem;
+        color: var(--color-gold);
+        font-size: 1rem;
+    }
+}
+
+// ----------------------------------------------------------------
+// Dashboard — cartes résumé
+// ----------------------------------------------------------------
+
+.account-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+
+.account-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 2rem 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-gold);
+    border-radius: 4px;
+    text-decoration: none;
+    transition: border-color 200ms ease, transform 200ms ease;
+
+    &:hover {
+        border-color: var(--color-gold);
+        transform: translateY(-2px);
+    }
+
+    &__count {
+        font-family: var(--font-serif);
+        font-size: 2.5rem;
+        color: var(--color-gold);
+        line-height: 1;
+    }
+
+    &__label {
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+        text-align: center;
+    }
+}
+
+// ----------------------------------------------------------------
+// Actions dashboard
+// ----------------------------------------------------------------
+
+.account-actions {
+    margin-top: 1rem;
+}
+
+// ----------------------------------------------------------------
+// Message vide
+// ----------------------------------------------------------------
+
+.account-empty {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+// ----------------------------------------------------------------
+// Tableau commandes
+// ----------------------------------------------------------------
+
+.account-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+}
+
+.account-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+
+    th, td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    th {
+        background: var(--color-surface);
+        color: var(--color-text-muted);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    tbody tr:hover td {
+        background: rgba(201, 168, 76, 0.04);
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    &__ref {
+        font-family: var(--font-serif);
+        color: var(--color-gold);
+        white-space: nowrap;
+    }
+
+    &__na {
+        color: var(--color-text-muted);
+    }
+}
+
+// ----------------------------------------------------------------
+// Badge statut commande
+// ----------------------------------------------------------------
+
+.account-badge {
+    display: inline-block;
+    padding: 0.2em 0.65em;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+
+    &--grey   { background: rgba(138, 128, 112, 0.2); color: #8a8070; }
+    &--blue   { background: rgba(99, 149, 255, 0.15); color: #7ab0ff; }
+    &--orange { background: rgba(255, 180, 80, 0.15); color: #ffb040; }
+    &--purple { background: rgba(190, 120, 255, 0.15); color: #c87eff; }
+    &--green  { background: rgba(80, 200, 120, 0.15); color: #50c878; }
+    &--red    { background: rgba(255, 80, 80, 0.15); color: #ff6060; }
+}
+
+// ----------------------------------------------------------------
+// Pagination
+// ----------------------------------------------------------------
+
+.account-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+
+    &__link {
+        color: var(--color-gold);
+        text-decoration: none;
+        font-size: 1.2rem;
+        padding: 0.25rem 0.5rem;
+
+        &:hover { color: var(--color-gold-light); }
+    }
+
+    &__info {
+        color: var(--color-text-muted);
+        font-size: 0.875rem;
+    }
+}
+
+// ----------------------------------------------------------------
+// Adresses
+// ----------------------------------------------------------------
+
+.account-address-group {
+    margin-bottom: 2rem;
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: 1.1rem;
+        font-weight: 400;
+        color: var(--color-text-muted);
+        margin: 0 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+}
+
+.account-address-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.account-address-card {
+    padding: 1.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    line-height: 1.7;
+
+    &--locked {
+        opacity: 0.7;
+        border-style: dashed;
+    }
+
+    &__name {
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 0.25rem;
+    }
+
+    &__locked-notice {
+        margin-top: 0.75rem;
+        font-size: 0.78rem;
+        color: var(--color-text-muted);
+        font-style: italic;
+    }
+
+    p { margin: 0; color: var(--color-text-muted); }
+}
+
+// ----------------------------------------------------------------
+// Sections (sécurité, etc.)
+// ----------------------------------------------------------------
+
+.account-section {
+    margin-bottom: 3rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid var(--color-border);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: 1.15rem;
+        font-weight: 400;
+        color: var(--color-text);
+        margin: 0 0 1.5rem;
+    }
+}
+
+// ----------------------------------------------------------------
+// Formulaire compte
+// ----------------------------------------------------------------
+
+.account-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 400px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--color-text-muted);
+        font-family: var(--font-serif);
+    }
+
+    input:not([type='checkbox']),
+    select,
+    textarea {
+        width: 100%;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+        padding: 0.6rem 0.85rem;
+        font-size: 0.9rem;
+        font-family: var(--font-sans);
+        border-radius: 2px;
+        transition: border-color 200ms ease, box-shadow 200ms ease;
+        appearance: auto;
+
+        &:focus {
+            outline: none;
+            border-color: var(--color-gold);
+            box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.15);
+        }
+
+        &:disabled,
+        &.form-input--readonly {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: rgba(0, 0, 0, 0.03);
+        }
+    }
+}
+
+.form-hint {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+
+    a {
+        color: var(--color-gold);
+        text-decoration: none;
+
+        &:hover { text-decoration: underline; }
+    }
+}
+
+.form-error {
+    font-size: 0.78rem;
+    color: #ff6060;
+    margin: 0;
+}
+
+.form-group--checkbox {
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+
+.form-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+
+    input[type='checkbox'] {
+        flex-shrink: 0;
+        margin-top: 0.15rem;
+        accent-color: var(--color-gold);
+        width: 1rem;
+        height: 1rem;
+        cursor: pointer;
+    }
+}
+
+// ----------------------------------------------------------------
+// Sessions actives
+// ----------------------------------------------------------------
+
+.account-sessions {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.account-session {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+
+    &--current {
+        border-color: var(--color-border-gold);
+    }
+
+    &__info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        font-size: 0.875rem;
+
+        strong { color: var(--color-text); }
+        span   { color: var(--color-text-muted); }
+    }
+
+    &__date { font-size: 0.8rem; }
+
+    &__badge {
+        display: inline-block;
+        padding: 0.15em 0.5em;
+        border-radius: 20px;
+        background: rgba(201, 168, 76, 0.15);
+        color: var(--color-gold);
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+}
+
+.btn--danger {
+    color: #ff6060;
+    border-color: rgba(255, 96, 96, 0.35);
+
+    &:hover {
+        background: rgba(255, 96, 96, 0.1);
+        border-color: #ff6060;
+    }
+}
+
+// ----------------------------------------------------------------
+// Favoris
+// ----------------------------------------------------------------
+
+.account-favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.account-favorite-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 200ms ease;
+
+    &:hover { border-color: var(--color-border-gold); }
+
+    &__img {
+        width: 100%;
+        height: 160px;
+        object-fit: contain;
+        background: #0d0d0d;
+        padding: 1rem;
+    }
+
+    &__body {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        flex: 1;
+
+        // Bouton retirer : hover rouge au lieu de doré
+        .btn--ghost:hover {
+            border-color: #c0392b;
+            color: #c0392b;
+        }
+    }
+
+    &__name {
+        font-family: var(--font-serif);
+        font-size: 0.95rem;
+        color: var(--color-text);
+        text-decoration: none;
+
+        &:hover { color: var(--color-gold); }
+    }
+
+    &__vintage {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+    }
+
+    &__price {
+        font-size: 0.9rem;
+        color: var(--color-gold);
+        margin-bottom: auto;
+    }
+}
+
+// ----------------------------------------------------------------
+// Champ mot de passe avec bouton œil (sécurité / profil)
+// ----------------------------------------------------------------
+
+.form-group--pwd {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.form-pwd-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    input {
+        width: 100%;
+        padding-right: 2.75rem;
+    }
+}
+
+.form-pwd-toggle {
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0.15rem;
+    display: flex;
+    align-items: center;
+    transition: color 200ms ease;
+
+    &:hover { color: var(--color-gold); }
+}
+
+// ----------------------------------------------------------------
+// Filtres commandes
+// ----------------------------------------------------------------
+
+.account-filters {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-end;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.account-filters__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--color-text-muted);
+        font-family: var(--font-serif);
+    }
+
+    select {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border-gold);
+        color: var(--color-text);
+        padding: 0.4rem 0.75rem;
+        font-size: 0.875rem;
+        border-radius: 2px;
+        cursor: pointer;
+
+        &:focus {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 1px;
+        }
+    }
+}
+
+// ----------------------------------------------------------------
+// Boutons adresses
+// ----------------------------------------------------------------
+
+.account-address-card__actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+
+// ----------------------------------------------------------------
+// Boutons formulaire adresse
+// ----------------------------------------------------------------
+
+.account-form__actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+// ----------------------------------------------------------------
+// Page export RGPD
+// ----------------------------------------------------------------
+
+.account-export {
+    &__intro {
+        color: var(--color-text-muted);
+        font-size: 0.95rem;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+    }
+
+    &__list {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+
+        li {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            padding-left: 1.2rem;
+            position: relative;
+
+            &::before {
+                content: '–';
+                position: absolute;
+                left: 0;
+                color: var(--color-gold);
+            }
+        }
+    }
+
+    &__retention {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        line-height: 1.6;
+        border-left: 2px solid var(--color-border-gold);
+        padding-left: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    &__generated {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        margin-bottom: 1.5rem;
+    }
+}
+
+// ----------------------------------------------------------------
+// Détail commande — en-tête + méta (DL/DT/DD)
+// ----------------------------------------------------------------
+
+.order-detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.order-detail-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.4rem 1.5rem;
+    align-items: baseline;
+
+    dt {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--color-text-muted);
+        font-family: var(--font-serif);
+        white-space: nowrap;
+    }
+
+    dd {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--color-text);
+    }
+}
+
+// ----------------------------------------------------------------
+// Timeline statut commande
+// ----------------------------------------------------------------
+
+.order-timeline {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    @media (max-width: 600px) {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    &__step {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        text-align: center;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 7px;
+            left: 50%;
+            right: -50%;
+            height: 2px;
+            background: var(--color-border);
+            z-index: 0;
+        }
+
+        &:last-child::before { display: none; }
+
+        &--done::before { background: var(--color-gold); }
+
+        @media (max-width: 600px) {
+            flex-direction: row;
+            gap: 0.75rem;
+            align-items: center;
+            text-align: left;
+
+            &::before { display: none; }
+        }
+    }
+
+    &__dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid var(--color-border);
+        background: var(--color-bg);
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+        transition: border-color 200ms ease, background 200ms ease;
+
+        .order-timeline__step--done & {
+            background: var(--color-gold);
+            border-color: var(--color-gold);
+        }
+
+        .order-timeline__step--current & {
+            border-color: var(--color-gold);
+            box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.25);
+        }
+    }
+
+    &__label {
+        margin-top: 0.4rem;
+        font-size: 0.72rem;
+        color: var(--color-text-muted);
+
+        .order-timeline__step--done    & { color: var(--color-text); }
+        .order-timeline__step--current & { color: var(--color-gold); font-weight: 600; }
+
+        @media (max-width: 600px) { margin-top: 0; }
+    }
+}
+
+// ----------------------------------------------------------------
+// Adresses dans le détail commande
+// ----------------------------------------------------------------
+
+.order-addresses {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.order-address {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    line-height: 1.8;
+    font-style: normal;
+}
+
+// ----------------------------------------------------------------
+// Ligne total + badges dans le tableau commande
+// ----------------------------------------------------------------
+
+.order-total-row td {
+    background: var(--color-surface);
+    border-top: 2px solid var(--color-border-gold);
+}
+
+.order-discount-row td {
+    color: var(--color-gold);
+    font-size: 0.9rem;
+}
+
+.order-invoice-bottom {
+    margin-top: 1rem;
+    text-align: right;
+}
+
+.order-contact-notice {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+
+    a { color: var(--color-gold); text-decoration: underline; }
+}
+
+.account-table__vintage,
+.account-table__format {
+    display: inline-block;
+    margin-left: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    background: rgba(138, 128, 112, 0.15);
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+}
+
+// ----------------------------------------------------------------
+// Modal suppression de compte
+// ----------------------------------------------------------------
+
+.account-delete-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &[hidden] { display: none; }
+
+    &__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+    }
+
+    &__inner {
+        position: relative;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border-gold);
+        width: min(460px, 95vw);
+        padding: 2rem;
+        z-index: 1;
+        border-radius: 2px;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: 1.2rem;
+        font-weight: 400;
+        color: var(--color-text);
+        margin: 0;
+    }
+
+    &__body {
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    &__actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+}

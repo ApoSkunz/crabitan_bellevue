@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Middleware;
 
+use Core\CookieHelper;
+use Core\Database;
 use Core\Jwt;
 use Core\Response;
 
@@ -11,9 +13,13 @@ class AuthMiddleware
 {
     /**
      * Vérifie le JWT en cookie et retourne le payload.
-     * Redirige vers /connexion si absent ou invalide.
+     * Vérifie aussi que la session est toujours active en base (non révoquée).
+     * Redirige vers /connexion si absent, invalide ou révoqué.
+     *
+     * @param  callable(string):bool|null  $sessionChecker  Injectable pour les tests unitaires.
+     *                                                       null = vérification réelle en base.
      */
-    public static function handle(): array
+    public static function handle(?callable $sessionChecker = null): array
     {
         $token = $_COOKIE['auth_token'] ?? null;
         $lang  = defined('CURRENT_LANG') ? CURRENT_LANG : 'fr';
@@ -23,10 +29,26 @@ class AuthMiddleware
         }
 
         try {
-            return Jwt::decode($token);
+            $payload = Jwt::decode($token);
         } catch (\Throwable) {
-            setcookie('auth_token', '', time() - 1, '/', '', true, true);
+            CookieHelper::clear();
             Response::redirect("/{$lang}/connexion");
         }
+
+        // Vérifie que la session n'a pas été révoquée en base
+        $checker = $sessionChecker ?? static function (string $t): bool {
+            $row = Database::getInstance()->fetchOne(
+                "SELECT id FROM connections WHERE token = ? AND status = 'active'",
+                [$t]
+            );
+            return (bool) $row;
+        };
+
+        if (!$checker($token)) {
+            CookieHelper::clear();
+            Response::redirect("/{$lang}/connexion");
+        }
+
+        return $payload;
     }
 }

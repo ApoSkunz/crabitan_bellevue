@@ -13,9 +13,12 @@ export default defineConfig({
         outDir: 'public/assets',
         emptyOutDir: false,
         rollupOptions: {
-            input: resolve(__dirname, 'resources/js/main.js'),
+            input: {
+                main:         resolve(__dirname, 'resources/js/main.js'),
+                'admin-charts': resolve(__dirname, 'resources/js/admin-charts.js'),
+            },
             output: {
-                entryFileNames: 'js/main.js',
+                entryFileNames: 'js/[name].js',
                 chunkFileNames: 'js/[name].js',
                 assetFileNames: ({ name }) => {
                     if (name?.endsWith('.css')) return 'css/main.css';

@@ -213,4 +213,43 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
             ob_end_clean();
         }
     }
+
+    // ----------------------------------------------------------------
+    // downloadInvoice — facture enregistrée en BDD mais fichier absent → 404
+    // ----------------------------------------------------------------
+
+    public function testDownloadInvoiceAborts404WhenFileDoesNotExistOnDisk(): void
+    {
+        $id = $this->insertOrder();
+        // Mise à jour directe du path_invoice avec un fichier inexistant
+        self::$db->execute(
+            "UPDATE orders SET path_invoice = 'storage/invoices/nonexistent_ti_invoice.pdf' WHERE id = ?",
+            [$id]
+        );
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(404);
+
+        ob_start();
+        try {
+            $this->makeController()->downloadInvoice(['id' => (string) $id]);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // index — per_page valide à 25
+    // ----------------------------------------------------------------
+
+    public function testIndexWithValidPerPage25(): void
+    {
+        $_GET['per_page'] = '25';
+
+        ob_start();
+        $this->makeController()->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('admin-table', $output);
+    }
 }

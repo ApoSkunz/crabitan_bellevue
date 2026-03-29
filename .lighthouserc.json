@@ -4,19 +4,32 @@
       "url": [
         "http://localhost:8080/age-gate",
         "http://localhost:8080/fr",
+        "http://localhost:8080/en",
         "http://localhost:8080/fr/le-chateau",
         "http://localhost:8080/fr/savoir-faire",
         "http://localhost:8080/fr/actualites",
         "http://localhost:8080/fr/vins",
+        "http://localhost:8080/fr/vins/collection",
+        "http://localhost:8080/fr/vins/sainte-croix-du-mont-2010",
+        "http://localhost:8080/fr/vins/sainte-croix-du-mont-2010/fiche-technique",
         "http://localhost:8080/fr/contact",
-        "http://localhost:8080/fr/mentions-legales"
+        "http://localhost:8080/fr/mentions-legales",
+        "http://localhost:8080/fr/politique-de-confidentialite",
+        "http://localhost:8080/fr/plan-du-site",
+        "http://localhost:8080/fr/support",
+        "http://localhost:8080/fr/panier",
+        "http://localhost:8080/fr/mon-compte",
+        "http://localhost:8080/fr/mon-compte/profil",
+        "http://localhost:8080/fr/mon-compte/commandes",
+        "http://localhost:8080/fr/mon-compte/adresses",
+        "http://localhost:8080/fr/mon-compte/favoris",
+        "http://localhost:8080/fr/mon-compte/securite",
+        "http://localhost:8080/fr/mon-compte/export"
       ],
       "numberOfRuns": 1,
-      "settings": {
-        "chromeFlags": "--no-sandbox --disable-dev-shm-usage",
-        "extraHeaders": {
-          "Cookie": "age_verified=1"
-        }
+      "puppeteerScript": "./lighthouse-auth.cjs",
+      "puppeteerLaunchOptions": {
+        "args": ["--no-sandbox", "--disable-dev-shm-usage"]
       }
     },
     "assert": {

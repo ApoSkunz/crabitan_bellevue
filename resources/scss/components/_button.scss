@@ -70,4 +70,36 @@
             color: var(--color-gold);
         }
     }
+
+    // Alias sémantique — identique à --gold
+    &--primary {
+        background-color: transparent;
+        color: var(--color-gold);
+        border-color: var(--color-gold);
+
+        &:hover {
+            background-color: var(--color-gold);
+            color: #080808;
+        }
+    }
+
+    // Variante danger (rouge)
+    &--danger {
+        background-color: transparent;
+        color: #c0392b;
+        border-color: #c0392b;
+
+        &:hover {
+            background-color: rgba(192, 57, 43, 0.08);
+            color: #080808;
+            border-color: #a93226;
+        }
+    }
+
+    // Modificateur taille réduite
+    &--sm {
+        padding: 0.35em 0.9em;
+        font-size: 0.8rem;
+        letter-spacing: 0.06em;
+    }
 }

@@ -26,9 +26,7 @@
     position: sticky;
     top: 0;
     height: 100vh;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(201, 168, 76, 0.2) transparent;
+    overflow: hidden;
 }
 
 .admin-sidebar__logo {
@@ -63,6 +61,9 @@
 .admin-nav {
     padding: 1rem 0;
     flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201, 168, 76, 0.2) transparent;
 }
 
 .admin-nav__item {

@@ -48,13 +48,14 @@ $totalOrders  = array_sum($ordersByStatus);
     <div class="admin-card__body" style="display:flex;flex-wrap:wrap;gap:0.75rem;">
         <?php
         $statusLabels = [
-            'pending'    => 'En attente',
-            'paid'       => 'Payée',
-            'processing' => 'En préparation',
-            'shipped'    => 'Expédiée',
-            'delivered'  => 'Livrée',
-            'cancelled'  => 'Annulée',
-            'refunded'   => 'Remboursée',
+            'pending'          => 'En attente',
+            'paid'             => 'Payée',
+            'processing'       => 'En préparation',
+            'shipped'          => 'Expédiée',
+            'delivered'        => 'Livrée',
+            'cancelled'        => 'Annulée',
+            'refunded'         => 'Remboursée',
+            'return_requested' => 'Retour en cours',
         ];
         foreach ($statusLabels as $key => $label) :
             $cnt = $ordersByStatus[$key] ?? 0;

@@ -15,6 +15,13 @@ class HelpersTest extends TestCase
         Lang::load('fr');
     }
 
+    protected function tearDown(): void
+    {
+        $prop = new \ReflectionProperty(Lang::class, 'translations');
+        $prop->setAccessible(true);
+        $prop->setValue(null, []);
+    }
+
     public function testHelperReturnsTranslation(): void
     {
         $result = __('nav.home');

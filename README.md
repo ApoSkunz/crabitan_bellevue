@@ -10,7 +10,12 @@ Site e-commerce de vins — [crabitanbellevue.fr](https://crabitanbellevue.fr)
 
 ## Sécurité
 
+**Scanning actif** (secrets, SAST, supply chain, hardening GitHub) — `security.yml` : TruffleHog · CodeQL · Semgrep OWASP · Exakat · Legitify
+
 [![Security](https://github.com/ApoSkunz/crabitan_bellevue/actions/workflows/security.yml/badge.svg)](https://github.com/ApoSkunz/crabitan_bellevue/actions/workflows/security.yml)
+
+**Analyse statique du code source** — SonarCloud : Security Rating · Vulnérabilités · Quality Gate
+
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ApoSkunz_crabitan_bellevue&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ApoSkunz_crabitan_bellevue)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ApoSkunz_crabitan_bellevue&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ApoSkunz_crabitan_bellevue)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=ApoSkunz_crabitan_bellevue&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=ApoSkunz_crabitan_bellevue)

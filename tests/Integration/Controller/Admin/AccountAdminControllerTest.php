@@ -86,8 +86,10 @@ class AccountAdminControllerTest extends AdminIntegrationTestCase
 
     public function testVerifyRedirectsOnInvalidCsrfAsSuperAdmin(): void
     {
-        $superAdminId = $this->insertAdminAccount('super_admin', 'superadmin@test.local');
-        $_COOKIE['auth_token'] = Jwt::generate($superAdminId, 'super_admin');
+        $superAdminId          = $this->insertAdminAccount('super_admin', 'superadmin@test.local');
+        $token                 = Jwt::generate($superAdminId, 'super_admin');
+        $_COOKIE['auth_token'] = $token;
+        $this->insertConnection($superAdminId, $token);
         $_POST['csrf_token'] = 'wrong';
 
         $this->expectException(HttpException::class);
@@ -102,9 +104,11 @@ class AccountAdminControllerTest extends AdminIntegrationTestCase
 
     public function testVerifySuccessAsSuperAdmin(): void
     {
-        $superAdminId = $this->insertAdminAccount('super_admin', 'superadmin@test.local');
-        $_COOKIE['auth_token']  = Jwt::generate($superAdminId, 'super_admin');
-        $_POST['csrf_token']    = self::CSRF_TOKEN;
+        $superAdminId          = $this->insertAdminAccount('super_admin', 'superadmin@test.local');
+        $token                 = Jwt::generate($superAdminId, 'super_admin');
+        $_COOKIE['auth_token'] = $token;
+        $this->insertConnection($superAdminId, $token);
+        $_POST['csrf_token']   = self::CSRF_TOKEN;
 
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(302);

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 // Chargement des variables d'environnement
-$env = parse_ini_file(ROOT_PATH . '/.env');
-foreach ($env as $key => $value) {
+$env = is_file(ROOT_PATH . '/.env') ? parse_ini_file(ROOT_PATH . '/.env') : [];
+foreach ($env ?: [] as $key => $value) {
     $_ENV[$key] = $value;
 }
 

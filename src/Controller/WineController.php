@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Controller;
 
 use Core\Controller;
+use Core\Jwt;
 use Core\Response;
+use Model\FavoriteModel;
 use Model\WineModel;
 use TCPDF;
 
@@ -17,6 +19,27 @@ class WineController extends Controller
 
     private const VALID_PER_PAGE = [10, 25, 50, 100];
     private const DEFAULT_PER_PAGE = 25;
+
+    /**
+     * Retourne les IDs de vins likés par l'utilisateur courant (tableau indexé pour lookup O(1)).
+     * Retourne [] si non connecté ou token invalide.
+     *
+     * @return array<int, true>
+     */
+    private function getCurrentUserLikedIds(): array
+    {
+        $token = $_COOKIE['auth_token'] ?? null;
+        if ($token === null) {
+            return [];
+        }
+        try {
+            $payload = Jwt::decode($token);
+            $userId  = (int) $payload['sub'];
+            return (new FavoriteModel())->getLikedIds($userId);
+        } catch (\Throwable) {
+            return [];
+        }
+    }
 
     public function index(array $params): void
     {
@@ -39,6 +62,7 @@ class WineController extends Controller
         $this->view('wines/index', [
             'lang'          => $lang,
             'wines'         => $wines,
+            'likedIds'      => $this->getCurrentUserLikedIds(),
             'activeColor'   => $color,
             'activeSort'    => $sort,
             'activePerPage' => $perPage,
@@ -77,6 +101,7 @@ class WineController extends Controller
         $this->view('wines/collection', [
             'lang'          => $lang,
             'winesByColor'  => $winesByColor,
+            'likedIds'      => $this->getCurrentUserLikedIds(),
             'activeColor'   => $color,
             'activeSort'    => $sort,
             'activeAvail'   => $rawAvail,
@@ -375,9 +400,22 @@ class WineController extends Controller
             Response::abort(404);
         }
 
+        $isLiked = false;
+        $token   = $_COOKIE['auth_token'] ?? null;
+        if ($token !== null) {
+            try {
+                $payload = \Core\Jwt::decode($token);
+                $userId  = (int) $payload['sub'];
+                $isLiked = (new \Model\FavoriteModel())->isLiked($userId, (int) $wine['id']);
+            } catch (\Throwable) {
+                // Token invalide : isLiked reste false
+            }
+        }
+
         $this->view('wines/show', [
-            'lang' => $lang,
-            'wine' => $wine,
+            'lang'    => $lang,
+            'wine'    => $wine,
+            'isLiked' => $isLiked,
         ]);
     }
 }

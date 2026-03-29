@@ -332,7 +332,7 @@ function getLocalCartCount() {
 function updateCartCount() {
     const badge = document.querySelector('.header-cart__count');
     if (!badge) return;
-    const count = window.__userLogged ? 0 : getLocalCartCount();
+    const count = getLocalCartCount();
     badge.textContent = count;
 }
 
@@ -358,6 +358,8 @@ function initCartModal() {
 
     if (!modal) return;
 
+    let currentCuvee = '';
+
     // Parse "15,50 €" → 15.50 (float)
     function parsePrice(str) {
         return parseFloat((str || '0').replace(/\s/g, '').replace(',', '.').replace('€', '')) || 0;
@@ -376,6 +378,7 @@ function initCartModal() {
         const wineName  = btn.dataset.wineName  || '';
         const winePrice = btn.dataset.winePrice || '';
         const wineImage = btn.dataset.wineImage || '';
+        currentCuvee    = btn.dataset.wineCuvee || '';
 
         titleEl.textContent   = wineName;
         priceEl.textContent   = winePrice;
@@ -384,6 +387,16 @@ function initCartModal() {
         wineIdEl.value        = wineId;
         qtyInput.value        = 1;
         qtyHidden.value       = 1;
+
+        const cuveeEl = document.getElementById('cart-modal-cuvee');
+        if (cuveeEl) {
+            if (currentCuvee) {
+                cuveeEl.textContent = '\u2605 ' + currentCuvee;
+                cuveeEl.hidden = false;
+            } else {
+                cuveeEl.hidden = true;
+            }
+        }
 
         refreshTotal();
 
@@ -397,6 +410,29 @@ function initCartModal() {
     function closeModal() {
         modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+        const successEl = document.getElementById('cart-modal-success');
+        const bodyEl    = modal.querySelector('.cart-modal__body');
+        const footerEl  = modal.querySelector('.cart-modal__footer');
+        if (successEl) successEl.hidden = true;
+        if (bodyEl)    bodyEl.hidden    = false;
+        if (footerEl)  footerEl.hidden  = false;
+    }
+
+    function showCartSuccess(qty) {
+        const successEl = document.getElementById('cart-modal-success');
+        const msgEl     = document.getElementById('cart-modal-success-msg');
+        const bodyEl    = modal.querySelector('.cart-modal__body');
+        const footerEl  = modal.querySelector('.cart-modal__footer');
+        const isEn      = document.documentElement.lang === 'en';
+        const msg = isEn
+            ? qty + ' bottle' + (qty > 1 ? 's' : '') + ' added to your cart!'
+            : qty + ' bouteille' + (qty > 1 ? 's' : '') + ' ajout\u00e9e' + (qty > 1 ? 's' : '') + ' au panier\u00a0!';
+        if (msgEl)     msgEl.textContent = msg;
+        if (bodyEl)    bodyEl.hidden     = true;
+        if (footerEl)  footerEl.hidden   = true;
+        if (successEl) successEl.hidden  = false;
+        updateCartCount();
+        setTimeout(closeModal, 1200);
     }
 
     // Open on js-add-to-cart click (delegated) — tous les utilisateurs
@@ -406,26 +442,18 @@ function initCartModal() {
         openModal(btn);
     });
 
-    // Soumission du formulaire
+    // Soumission du formulaire — toujours interceptée (cart côté serveur non encore implémenté)
     form?.addEventListener('submit', (e) => {
-        if (!window.__userLogged) {
-            e.preventDefault();
-            addToLocalCart({
-                id:    parseInt(wineIdEl.value, 10),
-                qty:   parseInt(qtyHidden.value, 10) || 1,
-                name:  titleEl.textContent,
-                price: priceEl.textContent,
-                image: imgEl.src,
-            });
-            closeModal();
-            showToast(
-                document.documentElement.lang === 'en'
-                    ? 'Added to cart!'
-                    : 'Ajouté au panier !',
-                false
-            );
-        }
-        // Si connecté : le formulaire se soumet normalement vers le serveur
+        e.preventDefault();
+        const qty = parseInt(qtyHidden.value, 10) || 1;
+        addToLocalCart({
+            id:    parseInt(wineIdEl.value, 10),
+            qty,
+            name:  titleEl.textContent,
+            price: priceEl.textContent,
+            image: imgEl.src,
+        });
+        showCartSuccess(qty);
     });
 
     backdrop?.addEventListener('click', closeModal);
@@ -660,6 +688,86 @@ function initFavoriteAuth() {
             showToast(btn.dataset.loginMsg || 'Connectez-vous pour aimer ce vin.', false);
         }
     }, true); // capture phase so we intercept before any other handler
+}
+
+// ============================================================
+// Favoris — toggle AJAX (connecté uniquement)
+// ============================================================
+
+function initFavoriteToggle() {
+    // Cœur brisé au survol des boutons déjà likés
+    document.addEventListener('mouseover', (e) => {
+        const btn = e.target.closest('.js-favorite.is-liked');
+        if (!btn) return;
+        const iconEl = btn.querySelector('.js-favorite-icon');
+        if (iconEl) iconEl.textContent = '\uD83D\uDC94';
+        else        btn.textContent    = '\uD83D\uDC94';
+    });
+    document.addEventListener('mouseout', (e) => {
+        const btn = e.target.closest('.js-favorite.is-liked');
+        if (!btn) return;
+        const iconEl = btn.querySelector('.js-favorite-icon');
+        if (iconEl) iconEl.textContent = '\u2665';
+        else        btn.textContent    = '\u2665';
+    });
+
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-favorite');
+        if (!btn || !window.__userLogged) return;
+
+        const wineId = parseInt(btn.dataset.wineId, 10);
+        if (!wineId) return;
+
+        btn.disabled = true;
+
+        fetch('/api/favorites/toggle', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ wine_id: wineId }),
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (!data.success) return;
+                const liked   = data.liked;
+                const iconEl  = btn.querySelector('.js-favorite-icon');
+                const labelEl = btn.querySelector('.js-favorite-label');
+                const isEn    = document.documentElement.lang === 'en';
+
+                btn.dataset.liked = liked ? 'true' : 'false';
+                btn.classList.toggle('is-liked', liked);
+                btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
+
+                if (iconEl)       iconEl.textContent  = liked ? '\u2665' : '\u2661';
+                else              btn.textContent      = liked ? '\u2665' : '\u2661';
+                if (labelEl) labelEl.textContent = liked
+                    ? (isEn ? 'Remove from favourites' : 'Retirer des favoris')
+                    : (isEn ? 'Add to favourites'      : 'Ajouter aux favoris');
+
+                // Sync all other buttons + counters for this wine on the page
+                document.querySelectorAll(`.js-favorite[data-wine-id="${wineId}"]`).forEach((other) => {
+                    if (other === btn) return;
+                    other.dataset.liked = liked ? 'true' : 'false';
+                    other.classList.toggle('is-liked', liked);
+                    other.setAttribute('aria-pressed', liked ? 'true' : 'false');
+                    const otherIcon = other.querySelector('.js-favorite-icon');
+                    if (otherIcon) otherIcon.textContent = liked ? '\u2665' : '\u2661';
+                    else           other.textContent      = liked ? '\u2665' : '\u2661';
+                });
+                document.querySelectorAll(`.wine-card__likes-count[data-wine-id="${wineId}"]`).forEach((counter) => {
+                    const current = parseInt(counter.textContent, 10) || 0;
+                    counter.textContent = liked ? current + 1 : Math.max(0, current - 1);
+                });
+            })
+            .catch(() => {
+                showToast(
+                    document.documentElement.lang === 'en'
+                        ? 'An error occurred. Please try again.'
+                        : 'Une erreur est survenue. Veuillez r\u00e9essayer.',
+                    false
+                );
+            })
+            .finally(() => { btn.disabled = false; });
+    });
 }
 
 // ============================================================
@@ -987,6 +1095,258 @@ function initResetModal() {
     });
 }
 
+// ============================================================
+// Espace compte — toggle mot de passe (page sécurité)
+// ============================================================
+
+function initAccountPasswordToggle() {
+    document.querySelectorAll('.form-pwd-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            btn.querySelector('.pwd-eye--show').hidden = isHidden;
+            btn.querySelector('.pwd-eye--hide').hidden = !isHidden;
+        });
+    });
+}
+
+// ============================================================
+// Espace compte — confirmation avant soumission (data-confirm)
+// ============================================================
+
+function initConfirmForms() {
+    // Injecte un modal de confirmation générique (réutilise les styles .account-delete-modal)
+    const modal = document.createElement('div');
+    modal.id = 'js-confirm-modal';
+    modal.className = 'account-delete-modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'js-confirm-modal-title');
+    modal.hidden = true;
+    modal.innerHTML = `
+        <div class="account-delete-modal__backdrop" id="js-confirm-backdrop"></div>
+        <div class="account-delete-modal__inner">
+            <h2 id="js-confirm-modal-title" class="account-delete-modal__title"></h2>
+            <p class="account-delete-modal__body" id="js-confirm-modal-body"></p>
+            <div class="account-delete-modal__actions">
+                <button type="button" class="btn btn--danger" id="js-confirm-ok">Confirmer</button>
+                <button type="button" class="btn btn--ghost" id="js-confirm-cancel">Annuler</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+
+    const titleEl    = modal.querySelector('#js-confirm-modal-title');
+    const bodyEl     = modal.querySelector('#js-confirm-modal-body');
+    const okBtn      = modal.querySelector('#js-confirm-ok');
+    const cancelBtn  = modal.querySelector('#js-confirm-cancel');
+    const backdrop   = modal.querySelector('#js-confirm-backdrop');
+
+    let pendingForm = null;
+
+    function openConfirm(form, msg) {
+        pendingForm = form;
+        // Le message peut contenir un pipe "Titre|Corps" ou être une simple string
+        const parts = msg.split('|');
+        if (titleEl) titleEl.textContent = parts[0] ?? '';
+        if (bodyEl)  bodyEl.textContent  = parts[1] ?? '';
+        modal.hidden = false;
+        okBtn?.focus();
+    }
+
+    function closeConfirm() {
+        modal.hidden = true;
+        pendingForm  = null;
+    }
+
+    okBtn?.addEventListener('click', () => {
+        if (pendingForm) {
+            // Soumettre le formulaire en bypassant l'écouteur submit
+            pendingForm.removeAttribute('data-confirm');
+            pendingForm.submit();
+        }
+        closeConfirm();
+    });
+
+    cancelBtn?.addEventListener('click', closeConfirm);
+    backdrop?.addEventListener('click', closeConfirm);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.hidden) closeConfirm();
+    });
+
+    document.addEventListener('submit', (e) => {
+        const form = e.target.closest('form[data-confirm]');
+        if (!form) return;
+        e.preventDefault();
+        openConfirm(form, form.dataset.confirm ?? '');
+    });
+}
+
+// ============================================================
+// Espace compte — toggle formulaire ajout adresse
+// ============================================================
+
+function initAlertAutoDismiss() {
+    document.querySelectorAll('.alert--success').forEach((el) => {
+        setTimeout(() => {
+            el.style.transition = 'opacity 400ms ease';
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 400);
+        }, 2500);
+    });
+}
+
+function initAddressAddToggle() {
+    const section = document.getElementById('address-add-form');
+    if (!section) return;
+
+    document.querySelectorAll('.js-address-add-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const isHidden = section.hidden;
+            section.hidden = !isHidden;
+            if (!isHidden) return;
+            section.querySelector('input:not([type="hidden"]),[select]')?.focus();
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+}
+
+// ============================================================
+// Espace compte — suppression carte favori après unlike
+// ============================================================
+
+function initAccountFavoritesRemove() {
+    const grid = document.querySelector('.account-favorites-grid');
+    if (!grid) return;
+
+    grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-account-fav-remove');
+        if (!btn) return;
+
+        const wineId = parseInt(btn.dataset.wineId, 10);
+        if (!wineId) return;
+
+        btn.disabled = true;
+
+        fetch('/api/favorites/toggle', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ wine_id: wineId }),
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (!data.success || data.liked) {
+                    btn.disabled = false;
+                    return;
+                }
+                const card = btn.closest('li');
+                if (!card) return;
+                card.style.transition = 'opacity .3s';
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.remove();
+                    if (!grid.querySelector('li')) {
+                        grid.closest('.account-content')
+                            ?.querySelector('.account-empty')
+                            ?.removeAttribute('hidden');
+                    }
+                }, 320);
+            })
+            .catch(() => { btn.disabled = false; });
+    });
+}
+
+// ============================================================
+// Espace compte — modal réinitialisation sécurité
+// ============================================================
+
+function initResetSecurityModal() {
+    const modal    = document.getElementById('reset-security-modal');
+    if (!modal) return;
+
+    const openBtn  = document.getElementById('js-open-reset-modal');
+    const closeBtn = document.getElementById('js-close-reset-modal');
+    const backdrop = document.getElementById('js-reset-security-backdrop');
+    const pwdInput = modal.querySelector('input[name="password"]');
+
+    function openModal() {
+        modal.hidden = false;
+        pwdInput?.focus();
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        if (pwdInput) pwdInput.value = '';
+    }
+
+    openBtn?.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    backdrop?.addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.hidden) closeModal();
+    });
+
+    if (modal.hasAttribute('data-has-error')) openModal();
+}
+
+// ============================================================
+// Espace compte — modal confirmation suppression de compte
+// ============================================================
+
+function initDeleteAccountModal() {
+    const modal     = document.getElementById('delete-modal');
+    if (!modal) return;
+
+    const openBtn   = document.getElementById('js-open-delete-modal');
+    const closeBtn  = document.getElementById('js-close-delete-modal');
+    const backdrop  = document.getElementById('js-delete-modal-backdrop');
+    const submitBtn = document.getElementById('js-delete-submit');
+    const confirmTxt = modal.querySelector('input[name="confirm_text"]');
+
+    const pwdGroup = document.getElementById('js-delete-pwd-group');
+    const pwdInput = modal.querySelector('input[name="confirm_password"]');
+
+    function checkConfirmText() {
+        if (!submitBtn || !confirmTxt) return;
+        const ok = confirmTxt.value.trim().toUpperCase() === 'SUPPRESSION';
+        if (pwdGroup) {
+            pwdGroup.style.display = ok ? '' : 'none';
+            if (ok && pwdInput) pwdInput.focus();
+        }
+        submitBtn.disabled = !ok;
+    }
+
+    function openModal() {
+        modal.hidden = false;
+        (confirmTxt ?? modal.querySelector('input[name="confirm_password"]'))?.focus();
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        if (pwdInput) pwdInput.value = '';
+        if (confirmTxt) {
+            confirmTxt.value = '';
+            checkConfirmText();
+        }
+    }
+
+    confirmTxt?.addEventListener('input', checkConfirmText);
+
+    openBtn?.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    backdrop?.addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.hidden) closeModal();
+    });
+
+    // Auto-ouvrir si erreur de validation (retour serveur)
+    if (modal.hasAttribute('data-has-error')) {
+        openModal();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     if (window.__flashInfo) showToast(window.__flashInfo, false, 2000);
     initPageIntro();
@@ -1004,6 +1364,14 @@ document.addEventListener('DOMContentLoaded', () => {
     initCartModal();
     initCartLoginPrompt();
     initFavoriteAuth();
+    initFavoriteToggle();
+    initAccountFavoritesRemove();
+    initAccountPasswordToggle();
+    initResetSecurityModal();
+    initDeleteAccountModal();
+    initConfirmForms();
+    initAddressAddToggle();
+    initAlertAutoDismiss();
     initWineZoom();
     updateCartCount();
     initContactForm();

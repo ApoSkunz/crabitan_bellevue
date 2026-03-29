@@ -76,27 +76,33 @@ class NewsletterAdminController extends AdminController
         $destDir  = ROOT_PATH . '/public/assets/images/newsletter/';
         $imageUrl = $this->uploadNewsletterImage($_FILES['nl_image'] ?? [], $allowed, $destDir, $appUrl);
 
-        $all     = $this->accounts->getNewsletterSubscribers(10000, 0);
-        $mailer  = new MailService();
-        $sent    = 0;
-        $failed  = 0;
+        $pdf     = $this->uploadNewsletterPdf($_FILES['nl_pdf'] ?? []);
+        $pdfPath = $pdf !== null ? $pdf['path'] : null;
+        $pdfName = $pdf !== null ? $pdf['name'] : null;
 
-        $htmlBody = $mailer->buildNewsletterHtml(
-            $subject,
-            nl2br(htmlspecialchars($body, ENT_QUOTES)),
-            $imageUrl
-        );
+        $all    = $this->accounts->getNewsletterSubscribers(10000, 0);
+        $mailer = new MailService();
+        $sent   = 0;
+        $failed = 0;
+
+        $safeContent = nl2br(htmlspecialchars($body, ENT_QUOTES));
 
         foreach ($all as $sub) {
-            $name = $sub['account_type'] === 'company'
+            $name     = $sub['account_type'] === 'company'
                 ? ($sub['company_name'] ?? '')
                 : trim(($sub['firstname'] ?? '') . ' ' . ($sub['lastname'] ?? ''));
+            $token    = $sub['newsletter_unsubscribe_token'] ?? null;
+            $htmlBody = $mailer->buildNewsletterHtml($subject, $safeContent, $imageUrl, $token);
             try {
-                $mailer->sendNewsletter($sub['email'], $name ?: 'Abonné', $subject, $htmlBody);
+                $mailer->sendNewsletter($sub['email'], $name ?: 'Abonné', $subject, $htmlBody, $pdfPath, $pdfName);
                 $sent++;
             } catch (\Throwable) {
                 $failed++;
             }
+        }
+
+        if ($pdfPath !== null && file_exists($pdfPath)) {
+            unlink($pdfPath);
         }
 
         $msg = "{$sent} email(s) envoyé(s)";
@@ -108,6 +114,29 @@ class NewsletterAdminController extends AdminController
 
         $this->flash('success', $msg);
         Response::redirect(self::ADMIN_URL);
+    }
+
+    /**
+     * @param array<string, mixed> $file
+     * @return array{path: string, name: string}|null
+     */
+    private function uploadNewsletterPdf(array $file): ?array // NOSONAR php:S1142 — retours anticipés de validation intentionnels
+    {
+        if (empty($file['tmp_name'])) {
+            return null;
+        }
+        $finfo = new \finfo(\FILEINFO_MIME_TYPE);
+        if ($finfo->file($file['tmp_name']) !== 'application/pdf') {
+            return null;
+        }
+        if (($file['size'] ?? 0) > 10 * 1024 * 1024) {
+            return null;
+        }
+        $dest = sys_get_temp_dir() . '/nl_pdf_' . bin2hex(random_bytes(8)) . '.pdf';
+        if (!move_uploaded_file($file['tmp_name'], $dest)) {
+            return null;
+        }
+        return ['path' => $dest, 'name' => basename($file['name'] ?? 'newsletter.pdf')];
     }
 
     /**

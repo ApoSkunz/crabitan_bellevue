@@ -177,18 +177,21 @@ $colorLabels = [
                                                 data-wine-name="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                                                 data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
                                                 data-wine-image="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                                                data-wine-cuvee="<?= !empty($wine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                                                 aria-label="<?= htmlspecialchars(__('wine.add_to_cart') . ' : ' . $wine['label_name']) ?>"
                                             >&#128722;</button>
                                         <?php endif; ?>
+                                        <?php $isCardLiked = isset($likedIds[(int) $wine['id']]); ?>
                                         <span class="wine-card__likes">
                                             <button
                                                 type="button"
-                                                class="wine-card__heart js-favorite"
+                                                class="wine-card__heart js-favorite<?= $isCardLiked ? ' is-liked' : '' ?>"
                                                 data-wine-id="<?= (int) $wine['id'] ?>"
+                                                data-liked="<?= $isCardLiked ? 'true' : 'false' ?>"
                                                 data-login-msg="<?= htmlspecialchars(__('wine.like_login')) ?>"
                                                 aria-label="<?= htmlspecialchars(__('wine.favorites') . ' : ' . $wine['label_name']) ?>"
-                                                aria-pressed="false"
-                                            >&#9825;</button>
+                                                aria-pressed="<?= $isCardLiked ? 'true' : 'false' ?>"
+                                            ><?= $isCardLiked ? '&#9829;' : '&#9825;' ?></button>
                                             <span class="wine-card__likes-count" data-wine-id="<?= (int) $wine['id'] ?>">
                                                 <?= (int) ($wine['likes_count'] ?? 0) ?>
                                             </span>

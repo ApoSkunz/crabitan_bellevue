@@ -32,6 +32,14 @@ $router->get('/admin/bons-de-commande', 'Admin\OrderFormAdminController@index');
 $router->post('/admin/bons-de-commande/ajouter', 'Admin\OrderFormAdminController@upload');
 $router->post('/admin/bons-de-commande/{id}/supprimer', 'Admin\OrderFormAdminController@delete');
 $router->get('/admin/bons-de-commande/{id}/telecharger', 'Admin\OrderFormAdminController@download');
+$router->get('/admin/statistiques', 'Admin\StatsAdminController@index');
+$router->get('/admin/securite', 'Admin\ProfileAdminController@index');
+$router->post('/admin/securite/mot-de-passe', 'Admin\ProfileAdminController@changePassword');
+$router->post('/admin/securite/session/{id}/revoquer', 'Admin\ProfileAdminController@revokeSession');
+$router->post('/admin/securite/sessions/revoquer-toutes', 'Admin\ProfileAdminController@revokeAllSessions');
+$router->post('/admin/securite/appareils/retirer-confiance', 'Admin\ProfileAdminController@untrustDevice');
+$router->post('/admin/securite/appareils/supprimer-toutes', 'Admin\ProfileAdminController@untrustAllDevices');
+$router->post('/admin/securite/reinitialiser', 'Admin\ProfileAdminController@resetSecurity');
 
 // ============================================================
 // Routes publiques
@@ -91,10 +99,34 @@ $router->get('/{lang}/commande/confirmation', 'OrderController@confirmation');
 
 // Espace client
 $router->get('/{lang}/mon-compte', 'AccountController@index');
+$router->get('/{lang}/mon-compte/profil', 'AccountController@profile');
+$router->post('/{lang}/mon-compte/profil', 'AccountController@updateProfile');
 $router->get('/{lang}/mon-compte/commandes', 'AccountController@orders');
+$router->get('/{lang}/mon-compte/commandes/{id}', 'AccountController@orderDetail');
+$router->post('/{lang}/mon-compte/commandes/{id}/annuler', 'AccountController@cancelOrder');
 $router->get('/{lang}/mon-compte/commandes/{id}/facture', 'InvoiceController@download');
 $router->get('/{lang}/mon-compte/adresses', 'AccountController@addresses');
+$router->post('/{lang}/mon-compte/adresses/ajouter', 'AccountController@addAddress');
+$router->get('/{lang}/mon-compte/adresses/{id}/modifier', 'AccountController@editAddress');
+$router->post('/{lang}/mon-compte/adresses/{id}/modifier', 'AccountController@updateAddress');
+$router->post('/{lang}/mon-compte/adresses/{id}/supprimer', 'AccountController@deleteAddress');
 $router->get('/{lang}/mon-compte/favoris', 'AccountController@favorites');
+$router->get('/{lang}/mon-compte/securite', 'AccountController@security');
+$router->post('/{lang}/mon-compte/securite/mot-de-passe', 'AccountController@changePassword');
+$router->post('/{lang}/mon-compte/securite/session/{id}/revoquer', 'AccountController@revokeSession');
+$router->post('/{lang}/mon-compte/securite/supprimer-compte', 'AccountController@deleteAccount');
+$router->post('/{lang}/mon-compte/securite/sessions/revoquer-toutes', 'AccountController@revokeAllUserSessions');
+$router->get('/{lang}/mon-compte/nouvel-appareil', 'AccountController@newDevice');
+$router->get('/{lang}/mon-compte/appareil/confirmer', 'AccountController@confirmDevice');
+$router->get('/{lang}/mon-compte/appareil/annuler',   'AccountController@cancelMfa');
+$router->post('/{lang}/mon-compte/securite/appareils/retirer-confiance', 'AccountController@untrustDevice');
+$router->post('/{lang}/mon-compte/securite/reinitialiser', 'AccountController@resetSecurity');
+$router->post('/{lang}/mon-compte/securite/appareils/supprimer-toutes', 'AccountController@untrustAllDevices');
+$router->get('/{lang}/compte/reactiver', 'AccountController@reactivateAccount');
+$router->get('/{lang}/mon-compte/export', 'AccountController@exportPage');
+$router->get('/{lang}/mon-compte/export/telecharger', 'AccountController@exportData');
+$router->get('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribePage');
+$router->post('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribe');
 
 // ============================================================
 // Routes API (AJAX)
@@ -103,6 +135,7 @@ $router->post('/api/cart/add', 'Api\CartApiController@add');
 $router->post('/api/cart/update', 'Api\CartApiController@update');
 $router->post('/api/cart/remove', 'Api\CartApiController@remove');
 $router->post('/api/favorites/toggle', 'Api\FavoriteApiController@toggle');
+$router->get('/api/mfa/poll',          'Api\MfaController@poll');
 $router->post('/api/jeux/score',       'GameScoreController@save');
 $router->get('/api/jeux/score',        'GameScoreController@get');
 $router->get('/api/meteo',             'WeatherController@current');

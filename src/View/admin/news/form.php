@@ -29,8 +29,8 @@ $errClass = ' is-error';
 
 <div class="admin-card">
     <div class="admin-card__body">
-    <form method="POST" action="<?= htmlspecialchars($action) ?>"
-          class="admin-form" enctype="multipart/form-data">
+    <form id="news-form" method="POST" action="<?= htmlspecialchars($action) ?>"
+          class="admin-form" enctype="multipart/form-data" novalidate>
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
         <!-- ---- Titre bilingue ---- -->
@@ -39,13 +39,15 @@ $errClass = ' is-error';
             <div class="admin-form__grid">
                 <div class="admin-field">
                     <label class="admin-field__label" for="title_fr">Français *</label>
-                    <input type="text" id="title_fr" name="title_fr" required
+                    <input type="text" id="title_fr" name="title_fr"
                            class="admin-field__input<?= hasError($errors, 'title_fr') ? $errClass : '' ?>"
                            value="<?= htmlspecialchars($titleData['fr'] ?? '') ?>"
                            oninput="updateNewsSlug(this.value)">
-                    <?php if (hasError($errors, 'title_fr')) : ?>
-                        <span class="admin-field__error"><?= htmlspecialchars($errors['title_fr']) ?></span>
-                    <?php endif; ?>
+                    <span class="admin-field__error"
+                          id="err-title_fr"
+                          style="display:<?= hasError($errors, 'title_fr') ? 'block' : 'none' ?>;">
+                        <?= hasError($errors, 'title_fr') ? htmlspecialchars($errors['title_fr']) : 'Ce champ est obligatoire.' ?>
+                    </span>
                 </div>
                 <div class="admin-field">
                     <label class="admin-field__label" for="title_en">Anglais <span style="font-weight:400;font-size:0.72rem;">(traduit automatiquement)</span></label>
@@ -73,12 +75,14 @@ $errClass = ' is-error';
             <div class="admin-form__grid" style="align-items:start;">
                 <div class="admin-field">
                     <label class="admin-field__label" for="text_content_fr">Français *</label>
-                    <textarea id="text_content_fr" name="text_content_fr" required
+                    <textarea id="text_content_fr" name="text_content_fr"
                               class="admin-field__textarea<?= hasError($errors, 'text_content_fr') ? $errClass : '' ?>"
                               rows="8"><?= htmlspecialchars($contentData['fr'] ?? '') ?></textarea>
-                    <?php if (hasError($errors, 'text_content_fr')) : ?>
-                        <span class="admin-field__error"><?= htmlspecialchars($errors['text_content_fr']) ?></span>
-                    <?php endif; ?>
+                    <span class="admin-field__error"
+                          id="err-text_content_fr"
+                          style="display:<?= hasError($errors, 'text_content_fr') ? 'block' : 'none' ?>;">
+                        <?= hasError($errors, 'text_content_fr') ? htmlspecialchars($errors['text_content_fr']) : 'Ce champ est obligatoire.' ?>
+                    </span>
                 </div>
                 <div class="admin-field">
                     <label class="admin-field__label" for="text_content_en">Anglais <span style="font-weight:400;font-size:0.72rem;">(traduit automatiquement)</span></label>
@@ -117,9 +121,11 @@ $errClass = ' is-error';
                        accept="image/jpeg,image/png,image/webp"
                        class="admin-field__input<?= hasError($errors, 'image') ? $errClass : '' ?>"
                        onchange="previewImage(this)">
-                <?php if (hasError($errors, 'image')) : ?>
-                    <span class="admin-field__error"><?= htmlspecialchars($errors['image']) ?></span>
-                <?php endif; ?>
+                <span class="admin-field__error"
+                      id="err-image"
+                      style="display:<?= hasError($errors, 'image') ? 'block' : 'none' ?>;">
+                    <?= hasError($errors, 'image') ? htmlspecialchars($errors['image']) : 'Une image est obligatoire pour la création d\'un article.' ?>
+                </span>
             </div>
         </div>
 
@@ -147,6 +153,35 @@ $errClass = ' is-error';
 </div>
 
 <script>
+document.getElementById('news-form').addEventListener('submit', function(e) {
+    let hasError = false;
+    const checks = [
+        { id: 'title_fr',        errId: 'err-title_fr',        getValue: el => el.value.trim() },
+        { id: 'text_content_fr', errId: 'err-text_content_fr', getValue: el => el.value.trim() },
+        <?php if (!$isEdit) : ?>
+        { id: 'image',           errId: 'err-image',           getValue: el => el.files && el.files.length > 0 ? '1' : '' },
+        <?php endif; ?>
+    ];
+    checks.forEach(function(check) {
+        const el  = document.getElementById(check.id);
+        const err = document.getElementById(check.errId);
+        if (!el || !err) return;
+        if (!check.getValue(el)) {
+            el.classList.add('is-error');
+            err.style.display = 'block';
+            hasError = true;
+        } else {
+            el.classList.remove('is-error');
+            err.style.display = 'none';
+        }
+    });
+    if (hasError) {
+        e.preventDefault();
+        document.querySelector('.admin-field__error[style*="block"]')
+            ?.closest('.admin-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+});
+
 function toSlug(str) {
     return str.toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')

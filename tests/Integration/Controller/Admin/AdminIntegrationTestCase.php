@@ -28,8 +28,10 @@ abstract class AdminIntegrationTestCase extends IntegrationTestCase
         $_FILES   = [];
         $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit/Test';
 
-        $this->adminId = $this->insertAdminAccount();
-        $_COOKIE['auth_token'] = Jwt::generate($this->adminId, 'admin');
+        $this->adminId         = $this->insertAdminAccount();
+        $token                 = Jwt::generate($this->adminId, 'admin');
+        $_COOKIE['auth_token'] = $token;
+        $this->insertConnection($this->adminId, $token);
     }
 
     protected function tearDown(): void
@@ -55,6 +57,18 @@ abstract class AdminIntegrationTestCase extends IntegrationTestCase
             [$id]
         );
         return $id;
+    }
+
+    /**
+     * Insère une connexion active en base pour que AuthMiddleware valide le token.
+     */
+    protected function insertConnection(int $userId, string $token): void
+    {
+        self::$db->insert(
+            "INSERT INTO connections (user_id, token, auth_method, status, expired_at)
+             VALUES (?, ?, 'password', 'active', DATE_ADD(NOW(), INTERVAL 1 HOUR))",
+            [$userId, $token]
+        );
     }
 
     protected function makeRequest(string $method = 'GET', string $uri = '/admin'): Request
