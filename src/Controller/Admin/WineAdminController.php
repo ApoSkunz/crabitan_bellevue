@@ -270,8 +270,8 @@ class WineAdminController extends AdminController
         if ($vintage < 1900 || $vintage > (int) date('Y')) {
             $errors['vintage'] = 'Millésime invalide (1900 – ' . date('Y') . ').';
         }
-        if ($price <= 0) {
-            $errors['price'] = 'Prix invalide.';
+        if ($price < 3.0) {
+            $errors['price'] = 'Le prix doit être d\'au moins 3 €.';
         }
         if ($quantity < 0) {
             $errors['quantity'] = 'Quantité invalide.';
