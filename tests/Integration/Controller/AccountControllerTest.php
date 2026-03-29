@@ -176,7 +176,8 @@ class AccountControllerTest extends IntegrationTestCase
     private function insertDeliveredOrder(int $userId, int $addressId, string $deliveredAt = 'NOW() - INTERVAL 7 DAY'): int
     {
         return (int) self::$db->insert(
-            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status, delivered_at)
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status, delivered_at)
              VALUES (?, ?, '[]', 99.90, 'card', 0.00, ?, 'delivered', {$deliveredAt})",
             [$userId, 'TEST-' . bin2hex(random_bytes(4)), $addressId]
         );
