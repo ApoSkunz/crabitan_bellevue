@@ -26,15 +26,17 @@ $statusColors = [
 ];
 
 // Reconstruit l'URL de pagination en conservant les filtres actifs
-function ordersUrl(int $p, int $perPage, string $period, string $statusFilter): string
-{
-    $q = http_build_query(array_filter([
-        'page'     => $p,
-        'per_page' => $perPage !== 10 ? $perPage : null,
-        'period'   => $period !== 'all' ? $period : null,
-        'status'   => $statusFilter !== '' ? $statusFilter : null,
-    ]));
-    return '?' . $q;
+if (!function_exists('ordersUrl')) {
+    function ordersUrl(int $p, int $perPage, string $period, string $statusFilter): string
+    {
+        $q = http_build_query(array_filter([
+            'page'     => $p,
+            'per_page' => $perPage !== 10 ? $perPage : null,
+            'period'   => $period !== 'all' ? $period : null,
+            'status'   => $statusFilter !== '' ? $statusFilter : null,
+        ]));
+        return '?' . $q;
+    }
 }
 ?>
 <main class="account-page">
