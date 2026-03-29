@@ -367,6 +367,153 @@ INNER;
         return $this->emailWrap($safeTitle, $inner);
     }
 
+    /**
+     * Notifie le propriétaire qu'une demande de retour a été enregistrée.
+     *
+     * @param array<string, mixed> $order
+     */
+    public function sendReturnRequestedToOwner(array $order, string $clientName, string $clientEmail): void
+    {
+        $ownerEmail   = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
+        $safeRef      = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
+        $safeName     = htmlspecialchars($clientName, ENT_QUOTES);
+        $safeEmail    = htmlspecialchars($clientEmail, ENT_QUOTES);
+        $orderedAt    = isset($order['ordered_at']) ? date('d/m/Y', strtotime((string) $order['ordered_at'])) : '—';
+        $items        = json_decode((string) ($order['content'] ?? '[]'), true) ?: [];
+        $appUrl       = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $orderId      = (int) ($order['id'] ?? 0);
+        $orderLink    = $orderId > 0
+            ? htmlspecialchars($appUrl . '/admin/commandes/' . $orderId, ENT_QUOTES)
+            : '';
+
+        $rows = '';
+        foreach ($items as $item) {
+            $label  = htmlspecialchars($item['label_name'] ?? '—', ENT_QUOTES);
+            $format = htmlspecialchars($this->resolveItemFormat($item['format'] ?? '', 'fr'), ENT_QUOTES);
+            $qty    = (int) ($item['qty'] ?? 0);
+            $price  = number_format((float) ($item['price'] ?? 0), 2, ',', ' ');
+            $rows  .= "<tr style=\"border-bottom:1px solid #ede8df;\">"
+                . "<td style=\"padding:4px 8px;font-size:13px;color:#3d3425;\">{$label}</td>"
+                . "<td style=\"padding:4px 8px;font-size:13px;color:#3d3425;\">{$format}</td>"
+                . "<td style=\"padding:4px 8px;text-align:center;font-size:13px;color:#3d3425;\">{$qty}</td>"
+                . "<td style=\"padding:4px 8px;text-align:right;font-size:13px;color:#3d3425;\">{$price}&nbsp;€</td>"
+                . "</tr>";
+        }
+
+        $tableHtml = "<table style=\"width:100%;border-collapse:collapse;margin-top:12px;\">"
+            . "<thead><tr style=\"background:#f5f0e8;\">"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Vin</th>"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Format</th>"
+            . "<th style=\"padding:6px 8px;text-align:center;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Qté</th>"
+            . "<th style=\"padding:6px 8px;text-align:right;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Prix unit.</th>"
+            . "</tr></thead><tbody>{$rows}</tbody></table>";
+
+        $orderLinkBlock = $orderLink !== ''
+            ? "<br><br><a href=\"{$orderLink}\" style=\"color:#c9a84c;\">Voir la commande dans l'administration</a>"
+            : '';
+
+        $message = "Une demande de retour a été enregistrée pour la commande <strong>{$safeRef}</strong>.<br><br>"
+            . "<strong>Client :</strong> {$safeName} (<a href=\"mailto:{$safeEmail}\">{$safeEmail}</a>)<br>"
+            . "<strong>Date commande :</strong> {$orderedAt}"
+            . $orderLinkBlock . "<br><br>"
+            . $tableHtml;
+
+        $body = $this->emailSimpleLayout(
+            'Demande de retour',
+            'Nouvelle demande de rétractation',
+            $message
+        );
+
+        $this->send($ownerEmail, APP_NAME, "Retour client — commande {$safeRef}", $body, null, $clientEmail);
+    }
+
+    /**
+     * Confirme la demande de retour au client avec la fiche de retour en pièce jointe.
+     *
+     * @param array<string, mixed> $order
+     */
+    public function sendReturnConfirmedToClient(
+        string $to,
+        string $name,
+        array $order,
+        string $pdfPath,
+        string $lang
+    ): void {
+        $safeRef   = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
+        $safeName  = htmlspecialchars($name, ENT_QUOTES);
+        $orderedAt = isset($order['ordered_at']) ? date('d/m/Y', strtotime((string) $order['ordered_at'])) : '—';
+        $items     = json_decode((string) ($order['content'] ?? '[]'), true) ?: [];
+
+        $rows = '';
+        foreach ($items as $item) {
+            $label  = htmlspecialchars($item['label_name'] ?? '—', ENT_QUOTES);
+            $format = htmlspecialchars($this->resolveItemFormat($item['format'] ?? '', $lang), ENT_QUOTES);
+            $qty    = (int) ($item['qty'] ?? 0);
+            $price  = number_format((float) ($item['price'] ?? 0), 2, ',', ' ');
+            $rows  .= "<tr style=\"border-bottom:1px solid #ede8df;\">"
+                . "<td style=\"padding:4px 8px;font-size:13px;color:#3d3425;\">{$label}</td>"
+                . "<td style=\"padding:4px 8px;font-size:13px;color:#3d3425;\">{$format}</td>"
+                . "<td style=\"padding:4px 8px;text-align:center;font-size:13px;color:#3d3425;\">{$qty}</td>"
+                . "<td style=\"padding:4px 8px;text-align:right;font-size:13px;color:#3d3425;\">{$price}&nbsp;€</td>"
+                . "</tr>";
+        }
+
+        $tableHtml = "<table style=\"width:100%;border-collapse:collapse;margin-top:12px;\">"
+            . "<thead><tr style=\"background:#f5f0e8;\">"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">"
+            . ($lang === 'fr' ? 'Vin' : 'Wine')
+            . "</th>"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Format</th>"
+            . "<th style=\"padding:6px 8px;text-align:center;font-size:11px;letter-spacing:1px;color:#8a7a60;\">"
+            . ($lang === 'fr' ? 'Qté' : 'Qty')
+            . "</th>"
+            . "<th style=\"padding:6px 8px;text-align:right;font-size:11px;letter-spacing:1px;color:#8a7a60;\">"
+            . ($lang === 'fr' ? 'Prix unit.' : 'Unit price')
+            . "</th>"
+            . "</tr></thead><tbody>{$rows}</tbody></table>";
+
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $orderId   = (int) ($order['id'] ?? 0);
+        $orderLink = $orderId > 0
+            ? htmlspecialchars($appUrl . '/' . $lang . '/mon-compte/commandes/' . $orderId, ENT_QUOTES)
+            : '';
+
+        if ($lang === 'fr') {
+            $subject = "Confirmation de votre demande de retour — {$safeRef}";
+            $orderLinkBlock = $orderLink !== ''
+                ? "<br><br><a href=\"{$orderLink}\" style=\"color:#c9a84c;\">Voir ma commande</a>"
+                : '';
+            $message = "Votre demande de rétractation pour la commande <strong>{$safeRef}</strong> (passée le {$orderedAt})"
+                . " a bien été enregistrée.<br><br>"
+                . "Vous trouverez ci-joint votre fiche de retour à inclure dans votre colis."
+                . " Le retour doit être effectué en carton d'origine scellé, bouteilles non ouvertes."
+                . $orderLinkBlock . "<br><br>"
+                . "<strong>Récapitulatif de la commande :</strong>"
+                . $tableHtml;
+            $greeting = "Bonjour {$safeName},";
+            $title    = 'Demande de retour enregistrée';
+        } else {
+            $subject  = "Return request confirmation — {$safeRef}";
+            $orderLinkBlock = $orderLink !== ''
+                ? "<br><br><a href=\"{$orderLink}\" style=\"color:#c9a84c;\">View my order</a>"
+                : '';
+            $message  = "Your withdrawal request for order <strong>{$safeRef}</strong> (placed on {$orderedAt})"
+                . " has been registered.<br><br>"
+                . "Please find your return slip attached — include it in your parcel."
+                . " The return must be made in the original sealed carton, with unopened bottles."
+                . $orderLinkBlock . "<br><br>"
+                . "<strong>Order summary:</strong>"
+                . $tableHtml;
+            $greeting = "Hello {$safeName},";
+            $title    = 'Return request registered';
+        }
+
+        $body     = $this->emailSimpleLayout($title, $greeting, $message);
+        $filename = 'fiche-retour_' . ($order['order_reference'] ?? 'retour') . '.pdf';
+
+        $this->send($to, $name, $subject, $body, $pdfPath, null, $filename);
+    }
+
     private function send(
         string $to,
         string $name,
@@ -641,6 +788,15 @@ HTML;
             </td>
           </tr>
 HTML;
+    }
+
+    private function resolveItemFormat(string $format, string $lang): string
+    {
+        $map = [
+            'bottle' => ['fr' => 'bouteille', 'en' => 'bottle'],
+            'bib'    => ['fr' => 'bag-in-box', 'en' => 'bag-in-box'],
+        ];
+        return $map[$format][$lang] ?? ($map[$format]['fr'] ?? $format);
     }
 
     private function resolveSubjectLabel(string $subject, string $lang): string
