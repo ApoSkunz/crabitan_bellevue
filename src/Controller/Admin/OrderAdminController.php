@@ -99,9 +99,19 @@ class OrderAdminController extends AdminController
             Response::redirect(self::ADMIN_URL . '/' . $params['id']);
         }
 
-        $id     = (int) $params['id'];
-        $status = $this->request->post('status', '');
+        $id    = (int) $params['id'];
+        $order = $this->orders->findByIdForAdmin($id);
 
+        if (!$order) {
+            $this->abort(404, 'Commande introuvable');
+        }
+
+        if ($order['status'] === 'cancelled') {
+            $this->flash('error', 'Une commande annulée ne peut plus être modifiée.');
+            Response::redirect(self::ADMIN_URL . '/' . $id);
+        }
+
+        $status = $this->request->post('status', '');
         $this->orders->updateStatus($id, $status);
         $this->flash('success', 'Statut mis à jour.');
         Response::redirect(self::ADMIN_URL . '/' . $id);
