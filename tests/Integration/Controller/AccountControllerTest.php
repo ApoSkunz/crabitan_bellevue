@@ -1785,4 +1785,272 @@ class AccountControllerTest extends IntegrationTestCase
         $this->makeController('GET', '/fr/mon-compte/export/telecharger')
             ->exportData(['lang' => 'fr']);
     }
+
+    // ----------------------------------------------------------------
+    // revokeSession() — révocation de la session courante
+    // ----------------------------------------------------------------
+
+    /**
+     * Révoquer la session courante vide le cookie et redirige vers /fr.
+     */
+    public function testRevokeSessionCurrentSessionClearsAndRedirects(): void
+    {
+        $userId = $this->insertCustomer('rev.cur@test.local', 'individual');
+        $token  = $this->loginAs($userId);
+
+        $conn = self::$db->fetchOne(
+            'SELECT id FROM connections WHERE user_id = ? AND token = ? LIMIT 1',
+            [$userId, $token]
+        );
+        $this->assertNotFalse($conn, 'La connexion doit exister en base');
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', "/fr/mon-compte/securite/session/{$conn['id']}/revoquer")
+            ->revokeSession(['lang' => 'fr', 'id' => (string) $conn['id']]);
+    }
+
+    // ----------------------------------------------------------------
+    // revokeAllUserSessions() — CSRF invalide
+    // ----------------------------------------------------------------
+
+    /**
+     * Un CSRF invalide redirige sans révoquer.
+     */
+    public function testRevokeAllSessionsInvalidCsrfRedirects(): void
+    {
+        $userId = $this->insertCustomer('revall.csrf@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => 'bad-csrf'];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/securite/sessions/revoquer-toutes')
+            ->revokeAllUserSessions(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // addAddress() — CSRF invalide
+    // ----------------------------------------------------------------
+
+    /**
+     * Un CSRF invalide pose un flash error et redirige.
+     */
+    public function testAddAddressInvalidCsrfRedirects(): void
+    {
+        $userId = $this->insertCustomer('addaddr.badcsrf@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'csrf_token' => 'bad-csrf',
+            'firstname'  => 'Jean',
+            'lastname'   => 'Dupont',
+        ];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/adresses/ajouter')
+                ->addAddress(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['address_error'] ?? '');
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // updateAddress() — CSRF invalide, zip invalide, bloqué commande active
+    // ----------------------------------------------------------------
+
+    /**
+     * Un CSRF invalide pose un flash error et redirige.
+     */
+    public function testUpdateAddressInvalidCsrfRedirects(): void
+    {
+        $userId    = $this->insertCustomer('updaddr.badcsrf@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => 'bad-csrf'];
+
+        try {
+            $this->makeController('POST', "/fr/mon-compte/adresses/{$addressId}/modifier")
+                ->updateAddress(['lang' => 'fr', 'id' => (string) $addressId]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['address_error'] ?? '');
+        }
+    }
+
+    /**
+     * Un code postal français invalide pose un flash error et redirige.
+     */
+    public function testUpdateAddressInvalidZipRedirects(): void
+    {
+        $userId    = $this->insertCustomer('updaddr.badzip@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $this->loginAs($userId);
+
+        $_POST = [
+            'civility'   => 'M',
+            'firstname'  => 'Jean',
+            'lastname'   => 'Dupont',
+            'street'     => '1 rue de la Paix',
+            'city'       => 'Paris',
+            'zip_code'   => '00000',
+            'country'    => 'France',
+            'phone'      => '0601020304',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController('POST', "/fr/mon-compte/adresses/{$addressId}/modifier")
+                ->updateAddress(['lang' => 'fr', 'id' => (string) $addressId]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['address_error'] ?? '');
+        }
+    }
+
+    /**
+     * Une adresse liée à une commande active ne peut pas être modifiée.
+     */
+    public function testUpdateAddressBlockedByActiveOrderRedirects(): void
+    {
+        $userId    = $this->insertCustomer('updaddr.blocked@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $this->insertOrder($userId, $addressId, 'processing');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'civility'   => 'M',
+            'firstname'  => 'Jean',
+            'lastname'   => 'Dupont',
+            'street'     => '5 avenue de la Paix',
+            'city'       => 'Paris',
+            'zip_code'   => '75001',
+            'country'    => 'France',
+            'phone'      => '0601020304',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController('POST', "/fr/mon-compte/adresses/{$addressId}/modifier")
+                ->updateAddress(['lang' => 'fr', 'id' => (string) $addressId]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['address_error'] ?? '');
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // deleteAddress() — CSRF invalide, bloqué commande active
+    // ----------------------------------------------------------------
+
+    /**
+     * Un CSRF invalide pose un flash error et redirige.
+     */
+    public function testDeleteAddressInvalidCsrfRedirects(): void
+    {
+        $userId    = $this->insertCustomer('deladdr.badcsrf@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => 'bad-csrf'];
+
+        try {
+            $this->makeController('POST', "/fr/mon-compte/adresses/{$addressId}/supprimer")
+                ->deleteAddress(['lang' => 'fr', 'id' => (string) $addressId]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['address_error'] ?? '');
+        }
+    }
+
+    /**
+     * Une adresse liée à une commande active ne peut pas être supprimée.
+     */
+    public function testDeleteAddressBlockedByActiveOrderRedirects(): void
+    {
+        $userId    = $this->insertCustomer('deladdr.blocked@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $this->insertOrder($userId, $addressId, 'processing');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        try {
+            $this->makeController('POST', "/fr/mon-compte/adresses/{$addressId}/supprimer")
+                ->deleteAddress(['lang' => 'fr', 'id' => (string) $addressId]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['address_error'] ?? '');
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // orders() — filtres période et per_page
+    // ----------------------------------------------------------------
+
+    /**
+     * Un filtre période = '2024' active la branche année.
+     */
+    public function testOrdersWithYearPeriodRendersView(): void
+    {
+        $userId = $this->insertCustomer('orders.year@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_SERVER['REQUEST_URI'] = '/fr/mon-compte/commandes?period=2024';
+        $_GET = ['period' => '2024'];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/commandes?period=2024')
+            ->orders(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-filters', $output);
+    }
+
+    /**
+     * Un per_page invalide est remplacé par la valeur par défaut (10).
+     */
+    public function testOrdersInvalidPerPageFallsToDefault(): void
+    {
+        $userId = $this->insertCustomer('orders.pp@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_GET = ['per_page' => '99'];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/commandes?per_page=99')
+            ->orders(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-filters', $output);
+    }
+
+    /**
+     * Un filtre statut valide est transmis au model.
+     */
+    public function testOrdersWithValidStatusFilterRendersView(): void
+    {
+        $userId = $this->insertCustomer('orders.status@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_GET = ['status' => 'pending'];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/commandes?status=pending')
+            ->orders(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-filters', $output);
+    }
 }

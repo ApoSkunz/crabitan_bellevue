@@ -134,6 +134,147 @@ class MfaControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // poll — token confirmé → status=ok (happy path)
+    // ----------------------------------------------------------------
+
+    /**
+     * Un token confirmé émet le JWT et retourne status=ok + redirect.
+     */
+    public function testPollWithConfirmedTokenReturnsOk(): void
+    {
+        $token       = bin2hex(random_bytes(16));
+        $deviceToken = 'dev-confirmed-' . bin2hex(random_bytes(8));
+
+        self::$db->insert(
+            "INSERT INTO device_confirm_tokens
+             (user_id, device_token, device_name, token, expires_at, confirmed_at)
+             VALUES (?, ?, 'Chrome · Test', ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), NOW())",
+            [$this->userId, $deviceToken, $token]
+        );
+
+        $_GET['token'] = $token;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(200);
+
+        ob_start();
+        try {
+            $this->makeController()->poll([]);
+        } finally {
+            $raw  = ob_get_clean();
+            $json = json_decode(is_string($raw) ? $raw : '', true);
+            if ($json !== null) {
+                $this->assertSame('ok', $json['status']);
+                $this->assertArrayHasKey('redirect', $json);
+            }
+        }
+    }
+
+    /**
+     * Un token confirmé avec redirect_url explicite retourne cette URL.
+     */
+    public function testPollWithConfirmedTokenUsesRedirectUrl(): void
+    {
+        $token       = bin2hex(random_bytes(16));
+        $deviceToken = 'dev-redir-' . bin2hex(random_bytes(8));
+
+        self::$db->insert(
+            "INSERT INTO device_confirm_tokens
+             (user_id, device_token, device_name, token, expires_at, confirmed_at, redirect_url)
+             VALUES (?, ?, 'Firefox · Test', ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), NOW(), '/fr/mon-compte')",
+            [$this->userId, $deviceToken, $token]
+        );
+
+        $_GET['token'] = $token;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(200);
+
+        ob_start();
+        try {
+            $this->makeController()->poll([]);
+        } finally {
+            $raw  = ob_get_clean();
+            $json = json_decode(is_string($raw) ? $raw : '', true);
+            if ($json !== null) {
+                $this->assertSame('ok', $json['status']);
+                $this->assertSame('/fr/mon-compte', $json['redirect']);
+            }
+        }
+    }
+
+    /**
+     * Un token confirmé pour un compte non vérifié (email_verified_at NULL) retourne expired.
+     */
+    public function testPollWithConfirmedTokenUnverifiedAccountReturnsExpired(): void
+    {
+        $unverifiedId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang)
+             VALUES (?, ?, 'customer', 'fr')",
+            ['mfa.unverified.' . bin2hex(random_bytes(4)) . '@test.local', password_hash('Pass123!', PASSWORD_BCRYPT)]
+        );
+
+        $token       = bin2hex(random_bytes(16));
+        $deviceToken = 'dev-unver-' . bin2hex(random_bytes(8));
+
+        self::$db->insert(
+            "INSERT INTO device_confirm_tokens
+             (user_id, device_token, device_name, token, expires_at, confirmed_at)
+             VALUES (?, ?, 'Chrome · Test', ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), NOW())",
+            [$unverifiedId, $deviceToken, $token]
+        );
+
+        $_GET['token'] = $token;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(200);
+
+        ob_start();
+        try {
+            $this->makeController()->poll([]);
+        } finally {
+            $raw  = ob_get_clean();
+            $json = json_decode(is_string($raw) ? $raw : '', true);
+            if ($json !== null) {
+                $this->assertSame('expired', $json['status']);
+            }
+        }
+    }
+
+    /**
+     * Un token confirmé pour un compte avec has_connected=0 appelle markAsConnected.
+     */
+    public function testPollWithConfirmedTokenMarksAccountAsConnected(): void
+    {
+        // has_connected = 0 par défaut à la création du compte
+        $token       = bin2hex(random_bytes(16));
+        $deviceToken = 'dev-connect-' . bin2hex(random_bytes(8));
+
+        self::$db->insert(
+            "INSERT INTO device_confirm_tokens
+             (user_id, device_token, device_name, token, expires_at, confirmed_at)
+             VALUES (?, ?, 'Safari · Test', ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), NOW())",
+            [$this->userId, $deviceToken, $token]
+        );
+
+        $_GET['token'] = $token;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(200);
+
+        ob_start();
+        try {
+            $this->makeController()->poll([]);
+        } finally {
+            ob_get_clean();
+            $account = self::$db->fetchOne('SELECT has_connected FROM accounts WHERE id = ?', [$this->userId]);
+            if ($account !== false) {
+                $this->assertSame(1, (int) $account['has_connected']);
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------
     // poll — token expiré (confirmed_at NULL, expires_at passé)
     // ----------------------------------------------------------------
 
