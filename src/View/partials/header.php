@@ -681,6 +681,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/admin/actualites">Actualités</a>
                 <a href="/admin/newsletter">Newsletter</a>
                 <a href="/admin/bons-de-commande">Bons de commande</a>
+                <a href="/admin/statistiques">Statistiques CA</a>
                 <a href="/admin/mon-profil">Mon profil</a>
             <?php else : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">
