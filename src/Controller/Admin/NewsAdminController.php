@@ -227,7 +227,7 @@ class NewsAdminController extends AdminController
         ['path' => $imagePath, 'error' => $imgError] = $this->handleImageUpload(
             $titleFr,
             $existing['image_path'] ?? null,
-            $existing === null
+            false
         );
         if ($imgError !== null) {
             $errors['image'] = $imgError;
