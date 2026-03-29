@@ -20,6 +20,8 @@ $statusColors = [
 $timeline = ['pending', 'paid', 'processing', 'shipped', 'delivered'];
 $currentIdx  = array_search($order['status'], $timeline, true);
 $cancellable = $order['status'] === 'pending';
+/** @var bool $cancellableReturn */
+/** @var string|null $returnDeadline */
 $paymentMap  = [
     'card'     => __('account.payment.card'),
     'virement' => __('account.payment.virement'),
@@ -205,8 +207,21 @@ $paymentMap  = [
                 </section>
             <?php endif; ?>
 
-            <!-- Retour -->
-            <?php if ($order['status'] === 'delivered') : ?>
+            <!-- Rétractation légale (15 j après livraison) -->
+            <?php if ($cancellableReturn) : ?>
+                <section class="account-section account-section--danger">
+                    <h2 class="account-section__title"><?= __('account.order_return_request_btn') ?></h2>
+                    <p><?= sprintf(__('account.order_return_window'), htmlspecialchars($returnDeadline ?? '')) ?></p>
+                    <form method="POST"
+                          action="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/annuler"
+                          data-confirm="<?= htmlspecialchars(__('account.order_return_confirm')) ?>">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+                        <button type="submit" class="btn btn--danger">
+                            <?= __('account.order_return_request_btn') ?>
+                        </button>
+                    </form>
+                </section>
+            <?php elseif ($order['status'] === 'delivered') : ?>
                 <section class="account-section">
                     <p class="order-contact-notice">
                         <?= __('account.order_return_notice') ?>
