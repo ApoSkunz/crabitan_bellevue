@@ -18,6 +18,10 @@
         <include>
             <directory>src</directory>
         </include>
+        <exclude>
+            <!-- Views are PHP templates (HTML + minimal PHP logic), not testable business logic -->
+            <directory>src/View</directory>
+        </exclude>
     </source>
 
     <!--

@@ -83,4 +83,40 @@ class DatabaseTest extends IntegrationTestCase
         // car chaque test roule dans sa propre transaction
         $this->assertFalse($result);
     }
+
+    /**
+     * Vérifie que les transactions imbriquées (nested savepoints) ne déclenchent
+     * pas de beginTransaction() PDO tant que la profondeur est > 0.
+     *
+     * Cette branche couvre la ligne `if ($this->transactionDepth === 0)` dans
+     * beginTransaction() (profondeur > 0 → PDO::beginTransaction non rappelé)
+     * et la ligne correspondante dans commit() (profondeur > 0 → pas de commit PDO).
+     *
+     * @return void
+     */
+    public function testNestedBeginTransactionDoesNotCallPdoBeginTransactionTwice(): void
+    {
+        // On est déjà dans une transaction (setUp l'a démarrée via IntegrationTestCase).
+        // Un beginTransaction() supplémentaire ne doit pas planter (profondeur incrémentée)
+        // et le commit() correspondant ne doit pas déclencher le commit PDO.
+        self::$db->beginTransaction(); // depth : 1 → 2 (pas d'appel PDO)
+
+        // Opération dans la "sous-transaction"
+        $id = self::$db->insert(
+            "INSERT INTO accounts (email, password, lang, newsletter)
+             VALUES (?, ?, 'fr', 0)",
+            ['nested_tx@test.com', 'h']
+        );
+        $this->assertNotEmpty($id);
+
+        self::$db->commit(); // depth : 2 → 1 (pas de commit PDO)
+
+        // La ligne doit toujours être visible dans la transaction englobante
+        $row = self::$db->fetchOne(
+            "SELECT email FROM accounts WHERE email = ?",
+            ['nested_tx@test.com']
+        );
+        $this->assertIsArray($row);
+        $this->assertSame('nested_tx@test.com', $row['email']);
+    }
 }

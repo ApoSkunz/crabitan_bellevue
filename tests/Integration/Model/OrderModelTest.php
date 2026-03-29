@@ -1218,4 +1218,76 @@ class OrderModelTest extends IntegrationTestCase
         $this->assertIsArray($years);
         $this->assertEmpty($years);
     }
+
+    // ----------------------------------------------------------------
+    // requestReturnForUser (TI)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que requestReturnForUser retourne true pour une commande livrée
+     * dans la fenêtre de rétractation.
+     *
+     * @return void
+     */
+    public function testRequestReturnForUserReturnsTrueWhenDeliveredWithinWindow(): void
+    {
+        $userId    = $this->insertAccount('return_ok@example.com');
+        $billingId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $billingId, 'delivered', 'REF-RETURN-OK');
+
+        // Simule une livraison il y a 7 jours (dans la fenêtre de 15 jours)
+        self::$db->execute(
+            "UPDATE orders SET delivered_at = DATE_SUB(NOW(), INTERVAL 7 DAY) WHERE id = ?",
+            [$orderId]
+        );
+
+        $result = $this->model->requestReturnForUser($orderId, $userId);
+
+        $this->assertTrue($result);
+
+        $row = $this->model->findByIdForAdmin($orderId);
+        $this->assertIsArray($row);
+        $this->assertSame('return_requested', $row['status']);
+    }
+
+    /**
+     * Vérifie que requestReturnForUser retourne false pour une commande livrée
+     * dont la fenêtre de rétractation est dépassée.
+     *
+     * @return void
+     */
+    public function testRequestReturnForUserReturnsFalseWhenWindowExpired(): void
+    {
+        $userId    = $this->insertAccount('return_expired@example.com');
+        $billingId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $billingId, 'delivered', 'REF-RETURN-EXP');
+
+        // Simule une livraison il y a 16 jours (hors fenêtre des 15 jours)
+        self::$db->execute(
+            "UPDATE orders SET delivered_at = DATE_SUB(NOW(), INTERVAL 16 DAY) WHERE id = ?",
+            [$orderId]
+        );
+
+        $result = $this->model->requestReturnForUser($orderId, $userId);
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Vérifie que updateStatus passe correctement au statut 'refund_refused'.
+     *
+     * @return void
+     */
+    public function testUpdateStatusAcceptsRefundRefusedStatus(): void
+    {
+        $userId    = $this->insertAccount('refund_refused@example.com');
+        $billingId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $billingId, 'return_requested', 'REF-REFUSEREFUND-001');
+
+        $this->model->updateStatus($orderId, 'refund_refused');
+
+        $row = $this->model->findByIdForAdmin($orderId);
+        $this->assertIsArray($row);
+        $this->assertSame('refund_refused', $row['status']);
+    }
 }

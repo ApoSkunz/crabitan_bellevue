@@ -2383,4 +2383,965 @@ class AccountControllerTest extends IntegrationTestCase
             throw $e;
         }
     }
+
+    // ----------------------------------------------------------------
+    // orders() — period '3months'
+    // ----------------------------------------------------------------
+
+    /**
+     * Un filtre période '3months' est transmis tel quel au model (branche != 'all' && == '3months').
+     */
+    public function testOrdersWith3MonthsPeriodRendersView(): void
+    {
+        $userId = $this->insertCustomer('orders.3m@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_GET = ['period' => '3months'];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/commandes?period=3months')
+            ->orders(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-filters', $output);
+    }
+
+    /**
+     * Un filtre statut invalide est ignoré (null transmis au model).
+     */
+    public function testOrdersWithInvalidStatusFilterRendersView(): void
+    {
+        $userId = $this->insertCustomer('orders.badstatus@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_GET = ['status' => 'invalid_status'];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/commandes?status=invalid_status')
+            ->orders(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-filters', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // orderDetail() — flash messages et shippingDiscount
+    // ----------------------------------------------------------------
+
+    /**
+     * Un flash order_success présent en session est lu et supprimé par orderDetail.
+     */
+    public function testOrderDetailConsumesFlashOrderSuccess(): void
+    {
+        $userId    = $this->insertCustomer('odtl.flash.ok@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'shipped');
+        $this->loginAs($userId);
+
+        $_SESSION['flash']['order_success'] = 'test-success-flash';
+
+        ob_start();
+        $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}")
+            ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
+        ob_get_clean();
+
+        $this->assertArrayNotHasKey('order_success', $_SESSION['flash'] ?? []);
+    }
+
+    /**
+     * Un flash order_error présent en session est lu et supprimé par orderDetail.
+     */
+    public function testOrderDetailConsumesFlashOrderError(): void
+    {
+        $userId    = $this->insertCustomer('odtl.flash.err@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'shipped');
+        $this->loginAs($userId);
+
+        $_SESSION['flash']['order_error'] = 'test-error-flash';
+
+        ob_start();
+        $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}")
+            ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
+        ob_get_clean();
+
+        $this->assertArrayNotHasKey('order_error', $_SESSION['flash'] ?? []);
+    }
+
+    /**
+     * Une commande avec shipping_discount > 0 est correctement rendue (couvre la branche > 0.0).
+     */
+    public function testOrderDetailWithShippingDiscount(): void
+    {
+        $userId    = $this->insertCustomer('odtl.ship@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+
+        $orderId = (int) self::$db->insert(
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status)
+             VALUES (?, ?, '[]', 120.00, 'card', 5.90, ?, 'shipped')",
+            [$userId, 'TEST-' . bin2hex(random_bytes(4)), $addressId]
+        );
+
+        $this->loginAs($userId);
+
+        ob_start();
+        $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}")
+            ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-page', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // addAddress() — pays étranger (zip non validé)
+    // ----------------------------------------------------------------
+
+    /**
+     * Un POST avec un pays étranger (non France) n'est pas soumis à la validation du code postal.
+     */
+    public function testAddAddressForeignCountrySkipsZipValidation(): void
+    {
+        $userId = $this->insertCustomer('addaddr.foreign@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'type'       => 'billing',
+            'civility'   => 'M',
+            'firstname'  => 'Hans',
+            'lastname'   => 'Müller',
+            'street'     => 'Hauptstrasse 1',
+            'city'       => 'Berlin',
+            'zip_code'   => '10115',
+            'country'    => 'Allemagne',
+            'phone'      => '+49301234567',
+            'csrf_token' => self::CSRF,
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/adresses/ajouter')
+            ->addAddress(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // updateAddress() — champs requis manquants
+    // ----------------------------------------------------------------
+
+    /**
+     * Des champs requis manquants sur updateAddress posent un flash error et redirigent.
+     */
+    public function testUpdateAddressMissingFieldsRedirects(): void
+    {
+        $userId    = $this->insertCustomer('updaddr.missing@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $this->loginAs($userId);
+
+        $_POST = [
+            'civility'   => 'M',
+            'firstname'  => '',
+            'lastname'   => '',
+            'street'     => '',
+            'city'       => '',
+            'zip_code'   => '',
+            'country'    => 'France',
+            'phone'      => '',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController('POST', "/fr/mon-compte/adresses/{$addressId}/modifier")
+                ->updateAddress(['lang' => 'fr', 'id' => (string) $addressId]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['address_error'] ?? '');
+        }
+    }
+
+    /**
+     * Un pays étranger sur updateAddress ne déclenche pas la validation du code postal français.
+     */
+    public function testUpdateAddressForeignCountrySkipsZipValidation(): void
+    {
+        $userId    = $this->insertCustomer('updaddr.foreign@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $this->loginAs($userId);
+
+        $_POST = [
+            'civility'   => 'M',
+            'firstname'  => 'Hans',
+            'lastname'   => 'Müller',
+            'street'     => 'Hauptstrasse 1',
+            'city'       => 'Berlin',
+            'zip_code'   => '10115',
+            'country'    => 'Allemagne',
+            'phone'      => '+49301234567',
+            'csrf_token' => self::CSRF,
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', "/fr/mon-compte/adresses/{$addressId}/modifier")
+            ->updateAddress(['lang' => 'fr', 'id' => (string) $addressId]);
+    }
+
+    // ----------------------------------------------------------------
+    // untrustDevice() — CSRF invalide et device_token vide
+    // ----------------------------------------------------------------
+
+    /**
+     * Un CSRF invalide sur untrustDevice ne révoque rien mais redirige (302).
+     */
+    public function testUntrustDeviceInvalidCsrfRedirects(): void
+    {
+        $userId = $this->insertCustomer('untrust.devcsrf@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'device_token' => 'some-device-token',
+            'csrf_token'   => 'bad-csrf',
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/securite/appareils/retirer-confiance')
+            ->untrustDevice(['lang' => 'fr']);
+    }
+
+    /**
+     * Un device_token vide sur untrustDevice (même avec CSRF valide) ne révoque rien mais redirige.
+     */
+    public function testUntrustDeviceEmptyTokenRedirects(): void
+    {
+        $userId = $this->insertCustomer('untrust.devempty@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'device_token' => '',
+            'csrf_token'   => self::CSRF,
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/securite/appareils/retirer-confiance')
+            ->untrustDevice(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // returnSlip() — commande return_requested
+    // ----------------------------------------------------------------
+
+    /**
+     * Une commande au statut 'return_requested' génère la fiche de retour PDF.
+     */
+    public function testReturnSlipSuccessForReturnRequested(): void
+    {
+        $userId    = $this->insertCustomer('slip.ret@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = (int) self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status, delivered_at)
+             VALUES (?, ?, ?, 99.90, 'card', 0.00, ?, 'return_requested', NOW() - INTERVAL 5 DAY)",
+            [
+                $userId,
+                'TEST-' . bin2hex(random_bytes(4)),
+                json_encode([['label_name' => 'Sauternes', 'format' => 'bottle', 'qty' => 1, 'price' => 35.00]]),
+                $addressId,
+            ]
+        );
+        $this->loginAs($userId);
+
+        $ctrl = new class ($this->makeRequest('GET', "/fr/mon-compte/commandes/{$orderId}/fiche-retour")) extends AccountController {
+            protected function sendPdfResponse(string $pdfBytes, string $filename): never
+            {
+                throw new \RuntimeException('pdf-sent:' . $filename);
+            }
+        };
+
+        ob_start();
+        try {
+            $ctrl->returnSlip(['lang' => 'fr', 'id' => (string) $orderId]);
+            $this->fail('Expected RuntimeException from sendPdfResponse seam');
+        } catch (\RuntimeException $e) {
+            $this->assertStringStartsWith('pdf-sent:fiche-retour_', $e->getMessage());
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // cancelOrder() — commande ni annulable ni rétractable
+    // ----------------------------------------------------------------
+
+    /**
+     * Une commande au statut 'shipped' (ni pending ni delivered dans la fenêtre) déclenche un flash error.
+     */
+    public function testCancelOrderFailsWhenNotCancellableNorReturnable(): void
+    {
+        $userId    = $this->insertCustomer('cancel.shipped@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'shipped');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $this->expectException(HttpException::class);
+        try {
+            $this->makeController('POST', "/fr/mon-compte/commandes/{$orderId}/annuler")
+                ->cancelOrder(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['order_error'] ?? null);
+            throw $e;
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // updateProfile() — newsletter = '1'
+    // ----------------------------------------------------------------
+
+    /**
+     * Un POST updateProfile avec newsletter='1' sauvegarde bien l'abonnement.
+     */
+    public function testUpdateProfileIndividualNewsletterEnabled(): void
+    {
+        $userId = $this->insertCustomer('upd.news@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'firstname'  => 'Alice',
+            'lastname'   => 'Martin',
+            'civility'   => 'F',
+            'newsletter' => '1',
+            'csrf_token' => self::CSRF,
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/profil')->updateProfile(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // unsubscribe() — token vide
+    // ----------------------------------------------------------------
+
+    /**
+     * Un POST unsubscribe avec un token vide affiche la vue avec success=false.
+     */
+    public function testUnsubscribeWithEmptyToken(): void
+    {
+        $_POST = ['unsub_token' => '', 'csrf_token' => self::CSRF];
+
+        ob_start();
+        $this->makeController('POST', '/fr/newsletter/desabonnement')->unsubscribe(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    // ----------------------------------------------------------------
+    // addresses() — flash messages consommés
+    // ----------------------------------------------------------------
+
+    /**
+     * Un flash address_success est lu et supprimé par addresses().
+     */
+    public function testAddressesConsumesFlashSuccess(): void
+    {
+        $userId = $this->insertCustomer('addr.flash.ok@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_SESSION['flash']['address_success'] = 'Adresse ajoutée';
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/adresses')->addresses(['lang' => 'fr']);
+        ob_get_clean();
+
+        $this->assertArrayNotHasKey('address_success', $_SESSION['flash'] ?? []);
+    }
+
+    /**
+     * Un flash address_error est lu et supprimé par addresses().
+     */
+    public function testAddressesConsumesFlashError(): void
+    {
+        $userId = $this->insertCustomer('addr.flash.err@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_SESSION['flash']['address_error'] = 'Erreur adresse';
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/adresses')->addresses(['lang' => 'fr']);
+        ob_get_clean();
+
+        $this->assertArrayNotHasKey('address_error', $_SESSION['flash'] ?? []);
+    }
+
+    // ----------------------------------------------------------------
+    // security() — flash messages consommés
+    // ----------------------------------------------------------------
+
+    /**
+     * Un flash security_success est lu et supprimé par security().
+     */
+    public function testSecurityConsumesFlashSuccess(): void
+    {
+        $userId = $this->insertCustomer('sec.flash.ok@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_SESSION['flash']['security_success'] = 'Mot de passe mis à jour';
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/securite')->security(['lang' => 'fr']);
+        ob_get_clean();
+
+        $this->assertArrayNotHasKey('security_success', $_SESSION['flash'] ?? []);
+    }
+
+    /**
+     * Un flash security_errors est lu et supprimé par security().
+     */
+    public function testSecurityConsumesFlashErrors(): void
+    {
+        $userId = $this->insertCustomer('sec.flash.err@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_SESSION['flash']['security_errors'] = ['csrf' => 'Token invalide'];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/securite')->security(['lang' => 'fr']);
+        ob_get_clean();
+
+        $this->assertArrayNotHasKey('security_errors', $_SESSION['flash'] ?? []);
+    }
+
+    // ----------------------------------------------------------------
+    // profile() — flash messages consommés
+    // ----------------------------------------------------------------
+
+    /**
+     * Un flash profile_success est lu et supprimé par profile().
+     */
+    public function testProfileConsumesFlashSuccess(): void
+    {
+        $userId = $this->insertCustomer('prof.flash.ok@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_SESSION['flash']['profile_success'] = 'Profil mis à jour';
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/profil')->profile(['lang' => 'fr']);
+        ob_get_clean();
+
+        $this->assertArrayNotHasKey('profile_success', $_SESSION['flash'] ?? []);
+    }
+
+    /**
+     * Un flash profile_errors est lu et supprimé par profile().
+     */
+    public function testProfileConsumesFlashErrors(): void
+    {
+        $userId = $this->insertCustomer('prof.flash.err@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_SESSION['flash']['profile_errors'] = ['firstname' => 'Requis'];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/profil')->profile(['lang' => 'fr']);
+        ob_get_clean();
+
+        $this->assertArrayNotHasKey('profile_errors', $_SESSION['flash'] ?? []);
+    }
+
+    // ----------------------------------------------------------------
+    // deleteAccount() — compte avec commandes actives (via nouveau test)
+    // ----------------------------------------------------------------
+
+    /**
+     * Un compte avec des commandes 'paid' (active) ne peut pas être supprimé.
+     */
+    public function testDeleteAccountBlockedByPaidOrderRedirects(): void
+    {
+        $userId    = $this->insertCustomer('del.paid@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $this->insertOrder($userId, $addressId, 'paid');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'confirm_text'     => 'SUPPRESSION',
+            'confirm_password' => 'Password123!',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/securite/supprimer-compte')
+                ->deleteAccount(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['security_errors'] ?? []);
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // revokeSession() — id = 0 (CSRF valide mais id invalide)
+    // ----------------------------------------------------------------
+
+    /**
+     * Un POST avec CSRF valide mais id=0 ne révoque rien et redirige (couvre la branche $id > 0).
+     */
+    public function testRevokeSessionWithZeroIdSkipsRevoke(): void
+    {
+        $userId = $this->insertCustomer('rev.zero@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/securite/session/0/revoquer')
+            ->revokeSession(['lang' => 'fr', 'id' => '0']);
+    }
+
+    // ----------------------------------------------------------------
+    // requireCustomer() — rôle non-customer
+    // ----------------------------------------------------------------
+
+    /**
+     * Un utilisateur avec un rôle autre que 'customer' (ex: admin) reçoit un abort 404.
+     * Couvre la branche role !== 'customer' dans requireCustomer().
+     */
+    public function testRequireCustomerAborts404ForAdminRole(): void
+    {
+        $userId = $this->insertCustomer('admin.role@test.local', 'individual');
+        $this->loginAs($userId, 'admin');
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(404);
+        $this->makeController('GET', '/fr/mon-compte')->index(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // cancelMfa() — token non vide mais enregistrement inexistant
+    // ----------------------------------------------------------------
+
+    /**
+     * Un token non vide mais absent de la base (ou expiré) n'est pas révoqué ;
+     * la vue est rendue avec revoked=false.
+     * Couvre la branche $token !== '' && findByToken() === false.
+     *
+     * @return void
+     */
+    public function testCancelMfaTokenNotFoundInDb(): void
+    {
+        $controller = $this->makeController('GET', '/fr/mon-compte/appareil/annuler');
+        $_GET = ['token' => 'token-non-vide-mais-inexistant-' . bin2hex(random_bytes(8))];
+
+        ob_start();
+        $controller->cancelMfa(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    // ----------------------------------------------------------------
+    // exportPage() — compte company
+    // ----------------------------------------------------------------
+
+    /**
+     * Un compte company authentifié accède également à la page d'export RGPD.
+     * Couvre le chemin exportPage() pour account_type = 'company'.
+     *
+     * @return void
+     */
+    public function testExportPageRendersForCompany(): void
+    {
+        $userId = $this->insertCustomer('export.co@test.local', 'company');
+        $this->loginAs($userId);
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/export')->exportPage(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-page', $output);
+    }
+
+    // Note : exportData() authentifié — non testable sans seam
+    // -----------------------------------------------------------
+    // exportData() se termine par `echo $content; exit;` sans méthode extractable.
+    // Le guard non-authentifié est couvert par testExportDataUnauthenticatedRedirects().
+    // Pour couvrir le chemin authentifié, extraire la logique dans une méthode protected
+    // buildExportResponse() (ticket audit-genie-logiciel — refactoring mineur).
+
+    // ----------------------------------------------------------------
+    // unsubscribePage() — token non vide mais compte non trouvé
+    // ----------------------------------------------------------------
+
+    /**
+     * Un token non vide dont le compte associé n'existe plus en base
+     * affiche la vue avec confirm=false (branche !findByUnsubscribeToken()).
+     *
+     * @return void
+     */
+    public function testUnsubscribePageTokenNotFoundInDb(): void
+    {
+        // Token non vide mais absent de la base
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/newsletter/desabonnement';
+        $_GET = ['token' => 'token-qui-nexiste-pas-du-tout-' . bin2hex(random_bytes(8))];
+        $controller = new AccountController(new \Core\Request());
+
+        ob_start();
+        $controller->unsubscribePage(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+        // confirm=false → le token de désabonnement ne doit pas apparaître dans la vue
+        $this->assertStringNotContainsString('unsub_token', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // newDevice() — session pending_device avec champs partiels
+    // ----------------------------------------------------------------
+
+    /**
+     * Avec une session pending_device ne contenant que les clés minimales,
+     * la vue est rendue sans erreur (couvre les opérateurs null-coalescing).
+     *
+     * @return void
+     */
+    public function testNewDeviceRendersWithEmptyPendingFields(): void
+    {
+        // Un tableau non-vide est requis : le check est `!$pending` ([] est falsy).
+        $_SESSION['pending_device'] = ['device_name' => '', 'mfa_token' => ''];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/nouvel-appareil')
+            ->newDevice(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    // ----------------------------------------------------------------
+    // buildReturnSlipPdf() — méthodes privées PDF via ReflectionMethod
+    // ----------------------------------------------------------------
+
+    /**
+     * buildReturnSlipPdf() avec un ordre minimal sans articles génère un PDF valide.
+     *
+     * @return void
+     */
+    public function testBuildReturnSlipPdfWithMinimalOrder(): void
+    {
+        if (!class_exists('TCPDF')) {
+            require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
+        }
+        if (!class_exists('TCPDF')) {
+            $this->markTestSkipped('TCPDF non disponible');
+        }
+
+        $order = [
+            'content'         => '[]',
+            'order_reference' => 'TEST-MINIMAL-001',
+            'ordered_at'      => '2025-01-15 10:00:00',
+            'bill_civility'   => 'M',
+            'bill_firstname'  => 'Jean',
+            'bill_lastname'   => 'Dupont',
+            'bill_street'     => '12 rue de la Paix',
+            'bill_zip'        => '75001',
+            'bill_city'       => 'Paris',
+            'bill_country'    => 'France',
+            'status'          => 'delivered',
+        ];
+
+        $ctrl = $this->makeController('GET', '/fr/mon-compte');
+        $ref  = new \ReflectionMethod(AccountController::class, 'buildReturnSlipPdf');
+        $ref->setAccessible(true);
+
+        $result = $ref->invoke($ctrl, $order);
+
+        $this->assertIsString($result);
+        $this->assertStringStartsWith('%PDF', $result);
+    }
+
+    /**
+     * buildReturnSlipPdf() avec un ordre contenant des articles JSON génère un PDF valide
+     * et couvre la boucle foreach sur les items.
+     *
+     * @return void
+     */
+    public function testBuildReturnSlipPdfWithOrderItems(): void
+    {
+        if (!class_exists('TCPDF')) {
+            require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
+        }
+        if (!class_exists('TCPDF')) {
+            $this->markTestSkipped('TCPDF non disponible');
+        }
+
+        $items = json_encode([
+            [
+                'label_name' => 'Château Crabitan Rouge 2022',
+                'format'     => '75 cl',
+                'qty'        => 3,
+                'price'      => 18.50,
+            ],
+            [
+                'label_name' => 'Château Crabitan Blanc 2023',
+                'format'     => '75 cl',
+                'qty'        => 6,
+                'price'      => 15.00,
+            ],
+        ]);
+
+        $order = [
+            'content'         => $items,
+            'order_reference' => 'TEST-ITEMS-002',
+            'ordered_at'      => '2025-06-20 14:30:00',
+            'bill_civility'   => 'Mme',
+            'bill_firstname'  => 'Marie',
+            'bill_lastname'   => 'Martin',
+            'bill_street'     => '5 avenue Montaigne',
+            'bill_zip'        => '75008',
+            'bill_city'       => 'Paris',
+            'bill_country'    => 'France',
+            'status'          => 'return_requested',
+        ];
+
+        $ctrl = $this->makeController('GET', '/fr/mon-compte');
+        $ref  = new \ReflectionMethod(AccountController::class, 'buildReturnSlipPdf');
+        $ref->setAccessible(true);
+
+        $result = $ref->invoke($ctrl, $order);
+
+        $this->assertIsString($result);
+        $this->assertStringStartsWith('%PDF', $result);
+    }
+
+    // ----------------------------------------------------------------
+    // buildPdfTableSection() — via ReflectionMethod
+    // ----------------------------------------------------------------
+
+    /**
+     * buildPdfTableSection() avec $rows=[] retourne la section vide avec le message fourni.
+     *
+     * @return void
+     */
+    public function testBuildPdfTableSectionWithEmptyRows(): void
+    {
+        $ctrl = $this->makeController('GET', '/fr/mon-compte');
+        $ref  = new \ReflectionMethod(AccountController::class, 'buildPdfTableSection');
+        $ref->setAccessible(true);
+
+        $result = $ref->invoke(
+            $ctrl,
+            'Commandes',
+            [],
+            '<tr><th>Référence</th></tr>',
+            static fn(array $r): string => '<tr><td>' . $r['ref'] . '</td></tr>',
+            'Aucune commande.'
+        );
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('Commandes (0)', $result);
+        $this->assertStringContainsString('Aucune commande.', $result);
+        $this->assertStringNotContainsString('<table>', $result);
+    }
+
+    /**
+     * buildPdfTableSection() avec $rows non-vide retourne la section HTML avec le tableau.
+     *
+     * @return void
+     */
+    public function testBuildPdfTableSectionWithRows(): void
+    {
+        $ctrl = $this->makeController('GET', '/fr/mon-compte');
+        $ref  = new \ReflectionMethod(AccountController::class, 'buildPdfTableSection');
+        $ref->setAccessible(true);
+
+        $rows = [
+            ['reference' => 'CMD-001', 'status' => 'delivered', 'price' => '99.90', 'ordered_at' => '2025-01-10'],
+            ['reference' => 'CMD-002', 'status' => 'pending',   'price' => '45.00', 'ordered_at' => '2025-02-05'],
+        ];
+
+        $result = $ref->invoke(
+            $ctrl,
+            'Commandes',
+            $rows,
+            '<tr><th>Référence</th><th>Statut</th></tr>',
+            static fn(array $r): string => '<tr><td>' . htmlspecialchars($r['reference'])
+                . '</td><td>' . htmlspecialchars($r['status']) . '</td></tr>',
+            'Aucune commande.'
+        );
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('Commandes (2)', $result);
+        $this->assertStringContainsString('<table>', $result);
+        $this->assertStringContainsString('CMD-001', $result);
+        $this->assertStringContainsString('CMD-002', $result);
+        $this->assertStringNotContainsString('Aucune commande.', $result);
+    }
+
+    // ----------------------------------------------------------------
+    // buildExportPdf() — via ReflectionMethod
+    // ----------------------------------------------------------------
+
+    /**
+     * buildExportPdf() avec tous les tableaux vides génère un PDF valide
+     * et couvre les branches $rows === [] dans buildPdfTableSection().
+     *
+     * @return void
+     */
+    public function testBuildExportPdfWithEmptyData(): void
+    {
+        if (!class_exists('TCPDF')) {
+            require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
+        }
+        if (!class_exists('TCPDF')) {
+            $this->markTestSkipped('TCPDF non disponible');
+        }
+
+        $export = [
+            'account'         => [
+                'email'      => 'export@test.local',
+                'created_at' => '2024-01-01',
+            ],
+            'orders'          => [],
+            'addresses'       => [],
+            'favorites'       => [],
+            'trusted_devices' => [],
+            'active_sessions' => [],
+        ];
+
+        $ctrl = $this->makeController('GET', '/fr/mon-compte');
+        $ref  = new \ReflectionMethod(AccountController::class, 'buildExportPdf');
+        $ref->setAccessible(true);
+
+        $result = $ref->invoke($ctrl, $export, '29/03/2026');
+
+        $this->assertIsString($result);
+        $this->assertStringStartsWith('%PDF', $result);
+    }
+
+    /**
+     * buildExportPdf() avec des données dans chaque section génère un PDF valide
+     * et couvre les branches non-vides (foreach) dans buildPdfTableSection().
+     *
+     * @return void
+     */
+    public function testBuildExportPdfWithPopulatedData(): void
+    {
+        if (!class_exists('TCPDF')) {
+            require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
+        }
+        if (!class_exists('TCPDF')) {
+            $this->markTestSkipped('TCPDF non disponible');
+        }
+
+        $export = [
+            'account'         => [
+                'email'        => 'populated@test.local',
+                'account_type' => 'individual',
+                'created_at'   => '2024-06-15',
+            ],
+            'orders'          => [
+                [
+                    'reference'  => 'CMD-EXP-001',
+                    'status'     => 'delivered',
+                    'price'      => '129.50',
+                    'ordered_at' => '2025-03-10',
+                ],
+            ],
+            'addresses'       => [
+                [
+                    'type'      => 'billing',
+                    'firstname' => 'Jean',
+                    'lastname'  => 'Dupont',
+                    'street'    => '12 rue de la Paix',
+                    'zip_code'  => '75001',
+                    'city'      => 'Paris',
+                    'country'   => 'France',
+                ],
+            ],
+            'favorites'       => [
+                [
+                    'name'    => 'Château Crabitan Rouge',
+                    'vintage' => 2022,
+                ],
+            ],
+            'trusted_devices' => [
+                [
+                    'device_name'  => 'Chrome / Windows',
+                    'confirmed_at' => '2025-01-20 09:00:00',
+                    'last_seen'    => '2026-03-28 18:45:00',
+                ],
+            ],
+            'active_sessions' => [
+                [
+                    'device_name' => 'Firefox / macOS',
+                    'ip_address'  => '192.168.1.1',
+                    'created_at'  => '2026-03-29 08:00:00',
+                    'expired_at'  => '2026-04-05 08:00:00',
+                ],
+            ],
+        ];
+
+        $ctrl = $this->makeController('GET', '/fr/mon-compte');
+        $ref  = new \ReflectionMethod(AccountController::class, 'buildExportPdf');
+        $ref->setAccessible(true);
+
+        $result = $ref->invoke($ctrl, $export, '29/03/2026');
+
+        $this->assertIsString($result);
+        $this->assertStringStartsWith('%PDF', $result);
+    }
+
+    // ----------------------------------------------------------------
+    // validateAndSaveCompany() — via ReflectionMethod
+    // ----------------------------------------------------------------
+
+    /**
+     * validateAndSaveCompany() avec companyName vide retourne une erreur de validation
+     * sans appeler la BDD.
+     *
+     * @return void
+     */
+    public function testValidateAndSaveCompanyWithEmptyNameReturnsError(): void
+    {
+        $ctrl = $this->makeController('GET', '/fr/mon-compte');
+        $ref  = new \ReflectionMethod(AccountController::class, 'validateAndSaveCompany');
+        $ref->setAccessible(true);
+
+        $errors = $ref->invoke($ctrl, 999999, '', null);
+
+        $this->assertIsArray($errors);
+        $this->assertArrayHasKey('company_name', $errors);
+        $this->assertNotEmpty($errors['company_name']);
+    }
+
+    /**
+     * validateAndSaveCompany() avec un nom valide et un userId existant met à jour le profil
+     * et retourne un tableau d'erreurs vide.
+     *
+     * @return void
+     */
+    public function testValidateAndSaveCompanyWithValidDataReturnsNoErrors(): void
+    {
+        $userId = $this->insertCustomer('company-validate@test.local', 'company');
+        $this->loginAs($userId);
+
+        $ctrl = $this->makeController('GET', '/fr/mon-compte');
+        $ref  = new \ReflectionMethod(AccountController::class, 'validateAndSaveCompany');
+        $ref->setAccessible(true);
+
+        $errors = $ref->invoke($ctrl, $userId, 'Nouvelle Société SAS', '98765432109876');
+
+        $this->assertIsArray($errors);
+        $this->assertSame([], $errors);
+    }
 }

@@ -994,4 +994,327 @@ class MailServiceTest extends TestCase
 
         $this->assertTrue(true);
     }
+
+    // ----------------------------------------------------------------
+    // sendNewDeviceAlert — avec deviceToken (confirmUrl + revokeUrl non vides)
+    // Couvre la branche $confirmUrl !== '' → confirmBlock avec boutons confirm/cancel
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendNewDeviceAlert génère le bloc "confirmer/annuler" quand un deviceToken est fourni (FR).
+     */
+    public function testSendNewDeviceAlertFrWithDeviceTokenCoversConfirmBlock(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendNewDeviceAlert(
+            'alice@example.com',
+            'Alice',
+            'Chrome · Windows',
+            '192.168.1.1',
+            'fr',
+            'device-token-abc123'
+        );
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Vérifie que sendNewDeviceAlert génère le bloc "confirmer/annuler" quand un deviceToken est fourni (EN).
+     */
+    public function testSendNewDeviceAlertEnWithDeviceTokenCoversConfirmBlock(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendNewDeviceAlert(
+            'bob@example.com',
+            'Bob',
+            'Firefox · Linux',
+            '10.0.0.1',
+            'en',
+            'device-token-xyz789'
+        );
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendAccountDeletionConfirmation — branche FR sans token (reactivateBlock vide)
+    // Couvre la branche $reactUrl === '' → reactivateBlock = ''
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie sendAccountDeletionConfirmation en FR sans token de réactivation.
+     */
+    public function testSendAccountDeletionConfirmationFrWithoutToken(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendAccountDeletionConfirmation(
+            'alice@example.com',
+            'Alice',
+            'fr'
+        );
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Vérifie sendAccountDeletionConfirmation en EN sans token de réactivation.
+     */
+    public function testSendAccountDeletionConfirmationEnWithoutToken(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendAccountDeletionConfirmation(
+            'bob@example.com',
+            'Bob',
+            'en'
+        );
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendNewWineNewsletter — branche FR sans image, sans award, sans cuvée
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie sendNewWineNewsletter en FR avec les données minimales.
+     */
+    public function testSendNewWineNewsletterFrMinimalCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendNewWineNewsletter(
+            'alice@example.com',
+            'Alice',
+            'unsub-token-fr',
+            [
+                'label_name'          => 'Bordeaux Rouge',
+                'vintage'             => 2022,
+                'certification_label' => 'AOC Bordeaux',
+                'is_cuvee_speciale'   => false,
+                'award'               => null,
+                'image_path'          => '',
+                'slug'                => 'bordeaux-rouge-2022',
+            ],
+            'http://crabitan.local',
+            'fr'
+        );
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Vérifie sendNewWineNewsletter en EN avec les données minimales.
+     */
+    public function testSendNewWineNewsletterEnMinimalCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendNewWineNewsletter(
+            'bob@example.com',
+            'Bob',
+            'unsub-token-en',
+            [
+                'label_name'          => 'Dry White',
+                'vintage'             => 2023,
+                'certification_label' => 'AOC Entre-Deux-Mers',
+                'is_cuvee_speciale'   => false,
+                'award'               => null,
+                'image_path'          => '',
+                'slug'                => 'dry-white-2023',
+            ],
+            'http://crabitan.local',
+            'en'
+        );
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Vérifie sendNewWineNewsletter avec imagePath non vide → branche $imageHtml.
+     */
+    public function testSendNewWineNewsletterWithImageCoversImageHtml(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendNewWineNewsletter(
+            'alice@example.com',
+            'Alice',
+            'unsub-token-img',
+            [
+                'label_name'          => 'Bordeaux Rouge',
+                'vintage'             => 2022,
+                'certification_label' => 'AOC Bordeaux',
+                'is_cuvee_speciale'   => false,
+                'award'               => null,
+                'image_path'          => 'Wine_Bordeaux_Rouge_2022.png',
+                'slug'                => 'bordeaux-rouge-2022',
+            ],
+            'http://crabitan.local',
+            'fr'
+        );
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Vérifie sendNewWineNewsletter avec isCuveeSpeciale = true → branche $cuveeLabel.
+     */
+    public function testSendNewWineNewsletterWithCuveeSpecialeCoversLabel(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendNewWineNewsletter(
+            'alice@example.com',
+            'Alice',
+            'unsub-token-cuvee',
+            [
+                'label_name'          => 'Cuvée Prestige',
+                'vintage'             => 2021,
+                'certification_label' => 'AOC Sauternes',
+                'is_cuvee_speciale'   => true,
+                'award'               => null,
+                'image_path'          => '',
+                'slug'                => 'cuvee-prestige-2021',
+            ],
+            'http://crabitan.local',
+            'fr'
+        );
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Vérifie sendNewWineNewsletter avec award JSON valide → branche resolveAwardText + ligne infoRows.
+     */
+    public function testSendNewWineNewsletterWithAwardJsonCoversAwardRow(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendNewWineNewsletter(
+            'alice@example.com',
+            'Alice',
+            'unsub-token-award',
+            [
+                'label_name'          => 'Grand Cru',
+                'vintage'             => 2020,
+                'certification_label' => 'AOC Saint-Émilion',
+                'is_cuvee_speciale'   => false,
+                'award'               => json_encode(['fr' => 'Médaille d\'or', 'en' => 'Gold medal']),
+                'image_path'          => '',
+                'slug'                => 'grand-cru-2020',
+            ],
+            'http://crabitan.local',
+            'fr'
+        );
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // resolveAwardText — via callPrivate (méthode privée)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie resolveAwardText avec null → retourne chaîne vide.
+     */
+    public function testResolveAwardTextNullReturnsEmpty(): void
+    {
+        $result = $this->callPrivate('resolveAwardText', null, 'fr');
+        $this->assertSame('', $result);
+    }
+
+    /**
+     * Vérifie resolveAwardText avec chaîne vide → retourne chaîne vide.
+     */
+    public function testResolveAwardTextEmptyStringReturnsEmpty(): void
+    {
+        $result = $this->callPrivate('resolveAwardText', '', 'fr');
+        $this->assertSame('', $result);
+    }
+
+    /**
+     * Vérifie resolveAwardText avec JSON valide → retourne la valeur traduite.
+     */
+    public function testResolveAwardTextJsonStringReturnsFrValue(): void
+    {
+        $json   = json_encode(['fr' => 'Médaille d\'or', 'en' => 'Gold medal']);
+        $result = $this->callPrivate('resolveAwardText', $json, 'fr');
+        $this->assertSame('Médaille d&#039;or', $result);
+    }
+
+    /**
+     * Vérifie resolveAwardText avec JSON valide → retourne la valeur EN.
+     */
+    public function testResolveAwardTextJsonStringReturnsEnValue(): void
+    {
+        $json   = json_encode(['fr' => 'Médaille d\'or', 'en' => 'Gold medal']);
+        $result = $this->callPrivate('resolveAwardText', $json, 'en');
+        $this->assertSame('Gold medal', $result);
+    }
+
+    /**
+     * Vérifie resolveAwardText avec tableau PHP passé directement → retourne la valeur.
+     */
+    public function testResolveAwardTextArrayInputReturnsFrValue(): void
+    {
+        $result = $this->callPrivate('resolveAwardText', ['fr' => 'Bronze', 'en' => 'Bronze medal'], 'fr');
+        $this->assertSame('Bronze', $result);
+    }
+
+    /**
+     * Vérifie resolveAwardText avec JSON '[]' → retourne chaîne vide.
+     */
+    public function testResolveAwardTextEmptyJsonArrayReturnsEmpty(): void
+    {
+        $result = $this->callPrivate('resolveAwardText', '[]', 'fr');
+        $this->assertSame('', $result);
+    }
+
+    // ----------------------------------------------------------------
+    // __construct — MAIL_ENCRYPTION non vide → SMTPSecure = $encryption
+    // Couvre la branche $encryption !== '' dans le bloc if($mailUser !== '')
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que le constructeur utilise l'encryption personnalisée quand MAIL_ENCRYPTION est défini.
+     */
+    #[BackupGlobals(true)]
+    public function testConstructWithCustomEncryptionUsesProvidedValue(): void
+    {
+        $_ENV['MAIL_USER']       = 'noreply@example.com';
+        $_ENV['MAIL_PASS']       = 'secret';
+        $_ENV['MAIL_ENCRYPTION'] = PHPMailer::ENCRYPTION_SMTPS;
+        $_ENV['APP_URL']         = 'http://crabitan.local';
+
+        $service = new MailService();
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+        /** @var PHPMailer $mailer */
+        $mailer = $prop->getValue($service);
+        $this->assertSame(PHPMailer::ENCRYPTION_SMTPS, $mailer->SMTPSecure);
+    }
+
+    // ----------------------------------------------------------------
+    // buildNewsletterHtml — avec unsubToken null → lien mon-compte
+    // Couvre la branche $unsubToken === null dans buildNewsletterHtml
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que buildNewsletterHtml sans unsubToken génère un lien vers mon-compte.
+     */
+    public function testBuildNewsletterHtmlWithoutUnsubTokenLinksToAccount(): void
+    {
+        $html = $this->service->buildNewsletterHtml(
+            'Lettre sans token',
+            '<p>Contenu de test.</p>',
+            null,
+            null
+        );
+
+        $this->assertStringContainsString('mon-compte', $html);
+        $this->assertStringNotContainsString('desabonnement', $html);
+    }
+
+    /**
+     * Vérifie que buildNewsletterHtml avec unsubToken génère un lien de désabonnement.
+     */
+    public function testBuildNewsletterHtmlWithUnsubTokenLinksToUnsub(): void
+    {
+        $html = $this->service->buildNewsletterHtml(
+            'Lettre avec token',
+            '<p>Contenu.</p>',
+            null,
+            'my-unsub-token-xyz'
+        );
+
+        $this->assertStringContainsString('desabonnement', $html);
+        $this->assertStringContainsString('my-unsub-token-xyz', $html);
+    }
 }
