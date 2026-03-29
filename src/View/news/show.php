@@ -43,7 +43,7 @@ require_once SRC_PATH . '/View/partials/header.php';
                     <a href="<?= htmlspecialchars($item['link_path']) ?>"
                        target="_blank"
                        rel="noopener noreferrer"
-                       class="btn btn--gold">
+                       class="btn btn--gold btn--sm">
                         <?= htmlspecialchars(__('news.learn_more')) ?> &#8594;
                     </a>
                 </div>
