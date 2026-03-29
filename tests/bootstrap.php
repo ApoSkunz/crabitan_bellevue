@@ -27,6 +27,7 @@ $_ENV['MAIL_PORT']      = getenv('MAIL_PORT') !== false ? getenv('MAIL_PORT') : 
 $_ENV['MAIL_USER']      = getenv('MAIL_USER') !== false ? getenv('MAIL_USER') : 'noreply@test.local';
 $_ENV['MAIL_PASS']      = getenv('MAIL_PASS') !== false ? getenv('MAIL_PASS') : 'unused';
 $_ENV['MAIL_FROM_NAME'] = getenv('MAIL_FROM_NAME') ?: 'Crabitan Bellevue Test';
+$_ENV['MAIL_FROM']      = getenv('MAIL_FROM') !== false ? getenv('MAIL_FROM') : 'noreply@test.local';
 
 // BDD pour les tests d'intégration (surchargeable via variables d'environnement CI)
 $_ENV['DB_HOST'] = getenv('DB_HOST') ?: '127.0.0.1';
