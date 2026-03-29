@@ -112,9 +112,9 @@ $maxYear = (int) date('Y');
             <div class="admin-field">
                 <label class="admin-field__label" for="price">Prix (€) *</label>
                 <input type="number" id="price" name="price" required
-                       min="0.10" step="0.10"
+                       min="3.00" step="0.10"
                        class="admin-field__input<?= hasError($errors, 'price') ? $errClass : '' ?>"
-                       value="<?= fieldVal($wine, 'price', '0.00') ?>">
+                       value="<?= fieldVal($wine, 'price', '3.00') ?>">
                 <?php if (hasError($errors, 'price')) : ?>
                     <span class="admin-field__error"><?= htmlspecialchars($errors['price']) ?></span>
                 <?php endif; ?>

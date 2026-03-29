@@ -281,8 +281,7 @@ class NewsAdminController extends AdminController
         }
 
         $ext      = self::MIME_EXT[$mimeType];
-        $ascii    = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $title) ?: $title;
-        $safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', $ascii) ?? 'news';
+        $safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', self::deaccent($title)) ?? 'news';
         $safeName = trim(substr($safeName, 0, 40), '_');
         $destDir  = ROOT_PATH . '/public/assets/images/news/';
 
@@ -304,9 +303,37 @@ class NewsAdminController extends AdminController
 
     private function generateSlug(string $title): string
     {
-        $slug = strtolower($title);
-        $slug = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $slug) ?: $slug;
+        $slug = strtolower(self::deaccent($title));
         $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? $slug;
         return trim(substr($slug, 0, 80), '-');
+    }
+
+    /**
+     * Remplace les caractères accentués par leur équivalent ASCII.
+     * Utilise strtr (indépendant de la locale système, contrairement à iconv //TRANSLIT).
+     *
+     * @param string $str Chaîne source
+     * @return string Chaîne sans accents
+     */
+    private static function deaccent(string $str): string
+    {
+        return strtr($str, [
+            'à' => 'a', 'â' => 'a', 'ä' => 'a', 'á' => 'a', 'ã' => 'a', 'å' => 'a', 'æ' => 'ae',
+            'ç' => 'c',
+            'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i',
+            'ñ' => 'n',
+            'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'œ' => 'oe',
+            'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u',
+            'ý' => 'y', 'ÿ' => 'y',
+            'À' => 'A', 'Â' => 'A', 'Ä' => 'A', 'Á' => 'A', 'Ã' => 'A', 'Å' => 'A', 'Æ' => 'Ae',
+            'Ç' => 'C',
+            'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E',
+            'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I',
+            'Ñ' => 'N',
+            'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Œ' => 'Oe',
+            'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U',
+            'Ý' => 'Y',
+        ]);
     }
 }
