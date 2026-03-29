@@ -30,6 +30,48 @@ jobs:
           head: ${{ github.event.pull_request.head.sha || github.sha }}
           extra_args: --only-verified
 
+  exakat:
+    name: SAST — Exakat PHP
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    # Blue Team: version épinglée + vérification SHA256 optionnelle via secret EXAKAT_PHAR_SHA256.
+    # Pour mettre à jour : bumper EXAKAT_VERSION + recalculer le SHA256 du .phar et mettre à jour le secret.
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
+        with:
+          php-version: '8.4'
+          extensions: tokenizer, mbstring, json
+          coverage: none
+
+      - name: Download Exakat (version épinglée)
+        env:
+          EXAKAT_VERSION: '2.6.9'
+          EXAKAT_SHA256: ${{ secrets.EXAKAT_PHAR_SHA256 }}
+        run: |
+          curl -fsSL "https://www.exakat.io/versions/${EXAKAT_VERSION}/exakat.phar" -o exakat.phar
+          if [ -n "${EXAKAT_SHA256}" ]; then
+            echo "${EXAKAT_SHA256}  exakat.phar" | sha256sum -c - \
+              || { echo "::error::Checksum exakat.phar invalide — abort"; exit 1; }
+          else
+            echo "::warning::EXAKAT_PHAR_SHA256 non défini — vérification SHA256 ignorée"
+          fi
+          php exakat.phar doctor
+
+      - name: Run Exakat CI checks
+        run: |
+          php exakat.phar ci-checks \
+            -p . \
+            --ignore-dirs vendor,node_modules,coverage,public/assets \
+            -r Text
+
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
@@ -63,7 +105,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name:Semgrep Scan
+      - name: Semgrep Scan
         uses: semgrep/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d # v1
         with:
           config: >-
@@ -88,7 +130,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name:Legitify
+      - name: Legitify
         uses: Legit-Labs/legitify@e948d3ea97e94a53cbc72af88e2fdf6b612031bc # v1.0.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
