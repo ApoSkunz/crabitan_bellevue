@@ -116,7 +116,9 @@ class AccountControllerTest extends IntegrationTestCase
     {
         $_SERVER['REQUEST_METHOD'] = $method;
         $_SERVER['REQUEST_URI']    = $uri;
-        $_GET = [];
+        $uriQuery = [];
+        parse_str(parse_url($uri, PHP_URL_QUERY) ?? '', $uriQuery);
+        $_GET = array_merge($_GET, $uriQuery);
         return new Request();
     }
 
@@ -2230,6 +2232,107 @@ class AccountControllerTest extends IntegrationTestCase
         try {
             $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}/fiche-retour")
                 ->returnSlip(['lang' => 'fr', 'id' => (string) $orderId]);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // orderDetail() — branches delivered_at
+    // ----------------------------------------------------------------
+
+    /**
+     * Commande 'delivered' sans delivered_at → deliveredNoDate = true (l.161).
+     */
+    public function testOrderDetailDeliveredWithNullDeliveredAt(): void
+    {
+        $userId    = $this->insertCustomer('odtl.dnull@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'delivered');
+        $this->loginAs($userId);
+
+        ob_start();
+        $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}")
+            ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-page', $output);
+    }
+
+    /**
+     * Commande 'delivered' avec delivered_at dans la fenêtre → cancellableReturn = true (l.166-167).
+     */
+    public function testOrderDetailDeliveredWithinReturnWindow(): void
+    {
+        $userId    = $this->insertCustomer('odtl.dwin@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 3 DAY');
+        $this->loginAs($userId);
+
+        ob_start();
+        $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}")
+            ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-page', $output);
+    }
+
+    /**
+     * Commande 'delivered' avec delivered_at hors fenêtre → returnExpired = true (l.169).
+     */
+    public function testOrderDetailReturnWindowExpired(): void
+    {
+        $userId    = $this->insertCustomer('odtl.dexp@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 20 DAY');
+        $this->loginAs($userId);
+
+        ob_start();
+        $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}")
+            ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-page', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // returnSlip() — chemin succès (via sous-classe interceptant sendPdfResponse)
+    // ----------------------------------------------------------------
+
+    /**
+     * Commande 'delivered' dans la fenêtre → buildReturnSlipPdf + sendPdfResponse appelés.
+     * Sous-classe intercepte sendPdfResponse pour éviter exit (couvre l.293-295, l.302-304, l.347-355).
+     */
+    public function testReturnSlipSuccessForDeliveredWithinWindow(): void
+    {
+        $userId    = $this->insertCustomer('slip.win@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = (int) self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status, delivered_at)
+             VALUES (?, ?, ?, 99.90, 'card', 0.00, ?, 'delivered', NOW() - INTERVAL 3 DAY)",
+            [
+                $userId,
+                'TEST-' . bin2hex(random_bytes(4)),
+                json_encode([['label_name' => 'Bordeaux Rouge', 'format' => 'bottle', 'qty' => 2, 'price' => 24.00]]),
+                $addressId,
+            ]
+        );
+        $this->loginAs($userId);
+
+        $ctrl = new class ($this->makeRequest('GET', "/fr/mon-compte/commandes/{$orderId}/fiche-retour")) extends AccountController {
+            protected function sendPdfResponse(string $pdfBytes, string $filename): never
+            {
+                throw new \RuntimeException('pdf-sent:' . $filename);
+            }
+        };
+
+        ob_start();
+        try {
+            $ctrl->returnSlip(['lang' => 'fr', 'id' => (string) $orderId]);
+            $this->fail('Expected RuntimeException from sendPdfResponse seam');
+        } catch (\RuntimeException $e) {
+            $this->assertStringStartsWith('pdf-sent:fiche-retour_', $e->getMessage());
         } finally {
             ob_end_clean();
         }
