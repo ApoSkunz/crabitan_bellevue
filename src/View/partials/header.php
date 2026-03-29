@@ -364,6 +364,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     <button type="button" id="forgot-password-btn" class="login-modal__forgot">
                         <?= htmlspecialchars(__('auth.forgot_password')) ?>
                     </button>
+                    <div class="login-modal__remember">
+                        <input type="checkbox" id="remember-me" name="remember_me" value="1">
+                        <label for="remember-me"><?= htmlspecialchars(__('auth.remember_me')) ?></label>
+                    </div>
                     <button type="submit" class="btn btn--gold login-modal__submit"><?= htmlspecialchars(__('auth.login')) ?></button>
                 </form>
                 <div class="login-modal__register">

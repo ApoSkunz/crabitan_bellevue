@@ -34,6 +34,7 @@ return [
     'auth.email'             => 'Email address',
     'auth.password'          => 'Password',
     'auth.forgot_password'   => 'Forgot password?',
+    'auth.remember_me'       => 'Remember me',
     'auth.reset_password'    => 'Reset password',
     'auth.verify_email'      => 'Verify your email',
     'auth.invalid_credentials' => 'Invalid email or password',
@@ -179,6 +180,7 @@ return [
     'validation.email'          => 'Invalid email address.',
     'validation.password_min'   => 'Password must be at least 12 characters.',
     'validation.password_match' => 'Passwords do not match.',
+    'auth.password_too_weak'    => 'Password must contain at least 12 characters, one uppercase letter, one lowercase letter, one digit, and one special character.',
 
     // Cookie banner
     'cookie.banner_label' => 'Cookie consent',
@@ -629,6 +631,10 @@ return [
     'newsletter.unsubscribe_error' => 'This unsubscribe link is invalid or has already been used. Manage your preferences from your account.',
     'newsletter.manage_link'       => 'Manage my communication preferences',
 
+    // Newsletter — new wine
+    'mail.new_wine_subject'  => 'New wine available: %s %d',
+    'mail.new_wine_discover' => 'Discover this wine',
+
     // Order statuses
     'order.status.pending'          => 'Pending',
     'order.status.paid'             => 'Paid',
@@ -639,4 +645,17 @@ return [
     'order.status.refunded'         => 'Refunded',
     'order.status.return_requested' => 'Return in progress',
     'order.status.refund_refused'   => 'Refund refused',
+
+    // Transactional emails — order status change
+    'mail.order_status_subject_processing' => 'Your order is being prepared — %s',
+    'mail.order_status_subject_shipped'    => 'Your order has been shipped — %s',
+    'mail.order_status_subject_delivered'  => 'Your order has been delivered — %s',
+    'mail.order_status_subject_cancelled'  => 'Your order has been cancelled — %s',
+    'mail.order_status_subject_refunded'   => 'Your order has been refunded — %s',
+
+    'mail.order_status_body_processing' => 'Your order <strong>%s</strong> is currently being prepared. We are doing our best to ship it to you as soon as possible.',
+    'mail.order_status_body_shipped'    => 'Your order <strong>%s</strong> has been shipped. You should receive it within the next few working days.',
+    'mail.order_status_body_delivered'  => 'Your order <strong>%s</strong> has been delivered. We hope you enjoy our wines.',
+    'mail.order_status_body_cancelled'  => 'Your order <strong>%s</strong> has been cancelled. If you have already been charged, a refund will be processed as soon as possible.',
+    'mail.order_status_body_refunded'   => 'Your order <strong>%s</strong> has been refunded. The credit should appear on your bank account within 3 to 5 working days.',
 ];
