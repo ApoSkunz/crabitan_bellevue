@@ -172,21 +172,26 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
         </table>
     </div>
     <?php
+    $safeHistoryPages  = $historyPages > 0 ? $historyPages : 1;
     $historyTotalPages = ($historyTotal ?? 0) > 0
-        ? (int) ceil(($historyTotal ?? 0) / ($historyPages > 0 ? $historyPages : 1))
+        ? (int) ceil(($historyTotal ?? 0) / $safeHistoryPages)
         : 1;
     // réutiliser $historyPages passé par le contrôleur
     $hpp = ($historyPerPage ?? 10) !== 10 ? '&hperpage=' . (int) ($historyPerPage ?? 10) : '';
     if (($historyPages ?? 1) > 1) : ?>
+        <?php
+        $disabledPrev = $historyPage <= 1 ? ' disabled' : '';
+        $disabledNext = $historyPage >= $historyPages ? ' disabled' : '';
+        ?>
         <div class="admin-pagination">
             <a href="?hpage=<?= max(1, $historyPage - 1) ?><?= $hpp ?>"
-               class="admin-pagination__item<?= $historyPage <= 1 ? ' disabled' : '' ?>">‹</a>
+               class="admin-pagination__item<?= $disabledPrev ?>">‹</a>
             <?php for ($i = max(1, $historyPage - 2); $i <= min($historyPages, $historyPage + 2); $i++) : ?>
                 <a href="?hpage=<?= $i ?><?= $hpp ?>"
                    class="admin-pagination__item<?= $i === $historyPage ? ' active' : '' ?>"><?= $i ?></a>
             <?php endfor; ?>
             <a href="?hpage=<?= min($historyPages, $historyPage + 1) ?><?= $hpp ?>"
-               class="admin-pagination__item<?= $historyPage >= $historyPages ? ' disabled' : '' ?>">›</a>
+               class="admin-pagination__item<?= $disabledNext ?>">›</a>
         </div>
     <?php endif; ?>
 </div>

@@ -27,7 +27,7 @@ $attachments = $campaign['attachments'] ?? [];
                 <dt style="color:#8a7a60;">Image</dt>
                 <dd>
                     <img src="<?= htmlspecialchars($campaign['image_url']) ?>"
-                         alt="Image newsletter"
+                         alt="Aperçu de la campagne"
                          style="max-height:100px;max-width:260px;object-fit:cover;
                                 border:1px solid rgba(0,0,0,0.1);border-radius:4px;">
                 </dd>

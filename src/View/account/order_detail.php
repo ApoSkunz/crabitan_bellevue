@@ -191,6 +191,7 @@ $paymentMap  = [
             </div>
 
             <!-- Annulation (uniquement si en attente de paiement) -->
+            <?php $qs = '?subject='; ?>
             <?php if ($cancellable) : ?>
                 <section class="account-section account-section--danger">
                     <h2 class="account-section__title"><?= __('account.order_cancel_btn') ?></h2>
@@ -210,7 +211,7 @@ $paymentMap  = [
                         <?= __('account.order_contact_for_cancel') ?>
                         <?php
                         $mailtoSubject = rawurlencode(__('account.order_contact_subject') . ' ' . htmlspecialchars($order['order_reference']));
-                        $mailtoHref    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . '?subject=' . $mailtoSubject;
+                        $mailtoHref    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . $qs . $mailtoSubject;
                         ?>
                         <a href="<?= $mailtoHref ?>"><?= __('account.order_contact_link') ?></a>
                     </p>
@@ -246,7 +247,7 @@ $paymentMap  = [
                         <?= __('account.order_return_expired') ?>
                         <?php
                         $mailtoSubjectExpired = rawurlencode(__('account.order_return_subject') . ' ' . htmlspecialchars($order['order_reference']));
-                        $mailtoHrefExpired    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . '?subject=' . $mailtoSubjectExpired;
+                        $mailtoHrefExpired    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . $qs . $mailtoSubjectExpired;
                         ?>
                         <a href="<?= $mailtoHrefExpired ?>"><?= __('account.order_contact_link') ?></a>
                     </p>
@@ -257,7 +258,7 @@ $paymentMap  = [
                         <?= __('account.order_return_no_date') ?>
                         <?php
                         $mailtoSubjectNoDate = rawurlencode(__('account.order_return_subject') . ' ' . htmlspecialchars($order['order_reference']));
-                        $mailtoHrefNoDate    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . '?subject=' . $mailtoSubjectNoDate;
+                        $mailtoHrefNoDate    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . $qs . $mailtoSubjectNoDate;
                         ?>
                         <a href="<?= $mailtoHrefNoDate ?>"><?= __('account.order_contact_link') ?></a>
                     </p>
@@ -269,7 +270,7 @@ $paymentMap  = [
                         <?= __('account.order_return_in_progress') ?>
                         <?php
                         $mailtoSubjectReturn = rawurlencode(__('account.order_return_subject') . ' ' . htmlspecialchars($order['order_reference']));
-                        $mailtoHrefReturn    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . '?subject=' . $mailtoSubjectReturn;
+                        $mailtoHrefReturn    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . $qs . $mailtoSubjectReturn;
                         ?>
                         <a href="<?= $mailtoHrefReturn ?>"><?= __('account.order_contact_link') ?></a>
                     </p>
@@ -286,7 +287,7 @@ $paymentMap  = [
                         <?= __('account.order_refund_refused_notice') ?>
                         <?php
                         $mailtoSubjectRefused = rawurlencode(__('account.order_return_subject') . ' ' . htmlspecialchars($order['order_reference']));
-                        $mailtoHrefRefused    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . '?subject=' . $mailtoSubjectRefused;
+                        $mailtoHrefRefused    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . $qs . $mailtoSubjectRefused;
                         ?>
                         <a href="<?= $mailtoHrefRefused ?>"><?= __('account.order_contact_link') ?></a>
                     </p>

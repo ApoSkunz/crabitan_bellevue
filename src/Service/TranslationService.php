@@ -43,6 +43,7 @@ class TranslationService
      * @param string $target Langue cible  (défaut : 'en')
      * @return string Texte traduit, ou texte original en cas d'échec
      */
+    // NOSONAR — php:S1142 : early returns de validation intentionnels
     public function translate(string $text, string $source = 'fr', string $target = 'en'): string
     {
         if ($this->apiKey === '' || $text === '') {

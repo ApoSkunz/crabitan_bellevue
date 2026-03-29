@@ -23,6 +23,7 @@ class AccountController extends Controller
     private const VALID_PER_PAGES   = [10, 25, 50];
     private const VIEW_REACTIVATE   = 'account/reactivate';
     private const VIEW_UNSUBSCRIBE  = 'account/unsubscribe';
+    private const DATE_FORMAT       = 'd/m/Y';
 
     private AccountModel $accounts;
     private AddressModel $addresses;
@@ -164,7 +165,7 @@ class AccountController extends Controller
                 $deadlineTs  = strtotime($deliveredAt);
                 if ($deadlineTs !== false && time() <= $deadlineTs) {
                     $cancellableReturn = true;
-                    $returnDeadline    = date('d/m/Y', $deadlineTs);
+                    $returnDeadline    = date(self::DATE_FORMAT, $deadlineTs);
                 } else {
                     $returnExpired = true;
                 }
@@ -340,8 +341,8 @@ class AccountController extends Controller
         $clientAddr    = htmlspecialchars($order['bill_street'] ?? '');
         $clientZipCity = htmlspecialchars(trim(($order['bill_zip'] ?? '') . ' ' . ($order['bill_city'] ?? '')));
         $clientCountry = htmlspecialchars($order['bill_country'] ?? '');
-        $orderedAt     = date('d/m/Y', strtotime((string) $order['ordered_at']));
-        $returnDate    = date('d/m/Y');
+        $orderedAt     = date(self::DATE_FORMAT, strtotime((string) $order['ordered_at']));
+        $returnDate    = date(self::DATE_FORMAT);
 
         $rows = '';
         foreach ($items as $item) {
