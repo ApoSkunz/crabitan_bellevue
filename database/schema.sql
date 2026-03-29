@@ -211,6 +211,7 @@ CREATE TABLE `orders` (
   `status`              ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested') NOT NULL DEFAULT 'pending',
   `path_invoice`        VARCHAR(255)   DEFAULT NULL,
   `ordered_at`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `delivered_at`        DATETIME       DEFAULT NULL COMMENT 'Date de livraison confirmée ; base du délai de rétractation (15 j)',
   `updated_at`          DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_orders_reference` (`order_reference`),
