@@ -35,8 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     continue-on-error: true
-    # Blue Team: version épinglée + vérification SHA256 optionnelle via secret EXAKAT_PHAR_SHA256.
-    # Pour mettre à jour : bumper EXAKAT_VERSION + recalculer le SHA256 du .phar et mettre à jour le secret.
+    # Blue Team: version épinglée via EXAKAT_VERSION. SHA256 optionnel via secret EXAKAT_PHAR_SHA256.
+    # Si exakat.io est indisponible, le job est ignoré proprement (warning, pas d'erreur).
 
     steps:
       - name: Checkout
@@ -51,33 +51,40 @@ jobs:
           extensions: tokenizer, mbstring, json
           coverage: none
 
-      - name: Download Exakat (version épinglée)
+      - name: Download & run Exakat
         env:
           EXAKAT_VERSION: '2.6.9'
           EXAKAT_SHA256: ${{ secrets.EXAKAT_PHAR_SHA256 }}
         run: |
+          PHAR_OK=0
+
           # Tentative 1 : GitHub Releases (version épinglée)
-          if ! curl -fsSL \
+          if curl -fsSL \
             "https://github.com/exakat/exakat/releases/download/${EXAKAT_VERSION}/exakat.phar" \
             -o exakat.phar 2>/dev/null; then
-            # Fallback : dernière version stable sur exakat.io
-            echo "::warning::GitHub Release ${EXAKAT_VERSION} introuvable — fallback vers latest"
-            curl -fsSL "https://www.exakat.io/versions/exakat.phar" -o exakat.phar
-          fi
-          if [ -n "${EXAKAT_SHA256}" ]; then
-            echo "${EXAKAT_SHA256}  exakat.phar" | sha256sum -c - \
-              || { echo "::error::Checksum exakat.phar invalide — abort"; exit 1; }
+            PHAR_OK=1
+          # Tentative 2 : exakat.io latest (fallback si GitHub Release absente)
+          elif curl -fsSL "https://www.exakat.io/versions/exakat.phar" \
+            -o exakat.phar 2>/dev/null; then
+            echo "::warning::GitHub Release ${EXAKAT_VERSION} introuvable — fallback latest"
+            PHAR_OK=1
           else
-            echo "::warning::EXAKAT_PHAR_SHA256 non défini — vérification SHA256 ignorée"
+            echo "::warning::Exakat indisponible (GitHub + exakat.io) — analyse ignorée"
           fi
-          php exakat.phar doctor
 
-      - name: Run Exakat CI checks
-        run: |
-          php exakat.phar ci-checks \
-            -p . \
-            --ignore-dirs vendor,node_modules,coverage,public/assets \
-            -r Text
+          if [ "$PHAR_OK" -eq 1 ]; then
+            if [ -n "${EXAKAT_SHA256}" ]; then
+              echo "${EXAKAT_SHA256}  exakat.phar" | sha256sum -c - \
+                || { echo "::error::Checksum exakat.phar invalide — abort"; exit 1; }
+            else
+              echo "::warning::EXAKAT_PHAR_SHA256 non défini — vérification SHA256 ignorée"
+            fi
+            php exakat.phar doctor
+            php exakat.phar ci-checks \
+              -p . \
+              --ignore-dirs vendor,node_modules,coverage,public/assets \
+              -r Text
+          fi
 
   codeql:
     name: CodeQL Analysis
@@ -129,10 +136,10 @@ jobs:
     name: Legitify GitHub Security
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Blue Team: continue-on-error car Legitify v1.0.2 utilise upload-artifact@v3 (deprecated)
-    # en interne — échec non bloquant, le workflow reste vert. À mettre à jour quand une version
-    # compatible upload-artifact@v4 sera disponible côté Legit-Labs.
     continue-on-error: true
+    # Blue Team: CLI binary direct (pas l'action GitHub) car Legit-Labs/legitify@v1.0.2
+    # utilise upload-artifact@v3 deprecated — l'action échoue au setup avant tout step.
+    # On télécharge le binaire depuis GitHub Releases et on l'exécute directement.
 
     steps:
       - name: Checkout
@@ -140,12 +147,24 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Legitify
-        uses: Legit-Labs/legitify@e948d3ea97e94a53cbc72af88e2fdf6b612031bc # v1.0.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          target: REPOSITORY
-          scorecard: true
+      - name: Install & run Legitify CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LEGITIFY_VERSION: '1.0.2'
+        run: |
+          OS=linux
+          ARCH=amd64
+          ARCHIVE="legitify_${LEGITIFY_VERSION}_${OS}_${ARCH}.tar.gz"
+          curl -fsSL \
+            "https://github.com/Legit-Labs/legitify/releases/download/v${LEGITIFY_VERSION}/${ARCHIVE}" \
+            -o legitify.tar.gz
+          tar -xzf legitify.tar.gz legitify
+          chmod +x legitify
+          ./legitify analyze \
+            --gh-token "$GITHUB_TOKEN" \
+            --target repository \
+            --output-format table \
+            || true  # non-bloquant : résultats informatifs uniquement
 
   scorecard:
     name: OpenSSF Scorecard
