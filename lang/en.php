@@ -254,6 +254,7 @@ return [
 
     // News
     'news.read_more'  => 'Read more',
+    'news.learn_more' => 'Learn more',
     'news.back'       => 'Back to news',
     'news.empty'      => 'No news available at the moment.',
     'news.nav_label'  => 'Navigate between articles',

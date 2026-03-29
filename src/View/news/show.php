@@ -37,6 +37,17 @@ require_once SRC_PATH . '/View/partials/header.php';
             <div class="news-article__body">
                 <?= nl2br(htmlspecialchars($newsBody)) ?>
             </div>
+
+            <?php if (!empty($item['link_path'])) : ?>
+                <div class="news-article__external-link">
+                    <a href="<?= htmlspecialchars($item['link_path']) ?>"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="btn btn--gold">
+                        <?= htmlspecialchars(__('news.learn_more')) ?> &#8594;
+                    </a>
+                </div>
+            <?php endif; ?>
         </div>
 
         <nav class="news-article__nav" aria-label="<?= htmlspecialchars(__('news.nav_label')) ?>">

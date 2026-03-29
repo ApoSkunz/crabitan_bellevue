@@ -256,6 +256,7 @@ return [
 
     // News
     'news.read_more'  => 'Lire la suite',
+    'news.learn_more' => 'En savoir plus',
     'news.back'       => 'Retour aux actualités',
     'news.empty'      => 'Aucune actualité disponible pour le moment.',
     'news.nav_label'  => 'Navigation entre les actualités',
