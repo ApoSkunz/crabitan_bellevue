@@ -188,29 +188,39 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
         $awardText = htmlspecialchars(trim((string) ($awardData[$lang] ?? '')), ENT_QUOTES);
 
         if ($lang === 'fr') {
-            $subject      = sprintf('Nouveau vin disponible : %s %d', $wine['label_name'] ?? '', $vintage);
+            $subject      = sprintf(
+                'Château Crabitan Bellevue · %s %d — Nouveau millésime disponible',
+                $wine['label_name'] ?? '',
+                $vintage
+            );
             $wineUrl      = htmlspecialchars($appUrl . '/fr/vins/' . $slug, ENT_QUOTES);
             $discoverBtn  = 'Découvrir ce vin';
-            $greeting     = "Bonjour {$toName},";
-            $intro        = "Un nouveau vin vient d'être ajouté à notre sélection et est disponible dès maintenant.";
+            $greeting     = "Cher(e) {$toName},";
+            $intro        = "Le Château Crabitan Bellevue est heureux de vous informer,"
+                . " en avant-première, de la mise en vente d'une nouvelle référence dans notre boutique.";
             $labelLabel   = 'Appellation';
             $vintageLabel = 'Millésime';
             $cuveeLabel   = 'Cuvée Spéciale';
             $awardLabel   = 'Récompense';
             $cuveeValue   = 'Oui';
-            $emailTitle   = 'Nouveau vin disponible';
+            $emailTitle   = "Nouveauté · Millésime {$vintage}";
         } else {
-            $subject      = sprintf('New wine available: %s %d', $wine['label_name'] ?? '', $vintage);
+            $subject      = sprintf(
+                'Château Crabitan Bellevue · %s %d — New vintage available',
+                $wine['label_name'] ?? '',
+                $vintage
+            );
             $wineUrl      = htmlspecialchars($appUrl . '/en/wines/' . $slug, ENT_QUOTES);
             $discoverBtn  = 'Discover this wine';
-            $greeting     = "Hello {$toName},";
-            $intro        = 'A new wine has just been added to our selection and is now available.';
+            $greeting     = "Dear {$toName},";
+            $intro        = 'Château Crabitan Bellevue is pleased to inform you,'
+                . ' as one of our valued subscribers, of the availability of a new wine in our boutique.';
             $labelLabel   = 'Appellation';
             $vintageLabel = 'Vintage';
             $cuveeLabel   = 'Special Cuvée';
             $awardLabel   = 'Award';
             $cuveeValue   = 'Yes';
-            $emailTitle   = 'New wine available';
+            $emailTitle   = "New arrival · Vintage {$vintage}";
         }
 
         $imageHtml = '';
