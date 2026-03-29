@@ -150,6 +150,108 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
         $this->send($to, $name, $subject, $htmlBody, $attachmentPath, null, $attachmentName);
     }
 
+    /**
+     * Envoie une newsletter "nouveau vin disponible" à un abonné.
+     *
+     * @param string              $toEmail    Adresse email du destinataire
+     * @param string              $toName     Nom affiché du destinataire
+     * @param string              $unsubToken Token de désabonnement
+     * @param array<string,mixed> $wine       Données du vin (label_name, vintage, price, image_path, slug)
+     * @param string              $appUrl     URL de base de l'application
+     * @param string              $lang       Langue du destinataire ('fr' ou 'en')
+     * @return void
+     */
+    public function sendNewWineNewsletter(
+        string $toEmail,
+        string $toName,
+        string $unsubToken,
+        array $wine,
+        string $appUrl,
+        string $lang
+    ): void {
+        $appUrl      = rtrim($appUrl, '/');
+        $labelName   = htmlspecialchars((string) ($wine['label_name'] ?? ''), ENT_QUOTES);
+        $appellation = htmlspecialchars((string) ($wine['label_name'] ?? ''), ENT_QUOTES);
+        $vintage     = (int) ($wine['vintage'] ?? 0);
+        $price       = number_format((float) ($wine['price'] ?? 0), 2, ',', ' ');
+        $slug        = rawurlencode((string) ($wine['slug'] ?? ''));
+        $imagePath   = (string) ($wine['image_path'] ?? '');
+
+        if ($lang === 'fr') {
+            $subject      = sprintf('Nouveau vin disponible : %s %d', $wine['label_name'] ?? '', $vintage);
+            $wineUrl      = htmlspecialchars($appUrl . '/fr/vins/' . $slug, ENT_QUOTES);
+            $discoverBtn  = 'Découvrir ce vin';
+            $greeting     = "Bonjour {$toName},";
+            $intro        = "Un nouveau vin vient d'être ajouté à notre sélection et est disponible dès maintenant.";
+            $labelLabel   = 'Appellation';
+            $vintageLabel = 'Millésime';
+            $priceLabel   = 'Prix';
+            $emailTitle   = 'Nouveau vin disponible';
+        } else {
+            $subject      = sprintf('New wine available: %s %d', $wine['label_name'] ?? '', $vintage);
+            $wineUrl      = htmlspecialchars($appUrl . '/en/wines/' . $slug, ENT_QUOTES);
+            $discoverBtn  = 'Discover this wine';
+            $greeting     = "Hello {$toName},";
+            $intro        = 'A new wine has just been added to our selection and is now available.';
+            $labelLabel   = 'Appellation';
+            $vintageLabel = 'Vintage';
+            $priceLabel   = 'Price';
+            $emailTitle   = 'New wine available';
+        }
+
+        $imageHtml = '';
+        if ($imagePath !== '') {
+            $safeImg   = htmlspecialchars($appUrl . '/assets/images/wines/' . $imagePath, ENT_QUOTES);
+            $imageHtml = "<img src=\"{$safeImg}\" alt=\"{$labelName} {$vintage}\""
+                . " width=\"192\" style=\"display:block;width:192px;max-width:100%;"
+                . "height:auto;margin:24px auto 16px;border:0;border-radius:4px;\">";
+        }
+
+        $infoTable = '<table style="width:100%;border-collapse:collapse;margin:16px 0 24px;">'
+            . "<tr style=\"background:#f5f0e8;\">"
+            . "<td style=\"padding:8px 12px;font-size:12px;letter-spacing:1px;"
+            . "text-transform:uppercase;color:#8a7a60;width:40%;\">{$labelLabel}</td>"
+            . "<td style=\"padding:8px 12px;font-size:14px;color:#3d3425;\">{$appellation}</td>"
+            . "</tr>"
+            . "<tr style=\"border-top:1px solid #ede8df;\">"
+            . "<td style=\"padding:8px 12px;font-size:12px;letter-spacing:1px;"
+            . "text-transform:uppercase;color:#8a7a60;\">{$vintageLabel}</td>"
+            . "<td style=\"padding:8px 12px;font-size:14px;color:#3d3425;\">{$vintage}</td>"
+            . "</tr>"
+            . "<tr style=\"border-top:1px solid #ede8df;background:#f5f0e8;\">"
+            . "<td style=\"padding:8px 12px;font-size:12px;letter-spacing:1px;"
+            . "text-transform:uppercase;color:#8a7a60;\">{$priceLabel}</td>"
+            . "<td style=\"padding:8px 12px;font-size:14px;color:#3d3425;\">{$price}&nbsp;€</td>"
+            . "</tr>"
+            . "</table>";
+
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$wineUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+            . $discoverBtn
+            . '</a></td></tr></table>';
+
+        $safeGreeting = htmlspecialchars($greeting, ENT_QUOTES);
+        $htmlContent  = "<p style=\"margin:0 0 24px;font-size:22px;color:#1a1208;font-family:Georgia,serif;\">"
+            . $safeGreeting
+            . "</p>"
+            . "<p style=\"margin:0 0 16px;font-size:15px;line-height:1.7;color:#3d3425;\">"
+            . $intro
+            . "</p>"
+            . "<h2 style=\"margin:0 0 4px;font-family:Georgia,serif;font-size:20px;color:#1a1208;\">"
+            . "{$labelName} {$vintage}"
+            . "</h2>"
+            . $imageHtml
+            . $infoTable
+            . $ctaBtn;
+
+        $htmlBody = $this->buildNewsletterHtml($emailTitle, $htmlContent, null, $unsubToken);
+
+        $this->send($toEmail, $toName, $subject, $htmlBody);
+    }
+
     public function sendAccountDeletionConfirmation(
         string $to,
         string $name,
@@ -372,6 +474,165 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
 INNER;
 
         return $this->emailWrap($safeTitle, $inner);
+    }
+
+    /**
+     * Envoie un email transactionnel au client lors d'un changement de statut de commande.
+     * N'envoie rien si le statut n'est pas dans la liste des déclencheurs.
+     *
+     * @param string $toEmail   Adresse email du client
+     * @param string $toName    Prénom ou nom complet du client
+     * @param string $orderRef  Référence de la commande (ex. CB-2026-001)
+     * @param string $newStatus Nouveau statut de la commande
+     * @param string $lang      Langue du client ('fr' ou 'en')
+     * @param string $appUrl    URL de base de l'application
+     * @return void
+     */
+    public function sendOrderStatusEmail(
+        string $toEmail,
+        string $toName,
+        string $orderRef,
+        string $newStatus,
+        string $lang,
+        string $appUrl
+    ): void {
+        $triggerStatuses = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+        if (!in_array($newStatus, $triggerStatuses, true)) {
+            return;
+        }
+
+        $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeName = htmlspecialchars($toName, ENT_QUOTES);
+        $safeUrl  = rtrim($appUrl, '/');
+
+        if ($lang === 'fr') {
+            [$subject, $title, $greeting, $message] = $this->buildOrderStatusContentFr(
+                $newStatus,
+                $safeRef,
+                $safeName,
+                $safeUrl
+            );
+        } else {
+            [$subject, $title, $greeting, $message] = $this->buildOrderStatusContentEn(
+                $newStatus,
+                $safeRef,
+                $safeName,
+                $safeUrl
+            );
+        }
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message);
+        $this->send($toEmail, $toName, $subject, $body);
+    }
+
+    /**
+     * Construit le contenu de l'email de statut commande en français.
+     *
+     * @param  string $status   Statut déclencheur
+     * @param  string $safeRef  Référence commande échappée
+     * @param  string $safeName Nom du client échappé
+     * @param  string $appUrl   URL de base
+     * @return array{string, string, string, string}  [subject, title, greeting, message]
+     */
+    private function buildOrderStatusContentFr(
+        string $status,
+        string $safeRef,
+        string $safeName,
+        string $appUrl
+    ): array {
+        $subjects = [
+            'processing' => "Votre commande est en préparation — {$safeRef}",
+            'shipped'    => "Votre commande a été expédiée — {$safeRef}",
+            'delivered'  => "Votre commande a été livrée — {$safeRef}",
+            'cancelled'  => "Votre commande a été annulée — {$safeRef}",
+            'refunded'   => "Votre commande a été remboursée — {$safeRef}",
+        ];
+        $titles = [
+            'processing' => 'Commande en préparation',
+            'shipped'    => 'Commande expédiée',
+            'delivered'  => 'Commande livrée',
+            'cancelled'  => 'Commande annulée',
+            'refunded'   => 'Commande remboursée',
+        ];
+        $messages = [
+            'processing' => "Votre commande <strong>{$safeRef}</strong> est actuellement en cours de préparation."
+                . " Nous mettons tout en œuvre pour vous l'expédier dans les meilleurs délais.",
+            'shipped'    => "Votre commande <strong>{$safeRef}</strong> a été expédiée."
+                . " Vous devriez la recevoir dans les prochains jours ouvrés.",
+            'delivered'  => "Votre commande <strong>{$safeRef}</strong> a bien été livrée."
+                . " Nous espérons que vous apprécierez nos vins.<br><br>"
+                . "Si vous rencontrez un problème, vous avez 15 jours pour faire une demande de retour"
+                . " depuis votre espace client.",
+            'cancelled'  => "Votre commande <strong>{$safeRef}</strong> a été annulée."
+                . " Si vous avez déjà été débité(e), le remboursement sera traité dans les meilleurs délais.",
+            'refunded'   => "Votre commande <strong>{$safeRef}</strong> a été remboursée."
+                . " Le crédit sera visible sur votre compte bancaire dans un délai de 3 à 5 jours ouvrés.",
+        ];
+
+        $orderLinkBlock = "<br><br><a href=\"{$appUrl}/fr/mon-compte/commandes\" style=\"color:#c9a84c;\">"
+            . "Voir mes commandes</a>";
+
+        return [
+            $subjects[$status],
+            $titles[$status],
+            "Bonjour {$safeName},",
+            $messages[$status] . $orderLinkBlock,
+        ];
+    }
+
+    /**
+     * Construit le contenu de l'email de statut commande en anglais.
+     *
+     * @param  string $status   Statut déclencheur
+     * @param  string $safeRef  Référence commande échappée
+     * @param  string $safeName Nom du client échappé
+     * @param  string $appUrl   URL de base
+     * @return array{string, string, string, string}  [subject, title, greeting, message]
+     */
+    private function buildOrderStatusContentEn(
+        string $status,
+        string $safeRef,
+        string $safeName,
+        string $appUrl
+    ): array {
+        $subjects = [
+            'processing' => "Your order is being prepared — {$safeRef}",
+            'shipped'    => "Your order has been shipped — {$safeRef}",
+            'delivered'  => "Your order has been delivered — {$safeRef}",
+            'cancelled'  => "Your order has been cancelled — {$safeRef}",
+            'refunded'   => "Your order has been refunded — {$safeRef}",
+        ];
+        $titles = [
+            'processing' => 'Order in preparation',
+            'shipped'    => 'Order shipped',
+            'delivered'  => 'Order delivered',
+            'cancelled'  => 'Order cancelled',
+            'refunded'   => 'Order refunded',
+        ];
+        $messages = [
+            'processing' => "Your order <strong>{$safeRef}</strong> is currently being prepared."
+                . " We are doing our best to ship it to you as soon as possible.",
+            'shipped'    => "Your order <strong>{$safeRef}</strong> has been shipped."
+                . " You should receive it within the next few working days.",
+            'delivered'  => "Your order <strong>{$safeRef}</strong> has been delivered."
+                . " We hope you enjoy our wines.<br><br>"
+                . "If you encounter any issue, you have 15 days to submit a return request"
+                . " from your customer account.",
+            'cancelled'  => "Your order <strong>{$safeRef}</strong> has been cancelled."
+                . " If you have already been charged, a refund will be processed as soon as possible.",
+            'refunded'   => "Your order <strong>{$safeRef}</strong> has been refunded."
+                . " The credit should appear on your bank account within 3 to 5 working days.",
+        ];
+
+        $orderLinkBlock = "<br><br><a href=\"{$appUrl}/en/my-account/orders\" style=\"color:#c9a84c;\">"
+            . "View my orders</a>";
+
+        return [
+            $subjects[$status],
+            $titles[$status],
+            "Hello {$safeName},",
+            $messages[$status] . $orderLinkBlock,
+        ];
     }
 
     /**
