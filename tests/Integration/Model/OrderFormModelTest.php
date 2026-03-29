@@ -141,11 +141,8 @@ class OrderFormModelTest extends IntegrationTestCase
 
     public function testGetLatestReturnsNullWhenEmpty(): void
     {
-        // Empty table — this relies on the transaction rollback leaving the table clean
-        // If other tests already inserted rows, this test would fail; skip if table not empty.
-        if ($this->model->countAll() > 0) {
-            $this->markTestSkipped('Table not empty; use isolated test environment.');
-        }
+        // Suppression dans la transaction courante — rollbackée en tearDown
+        self::$db->execute('DELETE FROM order_forms');
 
         $this->assertNull($this->model->getLatest());
     }
