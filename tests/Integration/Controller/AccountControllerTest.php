@@ -165,6 +165,23 @@ class AccountControllerTest extends IntegrationTestCase
         );
     }
 
+    /**
+     * Insère une commande au statut "delivered" avec delivered_at configurable.
+     *
+     * @param int    $userId    Identifiant du compte
+     * @param int    $addressId Identifiant de l'adresse de facturation
+     * @param string $deliveredAt Valeur SQL pour delivered_at (ex: 'NOW() - INTERVAL 7 DAY')
+     * @return int Identifiant de la commande créée
+     */
+    private function insertDeliveredOrder(int $userId, int $addressId, string $deliveredAt = 'NOW() - INTERVAL 7 DAY'): int
+    {
+        return (int) self::$db->insert(
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status, delivered_at)
+             VALUES (?, ?, '[]', 99.90, 'card', 0.00, ?, 'delivered', {$deliveredAt})",
+            [$userId, 'TEST-' . bin2hex(random_bytes(4)), $addressId]
+        );
+    }
+
     // ----------------------------------------------------------------
     // index()
     // ----------------------------------------------------------------
@@ -2089,5 +2106,89 @@ class AccountControllerTest extends IntegrationTestCase
         $output = ob_get_clean();
 
         $this->assertStringContainsString('account-filters', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // cancelOrder() — rétractation après livraison
+    // ----------------------------------------------------------------
+
+    /**
+     * Une commande "delivered" dans la fenêtre de 15 jours passe à "return_requested".
+     */
+    public function testCancelOrderRequestsReturnWhenDeliveredWithinWindow(): void
+    {
+        $userId    = $this->insertCustomer('retract.ok@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 7 DAY');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $this->expectException(\Core\Exception\HttpException::class); // redirect → 302 levé par Response::redirect
+        try {
+            $this->makeController('POST', "/fr/mon-compte/commandes/{$orderId}/annuler")
+                ->cancelOrder(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (\Core\Exception\HttpException $e) {
+            $row = self::$db->fetchOne(
+                "SELECT status FROM orders WHERE id = ?",
+                [$orderId]
+            );
+            $this->assertSame('return_requested', $row['status']);
+            $this->assertNotEmpty($_SESSION['flash']['order_success'] ?? null);
+            throw $e;
+        }
+    }
+
+    /**
+     * Une commande "delivered" hors fenêtre (> 15 jours) ne passe pas à "return_requested".
+     */
+    public function testCancelOrderFailsWhenWindowExpired(): void
+    {
+        $userId    = $this->insertCustomer('retract.expired@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 16 DAY');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        try {
+            $this->makeController('POST', "/fr/mon-compte/commandes/{$orderId}/annuler")
+                ->cancelOrder(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (\Core\Exception\HttpException $e) {
+            $row = self::$db->fetchOne(
+                "SELECT status FROM orders WHERE id = ?",
+                [$orderId]
+            );
+            $this->assertSame('delivered', $row['status']);
+            $this->assertNotEmpty($_SESSION['flash']['order_error'] ?? null);
+            throw $e;
+        }
+    }
+
+    /**
+     * Un CSRF invalide ne modifie pas le statut de la commande.
+     */
+    public function testCancelOrderReturnRequestBlockedByInvalidCsrf(): void
+    {
+        $userId    = $this->insertCustomer('retract.csrf@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 3 DAY');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => 'invalid-token'];
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        try {
+            $this->makeController('POST', "/fr/mon-compte/commandes/{$orderId}/annuler")
+                ->cancelOrder(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (\Core\Exception\HttpException $e) {
+            $row = self::$db->fetchOne(
+                "SELECT status FROM orders WHERE id = ?",
+                [$orderId]
+            );
+            $this->assertSame('delivered', $row['status']);
+            throw $e;
+        }
     }
 }
