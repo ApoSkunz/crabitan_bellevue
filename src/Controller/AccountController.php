@@ -95,7 +95,7 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
         }
 
         $rawStatus    = $this->request->get('status', '');
-        $validStatuses = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested'];
+        $validStatuses = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused'];
         $statusFilter  = in_array($rawStatus, $validStatuses, true) ? $rawStatus : null;
 
         $total = $this->orders->countForUser($userId, $period === 'all' ? null : $period, $year, $statusFilter);
@@ -143,11 +143,19 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
         // Fenêtre de rétractation après livraison
         $cancellableReturn = false;
         $returnDeadline    = null;
-        if ($order['status'] === 'delivered' && !empty($order['delivered_at'])) {
-            $deadlineTs = strtotime($order['delivered_at'] . ' +' . \Model\OrderModel::CANCEL_WINDOW_DAYS . ' days');
-            if ($deadlineTs !== false && time() <= $deadlineTs) {
-                $cancellableReturn = true;
-                $returnDeadline    = date('d/m/Y', $deadlineTs);
+        $returnExpired     = false;
+        $deliveredNoDate   = false;
+        if ($order['status'] === 'delivered') {
+            if (empty($order['delivered_at'])) {
+                $deliveredNoDate = true;
+            } else {
+                $deadlineTs = strtotime($order['delivered_at'] . ' +' . \Model\OrderModel::CANCEL_WINDOW_DAYS . ' days');
+                if ($deadlineTs !== false && time() <= $deadlineTs) {
+                    $cancellableReturn = true;
+                    $returnDeadline    = date('d/m/Y', $deadlineTs);
+                } else {
+                    $returnExpired = true;
+                }
             }
         }
 
@@ -162,6 +170,8 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
             'ownerEmail'        => $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '',
             'cancellableReturn' => $cancellableReturn,
             'returnDeadline'    => $returnDeadline,
+            'returnExpired'     => $returnExpired,
+            'deliveredNoDate'   => $deliveredNoDate,
         ]);
     }
 
@@ -190,6 +200,7 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
             $ok = $this->orders->requestReturnForUser($id, $userId);
             if ($ok) {
                 $_SESSION['flash']['order_success'] = __('account.order_return_requested');
+                $this->sendReturnEmails($id, $userId, $lang);
             } else {
                 $_SESSION['flash']['order_error'] = __('account.order_cancel_failed');
             }
@@ -198,6 +209,181 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
         }
 
         Response::redirect($back);
+    }
+
+    /**
+     * Envoie les emails de notification de retour au propriétaire et au client.
+     *
+     * @param int    $orderId Identifiant de la commande
+     * @param int    $userId  Identifiant du client
+     * @param string $lang    Langue du client
+     */
+    private function sendReturnEmails(int $orderId, int $userId, string $lang): void
+    {
+        $order   = $this->orders->findDetailForUser($orderId, $userId);
+        $account = $this->accounts->findById($userId);
+        if (!$order || !$account) {
+            return;
+        }
+
+        $clientName  = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
+        $clientEmail = $account['email'] ?? '';
+        if ($clientEmail === '') {
+            return;
+        }
+
+        $pdfBytes = $this->buildReturnSlipPdf($order);
+        $tmpPath  = sys_get_temp_dir() . '/retour_' . $order['order_reference'] . '_' . time() . '.pdf';
+        file_put_contents($tmpPath, $pdfBytes);
+
+        try {
+            $mailer = new \Service\MailService();
+            $mailer->sendReturnRequestedToOwner($order, $clientName, $clientEmail);
+            $mailer->sendReturnConfirmedToClient($clientEmail, $clientName, $order, $tmpPath, $lang);
+        } finally {
+            if (file_exists($tmpPath)) {
+                unlink($tmpPath);
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/mon-compte/commandes/{id}/fiche-retour
+    // ----------------------------------------------------------------
+
+    /**
+     * Génère et affiche la fiche de retour PDF (inline) pour une commande
+     * en statut return_requested ou delivered dans la fenêtre de rétractation.
+     *
+     * @param array<string, string> $params
+     */
+    public function returnSlip(array $params): void
+    {
+        $this->resolveLang($params);
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $id      = (int) ($params['id'] ?? 0);
+        $lang    = $params['lang'];
+
+        $this->requireIndividual($userId, $lang);
+
+        $order = $this->orders->findDetailForUser($id, $userId);
+
+        $isReturnRequested   = $order && $order['status'] === 'return_requested';
+        $isDeliveredInWindow = false;
+        if ($order && $order['status'] === 'delivered' && !empty($order['delivered_at'])) {
+            $deadlineTs = strtotime($order['delivered_at'] . ' +' . \Model\OrderModel::CANCEL_WINDOW_DAYS . ' days');
+            if ($deadlineTs !== false && time() <= $deadlineTs) {
+                $isDeliveredInWindow = true;
+            }
+        }
+
+        if (!$order || (!$isReturnRequested && !$isDeliveredInWindow)) {
+            $this->abort(404, 'Fiche de retour indisponible');
+        }
+
+        $pdfBytes = $this->buildReturnSlipPdf($order);
+        $filename = 'fiche-retour_' . $order['order_reference'] . '.pdf';
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $filename . '"');
+        header('Cache-Control: private, no-cache');
+        echo $pdfBytes;
+        exit;
+    }
+
+    /**
+     * Génère le contenu binaire de la fiche de retour PDF pour une commande.
+     *
+     * @param array<string, mixed> $order
+     * @return string Contenu binaire du PDF
+     */
+    private function buildReturnSlipPdf(array $order): string
+    {
+        $items     = json_decode((string) ($order['content'] ?? '[]'), true) ?: [];
+        $appName   = defined('APP_NAME') ? APP_NAME : 'Château Crabitan Bellevue';
+        $ownerAddr = "Château Crabitan Bellevue\nau Crabitan\n33410 Sainte-Croix-du-Mont\nFrance";
+
+        require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
+
+        $pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetCreator($appName);
+        $pdf->SetAuthor($appName);
+        $pdf->SetTitle('Fiche de retour — ' . $order['order_reference']);
+        $pdf->SetMargins(15, 20, 15);
+        $pdf->SetAutoPageBreak(true, 15);
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->AddPage();
+
+        $clientName    = htmlspecialchars(trim(
+            ($order['bill_civility'] ?? '') . ' ' .
+            ($order['bill_firstname'] ?? '') . ' ' .
+            ($order['bill_lastname'] ?? '')
+        ));
+        $clientAddr    = htmlspecialchars($order['bill_street'] ?? '');
+        $clientZipCity = htmlspecialchars(trim(($order['bill_zip'] ?? '') . ' ' . ($order['bill_city'] ?? '')));
+        $clientCountry = htmlspecialchars($order['bill_country'] ?? '');
+        $orderedAt     = date('d/m/Y', strtotime((string) $order['ordered_at']));
+        $returnDate    = date('d/m/Y');
+
+        $rows = '';
+        foreach ($items as $item) {
+            $label  = htmlspecialchars($item['label_name'] ?? '—');
+            $format = htmlspecialchars($item['format'] ?? '—');
+            $qty    = (int) ($item['qty'] ?? 0);
+            $price  = number_format((float) ($item['price'] ?? 0), 2, ',', ' ');
+            $rows  .= "<tr><td>{$label}</td><td>{$format}</td>"
+                . "<td style=\"text-align:center;\">{$qty}</td>"
+                . "<td style=\"text-align:right;\">{$price}&nbsp;€</td></tr>";
+        }
+
+        $html = '<style>
+            body  { font-family: dejavusans; font-size: 10pt; color: #1a1208; }
+            h1    { font-size: 15pt; color: #c1a14b; margin: 0 0 4px; }
+            h2    { font-size: 10pt; color: #c1a14b; margin: 14px 0 4px; border-bottom: 1px solid #c1a14b; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+            th    { background: #f5f0e8; font-weight: bold; padding: 4px 6px; text-align: left; font-size: 9pt; }
+            td    { padding: 4px 6px; border-bottom: 1px solid #e8e0d0; font-size: 9pt; }
+            .muted { color: #8a7060; font-size: 9pt; }
+            .addr  { font-size: 9pt; line-height: 1.6; }
+            .legal { font-size: 8pt; color: #888; margin-top: 14px; border-top: 1px solid #e0d8cc; padding-top: 8px; }
+        </style>
+        <h1>' . htmlspecialchars($appName) . '</h1>
+        <p class="muted">FICHE DE RETOUR — droit de rétractation (art. L221-18 Code conso.)</p>
+
+        <table><tr>
+            <td style="width:50%;vertical-align:top;">
+                <h2>Expéditeur</h2>
+                <p class="addr">' . $clientName . '<br>' . $clientAddr . '<br>' . $clientZipCity . '<br>' . $clientCountry . '</p>
+            </td>
+            <td style="width:50%;vertical-align:top;">
+                <h2>Retourner à</h2>
+                <p class="addr">' . nl2br(htmlspecialchars($ownerAddr)) . '</p>
+            </td>
+        </tr></table>
+
+        <h2>Détails de la commande</h2>
+        <table><tr>
+            <td><strong>Référence :</strong> ' . htmlspecialchars($order['order_reference']) . '</td>
+            <td><strong>Date commande :</strong> ' . $orderedAt . '</td>
+            <td><strong>Date de retour :</strong> ' . $returnDate . '</td>
+        </tr></table>
+
+        <h2>Articles retournés</h2>
+        <table>
+            <tr><th>Vin</th><th>Format</th><th style="text-align:center;">Qté</th><th style="text-align:right;">Prix unit.</th></tr>
+            ' . $rows . '
+        </table>
+
+        <p class="legal">
+            Droit de rétractation exercé conformément à l\'article L221-18 du Code de la consommation.
+            Retour en carton d\'origine scellé, bouteilles non ouvertes, en port payé par l\'acheteur.
+            Sous réserve de vérification à réception.
+        </p>';
+
+        $pdf->writeHTML($html, true, false, true, false, '');
+
+        return (string) $pdf->Output('', 'S');
     }
 
     // ----------------------------------------------------------------
