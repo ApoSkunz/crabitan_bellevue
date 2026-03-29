@@ -414,10 +414,10 @@ class NewsletterAdminControllerTest extends AdminIntegrationTestCase
 
         $row = self::$db->fetchOne(
             "SELECT subject FROM newsletters WHERE subject = ?",
-            ['Campagne persistance test']
+            ['Château Crabitan Bellevue — Campagne persistance test']
         );
         $this->assertNotEmpty($row);
-        $this->assertSame('Campagne persistance test', $row['subject']);
+        $this->assertSame('Château Crabitan Bellevue — Campagne persistance test', $row['subject']);
     }
 
     /**
@@ -437,7 +437,7 @@ class NewsletterAdminControllerTest extends AdminIntegrationTestCase
 
         $row = self::$db->fetchOne(
             "SELECT sent_count, failed_count FROM newsletters WHERE subject = ?",
-            ['Campagne stats test']
+            ['Château Crabitan Bellevue — Campagne stats test']
         );
         $this->assertNotEmpty($row);
         // sent_count + failed_count = total abonnés au moment du test (variable selon fixtures)
