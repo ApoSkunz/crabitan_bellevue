@@ -111,6 +111,75 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
     </div>
 </div>
 
+<!-- ---- Historique des campagnes ---- -->
+<div class="admin-card" style="margin-bottom:1.5rem;">
+    <div class="admin-card__body" style="padding-bottom:0;">
+        <h2 style="font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;color:#6b5f50;margin-bottom:1rem;">
+            Historique des envois
+            <?php if (($historyTotal ?? 0) > 0) : ?>
+                <small style="font-size:0.75rem;font-variant:normal;letter-spacing:0;color:#8a7a60;text-transform:none;">
+                    (<?= (int) $historyTotal ?> campagne<?= $historyTotal > 1 ? 's' : '' ?>)
+                </small>
+            <?php endif; ?>
+        </h2>
+    </div>
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Objet</th>
+                    <th>Envoyés</th>
+                    <th>Échecs</th>
+                    <th>Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php if (empty($history)) : ?>
+                <tr><td colspan="6" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune campagne envoyée</td></tr>
+            <?php else : ?>
+                <?php foreach ($history as $campaign) : ?>
+                    <tr>
+                        <td style="color:#8a7a60;"><?= (int) $campaign['id'] ?></td>
+                        <td><strong><?= htmlspecialchars($campaign['subject']) ?></strong></td>
+                        <td style="color:#2e7d32;"><?= (int) $campaign['sent_count'] ?></td>
+                        <td style="color:<?= (int) $campaign['failed_count'] > 0 ? '#c62828' : '#8a7a60' ?>;">
+                            <?= (int) $campaign['failed_count'] ?>
+                        </td>
+                        <td style="white-space:nowrap;font-size:0.8rem;">
+                            <?= date('d/m/Y H:i', strtotime($campaign['sent_at'])) ?>
+                        </td>
+                        <td>
+                            <a href="/admin/newsletter/<?= (int) $campaign['id'] ?>"
+                               class="admin-btn admin-btn--sm admin-btn--outline">Voir</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php
+    $historyTotalPages = ($historyTotal ?? 0) > 0
+        ? (int) ceil(($historyTotal ?? 0) / ($historyPages > 0 ? $historyPages : 1))
+        : 1;
+    // réutiliser $historyPages passé par le contrôleur
+    if (($historyPages ?? 1) > 1) : ?>
+        <div class="admin-pagination">
+            <a href="?hpage=<?= max(1, $historyPage - 1) ?>"
+               class="admin-pagination__item<?= $historyPage <= 1 ? ' disabled' : '' ?>">‹</a>
+            <?php for ($i = max(1, $historyPage - 2); $i <= min($historyPages, $historyPage + 2); $i++) : ?>
+                <a href="?hpage=<?= $i ?>"
+                   class="admin-pagination__item<?= $i === $historyPage ? ' active' : '' ?>"><?= $i ?></a>
+            <?php endfor; ?>
+            <a href="?hpage=<?= min($historyPages, $historyPage + 1) ?>"
+               class="admin-pagination__item<?= $historyPage >= $historyPages ? ' disabled' : '' ?>">›</a>
+        </div>
+    <?php endif; ?>
+</div>
+
+<!-- ---- Liste des abonnés ---- -->
 <div class="admin-card">
     <div class="admin-table-wrap">
         <table class="admin-table">
