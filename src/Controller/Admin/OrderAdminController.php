@@ -35,6 +35,18 @@ class OrderAdminController extends AdminController
         return new MailService();
     }
 
+    /**
+     * Déplace le fichier uploadé vers la destination (seam de testabilité).
+     *
+     * @param string $src  Chemin temporaire du fichier uploadé
+     * @param string $dest Chemin de destination
+     * @return bool
+     */
+    protected function moveUploadedFile(string $src, string $dest): bool
+    {
+        return move_uploaded_file($src, $dest);
+    }
+
     // ----------------------------------------------------------------
     // GET /admin/commandes
     // ----------------------------------------------------------------
@@ -136,6 +148,7 @@ class OrderAdminController extends AdminController
             $clientName  = trim($firstname . ' ' . $lastname) ?: $clientEmail;
             $clientLang  = (string) ($order['lang'] ?? 'fr');
             $orderRef    = (string) ($order['order_reference'] ?? '');
+            // NOSONAR — http fallback local dev only; production always sets APP_URL env var
             $appUrl      = rtrim($_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'http://crabitan.local'), '/');
 
             try {
@@ -202,7 +215,7 @@ class OrderAdminController extends AdminController
 
         $filename = 'invoice_' . $id . '_' . bin2hex(random_bytes(6)) . '.pdf';
         $destPath = $destDir . $filename;
-        if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+        if (!$this->moveUploadedFile($file['tmp_name'], $destPath)) {
             $this->flash('error', 'Erreur lors de l\'enregistrement du fichier.');
             Response::redirect(self::ADMIN_URL . '/' . $id);
         }

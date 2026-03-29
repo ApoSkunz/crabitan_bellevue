@@ -169,9 +169,10 @@ class NewsletterAdminController extends AdminController
 
             // Salutation : prénom seul pour les particuliers (pas nom complet)
             $firstname    = htmlspecialchars(trim($sub['firstname'] ?? ''), ENT_QUOTES);
+            $fallbackName = $firstname ?: htmlspecialchars($name ?: 'cher abonné', ENT_QUOTES);
             $greeting     = $sub['account_type'] === 'company'
                 ? 'Madame, Monsieur,'
-                : 'Bonjour ' . ($firstname ?: htmlspecialchars($name ?: 'cher abonné', ENT_QUOTES)) . ',';
+                : 'Bonjour ' . $fallbackName . ',';
             $greetingHtml = '<p style="margin:0 0 20px;font-size:22px;color:#1a1208;font-family:Georgia,serif;">'
                 . $greeting . '</p>';
 

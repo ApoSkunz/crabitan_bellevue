@@ -29,6 +29,9 @@ class WineAdminController extends AdminController
     /** @var string[] */
     private const CERT_LABELS = ['AOC', 'IGP', 'STG', 'AOP'];
 
+    private const TITLE_CREATE      = 'Ajouter un vin';
+    private const TITLE_EDIT_PREFIX = 'Modifier — ';
+
     private const ADMIN_BASE       = '/admin';
     private const ADMIN_URL        = '/admin/vins';
     private const FORM_VIEW        = 'admin/wines/form';
@@ -111,7 +114,7 @@ class WineAdminController extends AdminController
         $this->view(self::FORM_VIEW, [
             'adminUser'    => $adminUser,
             'adminSection' => 'wines',
-            'pageTitle'    => 'Ajouter un vin',
+            'pageTitle'    => self::TITLE_CREATE,
             'breadcrumbs'  => [
                 ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                 ['label' => 'Vins', 'url' => self::ADMIN_URL],
@@ -143,7 +146,7 @@ class WineAdminController extends AdminController
             $this->view(self::FORM_VIEW, [
                 'adminUser'    => $adminUser,
                 'adminSection' => 'wines',
-                'pageTitle'    => 'Ajouter un vin',
+                'pageTitle'    => self::TITLE_CREATE,
                 'breadcrumbs'  => [
                     ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                     ['label' => 'Vins', 'url' => self::ADMIN_URL],
@@ -167,7 +170,7 @@ class WineAdminController extends AdminController
             $this->view(self::FORM_VIEW, [
                 'adminUser'    => $adminUser,
                 'adminSection' => 'wines',
-                'pageTitle'    => 'Ajouter un vin',
+                'pageTitle'    => self::TITLE_CREATE,
                 'breadcrumbs'  => [
                     ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                     ['label' => 'Vins', 'url' => self::ADMIN_URL],
@@ -237,7 +240,7 @@ class WineAdminController extends AdminController
         $this->view(self::FORM_VIEW, [
             'adminUser'    => $adminUser,
             'adminSection' => 'wines',
-            'pageTitle'    => 'Modifier — ' . $wine['label_name'],
+            'pageTitle'    => self::TITLE_EDIT_PREFIX . $wine['label_name'],
             'breadcrumbs'  => [
                 ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                 ['label' => 'Vins', 'url' => self::ADMIN_URL],
@@ -275,7 +278,7 @@ class WineAdminController extends AdminController
             $this->view(self::FORM_VIEW, [
                 'adminUser'    => $adminUser,
                 'adminSection' => 'wines',
-                'pageTitle'    => 'Modifier — ' . $wine['label_name'],
+                'pageTitle'    => self::TITLE_EDIT_PREFIX . $wine['label_name'],
                 'breadcrumbs'  => [
                     ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                     ['label' => 'Vins', 'url' => self::ADMIN_URL],
@@ -299,7 +302,7 @@ class WineAdminController extends AdminController
             $this->view(self::FORM_VIEW, [
                 'adminUser'    => $adminUser,
                 'adminSection' => 'wines',
-                'pageTitle'    => 'Modifier — ' . $wine['label_name'],
+                'pageTitle'    => self::TITLE_EDIT_PREFIX . $wine['label_name'],
                 'breadcrumbs'  => [
                     ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                     ['label' => 'Vins', 'url' => self::ADMIN_URL],
