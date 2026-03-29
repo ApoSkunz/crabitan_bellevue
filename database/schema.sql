@@ -394,4 +394,35 @@ INSERT INTO `game_scores` (`game`, `score`) VALUES
     ('memo', 0),
     ('tracteur', 0);
 
+-- ============================================================
+-- Table : newsletters
+-- Historique des campagnes envoyées
+-- ============================================================
+CREATE TABLE `newsletters` (
+  `id`           INT            NOT NULL AUTO_INCREMENT,
+  `subject`      VARCHAR(255)   NOT NULL,
+  `body`         TEXT           NOT NULL,
+  `image_url`    VARCHAR(500)   DEFAULT NULL COMMENT 'URL publique de l\'image d\'en-tête optionnelle',
+  `sent_count`   INT            NOT NULL DEFAULT 0,
+  `failed_count` INT            NOT NULL DEFAULT 0,
+  `sent_at`      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_newsletters_sent_at` (`sent_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : newsletter_attachments
+-- Pièces jointes PDF liées à une campagne (conservées après envoi)
+-- ============================================================
+CREATE TABLE `newsletter_attachments` (
+  `id`            INT            NOT NULL AUTO_INCREMENT,
+  `newsletter_id` INT            NOT NULL,
+  `original_name` VARCHAR(255)   NOT NULL COMMENT 'Nom original du fichier uploadé',
+  `stored_path`   VARCHAR(500)   NOT NULL COMMENT 'Chemin relatif dans storage/newsletters/attachments/',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_nl_attachment_newsletter`
+    FOREIGN KEY (`newsletter_id`) REFERENCES `newsletters` (`id`) ON DELETE CASCADE,
+  INDEX `idx_nl_attachment_newsletter` (`newsletter_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 COMMIT;
