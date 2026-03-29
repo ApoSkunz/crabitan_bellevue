@@ -15,8 +15,9 @@ use Service\MailService;
 class NewsletterAdminController extends AdminController
 {
     private const ADMIN_URL      = '/admin/newsletter';
-    private const PER_PAGE       = 25;
-    private const HISTORY_PER_PAGE = 10;
+    private const PER_PAGE                = 25;
+    private const HISTORY_PER_PAGE        = 10;
+    private const ALLOWED_HISTORY_PER_PAGE = [10, 25, 50];
     private const ATTACHMENT_DIR = 'storage/newsletters/attachments/';
 
     private AccountModel $accounts;
@@ -43,26 +44,31 @@ class NewsletterAdminController extends AdminController
             ($page - 1) * self::PER_PAGE
         );
 
-        $historyPage  = max(1, (int) $this->request->get('hpage', 1));
+        $historyPage    = max(1, (int) $this->request->get('hpage', 1));
+        $historyPerPage = (int) $this->request->get('hperpage', self::HISTORY_PER_PAGE);
+        if (!in_array($historyPerPage, self::ALLOWED_HISTORY_PER_PAGE, true)) {
+            $historyPerPage = self::HISTORY_PER_PAGE;
+        }
         $historyTotal = $this->newsletters->count();
         $history      = $this->newsletters->getAll(
-            self::HISTORY_PER_PAGE,
-            ($historyPage - 1) * self::HISTORY_PER_PAGE
+            $historyPerPage,
+            ($historyPage - 1) * $historyPerPage
         );
 
         $this->view('admin/newsletter/index', [
-            'adminUser'     => $adminUser,
-            'adminSection'  => 'newsletter',
-            'pageTitle'     => 'Newsletter',
-            'breadcrumbs'   => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Newsletter']],
-            'subscribers'   => $subscribers,
-            'total'         => $total,
-            'page'          => $page,
-            'perPage'       => self::PER_PAGE,
-            'history'       => $history,
-            'historyTotal'  => $historyTotal,
-            'historyPage'   => $historyPage,
-            'historyPages'  => $historyTotal > 0 ? (int) ceil($historyTotal / self::HISTORY_PER_PAGE) : 1,
+            'adminUser'      => $adminUser,
+            'adminSection'   => 'newsletter',
+            'pageTitle'      => 'Newsletter',
+            'breadcrumbs'    => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Newsletter']],
+            'subscribers'    => $subscribers,
+            'total'          => $total,
+            'page'           => $page,
+            'perPage'        => self::PER_PAGE,
+            'history'        => $history,
+            'historyTotal'   => $historyTotal,
+            'historyPage'    => $historyPage,
+            'historyPerPage' => $historyPerPage,
+            'historyPages'   => $historyTotal > 0 ? (int) ceil($historyTotal / $historyPerPage) : 1,
             'flash'         => $this->getFlash('success'),
             'flashError'    => $this->getFlash('error'),
             'csrfToken'     => $_SESSION['csrf'] ?? '',
