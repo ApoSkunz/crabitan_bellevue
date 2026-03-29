@@ -16,7 +16,7 @@ use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
 use Model\OrderModel;
 
-class AccountController extends Controller // NOSONAR — php:S1448 : regroupement intentionnel ; découpage prévu à l'audit génie logiciel
+class AccountController extends Controller // NOSONAR — php:S1448 : découpage prévu à l'audit génie logiciel
 {
     private const PER_PAGE          = 10;
     private const VALID_PER_PAGES   = [10, 25, 50];
@@ -301,6 +301,18 @@ class AccountController extends Controller // NOSONAR — php:S1448 : regroupeme
 
         $pdfBytes = $this->buildReturnSlipPdf($order);
         $filename = 'fiche-retour_' . $order['order_reference'] . '.pdf';
+        $this->sendPdfResponse($pdfBytes, $filename);
+    }
+
+    /**
+     * Envoie le PDF en réponse HTTP inline (headers + body + exit).
+     * Méthode protégée pour permettre le test via sous-classe.
+     *
+     * @param string $pdfBytes Contenu binaire du PDF
+     * @param string $filename Nom de fichier pour Content-Disposition
+     */
+    protected function sendPdfResponse(string $pdfBytes, string $filename): never
+    {
         header('Content-Type: application/pdf');
         header('Content-Disposition: inline; filename="' . $filename . '"');
         header('Cache-Control: private, no-cache');

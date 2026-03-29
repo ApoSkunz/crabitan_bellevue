@@ -246,9 +246,22 @@ class NewsletterAdminController extends AdminController
             mkdir($destDir, 0755, true);
         }
         $filename = 'nl_' . bin2hex(random_bytes(8)) . '.' . $allowed[$mimeType];
-        if (!move_uploaded_file($file['tmp_name'], $destDir . $filename)) {
+        if (!$this->moveUploadedFile($file['tmp_name'], $destDir . $filename)) {
             return null;
         }
         return $appUrl . '/assets/images/newsletter/' . $filename;
+    }
+
+    /**
+     * Déplace un fichier uploadé vers sa destination finale.
+     * Méthode protégée pour permettre le test via sous-classe.
+     *
+     * @param string $src  Chemin source du fichier temporaire
+     * @param string $dest Chemin de destination
+     * @return bool
+     */
+    protected function moveUploadedFile(string $src, string $dest): bool
+    {
+        return move_uploaded_file($src, $dest);
     }
 }
