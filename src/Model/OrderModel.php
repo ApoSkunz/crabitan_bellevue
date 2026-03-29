@@ -389,8 +389,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param  array<string, array{label: string, ca: float, count: int}>  $indexed
      * @return array<int, array{label: string, ca: float, count: int}>
      */
-    // NOSONAR php:S1142 — branches logiques distinctes, refactoring sans valeur
-    private function fillChartGaps(array $indexed, ?string $from, ?string $to, string $granularity): array
+    private function fillChartGaps(array $indexed, ?string $from, ?string $to, string $granularity): array // NOSONAR php:S1142 — branches logiques distinctes, refactoring sans valeur
     {
         $result = [];
         $empty  = ['ca' => 0.0, 'count' => 0];
