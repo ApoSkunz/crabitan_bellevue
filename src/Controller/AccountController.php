@@ -15,6 +15,7 @@ use Model\FavoriteModel;
 use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
 use Model\OrderModel;
+use Service\PasswordValidator;
 
 class AccountController extends Controller // NOSONAR — php:S1448 : découpage prévu à l'audit génie logiciel
 {
@@ -705,8 +706,8 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $errors['current_password'] = __('account.wrong_current_password');
         }
 
-        if (strlen($new) < 12) {
-            $errors['new_password'] = __('validation.password_min');
+        if (!PasswordValidator::isStrong($new)) {
+            $errors['new_password'] = __('auth.password_too_weak');
         }
 
         if ($new !== $confirm) {

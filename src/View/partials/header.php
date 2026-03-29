@@ -364,6 +364,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     <button type="button" id="forgot-password-btn" class="login-modal__forgot">
                         <?= htmlspecialchars(__('auth.forgot_password')) ?>
                     </button>
+                    <div class="login-modal__remember">
+                        <input type="checkbox" id="remember-me" name="remember_me" value="1">
+                        <label for="remember-me"><?= htmlspecialchars(__('auth.remember_me')) ?></label>
+                    </div>
                     <button type="submit" class="btn btn--gold login-modal__submit"><?= htmlspecialchars(__('auth.login')) ?></button>
                 </form>
                 <div class="login-modal__register">
@@ -681,7 +685,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/admin/actualites">Actualités</a>
                 <a href="/admin/newsletter">Newsletter</a>
                 <a href="/admin/bons-de-commande">Bons de commande</a>
-                <a href="/admin/mon-profil">Mon profil</a>
+                <a href="/admin/statistiques">Statistiques CA</a>
+                <a href="/admin/securite">Sécurité</a>
             <?php else : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">
                     <?= htmlspecialchars(__('panel.account')) ?>

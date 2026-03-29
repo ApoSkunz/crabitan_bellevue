@@ -52,13 +52,23 @@ class Jwt
         return $data;
     }
 
-    public static function generate(int $userId, string $role): string
+    /**
+     * Génère un JWT signé pour un utilisateur.
+     *
+     * @param int    $userId Identifiant de l'utilisateur
+     * @param string $role   Rôle de l'utilisateur
+     * @param int    $ttl    Durée de vie en secondes (0 = utilise JWT_EXPIRY, défaut env)
+     * @return string
+     */
+    public static function generate(int $userId, string $role, int $ttl = 0): string
     {
+        $expiry = $ttl > 0 ? $ttl : (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+
         return self::encode([
             'sub'  => $userId,
             'role' => $role,
             'iat'  => time(),
-            'exp'  => time() + (int)($_ENV['JWT_EXPIRY'] ?? 3600),
+            'exp'  => time() + $expiry,
         ]);
     }
 

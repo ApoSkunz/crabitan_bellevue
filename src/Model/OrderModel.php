@@ -70,7 +70,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     {
         $row = $this->db->fetchOne(
             "SELECT o.*,
-                    a.email,
+                    a.email, a.lang,
                     COALESCE(ai.firstname, ac.company_name, '') AS firstname,
                     COALESCE(ai.lastname, '', '') AS lastname,
                     b.firstname  AS bill_firstname, b.lastname  AS bill_lastname,

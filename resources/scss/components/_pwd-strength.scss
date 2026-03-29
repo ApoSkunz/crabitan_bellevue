@@ -1,0 +1,43 @@
+// ============================================================
+// Indicateur de force mot de passe (ANSSI MDP 2021)
+// Affiché sous les champs new_password / reg-password / reset-modal-password
+// ============================================================
+
+.pwd-strength-list {
+    list-style:     none;
+    margin:         0.4rem 0 0;
+    padding:        0;
+    display:        flex;
+    flex-direction: column;
+    gap:            0.2rem;
+}
+
+.pwd-strength-item {
+    font-size:      0.78rem;
+    color:          var(--color-text-muted);
+    transition:     color 150ms ease;
+    line-height:    1.4;
+
+    .pwd-strength-icon {
+        display:     inline-block;
+        width:       1rem;
+        text-align:  center;
+        font-weight: 700;
+    }
+
+    &--ok {
+        color: #4caf50; // vert sémantique — non tokenisé intentionnellement (couleur de statut)
+
+        .pwd-strength-icon {
+            color: #4caf50;
+        }
+    }
+
+    &--ko {
+        color: var(--color-text-muted);
+
+        .pwd-strength-icon {
+            color: #e55;
+        }
+    }
+}

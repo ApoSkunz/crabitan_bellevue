@@ -11,6 +11,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
 {
     private const BTN_STYLE_PRIMARY = 'font-family:Georgia,serif;font-size:14px;'
         . 'letter-spacing:2px;text-transform:uppercase;';
+    private const BTN_STYLE_LINK    = 'color:#1a1208;text-decoration:none;font-weight:bold;">';
     private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
     private const URL_PRIVACY = '/fr/politique-confidentialite';
     private const URL_LEGAL   = '/fr/mentions-legales';
@@ -26,8 +27,8 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
 
         $this->mailer = new PHPMailer(true);
         $this->mailer->isSMTP();
-        $this->mailer->Host    = $_ENV['MAIL_HOST'];
-        $this->mailer->Port    = (int) $_ENV['MAIL_PORT'];
+        $this->mailer->Host    = $_ENV['MAIL_HOST'] ?? 'localhost';
+        $this->mailer->Port    = (int) ($_ENV['MAIL_PORT'] ?? 25);
         $this->mailer->CharSet = 'UTF-8';
 
         if ($mailUser !== '') {
@@ -148,6 +149,129 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
         ?string $attachmentName = null
     ): void {
         $this->send($to, $name, $subject, $htmlBody, $attachmentPath, null, $attachmentName);
+    }
+
+    /**
+     * Envoie une newsletter "nouveau vin disponible" à un abonné.
+     *
+     * @param string              $toEmail    Adresse email du destinataire
+     * @param string              $toName     Nom affiché du destinataire
+     * @param string              $unsubToken Token de désabonnement
+     * @param array<string,mixed> $wine       Données du vin (label_name, vintage, certification_label,
+     *                                        is_cuvee_speciale, award, image_path, slug)
+     * @param string              $appUrl     URL de base de l'application
+     * @param string              $lang       Langue du destinataire ('fr' ou 'en')
+     * @return void
+     */
+    public function sendNewWineNewsletter(
+        string $toEmail,
+        string $toName,
+        string $unsubToken,
+        array $wine,
+        string $appUrl,
+        string $lang
+    ): void {
+        $appUrl      = rtrim($appUrl, '/');
+        $labelName   = htmlspecialchars((string) ($wine['label_name'] ?? ''), ENT_QUOTES);
+        $appellation = htmlspecialchars((string) ($wine['certification_label'] ?? ''), ENT_QUOTES);
+        $vintage     = (int) ($wine['vintage'] ?? 0);
+        $slug        = rawurlencode((string) ($wine['slug'] ?? ''));
+        $imagePath   = (string) ($wine['image_path'] ?? '');
+        $isCuvee     = (bool) ($wine['is_cuvee_speciale'] ?? false);
+
+        // Champ award : JSON bilingue {"fr":"...","en":"..."}
+        $awardText = $this->resolveAwardText($wine['award'] ?? null, $lang);
+
+        if ($lang === 'fr') {
+            $subject      = sprintf(
+                'Château Crabitan Bellevue · %s %d — Nouveau millésime disponible',
+                $wine['label_name'] ?? '',
+                $vintage
+            );
+            $wineUrl      = htmlspecialchars($appUrl . '/fr/vins/' . $slug, ENT_QUOTES);
+            $discoverBtn  = 'Découvrir ce vin';
+            $greeting     = "Cher(e) {$toName},";
+            $intro        = "Le Château Crabitan Bellevue est heureux de vous informer,"
+                . " en avant-première, de la mise en vente d'une nouvelle référence dans notre boutique.";
+            $labelLabel   = 'Appellation';
+            $vintageLabel = 'Millésime';
+            $cuveeLabel   = 'Cuvée Spéciale';
+            $awardLabel   = 'Récompense';
+            $emailTitle   = "Nouveauté · Millésime {$vintage}";
+        } else {
+            $subject      = sprintf(
+                'Château Crabitan Bellevue · %s %d — New vintage available',
+                $wine['label_name'] ?? '',
+                $vintage
+            );
+            $wineUrl      = htmlspecialchars($appUrl . '/en/wines/' . $slug, ENT_QUOTES);
+            $discoverBtn  = 'Discover this wine';
+            $greeting     = "Dear {$toName},";
+            $intro        = 'Château Crabitan Bellevue is pleased to inform you,'
+                . ' as one of our valued subscribers, of the availability of a new wine in our boutique.';
+            $labelLabel   = 'Appellation';
+            $vintageLabel = 'Vintage';
+            $cuveeLabel   = 'Special Cuvée';
+            $awardLabel   = 'Award';
+            $emailTitle   = "New arrival · Vintage {$vintage}";
+        }
+
+        $imageHtml = '';
+        if ($imagePath !== '') {
+            $safeImg   = htmlspecialchars($appUrl . '/assets/images/wines/' . $imagePath, ENT_QUOTES);
+            $imageHtml = "<img src=\"{$safeImg}\" alt=\"{$labelName} {$vintage}\""
+                . " width=\"192\" style=\"display:block;width:192px;max-width:100%;"
+                . "height:auto;margin:24px auto 16px;border:0;border-radius:4px;\">";
+        }
+
+        // Lignes du tableau : appellation + millésime + récompense (si applicable)
+        // La cuvée spéciale apparaît en sous-titre sous le nom du vin, pas dans le tableau
+        $infoRows = [[$labelLabel, $appellation], [$vintageLabel, (string) $vintage]];
+        if ($awardText !== '') {
+            $infoRows[] = [$awardLabel, $awardText];
+        }
+
+        $infoTable = '<table style="width:100%;border-collapse:collapse;margin:16px 0 24px;">';
+        foreach ($infoRows as $i => [$rowLabel, $rowValue]) {
+            $bg     = $i % 2 === 0 ? 'background:#f5f0e8;' : '';
+            $border = $i > 0 ? 'border-top:1px solid #ede8df;' : '';
+            $infoTable .= "<tr style=\"{$bg}\">"
+                . "<td style=\"padding:8px 12px;font-size:12px;letter-spacing:1px;"
+                . "text-transform:uppercase;color:#8a7a60;width:40%;{$border}\">{$rowLabel}</td>"
+                . "<td style=\"padding:8px 12px;font-size:14px;color:#3d3425;{$border}\">{$rowValue}</td>"
+                . "</tr>";
+        }
+        $infoTable .= '</table>';
+
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$wineUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . $discoverBtn
+            . '</a></td></tr></table>';
+
+        $safeGreeting = htmlspecialchars($greeting, ENT_QUOTES);
+        $htmlContent  = "<p style=\"margin:0 0 24px;font-size:22px;color:#1a1208;font-family:Georgia,serif;\">"
+            . $safeGreeting
+            . "</p>"
+            . "<p style=\"margin:0 0 16px;font-size:15px;line-height:1.7;color:#3d3425;\">"
+            . $intro
+            . "</p>"
+            . "<h2 style=\"margin:0 0 4px;font-family:Georgia,serif;font-size:20px;color:#1a1208;\">"
+            . "{$labelName} {$vintage}"
+            . "</h2>"
+            . ($isCuvee
+                ? "<p style=\"margin:0 0 12px;font-size:13px;letter-spacing:2px;text-transform:uppercase;"
+                  . "color:#c9a84c;font-family:Georgia,serif;\">{$cuveeLabel}</p>"
+                : '')
+            . $imageHtml
+            . $infoTable
+            . $ctaBtn;
+
+        $htmlBody = $this->buildNewsletterHtml($emailTitle, $htmlContent, null, $unsubToken);
+
+        $this->send($toEmail, $toName, $subject, $htmlBody);
     }
 
     public function sendAccountDeletionConfirmation(
@@ -278,7 +402,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
               . "<a href=\"{$confirmUrl}\" style=\"display:inline-block;padding:14px 36px;"
               . self::BTN_STYLE_PRIMARY
-              . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+              . self::BTN_STYLE_LINK
               . $confirmLabel
               . '</a></td></tr></table>'
               . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
@@ -292,7 +416,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
               . "<a href=\"{$securityUrl}\" style=\"display:inline-block;padding:14px 36px;"
               . self::BTN_STYLE_PRIMARY
-              . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+              . self::BTN_STYLE_LINK
               . $manageLabel
               . '</a></td></tr></table>';
 
@@ -372,6 +496,182 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
 INNER;
 
         return $this->emailWrap($safeTitle, $inner);
+    }
+
+    /**
+     * Envoie un email transactionnel au client lors d'un changement de statut de commande.
+     * N'envoie rien si le statut n'est pas dans la liste des déclencheurs.
+     *
+     * @param string $toEmail   Adresse email du client
+     * @param string $toName    Prénom ou nom complet du client
+     * @param string $orderRef  Référence de la commande (ex. CB-2026-001)
+     * @param string $newStatus Nouveau statut de la commande
+     * @param string $lang      Langue du client ('fr' ou 'en')
+     * @param string $appUrl    URL de base de l'application
+     * @return void
+     */
+    public function sendOrderStatusEmail(
+        string $toEmail,
+        string $toName,
+        string $orderRef,
+        string $newStatus,
+        string $lang,
+        string $appUrl
+    ): void {
+        $triggerStatuses = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+        if (!in_array($newStatus, $triggerStatuses, true)) {
+            return;
+        }
+
+        $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeName = htmlspecialchars($toName, ENT_QUOTES);
+        $safeUrl  = rtrim($appUrl, '/');
+
+        if ($lang === 'fr') {
+            [$subject, $title, $greeting, $message] = $this->buildOrderStatusContentFr(
+                $newStatus,
+                $safeRef,
+                $safeName,
+                $safeUrl
+            );
+        } else {
+            [$subject, $title, $greeting, $message] = $this->buildOrderStatusContentEn(
+                $newStatus,
+                $safeRef,
+                $safeName,
+                $safeUrl
+            );
+        }
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message);
+        $this->send($toEmail, $toName, $subject, $body);
+    }
+
+    /**
+     * Extrait et échappe le texte de récompense depuis le champ award JSON bilingue.
+     *
+     * @param  mixed  $awardRaw Valeur brute du champ award (string JSON, array ou null)
+     * @param  string $lang     Langue cible ('fr' ou 'en')
+     * @return string           Texte de récompense échappé, vide si absent
+     */
+    private function resolveAwardText(mixed $awardRaw, string $lang): string
+    {
+        $awardData = [];
+        if ($awardRaw !== null && $awardRaw !== '' && $awardRaw !== '[]') {
+            $decoded   = is_array($awardRaw) ? $awardRaw : (json_decode((string) $awardRaw, true) ?? []);
+            $awardData = is_array($decoded) ? $decoded : [];
+        }
+        return htmlspecialchars(trim((string) ($awardData[$lang] ?? '')), ENT_QUOTES);
+    }
+
+    /**
+     * Construit le contenu de l'email de statut commande en français.
+     *
+     * @param  string $status   Statut déclencheur
+     * @param  string $safeRef  Référence commande échappée
+     * @param  string $safeName Nom du client échappé
+     * @param  string $appUrl   URL de base
+     * @return array{string, string, string, string}  [subject, title, greeting, message]
+     */
+    private function buildOrderStatusContentFr(
+        string $status,
+        string $safeRef,
+        string $safeName,
+        string $appUrl
+    ): array {
+        $subjects = [
+            'processing' => "Votre commande est en préparation — {$safeRef}",
+            'shipped'    => "Votre commande a été expédiée — {$safeRef}",
+            'delivered'  => "Votre commande a été livrée — {$safeRef}",
+            'cancelled'  => "Votre commande a été annulée — {$safeRef}",
+            'refunded'   => "Votre commande a été remboursée — {$safeRef}",
+        ];
+        $titles = [
+            'processing' => 'Commande en préparation',
+            'shipped'    => 'Commande expédiée',
+            'delivered'  => 'Commande livrée',
+            'cancelled'  => 'Commande annulée',
+            'refunded'   => 'Commande remboursée',
+        ];
+        $messages = [
+            'processing' => "Votre commande <strong>{$safeRef}</strong> est actuellement en cours de préparation."
+                . " Nous mettons tout en œuvre pour vous l'expédier dans les meilleurs délais.",
+            'shipped'    => "Votre commande <strong>{$safeRef}</strong> a été expédiée."
+                . " Vous devriez la recevoir dans les prochains jours ouvrés.",
+            'delivered'  => "Votre commande <strong>{$safeRef}</strong> a bien été livrée."
+                . " Nous espérons que vous apprécierez nos vins.<br><br>"
+                . "Si vous rencontrez un problème, vous avez 15 jours pour faire une demande de retour"
+                . " depuis votre espace client.",
+            'cancelled'  => "Votre commande <strong>{$safeRef}</strong> a été annulée."
+                . " Si vous avez déjà été débité(e), le remboursement sera traité dans les meilleurs délais.",
+            'refunded'   => "Votre commande <strong>{$safeRef}</strong> a été remboursée."
+                . " Le crédit sera visible sur votre compte bancaire dans un délai de 3 à 5 jours ouvrés.",
+        ];
+
+        $orderLinkBlock = "<br><br><a href=\"{$appUrl}/fr/mon-compte/commandes\" style=\"color:#c9a84c;\">"
+            . "Voir mes commandes</a>";
+
+        return [
+            $subjects[$status],
+            $titles[$status],
+            "Bonjour {$safeName},",
+            $messages[$status] . $orderLinkBlock,
+        ];
+    }
+
+    /**
+     * Construit le contenu de l'email de statut commande en anglais.
+     *
+     * @param  string $status   Statut déclencheur
+     * @param  string $safeRef  Référence commande échappée
+     * @param  string $safeName Nom du client échappé
+     * @param  string $appUrl   URL de base
+     * @return array{string, string, string, string}  [subject, title, greeting, message]
+     */
+    private function buildOrderStatusContentEn(
+        string $status,
+        string $safeRef,
+        string $safeName,
+        string $appUrl
+    ): array {
+        $subjects = [
+            'processing' => "Your order is being prepared — {$safeRef}",
+            'shipped'    => "Your order has been shipped — {$safeRef}",
+            'delivered'  => "Your order has been delivered — {$safeRef}",
+            'cancelled'  => "Your order has been cancelled — {$safeRef}",
+            'refunded'   => "Your order has been refunded — {$safeRef}",
+        ];
+        $titles = [
+            'processing' => 'Order in preparation',
+            'shipped'    => 'Order shipped',
+            'delivered'  => 'Order delivered',
+            'cancelled'  => 'Order cancelled',
+            'refunded'   => 'Order refunded',
+        ];
+        $messages = [
+            'processing' => "Your order <strong>{$safeRef}</strong> is currently being prepared."
+                . " We are doing our best to ship it to you as soon as possible.",
+            'shipped'    => "Your order <strong>{$safeRef}</strong> has been shipped."
+                . " You should receive it within the next few working days.",
+            'delivered'  => "Your order <strong>{$safeRef}</strong> has been delivered."
+                . " We hope you enjoy our wines.<br><br>"
+                . "If you encounter any issue, you have 15 days to submit a return request"
+                . " from your customer account.",
+            'cancelled'  => "Your order <strong>{$safeRef}</strong> has been cancelled."
+                . " If you have already been charged, a refund will be processed as soon as possible.",
+            'refunded'   => "Your order <strong>{$safeRef}</strong> has been refunded."
+                . " The credit should appear on your bank account within 3 to 5 working days.",
+        ];
+
+        $orderLinkBlock = "<br><br><a href=\"{$appUrl}/en/my-account/orders\" style=\"color:#c9a84c;\">"
+            . "View my orders</a>";
+
+        return [
+            $subjects[$status],
+            $titles[$status],
+            "Hello {$safeName},",
+            $messages[$status] . $orderLinkBlock,
+        ];
     }
 
     /**

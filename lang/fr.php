@@ -34,6 +34,7 @@ return [
     'auth.email'             => 'Adresse email',
     'auth.password'          => 'Mot de passe',
     'auth.forgot_password'   => 'Mot de passe oublié ?',
+    'auth.remember_me'       => 'Se souvenir de moi',
     'auth.reset_password'    => 'Réinitialiser le mot de passe',
     'auth.verify_email'      => 'Vérifiez votre email',
     'auth.invalid_credentials' => 'Email ou mot de passe incorrect',
@@ -177,8 +178,9 @@ return [
     // Validation
     'validation.required'      => 'Ce champ est requis.',
     'validation.email'         => 'Adresse email invalide.',
-    'validation.password_min'  => 'Le mot de passe doit contenir au moins 12 caractères.',
+    'validation.password_min'   => 'Le mot de passe doit contenir au moins 12 caractères.',
     'validation.password_match' => 'Les mots de passe ne correspondent pas.',
+    'auth.password_too_weak'    => 'Le mot de passe doit contenir au moins 12 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.',
 
     // Cookie banner
     'cookie.banner_label' => 'Bandeau cookies',
@@ -631,6 +633,10 @@ return [
     'newsletter.unsubscribe_error' => 'Ce lien de désabonnement est invalide ou a déjà été utilisé. Gérez vos préférences depuis votre espace compte.',
     'newsletter.manage_link'       => 'Gérer mes préférences de communication',
 
+    // Newsletter — nouveau vin
+    'mail.new_wine_subject'  => 'Nouveau vin disponible : %s %d',
+    'mail.new_wine_discover' => 'Découvrir ce vin',
+
     // Statuts commande
     'order.status.pending'          => 'En attente',
     'order.status.paid'             => 'Payée',
@@ -641,4 +647,17 @@ return [
     'order.status.refunded'         => 'Remboursée',
     'order.status.return_requested' => 'Retour en cours',
     'order.status.refund_refused'   => 'Remboursement refusé',
+
+    // Emails transactionnels — changement de statut commande
+    'mail.order_status_subject_processing' => 'Votre commande est en préparation — %s',
+    'mail.order_status_subject_shipped'    => 'Votre commande a été expédiée — %s',
+    'mail.order_status_subject_delivered'  => 'Votre commande a été livrée — %s',
+    'mail.order_status_subject_cancelled'  => 'Votre commande a été annulée — %s',
+    'mail.order_status_subject_refunded'   => 'Votre commande a été remboursée — %s',
+
+    'mail.order_status_body_processing' => 'Votre commande <strong>%s</strong> est actuellement en cours de préparation. Nous mettons tout en œuvre pour vous l\'expédier dans les meilleurs délais.',
+    'mail.order_status_body_shipped'    => 'Votre commande <strong>%s</strong> a été expédiée. Vous devriez la recevoir dans les prochains jours ouvrés.',
+    'mail.order_status_body_delivered'  => 'Votre commande <strong>%s</strong> a bien été livrée. Nous espérons que vous apprécierez nos vins.',
+    'mail.order_status_body_cancelled'  => 'Votre commande <strong>%s</strong> a été annulée. Si vous avez déjà été débité(e), le remboursement sera traité dans les meilleurs délais.',
+    'mail.order_status_body_refunded'   => 'Votre commande <strong>%s</strong> a été remboursée. Le crédit sera visible sur votre compte bancaire dans un délai de 3 à 5 jours ouvrés.',
 ];

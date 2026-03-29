@@ -488,6 +488,25 @@ class WineModelTest extends TestCase
         $this->model->getAllByColor(null, 'default', null, 10, 20);
     }
 
+    /**
+     * Vérifie que getAllByColor avec sort='likes_desc' trie par likes_count DESC.
+     *
+     * @return void
+     */
+    public function testGetAllByColorWithLikesDescSort(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('likes_count DESC'),
+                $this->anything()
+            )
+            ->willReturn([]);
+
+        $this->model->getAllByColor(null, 'likes_desc');
+    }
+
     // ----------------------------------------------------------------
     // getById (admin)
     // ----------------------------------------------------------------
@@ -634,6 +653,25 @@ class WineModelTest extends TestCase
         $this->assertSame(0, $this->model->countForAdmin(null));
     }
 
+    /**
+     * Vérifie que countForAdmin avec available='out' filtre sur available = 0.
+     *
+     * @return void
+     */
+    public function testCountForAdminWithOutAvailFilter(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->stringContains('available = 0'),
+                $this->equalTo([])
+            )
+            ->willReturn(['total' => 5]);
+
+        $this->assertSame(5, $this->model->countForAdmin(null, 'out'));
+    }
+
     // ----------------------------------------------------------------
     // create (admin)
     // ----------------------------------------------------------------
@@ -659,6 +697,158 @@ class WineModelTest extends TestCase
 
         $id = $this->model->create($data);
         $this->assertSame(8, $id);
+    }
+
+    // ----------------------------------------------------------------
+    // getRandomByColor
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que getRandomByColor retourne null pour une couleur invalide
+     * sans effectuer de requête BDD.
+     *
+     * @return void
+     */
+    public function testGetRandomByColorReturnsNullForInvalidColor(): void
+    {
+        $this->dbMock->expects($this->never())->method('fetchOne');
+
+        $result = $this->model->getRandomByColor('invalid_color');
+
+        $this->assertNull($result);
+    }
+
+    /**
+     * Vérifie que getRandomByColor retourne le vin trouvé pour une couleur valide.
+     *
+     * @return void
+     */
+    public function testGetRandomByColorReturnsWineWhenFound(): void
+    {
+        $expected = ['image_path' => '/img/wine.jpg', 'slug' => 'bordeaux-rouge-2022'];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->stringContains('wine_color = ?'),
+                $this->equalTo(['red'])
+            )
+            ->willReturn($expected);
+
+        $result = $this->model->getRandomByColor('red');
+
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Vérifie que getRandomByColor retourne null quand aucun vin n'est trouvé.
+     *
+     * @return void
+     */
+    public function testGetRandomByColorReturnsNullWhenNotFound(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $result = $this->model->getRandomByColor('white');
+
+        $this->assertNull($result);
+    }
+
+    // ----------------------------------------------------------------
+    // getRandom
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que getRandom retourne le vin aléatoire trouvé.
+     *
+     * @return void
+     */
+    public function testGetRandomReturnsWineWhenFound(): void
+    {
+        $expected = ['image_path' => '/img/random.jpg', 'slug' => 'sainte-croix-du-mont-2019'];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with($this->stringContains('ORDER BY RAND()'))
+            ->willReturn($expected);
+
+        $result = $this->model->getRandom();
+
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Vérifie que getRandom retourne null quand aucun vin n'est disponible.
+     *
+     * @return void
+     */
+    public function testGetRandomReturnsNullWhenNotFound(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $result = $this->model->getRandom();
+
+        $this->assertNull($result);
+    }
+
+    // ----------------------------------------------------------------
+    // getRandomForMemo
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que getRandomForMemo retourne les vins pour le jeu mémoire.
+     *
+     * @return void
+     */
+    public function testGetRandomForMemoReturnsWines(): void
+    {
+        $rows = [
+            ['slug' => 'vin-1', 'image_path' => '/img/vin1.jpg', 'label_name' => 'Vin 1'],
+            ['slug' => 'vin-2', 'image_path' => '/img/vin2.jpg', 'label_name' => 'Vin 2'],
+        ];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('ORDER BY RAND()'),
+                $this->equalTo([14])
+            )
+            ->willReturn($rows);
+
+        $result = $this->model->getRandomForMemo();
+
+        $this->assertCount(2, $result);
+        $this->assertSame('vin-1', $result[0]['slug']);
+    }
+
+    /**
+     * Vérifie que getRandomForMemo accepte un $limit personnalisé.
+     *
+     * @return void
+     */
+    public function testGetRandomForMemoUsesCustomLimit(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('LIMIT ?'),
+                $this->equalTo([6])
+            )
+            ->willReturn([]);
+
+        $result = $this->model->getRandomForMemo(6);
+
+        $this->assertSame([], $result);
     }
 
     // ----------------------------------------------------------------

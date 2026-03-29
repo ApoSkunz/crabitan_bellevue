@@ -30,9 +30,29 @@ $cssDisabled = ' disabled';
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <div class="admin-field" style="margin-bottom:1rem;">
                     <label class="admin-field__label" for="nl-subject">Objet *</label>
-                    <input type="text" id="nl-subject" name="subject"
-                           class="admin-field__input" placeholder="Ex : Nouveaux millésimes disponibles…">
+                    <div style="display:flex;align-items:center;gap:0;border:1px solid #ccc;border-radius:4px;overflow:hidden;">
+                        <span style="padding:0.5rem 0.75rem;background:#f5f0e8;color:#8a7a60;font-size:0.82rem;
+                                     white-space:nowrap;border-right:1px solid #ccc;">
+                            Château Crabitan Bellevue —
+                        </span>
+                        <input type="text" id="nl-subject" name="subject"
+                               class="admin-field__input"
+                               style="border:0;border-radius:0;flex:1;margin:0;"
+                               placeholder="Nos nouveaux millésimes vous attendent…">
+                    </div>
                     <span id="nl-subject-error" class="admin-field__error" style="display:none;">Ce champ est obligatoire.</span>
+                    <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.25rem;">
+                        Le préfixe château est ajouté automatiquement. Ne pas inclure "Newsletter" dans l'objet (impact délivrabilité).
+                    </p>
+                </div>
+                <div class="admin-field" style="margin-bottom:1rem;">
+                    <label class="admin-field__label" for="nl-title">
+                        Titre de la newsletter
+                        <span style="font-weight:400;font-size:0.72rem;">(optionnel — affiché en grand titre dans l'email, avant le corps)</span>
+                    </label>
+                    <input type="text" id="nl-title" name="nl_title"
+                           class="admin-field__input"
+                           placeholder="Ex : Découvrez nos nouveaux millésimes 2024…">
                 </div>
                 <div class="admin-field" style="margin-bottom:1rem;">
                     <label class="admin-field__label" for="nl-image">
@@ -87,7 +107,7 @@ $cssDisabled = ' disabled';
                         Confirmer l'envoi
                     </h2>
                     <p style="font-size:0.9rem;color:#3d3425;margin:0 0 0.5rem;">
-                        Objet : <strong id="nl-modal-subject" style="color:#1a1208;">—</strong>
+                        Objet : <strong style="color:#8a7a60;">Château Crabitan Bellevue —&nbsp;</strong><strong id="nl-modal-subject" style="color:#1a1208;">—</strong>
                     </p>
                     <p style="font-size:0.9rem;color:#3d3425;margin:0 0 0.5rem;">
                         Cette newsletter sera envoyée à

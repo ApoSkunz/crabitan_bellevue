@@ -728,4 +728,22 @@ class AccountModelTest extends IntegrationTestCase
         $after = $this->model->countNewsletterSubscribers();
         $this->assertSame($before + 1, $after);
     }
+
+    // ----------------------------------------------------------------
+    // getReactivationToken — branche id inexistant
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que getReactivationToken retourne null quand l'ID n'existe pas en BDD.
+     *
+     * Couvre la branche `$row === false` de la ligne :
+     *   return $row !== false ? ($row['reactivation_token'] ?? null) : null;
+     *
+     * @return void
+     */
+    public function testGetReactivationTokenReturnsNullForUnknownId(): void
+    {
+        $token = $this->model->getReactivationToken(999999);
+        $this->assertNull($token);
+    }
 }

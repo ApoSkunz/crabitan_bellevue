@@ -77,4 +77,48 @@ class RouterDispatchTest extends TestCase
             $this->assertSame(500, $e->status);
         }
     }
+
+    /**
+     * Un controller existant mais avec une méthode inexistante doit déclencher un abort 500.
+     * Couvre la branche !method_exists() dans callAction().
+     */
+    public function testDispatchAborts500WhenMethodMissingOnExistingController(): void
+    {
+        $router = $this->makeRouter('GET', '/fr/accueil');
+        // HomeController existe mais n'a pas de méthode "nonexistent"
+        $router->get('/fr/accueil', 'HomeController@nonexistent');
+
+        ob_start();
+        try {
+            $router->dispatch();
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            ob_end_clean();
+            $this->assertSame(500, $e->status);
+        }
+    }
+
+    /**
+     * Un dispatch sur une route contenant {lang} doit appeler setLang() et
+     * définir CURRENT_LANG avec la valeur extraite de l'URL.
+     * Couvre les lignes 59-63 (isset($params['lang']) + setLang()) dans dispatch().
+     */
+    public function testDispatchExtractsLangParamAndCallsSetLang(): void
+    {
+        // On utilise un controller inexistant pour stopper rapidement après setLang()
+        $router = $this->makeRouter('GET', '/fr/test-lang');
+        $router->get('/{lang}/test-lang', 'NonExistentController@index');
+
+        ob_start();
+        try {
+            $router->dispatch();
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            ob_end_clean();
+            // setLang() a été exécutée (define CURRENT_LANG) — l'abort 500 provient de callAction
+            $this->assertSame(500, $e->status);
+            // CURRENT_LANG a été défini (ou redéfini) par setLang()
+            $this->assertTrue(defined('CURRENT_LANG'));
+        }
+    }
 }

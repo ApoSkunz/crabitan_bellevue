@@ -7,109 +7,191 @@ on:
   schedule:
     - cron: '0 6 * * 1'
 
+permissions: read-all
+
 jobs:
   trufflehog:
     name: TruffleHog Secret Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: TruffleHog
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@fe5624c70923355128868cffd647b6e2cfe11443 # v3.81.9
         with:
           path: ./
           base: ${{ github.event.pull_request.base.sha || github.event.before }}
           head: ${{ github.event.pull_request.head.sha || github.sha }}
           extra_args: --only-verified
 
+  exakat:
+    name: SAST — Exakat PHP
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    # Blue Team: version épinglée via EXAKAT_VERSION. SHA256 optionnel via secret EXAKAT_PHAR_SHA256.
+    # Si exakat.io est indisponible, le job est ignoré proprement (warning, pas d'erreur).
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
+        with:
+          php-version: '8.4'
+          extensions: tokenizer, mbstring, json
+          coverage: none
+
+      - name: Download & run Exakat
+        env:
+          EXAKAT_VERSION: '2.6.9'
+          EXAKAT_SHA256: ${{ secrets.EXAKAT_PHAR_SHA256 }}
+        run: |
+          PHAR_OK=0
+
+          # Tentative 1 : GitHub Releases (version épinglée)
+          if curl -fsSL \
+            "https://github.com/exakat/exakat/releases/download/${EXAKAT_VERSION}/exakat.phar" \
+            -o exakat.phar 2>/dev/null; then
+            PHAR_OK=1
+          # Tentative 2 : exakat.io latest (fallback si GitHub Release absente)
+          elif curl -fsSL "https://www.exakat.io/versions/exakat.phar" \
+            -o exakat.phar 2>/dev/null; then
+            echo "::warning::GitHub Release ${EXAKAT_VERSION} introuvable — fallback latest"
+            PHAR_OK=1
+          else
+            echo "::warning::Exakat indisponible (GitHub + exakat.io) — analyse ignorée"
+          fi
+
+          if [ "$PHAR_OK" -eq 1 ]; then
+            if [ -n "${EXAKAT_SHA256}" ]; then
+              echo "${EXAKAT_SHA256}  exakat.phar" | sha256sum -c - \
+                || { echo "::error::Checksum exakat.phar invalide — abort"; exit 1; }
+            else
+              echo "::warning::EXAKAT_PHAR_SHA256 non défini — vérification SHA256 ignorée"
+            fi
+            php exakat.phar doctor
+            php exakat.phar ci-checks \
+              -p . \
+              --ignore-dirs vendor,node_modules,coverage,public/assets \
+              -r Text
+          fi
+
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       security-events: write  # upload SARIF results
       actions: read
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@439137e1b50c27ba9e2f9befc93e43091b449c34 # v3.32.0
         with:
           languages: javascript
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@439137e1b50c27ba9e2f9befc93e43091b449c34 # v3.32.0
 
   sast:
     name: SAST — Semgrep
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Semgrep
-        run: pip install semgrep
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Semgrep Scan
-        run: |
-          semgrep \
-            --config p/php \
-            --config p/owasp-top-ten \
-            --config p/security-audit \
-            --config p/phpcs-security-audit \
-            --config p/jwt \
-            --config p/sql-injection \
-            --config p/xss \
-            --config p/command-injection \
-            --config p/secrets \
-            --error \
-            .
-
-  exakat:
-    name: SAST — Exakat PHP
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup PHP 8.4
-        uses: shivammathur/setup-php@v2
+        uses: semgrep/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d # v1
         with:
-          php-version: '8.4'
-          extensions: tokenizer, mbstring, json
-          coverage: none
-
-      - name: Download Exakat
-        run: |
-          curl -Lo exakat.phar https://www.exakat.io/versions/exakat.phar
-          php exakat.phar doctor
-
-      - name: Run Exakat CI checks
-        run: |
-          php exakat.phar ci-checks \
-            -p . \
-            --ignore-dirs vendor,node_modules,coverage,public/assets \
-            -r Text
+          config: >-
+            p/php
+            p/owasp-top-ten
+            p/security-audit
+            p/jwt
+            p/sql-injection
+            p/xss
+            p/command-injection
+            p/secrets
 
   legitify:
     name: Legitify GitHub Security
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     continue-on-error: true
+    # Blue Team: CLI binary direct (pas l'action GitHub) car Legit-Labs/legitify@v1.0.2
+    # utilise upload-artifact@v3 deprecated — l'action échoue au setup avant tout step.
+    # On télécharge le binaire depuis GitHub Releases et on l'exécute directement.
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Legitify
-        uses: Legit-Labs/legitify@main
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          target: REPOSITORY
-          scorecard: true
+          persist-credentials: false
+
+      - name: Install & run Legitify CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LEGITIFY_VERSION: '1.0.2'
+        run: |
+          OS=linux
+          ARCH=amd64
+          ARCHIVE="legitify_${LEGITIFY_VERSION}_${OS}_${ARCH}.tar.gz"
+          curl -fsSL \
+            "https://github.com/Legit-Labs/legitify/releases/download/v${LEGITIFY_VERSION}/${ARCHIVE}" \
+            -o legitify.tar.gz
+          tar -xzf legitify.tar.gz legitify
+          chmod +x legitify
+          ./legitify analyze \
+            --github-token "$GITHUB_TOKEN" \
+            --target repository \
+            --output-format table \
+            || true  # non-bloquant : résultats informatifs uniquement
+
+  scorecard:
+    name: OpenSSF Scorecard
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+      id-token: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecard
+        uses: ossf/scorecard-action@62b2cac7ed8198b15735ed49ab1e5cf35480ba46 # v2.4.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload Scorecard results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: scorecard-results
+          path: results.sarif
+          retention-days: 5

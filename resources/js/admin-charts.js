@@ -9,14 +9,16 @@ import {
     Chart,
     CategoryScale,
     LinearScale,
+    BarController,
     BarElement,
+    LineController,
     LineElement,
     PointElement,
     Filler,
     Tooltip,
 } from 'chart.js';
 
-Chart.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler, Tooltip);
+Chart.register(CategoryScale, LinearScale, BarController, BarElement, LineController, LineElement, PointElement, Filler, Tooltip);
 
 const dataEl = document.getElementById('chart-data');
 if (!dataEl) throw new Error('admin-charts: #chart-data introuvable');

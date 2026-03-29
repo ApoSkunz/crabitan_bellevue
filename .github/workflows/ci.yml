@@ -5,17 +5,26 @@ on:
     branches: [main]
   pull_request:
 
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality-php:
     name: Code Quality — PHP
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
         with:
           php-version: '8.4'
           coverage: none
@@ -32,13 +41,16 @@ jobs:
   quality-js:
     name: Code Quality — JS/SCSS
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'npm'
@@ -52,10 +64,11 @@ jobs:
   tests:
     name: Tests (TU + TI)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:8.0.40
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: crabitan_bellevue
@@ -67,16 +80,18 @@ jobs:
           --health-timeout=5s
           --health-retries=3
       mailhog:
-        image: mailhog/mailhog:latest
+        image: mailhog/mailhog:v1.0.1
         ports:
           - 1025:1025
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
         with:
           php-version: '8.4'
           extensions: pdo_mysql
@@ -113,7 +128,7 @@ jobs:
 
       - name: Upload PHP coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: php-coverage
           path: coverage/clover-*.xml
@@ -121,10 +136,11 @@ jobs:
   e2e:
     name: E2E + JS Coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:8.0.40
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: crabitan_bellevue
@@ -138,10 +154,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
         with:
           php-version: '8.4'
           extensions: pdo_mysql
@@ -157,7 +175,7 @@ jobs:
         run: mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/seed_mock_data.sql
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'npm'
@@ -205,7 +223,7 @@ jobs:
         run: npx playwright test --project=chromium
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: playwright-report
@@ -223,7 +241,7 @@ jobs:
           fi
 
       - name: Upload JS coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: js-coverage
           path: coverage/lcov.info
@@ -232,27 +250,29 @@ jobs:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
     needs: [tests, e2e]
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Download PHP coverage
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: php-coverage
           path: coverage/
 
       - name: Download JS coverage
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: js-coverage
           path: coverage/
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@e44258b109568baa0df60ed515909fc6c72cba92 # v2.3.0 # nosemgrep: generic.secrets.security.detected-sonarqube-docs-api-key.detected-sonarqube-docs-api-key
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -261,10 +281,11 @@ jobs:
     name: Lighthouse — Accessibilité
     if: false   # standby — ESM/Puppeteer conflict en cours d'investigation
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:8.0.40
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: crabitan_bellevue
@@ -278,10 +299,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
         with:
           php-version: '8.4'
           extensions: pdo_mysql
@@ -294,7 +317,7 @@ jobs:
         run: mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/schema.sql
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'npm'
@@ -334,7 +357,7 @@ jobs:
         run: curl --retry 15 --retry-delay 1 --retry-connrefused --silent --output /dev/null http://localhost:8080/
 
       - name: Install Chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@facf10a55b9caf92e0cc749b4f82bf8220989148 # v1.7.2
         id: setup-chrome
 
       - name: Run Lighthouse CI
@@ -344,7 +367,7 @@ jobs:
         run: npx lhci autorun
 
       - name: Upload Lighthouse report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: lighthouse-report
@@ -354,13 +377,16 @@ jobs:
   sca:
     name: SCA — Dependency Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
         with:
           php-version: '8.4'
           coverage: none
@@ -369,12 +395,13 @@ jobs:
         run: composer audit
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'npm'
 
       - name: npm audit (JS deps)
-        # picomatch bundled inside npm CLI itself (node_modules/npm/**) — unfixable via overrides,
-        # not exploitable in our application code. Dependabot watches for upstream fixes.
-        run: npm audit --audit-level=critical
+        # --omit=dev : on audite uniquement les deps de production au niveau high.
+        # picomatch est dans semantic-release (devDep) → ne touche pas la prod.
+        # Les vulns dev-only sont hors périmètre d'un audit SCA production.
+        run: npm audit --audit-level=high --omit=dev

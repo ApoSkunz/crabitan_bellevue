@@ -6,6 +6,7 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\OrderModel;
+use Service\MailService;
 
 class OrderAdminController extends AdminController
 {
@@ -14,12 +15,36 @@ class OrderAdminController extends AdminController
     private const ALLOWED_PER_PAGES = [10, 25, 50];
     private const ORDER_NOT_FOUND   = 'Commande introuvable';
 
+    private const TRIGGER_STATUSES = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+
     private OrderModel $orders;
 
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
         $this->orders = new OrderModel();
+    }
+
+    /**
+     * Instancie le MailService (seam de testabilité).
+     *
+     * @return MailService
+     */
+    protected function newMailService(): MailService
+    {
+        return new MailService();
+    }
+
+    /**
+     * Déplace le fichier uploadé vers la destination (seam de testabilité).
+     *
+     * @param string $src  Chemin temporaire du fichier uploadé
+     * @param string $dest Chemin de destination
+     * @return bool
+     */
+    protected function moveUploadedFile(string $src, string $dest): bool
+    {
+        return move_uploaded_file($src, $dest);
     }
 
     // ----------------------------------------------------------------
@@ -112,8 +137,33 @@ class OrderAdminController extends AdminController
             Response::redirect(self::ADMIN_URL . '/' . $id);
         }
 
-        $status = $this->request->post('status', '');
+        $oldStatus = $order['status'];
+        $status    = $this->request->post('status', '');
         $this->orders->updateStatus($id, $status);
+
+        if ($status !== $oldStatus && in_array($status, self::TRIGGER_STATUSES, true)) {
+            $clientEmail = (string) ($order['email'] ?? '');
+            $firstname   = (string) ($order['firstname'] ?? '');
+            $lastname    = (string) ($order['lastname'] ?? '');
+            $clientName  = trim($firstname . ' ' . $lastname) ?: $clientEmail;
+            $clientLang  = (string) ($order['lang'] ?? 'fr');
+            $orderRef    = (string) ($order['order_reference'] ?? '');
+            $appUrl      = rtrim($_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'http://crabitan.local'), '/'); // NOSONAR — php:S5332
+
+            try {
+                $this->newMailService()->sendOrderStatusEmail(
+                    $clientEmail,
+                    $clientName,
+                    $orderRef,
+                    $status,
+                    $clientLang,
+                    $appUrl
+                );
+            } catch (\Throwable $e) {
+                error_log('[OrderAdminController] SMTP error on status email: ' . $e->getMessage()); // NOSONAR — php:S4792
+            }
+        }
+
         $this->flash('success', 'Statut mis à jour.');
         Response::redirect(self::ADMIN_URL . '/' . $id);
     }
@@ -164,7 +214,7 @@ class OrderAdminController extends AdminController
 
         $filename = 'invoice_' . $id . '_' . bin2hex(random_bytes(6)) . '.pdf';
         $destPath = $destDir . $filename;
-        if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+        if (!$this->moveUploadedFile($file['tmp_name'], $destPath)) {
             $this->flash('error', 'Erreur lors de l\'enregistrement du fichier.');
             Response::redirect(self::ADMIN_URL . '/' . $id);
         }

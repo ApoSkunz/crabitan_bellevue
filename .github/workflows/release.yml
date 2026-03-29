@@ -6,25 +6,29 @@ on:
       - main
       - alpha
 
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+# Permissions minimales au niveau workflow — le job release surcharge au besoin
+permissions: read-all
 
 jobs:
   release:
     name: Semantic Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+      attestations: write
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
           fetch-depth: 0
           token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'npm'
@@ -36,3 +40,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
         run: npx semantic-release
+
+      - name: Build assets for provenance
+        run: |
+          find public/assets -type f \( -name "*.js" -o -name "*.css" \) \
+            -exec sha256sum {} \; > build-checksums.txt
+          echo "Build checksums generated"
+
+      - name: Generate SLSA provenance (L2)
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-path: 'build-checksums.txt'

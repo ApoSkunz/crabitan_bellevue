@@ -351,4 +351,206 @@ class NewsAdminControllerTest extends AdminIntegrationTestCase
 
         $this->makeController('POST')->update(['id' => (string) $id]);
     }
+
+    // ----------------------------------------------------------------
+    // store — image avec MIME invalide (text/plain) → erreur dans le formulaire
+    // Couvre handleImageUpload l.276-280 : validation MIME non autorisé
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que store() ré-affiche le formulaire avec une erreur "Format non autorisé"
+     * quand un fichier avec un MIME type non autorisé est fourni dans $_FILES['image'].
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\RequiresPhpExtension('fileinfo')]
+    public function testStoreRendersFormWithErrorOnInvalidImageMime(): void
+    {
+        // Fichier texte : finfo retourne text/plain, non autorisé
+        $tmpFile = tempnam(sys_get_temp_dir(), 'news_img_test_');
+        file_put_contents($tmpFile, 'This is plain text, not an image');
+
+        $_POST['csrf_token']      = self::CSRF_TOKEN;
+        $_POST['title_fr']        = 'Article avec image invalide';
+        $_POST['title_en']        = 'Article with invalid image';
+        $_POST['text_content_fr'] = 'Contenu de l\'article.';
+        $_POST['text_content_en'] = 'Article content.';
+        $_POST['link_path']       = '';
+        $_FILES['image']          = [
+            'tmp_name' => $tmpFile,
+            'name'     => 'fake.txt',
+            'type'     => 'text/plain',
+            'size'     => strlen('This is plain text, not an image'),
+            'error'    => UPLOAD_ERR_OK,
+        ];
+
+        ob_start();
+        try {
+            $this->makeController('POST')->store([]);
+            $output = ob_get_clean();
+        } finally {
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
+            }
+        }
+
+        $this->assertStringContainsString('<form', $output);
+        $this->assertStringContainsString('non autorisé', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // store — image JPEG valide (MIME ok) + move_uploaded_file échoue en test
+    // Couvre handleImageUpload l.283-298 : ext, safeName, destDir, do-while, move failed
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que store() ré-affiche le formulaire avec une erreur de téléversement
+     * quand le fichier image a un MIME valide (JPEG) mais que move_uploaded_file
+     * échoue (comportement normal hors contexte HTTP).
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\RequiresPhpExtension('fileinfo')]
+    public function testStoreRendersFormWithErrorOnUploadMoveFailure(): void
+    {
+        // JPEG magic bytes pour passer la validation MIME
+        $tmpFile = tempnam(sys_get_temp_dir(), 'news_jpeg_test_');
+        file_put_contents($tmpFile, "\xFF\xD8\xFF\xE0" . str_repeat("\x00", 100));
+
+        $_POST['csrf_token']      = self::CSRF_TOKEN;
+        $_POST['title_fr']        = 'Article image JPEG invalide move';
+        $_POST['title_en']        = 'Article JPEG invalid move';
+        $_POST['text_content_fr'] = 'Contenu avec image JPEG.';
+        $_POST['text_content_en'] = 'Content with JPEG image.';
+        $_POST['link_path']       = '';
+        $_FILES['image']          = [
+            'tmp_name' => $tmpFile,
+            'name'     => 'photo.jpg',
+            'type'     => 'image/jpeg',
+            'size'     => 104,
+            'error'    => UPLOAD_ERR_OK,
+        ];
+
+        ob_start();
+        try {
+            $this->makeController('POST')->store([]);
+            $output = ob_get_clean();
+        } finally {
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
+            }
+        }
+
+        // move_uploaded_file retourne false hors HTTP → erreur téléversement
+        $this->assertStringContainsString('<form', $output);
+        $this->assertStringContainsString('téléversement', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // update — image JPEG valide fournie avec article existant ayant une image_path
+    // Couvre parseNewsForm l.237-241 : branche "supprime l'ancienne photo"
+    // (file_exists retourne false sur le fichier fictif → unlink non exécuté)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que update() traite correctement la branche de suppression d'ancienne image :
+     * quand une nouvelle image valide est fournie et que l'article existant a un image_path,
+     * la condition de suppression est évaluée (fichier fictif absent → unlink ignoré).
+     * Couvre parseNewsForm l.237-241 et handleImageUpload l.276-298.
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\RequiresPhpExtension('fileinfo')]
+    public function testUpdateWithNewImageCoversOldImageDeletionBranch(): void
+    {
+        // Insérer un article avec une image_path existante
+        $id = (int) self::$db->insert(
+            "INSERT INTO news (title, text_content, image_path, slug)
+             VALUES (?, ?, 'old_image.jpg', 'test-article-old-image')",
+            [
+                json_encode(['fr' => 'Article Ancienne Image', 'en' => 'Old Image Article']),
+                json_encode(['fr' => 'Contenu test', 'en' => 'Test content']),
+            ]
+        );
+
+        // Fournir une nouvelle image JPEG (MIME valide)
+        $tmpFile = tempnam(sys_get_temp_dir(), 'news_upd_img_');
+        file_put_contents($tmpFile, "\xFF\xD8\xFF\xE0" . str_repeat("\x00", 100));
+
+        $_POST['csrf_token']      = self::CSRF_TOKEN;
+        $_POST['title_fr']        = 'Article image mise à jour';
+        $_POST['title_en']        = 'Updated image article';
+        $_POST['text_content_fr'] = 'Contenu mis à jour avec image.';
+        $_POST['text_content_en'] = 'Updated content with image.';
+        $_POST['link_path']       = '';
+        $_FILES['image']          = [
+            'tmp_name' => $tmpFile,
+            'name'     => 'nouvelle.jpg',
+            'type'     => 'image/jpeg',
+            'size'     => 104,
+            'error'    => UPLOAD_ERR_OK,
+        ];
+
+        ob_start();
+        try {
+            $this->makeController('POST')->update(['id' => (string) $id]);
+            $output = ob_get_clean();
+        } finally {
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
+            }
+        }
+
+        // move_uploaded_file échoue hors HTTP → erreur téléversement affichée dans le formulaire
+        $this->assertStringContainsString('<form', $output);
+        $this->assertStringContainsString('téléversement', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // update — image avec MIME invalide + article avec image existante
+    // Couvre handleImageUpload l.279-280 dans le chemin update
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que update() ré-affiche le formulaire avec erreur MIME
+     * quand une image avec un format non autorisé est soumise lors d'une mise à jour.
+     * Couvre la branche MIME invalide de handleImageUpload dans le contexte update().
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\RequiresPhpExtension('fileinfo')]
+    public function testUpdateRendersFormWithErrorOnInvalidImageMime(): void
+    {
+        $id = $this->insertArticle();
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'news_upd_mime_');
+        file_put_contents($tmpFile, 'This is not an image');
+
+        $_POST['csrf_token']      = self::CSRF_TOKEN;
+        $_POST['title_fr']        = 'Article MIME invalide update';
+        $_POST['title_en']        = 'Invalid MIME update article';
+        $_POST['text_content_fr'] = 'Contenu de l\'article.';
+        $_POST['text_content_en'] = 'Article content.';
+        $_POST['link_path']       = '';
+        $_FILES['image']          = [
+            'tmp_name' => $tmpFile,
+            'name'     => 'bad.gif',
+            'type'     => 'image/gif',
+            'size'     => strlen('This is not an image'),
+            'error'    => UPLOAD_ERR_OK,
+        ];
+
+        ob_start();
+        try {
+            $this->makeController('POST')->update(['id' => (string) $id]);
+            $output = ob_get_clean();
+        } finally {
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
+            }
+        }
+
+        $this->assertStringContainsString('<form', $output);
+        $this->assertStringContainsString('non autorisé', $output);
+    }
 }

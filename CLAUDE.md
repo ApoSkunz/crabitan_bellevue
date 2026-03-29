@@ -34,7 +34,9 @@ Ce projet est réalisé en équipe pluridisciplinaire. Chaque rôle est tenu par
 | **Expert Frontend SCSS** | SCSS 7 layers, Vite, tokens CSS, responsive, animations, accessibilité |
 | **Expert DevSecOps** | CI/CD GitHub Actions, SonarCloud, Semgrep, TruffleHog, Legitify, SCA, secrets, PHPCS/PHPStan |
 | **Expert UX/UI Designer** | Maquettes, cohérence visuelle, charte graphique, expérience utilisateur |
-| **Scrum / Product Owner** | Backlog, priorisation, rédaction des US et acceptance criteria |
+| **Scrum Master** | Animation des cérémonies, vélocité, gestion des impediments, coordination inter-équipes |
+| **Product Owner** | Backlog, priorisation, rédaction des US et acceptance criteria, vision produit |
+| **Expert Marketing** | Copywriting, ton de marque, emailings, newsletters, tunnels de conversion, SEO éditorial |
 | **Expert QA** | Stratégie de tests, rédaction TU/TI/E2E, couverture SonarCloud ≥ 80%, non-régression |
 | **Expert Red Team** | Analyse des failles applicatives (OWASP, injection, auth bypass, XSS, CSRF, IDOR…), pentest |
 | **Expert Blue Team** | Durcissement applicatif, monitoring, réponse aux rapports Red Team |
@@ -58,7 +60,9 @@ Avant toute implémentation, identifier le ou les experts concernés et adopter 
 | Tests TU / TI / E2E, stratégie de couverture | **Expert QA** |
 | CI/CD, GitHub Actions, PHPCS/PHPStan, secrets | **Expert DevSecOps** |
 | Sécurité applicative (XSS, CSRF, IDOR, injection…) | **Expert Red Team** → réponse **Expert Blue Team** |
-| Backlog, US, acceptance criteria, priorisation | **Scrum / Product Owner** |
+| Backlog, US, acceptance criteria, vision produit | **Product Owner** |
+| Animation Scrum, vélocité, impediments | **Scrum Master** |
+| Copywriting, emailings, newsletters, ton de marque | **Expert Marketing** |
 | Bug dont la cause est inconnue | **Expert PHP** en premier, puis **Expert Red Team** si suspicion sécurité |
 
 **Règles d'application :**

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Controller\Admin;
 
 use Core\Response;
+use Model\AccountModel;
 use Model\WineModel;
+use Service\MailService;
 use Service\TranslationService;
 
 class WineAdminController extends AdminController
@@ -26,6 +28,9 @@ class WineAdminController extends AdminController
 
     /** @var string[] */
     private const CERT_LABELS = ['AOC', 'IGP', 'STG', 'AOP'];
+
+    private const TITLE_CREATE      = 'Ajouter un vin';
+    private const TITLE_EDIT_PREFIX = 'Modifier — ';
 
     private const ADMIN_BASE       = '/admin';
     private const ADMIN_URL        = '/admin/vins';
@@ -54,12 +59,16 @@ class WineAdminController extends AdminController
 
     private WineModel $wines;
     private TranslationService $translator;
+    private AccountModel $accounts;
+    private MailService $mailer;
 
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
         $this->wines      = new WineModel();
         $this->translator = new TranslationService($_ENV['TRANSLATION_API_KEY'] ?? '');
+        $this->accounts   = new AccountModel();
+        $this->mailer     = new MailService();
     }
 
     // ----------------------------------------------------------------
@@ -105,7 +114,7 @@ class WineAdminController extends AdminController
         $this->view(self::FORM_VIEW, [
             'adminUser'    => $adminUser,
             'adminSection' => 'wines',
-            'pageTitle'    => 'Ajouter un vin',
+            'pageTitle'    => self::TITLE_CREATE,
             'breadcrumbs'  => [
                 ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                 ['label' => 'Vins', 'url' => self::ADMIN_URL],
@@ -137,7 +146,7 @@ class WineAdminController extends AdminController
             $this->view(self::FORM_VIEW, [
                 'adminUser'    => $adminUser,
                 'adminSection' => 'wines',
-                'pageTitle'    => 'Ajouter un vin',
+                'pageTitle'    => self::TITLE_CREATE,
                 'breadcrumbs'  => [
                     ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                     ['label' => 'Vins', 'url' => self::ADMIN_URL],
@@ -151,9 +160,67 @@ class WineAdminController extends AdminController
             return;
         }
 
-        $this->wines->create($data);
+        try {
+            $this->wines->create($data);
+        } catch (\PDOException $e) {
+            $isDuplicate = str_contains($e->getMessage(), '1062') || str_contains($e->getMessage(), 'uq_wines_slug');
+            $errors['slug'] = $isDuplicate
+                ? "Un vin \"{$data['label_name']} {$data['vintage']}\" existe déjà. Modifiez l'appellation, le millésime ou le format."
+                : 'Erreur lors de l\'enregistrement du vin.';
+            $this->view(self::FORM_VIEW, [
+                'adminUser'    => $adminUser,
+                'adminSection' => 'wines',
+                'pageTitle'    => self::TITLE_CREATE,
+                'breadcrumbs'  => [
+                    ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                    ['label' => 'Vins', 'url' => self::ADMIN_URL],
+                    ['label' => 'Ajouter'],
+                ],
+                'wine'         => $data,
+                'errors'       => $errors,
+                'csrfToken'    => $_SESSION['csrf'] ?? '',
+                'appellations' => self::APPELLATIONS,
+            ]);
+            return;
+        }
         $cuveeMark = $data['is_cuvee_speciale'] ? ' — Cuvée Spéciale' : '';
-        $this->flash('success', "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » ajouté avec succès.");
+
+        $newsletterCount = 0;
+        if ((int) $data['available'] === 1) {
+            // Exclure les comptes société : newsletter vin → particuliers uniquement
+            $allSubs     = $this->accounts->getNewsletterSubscribers(10000, 0);
+            $subscribers = array_values(array_filter(
+                $allSubs,
+                static fn (array $s): bool => ($s['account_type'] ?? '') !== 'company'
+            ));
+            $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+            foreach ($subscribers as $sub) {
+                $lang       = in_array($sub['lang'] ?? '', ['fr', 'en'], true) ? (string) $sub['lang'] : 'fr';
+                $personName = trim(($sub['firstname'] ?? '') . ' ' . ($sub['lastname'] ?? ''));
+                $name       = (string) ($sub['company_name'] ?? $personName);
+                $name       = $name !== '' ? $name : (string) $sub['email'];
+                $unsubToken = (string) ($sub['newsletter_unsubscribe_token'] ?? '');
+                $newsletterCount++; // comptabilise chaque tentative d'envoi
+                try {
+                    $this->mailer->sendNewWineNewsletter(
+                        (string) $sub['email'],
+                        $name,
+                        $unsubToken,
+                        $data,
+                        $appUrl,
+                        $lang
+                    );
+                } catch (\Throwable) {
+                    // Échec SMTP capturé silencieusement — ne bloque pas la création du vin
+                }
+            }
+        }
+
+        $flashMsg = "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » ajouté avec succès.";
+        if ($newsletterCount > 0) {
+            $flashMsg .= " {$newsletterCount} newsletter(s) envoyée(s).";
+        }
+        $this->flash('success', $flashMsg);
         Response::redirect(self::ADMIN_URL);
     }
 
@@ -173,7 +240,7 @@ class WineAdminController extends AdminController
         $this->view(self::FORM_VIEW, [
             'adminUser'    => $adminUser,
             'adminSection' => 'wines',
-            'pageTitle'    => 'Modifier — ' . $wine['label_name'],
+            'pageTitle'    => self::TITLE_EDIT_PREFIX . $wine['label_name'],
             'breadcrumbs'  => [
                 ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                 ['label' => 'Vins', 'url' => self::ADMIN_URL],
@@ -211,7 +278,7 @@ class WineAdminController extends AdminController
             $this->view(self::FORM_VIEW, [
                 'adminUser'    => $adminUser,
                 'adminSection' => 'wines',
-                'pageTitle'    => 'Modifier — ' . $wine['label_name'],
+                'pageTitle'    => self::TITLE_EDIT_PREFIX . $wine['label_name'],
                 'breadcrumbs'  => [
                     ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                     ['label' => 'Vins', 'url' => self::ADMIN_URL],
@@ -225,7 +292,29 @@ class WineAdminController extends AdminController
             return;
         }
 
-        $this->wines->update($id, $data);
+        try {
+            $this->wines->update($id, $data);
+        } catch (\PDOException $e) {
+            $isDuplicate = str_contains($e->getMessage(), '1062') || str_contains($e->getMessage(), 'uq_wines_slug');
+            $errors['slug'] = $isDuplicate
+                ? "Un vin \"{$data['label_name']} {$data['vintage']}\" existe déjà avec ce slug."
+                : 'Erreur lors de la mise à jour du vin.';
+            $this->view(self::FORM_VIEW, [
+                'adminUser'    => $adminUser,
+                'adminSection' => 'wines',
+                'pageTitle'    => self::TITLE_EDIT_PREFIX . $wine['label_name'],
+                'breadcrumbs'  => [
+                    ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                    ['label' => 'Vins', 'url' => self::ADMIN_URL],
+                    ['label' => 'Modifier'],
+                ],
+                'wine'         => array_merge($wine, $data),
+                'errors'       => $errors,
+                'csrfToken'    => $_SESSION['csrf'] ?? '',
+                'appellations' => self::APPELLATIONS,
+            ]);
+            return;
+        }
         $cuveeMark = $data['is_cuvee_speciale'] ? ' — Cuvée Spéciale' : '';
         $this->flash('success', "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » mis à jour avec succès.");
         Response::redirect(self::ADMIN_URL);
@@ -378,7 +467,7 @@ class WineAdminController extends AdminController
         }
 
         $ext      = self::MIME_EXT[$mimeType];
-        $safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', $appellation) ?? 'wine';
+        $safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', self::deaccent($appellation)) ?? 'wine';
         $safeName = trim($safeName, '_');
         $destDir  = ROOT_PATH . '/public/assets/images/wines/';
 
@@ -388,18 +477,59 @@ class WineAdminController extends AdminController
             $filename = "Wine_{$safeName}_{$vintage}_{$token}.{$ext}";
         } while (file_exists($destDir . $filename));
 
-        if (!move_uploaded_file($file['tmp_name'], $destDir . $filename)) {
+        if (!$this->moveUploadedFile($file['tmp_name'], $destDir . $filename)) {
             return ['path' => $existingPath ?? '', 'error' => 'Erreur lors du téléversement.'];
         }
 
         return ['path' => $filename, 'error' => null];
     }
 
+    /**
+     * Déplace un fichier uploadé vers sa destination finale.
+     * Méthode protégée pour permettre le test via sous-classe.
+     *
+     * @param string $src  Chemin source du fichier temporaire
+     * @param string $dest Chemin de destination
+     * @return bool
+     */
+    protected function moveUploadedFile(string $src, string $dest): bool
+    {
+        return move_uploaded_file($src, $dest);
+    }
+
     private function generateSlug(string $name, int $vintage): string
     {
-        $slug = strtolower($name . '-' . $vintage);
-        $slug = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $slug) ?: $slug;
+        $slug = strtolower(self::deaccent($name) . '-' . $vintage);
         $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? $slug;
         return trim($slug, '-');
+    }
+
+    /**
+     * Remplace les caractères accentués par leur équivalent ASCII.
+     * Utilise strtr (indépendant de la locale système, contrairement à iconv //TRANSLIT).
+     *
+     * @param string $str Chaîne source
+     * @return string Chaîne sans accents
+     */
+    private static function deaccent(string $str): string
+    {
+        return strtr($str, [
+            'à' => 'a', 'â' => 'a', 'ä' => 'a', 'á' => 'a', 'ã' => 'a', 'å' => 'a', 'æ' => 'ae',
+            'ç' => 'c',
+            'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i',
+            'ñ' => 'n',
+            'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'œ' => 'oe',
+            'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u',
+            'ý' => 'y', 'ÿ' => 'y',
+            'À' => 'A', 'Â' => 'A', 'Ä' => 'A', 'Á' => 'A', 'Ã' => 'A', 'Å' => 'A', 'Æ' => 'Ae',
+            'Ç' => 'C',
+            'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E',
+            'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I',
+            'Ñ' => 'N',
+            'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Œ' => 'Oe',
+            'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U',
+            'Ý' => 'Y',
+        ]);
     }
 }

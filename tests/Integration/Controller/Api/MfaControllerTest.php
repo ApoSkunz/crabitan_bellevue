@@ -308,4 +308,46 @@ class MfaControllerTest extends IntegrationTestCase
             }
         }
     }
+
+    // ----------------------------------------------------------------
+    // poll — token confirmé avec lang différente → updateLang appelé
+    // ----------------------------------------------------------------
+
+    /**
+     * Un token confirmé dont la lang diffère de celle du compte déclenche updateLang().
+     * Couvre la branche `$account['lang'] !== $recordLang` (ligne 103-104 de MfaController).
+     */
+    public function testPollWithConfirmedTokenUpdatesAccountLangWhenDifferent(): void
+    {
+        // Compte créé avec lang='fr', le token de confirmation a lang='en'
+        $token       = bin2hex(random_bytes(16));
+        $deviceToken = 'dev-lang-diff-' . bin2hex(random_bytes(8));
+
+        self::$db->insert(
+            "INSERT INTO device_confirm_tokens
+             (user_id, device_token, device_name, token, expires_at, confirmed_at, lang)
+             VALUES (?, ?, 'Chrome · Test', ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), NOW(), 'en')",
+            [$this->userId, $deviceToken, $token]
+        );
+
+        $_GET['token'] = $token;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(200);
+
+        ob_start();
+        try {
+            $this->makeController()->poll([]);
+        } finally {
+            ob_get_clean();
+            // La lang du compte doit avoir été mise à jour vers 'en'
+            $account = self::$db->fetchOne(
+                'SELECT lang FROM accounts WHERE id = ?',
+                [$this->userId]
+            );
+            if ($account !== false) {
+                $this->assertSame('en', $account['lang']);
+            }
+        }
+    }
 }

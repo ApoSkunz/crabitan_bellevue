@@ -105,4 +105,62 @@ class RequestTest extends TestCase
         $request = $this->makeRequest([]);
         $this->assertSame('GET', $request->method);
     }
+
+    /**
+     * Vérifie que le body JSON d'une requête POST est décodé correctement via php://input.
+     *
+     * @return void
+     */
+    public function testPostBodyParsesJsonContentType(): void
+    {
+        // Enregistre le mock de stream pour php://input
+        \Tests\Unit\Stubs\PhpInputMockStream::$inputData = '{"key":"value","num":42}';
+        stream_wrapper_unregister('php');
+        stream_wrapper_register('php', \Tests\Unit\Stubs\PhpInputMockStream::class);
+
+        try {
+            $_SERVER = [
+                'REQUEST_METHOD' => 'POST',
+                'REQUEST_URI'    => '/',
+                'CONTENT_TYPE'   => 'application/json; charset=utf-8',
+            ];
+            $_GET  = [];
+            $_POST = [];
+
+            $request = new Request();
+
+            $this->assertSame('value', $request->post('key'));
+            $this->assertSame(42, $request->post('num'));
+        } finally {
+            stream_wrapper_restore('php');
+        }
+    }
+
+    /**
+     * Vérifie qu'un body JSON invalide est traité comme un tableau vide.
+     *
+     * @return void
+     */
+    public function testPostBodyReturnsEmptyArrayOnInvalidJson(): void
+    {
+        \Tests\Unit\Stubs\PhpInputMockStream::$inputData = '{invalid json}';
+        stream_wrapper_unregister('php');
+        stream_wrapper_register('php', \Tests\Unit\Stubs\PhpInputMockStream::class);
+
+        try {
+            $_SERVER = [
+                'REQUEST_METHOD' => 'POST',
+                'REQUEST_URI'    => '/',
+                'CONTENT_TYPE'   => 'application/json',
+            ];
+            $_GET  = [];
+            $_POST = [];
+
+            $request = new Request();
+
+            $this->assertSame([], $request->body);
+        } finally {
+            stream_wrapper_restore('php');
+        }
+    }
 }

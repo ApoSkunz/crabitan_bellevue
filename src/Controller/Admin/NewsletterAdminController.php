@@ -120,6 +120,7 @@ class NewsletterAdminController extends AdminController
         }
 
         $subject = trim($this->request->post('subject', ''));
+        $title   = trim($this->request->post('nl_title', ''));
         $body    = trim($this->request->post('body', ''));
 
         if ($subject === '' || $body === '') {
@@ -127,13 +128,16 @@ class NewsletterAdminController extends AdminController
             Response::redirect(self::ADMIN_URL);
         }
 
+        // Préfixe branding uniquement — "Newsletter" retiré de l'objet (délivrabilité + spam)
+        $subjectLine = 'Château Crabitan Bellevue — ' . $subject;
+
         $allowed  = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
         $appUrl   = rtrim($_ENV['APP_URL'] ?? '', '/');
         $destDir  = ROOT_PATH . '/public/assets/images/newsletter/';
         $imageUrl = $this->uploadNewsletterImage($_FILES['nl_image'] ?? [], $allowed, $destDir, $appUrl);
 
-        // Persister la campagne avant l'envoi
-        $campaignId = $this->newsletters->create($subject, $body, $imageUrl);
+        // Persister la campagne avant l'envoi (avec objet complet)
+        $campaignId = $this->newsletters->create($subjectLine, $body, $imageUrl);
 
         // Gérer la pièce jointe PDF — copie permanente pour l'historique
         $pdfPath    = null;
@@ -150,14 +154,31 @@ class NewsletterAdminController extends AdminController
         $failed      = 0;
         $safeContent = nl2br(htmlspecialchars($body, ENT_QUOTES));
 
+        // Bloc titre optionnel affiché en h2 au-dessus du corps
+        $titleHtml = $title !== ''
+            ? '<h2 style="margin:0 0 16px;font-family:Georgia,serif;font-size:22px;'
+              . 'color:#1a1208;line-height:1.3;">'
+              . htmlspecialchars($title, ENT_QUOTES) . '</h2>'
+            : '';
+
         foreach ($all as $sub) {
-            $name     = $sub['account_type'] === 'company'
+            $name = $sub['account_type'] === 'company'
                 ? ($sub['company_name'] ?? '')
                 : trim(($sub['firstname'] ?? '') . ' ' . ($sub['lastname'] ?? ''));
-            $token    = $sub['newsletter_unsubscribe_token'] ?? null;
-            $htmlBody = $mailer->buildNewsletterHtml($subject, $safeContent, $imageUrl, $token);
+            $token = $sub['newsletter_unsubscribe_token'] ?? null;
+
+            // Salutation : prénom seul pour les particuliers (pas nom complet)
+            $firstname    = htmlspecialchars(trim($sub['firstname'] ?? ''), ENT_QUOTES);
+            $fallbackName = $firstname ?: htmlspecialchars($name ?: 'cher abonné', ENT_QUOTES);
+            $greeting     = $sub['account_type'] === 'company'
+                ? 'Madame, Monsieur,'
+                : 'Bonjour ' . $fallbackName . ',';
+            $greetingHtml = '<p style="margin:0 0 20px;font-size:22px;color:#1a1208;font-family:Georgia,serif;">'
+                . $greeting . '</p>';
+
+            $htmlBody = $mailer->buildNewsletterHtml('Newsletter · Abonnés', $greetingHtml . $titleHtml . $safeContent, $imageUrl, $token);
             try {
-                $mailer->sendNewsletter($sub['email'], $name ?: 'Abonné', $subject, $htmlBody, $pdfPath, $pdfName);
+                $mailer->sendNewsletter($sub['email'], $name ?: 'Abonné', $subjectLine, $htmlBody, $pdfPath, $pdfName);
                 $sent++;
             } catch (\Throwable) {
                 $failed++;
