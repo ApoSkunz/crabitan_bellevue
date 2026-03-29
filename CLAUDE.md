@@ -153,7 +153,20 @@ npx playwright test
 
 Rapporter ✅ ou les erreurs complètes. Si tout est vert, attendre le mot **"go push"**.
 
-### 3. Branches
+### 3. Parallélisation des actions
+
+**Lancer un maximum d'actions en parallèle** dans chaque message pour accélérer le développement :
+
+| Actions parallélisables | Exemples |
+|---|---|
+| Lectures indépendantes | Plusieurs `Read` / `Grep` / `Glob` dans le même message |
+| Linters PHP | `phpcs` + `phpstan` lancés simultanément |
+| Créations de fichiers indépendants | Plusieurs `Write` en parallèle (ex. TU + TI d'une même feature) |
+| Recherches codebase | Plusieurs `Grep` sur des cibles différentes |
+
+Ne séquencer que ce qui dépend du résultat d'une étape précédente.
+
+### 4. Branches
 
 Convention de nommage :
 
@@ -167,7 +180,7 @@ Convention de nommage :
 
 Une branche = un sujet. Ne jamais travailler directement sur `main`.
 
-### 4. Commits
+### 5. Commits
 
 Quand l'utilisateur dit **"go push"** :
 - Découper en **commits atomiques** — un commit = une responsabilité
@@ -193,7 +206,7 @@ Pas besoin de confirmation supplémentaire.
 
 Un seul fichier modifié peut faire l'objet d'un commit séparé si son changement est orthogonal aux autres.
 
-### 5. Annotations qualité
+### 6. Annotations qualité
 
 - **PHPCS PSR12** — warnings "side effects" sur `public/index.php` et `config/config.php` acceptables
 - **Faux positifs SonarCloud** : `// NOSONAR — <justification courte>` (justification obligatoire)
