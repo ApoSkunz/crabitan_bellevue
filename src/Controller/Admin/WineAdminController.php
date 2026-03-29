@@ -157,12 +157,39 @@ class WineAdminController extends AdminController
             return;
         }
 
-        $this->wines->create($data);
+        try {
+            $this->wines->create($data);
+        } catch (\PDOException $e) {
+            $isDuplicate = str_contains($e->getMessage(), '1062') || str_contains($e->getMessage(), 'uq_wines_slug');
+            $errors['slug'] = $isDuplicate
+                ? "Un vin \"{$data['label_name']} {$data['vintage']}\" existe déjà. Modifiez l'appellation, le millésime ou le format."
+                : 'Erreur lors de l\'enregistrement du vin.';
+            $this->view(self::FORM_VIEW, [
+                'adminUser'    => $adminUser,
+                'adminSection' => 'wines',
+                'pageTitle'    => 'Ajouter un vin',
+                'breadcrumbs'  => [
+                    ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                    ['label' => 'Vins', 'url' => self::ADMIN_URL],
+                    ['label' => 'Ajouter'],
+                ],
+                'wine'         => $data,
+                'errors'       => $errors,
+                'csrfToken'    => $_SESSION['csrf'] ?? '',
+                'appellations' => self::APPELLATIONS,
+            ]);
+            return;
+        }
         $cuveeMark = $data['is_cuvee_speciale'] ? ' — Cuvée Spéciale' : '';
 
         $newsletterCount = 0;
         if ((int) $data['available'] === 1) {
-            $subscribers = $this->accounts->getNewsletterSubscribers(10000, 0);
+            // Exclure les comptes société : newsletter vin → particuliers uniquement
+            $allSubs     = $this->accounts->getNewsletterSubscribers(10000, 0);
+            $subscribers = array_values(array_filter(
+                $allSubs,
+                static fn (array $s): bool => ($s['account_type'] ?? '') !== 'company'
+            ));
             $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
             foreach ($subscribers as $sub) {
                 $lang       = in_array($sub['lang'] ?? '', ['fr', 'en'], true) ? (string) $sub['lang'] : 'fr';
@@ -262,7 +289,29 @@ class WineAdminController extends AdminController
             return;
         }
 
-        $this->wines->update($id, $data);
+        try {
+            $this->wines->update($id, $data);
+        } catch (\PDOException $e) {
+            $isDuplicate = str_contains($e->getMessage(), '1062') || str_contains($e->getMessage(), 'uq_wines_slug');
+            $errors['slug'] = $isDuplicate
+                ? "Un vin \"{$data['label_name']} {$data['vintage']}\" existe déjà avec ce slug."
+                : 'Erreur lors de la mise à jour du vin.';
+            $this->view(self::FORM_VIEW, [
+                'adminUser'    => $adminUser,
+                'adminSection' => 'wines',
+                'pageTitle'    => 'Modifier — ' . $wine['label_name'],
+                'breadcrumbs'  => [
+                    ['label' => 'Admin', 'url' => self::ADMIN_BASE],
+                    ['label' => 'Vins', 'url' => self::ADMIN_URL],
+                    ['label' => 'Modifier'],
+                ],
+                'wine'         => array_merge($wine, $data),
+                'errors'       => $errors,
+                'csrfToken'    => $_SESSION['csrf'] ?? '',
+                'appellations' => self::APPELLATIONS,
+            ]);
+            return;
+        }
         $cuveeMark = $data['is_cuvee_speciale'] ? ' — Cuvée Spéciale' : '';
         $this->flash('success', "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » mis à jour avec succès.");
         Response::redirect(self::ADMIN_URL);
