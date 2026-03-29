@@ -56,7 +56,14 @@ jobs:
           EXAKAT_VERSION: '2.6.9'
           EXAKAT_SHA256: ${{ secrets.EXAKAT_PHAR_SHA256 }}
         run: |
-          curl -fsSL "https://www.exakat.io/versions/${EXAKAT_VERSION}/exakat.phar" -o exakat.phar
+          # Tentative 1 : GitHub Releases (version épinglée)
+          if ! curl -fsSL \
+            "https://github.com/exakat/exakat/releases/download/${EXAKAT_VERSION}/exakat.phar" \
+            -o exakat.phar 2>/dev/null; then
+            # Fallback : dernière version stable sur exakat.io
+            echo "::warning::GitHub Release ${EXAKAT_VERSION} introuvable — fallback vers latest"
+            curl -fsSL "https://www.exakat.io/versions/exakat.phar" -o exakat.phar
+          fi
           if [ -n "${EXAKAT_SHA256}" ]; then
             echo "${EXAKAT_SHA256}  exakat.phar" | sha256sum -c - \
               || { echo "::error::Checksum exakat.phar invalide — abort"; exit 1; }
@@ -118,24 +125,9 @@ jobs:
             p/command-injection
             p/secrets
 
-  legitify:
-    name: Legitify GitHub Security
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    continue-on-error: true
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-        with:
-          persist-credentials: false
-
-      - name: Legitify
-        uses: Legit-Labs/legitify@e948d3ea97e94a53cbc72af88e2fdf6b612031bc # v1.0.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          target: REPOSITORY
-          scorecard: true
+  # Legitify supprimé : l'action v1.0.2 utilise actions/upload-artifact@v3 (deprecated),
+  # ce qui fait échouer le job sans possibilité de fix côté consommateur.
+  # OpenSSF Scorecard (job ci-dessous) couvre le périmètre GitHub posture management.
 
   scorecard:
     name: OpenSSF Scorecard
