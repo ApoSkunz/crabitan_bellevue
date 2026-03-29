@@ -200,7 +200,12 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
             $ok = $this->orders->requestReturnForUser($id, $userId);
             if ($ok) {
                 $_SESSION['flash']['order_success'] = __('account.order_return_requested');
-                $this->sendReturnEmails($id, $userId, $lang);
+                try {
+                    $this->sendReturnEmails($id, $userId, $lang);
+                } catch (\Exception $e) {
+                    // L'échec d'envoi email ne doit pas bloquer la demande de retour
+                    error_log('[AccountController] sendReturnEmails failed: ' . $e->getMessage());
+                }
             } else {
                 $_SESSION['flash']['order_error'] = __('account.order_cancel_failed');
             }

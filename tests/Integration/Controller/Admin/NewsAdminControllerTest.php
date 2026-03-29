@@ -214,7 +214,7 @@ class NewsAdminControllerTest extends AdminIntegrationTestCase
     // store — CSRF valide, données valides, image absente en création → erreur image
     // ----------------------------------------------------------------
 
-    public function testStoreRendersFormWhenImageMissingOnCreate(): void
+    public function testStoreRedirectsWhenImageMissingOnCreate(): void
     {
         $_POST['csrf_token']        = self::CSRF_TOKEN;
         $_POST['title_fr']          = 'Nouvel article test';
@@ -224,33 +224,30 @@ class NewsAdminControllerTest extends AdminIntegrationTestCase
         $_POST['link_path']         = '';
         $_FILES = [];
 
-        ob_start();
+        // Image optionnelle en création : le store réussit et redirige
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
         $this->makeController('POST')->store([]);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('<form', $output);
     }
 
     // ----------------------------------------------------------------
     // store — EN vides → translateText déclenché (auto-traduction)
     // ----------------------------------------------------------------
 
-    public function testStoreCallsTranslationWhenEnFieldsAreEmpty(): void
+    public function testStoreRedirectsWhenEnFieldsAreEmpty(): void
     {
         $_POST['csrf_token']        = self::CSRF_TOKEN;
         $_POST['title_fr']          = 'Article avec traduction automatique';
-        $_POST['title_en']          = ''; // EN vide → translateText appelé
+        $_POST['title_en']          = ''; // EN vide → translateText appelé si disponible
         $_POST['text_content_fr']   = 'Contenu nécessitant une traduction';
-        $_POST['text_content_en']   = ''; // EN vide → translateText appelé
+        $_POST['text_content_en']   = ''; // EN vide
         $_POST['link_path']         = '';
         $_FILES = [];
 
-        ob_start();
+        // Image optionnelle : le store aboutit et redirige même sans champs EN
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
         $this->makeController('POST')->store([]);
-        $output = ob_get_clean();
-
-        // Image obligatoire en création → formulaire re-rendu (chemin normal)
-        $this->assertStringContainsString('<form', $output);
     }
 
     // ----------------------------------------------------------------
