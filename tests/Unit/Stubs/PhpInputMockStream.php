@@ -17,6 +17,9 @@ class PhpInputMockStream
 {
     public static string $inputData = '';
 
+    /** @var resource|null Required by PHP stream wrapper protocol — prevents dynamic property deprecation (PHP 8.2+) */
+    public mixed $context = null;
+
     private int $position = 0;
 
     // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps

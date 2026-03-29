@@ -13,6 +13,9 @@ namespace Tests\Unit\Stubs;
  */
 class HttpsFailStream
 {
+    /** @var resource|null Required by PHP stream wrapper protocol — prevents dynamic property deprecation (PHP 8.2+) */
+    public mixed $context = null;
+
     // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public function stream_open(string $path, string $mode, int $options, ?string &$opened_path): bool
     {

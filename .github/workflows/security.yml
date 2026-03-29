@@ -161,7 +161,7 @@ jobs:
           tar -xzf legitify.tar.gz legitify
           chmod +x legitify
           ./legitify analyze \
-            --gh-token "$GITHUB_TOKEN" \
+            --github-token "$GITHUB_TOKEN" \
             --target repository \
             --output-format table \
             || true  # non-bloquant : résultats informatifs uniquement
