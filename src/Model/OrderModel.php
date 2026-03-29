@@ -11,7 +11,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     protected string $table = 'orders';
 
     private const VALID_STATUSES = [
-        'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested',
+        'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused',
     ];
 
     /** Fenêtre légale de rétractation après livraison (art. L221-18 Code conso). */
