@@ -281,7 +281,8 @@ class NewsAdminController extends AdminController
         }
 
         $ext      = self::MIME_EXT[$mimeType];
-        $safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', $title) ?? 'news';
+        $ascii    = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $title) ?: $title;
+        $safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', $ascii) ?? 'news';
         $safeName = trim(substr($safeName, 0, 40), '_');
         $destDir  = ROOT_PATH . '/public/assets/images/news/';
 

@@ -378,7 +378,8 @@ class WineAdminController extends AdminController
         }
 
         $ext      = self::MIME_EXT[$mimeType];
-        $safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', $appellation) ?? 'wine';
+        $ascii    = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $appellation) ?: $appellation;
+        $safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', $ascii) ?? 'wine';
         $safeName = trim($safeName, '_');
         $destDir  = ROOT_PATH . '/public/assets/images/wines/';
 
