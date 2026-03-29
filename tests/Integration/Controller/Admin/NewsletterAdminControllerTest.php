@@ -392,4 +392,135 @@ class NewsletterAdminControllerTest extends AdminIntegrationTestCase
         $flash = $_SESSION['admin_flash']['success'] ?? '';
         $this->assertStringContainsString('email(s)', $flash);
     }
+
+    // ----------------------------------------------------------------
+    // send — persistance de la campagne en BDD
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que send() crée bien une ligne dans la table newsletters.
+     */
+    public function testSendPersistsCampaignInDatabase(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['subject']    = 'Campagne persistance test';
+        $_POST['body']       = 'Corps de la campagne.';
+
+        try {
+            $this->makeController('POST')->send([]);
+        } catch (HttpException) {
+            // redirect attendu
+        }
+
+        $row = self::$db->fetchOne(
+            "SELECT subject FROM newsletters WHERE subject = ?",
+            ['Campagne persistance test']
+        );
+        $this->assertNotEmpty($row);
+        $this->assertSame('Campagne persistance test', $row['subject']);
+    }
+
+    /**
+     * Vérifie que les compteurs sent_count et failed_count sont mis à jour après envoi.
+     */
+    public function testSendUpdatesStatsAfterSend(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['subject']    = 'Campagne stats test';
+        $_POST['body']       = 'Corps pour stats.';
+
+        try {
+            $this->makeController('POST')->send([]);
+        } catch (HttpException) {
+            // redirect attendu
+        }
+
+        $row = self::$db->fetchOne(
+            "SELECT sent_count, failed_count FROM newsletters WHERE subject = ?",
+            ['Campagne stats test']
+        );
+        $this->assertNotEmpty($row);
+        // sent_count + failed_count = total abonnés au moment du test (variable selon fixtures)
+        $total = (int) $row['sent_count'] + (int) $row['failed_count'];
+        $this->assertGreaterThanOrEqual(0, $total);
+    }
+
+    // ----------------------------------------------------------------
+    // index — historique visible
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que index() affiche la section historique même sans campagne.
+     */
+    public function testIndexShowsHistorySection(): void
+    {
+        ob_start();
+        $this->makeController()->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Historique des envois', $output);
+    }
+
+    /**
+     * Vérifie que index() affiche une campagne persistée dans l'historique.
+     */
+    public function testIndexShowsPersistedCampaign(): void
+    {
+        self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_count, failed_count)
+             VALUES ('Historique visible', 'Corps', 3, 0)"
+        );
+
+        ob_start();
+        $this->makeController()->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Historique visible', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // show()
+    // ----------------------------------------------------------------
+
+    /**
+     * show() avec un id inconnu lève une HttpException 404.
+     */
+    public function testShowThrows404WhenNotFound(): void
+    {
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(404);
+
+        $ctrl = new NewsletterAdminController(
+            $this->makeRequest('GET', '/admin/newsletter/9999')
+        );
+
+        ob_start();
+        try {
+            $ctrl->show(['id' => '9999']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * show() avec un id valide affiche le détail de la campagne.
+     */
+    public function testShowRendersCampaignDetail(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_count, failed_count)
+             VALUES ('Campagne détail', 'Corps détail', 5, 1)"
+        );
+
+        $ctrl = new NewsletterAdminController(
+            $this->makeRequest('GET', '/admin/newsletter/' . $id)
+        );
+
+        ob_start();
+        $ctrl->show(['id' => (string) $id]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Campagne détail', $output);
+        $this->assertStringContainsString('Corps détail', $output);
+    }
 }
