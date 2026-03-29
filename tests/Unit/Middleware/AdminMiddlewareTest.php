@@ -40,12 +40,12 @@ class AdminMiddlewareTest extends TestCase
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
-    public function testHandleAborts403ForCustomerRole(): void
+    public function testHandleAborts404ForCustomerRole(): void
     {
         $_COOKIE['auth_token'] = Jwt::generate(3, 'customer');
 
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(403);
+        $this->expectExceptionCode(404);
 
         ob_start();
         try {

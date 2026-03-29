@@ -19,7 +19,7 @@ class AdminMiddleware
         $payload = AuthMiddleware::handle($sessionChecker);
 
         if (!in_array($payload['role'] ?? '', ['admin', 'super_admin'], true)) {
-            Response::abort(403, 'Accès refusé');
+            Response::abort(404, 'Page introuvable');
         }
 
         return $payload;
