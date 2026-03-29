@@ -401,6 +401,7 @@ jobs:
           cache: 'npm'
 
       - name: npm audit (JS deps)
-        # picomatch bundled inside npm CLI itself (node_modules/npm/**) — unfixable via overrides,
-        # not exploitable in our application code. Dependabot watches for upstream fixes.
-        run: npm audit --audit-level=critical
+        # --omit=dev : on audite uniquement les deps de production au niveau high.
+        # picomatch est dans semantic-release (devDep) → ne touche pas la prod.
+        # Les vulns dev-only sont hors périmètre d'un audit SCA production.
+        run: npm audit --audit-level=high --omit=dev
