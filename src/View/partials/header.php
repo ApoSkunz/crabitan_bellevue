@@ -686,7 +686,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/admin/newsletter">Newsletter</a>
                 <a href="/admin/bons-de-commande">Bons de commande</a>
                 <a href="/admin/statistiques">Statistiques CA</a>
-                <a href="/admin/mon-profil">Mon profil</a>
+                <a href="/admin/securite">Sécurité</a>
             <?php else : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">
                     <?= htmlspecialchars(__('panel.account')) ?>

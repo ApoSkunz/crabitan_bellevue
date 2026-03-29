@@ -47,7 +47,12 @@ $maxYear = (int) date('Y');
 ?>
 
 <?php if (!empty($errors)) : ?>
-    <div class="admin-flash admin-flash--error">Veuillez corriger les erreurs ci-dessous.</div>
+    <div class="admin-flash admin-flash--error">
+        Veuillez corriger les erreurs ci-dessous.
+        <?php if (hasError($errors, 'slug')) : ?>
+            <br><?= htmlspecialchars($errors['slug']) ?>
+        <?php endif; ?>
+    </div>
 <?php endif; ?>
 
 <div class="admin-page-header">
