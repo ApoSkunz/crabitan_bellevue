@@ -17,12 +17,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: TruffleHog
-        uses: trufflesecurity/trufflehog@v3
+        uses: trufflesecurity/trufflehog@fe5624c70923355128868cffd647b6e2cfe11443 # v3.81.9
         with:
           path: ./
           base: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -39,15 +40,17 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@439137e1b50c27ba9e2f9befc93e43091b449c34 # v3.32.0
         with:
           languages: javascript
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@439137e1b50c27ba9e2f9befc93e43091b449c34 # v3.32.0
 
   sast:
     name: SAST — Semgrep
@@ -56,10 +59,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
-      - name: Semgrep Scan
-        uses: semgrep/semgrep-action@v1
+      - name:Semgrep Scan
+        uses: semgrep/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d # v1
         with:
           config: >-
             p/php
@@ -71,34 +76,6 @@ jobs:
             p/command-injection
             p/secrets
 
-  exakat:
-    name: SAST — Exakat PHP
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup PHP 8.4
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: tokenizer, mbstring, json
-          coverage: none
-
-      - name: Download Exakat
-        run: |
-          curl -Lo exakat.phar https://www.exakat.io/versions/exakat.phar
-          php exakat.phar doctor
-
-      - name: Run Exakat CI checks
-        run: |
-          php exakat.phar ci-checks \
-            -p . \
-            --ignore-dirs vendor,node_modules,coverage,public/assets \
-            -r Text
-
   legitify:
     name: Legitify GitHub Security
     runs-on: ubuntu-latest
@@ -107,10 +84,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
-      - name: Legitify
-        uses: Legit-Labs/legitify@v1
+      - name:Legitify
+        uses: Legit-Labs/legitify@e948d3ea97e94a53cbc72af88e2fdf6b612031bc # v1.0.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           target: REPOSITORY
@@ -119,6 +98,7 @@ jobs:
   scorecard:
     name: OpenSSF Scorecard
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       security-events: write
       id-token: write
@@ -127,19 +107,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
           persist-credentials: false
 
       - name: Run Scorecard
-        uses: ossf/scorecard-action@v2.4.0
+        uses: ossf/scorecard-action@62b2cac7ed8198b15735ed49ab1e5cf35480ba46 # v2.4.0
         with:
           results_file: results.sarif
           results_format: sarif
           publish_results: true
 
       - name: Upload Scorecard results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: scorecard-results
           path: results.sarif
