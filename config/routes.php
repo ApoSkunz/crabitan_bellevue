@@ -106,6 +106,7 @@ $router->get('/{lang}/mon-compte/commandes', 'AccountController@orders');
 $router->get('/{lang}/mon-compte/commandes/{id}', 'AccountController@orderDetail');
 $router->post('/{lang}/mon-compte/commandes/{id}/annuler', 'AccountController@cancelOrder');
 $router->get('/{lang}/mon-compte/commandes/{id}/facture', 'InvoiceController@download');
+$router->get('/{lang}/mon-compte/commandes/{id}/fiche-retour', 'AccountController@returnSlip');
 $router->get('/{lang}/mon-compte/adresses', 'AccountController@addresses');
 $router->post('/{lang}/mon-compte/adresses/ajouter', 'AccountController@addAddress');
 $router->get('/{lang}/mon-compte/adresses/{id}/modifier', 'AccountController@editAddress');
