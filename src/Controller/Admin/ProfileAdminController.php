@@ -9,6 +9,7 @@ use Core\Response;
 use Model\AccountModel;
 use Model\ConnectionModel;
 use Model\TrustedDeviceModel;
+use Service\PasswordValidator;
 
 class ProfileAdminController extends AdminController
 {
@@ -78,8 +79,8 @@ class ProfileAdminController extends AdminController
             Response::redirect(self::SECURITY_URL);
         }
 
-        if (strlen($new) < 12) {
-            $this->flash('error', 'Le nouveau mot de passe doit contenir au moins 12 caractères.');
+        if (!PasswordValidator::isStrong($new)) {
+            $this->flash('error', __('auth.password_too_weak'));
             Response::redirect(self::SECURITY_URL);
         }
 
