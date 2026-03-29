@@ -389,32 +389,53 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param  array<string, array{label: string, ca: float, count: int}>  $indexed
      * @return array<int, array{label: string, ca: float, count: int}>
      */
-    private function fillChartGaps(array $indexed, ?string $from, ?string $to, string $granularity): array // NOSONAR php:S1142 — branches logiques distinctes, refactoring sans valeur
+    private function fillChartGaps(array $indexed, ?string $from, ?string $to, string $granularity): array
     {
-        $result = [];
-        $empty  = ['ca' => 0.0, 'count' => 0];
+        $empty = ['ca' => 0.0, 'count' => 0];
 
         if ($granularity === 'yearly') {
-            // Pas de borne → on prend les années effectivement présentes
-            $years = $this->getAvailableYears();
-            if ($years === []) {
-                return [];
-            }
-            $min = min($years);
-            $max = max($years);
-            for ($y = $min; $y <= $max; $y++) {
-                $label    = (string) $y;
-                $result[] = array_merge(['label' => $label], $indexed[$label] ?? $empty);
-            }
-            return $result;
+            return $this->fillChartGapsYearly($indexed, $empty);
         }
 
         if ($from === null || $to === null) {
             return array_values($indexed);
         }
 
-        $start = new \DateTime($from);
-        $end   = new \DateTime($to);
+        return $this->fillChartGapsByDate($indexed, $empty, $from, $to, $granularity);
+    }
+
+    /**
+     * @param  array<string, array{label: string, ca: float, count: int}>  $indexed
+     * @param  array{ca: float, count: int}                                 $empty
+     * @return array<int, array{label: string, ca: float, count: int}>
+     */
+    private function fillChartGapsYearly(array $indexed, array $empty): array
+    {
+        $years = $this->getAvailableYears();
+        if ($years === []) {
+            return [];
+        }
+
+        $result = [];
+        $min    = min($years);
+        $max    = max($years);
+        for ($y = $min; $y <= $max; $y++) {
+            $label    = (string) $y;
+            $result[] = array_merge(['label' => $label], $indexed[$label] ?? $empty);
+        }
+        return $result;
+    }
+
+    /**
+     * @param  array<string, array{label: string, ca: float, count: int}>  $indexed
+     * @param  array{ca: float, count: int}                                 $empty
+     * @return array<int, array{label: string, ca: float, count: int}>
+     */
+    private function fillChartGapsByDate(array $indexed, array $empty, string $from, string $to, string $granularity): array
+    {
+        $result   = [];
+        $start    = new \DateTime($from);
+        $end      = new \DateTime($to);
 
         if ($granularity === 'daily') {
             $cur = clone $start;
@@ -425,7 +446,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
             }
         } else {
             // monthly
-            $cur = new \DateTime($start->format('Y-m-01'));
+            $cur      = new \DateTime($start->format('Y-m-01'));
             $endMonth = new \DateTime($end->format('Y-m-01'));
             while ($cur <= $endMonth) {
                 $label    = $cur->format('Y-m');
