@@ -542,8 +542,12 @@ return [
     'account.order_contact_for_cancel' => 'Cette commande ne peut plus être annulée en ligne.',
     'account.order_contact_subject'    => 'Demande d\'annulation — commande',
     'account.order_contact_link'       => 'Contacter le support',
-    'account.order_return_notice'      => 'Pour toute demande de retour (bouteilles scellées uniquement, sous réserve d\'analyse), contactez-nous.',
-    'account.order_return_subject'     => 'Demande de retour — commande',
+    'account.order_return_notice'          => 'Pour toute demande de retour (bouteilles scellées uniquement, sous réserve d\'analyse), contactez-nous.',
+    'account.order_return_subject'         => 'Demande de retour — commande',
+    'account.order_return_request_btn'     => 'Exercer mon droit de rétractation',
+    'account.order_return_window'          => 'Vous pouvez exercer votre droit de rétractation jusqu\'au %s (15 jours après réception).',
+    'account.order_return_confirm'         => 'Souhaitez-vous exercer votre droit de rétractation ? Un retour vous sera organisé. Cette action est irréversible.',
+    'account.order_return_requested'       => 'Votre demande de rétractation a été enregistrée. Nous reviendrons vers vous sous 48 h.',
 
     // Adresses — CRUD
     'account.address_add'        => 'Ajouter une adresse',

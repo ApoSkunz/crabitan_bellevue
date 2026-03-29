@@ -540,8 +540,12 @@ return [
     'account.order_contact_for_cancel' => 'This order can no longer be cancelled online.',
     'account.order_contact_subject'    => 'Cancellation request — order',
     'account.order_contact_link'       => 'Contact support',
-    'account.order_return_notice'      => 'For any return request (sealed bottles only, subject to analysis), please contact us.',
-    'account.order_return_subject'     => 'Return request — order',
+    'account.order_return_notice'          => 'For any return request (sealed bottles only, subject to analysis), please contact us.',
+    'account.order_return_subject'         => 'Return request — order',
+    'account.order_return_request_btn'     => 'Exercise my right of withdrawal',
+    'account.order_return_window'          => 'You may exercise your right of withdrawal until %s (15 days after delivery).',
+    'account.order_return_confirm'         => 'Do you wish to exercise your right of withdrawal? A return will be arranged. This action cannot be undone.',
+    'account.order_return_requested'       => 'Your withdrawal request has been registered. We will get back to you within 48 hours.',
 
     // Addresses — CRUD
     'account.address_add'        => 'Add an address',
