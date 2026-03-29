@@ -11,6 +11,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
 {
     private const BTN_STYLE_PRIMARY = 'font-family:Georgia,serif;font-size:14px;'
         . 'letter-spacing:2px;text-transform:uppercase;';
+    private const BTN_STYLE_LINK    = 'color:#1a1208;text-decoration:none;font-weight:bold;">';
     private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
     private const URL_PRIVACY = '/fr/politique-confidentialite';
     private const URL_LEGAL   = '/fr/mentions-legales';
@@ -179,13 +180,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
         $isCuvee     = (bool) ($wine['is_cuvee_speciale'] ?? false);
 
         // Champ award : JSON bilingue {"fr":"...","en":"..."}
-        $awardRaw  = $wine['award'] ?? null;
-        $awardData = [];
-        if ($awardRaw !== null && $awardRaw !== '' && $awardRaw !== '[]') {
-            $decoded   = is_array($awardRaw) ? $awardRaw : (json_decode((string) $awardRaw, true) ?? []);
-            $awardData = is_array($decoded) ? $decoded : [];
-        }
-        $awardText = htmlspecialchars(trim((string) ($awardData[$lang] ?? '')), ENT_QUOTES);
+        $awardText = $this->resolveAwardText($wine['award'] ?? null, $lang);
 
         if ($lang === 'fr') {
             $subject      = sprintf(
@@ -202,7 +197,6 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
             $vintageLabel = 'Millésime';
             $cuveeLabel   = 'Cuvée Spéciale';
             $awardLabel   = 'Récompense';
-            $cuveeValue   = 'Oui';
             $emailTitle   = "Nouveauté · Millésime {$vintage}";
         } else {
             $subject      = sprintf(
@@ -219,7 +213,6 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
             $vintageLabel = 'Vintage';
             $cuveeLabel   = 'Special Cuvée';
             $awardLabel   = 'Award';
-            $cuveeValue   = 'Yes';
             $emailTitle   = "New arrival · Vintage {$vintage}";
         }
 
@@ -254,7 +247,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
             . "<a href=\"{$wineUrl}\" style=\"display:inline-block;padding:14px 36px;"
             . self::BTN_STYLE_PRIMARY
-            . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+            . self::BTN_STYLE_LINK
             . $discoverBtn
             . '</a></td></tr></table>';
 
@@ -409,7 +402,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
               . "<a href=\"{$confirmUrl}\" style=\"display:inline-block;padding:14px 36px;"
               . self::BTN_STYLE_PRIMARY
-              . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+              . self::BTN_STYLE_LINK
               . $confirmLabel
               . '</a></td></tr></table>'
               . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
@@ -423,7 +416,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
               . "<a href=\"{$securityUrl}\" style=\"display:inline-block;padding:14px 36px;"
               . self::BTN_STYLE_PRIMARY
-              . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+              . self::BTN_STYLE_LINK
               . $manageLabel
               . '</a></td></tr></table>';
 
@@ -552,6 +545,23 @@ INNER;
 
         $body = $this->emailSimpleLayout($title, $greeting, $message);
         $this->send($toEmail, $toName, $subject, $body);
+    }
+
+    /**
+     * Extrait et échappe le texte de récompense depuis le champ award JSON bilingue.
+     *
+     * @param  mixed  $awardRaw Valeur brute du champ award (string JSON, array ou null)
+     * @param  string $lang     Langue cible ('fr' ou 'en')
+     * @return string           Texte de récompense échappé, vide si absent
+     */
+    private function resolveAwardText(mixed $awardRaw, string $lang): string
+    {
+        $awardData = [];
+        if ($awardRaw !== null && $awardRaw !== '' && $awardRaw !== '[]') {
+            $decoded   = is_array($awardRaw) ? $awardRaw : (json_decode((string) $awardRaw, true) ?? []);
+            $awardData = is_array($decoded) ? $decoded : [];
+        }
+        return htmlspecialchars(trim((string) ($awardData[$lang] ?? '')), ENT_QUOTES);
     }
 
     /**
