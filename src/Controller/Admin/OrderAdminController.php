@@ -6,6 +6,7 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\OrderModel;
+use Service\MailService;
 
 class OrderAdminController extends AdminController
 {
@@ -14,12 +15,24 @@ class OrderAdminController extends AdminController
     private const ALLOWED_PER_PAGES = [10, 25, 50];
     private const ORDER_NOT_FOUND   = 'Commande introuvable';
 
+    private const TRIGGER_STATUSES = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+
     private OrderModel $orders;
 
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
         $this->orders = new OrderModel();
+    }
+
+    /**
+     * Instancie le MailService (seam de testabilité).
+     *
+     * @return MailService
+     */
+    protected function newMailService(): MailService
+    {
+        return new MailService();
     }
 
     // ----------------------------------------------------------------
@@ -112,8 +125,33 @@ class OrderAdminController extends AdminController
             Response::redirect(self::ADMIN_URL . '/' . $id);
         }
 
-        $status = $this->request->post('status', '');
+        $oldStatus = $order['status'];
+        $status    = $this->request->post('status', '');
         $this->orders->updateStatus($id, $status);
+
+        if ($status !== $oldStatus && in_array($status, self::TRIGGER_STATUSES, true)) {
+            $clientEmail = (string) ($order['email'] ?? '');
+            $firstname   = (string) ($order['firstname'] ?? '');
+            $lastname    = (string) ($order['lastname'] ?? '');
+            $clientName  = trim($firstname . ' ' . $lastname) ?: $clientEmail;
+            $clientLang  = (string) ($order['lang'] ?? 'fr');
+            $orderRef    = (string) ($order['order_reference'] ?? '');
+            $appUrl      = rtrim($_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'http://crabitan.local'), '/');
+
+            try {
+                $this->newMailService()->sendOrderStatusEmail(
+                    $clientEmail,
+                    $clientName,
+                    $orderRef,
+                    $status,
+                    $clientLang,
+                    $appUrl
+                );
+            } catch (\Throwable $e) {
+                error_log('[OrderAdminController] SMTP error on status email: ' . $e->getMessage());
+            }
+        }
+
         $this->flash('success', 'Statut mis à jour.');
         Response::redirect(self::ADMIN_URL . '/' . $id);
     }
