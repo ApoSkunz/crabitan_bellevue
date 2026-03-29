@@ -631,20 +631,21 @@ INSERT INTO `accounts`
      `email_verified_at`, `has_connected`, `created_at`)
 VALUES
 -- Mot de passe de test unifié : Dev123456789! — données mock uniquement, jamais en production
+-- has_connected=0 sur tous les comptes sauf id 3 (TU/TI/E2E — appareil de confiance préenregistré)
 -- Super admin
-(1, 'superadmin@dev.local',       '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'super_admin', 'fr', 0, '2026-01-01 08:00:00', 1, '2026-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+(1, 'superadmin@dev.local',       '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'super_admin', 'fr', 0, '2026-01-01 08:00:00', 0, '2026-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Admin
-(2, 'admin@dev.local',            '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'admin',       'fr', 0, '2026-01-01 08:00:00', 1, '2026-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
--- Client vérifié avec commandes
-(3, 'client.verifie@dev.local',   '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'fr', 1, '2026-01-10 10:00:00', 1, '2026-01-10 10:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+(2, 'admin@dev.local',            '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'admin',       'fr', 0, '2026-01-01 08:00:00', 0, '2026-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+-- Client vérifié avec commandes — has_connected=1 + appareil de confiance pour TU/TI/E2E
+(3, 'client.verifie@dev.local',   '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'fr', 1, '2026-01-10 10:00:00', 1, '2026-01-10 10:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client non vérifié (email non confirmé)
-(4, 'client.nouveau@dev.local',   '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'fr', 0, NULL,                 0, '2026-02-01 09:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+(4, 'client.nouveau@dev.local',   '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'fr', 0, NULL,                 0, '2026-02-01 09:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client société
-(5, 'societe@dev.local',          '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'company',    'customer',    'fr', 1, '2026-01-15 14:00:00', 1, '2026-01-15 14:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+(5, 'societe@dev.local',          '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'company',    'customer',    'fr', 1, '2026-01-15 14:00:00', 0, '2026-01-15 14:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client EN
-(6, 'customer.en@dev.local',      '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'en', 0, '2026-02-10 11:00:00', 1, '2026-02-10 11:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+(6, 'customer.en@dev.local',      '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'en', 0, '2026-02-10 11:00:00', 0, '2026-02-10 11:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client soft-deleted (en attente de suppression)
-(7, 'client.supprime@dev.local',  '$2y$10$9fzGIQEmemTZoFq2ZBlkC.x4ZS4TkpYIkT8/8qPS7cvBikLSzegDa', 'individual', 'customer',    'fr', 0, '2026-01-20 08:00:00', 1, '2026-01-20 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+(7, 'client.supprime@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'fr', 0, '2026-01-20 08:00:00', 0, '2026-01-20 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 
 -- Soft delete du compte 7
 UPDATE `accounts`
@@ -700,57 +701,57 @@ ALTER TABLE `addresses` AUTO_INCREMENT = 8;
 
 INSERT INTO `orders`
     (`id`, `user_id`, `order_reference`, `content`, `price`, `payment_method`,
-     `shipping_discount`, `id_billing_address`, `id_delivery_address`, `status`, `ordered_at`)
+     `shipping_discount`, `id_billing_address`, `id_delivery_address`, `status`, `ordered_at`, `delivered_at`)
 VALUES
 -- paid — Sophie (référence pour tests commandes)
 (1, 3, 'CBV-2026-000001',
- '[{"wine_id":16,"label_name":"Sainte-Croix-du-Mont","vintage":2015,"wine_color":"sweet","format":"bottle","qty":12,"unit_price":11.50,"subtotal":138.00}]',
- 138.00, 'card', 0.00, 1, 2, 'paid', '2026-01-15 10:30:00'),
+ '[{"wine_id":16,"label_name":"Sainte-Croix-du-Mont","vintage":2015,"wine_color":"sweet","format":"bottle","qty":12,"price":11.50,"subtotal":138.00}]',
+ 138.00, 'card', 0.00, 1, 2, 'paid', '2026-01-15 10:30:00', NULL),
 
 -- processing
 (2, 3, 'CBV-2026-000002',
- '[{"wine_id":30,"label_name":"Bordeaux Rouge","vintage":2020,"wine_color":"red","format":"bottle","qty":6,"unit_price":7.70,"subtotal":46.20}]',
- 46.20, 'card', 0.00, 1, 2, 'processing', '2026-02-01 14:00:00'),
+ '[{"wine_id":30,"label_name":"Bordeaux Rouge","vintage":2020,"wine_color":"red","format":"bottle","qty":6,"price":7.70,"subtotal":46.20}]',
+ 46.20, 'card', 0.00, 1, 2, 'processing', '2026-02-01 14:00:00', NULL),
 
 -- shipped
 (3, 3, 'CBV-2026-000003',
- '[{"wine_id":35,"label_name":"Bordeaux Blanc","vintage":2024,"wine_color":"white","format":"bottle","qty":12,"unit_price":7.70,"subtotal":92.40},{"wine_id":21,"label_name":"Sainte-Croix-du-Mont","vintage":2016,"wine_color":"sweet","format":"bottle","qty":6,"unit_price":11.50,"subtotal":69.00}]',
- 161.40, 'card', 15.00, 1, 2, 'shipped', '2026-02-10 09:00:00'),
+ '[{"wine_id":35,"label_name":"Bordeaux Blanc","vintage":2024,"wine_color":"white","format":"bottle","qty":12,"price":7.70,"subtotal":92.40},{"wine_id":21,"label_name":"Sainte-Croix-du-Mont","vintage":2016,"wine_color":"sweet","format":"bottle","qty":6,"price":11.50,"subtotal":69.00}]',
+ 161.40, 'card', 15.00, 1, 2, 'shipped', '2026-02-10 09:00:00', NULL),
 
--- delivered
+-- delivered dans la fenêtre (< 15j, pour tester le retour) : delivered_at = aujourd'hui - 5 jours
 (4, 3, 'CBV-2026-000004',
- '[{"wine_id":7,"label_name":"Bordeaux Rouge","vintage":2016,"wine_color":"red","format":"bottle","qty":24,"unit_price":5.90,"subtotal":141.60}]',
- 141.60, 'card', 15.00, 1, 2, 'delivered', '2026-01-05 11:00:00'),
+ '[{"wine_id":7,"label_name":"Bordeaux Rouge","vintage":2016,"wine_color":"red","format":"bottle","qty":24,"price":5.90,"subtotal":141.60}]',
+ 141.60, 'card', 15.00, 1, 2, 'delivered', '2026-01-05 11:00:00', DATE_SUB(NOW(), INTERVAL 5 DAY)),
 
 -- cancelled
 (5, 3, 'CBV-2026-000005',
- '[{"wine_id":9,"label_name":"Bordeaux Blanc","vintage":2018,"wine_color":"white","format":"bottle","qty":3,"unit_price":6.10,"subtotal":18.30}]',
- 18.30, 'card', 0.00, 1, NULL, 'cancelled', '2026-01-20 16:00:00'),
+ '[{"wine_id":9,"label_name":"Bordeaux Blanc","vintage":2018,"wine_color":"white","format":"bottle","qty":3,"price":6.10,"subtotal":18.30}]',
+ 18.30, 'card', 0.00, 1, NULL, 'cancelled', '2026-01-20 16:00:00', NULL),
 
 -- refunded
 (6, 3, 'CBV-2026-000006',
- '[{"wine_id":10,"label_name":"Bordeaux Rouge","vintage":2017,"wine_color":"red","format":"bottle","qty":6,"unit_price":6.00,"subtotal":36.00}]',
- 36.00, 'card', 0.00, 1, 2, 'refunded', '2026-01-25 13:00:00'),
+ '[{"wine_id":10,"label_name":"Bordeaux Rouge","vintage":2017,"wine_color":"red","format":"bottle","qty":6,"price":6.00,"subtotal":36.00}]',
+ 36.00, 'card', 0.00, 1, 2, 'refunded', '2026-01-25 13:00:00', '2026-02-01 10:00:00'),
 
--- return_requested
+-- return_requested (delivered_at > 15j pour être hors fenêtre)
 (7, 3, 'CBV-2026-000007',
- '[{"wine_id":31,"label_name":"Sainte-Croix-du-Mont","vintage":2017,"wine_color":"sweet","format":"bottle","qty":6,"unit_price":11.00,"subtotal":66.00}]',
- 66.00, 'card', 0.00, 1, 2, 'return_requested', '2026-02-15 08:00:00'),
+ '[{"wine_id":31,"label_name":"Sainte-Croix-du-Mont","vintage":2017,"wine_color":"sweet","format":"bottle","qty":6,"price":11.00,"subtotal":66.00}]',
+ 66.00, 'card', 0.00, 1, 2, 'return_requested', '2026-02-01 08:00:00', '2026-02-10 10:00:00'),
 
 -- pending (non payée — initiation tunnel)
 (8, 3, 'CBV-2026-000008',
- '[{"wine_id":16,"label_name":"Sainte-Croix-du-Mont","vintage":2015,"wine_color":"sweet","format":"bottle","qty":12,"unit_price":11.50,"subtotal":138.00}]',
- 138.00, 'card', 0.00, 1, 2, 'pending', '2026-03-01 17:00:00'),
+ '[{"wine_id":16,"label_name":"Sainte-Croix-du-Mont","vintage":2015,"wine_color":"sweet","format":"bottle","qty":12,"price":11.50,"subtotal":138.00}]',
+ 138.00, 'card', 0.00, 1, 2, 'pending', '2026-03-01 17:00:00', NULL),
 
--- société (id 5) — delivered
+-- société (id 5) — delivered hors fenêtre (> 15j)
 (9, 5, 'CBV-2026-000009',
- '[{"wine_id":34,"label_name":"Côtes de Bordeaux Rouge","vintage":2019,"wine_color":"red","format":"bottle","qty":48,"unit_price":10.00,"subtotal":480.00}]',
- 480.00, 'transfer', 62.40, 4, 5, 'delivered', '2026-02-20 10:00:00'),
+ '[{"wine_id":34,"label_name":"Côtes de Bordeaux Rouge","vintage":2019,"wine_color":"red","format":"bottle","qty":48,"price":10.00,"subtotal":480.00}]',
+ 480.00, 'transfer', 62.40, 4, 5, 'delivered', '2026-01-20 10:00:00', '2026-02-01 10:00:00'),
 
 -- admin (id 2) — paid (pour tester vue admin)
 (10, 2, 'CBV-2026-000010',
- '[{"wine_id":36,"label_name":"Sainte-Croix-du-Mont","vintage":2018,"wine_color":"sweet","format":"bottle","qty":12,"unit_price":10.80,"subtotal":129.60}]',
- 129.60, 'card', 15.00, 7, NULL, 'paid', '2026-03-10 09:00:00');
+ '[{"wine_id":36,"label_name":"Sainte-Croix-du-Mont","vintage":2018,"wine_color":"sweet","format":"bottle","qty":12,"price":10.80,"subtotal":129.60}]',
+ 129.60, 'card', 15.00, 7, NULL, 'paid', '2026-03-10 09:00:00', NULL);
 
 ALTER TABLE `orders` AUTO_INCREMENT = 11;
 
@@ -800,6 +801,28 @@ INSERT INTO `trusted_devices` (`user_id`, `device_token`, `device_name`, `confir
 (3, 'device-uuid-sophie-iphone',   'Safari · iOS',      '2026-02-01 11:00:00', '2026-03-20 14:00:00'),
 (2, 'device-uuid-admin-chrome',    'Firefox · Windows', '2026-01-01 08:05:00', '2026-03-28 07:30:00'),
 (5, 'device-uuid-societe-ipad',    'Safari · iOS',      '2026-01-15 14:05:00', '2026-03-01 10:00:00');
+
+-- ============================================================
+-- PASSWORD RESET TOKENS (quelques-uns pour les tests)
+-- ============================================================
+
+-- ============================================================
+-- NEWSLETTERS (12 campagnes pour tester la pagination admin)
+-- ============================================================
+
+INSERT INTO `newsletters` (`subject`, `body`, `image_url`, `sent_count`, `failed_count`, `sent_at`) VALUES
+('Ouverture des inscriptions — millésime 2024', '<p>Découvrez les premiers vins du millésime 2024, prometteur après un été exceptionnel.</p>', NULL, 142, 2, '2026-03-01 10:00:00'),
+('Printemps au château — visite & dégustation', '<p>À l\'occasion du printemps, venez nous rendre visite et découvrir nos nouvelles cuvées.</p>', NULL, 138, 1, '2026-02-15 09:30:00'),
+('Bon de commande 2025 disponible', '<p>Notre bon de commande 2025 est disponible. Téléchargez-le et retournez-le avant le 31 mars.</p>', NULL, 155, 0, '2026-02-01 11:00:00'),
+('Saint-Valentin — offrez du Crabitan Bellevue', '<p>Pour la Saint-Valentin, offrez une sélection de nos meilleurs vins liquoreux.</p>', NULL, 130, 3, '2026-01-28 08:00:00'),
+('Bilan 2025 & perspectives 2026', '<p>Retour sur une excellente année 2025 et les projets que nous préparons pour 2026.</p>', NULL, 160, 0, '2026-01-10 10:00:00'),
+('Vœux 2026 — merci de votre fidélité', '<p>Toute l\'équipe du Château Crabitan Bellevue vous souhaite une excellente année 2026.</p>', NULL, 175, 1, '2026-01-01 08:00:00'),
+('Fêtes de fin d\'année — dernières commandes', '<p>Dernière chance pour recevoir votre commande avant Noël. Passez commande avant le 18 décembre.</p>', NULL, 148, 2, '2025-12-12 09:00:00'),
+('Harmonie mets & vins pour les fêtes', '<p>Nos conseils pour sublimer votre table de fête avec les vins du Château Crabitan Bellevue.</p>', NULL, 122, 0, '2025-12-01 10:30:00'),
+('Millésime 2023 — disponible en boutique', '<p>Les vins du millésime 2023 sont désormais disponibles à la commande en ligne.</p>', NULL, 134, 1, '2025-11-15 11:00:00'),
+('Vendanges 2025 — les premières impressions', '<p>Les vendanges 2025 sont terminées. Découvrez les premières impressions de notre maître de chai.</p>', NULL, 118, 0, '2025-10-10 09:00:00'),
+('Automne au domaine — photos & coulisses', '<p>Plongez dans l\'atmosphère automnale du Château Crabitan Bellevue avec notre reportage photo.</p>', NULL, 109, 2, '2025-09-20 10:00:00'),
+('Rentrée des amateurs de vin', '<p>La rentrée est là ! Découvrez notre sélection de vins pour l\'automne et retrouvez-nous sur le site.</p>', NULL, 97, 0, '2025-09-01 09:00:00');
 
 -- ============================================================
 -- PASSWORD RESET TOKENS (quelques-uns pour les tests)
