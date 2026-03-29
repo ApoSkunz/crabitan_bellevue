@@ -392,7 +392,9 @@
     &--shipped    { background: #cffafe; color: #0e7490; }
     &--delivered  { background: #dcfce7; color: #15803d; }
     &--cancelled  { background: #fee2e2; color: #b91c1c; }
-    &--refunded   { background: #f1f5f9; color: #475569; }
+    &--refunded          { background: #f1f5f9; color: #475569; }
+    &--return_requested  { background: #f0fdfa; color: #0d9488; }
+    &--refund_refused    { background: #fee2e2; color: #b91c1c; }
     &--available  { background: #dcfce7; color: #15803d; }
     &--out        { background: #fee2e2; color: #b91c1c; }
     &--admin      { background: rgba(201, 168, 76, 0.15); color: #92701a; }
