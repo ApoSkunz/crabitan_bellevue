@@ -2,6 +2,45 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.14.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.13.0...v0.14.0) (2026-03-29)
+
+
+### Bug Fixes
+
+* **admin/news:** retirer astérisque obligatoire sur le champ image en édition ([24e8487](https://github.com/ApoSkunz/crabitan_bellevue/commit/24e848791884b17d8701a791bde6a5e3266befce))
+* **controller:** image actualité non obligatoire à la création ([d8c0c5f](https://github.com/ApoSkunz/crabitan_bellevue/commit/d8c0c5f722c779ad8c0c5ba2d711d14e5df71fcc))
+* **controller:** prix vin minimum 3 € (validation parseWineForm) ([cd2a58a](https://github.com/ApoSkunz/crabitan_bellevue/commit/cd2a58a2ffd811e317cca9a2114f1b3a8099b1c2))
+* **middleware:** masquer les routes admin avec 404 au lieu de 403 ([5f01dee](https://github.com/ApoSkunz/crabitan_bellevue/commit/5f01dee8f5e083a9917a78a65483f68ee8442549))
+* **model:** ajouter link_path aux SELECT de NewsModel ([da7c7c7](https://github.com/ApoSkunz/crabitan_bellevue/commit/da7c7c75965f55522cc2537c49c7d60db010cf4f))
+* **sonar:** corriger 4 code smells restants (S1192, S1448×2, S1142) ([5dbdccc](https://github.com/ApoSkunz/crabitan_bellevue/commit/5dbdccc54c415edd11569d0a9753fa4f4041bf7b))
+* **ti:** absorber exception mail dans cancelOrder + aligner tests NewsAdmin ([44c3212](https://github.com/ApoSkunz/crabitan_bellevue/commit/44c3212bbdde2c7a7fda9db23a0725f0923e4eb6))
+* **ti:** résoudre les 5 tests skipped (fileinfo, SMTP, table vide) ([eb012ae](https://github.com/ApoSkunz/crabitan_bellevue/commit/eb012ae12699469e50bc3ec50a58426ceb5ffbc2))
+* **view:** ajouter refund_refused aux statuts affichés (compte + admin) ([3d79ee0](https://github.com/ApoSkunz/crabitan_bellevue/commit/3d79ee09e7cab2074948b3b293a929a3522c30d7))
+* **view:** image actualité non obligatoire — label, validation JS et message supprimés ([ac46fd2](https://github.com/ApoSkunz/crabitan_bellevue/commit/ac46fd2bfb18b9de8496ec55915d748d87cb07f8))
+* **view:** réduire la taille du bouton "En savoir plus" (btn--sm) ([2fa19ff](https://github.com/ApoSkunz/crabitan_bellevue/commit/2fa19ff697dd6c69b65a9b58921fc3f0b6daaa41))
+* **view:** timeline return_requested/refunded + message support uniquement sur retour actif ([a336069](https://github.com/ApoSkunz/crabitan_bellevue/commit/a3360697d7e92bfc96cfa7c6e2604c473674461d))
+
+
+### Features
+
+* **account:** rétractation — fiche retour PDF, emails, date livraison, vue ([559921b](https://github.com/ApoSkunz/crabitan_bellevue/commit/559921b3385747b425b342791abb3ca459d2314d))
+* **admin/orders:** verrouillage statut annulé, pop-in confirmation, double opt-in remboursé ([d9679bf](https://github.com/ApoSkunz/crabitan_bellevue/commit/d9679bf04f04bf5cec816d07805c97daec9a8669)), closes [#1a1208](https://github.com/ApoSkunz/crabitan_bellevue/issues/1a1208)
+* **controller:** annulation commande — fenêtre rétractation + branche return ([511416e](https://github.com/ApoSkunz/crabitan_bellevue/commit/511416e2e634adbfa69991e23cd17699f32cb6c1))
+* **controller:** newsletter — persister campagne + show() historique ([7b250b2](https://github.com/ApoSkunz/crabitan_bellevue/commit/7b250b23a6719f8251d16083eefd7f022a9fb547))
+* **i18n:** clés rétractation commande (fr + en) ([47c34ba](https://github.com/ApoSkunz/crabitan_bellevue/commit/47c34ba3567e7502085792cc9fdf091da8b21425))
+* **i18n:** clés rétractation, date livraison et retour en cours (fr+en) ([461eeb3](https://github.com/ApoSkunz/crabitan_bellevue/commit/461eeb3fdd423d85bbbf24c929b9ede3b790ace6))
+* **model:** ajouter refund_refused aux statuts valides de OrderModel ([2e423af](https://github.com/ApoSkunz/crabitan_bellevue/commit/2e423af59fdd45081b065e77de5dbc87803c0c15))
+* **model:** annulation commande — CANCEL_WINDOW_DAYS + requestReturnForUser ([c60ed28](https://github.com/ApoSkunz/crabitan_bellevue/commit/c60ed2896282a63ea2fcb1d7b6b10cae28d72612))
+* **model:** NewsletterModel — create, updateStats, getAll, count, findCampaignById, saveAttachment ([cfe39bb](https://github.com/ApoSkunz/crabitan_bellevue/commit/cfe39bbf9a3ef309efe177007984836362877c6b))
+* **newsletter:** filtre 10/25/50 sur l'historique des campagnes ([8c4caae](https://github.com/ApoSkunz/crabitan_bellevue/commit/8c4caae8c1b7cb9531691effdafbb45c3a480938))
+* **routes:** ajouter route GET fiche-retour commande client ([e72c8ef](https://github.com/ApoSkunz/crabitan_bellevue/commit/e72c8effe3e8f0f0d0bbdaeb8cc232e9752f1579))
+* **routes:** GET /admin/newsletter/{id} — détail campagne newsletter ([0b86c66](https://github.com/ApoSkunz/crabitan_bellevue/commit/0b86c66dde4638107893cfdf5b937d200828d043))
+* **service:** MailService — emails retour rétractation propriétaire et client ([d33079a](https://github.com/ApoSkunz/crabitan_bellevue/commit/d33079aad3f61f88200b57a9ba03ce84580b48b4))
+* **service:** TranslationService DeepL Free — remplace MyMemory dupliqué ([eb3ee47](https://github.com/ApoSkunz/crabitan_bellevue/commit/eb3ee47e60dfedbc64af8bc04e8d4cfa224b55c7))
+* **view:** lien "En savoir plus" target=_blank sur la page article ([0d0e86d](https://github.com/ApoSkunz/crabitan_bellevue/commit/0d0e86dc2eaf4e3421819cb7a65bf5bfdf995067))
+* **view:** newsletter — section historique dans index + vue show détail campagne ([e62f390](https://github.com/ApoSkunz/crabitan_bellevue/commit/e62f3909b935b6ff7e2928c1574a811450200bd0))
+* **view:** order_detail — bouton rétractation avec date limite ([646148d](https://github.com/ApoSkunz/crabitan_bellevue/commit/646148db3068c3d5e32bba704787c6f5541d0a7b))
+
 # [0.13.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.12.1...v0.13.0) (2026-03-29)
 
 
