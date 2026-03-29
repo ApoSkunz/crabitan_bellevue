@@ -74,13 +74,8 @@ function initAgeGate() {
             return;
         }
 
-        // Cookie banner : réponse obligatoire avant d'entrer
-        if (!getConsentCookie()) {
-            e.preventDefault();
-            if (typeof window.__cookieBannerPending === 'function') {
-                window.__cookieBannerPending();
-            }
-        }
+        // Cookie banner : non bloquant sur la page age-gate — l'utilisateur décide du consentement librement
+        // Sur les autres pages, ce bloc n'est pas atteint (age-gate-form absent)
     });
 }
 
@@ -123,19 +118,6 @@ function setConsentCookie(value) {
         + '; path=/; max-age=' + COOKIE_CONSENT_TTL + '; SameSite=Lax';
 }
 
-function shakeCookieBanner(banner) {
-    banner.classList.remove('is-shaking');
-    // Force reflow pour relancer l'animation
-    void banner.offsetWidth;
-    banner.classList.add('is-shaking');
-    banner.addEventListener('animationend', (e) => {
-        if (e.animationName !== 'cookie-shake') return;
-        banner.classList.remove('is-shaking');
-        // Empêche le CSS "animation: fade-in" de rejouer quand is-shaking est retiré
-        banner.style.animationName = 'none';
-    }, { once: true });
-}
-
 function initCookieBanner() {
     const banner = document.getElementById('cookie-banner');
     if (!banner) return;
@@ -149,7 +131,10 @@ function initCookieBanner() {
         return;
     }
 
-    const requiredMsg = banner.querySelector('.cookie-banner__required');
+    // Sur la page age-gate : banner non bloquant — l'utilisateur peut valider son âge sans décider des cookies
+    if (document.body.classList.contains('age-gate-page')) {
+        banner.classList.add('cookie-banner--non-blocking');
+    }
 
     document.getElementById('cookie-accept')?.addEventListener('click', () => {
         setConsentCookie('accepted');
@@ -161,13 +146,6 @@ function initCookieBanner() {
         setConsentCookie('refused');
         banner.classList.add('is-hidden');
     });
-
-    // Expose pour que l'age gate puisse déclencher la validation
-    window.__cookieBannerPending = () => {
-        shakeCookieBanner(banner);
-        if (requiredMsg) requiredMsg.removeAttribute('hidden');
-        banner.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    };
 }
 
 // ============================================================
@@ -1096,6 +1074,86 @@ function initResetModal() {
 }
 
 // ============================================================
+// Indicateur de force mot de passe (ANSSI MDP 2021)
+// Cible tous les champs [data-pwd-strength] de la page.
+// ============================================================
+
+/**
+ * Injecte une checklist de force sous chaque champ password
+ * portant l'attribut data-pwd-strength="<uid>".
+ * Les IDs de champ attendus : reg-password, new_password, reset-modal-password.
+ */
+function initPasswordStrengthIndicator() {
+    const SPECIAL = /[!@#$%^&*()\-_+=[[\]{}|;:,.<>?]/;
+
+    const rules = [
+        { id: 'len',     re: null,       label: '12 caractères minimum' },
+        { id: 'upper',   re: /[A-Z]/,    label: 'Une majuscule' },
+        { id: 'lower',   re: /[a-z]/,    label: 'Une minuscule' },
+        { id: 'digit',   re: /[0-9]/,    label: 'Un chiffre' },
+        { id: 'special', re: SPECIAL,    label: 'Un caractère spécial (!@#$%…)' },
+    ];
+
+    /**
+     * Crée la checklist HTML et l'insère après le conteneur du champ.
+     * @param {HTMLInputElement} input
+     * @param {string} uid - identifiant unique pour l'aria
+     * @returns {HTMLElement} l'élément <ul> inséré
+     */
+    function createChecklist(input, uid) {
+        const ul = document.createElement('ul');
+        ul.id = 'pwd-strength-' + uid;
+        ul.className = 'pwd-strength-list';
+        ul.setAttribute('aria-live', 'polite');
+        ul.setAttribute('aria-label', 'Critères du mot de passe');
+
+        rules.forEach((rule) => {
+            const li = document.createElement('li');
+            li.id = 'pwd-rule-' + uid + '-' + rule.id;
+            li.className = 'pwd-strength-item';
+            li.innerHTML = '<span class="pwd-strength-icon" aria-hidden="true">✗</span> ' + rule.label;
+            ul.appendChild(li);
+        });
+
+        // Insérer après le parent immédiat (form-group, register-modal__field…)
+        const container = input.closest('.form-group, .register-modal__field, .login-modal__field') ?? input.parentElement;
+        container.insertAdjacentElement('afterend', ul);
+        return ul;
+    }
+
+    /**
+     * Met à jour les items de la checklist selon la valeur courante.
+     * @param {HTMLInputElement} input
+     * @param {HTMLElement} ul
+     */
+    function updateChecklist(input, ul) {
+        const val = input.value;
+        const checks = [
+            val.length >= 12,
+            /[A-Z]/.test(val),
+            /[a-z]/.test(val),
+            /[0-9]/.test(val),
+            SPECIAL.test(val),
+        ];
+        ul.querySelectorAll('.pwd-strength-item').forEach((li, i) => {
+            const ok = checks[i];
+            li.classList.toggle('pwd-strength-item--ok', ok);
+            li.classList.toggle('pwd-strength-item--ko', !ok);
+            li.querySelector('.pwd-strength-icon').textContent = ok ? '✓' : '✗';
+        });
+    }
+
+    // Champs ciblés : inscription (modal), reset password (modal), changement mdp (page sécurité)
+    const targetIds = ['reg-password', 'new_password', 'reset-modal-password'];
+    targetIds.forEach((id) => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        const ul = createChecklist(input, id);
+        input.addEventListener('input', () => updateChecklist(input, ul));
+    });
+}
+
+// ============================================================
 // Espace compte — toggle mot de passe (page sécurité)
 // ============================================================
 
@@ -1366,6 +1424,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFavoriteAuth();
     initFavoriteToggle();
     initAccountFavoritesRemove();
+    initPasswordStrengthIndicator();
     initAccountPasswordToggle();
     initResetSecurityModal();
     initDeleteAccountModal();
