@@ -116,7 +116,9 @@ class AccountControllerTest extends IntegrationTestCase
     {
         $_SERVER['REQUEST_METHOD'] = $method;
         $_SERVER['REQUEST_URI']    = $uri;
-        $_GET = [];
+        $uriQuery = [];
+        parse_str(parse_url($uri, PHP_URL_QUERY) ?? '', $uriQuery);
+        $_GET = array_merge($_GET, $uriQuery);
         return new Request();
     }
 
@@ -162,6 +164,24 @@ class AccountControllerTest extends IntegrationTestCase
             "INSERT INTO orders (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status)
              VALUES (?, ?, '[]', 99.90, 'card', 0.00, ?, ?)",
             [$userId, 'TEST-' . bin2hex(random_bytes(4)), $addressId, $status]
+        );
+    }
+
+    /**
+     * Insère une commande au statut "delivered" avec delivered_at configurable.
+     *
+     * @param int    $userId    Identifiant du compte
+     * @param int    $addressId Identifiant de l'adresse de facturation
+     * @param string $deliveredAt Valeur SQL pour delivered_at (ex: 'NOW() - INTERVAL 7 DAY')
+     * @return int Identifiant de la commande créée
+     */
+    private function insertDeliveredOrder(int $userId, int $addressId, string $deliveredAt = 'NOW() - INTERVAL 7 DAY'): int
+    {
+        return (int) self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status, delivered_at)
+             VALUES (?, ?, '[]', 99.90, 'card', 0.00, ?, 'delivered', {$deliveredAt})",
+            [$userId, 'TEST-' . bin2hex(random_bytes(4)), $addressId]
         );
     }
 
@@ -2089,5 +2109,258 @@ class AccountControllerTest extends IntegrationTestCase
         $output = ob_get_clean();
 
         $this->assertStringContainsString('account-filters', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // cancelOrder() — rétractation après livraison
+    // ----------------------------------------------------------------
+
+    /**
+     * Une commande "delivered" dans la fenêtre de 15 jours passe à "return_requested".
+     */
+    public function testCancelOrderRequestsReturnWhenDeliveredWithinWindow(): void
+    {
+        $userId    = $this->insertCustomer('retract.ok@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 7 DAY');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $this->expectException(\Core\Exception\HttpException::class); // redirect → 302 levé par Response::redirect
+        try {
+            $this->makeController('POST', "/fr/mon-compte/commandes/{$orderId}/annuler")
+                ->cancelOrder(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (\Core\Exception\HttpException $e) {
+            $row = self::$db->fetchOne(
+                "SELECT status FROM orders WHERE id = ?",
+                [$orderId]
+            );
+            $this->assertSame('return_requested', $row['status']);
+            $this->assertNotEmpty($_SESSION['flash']['order_success'] ?? null);
+            throw $e;
+        }
+    }
+
+    /**
+     * Une commande "delivered" hors fenêtre (> 15 jours) ne passe pas à "return_requested".
+     */
+    public function testCancelOrderFailsWhenWindowExpired(): void
+    {
+        $userId    = $this->insertCustomer('retract.expired@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 16 DAY');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        try {
+            $this->makeController('POST', "/fr/mon-compte/commandes/{$orderId}/annuler")
+                ->cancelOrder(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (\Core\Exception\HttpException $e) {
+            $row = self::$db->fetchOne(
+                "SELECT status FROM orders WHERE id = ?",
+                [$orderId]
+            );
+            $this->assertSame('delivered', $row['status']);
+            $this->assertNotEmpty($_SESSION['flash']['order_error'] ?? null);
+            throw $e;
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // returnSlip — chemins 404
+    // ----------------------------------------------------------------
+
+    /**
+     * Commande inexistante → 404.
+     */
+    public function testReturnSlipAborts404WhenOrderNotFound(): void
+    {
+        $userId = $this->insertCustomer('slip.notfound@test.local');
+        $this->loginAs($userId);
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(404);
+
+        ob_start();
+        try {
+            $this->makeController('GET', '/fr/mon-compte/commandes/999999/fiche-retour')
+                ->returnSlip(['lang' => 'fr', 'id' => '999999']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * Commande avec statut 'pending' (ni return_requested ni delivered) → 404.
+     */
+    public function testReturnSlipAborts404WhenStatusInvalid(): void
+    {
+        $userId    = $this->insertCustomer('slip.pending@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'pending');
+        $this->loginAs($userId);
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(404);
+
+        ob_start();
+        try {
+            $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}/fiche-retour")
+                ->returnSlip(['lang' => 'fr', 'id' => (string) $orderId]);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * Commande delivered mais hors fenêtre (> 15 jours) → 404.
+     */
+    public function testReturnSlipAborts404WhenDeliveredOutsideWindow(): void
+    {
+        $userId    = $this->insertCustomer('slip.expired@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 20 DAY');
+        $this->loginAs($userId);
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(404);
+
+        ob_start();
+        try {
+            $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}/fiche-retour")
+                ->returnSlip(['lang' => 'fr', 'id' => (string) $orderId]);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // orderDetail() — branches delivered_at
+    // ----------------------------------------------------------------
+
+    /**
+     * Commande 'delivered' sans delivered_at → deliveredNoDate = true (l.161).
+     */
+    public function testOrderDetailDeliveredWithNullDeliveredAt(): void
+    {
+        $userId    = $this->insertCustomer('odtl.dnull@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'delivered');
+        $this->loginAs($userId);
+
+        ob_start();
+        $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}")
+            ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-page', $output);
+    }
+
+    /**
+     * Commande 'delivered' avec delivered_at dans la fenêtre → cancellableReturn = true (l.166-167).
+     */
+    public function testOrderDetailDeliveredWithinReturnWindow(): void
+    {
+        $userId    = $this->insertCustomer('odtl.dwin@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 3 DAY');
+        $this->loginAs($userId);
+
+        ob_start();
+        $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}")
+            ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-page', $output);
+    }
+
+    /**
+     * Commande 'delivered' avec delivered_at hors fenêtre → returnExpired = true (l.169).
+     */
+    public function testOrderDetailReturnWindowExpired(): void
+    {
+        $userId    = $this->insertCustomer('odtl.dexp@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 20 DAY');
+        $this->loginAs($userId);
+
+        ob_start();
+        $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}")
+            ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account-page', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // returnSlip() — chemin succès (via sous-classe interceptant sendPdfResponse)
+    // ----------------------------------------------------------------
+
+    /**
+     * Commande 'delivered' dans la fenêtre → buildReturnSlipPdf + sendPdfResponse appelés.
+     * Sous-classe intercepte sendPdfResponse pour éviter exit (couvre l.293-295, l.302-304, l.347-355).
+     */
+    public function testReturnSlipSuccessForDeliveredWithinWindow(): void
+    {
+        $userId    = $this->insertCustomer('slip.win@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = (int) self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status, delivered_at)
+             VALUES (?, ?, ?, 99.90, 'card', 0.00, ?, 'delivered', NOW() - INTERVAL 3 DAY)",
+            [
+                $userId,
+                'TEST-' . bin2hex(random_bytes(4)),
+                json_encode([['label_name' => 'Bordeaux Rouge', 'format' => 'bottle', 'qty' => 2, 'price' => 24.00]]),
+                $addressId,
+            ]
+        );
+        $this->loginAs($userId);
+
+        $ctrl = new class ($this->makeRequest('GET', "/fr/mon-compte/commandes/{$orderId}/fiche-retour")) extends AccountController {
+            protected function sendPdfResponse(string $pdfBytes, string $filename): never
+            {
+                throw new \RuntimeException('pdf-sent:' . $filename);
+            }
+        };
+
+        ob_start();
+        try {
+            $ctrl->returnSlip(['lang' => 'fr', 'id' => (string) $orderId]);
+            $this->fail('Expected RuntimeException from sendPdfResponse seam');
+        } catch (\RuntimeException $e) {
+            $this->assertStringStartsWith('pdf-sent:fiche-retour_', $e->getMessage());
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * Un CSRF invalide ne modifie pas le statut de la commande.
+     */
+    public function testCancelOrderReturnRequestBlockedByInvalidCsrf(): void
+    {
+        $userId    = $this->insertCustomer('retract.csrf@test.local');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertDeliveredOrder($userId, $addressId, 'NOW() - INTERVAL 3 DAY');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => 'invalid-token'];
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        try {
+            $this->makeController('POST', "/fr/mon-compte/commandes/{$orderId}/annuler")
+                ->cancelOrder(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (\Core\Exception\HttpException $e) {
+            $row = self::$db->fetchOne(
+                "SELECT status FROM orders WHERE id = ?",
+                [$orderId]
+            );
+            $this->assertSame('delivered', $row['status']);
+            throw $e;
+        }
     }
 }

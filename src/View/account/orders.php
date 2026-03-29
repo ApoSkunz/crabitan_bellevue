@@ -22,7 +22,8 @@ $statusColors = [
     'delivered'        => 'green',
     'cancelled'        => 'red',
     'refunded'         => 'red',
-    'return_requested' => 'orange',
+    'return_requested' => 'teal',
+    'refund_refused'   => 'red',
 ];
 
 // Reconstruit l'URL de pagination en conservant les filtres actifs
@@ -73,7 +74,7 @@ if (!function_exists('ordersUrl')) {
                         <option value=""<?= $selected($statusFilter === '') ?>>
                             <?= __('account.filter_status_all') ?>
                         </option>
-                        <?php foreach (['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'] as $s) : ?>
+                        <?php foreach (['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused'] as $s) : ?>
                             <option value="<?= $s ?>"<?= $selected($statusFilter === $s) ?>>
                                 <?= __('order.status.' . $s) ?>
                             </option>

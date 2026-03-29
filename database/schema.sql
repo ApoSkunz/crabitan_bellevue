@@ -15,6 +15,32 @@ SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ============================================================
+-- DROP (ordre FK inverse pour éviter les contraintes)
+-- ============================================================
+DROP TABLE IF EXISTS `newsletter_attachments`;
+DROP TABLE IF EXISTS `newsletters`;
+DROP TABLE IF EXISTS `game_scores`;
+DROP TABLE IF EXISTS `order_forms`;
+DROP TABLE IF EXISTS `password_reset`;
+DROP TABLE IF EXISTS `news`;
+DROP TABLE IF EXISTS `favorites`;
+DROP TABLE IF EXISTS `credit_card_token`;
+DROP TABLE IF EXISTS `device_confirm_tokens`;
+DROP TABLE IF EXISTS `trusted_devices`;
+DROP TABLE IF EXISTS `connections`;
+DROP TABLE IF EXISTS `orders`;
+DROP TABLE IF EXISTS `carts`;
+DROP TABLE IF EXISTS `pricing_rules`;
+DROP TABLE IF EXISTS `wines`;
+DROP TABLE IF EXISTS `addresses`;
+DROP TABLE IF EXISTS `account_companies`;
+DROP TABLE IF EXISTS `account_individuals`;
+DROP TABLE IF EXISTS `accounts`;
+
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
 -- Table : accounts (centrale)
@@ -208,9 +234,10 @@ CREATE TABLE `orders` (
   `shipping_discount`   DECIMAL(10,2)  NOT NULL DEFAULT 0.00 COMMENT 'Remise livraison snapshot au moment de la commande',
   `id_billing_address`  INT            NOT NULL,
   `id_delivery_address` INT            DEFAULT NULL,
-  `status`              ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested') NOT NULL DEFAULT 'pending',
+  `status`              ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested','refund_refused') NOT NULL DEFAULT 'pending',
   `path_invoice`        VARCHAR(255)   DEFAULT NULL,
   `ordered_at`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `delivered_at`        DATETIME       DEFAULT NULL COMMENT 'Date de livraison confirmée ; base du délai de rétractation (15 j)',
   `updated_at`          DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_orders_reference` (`order_reference`),
@@ -392,5 +419,36 @@ INSERT INTO `game_scores` (`game`, `score`) VALUES
     ('vendangeuse', 0),
     ('memo', 0),
     ('tracteur', 0);
+
+-- ============================================================
+-- Table : newsletters
+-- Historique des campagnes envoyées
+-- ============================================================
+CREATE TABLE `newsletters` (
+  `id`           INT            NOT NULL AUTO_INCREMENT,
+  `subject`      VARCHAR(255)   NOT NULL,
+  `body`         TEXT           NOT NULL,
+  `image_url`    VARCHAR(500)   DEFAULT NULL COMMENT 'URL publique de l\'image d\'en-tête optionnelle',
+  `sent_count`   INT            NOT NULL DEFAULT 0,
+  `failed_count` INT            NOT NULL DEFAULT 0,
+  `sent_at`      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_newsletters_sent_at` (`sent_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : newsletter_attachments
+-- Pièces jointes PDF liées à une campagne (conservées après envoi)
+-- ============================================================
+CREATE TABLE `newsletter_attachments` (
+  `id`            INT            NOT NULL AUTO_INCREMENT,
+  `newsletter_id` INT            NOT NULL,
+  `original_name` VARCHAR(255)   NOT NULL COMMENT 'Nom original du fichier uploadé',
+  `stored_path`   VARCHAR(500)   NOT NULL COMMENT 'Chemin relatif dans storage/newsletters/attachments/',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_nl_attachment_newsletter`
+    FOREIGN KEY (`newsletter_id`) REFERENCES `newsletters` (`id`) ON DELETE CASCADE,
+  INDEX `idx_nl_attachment_newsletter` (`newsletter_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 COMMIT;

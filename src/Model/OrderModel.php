@@ -11,8 +11,11 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     protected string $table = 'orders';
 
     private const VALID_STATUSES = [
-        'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested',
+        'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused',
     ];
+
+    /** Fenêtre légale de rétractation après livraison (art. L221-18 Code conso). */
+    public const CANCEL_WINDOW_DAYS = 15;
 
     public const VALID_PAYMENT_METHODS = [
         'card', 'virement', 'cheque',
@@ -116,10 +119,53 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         if (!in_array($status, self::VALID_STATUSES, true)) {
             return;
         }
-        $this->db->execute(
-            "UPDATE {$this->table} SET status = ? WHERE id = ?",
-            [$status, $id]
+        if ($status === 'delivered') {
+            $this->db->execute(
+                "UPDATE {$this->table} SET status = ?, delivered_at = NOW() WHERE id = ?",
+                [$status, $id]
+            );
+        } else {
+            $this->db->execute(
+                "UPDATE {$this->table} SET status = ? WHERE id = ?",
+                [$status, $id]
+            );
+        }
+    }
+
+    /**
+     * Demande de rétractation après livraison (art. L221-18 Code conso).
+     * Passe le statut à `return_requested` si :
+     *   - la commande appartient à l'utilisateur
+     *   - le statut est `delivered`
+     *   - NOW() ≤ delivered_at + CANCEL_WINDOW_DAYS jours
+     *
+     * @param int $orderId
+     * @param int $userId
+     * @return bool true si la demande a été enregistrée
+     */
+    public function requestReturnForUser(int $orderId, int $userId): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT status, delivered_at FROM {$this->table}
+             WHERE id = ? AND user_id = ?",
+            [$orderId, $userId]
         );
+
+        if (!$row || $row['status'] !== 'delivered' || $row['delivered_at'] === null) {
+            return false;
+        }
+
+        $deadline = strtotime($row['delivered_at'] . ' +' . self::CANCEL_WINDOW_DAYS . ' days');
+        if ($deadline === false || time() > $deadline) {
+            return false;
+        }
+
+        $this->db->execute(
+            "UPDATE {$this->table} SET status = 'return_requested', updated_at = NOW()
+             WHERE id = ? AND user_id = ?",
+            [$orderId, $userId]
+        );
+        return true;
     }
 
     /**
@@ -216,7 +262,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<string, mixed>|null
      */
     public function findDetailForUser(int $orderId, int $userId): ?array
     {

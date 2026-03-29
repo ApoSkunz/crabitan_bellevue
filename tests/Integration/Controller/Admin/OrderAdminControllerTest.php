@@ -252,4 +252,55 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
 
         $this->assertStringContainsString('admin-table', $output);
     }
+
+    // ----------------------------------------------------------------
+    // updateStatus — commande introuvable → 404
+    // ----------------------------------------------------------------
+
+    /**
+     * Un id inconnu lève un 404 même avec un CSRF valide.
+     */
+    public function testUpdateStatusAborts404WhenOrderNotFound(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['status']     = 'paid';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(404);
+
+        ob_start();
+        try {
+            $this->makeController('POST')->updateStatus(['id' => '999999']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // updateStatus — commande déjà annulée → flash error + 302
+    // ----------------------------------------------------------------
+
+    /**
+     * Une commande annulée ne peut pas changer de statut.
+     */
+    public function testUpdateStatusRedirectsWithErrorWhenAlreadyCancelled(): void
+    {
+        $id = $this->insertOrder();
+        self::$db->execute("UPDATE orders SET status = 'cancelled' WHERE id = ?", [$id]);
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['status']     = 'paid';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $this->makeController('POST')->updateStatus(['id' => (string) $id]);
+        } catch (HttpException $e) {
+            $row = self::$db->fetchOne("SELECT status FROM orders WHERE id = ?", [$id]);
+            $this->assertSame('cancelled', $row['status']);
+            $this->assertNotEmpty($_SESSION['admin_flash']['error'] ?? null);
+            throw $e;
+        }
+    }
 }

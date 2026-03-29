@@ -186,10 +186,6 @@ class PageControllerTest extends IntegrationTestCase
 
     public function testContactPostSucceedsWithValidData(): void
     {
-        // Pointer sur mailhog (port 1025 par défaut en intégration)
-        $_ENV['MAIL_HOST'] = getenv('MAIL_HOST') ?: 'localhost';
-        $_ENV['MAIL_PORT'] = getenv('MAIL_PORT') ?: '1025';
-
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI']    = '/fr/contact';
         $_GET = [];
@@ -206,24 +202,26 @@ class PageControllerTest extends IntegrationTestCase
             'rgpd'       => '1',
         ];
 
-        $caught = null;
-        ob_start();
-        try {
-            (new PageController(new Request()))->contactPost(['lang' => 'fr']);
-        } catch (HttpException $e) {
-            $caught = $e;
-        }
-        ob_end_clean();
+        // Sous-classe anonyme pour injecter un MailService mocké (pas de SMTP réel)
+        $stub = $this->createStub(\Service\MailService::class);
+        // sendContactToOwner et sendContactConfirmation retournent void → pas de willReturn
 
-        $_POST    = [];
-        $_SESSION = [];
+        $controller = new class (new Request(), $stub) extends PageController {
+            public function __construct(
+                Request $request,
+                private \Service\MailService $mockMail
+            ) {
+                parent::__construct($request);
+            }
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->mockMail;
+            }
+        };
 
-        if ($caught === null || $caught->status === 200) {
-            // Email envoyé avec succès (mailhog disponible)
-            $this->assertTrue(true);
-        } else {
-            // SMTP indisponible en intégration — chemin succès non couvert localement
-            $this->markTestSkipped('SMTP (mailhog:1025) indisponible — branche succès non testable.');
-        }
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(200);
+
+        $controller->contactPost(['lang' => 'fr']);
     }
 }

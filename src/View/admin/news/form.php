@@ -96,7 +96,7 @@ $errClass = ' is-error';
 
         <!-- ---- Image ---- -->
         <div class="admin-form__section">
-            <h3>Image <?= !$isEdit ? '*' : '' ?></h3>
+            <h3>Image</h3>
 
             <?php if ($isEdit && !empty($article['image_path'])) : ?>
                 <div style="margin-bottom:1rem;">
@@ -114,7 +114,7 @@ $errClass = ' is-error';
 
             <div class="admin-field">
                 <label class="admin-field__label" for="image">
-                    <?= $isEdit ? 'Changer l\'image (l\'ancienne sera supprimée)' : 'Téléverser l\'image *' ?>
+                    <?= $isEdit ? 'Changer l\'image (l\'ancienne sera supprimée)' : 'Téléverser une image (optionnel)' ?>
                     <span style="font-weight:400;font-size:0.75rem;"> — jpg / png / webp</span>
                 </label>
                 <input type="file" id="image" name="image"
@@ -124,7 +124,7 @@ $errClass = ' is-error';
                 <span class="admin-field__error"
                       id="err-image"
                       style="display:<?= hasError($errors, 'image') ? 'block' : 'none' ?>;">
-                    <?= hasError($errors, 'image') ? htmlspecialchars($errors['image']) : 'Une image est obligatoire pour la création d\'un article.' ?>
+                    <?= hasError($errors, 'image') ? htmlspecialchars($errors['image']) : '' ?>
                 </span>
             </div>
         </div>
@@ -158,9 +158,6 @@ document.getElementById('news-form').addEventListener('submit', function(e) {
     const checks = [
         { id: 'title_fr',        errId: 'err-title_fr',        getValue: el => el.value.trim() },
         { id: 'text_content_fr', errId: 'err-text_content_fr', getValue: el => el.value.trim() },
-        <?php if (!$isEdit) : ?>
-        { id: 'image',           errId: 'err-image',           getValue: el => el.files && el.files.length > 0 ? '1' : '' },
-        <?php endif; ?>
     ];
     checks.forEach(function(check) {
         const el  = document.getElementById(check.id);

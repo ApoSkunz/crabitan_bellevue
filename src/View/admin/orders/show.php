@@ -10,6 +10,7 @@ $statusLabels = [
     'cancelled'        => 'Annulée',
     'refunded'         => 'Remboursée',
     'return_requested' => 'Retour en cours',
+    'refund_refused'   => 'Remboursement refusé',
 ];
 $allStatuses   = array_keys($statusLabels);
 $paymentLabels = [
@@ -71,7 +72,7 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                 </table>
             </div>
             <div style="padding:1rem 1.5rem;text-align:right;border-top:1px solid rgba(8,8,8,0.06);">
-                <strong style="font-family:var(--font-sans);font-size:0.9rem;">
+                <strong style="font-family:var(--font-sans);font-size:0.9rem;color:#1a1208;">
                     Total : <?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€
                 </strong>
             </div>
@@ -143,22 +144,30 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
         <div class="admin-card" style="margin-bottom:1.5rem;">
             <div class="admin-card__header"><h2>Changer le statut</h2></div>
             <div class="admin-card__body">
-                <form method="POST" action="/admin/commandes/<?= (int) $order['id'] ?>/statut">
-                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
-                    <div class="admin-field" style="margin-bottom:1rem;">
-                        <label class="admin-field__label" for="status">Nouveau statut</label>
-                        <select id="status" name="status" class="admin-field__select">
-                            <?php foreach ($allStatuses as $s) : ?>
-                                <option value="<?= htmlspecialchars($s) ?>" <?= $order['status'] === $s ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($statusLabels[$s] ?? $s) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <button type="submit" class="admin-btn admin-btn--primary" style="width:100%;">
-                        Mettre à jour
-                    </button>
-                </form>
+                <?php if ($order['status'] === 'cancelled') : ?>
+                    <p style="font-size:0.85rem;color:#8a7a60;">
+                        Cette commande est annulée et ne peut plus être modifiée.
+                    </p>
+                <?php else : ?>
+                    <form id="js-status-form"
+                          method="POST"
+                          action="/admin/commandes/<?= (int) $order['id'] ?>/statut">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
+                        <div class="admin-field" style="margin-bottom:1rem;">
+                            <label class="admin-field__label" for="status">Nouveau statut</label>
+                            <select id="js-status-select" name="status" class="admin-field__select">
+                                <?php foreach ($allStatuses as $s) : ?>
+                                    <option value="<?= htmlspecialchars($s) ?>" <?= $order['status'] === $s ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($statusLabels[$s] ?? $s) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <button type="button" id="js-status-submit" class="admin-btn admin-btn--primary" style="width:100%;">
+                            Mettre à jour
+                        </button>
+                    </form>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -205,5 +214,85 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
     </div>
 
 </div>
+
+<!-- Modal confirmation changement de statut -->
+<div id="js-status-modal"
+     role="dialog" aria-modal="true" aria-labelledby="js-status-modal-title"
+     style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,8,4,.45);display:none;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:6px;padding:1.75rem 2rem;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18);">
+        <h3 id="js-status-modal-title" style="font-size:1rem;font-weight:700;color:#1a1208;margin:0 0 0.75rem;">
+            Confirmer le changement de statut
+        </h3>
+        <p id="js-status-modal-body" style="font-size:0.875rem;color:#3d3425;margin:0 0 1.25rem;line-height:1.6;"></p>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.25rem;">
+            <button id="js-status-modal-confirm" class="admin-btn admin-btn--primary" style="width:100%;">Confirmer</button>
+            <button id="js-status-modal-cancel" class="admin-btn admin-btn--outline" style="width:100%;">Annuler</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var form    = document.getElementById('js-status-form');
+    var select  = document.getElementById('js-status-select');
+    var trigger = document.getElementById('js-status-submit');
+    var modal   = document.getElementById('js-status-modal');
+    var body    = document.getElementById('js-status-modal-body');
+    var btnOk   = document.getElementById('js-status-modal-confirm');
+    var btnCancel = document.getElementById('js-status-modal-cancel');
+
+    if (!form || !trigger || !modal) return;
+
+    var labels = <?= json_encode($statusLabels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    var step = 0;
+
+    function openModal(message, okLabel) {
+        body.textContent = message;
+        btnOk.textContent = okLabel || 'Confirmer';
+        modal.style.display = 'flex';
+        btnOk.focus();
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        step = 0;
+        btnOk.classList.remove('admin-btn--danger');
+        btnOk.classList.add('admin-btn--primary');
+    }
+
+    trigger.addEventListener('click', function () {
+        var newStatus = select.value;
+        step = 1;
+        var label = labels[newStatus] || newStatus;
+        openModal(
+            'Vous êtes sur le point de passer cette commande en statut « ' + label + ' ». Confirmer ?',
+            'Confirmer'
+        );
+    });
+
+    btnOk.addEventListener('click', function () {
+        if (step === 1 && select.value === 'refunded') {
+            step = 2;
+            btnOk.textContent = 'Je confirme le remboursement';
+            btnOk.classList.remove('admin-btn--primary');
+            btnOk.classList.add('admin-btn--danger');
+            body.textContent = 'Attention : passer en « Remboursé » déclenchera le remboursement automatique du client. Cette action est irréversible.';
+            return;
+        }
+        closeModal();
+        form.submit();
+    });
+
+    btnCancel.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
+    });
+}());
+</script>
 
 <?php require_once SRC_PATH . '/View/admin/_close.php'; ?>

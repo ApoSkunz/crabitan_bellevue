@@ -15,11 +15,18 @@ $statusColors = [
     'delivered'        => 'green',
     'cancelled'        => 'red',
     'refunded'         => 'red',
-    'return_requested' => 'orange',
+    'return_requested' => 'teal',
+    'refund_refused'   => 'red',
 ];
-$timeline = ['pending', 'paid', 'processing', 'shipped', 'delivered'];
+$isReturnFlow  = in_array($order['status'], ['return_requested', 'refunded', 'refund_refused'], true);
+$returnEndStep = $order['status'] === 'refund_refused' ? 'refund_refused' : 'refunded';
+$timeline      = $isReturnFlow
+    ? ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', $returnEndStep]
+    : ['pending', 'paid', 'processing', 'shipped', 'delivered'];
 $currentIdx  = array_search($order['status'], $timeline, true);
 $cancellable = $order['status'] === 'pending';
+/** @var bool $cancellableReturn */
+/** @var string|null $returnDeadline */
 $paymentMap  = [
     'card'     => __('account.payment.card'),
     'virement' => __('account.payment.virement'),
@@ -64,13 +71,18 @@ $paymentMap  = [
 
                         <dt><?= __('account.order_payment') ?></dt>
                         <dd><?= htmlspecialchars($paymentMap[$order['payment_method'] ?? ''] ?? ucfirst($order['payment_method'] ?? '')) ?></dd>
+
+                        <?php if (!empty($order['delivered_at'])) : ?>
+                            <dt><?= __('account.order_delivered_at') ?></dt>
+                            <dd><?= htmlspecialchars(date('d/m/Y', strtotime($order['delivered_at']))) ?></dd>
+                        <?php endif; ?>
                     </dl>
 
                 </div>
             </section>
 
-            <!-- Timeline statut (commandes non annulées/remboursées) -->
-            <?php if (!in_array($order['status'], ['cancelled', 'refunded'], true)) : ?>
+            <!-- Timeline statut (commandes non annulées) -->
+            <?php if ($order['status'] !== 'cancelled') : ?>
                 <section class="account-section">
                     <ol class="order-timeline" aria-label="<?= __('account.order_status') ?>">
                         <?php foreach ($timeline as $idx => $step) : ?>
@@ -179,6 +191,7 @@ $paymentMap  = [
             </div>
 
             <!-- Annulation (uniquement si en attente de paiement) -->
+            <?php $qs = '?subject='; ?>
             <?php if ($cancellable) : ?>
                 <section class="account-section account-section--danger">
                     <h2 class="account-section__title"><?= __('account.order_cancel_btn') ?></h2>
@@ -192,29 +205,91 @@ $paymentMap  = [
                         </button>
                     </form>
                 </section>
-            <?php elseif (!in_array($order['status'], ['delivered', 'cancelled', 'refunded'], true)) : ?>
+            <?php elseif (!in_array($order['status'], ['delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused'], true)) : ?>
                 <section class="account-section">
                     <p class="order-contact-notice">
                         <?= __('account.order_contact_for_cancel') ?>
                         <?php
                         $mailtoSubject = rawurlencode(__('account.order_contact_subject') . ' ' . htmlspecialchars($order['order_reference']));
-                        $mailtoHref    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . '?subject=' . $mailtoSubject;
+                        $mailtoHref    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . $qs . $mailtoSubject;
                         ?>
                         <a href="<?= $mailtoHref ?>"><?= __('account.order_contact_link') ?></a>
+                    </p>
+                    <p class="order-contact-notice" style="margin-top:0.5rem;">
+                        <?= __('account.order_return_after_delivery') ?>
                     </p>
                 </section>
             <?php endif; ?>
 
-            <!-- Retour -->
-            <?php if ($order['status'] === 'delivered') : ?>
+            <!-- Rétractation légale (15 j après livraison) -->
+            <?php if ($cancellableReturn) : ?>
+                <section class="account-section account-section--danger">
+                    <h2 class="account-section__title"><?= __('account.order_return_request_btn') ?></h2>
+                    <p><?= sprintf(__('account.order_return_window'), htmlspecialchars($returnDeadline ?? '')) ?></p>
+                    <p style="margin-bottom:1rem;">
+                        <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/fiche-retour"
+                           class="btn btn--ghost btn--sm" target="_blank" rel="noopener noreferrer">
+                            <?= __('account.order_return_slip_btn') ?>
+                        </a>
+                    </p>
+                    <form method="POST"
+                          action="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/annuler"
+                          data-confirm="<?= htmlspecialchars(__('account.order_return_confirm')) ?>">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+                        <button type="submit" class="btn btn--danger">
+                            <?= __('account.order_return_request_btn') ?>
+                        </button>
+                    </form>
+                </section>
+            <?php elseif ($returnExpired ?? false) : ?>
                 <section class="account-section">
                     <p class="order-contact-notice">
-                        <?= __('account.order_return_notice') ?>
+                        <?= __('account.order_return_expired') ?>
+                        <?php
+                        $mailtoSubjectExpired = rawurlencode(__('account.order_return_subject') . ' ' . htmlspecialchars($order['order_reference']));
+                        $mailtoHrefExpired    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . $qs . $mailtoSubjectExpired;
+                        ?>
+                        <a href="<?= $mailtoHrefExpired ?>"><?= __('account.order_contact_link') ?></a>
+                    </p>
+                </section>
+            <?php elseif ($deliveredNoDate ?? false) : ?>
+                <section class="account-section">
+                    <p class="order-contact-notice">
+                        <?= __('account.order_return_no_date') ?>
+                        <?php
+                        $mailtoSubjectNoDate = rawurlencode(__('account.order_return_subject') . ' ' . htmlspecialchars($order['order_reference']));
+                        $mailtoHrefNoDate    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . $qs . $mailtoSubjectNoDate;
+                        ?>
+                        <a href="<?= $mailtoHrefNoDate ?>"><?= __('account.order_contact_link') ?></a>
+                    </p>
+                </section>
+            <?php elseif ($order['status'] === 'return_requested') : ?>
+                <section class="account-section">
+                    <h2 class="account-section__title"><?= __('account.order_return_in_progress_title') ?></h2>
+                    <p class="order-contact-notice">
+                        <?= __('account.order_return_in_progress') ?>
                         <?php
                         $mailtoSubjectReturn = rawurlencode(__('account.order_return_subject') . ' ' . htmlspecialchars($order['order_reference']));
-                        $mailtoHrefReturn    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . '?subject=' . $mailtoSubjectReturn;
+                        $mailtoHrefReturn    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . $qs . $mailtoSubjectReturn;
                         ?>
                         <a href="<?= $mailtoHrefReturn ?>"><?= __('account.order_contact_link') ?></a>
+                    </p>
+                    <p style="margin-top:0.75rem;">
+                        <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/fiche-retour"
+                           class="btn btn--ghost btn--sm" target="_blank" rel="noopener noreferrer">
+                            <?= __('account.order_return_slip_btn') ?>
+                        </a>
+                    </p>
+                </section>
+            <?php elseif ($order['status'] === 'refund_refused') : ?>
+                <section class="account-section">
+                    <p class="order-contact-notice">
+                        <?= __('account.order_refund_refused_notice') ?>
+                        <?php
+                        $mailtoSubjectRefused = rawurlencode(__('account.order_return_subject') . ' ' . htmlspecialchars($order['order_reference']));
+                        $mailtoHrefRefused    = 'mailto:' . htmlspecialchars($ownerEmail ?? '') . $qs . $mailtoSubjectRefused;
+                        ?>
+                        <a href="<?= $mailtoHrefRefused ?>"><?= __('account.order_contact_link') ?></a>
                     </p>
                 </section>
             <?php endif; ?>

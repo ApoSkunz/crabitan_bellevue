@@ -254,6 +254,7 @@ return [
 
     // News
     'news.read_more'  => 'Read more',
+    'news.learn_more' => 'Learn more',
     'news.back'       => 'Back to news',
     'news.empty'      => 'No news available at the moment.',
     'news.nav_label'  => 'Navigate between articles',
@@ -514,6 +515,7 @@ return [
     'account.order_detail'       => 'Order detail',
     'account.order_items'        => 'Ordered items',
     'account.order_payment'      => 'Payment',
+    'account.order_delivered_at' => 'Delivery date',
     'account.order_billing'      => 'Billing address',
     'account.order_delivery'     => 'Delivery address',
     'account.order_back'         => '← Back to orders',
@@ -538,10 +540,21 @@ return [
     'account.payment.virement'   => 'Bank transfer',
     'account.payment.cheque'     => 'Cheque',
     'account.order_contact_for_cancel' => 'This order can no longer be cancelled online.',
+    'account.order_return_after_delivery' => 'Your right of withdrawal (15 days) will be available upon delivery of your order.',
     'account.order_contact_subject'    => 'Cancellation request — order',
     'account.order_contact_link'       => 'Contact support',
-    'account.order_return_notice'      => 'For any return request (sealed bottles only, subject to analysis), please contact us.',
-    'account.order_return_subject'     => 'Return request — order',
+    'account.order_return_notice'          => 'For any return request (original sealed carton, unopened bottles, subject to verification upon receipt), please contact us.',
+    'account.order_return_subject'         => 'Return request — order',
+    'account.order_return_request_btn'     => 'Exercise my right of withdrawal',
+    'account.order_return_window'          => 'You may exercise your right of withdrawal until %s (15 days after delivery).',
+    'account.order_return_confirm'         => 'Do you wish to exercise your right of withdrawal? The return must be made in the original sealed carton, with unopened bottles. This action cannot be undone.',
+    'account.order_return_requested'       => 'Your withdrawal request has been registered. We will get back to you within 48 hours.',
+    'account.order_refund_refused_notice'  => 'Your refund request has been refused. If you wish to contest this decision, please contact us.',
+    'account.order_return_expired'         => 'The 15-day withdrawal period after delivery has passed. For any issue with your order, please contact us.',
+    'account.order_return_no_date'         => 'Your delivery date has not been recorded yet. For any return request, please contact us.',
+    'account.order_return_slip_btn'            => 'Download return slip',
+    'account.order_return_in_progress_title'   => 'Return in progress',
+    'account.order_return_in_progress'         => 'Your return request has been registered. If you need assistance, you can contact our support.',
 
     // Addresses — CRUD
     'account.address_add'        => 'Add an address',
@@ -625,4 +638,5 @@ return [
     'order.status.cancelled'        => 'Cancelled',
     'order.status.refunded'         => 'Refunded',
     'order.status.return_requested' => 'Return in progress',
+    'order.status.refund_refused'   => 'Refund refused',
 ];

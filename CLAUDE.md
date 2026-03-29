@@ -130,14 +130,14 @@ Pour chaque feature ou correction, respecter cet ordre **sans exception** :
 
 ### 2. Vérifications avant push
 
-Exécuter dans cet ordre :
+**C'est Claude qui exécute ces commandes**, pas l'utilisateur. Après chaque implémentation, lancer dans cet ordre sans attendre d'instruction :
 
 ```bash
 # Build + linter JS/SCSS
 npm run lint
 npm run build
 
-# Qualité PHP
+# Qualité PHP (en parallèle)
 vendor/bin/phpcs
 php -d memory_limit=512M vendor/phpstan/phpstan/phpstan.phar analyse --configuration=phpstan.neon
 

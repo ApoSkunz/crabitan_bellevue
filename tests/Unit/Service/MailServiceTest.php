@@ -719,4 +719,105 @@ class MailServiceTest extends TestCase
 
         $this->assertTrue(true); // pas d'exception = corps construit et send() mocké OK
     }
+
+    // ----------------------------------------------------------------
+    // resolveItemFormat — via callPrivate (méthode privée)
+    // ----------------------------------------------------------------
+
+    public function testResolveItemFormatBottleReturnsFr(): void
+    {
+        $result = $this->callPrivate('resolveItemFormat', 'bottle', 'fr');
+        $this->assertSame('bouteille', $result);
+    }
+
+    public function testResolveItemFormatBibEnReturnsBagInBox(): void
+    {
+        $result = $this->callPrivate('resolveItemFormat', 'bib', 'en');
+        $this->assertSame('bag-in-box', $result);
+    }
+
+    public function testResolveItemFormatUnknownLangFallsBackToFr(): void
+    {
+        // lang 'de' inconnu → fallback fr → 'bouteille'
+        $result = $this->callPrivate('resolveItemFormat', 'bottle', 'de');
+        $this->assertSame('bouteille', $result);
+    }
+
+    public function testResolveItemFormatUnknownFormatReturnsRaw(): void
+    {
+        $result = $this->callPrivate('resolveItemFormat', 'barrel', 'fr');
+        $this->assertSame('barrel', $result);
+    }
+
+    // ----------------------------------------------------------------
+    // sendReturnRequestedToOwner — corps HTML couvert sans SMTP réel
+    // ----------------------------------------------------------------
+
+    public function testSendReturnRequestedToOwnerCallsSend(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $order = [
+            'id'              => 42,
+            'order_reference' => 'CB-2026-001',
+            'ordered_at'      => '2026-01-15 10:00:00',
+            'content'         => json_encode([
+                ['label_name' => 'Bordeaux Rouge 2022', 'format' => 'bottle', 'qty' => 3, 'price' => 24.00],
+                ['label_name' => 'Blanc Sec 2023', 'format' => 'bib', 'qty' => 1, 'price' => 18.50],
+            ]),
+        ];
+
+        $this->service->sendReturnRequestedToOwner($order, 'Alice Dupont', 'alice@example.com');
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendReturnConfirmedToClient — branche FR avec pièce jointe PDF temp
+    // ----------------------------------------------------------------
+
+    public function testSendReturnConfirmedToClientFrCallsSend(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $tmpPdf = tempnam(sys_get_temp_dir(), 'return_slip_fr_');
+        file_put_contents($tmpPdf, '%PDF-1.4 test');
+
+        $order = [
+            'id'              => 42,
+            'order_reference' => 'CB-2026-001',
+            'ordered_at'      => '2026-01-15 10:00:00',
+            'content'         => json_encode([
+                ['label_name' => 'Bordeaux Rouge 2022', 'format' => 'bottle', 'qty' => 2, 'price' => 24.00],
+            ]),
+        ];
+
+        $this->service->sendReturnConfirmedToClient('alice@example.com', 'Alice', $order, $tmpPdf, 'fr');
+        unlink($tmpPdf);
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendReturnConfirmedToClient — branche EN avec pièce jointe PDF temp
+    // ----------------------------------------------------------------
+
+    public function testSendReturnConfirmedToClientEnCallsSend(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $tmpPdf = tempnam(sys_get_temp_dir(), 'return_slip_en_');
+        file_put_contents($tmpPdf, '%PDF-1.4 test');
+
+        $order = [
+            'id'              => 43,
+            'order_reference' => 'CB-2026-002',
+            'ordered_at'      => '2026-02-10 14:30:00',
+            'content'         => json_encode([
+                ['label_name' => 'Dry White 2023', 'format' => 'bib', 'qty' => 1, 'price' => 18.50],
+            ]),
+        ];
+
+        $this->service->sendReturnConfirmedToClient('bob@example.com', 'Bob', $order, $tmpPdf, 'en');
+        unlink($tmpPdf);
+        $this->assertTrue(true);
+    }
 }

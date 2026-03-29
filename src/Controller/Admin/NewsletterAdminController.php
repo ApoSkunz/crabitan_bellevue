@@ -6,19 +6,28 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\AccountModel;
+use Model\NewsletterModel;
 use Service\MailService;
 
+/**
+ * Gestion de la newsletter : liste abonnés, envoi de campagne, historique.
+ */
 class NewsletterAdminController extends AdminController
 {
-    private const ADMIN_URL = '/admin/newsletter';
-    private const PER_PAGE  = 25;
+    private const ADMIN_URL      = '/admin/newsletter';
+    private const PER_PAGE                = 25;
+    private const HISTORY_PER_PAGE        = 10;
+    private const ALLOWED_HISTORY_PER_PAGE = [10, 25, 50];
+    private const ATTACHMENT_DIR = 'storage/newsletters/attachments/';
 
     private AccountModel $accounts;
+    private NewsletterModel $newsletters;
 
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
-        $this->accounts = new AccountModel();
+        $this->accounts    = new AccountModel();
+        $this->newsletters = new NewsletterModel();
     }
 
     // ----------------------------------------------------------------
@@ -35,18 +44,65 @@ class NewsletterAdminController extends AdminController
             ($page - 1) * self::PER_PAGE
         );
 
+        $historyPage    = max(1, (int) $this->request->get('hpage', 1));
+        $historyPerPage = (int) $this->request->get('hperpage', self::HISTORY_PER_PAGE);
+        if (!in_array($historyPerPage, self::ALLOWED_HISTORY_PER_PAGE, true)) {
+            $historyPerPage = self::HISTORY_PER_PAGE;
+        }
+        $historyTotal = $this->newsletters->count();
+        $history      = $this->newsletters->getAll(
+            $historyPerPage,
+            ($historyPage - 1) * $historyPerPage
+        );
+
         $this->view('admin/newsletter/index', [
+            'adminUser'      => $adminUser,
+            'adminSection'   => 'newsletter',
+            'pageTitle'      => 'Newsletter',
+            'breadcrumbs'    => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Newsletter']],
+            'subscribers'    => $subscribers,
+            'total'          => $total,
+            'page'           => $page,
+            'perPage'        => self::PER_PAGE,
+            'history'        => $history,
+            'historyTotal'   => $historyTotal,
+            'historyPage'    => $historyPage,
+            'historyPerPage' => $historyPerPage,
+            'historyPages'   => $historyTotal > 0 ? (int) ceil($historyTotal / $historyPerPage) : 1,
+            'flash'         => $this->getFlash('success'),
+            'flashError'    => $this->getFlash('error'),
+            'csrfToken'     => $_SESSION['csrf'] ?? '',
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /admin/newsletter/{id}
+    // ----------------------------------------------------------------
+
+    /**
+     * Détail d'une campagne envoyée.
+     *
+     * @param array<string, string> $params
+     */
+    public function show(array $params): void
+    {
+        $adminUser  = $this->requireAdmin();
+        $campaign   = $this->newsletters->findCampaignById((int) $params['id']);
+
+        if (!$campaign) {
+            $this->abort(404, 'Campagne introuvable');
+        }
+
+        $this->view('admin/newsletter/show', [
             'adminUser'    => $adminUser,
             'adminSection' => 'newsletter',
-            'pageTitle'    => 'Newsletter',
-            'breadcrumbs'  => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Newsletter']],
-            'subscribers'  => $subscribers,
-            'total'        => $total,
-            'page'         => $page,
-            'perPage'      => self::PER_PAGE,
-            'flash'        => $this->getFlash('success'),
-            'flashError'   => $this->getFlash('error'),
-            'csrfToken'    => $_SESSION['csrf'] ?? '',
+            'pageTitle'    => 'Campagne — ' . htmlspecialchars($campaign['subject']),
+            'breadcrumbs'  => [
+                ['label' => 'Admin', 'url' => '/admin'],
+                ['label' => 'Newsletter', 'url' => self::ADMIN_URL],
+                ['label' => '#' . $campaign['id']],
+            ],
+            'campaign' => $campaign,
         ]);
     }
 
@@ -76,15 +132,22 @@ class NewsletterAdminController extends AdminController
         $destDir  = ROOT_PATH . '/public/assets/images/newsletter/';
         $imageUrl = $this->uploadNewsletterImage($_FILES['nl_image'] ?? [], $allowed, $destDir, $appUrl);
 
-        $pdf     = $this->uploadNewsletterPdf($_FILES['nl_pdf'] ?? []);
-        $pdfPath = $pdf !== null ? $pdf['path'] : null;
-        $pdfName = $pdf !== null ? $pdf['name'] : null;
+        // Persister la campagne avant l'envoi
+        $campaignId = $this->newsletters->create($subject, $body, $imageUrl);
 
-        $all    = $this->accounts->getNewsletterSubscribers(10000, 0);
-        $mailer = new MailService();
-        $sent   = 0;
-        $failed = 0;
+        // Gérer la pièce jointe PDF — copie permanente pour l'historique
+        $pdfPath    = null;
+        $pdfName    = null;
+        $attachment = $this->storeNewsletterPdf($_FILES['nl_pdf'] ?? [], $campaignId);
+        if ($attachment !== null) {
+            $pdfPath = $attachment['tmp_path'];
+            $pdfName = $attachment['original_name'];
+        }
 
+        $all         = $this->accounts->getNewsletterSubscribers(10000, 0);
+        $mailer      = new MailService();
+        $sent        = 0;
+        $failed      = 0;
         $safeContent = nl2br(htmlspecialchars($body, ENT_QUOTES));
 
         foreach ($all as $sub) {
@@ -101,26 +164,34 @@ class NewsletterAdminController extends AdminController
             }
         }
 
+        // Nettoyage du fichier temporaire (la copie permanente reste dans storage/)
         if ($pdfPath !== null && file_exists($pdfPath)) {
             unlink($pdfPath);
         }
 
+        $this->newsletters->updateStats($campaignId, $sent, $failed);
+
         $msg = "{$sent} email(s) envoyé(s)";
-        if ($failed > 0) {
-            $msg .= ", {$failed} échec(s).";
-        } else {
-            $msg .= ' avec succès.';
-        }
+        $msg .= $failed > 0 ? ", {$failed} échec(s)." : ' avec succès.';
 
         $this->flash('success', $msg);
         Response::redirect(self::ADMIN_URL);
     }
 
+    // ----------------------------------------------------------------
+    // Helpers privés
+    // ----------------------------------------------------------------
+
     /**
-     * @param array<string, mixed> $file
-     * @return array{path: string, name: string}|null
+     * Stocke le PDF en emplacement permanent et retourne les chemins nécessaires.
+     * La copie temporaire (tmp_path) est utilisée pour l'envoi, puis supprimée.
+     * La copie permanente reste dans storage/newsletters/attachments/.
+     *
+     * @param  array<string, mixed> $file
+     * @param  int                  $campaignId
+     * @return array{tmp_path: string, original_name: string}|null
      */
-    private function uploadNewsletterPdf(array $file): ?array // NOSONAR php:S1142 — retours anticipés de validation intentionnels
+    private function storeNewsletterPdf(array $file, int $campaignId): ?array // NOSONAR php:S1142
     {
         if (empty($file['tmp_name'])) {
             return null;
@@ -132,11 +203,25 @@ class NewsletterAdminController extends AdminController
         if (($file['size'] ?? 0) > 10 * 1024 * 1024) {
             return null;
         }
-        $dest = sys_get_temp_dir() . '/nl_pdf_' . bin2hex(random_bytes(8)) . '.pdf';
-        if (!move_uploaded_file($file['tmp_name'], $dest)) {
-            return null;
+
+        $originalName = basename($file['name'] ?? 'newsletter.pdf');
+        $storedName   = 'nl_' . $campaignId . '_' . bin2hex(random_bytes(6)) . '.pdf';
+
+        // Copie permanente
+        $permanentDir  = ROOT_PATH . '/' . self::ATTACHMENT_DIR;
+        if (!is_dir($permanentDir)) {
+            mkdir($permanentDir, 0750, true);
         }
-        return ['path' => $dest, 'name' => basename($file['name'] ?? 'newsletter.pdf')];
+        $permanentPath = $permanentDir . $storedName;
+        copy($file['tmp_name'], $permanentPath);
+
+        $this->newsletters->saveAttachment($campaignId, $originalName, self::ATTACHMENT_DIR . $storedName);
+
+        // Copie temporaire pour l'envoi mail
+        $tmpPath = sys_get_temp_dir() . '/nl_pdf_' . bin2hex(random_bytes(8)) . '.pdf';
+        copy($file['tmp_name'], $tmpPath);
+
+        return ['tmp_path' => $tmpPath, 'original_name' => $originalName];
     }
 
     /**
@@ -161,9 +246,22 @@ class NewsletterAdminController extends AdminController
             mkdir($destDir, 0755, true);
         }
         $filename = 'nl_' . bin2hex(random_bytes(8)) . '.' . $allowed[$mimeType];
-        if (!move_uploaded_file($file['tmp_name'], $destDir . $filename)) {
+        if (!$this->moveUploadedFile($file['tmp_name'], $destDir . $filename)) {
             return null;
         }
         return $appUrl . '/assets/images/newsletter/' . $filename;
+    }
+
+    /**
+     * Déplace un fichier uploadé vers sa destination finale.
+     * Méthode protégée pour permettre le test via sous-classe.
+     *
+     * @param string $src  Chemin source du fichier temporaire
+     * @param string $dest Chemin de destination
+     * @return bool
+     */
+    protected function moveUploadedFile(string $src, string $dest): bool
+    {
+        return move_uploaded_file($src, $dest);
     }
 }

@@ -11,6 +11,7 @@ $statusLabels = [
     'cancelled'        => 'Annulée',
     'refunded'         => 'Remboursée',
     'return_requested' => 'Retour en cours',
+    'refund_refused'   => 'Remboursement refusé',
 ];
 $paymentLabels = [
     'card'     => 'Carte bancaire',

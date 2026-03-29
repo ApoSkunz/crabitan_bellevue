@@ -12,6 +12,7 @@ class OrderAdminController extends AdminController
     private const ADMIN_URL         = '/admin/commandes';
     private const DEFAULT_PER_PAGE  = 10;
     private const ALLOWED_PER_PAGES = [10, 25, 50];
+    private const ORDER_NOT_FOUND   = 'Commande introuvable';
 
     private OrderModel $orders;
 
@@ -67,7 +68,7 @@ class OrderAdminController extends AdminController
         $order     = $this->orders->findByIdForAdmin((int) $params['id']);
 
         if (!$order) {
-            $this->abort(404, 'Commande introuvable');
+            $this->abort(404, self::ORDER_NOT_FOUND);
         }
 
         $this->view('admin/orders/show', [
@@ -99,9 +100,19 @@ class OrderAdminController extends AdminController
             Response::redirect(self::ADMIN_URL . '/' . $params['id']);
         }
 
-        $id     = (int) $params['id'];
-        $status = $this->request->post('status', '');
+        $id    = (int) $params['id'];
+        $order = $this->orders->findByIdForAdmin($id);
 
+        if (!$order) {
+            $this->abort(404, self::ORDER_NOT_FOUND);
+        }
+
+        if ($order['status'] === 'cancelled') {
+            $this->flash('error', 'Une commande annulée ne peut plus être modifiée.');
+            Response::redirect(self::ADMIN_URL . '/' . $id);
+        }
+
+        $status = $this->request->post('status', '');
         $this->orders->updateStatus($id, $status);
         $this->flash('success', 'Statut mis à jour.');
         Response::redirect(self::ADMIN_URL . '/' . $id);
@@ -124,7 +135,7 @@ class OrderAdminController extends AdminController
         $order = $this->orders->findByIdForAdmin($id);
 
         if (!$order) {
-            $this->abort(404, 'Commande introuvable');
+            $this->abort(404, self::ORDER_NOT_FOUND);
         }
 
         $file = $_FILES['invoice'] ?? [];
