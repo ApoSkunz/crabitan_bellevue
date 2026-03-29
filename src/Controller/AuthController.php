@@ -15,6 +15,7 @@ use Model\ConnectionModel;
 use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
 use Service\MailService;
+use Service\PasswordValidator;
 
 class AuthController extends Controller
 {
@@ -38,6 +39,15 @@ class AuthController extends Controller
     // POST /{lang}/connexion
     // ----------------------------------------------------------------
 
+    /**
+     * Authentifie un utilisateur et pose le cookie JWT.
+     *
+     * Si la case "Se souvenir de moi" est cochée, le JWT et le cookie
+     * ont une durée de vie de 30 jours ; sinon, le cookie est de session.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function login(array $params): void
     {
         GuestMiddleware::handle();
@@ -81,10 +91,11 @@ class AuthController extends Controller
         }
 
         // Appareil connu ou de confiance : émission du JWT et connexion immédiate.
-        $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
-        $token  = Jwt::generate((int) $account['id'], $account['role']);
+        $rememberMe = $this->request->post('remember_me', '') === '1';
+        $expiry     = $rememberMe ? (30 * 24 * 3600) : (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+        $token      = Jwt::generate((int) $account['id'], $account['role'], $expiry);
 
-        CookieHelper::set($token, $expiry);
+        CookieHelper::set($token, $rememberMe ? $expiry : 0);
 
         if ($account['lang'] !== $lang) {
             $this->accounts->updateLang((int) $account['id'], $lang);
@@ -332,8 +343,8 @@ class AuthController extends Controller
         $password = $this->request->post('password', '');
         $confirm  = $this->request->post('password_confirm', '');
 
-        if (strlen($password) < 12) {
-            $_SESSION['reset_modal'] = ['token' => $token, 'valid' => true, 'error' => __('validation.password_min')];
+        if (!PasswordValidator::isStrong($password)) {
+            $_SESSION['reset_modal'] = ['token' => $token, 'valid' => true, 'error' => __('auth.password_too_weak')];
             Response::redirect("/{$lang}?modal=reset");
         }
 
@@ -372,8 +383,8 @@ class AuthController extends Controller
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = __('validation.email');
         }
-        if (strlen($password) < 12) {
-            $errors['password'] = __('validation.password_min');
+        if (!PasswordValidator::isStrong($password)) {
+            $errors['password'] = __('auth.password_too_weak');
         }
         if ($password !== $confirm) {
             $errors['password_confirm'] = __('validation.password_match');
