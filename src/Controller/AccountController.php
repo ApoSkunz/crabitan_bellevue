@@ -140,15 +140,28 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
         $error   = $_SESSION['flash']['order_error']   ?? null;
         unset($_SESSION['flash']['order_success'], $_SESSION['flash']['order_error']);
 
+        // Fenêtre de rétractation après livraison
+        $cancellableReturn = false;
+        $returnDeadline    = null;
+        if ($order['status'] === 'delivered' && !empty($order['delivered_at'])) {
+            $deadlineTs = strtotime($order['delivered_at'] . ' +' . \Model\OrderModel::CANCEL_WINDOW_DAYS . ' days');
+            if ($deadlineTs !== false && time() <= $deadlineTs) {
+                $cancellableReturn = true;
+                $returnDeadline    = date('d/m/Y', $deadlineTs);
+            }
+        }
+
         $this->view('account/order_detail', [
-            'lang'             => $lang,
-            'order'            => $order,
-            'items'            => $items,
-            'shippingDiscount' => $shippingDiscount > 0.0 ? $shippingDiscount : null,
-            'success'          => $success,
-            'error'            => $error,
-            'csrf'             => $_SESSION['csrf'] ?? '',
-            'ownerEmail'       => $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '',
+            'lang'              => $lang,
+            'order'             => $order,
+            'items'             => $items,
+            'shippingDiscount'  => $shippingDiscount > 0.0 ? $shippingDiscount : null,
+            'success'           => $success,
+            'error'             => $error,
+            'csrf'              => $_SESSION['csrf'] ?? '',
+            'ownerEmail'        => $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '',
+            'cancellableReturn' => $cancellableReturn,
+            'returnDeadline'    => $returnDeadline,
         ]);
     }
 
@@ -171,11 +184,17 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
             Response::redirect($back);
         }
 
+        // Annulation standard (pending) ou demande de rétractation (delivered dans la fenêtre)
         $ok = $this->orders->cancelForUser($id, $userId);
-        if ($ok) {
-            $_SESSION['flash']['order_success'] = __('account.order_cancelled');
+        if (!$ok) {
+            $ok = $this->orders->requestReturnForUser($id, $userId);
+            if ($ok) {
+                $_SESSION['flash']['order_success'] = __('account.order_return_requested');
+            } else {
+                $_SESSION['flash']['order_error'] = __('account.order_cancel_failed');
+            }
         } else {
-            $_SESSION['flash']['order_error'] = __('account.order_cancel_failed');
+            $_SESSION['flash']['order_success'] = __('account.order_cancelled');
         }
 
         Response::redirect($back);
