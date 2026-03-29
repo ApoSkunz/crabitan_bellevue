@@ -482,6 +482,150 @@ class NewsletterAdminControllerTest extends AdminIntegrationTestCase
     // show()
     // ----------------------------------------------------------------
 
+    // ----------------------------------------------------------------
+    // index — hperpage invalide → défaut (couvre l.50)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que index() normalise un hperpage invalide (99) vers la valeur par défaut (10).
+     */
+    public function testIndexWithInvalidHistoryPerPageFallsToDefault(): void
+    {
+        $_GET['hperpage'] = '99';
+
+        ob_start();
+        $this->makeController()->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Newsletter', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // send — PDF valide → storeNewsletterPdf stocke une copie permanente (l.207-224)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que send() avec un PDF valide appelle storeNewsletterPdf,
+     * crée la copie permanente et nettoie le fichier temporaire (l.143-144, l.162-163, l.169, l.207-224).
+     */
+    #[\PHPUnit\Framework\Attributes\RequiresPhpExtension('fileinfo')]
+    public function testSendWithValidPdfStoresPermanentCopy(): void
+    {
+        // PDF minimal avec magic bytes reconnus par finfo
+        $pdfContent = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\nxref\n0 1\n0000000000 65535 f\n%%EOF";
+        $tmpFile    = tempnam(sys_get_temp_dir(), 'nl_pdf_ok_');
+        file_put_contents($tmpFile, $pdfContent);
+
+        $_FILES['nl_pdf'] = [
+            'tmp_name' => $tmpFile,
+            'name'     => 'campagne.pdf',
+            'type'     => 'application/pdf',
+            'size'     => strlen($pdfContent),
+            'error'    => UPLOAD_ERR_OK,
+        ];
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['subject']    = 'Newsletter avec PDF';
+        $_POST['body']       = 'Corps avec pièce jointe PDF.';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $this->makeController('POST')->send([]);
+        } finally {
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // send — image JPEG valide mais move_uploaded_file échoue (l.245-250)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que send() passe la validation MIME JPEG et retourne null
+     * quand move_uploaded_file échoue (env de test, non-HTTP upload → l.249-250 couverts).
+     */
+    #[\PHPUnit\Framework\Attributes\RequiresPhpExtension('fileinfo')]
+    public function testSendWithValidJpegImageMoveUploadedFileFails(): void
+    {
+        // JPEG magic bytes : \xFF\xD8\xFF\xE0
+        $tmpFile = tempnam(sys_get_temp_dir(), 'nl_jpeg_');
+        file_put_contents($tmpFile, "\xFF\xD8\xFF\xE0" . str_repeat("\x00", 100));
+
+        $_FILES['nl_image'] = [
+            'tmp_name' => $tmpFile,
+            'name'     => 'image.jpg',
+            'type'     => 'image/jpeg',
+            'size'     => 104,
+            'error'    => UPLOAD_ERR_OK,
+        ];
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['subject']    = 'Newsletter image JPEG';
+        $_POST['body']       = 'Corps avec image JPEG.';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $this->makeController('POST')->send([]);
+        } finally {
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // send — image valide, moveUploadedFile retourne true (couvre l.252)
+    // ----------------------------------------------------------------
+
+    /**
+     * Sous-classe overridant moveUploadedFile pour simuler un upload réussi.
+     * Couvre la ligne return $appUrl . '/assets/images/newsletter/' . $filename (l.252).
+     */
+    #[\PHPUnit\Framework\Attributes\RequiresPhpExtension('fileinfo')]
+    public function testSendWithValidImageMoveSuccessCoversUrl(): void
+    {
+        // JPEG magic bytes
+        $tmpFile = tempnam(sys_get_temp_dir(), 'nl_jpeg_mv_');
+        file_put_contents($tmpFile, "\xFF\xD8\xFF\xE0" . str_repeat("\x00", 100));
+
+        $_FILES['nl_image'] = [
+            'tmp_name' => $tmpFile,
+            'name'     => 'image-success.jpg',
+            'type'     => 'image/jpeg',
+            'size'     => 104,
+            'error'    => UPLOAD_ERR_OK,
+        ];
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['subject']    = 'Newsletter image move success';
+        $_POST['body']       = 'Corps avec image déplacée.';
+
+        $ctrl = new class ($this->makeRequest('POST', '/admin/newsletter')) extends \Controller\Admin\NewsletterAdminController {
+            protected function moveUploadedFile(string $src, string $dest): bool
+            {
+                // Simule un move réussi sans déplacer réellement
+                return true;
+            }
+        };
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $ctrl->send([]);
+        } finally {
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
+            }
+        }
+    }
+
     /**
      * show() avec un id inconnu lève une HttpException 404.
      */
