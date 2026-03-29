@@ -998,6 +998,73 @@ class AuthControllerTest extends IntegrationTestCase
     // register() — newsletter = '1' (branche newsletter)
     // ----------------------------------------------------------------
 
+    // ----------------------------------------------------------------
+    // login() — remember me cookie TTL
+    // ----------------------------------------------------------------
+
+    public function testLoginWithRememberMeSetsLongLivedCookie(): void
+    {
+        $this->insertVerifiedAccount('remember@example.com', 'Password123!');
+
+        $_POST = [
+            'email'       => 'remember@example.com',
+            'password'    => 'Password123!',
+            'csrf_token'  => self::CSRF,
+            'remember_me' => '1',
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // La connexion doit avoir une expiration > now + 29 jours (30 jours de TTL)
+        $connection = self::$db->fetchOne(
+            "SELECT expired_at FROM connections WHERE user_id = (
+                SELECT id FROM accounts WHERE email = ?
+             ) ORDER BY created_at DESC LIMIT 1",
+            ['remember@example.com']
+        );
+
+        $this->assertNotFalse($connection);
+        $expiredAt    = strtotime((string) $connection['expired_at']);
+        $minExpected  = time() + (29 * 24 * 3600);
+        $this->assertGreaterThan($minExpected, $expiredAt);
+    }
+
+    public function testLoginWithoutRememberMeUsesDefaultExpiry(): void
+    {
+        $this->insertVerifiedAccount('noremember@example.com', 'Password123!');
+
+        $_POST = [
+            'email'      => 'noremember@example.com',
+            'password'   => 'Password123!',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // La connexion doit avoir une expiration bien inférieure à 29 jours (JWT_EXPIRY par défaut ≤ 1 h)
+        $connection = self::$db->fetchOne(
+            "SELECT expired_at FROM connections WHERE user_id = (
+                SELECT id FROM accounts WHERE email = ?
+             ) ORDER BY created_at DESC LIMIT 1",
+            ['noremember@example.com']
+        );
+
+        $this->assertNotFalse($connection);
+        $expiredAt   = strtotime((string) $connection['expired_at']);
+        $maxExpected = time() + (29 * 24 * 3600);
+        $this->assertLessThan($maxExpected, $expiredAt);
+    }
+
     public function testRegisterIndividualWithNewsletterSubscribed(): void
     {
         $_POST = [

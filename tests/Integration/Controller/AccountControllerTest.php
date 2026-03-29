@@ -1006,6 +1006,26 @@ class AccountControllerTest extends IntegrationTestCase
             ->orderDetail(['lang' => 'fr', 'id' => '999999']);
     }
 
+    /**
+     * Commande 'processing' → le message droit de rétractation après livraison est affiché.
+     *
+     * @return void
+     */
+    public function testOrderDetailProcessingShowsReturnAfterDeliveryMessage(): void
+    {
+        $userId    = $this->insertCustomer('odtl.proc@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'processing');
+        $this->loginAs($userId);
+
+        ob_start();
+        $this->makeController('GET', "/fr/mon-compte/commandes/{$orderId}")
+            ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('account.order_return_after_delivery', $output);
+    }
+
     // ----------------------------------------------------------------
     // cancelOrder() POST — individual
     // ----------------------------------------------------------------

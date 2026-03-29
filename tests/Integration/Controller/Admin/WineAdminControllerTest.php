@@ -543,4 +543,158 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
 
         $this->makeController('POST')->update(['id' => (string) $id]);
     }
+
+    // ----------------------------------------------------------------
+    // store — vin available=1, abonné existant → flash contient "newsletter"
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que store() ajoute "newsletter" dans le flash admin
+     * quand un vin est créé avec available=1 et qu'il existe au moins un abonné.
+     * La sous-classe WineAdminControllerTestable surcharge moveUploadedFile() → copy()
+     * pour contourner la restriction de move_uploaded_file en CLI PHPUnit.
+     */
+    public function testStoreAvailableWineSendsNewsletterToSubscribers(): void
+    {
+        // Insérer un abonné newsletter
+        $subscriberId = (int) self::$db->insert(
+            "INSERT INTO accounts
+             (email, password, role, lang, newsletter, newsletter_unsubscribe_token, email_verified_at)
+             VALUES (?, ?, 'customer', 'fr', 1, ?, NOW())",
+            ['subscriber@test.local', password_hash('Pass123!', PASSWORD_BCRYPT), bin2hex(random_bytes(16))]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Abonné', 'Test', 'M')",
+            [$subscriberId]
+        );
+
+        $_POST['csrf_token']          = self::CSRF_TOKEN;
+        $_POST['appellation']         = 'Bordeaux Rouge';
+        $_POST['format']              = 'bottle';
+        $_POST['vintage']             = '2021';
+        $_POST['price']               = '20.00';
+        $_POST['quantity']            = '50';
+        $_POST['area']                = '1.00';
+        $_POST['city']                = 'Bordeaux';
+        $_POST['variety_of_vine']     = 'Merlot';
+        $_POST['age_of_vineyard']     = '15';
+        $_POST['certification_label'] = 'AOC';
+        $_POST['available']           = '1'; // disponible → newsletter déclenchée
+        $_POST['is_cuvee_speciale']   = '0';
+        foreach (['oenological_comment', 'soil', 'pruning', 'harvest', 'vinification', 'barrel_fermentation'] as $f) {
+            $_POST["{$f}_fr"] = "Valeur FR {$f}";
+            $_POST["{$f}_en"] = "EN value {$f}";
+        }
+        // PNG 8 octets minimum pour passer la validation MIME
+        $tmpFile = tempnam(sys_get_temp_dir(), 'wine_nl_');
+        // PNG minimal valide (signature + IHDR 1x1 RGB) détecté comme image/png par finfo
+        file_put_contents($tmpFile, "\x89PNG\r\n\x1a\n\x00\x00\x00\x0DIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90\x77\x53\xde");
+        $_FILES = [
+            'image' => [
+                'tmp_name' => $tmpFile,
+                'error'    => UPLOAD_ERR_OK,
+                'name'     => 'test.png',
+                'type'     => 'image/png',
+                'size'     => filesize($tmpFile),
+            ],
+        ];
+
+        // Utilise la sous-classe testable dont moveUploadedFile() utilise copy()
+        $controller = new WineAdminControllerTestable($this->makeRequest('POST', '/admin/vins/ajouter'));
+
+        try {
+            $controller->store([]);
+        } catch (\Core\Exception\HttpException $e) {
+            $this->assertSame(302, $e->getCode());
+        }
+
+        @unlink($tmpFile);
+
+        // Le flash admin contient "newsletter" (envoi SMTP silencieusement échoué mais comptabilisé à 0)
+        // Vérifier que le flash existe et contient le mot "newsletter"
+        $flash = $_SESSION['admin_flash']['success'] ?? '';
+        $this->assertStringContainsStringIgnoringCase('newsletter', $flash);
+    }
+
+    // ----------------------------------------------------------------
+    // store — vin available=0 → pas de newsletter dans le flash
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que store() n'ajoute PAS "newsletter" dans le flash
+     * quand un vin est créé avec available=0, même si des abonnés existent.
+     */
+    public function testStoreUnavailableWineDoesNotSendNewsletter(): void
+    {
+        // Insérer un abonné newsletter
+        $subscriberId = (int) self::$db->insert(
+            "INSERT INTO accounts
+             (email, password, role, lang, newsletter, newsletter_unsubscribe_token, email_verified_at)
+             VALUES (?, ?, 'customer', 'fr', 1, ?, NOW())",
+            ['subscriber2@test.local', password_hash('Pass123!', PASSWORD_BCRYPT), bin2hex(random_bytes(16))]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Abonné2', 'Test2', 'M')",
+            [$subscriberId]
+        );
+
+        $_POST['csrf_token']          = self::CSRF_TOKEN;
+        $_POST['appellation']         = 'Bordeaux Blanc';
+        $_POST['format']              = 'bottle';
+        $_POST['vintage']             = '1975'; // millésime de test spécifique non présent en base
+        $_POST['price']               = '18.00';
+        $_POST['quantity']            = '30';
+        $_POST['area']                = '0.80';
+        $_POST['city']                = 'Bordeaux';
+        $_POST['variety_of_vine']     = 'Sauvignon Blanc';
+        $_POST['age_of_vineyard']     = '12';
+        $_POST['certification_label'] = 'AOC';
+        $_POST['available']           = '0'; // non disponible → pas de newsletter
+        $_POST['is_cuvee_speciale']   = '0';
+        foreach (['oenological_comment', 'soil', 'pruning', 'harvest', 'vinification', 'barrel_fermentation'] as $f) {
+            $_POST["{$f}_fr"] = "Valeur FR {$f}";
+            $_POST["{$f}_en"] = "EN value {$f}";
+        }
+        $tmpFile = tempnam(sys_get_temp_dir(), 'wine_nl_');
+        // PNG minimal valide (signature + IHDR 1x1 RGB) détecté comme image/png par finfo
+        file_put_contents($tmpFile, "\x89PNG\r\n\x1a\n\x00\x00\x00\x0DIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90\x77\x53\xde");
+        $_FILES = [
+            'image' => [
+                'tmp_name' => $tmpFile,
+                'error'    => UPLOAD_ERR_OK,
+                'name'     => 'test.png',
+                'type'     => 'image/png',
+                'size'     => filesize($tmpFile),
+            ],
+        ];
+
+        $controller = new WineAdminControllerTestable($this->makeRequest('POST', '/admin/vins/ajouter'));
+
+        try {
+            $controller->store([]);
+        } catch (\Core\Exception\HttpException $e) {
+            $this->assertSame(302, $e->getCode());
+        }
+
+        @unlink($tmpFile);
+
+        $flash = $_SESSION['admin_flash']['success'] ?? '';
+        $this->assertStringNotContainsStringIgnoringCase('newsletter', $flash);
+    }
+}
+
+/**
+ * Sous-classe de WineAdminController pour les tests d'intégration.
+ * Surcharge moveUploadedFile() pour utiliser copy() au lieu de move_uploaded_file()
+ * (move_uploaded_file échoue systématiquement en CLI PHPUnit car le fichier
+ * n'est pas issu d'un vrai upload HTTP).
+ */
+class WineAdminControllerTestable extends \Controller\Admin\WineAdminController
+{
+    protected function moveUploadedFile(string $src, string $dest): bool
+    {
+        return copy($src, $dest);
+    }
 }
