@@ -6,6 +6,7 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\WineModel;
+use Service\TranslationService;
 
 class WineAdminController extends AdminController
 {
@@ -52,11 +53,13 @@ class WineAdminController extends AdminController
     ];
 
     private WineModel $wines;
+    private TranslationService $translator;
 
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
-        $this->wines = new WineModel();
+        $this->wines      = new WineModel();
+        $this->translator = new TranslationService($_ENV['TRANSLATION_API_KEY'] ?? '');
     }
 
     // ----------------------------------------------------------------
@@ -319,7 +322,7 @@ class WineAdminController extends AdminController
             }
 
             if ($fr !== '' && $en === '') {
-                $en = $this->translateText($fr);
+                $en = $this->translator->translate($fr);
             }
 
             $jsonData[$field] = json_encode(['fr' => $fr, 'en' => $en]);
@@ -398,32 +401,5 @@ class WineAdminController extends AdminController
         $slug = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $slug) ?: $slug;
         $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? $slug;
         return trim($slug, '-');
-    }
-
-    /**
-     * Traduit un texte FR → EN via MyMemory.
-     * Retourne le texte original si l'API échoue.
-     */
-    private function translateText(string $text): string
-    {
-        $url = 'https://api.mymemory.translated.net/get?q=' . urlencode($text) . '&langpair=fr|en';
-        $ctx = stream_context_create(['http' => ['timeout' => 5, 'ignore_errors' => true]]);
-        try {
-            $raw = @file_get_contents($url, false, $ctx);
-            if ($raw === false) {
-                return $text;
-            }
-            $data = json_decode($raw, true);
-            if (
-                is_array($data)
-                && ($data['responseStatus'] ?? 0) === 200
-                && !empty($data['responseData']['translatedText'])
-            ) {
-                return (string) $data['responseData']['translatedText'];
-            }
-        } catch (\Throwable) {
-            // L'API MyMemory est optionnelle — on retourne le texte original en cas d'échec
-        }
-        return $text;
     }
 }

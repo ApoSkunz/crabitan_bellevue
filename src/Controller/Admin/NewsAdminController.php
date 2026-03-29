@@ -6,6 +6,7 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\NewsModel;
+use Service\TranslationService;
 
 class NewsAdminController extends AdminController
 {
@@ -18,11 +19,13 @@ class NewsAdminController extends AdminController
     private const MIME_EXT        = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
 
     private NewsModel $news;
+    private TranslationService $translator;
 
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
-        $this->news = new NewsModel();
+        $this->news       = new NewsModel();
+        $this->translator = new TranslationService($_ENV['TRANSLATION_API_KEY'] ?? '');
     }
 
     // ----------------------------------------------------------------
@@ -209,12 +212,12 @@ class NewsAdminController extends AdminController
             $errors['text_content_fr'] = 'Le contenu (FR) est obligatoire.';
         }
 
-        // Auto-translation EN via MyMemory if empty
+        // Auto-translation EN si vide
         if ($titleFr !== '' && $titleEn === '') {
-            $titleEn = $this->translateText($titleFr);
+            $titleEn = $this->translator->translate($titleFr);
         }
         if ($contentFr !== '' && $contentEn === '') {
-            $contentEn = $this->translateText($contentFr);
+            $contentEn = $this->translator->translate($contentFr);
         }
 
         // Slug : généré (ou régénéré) depuis le titre FR à chaque enregistrement
@@ -304,32 +307,5 @@ class NewsAdminController extends AdminController
         $slug = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $slug) ?: $slug;
         $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? $slug;
         return trim(substr($slug, 0, 80), '-');
-    }
-
-    /**
-     * Traduit un texte FR → EN via MyMemory.
-     * Retourne le texte original si l'API échoue.
-     */
-    private function translateText(string $text): string
-    {
-        $url = 'https://api.mymemory.translated.net/get?q=' . urlencode($text) . '&langpair=fr|en';
-        $ctx = stream_context_create(['http' => ['timeout' => 5, 'ignore_errors' => true]]);
-        try {
-            $raw = @file_get_contents($url, false, $ctx);
-            if ($raw === false) {
-                return $text;
-            }
-            $data = json_decode($raw, true);
-            if (
-                is_array($data)
-                && ($data['responseStatus'] ?? 0) === 200
-                && !empty($data['responseData']['translatedText'])
-            ) {
-                return (string) $data['responseData']['translatedText'];
-            }
-        } catch (\Throwable) {
-            // L'API MyMemory est optionnelle — on retourne le texte original en cas d'échec
-        }
-        return $text;
     }
 }
