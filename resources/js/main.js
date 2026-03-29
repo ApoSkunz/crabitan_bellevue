@@ -134,6 +134,18 @@ function initCookieBanner() {
     // Sur la page age-gate : banner non bloquant — l'utilisateur peut valider son âge sans décider des cookies
     if (document.body.classList.contains('age-gate-page')) {
         banner.classList.add('cookie-banner--non-blocking');
+
+        // Intercept soumission age-gate : forcer choix cookie si pas encore répondu
+        document.getElementById('age-gate-form')?.addEventListener('submit', (e) => {
+            if (!getConsentCookie()) {
+                e.preventDefault();
+                banner.classList.add('is-shaking');
+                banner.querySelector('.cookie-banner__required')?.removeAttribute('hidden');
+                banner.addEventListener('animationend', () => {
+                    banner.classList.remove('is-shaking');
+                }, { once: true });
+            }
+        });
     }
 
     document.getElementById('cookie-accept')?.addEventListener('click', () => {
