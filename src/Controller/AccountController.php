@@ -16,7 +16,8 @@ use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
 use Model\OrderModel;
 
-class AccountController extends Controller // NOSONAR php:S1448 — regroupement intentionnel ; découpage prévu à l'audit génie logiciel
+// NOSONAR php:S1448 — regroupement intentionnel ; découpage prévu à l'audit génie logiciel
+class AccountController extends Controller
 {
     private const PER_PAGE          = 10;
     private const VALID_PER_PAGES   = [10, 25, 50];
@@ -95,7 +96,10 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
         }
 
         $rawStatus    = $this->request->get('status', '');
-        $validStatuses = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused'];
+        $validStatuses = [
+            'pending', 'paid', 'processing', 'shipped', 'delivered',
+            'cancelled', 'refunded', 'return_requested', 'refund_refused',
+        ];
         $statusFilter  = in_array($rawStatus, $validStatuses, true) ? $rawStatus : null;
 
         $total = $this->orders->countForUser($userId, $period === 'all' ? null : $period, $year, $statusFilter);
@@ -104,7 +108,14 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
 
         $this->view('account/orders', [
             'lang'         => $lang,
-            'orders'       => $this->orders->getForUser($userId, $page, $perPage, $period === 'all' ? null : $period, $year, $statusFilter),
+            'orders'       => $this->orders->getForUser(
+                $userId,
+                $page,
+                $perPage,
+                $period === 'all' ? null : $period,
+                $year,
+                $statusFilter
+            ),
             'page'         => $page,
             'pages'        => $pages,
             'total'        => $total,
@@ -149,7 +160,8 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
             if (empty($order['delivered_at'])) {
                 $deliveredNoDate = true;
             } else {
-                $deadlineTs = strtotime($order['delivered_at'] . ' +' . \Model\OrderModel::CANCEL_WINDOW_DAYS . ' days');
+                $deliveredAt = $order['delivered_at'] . ' +' . \Model\OrderModel::CANCEL_WINDOW_DAYS . ' days';
+                $deadlineTs  = strtotime($deliveredAt);
                 if ($deadlineTs !== false && time() <= $deadlineTs) {
                     $cancellableReturn = true;
                     $returnDeadline    = date('d/m/Y', $deadlineTs);
@@ -359,7 +371,8 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
         <table><tr>
             <td style="width:50%;vertical-align:top;">
                 <h2>Expéditeur</h2>
-                <p class="addr">' . $clientName . '<br>' . $clientAddr . '<br>' . $clientZipCity . '<br>' . $clientCountry . '</p>
+                <p class="addr">' . $clientName . '<br>' . $clientAddr
+            . '<br>' . $clientZipCity . '<br>' . $clientCountry . '</p>
             </td>
             <td style="width:50%;vertical-align:top;">
                 <h2>Retourner à</h2>
@@ -376,7 +389,8 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
 
         <h2>Articles retournés</h2>
         <table>
-            <tr><th>Vin</th><th>Format</th><th style="text-align:center;">Qté</th><th style="text-align:right;">Prix unit.</th></tr>
+            <tr><th>Vin</th><th>Format</th>'
+            . '<th style="text-align:center;">Qté</th><th style="text-align:right;">Prix unit.</th></tr>
             ' . $rows . '
         </table>
 
@@ -449,7 +463,10 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
         $country   = trim($this->request->post('country', 'France'));
         $phone     = $this->normalizePhone(trim($this->request->post('phone', '')));
 
-        if ($firstname === '' || $lastname === '' || $street === '' || $city === '' || $zipCode === '' || $phone === '') {
+        if (
+            $firstname === '' || $lastname === '' || $street === ''
+            || $city === '' || $zipCode === '' || $phone === ''
+        ) {
             $_SESSION['flash']['address_error'] = __('account.address_required_fields');
             Response::redirect($back);
         }
@@ -459,7 +476,18 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
             Response::redirect($back);
         }
 
-        $this->addresses->create($userId, $type, $firstname, $lastname, $civility, $street, $city, $zipCode, $country, $phone);
+        $this->addresses->create(
+            $userId,
+            $type,
+            $firstname,
+            $lastname,
+            $civility,
+            $street,
+            $city,
+            $zipCode,
+            $country,
+            $phone
+        );
         $_SESSION['flash']['address_success'] = __('account.address_added');
         Response::redirect($back);
     }
@@ -522,7 +550,10 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
         $country   = trim($this->request->post('country', 'France'));
         $phone     = $this->normalizePhone(trim($this->request->post('phone', '')));
 
-        if ($firstname === '' || $lastname === '' || $street === '' || $city === '' || $zipCode === '' || $phone === '') {
+        if (
+            $firstname === '' || $lastname === '' || $street === ''
+            || $city === '' || $zipCode === '' || $phone === ''
+        ) {
             $_SESSION['flash']['address_error'] = __('account.address_required_fields');
             Response::redirect($back);
         }
@@ -537,7 +568,18 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
             Response::redirect($back);
         }
 
-        $this->addresses->update($id, $userId, $firstname, $lastname, $civility, $street, $city, $zipCode, $country, $phone);
+        $this->addresses->update(
+            $id,
+            $userId,
+            $firstname,
+            $lastname,
+            $civility,
+            $street,
+            $city,
+            $zipCode,
+            $country,
+            $phone
+        );
         $_SESSION['flash']['address_success'] = __('account.address_updated');
         Response::redirect($back);
     }
@@ -1195,7 +1237,8 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
         $h = '<style>
             body { font-family: dejavusans; font-size: 10pt; color: #1e1e1e; }
             h1 { font-size: 16pt; color: #c1a14b; margin-bottom: 4px; }
-            h2 { font-size: 11pt; color: #c1a14b; margin-top: 14px; margin-bottom: 4px; border-bottom: 1px solid #c1a14b; }
+            h2 { font-size: 11pt; color: #c1a14b; margin-top: 14px;'
+            . ' margin-bottom: 4px; border-bottom: 1px solid #c1a14b; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
             th { background: #f5f0e8; font-weight: bold; padding: 4px 6px; text-align: left; }
             td { padding: 4px 6px; border-bottom: 1px solid #e8e0d0; }
@@ -1209,7 +1252,8 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
 
         $h .= '<h2>Compte</h2><table><tr><th>Champ</th><th>Valeur</th></tr>';
         foreach ($acc as $k => $v) {
-            $h .= '<tr><td>' . htmlspecialchars($k) . '</td><td>' . htmlspecialchars((string) ($v ?? '—')) . '</td></tr>';
+            $h .= '<tr><td>' . htmlspecialchars($k) . '</td>'
+                . '<td>' . htmlspecialchars((string) ($v ?? '—')) . '</td></tr>';
         }
         $h .= '</table>';
 
@@ -1281,8 +1325,13 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
      * @param array<mixed>   $rows
      * @param callable       $rowFn  function(array $row): string
      */
-    private function buildPdfTableSection(string $label, array $rows, string $header, callable $rowFn, string $emptyMsg): string
-    {
+    private function buildPdfTableSection(
+        string $label,
+        array $rows,
+        string $header,
+        callable $rowFn,
+        string $emptyMsg
+    ): string {
         $h = '<h2>' . $label . ' (' . count($rows) . ')</h2>';
         if ($rows === []) {
             return $h . '<p class="muted">' . $emptyMsg . '</p>';
@@ -1299,8 +1348,12 @@ class AccountController extends Controller // NOSONAR php:S1448 — regroupement
      *
      * @return array<string, string>
      */
-    private function validateAndSaveIndividual(int $userId, string $civility, string $firstname, string $lastname): array
-    {
+    private function validateAndSaveIndividual(
+        int $userId,
+        string $civility,
+        string $firstname,
+        string $lastname
+    ): array {
         $errors = [];
         if ($firstname === '') {
             $errors['firstname'] = __('validation.required');

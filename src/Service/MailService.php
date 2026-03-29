@@ -7,9 +7,11 @@ namespace Service;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont des seams de testabilité, pas de la logique métier
+// NOSONAR — S1448: newOrderFormModel/newMailService sont des seams de testabilité, pas de la logique métier
+class MailService
 {
-    private const BTN_STYLE_PRIMARY = 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;';
+    private const BTN_STYLE_PRIMARY = 'font-family:Georgia,serif;font-size:14px;'
+        . 'letter-spacing:2px;text-transform:uppercase;';
     private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
     private const URL_PRIVACY = '/fr/politique-confidentialite';
     private const URL_LEGAL   = '/fr/mentions-legales';
@@ -246,26 +248,32 @@ class MailService // NOSONAR — S1448: newOrderFormModel/newMailService sont de
         $safeIp      = htmlspecialchars($ipAddress ?? 'N/A', ENT_QUOTES);
         $safeDate    = htmlspecialchars(date('d/m/Y à H:i'), ENT_QUOTES);
 
-        $infoBlock = '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">'
+        $infoBlock = '<table role="presentation" cellpadding="0" cellspacing="0"'
+            . ' style="width:100%;margin-bottom:24px;">'
             . '<tr><td style="padding:12px 16px;background:#f5f0e8;border-left:3px solid #c9a84c;">'
             . '<p style="margin:0 0 6px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8a7a60;">'
             . ($lang === 'fr' ? 'Appareil' : 'Device') . '</p>'
             . "<p style=\"margin:0;font-size:14px;color:#3d3425;\">{$safeDevice}</p>"
             . '</td></tr>'
-            . '<tr><td style="padding:12px 16px;background:#f5f0e8;border-left:3px solid #c9a84c;border-top:1px solid #ede8df;">'
+            . '<tr><td style="padding:12px 16px;background:#f5f0e8;'
+            . 'border-left:3px solid #c9a84c;border-top:1px solid #ede8df;">'
             . '<p style="margin:0 0 6px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8a7a60;">'
             . ($lang === 'fr' ? 'Adresse IP' : 'IP address') . '</p>'
             . "<p style=\"margin:0;font-size:14px;color:#3d3425;\">{$safeIp}</p>"
             . '</td></tr>'
-            . '<tr><td style="padding:12px 16px;background:#f5f0e8;border-left:3px solid #c9a84c;border-top:1px solid #ede8df;">'
-            . '<p style="margin:0 0 6px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8a7a60;">Date</p>'
+            . '<tr><td style="padding:12px 16px;background:#f5f0e8;'
+            . 'border-left:3px solid #c9a84c;border-top:1px solid #ede8df;">'
+            . '<p style="margin:0 0 6px;font-size:11px;letter-spacing:2px;'
+            . 'text-transform:uppercase;color:#8a7a60;">Date</p>'
             . "<p style=\"margin:0;font-size:14px;color:#3d3425;\">{$safeDate}</p>"
             . '</td></tr>'
             . '</table>';
 
         $manageLabel   = $lang === 'fr' ? 'Gérer mes sessions' : 'Manage my sessions';
         $confirmLabel  = $lang === 'fr' ? 'Confirmer cet appareil' : 'Confirm this device';
-        $cancelLabel   = $lang === 'fr' ? 'Ce n\'était pas moi — Annuler cette tentative' : 'This wasn\'t me — Cancel this attempt';
+        $cancelLabel   = $lang === 'fr'
+            ? 'Ce n\'était pas moi — Annuler cette tentative'
+            : 'This wasn\'t me — Cancel this attempt';
         $confirmBlock  = $confirmUrl !== ''
             ? '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
@@ -403,9 +411,12 @@ INNER;
         $tableHtml = "<table style=\"width:100%;border-collapse:collapse;margin-top:12px;\">"
             . "<thead><tr style=\"background:#f5f0e8;\">"
             . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Vin</th>"
-            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Format</th>"
-            . "<th style=\"padding:6px 8px;text-align:center;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Qté</th>"
-            . "<th style=\"padding:6px 8px;text-align:right;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Prix unit.</th>"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;"
+            . "letter-spacing:1px;color:#8a7a60;\">Format</th>"
+            . "<th style=\"padding:6px 8px;text-align:center;font-size:11px;"
+            . "letter-spacing:1px;color:#8a7a60;\">Qté</th>"
+            . "<th style=\"padding:6px 8px;text-align:right;font-size:11px;"
+            . "letter-spacing:1px;color:#8a7a60;\">Prix unit.</th>"
             . "</tr></thead><tbody>{$rows}</tbody></table>";
 
         $orderLinkBlock = $orderLink !== ''
@@ -463,8 +474,10 @@ INNER;
             . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">"
             . ($lang === 'fr' ? 'Vin' : 'Wine')
             . "</th>"
-            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Format</th>"
-            . "<th style=\"padding:6px 8px;text-align:center;font-size:11px;letter-spacing:1px;color:#8a7a60;\">"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;"
+            . "letter-spacing:1px;color:#8a7a60;\">Format</th>"
+            . "<th style=\"padding:6px 8px;text-align:center;font-size:11px;"
+            . "letter-spacing:1px;color:#8a7a60;\">"
             . ($lang === 'fr' ? 'Qté' : 'Qty')
             . "</th>"
             . "<th style=\"padding:6px 8px;text-align:right;font-size:11px;letter-spacing:1px;color:#8a7a60;\">"
@@ -483,7 +496,8 @@ INNER;
             $orderLinkBlock = $orderLink !== ''
                 ? "<br><br><a href=\"{$orderLink}\" style=\"color:#c9a84c;\">Voir ma commande</a>"
                 : '';
-            $message = "Votre demande de rétractation pour la commande <strong>{$safeRef}</strong> (passée le {$orderedAt})"
+            $message = "Votre demande de rétractation pour la commande <strong>{$safeRef}</strong>"
+                . " (passée le {$orderedAt})"
                 . " a bien été enregistrée.<br><br>"
                 . "Vous trouverez ci-joint votre fiche de retour à inclure dans votre colis."
                 . " Le retour doit être effectué en carton d'origine scellé, bouteilles non ouvertes."
