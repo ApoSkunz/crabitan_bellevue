@@ -1,7 +1,8 @@
 <?php require_once SRC_PATH . '/View/admin/_open.php'; ?>
 
 <?php
-$totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
+$totalPages  = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
+$cssDisabled = ' disabled';
 ?>
 
 <?php if ($flash ?? null) : ?>
@@ -180,8 +181,8 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
     $hpp = ($historyPerPage ?? 10) !== 10 ? '&hperpage=' . (int) ($historyPerPage ?? 10) : '';
     if (($historyPages ?? 1) > 1) : ?>
         <?php
-        $disabledPrev = $historyPage <= 1 ? ' disabled' : '';
-        $disabledNext = $historyPage >= $historyPages ? ' disabled' : '';
+        $disabledPrev = $historyPage <= 1 ? $cssDisabled : '';
+        $disabledNext = $historyPage >= $historyPages ? $cssDisabled : '';
         ?>
         <div class="admin-pagination">
             <a href="?hpage=<?= max(1, $historyPage - 1) ?><?= $hpp ?>"
@@ -244,13 +245,13 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
     <?php if ($totalPages > 1) : ?>
         <div class="admin-pagination">
             <a href="?page=<?= max(1, $page - 1) ?>"
-               class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>">‹</a>
+               class="admin-pagination__item<?= $page <= 1 ? $cssDisabled : '' ?>">‹</a>
             <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
                 <a href="?page=<?= $i ?>"
                    class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"><?= $i ?></a>
             <?php endfor; ?>
             <a href="?page=<?= min($totalPages, $page + 1) ?>"
-               class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>">›</a>
+               class="admin-pagination__item<?= $page >= $totalPages ? $cssDisabled : '' ?>">›</a>
         </div>
     <?php endif; ?>
 </div>

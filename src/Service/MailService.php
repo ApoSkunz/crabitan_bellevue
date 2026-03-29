@@ -7,8 +7,7 @@ namespace Service;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// NOSONAR — S1448: newOrderFormModel/newMailService sont des seams de testabilité, pas de la logique métier
-class MailService
+class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
 {
     private const BTN_STYLE_PRIMARY = 'font-family:Georgia,serif;font-size:14px;'
         . 'letter-spacing:2px;text-transform:uppercase;';

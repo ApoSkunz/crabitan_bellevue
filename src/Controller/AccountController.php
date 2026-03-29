@@ -16,8 +16,7 @@ use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
 use Model\OrderModel;
 
-// NOSONAR php:S1448 — regroupement intentionnel ; découpage prévu à l'audit génie logiciel
-class AccountController extends Controller
+class AccountController extends Controller // NOSONAR — php:S1448 : regroupement intentionnel ; découpage prévu à l'audit génie logiciel
 {
     private const PER_PAGE          = 10;
     private const VALID_PER_PAGES   = [10, 25, 50];
