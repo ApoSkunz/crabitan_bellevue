@@ -16,15 +16,53 @@ use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
 use Service\MailService;
 use Service\PasswordValidator;
+use Service\RateLimiterService;
 
+/**
+ * Gère l'authentification des utilisateurs : connexion, déconnexion,
+ * inscription, vérification d'email et réinitialisation de mot de passe.
+ *
+ * Intègre un rate limiting par IP sur les routes POST sensibles (R1/R2)
+ * ainsi qu'un lockout de compte après 5 échecs consécutifs (BT2).
+ */
 class AuthController extends Controller
 {
+    /** Fenêtre de rate limiting pour la connexion et l'inscription (15 min). */
+    private const WINDOW_LOGIN    = 900;
+
+    /** Fenêtre de rate limiting pour mot-de-passe oublié (15 min). */
+    private const WINDOW_FORGOT   = 900;
+
+    /** Fenêtre de rate limiting pour l'inscription (1 heure). */
+    private const WINDOW_REGISTER = 3600;
+
+    /** Nombre maximum de tentatives de connexion par IP par fenêtre. */
+    private const MAX_LOGIN_IP    = 5;
+
+    /** Nombre maximum de demandes mot-de-passe oublié par IP par fenêtre. */
+    private const MAX_FORGOT_IP   = 3;
+
+    /** Nombre maximum d'inscriptions par IP par fenêtre. */
+    private const MAX_REGISTER_IP = 5;
+
+    /** Nombre max d'échecs consécutifs avant lockout du compte (BT2). */
+    private const MAX_ACCOUNT_FAILURES = 5;
+
+    /** Durée du lockout compte en secondes (15 min). */
+    private const ACCOUNT_LOCKOUT_WINDOW = 900;
+
     private AccountModel $accounts;
     private PasswordResetModel $resets;
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
     private DeviceConfirmTokenModel $deviceConfirmTokens;
+    private RateLimiterService $rateLimiter;
 
+    /**
+     * Initialise les dépendances du contrôleur.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
@@ -33,6 +71,7 @@ class AuthController extends Controller
         $this->connections         = new ConnectionModel();
         $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
         $this->trustedDevices      = new TrustedDeviceModel();
+        $this->rateLimiter         = new RateLimiterService();
     }
 
     // ----------------------------------------------------------------
@@ -42,8 +81,13 @@ class AuthController extends Controller
     /**
      * Authentifie un utilisateur et pose le cookie JWT.
      *
+     * Applique deux niveaux de rate limiting :
+     *   - R1 : max 5 tentatives par IP par 15 minutes
+     *   - BT2 : lockout du compte après 5 échecs consécutifs (15 min)
+     *
      * Si la case "Se souvenir de moi" est cochée, le JWT et le cookie
-     * ont une durée de vie de 30 jours ; sinon, le cookie est de session.
+     * ont une durée de vie de 30 jours ; sinon, le cookie expire après 24 h
+     * (86 400 s) et le JWT conserve son TTL court défini par JWT_EXPIRY.
      *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
@@ -62,19 +106,50 @@ class AuthController extends Controller
             Response::redirect($safeBack);
         }
 
+        // R1 — Rate limiting par IP
+        $ip      = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $ipKey   = 'login:' . $ip;
+        if (!$this->rateLimiter->checkLimit($ipKey, self::MAX_LOGIN_IP, self::WINDOW_LOGIN)) {
+            $wait = (int) ceil($this->rateLimiter->getRetryAfter($ipKey) / 60);
+            $this->flash('modal_error', sprintf(__('auth.too_many_attempts'), max(1, $wait)));
+            Response::redirect($safeBack);
+        }
+
         $email    = strtolower(trim($this->request->post('email', '')));
         $password = $this->request->post('password', '');
         $account  = $this->accounts->findByEmail($email);
 
+        // BT2 — Vérifier lockout du compte (avant password_verify pour éviter timing oracle)
+        if ($account) {
+            $accountKey = 'account_lockout:' . (int) $account['id'];
+            if (!$this->rateLimiter->checkLimit($accountKey, self::MAX_ACCOUNT_FAILURES, self::ACCOUNT_LOCKOUT_WINDOW)) {
+                $wait = (int) ceil($this->rateLimiter->getRetryAfter($accountKey) / 60);
+                $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
+                $this->flash('modal_error', sprintf(__('auth.account_locked'), max(1, $wait)));
+                Response::redirect($safeBack);
+            }
+        }
+
         if (!$account || $account['password'] === null || !password_verify($password, $account['password'])) {
+            // Enregistrer la tentative IP et, si le compte existe, la tentative sur le compte
+            $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
+            if ($account) {
+                $accountKey = 'account_lockout:' . (int) $account['id'];
+                $this->rateLimiter->recordAttempt($accountKey, self::ACCOUNT_LOCKOUT_WINDOW);
+            }
             $this->flash('modal_error', __('auth.invalid_credentials'));
             Response::redirect($safeBack);
         }
 
         if (!$account['email_verified_at']) {
+            $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
             $this->flash('modal_error', __('auth.account_inactive'));
             Response::redirect($safeBack);
         }
+
+        // Connexion réussie — réinitialiser les compteurs
+        $this->rateLimiter->reset($ipKey);
+        $this->rateLimiter->reset('account_lockout:' . (int) $account['id']);
 
         $deviceToken = $this->resolveDeviceToken();
 
@@ -91,11 +166,12 @@ class AuthController extends Controller
         }
 
         // Appareil connu ou de confiance : émission du JWT et connexion immédiate.
-        $rememberMe = $this->request->post('remember_me', '') === '1';
-        $expiry     = $rememberMe ? (30 * 24 * 3600) : (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
-        $token      = Jwt::generate((int) $account['id'], $account['role'], $expiry);
+        $rememberMe   = $this->request->post('remember_me', '') === '1';
+        $jwtExpiry    = $rememberMe ? (30 * 24 * 3600) : (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+        $cookieExpiry = $rememberMe ? $jwtExpiry : 86400;
+        $token        = Jwt::generate((int) $account['id'], $account['role'], $jwtExpiry);
 
-        CookieHelper::set($token, $rememberMe ? $expiry : 0);
+        CookieHelper::set($token, $cookieExpiry);
 
         if ($account['lang'] !== $lang) {
             $this->accounts->updateLang((int) $account['id'], $lang);
@@ -109,7 +185,7 @@ class AuthController extends Controller
             $ua,
             $deviceName,
             'password',
-            $expiry
+            $jwtExpiry
         );
 
         if ($isFirstEverLogin) {
@@ -126,6 +202,12 @@ class AuthController extends Controller
     // GET /{lang}/deconnexion
     // ----------------------------------------------------------------
 
+    /**
+     * Déconnecte l'utilisateur : révoque le JWT et efface le cookie.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function logout(array $params): void
     {
         $token = $_COOKIE['auth_token'] ?? null;
@@ -142,6 +224,14 @@ class AuthController extends Controller
     // POST /{lang}/inscription
     // ----------------------------------------------------------------
 
+    /**
+     * Crée un nouveau compte utilisateur et envoie l'email de vérification.
+     *
+     * Applique un rate limiting R2 : max 5 inscriptions par IP par heure.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function register(array $params): void
     {
         GuestMiddleware::handle();
@@ -149,6 +239,15 @@ class AuthController extends Controller
 
         if (!$this->verifyCsrf()) {
             $this->flash('modal_error', __('error.csrf'));
+            Response::redirect("/{$lang}");
+        }
+
+        // R2 — Rate limiting inscription par IP
+        $ip        = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $registerKey = 'register:' . $ip;
+        if (!$this->rateLimiter->checkLimit($registerKey, self::MAX_REGISTER_IP, self::WINDOW_REGISTER)) {
+            $wait = (int) ceil($this->rateLimiter->getRetryAfter($registerKey) / 60);
+            $this->flash('modal_error', sprintf(__('auth.too_many_registrations'), max(1, $wait)));
             Response::redirect("/{$lang}");
         }
 
@@ -180,11 +279,15 @@ class AuthController extends Controller
             Response::redirect("/{$lang}");
         }
 
+        // Anti-énumération (R5) : si l'email est déjà pris, on affiche le même message de
+        // confirmation générique qu'une inscription réussie. Aucun email n'est envoyé.
         if ($this->accounts->findByEmail($email)) {
-            $_SESSION['flash']['register_errors'] = ['email' => __('auth.email_taken')];
-            $_SESSION['flash']['register_old']    = $old;
+            $this->flash('info', __('auth.register_success'));
             Response::redirect("/{$lang}");
         }
+
+        // Enregistrer la tentative d'inscription (après validation pour ne pas comptabiliser les bots)
+        $this->rateLimiter->recordAttempt($registerKey, self::WINDOW_REGISTER);
 
         $verificationToken = bin2hex(random_bytes(32));
         $displayName       = $accountType === 'company' ? $company : "{$firstname} {$lastname}";
@@ -208,7 +311,7 @@ class AuthController extends Controller
             $mail = new MailService();
             $mail->sendEmailVerification($email, $displayName, $verifyUrl, $lang);
         } catch (\Throwable $e) {
-            error_log('Mail verification error: ' . $e->getMessage());
+            error_log('Mail verification error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
         }
 
         $this->flash('info', __('auth.register_success'));
@@ -219,6 +322,12 @@ class AuthController extends Controller
     // GET /{lang}/verification/{token}
     // ----------------------------------------------------------------
 
+    /**
+     * Vérifie l'email via le token de confirmation.
+     *
+     * @param array<string, string> $params Paramètres de route (lang, token)
+     * @return void
+     */
     public function verifyEmail(array $params): void
     {
         $lang    = $params['lang'];
@@ -252,6 +361,12 @@ class AuthController extends Controller
     // GET /{lang}/mot-de-passe-oublie
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche le formulaire mot-de-passe oublié (redirige vers la page d'accueil).
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function forgotForm(array $params): void
     {
         GuestMiddleware::handle();
@@ -262,6 +377,15 @@ class AuthController extends Controller
     // POST /{lang}/mot-de-passe-oublie
     // ----------------------------------------------------------------
 
+    /**
+     * Traite la demande de réinitialisation de mot de passe.
+     *
+     * Applique un rate limiting R1 : max 3 demandes par IP par 15 minutes.
+     * Affiche toujours un message de succès (anti-énumération d'email).
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function forgot(array $params): void
     {
         GuestMiddleware::handle();
@@ -270,6 +394,17 @@ class AuthController extends Controller
         if (!$this->verifyCsrf()) {
             Response::redirect("/{$lang}/mot-de-passe-oublie");
         }
+
+        // R1 — Rate limiting mot-de-passe oublié par IP
+        $ip        = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $forgotKey = 'forgot:' . $ip;
+        if (!$this->rateLimiter->checkLimit($forgotKey, self::MAX_FORGOT_IP, self::WINDOW_FORGOT)) {
+            $wait = (int) ceil($this->rateLimiter->getRetryAfter($forgotKey) / 60);
+            $this->flash('modal_error', sprintf(__('auth.too_many_reset_requests'), max(1, $wait)));
+            Response::redirect("/{$lang}");
+        }
+
+        $this->rateLimiter->recordAttempt($forgotKey, self::WINDOW_FORGOT);
 
         $email   = strtolower(trim($this->request->post('email', '')));
         $account = $this->accounts->findByEmail($email);
@@ -294,7 +429,7 @@ class AuthController extends Controller
                     $lang
                 );
             } catch (\Throwable $e) {
-                error_log('Mail reset error: ' . $e->getMessage());
+                error_log('Mail reset error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
             }
         }
 
@@ -305,6 +440,12 @@ class AuthController extends Controller
     // GET /{lang}/reinitialisation/{token}
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche le formulaire de réinitialisation de mot de passe.
+     *
+     * @param array<string, string> $params Paramètres de route (lang, token)
+     * @return void
+     */
     public function resetForm(array $params): void
     {
         $lang  = $params['lang'];
@@ -324,6 +465,12 @@ class AuthController extends Controller
     // POST /{lang}/reinitialisation/{token}
     // ----------------------------------------------------------------
 
+    /**
+     * Traite la réinitialisation du mot de passe.
+     *
+     * @param array<string, string> $params Paramètres de route (lang, token)
+     * @return void
+     */
     public function reset(array $params): void
     {
         $lang  = $params['lang'];
@@ -343,8 +490,10 @@ class AuthController extends Controller
         $password = $this->request->post('password', '');
         $confirm  = $this->request->post('password_confirm', '');
 
-        if (!PasswordValidator::isStrong($password)) {
-            $_SESSION['reset_modal'] = ['token' => $token, 'valid' => true, 'error' => __('auth.password_too_weak')];
+        $pwErrors = PasswordValidator::getErrors($password);
+        if ($pwErrors !== []) {
+            $errorMessages = implode(' ', array_map('__', $pwErrors));
+            $_SESSION['reset_modal'] = ['token' => $token, 'valid' => true, 'error' => $errorMessages];
             Response::redirect("/{$lang}?modal=reset");
         }
 
@@ -365,6 +514,19 @@ class AuthController extends Controller
     // Helpers privés
     // ----------------------------------------------------------------
 
+    /**
+     * Valide les champs du formulaire d'inscription.
+     *
+     * @param string $accountType  Type de compte (individual|company)
+     * @param string $email        Adresse email
+     * @param string $password     Mot de passe
+     * @param string $confirm      Confirmation du mot de passe
+     * @param string $civility     Civilité (M|F|other)
+     * @param string $lastname     Nom de famille
+     * @param string $firstname    Prénom
+     * @param string $company      Nom de l'entreprise
+     * @return array<string, string> Tableau d'erreurs indexé par champ (vide si valide)
+     */
     private function validateRegister(
         string $accountType,
         string $email,
@@ -383,8 +545,9 @@ class AuthController extends Controller
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = __('validation.email');
         }
-        if (!PasswordValidator::isStrong($password)) {
-            $errors['password'] = __('auth.password_too_weak');
+        $pwErrors = PasswordValidator::getErrors($password);
+        if ($pwErrors !== []) {
+            $errors['password'] = implode(' ', array_map('__', $pwErrors));
         }
         if ($password !== $confirm) {
             $errors['password_confirm'] = __('validation.password_match');
@@ -407,6 +570,12 @@ class AuthController extends Controller
         return $errors;
     }
 
+    /**
+     * Dérive un nom lisible depuis la chaîne User-Agent.
+     *
+     * @param string $ua Chaîne User-Agent
+     * @return string Nom du navigateur et du système (ex. "Chrome · Windows")
+     */
     private function deriveDeviceName(string $ua): string
     {
         $browser = match (true) {
@@ -427,12 +596,24 @@ class AuthController extends Controller
         return "{$browser} · {$os}";
     }
 
+    /**
+     * Vérifie la validité du token CSRF.
+     *
+     * @return bool True si le token est valide
+     */
     private function verifyCsrf(): bool
     {
         $token = $this->request->post('csrf_token', '');
         return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
     }
 
+    /**
+     * Ajoute un message flash en session.
+     *
+     * @param string $key     Clé du message (ex. "modal_error", "info")
+     * @param string $message Contenu du message
+     * @return void
+     */
     private function flash(string $key, string $message): void
     {
         $_SESSION['flash'][$key] = $message;
@@ -440,6 +621,8 @@ class AuthController extends Controller
 
     /**
      * Retourne le device token existant depuis le cookie, ou en génère un nouveau.
+     *
+     * @return string Token de 64 caractères hexadécimaux
      */
     private function resolveDeviceToken(): string
     {
@@ -461,7 +644,12 @@ class AuthController extends Controller
     /**
      * Crée un token de confirmation appareil, envoie l'email MFA et redirige.
      *
-     * @param array<string, mixed> $account
+     * @param array<string, mixed> $account     Données du compte utilisateur
+     * @param string               $deviceToken Token de l'appareil
+     * @param string               $deviceName  Nom lisible de l'appareil
+     * @param string               $lang        Langue courante
+     * @param string               $safeBack    URL de redirection après confirmation
+     * @return void
      */
     private function handleUntrustedDevice(
         array $account,
@@ -494,7 +682,7 @@ class AuthController extends Controller
                 $confirmToken
             );
         } catch (\Throwable $e) {
-            error_log('Mail new device alert error: ' . $e->getMessage());
+            error_log('Mail new device alert error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
         }
 
         $_SESSION['pending_device'] = [
