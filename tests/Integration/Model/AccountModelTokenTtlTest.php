@@ -207,8 +207,12 @@ class AccountModelTokenTtlTest extends IntegrationTestCase
         );
 
         $this->assertIsArray($row);
-        $this->assertEqualsWithDelta(86400, (int) $row['delta'], 120,
-            'email_verification_token_expires_at devrait être à NOW() + 24H (±120 s)');
+        $this->assertEqualsWithDelta(
+            86400,
+            (int) $row['delta'],
+            120,
+            'email_verification_token_expires_at devrait être à NOW() + 24H (±120 s)'
+        );
     }
 
     /**
@@ -239,8 +243,12 @@ class AccountModelTokenTtlTest extends IntegrationTestCase
         );
 
         $this->assertIsArray($row);
-        $this->assertEqualsWithDelta(86400, (int) $row['delta'], 120,
-            'email_verification_token_expires_at doit être à NOW() + 24H pour un compte company');
+        $this->assertEqualsWithDelta(
+            86400,
+            (int) $row['delta'],
+            120,
+            'email_verification_token_expires_at doit être à NOW() + 24H pour un compte company'
+        );
     }
 
     // ----------------------------------------------------------------
@@ -280,12 +288,18 @@ class AccountModelTokenTtlTest extends IntegrationTestCase
         );
 
         $this->assertIsArray($row);
-        $this->assertNull($row['email_verification_token'],
-            'email_verification_token doit être NULL après vérification');
-        $this->assertNull($row['email_verification_token_expires_at'],
-            'email_verification_token_expires_at doit être NULL après vérification');
-        $this->assertNotNull($row['email_verified_at'],
-            'email_verified_at doit être défini après vérification');
+        $this->assertNull(
+            $row['email_verification_token'],
+            'email_verification_token doit être NULL après vérification'
+        );
+        $this->assertNull(
+            $row['email_verification_token_expires_at'],
+            'email_verification_token_expires_at doit être NULL après vérification'
+        );
+        $this->assertNotNull(
+            $row['email_verified_at'],
+            'email_verified_at doit être défini après vérification'
+        );
     }
 
     // ----------------------------------------------------------------
@@ -317,15 +331,19 @@ class AccountModelTokenTtlTest extends IntegrationTestCase
 
         // Vérifie que le token fonctionne avant consommation
         $before = $this->model->findByVerificationToken($verificationToken);
-        $this->assertIsArray($before,
-            'Le token doit être valide avant verifyEmail()');
+        $this->assertIsArray(
+            $before,
+            'Le token doit être valide avant verifyEmail()'
+        );
 
         $this->model->verifyEmail((int) $id);
 
         // Après consommation, le token ne doit plus fonctionner
         $after = $this->model->findByVerificationToken($verificationToken);
-        $this->assertFalse($after,
-            'findByVerificationToken doit retourner false après verifyEmail()');
+        $this->assertFalse(
+            $after,
+            'findByVerificationToken doit retourner false après verifyEmail()'
+        );
     }
 
     // ----------------------------------------------------------------
