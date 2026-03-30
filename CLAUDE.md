@@ -132,6 +132,19 @@ Exemples non exhaustifs : `BACKLOG/`, `.env`, `vendor/`, `node_modules/`, fichie
 
 ## Workflow
 
+### 0. Avant de commencer une US — validation PO obligatoire
+
+Avant toute implémentation, **demander explicitement la validation d'Alexandre** :
+
+> "Je m'apprête à implémenter `us-{sujet}` (priorité X, estimation Y).
+> Tu confirmes que c'est bien la prochaine à traiter, ou tu veux réorienter ?"
+
+**Pourquoi :** certaines US du backlog peuvent devenir obsolètes, être déprioritisées, ou remplacées par un besoin plus urgent détecté en cours de sprint. Claude ne démarre jamais une US de sa propre initiative sans ce feu vert explicite.
+
+**Exceptions** (pas de consultation requise) :
+- Corrections de sécurité identifiées sur du code existant (vecteur exploitable immédiatement)
+- Corrections de syntaxe / linter / tests cassés bloquant la CI
+
 ### 1. Méthode TDD — Red → Green → Refactor
 
 Toute nouvelle logique métier (service, model, controller) est développée en **TDD strict** :
