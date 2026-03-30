@@ -260,11 +260,19 @@ Ces règles ne souffrent **aucune exception** :
 
 Le backlog est géré localement dans `BACKLOG/` (gitignored). Le PDF complet est générable via `php BACKLOG/scripts/generate_backlog_pdf.php`.
 
+> Le PDF intègre automatiquement (dans l'ordre) :
+> 1. Page de couverture
+> 2. **Tableau de bord** — avancement global + détail par EPIC (critères IA Claude / PO / E2E / Recette)
+> 3. Contenu complet du backlog (EPICs → Features/Enablers → US)
+> 4. **Plan de priorisation** (`PRIORISATION.md`) — sprints ordonnés par urgence légale · risque sécurité · valeur métier
+
 ### Structure
 
 ```
 BACKLOG/
   README.md                        ← synthèse macro tous EPICs
+  PRIORISATION.md                  ← plan de priorisation par sprints (mis à jour à chaque audit)
+  AUDIT_BACKLOG_[date].md          ← rapport d'audit multi-experts (archivé, non regénéré)
   scripts/                         ← outils locaux (generate_backlog_pdf.php…)
   EPIC-{nom}/
     README.md                      ← objectif, périmètre, suivi 4 colonnes par feature
@@ -275,6 +283,14 @@ BACKLOG/
       README.md                    ← contexte technique, suivi 4 colonnes par US
       us-{sujet}.md                ← tâche technique découpée
 ```
+
+### Mise à jour de `PRIORISATION.md`
+
+**Quand mettre à jour :** après chaque audit multi-experts ou à chaque sprint si des US changent de priorité.
+
+**Qui met à jour :** Claude (IA) — analyse croisée Expert Juridique · Expert RGPD · Expert Red Team · DevSecOps.
+
+**Règle :** les US passées à `✅ Fait` dans la colonne 🤖 doivent être retirées de `PRIORISATION.md`. Les nouvelles US Must identifiées lors d'un audit doivent y être ajoutées immédiatement.
 
 ### Colonnes de suivi d'avancement
 
