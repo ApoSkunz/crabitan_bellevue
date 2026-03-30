@@ -9,6 +9,7 @@ use PHPMailer\PHPMailer\Exception;
 
 class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
 {
+    private const PATH_SECURITY     = self::PATH_SECURITY;
     private const BTN_STYLE_PRIMARY = 'font-family:Georgia,serif;font-size:14px;'
         . 'letter-spacing:2px;text-transform:uppercase;';
     private const BTN_STYLE_LINK    = 'color:#1a1208;text-decoration:none;font-weight:bold;">';
@@ -355,7 +356,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
             : 'Your password has been changed';
 
         $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
-        $securityUrl = htmlspecialchars($appUrl . '/' . $lang . '/mon-compte/securite', ENT_QUOTES);
+        $securityUrl = htmlspecialchars($appUrl . '/' . $lang . self::PATH_SECURITY, ENT_QUOTES);
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
         $safeDate    = htmlspecialchars(date('d/m/Y à H:i'), ENT_QUOTES);
         $contactUrl  = htmlspecialchars($appUrl . '/' . $lang . '/contact', ENT_QUOTES);
@@ -415,8 +416,8 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
                 $appUrl . '/' . $lang . '/mon-compte/appareil/annuler?token=' . urlencode($deviceToken),
                 ENT_QUOTES
             )
-            : htmlspecialchars($appUrl . '/' . $lang . '/mon-compte/securite', ENT_QUOTES);
-        $securityUrl = htmlspecialchars($appUrl . '/' . $lang . '/mon-compte/securite', ENT_QUOTES);
+            : htmlspecialchars($appUrl . '/' . $lang . self::PATH_SECURITY, ENT_QUOTES);
+        $securityUrl = htmlspecialchars($appUrl . '/' . $lang . self::PATH_SECURITY, ENT_QUOTES);
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
         $safeDevice  = htmlspecialchars($deviceName, ENT_QUOTES);
         $safeIp      = htmlspecialchars($ipAddress ?? 'N/A', ENT_QUOTES);

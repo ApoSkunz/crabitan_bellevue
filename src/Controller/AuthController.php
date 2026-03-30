@@ -131,12 +131,7 @@ class AuthController extends Controller
         }
 
         if (!$account || $account['password'] === null || !password_verify($password, $account['password'])) {
-            // Enregistrer la tentative IP et, si le compte existe, la tentative sur le compte
-            $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
-            if ($account) {
-                $accountKey = 'account_lockout:' . (int) $account['id'];
-                $this->rateLimiter->recordAttempt($accountKey, self::ACCOUNT_LOCKOUT_WINDOW);
-            }
+            $this->recordLoginFailure($ipKey, $account);
             $this->flash('modal_error', __('auth.invalid_credentials'));
             Response::redirect($safeBack);
         }
@@ -188,12 +183,7 @@ class AuthController extends Controller
             $jwtExpiry
         );
 
-        if ($isFirstEverLogin) {
-            $this->accounts->markAsConnected((int) $account['id']);
-            $this->trustedDevices->trust((int) $account['id'], $deviceToken, $deviceName);
-        } elseif ($isAlreadyTrusted) {
-            $this->trustedDevices->updateLastSeen((int) $account['id'], $deviceToken);
-        }
+        $this->updateDeviceTrust((int) $account['id'], $deviceToken, $deviceName, $isFirstEverLogin, $isAlreadyTrusted);
 
         Response::redirect($safeBack);
     }
@@ -639,6 +629,47 @@ class AuthController extends Controller
             'samesite' => 'Lax',
         ]);
         return $token;
+    }
+
+    /**
+     * Enregistre un échec de connexion sur le bucket IP et, si le compte existe, sur le bucket compte.
+     *
+     * @param string       $ipKey   Clé de rate limiting de l'IP
+     * @param array|false  $account Données du compte (false si inconnu)
+     * @return void
+     */
+    private function recordLoginFailure(string $ipKey, array|false $account): void
+    {
+        $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
+        if ($account) {
+            $accountKey = 'account_lockout:' . (int) $account['id'];
+            $this->rateLimiter->recordAttempt($accountKey, self::ACCOUNT_LOCKOUT_WINDOW);
+        }
+    }
+
+    /**
+     * Met à jour la confiance de l'appareil après une connexion réussie.
+     *
+     * @param int    $accountId         Identifiant du compte
+     * @param string $deviceToken       Token de l'appareil
+     * @param string $deviceName        Nom lisible de l'appareil
+     * @param bool   $isFirstEverLogin  Première connexion du compte
+     * @param bool   $isAlreadyTrusted  Appareil déjà de confiance
+     * @return void
+     */
+    private function updateDeviceTrust(
+        int $accountId,
+        string $deviceToken,
+        string $deviceName,
+        bool $isFirstEverLogin,
+        bool $isAlreadyTrusted
+    ): void {
+        if ($isFirstEverLogin) {
+            $this->accounts->markAsConnected($accountId);
+            $this->trustedDevices->trust($accountId, $deviceToken, $deviceName);
+        } elseif ($isAlreadyTrusted) {
+            $this->trustedDevices->updateLastSeen($accountId, $deviceToken);
+        }
     }
 
     /**

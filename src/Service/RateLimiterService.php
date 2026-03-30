@@ -19,7 +19,9 @@ namespace Service;
  */
 class RateLimiterService
 {
-    private const PREFIX = 'rl:';
+    private const PREFIX       = 'rl:';
+    private const SUFFIX_COUNT = ':count';
+    private const SUFFIX_UNTIL = ':until';
 
     /**
      * Vérifie si la clé est actuellement bloquée ou si elle a dépassé le seuil.
@@ -33,15 +35,15 @@ class RateLimiterService
      */
     public function checkLimit(string $key, int $maxAttempts, int $windowSeconds): bool
     {
-        $until = $this->get($key . ':until', 0);
+        $until = $this->get($key . self::SUFFIX_UNTIL, 0);
         if ($until > time()) {
             return false;
         }
 
-        $count = $this->get($key . ':count', 0);
+        $count = $this->get($key . self::SUFFIX_COUNT, 0);
         if ($count >= $maxAttempts) {
             // Le lockout n'est pas encore posé : on le pose maintenant
-            $this->set($key . ':until', time() + $windowSeconds, $windowSeconds + 60);
+            $this->set($key . self::SUFFIX_UNTIL, time() + $windowSeconds, $windowSeconds + 60);
             return false;
         }
 
@@ -61,8 +63,8 @@ class RateLimiterService
      */
     public function recordAttempt(string $key, int $windowSeconds): void
     {
-        $count = $this->get($key . ':count', 0);
-        $this->set($key . ':count', $count + 1, $windowSeconds);
+        $count = $this->get($key . self::SUFFIX_COUNT, 0);
+        $this->set($key . self::SUFFIX_COUNT, $count + 1, $windowSeconds);
     }
 
     /**
@@ -73,8 +75,8 @@ class RateLimiterService
      */
     public function reset(string $key): void
     {
-        $this->delete($key . ':count');
-        $this->delete($key . ':until');
+        $this->delete($key . self::SUFFIX_COUNT);
+        $this->delete($key . self::SUFFIX_UNTIL);
     }
 
     /**
@@ -87,7 +89,7 @@ class RateLimiterService
      */
     public function getRetryAfter(string $key): int
     {
-        $until = $this->get($key . ':until', 0);
+        $until = $this->get($key . self::SUFFIX_UNTIL, 0);
         return max(0, $until - time());
     }
 
