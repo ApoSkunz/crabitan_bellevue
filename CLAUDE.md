@@ -262,7 +262,7 @@ Chaque README contient un tableau avec 4 colonnes :
 | 🤖 Claude | Claude IA | Implémenté et fonctionnel selon l'auto-évaluation |
 | ✅ PO | Alexandre | Recette métier validée par le PO |
 | 🎭 E2E | Expert QA | Tests Playwright couvrant nominal + erreur |
-| 🚀 Livré | DevSecOps | Mergé sur main, déployable en production |
+| 🚀 Recette Release | DevSecOps | Mergé sur main, déployable en production |
 
 États : `✅ Fait` · `🔄 En cours` · `⬜ À faire` · `❌ Bloqué`
 
