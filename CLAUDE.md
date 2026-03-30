@@ -195,17 +195,23 @@ Ne séquencer que ce qui dépend du résultat d'une étape précédente.
 
 ### 4. Branches
 
-Convention de nommage :
+**Règle principale : une branche par US.**
 
-| Préfixe | Usage |
-|---|---|
-| `feat/` | Nouvelle fonctionnalité |
-| `fix/` | Correction de bug |
-| `refactor/` | Refactoring sans changement de comportement |
-| `chore/` | Maintenance, CI, dépendances, config |
-| `docs/` | Documentation uniquement |
+Le nom de branche est dérivé du nom du fichier `us-{sujet}.md` :
 
-Une branche = un sujet. Ne jamais travailler directement sur `main`.
+| Préfixe | Usage | Exemple |
+|---|---|---|
+| `feat/` | Nouvelle fonctionnalité (US fonctionnelle) | `feat/us-declaration-majorite` |
+| `fix/` | Correction de bug | `fix/us-connexion-csrf` |
+| `refactor/` | Refactoring sans changement de comportement | `refactor/us-password-service` |
+| `chore/` | Maintenance, CI, dépendances, config | `chore/us-composer-npm-audit-ci` |
+| `docs/` | Documentation uniquement | `docs/us-mentions-legales-lcen` |
+
+**Règles d'application :**
+- Claude crée systématiquement une nouvelle branche avant toute implémentation d'US : `git checkout -b feat/us-{sujet}`
+- Jamais de travail directement sur `main`
+- Une branche = une US = une PR (sauf US triviales type `docs/` ou `chore/` qui peuvent être regroupées)
+- Le nom de branche correspond exactement au slug du fichier `us-*.md` associé
 
 ### 5. Commits
 
