@@ -100,7 +100,7 @@ class RateLimiterService
      */
     public function isApcuAvailable(): bool
     {
-        return function_exists('apcu_fetch') && ini_get('apc.enabled');
+        return function_exists('apcu_enabled') && apcu_enabled();
     }
 
     // ----------------------------------------------------------------
