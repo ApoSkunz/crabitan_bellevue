@@ -29,10 +29,14 @@ class AuthForgotResetTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $_COOKIE  = [];
         $_SESSION = [
-            'csrf' => self::CSRF,
-            '_rl'  => [],
+            'csrf'    => self::CSRF,
+            '_rl'     => [],
+            '_rl_ttl' => [],
         ];
         $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit/Test';
         $_SERVER['REMOTE_ADDR']     = '127.0.0.1';

@@ -37,11 +37,23 @@ class AccountModelTokenTtlTest extends IntegrationTestCase
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
-        self::$db->execute(
-            "ALTER TABLE accounts ADD COLUMN IF NOT EXISTS
-             email_verification_token_expires_at DATETIME DEFAULT NULL
-             AFTER email_verification_token"
+
+        // MySQL 8 ne supporte pas IF NOT EXISTS sur ADD COLUMN — on vérifie manuellement.
+        $col = self::$db->fetchOne(
+            "SELECT COUNT(*) AS cnt
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME   = 'accounts'
+               AND COLUMN_NAME  = 'email_verification_token_expires_at'"
         );
+
+        if ((int) ($col['cnt'] ?? 0) === 0) {
+            self::$db->execute(
+                "ALTER TABLE accounts ADD COLUMN
+                 email_verification_token_expires_at DATETIME DEFAULT NULL
+                 AFTER email_verification_token"
+            );
+        }
     }
 
     protected function setUp(): void
