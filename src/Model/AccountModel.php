@@ -36,10 +36,19 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Trouve un compte par son token de vérification email, uniquement si non expiré.
+     *
+     * @param string $token Token de vérification (64 hex chars)
+     * @return array<string, mixed>|false Compte trouvé ou false si invalide/expiré
+     */
     public function findByVerificationToken(string $token): array|false
     {
         return $this->db->fetchOne(
-            $this->withProfile() . " WHERE a.email_verification_token = ? AND a.deleted_at IS NULL",
+            $this->withProfile() . " WHERE a.email_verification_token = ?
+              AND a.deleted_at IS NULL
+              AND (a.email_verification_token_expires_at IS NULL
+                   OR a.email_verification_token_expires_at > NOW())",
             [$token]
         );
     }
@@ -60,6 +69,22 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Crée un nouveau compte client avec token de vérification email (TTL 24 h).
+     *
+     * @param string $accountType     Type de compte ('individual' ou 'company')
+     * @param string $email           Adresse email
+     * @param string $hashedPassword  Mot de passe hashé (bcrypt)
+     * @param string $lang            Langue préférée ('fr' ou 'en')
+     * @param int    $newsletter      Abonnement newsletter (0 ou 1)
+     * @param string $verificationToken Token de vérification email (64 hex chars)
+     * @param string $civility        Civilité ('M', 'F', 'other') — particulier uniquement
+     * @param string $lastname        Nom de famille — particulier uniquement
+     * @param string $firstname       Prénom — particulier uniquement
+     * @param string $companyName     Raison sociale — entreprise uniquement
+     * @return string Identifiant du compte créé (cast en string depuis lastInsertId)
+     * @throws \Throwable En cas d'erreur BDD (rollback automatique)
+     */
     public function create( // NOSONAR — params nécessaires pour les deux types de compte, DTO prévu avec feat/account
         string $accountType,
         string $email,
@@ -77,8 +102,9 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             $accountId = $this->db->insert(
                 "INSERT INTO {$this->table}
                  (email, password, account_type, role, lang, newsletter,
-                  email_verification_token, newsletter_unsubscribe_token)
-                 VALUES (?, ?, ?, 'customer', ?, ?, ?, ?)",
+                  email_verification_token, email_verification_token_expires_at,
+                  newsletter_unsubscribe_token)
+                 VALUES (?, ?, ?, 'customer', ?, ?, ?, NOW() + INTERVAL 24 HOUR, ?)",
                 [$email, $hashedPassword, $accountType, $lang, $newsletter,
                  $verificationToken, bin2hex(random_bytes(32))]
             );
@@ -107,7 +133,11 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     public function verifyEmail(int $id): void
     {
         $this->db->execute(
-            "UPDATE {$this->table} SET email_verified_at = NOW(), email_verification_token = NULL WHERE id = ?",
+            "UPDATE {$this->table}
+             SET email_verified_at = NOW(),
+                 email_verification_token = NULL,
+                 email_verification_token_expires_at = NULL
+             WHERE id = ?",
             [$id]
         );
     }
@@ -262,6 +292,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
                  newsletter = 0,
                  newsletter_unsubscribe_token = NULL,
                  email_verification_token = NULL,
+                 email_verification_token_expires_at = NULL,
                  google_id = NULL,
                  apple_id = NULL,
                  scheduled_deletion_at = NULL
