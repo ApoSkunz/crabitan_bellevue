@@ -9,7 +9,7 @@ use PHPMailer\PHPMailer\Exception;
 
 class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
 {
-    private const PATH_SECURITY     = self::PATH_SECURITY;
+    private const PATH_SECURITY     = '/mon-compte/securite';
     private const BTN_STYLE_PRIMARY = 'font-family:Georgia,serif;font-size:14px;'
         . 'letter-spacing:2px;text-transform:uppercase;';
     private const BTN_STYLE_LINK    = 'color:#1a1208;text-decoration:none;font-weight:bold;">';

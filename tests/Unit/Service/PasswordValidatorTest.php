@@ -216,5 +216,114 @@ class PasswordValidatorTest extends TestCase
         $this->assertNotContains('validation.password_lowercase', $errors);
         $this->assertNotContains('validation.password_digit', $errors);
         $this->assertNotContains('validation.password_special', $errors);
+        $this->assertCount(1, $errors);
+    }
+
+    // ----------------------------------------------------------------
+    // getErrors() — isolation : exactement 1 erreur par règle violée
+    // ----------------------------------------------------------------
+
+    public function testGetErrorsExactlyOneErrorWhenOnlyMinViolated(): void
+    {
+        // 11 chars, toutes autres règles OK → exactement ['validation.password_min']
+        $errors = PasswordValidator::getErrors('Aa1!aaaaaaa');
+        $this->assertSame(['validation.password_min'], $errors);
+    }
+
+    public function testGetErrorsExactlyOneErrorWhenOnlyUppercaseViolated(): void
+    {
+        // ≥12 chars, pas de majuscule, tout le reste OK
+        $errors = PasswordValidator::getErrors('password123!ab');
+        $this->assertSame(['validation.password_uppercase'], $errors);
+    }
+
+    public function testGetErrorsExactlyOneErrorWhenOnlyLowercaseViolated(): void
+    {
+        // ≥12 chars, pas de minuscule, tout le reste OK
+        $errors = PasswordValidator::getErrors('PASSWORD123!AB');
+        $this->assertSame(['validation.password_lowercase'], $errors);
+    }
+
+    public function testGetErrorsExactlyOneErrorWhenOnlyDigitViolated(): void
+    {
+        // ≥12 chars, pas de chiffre, tout le reste OK
+        $errors = PasswordValidator::getErrors('PasswordNoDigit!');
+        $this->assertSame(['validation.password_digit'], $errors);
+    }
+
+    public function testGetErrorsExactlyOneErrorWhenOnlySpecialViolated(): void
+    {
+        // ≥12 chars, pas de caractère spécial, tout le reste OK
+        $errors = PasswordValidator::getErrors('Password1234567');
+        $this->assertSame(['validation.password_special'], $errors);
+    }
+
+    // ----------------------------------------------------------------
+    // getErrors() — exactement 12 chars valide
+    // ----------------------------------------------------------------
+
+    public function testGetErrorsEmptyArrayForExactly12CharsValid(): void
+    {
+        // Exactement 12 caractères couvrant toutes les règles
+        $errors = PasswordValidator::getErrors('Aa1!aaaaaaaa');
+        $this->assertSame([], $errors);
+    }
+
+    // ----------------------------------------------------------------
+    // Cohérence isStrong() ↔ getErrors() === []
+    // ----------------------------------------------------------------
+
+    public function testIsStrongReturnsTrueWhenGetErrorsIsEmpty(): void
+    {
+        $password = 'Password123!';
+        $this->assertSame([], PasswordValidator::getErrors($password));
+        $this->assertTrue(PasswordValidator::isStrong($password));
+    }
+
+    public function testIsStrongReturnsFalseWhenGetErrorsIsNotEmpty(): void
+    {
+        $password = 'weakpassword';
+        $errors = PasswordValidator::getErrors($password);
+        $this->assertNotEmpty($errors);
+        $this->assertFalse(PasswordValidator::isStrong($password));
+    }
+
+    public function testIsStrongCoherenceForValidPassword(): void
+    {
+        // isStrong doit être équivalent à getErrors() === []
+        $validPasswords = [
+            'Password123!',
+            'Aa1!aaaaaaaa',
+            'MyVeryLong&SecurePassword99!',
+            'AbcDef1@ghij',
+        ];
+        foreach ($validPasswords as $pwd) {
+            $this->assertSame(
+                PasswordValidator::getErrors($pwd) === [],
+                PasswordValidator::isStrong($pwd),
+                "Incohérence isStrong/getErrors pour : $pwd"
+            );
+        }
+    }
+
+    public function testIsStrongCoherenceForInvalidPasswords(): void
+    {
+        // Pour chaque mot de passe invalide, isStrong doit être false et getErrors non vide
+        $invalidPasswords = [
+            '',
+            'Aa1!aaaaaaa',    // 11 chars
+            'password123!ab', // pas de majuscule
+            'PASSWORD123!AB', // pas de minuscule
+            'PasswordNoDigit!', // pas de chiffre
+            'Password1234567',  // pas de spécial
+        ];
+        foreach ($invalidPasswords as $pwd) {
+            $errors = PasswordValidator::getErrors($pwd);
+            $this->assertNotEmpty($errors, "getErrors devrait retourner des erreurs pour : $pwd");
+            $this->assertFalse(
+                PasswordValidator::isStrong($pwd),
+                "isStrong devrait retourner false pour : $pwd"
+            );
+        }
     }
 }

@@ -1279,6 +1279,83 @@ class AccountControllerTest extends IntegrationTestCase
             ->changePassword(['lang' => 'fr']);
     }
 
+    /**
+     * Un nouveau mot de passe identique à l'actuel pose un flash error et redirige.
+     */
+    public function testChangePasswordSameAsCurrentShowsError(): void
+    {
+        $userId = $this->insertCustomer('chpwd.same@test.local', 'individual');
+        $this->loginAs($userId);
+
+        // Le mot de passe inséré par insertCustomer est 'Password123!'
+        $_POST = [
+            'current_password'     => 'Password123!',
+            'new_password'         => 'Password123!',
+            'new_password_confirm' => 'Password123!',
+            'csrf_token'           => self::CSRF,
+        ];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/securite/mot-de-passe')
+                ->changePassword(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $errors = $_SESSION['flash']['security_errors'] ?? [];
+            $this->assertArrayHasKey('new_password', $errors);
+            // La traduction de account.password_same_as_current doit être non vide
+            $this->assertNotEmpty($errors['new_password']);
+        }
+    }
+
+    /**
+     * Un changement de mot de passe valide envoie l'email d'alerte sans bloquer l'opération.
+     * L'email est non-bloquant : même si MailService lève une exception, la redirection a lieu.
+     */
+    public function testChangePasswordSuccessEmailDoesNotBlock(): void
+    {
+        $userId = $this->insertCustomer('chpwd.email@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'current_password'     => 'Password123!',
+            'new_password'         => 'NewEmailTest123!',
+            'new_password_confirm' => 'NewEmailTest123!',
+            'csrf_token'           => self::CSRF,
+        ];
+
+        // On s'attend à une redirection 302 — l'email ne bloque pas le flux
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/securite/mot-de-passe')
+            ->changePassword(['lang' => 'fr']);
+    }
+
+    /**
+     * Un changement de mot de passe valide pose un flash de succès.
+     */
+    public function testChangePasswordSuccessFlashesSuccess(): void
+    {
+        $userId = $this->insertCustomer('chpwd.flash@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'current_password'     => 'Password123!',
+            'new_password'         => 'NewFlashTest123!',
+            'new_password_confirm' => 'NewFlashTest123!',
+            'csrf_token'           => self::CSRF,
+        ];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/securite/mot-de-passe')
+                ->changePassword(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['security_success'] ?? '');
+        }
+    }
+
     // ----------------------------------------------------------------
     // revokeAllUserSessions() POST
     // ----------------------------------------------------------------

@@ -1323,18 +1323,22 @@ class MailServiceTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * Vérifie que sendPasswordChangedAlert en FR ne lève pas d'exception
-     * et construit un corps d'email avec le nom du destinataire.
+     * Vérifie que sendPasswordChangedAlert en FR utilise le bon sujet et
+     * construit un corps contenant le nom du destinataire.
      */
-    public function testSendPasswordChangedAlertFrCoversBody(): void
+    public function testSendPasswordChangedAlertFrSubjectAndName(): void
     {
-        $this->injectMockMailer($this->service);
-        $this->service->sendPasswordChangedAlert(
-            'alice@example.com',
-            'Alice',
-            'fr'
-        );
-        $this->assertTrue(true);
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+        $prop->setValue($this->service, $stub);
+
+        $this->service->sendPasswordChangedAlert('alice@example.com', 'Alice', 'fr');
+
+        $this->assertSame('Modification de votre mot de passe', $stub->Subject);
+        $this->assertStringContainsString('Alice', $stub->Body);
     }
 
     // ----------------------------------------------------------------
@@ -1342,17 +1346,93 @@ class MailServiceTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * Vérifie que sendPasswordChangedAlert en EN ne lève pas d'exception.
+     * Vérifie que sendPasswordChangedAlert en EN utilise le bon sujet.
      */
-    public function testSendPasswordChangedAlertEnCoversBody(): void
+    public function testSendPasswordChangedAlertEnSubject(): void
     {
-        $this->injectMockMailer($this->service);
-        $this->service->sendPasswordChangedAlert(
-            'bob@example.com',
-            'Bob',
-            'en'
-        );
-        $this->assertTrue(true);
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+        $prop->setValue($this->service, $stub);
+
+        $this->service->sendPasswordChangedAlert('bob@example.com', 'Bob', 'en');
+
+        $this->assertSame('Your password has been changed', $stub->Subject);
+        $this->assertStringContainsString('Bob', $stub->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendPasswordChangedAlert — URL sécurité contient la langue FR
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que le corps de l'email en FR contient un lien sécurité
+     * incluant le segment de langue '/fr/'.
+     */
+    public function testSendPasswordChangedAlertFrBodyContainsSecurityUrlWithLang(): void
+    {
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+        $prop->setValue($this->service, $stub);
+
+        $_ENV['APP_URL'] = 'http://crabitan.local';
+
+        $this->service->sendPasswordChangedAlert('alice@example.com', 'Alice', 'fr');
+
+        // L'URL de sécurité doit contenir le segment '/fr/' pour pointer vers la bonne langue
+        $this->assertStringContainsString('/fr/', $stub->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendPasswordChangedAlert — URL sécurité contient la langue EN
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que le corps de l'email en EN contient un lien sécurité
+     * incluant le segment de langue '/en/'.
+     */
+    public function testSendPasswordChangedAlertEnBodyContainsSecurityUrlWithLang(): void
+    {
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+        $prop->setValue($this->service, $stub);
+
+        $_ENV['APP_URL'] = 'http://crabitan.local';
+
+        $this->service->sendPasswordChangedAlert('bob@example.com', 'Bob', 'en');
+
+        // L'URL de sécurité doit contenir le segment '/en/' pour pointer vers la bonne langue
+        $this->assertStringContainsString('/en/', $stub->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendPasswordChangedAlert — destinataire correctement défini
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendPasswordChangedAlert définit le bon destinataire via addAddress().
+     */
+    public function testSendPasswordChangedAlertSetsRecipient(): void
+    {
+        $mock = $this->createMock(PHPMailer::class);
+        $mock->method('send')->willReturn(true);
+        $mock->expects($this->once())
+            ->method('addAddress')
+            ->with('alice@example.com', $this->anything());
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+        $prop->setValue($this->service, $mock);
+
+        $this->service->sendPasswordChangedAlert('alice@example.com', 'Alice', 'fr');
     }
 
     // ----------------------------------------------------------------
@@ -1364,13 +1444,20 @@ class MailServiceTest extends TestCase
      */
     public function testSendPasswordChangedAlertEscapesXssInName(): void
     {
-        $this->injectMockMailer($this->service);
-        // Le send() mocké ne lève pas d'exception, le HTML a bien été construit
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+        $prop->setValue($this->service, $stub);
+
         $this->service->sendPasswordChangedAlert(
             'victim@example.com',
             '<script>alert(1)</script>',
             'fr'
         );
-        $this->assertTrue(true);
+
+        $this->assertStringNotContainsString('<script>', $stub->Body);
+        $this->assertStringContainsString('&lt;script&gt;', $stub->Body);
     }
 }
