@@ -554,8 +554,9 @@ class OrderFormAdminControllerTest extends AdminIntegrationTestCase
         } catch (\Core\Exception\HttpException $e) {
             $caught = $e;
         } finally {
-            // Nettoyage : supprime le répertoire créé par le controller si vide
-            if (is_dir($storageDir) && !$dirExisted) {
+            // Le controller recrée $storageDir (vide) via mkdir — on le supprime
+            // avant de tenter la restauration (rename échoue si la dest. existe).
+            if (is_dir($storageDir)) {
                 @rmdir($storageDir);
             }
             // Restaure le répertoire d'origine si on l'avait sauvegardé
