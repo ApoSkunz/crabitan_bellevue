@@ -340,6 +340,57 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
         $this->send($to, $name, $subject, $body);
     }
 
+    /**
+     * Envoie un email de notification de sécurité après un changement de mot de passe.
+     *
+     * @param string $to   Adresse email du destinataire
+     * @param string $name Prénom ou nom complet du destinataire
+     * @param string $lang Langue du destinataire ('fr' ou 'en')
+     * @return void
+     */
+    public function sendPasswordChangedAlert(string $to, string $name, string $lang): void
+    {
+        $subject = $lang === 'fr'
+            ? 'Modification de votre mot de passe'
+            : 'Your password has been changed';
+
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $securityUrl = htmlspecialchars($appUrl . '/' . $lang . '/mon-compte/securite', ENT_QUOTES);
+        $safeName    = htmlspecialchars($name, ENT_QUOTES);
+        $safeDate    = htmlspecialchars(date('d/m/Y à H:i'), ENT_QUOTES);
+        $contactUrl  = htmlspecialchars($appUrl . '/' . $lang . '/contact', ENT_QUOTES);
+
+        $manageLabel = $lang === 'fr' ? 'Gérer la sécurité de mon compte' : 'Manage my account security';
+
+        $ctaBlock = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$securityUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . $manageLabel
+            . '</a></td></tr></table>';
+
+        if ($lang === 'fr') {
+            $message = "Votre mot de passe a été modifié le <strong>{$safeDate}</strong>.<br><br>"
+                . 'Si vous êtes à l\'origine de cette modification, vous pouvez ignorer cet email.<br><br>'
+                . 'Si vous n\'avez pas effectué cette modification, votre compte est peut-être compromis.'
+                . ' Veuillez <a href="' . $contactUrl . '" style="color:#c9a84c;">contacter notre support</a>'
+                . ' immédiatement.<br><br>'
+                . $ctaBlock;
+            $body = $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message);
+        } else {
+            $message = "Your password was changed on <strong>{$safeDate}</strong>.<br><br>"
+                . 'If you made this change, you can safely ignore this email.<br><br>'
+                . 'If you did not make this change, your account may be compromised.'
+                . ' Please <a href="' . $contactUrl . '" style="color:#c9a84c;">contact our support team</a>'
+                . ' immediately.<br><br>'
+                . $ctaBlock;
+            $body = $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message);
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
+
     public function sendNewDeviceAlert(
         string $to,
         string $name,
