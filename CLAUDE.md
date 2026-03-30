@@ -118,19 +118,37 @@ Les tests **ne se reportent pas** — ils sont écrits dans le même commit que 
 
 ## Workflow
 
-### 1. Ordre des tâches par feature
+### 1. Méthode TDD — Red → Green → Refactor
+
+Toute nouvelle logique métier (service, model, controller) est développée en **TDD strict** :
+
+| Phase | Action |
+|---|---|
+| 🔴 **Red** | Écrire le(s) test(s) qui décrivent le comportement attendu — ils échouent (classe/méthode inexistante) |
+| 🟢 **Green** | Implémenter le minimum de code pour faire passer les tests — sans sur-ingénierie |
+| 🔵 **Refactor** | Nettoyer le code (nommage, extraction, PHPDoc) sans casser les tests |
+
+**Règles d'application :**
+- Un cycle Red/Green/Refactor par comportement unitaire (pas par fichier entier)
+- Les tests TDD remplacent les TU/TI de l'étape 2 — ils sont écrits **avant** le code de production
+- Exception acceptée : vues PHP, SCSS, i18n — pas de TDD, tests E2E suffisent
+- Si la logique est triviale (getter pur, constante), un test post-hoc est acceptable
+
+### 2. Ordre des tâches par feature
 
 Pour chaque feature ou correction, respecter cet ordre **sans exception** :
 
 | Étape | Contenu |
 |---|---|
-| **1. Dev** | Implémenter le code (Controller, Model, Vue, i18n, SCSS…) + PHPDoc |
-| **2. Lint + TU/TI** | Linter, PHPCS/PHPStan, écrire et passer les tests unitaires et d'intégration |
-| **3. BACKLOG** | Créer l'US si non tracée · Mettre à jour la colonne 🤖 dans `us-*.md` et `README.md` · **obligatoire avant le commit** |
-| **4. E2E** | Écrire et passer la spec Playwright (nominal + 1 erreur critique) |
-| **5. Commit** | `git add` fichier par fichier · commit(s) atomiques (push local uniquement) |
+| **1. TDD Red** | Écrire les TU/TI décrivant le comportement attendu (tests échouent) |
+| **2. TDD Green** | Implémenter le code (Controller, Model, Service…) + PHPDoc pour faire passer les tests |
+| **3. TDD Refactor** | Nettoyer — PHPCS/PHPStan doivent être verts |
+| **4. Vue / i18n / SCSS** | Vues PHP, clés de traduction, styles (pas de TDD — E2E couvre) |
+| **5. BACKLOG** | Créer l'US si non tracée · Mettre à jour la colonne 🤖 dans `us-*.md` et `README.md` · **obligatoire avant le commit** |
+| **6. E2E** | Écrire et passer la spec Playwright (nominal + 1 erreur critique) |
+| **7. Commit** | `git add` fichier par fichier · commit(s) atomiques (push local uniquement) |
 
-> **E2E différable** : si XAMPP n'est pas actif, l'étape E2E peut être reportée à la session suivante. Le BACKLOG (étape 3) et le commit (étape 5) ne sont pas différables. Indiquer `🔄 En cours` dans la colonne 🎭 si la spec E2E n'est pas encore écrite.
+> **E2E différable** : si XAMPP n'est pas actif, l'étape E2E peut être reportée à la session suivante. Le BACKLOG (étape 5) et le commit (étape 7) ne sont pas différables. Indiquer `🔄 En cours` dans la colonne 🎭 si la spec E2E n'est pas encore écrite.
 
 ### 2. Vérifications avant push
 
