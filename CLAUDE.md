@@ -42,6 +42,8 @@ Ce projet est réalisé en équipe pluridisciplinaire. Chaque rôle est tenu par
 | **Expert Blue Team** | Durcissement applicatif, monitoring, réponse aux rapports Red Team |
 | **Architecte Génie Logicielle** | Patterns, SOLID, couplage/cohésion, revue d'architecture MVC, refactoring structurel |
 | **Architecte BDD MySQL** | Schéma, normalisation, index, performances, migrations, intégrité référentielle |
+| **Expert RGPD** | Conformité RGPD/CNIL, bases légales des traitements, droits des personnes (Art. 15-22), durées de conservation, cookies ePrivacy, registre Art. 30, DPIA, DPA sous-traitants, notification violations 72h, privacy by design |
+| **Expert Juridique** | Droit français et européen : Loi Evin (publicité alcool, mentions obligatoires), Code de la consommation (L111-1, L221-5/11/18, droit de rétractation 14 j), LCEN (mentions légales, hébergeur), Code de commerce (L441-9 facturation, L123-22 archivage 10 ans), RGAA/accessibilité, propriété intellectuelle |
 
 Chaque contribution doit respecter les standards de son domaine. Les failles détectées par le Red Team sont traitées avec le Blue Team **avant tout merge**.
 
@@ -60,6 +62,9 @@ Avant toute implémentation, identifier le ou les experts concernés et adopter 
 | Tests TU / TI / E2E, stratégie de couverture | **Expert QA** |
 | CI/CD, GitHub Actions, PHPCS/PHPStan, secrets | **Expert DevSecOps** |
 | Sécurité applicative (XSS, CSRF, IDOR, injection…) | **Expert Red Team** → réponse **Expert Blue Team** |
+| Conformité RGPD, consentement, droits des personnes, cookies | **Expert RGPD** |
+| Mentions légales, CGV, droit de rétractation, Loi Evin, facturation | **Expert Juridique** |
+| Données personnelles dans les traitements (newsletter, commandes, profil…) | **Expert RGPD** + **Expert Juridique** |
 | Backlog, US, acceptance criteria, vision produit | **Product Owner** |
 | Animation Scrum, vélocité, impediments | **Scrum Master** |
 | Copywriting, emailings, newsletters, ton de marque | **Expert Marketing** |
