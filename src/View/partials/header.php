@@ -17,13 +17,17 @@ $registerOpen   = !empty($registerErrors) || !empty($registerOld);
 $flashInfo      = $_SESSION['flash']['info'] ?? null;
 unset($_SESSION['flash']['modal_error'], $_SESSION['flash']['register_errors'], $_SESSION['flash']['register_old'], $_SESSION['flash']['info']);
 
-$resetModalData = $_SESSION['reset_modal'] ?? null;
-$resetOpen      = isset($_GET['modal']) && $_GET['modal'] === 'reset' && $resetModalData !== null;
-$resetToken     = $resetModalData['token'] ?? '';
-$resetValid     = $resetModalData['valid'] ?? false;
-$resetError     = $resetModalData['error'] ?? null;
+$resetModalData    = $_SESSION['reset_modal'] ?? null;
+$resetOpen         = isset($_GET['modal']) && $_GET['modal'] === 'reset' && $resetModalData !== null;
+$resetToken        = $resetModalData['token'] ?? '';
+$resetValid        = $resetModalData['valid'] ?? false;
+$resetError        = $resetModalData['error'] ?? null;
+$resetSuccess      = !empty($resetModalData['success']);
 if ($resetOpen) {
     $_SESSION['reset_modal']['error'] = null;
+    if ($resetSuccess) {
+        unset($_SESSION['reset_modal']);
+    }
 }
 
 $isCompany = false;
@@ -220,6 +224,8 @@ window.__flashInfo        = <?= $flashInfo ? json_encode(htmlspecialchars($flash
 window.__resetOpen        = <?= $resetOpen ? 'true' : 'false' ?>;
 window.__resetToken       = <?= json_encode($resetToken) ?>;
 window.__resetValid       = <?= $resetValid ? 'true' : 'false' ?>;
+window.__resetSuccess     = <?= $resetSuccess ? 'true' : 'false' ?>;
+window.__resetSuccessMsg  = <?= $resetSuccess ? json_encode(htmlspecialchars(__('auth.password_updated'))) : 'null' ?>;
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -541,11 +547,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
 
                 <!-- Confirmation mot de passe -->
+                <span class="register-modal__error js-pwd-match-error" hidden></span>
                 <div class="register-modal__field">
                     <label for="reg-password-confirm"><?= htmlspecialchars(__('form.password_confirm')) ?></label>
                     <div class="register-modal__password-wrap">
                         <input type="password" id="reg-password-confirm" name="password_confirm"
-                               autocomplete="new-password" required minlength="12">
+                               autocomplete="new-password" required minlength="12"
+                               data-mismatch-label="<?= htmlspecialchars(__('form.password_mismatch')) ?>">
                         <button type="button" class="register-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="reg-password-confirm">
                             <span class="pwd-eye pwd-eye--show" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
                             <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
@@ -609,6 +617,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         class="btn btn--gold btn--full" style="margin-top:0.75rem;">
                     <?= htmlspecialchars(__('auth.forgot_password')) ?>
                 </button>
+            <?php elseif ($resetSuccess) : ?>
+                <div id="reset-modal-success" class="alert alert--success" role="status" data-no-auto-dismiss>
+                    <?= htmlspecialchars(__('auth.password_updated')) ?>
+                </div>
             <?php else : ?>
                 <?php if ($resetError) : ?>
                     <div class="alert alert--error" role="alert"><?= htmlspecialchars($resetError) ?></div>
