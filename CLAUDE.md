@@ -121,6 +121,15 @@ Les tests **ne se reportent pas** — ils sont écrits dans le même commit que 
 
 ---
 
+## Git — règle absolue sur les fichiers ignorés
+
+**Le `.gitignore` fait foi. Il n'est jamais overridé (`git add -f` interdit).**
+
+Si un fichier est ignoré, c'est intentionnel — ne pas chercher à le commiter, même partiellement.
+Exemples non exhaustifs : `BACKLOG/`, `.env`, `vendor/`, `node_modules/`, fichiers de couverture.
+
+---
+
 ## Workflow
 
 ### 1. Méthode TDD — Red → Green → Refactor
@@ -139,7 +148,7 @@ Toute nouvelle logique métier (service, model, controller) est développée en 
 - Exception acceptée : vues PHP, SCSS, i18n — pas de TDD, tests E2E suffisent
 - Si la logique est triviale (getter pur, constante), un test post-hoc est acceptable
 
-### 2. Ordre des tâches par feature
+### 2. Ordre des tâches par US
 
 Pour chaque feature ou correction, respecter cet ordre **sans exception** :
 
@@ -151,11 +160,11 @@ Pour chaque feature ou correction, respecter cet ordre **sans exception** :
 | **4. Vue / i18n / SCSS** | Vues PHP, clés de traduction, styles (pas de TDD — E2E couvre) |
 | **5. BACKLOG** | Créer l'US si non tracée · Mettre à jour la colonne 🤖 dans `us-*.md` et `README.md` · **obligatoire avant le commit** |
 | **6. E2E** | Écrire et passer la spec Playwright (nominal + 1 erreur critique) |
-| **7. Commit** | `git add` fichier par fichier · commit(s) atomiques (push local uniquement) |
+| **7. Commit** | `git add` fichier par fichier · commit(s) atomiques · sur la branche `feat/us-{sujet}` dédiée |
 
 > **E2E différable** : si XAMPP n'est pas actif, l'étape E2E peut être reportée à la session suivante. Le BACKLOG (étape 5) et le commit (étape 7) ne sont pas différables. Indiquer `🔄 En cours` dans la colonne 🎭 si la spec E2E n'est pas encore écrite.
 
-### 2. Vérifications avant push
+### 3. Vérifications avant push
 
 **C'est Claude qui exécute ces commandes**, pas l'utilisateur. Après chaque implémentation, lancer dans cet ordre sans attendre d'instruction :
 
@@ -180,7 +189,7 @@ npx playwright test
 
 Rapporter ✅ ou les erreurs complètes. Si tout est vert, attendre le mot **"go push"**.
 
-### 3. Parallélisation des actions
+### 4. Parallélisation des actions
 
 **Lancer un maximum d'actions en parallèle** dans chaque message pour accélérer le développement :
 
@@ -193,7 +202,7 @@ Rapporter ✅ ou les erreurs complètes. Si tout est vert, attendre le mot **"go
 
 Ne séquencer que ce qui dépend du résultat d'une étape précédente.
 
-### 4. Branches
+### 5. Branches
 
 **Règle principale : une branche par US.**
 
@@ -213,7 +222,7 @@ Le nom de branche est dérivé du nom du fichier `us-{sujet}.md` :
 - Une branche = une US = une PR (sauf US triviales type `docs/` ou `chore/` qui peuvent être regroupées)
 - Le nom de branche correspond exactement au slug du fichier `us-*.md` associé
 
-### 5. Commits
+### 6. Commits
 
 Quand l'utilisateur dit **"go push"** :
 - Découper en **commits atomiques** — un commit = une responsabilité
@@ -239,7 +248,7 @@ Pas besoin de confirmation supplémentaire.
 
 Un seul fichier modifié peut faire l'objet d'un commit séparé si son changement est orthogonal aux autres.
 
-### 6. Annotations qualité
+### 7. Annotations qualité
 
 - **PHPCS PSR12** — warnings "side effects" sur `public/index.php` et `config/config.php` acceptables
 - **Faux positifs SonarCloud** : `// NOSONAR — <justification courte>` (justification obligatoire)
