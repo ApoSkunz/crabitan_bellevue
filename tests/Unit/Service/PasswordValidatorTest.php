@@ -127,4 +127,94 @@ class PasswordValidatorTest extends TestCase
     {
         $this->assertTrue(PasswordValidator::isStrong('Password123[abc'));
     }
+
+    // ----------------------------------------------------------------
+    // getErrors() — doit retourner un tableau vide si valide
+    // ----------------------------------------------------------------
+
+    public function testGetErrorsReturnsEmptyArrayForStrongPassword(): void
+    {
+        $this->assertSame([], PasswordValidator::getErrors('Password123!'));
+    }
+
+    // ----------------------------------------------------------------
+    // getErrors() — longueur insuffisante
+    // ----------------------------------------------------------------
+
+    public function testGetErrorsContainsMinKeyWhenTooShort(): void
+    {
+        $errors = PasswordValidator::getErrors('Aa1!aaaaaaa'); // 11 chars
+        $this->assertContains('validation.password_min', $errors);
+    }
+
+    // ----------------------------------------------------------------
+    // getErrors() — majuscule manquante
+    // ----------------------------------------------------------------
+
+    public function testGetErrorsContainsUppercaseKeyWhenMissing(): void
+    {
+        $errors = PasswordValidator::getErrors('password123!abc');
+        $this->assertContains('validation.password_uppercase', $errors);
+        $this->assertNotContains('validation.password_lowercase', $errors);
+        $this->assertNotContains('validation.password_digit', $errors);
+        $this->assertNotContains('validation.password_special', $errors);
+    }
+
+    // ----------------------------------------------------------------
+    // getErrors() — minuscule manquante
+    // ----------------------------------------------------------------
+
+    public function testGetErrorsContainsLowercaseKeyWhenMissing(): void
+    {
+        $errors = PasswordValidator::getErrors('PASSWORD123!ABC');
+        $this->assertContains('validation.password_lowercase', $errors);
+        $this->assertNotContains('validation.password_uppercase', $errors);
+    }
+
+    // ----------------------------------------------------------------
+    // getErrors() — chiffre manquant
+    // ----------------------------------------------------------------
+
+    public function testGetErrorsContainsDigitKeyWhenMissing(): void
+    {
+        $errors = PasswordValidator::getErrors('PasswordNoDigit!');
+        $this->assertContains('validation.password_digit', $errors);
+    }
+
+    // ----------------------------------------------------------------
+    // getErrors() — caractère spécial manquant
+    // ----------------------------------------------------------------
+
+    public function testGetErrorsContainsSpecialKeyWhenMissing(): void
+    {
+        $errors = PasswordValidator::getErrors('Password1234567');
+        $this->assertContains('validation.password_special', $errors);
+    }
+
+    // ----------------------------------------------------------------
+    // getErrors() — plusieurs règles manquantes simultanément
+    // ----------------------------------------------------------------
+
+    public function testGetErrorsContainsMultipleKeysWhenSeveralRulesFail(): void
+    {
+        // Mot de passe vide : toutes les règles échouent
+        $errors = PasswordValidator::getErrors('');
+        $this->assertContains('validation.password_min', $errors);
+        $this->assertContains('validation.password_uppercase', $errors);
+        $this->assertContains('validation.password_lowercase', $errors);
+        $this->assertContains('validation.password_digit', $errors);
+        $this->assertContains('validation.password_special', $errors);
+        $this->assertCount(5, $errors);
+    }
+
+    public function testGetErrorsOnlyMinKeyWhenJustTooShort(): void
+    {
+        // Toutes les règles sauf la longueur sont satisfaites
+        $errors = PasswordValidator::getErrors('Aa1!aaaaaaa'); // 11 chars
+        $this->assertContains('validation.password_min', $errors);
+        $this->assertNotContains('validation.password_uppercase', $errors);
+        $this->assertNotContains('validation.password_lowercase', $errors);
+        $this->assertNotContains('validation.password_digit', $errors);
+        $this->assertNotContains('validation.password_special', $errors);
+    }
 }

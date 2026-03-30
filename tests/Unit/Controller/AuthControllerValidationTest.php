@@ -147,4 +147,37 @@ class AuthControllerValidationTest extends TestCase
         $this->assertArrayNotHasKey('firstname', $errors);
         $this->assertArrayNotHasKey('civility', $errors);
     }
+
+    /**
+     * Le message d'erreur mot de passe doit être détaillé (règles ANSSI manquantes),
+     * pas le message générique unique de l'ancienne implémentation.
+     */
+    public function testRegisterPasswordErrorIsDetailedNotGeneric(): void
+    {
+        // Mot de passe sans majuscule ni chiffre ni spécial → 3 règles manquantes
+        $e = $this->callRegister($this->makeController([
+            'password'         => 'alllowercaselongpwd',
+            'password_confirm' => 'alllowercaselongpwd',
+        ]));
+        $this->assertSame(302, $e->status);
+        $errors = $_SESSION['flash']['register_errors'] ?? [];
+        $this->assertArrayHasKey('password', $errors);
+
+        // Le message doit contenir au moins deux phrases (règles manquantes concaténées)
+        $this->assertGreaterThan(1, substr_count($errors['password'], '.'));
+    }
+
+    public function testRegisterPasswordErrorMentionsSpecificRuleWhenOnlyOneIsMissing(): void
+    {
+        // Seule la majuscule manque : le message doit contenir exactement 1 phrase
+        $e = $this->callRegister($this->makeController([
+            'password'         => 'password123!abc', // pas de majuscule, 15 chars
+            'password_confirm' => 'password123!abc',
+        ]));
+        $this->assertSame(302, $e->status);
+        $errors = $_SESSION['flash']['register_errors'] ?? [];
+        $this->assertArrayHasKey('password', $errors);
+        // Une seule règle manque → un seul point terminant la phrase
+        $this->assertSame(1, substr_count($errors['password'], '.'));
+    }
 }

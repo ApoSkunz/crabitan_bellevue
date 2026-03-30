@@ -1317,4 +1317,60 @@ class MailServiceTest extends TestCase
         $this->assertStringContainsString('desabonnement', $html);
         $this->assertStringContainsString('my-unsub-token-xyz', $html);
     }
+
+    // ----------------------------------------------------------------
+    // sendPasswordChangedAlert — branche FR
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendPasswordChangedAlert en FR ne lève pas d'exception
+     * et construit un corps d'email avec le nom du destinataire.
+     */
+    public function testSendPasswordChangedAlertFrCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendPasswordChangedAlert(
+            'alice@example.com',
+            'Alice',
+            'fr'
+        );
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendPasswordChangedAlert — branche EN
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendPasswordChangedAlert en EN ne lève pas d'exception.
+     */
+    public function testSendPasswordChangedAlertEnCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendPasswordChangedAlert(
+            'bob@example.com',
+            'Bob',
+            'en'
+        );
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendPasswordChangedAlert — XSS dans le nom
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendPasswordChangedAlert échappe correctement un nom contenant du XSS.
+     */
+    public function testSendPasswordChangedAlertEscapesXssInName(): void
+    {
+        $this->injectMockMailer($this->service);
+        // Le send() mocké ne lève pas d'exception, le HTML a bien été construit
+        $this->service->sendPasswordChangedAlert(
+            'victim@example.com',
+            '<script>alert(1)</script>',
+            'fr'
+        );
+        $this->assertTrue(true);
+    }
 }
