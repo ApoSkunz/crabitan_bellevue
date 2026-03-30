@@ -1097,7 +1097,7 @@ function initResetModal() {
     // Succès reset : modal ouvert avec message, redirection automatique vers homepage après 3 s
     if (window.__resetSuccess) {
         openModal();
-        setTimeout(() => {
+        setTimeout(() => { // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
             window.location.href = '/' + (window.__navLang || 'fr');
         }, 3000);
     }

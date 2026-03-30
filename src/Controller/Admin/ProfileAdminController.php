@@ -88,7 +88,7 @@ class ProfileAdminController extends AdminController
             Response::redirect(self::SECURITY_URL);
         }
 
-        if ($account !== null && password_verify($new, $account['password'] ?? '')) {
+        if (password_verify($new, $account['password'] ?? '')) {
             $this->flash('error', __('account.password_same_as_current'));
             Response::redirect(self::SECURITY_URL);
         }

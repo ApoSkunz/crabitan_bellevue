@@ -718,9 +718,8 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
         if (
             empty($errors['current_password'])
-            && $account !== null
-            && $account['password'] !== null
-            && password_verify($new, $account['password'])
+            && $account !== false
+            && password_verify($new, (string) $account['password'])
         ) {
             $errors['new_password'] = __('account.password_same_as_current');
         }
