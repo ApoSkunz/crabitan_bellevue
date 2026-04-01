@@ -134,12 +134,17 @@ Exemples non exhaustifs : `BACKLOG/`, `.env`, `vendor/`, `node_modules/`, fichie
 
 ### 0. Avant de commencer une US — validation PO obligatoire
 
-Avant toute implémentation, **demander explicitement la validation d'Alexandre** :
+Avant toute implémentation, **demander explicitement la validation d'Alexandre** sur deux points :
 
+1. **L'US elle-même** — confirmer que c'est bien la prochaine à traiter :
 > "Je m'apprête à implémenter `us-{sujet}` (priorité X, estimation Y).
 > Tu confirmes que c'est bien la prochaine à traiter, ou tu veux réorienter ?"
 
-**Pourquoi :** certaines US du backlog peuvent devenir obsolètes, être déprioritisées, ou remplacées par un besoin plus urgent détecté en cours de sprint. Claude ne démarre jamais une US de sa propre initiative sans ce feu vert explicite.
+2. **Les critères d'acceptation** — présenter la liste des critères prévus et attendre le feu vert avant de coder :
+> "Voici les critères d'acceptation que je compte implémenter : [liste].
+> Tu valides, ou tu veux en ajouter / modifier / retirer ?"
+
+**Pourquoi :** les critères d'acceptation définissent le périmètre exact de l'implémentation. Un critère mal cadré en amont entraîne du code à refaire. Alexandre valide les critères **avant** que Claude écrive la moindre ligne de code de production.
 
 **Exceptions** (pas de consultation requise) :
 - Corrections de sécurité identifiées sur du code existant (vecteur exploitable immédiatement)
