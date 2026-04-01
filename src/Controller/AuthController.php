@@ -119,7 +119,7 @@ class AuthController extends Controller
         $password = $this->request->post('password', '');
         $account  = $this->accounts->findByEmail($email);
 
-        // BT2 — Vérifier lockout du compte (avant password_verify pour éviter timing oracle)
+        // BT2 — Compte déjà verrouillé (tentatives 6+) : bloquer sans email (déjà envoyé à la 5ème)
         if ($account) {
             $accountKey = 'account_lockout:' . (int) $account['id'];
             if (!$this->rateLimiter->checkLimit($accountKey, self::MAX_ACCOUNT_FAILURES, self::ACCOUNT_LOCKOUT_WINDOW)) {
@@ -132,6 +132,27 @@ class AuthController extends Controller
 
         if (!$account || $account['password'] === null || !password_verify($password, $account['password'])) {
             $this->recordLoginFailure($ipKey, $account);
+
+            // BT2 — Détecter si ce dernier échec vient de déclencher le lockout (5ème tentative)
+            if ($account) {
+                $accountKey = 'account_lockout:' . (int) $account['id'];
+                if (!$this->rateLimiter->checkLimit($accountKey, self::MAX_ACCOUNT_FAILURES, self::ACCOUNT_LOCKOUT_WINDOW)) {
+                    $wait        = (int) ceil($this->rateLimiter->getRetryAfter($accountKey) / 60);
+                    $displayName = $account['account_type'] === 'company'
+                        ? ($account['company_name'] ?? '')
+                        : trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
+                    $resetUrl = APP_URL . "/{$lang}/mot-de-passe-oublie";
+                    try {
+                        $mail = new MailService();
+                        $mail->sendAccountLocked($account['email'], $displayName, $lang, $resetUrl);
+                    } catch (\Throwable $e) {
+                        error_log('Mail account locked error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+                    }
+                    $this->flash('modal_error', sprintf(__('auth.account_locked'), max(1, $wait)));
+                    Response::redirect($safeBack);
+                }
+            }
+
             $this->flash('modal_error', __('auth.invalid_credentials'));
             Response::redirect($safeBack);
         }
@@ -270,9 +291,22 @@ class AuthController extends Controller
         }
 
         // Anti-énumération (R5) : si l'email est déjà pris, on affiche le même message de
-        // confirmation générique qu'une inscription réussie. Aucun email n'est envoyé.
-        if ($this->accounts->findByEmail($email)) {
-            $this->flash('info', __('auth.register_success'));
+        // confirmation générique qu'une inscription réussie.
+        // Critère 2 : un email informatif est envoyé au titulaire du compte.
+        $existingAccount = $this->accounts->findByEmail($email);
+        if ($existingAccount) {
+            $displayName = $existingAccount['account_type'] === 'company'
+                ? ($existingAccount['company_name'] ?? '')
+                : trim(($existingAccount['firstname'] ?? '') . ' ' . ($existingAccount['lastname'] ?? ''));
+            $loginUrl = APP_URL . "/{$lang}?login=1";
+            $resetUrl = APP_URL . "/{$lang}/mot-de-passe-oublie";
+            try {
+                $mail = new MailService();
+                $mail->sendEmailAlreadyExists($email, $displayName, $lang, $loginUrl, $resetUrl);
+            } catch (\Throwable $e) {
+                error_log('Mail duplicate register error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+            }
+            $this->flash('register_success', '1');
             Response::redirect("/{$lang}");
         }
 
@@ -304,7 +338,7 @@ class AuthController extends Controller
             error_log('Mail verification error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
         }
 
-        $this->flash('info', __('auth.register_success'));
+        $this->flash('register_success', '1');
         Response::redirect("/{$lang}");
     }
 
@@ -400,7 +434,7 @@ class AuthController extends Controller
         $account = $this->accounts->findByEmail($email);
 
         // Toujours afficher le succès (anti-énumération)
-        $this->flash('info', __('auth.reset_email_sent'));
+        $this->flash('forgot_success', '1');
 
         if ($account && $account['email_verified_at'] && $account['role'] === 'customer') {
             $token = bin2hex(random_bytes(32));
