@@ -69,6 +69,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
     return '/' . $targetLang;
 };
 ?>
+<?php require_once SRC_PATH . '/View/partials/age_gate.php'; ?>
 <header class="site-header">
     <div class="header-main">
         <!-- Gauche : logo + langue + contact -->
@@ -577,21 +578,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
 
                 <p class="register-modal__hint"><?= htmlspecialchars(__('form.password_hint')) ?></p>
-
-                <!-- Date de naissance + déclaration de majorité (Art. L3342-1 CSP) -->
-                <div class="register-modal__field register-modal__field--birth-date">
-                    <label for="reg-birth-date"><?= htmlspecialchars(__('form.birth_date')) ?> <span class="register-modal__required" aria-hidden="true">*</span></label>
-                    <input type="date" id="reg-birth-date" name="birth_date"
-                           value="<?= htmlspecialchars($registerOld['birthDate'] ?? '') ?>"
-                           autocomplete="bday"
-                           max="<?= htmlspecialchars(date('Y-m-d', strtotime('-18 years'))) ?>"
-                           required
-                           aria-describedby="reg-birth-date-hint">
-                    <span id="reg-birth-date-hint" class="register-modal__hint-small"><?= htmlspecialchars(__('form.birth_date_hint')) ?></span>
-                    <?php if (!empty($registerErrors['birth_date'])) : ?>
-                        <span class="register-modal__error" role="alert"><?= htmlspecialchars($registerErrors['birth_date']) ?></span>
-                    <?php endif; ?>
-                </div>
 
                 <!-- Case à cocher de certification de majorité (obligatoire, non pré-cochée) -->
                 <div class="register-modal__field register-modal__field--majority">

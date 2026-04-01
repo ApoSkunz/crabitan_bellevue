@@ -66,8 +66,9 @@ class AuthControllerRegisterDuplicateTest extends TestCase
             'password'         => 'Password123!',
             'password_confirm' => 'Password123!',
             'company_name'     => '',
-            'newsletter'       => '0',
-            'csrf_token'       => 'test-csrf-token',
+            'newsletter'        => '0',
+            'majority_confirmed' => '1',
+            'csrf_token'        => 'test-csrf-token',
         ];
 
         $controller = new AuthController(new Request());
@@ -100,8 +101,9 @@ class AuthControllerRegisterDuplicateTest extends TestCase
             'password'         => 'Password123!',
             'password_confirm' => 'Password123!',
             'company_name'     => '',
-            'newsletter'       => '0',
-            'csrf_token'       => 'test-csrf-token',
+            'newsletter'         => '0',
+            'majority_confirmed' => '1',
+            'csrf_token'         => 'test-csrf-token',
         ];
 
         $controller = new AuthController(new Request());
