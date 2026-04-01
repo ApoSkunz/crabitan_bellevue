@@ -209,7 +209,10 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
             <a href="/<?= htmlspecialchars($navLang) ?>/panier"><?= htmlspecialchars(__('nav.cart')) ?></a>
             <?php endif; ?>
             <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte"><?= htmlspecialchars(__('nav.account')) ?></a>
-            <a href="/<?= htmlspecialchars($navLang) ?>/deconnexion"><?= htmlspecialchars(__('nav.logout')) ?></a>
+            <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/deconnexion" class="logout-form--inline">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+                <button type="submit" class="logout-form__btn-link"><?= htmlspecialchars(__('nav.logout')) ?></button>
+            </form>
         <?php else : ?>
             <button type="button" class="header-nav--mobile__modal-btn" data-open-modal="login-modal"><?= htmlspecialchars(__('nav.login')) ?></button>
             <button type="button" class="header-nav--mobile__modal-btn" data-open-modal="register-modal"><?= htmlspecialchars(__('nav.register')) ?></button>
@@ -343,12 +346,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             <?= htmlspecialchars(__('auth.modal.google')) ?>
                         </button>
                     </span>
-                    <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
-                        <button type="button" class="btn btn-social btn-social--apple" disabled aria-disabled="true">
-                            <img src="/assets/images/login/Apple_logo_black.svg" alt="" width="16" height="18" class="btn-social__apple-logo">
-                            <?= htmlspecialchars(__('auth.modal.apple')) ?>
-                        </button>
-                    </span>
                 </div>
                 <p class="login-modal__or"><span><?= htmlspecialchars(__('auth.modal.or')) ?></span></p>
                 <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/connexion" class="login-modal__form">
@@ -446,12 +443,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
                         <img src="/assets/images/login/Google__G__logo.png" alt="" width="18" height="18">
                         <?= htmlspecialchars(__('auth.modal.google')) ?>
-                    </button>
-                </span>
-                <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
-                    <button type="button" class="btn btn-social btn-social--apple" disabled aria-disabled="true">
-                        <img src="/assets/images/login/Apple_logo_black.svg" alt="" width="16" height="18" class="btn-social__apple-logo">
-                        <?= htmlspecialchars(__('auth.modal.apple')) ?>
                     </button>
                 </span>
             </div>
@@ -740,9 +731,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     <?= htmlspecialchars(__('panel.export')) ?>
                 </a>
             <?php endif; ?>
-            <a href="/<?= htmlspecialchars($navLang) ?>/deconnexion" class="account-panel__logout">
-                <?= htmlspecialchars(__('panel.logout')) ?>
-            </a>
+            <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/deconnexion" class="account-panel__logout-form">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+                <button type="submit" class="account-panel__logout">
+                    <?= htmlspecialchars(__('panel.logout')) ?>
+                </button>
+            </form>
         </nav>
 
         <div class="account-panel__footer">
