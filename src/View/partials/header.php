@@ -69,7 +69,6 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
     return '/' . $targetLang;
 };
 ?>
-<?php require_once SRC_PATH . '/View/partials/age_gate.php'; ?>
 <header class="site-header">
     <div class="header-main">
         <!-- Gauche : logo + langue + contact -->
