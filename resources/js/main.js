@@ -43,39 +43,6 @@ function initBurger() {
     });
 }
 
-// ============================================================
-// Age gate — validation côté client
-// ============================================================
-
-function initAgeGate() {
-    const form = document.getElementById('age-gate-form');
-    if (!form) return;
-
-    form.addEventListener('submit', (e) => {
-        const selected = form.querySelector('input[name="legal_age"]:checked');
-
-        // Aucun choix sélectionné
-        if (!selected) {
-            e.preventDefault();
-            return;
-        }
-
-        // Mineur : afficher l'erreur, bloquer l'interaction, rediriger vers Google
-        if (selected.value !== '1') {
-            e.preventDefault();
-            const msg = document.getElementById('age-gate-error');
-            if (msg) msg.removeAttribute('hidden');
-
-            // Bloquer tous les champs et boutons
-            form.querySelectorAll('input, button').forEach(el => { el.disabled = true; });
-
-            // Redirection après 3 secondes
-            setTimeout(() => { window.location.href = 'https://www.google.com'; }, 3000); // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
-            return;
-        }
-
-    });
-}
 
 // ============================================================
 // Google Analytics — chargé uniquement si consentement donné
@@ -1448,7 +1415,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initThemeToggle();
     initBurger();
-    initAgeGate();
     initCookieBanner();
     initCarousel();
     initAccountPanel();
