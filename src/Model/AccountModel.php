@@ -72,16 +72,21 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     /**
      * Crée un nouveau compte client avec token de vérification email (TTL 24 h).
      *
-     * @param string $accountType     Type de compte ('individual' ou 'company')
-     * @param string $email           Adresse email
-     * @param string $hashedPassword  Mot de passe hashé (bcrypt)
-     * @param string $lang            Langue préférée ('fr' ou 'en')
-     * @param int    $newsletter      Abonnement newsletter (0 ou 1)
-     * @param string $verificationToken Token de vérification email (64 hex chars)
-     * @param string $civility        Civilité ('M', 'F', 'other') — particulier uniquement
-     * @param string $lastname        Nom de famille — particulier uniquement
-     * @param string $firstname       Prénom — particulier uniquement
-     * @param string $companyName     Raison sociale — entreprise uniquement
+     * Enregistre également la déclaration de majorité légale si une date de naissance
+     * est fournie (Art. L3342-1 CSP — preuve de consentement RGPD Art. 7).
+     *
+     * @param string      $accountType      Type de compte ('individual' ou 'company')
+     * @param string      $email            Adresse email
+     * @param string      $hashedPassword   Mot de passe hashé (bcrypt)
+     * @param string      $lang             Langue préférée ('fr' ou 'en')
+     * @param int         $newsletter       Abonnement newsletter (0 ou 1)
+     * @param string      $verificationToken Token de vérification email (64 hex chars)
+     * @param string      $civility         Civilité ('M', 'F', 'other') — particulier uniquement
+     * @param string      $lastname         Nom de famille — particulier uniquement
+     * @param string      $firstname        Prénom — particulier uniquement
+     * @param string      $companyName      Raison sociale — entreprise uniquement
+     * @param string|null $birthDate        Date de naissance YYYY-MM-DD (null si non fournie)
+     * @param string|null $majorityIp       IP de déclaration de majorité (preuve RGPD Art. 7)
      * @return string Identifiant du compte créé (cast en string depuis lastInsertId)
      * @throws \Throwable En cas d'erreur BDD (rollback automatique)
      */
@@ -95,18 +100,24 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         string $civility,
         string $lastname,
         string $firstname,
-        string $companyName
+        string $companyName,
+        ?string $birthDate = null,
+        ?string $majorityIp = null
     ): string {
         $this->db->beginTransaction();
         try {
+            $majorityDeclaredAt = ($birthDate !== null) ? date('Y-m-d H:i:s') : null;
+
             $accountId = $this->db->insert(
                 "INSERT INTO {$this->table}
                  (email, password, account_type, role, lang, newsletter,
                   email_verification_token, email_verification_token_expires_at,
-                  newsletter_unsubscribe_token)
-                 VALUES (?, ?, ?, 'customer', ?, ?, ?, NOW() + INTERVAL 24 HOUR, ?)",
+                  newsletter_unsubscribe_token,
+                  birth_date, majority_declared_at, majority_declared_ip)
+                 VALUES (?, ?, ?, 'customer', ?, ?, ?, NOW() + INTERVAL 24 HOUR, ?, ?, ?, ?)",
                 [$email, $hashedPassword, $accountType, $lang, $newsletter,
-                 $verificationToken, bin2hex(random_bytes(32))]
+                 $verificationToken, bin2hex(random_bytes(32)),
+                 $birthDate, $majorityDeclaredAt, $majorityIp]
             );
 
             if ($accountType === 'company') {
@@ -128,6 +139,45 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             $this->db->rollback();
             throw $e;
         }
+    }
+
+    /**
+     * Vérifie si un compte a une déclaration de majorité valide.
+     *
+     * Utilisé par le checkout pour bloquer les comptes sans déclaration (Art. L3342-1 CSP).
+     *
+     * @param int $id Identifiant du compte
+     * @return bool True si la déclaration de majorité est présente, false sinon
+     */
+    public function hasMajorityDeclared(int $id): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT majority_declared_at FROM {$this->table} WHERE id = ? AND deleted_at IS NULL",
+            [$id]
+        );
+        return $row !== false && $row['majority_declared_at'] !== null;
+    }
+
+    /**
+     * Enregistre ou met à jour la déclaration de majorité d'un compte.
+     *
+     * Stocke la date de naissance, l'horodatage et l'IP comme preuve de consentement (RGPD Art. 7).
+     *
+     * @param int    $id        Identifiant du compte
+     * @param string $birthDate Date de naissance au format YYYY-MM-DD
+     * @param string $ip        Adresse IP de l'utilisateur au moment de la déclaration
+     * @return void
+     */
+    public function saveMajorityDeclaration(int $id, string $birthDate, string $ip): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET birth_date = ?,
+                 majority_declared_at = NOW(),
+                 majority_declared_ip = ?
+             WHERE id = ? AND deleted_at IS NULL",
+            [$birthDate, $ip, $id]
+        );
     }
 
     public function verifyEmail(int $id): void
