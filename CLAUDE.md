@@ -176,6 +176,8 @@ Pour chaque feature ou correction, respecter cet ordre **sans exception** :
 | **7. Commit** | `git add` fichier par fichier · commit(s) atomiques · sur la branche `feat/us-{sujet}` dédiée |
 
 > **E2E différable** : si XAMPP n'est pas actif, l'étape E2E peut être reportée à la session suivante. Le BACKLOG (étape 5) et le commit (étape 7) ne sont pas différables. Indiquer `🔄 En cours` dans la colonne 🎭 si la spec E2E n'est pas encore écrite.
+>
+> **Déclencheur E2E** : quand Alexandre dit **"mes tests sont OK"** (ou formulation équivalente signalant que la recette manuelle est validée), Claude implémente immédiatement les specs E2E Playwright correspondantes (nominal + 1 erreur critique) sans attendre d'instruction supplémentaire.
 
 ### 3. Vérifications avant push
 
