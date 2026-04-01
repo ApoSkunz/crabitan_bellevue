@@ -153,11 +153,12 @@ class AuthRegisterAntiEnumTest extends IntegrationTestCase
             // attendu
         }
 
-        $this->assertSame(
-            __('auth.register_success'),
-            $_SESSION['flash']['info'] ?? null,
-            'Le message flash doit être auth.register_success (même message qu\'un succès)'
+        // Anti-énumération R5 : flag register_success identique à une inscription réussie
+        $this->assertNotEmpty(
+            $_SESSION['flash']['register_success'] ?? null,
+            'Le flag register_success doit être posé (même réponse qu\'un succès)'
         );
+        $this->assertArrayNotHasKey('info', $_SESSION['flash'] ?? []);
     }
 
     /**
@@ -442,10 +443,7 @@ class AuthRegisterAntiEnumTest extends IntegrationTestCase
             $this->assertSame('/fr', $e->location);
         }
 
-        $this->assertSame(
-            __('auth.register_success'),
-            $_SESSION['flash']['info'] ?? null
-        );
+        $this->assertNotEmpty($_SESSION['flash']['register_success'] ?? null);
 
         $account = self::$db->fetchOne(
             "SELECT email FROM accounts WHERE email = ?",
@@ -477,10 +475,7 @@ class AuthRegisterAntiEnumTest extends IntegrationTestCase
             $this->assertSame('/fr', $e->location);
         }
 
-        $this->assertSame(
-            __('auth.register_success'),
-            $_SESSION['flash']['info'] ?? null
-        );
+        $this->assertNotEmpty($_SESSION['flash']['register_success'] ?? null);
 
         $account = self::$db->fetchOne(
             "SELECT email FROM accounts WHERE email = ?",

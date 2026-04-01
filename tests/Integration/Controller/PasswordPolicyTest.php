@@ -361,8 +361,8 @@ class PasswordPolicyTest extends IntegrationTestCase
         $errors = $_SESSION['flash']['register_errors'] ?? [];
         $this->assertArrayNotHasKey('email', $errors);
 
-        // Le flash doit contenir le message de succès générique
-        $this->assertSame(__('auth.register_success'), $_SESSION['flash']['info'] ?? null);
+        // Le flag register_success doit être posé (même réponse que pour un succès)
+        $this->assertNotEmpty($_SESSION['flash']['register_success'] ?? null);
 
         // Un seul compte avec cet email en base (le compte original)
         $count = self::$db->fetchOne(

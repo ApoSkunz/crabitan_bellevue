@@ -168,16 +168,14 @@ class AuthForgotResetTest extends IntegrationTestCase
             $this->assertSame('/fr', $e->location);
         }
 
-        // Le message flash doit être le même que pour un email existant
-        $this->assertSame(
-            __('auth.reset_email_sent'),
-            $_SESSION['flash']['info'] ?? null
-        );
+        // Le flag forgot_success doit être posé (même réponse que pour un email existant)
+        $this->assertNotEmpty($_SESSION['flash']['forgot_success'] ?? null);
+        $this->assertArrayNotHasKey('info', $_SESSION['flash'] ?? []);
     }
 
     /**
-     * Un email existant et vérifié doit également déclencher le flash
-     * 'auth.reset_email_sent' (réponse identique à l'email inconnu).
+     * Un email existant et vérifié doit également déclencher le flag forgot_success
+     * (réponse identique à l'email inconnu, anti-énumération R5).
      *
      * @return void
      */
@@ -198,10 +196,8 @@ class AuthForgotResetTest extends IntegrationTestCase
             $this->assertSame('/fr', $e->location);
         }
 
-        $this->assertSame(
-            __('auth.reset_email_sent'),
-            $_SESSION['flash']['info'] ?? null
-        );
+        $this->assertNotEmpty($_SESSION['flash']['forgot_success'] ?? null);
+        $this->assertArrayNotHasKey('info', $_SESSION['flash'] ?? []);
     }
 
     // ----------------------------------------------------------------
