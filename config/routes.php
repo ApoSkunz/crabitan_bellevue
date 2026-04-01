@@ -80,7 +80,8 @@ $router->get('/{lang}/actualites/{slug}', 'NewsController@show');
 // Auth
 $router->post('/{lang}/connexion', 'AuthController@login');
 $router->post('/{lang}/inscription', 'AuthController@register');
-$router->get('/{lang}/deconnexion', 'AuthController@logout');
+$router->get('/{lang}/deconnexion', 'AuthController@logout');   // Retourne 405 — protection CSRF passive
+$router->post('/{lang}/deconnexion', 'AuthController@logout');
 $router->get('/{lang}/verification/{token}', 'AuthController@verifyEmail');
 $router->get('/{lang}/mot-de-passe-oublie', 'AuthController@forgotForm');
 $router->post('/{lang}/mot-de-passe-oublie', 'AuthController@forgot');
