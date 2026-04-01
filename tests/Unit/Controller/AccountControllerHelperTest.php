@@ -456,4 +456,67 @@ class AccountControllerHelperTest extends TestCase
 
         $this->assertSame([], $errors);
     }
+
+    // ----------------------------------------------------------------
+    // buildExportHeaders() — RGPD headers (Cache-Control + Content-Disposition)
+    // ----------------------------------------------------------------
+
+    /**
+     * Appelle buildExportHeaders via réflexion.
+     *
+     * @return array<int, string>
+     */
+    private function callBuildExportHeaders(string $basename, bool $isZip): array
+    {
+        $method = new \ReflectionMethod(AccountController::class, 'buildExportHeaders');
+        $method->setAccessible(true);
+        return (array) $method->invoke($this->controller, $basename, $isZip);
+    }
+
+    /**
+     * Les headers ZIP doivent inclure Cache-Control no-store et Content-Disposition
+     * avec le nom de fichier au format export-rgpd-{date}.zip.
+     */
+    public function testBuildExportHeadersZipContainsCacheControlNoStore(): void
+    {
+        $headers = $this->callBuildExportHeaders('export-rgpd-2026-04-01', true);
+
+        $this->assertContains('Cache-Control: no-store, no-cache', $headers);
+    }
+
+    /**
+     * Le Content-Disposition ZIP force le téléchargement avec le bon nom de fichier.
+     */
+    public function testBuildExportHeadersZipContentDisposition(): void
+    {
+        $headers = $this->callBuildExportHeaders('export-rgpd-2026-04-01', true);
+
+        $this->assertContains(
+            'Content-Disposition: attachment; filename="export-rgpd-2026-04-01.zip"',
+            $headers
+        );
+    }
+
+    /**
+     * Les headers JSON doivent également inclure Cache-Control no-store.
+     */
+    public function testBuildExportHeadersJsonContainsCacheControlNoStore(): void
+    {
+        $headers = $this->callBuildExportHeaders('export-rgpd-2026-04-01', false);
+
+        $this->assertContains('Cache-Control: no-store, no-cache', $headers);
+    }
+
+    /**
+     * Le Content-Disposition JSON force le téléchargement avec l'extension .json.
+     */
+    public function testBuildExportHeadersJsonContentDisposition(): void
+    {
+        $headers = $this->callBuildExportHeaders('export-rgpd-2026-04-01', false);
+
+        $this->assertContains(
+            'Content-Disposition: attachment; filename="export-rgpd-2026-04-01.json"',
+            $headers
+        );
+    }
 }

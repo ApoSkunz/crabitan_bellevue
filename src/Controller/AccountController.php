@@ -1234,7 +1234,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         ];
 
         $date     = date('Y-m-d');
-        $basename = 'mes-donnees-' . $date;
+        $basename = 'export-rgpd-' . $date;
         $json     = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '{}';
 
         if (ob_get_level() > 0) {
@@ -1253,17 +1253,40 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $content = (string) file_get_contents($tmpZip);
             unlink($tmpZip);
             header('Content-Type: application/zip');
-            header('Content-Disposition: attachment; filename="' . $basename . '.zip"');
+            foreach ($this->buildExportHeaders($basename, true) as $h) {
+                header($h);
+            }
         } else {
             // Fallback si l'extension zip n'est pas activée
             $content = $json;
             header('Content-Type: application/json; charset=utf-8');
-            header('Content-Disposition: attachment; filename="' . $basename . '.json"');
+            foreach ($this->buildExportHeaders($basename, false) as $h) {
+                header($h);
+            }
         }
 
         header('Content-Length: ' . strlen($content));
         echo $content;
         exit;
+    }
+
+    /**
+     * Construit les headers HTTP de téléchargement de l'export RGPD.
+     *
+     * Retourne les headers Cache-Control (interdiction de mise en cache des
+     * données personnelles) et Content-Disposition (téléchargement forcé).
+     *
+     * @param string $basename Nom de base du fichier sans extension (ex : export-rgpd-2026-04-01)
+     * @param bool   $isZip   true → extension .zip, false → extension .json
+     * @return array<int, string>
+     */
+    protected function buildExportHeaders(string $basename, bool $isZip): array
+    {
+        $ext = $isZip ? 'zip' : 'json';
+        return [
+            'Cache-Control: no-store, no-cache',
+            'Content-Disposition: attachment; filename="' . $basename . '.' . $ext . '"',
+        ];
     }
 
     /**
