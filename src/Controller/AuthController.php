@@ -15,6 +15,7 @@ use Model\ConnectionModel;
 use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
 use Service\MailService;
+use Service\MajorityService;
 use Service\PasswordValidator;
 use Service\RateLimiterService;
 
@@ -262,15 +263,17 @@ class AuthController extends Controller
             Response::redirect("/{$lang}");
         }
 
-        $accountType = $this->request->post('account_type', '');
-        $email       = strtolower(trim($this->request->post('email', '')));
-        $password    = $this->request->post('password', '');
-        $confirm     = $this->request->post('password_confirm', '');
-        $civility    = $this->request->post('civility', '');
-        $lastname    = trim($this->request->post('lastname', ''));
-        $firstname   = trim($this->request->post('firstname', ''));
-        $company     = trim($this->request->post('company_name', ''));
-        $newsletter  = $this->request->post('newsletter', '0') === '1' ? 1 : 0;
+        $accountType       = $this->request->post('account_type', '');
+        $email             = strtolower(trim($this->request->post('email', '')));
+        $password          = $this->request->post('password', '');
+        $confirm           = $this->request->post('password_confirm', '');
+        $civility          = $this->request->post('civility', '');
+        $lastname          = trim($this->request->post('lastname', ''));
+        $firstname         = trim($this->request->post('firstname', ''));
+        $company           = trim($this->request->post('company_name', ''));
+        $newsletter        = $this->request->post('newsletter', '0') === '1' ? 1 : 0;
+        $birthDate         = trim($this->request->post('birth_date', ''));
+        $majorityChecked   = $this->request->post('majority_confirmed', '0') === '1';
 
         $errors = $this->validateRegister(
             $accountType,
@@ -280,9 +283,11 @@ class AuthController extends Controller
             $civility,
             $lastname,
             $firstname,
-            $company
+            $company,
+            $birthDate,
+            $majorityChecked
         );
-        $old = compact('accountType', 'civility', 'lastname', 'firstname', 'email', 'company', 'newsletter');
+        $old = compact('accountType', 'civility', 'lastname', 'firstname', 'email', 'company', 'newsletter', 'birthDate');
 
         if ($errors) {
             $_SESSION['flash']['register_errors'] = $errors;
@@ -315,6 +320,7 @@ class AuthController extends Controller
 
         $verificationToken = bin2hex(random_bytes(32));
         $displayName       = $accountType === 'company' ? $company : "{$firstname} {$lastname}";
+        $ip                = $_SERVER['REMOTE_ADDR'] ?? null;
 
         $this->accounts->create(
             $accountType,
@@ -326,7 +332,9 @@ class AuthController extends Controller
             $civility,
             $lastname,
             $firstname,
-            $company
+            $company,
+            $birthDate ?: null,
+            $birthDate !== '' ? $ip : null
         );
 
         $verifyUrl = APP_URL . "/{$lang}/verification/{$verificationToken}";
@@ -541,15 +549,20 @@ class AuthController extends Controller
     /**
      * Valide les champs du formulaire d'inscription.
      *
-     * @param string $accountType  Type de compte (individual|company)
-     * @param string $email        Adresse email
-     * @param string $password     Mot de passe
-     * @param string $confirm      Confirmation du mot de passe
-     * @param string $civility     Civilité (M|F|other)
-     * @param string $lastname     Nom de famille
-     * @param string $firstname    Prénom
-     * @param string $company      Nom de l'entreprise
-     * @return array<string, string> Tableau d'erreurs indexé par champ (vide si valide)
+     * Inclut la validation de la date de naissance (majorité légale 18 ans, Art. L3342-1 CSP)
+     * et de la case à cocher de certification de majorité.
+     *
+     * @param string $accountType      Type de compte (individual|company)
+     * @param string $email            Adresse email
+     * @param string $password         Mot de passe
+     * @param string $confirm          Confirmation du mot de passe
+     * @param string $civility         Civilité (M|F|other)
+     * @param string $lastname         Nom de famille
+     * @param string $firstname        Prénom
+     * @param string $company          Nom de l'entreprise
+     * @param string $birthDate        Date de naissance (YYYY-MM-DD)
+     * @param bool   $majorityChecked  Case à cocher de certification de majorité cochée
+     * @return array<string, string>   Tableau d'erreurs indexé par champ (vide si valide)
      */
     private function validateRegister(
         string $accountType,
@@ -559,7 +572,9 @@ class AuthController extends Controller
         string $civility,
         string $lastname,
         string $firstname,
-        string $company
+        string $company,
+        string $birthDate = '',
+        bool   $majorityChecked = false
     ): array {
         $errors = [];
 
@@ -589,6 +604,16 @@ class AuthController extends Controller
         }
         if ($accountType === 'company' && strlen($company) < 2) {
             $errors['company_name'] = __('validation.required');
+        }
+
+        // Validation majorité légale (Art. L3342-1 CSP)
+        if ($birthDate === '') {
+            $errors['birth_date'] = __('validation.birth_date_required');
+        } elseif (!MajorityService::isEligible($birthDate)) {
+            $errors['birth_date'] = __('validation.birth_date_minor');
+        }
+        if (!$majorityChecked) {
+            $errors['majority_confirmed'] = __('validation.majority_required');
         }
 
         return $errors;
