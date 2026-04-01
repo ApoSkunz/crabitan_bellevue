@@ -255,4 +255,87 @@ class AgeGateControllerTest extends TestCase
         // //evil.com doit être bloqué — redirection vers la langue par défaut
         $this->assertStringNotContainsString('evil.com', $caught->location ?? '');
     }
+
+    // ── confirmLang() ─────────────────────────────────────────────────────────
+
+    /**
+     * Vérifie que confirmLang() pose le cookie et redirige vers l'URL demandée.
+     *
+     * @return void
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testConfirmLangSetsSessionCookieAndRedirects(): void
+    {
+        $this->bootstrapApp();
+        $_POST   = ['redirect' => '/fr'];
+        $_COOKIE = [];
+
+        $caught = null;
+        ob_start();
+        try {
+            $this->makeController()->confirmLang(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+        ob_end_clean();
+
+        $this->assertNotNull($caught, 'confirmLang() doit rediriger');
+        $this->assertSame(302, $caught->status);
+        $this->assertStringNotContainsString('google.com', $caught->location ?? '');
+    }
+
+    /**
+     * Vérifie que confirmLang() rejette une URL de redirection externe (open redirect).
+     *
+     * @return void
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testConfirmLangRejectsOpenRedirect(): void
+    {
+        $this->bootstrapApp();
+        $_POST   = ['redirect' => 'https://evil.com/phishing'];
+        $_COOKIE = [];
+
+        $caught = null;
+        ob_start();
+        try {
+            $this->makeController()->confirmLang(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+        ob_end_clean();
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $location = $caught->location ?? '';
+        $this->assertStringStartsWith('/', $location, 'La redirection doit être un chemin relatif interne');
+        $this->assertStringNotContainsString('evil.com', $location);
+    }
+
+    /**
+     * Vérifie que exitLang() redirige vers google.com.
+     *
+     * @return void
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testExitLangRedirectsToGoogle(): void
+    {
+        $this->bootstrapApp();
+        $_COOKIE = [];
+
+        $caught = null;
+        ob_start();
+        try {
+            $this->makeController()->exitLang(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+        ob_end_clean();
+
+        $this->assertNotNull($caught);
+        $this->assertStringContainsString('google.com', $caught->location ?? '');
+    }
 }
