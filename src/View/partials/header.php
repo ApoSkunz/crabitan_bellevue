@@ -69,6 +69,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
     return '/' . $targetLang;
 };
 ?>
+<?php include __DIR__ . '/age_gate.php'; ?>
 <header class="site-header">
     <div class="header-main">
         <!-- Gauche : logo + langue + contact -->

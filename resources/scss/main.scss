@@ -14,7 +14,7 @@
 // ============================================================
 // Composants
 // ============================================================
-@use 'components/age-gate';
+@use 'components/age-gate' as age-gate-overlay;
 @use 'components/button';
 @use 'components/cookie-banner';
 @use 'components/carousel';
