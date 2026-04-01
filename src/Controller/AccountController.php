@@ -679,6 +679,16 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     // POST /{lang}/mon-compte/securite/mot-de-passe
     // ----------------------------------------------------------------
 
+    /**
+     * Traite le formulaire de changement de mot de passe depuis l'espace compte.
+     *
+     * Vérifie que l'ancien mot de passe est correct, que le nouveau respecte
+     * la politique de sécurité et qu'il est différent de l'actuel.
+     * En cas de succès, envoie un email de notification de sécurité au compte.
+     *
+     * @param array<string, string> $params Paramètres de route (contient 'lang')
+     * @return void
+     */
     public function changePassword(array $params): void
     {
         $payload = $this->requireCustomer();
@@ -706,8 +716,16 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $errors['current_password'] = __('account.wrong_current_password');
         }
 
+        if (
+            empty($errors['current_password'])
+            && $account !== false
+            && password_verify($new, (string) $account['password'])
+        ) {
+            $errors['new_password'] = __('account.password_same_as_current');
+        }
+
         if (!PasswordValidator::isStrong($new)) {
-            $errors['new_password'] = __('auth.password_too_weak');
+            $errors['new_password'] = $errors['new_password'] ?? __('auth.password_too_weak');
         }
 
         if ($new !== $confirm) {
@@ -720,6 +738,23 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         }
 
         $this->accounts->updatePassword($userId, password_hash($new, PASSWORD_BCRYPT));
+
+        // Notification de sécurité par email (non bloquante)
+        // $account est garanti non-null ici (la validation l'a vérifié au-dessus)
+        if ($account && isset($account['email'])) {
+            $notifName = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
+                ?: ($account['company_name'] ?? 'Client');
+            try {
+                (new \Service\MailService())->sendPasswordChangedAlert(
+                    (string) $account['email'],
+                    (string) $notifName,
+                    $lang
+                );
+            } catch (\Throwable) {
+                // L'envoi de l'email ne bloque pas le changement de mot de passe
+            }
+        }
+
         $_SESSION['flash']['security_success'] = __('account.password_updated');
         Response::redirect($back);
     }

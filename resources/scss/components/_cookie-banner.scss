@@ -29,12 +29,6 @@
         border-top-color: rgba(201, 168, 76, 0.8);
     }
 
-    // Sur la page age-gate : le banner est présent mais non bloquant.
-    // pointer-events conservés, pas de backdrop, z-index abaissé pour rester visible
-    // sans contraindre l'interaction avec le formulaire de vérification d'âge.
-    &.cookie-banner--non-blocking {
-        z-index: 100;
-    }
 }
 
 .cookie-banner__body {
@@ -55,16 +49,6 @@
         &:hover {
             color: var(--color-gold-light);
         }
-    }
-}
-
-.cookie-banner__required {
-    font-size: 0.78rem;
-    color: var(--color-gold);
-    margin-top: 0.3rem;
-
-    &[hidden] {
-        display: none;
     }
 }
 

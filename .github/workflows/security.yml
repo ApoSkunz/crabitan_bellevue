@@ -170,6 +170,7 @@ jobs:
     name: OpenSSF Scorecard
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    if: github.ref == 'refs/heads/main'
     permissions:
       security-events: write
       id-token: write

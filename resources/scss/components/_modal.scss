@@ -636,6 +636,17 @@
     &__error {
         font-size: 0.75rem;
         color: #c0392b;
+
+        &.js-pwd-match-error {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #e53935;
+            background: rgba(229, 57, 53, 0.08);
+            border-left: 3px solid #e53935;
+            padding: 0.35rem 0.6rem;
+            margin-bottom: 0.5rem;
+        }
     }
 
     &__newsletter {

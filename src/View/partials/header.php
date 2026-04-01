@@ -9,21 +9,27 @@ $isAdmin     = false;
 if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
 }
-$modalCsrf      = $_SESSION['csrf'];
-$modalError     = $_SESSION['flash']['modal_error'] ?? null;
-$registerErrors = $_SESSION['flash']['register_errors'] ?? [];
-$registerOld    = $_SESSION['flash']['register_old'] ?? [];
-$registerOpen   = !empty($registerErrors) || !empty($registerOld);
-$flashInfo      = $_SESSION['flash']['info'] ?? null;
-unset($_SESSION['flash']['modal_error'], $_SESSION['flash']['register_errors'], $_SESSION['flash']['register_old'], $_SESSION['flash']['info']);
+$modalCsrf       = $_SESSION['csrf'];
+$modalError      = $_SESSION['flash']['modal_error'] ?? null;
+$registerErrors  = $_SESSION['flash']['register_errors'] ?? [];
+$registerOld     = $_SESSION['flash']['register_old'] ?? [];
+$registerSuccess = !empty($_SESSION['flash']['register_success']);
+$registerOpen    = !empty($registerErrors) || !empty($registerOld) || $registerSuccess;
+$forgotSuccess   = !empty($_SESSION['flash']['forgot_success']);
+$flashInfo       = $_SESSION['flash']['info'] ?? null;
+unset($_SESSION['flash']['modal_error'], $_SESSION['flash']['register_errors'], $_SESSION['flash']['register_old'], $_SESSION['flash']['register_success'], $_SESSION['flash']['forgot_success'], $_SESSION['flash']['info']);
 
-$resetModalData = $_SESSION['reset_modal'] ?? null;
-$resetOpen      = isset($_GET['modal']) && $_GET['modal'] === 'reset' && $resetModalData !== null;
-$resetToken     = $resetModalData['token'] ?? '';
-$resetValid     = $resetModalData['valid'] ?? false;
-$resetError     = $resetModalData['error'] ?? null;
+$resetModalData    = $_SESSION['reset_modal'] ?? null;
+$resetOpen         = isset($_GET['modal']) && $_GET['modal'] === 'reset' && $resetModalData !== null;
+$resetToken        = $resetModalData['token'] ?? '';
+$resetValid        = $resetModalData['valid'] ?? false;
+$resetError        = $resetModalData['error'] ?? null;
+$resetSuccess      = !empty($resetModalData['success']);
 if ($resetOpen) {
     $_SESSION['reset_modal']['error'] = null;
+    if ($resetSuccess) {
+        unset($_SESSION['reset_modal']);
+    }
 }
 
 $isCompany = false;
@@ -215,11 +221,15 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
 window.__userLogged       = <?= $isLogged ? 'true' : 'false' ?>;
 window.__navLang          = '<?= htmlspecialchars($navLang) ?>';
 window.__authModalError   = <?= $modalError ? 'true' : 'false' ?>;
-window.__authRegisterOpen = <?= $registerOpen ? 'true' : 'false' ?>;
-window.__flashInfo        = <?= $flashInfo ? json_encode(htmlspecialchars($flashInfo)) : 'null' ?>;
+window.__authRegisterOpen   = <?= $registerOpen ? 'true' : 'false' ?>;
+window.__registerSuccess    = <?= $registerSuccess ? 'true' : 'false' ?>;
+window.__forgotSuccess      = <?= $forgotSuccess ? 'true' : 'false' ?>;
+window.__flashInfo          = <?= $flashInfo ? json_encode(htmlspecialchars($flashInfo)) : 'null' ?>;
 window.__resetOpen        = <?= $resetOpen ? 'true' : 'false' ?>;
 window.__resetToken       = <?= json_encode($resetToken) ?>;
 window.__resetValid       = <?= $resetValid ? 'true' : 'false' ?>;
+window.__resetSuccess     = <?= $resetSuccess ? 'true' : 'false' ?>;
+window.__resetSuccessMsg  = <?= $resetSuccess ? json_encode(htmlspecialchars(__('auth.password_updated'))) : 'null' ?>;
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -383,18 +393,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 <button type="button" id="forgot-back-btn" class="login-modal__back">
                     &#8592; <?= htmlspecialchars(__('btn.back')) ?>
                 </button>
-                <p class="login-modal__forgot-desc"><?= htmlspecialchars(__('auth.forgot_instructions')) ?></p>
-                <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/mot-de-passe-oublie"
-                      id="forgot-modal-form" class="login-modal__form">
-                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
-                    <div class="login-modal__field">
-                        <label for="forgot-modal-email"><?= htmlspecialchars(__('auth.email')) ?></label>
-                        <input type="email" id="forgot-modal-email" name="email" required autocomplete="email">
+                <?php if ($forgotSuccess) : ?>
+                    <div class="alert alert--success" role="alert" aria-live="polite">
+                        <?= htmlspecialchars(__('auth.reset_email_sent')) ?>
                     </div>
-                    <button type="submit" class="btn btn--gold login-modal__submit">
-                        <?= htmlspecialchars(__('btn.submit')) ?>
-                    </button>
-                </form>
+                <?php else : ?>
+                    <p class="login-modal__forgot-desc"><?= htmlspecialchars(__('auth.forgot_instructions')) ?></p>
+                    <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/mot-de-passe-oublie"
+                          id="forgot-modal-form" class="login-modal__form">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+                        <div class="login-modal__field">
+                            <label for="forgot-modal-email"><?= htmlspecialchars(__('auth.email')) ?></label>
+                            <input type="email" id="forgot-modal-email" name="email" required autocomplete="email">
+                        </div>
+                        <button type="submit" class="btn btn--gold login-modal__submit">
+                            <?= htmlspecialchars(__('btn.submit')) ?>
+                        </button>
+                    </form>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -420,6 +436,11 @@ document.addEventListener('DOMContentLoaded', function () {
             <button id="register-modal-close" class="register-modal__close" type="button" aria-label="Fermer">&times;</button>
         </div>
         <div class="register-modal__body">
+            <?php if ($registerSuccess) : ?>
+                <div class="alert alert--success" role="alert" aria-live="polite">
+                    <?= htmlspecialchars(__('auth.register_success')) ?>
+                </div>
+            <?php else : ?>
             <div class="register-modal__social">
                 <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
                     <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
@@ -541,11 +562,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
 
                 <!-- Confirmation mot de passe -->
+                <span class="register-modal__error js-pwd-match-error" hidden></span>
                 <div class="register-modal__field">
                     <label for="reg-password-confirm"><?= htmlspecialchars(__('form.password_confirm')) ?></label>
                     <div class="register-modal__password-wrap">
                         <input type="password" id="reg-password-confirm" name="password_confirm"
-                               autocomplete="new-password" required minlength="12">
+                               autocomplete="new-password" required minlength="12"
+                               data-mismatch-label="<?= htmlspecialchars(__('form.password_mismatch')) ?>">
                         <button type="button" class="register-modal__pwd-toggle" aria-label="Afficher le mot de passe" data-target="reg-password-confirm">
                             <span class="pwd-eye pwd-eye--show" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
                             <span class="pwd-eye pwd-eye--hide" aria-hidden="true" hidden><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
@@ -573,6 +596,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <?= htmlspecialchars(__('auth.modal.sign_in')) ?>
                 </button>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -609,6 +633,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         class="btn btn--gold btn--full" style="margin-top:0.75rem;">
                     <?= htmlspecialchars(__('auth.forgot_password')) ?>
                 </button>
+            <?php elseif ($resetSuccess) : ?>
+                <div id="reset-modal-success" class="alert alert--success" role="status" data-no-auto-dismiss>
+                    <?= htmlspecialchars(__('auth.password_updated')) ?>
+                </div>
             <?php else : ?>
                 <?php if ($resetError) : ?>
                     <div class="alert alert--error" role="alert"><?= htmlspecialchars($resetError) ?></div>

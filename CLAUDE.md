@@ -42,6 +42,8 @@ Ce projet est réalisé en équipe pluridisciplinaire. Chaque rôle est tenu par
 | **Expert Blue Team** | Durcissement applicatif, monitoring, réponse aux rapports Red Team |
 | **Architecte Génie Logicielle** | Patterns, SOLID, couplage/cohésion, revue d'architecture MVC, refactoring structurel |
 | **Architecte BDD MySQL** | Schéma, normalisation, index, performances, migrations, intégrité référentielle |
+| **Expert RGPD** | Conformité RGPD/CNIL, bases légales des traitements, droits des personnes (Art. 15-22), durées de conservation, cookies ePrivacy, registre Art. 30, DPIA, DPA sous-traitants, notification violations 72h, privacy by design |
+| **Expert Juridique** | Droit français et européen : Loi Evin (publicité alcool, mentions obligatoires), Code de la consommation (L111-1, L221-5/11/18, droit de rétractation 14 j), LCEN (mentions légales, hébergeur), Code de commerce (L441-9 facturation, L123-22 archivage 10 ans), RGAA/accessibilité, propriété intellectuelle |
 
 Chaque contribution doit respecter les standards de son domaine. Les failles détectées par le Red Team sont traitées avec le Blue Team **avant tout merge**.
 
@@ -60,6 +62,9 @@ Avant toute implémentation, identifier le ou les experts concernés et adopter 
 | Tests TU / TI / E2E, stratégie de couverture | **Expert QA** |
 | CI/CD, GitHub Actions, PHPCS/PHPStan, secrets | **Expert DevSecOps** |
 | Sécurité applicative (XSS, CSRF, IDOR, injection…) | **Expert Red Team** → réponse **Expert Blue Team** |
+| Conformité RGPD, consentement, droits des personnes, cookies | **Expert RGPD** |
+| Mentions légales, CGV, droit de rétractation, Loi Evin, facturation | **Expert Juridique** |
+| Données personnelles dans les traitements (newsletter, commandes, profil…) | **Expert RGPD** + **Expert Juridique** |
 | Backlog, US, acceptance criteria, vision produit | **Product Owner** |
 | Animation Scrum, vélocité, impediments | **Scrum Master** |
 | Copywriting, emailings, newsletters, ton de marque | **Expert Marketing** |
@@ -116,23 +121,70 @@ Les tests **ne se reportent pas** — ils sont écrits dans le même commit que 
 
 ---
 
+## Git — règle absolue sur les fichiers ignorés
+
+**Le `.gitignore` fait foi. Il n'est jamais overridé (`git add -f` interdit).**
+
+Si un fichier est ignoré, c'est intentionnel — ne pas chercher à le commiter, même partiellement.
+Exemples non exhaustifs : `BACKLOG/`, `.env`, `vendor/`, `node_modules/`, fichiers de couverture.
+
+---
+
 ## Workflow
 
-### 1. Ordre des tâches par feature
+### 0. Avant de commencer une US — validation PO obligatoire
+
+Avant toute implémentation, **demander explicitement la validation d'Alexandre** sur deux points :
+
+1. **L'US elle-même** — confirmer que c'est bien la prochaine à traiter :
+> "Je m'apprête à implémenter `us-{sujet}` (priorité X, estimation Y).
+> Tu confirmes que c'est bien la prochaine à traiter, ou tu veux réorienter ?"
+
+2. **Les critères d'acceptation** — présenter la liste des critères prévus et attendre le feu vert avant de coder :
+> "Voici les critères d'acceptation que je compte implémenter : [liste].
+> Tu valides, ou tu veux en ajouter / modifier / retirer ?"
+
+**Pourquoi :** les critères d'acceptation définissent le périmètre exact de l'implémentation. Un critère mal cadré en amont entraîne du code à refaire. Alexandre valide les critères **avant** que Claude écrive la moindre ligne de code de production.
+
+**Exceptions** (pas de consultation requise) :
+- Corrections de sécurité identifiées sur du code existant (vecteur exploitable immédiatement)
+- Corrections de syntaxe / linter / tests cassés bloquant la CI
+
+### 1. Méthode TDD — Red → Green → Refactor
+
+Toute nouvelle logique métier (service, model, controller) est développée en **TDD strict** :
+
+| Phase | Action |
+|---|---|
+| 🔴 **Red** | Écrire le(s) test(s) qui décrivent le comportement attendu — ils échouent (classe/méthode inexistante) |
+| 🟢 **Green** | Implémenter le minimum de code pour faire passer les tests — sans sur-ingénierie |
+| 🔵 **Refactor** | Nettoyer le code (nommage, extraction, PHPDoc) sans casser les tests |
+
+**Règles d'application :**
+- Un cycle Red/Green/Refactor par comportement unitaire (pas par fichier entier)
+- Les tests TDD remplacent les TU/TI de l'étape 2 — ils sont écrits **avant** le code de production
+- Exception acceptée : vues PHP, SCSS, i18n — pas de TDD, tests E2E suffisent
+- Si la logique est triviale (getter pur, constante), un test post-hoc est acceptable
+
+### 2. Ordre des tâches par US
 
 Pour chaque feature ou correction, respecter cet ordre **sans exception** :
 
 | Étape | Contenu |
 |---|---|
-| **1. Dev** | Implémenter le code (Controller, Model, Vue, i18n, SCSS…) + PHPDoc |
-| **2. Lint + TU/TI** | Linter, PHPCS/PHPStan, écrire et passer les tests unitaires et d'intégration |
-| **3. BACKLOG** | Créer l'US si non tracée · Mettre à jour la colonne 🤖 dans `us-*.md` et `README.md` · **obligatoire avant le commit** |
-| **4. E2E** | Écrire et passer la spec Playwright (nominal + 1 erreur critique) |
-| **5. Commit** | `git add` fichier par fichier · commit(s) atomiques (push local uniquement) |
+| **1. TDD Red** | Écrire les TU/TI décrivant le comportement attendu (tests échouent) |
+| **2. TDD Green** | Implémenter le code (Controller, Model, Service…) + PHPDoc pour faire passer les tests |
+| **3. TDD Refactor** | Nettoyer — PHPCS/PHPStan doivent être verts |
+| **4. Vue / i18n / SCSS** | Vues PHP, clés de traduction, styles (pas de TDD — E2E couvre) |
+| **5. BACKLOG** | Créer l'US si non tracée · Mettre à jour la colonne 🤖 dans `us-*.md` et `README.md` · **obligatoire avant le commit** |
+| **6. E2E** | Écrire et passer la spec Playwright (nominal + 1 erreur critique) |
+| **7. Commit** | `git add` fichier par fichier · commit(s) atomiques · sur la branche `feat/us-{sujet}` dédiée |
 
-> **E2E différable** : si XAMPP n'est pas actif, l'étape E2E peut être reportée à la session suivante. Le BACKLOG (étape 3) et le commit (étape 5) ne sont pas différables. Indiquer `🔄 En cours` dans la colonne 🎭 si la spec E2E n'est pas encore écrite.
+> **E2E différable** : si XAMPP n'est pas actif, l'étape E2E peut être reportée à la session suivante. Le BACKLOG (étape 5) et le commit (étape 7) ne sont pas différables. Indiquer `🔄 En cours` dans la colonne 🎭 si la spec E2E n'est pas encore écrite.
+>
+> **Déclencheur E2E** : quand Alexandre dit **"mes tests sont OK"** (ou formulation équivalente signalant que la recette manuelle est validée), Claude implémente immédiatement les specs E2E Playwright correspondantes (nominal + 1 erreur critique) sans attendre d'instruction supplémentaire.
 
-### 2. Vérifications avant push
+### 3. Vérifications avant push
 
 **C'est Claude qui exécute ces commandes**, pas l'utilisateur. Après chaque implémentation, lancer dans cet ordre sans attendre d'instruction :
 
@@ -157,7 +209,7 @@ npx playwright test
 
 Rapporter ✅ ou les erreurs complètes. Si tout est vert, attendre le mot **"go push"**.
 
-### 3. Parallélisation des actions
+### 4. Parallélisation des actions
 
 **Lancer un maximum d'actions en parallèle** dans chaque message pour accélérer le développement :
 
@@ -170,21 +222,27 @@ Rapporter ✅ ou les erreurs complètes. Si tout est vert, attendre le mot **"go
 
 Ne séquencer que ce qui dépend du résultat d'une étape précédente.
 
-### 4. Branches
+### 5. Branches
 
-Convention de nommage :
+**Règle principale : une branche par US.**
 
-| Préfixe | Usage |
-|---|---|
-| `feat/` | Nouvelle fonctionnalité |
-| `fix/` | Correction de bug |
-| `refactor/` | Refactoring sans changement de comportement |
-| `chore/` | Maintenance, CI, dépendances, config |
-| `docs/` | Documentation uniquement |
+Le nom de branche est dérivé du nom du fichier `us-{sujet}.md` :
 
-Une branche = un sujet. Ne jamais travailler directement sur `main`.
+| Préfixe | Usage | Exemple |
+|---|---|---|
+| `feat/` | Nouvelle fonctionnalité (US fonctionnelle) | `feat/us-declaration-majorite` |
+| `fix/` | Correction de bug | `fix/us-connexion-csrf` |
+| `refactor/` | Refactoring sans changement de comportement | `refactor/us-password-service` |
+| `chore/` | Maintenance, CI, dépendances, config | `chore/us-composer-npm-audit-ci` |
+| `docs/` | Documentation uniquement | `docs/us-mentions-legales-lcen` |
 
-### 5. Commits
+**Règles d'application :**
+- Claude crée systématiquement une nouvelle branche avant toute implémentation d'US : `git checkout -b feat/us-{sujet}`
+- Jamais de travail directement sur `main`
+- Une branche = une US = une PR (sauf US triviales type `docs/` ou `chore/` qui peuvent être regroupées)
+- Le nom de branche correspond exactement au slug du fichier `us-*.md` associé
+
+### 6. Commits
 
 Quand l'utilisateur dit **"go push"** :
 - Découper en **commits atomiques** — un commit = une responsabilité
@@ -210,7 +268,7 @@ Pas besoin de confirmation supplémentaire.
 
 Un seul fichier modifié peut faire l'objet d'un commit séparé si son changement est orthogonal aux autres.
 
-### 6. Annotations qualité
+### 7. Annotations qualité
 
 - **PHPCS PSR12** — warnings "side effects" sur `public/index.php` et `config/config.php` acceptables
 - **Faux positifs SonarCloud** : `// NOSONAR — <justification courte>` (justification obligatoire)
@@ -237,11 +295,19 @@ Ces règles ne souffrent **aucune exception** :
 
 Le backlog est géré localement dans `BACKLOG/` (gitignored). Le PDF complet est générable via `php BACKLOG/scripts/generate_backlog_pdf.php`.
 
+> Le PDF intègre automatiquement (dans l'ordre) :
+> 1. Page de couverture
+> 2. **Tableau de bord** — avancement global + détail par EPIC (critères IA Claude / PO / E2E / Recette)
+> 3. Contenu complet du backlog (EPICs → Features/Enablers → US)
+> 4. **Plan de priorisation** (`PRIORISATION.md`) — sprints ordonnés par urgence légale · risque sécurité · valeur métier
+
 ### Structure
 
 ```
 BACKLOG/
   README.md                        ← synthèse macro tous EPICs
+  PRIORISATION.md                  ← plan de priorisation par sprints (mis à jour à chaque audit)
+  AUDIT_BACKLOG_[date].md          ← rapport d'audit multi-experts (archivé, non regénéré)
   scripts/                         ← outils locaux (generate_backlog_pdf.php…)
   EPIC-{nom}/
     README.md                      ← objectif, périmètre, suivi 4 colonnes par feature
@@ -253,6 +319,14 @@ BACKLOG/
       us-{sujet}.md                ← tâche technique découpée
 ```
 
+### Mise à jour de `PRIORISATION.md`
+
+**Quand mettre à jour :** après chaque audit multi-experts ou à chaque sprint si des US changent de priorité.
+
+**Qui met à jour :** Claude (IA) — analyse croisée Expert Juridique · Expert RGPD · Expert Red Team · DevSecOps.
+
+**Règle :** les US passées à `✅ Fait` dans la colonne 🤖 doivent être retirées de `PRIORISATION.md`. Les nouvelles US Must identifiées lors d'un audit doivent y être ajoutées immédiatement.
+
 ### Colonnes de suivi d'avancement
 
 Chaque README contient un tableau avec 4 colonnes :
@@ -262,7 +336,7 @@ Chaque README contient un tableau avec 4 colonnes :
 | 🤖 Claude | Claude IA | Implémenté et fonctionnel selon l'auto-évaluation |
 | ✅ PO | Alexandre | Recette métier validée par le PO |
 | 🎭 E2E | Expert QA | Tests Playwright couvrant nominal + erreur |
-| 🚀 Livré | DevSecOps | Mergé sur main, déployable en production |
+| 🚀 Recette Release | DevSecOps | Mergé sur main, déployable en production |
 
 États : `✅ Fait` · `🔄 En cours` · `⬜ À faire` · `❌ Bloqué`
 

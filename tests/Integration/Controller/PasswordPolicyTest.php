@@ -321,4 +321,54 @@ class PasswordPolicyTest extends IntegrationTestCase
         );
         $this->assertFalse($reset);
     }
+
+    // ----------------------------------------------------------------
+    // R5 — Anti-énumération : email déjà utilisé à l'inscription
+    // ----------------------------------------------------------------
+
+    /**
+     * Si l'email est déjà enregistré, register() affiche le même message de confirmation
+     * générique qu'une inscription réussie et ne retourne PAS d'erreur inline sur le champ email.
+     * Aucun nouveau compte ne doit être créé.
+     */
+    public function testRegisterWithExistingEmailShowsGenericSuccessAndCreatesNoAccount(): void
+    {
+        // Compte existant et vérifié
+        $this->insertVerifiedAccount('duplicate@example.com');
+
+        $_POST = [
+            'account_type'     => 'individual',
+            'civility'         => 'M',
+            'lastname'         => 'Dupont',
+            'firstname'        => 'Jean',
+            'email'            => 'duplicate@example.com',
+            'password'         => 'Str0ng&Secure!',
+            'password_confirm' => 'Str0ng&Secure!',
+            'newsletter'       => '0',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->register(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            // Même redirection que le succès (message générique, pas d'erreur inline)
+            $this->assertSame(302, $e->status);
+            $this->assertSame('/fr', $e->location);
+        }
+
+        // Aucune erreur email exposée dans la session
+        $errors = $_SESSION['flash']['register_errors'] ?? [];
+        $this->assertArrayNotHasKey('email', $errors);
+
+        // Le flag register_success doit être posé (même réponse que pour un succès)
+        $this->assertNotEmpty($_SESSION['flash']['register_success'] ?? null);
+
+        // Un seul compte avec cet email en base (le compte original)
+        $count = self::$db->fetchOne(
+            "SELECT COUNT(*) as cnt FROM accounts WHERE email = ?",
+            ['duplicate@example.com']
+        );
+        $this->assertSame(1, (int) ($count['cnt'] ?? 0));
+    }
 }

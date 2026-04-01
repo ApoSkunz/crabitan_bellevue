@@ -59,6 +59,15 @@ class ProfileAdminController extends AdminController
     // POST /admin/securite/mot-de-passe
     // ----------------------------------------------------------------
 
+    /**
+     * Traite le formulaire de changement de mot de passe depuis l'interface d'administration.
+     *
+     * Vérifie que l'ancien mot de passe est correct, que le nouveau respecte
+     * la politique de sécurité et qu'il est différent de l'actuel.
+     *
+     * @param array<string, string> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function changePassword(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -75,7 +84,12 @@ class ProfileAdminController extends AdminController
         $account = $this->accounts->findById($adminUser['id']);
 
         if (!$account || !password_verify($current, $account['password'] ?? '')) {
-            $this->flash('error', 'Mot de passe actuel incorrect.');
+            $this->flash('error', __('account.wrong_current_password'));
+            Response::redirect(self::SECURITY_URL);
+        }
+
+        if (password_verify($new, $account['password'] ?? '')) {
+            $this->flash('error', __('account.password_same_as_current'));
             Response::redirect(self::SECURITY_URL);
         }
 
@@ -85,12 +99,12 @@ class ProfileAdminController extends AdminController
         }
 
         if ($new !== $confirm) {
-            $this->flash('error', 'Les mots de passe ne correspondent pas.');
+            $this->flash('error', __('validation.password_match'));
             Response::redirect(self::SECURITY_URL);
         }
 
         $this->accounts->updatePassword($adminUser['id'], password_hash($new, PASSWORD_BCRYPT));
-        $this->flash('success', 'Mot de passe mis à jour avec succès.');
+        $this->flash('success', __('account.password_updated'));
         Response::redirect(self::SECURITY_URL);
     }
 

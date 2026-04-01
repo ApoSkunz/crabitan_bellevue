@@ -58,15 +58,22 @@ test.describe('Age Gate — comportements', () => {
         await expect(page).not.toHaveURL(/\/age-gate/);
     });
 
-    // ── Cookie banner obligatoire ───────────────────────────────────────────
+    // ── Cookie banner non-bloquant ──────────────────────────────────────────
 
-    test('entrer sans répondre au cookie → bandeau secoué + message affiché', async ({ page, context }) => {
+    test('bandeau cookie visible sur la page age-gate', async ({ page, context }) => {
+        await resetState(context, page);
+        await expect(page.locator('#cookie-banner')).toBeVisible();
+    });
+
+    test('soumettre sans répondre au cookie → formulaire non bloqué', async ({ page, context }) => {
         await resetState(context, page);
         await page.locator('input[name="legal_age"][value="1"]').check();
         await page.locator('button[type="submit"]').click();
 
-        await expect(page.locator('#cookie-banner')).toHaveClass(/is-shaking/);
-        await expect(page.locator('.cookie-banner__required')).toBeVisible();
+        // Le banner ne doit pas secouer — la soumission passe librement
+        await expect(page.locator('#cookie-banner')).not.toHaveClass(/is-shaking/);
+        // La page doit avoir changé (soumission réussie)
+        await expect(page).not.toHaveURL(/\/age-gate/);
     });
 
     test('accepter cookies → cookie cb-cookie-consent = accepted', async ({ page, context }) => {

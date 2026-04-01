@@ -71,6 +71,50 @@ class ProfileAdminControllerTest extends AdminIntegrationTestCase
     }
 
     /**
+     * Un nouveau mot de passe identique à l'actuel flash une erreur et redirige.
+     */
+    public function testChangePasswordSameAsCurrentRedirects(): void
+    {
+        // Le compte admin est créé avec 'Admin123!' dans AdminIntegrationTestCase::insertAdminAccount()
+        $_POST = [
+            'csrf_token'           => self::CSRF_TOKEN,
+            'current_password'     => 'Admin123!',
+            'new_password'         => 'Admin123!',
+            'new_password_confirm' => 'Admin123!',
+        ];
+
+        try {
+            $this->makeController('POST')->changePassword([]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            // Les flashes admin sont dans $_SESSION['admin_flash'], pas 'flash'
+            $this->assertNotEmpty($_SESSION['admin_flash']['error'] ?? '');
+        }
+    }
+
+    /**
+     * Un changement de mot de passe admin valide redirige avec succès et pose un flash de succès.
+     */
+    public function testChangePasswordSuccessFlashesSuccess(): void
+    {
+        $_POST = [
+            'csrf_token'           => self::CSRF_TOKEN,
+            'current_password'     => 'Admin123!',
+            'new_password'         => 'NewAdminSecure456!',
+            'new_password_confirm' => 'NewAdminSecure456!',
+        ];
+
+        try {
+            $this->makeController('POST')->changePassword([]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['admin_flash']['success'] ?? '');
+        }
+    }
+
+    /**
      * Un nouveau mot de passe trop court flash une erreur et redirige.
      */
     public function testChangePasswordTooShortRedirects(): void

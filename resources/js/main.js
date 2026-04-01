@@ -74,8 +74,6 @@ function initAgeGate() {
             return;
         }
 
-        // Cookie banner : non bloquant sur la page age-gate — l'utilisateur décide du consentement librement
-        // Sur les autres pages, ce bloc n'est pas atteint (age-gate-form absent)
     });
 }
 
@@ -129,23 +127,6 @@ function initCookieBanner() {
         if (existing === 'accepted') loadGoogleAnalytics();
         banner.classList.add('is-hidden');
         return;
-    }
-
-    // Sur la page age-gate : banner non bloquant — l'utilisateur peut valider son âge sans décider des cookies
-    if (document.body.classList.contains('age-gate-page')) {
-        banner.classList.add('cookie-banner--non-blocking');
-
-        // Intercept soumission age-gate : forcer choix cookie si pas encore répondu
-        document.getElementById('age-gate-form')?.addEventListener('submit', (e) => {
-            if (!getConsentCookie()) {
-                e.preventDefault();
-                banner.classList.add('is-shaking');
-                banner.querySelector('.cookie-banner__required')?.removeAttribute('hidden');
-                banner.addEventListener('animationend', () => {
-                    banner.classList.remove('is-shaking');
-                }, { once: true });
-            }
-        });
     }
 
     document.getElementById('cookie-accept')?.addEventListener('click', () => {
@@ -565,6 +546,8 @@ function initLoginModal() {
 
     // Expose pour le reset modal (token invalide → ouvrir panel forgot)
     window.__openLoginModalForgot = openModalForgot;
+
+    if (window.__forgotSuccess) openModalForgot();
 }
 
 // ============================================================
@@ -583,6 +566,7 @@ function initRegisterModal() {
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
         closeBtn?.focus();
+        resetMatchState();
     }
 
     function closeModal() {
@@ -631,6 +615,39 @@ function initRegisterModal() {
             btn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
         });
     });
+
+    // ── Validation en temps réel : correspondance des mots de passe ──────────
+    const pwdInput     = modal.querySelector('#reg-password');
+    const confirmInput = modal.querySelector('#reg-password-confirm');
+    const matchError   = modal.querySelector('.js-pwd-match-error');
+    const submitBtn    = modal.querySelector('.register-modal__submit');
+
+    function checkPasswordMatch() {
+        const mismatch = confirmInput.value.length > 0
+                      && confirmInput.value.length >= pwdInput.value.length
+                      && pwdInput.value !== confirmInput.value;
+
+        // Bloque la soumission HTML5 native + désactive le bouton
+        confirmInput.setCustomValidity(mismatch ? 'mismatch' : '');
+        if (submitBtn) submitBtn.disabled = mismatch;
+
+        // Affiche / masque le message d'erreur inline
+        if (matchError) {
+            matchError.textContent = confirmInput.dataset.mismatchLabel
+                                  ?? 'Les mots de passe ne correspondent pas.';
+            matchError.hidden = !mismatch;
+        }
+    }
+
+    // Réinitialise l'état à chaque ouverture (évite les résidus de soumission précédente)
+    function resetMatchState() {
+        confirmInput.setCustomValidity('');
+        if (submitBtn) submitBtn.disabled = false;
+        if (matchError) matchError.hidden = true;
+    }
+
+    pwdInput?.addEventListener('input', checkPasswordMatch);
+    confirmInput?.addEventListener('input', checkPasswordMatch);
 
     // Auto-open si erreurs de soumission
     if (window.__authRegisterOpen) openModal();
@@ -1060,6 +1077,14 @@ function initResetModal() {
 
     if (window.__resetOpen) openModal();
 
+    // Succès reset : modal ouvert avec message, redirection automatique vers homepage après 3 s
+    if (window.__resetSuccess) {
+        openModal();
+        setTimeout(() => { // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
+            window.location.href = '/' + (window.__navLang || 'fr');
+        }, 3000);
+    }
+
     closeBtn?.addEventListener('click', closeModal);
     backdrop?.addEventListener('click', closeModal);
 
@@ -1259,7 +1284,7 @@ function initConfirmForms() {
 // ============================================================
 
 function initAlertAutoDismiss() {
-    document.querySelectorAll('.alert--success').forEach((el) => {
+    document.querySelectorAll('.alert--success:not([data-no-auto-dismiss])').forEach((el) => {
         setTimeout(() => {
             el.style.transition = 'opacity 400ms ease';
             el.style.opacity = '0';
