@@ -2,6 +2,36 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.16.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.15.0...v0.16.0) (2026-04-01)
+
+
+### Bug Fixes
+
+* **ci:** déclencher CI et Security sur toutes les branches feat/fix/refactor/chore ([861dd5e](https://github.com/ApoSkunz/crabitan_bellevue/commit/861dd5eb1a9b259514a59e106c60e3fdd88f2db2))
+* **ci:** optimise CI — dédup push/PR + scorecard main only + PHPStan + Semgrep ([150c43d](https://github.com/ApoSkunz/crabitan_bellevue/commit/150c43da96fbc391b8bc75be7b6df3625eef26f4))
+* **ci:** push trigger sur main uniquement — supprime les doubles runs push+PR ([ff9a9a2](https://github.com/ApoSkunz/crabitan_bellevue/commit/ff9a9a2678e2505f4218392a9a3a7075bf4a85d0))
+* **cs:** PHPCBF — PSR12 multi-line function call signatures (AccountModelTokenTtlTest) ([b180c2a](https://github.com/ApoSkunz/crabitan_bellevue/commit/b180c2ae2e367b0d1b73c3099a6a246bc15227e6))
+* **rate-limiter:** isApcuAvailable() utilise apcu_enabled() pour détecter le CLI ([5094ef2](https://github.com/ApoSkunz/crabitan_bellevue/commit/5094ef267fad970040b76f0b25f8a88f0b4f7520))
+* **test:** corrige l'erreur CI ALTER TABLE IF NOT EXISTS (MySQL 8) et les 6 failures session ([6bef2ae](https://github.com/ApoSkunz/crabitan_bellevue/commit/6bef2ae8aa326b690fb6c7830345597717b45188))
+* **test:** corrige la perte des PDF storage/order_forms lors du test mkdir ([9c538ac](https://github.com/ApoSkunz/crabitan_bellevue/commit/9c538ac99edfd3509afed546e29fb9951895f512))
+* **tests:** aligner TI et E2E sur les nouvelles clés flash register_success/forgot_success ([51b8c95](https://github.com/ApoSkunz/crabitan_bellevue/commit/51b8c950741e15fd238f6e611240281ba7140ba5))
+
+
+### Features
+
+* **auth:** anti-énumération inscription + alerte lockout à la 5ème tentative ([58aec72](https://github.com/ApoSkunz/crabitan_bellevue/commit/58aec72bffbe9f12db01aa41beb2ce322430aa4a))
+* **controller:** AccountController + ProfileAdminController — E6 + R4/BT4 ([6238896](https://github.com/ApoSkunz/crabitan_bellevue/commit/6238896bb3aa59718a6739856d93f7cdb4647fe9))
+* **controller:** AuthController — sécurisation complète auth (E1/E2/E3/R1/R2/R5/BT2/E4) ([6131e54](https://github.com/ApoSkunz/crabitan_bellevue/commit/6131e54a49ef927189b41d053df33ca9a861c2ed))
+* **front:** B1 — validation temps réel concordance mots de passe ([24dc55e](https://github.com/ApoSkunz/crabitan_bellevue/commit/24dc55e5d1bd5168b3cdf5a861587c3b34229364))
+* **front:** ouverture modal forgot sur succès + nettoyage cookie banner ([5ff026d](https://github.com/ApoSkunz/crabitan_bellevue/commit/5ff026dedf87aeebc90b1b1177ec92bfda1f97d3))
+* **i18n:** nouvelles clés auth — rate limiting, ANSSI granulaire, MDP identique ([7bbe760](https://github.com/ApoSkunz/crabitan_bellevue/commit/7bbe760704337a53b23c3d2cbdd600d739a1d43f))
+* **mail:** sendEmailAlreadyExists et sendAccountLocked (fr/en) ([35e06f6](https://github.com/ApoSkunz/crabitan_bellevue/commit/35e06f64890366714332bbe3072cd935e630fd5f))
+* **model:** AccountModel — TTL 24h token vérification email (R6/BT6) ([9efee00](https://github.com/ApoSkunz/crabitan_bellevue/commit/9efee00d3184070fd04259923a1a34f3540e51e2))
+* **service:** RateLimiterService (R1/R2/BT2) + PasswordValidator::getErrors() (E2/E3) ([2ef9317](https://github.com/ApoSkunz/crabitan_bellevue/commit/2ef93173cab3762e5a4713c6b98505e8af60115e))
+* **service:** sendPasswordChangedAlert + sendNewDeviceAlert — emails sécurité (R4/BT4) ([bab22b9](https://github.com/ApoSkunz/crabitan_bellevue/commit/bab22b9165bb2844d0427d18eb268ce3c54bc676))
+* **view:** affichage messages succès inscription/forgot dans les modals ([573dbc9](https://github.com/ApoSkunz/crabitan_bellevue/commit/573dbc9f09bfc0adfd45a9cecc401fe297ce120d))
+* **view:** header.php — E4 reset success modal + B1 data-mismatch-label ([7feab4e](https://github.com/ApoSkunz/crabitan_bellevue/commit/7feab4ea2d42a4412587713d81de693ae6b81e94)), closes [#reg-password-confirm](https://github.com/ApoSkunz/crabitan_bellevue/issues/reg-password-confirm)
+
 # [0.15.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.14.0...v0.15.0) (2026-03-29)
 
 
