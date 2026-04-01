@@ -578,6 +578,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 <p class="register-modal__hint"><?= htmlspecialchars(__('form.password_hint')) ?></p>
 
+                <!-- Date de naissance + déclaration de majorité (Art. L3342-1 CSP) -->
+                <div class="register-modal__field register-modal__field--birth-date">
+                    <label for="reg-birth-date"><?= htmlspecialchars(__('form.birth_date')) ?> <span class="register-modal__required" aria-hidden="true">*</span></label>
+                    <input type="date" id="reg-birth-date" name="birth_date"
+                           value="<?= htmlspecialchars($registerOld['birthDate'] ?? '') ?>"
+                           autocomplete="bday"
+                           max="<?= htmlspecialchars(date('Y-m-d', strtotime('-18 years'))) ?>"
+                           required
+                           aria-describedby="reg-birth-date-hint">
+                    <span id="reg-birth-date-hint" class="register-modal__hint-small"><?= htmlspecialchars(__('form.birth_date_hint')) ?></span>
+                    <?php if (!empty($registerErrors['birth_date'])) : ?>
+                        <span class="register-modal__error" role="alert"><?= htmlspecialchars($registerErrors['birth_date']) ?></span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Case à cocher de certification de majorité (obligatoire, non pré-cochée) -->
+                <div class="register-modal__field register-modal__field--majority">
+                    <label class="register-modal__majority-label">
+                        <input type="checkbox" name="majority_confirmed" value="1"
+                               id="reg-majority-confirmed"
+                               required
+                               aria-required="true">
+                        <?= htmlspecialchars(__('form.majority_confirmed')) ?>
+                        <span class="register-modal__required" aria-hidden="true">*</span>
+                    </label>
+                    <?php if (!empty($registerErrors['majority_confirmed'])) : ?>
+                        <span class="register-modal__error" role="alert"><?= htmlspecialchars($registerErrors['majority_confirmed']) ?></span>
+                    <?php endif; ?>
+                </div>
+
                 <!-- Newsletter -->
                 <label class="register-modal__newsletter">
                     <input type="checkbox" name="newsletter" value="1"
