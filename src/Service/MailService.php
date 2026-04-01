@@ -1108,9 +1108,23 @@ INNER;
 HTML;
     }
 
+    /**
+     * Génère le bloc footer HTML partagé par tous les emails.
+     *
+     * Contient obligatoirement la mention Loi Évin bilingue (Art. L3323-4 CSP)
+     * visible en texte clair avec contraste suffisant, conformément aux exigences
+     * de l'article L3323-4 du Code de la santé publique.
+     *
+     * @param string $urlPrivacy URL vers la politique de confidentialité
+     * @param string $urlLegal   URL vers les mentions légales
+     * @param string $urlSupport URL vers la page d'assistance
+     * @return string HTML du footer email
+     */
     private function emailFooterHtml(string $urlPrivacy, string $urlLegal, string $urlSupport): string
     {
-        $year = date('Y');
+        $year      = date('Y');
+        $mentionFr = "L'abus d'alcool est dangereux pour la santé. À consommer avec modération.";
+        $mentionEn = 'Alcohol abuse is dangerous for your health. To be consumed in moderation.';
         return <<<HTML
           <tr>
             <td align="center" style="padding-top:24px;">
@@ -1126,6 +1140,13 @@ HTML;
                 <a href="{$urlSupport}" class="footer-link"
                    style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
                 >Assistance</a>
+              </p>
+              <!-- Mention Loi Évin obligatoire — Art. L3323-4 CSP -->
+              <p style="margin:0 0 4px;font-size:11px;color:#6b5e4a;font-style:italic;line-height:1.5;">
+                {$mentionFr}
+              </p>
+              <p style="margin:0 0 6px;font-size:11px;color:#6b5e4a;font-style:italic;line-height:1.5;">
+                {$mentionEn}
               </p>
               <p style="margin:0 0 6px;font-size:11px;color:#a89880;letter-spacing:1px;">
                 © {$year} Château Crabitan Bellevue — Sainte-Croix-du-Mont, Gironde
