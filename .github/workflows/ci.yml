@@ -32,6 +32,17 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
+      - name: Composer audit (vulnérabilités high/critical)
+        run: composer audit --no-dev 2>&1 | tee composer-audit.txt; exit ${PIPESTATUS[0]}
+
+      - name: Upload composer audit report
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: composer-audit-report
+          path: composer-audit.txt
+          retention-days: 7
+
       - name: PHPStan
         run: php -d memory_limit=512M vendor/bin/phpstan analyse --no-progress
 
@@ -57,6 +68,17 @@ jobs:
 
       - name: Install JS dependencies
         run: npm ci
+
+      - name: npm audit (vulnérabilités high/critical)
+        run: npm audit --audit-level=high 2>&1 | tee npm-audit.txt; exit ${PIPESTATUS[0]}
+
+      - name: Upload npm audit report
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: npm-audit-report
+          path: npm-audit.txt
+          retention-days: 7
 
       - name: ESLint
         run: npm run lint
