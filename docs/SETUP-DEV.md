@@ -233,7 +233,40 @@ npx playwright test
 
 ---
 
-## 7. Vérification finale
+## 7. Audit de sécurité des dépendances
+
+À lancer **avant chaque Pull Request** pour détecter les vulnérabilités connues.
+
+### Dépendances PHP (Composer)
+
+```bash
+# Audite uniquement les dépendances de production (--no-dev)
+# Bloque si vulnérabilité critique ou haute — warning uniquement pour moyen/faible
+composer audit --no-dev
+```
+
+> `composer audit` est disponible nativement depuis Composer 2.4+. Il interroge l'advisories database de Packagist.
+
+### Dépendances JS (npm)
+
+```bash
+# Bloque uniquement si vulnérabilité high ou critical
+# Les niveaux moderate/low sont affichés en warning mais ne bloquent pas
+npm audit --audit-level=high
+```
+
+> Pour auditer uniquement les dépendances de production (sans devDependencies) :
+> ```bash
+> npm audit --audit-level=high --omit=dev
+> ```
+
+### Comportement en CI
+
+Les mêmes commandes s'exécutent automatiquement en CI (jobs `quality-php` et `quality-js`). En cas d'échec (vulnérabilité high/critical détectée), un rapport est uploadé en artifact GitHub Actions (rétention 7 jours) pour faciliter le diagnostic.
+
+---
+
+## 8. Vérification finale
 
 | URL | Attendu |
 |---|---|
