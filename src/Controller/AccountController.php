@@ -15,6 +15,8 @@ use Model\FavoriteModel;
 use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
 use Model\OrderModel;
+use Service\AccountService;
+use Service\MailService;
 use Service\PasswordValidator;
 
 class AccountController extends Controller // NOSONAR — php:S1448 : découpage prévu à l'audit génie logiciel
@@ -1016,6 +1018,107 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $this->accounts->updateNewsletter($userId, $newsletter);
         $_SESSION['flash']['profile_success'] = __('account.profile_updated');
         Response::redirect($back);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/mon-compte/profil/changer-email
+    // ----------------------------------------------------------------
+
+    /**
+     * Initie une demande de changement d'email (double opt-in).
+     *
+     * Vérifie le CSRF, le mot de passe actuel, le rate limit et l'unicité
+     * de la nouvelle adresse, puis délègue au AccountService qui génère le token
+     * et envoie les deux emails (confirmation + notification).
+     *
+     * @param array<string, string> $params Paramètres de route (contient 'lang')
+     * @return void
+     */
+    public function requestEmailChange(array $params): void
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
+        $back    = "/{$lang}/mon-compte/profil";
+
+        if (!$this->verifyCsrf()) {
+            $_SESSION['flash']['profile_errors'] = ['email' => __('error.csrf')];
+            Response::redirect($back);
+        }
+
+        $newEmail        = trim($this->request->post('new_email', ''));
+        $currentPassword = $this->request->post('current_password', '');
+
+        if ($newEmail === '' || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['flash']['profile_errors'] = ['email' => __('account.email_change_invalid')];
+            Response::redirect($back);
+        }
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+
+        try {
+            $service = new AccountService($this->accounts, new MailService());
+            $service->requestEmailChange($userId, $newEmail, $currentPassword, $ip);
+        } catch (\Core\Exception\HttpException $e) {
+            $_SESSION['flash']['profile_errors'] = ['email' => $e->getMessage()];
+            Response::redirect($back);
+        } catch (\Throwable) {
+            $_SESSION['flash']['profile_errors'] = ['email' => __('error.generic')];
+            Response::redirect($back);
+        }
+
+        $_SESSION['flash']['profile_success'] = __('account.email_change_sent');
+        Response::redirect($back);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/mon-compte/email/confirmer?token=xxx
+    // ----------------------------------------------------------------
+
+    /**
+     * Confirme le changement d'email après clic sur le lien de confirmation.
+     *
+     * Délègue au AccountService qui valide le token (TTL, usage unique),
+     * met à jour l'email, révoque toutes les sessions et log l'audit RGPD.
+     *
+     * @param array<string, string> $params Paramètres de route (contient 'lang')
+     * @return void
+     */
+    public function confirmEmailChange(array $params): void
+    {
+        $lang     = $params['lang'];
+        $rawToken = $this->request->get('token', '');
+
+        if ($rawToken === '') {
+            $this->view('account/email_change_confirm', [
+                'lang'    => $lang,
+                'success' => false,
+                'error'   => __('account.email_change_token_invalid'),
+            ]);
+            return;
+        }
+
+        $service = new AccountService($this->accounts, new MailService());
+
+        try {
+            $service->confirmEmailChange($rawToken);
+        } catch (\Core\Exception\HttpException $e) {
+            $this->view('account/email_change_confirm', [
+                'lang'    => $lang,
+                'success' => false,
+                'error'   => $e->getMessage(),
+            ]);
+            return;
+        }
+
+        // Déconnecter le compte courant (sessions révoquées par le service)
+        CookieHelper::clear();
+
+        $this->view('account/email_change_confirm', [
+            'lang'    => $lang,
+            'success' => true,
+            'error'   => null,
+        ]);
     }
 
     // ----------------------------------------------------------------

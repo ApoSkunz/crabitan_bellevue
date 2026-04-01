@@ -879,6 +879,220 @@ INNER;
         $this->send($to, $name, $subject, $body, $pdfPath, null, $filename);
     }
 
+    /**
+     * Envoie l'email de confirmation de double opt-in newsletter (FR ou EN).
+     *
+     * @param string $to         Adresse email du destinataire
+     * @param string $confirmUrl URL complète de confirmation (avec token brut)
+     * @param string $lang       Langue du destinataire ('fr' ou 'en')
+     * @return void
+     */
+    public function sendNewsletterConfirmation(string $to, string $confirmUrl, string $lang): void
+    {
+        $subject = $lang === 'fr'
+            ? 'Confirmez votre abonnement à la newsletter Crabitan Bellevue'
+            : 'Confirm your Crabitan Bellevue newsletter subscription';
+
+        $body = $lang === 'fr'
+            ? $this->newsletterConfirmBodyFr($confirmUrl)
+            : $this->newsletterConfirmBodyEn($confirmUrl);
+
+        $this->send($to, '', $subject, $body);
+    }
+
+    /**
+     * Corps de l'email de confirmation newsletter en français.
+     *
+     * @param string $confirmUrl URL de confirmation avec token brut
+     * @return string Corps HTML de l'email
+     */
+    private function newsletterConfirmBodyFr(string $confirmUrl): string
+    {
+        $safeUrl = htmlspecialchars($confirmUrl, ENT_QUOTES);
+
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$safeUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . 'Confirmer mon abonnement'
+            . '</a></td></tr></table>';
+
+        $message = "Merci de votre intérêt pour les actualités du Château Crabitan Bellevue.<br><br>"
+            . "Pour finaliser votre inscription et recevoir nos nouvelles, "
+            . "cliquez sur le bouton ci-dessous dans les <strong>48 heures</strong> :<br><br>"
+            . $ctaBtn
+            . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
+            . "Si vous n'avez pas demandé cet abonnement, ignorez cet email. "
+            . "Aucune action n'est requise.<br>"
+            . "Ce lien est valable 48h à compter de sa réception."
+            . "</p>";
+
+        return $this->emailSimpleLayout(
+            'Confirmation d\'abonnement',
+            'Bonjour,',
+            $message
+        );
+    }
+
+    /**
+     * Corps de l'email de confirmation newsletter en anglais.
+     *
+     * @param string $confirmUrl URL de confirmation avec token brut
+     * @return string Corps HTML de l'email
+     */
+    private function newsletterConfirmBodyEn(string $confirmUrl): string
+    {
+        $safeUrl = htmlspecialchars($confirmUrl, ENT_QUOTES);
+
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$safeUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . 'Confirm my subscription'
+            . '</a></td></tr></table>';
+
+        $message = "Thank you for your interest in news from Château Crabitan Bellevue.<br><br>"
+            . "To complete your subscription and receive our updates, "
+            . "please click the button below within <strong>48 hours</strong>:<br><br>"
+            . $ctaBtn
+            . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
+            . "If you did not request this subscription, please ignore this email. "
+            . "No action is required.<br>"
+            . "This link is valid for 48 hours from receipt."
+            . "</p>";
+
+        return $this->emailSimpleLayout(
+            'Subscription confirmation',
+            'Hello,',
+            $message
+        );
+    }
+
+    /**
+     * Envoie l'email de confirmation de changement d'email à la NOUVELLE adresse.
+     *
+     * Le destinataire doit cliquer sur le lien pour que le changement soit effectif
+     * (double opt-in anti account-takeover).
+     *
+     * @param string $to         Nouvelle adresse email (destinataire)
+     * @param string $name       Nom d'affichage du compte
+     * @param string $confirmUrl URL complète de confirmation (contient le token brut)
+     * @param string $lang       Langue du compte ('fr' ou 'en')
+     * @return void
+     */
+    public function sendEmailChangeConfirmation(
+        string $to,
+        string $name,
+        string $confirmUrl,
+        string $lang
+    ): void {
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $safeUrl  = htmlspecialchars($confirmUrl, ENT_QUOTES);
+
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$safeUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . ($lang === 'fr' ? 'Confirmer ma nouvelle adresse email' : 'Confirm my new email address')
+            . '</a></td></tr></table>';
+
+        if ($lang === 'fr') {
+            $subject  = 'Confirmez votre nouvelle adresse email — Crabitan Bellevue';
+            $title    = 'Changement d\'adresse email';
+            $greeting = "Bonjour {$safeName},";
+            $message  = "Vous avez demandé à modifier l'adresse email de votre compte Château Crabitan Bellevue.<br><br>"
+                . "Cliquez sur le bouton ci-dessous pour confirmer votre nouvelle adresse dans les <strong>24 heures</strong> :<br><br>"
+                . $ctaBtn
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
+                . "Si vous n'êtes pas à l'origine de cette demande, ignorez cet email — votre adresse actuelle reste inchangée. "
+                . "Ce lien est valable 24h à compter de sa réception."
+                . "</p>";
+        } else {
+            $subject  = 'Confirm your new email address — Crabitan Bellevue';
+            $title    = 'Email address change';
+            $greeting = "Hello {$safeName},";
+            $message  = "You have requested to update the email address linked to your Château Crabitan Bellevue account.<br><br>"
+                . "Click the button below to confirm your new address within <strong>24 hours</strong>:<br><br>"
+                . $ctaBtn
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
+                . "If you did not request this change, ignore this email — your current address remains unchanged. "
+                . "This link is valid for 24 hours from receipt."
+                . "</p>";
+        }
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message);
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Envoie l'email de notification de changement d'email à l'ANCIENNE adresse.
+     *
+     * Permet au titulaire légitime d'être alerté si la demande n'est pas de lui
+     * (lien d'alerte vers la page sécurité du compte).
+     *
+     * @param string $to        Ancienne adresse email (destinataire)
+     * @param string $name      Nom d'affichage du compte
+     * @param string $newEmail  Nouvelle adresse email demandée
+     * @param string $alertUrl  URL de la page sécurité du compte
+     * @param string $lang      Langue du compte ('fr' ou 'en')
+     * @return void
+     */
+    public function sendEmailChangeNotification(
+        string $to,
+        string $name,
+        string $newEmail,
+        string $alertUrl,
+        string $lang
+    ): void {
+        $safeName     = htmlspecialchars($name, ENT_QUOTES);
+        $safeNewEmail = htmlspecialchars($newEmail, ENT_QUOTES);
+        $safeAlertUrl = htmlspecialchars($alertUrl, ENT_QUOTES);
+
+        $alertBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
+            . '<tr><td style="background:#c0392b;border-radius:2px;">'
+            . "<a href=\"{$safeAlertUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . 'color:#ffffff;text-decoration:none;font-weight:bold;">'
+            . ($lang === 'fr' ? 'Sécuriser mon compte' : 'Secure my account')
+            . '</a></td></tr></table>';
+
+        if ($lang === 'fr') {
+            $subject  = 'Alerte sécurité — modification de votre adresse email en cours';
+            $title    = 'Alerte sécurité';
+            $greeting = "Bonjour {$safeName},";
+            $message  = "Une demande de modification d'adresse email a été initiée sur votre compte Château Crabitan Bellevue.<br><br>"
+                . "<strong>Nouvelle adresse demandée :</strong> {$safeNewEmail}<br><br>"
+                . "Le changement ne sera effectif que si la nouvelle adresse est confirmée via le lien envoyé à {$safeNewEmail}. "
+                . "Votre adresse actuelle reste valide jusqu'à cette confirmation.<br><br>"
+                . "<strong>Vous n'êtes pas à l'origine de cette demande ?</strong><br>"
+                . "Connectez-vous immédiatement et modifiez votre mot de passe :<br><br>"
+                . $alertBtn
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
+                . "Si vous avez initié cette demande, aucune action n'est requise."
+                . "</p>";
+        } else {
+            $subject  = 'Security alert — your email address change is pending';
+            $title    = 'Security alert';
+            $greeting = "Hello {$safeName},";
+            $message  = "A request to update the email address linked to your Château Crabitan Bellevue account has been initiated.<br><br>"
+                . "<strong>New address requested:</strong> {$safeNewEmail}<br><br>"
+                . "The change will only take effect once the new address is confirmed via the link sent to {$safeNewEmail}. "
+                . "Your current address remains valid until that confirmation.<br><br>"
+                . "<strong>Did not request this change?</strong><br>"
+                . "Log in immediately and update your password:<br><br>"
+                . $alertBtn
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
+                . "If you initiated this request, no action is needed."
+                . "</p>";
+        }
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message);
+        $this->send($to, $name, $subject, $body);
+    }
+
     private function send(
         string $to,
         string $name,

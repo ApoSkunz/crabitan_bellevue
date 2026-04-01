@@ -325,6 +325,115 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     // ----------------------------------------------------------------
+    // Changement d'email (double opt-in)
+    // ----------------------------------------------------------------
+
+    /**
+     * Enregistre le token de changement d'email (haché SHA-256) avec TTL et nouvelle adresse.
+     *
+     * @param int    $userId      Identifiant du compte
+     * @param string $hashedToken Hash SHA-256 du token brut
+     * @param string $newEmail    Nouvelle adresse email en attente de confirmation
+     * @param string $expiresAt   Date d'expiration au format 'Y-m-d H:i:s'
+     * @return void
+     */
+    public function saveEmailChangeToken(
+        int $userId,
+        string $hashedToken,
+        string $newEmail,
+        string $expiresAt
+    ): void {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET email_change_token     = ?,
+                 email_change_new_email = ?,
+                 email_change_expires_at = ?,
+                 email_change_used_at   = NULL
+             WHERE id = ?",
+            [$hashedToken, $newEmail, $expiresAt, $userId]
+        );
+    }
+
+    /**
+     * Recherche un compte par son token de changement d'email (haché SHA-256).
+     *
+     * @param string $hashedToken Hash SHA-256 du token brut
+     * @return array<string, mixed>|false Compte + champs email_change_* ou false si introuvable
+     */
+    public function findByEmailChangeToken(string $hashedToken): array|false
+    {
+        return $this->db->fetchOne(
+            "SELECT id, email, email_change_new_email, email_change_expires_at, email_change_used_at, lang
+             FROM {$this->table}
+             WHERE email_change_token = ? AND deleted_at IS NULL",
+            [$hashedToken]
+        );
+    }
+
+    /**
+     * Applique le changement d'email effectif et marque le token comme utilisé.
+     *
+     * @param int    $userId   Identifiant du compte
+     * @param string $newEmail Nouvelle adresse email définitive
+     * @return void
+     */
+    public function applyEmailChange(int $userId, string $newEmail): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET email                  = ?,
+                 email_change_used_at   = NOW(),
+                 email_change_token     = NULL,
+                 email_change_new_email = NULL,
+                 email_change_expires_at = NULL
+             WHERE id = ?",
+            [$newEmail, $userId]
+        );
+    }
+
+    /**
+     * Compte le nombre de demandes de changement d'email dans les 24 dernières heures.
+     * Utilisé pour le rate limiting (max 3 demandes / 24h).
+     *
+     * @param int $userId Identifiant du compte
+     * @return int Nombre de demandes
+     */
+    public function countEmailChangeRequestsLast24h(int $userId): int
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total
+             FROM audit_log
+             WHERE user_id = ?
+               AND event_type = 'email_change_request'
+               AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)",
+            [$userId]
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /**
+     * Enregistre un événement dans le log d'audit RGPD.
+     *
+     * @param int                  $userId    Identifiant du compte concerné
+     * @param string               $eventType Type d'événement (ex. 'email_changed')
+     * @param string               $ip        Adresse IP de l'acteur
+     * @param array<string, mixed> $meta      Données complémentaires (sérialisées en JSON)
+     * @return void
+     */
+    public function logAuditEvent(
+        int $userId,
+        string $eventType,
+        string $ip,
+        array $meta = []
+    ): void {
+        $this->db->insert(
+            "INSERT INTO audit_log (user_id, event_type, ip, meta, created_at)
+             VALUES (?, ?, ?, ?, NOW())",
+            [$userId, $eventType, $ip, $meta !== [] ? json_encode($meta) : null]
+        );
+    }
+
+    // ----------------------------------------------------------------
     // Méthodes admin
     // ----------------------------------------------------------------
 

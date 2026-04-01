@@ -525,6 +525,22 @@ return [
     'account.email_change_request_btn' => 'Contacter le support',
     'account.email_change_subject'    => 'Demande de changement d\'adresse e-mail',
 
+    // Changement d'email — double opt-in
+    'account.email_change_section_title'    => 'Modifier mon adresse email',
+    'account.email_change_intro'            => 'Un email de confirmation sera envoyé à votre nouvelle adresse. Le changement ne sera effectif qu\'après confirmation. Votre ancienne adresse recevra une notification d\'alerte.',
+    'account.email_current'                 => 'Adresse actuelle',
+    'account.email_new'                     => 'Nouvelle adresse email',
+    'account.email_change_submit_btn'       => 'Envoyer le lien de confirmation',
+    'account.email_change_sent'             => 'Un email de confirmation a été envoyé à votre nouvelle adresse. Cliquez sur le lien pour valider le changement.',
+    'account.email_change_invalid'          => 'L\'adresse email saisie est invalide.',
+    'account.email_change_confirm_title'    => 'Confirmation de changement d\'email',
+    'account.email_change_confirmed'        => 'Votre adresse email a bien été mise à jour.',
+    'account.email_change_confirmed_body'   => 'Toutes vos sessions actives ont été révoquées pour des raisons de sécurité. Veuillez vous reconnecter avec votre nouvelle adresse.',
+    'account.email_change_login_btn'        => 'Se reconnecter',
+    'account.email_change_token_invalid'    => 'Ce lien de confirmation est invalide ou a déjà été utilisé.',
+    'account.email_change_token_expired_hint' => 'Le lien a peut-être expiré (valable 24h). Vous pouvez faire une nouvelle demande depuis votre profil.',
+    'account.email_change_retry_btn'        => 'Faire une nouvelle demande',
+
     // Commandes — détail & annulation
     'account.order_detail'       => 'Détail de la commande',
     'account.order_items'        => 'Articles commandés',
@@ -642,6 +658,16 @@ return [
     'newsletter.unsubscribed'      => 'Vous avez bien été désabonné(e) de la newsletter du Château Crabitan Bellevue.',
     'newsletter.unsubscribe_error' => 'Ce lien de désabonnement est invalide ou a déjà été utilisé. Gérez vos préférences depuis votre espace compte.',
     'newsletter.manage_link'       => 'Gérer mes préférences de communication',
+
+    // Newsletter — double opt-in (RGPD Art. 7)
+    'newsletter.confirm_title'     => 'Confirmation d\'abonnement newsletter',
+    'newsletter.confirm_success'   => 'Votre abonnement est confirmé. Vous recevrez nos prochaines actualités et offres du Château Crabitan Bellevue.',
+    'newsletter.confirm_invalid'   => 'Ce lien de confirmation est invalide. Il a peut-être déjà été utilisé.',
+    'newsletter.confirm_expired'   => 'Ce lien de confirmation a expiré (validité 48h). Vous pouvez vous réinscrire depuis notre site.',
+    'newsletter.confirm_sent'      => 'Un email de confirmation vous a été envoyé. Cliquez sur le lien dans les 48 heures pour finaliser votre inscription.',
+    'newsletter.already_confirmed' => 'Cette adresse est déjà abonnée à notre newsletter.',
+    'newsletter.rate_limit'        => 'Trop de tentatives. Veuillez patienter avant de réessayer.',
+    'newsletter.invalid_email'     => 'Adresse email invalide.',
 
     // Newsletter — nouveau vin
     'mail.new_wine_subject'  => 'Nouveau vin disponible : %s %d',
