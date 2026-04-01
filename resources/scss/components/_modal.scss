@@ -552,6 +552,13 @@
             color: var(--color-text-muted);
         }
 
+        &--majority label {
+            font-size: 0.8rem;
+            font-family: var(--font-sans);
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
         input[type='text'],
         input[type='email'],
         input[type='password'] {

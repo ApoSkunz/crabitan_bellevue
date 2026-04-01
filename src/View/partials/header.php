@@ -576,8 +576,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
 
-                <p class="register-modal__hint"><?= htmlspecialchars(__('form.password_hint')) ?></p>
-
                 <!-- Case à cocher de certification de majorité (obligatoire, non pré-cochée) -->
                 <div class="register-modal__field register-modal__field--majority">
                     <label class="register-modal__majority-label">
