@@ -1218,4 +1218,196 @@ HTML;
             . "<p style=\"margin:0;\">{$safeMsg}</p>"
             . "</div>";
     }
+
+    // ----------------------------------------------------------------
+    // Email anti-énumération — doublon inscription
+    // ----------------------------------------------------------------
+
+    /**
+     * Informe le titulaire d'un compte existant qu'une tentative d'inscription
+     * avec son adresse email a eu lieu (critère 2 anti-énumération R5).
+     *
+     * @param string $to       Adresse du destinataire (compte existant)
+     * @param string $name     Nom affiché du destinataire
+     * @param string $lang     Langue de l'email ('fr' ou 'en')
+     * @param string $loginUrl URL vers la page de connexion
+     * @param string $resetUrl URL vers la page de réinitialisation du mot de passe
+     * @return void
+     */
+    public function sendEmailAlreadyExists(
+        string $to,
+        string $name,
+        string $lang,
+        string $loginUrl,
+        string $resetUrl
+    ): void {
+        $subject = $lang === 'fr'
+            ? 'Tentative de création de compte — Château Crabitan Bellevue'
+            : 'Account registration attempt — Château Crabitan Bellevue';
+
+        $body = $lang === 'fr'
+            ? $this->emailAlreadyExistsBodyFr($name, $loginUrl, $resetUrl)
+            : $this->emailAlreadyExistsBodyEn($name, $loginUrl, $resetUrl);
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Corps de l'email "email déjà utilisé" en français.
+     *
+     * @param string $name     Nom affiché du destinataire
+     * @param string $loginUrl URL de connexion
+     * @param string $resetUrl URL de réinitialisation du mot de passe
+     * @return string HTML de l'email
+     */
+    /**
+     * Envoie une alerte sécurité à l'utilisateur quand son compte vient d'être verrouillé
+     * suite à 5 tentatives de connexion échouées consécutives.
+     *
+     * @param string $to       Email du destinataire
+     * @param string $name     Nom affiché du destinataire
+     * @param string $lang     Langue ('fr' ou 'en')
+     * @param string $resetUrl URL de réinitialisation du mot de passe
+     * @return void
+     */
+    public function sendAccountLocked(string $to, string $name, string $lang, string $resetUrl): void
+    {
+        $subject = $lang === 'fr'
+            ? 'Alerte sécurité — Votre compte a été temporairement verrouillé'
+            : 'Security alert — Your account has been temporarily locked';
+
+        $body = $lang === 'fr'
+            ? $this->accountLockedBodyFr($name, $resetUrl)
+            : $this->accountLockedBodyEn($name, $resetUrl);
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Corps de l'email d'alerte verrouillage en français.
+     *
+     * @param string $name     Nom affiché du destinataire
+     * @param string $resetUrl URL de réinitialisation du mot de passe
+     * @return string HTML de l'email
+     */
+    private function accountLockedBodyFr(string $name, string $resetUrl): string
+    {
+        $safeName     = htmlspecialchars($name, ENT_QUOTES);
+        $safeResetUrl = htmlspecialchars($resetUrl, ENT_QUOTES);
+
+        $message = '5 tentatives de connexion échouées ont été détectées sur votre compte Château Crabitan Bellevue.'
+            . ' Pour votre sécurité, il a été temporairement verrouillé pendant <strong>15 minutes</strong>.'
+            . '<br><br>'
+            . 'Si c\'était vous, attendez quelques instants puis réessayez.'
+            . '<br><br>'
+            . 'Si ce n\'était <strong>pas vous</strong>, nous vous recommandons vivement de changer votre mot de passe immédiatement.'
+            . '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$safeResetUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . 'Changer mon mot de passe'
+            . '</a></td></tr></table>';
+
+        return $this->emailSimpleLayout('Alerte sécurité', "Bonjour {$safeName},", $message);
+    }
+
+    /**
+     * Corps de l'email d'alerte verrouillage en anglais.
+     *
+     * @param string $name     Nom affiché du destinataire
+     * @param string $resetUrl URL de réinitialisation du mot de passe
+     * @return string HTML de l'email
+     */
+    private function accountLockedBodyEn(string $name, string $resetUrl): string
+    {
+        $safeName     = htmlspecialchars($name, ENT_QUOTES);
+        $safeResetUrl = htmlspecialchars($resetUrl, ENT_QUOTES);
+
+        $message = '5 failed login attempts were detected on your Château Crabitan Bellevue account.'
+            . ' For your security, it has been temporarily locked for <strong>15 minutes</strong>.'
+            . '<br><br>'
+            . 'If this was you, please wait a few minutes and try again.'
+            . '<br><br>'
+            . 'If this was <strong>not you</strong>, we strongly recommend changing your password immediately.'
+            . '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$safeResetUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . 'Change my password'
+            . '</a></td></tr></table>';
+
+        return $this->emailSimpleLayout('Security alert', "Hello {$safeName},", $message);
+    }
+
+    private function emailAlreadyExistsBodyFr(string $name, string $loginUrl, string $resetUrl): string
+    {
+        $safeName     = htmlspecialchars($name, ENT_QUOTES);
+        $safeLoginUrl = htmlspecialchars($loginUrl, ENT_QUOTES);
+        $safeResetUrl = htmlspecialchars($resetUrl, ENT_QUOTES);
+
+        $message = 'Une tentative de création de compte avec votre adresse email vient d\'être effectuée'
+            . ' sur le Château Crabitan Bellevue. Vous avez déjà un compte — si c\'était vous,'
+            . ' connectez-vous directement ou réinitialisez votre mot de passe si vous l\'avez oublié.'
+            . '<br><br>'
+            . 'Si ce n\'était pas vous, ignorez cet email. Aucune action n\'a été réalisée sur votre compte.'
+            . '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$safeLoginUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . 'Me connecter'
+            . '</a></td></tr></table>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+            . '<tr><td>'
+            . "<a href=\"{$safeResetUrl}\" style=\"display:inline-block;padding:10px 24px;"
+            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;'
+            . 'color:#1a1208;text-decoration:underline;">'
+            . 'Mot de passe oublié ?'
+            . '</a></td></tr></table>';
+
+        return $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message);
+    }
+
+    /**
+     * Corps de l'email "email déjà utilisé" en anglais.
+     *
+     * @param string $name     Nom affiché du destinataire
+     * @param string $loginUrl URL de connexion
+     * @param string $resetUrl URL de réinitialisation du mot de passe
+     * @return string HTML de l'email
+     */
+    private function emailAlreadyExistsBodyEn(string $name, string $loginUrl, string $resetUrl): string
+    {
+        $safeName     = htmlspecialchars($name, ENT_QUOTES);
+        $safeLoginUrl = htmlspecialchars($loginUrl, ENT_QUOTES);
+        $safeResetUrl = htmlspecialchars($resetUrl, ENT_QUOTES);
+
+        $message = 'Someone just attempted to create an account at Château Crabitan Bellevue'
+            . ' using your email address. You already have an account — if this was you,'
+            . ' simply log in or reset your password if you have forgotten it.'
+            . '<br><br>'
+            . 'If this was not you, please ignore this email. No action has been taken on your account.'
+            . '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$safeLoginUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . 'Log in'
+            . '</a></td></tr></table>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+            . '<tr><td>'
+            . "<a href=\"{$safeResetUrl}\" style=\"display:inline-block;padding:10px 24px;"
+            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;'
+            . 'color:#1a1208;text-decoration:underline;">'
+            . 'Forgot your password?'
+            . '</a></td></tr></table>';
+
+        return $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message);
+    }
 }
