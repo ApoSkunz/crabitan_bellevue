@@ -204,7 +204,7 @@ return [
     'footer.privacy_policy'  => 'Privacy policy',
     'footer.sitemap'         => 'Sitemap',
     'footer.carbon'          => 'Carbon Badge',
-    'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. Drink responsibly.',
+    'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. To be consumed in moderation.',
     'footer.made_by'         => 'Made by',
     'footer.webmaster'       => 'Alexandre Solane',
 
@@ -607,7 +607,6 @@ return [
     'account.export_retention'   => 'Retention period: your personal data (name, email, addresses…) is deleted within 30 days of account closure. Your orders are retained for 10 years as required by law, but anonymised — with no link to your identity.',
     'account.export_download'    => 'Download my data (ZIP)',
     'account.export_at'          => 'Generated on',
-    'account.export_intro'       => 'In accordance with the General Data Protection Regulation (GDPR – Art. 20), you may download all your personal data.',
 
     // Security reset
     'account.security_reset_btn'        => 'Reset security',
