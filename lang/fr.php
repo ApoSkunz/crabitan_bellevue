@@ -179,9 +179,16 @@ return [
     'form.password_mismatch'       => 'Les mots de passe ne correspondent pas.',
     'form.password_hint'           => 'Minimum 12 caractères, dont une majuscule, un chiffre et un caractère spécial.',
     'form.newsletter'              => 'Je souhaite recevoir les actualités et offres du domaine',
+    'form.birth_date'              => 'Date de naissance',
+    'form.birth_date_hint'         => 'Vous devez avoir au moins 18 ans (Art. L3342-1 CSP).',
+    'form.majority_confirmed'      => 'Je certifie avoir 18 ans ou plus et être en âge légal de consommer de l\'alcool dans mon pays de résidence.',
+    'auth.majority_required_checkout' => 'Vous devez déclarer votre majorité avant de passer commande.',
 
     // Validation
-    'validation.required'      => 'Ce champ est requis.',
+    'validation.required'              => 'Ce champ est requis.',
+    'validation.birth_date_required'   => 'Votre date de naissance est requise.',
+    'validation.birth_date_minor'      => 'Vous devez avoir au moins 18 ans pour créer un compte (Art. L3342-1 CSP).',
+    'validation.majority_required'     => 'Vous devez certifier avoir l\'âge légal pour accéder à ce site.',
     'validation.email'         => 'Adresse email invalide.',
     'validation.password_min'       => 'Le mot de passe doit contenir au moins 12 caractères.',
     'validation.password_uppercase' => 'Le mot de passe doit contenir au moins une lettre majuscule.',

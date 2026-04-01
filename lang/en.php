@@ -179,9 +179,16 @@ return [
     'form.password_mismatch'       => 'Passwords do not match.',
     'form.password_hint'           => 'Minimum 12 characters, including one uppercase letter, one number and one special character.',
     'form.newsletter'              => 'I would like to receive news and offers from the estate',
+    'form.birth_date'              => 'Date of birth',
+    'form.birth_date_hint'         => 'You must be at least 18 years old to register.',
+    'form.majority_confirmed'      => 'I certify that I am 18 years of age or older and of legal drinking age in my country of residence.',
+    'auth.majority_required_checkout' => 'You must declare your legal age before placing an order.',
 
     // Validation
     'validation.required'       => 'This field is required.',
+    'validation.birth_date_required'   => 'Your date of birth is required.',
+    'validation.birth_date_minor'      => 'You must be at least 18 years old to create an account.',
+    'validation.majority_required'     => 'You must certify that you are of legal age to access this site.',
     'validation.email'          => 'Invalid email address.',
     'validation.password_min'       => 'Password must be at least 12 characters.',
     'validation.password_uppercase' => 'Password must contain at least one uppercase letter.',
