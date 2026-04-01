@@ -12,9 +12,6 @@
                 rel="noopener noreferrer"
             ><?= htmlspecialchars(__('cookie.learn_more')) ?></a>
         </p>
-        <p class="cookie-banner__required" hidden aria-live="polite">
-            <?= htmlspecialchars(__('cookie.required')) ?>
-        </p>
     </div>
     <div class="cookie-banner__actions">
         <button id="cookie-accept" class="btn btn--gold" type="button">
