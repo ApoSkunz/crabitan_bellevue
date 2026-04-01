@@ -74,8 +74,6 @@ function initAgeGate() {
             return;
         }
 
-        // Cookie banner : non bloquant sur la page age-gate — l'utilisateur décide du consentement librement
-        // Sur les autres pages, ce bloc n'est pas atteint (age-gate-form absent)
     });
 }
 
@@ -129,23 +127,6 @@ function initCookieBanner() {
         if (existing === 'accepted') loadGoogleAnalytics();
         banner.classList.add('is-hidden');
         return;
-    }
-
-    // Sur la page age-gate : banner non bloquant — l'utilisateur peut valider son âge sans décider des cookies
-    if (document.body.classList.contains('age-gate-page')) {
-        banner.classList.add('cookie-banner--non-blocking');
-
-        // Intercept soumission age-gate : forcer choix cookie si pas encore répondu
-        document.getElementById('age-gate-form')?.addEventListener('submit', (e) => {
-            if (!getConsentCookie()) {
-                e.preventDefault();
-                banner.classList.add('is-shaking');
-                banner.querySelector('.cookie-banner__required')?.removeAttribute('hidden');
-                banner.addEventListener('animationend', () => {
-                    banner.classList.remove('is-shaking');
-                }, { once: true });
-            }
-        });
     }
 
     document.getElementById('cookie-accept')?.addEventListener('click', () => {
@@ -565,6 +546,8 @@ function initLoginModal() {
 
     // Expose pour le reset modal (token invalide → ouvrir panel forgot)
     window.__openLoginModalForgot = openModalForgot;
+
+    if (window.__forgotSuccess) openModalForgot();
 }
 
 // ============================================================
