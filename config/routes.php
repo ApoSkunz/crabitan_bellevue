@@ -46,9 +46,13 @@ $router->post('/admin/securite/reinitialiser', 'Admin\ProfileAdminController@res
 // Routes publiques
 // ============================================================
 
-// Age gate
+// Age gate — page dédiée
 $router->get('/age-gate', 'AgeGateController@show');
 $router->post('/age-gate', 'AgeGateController@confirm');
+
+// Age gate — modale overlay (routes localisées)
+$router->post('/{lang}/age-gate/confirmer', 'AgeGateController@confirmLang');
+$router->post('/{lang}/age-gate/quitter',   'AgeGateController@exitLang');
 
 // Home
 $router->get('/', 'HomeController@index'); // NOSONAR — 3 routes distinctes vers le même handler
