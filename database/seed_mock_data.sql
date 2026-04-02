@@ -833,3 +833,27 @@ INSERT INTO `password_reset` (`user_id`, `token`, `requested_at`, `expires_at`) 
 (3, 'valid-reset-token-sophie-0001', '2026-03-28 06:00:00', '2026-03-28 07:00:00'),
 -- Token expiré (pour tester le cas d'erreur)
 (4, 'expired-reset-token-marc-0001', '2026-03-01 10:00:00', '2026-03-01 11:00:00');
+
+-- ============================================================
+-- NEWSLETTER SUBSCRIPTIONS (flux visiteurs — double opt-in)
+-- Comptes avec newsletter=1 sont dans accounts (ids 3 et 5)
+-- ============================================================
+INSERT INTO `newsletter_subscriptions`
+    (`email`, `newsletter_token_hash`, `newsletter_token_expires_at`,
+     `newsletter_confirmed`, `newsletter_consent_date`, `newsletter_consent_ip`,
+     `consent_ip`, `lang`, `attempts_24h`, `last_attempt_at`, `created_at`)
+VALUES
+-- Visiteur confirmé (newsletter active)
+('visiteur.confirme@dev.local', NULL, NULL,
+ 1, '2026-02-15 10:00:00', '127.0.0.1',
+ '127.0.0.1', 'fr', 1, '2026-02-15 09:58:00', '2026-02-15 09:58:00'),
+-- Visiteur en attente de confirmation (token encore valide)
+('visiteur.pending@dev.local',
+ 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2',
+ '2099-12-31 23:59:59',
+ 0, NULL, NULL,
+ '127.0.0.1', 'fr', 1, '2026-03-01 08:00:00', '2026-03-01 08:00:00'),
+-- Visiteur EN confirmé
+('visitor.confirmed@dev.local', NULL, NULL,
+ 1, '2026-03-10 14:00:00', '127.0.0.1',
+ '127.0.0.1', 'en', 1, '2026-03-10 13:58:00', '2026-03-10 13:58:00');
