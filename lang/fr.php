@@ -669,7 +669,7 @@ return [
     'newsletter.confirm_success'   => 'Votre abonnement est confirmé. Vous recevrez nos prochaines actualités et offres du Château Crabitan Bellevue.',
     'newsletter.confirm_invalid'   => 'Ce lien de confirmation est invalide. Il a peut-être déjà été utilisé.',
     'newsletter.confirm_expired'   => 'Ce lien de confirmation a expiré (validité 48h). Vous pouvez vous réinscrire depuis notre site.',
-    'newsletter.confirm_sent'      => 'Un email de confirmation vous a été envoyé. Cliquez sur le lien dans les 48 heures pour finaliser votre inscription.',
+    'newsletter.confirm_sent'      => 'Si cette adresse est enregistrée, un email de confirmation vous a été envoyé.',
     'newsletter.already_confirmed' => 'Cette adresse est déjà abonnée à notre newsletter.',
     'newsletter.footer_title'      => 'Restez informé(e) de nos actualités',
     'newsletter.email_placeholder' => 'Votre adresse email',
@@ -704,4 +704,7 @@ return [
     'mail.order_status_body_delivered'  => 'Votre commande <strong>%s</strong> a bien été livrée. Nous espérons que vous apprécierez nos vins.',
     'mail.order_status_body_cancelled'  => 'Votre commande <strong>%s</strong> a été annulée. Si vous avez déjà été débité(e), le remboursement sera traité dans les meilleurs délais.',
     'mail.order_status_body_refunded'   => 'Votre commande <strong>%s</strong> a été remboursée. Le crédit sera visible sur votre compte bancaire dans un délai de 3 à 5 jours ouvrés.',
+
+    // Erreurs génériques
+    'error.generic' => 'Une erreur est survenue. Veuillez réessayer.',
 ];

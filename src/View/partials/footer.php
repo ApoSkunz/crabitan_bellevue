@@ -1,13 +1,17 @@
 <?php
-// Pré-remplissage email si connecté
-$footerUserEmail = '';
+// Pré-remplissage email et masquage formulaire si connecté et déjà abonné
+$footerUserEmail      = '';
+$footerShowNewsletter = true;
 $footerToken = $_COOKIE['auth_token'] ?? null;
 if ($footerToken) {
     try {
         $footerPayload   = \Core\Jwt::decode($footerToken);
         $footerAccountId = (int) ($footerPayload['sub'] ?? 0);
         $footerAccount   = (new \Model\AccountModel())->findById($footerAccountId);
-        $footerUserEmail = $footerAccount ? (string) ($footerAccount['email'] ?? '') : '';
+        if ($footerAccount) {
+            $footerUserEmail      = (string) ($footerAccount['email'] ?? '');
+            $footerShowNewsletter = (int) ($footerAccount['newsletter'] ?? 0) !== 1;
+        }
     } catch (\Throwable) {
         // Token invalide ou expiré — pas de pré-remplissage
     }
@@ -42,6 +46,7 @@ if ($footerToken) {
             </div>
         </div>
 
+        <?php if ($footerShowNewsletter): ?>
         <section class="footer-newsletter" aria-label="<?= htmlspecialchars(__('newsletter.footer_title')) ?>">
             <form id="footer-newsletter-form"
                   action="/<?= htmlspecialchars($navLang) ?>/newsletter/inscription"
@@ -73,6 +78,7 @@ if ($footerToken) {
                 <p class="footer-newsletter__feedback" aria-live="polite" hidden></p>
             </form>
         </section>
+        <?php endif; ?>
 
         <div class="footer-carbon">
             <div id="wcb" class="carbonbadge"></div>

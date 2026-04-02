@@ -116,10 +116,18 @@ class NewsletterController extends Controller
                 'message' => __('newsletter.confirm_sent'),
             ]);
         } catch (\RuntimeException $e) {
+            // already_confirmed retourne le même message neutre que le succès
+            // pour éviter l'énumération d'emails (OWASP — information disclosure)
+            if ($e->getMessage() === 'already_confirmed') {
+                $this->json([
+                    'success' => true,
+                    'message' => __('newsletter.confirm_sent'),
+                ]);
+            }
+
             $errorKey = match ($e->getMessage()) {
-                'rate_limit'        => 'newsletter.rate_limit',
-                'already_confirmed' => 'newsletter.already_confirmed',
-                default             => 'error.generic',
+                'rate_limit' => 'newsletter.rate_limit',
+                default      => 'error.generic',
             };
 
             $this->json([
