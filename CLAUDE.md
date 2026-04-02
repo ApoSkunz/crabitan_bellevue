@@ -279,7 +279,10 @@ Un seul fichier modifié peut faire l'objet d'un commit séparé si son changeme
 **Règle :** Toute modification du modèle BDD (nouvelle colonne, nouvelle table, index, contrainte) exige **dans le même commit** :
 
 1. Mise à jour de `database/schema.sql` — source de vérité versionnée
-2. Relance du seed mock : `mysql -u root crabitan_bellevue < database/seed_mock_data.sql`
+2. Relance du seed mock : `"C:/xampp/mysql/bin/mysql.exe" -u root crabitan_bellevue < database/seed_mock_data.sql`
+
+> Chemin mysql sur ce poste : `C:/xampp/mysql/bin/mysql.exe`
+> Commande complète schema : `"C:/xampp/mysql/bin/mysql.exe" -u root crabitan_bellevue < database/schema.sql`
 
 > `database/migrations/` est gitignored — seul `schema.sql` est versionné. Sans cette règle, les colonnes manquent en local et les TI échouent silencieusement.
 
