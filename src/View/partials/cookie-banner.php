@@ -7,7 +7,7 @@
         <p class="cookie-banner__text">
             <?= htmlspecialchars(__('cookie.text')) ?>
             <a
-                href="/<?= htmlspecialchars($navLang) ?>/mentions-legales?bare=1"
+                href="/<?= htmlspecialchars($navLang) ?>/politique-de-confidentialite"
                 target="_blank"
                 rel="noopener noreferrer"
             ><?= htmlspecialchars(__('cookie.learn_more')) ?></a>

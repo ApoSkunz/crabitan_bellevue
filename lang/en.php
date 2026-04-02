@@ -24,6 +24,7 @@ return [
     'nav.cart'        => 'Cart',
     'nav.account'     => 'My account', // NOSONAR php:S1192 — i18n file: 'My account' is intentionally repeated across multiple translation keys
     'nav.login'       => 'Login',
+    'nav.support'     => 'Support',
     'nav.logout'      => 'Logout',
     'nav.register'    => 'Register',
 
@@ -198,6 +199,7 @@ return [
     'cookie.accept'       => 'Accept',
     'cookie.refuse'       => 'Decline',
     'cookie.required'     => '⚠ Please accept or decline cookies before continuing.',
+    'cookie.manage'       => 'Manage cookies',
 
     // Footer
     'footer.legal_notice'    => 'Legal notice',
