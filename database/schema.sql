@@ -20,6 +20,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ============================================================
 -- DROP (ordre FK inverse pour éviter les contraintes)
 -- ============================================================
+DROP TABLE IF EXISTS `newsletter_subscriptions`;
+DROP TABLE IF EXISTS `audit_log`;
+DROP TABLE IF EXISTS `newsletter_subscriptions`;
 DROP TABLE IF EXISTS `newsletter_attachments`;
 DROP TABLE IF EXISTS `newsletters`;
 DROP TABLE IF EXISTS `game_scores`;
