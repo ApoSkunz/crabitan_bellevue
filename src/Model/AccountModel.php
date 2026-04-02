@@ -377,6 +377,27 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      * @param string $newEmail Nouvelle adresse email définitive
      * @return void
      */
+    /**
+     * Annule une demande de changement d'email en cours.
+     *
+     * Remet à NULL le token, la nouvelle adresse, l'expiration et l'horodatage.
+     *
+     * @param int $userId Identifiant du compte
+     * @return void
+     */
+    public function clearEmailChangeToken(int $userId): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET email_change_token      = NULL,
+                 email_change_new_email  = NULL,
+                 email_change_expires_at = NULL,
+                 email_change_used_at    = NULL
+             WHERE id = ?",
+            [$userId]
+        );
+    }
+
     public function applyEmailChange(int $userId, string $newEmail): void
     {
         $this->db->execute(
