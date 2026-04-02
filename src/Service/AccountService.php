@@ -107,11 +107,11 @@ class AccountService
             ['new_email' => $newEmail]
         );
 
-        // Construction de l'URL de confirmation
-        $appUrl      = defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? 'http://localhost');
-        $lang        = (string) ($account['lang'] ?? 'fr');
-        $confirmUrl  = rtrim($appUrl, '/') . "/{$lang}/mon-compte/email/confirmer?token={$rawToken}";
-        $alertUrl    = rtrim($appUrl, '/') . "/{$lang}/mon-compte/securite";
+        // Construction des URLs
+        $appUrl     = defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? 'http://localhost');
+        $lang       = (string) ($account['lang'] ?? 'fr');
+        $confirmUrl = rtrim($appUrl, '/') . "/{$lang}/mon-compte/email/confirmer?token={$rawToken}";
+        $revokeUrl  = rtrim($appUrl, '/') . "/{$lang}/mon-compte/email/revoquer?token={$rawToken}";
 
         $displayName = $this->resolveDisplayName($account);
 
@@ -121,15 +121,12 @@ class AccountService
             $displayName,
             $confirmUrl,
             $lang,
-            $newEmail
+            $newEmail,
+            $revokeUrl
         );
 
         // Email de notification → nouvelle adresse (information simple, aucune action requise)
-        $this->mailService->sendEmailChangeNotification(
-            $newEmail,
-            $displayName,
-            $lang
-        );
+        $this->mailService->sendEmailChangeNotification($newEmail, $lang);
     }
 
     /**
