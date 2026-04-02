@@ -1,9 +1,31 @@
 <?php
 $pageTitle = __('footer.privacy_policy');
-require_once SRC_PATH . '/View/partials/head.php';
-require_once SRC_PATH . '/View/partials/header.php';
-?>
+$navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$isBare    = $bare ?? false;
 
+if (!$isBare) {
+    require_once SRC_PATH . '/View/partials/head.php';
+    require_once SRC_PATH . '/View/partials/header.php';
+}
+?>
+<?php if ($isBare) : ?>
+<!DOCTYPE html>
+<html lang="<?= htmlspecialchars($navLang) ?>" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($pageTitle) ?></title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/assets/css/main.css">
+</head>
+<body class="bare-legal">
+    <div class="bare-legal__bar">
+        <span><?= htmlspecialchars($pageTitle) ?></span>
+        <button type="button" class="bare-legal__close" onclick="window.close()" aria-label="Fermer">&#10005;</button>
+    </div>
+    <article class="legal-content container" aria-label="<?= htmlspecialchars(__('footer.privacy_policy')) ?>">
+<?php else : ?>
 <main class="page-legal" id="main-content">
     <div class="page-hero page-hero--dark">
         <div class="container">
@@ -13,6 +35,7 @@ require_once SRC_PATH . '/View/partials/header.php';
     </div>
 
     <article class="legal-content container" aria-label="<?= htmlspecialchars(__('footer.privacy_policy')) ?>">
+<?php endif; ?>
 
         <h2>I. Responsable du traitement</h2>
         <p>Le responsable du traitement de vos données personnelles est la Société Civile GFA Bernard Solane et Fils, dont le siège social est sis Château Crabitan, 33410 Sainte-Croix-du-Mont – FRANCE.</p>
@@ -76,6 +99,10 @@ require_once SRC_PATH . '/View/partials/header.php';
         <p>Pour toute question relative à la protection de vos données ou aux présentes mentions légales, consultez également nos <a href="/<?= htmlspecialchars($navLang) ?>/mentions-legales"><?= htmlspecialchars(__('footer.legal_notice')) ?></a>.</p>
 
     </article>
+<?php if ($isBare) : ?>
+</body>
+</html>
+<?php else : ?>
 </main>
-
-<?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
+    <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
+<?php endif; ?>
