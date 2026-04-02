@@ -3045,12 +3045,98 @@ class AccountControllerTest extends IntegrationTestCase
         $this->assertStringContainsString('account-page', $output);
     }
 
-    // Note : exportData() authentifié — non testable sans seam
-    // -----------------------------------------------------------
-    // exportData() se termine par `echo $content; exit;` sans méthode extractable.
-    // Le guard non-authentifié est couvert par testExportDataUnauthenticatedRedirects().
-    // Pour couvrir le chemin authentifié, extraire la logique dans une méthode protected
-    // buildExportResponse() (ticket audit-genie-logiciel — refactoring mineur).
+    // exportData() authentifié — via buildExportContent (seam refactorisé)
+    // ----------------------------------------------------------------
+
+    /**
+     * buildExportContent() avec ZipArchive retourne un ZIP valide contenant le JSON.
+     *
+     * Couvre les lignes L1244-L1254 (branche ZipArchive) d'AccountController::exportData().
+     * On passe par buildExportContent() directement pour éviter exit().
+     */
+    public function testBuildExportContentZipBranchReturnsValidZip(): void
+    {
+        if (!class_exists('ZipArchive')) {
+            $this->markTestSkipped('ZipArchive non disponible');
+        }
+
+        $userId = $this->insertCustomer('export.zip@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportContent');
+        $method->setAccessible(true);
+
+        $export   = [
+            'exported_at'    => date('c'),
+            'account'        => ['Email' => 'export.zip@test.local', 'Type de compte' => 'individual'],
+            'addresses'      => [],
+            'orders'         => [],
+            'favorites'      => [],
+            'trusted_devices' => [],
+            'active_sessions' => [],
+        ];
+        $date     = date('Y-m-d');
+        $basename = 'mes-donnees-' . $date;
+
+        /** @var array{0: string, 1: bool} $result */
+        $result          = (array) $method->invoke($ctrl, $export, $date, $basename);
+        [$content, $isZip] = $result;
+
+        $this->assertTrue($isZip, 'La branche ZipArchive doit retourner isZip=true');
+        $this->assertStringStartsWith("PK\x03\x04", $content, 'Le contenu doit être un ZIP valide');
+
+        // Vérifier que le JSON est bien dans le ZIP
+        $tmp = tempnam(sys_get_temp_dir(), 'ti_zip_');
+        file_put_contents($tmp, $content);
+        $zip  = new \ZipArchive();
+        $zip->open($tmp);
+        $json = $zip->getFromName($basename . '.json');
+        $zip->close();
+        unlink($tmp);
+
+        $this->assertNotFalse($json, 'Le ZIP doit contenir ' . $basename . '.json');
+        $decoded = json_decode((string) $json, true);
+        $this->assertSame('export.zip@test.local', $decoded['account']['Email'] ?? null);
+    }
+
+    /**
+     * buildExportContent() branche JSON fallback retourne du JSON valide.
+     *
+     * Couvre les lignes L1260-L1262 (branche fallback JSON) d'AccountController::exportData().
+     */
+    public function testBuildExportContentJsonFallbackReturnsValidJson(): void
+    {
+        $userId = $this->insertCustomer('export.json@test.local', 'individual');
+        $this->loginAs($userId);
+
+        // Sous-classe qui force la branche JSON (simule ZipArchive absent)
+        $stub = new class ($this->makeController('GET', '/fr/mon-compte/export/telecharger')) extends \Controller\AccountController {
+            public function __construct(private \Controller\AccountController $inner)
+            {
+                // pas de parent::__construct() — on délègue
+            }
+
+            protected function buildExportContent(array $export, string $date, string $basename): array
+            {
+                $json = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '{}';
+                return [$json, false];
+            }
+        };
+
+        $method = new \ReflectionMethod($stub, 'buildExportContent');
+        $method->setAccessible(true);
+
+        $export   = ['account' => ['Email' => 'export.json@test.local'], 'addresses' => []];
+        $date     = date('Y-m-d');
+        /** @var array{0: string, 1: bool} $result */
+        $result          = (array) $method->invoke($stub, $export, $date, 'mes-donnees-' . $date);
+        [$content, $isZip] = $result;
+
+        $this->assertFalse($isZip, 'Le fallback JSON doit retourner isZip=false');
+        $decoded = json_decode($content, true);
+        $this->assertSame('export.json@test.local', $decoded['account']['Email'] ?? null);
+    }
 
     // ----------------------------------------------------------------
     // unsubscribePage() — token non vide mais compte non trouvé

@@ -1432,15 +1432,40 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
         $date     = date('Y-m-d');
         $basename = 'mes-donnees-' . $date;
-        $json     = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '{}';
 
         if (ob_get_level() > 0) {
             ob_end_clean();
         }
 
+        [$content, $isZip] = $this->buildExportContent($export, $date, $basename);
+
+        $contentType = $isZip ? 'application/zip' : 'application/json; charset=utf-8';
+        header('Content-Type: ' . $contentType);
+        foreach ($this->buildExportHeaders($basename, $isZip) as $h) {
+            header($h);
+        }
+        header('Content-Length: ' . strlen($content));
+        echo $content;
+        exit;
+    }
+
+    /**
+     * Construit le contenu binaire de l'export RGPD (ZIP ou JSON fallback).
+     *
+     * Extrait pour permettre les tests unitaires sans `exit`.
+     *
+     * @param array<string, mixed> $export   Données à exporter
+     * @param string               $date     Date au format Y-m-d
+     * @param string               $basename Nom de base du fichier (ex : mes-donnees-2026-04-01)
+     * @return array{0: string, 1: bool} [content, isZip]
+     */
+    protected function buildExportContent(array $export, string $date, string $basename): array
+    {
+        $json = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '{}';
+
         if (class_exists('ZipArchive')) {
             $pdf    = $this->buildExportPdf($export, $date);
-            $tmpZip = tempnam(sys_get_temp_dir(), 'cbv_export_');
+            $tmpZip = (string) tempnam(sys_get_temp_dir(), 'cbv_export_');
             $zip    = new \ZipArchive();
             $zip->open($tmpZip, \ZipArchive::OVERWRITE);
             $zip->addFromString($basename . '.json', $json);
@@ -1449,18 +1474,30 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
             $content = (string) file_get_contents($tmpZip);
             unlink($tmpZip);
-            header('Content-Type: application/zip');
-            header('Content-Disposition: attachment; filename="' . $basename . '.zip"');
-        } else {
-            // Fallback si l'extension zip n'est pas activée
-            $content = $json;
-            header('Content-Type: application/json; charset=utf-8');
-            header('Content-Disposition: attachment; filename="' . $basename . '.json"');
+            return [$content, true];
         }
 
-        header('Content-Length: ' . strlen($content));
-        echo $content;
-        exit;
+        // Fallback si l'extension zip n'est pas activée
+        return [$json, false];
+    }
+
+    /**
+     * Construit les headers HTTP de téléchargement de l'export RGPD.
+     *
+     * Retourne les headers Cache-Control (interdiction de mise en cache des
+     * données personnelles) et Content-Disposition (téléchargement forcé).
+     *
+     * @param string $basename Nom de base du fichier sans extension (ex : mes-donnees-2026-04-01)
+     * @param bool   $isZip   true → extension .zip, false → extension .json
+     * @return array<int, string>
+     */
+    protected function buildExportHeaders(string $basename, bool $isZip): array
+    {
+        $ext = $isZip ? 'zip' : 'json';
+        return [
+            'Cache-Control: no-store, no-cache',
+            'Content-Disposition: attachment; filename="' . $basename . '.' . $ext . '"',
+        ];
     }
 
     /**

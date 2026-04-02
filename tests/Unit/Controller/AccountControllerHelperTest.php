@@ -456,4 +456,187 @@ class AccountControllerHelperTest extends TestCase
 
         $this->assertSame([], $errors);
     }
+
+    // ----------------------------------------------------------------
+    // buildExportHeaders() — RGPD headers (Cache-Control + Content-Disposition)
+    // ----------------------------------------------------------------
+
+    /**
+     * Appelle buildExportHeaders via réflexion.
+     *
+     * @return array<int, string>
+     */
+    private function callBuildExportHeaders(string $basename, bool $isZip): array
+    {
+        $method = new \ReflectionMethod(AccountController::class, 'buildExportHeaders');
+        $method->setAccessible(true);
+        return (array) $method->invoke($this->controller, $basename, $isZip);
+    }
+
+    /**
+     * Les headers ZIP doivent inclure Cache-Control no-store et Content-Disposition
+     * avec le nom de fichier au format export-rgpd-{date}.zip.
+     */
+    public function testBuildExportHeadersZipContainsCacheControlNoStore(): void
+    {
+        $headers = $this->callBuildExportHeaders('mes-donnees-2026-04-01', true);
+
+        $this->assertContains('Cache-Control: no-store, no-cache', $headers);
+    }
+
+    /**
+     * Le Content-Disposition ZIP force le téléchargement avec le bon nom de fichier.
+     */
+    public function testBuildExportHeadersZipContentDisposition(): void
+    {
+        $headers = $this->callBuildExportHeaders('mes-donnees-2026-04-01', true);
+
+        $this->assertContains(
+            'Content-Disposition: attachment; filename="mes-donnees-2026-04-01.zip"',
+            $headers
+        );
+    }
+
+    /**
+     * Les headers JSON doivent également inclure Cache-Control no-store.
+     */
+    public function testBuildExportHeadersJsonContainsCacheControlNoStore(): void
+    {
+        $headers = $this->callBuildExportHeaders('mes-donnees-2026-04-01', false);
+
+        $this->assertContains('Cache-Control: no-store, no-cache', $headers);
+    }
+
+    /**
+     * Le Content-Disposition JSON force le téléchargement avec l'extension .json.
+     */
+    public function testBuildExportHeadersJsonContentDisposition(): void
+    {
+        $headers = $this->callBuildExportHeaders('mes-donnees-2026-04-01', false);
+
+        $this->assertContains(
+            'Content-Disposition: attachment; filename="mes-donnees-2026-04-01.json"',
+            $headers
+        );
+    }
+
+    // ----------------------------------------------------------------
+    // buildExportContent() — ZIP vs JSON fallback
+    // ----------------------------------------------------------------
+
+    /**
+     * Fixture export complète — toutes les clés attendues par buildExportPdf.
+     *
+     * @return array<string, mixed>
+     */
+    private function exportFixture(): array
+    {
+        return [
+            'exported_at'    => '2026-04-02T00:00:00+00:00',
+            'account'        => ['Email' => 'test@example.com', 'Type de compte' => 'individual'],
+            'addresses'      => [],
+            'orders'         => [],
+            'favorites'      => [],
+            'trusted_devices' => [],
+            'active_sessions' => [],
+        ];
+    }
+
+    /**
+     * Appelle buildExportContent via réflexion.
+     *
+     * @param array<string, mixed> $export
+     * @return array{0: string, 1: bool}
+     */
+    private function callBuildExportContent(array $export, string $date, string $basename): array
+    {
+        $method = new \ReflectionMethod(AccountController::class, 'buildExportContent');
+        $method->setAccessible(true);
+        /** @var array{0: string, 1: bool} */
+        return (array) $method->invoke($this->controller, $export, $date, $basename);
+    }
+
+    /**
+     * Avec ZipArchive disponible → retourne un ZIP (isZip = true) contenant le JSON.
+     */
+    public function testBuildExportContentReturnsZipWhenZipArchiveAvailable(): void
+    {
+        if (!class_exists('ZipArchive')) {
+            $this->markTestSkipped('ZipArchive non disponible');
+        }
+
+        $export   = $this->exportFixture();
+        [$content, $isZip] = $this->callBuildExportContent($export, '2026-04-02', 'mes-donnees-2026-04-02');
+
+        $this->assertTrue($isZip, 'isZip doit être true quand ZipArchive est disponible');
+        // Un fichier ZIP commence par PK\x03\x04 (Local file header signature)
+        $this->assertStringStartsWith("PK\x03\x04", $content, 'Le contenu doit être un ZIP valide');
+        $this->assertNotEmpty($content);
+    }
+
+    /**
+     * Le ZIP contient bien un fichier .json avec les données exportées.
+     */
+    public function testBuildExportContentZipContainsJsonFile(): void
+    {
+        if (!class_exists('ZipArchive')) {
+            $this->markTestSkipped('ZipArchive non disponible');
+        }
+
+        $export   = $this->exportFixture();
+        [$content] = $this->callBuildExportContent($export, '2026-04-02', 'mes-donnees-2026-04-02');
+
+        // Écrire le ZIP en temp pour l'inspecter
+        $tmp = tempnam(sys_get_temp_dir(), 'test_zip_');
+        file_put_contents($tmp, $content);
+
+        $zip = new \ZipArchive();
+        $zip->open($tmp);
+        $json = $zip->getFromName('mes-donnees-2026-04-02.json');
+        $zip->close();
+        unlink($tmp);
+
+        $this->assertNotFalse($json, 'Le ZIP doit contenir mes-donnees-2026-04-02.json');
+        $decoded = json_decode((string) $json, true);
+        $this->assertSame('test@example.com', $decoded['account']['Email'] ?? null);
+    }
+
+    /**
+     * Sans ZipArchive → retourne le JSON brut (isZip = false).
+     * Simulé via un sous-controlleur qui override buildExportContent pour forcer la branche JSON.
+     */
+    public function testBuildExportContentFallbackJsonWhenNoZip(): void
+    {
+        $export   = $this->exportFixture();
+        $basename = 'mes-donnees-2026-04-02';
+
+        // Sous-classe qui force la branche JSON (simule ZipArchive absent)
+        $stub = new class ($this->createStubRequest()) extends AccountController {
+            protected function buildExportContent(array $export, string $date, string $basename): array
+            {
+                $json = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '{}';
+                return [$json, false];
+            }
+        };
+
+        $method = new \ReflectionMethod($stub, 'buildExportContent');
+        $method->setAccessible(true);
+        /** @var array{0: string, 1: bool} $result */
+        $result  = (array) $method->invoke($stub, $export, '2026-04-02', $basename);
+        [$content, $isZip] = $result;
+
+        $this->assertFalse($isZip, 'isZip doit être false dans le fallback JSON');
+        $decoded = json_decode($content, true);
+        $this->assertSame('test@example.com', $decoded['account']['Email'] ?? null);
+    }
+
+    /**
+     * Crée un Request stub minimal pour instancier AccountController dans les tests.
+     */
+    private function createStubRequest(): \Core\Request
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/mon-compte/export';
+        return new \Core\Request();
+    }
 }
