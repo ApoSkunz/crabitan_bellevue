@@ -2,6 +2,22 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.17.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.16.0...v0.17.0) (2026-04-02)
+
+
+### Bug Fixes
+
+* **i18n:** account.export_intro — précise ZIP avec JSON et PDF (fr + en) ([6daa601](https://github.com/ApoSkunz/crabitan_bellevue/commit/6daa601b1980f5db8c8075e8d30084faf14ae048))
+* **i18n:** correction formulation Loi Évin EN — 'To be consumed in moderation.' ([a339389](https://github.com/ApoSkunz/crabitan_bellevue/commit/a3393894637ee8f6917ac95d2a89ecc63b367939))
+* **i18n:** suppression doublon account.export_intro dans fr.php ([1fde8bc](https://github.com/ApoSkunz/crabitan_bellevue/commit/1fde8bcd3bebe85df009a2030dc4088c05ace643))
+* **mail+test:** buildNewsletterHtml — propagation $lang pour mention Loi Évin EN ([e8ce6a4](https://github.com/ApoSkunz/crabitan_bellevue/commit/e8ce6a4d0e9ac38bcd7557952030501a69ec9781))
+* **mail:** mention Loi Évin dans la langue du destinataire uniquement ([612018a](https://github.com/ApoSkunz/crabitan_bellevue/commit/612018ae20c5d12c204d18822332ae85b92570da))
+
+
+### Features
+
+* **mail:** mention Loi Évin bilingue dans le footer partagé de tous les emails ([e279970](https://github.com/ApoSkunz/crabitan_bellevue/commit/e27997067d082700f4cac4392dcd2c1d1e37d15a)), closes [#6b5e4a](https://github.com/ApoSkunz/crabitan_bellevue/issues/6b5e4a)
+
 # [0.16.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.15.0...v0.16.0) (2026-04-01)
 
 
