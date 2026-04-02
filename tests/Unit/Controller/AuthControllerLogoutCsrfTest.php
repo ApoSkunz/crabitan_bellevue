@@ -47,10 +47,10 @@ class AuthControllerLogoutCsrfTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * Un GET sur /deconnexion doit retourner 405 Method Not Allowed
-     * et ne doit PAS invalider la session ni supprimer le cookie.
+     * Un GET sur /deconnexion avec cookie → 405 (connecté, sait que la route existe).
+     * Le cookie ne doit pas être supprimé.
      */
-    public function testGetLogoutReturns405(): void
+    public function testGetLogoutReturns405WhenAuthenticated(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI']    = '/fr/deconnexion';
@@ -65,11 +65,31 @@ class AuthControllerLogoutCsrfTest extends TestCase
             $exception = $e;
         }
 
-        $this->assertNotNull($exception, 'logout() doit lever une HttpException sur GET');
-        $this->assertSame(405, $exception->status, 'Le statut doit être 405 Method Not Allowed');
-
-        // Le cookie auth_token ne doit pas avoir été supprimé
+        $this->assertNotNull($exception, 'logout() doit lever une HttpException sur GET connecté');
+        $this->assertSame(405, $exception->status, 'Connecté + GET → 405 Method Not Allowed');
         $this->assertArrayHasKey('auth_token', $_COOKIE, 'Le cookie ne doit pas être supprimé sur GET');
+    }
+
+    /**
+     * Un GET sur /deconnexion sans cookie → 404 (ne révèle pas l'existence de la route).
+     */
+    public function testGetLogoutReturns404WhenNotAuthenticated(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/deconnexion';
+        // pas de cookie
+
+        $controller = new AuthController(new Request());
+
+        $exception = null;
+        try {
+            $controller->logout(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $exception = $e;
+        }
+
+        $this->assertNotNull($exception, 'logout() doit lever une HttpException sur GET non connecté');
+        $this->assertSame(404, $exception->status, 'Non connecté + GET → 404 (path enumeration prevention)');
     }
 
     // ----------------------------------------------------------------

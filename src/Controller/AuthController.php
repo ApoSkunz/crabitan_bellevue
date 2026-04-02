@@ -223,13 +223,16 @@ class AuthController extends Controller
      *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
-     * @throws \Core\Exception\HttpException 405 si la méthode est GET
+     * @throws \Core\Exception\HttpException 405 si GET et utilisateur connecté, 404 si GET et non connecté
      */
     public function logout(array $params): void
     {
         // Refuser toute méthode autre que POST (protection CSRF passive)
+        // Connecté → 405 (sait que la route existe via le header)
+        // Non connecté → 404 (ne révèle pas l'existence de la route)
         if ($this->request->method !== 'POST') {
-            Response::abort(405);
+            $token = $_COOKIE['auth_token'] ?? null;
+            Response::abort($token ? 405 : 404);
         }
 
         // Vérifier le token CSRF avant toute action de déconnexion

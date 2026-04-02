@@ -22,10 +22,10 @@ class AuthMiddlewareTest extends TestCase
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
-    public function testHandleRedirectsWhenNoCookie(): void
+    public function testHandleReturns404WhenNoCookie(): void
     {
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(302);
+        $this->expectExceptionCode(404); // 404 — ne révèle pas l'existence des routes protégées
 
         AuthMiddleware::handle();
     }
@@ -44,13 +44,13 @@ class AuthMiddlewareTest extends TestCase
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
-    public function testHandleRedirectsWhenSessionRevoked(): void
+    public function testHandleReturns404WhenSessionRevoked(): void
     {
         $token = Jwt::generate(1, 'customer');
         $_COOKIE['auth_token'] = $token;
 
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(302);
+        $this->expectExceptionCode(404); // 404 — ne révèle pas l'existence des routes protégées
 
         // Simule une session révoquée en base
         AuthMiddleware::handle(fn() => false);
@@ -58,12 +58,12 @@ class AuthMiddlewareTest extends TestCase
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
-    public function testHandleRedirectsWhenTokenIsInvalid(): void
+    public function testHandleReturns404WhenTokenIsInvalid(): void
     {
         $_COOKIE['auth_token'] = 'invalid.token.value';
 
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(302);
+        $this->expectExceptionCode(404); // 404 — ne révèle pas l'existence des routes protégées
 
         AuthMiddleware::handle();
     }
