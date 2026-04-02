@@ -45,7 +45,15 @@
     }
 }
 
-// Navigation footer — colonne centrale du grid, liens centrés
+// Navigation footer — groupe des deux lignes nav (colonne centrale du grid)
+.footer-nav-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+// Ligne 1 — pages classiques
 .footer-nav {
     display: flex;
     flex-wrap: wrap;
@@ -62,6 +70,37 @@
         &:hover {
             color: var(--color-gold);
         }
+    }
+}
+
+// Ligne 2 — liens légaux et gestion des données
+.footer-nav-legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 1rem;
+    justify-content: center;
+
+    a,
+    &__cookie-btn {
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+        opacity: 0.75;
+        transition: color 200ms ease, opacity 200ms ease;
+
+        &:hover {
+            color: var(--color-gold);
+            opacity: 1;
+        }
+    }
+
+    &__cookie-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        font-family: inherit;
     }
 }
 
