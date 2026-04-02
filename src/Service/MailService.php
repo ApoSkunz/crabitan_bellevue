@@ -273,7 +273,7 @@ class MailService
             . $infoTable
             . $ctaBtn;
 
-        $htmlBody = $this->buildNewsletterHtml($emailTitle, $htmlContent, null, $unsubToken);
+        $htmlBody = $this->buildNewsletterHtml($emailTitle, $htmlContent, null, $unsubToken, $lang);
 
         $this->send($toEmail, $toName, $subject, $htmlBody);
     }
@@ -500,7 +500,8 @@ class MailService
         string $title,
         string $htmlContent,
         ?string $imageUrl = null,
-        ?string $unsubToken = null
+        ?string $unsubToken = null,
+        string $lang = 'fr'
     ): string {
         $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $logoUrl    = $appUrl . self::LOGO_PATH;
@@ -520,7 +521,7 @@ class MailService
             : '';
 
         $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
-        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, 'fr');
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $lang);
 
         $inner = <<<INNER
 

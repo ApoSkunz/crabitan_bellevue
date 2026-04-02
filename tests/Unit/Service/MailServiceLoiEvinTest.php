@@ -94,7 +94,8 @@ class MailServiceLoiEvinTest extends TestCase
             'emailFooterHtml',
             'https://crabitan.local/fr/politique-confidentialite',
             'https://crabitan.local/fr/mentions-legales',
-            'https://crabitan.local/fr/support'
+            'https://crabitan.local/fr/support',
+            'en'
         );
 
         $this->assertStringContainsString(
@@ -156,7 +157,8 @@ class MailServiceLoiEvinTest extends TestCase
             'New vintage available',
             '<p>Discover our new Château Crabitan Bellevue.</p>',
             null,
-            'token456'
+            'token456',
+            'en'
         );
 
         $this->assertStringContainsString(
