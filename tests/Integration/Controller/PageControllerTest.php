@@ -87,6 +87,7 @@ class PageControllerTest extends IntegrationTestCase
 
     public function testMentionsLegalesRendersView(): void
     {
+        $_COOKIE['age_verified'] = '1';
         ob_start();
         $this->makeController('/fr/mentions-legales')->mentionsLegales(['lang' => 'fr']);
         $output = ob_get_clean();
@@ -128,6 +129,7 @@ class PageControllerTest extends IntegrationTestCase
 
     public function testPolitiqueConfidentialiteRendersView(): void
     {
+        $_COOKIE['age_verified'] = '1';
         ob_start();
         $this->makeController('/fr/politique-confidentialite')->politiqueConfidentialite(['lang' => 'fr']);
         $output = ob_get_clean();
@@ -158,6 +160,7 @@ class PageControllerTest extends IntegrationTestCase
 
     public function testSupportRendersView(): void
     {
+        $_COOKIE['age_verified'] = '1';
         ob_start();
         $this->makeController('/fr/support')->support(['lang' => 'fr']);
         $output = ob_get_clean();
