@@ -1,14 +1,36 @@
 <?php
 $pageTitle = __('support.title');
-require_once SRC_PATH . '/View/partials/head.php';
-require_once SRC_PATH . '/View/partials/header.php';
+$navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$isBare    = $bare ?? false;
 
 $faqs = [];
 for ($i = 1; $i <= 13; $i++) {
     $faqs[] = ['q' => __('support.q' . $i), 'a' => __('support.a' . $i)];
 }
-?>
 
+if (!$isBare) {
+    require_once SRC_PATH . '/View/partials/head.php';
+    require_once SRC_PATH . '/View/partials/header.php';
+}
+?>
+<?php if ($isBare) : ?>
+<!DOCTYPE html>
+<html lang="<?= htmlspecialchars($navLang) ?>" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($pageTitle) ?></title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/assets/css/main.css">
+</head>
+<body class="bare-legal">
+    <div class="bare-legal__bar">
+        <span><?= htmlspecialchars($pageTitle) ?></span>
+        <button type="button" class="bare-legal__close" onclick="window.close()" aria-label="Fermer">&#10005;</button>
+    </div>
+    <div class="container">
+<?php else : ?>
 <main class="page-support" id="main-content">
     <div class="page-hero page-hero--dark">
         <div class="container">
@@ -16,6 +38,7 @@ for ($i = 1; $i <= 13; $i++) {
             <div class="home-section__divider home-section__divider--center"></div>
         </div>
     </div>
+<?php endif; ?>
 
     <section class="support-faq container" aria-labelledby="faq-title">
         <h2 id="faq-title" class="support-faq__title"><?= htmlspecialchars(__('support.faq_title')) ?></h2>
@@ -48,6 +71,13 @@ for ($i = 1; $i <= 13; $i++) {
             <?php endforeach; ?>
         </dl>
     </section>
-</main>
 
-<?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
+<?php if ($isBare) : ?>
+    </div>
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>
+<?php else : ?>
+</main>
+    <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
+<?php endif; ?>

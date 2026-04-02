@@ -88,14 +88,15 @@ class PageController extends Controller
     public function mentionsLegales(array $params): void
     {
         $lang = $this->resolveLang($params);
-        $bare = isset($_GET['bare']);
+        $bare = isset($_GET['bare']) || ($_COOKIE['age_verified'] ?? '') !== '1';
         $this->view('pages/mentions-legales', ['lang' => $lang, 'noindex' => true, 'bare' => $bare]);
     }
 
     public function politiqueConfidentialite(array $params): void
     {
         $lang = $this->resolveLang($params);
-        $this->view('pages/politique-confidentialite', ['lang' => $lang]);
+        $bare = ($_COOKIE['age_verified'] ?? '') !== '1';
+        $this->view('pages/politique-confidentialite', ['lang' => $lang, 'noindex' => true, 'bare' => $bare]);
     }
 
     public function planDuSite(array $params): void
@@ -119,7 +120,8 @@ class PageController extends Controller
     public function support(array $params): void
     {
         $lang = $this->resolveLang($params);
-        $this->view('pages/support', ['lang' => $lang]);
+        $bare = ($_COOKIE['age_verified'] ?? '') !== '1';
+        $this->view('pages/support', ['lang' => $lang, 'bare' => $bare]);
     }
 
     public function jeux(array $params): void
