@@ -103,4 +103,52 @@ class NewsletterControllerTest extends TestCase
             ob_end_clean();
         }
     }
+
+    /**
+     * subscribe rate-limité retourne JSON 429.
+     * Le mock fetchOne retourne 3 tentatives récentes pour déclencher rate_limit.
+     */
+    public function testSubscribeRateLimitReturnsJson429(): void
+    {
+        // 1re requête : accounts->findByEmail → false (pas de compte)
+        // 2e requête : model->countRecentAttempts → 3 tentatives récentes
+        $this->instanceProp->setValue(null, null);
+        $dbMock = $this->createStub(Database::class);
+        $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(
+            false,
+            ['attempts_24h' => 3, 'last_attempt_at' => date('Y-m-d H:i:s', strtotime('-1 hour'))]
+        );
+        $dbMock->method('fetchAll')->willReturn([]);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['email']            = 'test@example.com';
+
+        $controller = new NewsletterController(new Request());
+
+        ob_start();
+        try {
+            $this->expectException(HttpException::class);
+            $this->expectExceptionCode(429);
+            $controller->subscribe(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * confirmSubscription avec token inconnu (absent de la BDD) affiche la vue d'erreur.
+     */
+    public function testConfirmSubscriptionUnknownTokenShowsErrorView(): void
+    {
+        $_GET['token'] = bin2hex(random_bytes(32));
+
+        $controller = new NewsletterController(new Request());
+
+        ob_start();
+        $controller->confirmSubscription(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
 }
