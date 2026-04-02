@@ -598,7 +598,7 @@ return [
 
     // Export RGPD
     'account.export_title'       => 'Mes données personnelles',
-    'account.export_intro'       => 'Conformément au Règlement Général sur la Protection des Données (RGPD – Art. 20), vous pouvez télécharger l\'ensemble de vos données personnelles au format JSON.',
+    'account.export_intro'       => 'Conformément au Règlement Général sur la Protection des Données (RGPD – Art. 20), vous pouvez télécharger l\'ensemble de vos données personnelles. L\'archive ZIP contient un fichier JSON et un récapitulatif PDF.',
     'account.export_includes'    => 'Le fichier inclut :',
     'account.export_item_account' => 'Vos informations de compte',
     'account.export_item_orders' => 'Votre historique de commandes',
@@ -609,7 +609,6 @@ return [
     'account.export_retention'   => 'Durée de conservation : vos données personnelles (nom, e-mail, adresses…) sont supprimées dans les 30 jours suivant la fermeture de votre compte. Vos commandes sont conservées 10 ans conformément aux obligations légales, mais anonymisées — sans aucun lien vers votre identité.',
     'account.export_download'    => 'Télécharger mes données (ZIP)',
     'account.export_at'          => 'Généré le',
-    'account.export_intro'       => 'Conformément au Règlement Général sur la Protection des Données (RGPD – Art. 20), vous pouvez télécharger l\'ensemble de vos données personnelles.',
 
     // Réinitialisation sécurité
     'account.security_reset_btn'        => 'Réinitialiser la sécurité',

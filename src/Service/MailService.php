@@ -7,7 +7,8 @@ namespace Service;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
+// NOSONAR — php:S1448 : seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
+class MailService
 {
     private const PATH_SECURITY     = '/mon-compte/securite';
     private const BTN_STYLE_PRIMARY = 'font-family:Georgia,serif;font-size:14px;'
@@ -101,7 +102,8 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
         $body = $this->emailSimpleLayout(
             'Nouveau message',
             "Message reçu via le site",
-            $msgBody
+            $msgBody,
+            'fr'
         );
 
         $this->send($ownerEmail, APP_NAME, $subjectLine, $body, null, $email);
@@ -124,7 +126,8 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
         $body = $this->emailSimpleLayout(
             'Confirmation',
             $lang === 'fr' ? "Bonjour {$safeName}," : "Hello {$safeName},",
-            $lines['message'] . $recap
+            $lines['message'] . $recap,
+            $lang
         );
 
         $attachmentPath = null;
@@ -270,7 +273,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
             . $infoTable
             . $ctaBtn;
 
-        $htmlBody = $this->buildNewsletterHtml($emailTitle, $htmlContent, null, $unsubToken);
+        $htmlBody = $this->buildNewsletterHtml($emailTitle, $htmlContent, null, $unsubToken, $lang);
 
         $this->send($toEmail, $toName, $subject, $htmlBody);
     }
@@ -312,7 +315,8 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
             $body = $this->emailSimpleLayout(
                 'Suppression de compte',
                 "Bonjour {$safeName},",
-                $rgpdText . $reactivateBlock
+                $rgpdText . $reactivateBlock,
+                'fr'
             );
         } else {
             $rgpdText = 'Your account deletion request has been registered.'
@@ -334,7 +338,8 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
             $body = $this->emailSimpleLayout(
                 'Account deletion',
                 "Hello {$safeName},",
-                $rgpdText . $reactivateBlock
+                $rgpdText . $reactivateBlock,
+                'en'
             );
         }
 
@@ -378,7 +383,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
                 . ' Veuillez <a href="' . $contactUrl . '" style="color:#c9a84c;">contacter notre support</a>'
                 . ' immédiatement.<br><br>'
                 . $ctaBlock;
-            $body = $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message);
+            $body = $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message, 'fr');
         } else {
             $message = "Your password was changed on <strong>{$safeDate}</strong>.<br><br>"
                 . 'If you made this change, you can safely ignore this email.<br><br>'
@@ -386,7 +391,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
                 . ' Please <a href="' . $contactUrl . '" style="color:#c9a84c;">contact our support team</a>'
                 . ' immediately.<br><br>'
                 . $ctaBlock;
-            $body = $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message);
+            $body = $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message, 'en');
         }
 
         $this->send($to, $name, $subject, $body);
@@ -478,14 +483,14 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
                 . '<br><br>'
                 . $infoBlock
                 . $confirmBlock;
-            $body = $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message);
+            $body = $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message, 'fr');
         } else {
             $message = 'A sign-in from an unrecognised device was detected on your account.'
                 . ' If this was you, confirm the device to stop receiving these alerts.'
                 . '<br><br>'
                 . $infoBlock
                 . $confirmBlock;
-            $body = $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message);
+            $body = $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message, 'en');
         }
 
         $this->send($to, $name, $subject, $body);
@@ -495,7 +500,8 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
         string $title,
         string $htmlContent,
         ?string $imageUrl = null,
-        ?string $unsubToken = null
+        ?string $unsubToken = null,
+        string $lang = 'fr'
     ): string {
         $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $logoUrl    = $appUrl . self::LOGO_PATH;
@@ -515,7 +521,7 @@ class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderForm
             : '';
 
         $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
-        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $lang);
 
         $inner = <<<INNER
 
@@ -595,7 +601,7 @@ INNER;
             );
         }
 
-        $body = $this->emailSimpleLayout($title, $greeting, $message);
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
         $this->send($toEmail, $toName, $subject, $body);
     }
 
@@ -783,7 +789,8 @@ INNER;
         $body = $this->emailSimpleLayout(
             'Demande de retour',
             'Nouvelle demande de rétractation',
-            $message
+            $message,
+            'fr'
         );
 
         $this->send($ownerEmail, APP_NAME, "Retour client — commande {$safeRef}", $body, null, $clientEmail);
@@ -873,7 +880,7 @@ INNER;
             $title    = 'Return request registered';
         }
 
-        $body     = $this->emailSimpleLayout($title, $greeting, $message);
+        $body     = $this->emailSimpleLayout($title, $greeting, $message, $lang);
         $filename = 'fiche-retour_' . ($order['order_reference'] ?? 'retour') . '.pdf';
 
         $this->send($to, $name, $subject, $body, $pdfPath, null, $filename);
@@ -905,7 +912,7 @@ INNER;
         $this->mailer->send();
     }
 
-    private function emailSimpleLayout(string $title, string $greeting, string $message): string
+    private function emailSimpleLayout(string $title, string $greeting, string $message, string $lang = 'fr'): string
     {
         $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $logoUrl    = $appUrl . self::LOGO_PATH;
@@ -914,7 +921,7 @@ INNER;
         $urlSupport = $appUrl . self::URL_SUPPORT;
 
         $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
-        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $lang);
 
         $inner = <<<INNER
 
@@ -954,7 +961,8 @@ INNER;
             $safeUrl,
             'Activer mon compte',
             'Ce lien est valable <strong>24 heures</strong>. Si vous n\'êtes pas à l\'origine'
-            . ' de cette inscription, ignorez cet email.'
+            . ' de cette inscription, ignorez cet email.',
+            'fr'
         );
     }
 
@@ -970,7 +978,8 @@ INNER;
             $safeUrl,
             'Activate my account',
             'This link is valid for <strong>24 hours</strong>. If you did not create an account,'
-            . ' please ignore this email.'
+            . ' please ignore this email.',
+            'en'
         );
     }
 
@@ -986,7 +995,8 @@ INNER;
             $safeUrl,
             'Réinitialiser mon mot de passe',
             'Ce lien est valable <strong>1 heure</strong>. Si vous n\'êtes pas à l\'origine'
-            . ' de cette demande, ignorez cet email — votre mot de passe reste inchangé.'
+            . ' de cette demande, ignorez cet email — votre mot de passe reste inchangé.',
+            'fr'
         );
     }
 
@@ -1002,7 +1012,8 @@ INNER;
             $safeUrl,
             'Reset my password',
             'This link is valid for <strong>1 hour</strong>. If you did not request a password reset,'
-            . ' please ignore this email — your password will remain unchanged.'
+            . ' please ignore this email — your password will remain unchanged.',
+            'en'
         );
     }
 
@@ -1012,7 +1023,8 @@ INNER;
         string $message,
         string $url,
         string $ctaLabel,
-        string $footnote
+        string $footnote,
+        string $lang = 'fr'
     ): string {
         $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $logoUrl    = $appUrl . self::LOGO_PATH;
@@ -1021,7 +1033,7 @@ INNER;
         $urlSupport = $appUrl . self::URL_SUPPORT;
 
         $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
-        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $lang);
 
         $inner = <<<INNER
 
@@ -1108,9 +1120,31 @@ INNER;
 HTML;
     }
 
-    private function emailFooterHtml(string $urlPrivacy, string $urlLegal, string $urlSupport): string
-    {
-        $year = date('Y');
+    /**
+     * Génère le bloc footer HTML partagé par tous les emails.
+     *
+     * Contient obligatoirement la mention Loi Évin (Art. L3323-4 CSP) dans la langue
+     * du destinataire, visible en texte clair avec contraste suffisant.
+     *
+     * @param string $urlPrivacy URL vers la politique de confidentialité
+     * @param string $urlLegal   URL vers les mentions légales
+     * @param string $urlSupport URL vers la page d'assistance
+     * @param string $lang       Langue du destinataire ('fr' ou 'en')
+     * @return string HTML du footer email
+     */
+    private function emailFooterHtml(
+        string $urlPrivacy,
+        string $urlLegal,
+        string $urlSupport,
+        string $lang = 'fr'
+    ): string {
+        $year    = date('Y');
+        $mention = $lang === 'fr'
+            ? "L'abus d'alcool est dangereux pour la santé. À consommer avec modération."
+            : 'Alcohol abuse is dangerous for your health. To be consumed in moderation.';
+        $autoMsg = $lang === 'fr'
+            ? 'Ce mail est généré automatiquement. Veuillez ne pas y répondre.'
+            : 'This email was generated automatically. Please do not reply.';
         return <<<HTML
           <tr>
             <td align="center" style="padding-top:24px;">
@@ -1127,11 +1161,15 @@ HTML;
                    style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
                 >Assistance</a>
               </p>
+              <!-- Mention Loi Évin obligatoire — Art. L3323-4 CSP -->
+              <p style="margin:0 0 6px;font-size:11px;color:#6b5e4a;font-style:italic;line-height:1.5;">
+                {$mention}
+              </p>
               <p style="margin:0 0 6px;font-size:11px;color:#a89880;letter-spacing:1px;">
                 © {$year} Château Crabitan Bellevue — Sainte-Croix-du-Mont, Gironde
               </p>
               <p style="margin:0;font-size:10px;color:#b8aa95;">
-                Ce mail est généré automatiquement. Veuillez ne pas y répondre.
+                {$autoMsg}
               </p>
             </td>
           </tr>
@@ -1300,7 +1338,8 @@ HTML;
             . '<br><br>'
             . 'Si c\'était vous, attendez quelques instants puis réessayez.'
             . '<br><br>'
-            . 'Si ce n\'était <strong>pas vous</strong>, nous vous recommandons vivement de changer votre mot de passe immédiatement.'
+            . 'Si ce n\'était <strong>pas vous</strong>, nous vous recommandons vivement'
+            . ' de changer votre mot de passe immédiatement.'
             . '<br><br>'
             . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
@@ -1310,7 +1349,7 @@ HTML;
             . 'Changer mon mot de passe'
             . '</a></td></tr></table>';
 
-        return $this->emailSimpleLayout('Alerte sécurité', "Bonjour {$safeName},", $message);
+        return $this->emailSimpleLayout('Alerte sécurité', "Bonjour {$safeName},", $message, 'fr');
     }
 
     /**
@@ -1340,7 +1379,7 @@ HTML;
             . 'Change my password'
             . '</a></td></tr></table>';
 
-        return $this->emailSimpleLayout('Security alert', "Hello {$safeName},", $message);
+        return $this->emailSimpleLayout('Security alert', "Hello {$safeName},", $message, 'en');
     }
 
     private function emailAlreadyExistsBodyFr(string $name, string $loginUrl, string $resetUrl): string
@@ -1370,7 +1409,7 @@ HTML;
             . 'Mot de passe oublié ?'
             . '</a></td></tr></table>';
 
-        return $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message);
+        return $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message, 'fr');
     }
 
     /**
@@ -1408,6 +1447,6 @@ HTML;
             . 'Forgot your password?'
             . '</a></td></tr></table>';
 
-        return $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message);
+        return $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message, 'en');
     }
 }
