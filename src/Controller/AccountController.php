@@ -15,6 +15,8 @@ use Model\FavoriteModel;
 use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
 use Model\OrderModel;
+use Service\AccountService;
+use Service\MailService;
 use Service\PasswordValidator;
 
 class AccountController extends Controller // NOSONAR — php:S1448 : découpage prévu à l'audit génie logiciel
@@ -1013,8 +1015,203 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             Response::redirect($back);
         }
 
-        $this->accounts->updateNewsletter($userId, $newsletter);
+        $currentNewsletter = (bool) ($account['newsletter'] ?? false);
+
+        if ($newsletter && !$currentNewsletter) {
+            // Toggle 0→1 : double opt-in — envoie un email de confirmation
+            $token = bin2hex(random_bytes(32));
+            $this->accounts->storeNewsletterConfirmToken($userId, $token);
+            $confirmUrl = APP_URL . "/{$lang}/newsletter/confirmation?token=" . urlencode($token);
+            (new MailService())->sendNewsletterConfirmation((string) $account['email'], $confirmUrl, $lang);
+            $_SESSION['flash']['profile_success'] = __('newsletter.confirm_sent');
+            Response::redirect($back);
+        } elseif (!$newsletter && $currentNewsletter) {
+            // Toggle 1→0 : désabonnement immédiat (pas de confirmation requise)
+            $this->accounts->updateNewsletter($userId, false);
+        }
+
         $_SESSION['flash']['profile_success'] = __('account.profile_updated');
+        Response::redirect($back);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/mon-compte/profil/changer-email
+    // ----------------------------------------------------------------
+
+    /**
+     * Initie une demande de changement d'email (double opt-in).
+     *
+     * Vérifie le CSRF, le mot de passe actuel, le rate limit et l'unicité
+     * de la nouvelle adresse, puis délègue au AccountService qui génère le token
+     * et envoie les deux emails (confirmation + notification).
+     *
+     * @param array<string, string> $params Paramètres de route (contient 'lang')
+     * @return void
+     */
+    public function requestEmailChange(array $params): void
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
+        $back    = "/{$lang}/mon-compte/profil#email-change";
+
+        if (!$this->verifyCsrf()) {
+            $_SESSION['flash']['profile_errors'] = ['email' => __('error.csrf')];
+            Response::redirect($back);
+        }
+
+        $newEmail        = trim($this->request->post('new_email', ''));
+        $currentPassword = $this->request->post('current_password', '');
+
+        if ($newEmail === '' || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['flash']['profile_errors'] = ['email' => __('account.email_change_invalid')];
+            Response::redirect($back);
+        }
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+
+        try {
+            $service = new AccountService($this->accounts, new MailService());
+            $service->requestEmailChange($userId, $newEmail, $currentPassword, $ip);
+        } catch (\Core\Exception\HttpException $e) {
+            $_SESSION['flash']['profile_errors'] = ['email' => $e->getMessage()];
+            Response::redirect($back);
+        } catch (\Throwable) {
+            $_SESSION['flash']['profile_errors'] = ['email' => __('error.generic')];
+            Response::redirect($back);
+        }
+
+        $_SESSION['flash']['profile_success'] = __('account.email_change_sent');
+        Response::redirect("/{$lang}/mon-compte/profil");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/mon-compte/email/confirmer?token=xxx
+    // ----------------------------------------------------------------
+
+    /**
+     * Confirme le changement d'email après clic sur le lien de confirmation.
+     *
+     * Délègue au AccountService qui valide le token (TTL, usage unique),
+     * met à jour l'email, révoque toutes les sessions et log l'audit RGPD.
+     *
+     * @param array<string, string> $params Paramètres de route (contient 'lang')
+     * @return void
+     */
+    public function confirmEmailChange(array $params): void
+    {
+        $lang     = $params['lang'];
+        $rawToken = $this->request->get('token', '');
+
+        if ($rawToken === '') {
+            $this->view('account/email_change_confirm', [
+                'lang'    => $lang,
+                'success' => false,
+                'error'   => __('account.email_change_token_invalid'),
+            ]);
+            return;
+        }
+
+        $service = new AccountService($this->accounts, new MailService());
+
+        try {
+            $service->confirmEmailChange($rawToken);
+        } catch (\Core\Exception\HttpException $e) {
+            $this->view('account/email_change_confirm', [
+                'lang'    => $lang,
+                'success' => false,
+                'error'   => $e->getMessage(),
+            ]);
+            return;
+        }
+
+        // Déconnecter le compte courant (sessions révoquées par le service)
+        CookieHelper::clear();
+
+        $this->view('account/email_change_confirm', [
+            'lang'    => $lang,
+            'success' => true,
+            'error'   => null,
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/mon-compte/email/revoquer?token=xxx  — sans auth requise
+    // ----------------------------------------------------------------
+
+    /**
+     * Révoque une demande de changement d'email directement depuis le lien email.
+     *
+     * Accessible sans authentification — fonctionne uniquement via le token.
+     * Permet au titulaire de l'ancienne adresse d'annuler depuis son client email.
+     *
+     * @param array<string, string> $params Paramètres de route (contient 'lang')
+     * @return void
+     */
+    public function revokeEmailChange(array $params): void
+    {
+        $lang     = $params['lang'];
+        $rawToken = $this->request->get('token', '');
+
+        if ($rawToken === '') {
+            $this->view('account/email_change_confirm', [
+                'lang'    => $lang,
+                'success' => false,
+                'error'   => __('account.email_change_token_invalid'),
+            ]);
+            return;
+        }
+
+        $hashedToken = hash('sha256', $rawToken);
+        $account     = $this->accounts->findByEmailChangeToken($hashedToken);
+
+        if (!$account) {
+            $this->view('account/email_change_confirm', [
+                'lang'    => $lang,
+                'success' => false,
+                'error'   => __('account.email_change_token_invalid'),
+            ]);
+            return;
+        }
+
+        $this->accounts->clearEmailChangeToken((int) $account['id']);
+
+        $this->view('account/email_change_confirm', [
+            'lang'    => $lang,
+            'success' => true,
+            'revoked' => true,
+            'error'   => null,
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/mon-compte/email/annuler
+    // ----------------------------------------------------------------
+
+    /**
+     * Annule la demande de changement d'email en cours.
+     *
+     * Supprime le token et la nouvelle adresse en attente.
+     * Accessible aux customers uniquement.
+     *
+     * @param array<string, string> $params Paramètres de route (contient 'lang')
+     * @return void
+     */
+    public function cancelEmailChange(array $params): void
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
+        $back    = "/{$lang}/mon-compte/profil";
+
+        if (!$this->verifyCsrf()) {
+            $_SESSION['flash']['profile_errors'] = ['email' => __('error.csrf')];
+            Response::redirect($back);
+        }
+
+        $this->accounts->clearEmailChangeToken($userId);
+
+        $_SESSION['flash']['profile_success'] = __('account.email_change_cancelled');
         Response::redirect($back);
     }
 

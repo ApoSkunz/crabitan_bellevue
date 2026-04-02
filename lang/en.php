@@ -523,6 +523,28 @@ return [
     'account.email_change_request_btn' => 'Contact support',
     'account.email_change_subject'    => 'Request to change email address',
 
+    // Email change — double opt-in
+    'account.email_change_section_title'    => 'Update my email address',
+    'account.email_change_intro'            => 'A confirmation link will be sent to your current address. The change only takes effect after you confirm it.',
+    'account.email_current'                 => 'Current address',
+    'account.email_new'                     => 'New email address',
+    'account.email_change_submit_btn'       => 'Send confirmation link',
+    'account.email_change_sent'             => 'A confirmation link has been sent to your new address. Click the link to validate the change.',
+    'account.email_change_invalid'          => 'The email address entered is invalid.',
+    'account.email_change_confirm_title'    => 'Email change confirmation',
+    'account.email_change_confirmed'        => 'Your email address has been successfully updated.',
+    'account.email_change_confirmed_body'   => 'All your active sessions have been revoked for security reasons. Please log in again with your new address.',
+    'account.email_change_login_btn'        => 'Log in again',
+    'account.email_change_token_invalid'    => 'This confirmation link is invalid or has already been used.',
+    'account.email_change_token_expired_hint' => 'The link may have expired (valid for 24h). You can submit a new request from your profile.',
+    'account.email_change_retry_btn'        => 'Submit a new request',
+    'account.email_change_pending_title'    => 'Pending request',
+    'account.email_change_pending_body'     => 'A confirmation link has been sent to your current address to validate the change to:',
+    'account.email_change_cancel_btn'       => 'Cancel the request',
+    'account.email_change_cancelled'        => 'The email address change request has been cancelled.',
+    'account.email_change_revoked_title'    => 'Request cancelled',
+    'account.email_change_revoked_body'     => 'The email address change request has been cancelled. Your current address remains unchanged.',
+
     // Orders — detail & cancellation
     'account.order_detail'       => 'Order detail',
     'account.order_items'        => 'Ordered items',
@@ -639,6 +661,16 @@ return [
     'newsletter.unsubscribed'      => 'You have been successfully unsubscribed from the Château Crabitan Bellevue newsletter.',
     'newsletter.unsubscribe_error' => 'This unsubscribe link is invalid or has already been used. Manage your preferences from your account.',
     'newsletter.manage_link'       => 'Manage my communication preferences',
+
+    // Newsletter — double opt-in (RGPD Art. 7)
+    'newsletter.confirm_title'     => 'Newsletter subscription confirmation',
+    'newsletter.confirm_success'   => 'Your subscription is confirmed. You will receive our upcoming news and offers from Château Crabitan Bellevue.',
+    'newsletter.confirm_invalid'   => 'This confirmation link is invalid. It may have already been used.',
+    'newsletter.confirm_expired'   => 'This confirmation link has expired (valid for 48 hours). You can re-subscribe from our website.',
+    'newsletter.confirm_sent'      => 'A confirmation email has been sent to you. Please click the link within 48 hours to complete your subscription.',
+    'newsletter.already_confirmed' => 'This email address is already subscribed to our newsletter.',
+    'newsletter.rate_limit'        => 'Too many attempts. Please wait before trying again.',
+    'newsletter.invalid_email'     => 'Invalid email address.',
 
     // Newsletter — new wine
     'mail.new_wine_subject'  => 'New wine available: %s %d',

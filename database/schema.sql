@@ -57,9 +57,16 @@ CREATE TABLE `accounts` (
   `lang`                         ENUM('fr','en')              NOT NULL DEFAULT 'fr',
   `newsletter`                   TINYINT(1)     NOT NULL DEFAULT 0,
   `newsletter_unsubscribe_token` VARCHAR(64)    DEFAULT NULL COMMENT 'Token désabonnement newsletter (RGPD Art. 21)',
+  `newsletter_optin_pending`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT 'Consentement newsletter coché à l\'inscription — activé lors de la vérification email',
+  `newsletter_confirm_token`     VARCHAR(64)    DEFAULT NULL COMMENT 'Token double opt-in newsletter (déclenchement depuis profil ou formulaire public)',
+  `newsletter_confirm_expires_at` DATETIME      DEFAULT NULL COMMENT 'TTL 48h du token de confirmation newsletter',
   `email_verification_token`          VARCHAR(255)   DEFAULT NULL,
   `email_verification_token_expires_at` DATETIME  DEFAULT NULL COMMENT 'TTL 24h — expiration du token de vérification email',
   `email_verified_at`            DATETIME       DEFAULT NULL,
+  `email_change_token`           VARCHAR(64)    DEFAULT NULL COMMENT 'SHA-256 du token de changement email',
+  `email_change_new_email`       VARCHAR(255)   DEFAULT NULL COMMENT 'Nouvelle adresse en attente de confirmation',
+  `email_change_expires_at`      DATETIME       DEFAULT NULL COMMENT 'TTL 24h du token de changement email',
+  `email_change_used_at`         DATETIME       DEFAULT NULL COMMENT 'Horodatage usage unique',
   `google_id`                    VARCHAR(255)   DEFAULT NULL COMMENT 'Google OAuth ID',
   `apple_id`                     VARCHAR(255)   DEFAULT NULL COMMENT 'Apple Sign In ID',
   `deleted_at`                   DATETIME       DEFAULT NULL COMMENT 'Soft delete',
@@ -76,7 +83,9 @@ CREATE TABLE `accounts` (
   INDEX `idx_accounts_deleted`       (`deleted_at`),
   INDEX `idx_accounts_unsub_token`   (`newsletter_unsubscribe_token`),
   INDEX `idx_accounts_sched_del`     (`scheduled_deletion_at`),
-  INDEX `idx_accounts_reactiv_token` (`reactivation_token`)
+  INDEX `idx_accounts_reactiv_token`        (`reactivation_token`),
+  INDEX `idx_accounts_email_change_token`   (`email_change_token`),
+  INDEX `idx_accounts_nl_confirm_token`     (`newsletter_confirm_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -451,5 +460,23 @@ CREATE TABLE `newsletter_attachments` (
     FOREIGN KEY (`newsletter_id`) REFERENCES `newsletters` (`id`) ON DELETE CASCADE,
   INDEX `idx_nl_attachment_newsletter` (`newsletter_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : audit_log
+-- Log d'audit RGPD (Art. 30) — changements email, suppressions, etc.
+-- ============================================================
+CREATE TABLE `audit_log` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id`    INT UNSIGNED    NOT NULL,
+  `event_type` VARCHAR(64)     NOT NULL COMMENT 'email_changed, email_change_request, …',
+  `ip`         VARCHAR(45)     NOT NULL DEFAULT '' COMMENT 'IPv4 ou IPv6',
+  `meta`       JSON            DEFAULT NULL COMMENT 'Données complémentaires (ancienne adresse, etc.)',
+  `created_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_audit_log_user_id`    (`user_id`),
+  INDEX `idx_audit_log_event_type` (`event_type`),
+  INDEX `idx_audit_log_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Log d\'audit RGPD — Art. 30 RGPD';
 
 COMMIT;

@@ -1087,10 +1087,13 @@ class AuthControllerTest extends IntegrationTestCase
         }
 
         $account = self::$db->fetchOne(
-            "SELECT newsletter FROM accounts WHERE email = ?",
+            "SELECT newsletter, newsletter_optin_pending FROM accounts WHERE email = ?",
             ['newsletter-yes@example.com']
         );
         $this->assertNotFalse($account);
-        $this->assertSame(1, (int)$account['newsletter']);
+        // Double opt-in hybride : newsletter reste 0 à l'inscription,
+        // activé uniquement lors de la vérification email
+        $this->assertSame(0, (int)$account['newsletter'], 'newsletter doit rester 0 jusqu\'à vérification email');
+        $this->assertSame(1, (int)$account['newsletter_optin_pending'], 'newsletter_optin_pending doit être 1');
     }
 }

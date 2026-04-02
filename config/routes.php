@@ -127,8 +127,16 @@ $router->post('/{lang}/mon-compte/securite/appareils/supprimer-toutes', 'Account
 $router->get('/{lang}/compte/reactiver', 'AccountController@reactivateAccount');
 $router->get('/{lang}/mon-compte/export', 'AccountController@exportPage');
 $router->get('/{lang}/mon-compte/export/telecharger', 'AccountController@exportData');
+$router->post('/{lang}/mon-compte/profil/changer-email', 'AccountController@requestEmailChange');
+$router->post('/{lang}/mon-compte/email/annuler',         'AccountController@cancelEmailChange');
+$router->get('/{lang}/mon-compte/email/confirmer',         'AccountController@confirmEmailChange');
+$router->get('/{lang}/mon-compte/email/revoquer',          'AccountController@revokeEmailChange');
 $router->get('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribePage');
 $router->post('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribe');
+
+// Newsletter — double opt-in (RGPD Art. 7)
+$router->get('/{lang}/newsletter/confirmation', 'NewsletterController@confirmSubscription');
+$router->post('/{lang}/newsletter/inscription', 'NewsletterController@subscribe');
 
 // ============================================================
 // Routes API (AJAX)
