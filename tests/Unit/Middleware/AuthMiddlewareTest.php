@@ -27,7 +27,12 @@ class AuthMiddlewareTest extends TestCase
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(404); // 404 — ne révèle pas l'existence des routes protégées
 
-        AuthMiddleware::handle();
+        ob_start();
+        try {
+            AuthMiddleware::handle();
+        } finally {
+            ob_end_clean();
+        }
     }
 
     public function testHandleReturnsPayloadForValidToken(): void
@@ -52,8 +57,12 @@ class AuthMiddlewareTest extends TestCase
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(404); // 404 — ne révèle pas l'existence des routes protégées
 
-        // Simule une session révoquée en base
-        AuthMiddleware::handle(fn() => false);
+        ob_start();
+        try {
+            AuthMiddleware::handle(fn() => false);
+        } finally {
+            ob_end_clean();
+        }
     }
 
     #[RunInSeparateProcess]
@@ -65,6 +74,11 @@ class AuthMiddlewareTest extends TestCase
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(404); // 404 — ne révèle pas l'existence des routes protégées
 
-        AuthMiddleware::handle();
+        ob_start();
+        try {
+            AuthMiddleware::handle();
+        } finally {
+            ob_end_clean();
+        }
     }
 }
