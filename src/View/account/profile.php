@@ -106,7 +106,7 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
             </section>
 
             <!-- Changement d'email (double opt-in) -->
-            <section class="account-section">
+            <section class="account-section" id="email-change">
                 <h2 class="account-section__title"><?= __('account.email_change_section_title') ?></h2>
 
                 <?php if (isset($errors['email'])) : ?>
