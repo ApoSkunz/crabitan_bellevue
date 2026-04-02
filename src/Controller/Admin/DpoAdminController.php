@@ -257,7 +257,7 @@ class DpoAdminController extends AdminController
                 'destinataires' => 'GFA (DevSecOps restreint) — IONOS SE (stockage)',
                 'duree'      => '90 jours (rotation)',
                 'transfert'  => 'Non',
-                'securite'   => 'Chiffrement AES-256-GCM colonnes sensibles (RGPD Art. 32) — sauvegardes chiffrees au repos — preparation chiffrement post-quantique (QPC/NIST PQC) — acces restreint DevSecOps',
+                'securite'   => 'Chiffrement AES-256-GCM colonnes sensibles (RGPD Art. 32) — sauvegardes chiffrees au repos — preparation chiffrement post-quantique (QPC/NIST PQC) — acces restreint DevSecOps', // phpcs:ignore Generic.Files.LineLength.TooLong
             ],
             [
                 'title'      => '8. Traductions DeepL (API)',
