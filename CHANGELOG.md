@@ -2,6 +2,17 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.18.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.18.0...v0.18.1) (2026-04-02)
+
+
+### Bug Fixes
+
+* **controller:** déconnexion POST+CSRF — protection CSRF sur logout ([8eed718](https://github.com/ApoSkunz/crabitan_bellevue/commit/8eed7180b4c1bdbfabf46dcfefe75bb5a58a2811))
+* **scss:** styles du formulaire de déconnexion POST dans le panel ([eddfe33](https://github.com/ApoSkunz/crabitan_bellevue/commit/eddfe3349e8afcf81387d4bcd17644fd9e8177c0))
+* **security:** path enumeration prevention — 404 sur routes protégées et GET /deconnexion non connecté ([8be3dbb](https://github.com/ApoSkunz/crabitan_bellevue/commit/8be3dbb8da023f464c29afccdcff22d773d37444))
+* **test:** adapter TI/TU au comportement 404 sur routes protégées non authentifiées ([cd4cf79](https://github.com/ApoSkunz/crabitan_bellevue/commit/cd4cf7911802c73d0f1d90eae02502cd702ad1c7))
+* **view:** logout via form POST+CSRF dans header — protection CSRF ([f1f7d03](https://github.com/ApoSkunz/crabitan_bellevue/commit/f1f7d0384c14b5f2c3906db8cf620367c1882611))
+
 # [0.18.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.17.0...v0.18.0) (2026-04-02)
 
 
