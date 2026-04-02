@@ -542,6 +542,8 @@ return [
     'account.email_change_pending_body'     => 'A confirmation link has been sent to your current address to validate the change to:',
     'account.email_change_cancel_btn'       => 'Cancel the request',
     'account.email_change_cancelled'        => 'The email address change request has been cancelled.',
+    'account.email_change_revoked_title'    => 'Request cancelled',
+    'account.email_change_revoked_body'     => 'The email address change request has been cancelled. Your current address remains unchanged.',
 
     // Orders — detail & cancellation
     'account.order_detail'       => 'Order detail',

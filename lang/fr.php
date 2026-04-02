@@ -544,6 +544,8 @@ return [
     'account.email_change_pending_body'     => 'Un lien de confirmation a été envoyé à votre adresse actuelle pour valider le changement vers :',
     'account.email_change_cancel_btn'       => 'Annuler la demande',
     'account.email_change_cancelled'        => 'La demande de changement d\'adresse email a été annulée.',
+    'account.email_change_revoked_title'    => 'Demande annulée',
+    'account.email_change_revoked_body'     => 'La demande de changement d\'adresse email a bien été annulée. Votre adresse actuelle reste inchangée.',
 
     // Commandes — détail & annulation
     'account.order_detail'       => 'Détail de la commande',
