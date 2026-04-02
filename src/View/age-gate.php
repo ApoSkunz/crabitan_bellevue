@@ -84,6 +84,16 @@
 
 </main>
 
+<footer class="age-gate__legal-footer">
+    <a href="/<?= htmlspecialchars($lang ?? 'fr') ?>/politique-de-confidentialite" target="_blank" rel="noopener noreferrer">
+        <?= htmlspecialchars(__('footer.privacy_policy')) ?>
+    </a>
+    <span aria-hidden="true">·</span>
+    <a href="/<?= htmlspecialchars($lang ?? 'fr') ?>/mentions-legales" target="_blank" rel="noopener noreferrer">
+        <?= htmlspecialchars(__('footer.legal_notice')) ?>
+    </a>
+</footer>
+
 <?php require_once SRC_PATH . '/View/partials/cookie-banner.php'; ?>
 
 <script src="/assets/js/main.js"></script>

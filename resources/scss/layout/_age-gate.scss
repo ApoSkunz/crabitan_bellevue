@@ -401,3 +401,32 @@
         cursor: pointer;
     }
 }
+
+// Micro-footer légal — liens politique de confidentialité et mentions légales
+.age-gate__legal-footer {
+    position: fixed;
+    bottom: 1rem;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+
+    a {
+        color: var(--color-text-muted);
+        opacity: 0.6;
+        transition: opacity 200ms ease;
+        text-transform: uppercase;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    span {
+        color: var(--color-text-muted);
+        opacity: 0.4;
+    }
+}
