@@ -72,11 +72,15 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     /**
      * Crée un nouveau compte client avec token de vérification email (TTL 24 h).
      *
+     * Newsletter : toujours à 0 à la création. Si $newsletter = 1, le consentement est
+     * stocké dans newsletter_optin_pending et activé lors de la vérification email
+     * (double opt-in via vérification adresse).
+     *
      * @param string $accountType     Type de compte ('individual' ou 'company')
      * @param string $email           Adresse email
      * @param string $hashedPassword  Mot de passe hashé (bcrypt)
      * @param string $lang            Langue préférée ('fr' ou 'en')
-     * @param int    $newsletter      Abonnement newsletter (0 ou 1)
+     * @param int    $newsletter      Consentement newsletter coché à l'inscription (0 ou 1)
      * @param string $verificationToken Token de vérification email (64 hex chars)
      * @param string $civility        Civilité ('M', 'F', 'other') — particulier uniquement
      * @param string $lastname        Nom de famille — particulier uniquement
@@ -101,10 +105,10 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         try {
             $accountId = $this->db->insert(
                 "INSERT INTO {$this->table}
-                 (email, password, account_type, role, lang, newsletter,
+                 (email, password, account_type, role, lang, newsletter, newsletter_optin_pending,
                   email_verification_token, email_verification_token_expires_at,
                   newsletter_unsubscribe_token)
-                 VALUES (?, ?, ?, 'customer', ?, ?, ?, NOW() + INTERVAL 24 HOUR, ?)",
+                 VALUES (?, ?, ?, 'customer', ?, 0, ?, ?, NOW() + INTERVAL 24 HOUR, ?)",
                 [$email, $hashedPassword, $accountType, $lang, $newsletter,
                  $verificationToken, bin2hex(random_bytes(32))]
             );
@@ -541,6 +545,73 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     /** @return array{string, array<int, mixed>} */
+    /**
+     * Active la newsletter pour un compte dont le consentement était en attente
+     * (coché à l'inscription, activé lors de la vérification email).
+     *
+     * @param int $userId Identifiant du compte
+     * @return void
+     */
+    public function activateNewsletterFromPending(int $userId): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET newsletter = 1, newsletter_optin_pending = 0
+             WHERE id = ?",
+            [$userId]
+        );
+    }
+
+    /**
+     * Stocke un token de confirmation double opt-in newsletter (TTL 48 h).
+     *
+     * @param int    $userId Identifiant du compte
+     * @param string $token  Token brut (bin2hex 32 bytes)
+     * @return void
+     */
+    public function storeNewsletterConfirmToken(int $userId, string $token): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET newsletter_confirm_token = ?,
+                 newsletter_confirm_expires_at = NOW() + INTERVAL 48 HOUR
+             WHERE id = ?",
+            [$token, $userId]
+        );
+    }
+
+    /**
+     * Valide un token de confirmation newsletter, active l'abonnement et efface le token.
+     *
+     * @param string $token Token brut reçu dans l'URL
+     * @return array<string, mixed>|false Compte activé, ou false si token invalide/expiré
+     */
+    public function confirmNewsletterByToken(string $token): array|false
+    {
+        $account = $this->db->fetchOne(
+            "SELECT id FROM {$this->table}
+             WHERE newsletter_confirm_token = ?
+               AND newsletter_confirm_expires_at > NOW()
+               AND deleted_at IS NULL",
+            [$token]
+        );
+
+        if (!$account) {
+            return false;
+        }
+
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET newsletter = 1,
+                 newsletter_confirm_token = NULL,
+                 newsletter_confirm_expires_at = NULL
+             WHERE id = ?",
+            [(int) $account['id']]
+        );
+
+        return $account;
+    }
+
     private function buildAdminFilters(?string $role, ?string $search, ?string $type = null): array
     {
         $conds  = ['a.deleted_at IS NULL'];
