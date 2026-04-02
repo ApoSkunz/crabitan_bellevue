@@ -988,19 +988,33 @@ INNER;
         string $name,
         string $confirmUrl,
         string $lang,
-        string $newEmail
+        string $newEmail,
+        string $revokeUrl = ''
     ): void {
         $safeName     = htmlspecialchars($name, ENT_QUOTES);
         $safeUrl      = htmlspecialchars($confirmUrl, ENT_QUOTES);
         $safeNewEmail = htmlspecialchars($newEmail, ENT_QUOTES);
 
-        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 16px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
             . "<a href=\"{$safeUrl}\" style=\"display:inline-block;padding:14px 36px;"
             . self::BTN_STYLE_PRIMARY
             . self::BTN_STYLE_LINK
             . ($lang === 'fr' ? 'Confirmer le changement' : 'Confirm the change')
             . '</a></td></tr></table>';
+
+        $revokeBlock = '';
+        if ($revokeUrl !== '') {
+            $safeRevokeUrl = htmlspecialchars($revokeUrl, ENT_QUOTES);
+            $revokeLabel   = $lang === 'fr' ? 'Annuler cette demande' : 'Cancel this request';
+            $revokeBlock   = '<table role="presentation" cellpadding="0" cellspacing="0"'
+                . ' style="margin:0 auto 32px;">'
+                . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
+                . "<a href=\"{$safeRevokeUrl}\" style=\"display:inline-block;padding:10px 28px;"
+                . 'font-family:Georgia,serif;font-size:14px;color:#c9a84c;text-decoration:none;\'>'
+                . $revokeLabel
+                . '</a></td></tr></table>';
+        }
 
         if ($lang === 'fr') {
             $subject  = 'Confirmez le changement d\'adresse email — Crabitan Bellevue';
@@ -1012,9 +1026,11 @@ INNER;
                 . "Si c'est bien vous, confirmez ce changement en cliquant sur le bouton ci-dessous "
                 . "dans les <strong>24 heures</strong> :<br><br>"
                 . $ctaBtn
-                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
-                . "Si vous n'êtes pas à l'origine de cette demande, ignorez cet email — "
-                . "votre adresse actuelle reste inchangée. Ce lien est valable 24h."
+                . $revokeBlock
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:8px;\">"
+                . "Si vous n'êtes pas à l'origine de cette demande, cliquez sur \"Annuler\" ci-dessus "
+                . "ou ignorez cet email — votre adresse actuelle reste inchangée. "
+                . "Ce lien est valable 24h."
                 . "</p>";
         } else {
             $subject  = 'Confirm your email address change — Crabitan Bellevue';
@@ -1026,9 +1042,11 @@ INNER;
                 . "If this was you, confirm the change by clicking the button below "
                 . "within <strong>24 hours</strong>:<br><br>"
                 . $ctaBtn
-                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
-                . "If you did not request this change, ignore this email — "
-                . "your current address remains unchanged. This link is valid for 24 hours."
+                . $revokeBlock
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:8px;\">"
+                . "If you did not request this change, click \"Cancel\" above "
+                . "or ignore this email — your current address remains unchanged. "
+                . "This link is valid for 24 hours."
                 . "</p>";
         }
 
@@ -1041,25 +1059,20 @@ INNER;
      *
      * Aucune action n'est requise du destinataire — le changement ne sera effectif
      * qu'après confirmation depuis l'ancienne adresse (titulaire prouvé).
+     * Le nom du titulaire du compte n'est pas inclus (minimisation DCP — RGPD Art. 5).
      *
      * @param string $to   Nouvelle adresse email (destinataire)
-     * @param string $name Nom d'affichage du compte
      * @param string $lang Langue du compte ('fr' ou 'en')
      * @return void
      */
-    public function sendEmailChangeNotification(
-        string $to,
-        string $name,
-        string $lang
-    ): void {
-        $safeName = htmlspecialchars($name, ENT_QUOTES);
-
+    public function sendEmailChangeNotification(string $to, string $lang): void
+    {
         if ($lang === 'fr') {
             $subject  = 'Votre adresse email a été soumise sur Crabitan Bellevue';
             $title    = 'Information — changement d\'adresse email';
             $greeting = "Bonjour,";
             $message  = "Cette adresse email a été renseignée comme nouvelle adresse de connexion "
-                . "pour un compte Château Crabitan Bellevue ({$safeName}).<br><br>"
+                . "pour un compte Château Crabitan Bellevue.<br><br>"
                 . "Un lien de confirmation a été envoyé à l'adresse actuelle du titulaire du compte. "
                 . "Le changement ne sera effectif qu'après validation de sa part.<br><br>"
                 . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
@@ -1070,7 +1083,7 @@ INNER;
             $title    = 'Information — email address change';
             $greeting = "Hello,";
             $message  = "This email address has been submitted as the new login address "
-                . "for a Château Crabitan Bellevue account ({$safeName}).<br><br>"
+                . "for a Château Crabitan Bellevue account.<br><br>"
                 . "A confirmation link has been sent to the account's current email address. "
                 . "The change will only take effect once the account holder confirms it.<br><br>"
                 . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
@@ -1079,7 +1092,7 @@ INNER;
         }
 
         $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
-        $this->send($to, $name, $subject, $body);
+        $this->send($to, '', $subject, $body);
     }
 
     private function send(
@@ -1108,7 +1121,7 @@ INNER;
         $this->mailer->send();
     }
 
-    private function emailSimpleLayout(string $title, string $greeting, string $message): string
+    private function emailSimpleLayout(string $title, string $greeting, string $message, string $lang = 'fr'): string
     {
         $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $logoUrl    = $appUrl . self::LOGO_PATH;
