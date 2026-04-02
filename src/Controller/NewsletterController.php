@@ -6,6 +6,7 @@ namespace Controller;
 
 use Core\Controller;
 use Core\Response;
+use Model\AccountModel;
 use Model\NewsletterSubscriptionModel;
 use Service\MailService;
 use Service\NewsletterService;
@@ -31,7 +32,8 @@ class NewsletterController extends Controller
         parent::__construct($request);
         $model                   = new NewsletterSubscriptionModel();
         $mailer                  = new MailService();
-        $this->newsletterService = new NewsletterService($model, $mailer);
+        $accounts                = new AccountModel();
+        $this->newsletterService = new NewsletterService($model, $mailer, $accounts);
     }
 
     // ----------------------------------------------------------------
@@ -41,7 +43,8 @@ class NewsletterController extends Controller
     /**
      * Confirme un abonnement newsletter via le token reçu par email.
      *
-     * Vérifie le hash SHA-256 du token et son TTL (48h).
+     * Vérifie le hash SHA-256 du token (flux visiteur) ou le token brut
+     * (flux accounts) et son TTL (48h).
      * Affiche une vue de succès ou d'erreur selon le résultat.
      *
      * @param array<string, string> $params Paramètres de route (lang)
@@ -85,7 +88,8 @@ class NewsletterController extends Controller
     /**
      * Inscrit un email à la newsletter et déclenche l'envoi du mail de confirmation.
      *
-     * Applique un rate limiting BDD (3 envois / 24h par email).
+     * Route vers le flux accounts si l'email est rattaché à un compte,
+     * sinon flux visiteur avec rate limiting (3 envois / 24h).
      * Répond toujours en JSON pour les formulaires AJAX du footer.
      *
      * @param array<string, string> $params Paramètres de route (lang)

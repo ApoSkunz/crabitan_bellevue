@@ -132,7 +132,7 @@ class NewsletterSubscriptionModel extends Model
             [$email]
         );
 
-        if ($row === false || $row === null) {
+        if ($row === false) {
             return 0;
         }
 
