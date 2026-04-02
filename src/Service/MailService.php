@@ -1009,9 +1009,11 @@ INNER;
             $revokeLabel   = $lang === 'fr' ? 'Annuler cette demande' : 'Cancel this request';
             $revokeBlock   = '<table role="presentation" cellpadding="0" cellspacing="0"'
                 . ' style="margin:0 auto 32px;">'
-                . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
-                . "<a href=\"{$safeRevokeUrl}\" style=\"display:inline-block;padding:10px 28px;"
-                . 'font-family:Georgia,serif;font-size:14px;color:#c9a84c;text-decoration:none;\'>'
+                . '<tr><td align="center" style="border:1px solid #c9a84c;border-radius:2px;'
+                . 'padding:10px 28px;">'
+                . "<a href=\"{$safeRevokeUrl}\""
+                . ' style="font-family:Georgia,serif;font-size:14px;'
+                . 'color:#c9a84c;text-decoration:none;">'
                 . $revokeLabel
                 . '</a></td></tr></table>';
         }
