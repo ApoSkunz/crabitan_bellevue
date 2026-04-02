@@ -525,7 +525,7 @@ return [
 
     // Email change — double opt-in
     'account.email_change_section_title'    => 'Update my email address',
-    'account.email_change_intro'            => 'A confirmation link will be sent to your new address. The change only takes effect after you confirm it. Your current address will receive a security notification.',
+    'account.email_change_intro'            => 'A confirmation link will be sent to your current address. The change only takes effect after you confirm it.',
     'account.email_current'                 => 'Current address',
     'account.email_new'                     => 'New email address',
     'account.email_change_submit_btn'       => 'Send confirmation link',
@@ -538,6 +538,10 @@ return [
     'account.email_change_token_invalid'    => 'This confirmation link is invalid or has already been used.',
     'account.email_change_token_expired_hint' => 'The link may have expired (valid for 24h). You can submit a new request from your profile.',
     'account.email_change_retry_btn'        => 'Submit a new request',
+    'account.email_change_pending_title'    => 'Pending request',
+    'account.email_change_pending_body'     => 'A confirmation link has been sent to your current address to validate the change to:',
+    'account.email_change_cancel_btn'       => 'Cancel the request',
+    'account.email_change_cancelled'        => 'The email address change request has been cancelled.',
 
     // Orders — detail & cancellation
     'account.order_detail'       => 'Order detail',

@@ -527,7 +527,7 @@ return [
 
     // Changement d'email — double opt-in
     'account.email_change_section_title'    => 'Modifier mon adresse email',
-    'account.email_change_intro'            => 'Un email de confirmation sera envoyé à votre nouvelle adresse. Le changement ne sera effectif qu\'après confirmation. Votre ancienne adresse recevra une notification d\'alerte.',
+    'account.email_change_intro'            => 'Un lien de confirmation sera envoyé à votre adresse actuelle. Le changement ne sera effectif qu\'après validation.',
     'account.email_current'                 => 'Adresse actuelle',
     'account.email_new'                     => 'Nouvelle adresse email',
     'account.email_change_submit_btn'       => 'Envoyer le lien de confirmation',
@@ -540,6 +540,10 @@ return [
     'account.email_change_token_invalid'    => 'Ce lien de confirmation est invalide ou a déjà été utilisé.',
     'account.email_change_token_expired_hint' => 'Le lien a peut-être expiré (valable 24h). Vous pouvez faire une nouvelle demande depuis votre profil.',
     'account.email_change_retry_btn'        => 'Faire une nouvelle demande',
+    'account.email_change_pending_title'    => 'Demande en cours',
+    'account.email_change_pending_body'     => 'Un lien de confirmation a été envoyé à votre adresse actuelle pour valider le changement vers :',
+    'account.email_change_cancel_btn'       => 'Annuler la demande',
+    'account.email_change_cancelled'        => 'La demande de changement d\'adresse email a été annulée.',
 
     // Commandes — détail & annulation
     'account.order_detail'       => 'Détail de la commande',
