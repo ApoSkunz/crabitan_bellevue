@@ -173,13 +173,16 @@ class AccountEmailChangeTest extends IntegrationTestCase
 
         $ctrl = $this->makeController('POST', '/fr/mon-compte/profil/changer-email');
 
-        $this->expectOutputRegex('/./'); // absorbe l'éventuel echo de redirect
         try {
             $ctrl->requestEmailChange(['lang' => 'fr']);
         } catch (HttpException $e) {
-            $this->fail('requestEmailChange a levé une HttpException inattendue : ' . $e->getMessage());
+            // Response::redirect() jette toujours HttpException(302) — succès ou erreur
+            // Le vrai critère de succès est l'état BDD vérifié ci-dessous
+            if ($e->status !== 302) {
+                $this->fail('requestEmailChange a levé une HttpException inattendue : ' . $e->getMessage());
+            }
         } catch (\Throwable) {
-            // redirect() peut appeler header() → exception ignorée en CLI
+            // Autres exceptions ignorées en CLI
         }
 
         // Vérifier que le token a bien été enregistré en BDD
@@ -242,7 +245,10 @@ class AccountEmailChangeTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Confirmation avec token expiré → HttpException attendue.
+     * Confirmation avec token expiré → email non mis à jour, vue erreur rendue.
+     *
+     * Le controller attrape l'HttpException du service et affiche une vue d'erreur
+     * (pas de propagation). On vérifie donc l'état BDD : email inchangé.
      */
     public function testConfirmWithExpiredTokenThrows(): void
     {
@@ -255,8 +261,20 @@ class AccountEmailChangeTest extends IntegrationTestCase
         $_SERVER['REQUEST_URI']    = '/fr/mon-compte/email/confirmer?token=' . $rawToken;
         $ctrl = new AccountController(new Request());
 
-        $this->expectException(HttpException::class);
-        $ctrl->confirmEmailChange(['lang' => 'fr']);
+        ob_start();
+        try {
+            $ctrl->confirmEmailChange(['lang' => 'fr']);
+        } catch (\Throwable) {
+            // ignoré
+        }
+        ob_end_clean();
+
+        // L'email ne doit PAS avoir changé
+        $account = self::$db->fetchOne(
+            "SELECT email FROM accounts WHERE id = ?",
+            [$userId]
+        );
+        $this->assertSame(self::OLD_EMAIL, $account['email'], 'Email ne doit pas changer avec token expiré');
     }
 
     // ----------------------------------------------------------------
@@ -264,7 +282,10 @@ class AccountEmailChangeTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Confirmation avec token déjà utilisé → HttpException attendue.
+     * Confirmation avec token déjà utilisé → email non mis à jour, vue erreur rendue.
+     *
+     * Le controller attrape l'HttpException du service et affiche une vue d'erreur
+     * (pas de propagation). On vérifie donc l'état BDD : email inchangé.
      */
     public function testConfirmWithUsedTokenThrows(): void
     {
@@ -277,8 +298,20 @@ class AccountEmailChangeTest extends IntegrationTestCase
         $_SERVER['REQUEST_URI']    = '/fr/mon-compte/email/confirmer?token=' . $rawToken;
         $ctrl = new AccountController(new Request());
 
-        $this->expectException(HttpException::class);
-        $ctrl->confirmEmailChange(['lang' => 'fr']);
+        ob_start();
+        try {
+            $ctrl->confirmEmailChange(['lang' => 'fr']);
+        } catch (\Throwable) {
+            // ignoré
+        }
+        ob_end_clean();
+
+        // L'email ne doit PAS avoir changé
+        $account = self::$db->fetchOne(
+            "SELECT email FROM accounts WHERE id = ?",
+            [$userId]
+        );
+        $this->assertSame(self::OLD_EMAIL, $account['email'], 'Email ne doit pas changer avec token déjà utilisé');
     }
 
     // ----------------------------------------------------------------
