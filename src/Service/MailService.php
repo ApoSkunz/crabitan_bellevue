@@ -15,7 +15,7 @@ class MailService
         . 'letter-spacing:2px;text-transform:uppercase;';
     private const BTN_STYLE_LINK    = 'color:#1a1208;text-decoration:none;font-weight:bold;">';
     private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
-    private const URL_PRIVACY = '/fr/politique-confidentialite';
+    private const URL_PRIVACY = '/fr/politique-de-confidentialite';
     private const URL_LEGAL   = '/fr/mentions-legales';
     private const URL_SUPPORT = '/fr/support';
 
