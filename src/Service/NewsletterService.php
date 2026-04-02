@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Service;
 
+use Core\Exception\NewsletterException;
 use Model\AccountModel;
 use Model\NewsletterSubscriptionModel;
 
@@ -33,6 +34,9 @@ class NewsletterService
     /** Nombre maximal de renvois de confirmation par 24h (visiteurs uniquement). */
     private const MAX_RESEND_PER_DAY = 3;
 
+    /** Fragment de chemin URL pour la confirmation (évite la duplication — SonarCloud php:S1192). */
+    private const CONFIRMATION_PATH = '/newsletter/confirmation?token=';
+
     private NewsletterSubscriptionModel $model;
     private MailService $mailer;
     private AccountModel $accounts;
@@ -61,42 +65,39 @@ class NewsletterService
      * @param string $email Adresse email à inscrire
      * @param string $lang  Langue du destinataire ('fr' ou 'en')
      * @param string $ip    Adresse IP de la requête (pour la preuve RGPD)
-     * @throws \RuntimeException 'already_confirmed' — abonnement déjà actif
-     * @throws \RuntimeException 'rate_limit'        — trop de tentatives en 24h (visiteurs)
+     * @throws NewsletterException 'already_confirmed' — abonnement déjà actif
+     * @throws NewsletterException 'rate_limit'        — trop de tentatives en 24h (visiteurs)
      * @return void
      */
     public function subscribe(string $email, string $lang, string $ip): void
     {
-        $appUrl = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/');
+        $appUrl = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback dev local, APP_URL est https en production
 
         // Flux accounts — email rattaché à un compte existant
         $account = $this->accounts->findByEmail($email);
         if (is_array($account)) {
             if ((int) ($account['newsletter'] ?? 0) === 1) {
-                throw new \RuntimeException('already_confirmed');
+                throw NewsletterException::alreadyConfirmed();
             }
-            $rawToken   = bin2hex(random_bytes(32));
-            $this->accounts->storeNewsletterConfirmToken((int) $account['id'], $rawToken);
-            $confirmUrl = $appUrl . '/' . $lang . '/newsletter/confirmation?token=' . urlencode($rawToken);
-            $this->mailer->sendNewsletterConfirmation($email, $confirmUrl, $lang);
+            $this->sendAccountConfirmationEmail($account, $email, $lang, $appUrl);
             return;
         }
 
         // Flux visiteur — rate limiting
         $attempts = $this->model->countRecentAttempts($email);
         if ($attempts >= self::MAX_RESEND_PER_DAY) {
-            throw new \RuntimeException('rate_limit');
+            throw NewsletterException::rateLimitExceeded();
         }
 
         // Vérifier si déjà confirmé dans newsletter_subscriptions
         $existing = $this->model->findByEmail($email);
         if ($existing !== null && (int) $existing['newsletter_confirmed'] === 1) {
-            throw new \RuntimeException('already_confirmed');
+            throw NewsletterException::alreadyConfirmed();
         }
 
         [$rawToken, $hashedToken, $expiresAt] = $this->generateToken();
         $this->model->upsertPending($email, $hashedToken, $expiresAt, $ip, $lang);
-        $confirmUrl = $appUrl . '/' . $lang . '/newsletter/confirmation?token=' . urlencode($rawToken);
+        $confirmUrl = $appUrl . '/' . $lang . self::CONFIRMATION_PATH . urlencode($rawToken);
         $this->mailer->sendNewsletterConfirmation($email, $confirmUrl, $lang);
     }
 
@@ -107,8 +108,8 @@ class NewsletterService
      * puis le flux accounts (token brut dans accounts.newsletter_confirm_token).
      *
      * @param string $rawToken Token brut reçu dans l'URL (non haché)
-     * @throws \RuntimeException 'invalid' — token inconnu dans les deux tables
-     * @throws \RuntimeException 'expired' — token expiré (flux visiteur)
+     * @throws NewsletterException 'invalid' — token inconnu dans les deux tables
+     * @throws NewsletterException 'expired' — token expiré (flux visiteur)
      * @return void
      */
     public function confirmSubscription(string $rawToken): void
@@ -120,7 +121,7 @@ class NewsletterService
             // Flux visiteur — vérification TTL
             $expiresAt = new \DateTimeImmutable($subscription['newsletter_token_expires_at']);
             if ($expiresAt < new \DateTimeImmutable()) {
-                throw new \RuntimeException('expired');
+                throw NewsletterException::tokenExpired();
             }
             $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
             $this->model->confirmByTokenHash($hashedToken, $ip);
@@ -133,7 +134,7 @@ class NewsletterService
             return;
         }
 
-        throw new \RuntimeException('invalid');
+        throw NewsletterException::invalidToken();
     }
 
     /**
@@ -144,42 +145,63 @@ class NewsletterService
      *
      * @param string $email Adresse email
      * @param string $lang  Langue du destinataire
-     * @throws \RuntimeException 'rate_limit' — trop de tentatives (visiteurs)
-     * @throws \RuntimeException 'not_found'  — email inconnu ou déjà confirmé
+     * @throws NewsletterException 'rate_limit' — trop de tentatives (visiteurs)
+     * @throws NewsletterException 'not_found'  — email inconnu ou déjà confirmé
      * @return void
      */
     public function resendConfirmation(string $email, string $lang): void
     {
-        $appUrl = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/');
+        $appUrl = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback dev local, APP_URL est https en production
 
         // Flux accounts
         $account = $this->accounts->findByEmail($email);
         if (is_array($account)) {
             if ((int) ($account['newsletter'] ?? 0) === 1) {
-                throw new \RuntimeException('not_found');
+                throw NewsletterException::notFound();
             }
-            $rawToken   = bin2hex(random_bytes(32));
-            $this->accounts->storeNewsletterConfirmToken((int) $account['id'], $rawToken);
-            $confirmUrl = $appUrl . '/' . $lang . '/newsletter/confirmation?token=' . urlencode($rawToken);
-            $this->mailer->sendNewsletterConfirmation($email, $confirmUrl, $lang);
+            $this->sendAccountConfirmationEmail($account, $email, $lang, $appUrl);
             return;
         }
 
         // Flux visiteur — rate limiting
         $attempts = $this->model->countRecentAttempts($email);
         if ($attempts >= self::MAX_RESEND_PER_DAY) {
-            throw new \RuntimeException('rate_limit');
+            throw NewsletterException::rateLimitExceeded();
         }
 
         $subscription = $this->model->findByEmail($email);
         if ($subscription === null || (int) $subscription['newsletter_confirmed'] === 1) {
-            throw new \RuntimeException('not_found');
+            throw NewsletterException::notFound();
         }
 
         [$rawToken, $hashedToken, $expiresAt] = $this->generateToken();
         $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $this->model->upsertPending($email, $hashedToken, $expiresAt, $ip, $lang);
-        $confirmUrl = $appUrl . '/' . $lang . '/newsletter/confirmation?token=' . urlencode($rawToken);
+        $confirmUrl = $appUrl . '/' . $lang . self::CONFIRMATION_PATH . urlencode($rawToken);
+        $this->mailer->sendNewsletterConfirmation($email, $confirmUrl, $lang);
+    }
+
+    /**
+     * Envoie l'email de confirmation newsletter pour un compte existant.
+     *
+     * Génère un token brut, le stocke dans accounts, puis envoie le mail.
+     * Factorisé pour éviter la duplication entre subscribe() et resendConfirmation().
+     *
+     * @param array<string, mixed> $account Données du compte
+     * @param string               $email   Adresse email du destinataire
+     * @param string               $lang    Langue du destinataire
+     * @param string               $appUrl  URL de base de l'application
+     * @return void
+     */
+    private function sendAccountConfirmationEmail(
+        array $account,
+        string $email,
+        string $lang,
+        string $appUrl
+    ): void {
+        $rawToken   = bin2hex(random_bytes(32));
+        $this->accounts->storeNewsletterConfirmToken((int) $account['id'], $rawToken);
+        $confirmUrl = $appUrl . '/' . $lang . self::CONFIRMATION_PATH . urlencode($rawToken);
         $this->mailer->sendNewsletterConfirmation($email, $confirmUrl, $lang);
     }
 

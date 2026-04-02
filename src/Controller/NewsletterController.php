@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Controller;
 
 use Core\Controller;
-use Core\Response;
+use Core\Exception\NewsletterException;
 use Model\AccountModel;
 use Model\NewsletterSubscriptionModel;
 use Service\MailService;
@@ -20,6 +20,9 @@ use Service\NewsletterService;
  */
 class NewsletterController extends Controller
 {
+    /** Chemin de la vue de confirmation (évite la duplication — SonarCloud php:S1192). */
+    private const CONFIRM_VIEW = 'newsletter/confirmation';
+
     private NewsletterService $newsletterService;
 
     /**
@@ -56,7 +59,7 @@ class NewsletterController extends Controller
         $rawToken = $this->request->get('token', '');
 
         if ($rawToken === '') {
-            $this->view('newsletter/confirmation', [
+            $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
                 'success' => false,
                 'reason'  => 'invalid',
@@ -67,13 +70,13 @@ class NewsletterController extends Controller
         try {
             $this->newsletterService->confirmSubscription($rawToken);
 
-            $this->view('newsletter/confirmation', [
+            $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
                 'success' => true,
                 'reason'  => null,
             ]);
-        } catch (\RuntimeException $e) {
-            $this->view('newsletter/confirmation', [
+        } catch (NewsletterException $e) {
+            $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
                 'success' => false,
                 'reason'  => $e->getMessage(), // 'invalid' ou 'expired'
@@ -118,7 +121,7 @@ class NewsletterController extends Controller
         } catch (\Core\Exception\HttpException $e) {
             // HttpException étend RuntimeException — laisser remonter (déjà traité par Response::json)
             throw $e;
-        } catch (\RuntimeException $e) {
+        } catch (NewsletterException $e) {
             // already_confirmed retourne le même message neutre que le succès
             // pour éviter l'énumération d'emails (OWASP — information disclosure)
             if ($e->getMessage() === 'already_confirmed') {
