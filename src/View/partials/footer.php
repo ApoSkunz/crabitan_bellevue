@@ -28,17 +28,25 @@ if ($footerToken) {
                 >
             </div>
 
-            <nav class="footer-nav" aria-label="Navigation secondaire">
-                <a href="/<?= htmlspecialchars($navLang) ?>"><?= htmlspecialchars(__('nav.home')) ?></a>
-                <a href="/<?= htmlspecialchars($navLang) ?>/actualites"><?= htmlspecialchars(__('nav.news')) ?></a>
-                <a href="/<?= htmlspecialchars($navLang) ?>/contact"><?= htmlspecialchars(__('nav.contact')) ?></a>
-                <a href="/<?= htmlspecialchars($navLang) ?>/mentions-legales">
-                    <?= htmlspecialchars(__('footer.legal_notice')) ?></a>
-                <a href="/<?= htmlspecialchars($navLang) ?>/politique-de-confidentialite">
-                    <?= htmlspecialchars(__('footer.privacy_policy')) ?></a>
-                <a href="/<?= htmlspecialchars($navLang) ?>/plan-du-site">
-                    <?= htmlspecialchars(__('footer.sitemap')) ?></a>
-            </nav>
+            <div class="footer-nav-group">
+                <nav class="footer-nav" aria-label="Navigation secondaire">
+                    <a href="/<?= htmlspecialchars($navLang) ?>"><?= htmlspecialchars(__('nav.home')) ?></a>
+                    <a href="/<?= htmlspecialchars($navLang) ?>/actualites"><?= htmlspecialchars(__('nav.news')) ?></a>
+                    <a href="/<?= htmlspecialchars($navLang) ?>/contact"><?= htmlspecialchars(__('nav.contact')) ?></a>
+                    <a href="/<?= htmlspecialchars($navLang) ?>/support"><?= htmlspecialchars(__('nav.support')) ?></a>
+                    <a href="/<?= htmlspecialchars($navLang) ?>/plan-du-site">
+                        <?= htmlspecialchars(__('footer.sitemap')) ?></a>
+                </nav>
+                <nav class="footer-nav-legal" aria-label="Liens légaux et gestion des données">
+                    <a href="/<?= htmlspecialchars($navLang) ?>/mentions-legales">
+                        <?= htmlspecialchars(__('footer.legal_notice')) ?></a>
+                    <a href="/<?= htmlspecialchars($navLang) ?>/politique-de-confidentialite">
+                        <?= htmlspecialchars(__('footer.privacy_policy')) ?></a>
+                    <button id="cookie-manage" type="button" class="footer-nav-legal__cookie-btn">
+                        <?= htmlspecialchars(__('cookie.manage')) ?>
+                    </button>
+                </nav>
+            </div>
 
             <div class="footer-payments" aria-label="Moyens de paiement acceptés">
                 <img src="/assets/images/payment/payment-cb-banner.png"
