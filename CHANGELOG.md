@@ -2,6 +2,14 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.18.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.18.1...v0.18.2) (2026-04-02)
+
+
+### Bug Fixes
+
+* **controller:** headers Cache-Control + Content-Disposition sur export RGPD ([878a955](https://github.com/ApoSkunz/crabitan_bellevue/commit/878a955b5bf5b8746b64f418a8348fff2ac52204))
+* **test:** fixture export complète + activation ZipArchive locale ([c3142db](https://github.com/ApoSkunz/crabitan_bellevue/commit/c3142db20a7432c9eb97b91928593240381e322e))
+
 ## [0.18.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.18.0...v0.18.1) (2026-04-02)
 
 
