@@ -2,14 +2,15 @@
 
 ## Initialisation de session
 
-Au début de chaque nouvelle session, lire systématiquement :
+`CLAUDE.md` est chargé automatiquement — ne pas le relire.
 
-1. `CLAUDE.md` (ce fichier) — automatiquement chargé par Claude Code
-2. `docs/SETUP-DEV.md` — environnement local, variables `.env`, commandes
-3. `docs/TESTING-STRATEGY.md` — règles TU/TI/E2E, ratios cibles
-4. `docs/CHARTE-GRAPHIQUE.md` — palette, typographie, tokens CSS, composants, SCSS 7 layers
+Lire les docs suivants **uniquement si la tâche le nécessite** :
 
-> Ces lectures garantissent un contexte complet avant toute modification de code.
+| Doc | Lire si… |
+|---|---|
+| `docs/SETUP-DEV.md` | tâche liée à l'environnement, XAMPP, `.env`, commandes |
+| `docs/TESTING-STRATEGY.md` | écriture ou modification de tests (TU / TI / E2E) |
+| `docs/CHARTE-GRAPHIQUE.md` | tâche frontend, SCSS, UI, composant visuel |
 
 ---
 
