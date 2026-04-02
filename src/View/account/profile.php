@@ -148,7 +148,7 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn--secondary">
+                    <button type="submit" class="btn btn--gold">
                         <?= __('account.email_change_submit_btn') ?>
                     </button>
                 </form>
