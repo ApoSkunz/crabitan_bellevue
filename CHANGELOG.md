@@ -2,6 +2,38 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.18.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.17.0...v0.18.0) (2026-04-02)
+
+
+### Bug Fixes
+
+* **mail:** bouton révocation — fermeture attribut style manquante (HTML cassé, block invisible) ([20ec5c6](https://github.com/ApoSkunz/crabitan_bellevue/commit/20ec5c60341e27d714a1344a2597f762f5fc30d8))
+* **mail:** bouton révocation dans email confirmation + retrait nom dans notification (DCP) + emailSimpleLayout lang param ([8c5d0aa](https://github.com/ApoSkunz/crabitan_bellevue/commit/8c5d0aa77b71a68c089a884fa5ba6956c79a987b))
+* **security:** confirmation changement email → ancienne adresse (anti account-takeover) ([cf75f55](https://github.com/ApoSkunz/crabitan_bellevue/commit/cf75f5512e0c8e7db226704e31fccb1677c251ae))
+* **test:** corriger 4 TI en échec en CI ([c27ce67](https://github.com/ApoSkunz/crabitan_bellevue/commit/c27ce674ae4372dacedca4e6a3b51d910fd52739))
+* **view:** bouton changement email — btn--secondary inexistant → btn--gold ([c6f9823](https://github.com/ApoSkunz/crabitan_bellevue/commit/c6f9823e0050601ebc2ccb746ba287889423c737))
+* **view:** email_change_confirm — layout auth-card, btn--ghost, état révocation ([2668eb4](https://github.com/ApoSkunz/crabitan_bellevue/commit/2668eb4baf2c4705e8eecb7565402d9759893efa))
+* **view:** profile — ancre #email-change pour scroll auto sur erreur formulaire ([1e051d7](https://github.com/ApoSkunz/crabitan_bellevue/commit/1e051d7fce676780e3b7d45cd5fe145cd2fd2bc1)), closes [#email-change](https://github.com/ApoSkunz/crabitan_bellevue/issues/email-change)
+* **view:** suppression hint mailto obsolète sur email — formulaire double opt-in visible ([2238caa](https://github.com/ApoSkunz/crabitan_bellevue/commit/2238caa151e9fca93c66a038dc5fe87cafba1de6))
+
+
+### Features
+
+* **account:** changement d'email avec double confirmation (us-changement-email) ([b6d6db5](https://github.com/ApoSkunz/crabitan_bellevue/commit/b6d6db53434175b6bcb2f8801d8a0e851099656d))
+* **controller+routes:** revokeEmailChange — révocation demande email depuis lien email (sans auth) ([8779aeb](https://github.com/ApoSkunz/crabitan_bellevue/commit/8779aebf75ee703dd9d78d562badb63b6c2d4ff9))
+* **controller:** AccountController — action cancelEmailChange (révocation demande en attente) ([e31a071](https://github.com/ApoSkunz/crabitan_bellevue/commit/e31a0713a035950f0318360152833d41bcdadf2d))
+* **controller:** AccountController — double opt-in newsletter depuis profil (0→1 = email, 1→0 = direct) ([e0200be](https://github.com/ApoSkunz/crabitan_bellevue/commit/e0200befa244e8565476e09f2ca94525d1d8ba74))
+* **controller:** AuthController — activer newsletter_optin_pending à la vérification email ([69fdc17](https://github.com/ApoSkunz/crabitan_bellevue/commit/69fdc17d2d0199bc09579105ea17cf4a59167f89))
+* **controller:** NewsletterController — confirmSubscription + subscribe (double opt-in) ([82b6bf4](https://github.com/ApoSkunz/crabitan_bellevue/commit/82b6bf4ec461115bcf07c95faa839ccf88587293))
+* **i18n:** clés email_change_pending_* + email_change_cancelled (fr + en) ([ae12553](https://github.com/ApoSkunz/crabitan_bellevue/commit/ae1255325256e64b6198f9e23cb1ef208c2ba1aa))
+* **i18n:** clés email_change_revoked_title/body (fr + en) ([3b95e96](https://github.com/ApoSkunz/crabitan_bellevue/commit/3b95e964211a1193e2151cfd53b9bc94220f254f))
+* **model:** AccountModel — ajout clearEmailChangeToken() pour révocation demande email ([5b9b1ab](https://github.com/ApoSkunz/crabitan_bellevue/commit/5b9b1ab83321973bef66219bd47dc3e40ec83d93))
+* **model:** AccountModel — double opt-in newsletter (optin_pending, confirm token, activation) ([10c6c3c](https://github.com/ApoSkunz/crabitan_bellevue/commit/10c6c3c2a1793a5136f23f18c476e9afdcd31420))
+* **routes:** ajout POST /{lang}/mon-compte/email/annuler — révocation changement email ([994c7c1](https://github.com/ApoSkunz/crabitan_bellevue/commit/994c7c16c1eadef719336f91377947fc6c6e5516))
+* **service:** AccountService — revokeUrl passé à sendEmailChangeConfirmation + retrait displayName de notification ([b66879e](https://github.com/ApoSkunz/crabitan_bellevue/commit/b66879ebc9cc644dfa330bf75ffd89c650cf37b1))
+* **view:** newsletter/confirm — page confirmation abonnement double opt-in ([1a3b220](https://github.com/ApoSkunz/crabitan_bellevue/commit/1a3b22005bea5d78a5bca0523979998cd4710fba))
+* **view:** profile — bloc demande email en attente + bouton annulation ([ecd2115](https://github.com/ApoSkunz/crabitan_bellevue/commit/ecd2115a8a6ec3dc5dbc2c01ca9472f6d20ad590))
+
 # [0.17.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.16.0...v0.17.0) (2026-04-02)
 
 
