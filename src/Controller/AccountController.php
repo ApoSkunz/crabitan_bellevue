@@ -1015,7 +1015,21 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             Response::redirect($back);
         }
 
-        $this->accounts->updateNewsletter($userId, $newsletter);
+        $currentNewsletter = (bool) ($account['newsletter'] ?? false);
+
+        if ($newsletter && !$currentNewsletter) {
+            // Toggle 0→1 : double opt-in — envoie un email de confirmation
+            $token = bin2hex(random_bytes(32));
+            $this->accounts->storeNewsletterConfirmToken($userId, $token);
+            $confirmUrl = APP_URL . "/{$lang}/newsletter/confirmation?token=" . urlencode($token);
+            (new MailService())->sendNewsletterConfirmation((string) $account['email'], $confirmUrl, $lang);
+            $_SESSION['flash']['profile_success'] = __('newsletter.confirm_sent');
+            Response::redirect($back);
+        } elseif (!$newsletter && $currentNewsletter) {
+            // Toggle 1→0 : désabonnement immédiat (pas de confirmation requise)
+            $this->accounts->updateNewsletter($userId, false);
+        }
+
         $_SESSION['flash']['profile_success'] = __('account.profile_updated');
         Response::redirect($back);
     }
