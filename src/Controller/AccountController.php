@@ -1053,7 +1053,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
-        $back    = "/{$lang}/mon-compte/profil";
+        $back    = "/{$lang}/mon-compte/profil#email-change";
 
         if (!$this->verifyCsrf()) {
             $_SESSION['flash']['profile_errors'] = ['email' => __('error.csrf')];
@@ -1082,7 +1082,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         }
 
         $_SESSION['flash']['profile_success'] = __('account.email_change_sent');
-        Response::redirect($back);
+        Response::redirect("/{$lang}/mon-compte/profil");
     }
 
     // ----------------------------------------------------------------
@@ -1131,6 +1131,55 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $this->view('account/email_change_confirm', [
             'lang'    => $lang,
             'success' => true,
+            'error'   => null,
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/mon-compte/email/revoquer?token=xxx  — sans auth requise
+    // ----------------------------------------------------------------
+
+    /**
+     * Révoque une demande de changement d'email directement depuis le lien email.
+     *
+     * Accessible sans authentification — fonctionne uniquement via le token.
+     * Permet au titulaire de l'ancienne adresse d'annuler depuis son client email.
+     *
+     * @param array<string, string> $params Paramètres de route (contient 'lang')
+     * @return void
+     */
+    public function revokeEmailChange(array $params): void
+    {
+        $lang     = $params['lang'];
+        $rawToken = $this->request->get('token', '');
+
+        if ($rawToken === '') {
+            $this->view('account/email_change_confirm', [
+                'lang'    => $lang,
+                'success' => false,
+                'error'   => __('account.email_change_token_invalid'),
+            ]);
+            return;
+        }
+
+        $hashedToken = hash('sha256', $rawToken);
+        $account     = $this->accounts->findByEmailChangeToken($hashedToken);
+
+        if (!$account) {
+            $this->view('account/email_change_confirm', [
+                'lang'    => $lang,
+                'success' => false,
+                'error'   => __('account.email_change_token_invalid'),
+            ]);
+            return;
+        }
+
+        $this->accounts->clearEmailChangeToken((int) $account['id']);
+
+        $this->view('account/email_change_confirm', [
+            'lang'    => $lang,
+            'success' => true,
+            'revoked' => true,
             'error'   => null,
         ]);
     }
