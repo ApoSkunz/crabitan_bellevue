@@ -210,17 +210,36 @@ class AuthController extends Controller
     }
 
     // ----------------------------------------------------------------
-    // GET /{lang}/deconnexion
+    // GET  /{lang}/deconnexion → 405 (protection CSRF : aucun logout sur GET)
+    // POST /{lang}/deconnexion → logout avec vérification CSRF
     // ----------------------------------------------------------------
 
     /**
      * Déconnecte l'utilisateur : révoque le JWT et efface le cookie.
      *
+     * La déconnexion n'est autorisée que via POST avec un token CSRF valide.
+     * Un GET retourne 405 Method Not Allowed afin d'empêcher les attaques
+     * CSRF par image forgée ou lien tiers (`<img src="/fr/deconnexion">`).
+     *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
+     * @throws \Core\Exception\HttpException 405 si GET et utilisateur connecté, 404 si GET et non connecté
      */
     public function logout(array $params): void
     {
+        // Refuser toute méthode autre que POST (protection CSRF passive)
+        // Connecté → 405 (sait que la route existe via le header)
+        // Non connecté → 404 (ne révèle pas l'existence de la route)
+        if ($this->request->method !== 'POST') {
+            $token = $_COOKIE['auth_token'] ?? null;
+            Response::abort($token ? 405 : 404);
+        }
+
+        // Vérifier le token CSRF avant toute action de déconnexion
+        if (!$this->verifyCsrf()) {
+            Response::redirect('/' . $params['lang']);
+        }
+
         $token = $_COOKIE['auth_token'] ?? null;
 
         if ($token) {

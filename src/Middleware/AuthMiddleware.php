@@ -25,14 +25,14 @@ class AuthMiddleware
         $lang  = defined('CURRENT_LANG') ? CURRENT_LANG : 'fr';
 
         if (!$token) {
-            Response::redirect("/{$lang}/connexion");
+            Response::abort(404); // 404 — ne révèle pas l'existence des routes protégées
         }
 
         try {
             $payload = Jwt::decode($token);
         } catch (\Throwable) {
             CookieHelper::clear();
-            Response::redirect("/{$lang}/connexion");
+            Response::abort(404); // token invalide — idem
         }
 
         // Vérifie que la session n'a pas été révoquée en base
@@ -46,7 +46,7 @@ class AuthMiddleware
 
         if (!$checker($token)) {
             CookieHelper::clear();
-            Response::redirect("/{$lang}/connexion");
+            Response::abort(404); // session révoquée — idem
         }
 
         return $payload;

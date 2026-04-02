@@ -57,11 +57,16 @@ class AdminMiddlewareTest extends TestCase
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
-    public function testHandleRedirectsWhenNoToken(): void
+    public function testHandleReturns404WhenNoToken(): void
     {
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(302);
+        $this->expectExceptionCode(404); // 404 — path enumeration prevention (via AuthMiddleware)
 
-        AdminMiddleware::handle();
+        ob_start();
+        try {
+            AdminMiddleware::handle();
+        } finally {
+            ob_end_clean();
+        }
     }
 }

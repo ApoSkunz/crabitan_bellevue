@@ -454,10 +454,12 @@ class AuthControllerTest extends IntegrationTestCase
             [$userId, $token]
         );
 
-        $_COOKIE['auth_token'] = $token;
+        $_COOKIE['auth_token']  = $token;
+        $_POST['csrf_token']    = self::CSRF;
+        $_SESSION['csrf']       = self::CSRF;
 
         try {
-            $this->makeController('GET', '/fr/deconnexion')->logout(['lang' => 'fr']);
+            $this->makeController('POST', '/fr/deconnexion')->logout(['lang' => 'fr']);
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
@@ -471,14 +473,14 @@ class AuthControllerTest extends IntegrationTestCase
         $this->assertSame('revoked', $connection['status']);
     }
 
-    public function testLogoutWithoutCookieRedirects(): void
+    public function testLogoutGetWithoutCookieReturns404(): void
     {
+        // GET sans cookie → 404 (path enumeration prevention)
         try {
             $this->makeController('GET', '/fr/deconnexion')->logout(['lang' => 'fr']);
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
-            $this->assertSame(302, $e->status);
-            $this->assertSame('/fr', $e->location);
+            $this->assertSame(404, $e->status);
         }
     }
 

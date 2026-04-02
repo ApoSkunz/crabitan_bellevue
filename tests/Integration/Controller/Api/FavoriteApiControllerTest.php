@@ -178,7 +178,7 @@ class FavoriteApiControllerTest extends IntegrationTestCase
         $_POST['wine_id'] = (string) $this->wineId;
 
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(302);
+        $this->expectExceptionCode(404); // 404 — path enumeration prevention
 
         $this->makeController()->toggle([]);
     }
