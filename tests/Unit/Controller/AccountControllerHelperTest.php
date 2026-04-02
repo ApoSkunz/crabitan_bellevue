@@ -525,6 +525,24 @@ class AccountControllerHelperTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
+     * Fixture export complète — toutes les clés attendues par buildExportPdf.
+     *
+     * @return array<string, mixed>
+     */
+    private function exportFixture(): array
+    {
+        return [
+            'exported_at'    => '2026-04-02T00:00:00+00:00',
+            'account'        => ['Email' => 'test@example.com', 'Type de compte' => 'individual'],
+            'addresses'      => [],
+            'orders'         => [],
+            'favorites'      => [],
+            'trusted_devices' => [],
+            'active_sessions' => [],
+        ];
+    }
+
+    /**
      * Appelle buildExportContent via réflexion.
      *
      * @param array<string, mixed> $export
@@ -547,8 +565,8 @@ class AccountControllerHelperTest extends TestCase
             $this->markTestSkipped('ZipArchive non disponible');
         }
 
-        $export   = ['exported_at' => '2026-04-02T00:00:00+00:00', 'account' => []];
-        [$content, $isZip] = $this->callBuildExportContent($export, '2026-04-02', 'export-rgpd-2026-04-02');
+        $export   = $this->exportFixture();
+        [$content, $isZip] = $this->callBuildExportContent($export, '2026-04-02', 'mes-donnees-2026-04-02');
 
         $this->assertTrue($isZip, 'isZip doit être true quand ZipArchive est disponible');
         // Un fichier ZIP commence par PK\x03\x04 (Local file header signature)
@@ -565,8 +583,8 @@ class AccountControllerHelperTest extends TestCase
             $this->markTestSkipped('ZipArchive non disponible');
         }
 
-        $export   = ['exported_at' => '2026-04-02', 'account' => ['Email' => 'test@example.com']];
-        [$content] = $this->callBuildExportContent($export, '2026-04-02', 'export-rgpd-2026-04-02');
+        $export   = $this->exportFixture();
+        [$content] = $this->callBuildExportContent($export, '2026-04-02', 'mes-donnees-2026-04-02');
 
         // Écrire le ZIP en temp pour l'inspecter
         $tmp = tempnam(sys_get_temp_dir(), 'test_zip_');
@@ -574,11 +592,11 @@ class AccountControllerHelperTest extends TestCase
 
         $zip = new \ZipArchive();
         $zip->open($tmp);
-        $json = $zip->getFromName('export-rgpd-2026-04-02.json');
+        $json = $zip->getFromName('mes-donnees-2026-04-02.json');
         $zip->close();
         unlink($tmp);
 
-        $this->assertNotFalse($json, 'Le ZIP doit contenir export-rgpd-2026-04-02.json');
+        $this->assertNotFalse($json, 'Le ZIP doit contenir mes-donnees-2026-04-02.json');
         $decoded = json_decode((string) $json, true);
         $this->assertSame('test@example.com', $decoded['account']['Email'] ?? null);
     }
@@ -589,8 +607,8 @@ class AccountControllerHelperTest extends TestCase
      */
     public function testBuildExportContentFallbackJsonWhenNoZip(): void
     {
-        $export   = ['exported_at' => '2026-04-02', 'account' => ['Email' => 'test@example.com']];
-        $basename = 'export-rgpd-2026-04-02';
+        $export   = $this->exportFixture();
+        $basename = 'mes-donnees-2026-04-02';
 
         // Sous-classe qui force la branche JSON (simule ZipArchive absent)
         $stub = new class ($this->createStubRequest()) extends AccountController {

@@ -3068,11 +3068,13 @@ class AccountControllerTest extends IntegrationTestCase
         $method->setAccessible(true);
 
         $export   = [
-            'exported_at' => date('c'),
-            'account'     => ['Email' => 'export.zip@test.local'],
-            'addresses'   => [],
-            'orders'      => [],
-            'favorites'   => [],
+            'exported_at'    => date('c'),
+            'account'        => ['Email' => 'export.zip@test.local', 'Type de compte' => 'individual'],
+            'addresses'      => [],
+            'orders'         => [],
+            'favorites'      => [],
+            'trusted_devices' => [],
+            'active_sessions' => [],
         ];
         $date     = date('Y-m-d');
         $basename = 'mes-donnees-' . $date;
