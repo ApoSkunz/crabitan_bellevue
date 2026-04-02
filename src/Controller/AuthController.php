@@ -374,6 +374,10 @@ class AuthController extends Controller
 
         $this->accounts->verifyEmail((int) $account['id']);
 
+        if (!empty($account['newsletter_optin_pending'])) {
+            $this->accounts->activateNewsletterFromPending((int) $account['id']);
+        }
+
         $this->view('auth/verify', [
             'lang'    => $lang,
             'success' => true,
