@@ -101,7 +101,6 @@ class AccountServiceEmailChangeTest extends TestCase
             ->method('sendEmailChangeNotification')
             ->with(
                 $this->equalTo($newEmail),
-                $this->anything(),
                 $this->anything()
             );
 
