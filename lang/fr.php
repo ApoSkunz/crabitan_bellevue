@@ -24,6 +24,7 @@ return [
     'nav.cart'        => 'Panier',
     'nav.account'     => 'Mon compte', // NOSONAR php:S1192 — fichier i18n : la valeur 'Mon compte' est intentionnellement répétée dans plusieurs clés
     'nav.login'       => 'Connexion',
+    'nav.support'     => 'Support',
     'nav.logout'      => 'Déconnexion',
     'nav.register'    => 'Inscription',
 
@@ -198,6 +199,7 @@ return [
     'cookie.accept'       => 'Accepter',
     'cookie.refuse'       => 'Refuser',
     'cookie.required'     => '⚠ Veuillez accepter ou refuser les cookies avant de continuer.',
+    'cookie.manage'       => 'Gérer les cookies',
 
     // Footer
     'footer.legal_notice'    => 'Mentions légales',
