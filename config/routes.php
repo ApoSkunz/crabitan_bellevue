@@ -128,7 +128,8 @@ $router->get('/{lang}/compte/reactiver', 'AccountController@reactivateAccount');
 $router->get('/{lang}/mon-compte/export', 'AccountController@exportPage');
 $router->get('/{lang}/mon-compte/export/telecharger', 'AccountController@exportData');
 $router->post('/{lang}/mon-compte/profil/changer-email', 'AccountController@requestEmailChange');
-$router->get('/{lang}/mon-compte/email/confirmer', 'AccountController@confirmEmailChange');
+$router->post('/{lang}/mon-compte/email/annuler',         'AccountController@cancelEmailChange');
+$router->get('/{lang}/mon-compte/email/confirmer',         'AccountController@confirmEmailChange');
 $router->get('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribePage');
 $router->post('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribe');
 
