@@ -115,6 +115,9 @@ class NewsletterController extends Controller
                 'success' => true,
                 'message' => __('newsletter.confirm_sent'),
             ]);
+        } catch (\Core\Exception\HttpException $e) {
+            // HttpException étend RuntimeException — laisser remonter (déjà traité par Response::json)
+            throw $e;
         } catch (\RuntimeException $e) {
             // already_confirmed retourne le même message neutre que le succès
             // pour éviter l'énumération d'emails (OWASP — information disclosure)
