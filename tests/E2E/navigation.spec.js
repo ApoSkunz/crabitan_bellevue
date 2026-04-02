@@ -58,7 +58,8 @@ test.describe('Navigation — toutes les pages de la homepage', () => {
         await context.clearCookies();
         await page.goto('/fr/mentions-legales');
         await expect(page).not.toHaveURL(/\/age-gate/);
-        await expect(page.locator('main')).toBeVisible();
+        // Mode bare (sans age_verified) : pas de <main>, contenu dans .legal-content
+        await expect(page.locator('.legal-content')).toBeVisible();
     });
 
     test('/fr/plan-du-site se charge', async ({ page }) => {
