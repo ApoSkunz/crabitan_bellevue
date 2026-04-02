@@ -34,6 +34,10 @@ $router->post('/admin/bons-de-commande/ajouter', 'Admin\OrderFormAdminController
 $router->post('/admin/bons-de-commande/{id}/supprimer', 'Admin\OrderFormAdminController@delete');
 $router->get('/admin/bons-de-commande/{id}/telecharger', 'Admin\OrderFormAdminController@download');
 $router->get('/admin/statistiques', 'Admin\StatsAdminController@index');
+$router->get('/admin/dpo', 'Admin\DpoAdminController@index');
+$router->get('/admin/dpo/registre-traitements', 'Admin\DpoAdminController@downloadRegistre');
+$router->get('/admin/dpo/sous-traitants', 'Admin\DpoAdminController@downloadSousTraitants');
+$router->get('/admin/dpo/procedure-violation', 'Admin\DpoAdminController@downloadProcedure');
 $router->get('/admin/securite', 'Admin\ProfileAdminController@index');
 $router->post('/admin/securite/mot-de-passe', 'Admin\ProfileAdminController@changePassword');
 $router->post('/admin/securite/session/{id}/revoquer', 'Admin\ProfileAdminController@revokeSession');
