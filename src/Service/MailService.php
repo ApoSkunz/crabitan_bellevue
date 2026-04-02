@@ -1666,5 +1666,4 @@ HTML;
 
         return $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message, 'en');
     }
-
 }
