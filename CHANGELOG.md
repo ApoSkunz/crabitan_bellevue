@@ -2,6 +2,24 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.19.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.18.2...v0.19.0) (2026-04-02)
+
+
+### Bug Fixes
+
+* **controller:** attraper HttpException avant RuntimeException dans subscribe() ([4e474d5](https://github.com/ApoSkunz/crabitan_bellevue/commit/4e474d51ce0ab65dcc409448c11223bb38989080))
+* **cs:** accolade fermante classe MailService — PHPCS PSR-12 ([c1fe46f](https://github.com/ApoSkunz/crabitan_bellevue/commit/c1fe46fad906548bdd342dd76d83b77c113b1777))
+* **cs:** espacement arguments makeService() — PHPCS SpaceBeforeEquals ([b1d33f4](https://github.com/ApoSkunz/crabitan_bellevue/commit/b1d33f474d8ba2dd6c3de95aad7d6717b5630442))
+* **newsletter:** masquage formulaire si abonné, message neutre anti-énumération, clé error.generic ([5b649a0](https://github.com/ApoSkunz/crabitan_bellevue/commit/5b649a0f350f0baa4de3faff7000183a272803e0))
+
+
+### Features
+
+* **i18n:** clés newsletter footer (titre, placeholder, bouton) FR + EN ([4b3442d](https://github.com/ApoSkunz/crabitan_bellevue/commit/4b3442d8ff253e72b6bfe65c5add6471c98c0dd5))
+* **newsletter:** double opt-in RGPD Art. 7 (us-double-opt-in-newsletter) ([5a34514](https://github.com/ApoSkunz/crabitan_bellevue/commit/5a3451438d5d97065055c1e2eeb418b635bb2cb1))
+* **newsletter:** route subscribe/confirm via accounts or newsletter_subscriptions ([7d8e4f7](https://github.com/ApoSkunz/crabitan_bellevue/commit/7d8e4f77032535aa640e19bc100b292ad705cdfd))
+* **view:** formulaire newsletter dans le footer avec pré-remplissage si connecté ([9d75317](https://github.com/ApoSkunz/crabitan_bellevue/commit/9d75317d2f53a029a00cc212fd1b1fc30febb205))
+
 ## [0.18.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.18.1...v0.18.2) (2026-04-02)
 
 
