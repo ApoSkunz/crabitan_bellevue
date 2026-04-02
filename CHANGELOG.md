@@ -2,6 +2,27 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.20.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.19.0...v0.20.0) (2026-04-02)
+
+
+### Bug Fixes
+
+* **e2e:** cookie-consent — reposer age_verified dans clearConsent pour éviter redirection age-gate ([7d1b7d3](https://github.com/ApoSkunz/crabitan_bellevue/commit/7d1b7d3b7a8f223ac6f4246d46ec3e711e48e983))
+* **e2e:** navigation — mentions-legales vérifie .legal-content (bare mode sans age_verified) ([6029349](https://github.com/ApoSkunz/crabitan_bellevue/commit/60293492fe0548b76857f895dfd7b6a69dbc8c09))
+* **router+mail:** age-gate — support accessible sans vérif âge + URL_PRIVACY corrigée (politique-de-confidentialite) ([debe6a4](https://github.com/ApoSkunz/crabitan_bellevue/commit/debe6a4ff6d4c8991069fff5f1e744abeea5b922))
+* **router:** age-gate — politique-de-confidentialite accessible sans vérification d'âge ([c3b7bd8](https://github.com/ApoSkunz/crabitan_bellevue/commit/c3b7bd8892c4bd9ddfef5ed661869a1cb7566584))
+* **test:** PageControllerTest — poser age_verified avant tests rendu normal (bare mode auto) ([f6fa856](https://github.com/ApoSkunz/crabitan_bellevue/commit/f6fa856dcf70356152af6162f5600e9694468757))
+* **view:** head.php — suppression script UA hardcodé (déprécié UA→GA4 + viole consentement RGPD) ([294b26b](https://github.com/ApoSkunz/crabitan_bellevue/commit/294b26b4884541bb0962e6d1873ead0c982d9455))
+
+
+### Features
+
+* **js:** cookie consent — re-open depuis footer, listeners once:true, extract attachConsentListeners ([636d764](https://github.com/ApoSkunz/crabitan_bellevue/commit/636d7644487a5392163d0b27ed1007673193800d))
+* **view+controller:** mode bare auto si age non vérifié — politique-confidentialite, support, mentions-legales ([57720e1](https://github.com/ApoSkunz/crabitan_bellevue/commit/57720e19b1b214a3dd0df78075af31e1dd12e81c))
+* **view+i18n:** cookie-banner — lien vers politique-de-confidentialite ([b1db653](https://github.com/ApoSkunz/crabitan_bellevue/commit/b1db653951c5de262e638ed1f28849057a52f689))
+* **view+scss+i18n:** footer — deux lignes nav (classique + légale) + lien support + bouton gérer cookies ([651ff74](https://github.com/ApoSkunz/crabitan_bellevue/commit/651ff745e760bcac3314eee20aaa3cbf26398c29))
+* **view+scss:** age-gate — micro-footer liens politique de confidentialité + mentions légales ([6d0d04e](https://github.com/ApoSkunz/crabitan_bellevue/commit/6d0d04ecc320d3b66a1785c328bc98328c13c647))
+
 # [0.19.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.18.2...v0.19.0) (2026-04-02)
 
 
