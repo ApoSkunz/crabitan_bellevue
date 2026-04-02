@@ -57,6 +57,9 @@ CREATE TABLE `accounts` (
   `lang`                         ENUM('fr','en')              NOT NULL DEFAULT 'fr',
   `newsletter`                   TINYINT(1)     NOT NULL DEFAULT 0,
   `newsletter_unsubscribe_token` VARCHAR(64)    DEFAULT NULL COMMENT 'Token désabonnement newsletter (RGPD Art. 21)',
+  `newsletter_optin_pending`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT 'Consentement newsletter coché à l\'inscription — activé lors de la vérification email',
+  `newsletter_confirm_token`     VARCHAR(64)    DEFAULT NULL COMMENT 'Token double opt-in newsletter (déclenchement depuis profil ou formulaire public)',
+  `newsletter_confirm_expires_at` DATETIME      DEFAULT NULL COMMENT 'TTL 48h du token de confirmation newsletter',
   `email_verification_token`          VARCHAR(255)   DEFAULT NULL,
   `email_verification_token_expires_at` DATETIME  DEFAULT NULL COMMENT 'TTL 24h — expiration du token de vérification email',
   `email_verified_at`            DATETIME       DEFAULT NULL,
@@ -81,7 +84,8 @@ CREATE TABLE `accounts` (
   INDEX `idx_accounts_unsub_token`   (`newsletter_unsubscribe_token`),
   INDEX `idx_accounts_sched_del`     (`scheduled_deletion_at`),
   INDEX `idx_accounts_reactiv_token`        (`reactivation_token`),
-  INDEX `idx_accounts_email_change_token`   (`email_change_token`)
+  INDEX `idx_accounts_email_change_token`   (`email_change_token`),
+  INDEX `idx_accounts_nl_confirm_token`     (`newsletter_confirm_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
