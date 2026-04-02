@@ -671,6 +671,9 @@ return [
     'newsletter.confirm_expired'   => 'Ce lien de confirmation a expiré (validité 48h). Vous pouvez vous réinscrire depuis notre site.',
     'newsletter.confirm_sent'      => 'Un email de confirmation vous a été envoyé. Cliquez sur le lien dans les 48 heures pour finaliser votre inscription.',
     'newsletter.already_confirmed' => 'Cette adresse est déjà abonnée à notre newsletter.',
+    'newsletter.footer_title'      => 'Restez informé(e) de nos actualités',
+    'newsletter.email_placeholder' => 'Votre adresse email',
+    'newsletter.subscribe_btn'     => "S'abonner",
     'newsletter.rate_limit'        => 'Trop de tentatives. Veuillez patienter avant de réessayer.',
     'newsletter.invalid_email'     => 'Adresse email invalide.',
 

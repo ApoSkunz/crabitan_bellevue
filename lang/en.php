@@ -669,6 +669,9 @@ return [
     'newsletter.confirm_expired'   => 'This confirmation link has expired (valid for 48 hours). You can re-subscribe from our website.',
     'newsletter.confirm_sent'      => 'A confirmation email has been sent to you. Please click the link within 48 hours to complete your subscription.',
     'newsletter.already_confirmed' => 'This email address is already subscribed to our newsletter.',
+    'newsletter.footer_title'      => 'Stay informed about our latest news',
+    'newsletter.email_placeholder' => 'Your email address',
+    'newsletter.subscribe_btn'     => 'Subscribe',
     'newsletter.rate_limit'        => 'Too many attempts. Please wait before trying again.',
     'newsletter.invalid_email'     => 'Invalid email address.',
 
