@@ -598,7 +598,7 @@ return [
 
     // Export RGPD
     'account.export_title'       => 'Mes données personnelles',
-    'account.export_intro'       => 'Conformément au Règlement Général sur la Protection des Données (RGPD – Art. 20), vous pouvez télécharger l\'ensemble de vos données personnelles au format JSON.',
+    'account.export_intro'       => 'Conformément au Règlement Général sur la Protection des Données (RGPD – Art. 20), vous pouvez télécharger l\'ensemble de vos données personnelles. L\'archive ZIP contient un fichier JSON et un récapitulatif PDF.',
     'account.export_includes'    => 'Le fichier inclut :',
     'account.export_item_account' => 'Vos informations de compte',
     'account.export_item_orders' => 'Votre historique de commandes',
