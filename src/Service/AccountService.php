@@ -115,20 +115,19 @@ class AccountService
 
         $displayName = $this->resolveDisplayName($account);
 
-        // Email de confirmation → nouvelle adresse (lien de validation)
+        // Email de confirmation → ancienne adresse (identité prouvée — anti account-takeover)
         $this->mailService->sendEmailChangeConfirmation(
-            $newEmail,
-            $displayName,
-            $confirmUrl,
-            $lang
-        );
-
-        // Email de notification → ancienne adresse (alerte si non sollicité)
-        $this->mailService->sendEmailChangeNotification(
             (string) $account['email'],
             $displayName,
+            $confirmUrl,
+            $lang,
+            $newEmail
+        );
+
+        // Email de notification → nouvelle adresse (information simple, aucune action requise)
+        $this->mailService->sendEmailChangeNotification(
             $newEmail,
-            $alertUrl,
+            $displayName,
             $lang
         );
     }

@@ -83,14 +83,27 @@ class AccountServiceEmailChangeTest extends TestCase
             ->expects($this->once())
             ->method('saveEmailChangeToken');
 
-        // On attend que les deux emails soient envoyés
+        // Confirmation → ancienne adresse (identité prouvée)
         $this->mailService
             ->expects($this->once())
-            ->method('sendEmailChangeConfirmation');
+            ->method('sendEmailChangeConfirmation')
+            ->with(
+                $this->equalTo($oldEmail),
+                $this->anything(),
+                $this->anything(),
+                $this->anything(),
+                $this->equalTo($newEmail)
+            );
 
+        // Notification → nouvelle adresse (information simple)
         $this->mailService
             ->expects($this->once())
-            ->method('sendEmailChangeNotification');
+            ->method('sendEmailChangeNotification')
+            ->with(
+                $this->equalTo($newEmail),
+                $this->anything(),
+                $this->anything()
+            );
 
         // On attend que l'audit soit loggué
         $this->accountModel

@@ -7,7 +7,8 @@ namespace Service;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class MailService // NOSONAR — php:S1448 : seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
+// NOSONAR — php:S1448 : seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
+class MailService
 {
     private const PATH_SECURITY     = '/mon-compte/securite';
     private const BTN_STYLE_PRIMARY = 'font-family:Georgia,serif;font-size:14px;'
@@ -986,110 +987,98 @@ INNER;
         string $to,
         string $name,
         string $confirmUrl,
-        string $lang
+        string $lang,
+        string $newEmail
     ): void {
-        $safeName = htmlspecialchars($name, ENT_QUOTES);
-        $safeUrl  = htmlspecialchars($confirmUrl, ENT_QUOTES);
+        $safeName     = htmlspecialchars($name, ENT_QUOTES);
+        $safeUrl      = htmlspecialchars($confirmUrl, ENT_QUOTES);
+        $safeNewEmail = htmlspecialchars($newEmail, ENT_QUOTES);
 
         $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
             . "<a href=\"{$safeUrl}\" style=\"display:inline-block;padding:14px 36px;"
             . self::BTN_STYLE_PRIMARY
             . self::BTN_STYLE_LINK
-            . ($lang === 'fr' ? 'Confirmer ma nouvelle adresse email' : 'Confirm my new email address')
+            . ($lang === 'fr' ? 'Confirmer le changement' : 'Confirm the change')
             . '</a></td></tr></table>';
 
         if ($lang === 'fr') {
-            $subject  = 'Confirmez votre nouvelle adresse email — Crabitan Bellevue';
+            $subject  = 'Confirmez le changement d\'adresse email — Crabitan Bellevue';
             $title    = 'Changement d\'adresse email';
             $greeting = "Bonjour {$safeName},";
-            $message  = "Vous avez demandé à modifier l'adresse email de votre compte Château Crabitan Bellevue.<br><br>"
-                . "Cliquez sur le bouton ci-dessous pour confirmer votre nouvelle adresse dans les <strong>24 heures</strong> :<br><br>"
+            $message  = "Une demande de modification d'adresse email a été soumise"
+                . " sur votre compte Château Crabitan Bellevue.<br><br>"
+                . "<strong>Nouvelle adresse demandée :</strong> {$safeNewEmail}<br><br>"
+                . "Si c'est bien vous, confirmez ce changement en cliquant sur le bouton ci-dessous "
+                . "dans les <strong>24 heures</strong> :<br><br>"
                 . $ctaBtn
                 . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
-                . "Si vous n'êtes pas à l'origine de cette demande, ignorez cet email — votre adresse actuelle reste inchangée. "
-                . "Ce lien est valable 24h à compter de sa réception."
+                . "Si vous n'êtes pas à l'origine de cette demande, ignorez cet email — "
+                . "votre adresse actuelle reste inchangée. Ce lien est valable 24h."
                 . "</p>";
         } else {
-            $subject  = 'Confirm your new email address — Crabitan Bellevue';
+            $subject  = 'Confirm your email address change — Crabitan Bellevue';
             $title    = 'Email address change';
             $greeting = "Hello {$safeName},";
-            $message  = "You have requested to update the email address linked to your Château Crabitan Bellevue account.<br><br>"
-                . "Click the button below to confirm your new address within <strong>24 hours</strong>:<br><br>"
+            $message  = "A request to update the email address on your Château Crabitan Bellevue"
+                . " account has been submitted.<br><br>"
+                . "<strong>New address requested:</strong> {$safeNewEmail}<br><br>"
+                . "If this was you, confirm the change by clicking the button below "
+                . "within <strong>24 hours</strong>:<br><br>"
                 . $ctaBtn
                 . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
-                . "If you did not request this change, ignore this email — your current address remains unchanged. "
-                . "This link is valid for 24 hours from receipt."
+                . "If you did not request this change, ignore this email — "
+                . "your current address remains unchanged. This link is valid for 24 hours."
                 . "</p>";
         }
 
-        $body = $this->emailSimpleLayout($title, $greeting, $message);
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
         $this->send($to, $name, $subject, $body);
     }
 
     /**
-     * Envoie l'email de notification de changement d'email à l'ANCIENNE adresse.
+     * Envoie un email informatif à la NOUVELLE adresse lors d'une demande de changement.
      *
-     * Permet au titulaire légitime d'être alerté si la demande n'est pas de lui
-     * (lien d'alerte vers la page sécurité du compte).
+     * Aucune action n'est requise du destinataire — le changement ne sera effectif
+     * qu'après confirmation depuis l'ancienne adresse (titulaire prouvé).
      *
-     * @param string $to        Ancienne adresse email (destinataire)
-     * @param string $name      Nom d'affichage du compte
-     * @param string $newEmail  Nouvelle adresse email demandée
-     * @param string $alertUrl  URL de la page sécurité du compte
-     * @param string $lang      Langue du compte ('fr' ou 'en')
+     * @param string $to   Nouvelle adresse email (destinataire)
+     * @param string $name Nom d'affichage du compte
+     * @param string $lang Langue du compte ('fr' ou 'en')
      * @return void
      */
     public function sendEmailChangeNotification(
         string $to,
         string $name,
-        string $newEmail,
-        string $alertUrl,
         string $lang
     ): void {
-        $safeName     = htmlspecialchars($name, ENT_QUOTES);
-        $safeNewEmail = htmlspecialchars($newEmail, ENT_QUOTES);
-        $safeAlertUrl = htmlspecialchars($alertUrl, ENT_QUOTES);
-
-        $alertBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
-            . '<tr><td style="background:#c0392b;border-radius:2px;">'
-            . "<a href=\"{$safeAlertUrl}\" style=\"display:inline-block;padding:14px 36px;"
-            . self::BTN_STYLE_PRIMARY
-            . 'color:#ffffff;text-decoration:none;font-weight:bold;">'
-            . ($lang === 'fr' ? 'Sécuriser mon compte' : 'Secure my account')
-            . '</a></td></tr></table>';
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
 
         if ($lang === 'fr') {
-            $subject  = 'Alerte sécurité — modification de votre adresse email en cours';
-            $title    = 'Alerte sécurité';
-            $greeting = "Bonjour {$safeName},";
-            $message  = "Une demande de modification d'adresse email a été initiée sur votre compte Château Crabitan Bellevue.<br><br>"
-                . "<strong>Nouvelle adresse demandée :</strong> {$safeNewEmail}<br><br>"
-                . "Le changement ne sera effectif que si la nouvelle adresse est confirmée via le lien envoyé à {$safeNewEmail}. "
-                . "Votre adresse actuelle reste valide jusqu'à cette confirmation.<br><br>"
-                . "<strong>Vous n'êtes pas à l'origine de cette demande ?</strong><br>"
-                . "Connectez-vous immédiatement et modifiez votre mot de passe :<br><br>"
-                . $alertBtn
+            $subject  = 'Votre adresse email a été soumise sur Crabitan Bellevue';
+            $title    = 'Information — changement d\'adresse email';
+            $greeting = "Bonjour,";
+            $message  = "Cette adresse email a été renseignée comme nouvelle adresse de connexion "
+                . "pour un compte Château Crabitan Bellevue ({$safeName}).<br><br>"
+                . "Un lien de confirmation a été envoyé à l'adresse actuelle du titulaire du compte. "
+                . "Le changement ne sera effectif qu'après validation de sa part.<br><br>"
                 . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
-                . "Si vous avez initié cette demande, aucune action n'est requise."
+                . "Si vous n'êtes pas à l'origine de cette démarche, aucune action n'est requise de votre part."
                 . "</p>";
         } else {
-            $subject  = 'Security alert — your email address change is pending';
-            $title    = 'Security alert';
-            $greeting = "Hello {$safeName},";
-            $message  = "A request to update the email address linked to your Château Crabitan Bellevue account has been initiated.<br><br>"
-                . "<strong>New address requested:</strong> {$safeNewEmail}<br><br>"
-                . "The change will only take effect once the new address is confirmed via the link sent to {$safeNewEmail}. "
-                . "Your current address remains valid until that confirmation.<br><br>"
-                . "<strong>Did not request this change?</strong><br>"
-                . "Log in immediately and update your password:<br><br>"
-                . $alertBtn
+            $subject  = 'Your email address was submitted on Crabitan Bellevue';
+            $title    = 'Information — email address change';
+            $greeting = "Hello,";
+            $message  = "This email address has been submitted as the new login address "
+                . "for a Château Crabitan Bellevue account ({$safeName}).<br><br>"
+                . "A confirmation link has been sent to the account's current email address. "
+                . "The change will only take effect once the account holder confirms it.<br><br>"
                 . "<p style=\"font-size:12px;color:#8a7a60;margin-top:16px;\">"
-                . "If you initiated this request, no action is needed."
+                . "If you did not initiate this request, no action is required on your part."
                 . "</p>";
         }
 
-        $body = $this->emailSimpleLayout($title, $greeting, $message);
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
         $this->send($to, $name, $subject, $body);
     }
 
@@ -1514,7 +1503,8 @@ HTML;
             . '<br><br>'
             . 'Si c\'était vous, attendez quelques instants puis réessayez.'
             . '<br><br>'
-            . 'Si ce n\'était <strong>pas vous</strong>, nous vous recommandons vivement de changer votre mot de passe immédiatement.'
+            . 'Si ce n\'était <strong>pas vous</strong>, nous vous recommandons vivement'
+            . ' de changer votre mot de passe immédiatement.'
             . '<br><br>'
             . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
