@@ -3,9 +3,17 @@ import { test, expect } from './support/fixtures.js';
 
 const CONSENT_KEY = 'cb-cookie-consent';
 
-/** Supprime le cookie de consentement et recharge la page */
+/**
+ * Supprime le cookie de consentement et recharge la page.
+ * Repose age_verified pour éviter la redirection vers l'age gate
+ * (le footer avec #cookie-manage n'est pas rendu sur cette page).
+ */
 async function clearConsent(context, page) {
     await context.clearCookies();
+    const domain = new URL(process.env.APP_URL || 'http://crabitan.local').hostname;
+    await context.addCookies([
+        { name: 'age_verified', value: '1', domain, path: '/', httpOnly: true, sameSite: 'Lax' },
+    ]);
     await page.goto('/fr');
 }
 
