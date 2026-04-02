@@ -47,46 +47,108 @@ class NewsletterControllerTest extends TestCase
     }
 
     /**
-     * confirmSubscription avec token vide redirige (HttpException via Response::redirect).
+     * confirmSubscription avec token vide affiche la vue d'erreur (aucune exception levée).
      */
-    public function testConfirmSubscriptionEmptyTokenRedirects(): void
+    public function testConfirmSubscriptionEmptyTokenShowsErrorView(): void
     {
         $_GET['token'] = '';
 
         $controller = new NewsletterController(new Request());
 
-        $this->expectException(HttpException::class);
-        $controller->confirmSubscription(['lang' => 'fr']);
+        ob_start();
+        try {
+            $controller->confirmSubscription(['lang' => 'fr']);
+            $this->assertTrue(true); // vue affichée sans exception
+        } finally {
+            ob_end_clean();
+        }
     }
 
     /**
-     * subscribe avec email invalide redirige avec flash error.
+     * subscribe avec email invalide retourne JSON 422 (HttpException via Response::json).
      */
-    public function testSubscribeInvalidEmailRedirects(): void
+    public function testSubscribeInvalidEmailReturnsJson422(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['email']            = 'pas_un_email';
-        $_POST['csrf_token']       = 'fake';
 
         $controller = new NewsletterController(new Request());
 
-        $this->expectException(HttpException::class);
-        $controller->subscribe(['lang' => 'fr']);
+        ob_start();
+        try {
+            $this->expectException(HttpException::class);
+            $this->expectExceptionCode(422);
+            $controller->subscribe(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
     }
 
     /**
-     * subscribe avec CSRF invalide redirige.
+     * subscribe avec email vide retourne JSON 422.
      */
-    public function testSubscribeInvalidCsrfRedirects(): void
+    public function testSubscribeEmptyEmailReturnsJson422(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST['email']            = 'test@example.com';
-        $_POST['csrf_token']       = 'mauvais_token';
-        $_SESSION['csrf']          = 'bon_token';
+        $_POST['email']            = '';
 
         $controller = new NewsletterController(new Request());
 
-        $this->expectException(HttpException::class);
-        $controller->subscribe(['lang' => 'fr']);
+        ob_start();
+        try {
+            $this->expectException(HttpException::class);
+            $this->expectExceptionCode(422);
+            $controller->subscribe(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * subscribe rate-limité retourne JSON 429.
+     * Le mock fetchOne retourne 3 tentatives récentes pour déclencher rate_limit.
+     */
+    public function testSubscribeRateLimitReturnsJson429(): void
+    {
+        // 1re requête : accounts->findByEmail → false (pas de compte)
+        // 2e requête : model->countRecentAttempts → 3 tentatives récentes
+        $this->instanceProp->setValue(null, null);
+        $dbMock = $this->createStub(Database::class);
+        $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(
+            false,
+            ['attempts_24h' => 3, 'last_attempt_at' => date('Y-m-d H:i:s', strtotime('-1 hour'))]
+        );
+        $dbMock->method('fetchAll')->willReturn([]);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['email']            = 'test@example.com';
+
+        $controller = new NewsletterController(new Request());
+
+        ob_start();
+        try {
+            $this->expectException(HttpException::class);
+            $this->expectExceptionCode(429);
+            $controller->subscribe(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * confirmSubscription avec token inconnu (absent de la BDD) affiche la vue d'erreur.
+     */
+    public function testConfirmSubscriptionUnknownTokenShowsErrorView(): void
+    {
+        $_GET['token'] = bin2hex(random_bytes(32));
+
+        $controller = new NewsletterController(new Request());
+
+        ob_start();
+        $controller->confirmSubscription(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
     }
 }

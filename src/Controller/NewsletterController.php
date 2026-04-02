@@ -5,66 +5,83 @@ declare(strict_types=1);
 namespace Controller;
 
 use Core\Controller;
-use Core\Response;
+use Core\Exception\NewsletterException;
 use Model\AccountModel;
+use Model\NewsletterSubscriptionModel;
 use Service\MailService;
+use Service\NewsletterService;
 
 /**
- * Gère le double opt-in newsletter côté visiteur.
+ * Gère le flux de double opt-in newsletter (RGPD Art. 7).
  *
  * Routes :
- *   GET  /{lang}/newsletter/confirmation  — confirmation via token (email ou profil)
- *   POST /{lang}/newsletter/inscription   — formulaire public d'abonnement
+ *   GET /{lang}/newsletter/confirmation?token=...  → confirmSubscription()
+ *   POST /{lang}/newsletter/inscription            → subscribe()
  */
 class NewsletterController extends Controller
 {
-    private AccountModel $accounts;
+    /** Chemin de la vue de confirmation (évite la duplication — SonarCloud php:S1192). */
+    private const CONFIRM_VIEW = 'newsletter/confirmation';
+
+    private NewsletterService $newsletterService;
 
     /**
+     * Initialise le controller avec ses dépendances.
+     *
      * @param \Core\Request $request Requête HTTP courante
      */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
-        $this->accounts = new AccountModel();
+        $model                   = new NewsletterSubscriptionModel();
+        $mailer                  = new MailService();
+        $accounts                = new AccountModel();
+        $this->newsletterService = new NewsletterService($model, $mailer, $accounts);
     }
 
     // ----------------------------------------------------------------
-    // GET /{lang}/newsletter/confirmation?token=xxx
+    // GET /{lang}/newsletter/confirmation?token=...
     // ----------------------------------------------------------------
 
     /**
-     * Confirme l'abonnement newsletter via le token reçu par email.
+     * Confirme un abonnement newsletter via le token reçu par email.
+     *
+     * Vérifie le hash SHA-256 du token (flux visiteur) ou le token brut
+     * (flux accounts) et son TTL (48h).
+     * Affiche une vue de succès ou d'erreur selon le résultat.
      *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
      */
     public function confirmSubscription(array $params): void
     {
-        $lang  = $params['lang'];
-        $token = $this->request->get('token', '');
+        $lang     = $this->resolveLang($params);
+        $rawToken = $this->request->get('token', '');
 
-        if ($token === '') {
-            $this->flash('error', __('newsletter.confirm_invalid'));
-            Response::redirect("/{$lang}");
-        }
-
-        $account = $this->accounts->confirmNewsletterByToken($token);
-
-        if (!$account) {
-            $this->view('newsletter/confirm', [
+        if ($rawToken === '') {
+            $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
                 'success' => false,
-                'message' => __('newsletter.confirm_invalid'),
+                'reason'  => 'invalid',
             ]);
             return;
         }
 
-        $this->view('newsletter/confirm', [
-            'lang'    => $lang,
-            'success' => true,
-            'message' => __('newsletter.confirm_success'),
-        ]);
+        try {
+            $this->newsletterService->confirmSubscription($rawToken);
+
+            $this->view(self::CONFIRM_VIEW, [
+                'lang'    => $lang,
+                'success' => true,
+                'reason'  => null,
+            ]);
+        } catch (NewsletterException $e) {
+            $this->view(self::CONFIRM_VIEW, [
+                'lang'    => $lang,
+                'success' => false,
+                'reason'  => $e->getMessage(), // 'invalid' ou 'expired'
+            ]);
+        }
     }
 
     // ----------------------------------------------------------------
@@ -72,69 +89,57 @@ class NewsletterController extends Controller
     // ----------------------------------------------------------------
 
     /**
-     * Traite le formulaire public d'abonnement newsletter (ex. footer).
+     * Inscrit un email à la newsletter et déclenche l'envoi du mail de confirmation.
      *
-     * Double opt-in : envoie un email de confirmation si l'adresse correspond
-     * à un compte existant. Retourne toujours le même message pour éviter
-     * l'énumération des adresses (RGPD Art. 5 — minimisation).
+     * Route vers le flux accounts si l'email est rattaché à un compte,
+     * sinon flux visiteur avec rate limiting (3 envois / 24h).
+     * Répond toujours en JSON pour les formulaires AJAX du footer.
      *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
      */
     public function subscribe(array $params): void
     {
-        $lang  = $params['lang'];
-        $email = trim($this->request->post('email', ''));
-        $back  = "/{$lang}";
+        $lang  = $this->resolveLang($params);
+        $email = strtolower(trim($this->request->post('email', '')));
+        $ip    = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->flash('error', __('newsletter.invalid_email'));
-            Response::redirect($back);
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->json([
+                'success' => false,
+                'error'   => __('newsletter.invalid_email'),
+            ], 422);
         }
 
-        if (!$this->verifyCsrf()) {
-            $this->flash('error', __('error.csrf'));
-            Response::redirect($back);
+        try {
+            $this->newsletterService->subscribe($email, $lang, $ip);
+
+            $this->json([
+                'success' => true,
+                'message' => __('newsletter.confirm_sent'),
+            ]);
+        } catch (\Core\Exception\HttpException $e) {
+            // HttpException étend RuntimeException — laisser remonter (déjà traité par Response::json)
+            throw $e;
+        } catch (NewsletterException $e) {
+            // already_confirmed retourne le même message neutre que le succès
+            // pour éviter l'énumération d'emails (OWASP — information disclosure)
+            if ($e->getMessage() === 'already_confirmed') {
+                $this->json([
+                    'success' => true,
+                    'message' => __('newsletter.confirm_sent'),
+                ]);
+            }
+
+            $errorKey = match ($e->getMessage()) {
+                'rate_limit' => 'newsletter.rate_limit',
+                default      => 'error.generic',
+            };
+
+            $this->json([
+                'success' => false,
+                'error'   => __($errorKey),
+            ], 429);
         }
-
-        $account = $this->accounts->findByEmail($email);
-
-        if ($account && !(bool) ($account['newsletter'] ?? false)) {
-            $token = bin2hex(random_bytes(32));
-            $this->accounts->storeNewsletterConfirmToken((int) $account['id'], $token);
-            $confirmUrl = APP_URL . "/{$lang}/newsletter/confirmation?token=" . urlencode($token);
-            (new MailService())->sendNewsletterConfirmation($email, $confirmUrl, $lang);
-        }
-
-        // Même message que l'adresse existe ou non — anti-énumération
-        $this->flash('success', __('newsletter.confirm_sent'));
-        Response::redirect($back);
-    }
-
-    // ----------------------------------------------------------------
-    // Helpers
-    // ----------------------------------------------------------------
-
-    /**
-     * Vérifie le token CSRF du POST courant.
-     *
-     * @return bool Vrai si le token est valide
-     */
-    private function verifyCsrf(): bool
-    {
-        $token = $this->request->post('csrf_token', '');
-        return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
-    }
-
-    /**
-     * Ajoute un message flash en session.
-     *
-     * @param string $key     Clé du message
-     * @param string $message Contenu du message
-     * @return void
-     */
-    private function flash(string $key, string $message): void
-    {
-        $_SESSION['flash'][$key] = $message;
     }
 }

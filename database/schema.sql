@@ -20,6 +20,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ============================================================
 -- DROP (ordre FK inverse pour éviter les contraintes)
 -- ============================================================
+DROP TABLE IF EXISTS `newsletter_subscriptions`;
+DROP TABLE IF EXISTS `audit_log`;
+DROP TABLE IF EXISTS `newsletter_subscriptions`;
 DROP TABLE IF EXISTS `newsletter_attachments`;
 DROP TABLE IF EXISTS `newsletters`;
 DROP TABLE IF EXISTS `game_scores`;
@@ -461,6 +464,31 @@ CREATE TABLE `newsletter_attachments` (
   INDEX `idx_nl_attachment_newsletter` (`newsletter_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- ============================================================
+-- Table : newsletter_subscriptions
+-- Abonnements newsletter visiteurs non-inscrits (double opt-in RGPD Art. 7)
+-- Les abonnés avec un compte utilisent accounts.newsletter à la place.
+-- ============================================================
+DROP TABLE IF EXISTS `newsletter_subscriptions`;
+CREATE TABLE `newsletter_subscriptions` (
+  `id`                          INT            NOT NULL AUTO_INCREMENT,
+  `email`                       VARCHAR(255)   NOT NULL,
+  `newsletter_token_hash`       VARCHAR(64)    DEFAULT NULL COMMENT 'SHA-256 du token brut (jamais stocké en clair)',
+  `newsletter_token_expires_at` DATETIME       DEFAULT NULL COMMENT 'TTL 48h',
+  `newsletter_confirmed`        TINYINT(1)     NOT NULL DEFAULT 0,
+  `newsletter_consent_date`     DATETIME       DEFAULT NULL COMMENT 'Horodatage de la confirmation (preuve RGPD)',
+  `newsletter_consent_ip`       VARCHAR(45)    DEFAULT NULL COMMENT 'IP lors du clic de confirmation',
+  `consent_ip`                  VARCHAR(45)    DEFAULT NULL COMMENT 'IP lors de la soumission du formulaire',
+  `lang`                        ENUM('fr','en') NOT NULL DEFAULT 'fr',
+  `attempts_24h`                INT            NOT NULL DEFAULT 0 COMMENT 'Compteur de renvois confirmation / 24h',
+  `last_attempt_at`             DATETIME       DEFAULT NULL COMMENT 'Date du dernier envoi',
+  `created_at`                  DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_newsletter_subscriptions_email` (`email`),
+  INDEX `idx_newsletter_subscriptions_token_hash` (`newsletter_token_hash`),
+  INDEX `idx_newsletter_subscriptions_confirmed` (`newsletter_confirmed`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- ============================================================
 -- Table : audit_log
 -- Log d'audit RGPD (Art. 30) — changements email, suppressions, etc.

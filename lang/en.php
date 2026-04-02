@@ -667,8 +667,11 @@ return [
     'newsletter.confirm_success'   => 'Your subscription is confirmed. You will receive our upcoming news and offers from Château Crabitan Bellevue.',
     'newsletter.confirm_invalid'   => 'This confirmation link is invalid. It may have already been used.',
     'newsletter.confirm_expired'   => 'This confirmation link has expired (valid for 48 hours). You can re-subscribe from our website.',
-    'newsletter.confirm_sent'      => 'A confirmation email has been sent to you. Please click the link within 48 hours to complete your subscription.',
+    'newsletter.confirm_sent'      => 'If this address is registered, a confirmation email has been sent to you.',
     'newsletter.already_confirmed' => 'This email address is already subscribed to our newsletter.',
+    'newsletter.footer_title'      => 'Stay informed about our latest news',
+    'newsletter.email_placeholder' => 'Your email address',
+    'newsletter.subscribe_btn'     => 'Subscribe',
     'newsletter.rate_limit'        => 'Too many attempts. Please wait before trying again.',
     'newsletter.invalid_email'     => 'Invalid email address.',
 
@@ -699,4 +702,7 @@ return [
     'mail.order_status_body_delivered'  => 'Your order <strong>%s</strong> has been delivered. We hope you enjoy our wines.',
     'mail.order_status_body_cancelled'  => 'Your order <strong>%s</strong> has been cancelled. If you have already been charged, a refund will be processed as soon as possible.',
     'mail.order_status_body_refunded'   => 'Your order <strong>%s</strong> has been refunded. The credit should appear on your bank account within 3 to 5 working days.',
+
+    // Generic errors
+    'error.generic' => 'An error occurred. Please try again.',
 ];

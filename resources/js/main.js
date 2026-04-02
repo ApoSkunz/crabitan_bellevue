@@ -819,6 +819,64 @@ function initWineZoom() {
 // Formulaire de contact — validation + fetch + feedback
 // ============================================================
 
+
+// ============================================================
+// Formulaire newsletter footer — AJAX + feedback
+// ============================================================
+
+function initNewsletterForm() {
+    const form = document.getElementById('footer-newsletter-form');
+    if (!form) return;
+
+    const feedback = form.querySelector('.footer-newsletter__feedback');
+    const input    = form.querySelector('input[name="email"]');
+    const submit   = form.querySelector('button[type="submit"]');
+
+    let timer = null;
+    function showFeedback(msg, isSuccess) {
+        clearTimeout(timer);
+        feedback.textContent = msg;
+        feedback.className   = 'footer-newsletter__feedback footer-newsletter__feedback--' + (isSuccess ? 'success' : 'error');
+        feedback.hidden      = false;
+        if (isSuccess) {
+            timer = setTimeout(() => { feedback.hidden = true; }, 6000);
+        }
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = input.value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showFeedback(form.dataset.msgInvalid, false);
+            input.focus();
+            return;
+        }
+
+        submit.disabled = true;
+        feedback.hidden = true;
+
+        try {
+            const res  = await fetch(form.action, {
+                method:  'POST',
+                body:    new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showFeedback(data.message || form.dataset.msgSuccess, true);
+                form.reset();
+            } else {
+                showFeedback(data.error || form.dataset.msgError, false);
+            }
+        } catch {
+            showFeedback(form.dataset.msgError, false);
+        } finally {
+            submit.disabled = false;
+        }
+    });
+}
 function initContactForm() {
     const form     = document.getElementById('contact-form');
     if (!form) return;
@@ -1470,6 +1528,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAlertAutoDismiss();
     initWineZoom();
     updateCartCount();
+    initNewsletterForm();
     initContactForm();
     initAnchorScroll();
     initFaqAccordion();
