@@ -85,6 +85,55 @@
     }
 }
 
+
+// Formulaire newsletter footer
+.footer-newsletter {
+    text-align: center;
+
+    &__title {
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    &__row {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+
+        input[type='email'] {
+            padding: 0.45rem 0.85rem;
+            border: 1px solid rgba(160, 120, 40, 0.4);
+            border-radius: 4px;
+            background: var(--color-surface);
+            color: var(--color-text);
+            font-size: 0.85rem;
+            width: min(260px, 100%);
+            transition: border-color 200ms ease;
+
+            &:focus {
+                outline: none;
+                border-color: var(--color-gold);
+            }
+
+            &::placeholder {
+                color: var(--color-text-muted);
+                opacity: 0.7;
+            }
+        }
+    }
+
+    &__feedback {
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+
+        &--success { color: #4a7c4e; }
+        &--error   { color: #b94a48; }
+    }
+}
 // Badge Website Carbon
 .footer-carbon {
     display: flex;

@@ -1,3 +1,18 @@
+<?php
+// Pré-remplissage email si connecté
+$footerUserEmail = '';
+$footerToken = $_COOKIE['auth_token'] ?? null;
+if ($footerToken) {
+    try {
+        $footerPayload   = \Core\Jwt::decode($footerToken);
+        $footerAccountId = (int) ($footerPayload['sub'] ?? 0);
+        $footerAccount   = (new \Model\AccountModel())->findById($footerAccountId);
+        $footerUserEmail = $footerAccount ? (string) ($footerAccount['email'] ?? '') : '';
+    } catch (\Throwable) {
+        // Token invalide ou expiré — pas de pré-remplissage
+    }
+}
+?>
 <footer class="site-footer">
     <div class="footer-inner">
         <div class="footer-main">
@@ -26,6 +41,38 @@
                     alt="CB, Visa, Mastercard" height="28" loading="lazy">
             </div>
         </div>
+
+        <section class="footer-newsletter" aria-label="<?= htmlspecialchars(__('newsletter.footer_title')) ?>">
+            <form id="footer-newsletter-form"
+                  action="/<?= htmlspecialchars($navLang) ?>/newsletter/inscription"
+                  method="POST"
+                  novalidate
+                  data-msg-success="<?= htmlspecialchars(__('newsletter.confirm_sent')) ?>"
+                  data-msg-invalid="<?= htmlspecialchars(__('newsletter.invalid_email')) ?>"
+                  data-msg-error="<?= htmlspecialchars(__('error.generic')) ?>">
+                <p class="footer-newsletter__title">
+                    <?= htmlspecialchars(__('newsletter.footer_title')) ?>
+                </p>
+                <div class="footer-newsletter__row">
+                    <label for="footer-newsletter-email" class="sr-only">
+                        <?= htmlspecialchars(__('newsletter.email_placeholder')) ?>
+                    </label>
+                    <input
+                        type="email"
+                        id="footer-newsletter-email"
+                        name="email"
+                        placeholder="<?= htmlspecialchars(__('newsletter.email_placeholder')) ?>"
+                        value="<?= htmlspecialchars($footerUserEmail) ?>"
+                        autocomplete="email"
+                        required
+                    >
+                    <button type="submit" class="btn btn--primary btn--sm">
+                        <?= htmlspecialchars(__('newsletter.subscribe_btn')) ?>
+                    </button>
+                </div>
+                <p class="footer-newsletter__feedback" aria-live="polite" hidden></p>
+            </form>
+        </section>
 
         <div class="footer-carbon">
             <div id="wcb" class="carbonbadge"></div>
