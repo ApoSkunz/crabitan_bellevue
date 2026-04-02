@@ -1122,6 +1122,37 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     }
 
     // ----------------------------------------------------------------
+    // POST /{lang}/mon-compte/email/annuler
+    // ----------------------------------------------------------------
+
+    /**
+     * Annule la demande de changement d'email en cours.
+     *
+     * Supprime le token et la nouvelle adresse en attente.
+     * Accessible aux customers uniquement.
+     *
+     * @param array<string, string> $params Paramètres de route (contient 'lang')
+     * @return void
+     */
+    public function cancelEmailChange(array $params): void
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
+        $back    = "/{$lang}/mon-compte/profil";
+
+        if (!$this->verifyCsrf()) {
+            $_SESSION['flash']['profile_errors'] = ['email' => __('error.csrf')];
+            Response::redirect($back);
+        }
+
+        $this->accounts->clearEmailChangeToken($userId);
+
+        $_SESSION['flash']['profile_success'] = __('account.email_change_cancelled');
+        Response::redirect($back);
+    }
+
+    // ----------------------------------------------------------------
     // POST /{lang}/mon-compte/securite/supprimer-compte
     // ----------------------------------------------------------------
 
