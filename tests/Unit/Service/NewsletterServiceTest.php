@@ -33,9 +33,9 @@ class NewsletterServiceTest extends TestCase
      * @return array{NewsletterService, NewsletterSubscriptionModel, MailService, AccountModel}
      */
     private function makeService(
-        ?NewsletterSubscriptionModel $model    = null,
-        ?MailService $mailer                   = null,
-        ?AccountModel $accounts                = null
+        ?NewsletterSubscriptionModel $model = null,
+        ?MailService $mailer = null,
+        ?AccountModel $accounts = null
     ): array {
         $model    ??= $this->createStub(NewsletterSubscriptionModel::class);
         $mailer   ??= $this->createStub(MailService::class);
