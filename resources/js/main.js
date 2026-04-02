@@ -116,6 +116,19 @@ function setConsentCookie(value) {
         + '; path=/; max-age=' + COOKIE_CONSENT_TTL + '; SameSite=Lax';
 }
 
+function attachConsentListeners(banner) {
+    document.getElementById('cookie-accept')?.addEventListener('click', () => {
+        setConsentCookie('accepted');
+        loadGoogleAnalytics();
+        banner.classList.add('is-hidden');
+    }, { once: true });
+
+    document.getElementById('cookie-refuse')?.addEventListener('click', () => {
+        setConsentCookie('refused');
+        banner.classList.add('is-hidden');
+    }, { once: true });
+}
+
 function initCookieBanner() {
     const banner = document.getElementById('cookie-banner');
     if (!banner) return;
@@ -126,18 +139,15 @@ function initCookieBanner() {
     if (existing) {
         if (existing === 'accepted') loadGoogleAnalytics();
         banner.classList.add('is-hidden');
-        return;
+    } else {
+        attachConsentListeners(banner);
     }
 
-    document.getElementById('cookie-accept')?.addEventListener('click', () => {
-        setConsentCookie('accepted');
-        loadGoogleAnalytics();
-        banner.classList.add('is-hidden');
-    });
-
-    document.getElementById('cookie-refuse')?.addEventListener('click', () => {
-        setConsentCookie('refused');
-        banner.classList.add('is-hidden');
+    // Re-gestion depuis le footer : réaffiche le bandeau
+    document.getElementById('cookie-manage')?.addEventListener('click', () => {
+        document.cookie = COOKIE_CONSENT_KEY + '=; path=/; max-age=0; SameSite=Lax';
+        banner.classList.remove('is-hidden');
+        attachConsentListeners(banner);
     });
 }
 
