@@ -33,30 +33,11 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                       novalidate>
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 
-                    <!-- Email (lecture seule + lien mailto support) -->
+                    <!-- Email (lecture seule — modifiable via la section ci-dessous) -->
                     <div class="form-group">
                         <label for="profile-email">Email</label>
                         <input type="email" id="profile-email" value="<?= htmlspecialchars($account['email'] ?? '') ?>"
                                disabled class="form-input--readonly">
-                        <?php
-                            $mailtoSubject = rawurlencode(__('account.email_change_subject'));
-                            $mailtoBody    = rawurlencode(
-                                ($lang === 'fr'
-                                    ? "Bonjour,\n\nJe souhaite modifier mon adresse e-mail.\nAdresse actuelle : "
-                                    : "Hello,\n\nI would like to change my email address.\nCurrent address: ")
-                                . ($account['email'] ?? '')
-                                . ($lang === 'fr'
-                                    ? "\nNouvelle adresse souhaitée : \n\nCordialement."
-                                    : "\nRequested new address: \n\nKind regards.")
-                            );
-                            $mailtoHref = 'mailto:' . htmlspecialchars($ownerEmail ?? '')
-                                        . '?subject=' . $mailtoSubject
-                                        . '&body=' . $mailtoBody;
-                        ?>
-                        <p class="form-hint">
-                            <?= __('account.email_readonly') ?>
-                            <a href="<?= $mailtoHref ?>"><?= __('account.email_change_request_btn') ?></a>
-                        </p>
                     </div>
 
                     <?php if (!$isCompany) : ?>
