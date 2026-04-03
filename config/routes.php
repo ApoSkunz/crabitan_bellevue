@@ -82,6 +82,9 @@ $router->get('/{lang}/actualites', 'NewsController@index');
 $router->get('/{lang}/actualites/{slug}', 'NewsController@show');
 
 // Auth
+$router->get('/{lang}/auth/google', 'GoogleOAuthController@authorize');
+$router->get('/{lang}/auth/google/callback', 'GoogleOAuthController@callback');
+
 $router->post('/{lang}/connexion', 'AuthController@login');
 $router->post('/{lang}/inscription', 'AuthController@register');
 $router->get('/{lang}/deconnexion', 'AuthController@logout');   // Retourne 405 — protection CSRF passive
