@@ -158,6 +158,57 @@ class AccountModelGoogleTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // findDeletedByGoogleId() / findDeletedByEmail()
+    // ----------------------------------------------------------------
+
+    public function testFindDeletedByGoogleIdReturnsFalseForActiveAccount(): void
+    {
+        $googleId = 'g-active-' . bin2hex(random_bytes(4));
+        $this->model->createFromGoogle('active@example.com', $googleId, 'fr', 'Alice', 'Test');
+
+        $result = $this->model->findDeletedByGoogleId($googleId);
+        $this->assertFalse($result);
+    }
+
+    public function testFindDeletedByGoogleIdReturnsDeletedAccount(): void
+    {
+        $googleId  = 'g-deleted-' . bin2hex(random_bytes(4));
+        $accountId = $this->model->createFromGoogle('deleted-g@example.com', $googleId, 'fr', 'Bob', 'Test');
+
+        // Soft-delete simulé directement en BDD
+        self::$db->execute(
+            "UPDATE accounts SET deleted_at = NOW() WHERE id = ?",
+            [$accountId]
+        );
+
+        $result = $this->model->findDeletedByGoogleId($googleId);
+        $this->assertIsArray($result);
+        $this->assertSame('deleted-g@example.com', $result['email']);
+    }
+
+    public function testFindDeletedByEmailReturnsFalseForActiveAccount(): void
+    {
+        $this->model->createFromGoogle('active2@example.com', 'g-a2', 'fr', 'Claire', 'Test');
+
+        $result = $this->model->findDeletedByEmail('active2@example.com');
+        $this->assertFalse($result);
+    }
+
+    public function testFindDeletedByEmailReturnsDeletedAccount(): void
+    {
+        $accountId = $this->model->createFromGoogle('deleted-e@example.com', 'g-del-e', 'fr', 'Dave', 'Test');
+
+        self::$db->execute(
+            "UPDATE accounts SET deleted_at = NOW() WHERE id = ?",
+            [$accountId]
+        );
+
+        $result = $this->model->findDeletedByEmail('deleted-e@example.com');
+        $this->assertIsArray($result);
+        $this->assertSame('deleted-e@example.com', $result['email']);
+    }
+
+    // ----------------------------------------------------------------
     // clearEmailChangeToken()
     // ----------------------------------------------------------------
 

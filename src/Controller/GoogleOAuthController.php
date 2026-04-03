@@ -67,6 +67,15 @@ class GoogleOAuthController extends Controller
 
         $_SESSION['oauth_google_state'] = $state;
 
+        // Sauvegarder la page d'origine pour y revenir après connexion
+        $referer    = $_SERVER['HTTP_REFERER'] ?? '';
+        $returnPath = parse_url($referer, PHP_URL_PATH) ?? '';
+        $validReturn = $returnPath !== ''
+            && preg_match('#^/[^/]#', $returnPath)
+            && !str_contains($returnPath, '://')
+            && !str_starts_with($returnPath, '/auth/');
+        $_SESSION['oauth_return_path'] = $validReturn ? $returnPath : "/{$lang}";
+
         $authUrl = $this->oauth->buildAuthUrl($redirectUri, $state);
 
         Response::redirect($authUrl);
@@ -131,10 +140,19 @@ class GoogleOAuthController extends Controller
         $googleId = $userInfo['sub'];
         $email    = strtolower(trim($userInfo['email']));
 
-        // Cas 1 — google_id déjà lié à un compte
+        // Cas 1 — google_id déjà lié à un compte actif
         $account = $this->accounts->findByGoogleId($googleId);
 
-        // Cas 2 — email connu, pas encore de google_id → confirmation de rattachement
+        // Cas 1b — compte en cours de suppression retrouvé via google_id → réactivation automatique
+        if (!$account) {
+            $deleted = $this->accounts->findDeletedByGoogleId($googleId);
+            if ($deleted) {
+                $this->accounts->reactivate((int) $deleted['id']);
+                $account = $this->accounts->findById((int) $deleted['id']);
+            }
+        }
+
+        // Cas 2 — email connu (actif), pas encore de google_id → confirmation de rattachement
         if (!$account) {
             $existing = $this->accounts->findByEmail($email);
             if ($existing) {
@@ -145,6 +163,16 @@ class GoogleOAuthController extends Controller
                     'firstname'  => $userInfo['given_name'] ?? '',
                 ];
                 Response::redirect("/{$lang}/auth/google/link");
+            }
+        }
+
+        // Cas 2b — compte en cours de suppression retrouvé via email → réactivation + rattachement
+        if (!$account) {
+            $deleted = $this->accounts->findDeletedByEmail($email);
+            if ($deleted) {
+                $this->accounts->reactivate((int) $deleted['id']);
+                $this->accounts->linkGoogleId((int) $deleted['id'], $googleId);
+                $account = $this->accounts->findById((int) $deleted['id']);
             }
         }
 
@@ -277,7 +305,9 @@ class GoogleOAuthController extends Controller
 
         $this->accounts->markAsConnected((int) $account['id']);
 
-        Response::redirect("/{$lang}/mon-compte");
+        $returnPath = $_SESSION['oauth_return_path'] ?? "/{$lang}";
+        unset($_SESSION['oauth_return_path']);
+        Response::redirect($returnPath);
     }
 
     /**

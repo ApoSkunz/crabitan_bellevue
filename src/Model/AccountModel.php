@@ -62,6 +62,34 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     /**
+     * Cherche un compte en cours de suppression (soft-delete) par google_id.
+     *
+     * @param string $googleId Identifiant Google (sub)
+     * @return array<string, mixed>|false
+     */
+    public function findDeletedByGoogleId(string $googleId): array|false
+    {
+        return $this->db->fetchOne(
+            $this->withProfile() . " WHERE a.google_id = ? AND a.deleted_at IS NOT NULL",
+            [$googleId]
+        );
+    }
+
+    /**
+     * Cherche un compte en cours de suppression (soft-delete) par email.
+     *
+     * @param string $email Adresse email
+     * @return array<string, mixed>|false
+     */
+    public function findDeletedByEmail(string $email): array|false
+    {
+        return $this->db->fetchOne(
+            $this->withProfile() . " WHERE a.email = ? AND a.deleted_at IS NOT NULL",
+            [$email]
+        );
+    }
+
+    /**
      * Rattache un google_id à un compte existant.
      *
      * @param int    $accountId Identifiant du compte
