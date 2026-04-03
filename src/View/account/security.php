@@ -300,6 +300,7 @@ $deleteError = $errors['delete'] ?? null;
                        placeholder="SUPPRESSION" style="text-transform:uppercase;">
             </div>
 
+            <?php if ($hasPassword) : ?>
             <div class="form-group form-group--pwd" id="js-delete-pwd-group"
                  style="margin-bottom:1.25rem;display:none;">
                 <label for="confirm_password"><?= __('account.delete_confirm_password') ?></label>
@@ -313,6 +314,7 @@ $deleteError = $errors['delete'] ?? null;
                     </button>
                 </div>
             </div>
+            <?php endif; ?>
 
             <div class="account-delete-modal__actions">
                 <button type="submit" class="btn btn--danger" id="js-delete-submit" disabled>
