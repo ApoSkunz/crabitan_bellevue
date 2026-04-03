@@ -43,6 +43,9 @@ if ($ageVerified && isset($_COOKIE['age_remember'])) {
     setcookie('age_remember', '1', array_merge($cookieBase, ['expires' => time() + $ttl]));
 }
 
+// Empêche le bfcache navigateur de restaurer des pages avec flash messages révolus
+header('Cache-Control: no-store');
+
 try {
     $router->dispatch();
 } catch (\Core\Exception\HttpException) {
