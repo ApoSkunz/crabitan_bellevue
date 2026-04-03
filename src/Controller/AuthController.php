@@ -206,6 +206,23 @@ class AuthController extends Controller
 
         $this->updateDeviceTrust((int) $account['id'], $deviceToken, $deviceName, $isFirstEverLogin, $isAlreadyTrusted);
 
+        // Fusion panier cookie → BDD après connexion réussie
+        $localCartJson = $_COOKIE['cb-cart'] ?? '';
+        if ($localCartJson !== '') {
+            $localItems = json_decode($localCartJson, true) ?? [];
+            if (!empty($localItems)) {
+                $cartModel = new \Model\CartModel();
+                $wineModel = new \Model\WineModel();
+                $cartModel->mergeLocalCart(
+                    (int) $account['id'],
+                    $localItems,
+                    fn(int $wineId): int => (int) ($wineModel->getById($wineId)['quantity'] ?? 0)
+                );
+                // Effacer le cookie côté serveur
+                setcookie('cb-cart', '', time() - 3600, '/', '', true, false);
+            }
+        }
+
         Response::redirect($safeBack);
     }
 
