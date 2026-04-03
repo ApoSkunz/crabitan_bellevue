@@ -85,6 +85,18 @@ class PageController extends Controller
         return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
     }
 
+    /**
+     * Page des Conditions Générales de Vente.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     */
+    public function conditionsGeneralesVente(array $params): void
+    {
+        $lang = $this->resolveLang($params);
+        $bare = isset($_GET['bare']) || ($_COOKIE['age_verified'] ?? '') !== '1';
+        $this->view('pages/conditions-generales-vente', ['lang' => $lang, 'bare' => $bare]);
+    }
+
     public function mentionsLegales(array $params): void
     {
         $lang = $this->resolveLang($params);
