@@ -10,11 +10,12 @@ namespace Controller\Admin;
  */
 class DpoAdminController extends AdminController
 {
-    private const CREATOR   = 'Château Crabitan Bellevue';
-    private const AUTHOR    = 'GFA Bernard Solane et Fils';
-    private const SIRET     = '398 341 701 00017';
-    private const ADDRESS   = 'Château Crabitan Bellevue — 33410 Sainte-Croix-du-Mont — France';
-    private const DPO_EMAIL = 'crabitan.bellevue@orange.fr';
+    private const CREATOR     = 'Château Crabitan Bellevue';
+    private const AUTHOR      = 'GFA Bernard Solane et Fils';
+    private const SIRET       = '398 341 701 00017';
+    private const ADDRESS     = 'Château Crabitan Bellevue — 33410 Sainte-Croix-du-Mont — France';
+    private const DPO_EMAIL   = 'crabitan.bellevue@orange.fr';
+    private const DATE_FORMAT = 'd/m/Y';
 
     // ----------------------------------------------------------------
     // GET /admin/dpo
@@ -95,13 +96,13 @@ class DpoAdminController extends AdminController
     /**
      * Construit le PDF via TCPDF et retourne les octets en mémoire.
      *
-     * @throws \RuntimeException Si TCPDF n'est pas disponible
+     * @throws \Exception\TcpdfNotAvailableException Si TCPDF n'est pas disponible
      */
     private function buildPdf(string $title, string $html): string
     {
         $tcpdfPath = ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
         if (!file_exists($tcpdfPath)) {
-            throw new \RuntimeException('TCPDF non disponible : ' . $tcpdfPath);
+            throw new \Exception\TcpdfNotAvailableException('TCPDF non disponible : ' . $tcpdfPath);
         }
         require_once $tcpdfPath;
 
@@ -134,6 +135,25 @@ class DpoAdminController extends AdminController
     // ----------------------------------------------------------------
     // Helpers privés — contenu HTML des documents RGPD
     // ----------------------------------------------------------------
+
+    /**
+     * Retourne le bloc d'ouverture commun (styles + en-tête) d'un document PDF.
+     */
+    private function pdfOpen(string $title, string $subtitle, string $date): string
+    {
+        return $this->pdfStyles() . $this->pdfHeader($title, $subtitle, $date);
+    }
+
+    /**
+     * Retourne le paragraphe de pied de page commun à tous les PDFs.
+     *
+     * @param string $notice Texte de la notice (sans "Généré le")
+     * @param string $date   Date de génération au format DATE_FORMAT
+     */
+    private function pdfFooter(string $notice, string $date): string
+    {
+        return '<p class="footer">' . $notice . ' — Généré le ' . $date . '</p>';
+    }
 
     /** Styles CSS communs injectés dans chaque PDF. */
     private function pdfStyles(): string
@@ -179,7 +199,7 @@ class DpoAdminController extends AdminController
      */
     private function htmlRegistre(): string
     {
-        $date = date('d/m/Y');
+        $date = date(self::DATE_FORMAT);
 
         $treatments = [
             [
@@ -294,12 +314,11 @@ class DpoAdminController extends AdminController
             ],
         ];
 
-        $html = $this->pdfStyles()
-            . $this->pdfHeader(
-                'Registre des activités de traitement',
-                'Conformément à l\'Art. 30 RGPD — Règlement UE 2016/679',
-                $date
-            );
+        $html = $this->pdfOpen(
+            'Registre des activités de traitement',
+            'Conformément à l\'Art. 30 RGPD — Règlement UE 2016/679',
+            $date
+        );
 
         foreach ($treatments as $t) {
             $html .= '<h3>' . htmlspecialchars($t['title']) . '</h3>'
@@ -315,7 +334,7 @@ class DpoAdminController extends AdminController
                 . '</table>';
         }
 
-        $html .= '<p class="footer">Document confidentiel — à la disposition de la CNIL sur demande (Art. 30-4 RGPD) — Généré le ' . $date . '</p>';
+        $html .= $this->pdfFooter('Document confidentiel — à la disposition de la CNIL sur demande (Art. 30-4 RGPD)', $date);
 
         return $html;
     }
@@ -325,7 +344,7 @@ class DpoAdminController extends AdminController
      */
     private function htmlSousTraitants(): string
     {
-        $date = date('d/m/Y');
+        $date = date(self::DATE_FORMAT);
 
         $processors = [
             [
@@ -384,14 +403,13 @@ class DpoAdminController extends AdminController
             ],
         ];
 
-        $html = $this->pdfStyles()
-            . $this->pdfHeader(
-                'Sous-traitants — DPA',
-                'Conformément à l\'Art. 28 RGPD — Règlement UE 2016/679',
-                $date
-            );
+        $html = $this->pdfOpen(
+            'Sous-traitants — DPA',
+            'Conformément à l\'Art. 28 RGPD — Règlement UE 2016/679',
+            $date
+        );
 
-        $html .= '<p class="meta">Prochaine révision annuelle : ' . date('d/m/Y', strtotime('+1 year')) . '</p>';
+        $html .= '<p class="meta">Prochaine révision annuelle : ' . date(self::DATE_FORMAT, strtotime('+1 year')) . '</p>';
 
         foreach ($processors as $p) {
             $html .= '<h3>' . htmlspecialchars($p['name']) . ' — <span class="tag-ok">✓ Conforme</span></h3>'
@@ -404,7 +422,7 @@ class DpoAdminController extends AdminController
                 . '</table>';
         }
 
-        $html .= '<p class="footer">Document confidentiel — Art. 28 RGPD — Généré le ' . $date . '</p>';
+        $html .= $this->pdfFooter('Document confidentiel — Art. 28 RGPD', $date);
 
         return $html;
     }
@@ -414,15 +432,14 @@ class DpoAdminController extends AdminController
      */
     private function htmlProcedure(): string
     {
-        $date     = date('d/m/Y');
-        $revision = date('d/m/Y', strtotime('+1 year'));
+        $date     = date(self::DATE_FORMAT);
+        $revision = date(self::DATE_FORMAT, strtotime('+1 year'));
 
-        $html = $this->pdfStyles()
-            . $this->pdfHeader(
-                'Procédure de notification de violation de données',
-                'Conformément aux Art. 33 & 34 RGPD — délai légal 72h',
-                $date
-            );
+        $html = $this->pdfOpen(
+            'Procédure de notification de violation de données',
+            'Conformément aux Art. 33 & 34 RGPD — délai légal 72h',
+            $date
+        );
 
         $html .= '<h2>1. Définition d\'une violation (Art. 4-12 RGPD)</h2>'
             . '<p>Violation de la sécurité entraînant, de manière accidentelle ou illicite, la destruction, la perte, l\'altération, la divulgation non autorisée ou l\'accès non autorisé à des données à caractère personnel.</p>' // phpcs:ignore Generic.Files.LineLength.TooLong
@@ -474,7 +491,7 @@ class DpoAdminController extends AdminController
         $html .= '<h2>7. Simulation annuelle</h2>'
             . '<p>Exercice annuel avant le 30 juin. Scénario type : "détection d\'une requête SQL suspecte — données clients potentiellement extraites." Déroulé : qualification (30 min) → test chaîne escalade → rédaction template CNIL (sans envoi) → debriefing. Responsable : DevSecOps + DPO.</p>'; // phpcs:ignore Generic.Files.LineLength.TooLong
 
-        $html .= '<p class="footer">Document confidentiel — Art. 33 &amp; 34 RGPD — Prochaine révision : ' . $revision . ' — Généré le ' . $date . '</p>'; // phpcs:ignore Generic.Files.LineLength.TooLong
+        $html .= $this->pdfFooter('Document confidentiel — Art. 33 &amp; 34 RGPD — Prochaine révision : ' . $revision, $date);
 
         return $html;
     }
