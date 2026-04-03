@@ -4,7 +4,7 @@ $navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 $isBare    = $bare ?? false;
 $isFr      = $navLang === 'fr';
 
-require SRC_PATH . '/View/partials/legal-open.php';
+require_once SRC_PATH . '/View/partials/legal-open.php';
 ?>
 
 <?php if ($isFr) : ?>
@@ -607,4 +607,4 @@ require SRC_PATH . '/View/partials/legal-open.php';
 
 <?php endif; ?>
 
-<?php require SRC_PATH . '/View/partials/legal-close.php'; ?>
+<?php require_once SRC_PATH . '/View/partials/legal-close.php'; ?>
