@@ -221,7 +221,7 @@ CREATE TABLE `pricing_rules` (
 CREATE TABLE `carts` (
   `id`               INT            NOT NULL AUTO_INCREMENT,
   `user_id`          INT            NOT NULL,
-  `content`          JSON           NOT NULL COMMENT 'Snapshot des articles [{wine_id, qty, price, format, ...}]',
+  `content`          JSON           NOT NULL COMMENT 'Articles du panier [{wine_id, qty, name, image}] — sans prix',
   `price`            DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
   `withdrawal_price` DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
   `delivery_price`   DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
