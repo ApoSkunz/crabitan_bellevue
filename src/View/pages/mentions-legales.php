@@ -3,39 +3,8 @@ $pageTitle = __('footer.legal_notice');
 $navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 $isBare    = $bare ?? false;
 
-if (!$isBare) {
-    require_once SRC_PATH . '/View/partials/head.php';
-    require_once SRC_PATH . '/View/partials/header.php';
-}
+require_once SRC_PATH . '/View/partials/legal-open.php';
 ?>
-<?php if ($isBare) : ?>
-<!DOCTYPE html>
-<html lang="<?= htmlspecialchars($navLang) ?>" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle) ?></title>
-    <meta name="robots" content="noindex, nofollow">
-    <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/assets/css/main.css">
-</head>
-<body class="bare-legal">
-    <div class="bare-legal__bar">
-        <span><?= htmlspecialchars($pageTitle) ?></span>
-        <button type="button" class="bare-legal__close" onclick="window.close()" aria-label="Fermer">&#10005;</button>
-    </div>
-    <article class="legal-content container" aria-label="<?= htmlspecialchars(__('footer.legal_notice')) ?>">
-<?php else : ?>
-<main class="page-legal" id="main-content">
-    <div class="page-hero page-hero--dark">
-        <div class="container">
-            <h1 class="home-section__title"><?= htmlspecialchars(__('footer.legal_notice')) ?></h1>
-            <div class="home-section__divider home-section__divider--center"></div>
-        </div>
-    </div>
-
-    <article class="legal-content container" aria-label="<?= htmlspecialchars(__('footer.legal_notice')) ?>">
-<?php endif; ?>
 
         <h2>I. Informations d&#8217;exploitation</h2>
 
@@ -83,11 +52,4 @@ if (!$isBare) {
         <p><?= htmlspecialchars(__('legal.hosting_info')) ?></p>
         <p><?= htmlspecialchars(__('legal.ai_mention')) ?></p>
 
-    </article>
-<?php if ($isBare) : ?>
-</body>
-</html>
-<?php else : ?>
-</main>
-    <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
-<?php endif; ?>
+<?php require_once SRC_PATH . '/View/partials/legal-close.php'; ?>
