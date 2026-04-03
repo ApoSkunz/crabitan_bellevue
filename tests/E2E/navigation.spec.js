@@ -78,6 +78,23 @@ test.describe('Navigation — toutes les pages de la homepage', () => {
         await expectPageOk(page, '/fr/jeux');
     });
 
+    test('/fr/conditions-generales-de-vente se charge (accessible sans age-gate)', async ({ page, context }) => {
+        await context.clearCookies();
+        await page.goto('/fr/conditions-generales-de-vente');
+        await expect(page).not.toHaveURL(/\/age-gate/);
+        // Mode bare : contenu rendu dans .legal-content
+        await expect(page.locator('.legal-content')).toBeVisible();
+    });
+
+    test('CGV — lien footer visible et fonctionnel', async ({ page }) => {
+        await page.goto('/fr');
+        const cgvLink = page.locator('.footer-nav-legal a[href*="conditions-generales-de-vente"]');
+        await expect(cgvLink).toBeVisible();
+        await cgvLink.click();
+        await expect(page).not.toHaveURL(/\/age-gate/);
+        await expect(page.locator('.legal-content')).toBeVisible();
+    });
+
     // ── Version anglaise ─────────────────────────────────────────────────────
 
     test('/en charge la homepage en anglais', async ({ page }) => {

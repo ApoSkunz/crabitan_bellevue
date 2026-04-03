@@ -18,6 +18,7 @@ class MailService
     private const URL_PRIVACY = '/fr/politique-de-confidentialite';
     private const URL_LEGAL   = '/fr/mentions-legales';
     private const URL_SUPPORT = '/fr/support';
+    private const URL_CGV     = '/fr/conditions-generales-de-vente';
 
     private PHPMailer $mailer;
 
@@ -529,6 +530,7 @@ class MailService
         $urlPrivacy = $appUrl . self::URL_PRIVACY;
         $urlLegal   = $appUrl . self::URL_LEGAL;
         $urlSupport = $appUrl . self::URL_SUPPORT;
+        $urlCgv     = $appUrl . self::URL_CGV;
         $urlUnsub   = $unsubToken !== null
             ? $appUrl . '/fr/newsletter/desabonnement?token=' . urlencode($unsubToken)
             : $appUrl . '/fr/mon-compte';
@@ -542,7 +544,7 @@ class MailService
             : '';
 
         $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
-        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $lang);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $urlCgv, $lang);
 
         $inner = <<<INNER
 
@@ -1157,9 +1159,10 @@ INNER;
         $urlPrivacy = $appUrl . self::URL_PRIVACY;
         $urlLegal   = $appUrl . self::URL_LEGAL;
         $urlSupport = $appUrl . self::URL_SUPPORT;
+        $urlCgv     = $appUrl . self::URL_CGV;
 
         $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
-        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $lang);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $urlCgv, $lang);
 
         $inner = <<<INNER
 
@@ -1299,9 +1302,10 @@ INNER;
         $urlPrivacy = $appUrl . self::URL_PRIVACY;
         $urlLegal   = $appUrl . self::URL_LEGAL;
         $urlSupport = $appUrl . self::URL_SUPPORT;
+        $urlCgv     = $appUrl . self::URL_CGV;
 
         $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
-        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $lang);
+        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $urlCgv, $lang);
 
         $inner = <<<INNER
 
@@ -1397,6 +1401,7 @@ HTML;
      * @param string $urlPrivacy URL vers la politique de confidentialité
      * @param string $urlLegal   URL vers les mentions légales
      * @param string $urlSupport URL vers la page d'assistance
+     * @param string $urlCgv     URL vers les conditions générales de vente
      * @param string $lang       Langue du destinataire ('fr' ou 'en')
      * @return string HTML du footer email
      */
@@ -1404,6 +1409,7 @@ HTML;
         string $urlPrivacy,
         string $urlLegal,
         string $urlSupport,
+        string $urlCgv,
         string $lang = 'fr'
     ): string {
         $year    = date('Y');
@@ -1416,10 +1422,14 @@ HTML;
         return <<<HTML
           <tr>
             <td align="center" style="padding-top:24px;">
-              <p style="margin:0 0 10px;">
+              <p style="margin:0 0 4px;">
                 <a href="{$urlPrivacy}" class="footer-link"
                    style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
                 >Politique de confidentialité</a>
+                <span style="color:#c4b89a;padding:0 8px;">|</span>
+                <a href="{$urlCgv}" class="footer-link"
+                   style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
+                >CGV</a>
                 <span style="color:#c4b89a;padding:0 8px;">|</span>
                 <a href="{$urlLegal}" class="footer-link"
                    style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"

@@ -26,6 +26,7 @@ $isPublicPath = str_starts_with($path, '/age-gate')
     || str_starts_with($path, '/assets')
     || str_ends_with($path, '/mentions-legales')
     || str_ends_with($path, '/politique-de-confidentialite')
+    || str_ends_with($path, '/conditions-generales-de-vente')
     || str_ends_with($path, '/support')
     || str_contains($path, '/newsletter/desabonnement')
     || str_contains($path, '/auth/google'); // Google OAuth — Google redirige vers ce callback sans cookie age_verified

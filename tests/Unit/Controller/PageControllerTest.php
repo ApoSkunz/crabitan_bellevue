@@ -116,6 +116,68 @@ class PageControllerTest extends TestCase
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
+    public function testConditionsGeneralesVenteResolvesLang(): void
+    {
+        $this->bootstrapApp();
+        $this->callAction('conditionsGeneralesVente', 'fr');
+        $this->assertSame('fr', defined('CURRENT_LANG') ? CURRENT_LANG : 'undefined');
+    }
+
+    /**
+     * bare=true si cookie age_verified absent.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testConditionsGeneralesVenteBareWithoutCookie(): void
+    {
+        $this->bootstrapApp();
+        unset($_COOKIE['age_verified'], $_GET['bare']);
+
+        $controller = new class (new \Core\Request()) extends \Controller\PageController {
+            /** @var array<string,mixed>|null */
+            public ?array $lastViewData = null;
+            /** @param array<string,mixed> $data */
+            protected function view(string $template, array $data = [], int $httpStatus = 200): void
+            {
+                $this->lastViewData = $data;
+            }
+        };
+
+        $controller->conditionsGeneralesVente(['lang' => 'en']);
+
+        $this->assertNotNull($controller->lastViewData);
+        $this->assertTrue($controller->lastViewData['bare'], 'bare doit être true sans cookie age_verified');
+        $this->assertSame('en', $controller->lastViewData['lang']);
+    }
+
+    /**
+     * bare=false si cookie age_verified=1 et pas de ?bare en GET.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testConditionsGeneralesVenteNotBareWithCookie(): void
+    {
+        $this->bootstrapApp();
+        $_COOKIE['age_verified'] = '1';
+        unset($_GET['bare']);
+
+        $controller = new class (new \Core\Request()) extends \Controller\PageController {
+            /** @var array<string,mixed>|null */
+            public ?array $lastViewData = null;
+            /** @param array<string,mixed> $data */
+            protected function view(string $template, array $data = [], int $httpStatus = 200): void
+            {
+                $this->lastViewData = $data;
+            }
+        };
+
+        $controller->conditionsGeneralesVente(['lang' => 'fr']);
+
+        $this->assertFalse($controller->lastViewData['bare'], 'bare doit être false avec age_verified=1');
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function testSupportResolvesLang(): void
     {
         $this->bootstrapApp();
