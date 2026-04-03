@@ -61,6 +61,61 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Rattache un google_id à un compte existant.
+     *
+     * @param int    $accountId Identifiant du compte
+     * @param string $googleId  Identifiant Google (sub)
+     */
+    public function linkGoogleId(int $accountId, string $googleId): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET google_id = ? WHERE id = ?",
+            [$googleId, $accountId]
+        );
+    }
+
+    /**
+     * Crée un compte depuis Google OAuth (email pré-vérifié, pas de mot de passe).
+     *
+     * @param string $email     Adresse email Google
+     * @param string $googleId  Identifiant Google (sub)
+     * @param string $lang      Langue de l'interface (fr|en)
+     * @param string $firstname Prénom fourni par Google
+     * @param string $lastname  Nom de famille fourni par Google
+     * @return int Identifiant du compte créé
+     */
+    public function createFromGoogle(
+        string $email,
+        string $googleId,
+        string $lang,
+        string $firstname,
+        string $lastname
+    ): int {
+        $this->db->beginTransaction();
+        try {
+            $accountId = $this->db->insert(
+                "INSERT INTO {$this->table}
+                 (email, password, account_type, role, lang, newsletter, google_id,
+                  email_verified_at, newsletter_unsubscribe_token)
+                 VALUES (?, NULL, 'individual', 'customer', ?, 0, ?, NOW(), ?)",
+                [$email, $lang, $googleId, bin2hex(random_bytes(32))]
+            );
+
+            $this->db->insert(
+                "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+                 VALUES (?, ?, ?, NULL)",
+                [(int) $accountId, $lastname ?: 'Google', $firstname ?: 'Utilisateur']
+            );
+
+            $this->db->commit();
+            return (int) $accountId;
+        } catch (\Throwable $e) {
+            $this->db->rollback();
+            throw $e;
+        }
+    }
+
     public function findByAppleId(string $appleId): array|false
     {
         return $this->db->fetchOne(
