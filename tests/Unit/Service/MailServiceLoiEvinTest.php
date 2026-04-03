@@ -75,7 +75,8 @@ class MailServiceLoiEvinTest extends TestCase
             'emailFooterHtml',
             'https://crabitan.local/fr/politique-confidentialite',
             'https://crabitan.local/fr/mentions-legales',
-            'https://crabitan.local/fr/support'
+            'https://crabitan.local/fr/support',
+            'https://crabitan.local/fr/conditions-generales-de-vente'
         );
 
         $this->assertStringContainsString(
@@ -95,6 +96,7 @@ class MailServiceLoiEvinTest extends TestCase
             'https://crabitan.local/fr/politique-confidentialite',
             'https://crabitan.local/fr/mentions-legales',
             'https://crabitan.local/fr/support',
+            'https://crabitan.local/fr/conditions-generales-de-vente',
             'en'
         );
 
@@ -114,7 +116,8 @@ class MailServiceLoiEvinTest extends TestCase
             'emailFooterHtml',
             'https://crabitan.local/fr/politique-confidentialite',
             'https://crabitan.local/fr/mentions-legales',
-            'https://crabitan.local/fr/support'
+            'https://crabitan.local/fr/support',
+            'https://crabitan.local/fr/conditions-generales-de-vente'
         );
 
         // Vérifie qu'aucun commentaire HTML ne contient la mention
