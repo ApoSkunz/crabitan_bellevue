@@ -66,6 +66,7 @@ $router->get('/{lang}/contact', 'PageController@contact');
 $router->post('/{lang}/contact', 'PageController@contactPost');
 $router->get('/{lang}/mentions-legales', 'PageController@mentionsLegales');
 $router->get('/{lang}/politique-de-confidentialite', 'PageController@politiqueConfidentialite');
+$router->get('/{lang}/conditions-generales-de-vente', 'PageController@conditionsGeneralesVente');
 $router->get('/{lang}/plan-du-site', 'PageController@planDuSite');
 $router->get('/{lang}/support', 'PageController@support');
 $router->get('/{lang}/jeux', 'PageController@jeux');
@@ -130,7 +131,7 @@ $router->post('/{lang}/mon-compte/securite/supprimer-compte', 'AccountController
 $router->post('/{lang}/mon-compte/securite/sessions/revoquer-toutes', 'AccountController@revokeAllUserSessions');
 $router->get('/{lang}/mon-compte/nouvel-appareil', 'AccountController@newDevice');
 $router->get('/{lang}/mon-compte/appareil/confirmer', 'AccountController@confirmDevice');
-$router->get('/{lang}/mon-compte/appareil/annuler',   'AccountController@cancelMfa');
+$router->get('/{lang}/mon-compte/appareil/annuler', 'AccountController@cancelMfa');
 $router->post('/{lang}/mon-compte/securite/appareils/retirer-confiance', 'AccountController@untrustDevice');
 $router->post('/{lang}/mon-compte/securite/reinitialiser', 'AccountController@resetSecurity');
 $router->post('/{lang}/mon-compte/securite/appareils/supprimer-toutes', 'AccountController@untrustAllDevices');
@@ -138,9 +139,9 @@ $router->get('/{lang}/compte/reactiver', 'AccountController@reactivateAccount');
 $router->get('/{lang}/mon-compte/export', 'AccountController@exportPage');
 $router->get('/{lang}/mon-compte/export/telecharger', 'AccountController@exportData');
 $router->post('/{lang}/mon-compte/profil/changer-email', 'AccountController@requestEmailChange');
-$router->post('/{lang}/mon-compte/email/annuler',         'AccountController@cancelEmailChange');
-$router->get('/{lang}/mon-compte/email/confirmer',         'AccountController@confirmEmailChange');
-$router->get('/{lang}/mon-compte/email/revoquer',          'AccountController@revokeEmailChange');
+$router->post('/{lang}/mon-compte/email/annuler', 'AccountController@cancelEmailChange');
+$router->get('/{lang}/mon-compte/email/confirmer', 'AccountController@confirmEmailChange');
+$router->get('/{lang}/mon-compte/email/revoquer', 'AccountController@revokeEmailChange');
 $router->get('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribePage');
 $router->post('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribe');
 
@@ -155,10 +156,10 @@ $router->post('/api/cart/add', 'Api\CartApiController@add');
 $router->post('/api/cart/update', 'Api\CartApiController@update');
 $router->post('/api/cart/remove', 'Api\CartApiController@remove');
 $router->post('/api/favorites/toggle', 'Api\FavoriteApiController@toggle');
-$router->get('/api/mfa/poll',          'Api\MfaController@poll');
-$router->post('/api/jeux/score',       'GameScoreController@save');
-$router->get('/api/jeux/score',        'GameScoreController@get');
-$router->get('/api/meteo',             'WeatherController@current');
+$router->get('/api/mfa/poll', 'Api\MfaController@poll');
+$router->post('/api/jeux/score', 'GameScoreController@save');
+$router->get('/api/jeux/score', 'GameScoreController@get');
+$router->get('/api/meteo', 'WeatherController@current');
 
 // Bons de commande (téléchargement public, servi via PHP)
 $router->get('/bons-de-commande/{id}/telecharger', 'OrderFormController@download');
