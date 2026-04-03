@@ -18,23 +18,24 @@ SET FOREIGN_KEY_CHECKS = 0;
 SET SQL_MODE = '';
 
 -- ============================================================
--- PURGE (ordre FK inverse)
+-- PURGE + reset AUTO_INCREMENT (ordre FK inverse)
+-- TRUNCATE réinitialise l'auto-increment, DELETE ne le fait pas
 -- ============================================================
-DELETE FROM `device_confirm_tokens`;
-DELETE FROM `trusted_devices`;
-DELETE FROM `connections`;
-DELETE FROM `password_reset`;
-DELETE FROM `favorites`;
-DELETE FROM `orders`;
-DELETE FROM `carts`;
-DELETE FROM `addresses`;
-DELETE FROM `account_individuals`;
-DELETE FROM `account_companies`;
-DELETE FROM `accounts`;
-DELETE FROM `pricing_rules`;
-DELETE FROM `wines`;
-DELETE FROM `news`;
-DELETE FROM `order_forms`;
+TRUNCATE TABLE `device_confirm_tokens`;
+TRUNCATE TABLE `trusted_devices`;
+TRUNCATE TABLE `connections`;
+TRUNCATE TABLE `password_reset`;
+TRUNCATE TABLE `favorites`;
+TRUNCATE TABLE `orders`;
+TRUNCATE TABLE `carts`;
+TRUNCATE TABLE `addresses`;
+TRUNCATE TABLE `account_individuals`;
+TRUNCATE TABLE `account_companies`;
+TRUNCATE TABLE `accounts`;
+TRUNCATE TABLE `pricing_rules`;
+TRUNCATE TABLE `wines`;
+TRUNCATE TABLE `news`;
+TRUNCATE TABLE `order_forms`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -759,13 +760,11 @@ ALTER TABLE `orders` AUTO_INCREMENT = 11;
 -- CARTS (paniers actifs)
 -- ============================================================
 
-INSERT INTO `carts` (`user_id`, `content`, `price`, `withdrawal_price`, `delivery_price`, `total_quantity`) VALUES
+INSERT INTO `carts` (`user_id`, `content`, `total_quantity`) VALUES
 -- Sophie — panier avec 2 articles
-(3, '[{"wine_id":21,"label_name":"Sainte-Croix-du-Mont","vintage":2016,"wine_color":"sweet","format":"bottle","qty":6,"unit_price":11.50,"subtotal":69.00},{"wine_id":35,"label_name":"Bordeaux Blanc","vintage":2024,"wine_color":"white","format":"bottle","qty":6,"unit_price":7.70,"subtotal":46.20}]',
- 115.20, 26.40, 0.00, 12),
+(3, '[{"wine_id":21,"qty":6},{"wine_id":35,"qty":6}]', 12),
 -- James — panier 1 article
-(6, '[{"wine_id":30,"label_name":"Bordeaux Rouge","vintage":2020,"wine_color":"red","format":"bottle","qty":12,"unit_price":7.70,"subtotal":92.40}]',
- 92.40, 26.40, 15.00, 12);
+(6, '[{"wine_id":30,"qty":12}]', 12);
 
 -- ============================================================
 -- FAVORITES
