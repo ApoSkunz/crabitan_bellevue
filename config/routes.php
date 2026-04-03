@@ -84,6 +84,8 @@ $router->get('/{lang}/actualites/{slug}', 'NewsController@show');
 // Auth
 $router->get('/{lang}/auth/google', 'GoogleOAuthController@authorize');
 $router->get('/{lang}/auth/google/callback', 'GoogleOAuthController@callback');
+$router->get('/{lang}/auth/google/link', 'GoogleOAuthController@linkConfirm');
+$router->post('/{lang}/auth/google/link', 'GoogleOAuthController@linkConfirmPost');
 
 $router->post('/{lang}/connexion', 'AuthController@login');
 $router->post('/{lang}/inscription', 'AuthController@register');
