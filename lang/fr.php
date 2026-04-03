@@ -213,6 +213,7 @@ return [
     // Footer
     'footer.legal_notice'    => 'Mentions légales',
     'footer.privacy_policy'  => 'Politique de confidentialité',
+    'footer.cgv'             => 'Conditions générales de vente',
     'footer.sitemap'         => 'Plan du site',
     'footer.carbon'          => 'Site Carbone',
     'footer.alcohol_warning' => "L'abus d'alcool est dangereux pour la santé. À consommer avec modération.",

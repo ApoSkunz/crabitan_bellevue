@@ -213,6 +213,7 @@ return [
     // Footer
     'footer.legal_notice'    => 'Legal notice',
     'footer.privacy_policy'  => 'Privacy policy',
+    'footer.cgv'             => 'Terms and conditions',
     'footer.sitemap'         => 'Sitemap',
     'footer.carbon'          => 'Carbon Badge',
     'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. To be consumed in moderation.',
