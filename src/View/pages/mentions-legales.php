@@ -3,7 +3,7 @@ $pageTitle = __('footer.legal_notice');
 $navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 $isBare    = $bare ?? false;
 
-require SRC_PATH . '/View/partials/legal-open.php';
+require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : require_once bloquerait le re-rendu entre tests (même convention que Response::view)
 ?>
 
         <h2>I. Informations d&#8217;exploitation</h2>
@@ -52,4 +52,4 @@ require SRC_PATH . '/View/partials/legal-open.php';
         <p><?= htmlspecialchars(__('legal.hosting_info')) ?></p>
         <p><?= htmlspecialchars(__('legal.ai_mention')) ?></p>
 
-<?php require SRC_PATH . '/View/partials/legal-close.php'; ?>
+<?php require SRC_PATH . '/View/partials/legal-close.php'; // NOSONAR — php:S2003 : idem ?>
