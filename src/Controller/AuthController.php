@@ -51,6 +51,12 @@ class AuthController extends Controller
     /** Durée du lockout compte en secondes (15 min). */
     private const ACCOUNT_LOCKOUT_WINDOW = 900;
 
+    /** Fenêtre de rate limiting pour le renvoi silencieux du token de vérification (1 heure). */
+    private const WINDOW_RESEND_VERIF = 3600;
+
+    /** Nombre maximum de renvois de token de vérification par compte par fenêtre. */
+    private const MAX_RESEND_VERIF = 3;
+
     private AccountModel $accounts;
     private PasswordResetModel $resets;
     private ConnectionModel $connections;
@@ -159,7 +165,24 @@ class AuthController extends Controller
 
         if (!$account['email_verified_at']) {
             $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
-            $this->flash('modal_error', __('auth.account_inactive'));
+            // Renvoi silencieux du token d'activation — anti-énumération : même réponse que
+            // identifiants invalides, sans révéler l'existence ni le statut du compte.
+            $resendKey = 'resend_verif:' . (int) $account['id'];
+            if ($this->rateLimiter->checkLimit($resendKey, self::MAX_RESEND_VERIF, self::WINDOW_RESEND_VERIF)) {
+                $newToken    = bin2hex(random_bytes(32));
+                $this->accounts->refreshVerificationToken((int) $account['id'], $newToken);
+                $verifyUrl   = APP_URL . "/{$lang}/verification/{$newToken}";
+                $displayName = $account['account_type'] === 'company'
+                    ? ($account['company_name'] ?? '')
+                    : trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
+                try {
+                    $mail = new MailService();
+                    $mail->sendEmailVerification($account['email'], $displayName, $verifyUrl, $lang);
+                } catch (\Throwable $e) {
+                    error_log('Resend verification error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+                }
+            }
+            $this->flash('modal_error', __('auth.invalid_credentials'));
             Response::redirect($safeBack);
         }
 
