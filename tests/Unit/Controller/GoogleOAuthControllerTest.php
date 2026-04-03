@@ -69,11 +69,17 @@ class GoogleOAuthControllerTest extends TestCase
     {
         $ctrl = $this->makeController();
 
-        try { $ctrl->authorize(['lang' => 'fr']); } catch (HttpException) {}
+        try {
+            $ctrl->authorize(['lang' => 'fr']);
+        } catch (HttpException) {
+        }
         $state1 = $_SESSION['oauth_google_state'] ?? '';
 
         $_SESSION = [];
-        try { $ctrl->authorize(['lang' => 'fr']); } catch (HttpException) {}
+        try {
+            $ctrl->authorize(['lang' => 'fr']);
+        } catch (HttpException) {
+        }
         $state2 = $_SESSION['oauth_google_state'] ?? '';
 
         $this->assertNotEquals($state1, $state2);
@@ -106,7 +112,8 @@ class GoogleOAuthControllerTest extends TestCase
 
         try {
             $ctrl->callback(['lang' => 'fr']);
-        } catch (HttpException) {}
+        } catch (HttpException) {
+        }
 
         $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
     }
@@ -120,7 +127,8 @@ class GoogleOAuthControllerTest extends TestCase
 
         try {
             $ctrl->callback(['lang' => 'fr']);
-        } catch (HttpException) {}
+        } catch (HttpException) {
+        }
 
         $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
     }
@@ -134,7 +142,8 @@ class GoogleOAuthControllerTest extends TestCase
 
         try {
             $ctrl->callback(['lang' => 'fr']);
-        } catch (HttpException) {}
+        } catch (HttpException) {
+        }
 
         $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
     }
@@ -149,7 +158,8 @@ class GoogleOAuthControllerTest extends TestCase
 
         try {
             $ctrl->callback(['lang' => 'fr']);
-        } catch (HttpException) {}
+        } catch (HttpException) {
+        }
 
         $this->assertArrayNotHasKey('oauth_google_state', $_SESSION);
     }
@@ -166,7 +176,8 @@ class GoogleOAuthControllerTest extends TestCase
 
         try {
             $ctrl->linkConfirm(['lang' => 'fr']);
-        } catch (HttpException) {}
+        } catch (HttpException) {
+        }
 
         // doit rediriger (pas d'erreur fatale, pas de page affichée)
         $this->assertTrue(true);
@@ -185,7 +196,8 @@ class GoogleOAuthControllerTest extends TestCase
 
         try {
             $ctrl->linkConfirmPost(['lang' => 'fr']);
-        } catch (HttpException) {}
+        } catch (HttpException) {
+        }
 
         $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
     }
