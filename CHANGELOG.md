@@ -2,6 +2,24 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.22.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.21.0...v0.22.0) (2026-04-03)
+
+
+### Bug Fixes
+
+* **age-gate:** supprimer le cadre fixe extérieur — liens légaux superposés ([94c61bd](https://github.com/ApoSkunz/crabitan_bellevue/commit/94c61bd5e425313ae0458f1d52750eb3e0d52c7c))
+* **dpo:** caractères spéciaux PDF — entités HTML + retrait bold sur tag-ok ([a715e0a](https://github.com/ApoSkunz/crabitan_bellevue/commit/a715e0a37926802d042b8e962a2f6ff92a148e96)), closes [#10003](https://github.com/ApoSkunz/crabitan_bellevue/issues/10003) [#8596](https://github.com/ApoSkunz/crabitan_bellevue/issues/8596) [#8594](https://github.com/ApoSkunz/crabitan_bellevue/issues/8594)
+* **dpo:** supprimer le symbole checkmark U+2713 non rendu par TCPDF ([0ef7f31](https://github.com/ApoSkunz/crabitan_bellevue/commit/0ef7f31ccda9081ad5f0d5172b9e29e38b46e32a)), closes [#10003](https://github.com/ApoSkunz/crabitan_bellevue/issues/10003)
+* **phpcs:** DpoAdminController — phpcs:ignore ligne securite BDD > 150 chars ([2d591d5](https://github.com/ApoSkunz/crabitan_bellevue/commit/2d591d5f3c914cd8fe0e22039174aff36304dbaa))
+* **phpcs:** mentions-legales + politique-confidentialite — NOSONAR php:S2003 require vs require_once ([f818582](https://github.com/ApoSkunz/crabitan_bellevue/commit/f818582f5b35687fb5f0d30be393d58af775815a))
+* **views:** require au lieu de require_once pour legal-open/close ([c60a505](https://github.com/ApoSkunz/crabitan_bellevue/commit/c60a505c8f01be45cb340b1a2d1c11464456a7d7))
+
+
+### Features
+
+* **admin:** menu DPO — génération PDF RGPD Art. 28/30/33 via TCPDF ([fdbb73d](https://github.com/ApoSkunz/crabitan_bellevue/commit/fdbb73d115d5838ab2f490678841d513b1e3eeae))
+* **header:** ajouter lien DPO — RGPD dans le panel admin Mon Espace ([3b3fbf2](https://github.com/ApoSkunz/crabitan_bellevue/commit/3b3fbf2dc63c65e2a2dc272ae5c9ad81076badac))
+
 # [0.21.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.20.0...v0.21.0) (2026-04-02)
 
 
