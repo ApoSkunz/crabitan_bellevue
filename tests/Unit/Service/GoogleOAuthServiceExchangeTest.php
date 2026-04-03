@@ -6,36 +6,6 @@ namespace Tests\Unit\Service;
 
 use Core\Exception\GoogleOAuthException;
 use PHPUnit\Framework\TestCase;
-use Service\GoogleOAuthService;
-
-/**
- * Sous-classe testable qui remplace les appels HTTP par des réponses contrôlées.
- */
-class StubGoogleOAuthService extends GoogleOAuthService
-{
-    public string $postResponse  = '';
-    public bool   $postFail      = false;
-    public string $getResponse   = '';
-    public bool   $getFail       = false;
-
-    /** @param string $url @param string $body @return string */
-    protected function httpPost(string $url, string $body): string
-    {
-        if ($this->postFail) {
-            throw new GoogleOAuthException('Google OAuth HTTP POST failed');
-        }
-        return $this->postResponse;
-    }
-
-    /** @param string $url @param string $accessToken @return string */
-    protected function httpGet(string $url, string $accessToken): string
-    {
-        if ($this->getFail) {
-            throw new GoogleOAuthException('Google OAuth HTTP GET failed');
-        }
-        return $this->getResponse;
-    }
-}
 
 /**
  * Tests unitaires GoogleOAuthService — exchangeCode() et fetchUserInfo()
@@ -56,7 +26,7 @@ class GoogleOAuthServiceExchangeTest extends TestCase
 
     public function testExchangeCodeReturnsAccessToken(): void
     {
-        $this->service->postResponse = json_encode(['access_token' => 'tok_abc', 'token_type' => 'Bearer']);
+        $this->service->postResponse = (string) json_encode(['access_token' => 'tok_abc', 'token_type' => 'Bearer']);
 
         $result = $this->service->exchangeCode('auth-code', 'http://localhost/callback');
 
@@ -65,7 +35,7 @@ class GoogleOAuthServiceExchangeTest extends TestCase
 
     public function testExchangeCodeThrowsWhenAccessTokenMissing(): void
     {
-        $this->service->postResponse = json_encode(['error' => 'invalid_grant']);
+        $this->service->postResponse = (string) json_encode(['error' => 'invalid_grant']);
 
         $this->expectException(GoogleOAuthException::class);
         $this->service->exchangeCode('bad-code', 'http://localhost/callback');
@@ -85,7 +55,7 @@ class GoogleOAuthServiceExchangeTest extends TestCase
 
     public function testFetchUserInfoReturnsUserData(): void
     {
-        $this->service->getResponse = json_encode([
+        $this->service->getResponse = (string) json_encode([
             'sub'         => 'google-user-123',
             'email'       => 'test@example.com',
             'given_name'  => 'Jean',
@@ -100,7 +70,7 @@ class GoogleOAuthServiceExchangeTest extends TestCase
 
     public function testFetchUserInfoThrowsWhenSubMissing(): void
     {
-        $this->service->getResponse = json_encode(['email' => 'test@example.com']);
+        $this->service->getResponse = (string) json_encode(['email' => 'test@example.com']);
 
         $this->expectException(GoogleOAuthException::class);
         $this->service->fetchUserInfo('token');
@@ -108,7 +78,7 @@ class GoogleOAuthServiceExchangeTest extends TestCase
 
     public function testFetchUserInfoThrowsWhenEmailMissing(): void
     {
-        $this->service->getResponse = json_encode(['sub' => 'google-123']);
+        $this->service->getResponse = (string) json_encode(['sub' => 'google-123']);
 
         $this->expectException(GoogleOAuthException::class);
         $this->service->fetchUserInfo('token');
