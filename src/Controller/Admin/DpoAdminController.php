@@ -412,7 +412,7 @@ class DpoAdminController extends AdminController
         $html .= '<p class="meta">Prochaine révision annuelle : ' . date(self::DATE_FORMAT, strtotime('+1 year')) . '</p>';
 
         foreach ($processors as $p) {
-            $html .= '<h3>' . htmlspecialchars($p['name']) . ' — <span class="tag-ok">&#10003; Conforme</span></h3>'
+            $html .= '<h3>' . htmlspecialchars($p['name']) . ' — <span class="tag-ok">Conforme</span></h3>'
                 . '<table>'
                 . $this->row('Rôle', htmlspecialchars($p['role']))
                 . $this->row('Localisation', htmlspecialchars($p['location']))
