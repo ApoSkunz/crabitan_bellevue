@@ -300,8 +300,8 @@ function addToLocalCart(item) {
     if (existing) {
         existing.qty += item.qty;
     } else {
-        // Stocke uniquement {id, qty, name, image} — price calculé depuis BDD à l'affichage
-        cart.push({ id: item.id, qty: item.qty, name: item.name, image: item.image });
+        // Stocke uniquement {id, qty} — nom, image et prix récupérés depuis BDD via /api/cart/details
+        cart.push({ id: item.id, qty: item.qty });
     }
     saveLocalCart(cart);
     updateCartCount();
@@ -432,7 +432,7 @@ function initCartModal() {
         e.preventDefault();
         const qty    = parseInt(qtyHidden.value, 10) || 1;
         const wineId = parseInt(wineIdEl.value, 10);
-        const item   = { id: wineId, qty, name: titleEl.textContent, image: imgEl.src };
+        const item   = { id: wineId, qty };
 
         if (!window.__userLogged) {
             // Invité : stockage cookie local uniquement, sans price
@@ -1577,39 +1577,55 @@ function initCartPage() {
         const guestContainer = document.getElementById('cart-guest');
         if (!guestContainer) return;
 
-        const items = getLocalCart();
+        const localItems = getLocalCart(); // [{id, qty}]
 
-        if (!items.length) {
+        if (!localItems.length) {
             guestContainer.querySelector('.cart-guest__loading').textContent =
                 isEn ? 'Your cart is empty.' : 'Votre panier est vide.';
             return;
         }
 
-        const ul = document.createElement('ul');
-        ul.className = 'cart-guest__list';
+        // Récupère nom, image et prix depuis la BDD
+        const ids = localItems.map((i) => i.id).join(',');
+        fetch('/api/cart/details?ids=' + ids)
+            .then((r) => r.json())
+            .then((details) => {
+                const detailsMap = {};
+                details.forEach((d) => { detailsMap[d.wine_id] = d; });
 
-        items.forEach((item) => {
-            const li = document.createElement('li');
-            li.className = 'cart-guest__item';
+                const ul = document.createElement('ul');
+                ul.className = 'cart-guest__list';
 
-            const imgHtml = item.image
-                ? `<img src="${item.image}" alt="${item.name || ''}" class="cart-guest__img" width="48" height="48" loading="lazy">`
-                : '';
+                localItems.forEach((item) => {
+                    const d         = detailsMap[item.id] ?? {};
+                    const name      = d.name  || 'Vin';
+                    const image     = d.image || '';
+                    const priceNote = isEn ? 'Price calculated at checkout' : 'Prix calculé à la commande';
+                    const qtyLabel  = isEn ? 'Qty' : 'Qté';
 
-            const priceNote = isEn ? 'Price calculated at checkout' : 'Prix calculé à la commande';
-            const qtyLabel  = isEn ? 'Qty' : 'Qté';
+                    const li = document.createElement('li');
+                    li.className = 'cart-guest__item';
 
-            li.innerHTML = `
-                ${imgHtml}
-                <div class="cart-guest__info">
-                    <p class="cart-guest__name">${item.name || 'Vin'}</p>
-                    <p class="cart-guest__qty">${qtyLabel} : ${item.qty || 1}</p>
-                    <p class="cart-guest__price-note">${priceNote}</p>
-                </div>`;
-            ul.appendChild(li);
-        });
+                    const imgHtml = image
+                        ? `<img src="${image}" alt="${name}" class="cart-guest__img" width="48" height="48" loading="lazy">`
+                        : '';
 
-        guestContainer.replaceChildren(ul);
+                    li.innerHTML = `
+                        ${imgHtml}
+                        <div class="cart-guest__info">
+                            <p class="cart-guest__name">${name}</p>
+                            <p class="cart-guest__qty">${qtyLabel}\u00a0: ${item.qty || 1}</p>
+                            <p class="cart-guest__price-note">${priceNote}</p>
+                        </div>`;
+                    ul.appendChild(li);
+                });
+
+                guestContainer.replaceChildren(ul);
+            })
+            .catch(() => {
+                guestContainer.querySelector('.cart-guest__loading').textContent =
+                    isEn ? 'Unable to load cart.' : 'Impossible de charger le panier.';
+            });
         return;
     }
 

@@ -14,7 +14,8 @@ use Model\WineModel;
  *
  * Toutes les actions exigent un JWT valide dans le cookie auth_token
  * et un token CSRF valide dans le corps POST.
- * Les prix ne sont jamais stockés — uniquement wine_id + qty + name + image.
+ * Seuls wine_id + qty sont stockés — les détails (nom, image, prix) sont
+ * récupérés à la demande via l'endpoint GET /api/cart/details.
  */
 class CartApiController extends Controller
 {
@@ -31,6 +32,45 @@ class CartApiController extends Controller
         parent::__construct($request);
         $this->cartModel = new CartModel();
         $this->wineModel = new WineModel();
+    }
+
+    // ----------------------------------------------------------------
+    // GET /api/cart/details?ids=1,2,3
+    // ----------------------------------------------------------------
+
+    /**
+     * Retourne le nom, l'image et le prix des vins dont les IDs sont passés en paramètre.
+     *
+     * Accessible sans authentification (invités + connectés).
+     * Paramètre GET : ids (liste d'entiers séparés par des virgules).
+     * Retourne : [{wine_id, name, image, price}].
+     *
+     * @param array<string, string> $params Paramètres de route (inutilisés)
+     * @return void
+     */
+    public function details(array $params): void // NOSONAR — $params requis par le router
+    {
+        $raw = $_GET['ids'] ?? '';
+        $ids = array_filter(array_map('intval', explode(',', $raw)));
+
+        if (empty($ids)) {
+            $this->json([]);
+        }
+
+        $result = [];
+        foreach (array_unique($ids) as $id) {
+            $wine = $this->wineModel->getById($id);
+            if ($wine !== null) {
+                $result[] = [
+                    'wine_id' => (int) $id,
+                    'name'    => $wine['label_name'] ?? '',
+                    'image'   => $wine['image_path'] ?? '',
+                    'price'   => (float) ($wine['price'] ?? 0),
+                ];
+            }
+        }
+
+        $this->json($result);
     }
 
     // ----------------------------------------------------------------
@@ -92,14 +132,7 @@ class CartApiController extends Controller
         $existing = $this->cartModel->findByUserId($userId);
         $items    = $existing !== false ? $this->cartModel->getContent($existing) : [];
 
-        $items = $this->upsertItem(
-            $items,
-            $wineId,
-            $quantity,
-            $stock,
-            (string) ($wine['label_name'] ?? ''),
-            (string) ($wine['image_path'] ?? '')
-        );
+        $items = $this->upsertItem($items, $wineId, $quantity, $stock);
 
         $this->cartModel->save($userId, $items);
 
@@ -150,15 +183,7 @@ class CartApiController extends Controller
             $wine  = $this->wineModel->getById($wineId);
             $stock = $wine !== null ? (int) ($wine['quantity'] ?? 0) : 0;
 
-            $items = $this->upsertItem(
-                $items,
-                $wineId,
-                $quantity,
-                $stock,
-                (string) ($wine['label_name'] ?? ''),
-                (string) ($wine['image_path'] ?? ''),
-                true
-            );
+            $items = $this->upsertItem($items, $wineId, $quantity, $stock, true);
         }
 
         $this->cartModel->save($userId, $items);
@@ -269,6 +294,8 @@ class CartApiController extends Controller
     /**
      * Insère ou met à jour un article dans la liste du panier.
      *
+     * Seuls wine_id et qty sont stockés — les détails (nom, image, prix)
+     * sont récupérés depuis la BDD à la demande via /api/cart/details.
      * En mode replace ($replace = true) la quantité est remplacée,
      * sinon elle est cumulée avec l'existante.
      * La quantité finale est plafonnée au stock.
@@ -277,8 +304,6 @@ class CartApiController extends Controller
      * @param int                              $wineId  Identifiant du vin
      * @param int                              $qty     Quantité à ajouter ou remplacer
      * @param int                              $stock   Stock disponible (plafond)
-     * @param string                           $name    Nom du vin (pour l'affichage)
-     * @param string                           $image   Chemin image du vin
      * @param bool                             $replace True = remplace la qté, False = cumule
      * @return array<int, array<string, mixed>>
      */
@@ -287,16 +312,14 @@ class CartApiController extends Controller
         int $wineId,
         int $qty,
         int $stock,
-        string $name,
-        string $image,
         bool $replace = false
     ): array {
         $found = false;
         foreach ($items as &$item) {
             if ((int) $item['wine_id'] === $wineId) {
-                $newQty       = $replace ? $qty : (int) $item['qty'] + $qty;
-                $item['qty']  = min($newQty, $stock);
-                $found        = true;
+                $newQty      = $replace ? $qty : (int) $item['qty'] + $qty;
+                $item['qty'] = min($newQty, $stock);
+                $found       = true;
                 break;
             }
         }
@@ -306,8 +329,6 @@ class CartApiController extends Controller
             $items[] = [
                 'wine_id' => $wineId,
                 'qty'     => min($qty, $stock),
-                'name'    => $name,
-                'image'   => $image,
             ];
         }
 
