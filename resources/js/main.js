@@ -508,6 +508,10 @@ function initLoginModal() {
         document.body.style.overflow = '';
         showLoginPanel();
         trigger.focus();
+        if (window.__forgotSuccess) {
+            window.__forgotSuccess = false;
+            window.location.replace(window.location.pathname);
+        }
     }
 
     if (window.__authModalError || new URLSearchParams(window.location.search).get('login') === '1') openModal();
@@ -582,6 +586,10 @@ function initRegisterModal() {
     function closeModal() {
         modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+        if (window.__registerSuccess) {
+            window.__registerSuccess = false;
+            window.location.replace(window.location.pathname);
+        }
     }
 
     // Switch vers login modal
@@ -1141,6 +1149,9 @@ function initResetModal() {
     function closeModal() {
         modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+        if (window.__resetSuccess) {
+            window.location.replace('/' + (window.__navLang || 'fr'));
+        }
     }
 
     if (window.__resetOpen) openModal();
