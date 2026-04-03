@@ -300,7 +300,8 @@ function addToLocalCart(item) {
     if (existing) {
         existing.qty += item.qty;
     } else {
-        cart.push(item);
+        // Stocke uniquement {id, qty, name, image} — price calculé depuis BDD à l'affichage
+        cart.push({ id: item.id, qty: item.qty, name: item.name, image: item.image });
     }
     saveLocalCart(cart);
     updateCartCount();
@@ -310,11 +311,14 @@ function getLocalCartCount() {
     return getLocalCart().reduce((sum, i) => sum + (i.qty || 1), 0);
 }
 
-function updateCartCount() {
+function updateCartCount(serverCount = null) {
     const badge = document.querySelector('.header-cart__count');
     if (!badge) return;
-    const count = getLocalCartCount();
-    badge.textContent = count;
+    if (serverCount !== null) {
+        badge.textContent = serverCount;
+    } else {
+        badge.textContent = getLocalCartCount();
+    }
 }
 
 // ============================================================
@@ -423,18 +427,59 @@ function initCartModal() {
         openModal(btn);
     });
 
-    // Soumission du formulaire — toujours interceptée (cart côté serveur non encore implémenté)
-    form?.addEventListener('submit', (e) => {
+    // Soumission du formulaire — interceptée pour les deux cas (invité et connecté)
+    form?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const qty = parseInt(qtyHidden.value, 10) || 1;
-        addToLocalCart({
-            id:    parseInt(wineIdEl.value, 10),
-            qty,
-            name:  titleEl.textContent,
-            price: priceEl.textContent,
-            image: imgEl.src,
-        });
-        showCartSuccess(qty);
+        const qty    = parseInt(qtyHidden.value, 10) || 1;
+        const wineId = parseInt(wineIdEl.value, 10);
+        const item   = { id: wineId, qty, name: titleEl.textContent, image: imgEl.src };
+
+        if (!window.__userLogged) {
+            // Invité : stockage cookie local uniquement, sans price
+            addToLocalCart(item);
+            showCartSuccess(qty);
+            return;
+        }
+
+        // Connecté : ajout local immédiat + POST API (avec rollback si erreur)
+        addToLocalCart(item);
+
+        const csrfInput = document.getElementById('cart-modal-csrf');
+        const csrf      = csrfInput?.value ?? '';
+
+        try {
+            const res  = await fetch('/api/cart/add', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ wine_id: wineId, quantity: qty, csrf_token: csrf }),
+            });
+            const data = await res.json();
+
+            if (!data.success) throw new Error('API error');
+
+            // Mettre à jour le badge avec la valeur retournée par l'API
+            updateCartCount(data.total_quantity ?? null);
+            showCartSuccess(qty);
+        } catch {
+            // Rollback : retirer l'item du cookie local
+            const rollbackCart = getLocalCart();
+            const idx = rollbackCart.findIndex((i) => i.id === wineId);
+            if (idx !== -1) {
+                if (rollbackCart[idx].qty <= qty) {
+                    rollbackCart.splice(idx, 1);
+                } else {
+                    rollbackCart[idx].qty -= qty;
+                }
+                saveLocalCart(rollbackCart);
+                updateCartCount();
+            }
+            const isEn = document.documentElement.lang === 'en';
+            showToast(
+                isEn ? 'Failed to add to cart. Please try again.' : 'Échec de l\'ajout au panier. Veuillez réessayer.',
+                true
+            );
+            closeModal();
+        }
     });
 
     backdrop?.addEventListener('click', closeModal);
@@ -681,20 +726,15 @@ function initRegisterModal() {
 }
 
 // ============================================================
-// Cart login prompt (bouton panier header — non connecté)
+// Cart guest button (bouton panier header — non connecté)
+// Les invités peuvent consulter leur panier — redirection vers /panier
 // ============================================================
 
-function initCartLoginPrompt() {
+function initCartGuestButton() {
     document.querySelectorAll('.js-cart-login-prompt').forEach((btn) => {
         btn.addEventListener('click', () => {
-            const loginUrl = btn.dataset.loginUrl || ('/' + (window.__navLang || 'fr') + '/connexion');
-            showToast(
-                document.documentElement.lang === 'en'
-                    ? 'Please log in to complete your order.'
-                    : 'Connectez-vous pour finaliser votre commande.',
-                false
-            );
-            setTimeout(() => { window.location.href = loginUrl; }, 1500); // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression — loginUrl is server-rendered via htmlspecialchars(), not user input // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
+            const cartUrl = '/' + (window.__navLang || 'fr') + '/panier';
+            window.location.href = cartUrl; // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression — cartUrl is built from server-rendered window.__navLang (htmlspecialchars)
         });
     });
 }
@@ -1521,6 +1561,176 @@ function initDeleteAccountModal() {
     }
 }
 
+// ============================================================
+// Page panier — interactions connecté + affichage invité
+// ============================================================
+
+function initCartPage() {
+    if (!document.querySelector('.page-cart')) return;
+
+    const isEn = document.documentElement.lang === 'en';
+
+    // ------------------------------------------------------------------
+    // Invité : construire l'affichage depuis le cookie cb-cart
+    // ------------------------------------------------------------------
+    if (!window.__userLogged) {
+        const guestContainer = document.getElementById('cart-guest');
+        if (!guestContainer) return;
+
+        const items = getLocalCart();
+
+        if (!items.length) {
+            guestContainer.querySelector('.cart-guest__loading').textContent =
+                isEn ? 'Your cart is empty.' : 'Votre panier est vide.';
+            return;
+        }
+
+        const ul = document.createElement('ul');
+        ul.className = 'cart-guest__list';
+
+        items.forEach((item) => {
+            const li = document.createElement('li');
+            li.className = 'cart-guest__item';
+
+            const imgHtml = item.image
+                ? `<img src="${item.image}" alt="${item.name || ''}" class="cart-guest__img" width="48" height="48" loading="lazy">`
+                : '';
+
+            const priceNote = isEn ? 'Price calculated at checkout' : 'Prix calculé à la commande';
+            const qtyLabel  = isEn ? 'Qty' : 'Qté';
+
+            li.innerHTML = `
+                ${imgHtml}
+                <div class="cart-guest__info">
+                    <p class="cart-guest__name">${item.name || 'Vin'}</p>
+                    <p class="cart-guest__qty">${qtyLabel} : ${item.qty || 1}</p>
+                    <p class="cart-guest__price-note">${priceNote}</p>
+                </div>`;
+            ul.appendChild(li);
+        });
+
+        guestContainer.replaceChildren(ul);
+        return;
+    }
+
+    // ------------------------------------------------------------------
+    // Connecté : recalcul total + handlers quantité / suppression
+    // ------------------------------------------------------------------
+
+    const csrfInput = document.getElementById('cart-modal-csrf');
+    const getCSRF   = () => csrfInput?.value ?? '';
+
+    /**
+     * Recalcule et affiche le grand total à partir des données du DOM.
+     */
+    function updateCartTotal() {
+        let total = 0;
+        document.querySelectorAll('.cart-table__row').forEach((row) => {
+            const price = parseFloat(row.dataset.price) || 0;
+            const qty   = parseInt(row.querySelector('.js-cart-qty')?.value, 10) || 0;
+            const subtotalEl = row.querySelector('.js-cart-subtotal');
+            const sub = price * qty;
+            total += sub;
+            if (subtotalEl) {
+                subtotalEl.textContent = sub.toLocaleString(isEn ? 'en-GB' : 'fr-FR', {
+                    minimumFractionDigits: 2, maximumFractionDigits: 2,
+                }) + '\u00a0€';
+            }
+        });
+        const totalEl = document.getElementById('cart-total');
+        if (totalEl) {
+            totalEl.textContent = total.toLocaleString(isEn ? 'en-GB' : 'fr-FR', {
+                minimumFractionDigits: 2, maximumFractionDigits: 2,
+            }) + '\u00a0€';
+        }
+    }
+
+    // Debounce helper (400 ms)
+    let qtyDebounceTimer = null;
+    function debounceQty(fn) {
+        clearTimeout(qtyDebounceTimer);
+        qtyDebounceTimer = setTimeout(fn, 400);
+    }
+
+    // Délégation — changement quantité
+    document.addEventListener('change', (e) => {
+        const input = e.target.closest('.js-cart-qty');
+        if (!input) return;
+
+        const wineId = parseInt(input.dataset.wineId, 10);
+        const qty    = Math.max(1, parseInt(input.value, 10) || 1);
+        input.value  = qty;
+
+        debounceQty(async () => {
+            try {
+                const res  = await fetch('/api/cart/update', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ wine_id: wineId, quantity: qty, csrf_token: getCSRF() }),
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error('update failed');
+                updateCartCount(data.total_quantity ?? null);
+            } catch {
+                showToast(isEn ? 'Failed to update quantity.' : 'Échec de la mise à jour.', true);
+            }
+            updateCartTotal();
+        });
+    });
+
+    // Délégation — suppression d'article
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-cart-remove');
+        if (!btn) return;
+
+        const wineId = parseInt(btn.dataset.wineId, 10);
+        btn.disabled = true;
+
+        fetch('/api/cart/remove', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ wine_id: wineId, csrf_token: getCSRF() }),
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (!data.success) throw new Error('remove failed');
+
+                const row = btn.closest('.cart-table__row');
+                if (row) {
+                    row.style.transition = 'opacity 250ms ease';
+                    row.style.opacity    = '0';
+                    setTimeout(() => {
+                        row.remove();
+                        updateCartTotal();
+
+                        // Panier vide après suppression
+                        const tbody = document.getElementById('cart-tbody');
+                        if (tbody && !tbody.querySelector('.cart-table__row')) {
+                            const section = document.querySelector('.cart-section');
+                            if (section) {
+                                section.innerHTML = `
+                                    <div class="cart-empty-state">
+                                        <p class="cart-empty">${isEn ? 'Your cart is empty' : 'Votre panier est vide'}</p>
+                                        <a href="/${window.__navLang || 'fr'}/vins" class="btn btn--outline">
+                                            ${isEn ? 'Browse wines' : 'Voir les vins'}
+                                        </a>
+                                    </div>`;
+                            }
+                        }
+                    }, 260);
+                }
+                updateCartCount(data.total_quantity ?? null);
+            })
+            .catch(() => {
+                btn.disabled = false;
+                showToast(isEn ? 'Failed to remove item.' : 'Échec de la suppression.', true);
+            });
+    });
+
+    // Calcul initial
+    updateCartTotal();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     if (window.__flashInfo) showToast(window.__flashInfo, false, 2000);
     initPageIntro();
@@ -1536,7 +1746,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initRegisterModal();
     initResetModal();
     initCartModal();
-    initCartLoginPrompt();
+    initCartGuestButton();
     initFavoriteAuth();
     initFavoriteToggle();
     initAccountFavoritesRemove();
@@ -1548,12 +1758,21 @@ document.addEventListener('DOMContentLoaded', () => {
     initAddressAddToggle();
     initAlertAutoDismiss();
     initWineZoom();
-    updateCartCount();
+    // Pour les connectés : charger le compteur depuis l'API au chargement de page (si disponible)
+    if (window.__userLogged) {
+        fetch('/api/cart/count')
+            .then((r) => r.ok ? r.json() : null)
+            .then((data) => { if (data && typeof data.total_quantity === 'number') updateCartCount(data.total_quantity); })
+            .catch(() => { /* fallback sur cookie local déjà affiché */ });
+    } else {
+        updateCartCount();
+    }
     initNewsletterForm();
     initContactForm();
     initAnchorScroll();
     initFaqAccordion();
     initCarbonBadge();
+    initCartPage();
 
     // Chargement à la demande — uniquement sur la page jeux
     if (document.getElementById('memo-game')) {
