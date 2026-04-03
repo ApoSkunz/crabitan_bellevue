@@ -197,6 +197,12 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.privacy_policy')) ?></span>
             </a>
 
+            <a href="/<?= htmlspecialchars($navLang) ?>/conditions-generales-de-vente" class="sitemap-card">
+                <img src="/assets/images/gallery/apercu-vins.jpg"
+                     alt="<?= htmlspecialchars(__('footer.cgv')) ?>" loading="lazy">
+                <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.cgv')) ?></span>
+            </a>
+
         </div>
     </section>
 
