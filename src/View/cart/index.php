@@ -138,9 +138,9 @@ $isAuth    = $isAuth    ?? false;
 
         <div class="cart-guest-cta">
             <p class="cart-guest-cta__text"><?= htmlspecialchars(__('cart.login_to_order')) ?></p>
-            <a href="/<?= htmlspecialchars($lang ?? 'fr') ?>/connexion" class="btn btn--gold">
+            <button type="button" class="btn btn--gold js-open-login-from-cart">
                 <?= htmlspecialchars(__('cart.login_cta')) ?>
-            </a>
+            </button>
         </div>
         <?php endif; ?>
 

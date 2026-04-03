@@ -441,9 +441,7 @@ function initCartModal() {
             return;
         }
 
-        // Connecté : ajout local immédiat + POST API (avec rollback si erreur)
-        addToLocalCart(item);
-
+        // Connecté : POST API uniquement — pas de cookie local (BDD = source de vérité)
         const csrfInput = document.getElementById('cart-modal-csrf');
         const csrf      = csrfInput?.value ?? '';
 
@@ -457,22 +455,9 @@ function initCartModal() {
 
             if (!data.success) throw new Error('API error');
 
-            // Mettre à jour le badge avec la valeur retournée par l'API
             updateCartCount(data.total_quantity ?? null);
             showCartSuccess(qty);
         } catch {
-            // Rollback : retirer l'item du cookie local
-            const rollbackCart = getLocalCart();
-            const idx = rollbackCart.findIndex((i) => i.id === wineId);
-            if (idx !== -1) {
-                if (rollbackCart[idx].qty <= qty) {
-                    rollbackCart.splice(idx, 1);
-                } else {
-                    rollbackCart[idx].qty -= qty;
-                }
-                saveLocalCart(rollbackCart);
-                updateCartCount();
-            }
             const isEn = document.documentElement.lang === 'en';
             showToast(
                 isEn ? 'Failed to add to cart. Please try again.' : 'Échec de l\'ajout au panier. Veuillez réessayer.',
@@ -1626,6 +1611,11 @@ function initCartPage() {
                 guestContainer.querySelector('.cart-guest__loading').textContent =
                     isEn ? 'Unable to load cart.' : 'Impossible de charger le panier.';
             });
+
+        // CTA "Se connecter pour commander" → ouvre le modal de connexion en place
+        document.querySelector('.js-open-login-from-cart')?.addEventListener('click', () => {
+            document.getElementById('login-modal-trigger')?.click();
+        });
         return;
     }
 
