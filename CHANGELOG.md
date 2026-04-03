@@ -2,6 +2,18 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.25.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.24.0...v0.25.0) (2026-04-03)
+
+
+### Bug Fixes
+
+* **auth:** anti-énumération complète — compte inactif renvoie même réponse que identifiants invalides ([2fe07e3](https://github.com/ApoSkunz/crabitan_bellevue/commit/2fe07e330030f85fdff0947be9afc9ec4f5b07b7))
+
+
+### Features
+
+* **model:** AccountModel::refreshVerificationToken — renvoi silencieux token vérification ([a0c99f9](https://github.com/ApoSkunz/crabitan_bellevue/commit/a0c99f9c98b9a7b3b901d23734a685269e1735c0))
+
 # [0.24.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.23.0...v0.24.0) (2026-04-03)
 
 
