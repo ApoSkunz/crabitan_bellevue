@@ -229,6 +229,25 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Régénère le token de vérification email d'un compte non vérifié.
+     * Utilisé pour le renvoi silencieux à la connexion (anti-énumération).
+     *
+     * @param int    $id    Identifiant du compte
+     * @param string $token Nouveau token brut (64 hex chars)
+     * @return void
+     */
+    public function refreshVerificationToken(int $id, string $token): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET email_verification_token = ?,
+                 email_verification_token_expires_at = NOW() + INTERVAL 24 HOUR
+             WHERE id = ? AND email_verified_at IS NULL",
+            [$token, $id]
+        );
+    }
+
     public function updatePassword(int $id, string $hashedPassword): void
     {
         $this->db->execute(
