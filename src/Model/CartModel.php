@@ -10,8 +10,8 @@ use Core\Model;
  * Gestion du panier en base de données.
  *
  * Un seul panier actif par utilisateur (contrainte UNIQUE sur user_id).
- * Le contenu est stocké en JSON : [{wine_id, qty, name, image}].
- * Les prix ne sont jamais stockés ici — ils sont calculés au checkout.
+ * Le contenu est stocké en JSON : [{wine_id, qty}] — nom, image et prix
+ * sont récupérés depuis WineModel à la demande via /api/cart/details.
  */
 class CartModel extends Model
 {
@@ -38,7 +38,7 @@ class CartModel extends Model
      * Les prix sont laissés à 0.00 — calculés au checkout.
      *
      * @param int                          $userId Identifiant de l'utilisateur
-     * @param array<int, array<string, mixed>> $items  Liste [{wine_id, qty, name, image}]
+     * @param array<int, array<string, mixed>> $items  Liste [{wine_id, qty}]
      * @return void
      */
     public function save(int $userId, array $items): void
@@ -52,7 +52,7 @@ class CartModel extends Model
              ON DUPLICATE KEY UPDATE
                content        = VALUES(content),
                total_quantity = VALUES(total_quantity),
-               updated_at     = NOW()",
+               updated_at     = NOW()", // phpcs:ignore Generic.Files.LineLength
             [$userId, $contentJson, $totalQty]
         );
     }
@@ -94,7 +94,7 @@ class CartModel extends Model
      * - Les articles du cookie enrichissent le panier BDD (name, image du cookie si absent en BDD).
      *
      * @param int                          $userId        Identifiant de l'utilisateur
-     * @param array<int, array<string, mixed>> $localItems    Items du cookie [{wine_id, qty, name, image}]
+     * @param array<int, array<string, mixed>> $localItems    Items du cookie [{id, qty}] (clé "id" utilisée par le JS)
      * @param callable(int):int            $stockResolver Callable retournant le stock pour un wine_id donné
      * @return void
      */
@@ -112,7 +112,8 @@ class CartModel extends Model
 
         // Fusionner les items locaux dans l'index
         foreach ($localItems as $localItem) {
-            $wineId  = (int) ($localItem['wine_id'] ?? 0);
+            // Le cookie JS utilise la clé "id", la BDD utilise "wine_id" — on accepte les deux
+            $wineId   = (int) ($localItem['wine_id'] ?? $localItem['id'] ?? 0);
             $localQty = (int) ($localItem['qty'] ?? 0);
 
             if ($wineId <= 0 || $localQty <= 0) {
@@ -128,8 +129,6 @@ class CartModel extends Model
                 $indexed[$wineId] = [
                     'wine_id' => $wineId,
                     'qty'     => min($localQty, $stock),
-                    'name'    => $localItem['name'] ?? '',
-                    'image'   => $localItem['image'] ?? '',
                 ];
             }
         }
