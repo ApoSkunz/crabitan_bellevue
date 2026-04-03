@@ -92,6 +92,35 @@ class AccountModelTest extends IntegrationTestCase
         $this->assertNull($account['email_verification_token']);
     }
 
+    public function testRefreshVerificationTokenUpdatesTokenAndExpiry(): void
+    {
+        $id       = $this->createAccount('refresh@example.com');
+        $newToken = bin2hex(random_bytes(32));
+
+        $this->model->refreshVerificationToken((int)$id, $newToken);
+
+        $account = $this->model->findById((int)$id);
+        $this->assertIsArray($account);
+        $this->assertSame($newToken, $account['email_verification_token']);
+        $this->assertNull($account['email_verified_at'], 'Le compte ne doit pas être considéré vérifié');
+        $this->assertNotNull($account['email_verification_token_expires_at']);
+    }
+
+    public function testRefreshVerificationTokenDoesNotUpdateAlreadyVerifiedAccount(): void
+    {
+        $id = $this->createAccount('refresh-verified@example.com');
+        // Vérifie d'abord le compte
+        $this->model->verifyEmail((int)$id);
+        $originalToken = 'should-not-change';
+
+        // La méthode ne doit rien modifier car email_verified_at IS NOT NULL
+        $this->model->refreshVerificationToken((int)$id, $originalToken);
+
+        $account = $this->model->findById((int)$id);
+        $this->assertIsArray($account);
+        $this->assertNull($account['email_verification_token'], 'Le token ne doit pas être réécrit après vérification');
+    }
+
     public function testUpdatePassword(): void
     {
         $id = $this->createAccount('pwd@example.com');
