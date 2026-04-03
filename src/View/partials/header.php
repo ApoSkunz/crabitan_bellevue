@@ -340,12 +340,11 @@ document.addEventListener('DOMContentLoaded', function () {
             <!-- Panel connexion -->
             <div id="login-panel">
                 <div class="login-modal__social">
-                    <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
-                        <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
-                            <img src="/assets/images/login/Google__G__logo.png" alt="" width="18" height="18">
-                            <?= htmlspecialchars(__('auth.modal.google')) ?>
-                        </button>
-                    </span>
+                    <a href="/<?= htmlspecialchars($navLang) ?>/auth/google"
+                       class="btn btn-social btn-social--google">
+                        <img src="/assets/images/login/Google__G__logo.png" alt="" width="18" height="18">
+                        <?= htmlspecialchars(__('auth.modal.google')) ?>
+                    </a>
                 </div>
                 <p class="login-modal__or"><span><?= htmlspecialchars(__('auth.modal.or')) ?></span></p>
                 <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/connexion" class="login-modal__form">
@@ -439,12 +438,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             <?php else : ?>
             <div class="register-modal__social">
-                <span class="btn-social-wrap" title="<?= htmlspecialchars(__('auth.modal.social_soon')) ?>">
-                    <button type="button" class="btn btn-social btn-social--google" disabled aria-disabled="true">
-                        <img src="/assets/images/login/Google__G__logo.png" alt="" width="18" height="18">
-                        <?= htmlspecialchars(__('auth.modal.google')) ?>
-                    </button>
-                </span>
+                <a href="/<?= htmlspecialchars($navLang) ?>/auth/google"
+                   class="btn btn-social btn-social--google">
+                    <img src="/assets/images/login/Google__G__logo.png" alt="" width="18" height="18">
+                    <?= htmlspecialchars(__('auth.modal.google')) ?>
+                </a>
             </div>
             <p class="register-modal__or"><span><?= htmlspecialchars(__('auth.modal.or')) ?></span></p>
             <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/inscription" class="register-modal__form" novalidate>
