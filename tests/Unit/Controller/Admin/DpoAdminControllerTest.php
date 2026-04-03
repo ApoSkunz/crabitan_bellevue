@@ -162,6 +162,55 @@ class DpoAdminControllerTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // pdfStyles
+    // ----------------------------------------------------------------
+
+    public function testPdfStylesReturnsCssContent(): void
+    {
+        $css = $this->callPrivate('pdfStyles');
+        $this->assertStringContainsString('<style>', $css);
+        $this->assertStringContainsString('dejavusans', $css);
+        $this->assertStringContainsString('.footer', $css);
+        $this->assertStringContainsString('#c1a14b', $css);
+    }
+
+    // ----------------------------------------------------------------
+    // row
+    // ----------------------------------------------------------------
+
+    public function testRowGeneratesValidHtml(): void
+    {
+        $ref = new \ReflectionMethod(\Controller\Admin\DpoAdminController::class, 'row');
+        $ref->setAccessible(true);
+        $html = (string) $ref->invoke($this->ctrl, 'Finalité', 'Gestion comptes');
+
+        $this->assertStringContainsString('<tr>', $html);
+        $this->assertStringContainsString('<td class="label">Finalité</td>', $html);
+        $this->assertStringContainsString('<td>Gestion comptes</td>', $html);
+    }
+
+    // ----------------------------------------------------------------
+    // TcpdfNotAvailableException — contrat de l'exception dédiée
+    // ----------------------------------------------------------------
+
+    public function testTcpdfNotAvailableExceptionExtendsRuntimeException(): void
+    {
+        $e = new \Exception\TcpdfNotAvailableException('TCPDF non disponible : /fake/path');
+        $this->assertInstanceOf(\RuntimeException::class, $e);
+        $this->assertStringContainsString('/fake/path', $e->getMessage());
+    }
+
+    // ----------------------------------------------------------------
+    // DATE_FORMAT — constante interne
+    // ----------------------------------------------------------------
+
+    public function testDateFormatConstantValue(): void
+    {
+        $ref = new \ReflectionClassConstant(\Controller\Admin\DpoAdminController::class, 'DATE_FORMAT');
+        $this->assertSame('d/m/Y', $ref->getValue());
+    }
+
+    // ----------------------------------------------------------------
     // pdfHeader
     // ----------------------------------------------------------------
 
