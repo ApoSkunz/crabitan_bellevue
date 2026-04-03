@@ -130,12 +130,19 @@ class GoogleOAuthController extends Controller
         // Cas 1 — google_id déjà lié à un compte
         $account = $this->accounts->findByGoogleId($googleId);
 
-        // Cas 2 — email connu, pas encore de google_id → rattachement
+        // Cas 2 — email connu, pas encore de google_id → confirmation de rattachement
         if (!$account) {
-            $account = $this->accounts->findByEmail($email);
-            if ($account) {
-                $this->accounts->linkGoogleId((int) $account['id'], $googleId);
-                $account = $this->accounts->findById((int) $account['id']);
+            $existing = $this->accounts->findByEmail($email);
+            if ($existing) {
+                $_SESSION['pending_google_link'] = [
+                    'google_id'  => $googleId,
+                    'account_id' => (int) $existing['id'],
+                    'email'      => $email,
+                    'firstname'  => $userInfo['given_name'] ?? '',
+                ];
+                Response::redirect(
+                    rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/') . "/{$lang}/auth/google/link"
+                );
             }
         }
 
@@ -156,11 +163,99 @@ class GoogleOAuthController extends Controller
             Response::redirect($loginUrl);
         }
 
-        // Émission du JWT et enregistrement de la connexion
+        $this->issueSession($account, $lang);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/auth/google/link
+    // ----------------------------------------------------------------
+
+    /**
+     * Affiche la page de confirmation de rattachement de compte.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     */
+    public function linkConfirm(array $params): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $lang    = $this->resolveLang($params);
+        $pending = $_SESSION['pending_google_link'] ?? null;
+
+        if (!$pending) {
+            Response::redirect(
+                rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/') . "/{$lang}?login=1"
+            );
+        }
+
+        $this->view('auth/google-link-confirm', [
+            'lang'      => $lang,
+            'email'     => $pending['email'],
+            'firstname' => $pending['firstname'] ?? '',
+            'csrf'      => $_SESSION['csrf'] ?? '',
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/auth/google/link
+    // ----------------------------------------------------------------
+
+    /**
+     * Traite la confirmation (ou l'annulation) du rattachement de compte Google.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     */
+    public function linkConfirmPost(array $params): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $lang     = $this->resolveLang($params);
+        $loginUrl = rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/') . "/{$lang}?login=1";
+        $pending  = $_SESSION['pending_google_link'] ?? null;
+
+        if (!$pending) {
+            $this->flash('modal_error', __('auth.google_error'));
+            Response::redirect($loginUrl);
+        }
+
+        unset($_SESSION['pending_google_link']);
+
+        // Annulation → retour au modal de connexion
+        if (($_POST['action'] ?? '') === 'cancel') {
+            Response::redirect($loginUrl);
+        }
+
+        // Confirmation → rattacher + connecter
+        $this->accounts->linkGoogleId((int) $pending['account_id'], $pending['google_id']);
+        $account = $this->accounts->findById((int) $pending['account_id']);
+
+        if (!$account) {
+            $this->flash('modal_error', __('auth.google_error'));
+            Response::redirect($loginUrl);
+        }
+
+        $this->issueSession($account, $lang);
+    }
+
+    // ----------------------------------------------------------------
+    // Helpers privés
+    // ----------------------------------------------------------------
+
+    /**
+     * Émet le JWT, enregistre la connexion et redirige vers l'espace client.
+     *
+     * @param array<string, mixed> $account Données du compte (id, role, lang…)
+     * @param string               $lang    Code langue courant
+     */
+    private function issueSession(array $account, string $lang): never
+    {
         $token       = Jwt::generate((int) $account['id'], $account['role'], self::JWT_EXPIRY);
         $deviceToken = $this->resolveDeviceToken();
         $ua          = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
-        $deviceName  = $this->deriveDeviceName($ua);
 
         CookieHelper::set($token, self::JWT_EXPIRY);
 
@@ -174,7 +269,7 @@ class GoogleOAuthController extends Controller
             $deviceToken,
             $_SERVER['REMOTE_ADDR'] ?? null,
             $ua,
-            $deviceName,
+            $this->deriveDeviceName($ua),
             'google',
             self::JWT_EXPIRY
         );
@@ -185,10 +280,6 @@ class GoogleOAuthController extends Controller
             rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/') . "/{$lang}/mon-compte"
         );
     }
-
-    // ----------------------------------------------------------------
-    // Helpers privés
-    // ----------------------------------------------------------------
 
     /**
      * Construit l'URI de callback OAuth en fonction de la langue courante.
