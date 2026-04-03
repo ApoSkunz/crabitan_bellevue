@@ -3,7 +3,7 @@ $pageTitle = __('footer.privacy_policy');
 $navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 $isBare    = $bare ?? false;
 
-require_once SRC_PATH . '/View/partials/legal-open.php';
+require SRC_PATH . '/View/partials/legal-open.php';
 ?>
 
         <h2>I. Responsable du traitement</h2>
@@ -113,4 +113,4 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         <p>Nous nous réservons le droit de modifier cette politique de confidentialité afin de l&#8217;adapter aux évolutions légales ou aux changements de nos pratiques. En cas de modification substantielle, nous en informerons les utilisateurs disposant d&#8217;un compte. La version en vigueur est toujours accessible depuis cette page et depuis le pied de page du site.</p>
         <p>Pour toute question relative à la protection de vos données ou aux présentes mentions légales, consultez également nos <a href="/<?= htmlspecialchars($navLang) ?>/mentions-legales"><?= htmlspecialchars(__('footer.legal_notice')) ?></a>.</p>
 
-<?php require_once SRC_PATH . '/View/partials/legal-close.php'; ?>
+<?php require SRC_PATH . '/View/partials/legal-close.php'; ?>
