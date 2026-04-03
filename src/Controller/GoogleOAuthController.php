@@ -92,7 +92,7 @@ class GoogleOAuthController extends Controller
         }
 
         $lang     = $this->resolveLang($params);
-        $loginUrl = rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}?login=1";
+        $loginUrl = "/{$lang}?login=1";
 
         // Erreur explicite retournée par Google (ex. accès refusé)
         if (!empty($_GET['error'])) {
@@ -144,9 +144,7 @@ class GoogleOAuthController extends Controller
                     'email'      => $email,
                     'firstname'  => $userInfo['given_name'] ?? '',
                 ];
-                Response::redirect(
-                    rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}/auth/google/link"
-                );
+                Response::redirect("/{$lang}/auth/google/link");
             }
         }
 
@@ -189,9 +187,7 @@ class GoogleOAuthController extends Controller
         $pending = $_SESSION['pending_google_link'] ?? null;
 
         if (!$pending) {
-            Response::redirect(
-                rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}?login=1"
-            );
+            Response::redirect("/{$lang}?login=1");
         }
 
         $this->view('auth/google-link-confirm', [
@@ -218,7 +214,7 @@ class GoogleOAuthController extends Controller
         }
 
         $lang     = $this->resolveLang($params);
-        $loginUrl = rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}?login=1";
+        $loginUrl = "/{$lang}?login=1";
         $pending  = $_SESSION['pending_google_link'] ?? null;
 
         if (!$pending) {
@@ -281,9 +277,7 @@ class GoogleOAuthController extends Controller
 
         $this->accounts->markAsConnected((int) $account['id']);
 
-        Response::redirect(
-            rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}/mon-compte"
-        );
+        Response::redirect("/{$lang}/mon-compte");
     }
 
     /**
