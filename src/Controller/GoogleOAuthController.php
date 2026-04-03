@@ -224,8 +224,9 @@ class GoogleOAuthController extends Controller
 
         unset($_SESSION['pending_google_link']);
 
-        // Annulation → retour au modal de connexion
+        // Annulation → retour au modal de connexion avec message explicatif
         if (($_POST['action'] ?? '') === 'cancel') {
+            $_SESSION['flash']['modal_error'] = __('auth.google_link_cancel_info');
             Response::redirect($loginUrl);
         }
 

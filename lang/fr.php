@@ -67,6 +67,7 @@ return [
     'auth.google_link_question'     => 'Souhaitez-vous relier votre compte Google à ce compte existant ?',
     'auth.google_link_confirm'      => 'Oui, relier mon compte',
     'auth.google_link_cancel'       => 'Non, revenir à la connexion',
+    'auth.google_link_cancel_info'  => 'Un compte existe déjà avec cette adresse email. Connectez-vous avec votre mot de passe.',
     'auth.google_link_note'         => 'En confirmant, vous pourrez vous connecter avec Google ou votre mot de passe.',
     'auth.modal.no_account'  => 'Pas encore de compte ?',
     'auth.modal.sign_up'      => 'S\'inscrire',
