@@ -2,6 +2,34 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.23.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.22.0...v0.23.0) (2026-04-03)
+
+
+### Bug Fixes
+
+* **account:** suppression de compte possible pour les comptes Google-only ([285a868](https://github.com/ApoSkunz/crabitan_bellevue/commit/285a868d08220cb607eb334ec525bf905ec8af0d))
+* **cache:** Cache-Control: no-store — empêche bfcache de restaurer les flash messages ([8a7772a](https://github.com/ApoSkunz/crabitan_bellevue/commit/8a7772a3cf6e9735eeec57d47c301db4ed590936))
+* **i18n:** préciser l'option rattachement Google dans le message de refus ([4999e71](https://github.com/ApoSkunz/crabitan_bellevue/commit/4999e71d724dabf2a14d93951d837313efbdec31))
+* **modal:** reload page à la fermeture si flash succès affiché (register / forgot / reset) ([71be4db](https://github.com/ApoSkunz/crabitan_bellevue/commit/71be4db34939f30e8b8a1834a1e8d3513bb630ef))
+* **oauth:** 500 compte en suppression + redirection post-connexion ([14cf8e5](https://github.com/ApoSkunz/crabitan_bellevue/commit/14cf8e5a30bf549eadde7268481a366fbfc190fb))
+* **oauth:** buildRedirectUri — GOOGLE_FR_FALBACK/GOOGLE_EN_FALBACK en priorité (fix 400 invalid_request) ([1cd9bbc](https://github.com/ApoSkunz/crabitan_bellevue/commit/1cd9bbc5848a65ec52469b725f05494113559046))
+* **oauth:** message explicatif au refus de rattachement compte Google ([5616140](https://github.com/ApoSkunz/crabitan_bellevue/commit/561614092824e4e55120d279440e80247c8b3faa))
+* **oauth:** redirections internes relatives — préserve la session PHP ([667715e](https://github.com/ApoSkunz/crabitan_bellevue/commit/667715ef88d607c2caa23b1359cd634a959ca873))
+* **phpcs:** GoogleOAuthControllerTest — formatage try/catch (phpcbf auto-fix) ([fff477f](https://github.com/ApoSkunz/crabitan_bellevue/commit/fff477f568319b05fb0c95c3d91d149309f51721))
+* **test:** extraire StubGoogleOAuthService dans son propre fichier (PSR-1) ([9be5407](https://github.com/ApoSkunz/crabitan_bellevue/commit/9be54077c3fc58503e1b26b6f812f1a308c2d946))
+
+
+### Features
+
+* **account:** masquer changement mdp et reset sécurité pour comptes Google-only ([2f8121d](https://github.com/ApoSkunz/crabitan_bellevue/commit/2f8121da9d4ac91f8bf05413b57ee4f1d983bb85))
+* **auth:** envoyer un mail informatif si mot de passe oublié sur compte Google-only ([b460d8c](https://github.com/ApoSkunz/crabitan_bellevue/commit/b460d8c2125017f51c6882f536b21c95ee5ca344))
+* **model:** AccountModel — linkGoogleId() + createFromGoogle() ([85ad110](https://github.com/ApoSkunz/crabitan_bellevue/commit/85ad1100fe24c93c28e000a03528d8ae08ef885b))
+* **oauth:** GoogleOAuthService + GoogleOAuthController — flux OAuth2 Google complet ([1977ce8](https://github.com/ApoSkunz/crabitan_bellevue/commit/1977ce81582cedaca30e3d9e1b80a0c0b21e79b0))
+* **oauth:** rattachement proposé — page de confirmation avant linkGoogleId ([01061a2](https://github.com/ApoSkunz/crabitan_bellevue/commit/01061a2553f5c7013e629e507e1c8741e20da42f))
+* **oauth:** routes link confirm + vue google-link-confirm + i18n fr/en ([fd33b3f](https://github.com/ApoSkunz/crabitan_bellevue/commit/fd33b3f3d4b93472f26e7b7981d64f11da37e82a))
+* **routes:** GET /{lang}/auth/google + /{lang}/auth/google/callback ([f5c039e](https://github.com/ApoSkunz/crabitan_bellevue/commit/f5c039e34f9433906d310fc8015d7d5175c70226))
+* **view:** bouton Google OAuth activé dans les modals connexion/inscription ([cdbb0f8](https://github.com/ApoSkunz/crabitan_bellevue/commit/cdbb0f860dde5bac33f9f6a5b51ae70823f1277f))
+
 # [0.22.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.21.0...v0.22.0) (2026-04-03)
 
 
