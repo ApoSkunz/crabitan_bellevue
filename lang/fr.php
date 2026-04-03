@@ -156,6 +156,13 @@ return [
     'cart.login_required'  => 'Connectez-vous pour finaliser votre commande.',
     'cart.added_offline'   => 'Ajouté au panier. Connectez-vous pour passer commande.',
     'cart.added'           => 'Ajouté au panier !',
+    'cart.login_to_order'  => 'Connectez-vous pour passer commande',
+    'cart.login_cta'       => 'Se connecter',
+    'cart.browse'          => 'Voir les vins',
+    'cart.item_total'      => 'Sous-total',
+    'cart.order_total'     => 'Total',
+    'cart.price_at_checkout' => 'Prix calculé à la commande',
+    'cart.update_qty'      => 'Modifier la quantité',
 
     // Commande
     'order.confirm'   => 'Confirmer la commande',

@@ -156,6 +156,13 @@ return [
     'cart.login_required'  => 'Please log in to complete your order.',
     'cart.added_offline'   => 'Added to cart. Log in to place your order.',
     'cart.added'           => 'Added to cart!',
+    'cart.login_to_order'  => 'Log in to place your order',
+    'cart.login_cta'       => 'Log in',
+    'cart.browse'          => 'Browse wines',
+    'cart.item_total'      => 'Subtotal',
+    'cart.order_total'     => 'Total',
+    'cart.price_at_checkout' => 'Price calculated at checkout',
+    'cart.update_qty'      => 'Update quantity',
 
     // Order
     'order.confirm'   => 'Confirm order',
