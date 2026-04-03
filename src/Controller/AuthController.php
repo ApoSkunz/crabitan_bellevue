@@ -218,8 +218,8 @@ class AuthController extends Controller
                     $localItems,
                     fn(int $wineId): int => (int) ($wineModel->getById($wineId)['quantity'] ?? 0)
                 );
-                // Effacer le cookie côté serveur
-                setcookie('cb-cart', '', time() - 3600, '/', '', true, false);
+                // Effacer le cookie côté serveur (secure=false pour compatibilité HTTP dev)
+                setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
             }
         }
 
@@ -260,6 +260,29 @@ class AuthController extends Controller
         $token = $_COOKIE['auth_token'] ?? null;
 
         if ($token) {
+            // Sauvegarder le panier BDD dans le cookie avant déconnexion
+            // → l'utilisateur retrouve son panier en mode invité
+            try {
+                $payload = Jwt::decode($token);
+                $userId  = (int) ($payload['sub'] ?? 0);
+                if ($userId > 0) {
+                    $cartModel = new \Model\CartModel();
+                    $cart      = $cartModel->findByUserId($userId);
+                    if ($cart !== false) {
+                        $dbItems = $cartModel->getContent($cart);
+                        if (!empty($dbItems)) {
+                            $cookieItems = array_values(array_map(
+                                fn(array $item): array => ['id' => (int) $item['wine_id'], 'qty' => (int) $item['qty']],
+                                $dbItems
+                            ));
+                            setcookie('cb-cart', (string) json_encode($cookieItems), ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
+                        }
+                    }
+                }
+            } catch (\Throwable) {
+                // JWT invalide — pas de panier à sauvegarder, on continue la déconnexion
+            }
+
             $this->connections->revoke($token);
             CookieHelper::clear();
         }
