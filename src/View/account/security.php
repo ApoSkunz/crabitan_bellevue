@@ -19,7 +19,8 @@ $deleteError = $errors['delete'] ?? null;
                 <h1 class="account-header__title"><?= __('account.security') ?></h1>
             </header>
 
-            <!-- Changement de mot de passe -->
+            <!-- Changement de mot de passe — masqué pour les comptes Google (password NULL) -->
+            <?php if ($hasPassword) : ?>
             <section class="account-section">
                 <h2 class="account-section__title"><?= __('account.change_password') ?></h2>
 
@@ -86,6 +87,7 @@ $deleteError = $errors['delete'] ?? null;
                     </button>
                 </form>
             </section>
+            <?php endif; ?>
 
             <!-- Sessions actives -->
             <section class="account-section">
@@ -195,7 +197,8 @@ $deleteError = $errors['delete'] ?? null;
                 <?php endif; ?>
             </section>
 
-            <!-- Réinitialisation sécurité -->
+            <!-- Réinitialisation sécurité — masqué pour les comptes Google (pas de MDP) -->
+            <?php if ($hasPassword) : ?>
             <section class="account-section account-section--danger">
                 <h2 class="account-section__title"><?= __('account.security_reset_btn') ?></h2>
 
@@ -205,6 +208,7 @@ $deleteError = $errors['delete'] ?? null;
                     <?= __('account.security_reset_btn') ?>
                 </button>
             </section>
+            <?php endif; ?>
 
             <!-- Suppression de compte -->
             <section class="account-section account-section--danger">
@@ -220,6 +224,7 @@ $deleteError = $errors['delete'] ?? null;
     </div>
 </main>
 
+<?php if ($hasPassword) : ?>
 <!-- Modal réinitialisation sécurité -->
 <div class="account-delete-modal" id="reset-security-modal"
      role="dialog" aria-modal="true" aria-labelledby="reset-security-modal-title" hidden
@@ -265,6 +270,7 @@ $deleteError = $errors['delete'] ?? null;
         </form>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Modal confirmation suppression de compte -->
 <div class="account-delete-modal" id="delete-modal"

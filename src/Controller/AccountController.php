@@ -664,9 +664,12 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $errors  = $_SESSION['flash']['security_errors']  ?? [];
         unset($_SESSION['flash']['security_success'], $_SESSION['flash']['security_errors']);
 
+        $account = $this->accounts->findById($userId);
+
         $this->view('account/security', [
             'lang'               => $lang,
-            'account'            => $this->accounts->findById($userId),
+            'account'            => $account,
+            'hasPassword'        => $account && $account['password'] !== null,
             'sessions'           => $this->connections->getActiveForUser($userId),
             'trustedDevices'     => $this->trustedDevices->getForUser($userId),
             'currentToken'       => $_COOKIE['auth_token'] ?? null,
