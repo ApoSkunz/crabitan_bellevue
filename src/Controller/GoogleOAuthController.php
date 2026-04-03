@@ -282,13 +282,21 @@ class GoogleOAuthController extends Controller
     }
 
     /**
-     * Construit l'URI de callback OAuth en fonction de la langue courante.
+     * Construit l'URI de callback OAuth pour la langue donnée.
+     *
+     * Priorité :
+     *   1. GOOGLE_FR_FALBACK / GOOGLE_EN_FALBACK  — valeur explicite .env (localhost en dev)
+     *   2. APP_URL + /{lang}/auth/google/callback  — fallback générique
      *
      * @param string $lang Code langue (fr|en)
-     * @return string URI complète
+     * @return string URI complète enregistrée dans la Google Cloud Console
      */
     private function buildRedirectUri(string $lang): string
     {
+        $envKey = 'GOOGLE_' . strtoupper($lang) . '_FALBACK';
+        if (!empty($_ENV[$envKey])) {
+            return $_ENV[$envKey];
+        }
         return rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/') . "/{$lang}/auth/google/callback";
     }
 
