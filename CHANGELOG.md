@@ -2,6 +2,23 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.24.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.23.0...v0.24.0) (2026-04-03)
+
+
+### Bug Fixes
+
+* **view:** require → require_once dans conditions-generales-vente (php:S2003) ([58a6cc9](https://github.com/ApoSkunz/crabitan_bellevue/commit/58a6cc9590aa90cafec85d681280e1e41a87840f))
+
+
+### Features
+
+* **controller:** PageController::conditionsGeneralesVente — bare mode + lang resolution ([538c5e2](https://github.com/ApoSkunz/crabitan_bellevue/commit/538c5e2209f9d63b41860d0fb94e3eae9a7f444e))
+* **i18n:** clé footer.cgv — Conditions générales de vente / Terms and conditions ([b50e41d](https://github.com/ApoSkunz/crabitan_bellevue/commit/b50e41d46047b6dbd4d31264f92df1914805675c))
+* **mail:** lien CGV dans footer email transactionnel (TLS + URL_CGV constant) ([84fde59](https://github.com/ApoSkunz/crabitan_bellevue/commit/84fde5983c0d6a884ac5c3b09a57889d2fb1ae7b))
+* **routes:** route GET /{lang}/conditions-generales-de-vente + isPublicPath age-gate bypass ([47b1128](https://github.com/ApoSkunz/crabitan_bellevue/commit/47b1128e06a3ded8213223cd05358ba2575e216a))
+* **view:** lien CGV dans footer-nav-legal + carte plan-du-site ([5381184](https://github.com/ApoSkunz/crabitan_bellevue/commit/5381184a0978a11554d1f02fab48cb471655096d))
+* **view:** page CGV bilingue fr/en — 12 sections, droit de rétractation 14j, vice caché vin, TLS+QPC, annulation par étape, horaires, crabitan.bellevue@orange.fr ([2826266](https://github.com/ApoSkunz/crabitan_bellevue/commit/28262667e56dae36c3ea3c5bb13316453a702d90))
+
 # [0.23.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.22.0...v0.23.0) (2026-04-03)
 
 
