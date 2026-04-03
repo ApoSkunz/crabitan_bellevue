@@ -169,8 +169,8 @@ class DpoAdminController extends AdminController
             td.label { font-weight: bold; width: 35%; color: #5a4030; }
             .meta { font-size: 8pt; color: #8a7060; margin: 0 0 12px; }
             .footer { font-size: 7.5pt; color: #888; margin-top: 14px; border-top: 1px solid #e0d8cc; padding-top: 6px; }
-            .tag-ok   { color: #2e7d32; font-weight: bold; }
-            .tag-warn { color: #e65100; font-weight: bold; }
+            .tag-ok   { color: #2e7d32; }
+            .tag-warn { color: #e65100; }
         </style>';
     }
 
@@ -281,7 +281,7 @@ class DpoAdminController extends AdminController
             ],
             [
                 'title'      => '8. Traductions DeepL (API)',
-                'finalite'   => 'Traduction de l\'interface bilingue (FR ↔ EN)',
+                'finalite'   => 'Traduction de l\'interface bilingue (FR &#8596; EN)',
                 'base'       => 'Art. 6-1-b — nécessaire à la fourniture du service',
                 'donnees'    => 'Chaînes de texte statiques (vins, actualités, newsletter) — aucune donnée personnelle',
                 'personnes'  => 'N/A — contenu éditorial uniquement',
@@ -358,7 +358,7 @@ class DpoAdminController extends AdminController
             ],
             [
                 'name'     => 'DeepL SE',
-                'role'     => 'API de traduction (FR ↔ EN) — contenu éditorial uniquement, aucune donnée personnelle',
+                'role'     => 'API de traduction (FR &#8596; EN) — contenu éditorial uniquement, aucune donnée personnelle',
                 'location' => 'Allemagne (UE)',
                 'transfer' => 'Non applicable — aucune donnée personnelle transmise (confirmé PO)',
                 'dpa'      => 'Art. 28 non applicable — pas de données personnelles transmises',
@@ -412,7 +412,7 @@ class DpoAdminController extends AdminController
         $html .= '<p class="meta">Prochaine révision annuelle : ' . date(self::DATE_FORMAT, strtotime('+1 year')) . '</p>';
 
         foreach ($processors as $p) {
-            $html .= '<h3>' . htmlspecialchars($p['name']) . ' — <span class="tag-ok">✓ Conforme</span></h3>'
+            $html .= '<h3>' . htmlspecialchars($p['name']) . ' — <span class="tag-ok">&#10003; Conforme</span></h3>'
                 . '<table>'
                 . $this->row('Rôle', htmlspecialchars($p['role']))
                 . $this->row('Localisation', htmlspecialchars($p['location']))
@@ -459,9 +459,9 @@ class DpoAdminController extends AdminController
             . '<tr><th>Étape</th><th>Qui</th><th>Délai</th></tr>'
             . '<tr><td>Détecter et qualifier l\'incident (nature, périmètre, données)</td><td>DevSecOps / Toute personne</td><td>Immédiatement</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
             . '<tr><td>Contenir : isoler système, révoquer tokens, bloquer IP</td><td>DevSecOps</td><td>&lt; 1h</td></tr>'
-            . '<tr><td>Alerter le référent RGPD (email + téléphone)</td><td>DevSecOps → DPO</td><td>&lt; 2h</td></tr>'
+            . '<tr><td>Alerter le référent RGPD (email + téléphone)</td><td>DevSecOps &#8594; DPO</td><td>&lt; 2h</td></tr>'
             . '<tr><td>Évaluer le risque (arbre de décision ci-dessus)</td><td>DPO + DevSecOps</td><td>&lt; 4h</td></tr>'
-            . '<tr><td>Alerter la direction si risque probable ou élevé</td><td>DPO → Direction</td><td>&lt; 4h</td></tr>'
+            . '<tr><td>Alerter la direction si risque probable ou élevé</td><td>DPO &#8594; Direction</td><td>&lt; 4h</td></tr>'
             . '<tr><td>Notifier la CNIL si obligatoire (notifications.cnil.fr)</td><td>DPO</td><td><strong>≤ 72h</strong></td></tr>'
             . '<tr><td>Communiquer aux personnes concernées si risque élevé</td><td>DPO + Direction</td><td>Sans délai injustifié</td></tr>'
             . '<tr><td>Documenter dans le registre interne des violations</td><td>DPO</td><td>Dans les 72h</td></tr>'
@@ -489,7 +489,7 @@ class DpoAdminController extends AdminController
             . '<p>Toutes les violations doivent être documentées, y compris celles ne nécessitant pas de notification CNIL (Art. 33-5 RGPD). Tenir un fichier de suivi séparé (tableur ou outil interne) avec les colonnes : date de détection, nature, périmètre, risque évalué, notification CNIL, communication personnes, mesures prises, clôture.</p>'; // phpcs:ignore Generic.Files.LineLength.TooLong
 
         $html .= '<h2>7. Simulation annuelle</h2>'
-            . '<p>Exercice annuel avant le 30 juin. Scénario type : "détection d\'une requête SQL suspecte — données clients potentiellement extraites." Déroulé : qualification (30 min) → test chaîne escalade → rédaction template CNIL (sans envoi) → debriefing. Responsable : DevSecOps + DPO.</p>'; // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '<p>Exercice annuel avant le 30 juin. Scénario type : "détection d\'une requête SQL suspecte — données clients potentiellement extraites." Déroulé : qualification (30 min) &#8594; test chaîne escalade &#8594; rédaction template CNIL (sans envoi) &#8594; debriefing. Responsable : DevSecOps + DPO.</p>'; // phpcs:ignore Generic.Files.LineLength.TooLong
 
         $html .= $this->pdfFooter('Document confidentiel — Art. 33 &amp; 34 RGPD — Prochaine révision : ' . $revision, $date);
 
