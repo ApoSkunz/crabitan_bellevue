@@ -3,39 +3,8 @@ $pageTitle = __('footer.legal_notice');
 $navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 $isBare    = $bare ?? false;
 
-if (!$isBare) {
-    require_once SRC_PATH . '/View/partials/head.php';
-    require_once SRC_PATH . '/View/partials/header.php';
-}
+require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : require_once bloquerait le re-rendu entre tests (même convention que Response::view)
 ?>
-<?php if ($isBare) : ?>
-<!DOCTYPE html>
-<html lang="<?= htmlspecialchars($navLang) ?>" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle) ?></title>
-    <meta name="robots" content="noindex, nofollow">
-    <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/assets/css/main.css">
-</head>
-<body class="bare-legal">
-    <div class="bare-legal__bar">
-        <span><?= htmlspecialchars($pageTitle) ?></span>
-        <button type="button" class="bare-legal__close" onclick="window.close()" aria-label="Fermer">&#10005;</button>
-    </div>
-    <article class="legal-content container" aria-label="<?= htmlspecialchars(__('footer.legal_notice')) ?>">
-<?php else : ?>
-<main class="page-legal" id="main-content">
-    <div class="page-hero page-hero--dark">
-        <div class="container">
-            <h1 class="home-section__title"><?= htmlspecialchars(__('footer.legal_notice')) ?></h1>
-            <div class="home-section__divider home-section__divider--center"></div>
-        </div>
-    </div>
-
-    <article class="legal-content container" aria-label="<?= htmlspecialchars(__('footer.legal_notice')) ?>">
-<?php endif; ?>
 
         <h2>I. Informations d&#8217;exploitation</h2>
 
@@ -56,8 +25,8 @@ if (!$isBare) {
         <p>Par conséquent, sauf indication contraire, les droits de propriété intellectuelle sur les documents textuels ou photographiques contenus sur le site et chacun des éléments créés pour le site crabitanbellevue.fr restent la propriété de la Société Civile GFA Bernard Solane et Fils. Aucune licence ni aucun autre droit de propriété intellectuelle ne vous est accordé de quelque manière que ce soit, sinon de consulter notre site et son contenu en ligne. La reproduction complète ou partielle de ce document est autorisée à des fins exclusivement privées&nbsp;; toute reproduction à des fins commerciales ou publicitaires et la diffusion à des tiers est expressément interdite sans accord préalable écrit.</p>
 
         <h3>2. Cookies</h3>
-        <p>La Société Civile GFA Bernard Solane et Fils est susceptible d&#8217;utiliser des cookies déposés dans l&#8217;ordinateur des visiteurs du site. Un cookie contient les informations relatives à la navigation de l&#8217;utilisateur sur notre site, l&#8217;heure et l&#8217;état de la connexion et ses préférences.</p>
-        <p>Tout visiteur dispose du droit de s&#8217;opposer à l&#8217;enregistrement de cookies en paramétrant son navigateur :</p>
+        <p>Le GFA Bernard Solane et Fils utilise des cookies strictement nécessaires au fonctionnement du site (session, préférence de langue, vérification de l&#8217;âge) ainsi que, avec votre consentement, des cookies de mesure d&#8217;audience (Google Analytics 4). Un bandeau de consentement est affiché à chaque première visite, conformément aux recommandations CNIL 2020 et à l&#8217;Art.&nbsp;82 de la Loi Informatique et Libertés. Vous pouvez gérer votre consentement à tout moment via le lien «&nbsp;Gérer les cookies&nbsp;» en bas de page.</p>
+        <p>Vous pouvez également paramétrer votre navigateur pour refuser les cookies&nbsp;:</p>
         <ul>
             <li><strong>Google Chrome</strong>&nbsp;: Paramètres &gt; Confidentialité et sécurité &gt; Paramètres des cookies.</li>
             <li><strong>Safari</strong>&nbsp;: Préférences &gt; Confidentialité &gt; Désactiver les cookies.</li>
@@ -65,8 +34,8 @@ if (!$isBare) {
         </ul>
 
         <h2>III. Données à caractère personnel</h2>
-        <p>La protection de vos données personnelles est notre priorité. Nous n&#8217;utilisons que les données strictement nécessaires (principe de minimisation, art. 5-1-c du RGPD). Les paiements par carte bancaire sont traités par un prestataire certifié PCI-DSS&nbsp;; vos coordonnées bancaires ne sont jamais stockées sur nos serveurs.</p>
-        <p>Pour connaître en détail les données collectées, leurs finalités, leur durée de conservation et exercer vos droits (accès, rectification, effacement, portabilité, opposition), consultez notre <a href="/<?= htmlspecialchars($navLang) ?>/politique-de-confidentialite"><?= htmlspecialchars(__('footer.privacy_policy')) ?></a>.</p>
+        <p>La protection de vos données personnelles est notre priorité. Nous n&#8217;utilisons que les données strictement nécessaires (principe de minimisation, art. 5-1-c du RGPD). Les paiements par carte bancaire sont traités par un prestataire certifié PCI-DSS&nbsp;; vos coordonnées bancaires ne sont jamais stockées sur nos serveurs. Un registre des activités de traitement est tenu à jour conformément à l&#8217;Art.&nbsp;30 du RGPD et peut être mis à la disposition de la CNIL sur demande.</p>
+        <p>Pour connaître en détail les données collectées, leurs finalités, les sous-traitants impliqués, les durées de conservation et exercer vos droits (accès, rectification, effacement, portabilité, opposition), consultez notre <a href="/<?= htmlspecialchars($navLang) ?>/politique-de-confidentialite"><?= htmlspecialchars(__('footer.privacy_policy')) ?></a>.</p>
 
         <h2>IV. Responsabilités</h2>
 
@@ -83,11 +52,4 @@ if (!$isBare) {
         <p><?= htmlspecialchars(__('legal.hosting_info')) ?></p>
         <p><?= htmlspecialchars(__('legal.ai_mention')) ?></p>
 
-    </article>
-<?php if ($isBare) : ?>
-</body>
-</html>
-<?php else : ?>
-</main>
-    <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
-<?php endif; ?>
+<?php require SRC_PATH . '/View/partials/legal-close.php'; // NOSONAR — php:S2003 : idem ?>

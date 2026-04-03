@@ -22,15 +22,7 @@
     gap: 2.5rem;
     animation: fade-in 0.6s ease both;
 
-    // 1er cadre doré : bords du viewport (position fixe, ne bouge pas au scroll)
-    &::before {
-        content: '';
-        position: fixed;
-        inset: 12px 12px 28px 12px; // bas remonté pour l'esthétique
-        border: 1px solid rgba(201, 168, 76, 0.4);
-        pointer-events: none;
-        z-index: 10;
-    }
+    // Cadre doré extérieur supprimé — les liens légaux se superposaient à la bordure
 }
 
 // Citation — entre les deux cadres dorés (police script, 2.6em ancien site)
