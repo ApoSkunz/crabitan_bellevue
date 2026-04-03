@@ -27,7 +27,8 @@ $isPublicPath = str_starts_with($path, '/age-gate')
     || str_ends_with($path, '/mentions-legales')
     || str_ends_with($path, '/politique-de-confidentialite')
     || str_ends_with($path, '/support')
-    || str_contains($path, '/newsletter/desabonnement');
+    || str_contains($path, '/newsletter/desabonnement')
+    || str_contains($path, '/auth/google'); // Google OAuth — Google redirige vers ce callback sans cookie age_verified
 
 if (!$ageVerified && !$isPublicPath) {
     $redirect = rawurlencode($path !== '/' ? $path : '/' . DEFAULT_LANG);
@@ -42,6 +43,9 @@ if ($ageVerified && isset($_COOKIE['age_remember'])) {
     setcookie('age_verified', '1', array_merge($cookieBase, ['expires' => time() + $ttl]));
     setcookie('age_remember', '1', array_merge($cookieBase, ['expires' => time() + $ttl]));
 }
+
+// Empêche le bfcache navigateur de restaurer des pages avec flash messages révolus
+header('Cache-Control: no-store');
 
 try {
     $router->dispatch();

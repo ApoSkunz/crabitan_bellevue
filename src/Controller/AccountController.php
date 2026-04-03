@@ -664,9 +664,12 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $errors  = $_SESSION['flash']['security_errors']  ?? [];
         unset($_SESSION['flash']['security_success'], $_SESSION['flash']['security_errors']);
 
+        $account = $this->accounts->findById($userId);
+
         $this->view('account/security', [
             'lang'               => $lang,
-            'account'            => $this->accounts->findById($userId),
+            'account'            => $account,
+            'hasPassword'        => $account && $account['password'] !== null,
             'sessions'           => $this->connections->getActiveForUser($userId),
             'trustedDevices'     => $this->trustedDevices->getForUser($userId),
             'currentToken'       => $_COOKIE['auth_token'] ?? null,
@@ -1238,17 +1241,21 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             Response::redirect($back);
         }
 
-        // Vérification du mot de passe saisi dans le modal de confirmation
-        $confirmPwd = $this->request->post('confirm_password', '');
-        $account    = $this->accounts->findById($userId);
+        $account = $this->accounts->findById($userId);
 
-        if (
-            !$account
-            || $account['password'] === null
-            || !password_verify($confirmPwd, (string) $account['password'])
-        ) {
+        if (!$account) {
             $_SESSION['flash']['security_errors'] = ['delete' => __('account.delete_wrong_password')];
             Response::redirect($back);
+        }
+
+        // Vérification du mot de passe — uniquement pour les comptes avec mot de passe
+        // Les comptes Google-only (password IS NULL) s'appuient sur la confirmation "SUPPRESSION"
+        if ($account['password'] !== null) {
+            $confirmPwd = $this->request->post('confirm_password', '');
+            if (!password_verify($confirmPwd, (string) $account['password'])) {
+                $_SESSION['flash']['security_errors'] = ['delete' => __('account.delete_wrong_password')];
+                Response::redirect($back);
+            }
         }
 
         if ($this->orders->hasActiveOrdersForUser($userId)) {

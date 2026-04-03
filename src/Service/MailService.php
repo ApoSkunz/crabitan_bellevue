@@ -77,6 +77,27 @@ class MailService
         $this->send($to, $name, $subject, $body);
     }
 
+    /**
+     * Envoie un email informatif à un compte Google-only ayant demandé un reset de mot de passe.
+     *
+     * @param string $to   Adresse email du destinataire
+     * @param string $name Prénom ou nom complet
+     * @param string $lang Langue du compte ('fr' ou 'en')
+     * @return void
+     */
+    public function sendGoogleAccountInfo(string $to, string $name, string $lang): void
+    {
+        $subject = $lang === 'fr'
+            ? 'Votre compte est associé à Google'
+            : 'Your account is linked to Google';
+
+        $body = $lang === 'fr'
+            ? $this->googleAccountInfoBodyFr($name)
+            : $this->googleAccountInfoBodyEn($name);
+
+        $this->send($to, $name, $subject, $body);
+    }
+
     public function sendContactToOwner(
         string $firstname,
         string $lastname,
@@ -1230,6 +1251,36 @@ INNER;
             'Reset my password',
             'This link is valid for <strong>1 hour</strong>. If you did not request a password reset,'
             . ' please ignore this email — your password will remain unchanged.',
+            'en'
+        );
+    }
+
+    private function googleAccountInfoBodyFr(string $name): string
+    {
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $message  = 'Vous avez tenté de réinitialiser votre mot de passe, mais votre compte Crabitan Bellevue'
+            . ' est associé à Google — il ne possède pas de mot de passe.'
+            . '<br><br>Pour vous connecter, cliquez sur le bouton <strong>« Continuer avec Google »</strong>'
+            . ' sur la page de connexion.';
+        return $this->emailSimpleLayout(
+            'Information sur votre compte',
+            "Bonjour {$safeName},",
+            $message,
+            'fr'
+        );
+    }
+
+    private function googleAccountInfoBodyEn(string $name): string
+    {
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $message  = 'You requested a password reset, but your Crabitan Bellevue account is linked to Google'
+            . ' — it does not have a password.'
+            . '<br><br>To sign in, click the <strong>"Continue with Google"</strong> button'
+            . ' on the login page.';
+        return $this->emailSimpleLayout(
+            'Account information',
+            "Hello {$safeName},",
+            $message,
             'en'
         );
     }

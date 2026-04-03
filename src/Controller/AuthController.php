@@ -460,21 +460,22 @@ class AuthController extends Controller
         $this->flash('forgot_success', '1');
 
         if ($account && $account['email_verified_at'] && $account['role'] === 'customer') {
-            $token = bin2hex(random_bytes(32));
-            $this->resets->create((int) $account['id'], $token);
-            $resetUrl = APP_URL . "/{$lang}/reinitialisation/{$token}";
+            $displayName = $account['account_type'] === 'company'
+                ? ($account['company_name'] ?? 'Client')
+                : (($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
 
             try {
-                $displayName = $account['account_type'] === 'company'
-                    ? ($account['company_name'] ?? 'Client')
-                    : (($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
                 $mail = new MailService();
-                $mail->sendPasswordReset(
-                    $account['email'],
-                    $displayName,
-                    $resetUrl,
-                    $lang
-                );
+
+                if ($account['password'] === null) {
+                    // Compte Google-only : pas de mot de passe, informer l'utilisateur
+                    $mail->sendGoogleAccountInfo($account['email'], $displayName, $lang);
+                } else {
+                    $token    = bin2hex(random_bytes(32));
+                    $this->resets->create((int) $account['id'], $token);
+                    $resetUrl = APP_URL . "/{$lang}/reinitialisation/{$token}";
+                    $mail->sendPasswordReset($account['email'], $displayName, $resetUrl, $lang);
+                }
             } catch (\Throwable $e) {
                 error_log('Mail reset error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
             }
