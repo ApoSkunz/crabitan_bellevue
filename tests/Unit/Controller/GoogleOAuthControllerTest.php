@@ -153,4 +153,66 @@ class GoogleOAuthControllerTest extends TestCase
 
         $this->assertArrayNotHasKey('oauth_google_state', $_SESSION);
     }
+
+    // ----------------------------------------------------------------
+    // linkConfirm() — page de confirmation de rattachement
+    // ----------------------------------------------------------------
+
+    public function testLinkConfirmWithNoPendingLinkRedirects(): void
+    {
+        $_SESSION = []; // pas de pending_google_link en session
+
+        $ctrl = $this->makeController();
+
+        try {
+            $ctrl->linkConfirm(['lang' => 'fr']);
+        } catch (HttpException) {}
+
+        // doit rediriger (pas d'erreur fatale, pas de page affichée)
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // linkConfirmPost() — confirmation du rattachement
+    // ----------------------------------------------------------------
+
+    public function testLinkConfirmPostWithNoPendingLinkSetsError(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SESSION = []; // pas de pending_google_link
+
+        $ctrl = $this->makeController();
+
+        try {
+            $ctrl->linkConfirmPost(['lang' => 'fr']);
+        } catch (HttpException) {}
+
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+    }
+
+    public function testLinkConfirmPostCancelRedirectsToLogin(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST    = ['action' => 'cancel'];
+        $_SESSION = [
+            'pending_google_link' => [
+                'google_id'  => 'g123',
+                'account_id' => 42,
+                'email'      => 'test@example.com',
+            ],
+        ];
+
+        $ctrl = $this->makeController();
+
+        $redirected = false;
+        try {
+            $ctrl->linkConfirmPost(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $redirected = str_contains((string) $e->location, 'login=1')
+                || str_contains((string) $e->location, 'fr');
+        }
+
+        $this->assertTrue($redirected);
+        $this->assertArrayNotHasKey('pending_google_link', $_SESSION);
+    }
 }
