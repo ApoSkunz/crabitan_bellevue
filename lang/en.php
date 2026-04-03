@@ -67,7 +67,7 @@ return [
     'auth.google_link_question'     => 'Would you like to link your Google account to this existing account?',
     'auth.google_link_confirm'      => 'Yes, link my account',
     'auth.google_link_cancel'       => 'No, go back to sign in',
-    'auth.google_link_cancel_info'  => 'An account already exists with this email address. Please sign in with your password.',
+    'auth.google_link_cancel_info'  => 'An account already exists with this email address. Sign in with your password, or click "Continue with Google" again to link your account.',
     'auth.google_link_note'         => 'By confirming, you\'ll be able to sign in with Google or your password.',
     'auth.modal.no_account'  => 'Don\'t have an account?',
     'auth.modal.sign_up'      => 'Sign up',
