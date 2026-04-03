@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Service;
 
+use Core\Exception\GoogleOAuthException;
+
 /**
  * Gère le flux OAuth2 Google : construction de l'URL d'autorisation,
  * échange du code contre un token et récupération des infos utilisateur.
@@ -62,7 +64,7 @@ class GoogleOAuthService
         $data     = json_decode($response, true);
 
         if (!isset($data['access_token'])) {
-            throw new \RuntimeException('Google token exchange failed: ' . ($data['error'] ?? 'unknown'));
+            throw new GoogleOAuthException('Google token exchange failed: ' . ($data['error'] ?? 'unknown'));
         }
 
         return $data;
@@ -81,7 +83,7 @@ class GoogleOAuthService
         $data     = json_decode($response, true);
 
         if (!isset($data['sub'], $data['email'])) {
-            throw new \RuntimeException('Google userinfo missing required fields');
+            throw new GoogleOAuthException('Google userinfo missing required fields');
         }
 
         return $data;
@@ -107,7 +109,7 @@ class GoogleOAuthService
         $result = @file_get_contents($url, false, $ctx);
 
         if ($result === false) {
-            throw new \RuntimeException('Google OAuth HTTP POST failed');
+            throw new GoogleOAuthException('Google OAuth HTTP POST failed');
         }
 
         return $result;
@@ -132,7 +134,7 @@ class GoogleOAuthService
         $result = @file_get_contents($url, false, $ctx);
 
         if ($result === false) {
-            throw new \RuntimeException('Google OAuth HTTP GET failed');
+            throw new GoogleOAuthException('Google OAuth HTTP GET failed');
         }
 
         return $result;

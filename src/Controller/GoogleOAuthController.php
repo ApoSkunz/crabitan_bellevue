@@ -6,6 +6,7 @@ namespace Controller;
 
 use Core\Controller;
 use Core\CookieHelper;
+use Core\Exception\GoogleOAuthException;
 use Core\Jwt;
 use Core\Response;
 use Model\AccountModel;
@@ -23,6 +24,9 @@ class GoogleOAuthController extends Controller
 {
     /** Durée de vie du JWT Google OAuth (24h). */
     private const JWT_EXPIRY = 86400;
+
+    /** Fallback APP_URL pour l'environnement de développement local. */
+    private const LOCALHOST_FALLBACK = 'http://localhost';
 
     private AccountModel $accounts;
     private ConnectionModel $connections;
@@ -88,7 +92,7 @@ class GoogleOAuthController extends Controller
         }
 
         $lang     = $this->resolveLang($params);
-        $loginUrl = rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/') . "/{$lang}?login=1";
+        $loginUrl = rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}?login=1";
 
         // Erreur explicite retournée par Google (ex. accès refusé)
         if (!empty($_GET['error'])) {
@@ -119,7 +123,7 @@ class GoogleOAuthController extends Controller
             $redirectUri = $this->buildRedirectUri($lang);
             $tokenData   = $this->oauth->exchangeCode((string) $code, $redirectUri);
             $userInfo    = $this->oauth->fetchUserInfo($tokenData['access_token']);
-        } catch (\RuntimeException) {
+        } catch (GoogleOAuthException) {
             $this->flash('modal_error', __('auth.google_error'));
             Response::redirect($loginUrl);
         }
@@ -141,7 +145,7 @@ class GoogleOAuthController extends Controller
                     'firstname'  => $userInfo['given_name'] ?? '',
                 ];
                 Response::redirect(
-                    rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/') . "/{$lang}/auth/google/link"
+                    rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}/auth/google/link"
                 );
             }
         }
@@ -186,7 +190,7 @@ class GoogleOAuthController extends Controller
 
         if (!$pending) {
             Response::redirect(
-                rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/') . "/{$lang}?login=1"
+                rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}?login=1"
             );
         }
 
@@ -214,7 +218,7 @@ class GoogleOAuthController extends Controller
         }
 
         $lang     = $this->resolveLang($params);
-        $loginUrl = rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/') . "/{$lang}?login=1";
+        $loginUrl = rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}?login=1";
         $pending  = $_SESSION['pending_google_link'] ?? null;
 
         if (!$pending) {
@@ -278,7 +282,7 @@ class GoogleOAuthController extends Controller
         $this->accounts->markAsConnected((int) $account['id']);
 
         Response::redirect(
-            rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/') . "/{$lang}/mon-compte"
+            rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}/mon-compte"
         );
     }
 
@@ -298,7 +302,7 @@ class GoogleOAuthController extends Controller
         if (!empty($_ENV[$envKey])) {
             return $_ENV[$envKey];
         }
-        return rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/') . "/{$lang}/auth/google/callback";
+        return rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}/auth/google/callback";
     }
 
     /**
