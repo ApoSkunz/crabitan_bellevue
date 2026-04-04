@@ -151,9 +151,21 @@ class PricingRuleModelTest extends TestCase
     public function testFindAllActiveReturnsSortedRules(): void
     {
         $rows = [
-            ['id' => 1, 'min_quantity' => 1,  'max_quantity' => 23,  'delivery_price' => '0.00',  'price_type' => 'fixed',      'label' => '{"fr":"Moins de 2 caisses","en":"Less than 2 cases"}'],
-            ['id' => 2, 'min_quantity' => 24, 'max_quantity' => 35,  'delivery_price' => '15.00', 'price_type' => 'fixed',      'label' => '{"fr":"2 caisses","en":"2 cases"}'],
-            ['id' => 3, 'min_quantity' => 36, 'max_quantity' => null, 'delivery_price' => '1.30',  'price_type' => 'per_bottle', 'label' => '{"fr":"3+ caisses","en":"3+ cases"}'],
+            [
+                'id' => 1, 'min_quantity' => 1,  'max_quantity' => 23,
+                'delivery_price' => '0.00',  'price_type' => 'fixed',
+                'label' => '{"fr":"Moins de 2 caisses","en":"Less than 2 cases"}',
+            ],
+            [
+                'id' => 2, 'min_quantity' => 24, 'max_quantity' => 35,
+                'delivery_price' => '15.00', 'price_type' => 'fixed',
+                'label' => '{"fr":"2 caisses","en":"2 cases"}',
+            ],
+            [
+                'id' => 3, 'min_quantity' => 36, 'max_quantity' => null,
+                'delivery_price' => '1.30',  'price_type' => 'per_bottle',
+                'label' => '{"fr":"3+ caisses","en":"3+ cases"}',
+            ],
         ];
 
         $this->dbMock
