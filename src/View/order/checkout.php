@@ -295,25 +295,11 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                              class="checkout-payment-panel <?= $selectedPayment !== 'card' ? 'checkout-payment-panel--hidden' : '' ?>">
                             <p class="checkout-payment-info">
                                 <?= htmlspecialchars(__('checkout.payment_card_info')) ?>
-                                <span class="payment-card-logos" aria-hidden="true">
-                                    <!-- CB -->
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 32" width="40" height="26" role="img" aria-label="CB">
-                                        <rect width="50" height="32" rx="4" fill="#fff" stroke="#ddd" stroke-width="1"/>
-                                        <text x="25" y="22" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#003189" text-anchor="middle">CB</text>
-                                    </svg>
-                                    <!-- Visa -->
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 32" width="40" height="26" role="img" aria-label="Visa">
-                                        <rect width="50" height="32" rx="4" fill="#fff" stroke="#ddd" stroke-width="1"/>
-                                        <text x="25" y="22" font-family="Arial,sans-serif" font-size="12" font-weight="bold" fill="#1a1f71" text-anchor="middle">VISA</text>
-                                    </svg>
-                                    <!-- Mastercard -->
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 32" width="40" height="26" role="img" aria-label="Mastercard">
-                                        <rect width="50" height="32" rx="4" fill="#fff" stroke="#ddd" stroke-width="1"/>
-                                        <circle cx="19" cy="16" r="10" fill="#EB001B" opacity="0.9"/>
-                                        <circle cx="31" cy="16" r="10" fill="#F79E1B" opacity="0.9"/>
-                                        <path d="M25 8.5 A10 10 0 0 1 25 23.5 A10 10 0 0 1 25 8.5" fill="#FF5F00" opacity="0.8"/>
-                                    </svg>
-                                </span>
+                                <img src="/assets/images/payment/payment-cb-banner.png"
+                                     alt="CB, Visa, Mastercard"
+                                     height="26"
+                                     style="vertical-align:middle;margin-left:8px;"
+                                     loading="lazy">
                             </p>
                             <p class="checkout-payment-info checkout-payment-info--sub"><?= htmlspecialchars(__('checkout.payment_card_redirect')) ?></p>
                         </div>
@@ -471,8 +457,6 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
 </main>
 
 <style>
-.payment-card-logos { display: inline-flex; gap: 6px; vertical-align: middle; margin-left: 8px; }
-.payment-card-logos svg { vertical-align: middle; }
 </style>
 
 <script>

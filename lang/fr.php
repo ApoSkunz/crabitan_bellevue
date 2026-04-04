@@ -781,6 +781,7 @@ return [
     'checkout.payment_cancelled'      => 'Paiement annulé. Vous pouvez modifier votre commande et réessayer.',
     'checkout.payment_refused'        => 'Paiement refusé. Veuillez vérifier vos informations ou utiliser un autre moyen de paiement.',
     'checkout.payment_error'          => 'Une erreur est survenue lors de la confirmation du paiement. Contactez-nous si le montant a été débité.',
+    'account.order_cancel_card_confirm' => 'Cette action déclenchera un remboursement immédiat par carte bancaire via notre établissement bancaire. Confirmer l\'annulation ?',
 
     // Confirmation commande
     'checkout.confirmation_title'     => 'Commande confirmée',
