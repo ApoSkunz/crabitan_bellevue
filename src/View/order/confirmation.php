@@ -48,6 +48,25 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
                 <?php endif; ?>
             </div>
 
+            <!-- Mode de paiement -->
+            <div class="confirmation-payment-method">
+                <?php
+                $paymentLabels = [
+                    'card'     => $isEn ? 'Credit card' : 'Carte bancaire',
+                    'virement' => $isEn ? 'Bank transfer' : 'Virement bancaire',
+                    'cheque'   => $isEn ? 'Cheque' : 'Chèque',
+                ];
+                $paymentLabel = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod);
+                ?>
+                <p class="confirmation-payment-method__label">
+                    <strong><?= htmlspecialchars($isEn ? 'Payment method' : 'Mode de paiement') ?></strong> :
+                    <?= htmlspecialchars($paymentLabel) ?>
+                    <?php if ($paymentMethod === 'card') : ?>
+                    — <em><?= htmlspecialchars($isEn ? 'Payment being processed' : 'Paiement en cours de traitement') ?></em>
+                    <?php endif; ?>
+                </p>
+            </div>
+
             <?php if ($isDeferred) : ?>
             <!-- Paiement différé : virement ou chèque -->
             <div class="confirmation-deferred">
@@ -154,7 +173,7 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
                 <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes" class="btn btn--gold" id="js-orders-btn">
                     <?= htmlspecialchars(__('checkout.view_orders')) ?>
                 </a>
-                <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--outline">
+                <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--gold">
                     <?= htmlspecialchars(__('checkout.continue_shopping')) ?>
                 </a>
             </div>
