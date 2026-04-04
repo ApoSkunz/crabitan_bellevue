@@ -23,6 +23,9 @@ class PaymentService
     private const PBX_HASH            = 'SHA512';
     private const PBX_DEVISE          = '978';
     private const AMOUNT_3DS_THRESHOLD = 20000;
+    private const GAE_TYPE_CONSULTATION  = '00017'; // interrogation état transaction
+    private const GAE_TYPE_ANNULATION    = '00005'; // annulation (avant télécollecte)
+    private const GAE_TYPE_REMBOURSEMENT = '00014'; // remboursement (après télécollecte)
 
     /**
      * Construit les champs PBX_* pour le formulaire d'initiation de paiement CA.
@@ -44,7 +47,7 @@ class PaymentService
      * construites depuis CA_FALLBACK_BASE_URL. Si cette variable est vide, CA utilise
      * les URLs configurées dans Vision Air (déconseillé en prod).
      */
-    public function buildPbxFields(
+    public function buildPbxFields( // NOSONAR — php:S107 : 10 paramètres requis par le protocole PBX CA (référence, montant, email, adresse facturation, panier, langue)
         string $reference,
         int $amountCents,
         string $clientEmail,
@@ -122,7 +125,7 @@ class PaymentService
      * @param string $rawQueryString QUERY_STRING brute du serveur ($_SERVER['QUERY_STRING'])
      * @return bool true si la signature est valide, false sinon
      */
-    public function verifyIpnSignature(string $rawQueryString): bool
+    public function verifyIpnSignature(string $rawQueryString): bool // NOSONAR — php:S1142 : sorties multiples nécessaires pour fail-fast sur chaque condition de sécurité RSA
     {
         $signKey = '&Sign=';
         $pos = strrpos($rawQueryString, $signKey);
@@ -180,7 +183,7 @@ class PaymentService
         $sandbox     = $this->isSandbox();
         $gaeUrl      = $sandbox ? self::URL_GAE_SANDBOX : self::URL_GAE_PROD;
         $numquestion = str_pad(
-            (string) (time() % 1000000000 + rand(0, 999)),
+            (string) (time() % 1000000000 + rand(0, 999)), // NOSONAR — weak-cryptography : NUMQUESTION est un identifiant de requête CA (unicité requise, non cryptographique)
             10,
             '0',
             STR_PAD_LEFT
@@ -188,7 +191,7 @@ class PaymentService
 
         $msg = implode('&', [
             'VERSION=00104',
-            'TYPE=00017',
+            'TYPE=' . self::GAE_TYPE_CONSULTATION,
             'SITE='        . $this->getEnv('CA_PBX_SITE'),
             'RANG='        . $this->getEnv('CA_PBX_RANG'),
             'NUMQUESTION=' . $numquestion,
@@ -236,18 +239,18 @@ class PaymentService
         if ($status !== null && isset($status['CODEREPONSE']) && $status['CODEREPONSE'] === '00000') {
             // REMISE renseigné = transaction déjà remise en banque → remboursement
             $type = (isset($status['REMISE']) && $status['REMISE'] !== '')
-                ? '00014'
-                : '00005';
+                ? self::GAE_TYPE_REMBOURSEMENT
+                : self::GAE_TYPE_ANNULATION;
 
             return $this->callGaeOperation($type, $reference, $numappel, $numtrans, $amountCents);
         }
 
         // Fallback si TYPE=00017 inaccessible : essai annulation puis remboursement
-        if ($this->callGaeOperation('00005', $reference, $numappel, $numtrans, $amountCents)) {
+        if ($this->callGaeOperation(self::GAE_TYPE_ANNULATION, $reference, $numappel, $numtrans, $amountCents)) {
             return true;
         }
 
-        return $this->callGaeOperation('00014', $reference, $numappel, $numtrans, $amountCents);
+        return $this->callGaeOperation(self::GAE_TYPE_REMBOURSEMENT, $reference, $numappel, $numtrans, $amountCents);
     }
 
     /**
@@ -265,7 +268,7 @@ class PaymentService
         string $numtrans,
         int $amountCents
     ): bool {
-        return $this->callGaeOperation('00014', $reference, $numappel, $numtrans, $amountCents);
+        return $this->callGaeOperation(self::GAE_TYPE_REMBOURSEMENT, $reference, $numappel, $numtrans, $amountCents);
     }
 
     /**
@@ -290,7 +293,7 @@ class PaymentService
         $site        = $this->getEnv('CA_PBX_SITE');
         $rang        = $this->getEnv('CA_PBX_RANG');
         $numquestion = str_pad(
-            (string) (time() % 1000000000 + rand(0, 999)),
+            (string) (time() % 1000000000 + rand(0, 999)), // NOSONAR — weak-cryptography : NUMQUESTION est un identifiant de requête CA (unicité requise, non cryptographique)
             10,
             '0',
             STR_PAD_LEFT
@@ -350,7 +353,7 @@ class PaymentService
             }
         }
 
-        throw new \RuntimeException('Aucun serveur CA e-Transactions disponible.');
+        throw new \RuntimeException('Aucun serveur CA e-Transactions disponible.'); // NOSONAR — php:S112 : exception générique intentionnelle, aucun type métier spécifique requis pour cette erreur d'infrastructure
     }
 
     /**
