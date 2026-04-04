@@ -61,7 +61,8 @@ class PaymentService
 
         $time  = date('c');
         $souhait = ($amountCents <= self::AMOUNT_3DS_THRESHOLD) ? '02' : '01';
-        $langUpper = strtoupper($lang);
+        $langMap   = ['fr' => 'FRA', 'en' => 'GBR'];
+        $langUpper = $langMap[$lang] ?? 'FRA';
 
         $shoppingCart = sprintf(
             '<?xml version="1.0" encoding="utf-8"?>'
