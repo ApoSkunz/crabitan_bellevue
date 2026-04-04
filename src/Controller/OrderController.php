@@ -47,7 +47,7 @@ class OrderController extends Controller
         $this->orders     = new OrderModel();
         $this->pricing    = new PricingRuleModel();
         $this->wines      = new WineModel();
-        $cgvConfig        = require ROOT_PATH . '/config/cgv.php';
+        $cgvConfig        = require_once ROOT_PATH . '/config/cgv.php';
         $this->cgvVersion = (string) ($cgvConfig['version'] ?? '1.0');
     }
 
@@ -96,6 +96,9 @@ class OrderController extends Controller
         $post   = $_SESSION['flash']['checkout_post']   ?? [];
         unset($_SESSION['flash']['checkout_errors'], $_SESSION['flash']['checkout_post']);
 
+        $submitToken = bin2hex(random_bytes(16));
+        $_SESSION['submit_token'] = $submitToken;
+
         $this->view('order/checkout', [
             'lang'                   => $lang,
             'items'                  => $items,
@@ -111,6 +114,7 @@ class OrderController extends Controller
             'csrfToken'              => $_SESSION['csrf'] ?? '',
             'pricingRule'            => $pricingRule,
             'isNewsletterSubscribed' => $isNewsletterSubscribed,
+            'submitToken'            => $submitToken,
         ]);
     }
 
@@ -138,6 +142,14 @@ class OrderController extends Controller
             $_SESSION['flash']['checkout_errors']['csrf'] = __('error.csrf');
             Response::redirect($back);
         }
+
+        // Valider le token de soumission (anti double-submit)
+        $submitToken = $this->request->post('submit_token', '');
+        if (!isset($_SESSION['submit_token']) || !hash_equals($_SESSION['submit_token'], $submitToken)) {
+            $_SESSION['flash']['checkout_errors']['submit'] = __('error.csrf');
+            Response::redirect($back);
+        }
+        unset($_SESSION['submit_token']);
 
         // Vérifier le panier
         $row = $this->carts->findByUserId($userId);
@@ -198,14 +210,7 @@ class OrderController extends Controller
 
         // Newsletter opt-in
         if ($this->request->post('newsletter', '')) {
-            (new AccountModel())->updateNewsletter($userId, true);
-            if ($clientEmail !== '') {
-                try {
-                    (new \Service\MailService())->sendNewsletterWelcome($clientEmail, $clientName, $lang);
-                } catch (\Throwable $e) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
-                    // Mail non bloquant
-                }
-            }
+            $this->notifyNewsletterOptIn($userId, $lang, $clientEmail, $clientName);
         }
 
         // Créer la commande
@@ -224,29 +229,7 @@ class OrderController extends Controller
         $this->carts->clear($userId);
         setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'samesite' => 'Lax']);
         if ($clientEmail !== '') {
-            try {
-                $mailer = new \Service\MailService();
-                $mailer->sendOrderConfirmationToClient(
-                    $clientEmail,
-                    $clientName,
-                    $reference,
-                    $paymentMethod,
-                    $items,
-                    $total,
-                    round($deliveryDiscount, 2),
-                    $lang
-                );
-                $mailer->sendOrderConfirmationToOwner(
-                    $clientEmail,
-                    $clientName,
-                    $reference,
-                    $paymentMethod,
-                    $items,
-                    $total
-                );
-            } catch (\Throwable $e) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
-                // Mail non bloquant — la commande est créée même en cas d'échec d'envoi
-            }
+            $this->dispatchOrderEmails($clientEmail, $clientName, $reference, $paymentMethod, $items, $total, $lang); // phpcs:ignore Generic.Files.LineLength
         }
 
         // Stocker pour la page de confirmation
@@ -369,7 +352,9 @@ class OrderController extends Controller
             $wineId = (int) ($item['wine_id'] ?? 0);
             $wine   = $this->wines->getById($wineId);
             $item['price']            = $wine ? (float) $wine['price'] : 0.0;
-            $item['name']             = ($item['name'] ?? '') !== '' ? (string) $item['name'] : ($wine ? (string) $wine['label_name'] : '');
+            $existingName             = (string) ($item['name'] ?? '');
+            $fallbackName             = $wine ? (string) $wine['label_name'] : '';
+            $item['name']             = $existingName !== '' ? $existingName : $fallbackName;
             $item['label_name']       = $item['name'];
             $item['is_cuvee_speciale'] = $wine ? (bool) ($wine['is_cuvee_speciale'] ?? false) : false;
             $result[] = $item;
@@ -405,16 +390,10 @@ class OrderController extends Controller
     private function isMainlandFranceZip(string $zip): bool
     {
         if (!preg_match('/^\d{5}$/', $zip)) {
-            return true; // Format invalide : laissé passer, déjà rejeté par resolveAddress si vide
+            return true; // Format invalide : laissé passer, validation champs requis faite en amont
         }
         $dept = (int) substr($zip, 0, 2);
-        if ($dept === 20) {
-            return false; // Corse
-        }
-        if ($dept >= 97) {
-            return false; // DOM-TOM
-        }
-        return true;
+        return $dept !== 20 && $dept < 97;
     }
 
     /**
@@ -426,5 +405,60 @@ class OrderController extends Controller
     {
         $token = $this->request->post('csrf_token', '');
         return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
+    }
+
+    /**
+     * Inscrit l'utilisateur à la newsletter et envoie l'email de bienvenue.
+     *
+     * L'email est non bloquant : une exception lors de l'envoi est ignorée silencieusement.
+     *
+     * @param int    $userId     Identifiant de l'utilisateur
+     * @param string $lang       Langue du client ('fr' ou 'en')
+     * @param string $email      Adresse email du client
+     * @param string $name       Nom complet du client
+     * @return void
+     */
+    private function notifyNewsletterOptIn(int $userId, string $lang, string $email, string $name): void
+    {
+        (new AccountModel())->updateNewsletter($userId, true);
+        if ($email !== '') {
+            try {
+                (new \Service\MailService())->sendNewsletterWelcome($email, $name, $lang);
+            } catch (\Throwable $e) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
+                // Mail non bloquant
+            }
+        }
+    }
+
+    /**
+     * Envoie les emails de confirmation de commande au client et au propriétaire.
+     *
+     * Les envois sont non bloquants : toute exception est ignorée silencieusement.
+     *
+     * @param string               $email         Adresse email du client
+     * @param string               $name          Nom complet du client
+     * @param string               $reference     Référence de la commande
+     * @param string               $method        Méthode de paiement (card, virement, cheque)
+     * @param array<int, array<string, mixed>> $items Articles de la commande [{name, qty, price}]
+     * @param float                $total         Total TTC en euros
+     * @param string               $lang          Langue du client ('fr' ou 'en')
+     * @return void
+     */
+    private function dispatchOrderEmails(
+        string $email,
+        string $name,
+        string $reference,
+        string $method,
+        array $items,
+        float $total,
+        string $lang
+    ): void {
+        try {
+            $mailer = new \Service\MailService();
+            $mailer->sendOrderConfirmationToClient($email, $name, $reference, $method, $items, $total, $lang); // phpcs:ignore Generic.Files.LineLength
+            $mailer->sendOrderConfirmationToOwner($email, $name, $reference, $method, $items, $total);
+        } catch (\Throwable $e) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
+            // Mail non bloquant — la commande est créée même en cas d'échec d'envoi
+        }
     }
 }
