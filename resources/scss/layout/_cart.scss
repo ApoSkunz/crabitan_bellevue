@@ -289,6 +289,423 @@
 }
 
 // ----------------------------------------------------------------
+// Notice multiple de 12
+// ----------------------------------------------------------------
+
+.cart-notice {
+    background: color-mix(in srgb, var(--color-gold) 12%, var(--color-surface));
+    border: 1px solid color-mix(in srgb, var(--color-gold) 40%, transparent);
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--color-text);
+
+    p { margin: 0; }
+
+    &--contact {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    &__mailto {
+        color: var(--color-gold);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        white-space: nowrap;
+
+        &:hover,
+        &:focus-visible { opacity: 0.75; }
+        &:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; border-radius: 2px; }
+    }
+}
+
+.cart-delivery-section {
+    margin-top: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+// ----------------------------------------------------------------
+// Barre de progression vers le palier de remise livraison
+// ----------------------------------------------------------------
+
+.cart-progress-bar {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: color-mix(in srgb, var(--color-gold) 8%, var(--color-surface));
+    border: 1px solid color-mix(in srgb, var(--color-gold) 25%, transparent);
+    border-radius: 6px;
+
+    &__label {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        margin: 0 0 0.5rem;
+
+        strong {
+            color: var(--color-gold);
+            font-variant-numeric: tabular-nums;
+        }
+    }
+
+    &__track {
+        height: 6px;
+        background: color-mix(in srgb, var(--color-gold) 18%, var(--color-surface));
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    &__fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--color-gold-light), var(--color-gold));
+        border-radius: 3px;
+        transition: width 0.35s ease;
+        min-width: 4px;
+    }
+}
+
+.cart-delivery-next {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    padding: 0.5rem 1rem;
+    margin: 0;
+}
+
+// ----------------------------------------------------------------
+// Bloc info remise livraison
+// ----------------------------------------------------------------
+
+.cart-delivery-info {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 0.875rem 1rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.875rem;
+    text-align: left;
+
+    &__label {
+        font-family: var(--font-serif);
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+        margin-bottom: 0.25rem;
+    }
+
+    &__amount {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--color-gold);
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__next {
+        color: var(--color-text-muted);
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    &--discount {
+        border-color: color-mix(in srgb, var(--color-gold) 50%, transparent);
+    }
+}
+
+// ----------------------------------------------------------------
+// Bloc B2B
+// ----------------------------------------------------------------
+
+.cart-b2b {
+    max-width: 560px;
+    margin: 4rem auto;
+    text-align: center;
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: 1.5rem;
+        color: var(--color-gold);
+        margin-bottom: 1rem;
+    }
+
+    &__message {
+        color: var(--color-text-muted);
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    &__mailto {
+        display: inline-block;
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--color-gold);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        transition: opacity 200ms ease;
+
+        &:hover,
+        &:focus-visible {
+            opacity: 0.75;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 3px;
+            border-radius: 2px;
+        }
+    }
+}
+
+// ----------------------------------------------------------------
+// Contrôle quantité +/−
+// ----------------------------------------------------------------
+
+.cart-qty-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 1px solid var(--color-border-gold);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.cart-qty-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 32px;
+    border: none;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease;
+
+    &:hover,
+    &:focus-visible {
+        background: var(--color-gold);
+        color: #fff;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-gold);
+        outline-offset: -2px;
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+}
+
+.cart-qty-input {
+    width: 52px;
+    height: 32px;
+    text-align: center;
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text);
+    background: var(--color-bg);
+    border: none;
+    padding: 0 0.25rem;
+    line-height: 1;
+
+    &:focus {
+        outline: 2px solid var(--color-gold);
+        outline-offset: -1px;
+    }
+
+    // Masquer les flèches natives
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button { appearance: none; margin: 0; }
+    -moz-appearance: textfield; // stylelint-disable-line property-no-vendor-prefix
+}
+
+// ----------------------------------------------------------------
+// Bouton Retirer
+// ----------------------------------------------------------------
+
+.btn-retirer {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
+    white-space: nowrap;
+
+    &:hover,
+    &:focus-visible {
+        background: rgba(180, 60, 60, 0.1);
+        color: #c0392b;
+        border-color: rgba(180, 60, 60, 0.3);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-gold);
+        outline-offset: 2px;
+    }
+
+    &__icon {
+        flex-shrink: 0;
+        width: 14px;
+        height: 14px;
+    }
+
+    &__text {
+        @media (max-width: 480px) {
+            // Masquer le texte sur très petit écran, garder l'icône
+            display: none;
+        }
+    }
+}
+
+// ----------------------------------------------------------------
+// Accordéon paliers de remise livraison
+// ----------------------------------------------------------------
+
+.cart-delivery-accordion {
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+
+    &__trigger {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+        font-family: var(--font-serif);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        user-select: none;
+        background: var(--color-surface);
+        transition: background 150ms ease;
+
+        &::-webkit-details-marker { display: none; }
+
+        &:hover {
+            background: color-mix(in srgb, var(--color-gold) 8%, var(--color-surface));
+            color: var(--color-text);
+        }
+    }
+
+    &__arrow {
+        transition: transform 200ms ease;
+        font-size: 0.75rem;
+    }
+
+    &[open] &__arrow {
+        transform: rotate(180deg);
+    }
+
+    &__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--color-border);
+    }
+
+    &__item {
+        padding: 0.45rem 1rem;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+
+        &:last-child { border-bottom: none; }
+
+        &--active {
+            color: var(--color-gold);
+            font-weight: 600;
+            background: color-mix(in srgb, var(--color-gold) 6%, var(--color-surface));
+        }
+    }
+}
+
+.cart-guest-delivery {
+    margin-bottom: 1.5rem;
+}
+
+// ----------------------------------------------------------------
+// Sidebar rows sous-total / remise / total
+// ----------------------------------------------------------------
+
+.cart-summary__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+}
+
+.cart-summary__subtotal-row {
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.4rem;
+}
+
+.cart-summary__discount-row {
+    font-size: 0.9rem;
+}
+
+.cart-summary__final-row {
+    border-top: 1px solid var(--color-border);
+    margin-top: 0.4rem;
+    padding-top: 0.6rem;
+}
+
+.cart-summary__row-label {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+
+    &--discount {
+        color: color-mix(in srgb, var(--color-gold) 90%, var(--color-text));
+        font-weight: 500;
+    }
+}
+
+.cart-summary__row-value {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.95rem;
+    font-weight: 500;
+
+    &--discount {
+        color: var(--color-gold);
+        font-weight: 600;
+    }
+}
+
+.cart-checkout-error {
+    font-size: 0.82rem;
+    color: var(--color-gold);
+    text-align: center;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    line-height: 1.4;
+}
+
+.btn--disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+// ----------------------------------------------------------------
 // Responsive — colonnes masquées sur mobile
 // ----------------------------------------------------------------
 
