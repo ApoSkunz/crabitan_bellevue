@@ -142,6 +142,11 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
         $this->requireIndividual($userId, $lang);
 
+        // Lire et effacer le flash AVANT tout redirect — évite qu'il survive à une navigation inattendue
+        $success = $_SESSION['flash']['order_success'] ?? null;
+        $error   = $_SESSION['flash']['order_error']   ?? null;
+        unset($_SESSION['flash']['order_success'], $_SESSION['flash']['order_error']);
+
         $order = $this->orders->findDetailForUser($id, $userId);
         if (!$order) {
             Response::redirect("/{$lang}/mon-compte/commandes");
@@ -149,10 +154,6 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
         $items            = json_decode((string) ($order['content'] ?? '[]'), true) ?: [];
         $shippingDiscount = (float) ($order['shipping_discount'] ?? 0);
-
-        $success = $_SESSION['flash']['order_success'] ?? null;
-        $error   = $_SESSION['flash']['order_error']   ?? null;
-        unset($_SESSION['flash']['order_success'], $_SESSION['flash']['order_error']);
 
         // Fenêtre de rétractation après livraison
         $cancellableReturn = false;
@@ -208,7 +209,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
      * @param array<string, string> $params Paramètres de route (`lang`, `id`)
      * @return void
      */
-    public function cancelOrder(array $params): void
+    public function cancelOrder(array $params): void // NOSONAR — php:S3776 : complexité inhérente au flux d'annulation (card/chèque, GAE, rétractation, emails)
     {
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];

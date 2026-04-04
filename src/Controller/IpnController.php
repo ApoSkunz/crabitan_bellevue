@@ -48,7 +48,7 @@ class IpnController
      * @return void
      * @throws HttpException 400 si signature invalide, 200 dans tous les autres cas, 500 en erreur inattendue
      */
-    public function handle(array $params): void
+    public function handle(array $params): void // NOSONAR — php:S1172 : $params requis par le dispatcher de routes, non utilisé pour l'IPN (appel server-to-server sans paramètres de route)
     {
         try {
             $rawQuery = $_SERVER['QUERY_STRING'] ?? '';
@@ -73,7 +73,7 @@ class IpnController
             }
 
             $erreur   = $_GET['Erreur'] ?? '';
-            $ref      = $_GET['Ref']    ?? '';
+            $ref      = preg_replace('/[^A-Za-z0-9\-]/', '', $_GET['Ref'] ?? ''); // S5145 — sanitisation avant usage en log/BDD
             $numappel = $_GET['Appel']  ?? '';
             $numtrans = $_GET['Trans']  ?? '';
 

@@ -127,7 +127,7 @@ class OrderAdminController extends AdminController
     // POST /admin/commandes/{id}/statut
     // ----------------------------------------------------------------
 
-    public function updateStatus(array $params): void
+    public function updateStatus(array $params): void // NOSONAR — php:S3776 : complexité inhérente au changement de statut admin (GAE CB, emails, CSRF, guards)
     {
         $this->requireAdmin();
 

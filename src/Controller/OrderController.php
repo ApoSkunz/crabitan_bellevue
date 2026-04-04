@@ -142,7 +142,7 @@ class OrderController extends Controller
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
      */
-    public function payment(array $params): void
+    public function payment(array $params): void // NOSONAR — php:S3776 : complexité inhérente au flux de commande multi-modes (card/virement/chèque) avec validation progressive
     {
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
@@ -338,13 +338,14 @@ class OrderController extends Controller
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
      */
-    public function paymentReturnOk(array $params): void
+    public function paymentReturnOk(array $params): void // NOSONAR — php:S3776 : complexité inhérente au fallback IPN (vérification RSA, idempotence, création commande depuis payment_intent)
     {
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
         $lang    = $this->resolveLang($params);
 
-        $ref    = $_GET['Ref']    ?? '';
+        // Sanitisation de $ref avant tout usage (log, BDD) — S5145
+        $ref    = preg_replace('/[^A-Za-z0-9\-]/', '', $_GET['Ref'] ?? '');
         $erreur = $_GET['Erreur'] ?? '';
 
         unset($_SESSION['ca_payment']);
