@@ -52,7 +52,7 @@ class OrderModelCreateTest extends TestCase
             cgvVersion: '1.0'
         );
 
-        $this->assertStringStartsWith('ORD-', $reference);
+        $this->assertStringStartsWith('WEB-', $reference);
         $this->assertStringEndsWith('-' . date('Y'), $reference);
     }
 

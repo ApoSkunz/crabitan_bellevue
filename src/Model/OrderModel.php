@@ -48,7 +48,12 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
             $paymentMethod = 'card';
         }
 
-        $reference   = 'ORD-' . strtoupper(bin2hex(random_bytes(4))) . '-' . date('Y');
+        $typeCode  = match ($paymentMethod) {
+            'virement' => 'VB',
+            'cheque'   => 'CHQ',
+            default    => 'CB',
+        };
+        $reference = 'WEB-' . $typeCode . '-' . strtoupper(bin2hex(random_bytes(4))) . '-' . date('Y');
         $contentJson = json_encode($items, JSON_UNESCAPED_UNICODE);
 
         $this->db->insert(
