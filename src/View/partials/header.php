@@ -10,6 +10,22 @@ if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
 }
 $modalCsrf       = $_SESSION['csrf'];
+
+/**
+ * Traduit un code civilité BDD ('M', 'F', 'other') en libellé affiché.
+ *
+ * @param string $code Code BDD
+ * @return string Libellé traduit (ex. 'Mme', 'M.', 'Autre')
+ */
+function formatCivility(string $code): string
+{
+    $map = [
+        'M'     => __('account.civility_m'),
+        'F'     => __('account.civility_f'),
+        'other' => __('account.civility_other'),
+    ];
+    return $map[$code] ?? $code;
+}
 $modalError      = $_SESSION['flash']['modal_error'] ?? null;
 $registerErrors  = $_SESSION['flash']['register_errors'] ?? [];
 $registerOld     = $_SESSION['flash']['register_old'] ?? [];

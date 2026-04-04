@@ -171,7 +171,7 @@ $paymentMap  = [
                 <section class="account-section order-address-block">
                     <h2 class="account-section__title"><?= __('account.order_billing') ?></h2>
                     <address class="order-address">
-                        <?= htmlspecialchars($order['bill_civility'] . ' ' . $order['bill_firstname'] . ' ' . $order['bill_lastname']) ?><br>
+                        <?= htmlspecialchars(formatCivility($order['bill_civility'] ?? '') . ' ' . $order['bill_firstname'] . ' ' . $order['bill_lastname']) ?><br>
                         <?= htmlspecialchars($order['bill_street'] ?? '') ?><br>
                         <?= htmlspecialchars(($order['bill_zip'] ?? '') . ' ' . ($order['bill_city'] ?? '')) ?><br>
                         <?= htmlspecialchars($order['bill_country'] ?? '') ?>
@@ -185,7 +185,7 @@ $paymentMap  = [
                     <section class="account-section order-address-block">
                         <h2 class="account-section__title"><?= __('account.order_delivery') ?></h2>
                         <address class="order-address">
-                            <?= htmlspecialchars($order['del_civility'] . ' ' . $order['del_firstname'] . ' ' . $order['del_lastname']) ?><br>
+                            <?= htmlspecialchars(formatCivility($order['del_civility'] ?? '') . ' ' . $order['del_firstname'] . ' ' . $order['del_lastname']) ?><br>
                             <?= htmlspecialchars($order['del_street'] ?? '') ?><br>
                             <?= htmlspecialchars(($order['del_zip'] ?? '') . ' ' . ($order['del_city'] ?? '')) ?><br>
                             <?= htmlspecialchars($order['del_country'] ?? '') ?>
