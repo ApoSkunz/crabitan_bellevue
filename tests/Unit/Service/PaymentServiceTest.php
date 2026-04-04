@@ -23,12 +23,13 @@ class PaymentServiceTest extends TestCase
     {
         // Clé HMAC fictive : 128 caractères hex = 64 octets
         $this->defaultEnv = [
-            'CA_PBX_SITE'        => '1999887',
-            'CA_PBX_RANG'        => '032',
-            'CA_PBX_IDENTIFIANT' => '107904482',
-            'CA_PBX_HMAC_KEY'    => str_repeat('ab', 64),
-            'CA_PUBKEY_PATH'     => '/tmp/fake_pubkey.pem',
-            'CA_SANDBOX_MODE'    => 'true',
+            'CA_PBX_SITE'           => '1999887',
+            'CA_PBX_RANG'           => '032',
+            'CA_PBX_IDENTIFIANT'    => '107904482',
+            'CA_PBX_HMAC_KEY'       => str_repeat('ab', 64),
+            'CA_PUBKEY_PATH'        => '/tmp/fake_pubkey.pem',
+            'CA_SANDBOX_MODE'       => 'true',
+            'CA_FALLBACK_BASE_URL'  => 'https://test.example.com',
         ];
 
         foreach ($this->defaultEnv as $k => $v) {
@@ -149,7 +150,7 @@ class PaymentServiceTest extends TestCase
     }
 
     /**
-     * Vérifie que PBX_SOUHAITAUTHENT vaut '02' pour un montant ≤ 3000 centimes (30€).
+     * Vérifie que PBX_SOUHAITAUTHENT vaut '02' (pas de challenge) pour un montant ≤ 200€ (20000 centimes).
      */
     public function testBuildPbxFieldsSouhaitAuthent02ForSmallAmount(): void
     {
@@ -157,7 +158,7 @@ class PaymentServiceTest extends TestCase
 
         $result = $service->buildPbxFields(
             'CMD-003',
-            3000,
+            20000,
             'test@example.com',
             'Paul',
             'Leroy',
@@ -171,15 +172,15 @@ class PaymentServiceTest extends TestCase
     }
 
     /**
-     * Vérifie que PBX_SOUHAITAUTHENT vaut '01' pour un montant > 3000 centimes.
+     * Vérifie que PBX_SOUHAITAUTHENT vaut '03' (challenge souhaité) pour un montant > 200€.
      */
-    public function testBuildPbxFieldsSouhaitAuthent01ForLargeAmount(): void
+    public function testBuildPbxFieldsSouhaitAuthent03ForLargeAmount(): void
     {
         $service = $this->makeService();
 
         $result = $service->buildPbxFields(
             'CMD-004',
-            3001,
+            20001,
             'test@example.com',
             'Paul',
             'Leroy',
@@ -189,7 +190,71 @@ class PaymentServiceTest extends TestCase
             2
         );
 
-        $this->assertSame('01', $result['fields']['PBX_SOUHAITAUTHENT']);
+        $this->assertSame('03', $result['fields']['PBX_SOUHAITAUTHENT']);
+    }
+
+    /**
+     * Vérifie que PBX_EFFECTUE, PBX_REFUSE, PBX_ANNULE et PBX_REPONDRE sont présents
+     * et construits correctement lorsque CA_FALLBACK_BASE_URL est défini.
+     */
+    public function testBuildPbxFieldsContainsReturnUrlsWhenBaseUrlSet(): void
+    {
+        $service = $this->makeService();
+
+        $result = $service->buildPbxFields(
+            'CMD-URL-01',
+            2500,
+            'buyer@example.com',
+            'Pierre',
+            'Leblanc',
+            '10 rue du Commerce',
+            '75015',
+            'Paris',
+            2,
+            'fr'
+        );
+
+        $fields = $result['fields'];
+
+        $this->assertArrayHasKey('PBX_EFFECTUE', $fields);
+        $this->assertArrayHasKey('PBX_REFUSE', $fields);
+        $this->assertArrayHasKey('PBX_ANNULE', $fields);
+        $this->assertArrayHasKey('PBX_REPONDRE', $fields);
+
+        $this->assertSame('https://test.example.com/fr/commande/paiement-ca/ok', $fields['PBX_EFFECTUE']);
+        $this->assertSame('https://test.example.com/fr/commande/paiement-ca/refuse', $fields['PBX_REFUSE']);
+        $this->assertSame('https://test.example.com/fr/commande/paiement-ca/annule', $fields['PBX_ANNULE']);
+        $this->assertSame('https://test.example.com/payment/ipn', $fields['PBX_REPONDRE']);
+    }
+
+    /**
+     * Vérifie que les champs d'URL sont absents lorsque CA_FALLBACK_BASE_URL est vide
+     * (CA utilise alors les URLs configurées dans Vision Air).
+     */
+    public function testBuildPbxFieldsOmitsReturnUrlsWhenBaseUrlEmpty(): void
+    {
+        $_ENV['CA_FALLBACK_BASE_URL'] = '';
+
+        $service = $this->makeService();
+
+        $result = $service->buildPbxFields(
+            'CMD-URL-02',
+            1500,
+            'buyer@example.com',
+            'Luc',
+            'Moreau',
+            '3 allée des Roses',
+            '13001',
+            'Marseille',
+            1
+        );
+
+        $fields = $result['fields'];
+
+        $this->assertArrayNotHasKey('PBX_EFFECTUE', $fields);
+        $this->assertArrayNotHasKey('PBX_REFUSE', $fields);
+        $this->assertArrayNotHasKey('PBX_ANNULE', $fields);
+        $this->assertArrayNotHasKey('PBX_REPONDRE', $fields);
     }
 
     /**
@@ -292,6 +357,106 @@ class PaymentServiceTest extends TestCase
         $result = $method->invoke($service, 'ABCDEFGHIJ', 5);
 
         $this->assertSame('ABCDE', $result);
+    }
+
+    // -------------------------------------------------------------------------
+    // Tests callGaeRefund
+    // -------------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    // Tests callGaeCancelOrRefund
+    // -------------------------------------------------------------------------
+
+    /**
+     * Retourne un service dont curlPost() retourne les réponses dans l'ordre donné.
+     *
+     * @param list<string|false> $responses
+     */
+    private function makeServiceWithQueue(array $responses): PaymentService
+    {
+        return new class ($responses) extends PaymentService {
+            /** @var list<string|false> */
+            private array $queue;
+
+            /** @param list<string|false> $queue */
+            public function __construct(array $queue)
+            {
+                $this->queue = $queue;
+            }
+
+            protected function isServerAvailable(string $baseUrl): bool
+            {
+                return true;
+            }
+
+            protected function curlPost(string $url, string $postFields): string|false
+            {
+                return array_shift($this->queue) ?? false;
+            }
+        };
+    }
+
+    /**
+     * TYPE=00017 : REMISE vide → annulation (TYPE=00005) acceptée.
+     */
+    public function testCallGaeCancelOrRefundCancelsWhenNotYetSettled(): void
+    {
+        $service = $this->makeServiceWithQueue([
+            'CODEREPONSE=00000&STATUS=A&REMISE=',     // 00017 → pas encore télécollecté
+            'CODEREPONSE=00000',                       // 00005 → annulation OK
+        ]);
+
+        $this->assertTrue($service->callGaeCancelOrRefund('CMD-200', '0000001234', '0000005678', 5000));
+    }
+
+    /**
+     * TYPE=00017 : REMISE renseigné → remboursement (TYPE=00014) accepté.
+     */
+    public function testCallGaeCancelOrRefundRefundsWhenAlreadySettled(): void
+    {
+        $service = $this->makeServiceWithQueue([
+            'CODEREPONSE=00000&STATUS=T&REMISE=001234', // 00017 → télécollecté
+            'CODEREPONSE=00000',                         // 00014 → remboursement OK
+        ]);
+
+        $this->assertTrue($service->callGaeCancelOrRefund('CMD-201', '0000001234', '0000005678', 5000));
+    }
+
+    /**
+     * TYPE=00017 inaccessible → fallback : annulation (TYPE=00005) acceptée.
+     */
+    public function testCallGaeCancelOrRefundFallsBackToCancelWhenStatusUnreachable(): void
+    {
+        $service = $this->makeServiceWithQueue([
+            false,                // 00017 → erreur réseau
+            'CODEREPONSE=00000',  // 00005 → annulation OK
+        ]);
+
+        $this->assertTrue($service->callGaeCancelOrRefund('CMD-202', '0000001234', '0000005678', 5000));
+    }
+
+    /**
+     * TYPE=00017 inaccessible → fallback : annulation refusée + remboursement accepté.
+     */
+    public function testCallGaeCancelOrRefundFallsBackToRefundWhenCancelAlsoFails(): void
+    {
+        $service = $this->makeServiceWithQueue([
+            false,
+            'CODEREPONSE=00015&COMMENTAIRE=Annulation impossible',
+            'CODEREPONSE=00000',
+        ]);
+
+        $this->assertTrue($service->callGaeCancelOrRefund('CMD-203', '0000001234', '0000005678', 5000));
+    }
+
+    /**
+     * Tous les appels échouent → retourne false.
+     */
+    public function testCallGaeCancelOrRefundReturnsFalseWhenAllFail(): void
+    {
+        $service = $this->makeServiceWithQueue([false, false, false]);
+
+        $this->assertFalse($service->callGaeCancelOrRefund('CMD-204', '0000001234', '0000005678', 5000));
     }
 
     // -------------------------------------------------------------------------

@@ -22,7 +22,7 @@ class PaymentService
     private const PBX_RETOUR          = 'Mt:M;Ref:R;Auto:A;Appel:T;Trans:S;Erreur:E;Sign:K';
     private const PBX_HASH            = 'SHA512';
     private const PBX_DEVISE          = '978';
-    private const AMOUNT_3DS_THRESHOLD = 3000;
+    private const AMOUNT_3DS_THRESHOLD = 20000;
 
     /**
      * Construit les champs PBX_* pour le formulaire d'initiation de paiement CA.
@@ -39,6 +39,10 @@ class PaymentService
      * @param string $lang          Langue ('fr' ou 'en')
      * @return array{url: string, fields: array<string, string>}
      * @throws \RuntimeException Si aucun serveur CA n'est disponible.
+     *
+     * Les URLs de retour (PBX_EFFECTUE, PBX_REFUSE, PBX_ANNULE, PBX_REPONDRE) sont
+     * construites depuis CA_FALLBACK_BASE_URL. Si cette variable est vide, CA utilise
+     * les URLs configurées dans Vision Air (déconseillé en prod).
      */
     public function buildPbxFields(
         string $reference,
@@ -60,7 +64,7 @@ class PaymentService
         $ident = $this->getEnv('CA_PBX_IDENTIFIANT');
 
         $time  = date('c');
-        $souhait = ($amountCents <= self::AMOUNT_3DS_THRESHOLD) ? '02' : '01';
+        $souhait = ($amountCents <= self::AMOUNT_3DS_THRESHOLD) ? '02' : '03';
         $langMap   = ['fr' => 'FRA', 'en' => 'GBR'];
         $langUpper = $langMap[$lang] ?? 'FRA';
 
@@ -95,6 +99,15 @@ class PaymentService
             'PBX_BILLING'        => $billingXml,
         ];
 
+        // URLs de retour dynamiques — prioritaires sur la config Vision Air.
+        $baseUrl = rtrim($this->getEnv('CA_FALLBACK_BASE_URL'), '/');
+        if ($baseUrl !== '') {
+            $fields['PBX_EFFECTUE'] = $baseUrl . '/' . $lang . '/commande/paiement-ca/ok';
+            $fields['PBX_REFUSE']   = $baseUrl . '/' . $lang . '/commande/paiement-ca/refuse';
+            $fields['PBX_ANNULE']   = $baseUrl . '/' . $lang . '/commande/paiement-ca/annule';
+            $fields['PBX_REPONDRE'] = $baseUrl . '/payment/ipn';
+        }
+
         $msg  = $this->buildMessage($fields);
         $hmac = $this->computeHmac($msg);
 
@@ -128,6 +141,11 @@ class PaymentService
 
         $pubkeyPath = $this->getEnv('CA_PUBKEY_PATH');
 
+        // Résoudre les chemins relatifs depuis ROOT_PATH (le CWD Apache est public/)
+        if ($pubkeyPath !== '' && !str_starts_with($pubkeyPath, '/') && !preg_match('/^[A-Za-z]:/', $pubkeyPath)) {
+            $pubkeyPath = (defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2)) . '/' . $pubkeyPath;
+        }
+
         if ($pubkeyPath === '' || !file_exists($pubkeyPath)) {
             return false;
         }
@@ -148,6 +166,91 @@ class PaymentService
     }
 
     /**
+     * Interroge CA sur l'état d'une transaction (TYPE=00017).
+     *
+     * Retourne le tableau de la réponse CA, ou null en cas d'échec réseau.
+     * Champs utiles : STATUS, REMISE (non vide = transaction télécollectée).
+     *
+     * @param string $numappel NUMAPPEL stocké lors du paiement
+     * @param string $numtrans NUMTRANS stocké lors du paiement
+     * @return array<string, string>|null
+     */
+    public function queryTransactionStatus(string $numappel, string $numtrans): ?array
+    {
+        $sandbox     = $this->isSandbox();
+        $gaeUrl      = $sandbox ? self::URL_GAE_SANDBOX : self::URL_GAE_PROD;
+        $numquestion = str_pad(
+            (string) (time() % 1000000000 + rand(0, 999)),
+            10,
+            '0',
+            STR_PAD_LEFT
+        );
+
+        $msg = implode('&', [
+            'VERSION=00104',
+            'TYPE=00017',
+            'SITE='        . $this->getEnv('CA_PBX_SITE'),
+            'RANG='        . $this->getEnv('CA_PBX_RANG'),
+            'NUMQUESTION=' . $numquestion,
+            'NUMAPPEL='    . $numappel,
+            'NUMTRANS='    . $numtrans,
+            'DATEQ='       . date('dmY'),
+            'HASH=SHA512',
+        ]);
+
+        $response = $this->curlPost($gaeUrl, $msg . '&HMAC=' . $this->computeHmac($msg));
+
+        if ($response === false) {
+            return null;
+        }
+
+        parse_str($response, $parsed);
+
+
+        return $parsed;
+    }
+
+    /**
+     * Annule ou rembourse une transaction selon son état de télécollecte.
+     *
+     * Interroge d'abord CA via TYPE=00017 pour savoir si la transaction a été
+     * remise en banque (champ REMISE non vide) :
+     *  - REMISE vide   → TYPE=00005 (annulation, aucun mouvement bancaire)
+     *  - REMISE renseigné → TYPE=00014 (remboursement, mouvement inverse)
+     *  - TYPE=00017 inaccessible → fallback : essai 00005 puis 00014
+     *
+     * @param string $reference   Référence commande
+     * @param string $numappel    NUMAPPEL stocké lors du paiement
+     * @param string $numtrans    NUMTRANS stocké lors du paiement
+     * @param int    $amountCents Montant en centimes
+     * @return bool true si l'opération CA est acceptée (CODEREPONSE=00000)
+     */
+    public function callGaeCancelOrRefund(
+        string $reference,
+        string $numappel,
+        string $numtrans,
+        int $amountCents
+    ): bool {
+        $status = $this->queryTransactionStatus($numappel, $numtrans);
+
+        if ($status !== null && isset($status['CODEREPONSE']) && $status['CODEREPONSE'] === '00000') {
+            // REMISE renseigné = transaction déjà remise en banque → remboursement
+            $type = (isset($status['REMISE']) && $status['REMISE'] !== '')
+                ? '00014'
+                : '00005';
+
+            return $this->callGaeOperation($type, $reference, $numappel, $numtrans, $amountCents);
+        }
+
+        // Fallback si TYPE=00017 inaccessible : essai annulation puis remboursement
+        if ($this->callGaeOperation('00005', $reference, $numappel, $numtrans, $amountCents)) {
+            return true;
+        }
+
+        return $this->callGaeOperation('00014', $reference, $numappel, $numtrans, $amountCents);
+    }
+
+    /**
      * Appelle l'API GAE CA pour un remboursement (TYPE=00014).
      *
      * @param string $reference   Référence commande
@@ -157,6 +260,26 @@ class PaymentService
      * @return bool true si CODEREPONSE=00000
      */
     public function callGaeRefund(
+        string $reference,
+        string $numappel,
+        string $numtrans,
+        int $amountCents
+    ): bool {
+        return $this->callGaeOperation('00014', $reference, $numappel, $numtrans, $amountCents);
+    }
+
+    /**
+     * Exécute une opération GAE CA (annulation ou remboursement).
+     *
+     * @param string $type        Type CA : '00005' (annulation) ou '00014' (remboursement)
+     * @param string $reference   Référence commande
+     * @param string $numappel    NUMAPPEL stocké lors du paiement
+     * @param string $numtrans    NUMTRANS stocké lors du paiement
+     * @param int    $amountCents Montant en centimes
+     * @return bool true si CODEREPONSE=00000
+     */
+    private function callGaeOperation(
+        string $type,
         string $reference,
         string $numappel,
         string $numtrans,
@@ -172,36 +295,32 @@ class PaymentService
             '0',
             STR_PAD_LEFT
         );
-        $dateq  = date('dmY');
-        $montant = (string) $amountCents;
 
         $msg = implode('&', [
             'VERSION=00104',
-            'TYPE=00014',
+            'TYPE='        . $type,
             'SITE='        . $site,
             'RANG='        . $rang,
             'NUMQUESTION=' . $numquestion,
-            'MONTANT='     . $montant,
+            'MONTANT='     . (string) $amountCents,
             'DEVISE=978',
             'REFERENCE='   . $reference,
             'NUMAPPEL='    . $numappel,
             'NUMTRANS='    . $numtrans,
             'ACTIVITE=024',
-            'DATEQ='       . $dateq,
+            'DATEQ='       . date('dmY'),
             'HASH=SHA512',
         ]);
 
-        $hmac = $this->computeHmac($msg);
-
-        $postFields = $msg . '&HMAC=' . $hmac;
-
-        $response = $this->curlPost($gaeUrl, $postFields);
+        $hmac       = $this->computeHmac($msg);
+        $response   = $this->curlPost($gaeUrl, $msg . '&HMAC=' . $hmac);
 
         if ($response === false) {
             return false;
         }
 
         parse_str($response, $parsed);
+
 
         return isset($parsed['CODEREPONSE']) && $parsed['CODEREPONSE'] === '00000';
     }
