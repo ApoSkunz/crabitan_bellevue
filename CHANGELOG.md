@@ -2,6 +2,44 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.27.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.26.0...v0.27.0) (2026-04-04)
+
+
+### Bug Fixes
+
+* **cart:** multiple de 12 sur page panier ; vin aléatoire invité + auth ; wording "Voir notre boutique" ([0c34d30](https://github.com/ApoSkunz/crabitan_bellevue/commit/0c34d309b567c11cae30ea7f2ba0ed5b8ed767cd))
+* **checkout:** same_address + notice shake + badge cuvée panier ([058ad75](https://github.com/ApoSkunz/crabitan_bellevue/commit/058ad752032504d1dbf488a820b5ec0aa0ce4a2e))
+* **controller:** checkout — newsletter email bienvenue + isNewsletterSubscribed + validation ZIP livraison serveur ([c3d4301](https://github.com/ApoSkunz/crabitan_bellevue/commit/c3d43016452ce8241bd31b56c287517f15571ece))
+* **controller:** checkout — validation multiple de 12 ; CartController — vin aléatoire panier vide ; WineAdmin — purge sur available=0 uniquement ([ac680ad](https://github.com/ApoSkunz/crabitan_bellevue/commit/ac680ad64d97eb599f373dea0066e6eb91d5f31b))
+* **i18n:** checkout — clé error_multiple_12 (fr+en) ; corriger bénéficiaire chèque → G.F.A Bernard Solane & Fils ([7a5e93c](https://github.com/ApoSkunz/crabitan_bellevue/commit/7a5e93c29a9088385b87553e0d4e808cdb78cc20))
+* **i18n:** checkout — supprimer astérisques CGV (case obligatoire, redondant) ([4ed64d8](https://github.com/ApoSkunz/crabitan_bellevue/commit/4ed64d8e42cb90d57d1a71bfa5c536dcb54b8c48))
+* **model:** CartModel — retirer le check quantity=0 (production ≠ stock) ; WineModel — getRandomForCart() ([d8c28c5](https://github.com/ApoSkunz/crabitan_bellevue/commit/d8c28c53e108a5f32f472ce175e0f6ee5bd62d52))
+* **model:** wine — constante COND_IMAGE pour déduplication littéral SQL (Sonar php:S1192) ([a007dd9](https://github.com/ApoSkunz/crabitan_bellevue/commit/a007dd98445d0e5df846b5d40acce320c8ad15a4))
+* **model:** wine — constantes SQL_RAND_LIMIT + SQL_AND pour déduplication littéraux ORDER BY/AND (Sonar php:S1192) ([e5567aa](https://github.com/ApoSkunz/crabitan_bellevue/commit/e5567aaefb8ec02f2adb59852a49e76ddd15bbce))
+* **scss:** admin — .admin-logout-form reset ; cart — .cart-empty-wine card ; checkout — .checkout-summary__error + .confirmation-card__redirect ([06da6e4](https://github.com/ApoSkunz/crabitan_bellevue/commit/06da6e4cbe6f77382fe4948923ef93c53b002114))
+* **service:** mail — mention droit rétractation email + suppression param inutilisé + fix Sonar (ternaires, complexité) ([b82e5e0](https://github.com/ApoSkunz/crabitan_bellevue/commit/b82e5e00172022b3ca6d4a3f596681a7c1cfa7a2))
+* **test:** CartModelCheckoutTest — quantity=0 ne retire plus le vin (production ≠ stock) ([1564e7a](https://github.com/ApoSkunz/crabitan_bellevue/commit/1564e7ae29246dbeeb9755ea44eea3b3556896e2))
+* **view:** admin — déconnexion POST (405) ; cart — vin aléatoire état vide ; checkout — adresses toutes visibles, same_address, bénéficiaire GFA, multiple 12 JS ; confirmation — redirect 15s, bénéficiaire GFA ([b0d898a](https://github.com/ApoSkunz/crabitan_bellevue/commit/b0d898a3d141c76c0f88c8155a9ca1819959861e))
+* **view:** checkout — livraison en premier, bénéficiaire virement/chèque, adresse correcte, prix unitaire, validation ZIP France métro, suppression JS multiple12 ; confirmation — adresse chèque ([b4ffb2f](https://github.com/ApoSkunz/crabitan_bellevue/commit/b4ffb2f9b7a17c1f26d6434a81a7e1865f962eba))
+* **view:** checkout — newsletter masquée si déjà abonné, billing ZIP sans restriction France métro ([e509dd3](https://github.com/ApoSkunz/crabitan_bellevue/commit/e509dd37389181cb26c4b25187c643757eda9ed3))
+
+
+### Features
+
+* **checkout:** tunnel commande — rounds 2 & 3 ([46fdf90](https://github.com/ApoSkunz/crabitan_bellevue/commit/46fdf9086a7d850a8dc6ae9fdebd89e1b45f7b6f))
+* **controller:** order — droit rétractation + token anti double-submit + fix Sonar (complexity, require_once, ternaires, returns) ([c3d7d7a](https://github.com/ApoSkunz/crabitan_bellevue/commit/c3d7d7a442d4e0c1d271e344ef9d73e54672097d))
+* **controller:** OrderController + hook purge panier WineAdminController ([84fe97f](https://github.com/ApoSkunz/crabitan_bellevue/commit/84fe97f48addcfc17e310ada0f70fb4fd7b2028b))
+* **i18n:** checkout — clés fr.php + en.php (50 clés) ([090e80c](https://github.com/ApoSkunz/crabitan_bellevue/commit/090e80caa38ef222b07682052ce4ff72723b67b6))
+* **i18n:** checkout — droit de rétractation L221-18 + token soumission (clés withdrawal_right, submit_token) ([d659141](https://github.com/ApoSkunz/crabitan_bellevue/commit/d65914138daba3f14240b6ca4940120705f07438))
+* **mail:** email récapitulatif commande — client + propriétaire (sendOrderConfirmationToClient/Owner) ([66a01fd](https://github.com/ApoSkunz/crabitan_bellevue/commit/66a01fd57de3bd234cabc470c10d23bf3cc4d101))
+* **model:** checkout — CartModel + OrderModel + AddressModel ([25b6a60](https://github.com/ApoSkunz/crabitan_bellevue/commit/25b6a601bf11fa9c443c15bca700640f9dc877e4))
+* **model:** OrderModel — référence WEB-{CB|VB|CHQ}-{RANDOM}-{YEAR} ([6389e0e](https://github.com/ApoSkunz/crabitan_bellevue/commit/6389e0e6578426c15041f6bd94888dc7380c8cd8))
+* **scss:** layout/_checkout.scss — styles page checkout + confirmation ([6886ce9](https://github.com/ApoSkunz/crabitan_bellevue/commit/6886ce93eae212b170995e6a7e3da101d0216a40))
+* **service:** mail — sendNewsletterWelcome pour inscription via checkout (client authentifié) ([e0decab](https://github.com/ApoSkunz/crabitan_bellevue/commit/e0decab415cac946c8a2b76f45246bb8d8c66501))
+* **view:** checkout — droit rétractation + token anti double-submit + fix ternaires imbriqués (Sonar) ([2222ded](https://github.com/ApoSkunz/crabitan_bellevue/commit/2222ded560ddb555198fa7a2f01edcb31130a639))
+* **view:** confirmation — mode paiement affiché pour tous modes + btn--gold sur "Continuer mes achats" ([e80cce9](https://github.com/ApoSkunz/crabitan_bellevue/commit/e80cce9186001a18481abc6584384497647d2e59))
+* **view:** order — checkout.php + confirmation.php ([b2a8ef3](https://github.com/ApoSkunz/crabitan_bellevue/commit/b2a8ef3d497e8f7ab083956a6a0489002226b5ab))
+
 # [0.26.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.25.0...v0.26.0) (2026-04-04)
 
 
