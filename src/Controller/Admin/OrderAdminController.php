@@ -7,6 +7,7 @@ namespace Controller\Admin;
 use Core\Response;
 use Model\OrderModel;
 use Service\MailService;
+use Service\PaymentService;
 
 class OrderAdminController extends AdminController
 {
@@ -33,6 +34,16 @@ class OrderAdminController extends AdminController
     protected function newMailService(): MailService
     {
         return new MailService();
+    }
+
+    /**
+     * Instancie le PaymentService (seam de testabilité).
+     *
+     * @return PaymentService
+     */
+    protected function newPaymentService(): PaymentService
+    {
+        return new PaymentService();
     }
 
     /**
@@ -139,6 +150,27 @@ class OrderAdminController extends AdminController
 
         $oldStatus = $order['status'];
         $status    = $this->request->post('status', '');
+
+        // Remboursement CB automatique si passage à "refunded" sur une commande carte
+        if ($status === 'refunded' && $status !== $oldStatus && ($order['payment_method'] ?? '') === 'card') {
+            $numappel = (string) ($order['ca_numappel'] ?? '');
+            $numtrans = (string) ($order['ca_numtrans'] ?? '');
+            $ref      = (string) ($order['order_reference'] ?? '');
+            $amount   = (int) round((float) ($order['price'] ?? 0) * 100);
+
+            if ($numappel === '' || $numtrans === '') {
+                $this->flash('error', 'Remboursement CB impossible : NUMAPPEL/NUMTRANS manquants.');
+                Response::redirect(self::ADMIN_URL . '/' . $id);
+            }
+
+            $refunded = $this->newPaymentService()->callGaeCancelOrRefund($ref, $numappel, $numtrans, $amount);
+
+            if (!$refunded) {
+                $this->flash('error', 'Échec du remboursement CB (CA). Vérifiez dans Vision Air.');
+                Response::redirect(self::ADMIN_URL . '/' . $id);
+            }
+        }
+
         $this->orders->updateStatus($id, $status);
 
         if ($status !== $oldStatus && in_array($status, self::TRIGGER_STATUSES, true)) {
@@ -148,6 +180,7 @@ class OrderAdminController extends AdminController
             $clientName  = trim($firstname . ' ' . $lastname) ?: $clientEmail;
             $clientLang  = (string) ($order['lang'] ?? 'fr');
             $orderRef    = (string) ($order['order_reference'] ?? '');
+            // phpcs:ignore Generic.Files.LineLength
             $appUrl      = rtrim($_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'http://crabitan.local'), '/'); // NOSONAR — php:S5332
 
             try {
@@ -160,6 +193,7 @@ class OrderAdminController extends AdminController
                     $appUrl
                 );
             } catch (\Throwable $e) {
+                // phpcs:ignore Generic.Files.LineLength
                 error_log('[OrderAdminController] SMTP error on status email: ' . $e->getMessage()); // NOSONAR — php:S4792
             }
         }
