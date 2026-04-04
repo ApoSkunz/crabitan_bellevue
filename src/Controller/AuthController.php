@@ -229,6 +229,28 @@ class AuthController extends Controller
 
         $this->updateDeviceTrust((int) $account['id'], $deviceToken, $deviceName, $isFirstEverLogin, $isAlreadyTrusted);
 
+        // Fusion panier cookie → BDD après connexion réussie
+        $loginCartModel = new \Model\CartModel();
+        $localCartJson  = $_COOKIE['cb-cart'] ?? '';
+        if ($localCartJson !== '') {
+            $localItems = json_decode($localCartJson, true) ?? [];
+            if (!empty($localItems)) {
+                $wineModel = new \Model\WineModel();
+                $loginCartModel->mergeLocalCart(
+                    (int) $account['id'],
+                    $localItems,
+                    fn(int $wineId): int => (int) ($wineModel->getById($wineId)['quantity'] ?? 0)
+                );
+                // Effacer le cookie côté serveur (secure=false pour compatibilité HTTP dev)
+                setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
+            }
+        }
+
+        // Cookie badge count — évite le flash à 0 au chargement de page suivant
+        $loginCart   = $loginCartModel->findByUserId((int) $account['id']);
+        $loginCount  = $loginCart !== false ? (int) ($loginCart['total_quantity'] ?? 0) : 0;
+        setcookie('cb-cart-count', (string) $loginCount, ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
+
         Response::redirect($safeBack);
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+// phpcs:disable Generic.Files.LineLength -- fichier de traductions : les chaînes ne peuvent pas être coupées
 return [
     // Age gate
     'age_gate.quote'         => 'L\'art et la passion du vin, pour sublimer votre table',
@@ -156,6 +157,22 @@ return [
     'cart.login_required'  => 'Connectez-vous pour finaliser votre commande.',
     'cart.added_offline'   => 'Ajouté au panier. Connectez-vous pour passer commande.',
     'cart.added'           => 'Ajouté au panier !',
+    'cart.login_to_order'  => 'Connectez-vous pour passer commande',
+    'cart.login_cta'       => 'Se connecter',
+    'cart.browse'          => 'Voir les vins',
+    'cart.item_total'      => 'Sous-total',
+    'cart.order_total'     => 'Total',
+    'cart.price_at_checkout' => 'Prix calculé à la commande',
+    'cart.update_qty'        => 'Modifier la quantité',
+    'cart.min_12_notice'     => 'Les commandes se font par multiple de 12 bouteilles (1 caisse minimum).',
+    'cart.delivery_discount' => 'Remise livraison',
+    'cart.delivery_none'     => 'Livraison calculée à la commande',
+    'cart.b2b_title'         => 'Compte professionnel',
+    'cart.b2b_message'       => 'Vous disposez d\'un compte client professionnel. Pour bénéficier de nos tarifs B2B et passer commande, merci de nous contacter :',
+    'cart.b2b_subject'       => 'Demande de renseignements — Tarifs B2B',
+    'cart.over_600_notice'         => 'Pour des commandes supérieures à 600 bouteilles, merci de contacter directement le château :',
+    'cart.over_600_subject'        => 'Commande importante — Plus de 600 bouteilles',
+    'cart.over_600_checkout_error' => 'Veuillez nous contacter pour finaliser une commande de plus de 600 bouteilles.',
 
     // Commande
     'order.confirm'   => 'Confirmer la commande',
@@ -216,7 +233,7 @@ return [
     'footer.cgv'             => 'Conditions générales de vente',
     'footer.sitemap'         => 'Plan du site',
     'footer.carbon'          => 'Site Carbone',
-    'footer.alcohol_warning' => "L'abus d'alcool est dangereux pour la santé. À consommer avec modération.",
+    'footer.alcohol_warning' => "L'abus d'alcool est dangereux pour la santé. À consommer avec modération. La vente d'alcool est interdite aux mineurs de moins de 18 ans.", // phpcs:ignore Generic.Files.LineLength
     'footer.made_by'         => 'Réalisé par',
     'footer.webmaster'       => 'Alexandre Solane',
 

@@ -300,7 +300,8 @@ function addToLocalCart(item) {
     if (existing) {
         existing.qty += item.qty;
     } else {
-        cart.push(item);
+        // Stocke uniquement {id, qty} — nom, image et prix récupérés depuis BDD via /api/cart/details
+        cart.push({ id: item.id, qty: item.qty });
     }
     saveLocalCart(cart);
     updateCartCount();
@@ -310,11 +311,18 @@ function getLocalCartCount() {
     return getLocalCart().reduce((sum, i) => sum + (i.qty || 1), 0);
 }
 
-function updateCartCount() {
+function updateCartCount(serverCount = null) {
     const badge = document.querySelector('.header-cart__count');
     if (!badge) return;
-    const count = getLocalCartCount();
-    badge.textContent = count;
+    if (serverCount !== null) {
+        badge.textContent = serverCount;
+        // Persister dans le cookie count pour éviter le flash à 0 au prochain chargement
+        if (window.__userLogged) {
+            document.cookie = 'cb-cart-count=' + serverCount + '; path=/; max-age=' + (7 * 24 * 3600) + '; SameSite=Lax';
+        }
+    } else {
+        badge.textContent = getLocalCartCount();
+    }
 }
 
 // ============================================================
@@ -399,7 +407,7 @@ function initCartModal() {
         if (footerEl)  footerEl.hidden  = false;
     }
 
-    function showCartSuccess(qty) {
+    function showCartSuccess(qty, serverCount = null) {
         const successEl = document.getElementById('cart-modal-success');
         const msgEl     = document.getElementById('cart-modal-success-msg');
         const bodyEl    = modal.querySelector('.cart-modal__body');
@@ -412,7 +420,7 @@ function initCartModal() {
         if (bodyEl)    bodyEl.hidden     = true;
         if (footerEl)  footerEl.hidden   = true;
         if (successEl) successEl.hidden  = false;
-        updateCartCount();
+        updateCartCount(serverCount);
         setTimeout(closeModal, 1200);
     }
 
@@ -423,18 +431,43 @@ function initCartModal() {
         openModal(btn);
     });
 
-    // Soumission du formulaire — toujours interceptée (cart côté serveur non encore implémenté)
-    form?.addEventListener('submit', (e) => {
+    // Soumission du formulaire — interceptée pour les deux cas (invité et connecté)
+    form?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const qty = parseInt(qtyHidden.value, 10) || 1;
-        addToLocalCart({
-            id:    parseInt(wineIdEl.value, 10),
-            qty,
-            name:  titleEl.textContent,
-            price: priceEl.textContent,
-            image: imgEl.src,
-        });
-        showCartSuccess(qty);
+        const qty    = parseInt(qtyHidden.value, 10) || 1;
+        const wineId = parseInt(wineIdEl.value, 10);
+        const item   = { id: wineId, qty };
+
+        if (!window.__userLogged) {
+            // Invité : stockage cookie local uniquement, sans price
+            addToLocalCart(item);
+            showCartSuccess(qty);
+            return;
+        }
+
+        // Connecté : POST API uniquement — pas de cookie local (BDD = source de vérité)
+        const csrfInput = document.getElementById('cart-modal-csrf');
+        const csrf      = csrfInput?.value ?? '';
+
+        try {
+            const res  = await fetch('/api/cart/add', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ wine_id: wineId, quantity: qty, csrf_token: csrf }),
+            });
+            const data = await res.json();
+
+            if (!data.success) throw new Error('API error');
+
+            showCartSuccess(qty, data.total_quantity ?? null);
+        } catch {
+            const isEn = document.documentElement.lang === 'en';
+            showToast(
+                isEn ? 'Failed to add to cart. Please try again.' : 'Échec de l\'ajout au panier. Veuillez réessayer.',
+                true
+            );
+            closeModal();
+        }
     });
 
     backdrop?.addEventListener('click', closeModal);
@@ -681,20 +714,15 @@ function initRegisterModal() {
 }
 
 // ============================================================
-// Cart login prompt (bouton panier header — non connecté)
+// Cart guest button (bouton panier header — non connecté)
+// Les invités peuvent consulter leur panier — redirection vers /panier
 // ============================================================
 
-function initCartLoginPrompt() {
+function initCartGuestButton() {
     document.querySelectorAll('.js-cart-login-prompt').forEach((btn) => {
         btn.addEventListener('click', () => {
-            const loginUrl = btn.dataset.loginUrl || ('/' + (window.__navLang || 'fr') + '/connexion');
-            showToast(
-                document.documentElement.lang === 'en'
-                    ? 'Please log in to complete your order.'
-                    : 'Connectez-vous pour finaliser votre commande.',
-                false
-            );
-            setTimeout(() => { window.location.href = loginUrl; }, 1500); // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression — loginUrl is server-rendered via htmlspecialchars(), not user input // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
+            const cartUrl = '/' + (window.__navLang || 'fr') + '/panier';
+            window.location.href = cartUrl; // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression — cartUrl is built from server-rendered window.__navLang (htmlspecialchars)
         });
     });
 }
@@ -1521,6 +1549,424 @@ function initDeleteAccountModal() {
     }
 }
 
+// ============================================================
+// Page panier — interactions connecté + affichage invité
+// ============================================================
+
+function initCartPage() {
+    if (!document.querySelector('.page-cart')) return;
+
+    const isEn = document.documentElement.lang === 'en';
+
+    // ------------------------------------------------------------------
+    // Invité : construire l'affichage depuis le cookie cb-cart
+    // ------------------------------------------------------------------
+    if (!window.__userLogged) {
+        const guestContainer = document.getElementById('cart-guest');
+        if (!guestContainer) return;
+
+        const localItems = getLocalCart(); // [{id, qty}]
+
+        if (!localItems.length) {
+            guestContainer.querySelector('.cart-guest__loading').textContent =
+                isEn ? 'Your cart is empty.' : 'Votre panier est vide.';
+            return;
+        }
+
+        // Récupère nom, image et prix depuis la BDD
+        const ids = localItems.map((i) => i.id).join(',');
+        fetch('/api/cart/details?ids=' + ids)
+            .then((r) => r.json())
+            .then((details) => {
+                const detailsMap = {};
+                details.forEach((d) => { detailsMap[d.wine_id] = d; });
+
+                const ul = document.createElement('ul');
+                ul.className = 'cart-guest__list';
+
+                localItems.forEach((item) => {
+                    const d         = detailsMap[item.id] ?? {};
+                    const name      = d.name  || 'Vin';
+                    const image     = d.image || '';
+                    const priceNote = isEn ? 'Price calculated at checkout' : 'Prix calculé à la commande';
+                    const qtyLabel  = isEn ? 'Qty' : 'Qté';
+
+                    const li = document.createElement('li');
+                    li.className = 'cart-guest__item';
+
+                    const imgHtml = image
+                        ? `<img src="${image}" alt="${name}" class="cart-guest__img" width="48" height="48" loading="lazy">`
+                        : '';
+
+                    li.innerHTML = `
+                        ${imgHtml}
+                        <div class="cart-guest__info">
+                            <p class="cart-guest__name">${name}</p>
+                            <p class="cart-guest__qty">${qtyLabel}\u00a0: ${item.qty || 1}</p>
+                            <p class="cart-guest__price-note">${priceNote}</p>
+                        </div>`;
+                    ul.appendChild(li);
+                });
+
+                guestContainer.replaceChildren(ul);
+            })
+            .catch(() => {
+                guestContainer.querySelector('.cart-guest__loading').textContent =
+                    isEn ? 'Unable to load cart.' : 'Impossible de charger le panier.';
+            });
+
+        // CTA "Se connecter pour commander" → ouvre le modal de connexion en place
+        document.querySelector('.js-open-login-from-cart')?.addEventListener('click', () => {
+            document.getElementById('login-modal-trigger')?.click();
+        });
+        return;
+    }
+
+    // ------------------------------------------------------------------
+    // Connecté : recalcul total + handlers quantité / suppression
+    // ------------------------------------------------------------------
+
+    const csrfInput = document.getElementById('cart-modal-csrf');
+    const getCSRF   = () => csrfInput?.value ?? '';
+
+    /**
+     * Calcule la remise livraison applicable selon les règles de pricing et la quantité totale.
+     *
+     * @param {number} totalQty Quantité totale d'articles dans le panier
+     * @return {number} Montant de la remise en euros (0 si aucune règle applicable)
+     */
+    /**
+     * Affiche ou masque les notices dynamiques selon la quantité totale.
+     * - Notice multiple de 12 : visible si totalQty > 0 et non multiple de 12
+     * - Notice > 600 : visible si totalQty > 600
+     */
+    function updateCartNotices(totalQty) {
+        const notice600 = document.getElementById('cart-notice-600');
+        if (notice600) notice600.hidden = totalQty <= 600;
+    }
+
+    /**
+     * Met à jour la barre de progression vers le palier de remise livraison suivant.
+     * Distingue l'état "aucune remise active" du "remise active → palier suivant".
+     * La progression se calcule entre le palier courant et le palier suivant (pas depuis 0).
+     *
+     * @param {number} totalQty Quantité totale d'articles dans le panier
+     */
+    function updateProgressBar(totalQty) {
+        const bar = document.getElementById('cart-progress-bar');
+        if (!bar) return;
+
+        const rules    = (window.__pricingRules ?? []).slice().sort((a, b) => a.min_quantity - b.min_quantity);
+        const nextTier = rules.find((r) => r.min_quantity > totalQty);
+
+        if (totalQty === 0) { bar.hidden = true; return; }
+
+        const discount    = computeDeliveryDiscount(totalQty);
+        const normalEl    = document.getElementById('cart-progress-normal');
+        const maxEl       = document.getElementById('cart-progress-max');
+        const fillEl      = document.getElementById('cart-progress-fill');
+        const trackEl     = bar.querySelector('.cart-progress-bar__track');
+
+        // ── Palier maximum atteint ──────────────────────────────────
+        if (!nextTier) {
+            if (discount <= 0) { bar.hidden = true; return; }
+
+            bar.hidden = false;
+            if (normalEl) normalEl.hidden = true;
+            if (maxEl)    maxEl.hidden    = false;
+
+            const maxValEl = document.getElementById('cart-progress-max-value');
+            if (maxValEl) {
+                maxValEl.textContent = '\u2212\u00a0' + discount.toLocaleString(isEn ? 'en-GB' : 'fr-FR', {
+                    minimumFractionDigits: 2, maximumFractionDigits: 2,
+                }) + '\u00a0€';
+            }
+            if (fillEl) fillEl.style.width = '100%';
+            return;
+        }
+
+        // ── Progression vers le palier suivant ──────────────────────
+        bar.hidden = false;
+        if (normalEl) normalEl.hidden = false;
+        if (maxEl)    maxEl.hidden    = true;
+
+        const hasDiscount = discount > 0;
+        const currentTier = [...rules].reverse().find((r) => r.min_quantity <= totalQty);
+        const fromQty     = currentTier ? currentTier.min_quantity : 0;
+        const toQty       = nextTier.min_quantity;
+        const remaining   = toQty - totalQty;
+        const range       = toQty - fromQty;
+        const pct         = range > 0 ? Math.min(100, Math.round(((totalQty - fromQty) / range) * 100)) : 0;
+
+        // Bloc remise active
+        const discountEl      = document.getElementById('cart-progress-discount');
+        const discountValueEl = document.getElementById('cart-progress-discount-value');
+        if (discountEl) discountEl.hidden = !hasDiscount;
+        if (discountValueEl && hasDiscount) {
+            discountValueEl.textContent = '\u2212\u00a0' + discount.toLocaleString(isEn ? 'en-GB' : 'fr-FR', {
+                minimumFractionDigits: 2, maximumFractionDigits: 2,
+            }) + '\u00a0€';
+        }
+
+        // Label fin
+        const tierLabelEl = document.getElementById('cart-progress-tier-label');
+        if (tierLabelEl) {
+            tierLabelEl.textContent = hasDiscount
+                ? (isEn ? 'for the next tier' : 'pour le palier suivant')
+                : (isEn ? 'for your delivery discount' : 'pour votre remise livraison');
+        }
+
+        // Compteur restant + barre
+        const remainingCases   = Math.ceil(remaining / 12);
+        const remainingEl      = document.getElementById('cart-progress-remaining');
+        const remainingCasesEl = document.getElementById('cart-progress-remaining-cases');
+
+        if (remainingEl)      remainingEl.textContent      = String(remaining);
+        if (remainingCasesEl) remainingCasesEl.textContent = String(remainingCases);
+        if (fillEl)           fillEl.style.width           = pct + '%';
+        if (trackEl) {
+            trackEl.setAttribute('aria-valuenow', String(totalQty));
+            trackEl.setAttribute('aria-valuemax', String(toQty));
+        }
+    }
+
+    function computeDeliveryDiscount(totalQty) {
+        const rules = window.__pricingRules;
+        if (!Array.isArray(rules) || rules.length === 0) return 0;
+        let applicable = null;
+        for (const r of rules) {
+            if (r.min_quantity <= totalQty && (r.max_quantity === null || r.max_quantity >= totalQty)) {
+                applicable = r;
+            }
+        }
+        if (!applicable) return 0;
+        const price = parseFloat(applicable.delivery_price) || 0;
+        if (price <= 0) return 0;
+        return applicable.price_type === 'per_bottle'
+            ? Math.round(price * totalQty * 100) / 100
+            : price;
+    }
+
+    /**
+     * Recalcule et affiche le sous-total, la remise et le total final à partir des données du DOM.
+     */
+    function updateCartTotal() {
+        let subtotal = 0;
+        let totalQty = 0;
+
+        document.querySelectorAll('.cart-table__row').forEach((row) => {
+            const price = parseFloat(row.dataset.price) || 0;
+            const hiddenInput = row.querySelector('.js-cart-qty');
+            const qty = parseInt(hiddenInput?.value, 10) || 0;
+            const subtotalEl = row.querySelector('.js-cart-subtotal');
+            const sub = price * qty;
+            subtotal += sub;
+            totalQty += qty;
+            if (subtotalEl) {
+                subtotalEl.textContent = sub.toLocaleString(isEn ? 'en-GB' : 'fr-FR', {
+                    minimumFractionDigits: 2, maximumFractionDigits: 2,
+                }) + '\u00a0€';
+            }
+        });
+
+        const discount = computeDeliveryDiscount(totalQty);
+        const finalTotal = Math.max(0, subtotal - discount);
+
+        // Sous-total
+        const subtotalEl = document.getElementById('cart-subtotal');
+        if (subtotalEl) {
+            subtotalEl.textContent = subtotal.toLocaleString(isEn ? 'en-GB' : 'fr-FR', {
+                minimumFractionDigits: 2, maximumFractionDigits: 2,
+            }) + '\u00a0€';
+            // Barrer si remise active
+            subtotalEl.style.textDecoration = discount > 0 ? 'line-through' : '';
+            subtotalEl.style.opacity        = discount > 0 ? '0.55' : '';
+            subtotalEl.style.fontSize       = discount > 0 ? '0.9em' : '';
+        }
+
+        // Remise
+        const discountRow   = document.querySelector('.js-discount-row');
+        const discountValue = document.querySelector('.js-discount-value');
+        if (discountRow && discountValue) {
+            if (discount > 0) {
+                discountRow.removeAttribute('hidden');
+                discountValue.textContent = '\u2212\u00a0' + discount.toLocaleString(isEn ? 'en-GB' : 'fr-FR', {
+                    minimumFractionDigits: 2, maximumFractionDigits: 2,
+                }) + '\u00a0€';
+            } else {
+                discountRow.setAttribute('hidden', '');
+            }
+        }
+
+        // Total final
+        const totalEl = document.getElementById('cart-total');
+        if (totalEl) {
+            totalEl.textContent = finalTotal.toLocaleString(isEn ? 'en-GB' : 'fr-FR', {
+                minimumFractionDigits: 2, maximumFractionDigits: 2,
+            }) + '\u00a0€';
+        }
+
+        // Notices dynamiques (multiple de 12, > 600)
+        updateCartNotices(totalQty);
+
+        // Compteur d'articles dans le label sous-total
+        const articleCountEl = document.getElementById('cart-article-count');
+        if (articleCountEl) articleCountEl.textContent = String(totalQty);
+
+        // Barre de progression palier livraison
+        updateProgressBar(totalQty);
+
+        // Bloquer le bouton commande si totalQty > 600
+        const checkoutBtn   = document.getElementById('cart-checkout-btn');
+        const checkoutError = document.getElementById('cart-checkout-over600-error');
+        if (checkoutBtn) {
+            const over600 = totalQty > 600;
+            if (over600) {
+                if (!checkoutBtn.dataset.href) checkoutBtn.dataset.href = checkoutBtn.getAttribute('href') ?? '';
+                checkoutBtn.removeAttribute('href');
+                checkoutBtn.setAttribute('aria-disabled', 'true');
+                checkoutBtn.classList.add('btn--disabled');
+            } else {
+                if (checkoutBtn.dataset.href) checkoutBtn.setAttribute('href', checkoutBtn.dataset.href);
+                checkoutBtn.removeAttribute('aria-disabled');
+                checkoutBtn.classList.remove('btn--disabled');
+            }
+            if (checkoutError) checkoutError.hidden = !over600;
+        }
+    }
+
+    // Debounce helper (400 ms)
+    let qtyDebounceTimer = null;
+    function debounceQty(fn) {
+        clearTimeout(qtyDebounceTimer);
+        qtyDebounceTimer = setTimeout(fn, 400);
+    }
+
+    // Délégation — boutons +/−
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-qty-minus, .js-qty-plus');
+        if (!btn) return;
+
+        const wineId   = parseInt(btn.dataset.wineId, 10);
+        const isMinus  = btn.classList.contains('js-qty-minus');
+        const qtyInput = document.querySelector(`.js-cart-qty[data-wine-id="${wineId}"]`);
+        if (!qtyInput) return;
+
+        let qty = parseInt(qtyInput.value, 10) || 1;
+        qty     = isMinus ? Math.max(1, qty - 1) : qty + 1;
+
+        qtyInput.value = qty;
+
+        // Désactiver le bouton − si qty = 1
+        const minusBtn = document.querySelector(`.js-qty-minus[data-wine-id="${wineId}"]`);
+        if (minusBtn) minusBtn.disabled = qty <= 1;
+
+        debounceQty(async () => {
+            try {
+                const res  = await fetch('/api/cart/update', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ wine_id: wineId, quantity: qty, csrf_token: getCSRF() }),
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error('update failed');
+                updateCartCount(data.total_quantity ?? null);
+            } catch {
+                showToast(isEn ? 'Failed to update quantity.' : 'Échec de la mise à jour.', true);
+            }
+            updateCartTotal();
+        });
+    });
+
+    // Délégation — saisie directe dans le champ quantité
+    document.addEventListener('input', (e) => {
+        const input = e.target.closest('.js-cart-qty');
+        if (!input) return;
+
+        const wineId = parseInt(input.dataset.wineId, 10);
+        const qty = Math.max(1, parseInt(input.value, 10) || 1);
+        input.value = qty;
+
+        const minusBtn = document.querySelector(`.js-qty-minus[data-wine-id="${wineId}"]`);
+        if (minusBtn) minusBtn.disabled = qty <= 1;
+
+        debounceQty(async () => {
+            try {
+                const res  = await fetch('/api/cart/update', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ wine_id: wineId, quantity: qty, csrf_token: getCSRF() }),
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error('update failed');
+                updateCartCount(data.total_quantity ?? null);
+            } catch {
+                showToast(isEn ? 'Failed to update quantity.' : 'Échec de la mise à jour.', true);
+            }
+            updateCartTotal();
+        });
+    });
+
+    // Délégation — suppression d'article
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-cart-remove');
+        if (!btn) return;
+
+        const wineId = parseInt(btn.dataset.wineId, 10);
+        btn.disabled = true;
+
+        fetch('/api/cart/remove', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ wine_id: wineId, csrf_token: getCSRF() }),
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (!data.success) throw new Error('remove failed');
+
+                const row = btn.closest('.cart-table__row');
+                if (row) {
+                    row.style.transition = 'opacity 250ms ease';
+                    row.style.opacity    = '0';
+                    setTimeout(() => {
+                        row.remove();
+                        updateCartTotal();
+
+                        // Panier vide après suppression
+                        const tbody = document.getElementById('cart-tbody');
+                        if (tbody && !tbody.querySelector('.cart-table__row')) {
+                            const section = document.querySelector('.cart-section');
+                            if (section) {
+                                section.innerHTML = `
+                                    <div class="cart-empty-state">
+                                        <p class="cart-empty">${isEn ? 'Your cart is empty' : 'Votre panier est vide'}</p>
+                                        <a href="/${window.__navLang || 'fr'}/vins" class="btn btn--outline">
+                                            ${isEn ? 'Browse wines' : 'Voir les vins'}
+                                        </a>
+                                    </div>`;
+                            }
+                        }
+                    }, 260);
+                }
+                updateCartCount(data.total_quantity ?? null);
+            })
+            .catch(() => {
+                btn.disabled = false;
+                showToast(isEn ? 'Failed to remove item.' : 'Échec de la suppression.', true);
+            });
+    });
+
+    // Désactiver les boutons − si qty initiale = 1
+    document.querySelectorAll('.js-qty-minus').forEach((btn) => {
+        const wineId = parseInt(btn.dataset.wineId, 10);
+        const input  = document.querySelector(`.js-cart-qty[data-wine-id="${wineId}"]`);
+        if (input && parseInt(input.value, 10) <= 1) btn.disabled = true;
+    });
+
+    // Calcul initial + notices dynamiques
+    updateCartTotal();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     if (window.__flashInfo) showToast(window.__flashInfo, false, 2000);
     initPageIntro();
@@ -1536,7 +1982,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initRegisterModal();
     initResetModal();
     initCartModal();
-    initCartLoginPrompt();
+    initCartGuestButton();
     initFavoriteAuth();
     initFavoriteToggle();
     initAccountFavoritesRemove();
@@ -1548,12 +1994,30 @@ document.addEventListener('DOMContentLoaded', () => {
     initAddressAddToggle();
     initAlertAutoDismiss();
     initWineZoom();
-    updateCartCount();
+    // Pour les connectés : affichage immédiat depuis cookie count + vérification API
+    if (window.__userLogged) {
+        // Affichage immédiat du badge depuis le cookie count (évite le flash à 0)
+        const countCookie = document.cookie.split('; ').find((c) => c.startsWith('cb-cart-count='));
+        if (countCookie) {
+            const n = parseInt(countCookie.slice('cb-cart-count='.length), 10);
+            if (!isNaN(n) && n >= 0) updateCartCount(n);
+        }
+        // Suppression belt-and-suspenders du cookie panier invité (déjà effacé par PHP au login)
+        document.cookie = CART_KEY + '=; path=/; max-age=0; SameSite=Lax';
+        localStorage.removeItem(CART_KEY); // nettoyage d'éventuels restes d'une ancienne version
+        fetch('/api/cart/count')
+            .then((r) => r.ok ? r.json() : null)
+            .then((data) => { if (data && typeof data.total_quantity === 'number') updateCartCount(data.total_quantity); })
+            .catch(() => { /* fallback : badge reste sur la valeur du cookie */ });
+    } else {
+        updateCartCount();
+    }
     initNewsletterForm();
     initContactForm();
     initAnchorScroll();
     initFaqAccordion();
     initCarbonBadge();
+    initCartPage();
 
     // Chargement à la demande — uniquement sur la page jeux
     if (document.getElementById('memo-game')) {

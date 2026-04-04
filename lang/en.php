@@ -1,5 +1,6 @@
 <?php
 
+// phpcs:disable Generic.Files.LineLength -- translation file: strings cannot be split across lines
 return [
     // Age gate
     'age_gate.quote'         => 'The art and passion of wine, to elevate your table',
@@ -156,6 +157,22 @@ return [
     'cart.login_required'  => 'Please log in to complete your order.',
     'cart.added_offline'   => 'Added to cart. Log in to place your order.',
     'cart.added'           => 'Added to cart!',
+    'cart.login_to_order'  => 'Log in to place your order',
+    'cart.login_cta'       => 'Log in',
+    'cart.browse'          => 'Browse wines',
+    'cart.item_total'      => 'Subtotal',
+    'cart.order_total'     => 'Total',
+    'cart.price_at_checkout' => 'Price calculated at checkout',
+    'cart.update_qty'        => 'Update quantity',
+    'cart.min_12_notice'     => 'Orders are placed in multiples of 12 bottles (minimum 1 case).',
+    'cart.delivery_discount' => 'Delivery discount',
+    'cart.delivery_none'     => 'Delivery calculated at checkout',
+    'cart.b2b_title'         => 'Professional account',
+    'cart.b2b_message'       => 'You have a professional customer account. To benefit from our B2B rates and place an order, please contact us:',
+    'cart.b2b_subject'       => 'Enquiry — B2B Rates',
+    'cart.over_600_notice'         => 'For orders exceeding 600 bottles, please contact the château directly:',
+    'cart.over_600_subject'        => 'Large order enquiry — Over 600 bottles',
+    'cart.over_600_checkout_error' => 'Please contact us to finalise an order of more than 600 bottles.',
 
     // Order
     'order.confirm'   => 'Confirm order',
@@ -216,7 +233,7 @@ return [
     'footer.cgv'             => 'Terms and conditions',
     'footer.sitemap'         => 'Sitemap',
     'footer.carbon'          => 'Carbon Badge',
-    'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. To be consumed in moderation.',
+    'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. To be consumed in moderation. The sale of alcohol is prohibited to persons under 18 years of age.',
     'footer.made_by'         => 'Made by',
     'footer.webmaster'       => 'Alexandre Solane',
 

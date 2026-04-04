@@ -152,6 +152,8 @@ $router->post('/{lang}/newsletter/inscription', 'NewsletterController@subscribe'
 // ============================================================
 // Routes API (AJAX)
 // ============================================================
+$router->get('/api/cart/count', 'Api\CartApiController@count');
+$router->get('/api/cart/details', 'Api\CartApiController@details');
 $router->post('/api/cart/add', 'Api\CartApiController@add');
 $router->post('/api/cart/update', 'Api\CartApiController@update');
 $router->post('/api/cart/remove', 'Api\CartApiController@remove');

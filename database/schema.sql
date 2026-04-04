@@ -221,10 +221,7 @@ CREATE TABLE `pricing_rules` (
 CREATE TABLE `carts` (
   `id`               INT            NOT NULL AUTO_INCREMENT,
   `user_id`          INT            NOT NULL,
-  `content`          JSON           NOT NULL COMMENT 'Snapshot des articles [{wine_id, qty, price, format, ...}]',
-  `price`            DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
-  `withdrawal_price` DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
-  `delivery_price`   DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
+  `content`          JSON           NOT NULL COMMENT 'Articles du panier [{wine_id, qty}] — détails récupérés à la demande',
   `total_quantity`   INT            NOT NULL DEFAULT 0,
   `created_at`       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`       DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,

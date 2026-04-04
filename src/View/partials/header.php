@@ -305,6 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <form method="POST" id="cart-modal-form" action="">
             <input type="hidden" name="wine_id" id="cart-modal-wine-id" value="">
             <input type="hidden" name="qty" id="cart-modal-qty-hidden" value="1">
+            <input type="hidden" id="cart-modal-csrf" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
             <div class="cart-modal__footer">
                 <button type="button" id="cart-modal-cancel" class="btn btn--ghost"><?= htmlspecialchars(__('btn.cancel')) ?></button>
                 <button type="submit" class="btn btn--gold"><?= htmlspecialchars(__('wine.add_to_cart')) ?></button>
