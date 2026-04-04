@@ -578,6 +578,16 @@
     }
 }
 
+.checkout-bank-details__beneficiary {
+    margin-bottom: 0.5rem;
+}
+
+.checkout-summary__item-unit {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    display: block;
+}
+
 // ---- Multiple de 12 / erreurs résumé ----
 
 .checkout-summary__error {

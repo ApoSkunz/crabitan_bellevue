@@ -63,7 +63,8 @@ $isDeferred    = in_array($paymentMethod, ['virement', 'cheque'], true);
                     <h2 class="confirmation-bank-details__title"><?= htmlspecialchars(__('checkout.cheque_send_to')) ?></h2>
                     <address class="confirmation-bank-details__address">
                         G.F.A Bernard Solane &amp; Fils<br>
-                        2 Crabitan, 33410 Sainte-Croix-du-Mont
+                        1 Château Crabitan Bellevue<br>
+                        33410 Sainte-Croix-du-Mont
                     </address>
                     <p class="confirmation-bank-details__hint">
                         <?= htmlspecialchars(__('checkout.cheque_ref_mention')) ?> :

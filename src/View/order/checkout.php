@@ -30,8 +30,8 @@ $lang             = $lang             ?? 'fr';
 $deliveryDelay    = $deliveryDelay    ?? '3 à 5 jours ouvrés';
 $isEn             = ($lang === 'en');
 
-$billingAddresses  = array_values($addresses);
-$deliveryAddresses = array_values($addresses);
+$billingAddresses  = array_values(array_filter($addresses, fn($a) => $a['type'] === 'billing'));
+$deliveryAddresses = array_values(array_filter($addresses, fn($a) => $a['type'] === 'delivery'));
 
 $countries = [
     'France', 'Belgique', 'Luxembourg', 'Suisse', 'Allemagne', 'Pays-Bas',
@@ -148,23 +148,23 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                 ================================================ -->
                 <div class="checkout-main">
 
-                    <!-- === Adresse de facturation === -->
-                    <section class="checkout-card" aria-labelledby="checkout-billing-title">
-                        <h2 class="checkout-card__title" id="checkout-billing-title">
-                            <?= htmlspecialchars(__('checkout.billing_address')) ?>
+                    <!-- === Adresse de livraison === -->
+                    <section class="checkout-card" aria-labelledby="checkout-delivery-title">
+                        <h2 class="checkout-card__title" id="checkout-delivery-title">
+                            <?= htmlspecialchars(__('checkout.delivery_address')) ?>
                         </h2>
 
-                        <?php if (!empty($billingAddresses)) : ?>
+                        <?php if (!empty($deliveryAddresses)) : ?>
                         <div class="checkout-address-list">
-                            <?php foreach ($billingAddresses as $addr) :
+                            <?php foreach ($deliveryAddresses as $addr) :
                                 $isChecked = empty($post)
-                                    ? ($addr === reset($billingAddresses))
-                                    : ((int)($post['billing_address_id'] ?? 0) === (int)$addr['id']);
+                                    ? ($addr === reset($deliveryAddresses))
+                                    : ((int)($post['delivery_address_id'] ?? 0) === (int)$addr['id']);
                             ?>
                             <label class="checkout-address-card <?= $isChecked ? 'checkout-address-card--selected' : '' ?>">
-                                <input type="radio" name="billing_address_id"
+                                <input type="radio" name="delivery_address_id"
                                        value="<?= (int) $addr['id'] ?>"
-                                       class="checkout-address-card__radio js-billing-radio"
+                                       class="checkout-address-card__radio js-delivery-radio"
                                        <?= $isChecked ? 'checked' : '' ?>>
                                 <span class="checkout-address-card__body">
                                     <strong><?= htmlspecialchars("{$addr['firstname']} {$addr['lastname']}") ?></strong><br>
@@ -174,30 +174,30 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                 </span>
                             </label>
                             <?php endforeach; ?>
-                            <label class="checkout-address-card checkout-address-card--new <?= ((int)($post['billing_address_id'] ?? -1) === 0) ? 'checkout-address-card--selected' : '' ?>">
-                                <input type="radio" name="billing_address_id"
+                            <label class="checkout-address-card checkout-address-card--new <?= ((int)($post['delivery_address_id'] ?? -1) === 0) ? 'checkout-address-card--selected' : '' ?>">
+                                <input type="radio" name="delivery_address_id"
                                        value="0"
-                                       class="checkout-address-card__radio js-billing-radio"
-                                       <?= ((int)($post['billing_address_id'] ?? -1) === 0) ? 'checked' : '' ?>>
+                                       class="checkout-address-card__radio js-delivery-radio"
+                                       <?= ((int)($post['delivery_address_id'] ?? -1) === 0) ? 'checked' : '' ?>>
                                 <span class="checkout-address-card__body checkout-address-card__body--new">
                                     + <?= htmlspecialchars(__('checkout.new_address')) ?>
                                 </span>
                             </label>
                         </div>
                         <?php else : ?>
-                        <input type="hidden" name="billing_address_id" value="0">
+                        <input type="hidden" name="delivery_address_id" value="0">
                         <?php endif; ?>
 
-                        <div class="checkout-new-address js-new-billing-form" <?= (empty($billingAddresses) || (int)($post['billing_address_id'] ?? -1) === 0) ? '' : 'hidden' ?>>
-                            <h3 class="checkout-new-address__title"><?= htmlspecialchars(__('checkout.new_address_billing')) ?></h3>
-                            <?php $renderAddressForm('', $post, 'bill'); ?>
+                        <div class="checkout-new-address js-new-delivery-form" <?= (empty($deliveryAddresses) || (int)($post['delivery_address_id'] ?? -1) === 0) ? '' : 'hidden' ?>>
+                            <h3 class="checkout-new-address__title"><?= htmlspecialchars(__('checkout.new_address_delivery')) ?></h3>
+                            <?php $renderAddressForm('del_', $post, 'del'); ?>
                         </div>
                     </section>
 
-                    <!-- === Adresse de livraison === -->
-                    <section class="checkout-card" aria-labelledby="checkout-delivery-title">
-                        <h2 class="checkout-card__title" id="checkout-delivery-title">
-                            <?= htmlspecialchars(__('checkout.delivery_address')) ?>
+                    <!-- === Adresse de facturation === -->
+                    <section class="checkout-card" aria-labelledby="checkout-billing-title">
+                        <h2 class="checkout-card__title" id="checkout-billing-title">
+                            <?= htmlspecialchars(__('checkout.billing_address')) ?>
                         </h2>
 
                         <label class="checkout-same-address">
@@ -207,21 +207,21 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                    id="checkout-same-address"
                                    class="js-same-address"
                                    <?= (empty($post) || array_key_exists('same_address', $post)) ? 'checked' : '' ?>>
-                            <?= htmlspecialchars(__('checkout.same_as_billing')) ?>
+                            <?= htmlspecialchars(__('checkout.same_as_delivery')) ?>
                         </label>
 
-                        <div class="js-delivery-fields" <?= (empty($post) || array_key_exists('same_address', $post)) ? 'hidden' : '' ?>>
-                            <?php if (!empty($deliveryAddresses)) : ?>
+                        <div class="js-billing-fields" <?= (empty($post) || array_key_exists('same_address', $post)) ? 'hidden' : '' ?>>
+                            <?php if (!empty($billingAddresses)) : ?>
                             <div class="checkout-address-list">
-                                <?php foreach ($deliveryAddresses as $addr) :
+                                <?php foreach ($billingAddresses as $addr) :
                                     $isChecked = empty($post)
-                                        ? ($addr === reset($deliveryAddresses))
-                                        : ((int)($post['delivery_address_id'] ?? 0) === (int)$addr['id']);
+                                        ? ($addr === reset($billingAddresses))
+                                        : ((int)($post['billing_address_id'] ?? 0) === (int)$addr['id']);
                                 ?>
                                 <label class="checkout-address-card <?= $isChecked ? 'checkout-address-card--selected' : '' ?>">
-                                    <input type="radio" name="delivery_address_id"
+                                    <input type="radio" name="billing_address_id"
                                            value="<?= (int) $addr['id'] ?>"
-                                           class="checkout-address-card__radio js-delivery-radio"
+                                           class="checkout-address-card__radio js-billing-radio"
                                            <?= $isChecked ? 'checked' : '' ?>>
                                     <span class="checkout-address-card__body">
                                         <strong><?= htmlspecialchars("{$addr['firstname']} {$addr['lastname']}") ?></strong><br>
@@ -231,23 +231,23 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                     </span>
                                 </label>
                                 <?php endforeach; ?>
-                                <label class="checkout-address-card checkout-address-card--new <?= ((int)($post['delivery_address_id'] ?? -1) === 0) ? 'checkout-address-card--selected' : '' ?>">
-                                    <input type="radio" name="delivery_address_id"
+                                <label class="checkout-address-card checkout-address-card--new <?= ((int)($post['billing_address_id'] ?? -1) === 0) ? 'checkout-address-card--selected' : '' ?>">
+                                    <input type="radio" name="billing_address_id"
                                            value="0"
-                                           class="checkout-address-card__radio js-delivery-radio"
-                                           <?= ((int)($post['delivery_address_id'] ?? -1) === 0) ? 'checked' : '' ?>>
+                                           class="checkout-address-card__radio js-billing-radio"
+                                           <?= ((int)($post['billing_address_id'] ?? -1) === 0) ? 'checked' : '' ?>>
                                     <span class="checkout-address-card__body checkout-address-card__body--new">
                                         + <?= htmlspecialchars(__('checkout.new_address')) ?>
                                     </span>
                                 </label>
                             </div>
                             <?php else : ?>
-                            <input type="hidden" name="delivery_address_id" value="0">
+                            <input type="hidden" name="billing_address_id" value="0">
                             <?php endif; ?>
 
-                            <div class="checkout-new-address js-new-delivery-form" <?= (empty($deliveryAddresses) || (int)($post['delivery_address_id'] ?? -1) === 0) ? '' : 'hidden' ?>>
-                                <h3 class="checkout-new-address__title"><?= htmlspecialchars(__('checkout.new_address_delivery')) ?></h3>
-                                <?php $renderAddressForm('del_', $post, 'del'); ?>
+                            <div class="checkout-new-address js-new-billing-form" <?= (empty($billingAddresses) || (int)($post['billing_address_id'] ?? -1) === 0) ? '' : 'hidden' ?>>
+                                <h3 class="checkout-new-address__title"><?= htmlspecialchars(__('checkout.new_address_billing')) ?></h3>
+                                <?php $renderAddressForm('', $post, 'bill'); ?>
                             </div>
                         </div>
                     </section>
@@ -295,6 +295,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                 <?= htmlspecialchars(__('checkout.payment_deferred_notice')) ?>
                             </p>
                             <div class="checkout-bank-details">
+                                <p class="checkout-bank-details__beneficiary"><strong>G.F.A Bernard Solane &amp; Fils</strong></p>
                                 <p class="checkout-bank-details__label"><?= htmlspecialchars(__('checkout.iban_label')) ?></p>
                                 <p class="checkout-bank-details__value"><strong>FR76 3000 6000 0112 3456 7890 189</strong></p>
                                 <p class="checkout-bank-details__hint"><?= htmlspecialchars(__('checkout.iban_reference_hint')) ?></p>
@@ -311,7 +312,8 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                 <p class="checkout-bank-details__label"><?= htmlspecialchars(__('checkout.cheque_order')) ?></p>
                                 <address class="checkout-bank-details__address">
                                     G.F.A Bernard Solane &amp; Fils<br>
-                                    2 Crabitan, 33410 Sainte-Croix-du-Mont
+                                    1 Château Crabitan Bellevue<br>
+                                    33410 Sainte-Croix-du-Mont
                                 </address>
                             </div>
                         </div>
@@ -371,6 +373,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                 <span class="checkout-summary__item-name">
                                     <?= htmlspecialchars($name) ?>
                                     <span class="checkout-summary__item-qty">× <?= $qty ?></span>
+                                    <span class="checkout-summary__item-unit"><?= number_format($price, 2, ',', ' ') ?>&nbsp;€/btl</span>
                                 </span>
                                 <span class="checkout-summary__item-price">
                                     <?= number_format($price * $qty, 2, ',', ' ') ?>&nbsp;€
@@ -405,9 +408,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                             <?= htmlspecialchars($errors['multiple_12']) ?>
                         </p>
                         <?php endif; ?>
-                        <p class="checkout-summary__multiple12-hint js-multiple12-hint" hidden></p>
-
-                        <button type="submit" class="btn btn--gold checkout-summary__cta" id="js-checkout-submit">
+                        <button type="submit" class="btn btn--gold checkout-summary__cta">
                             <?= htmlspecialchars(__('checkout.submit')) ?>
                         </button>
 
@@ -450,14 +451,50 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
         });
     });
 
-    // ---- Adresse livraison identique ----
+    // ---- Adresse facturation identique à la livraison ----
     var sameChk    = document.getElementById('checkout-same-address');
-    var delFields  = document.querySelector('.js-delivery-fields');
+    var billFields = document.querySelector('.js-billing-fields');
 
-    function toggleDelivery() {
-        if (delFields) { delFields.hidden = sameChk ? sameChk.checked : true; }
+    function toggleBilling() {
+        if (billFields) { billFields.hidden = sameChk ? sameChk.checked : true; }
     }
-    if (sameChk) { sameChk.addEventListener('change', toggleDelivery); }
+    if (sameChk) { sameChk.addEventListener('change', toggleBilling); }
+
+    // ---- Validation code postal livraison (France métropolitaine) ----
+    var zipDelInput  = document.getElementById('addr-zip-del');
+    var zipErrMsg    = <?= json_encode($isEn
+        ? 'Delivery is only available to mainland France (excluding Corsica and overseas territories).'
+        : 'La livraison n\'est disponible qu\'en France métropolitaine (hors Corse et DOM-TOM).') ?>;
+
+    function isMainlandFranceZip(zip) {
+        if (!/^\d{5}$/.test(zip)) { return true; }
+        var dept = parseInt(zip.substring(0, 2), 10);
+        if (dept === 20) { return false; }
+        if (dept >= 97)  { return false; }
+        return true;
+    }
+
+    function validateDelZip() {
+        if (!zipDelInput) { return; }
+        var existing = zipDelInput.parentNode.querySelector('.js-zip-error');
+        if (isMainlandFranceZip(zipDelInput.value)) {
+            zipDelInput.setCustomValidity('');
+            if (existing) { existing.remove(); }
+        } else {
+            zipDelInput.setCustomValidity(zipErrMsg);
+            if (!existing) {
+                var err = document.createElement('p');
+                err.className = 'checkout-zip-error js-zip-error';
+                err.style.color = '#e74c3c';
+                err.style.fontSize = '0.82rem';
+                err.style.marginTop = '0.3rem';
+                err.textContent = zipErrMsg;
+                zipDelInput.parentNode.appendChild(err);
+            }
+        }
+    }
+
+    if (zipDelInput) { zipDelInput.addEventListener('input', validateDelZip); }
 
     // ---- Nouvelle adresse facturation ----
     var billingRadios  = document.querySelectorAll('.js-billing-radio');
@@ -513,24 +550,6 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
         });
     });
 
-    // ---- Validation multiple de 12 ----
-    var totalQty     = <?= (int) $totalQty ?>;
-    var hint         = document.querySelector('.js-multiple12-hint');
-    var submitBtn    = document.getElementById('js-checkout-submit');
-    var multiple12Msg = <?= json_encode($isEn
-        ? 'The total quantity must be a multiple of 12 bottles.'
-        : 'La quantité totale doit être un multiple de 12 bouteilles.') ?>;
-
-    function checkMultiple12() {
-        if (totalQty % 12 !== 0) {
-            if (hint)      { hint.textContent = multiple12Msg; hint.hidden = false; }
-            if (submitBtn) { submitBtn.disabled = true; }
-        } else {
-            if (hint)      { hint.hidden = true; }
-            if (submitBtn) { submitBtn.disabled = false; }
-        }
-    }
-    checkMultiple12();
 
 })();
 </script>
