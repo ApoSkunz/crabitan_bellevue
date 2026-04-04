@@ -35,6 +35,21 @@ class AddressModel extends Model
         return $row ?: null;
     }
 
+    /**
+     * Crée une adresse et retourne son identifiant en base de données.
+     *
+     * @param int    $userId    Identifiant de l'utilisateur
+     * @param string $type      'billing' ou 'delivery'
+     * @param string $firstname Prénom
+     * @param string $lastname  Nom
+     * @param string $civility  'M', 'F' ou 'other'
+     * @param string $street    Rue
+     * @param string $city      Ville
+     * @param string $zipCode   Code postal
+     * @param string $country   Pays
+     * @param string $phone     Téléphone
+     * @return int Identifiant de l'adresse créée, 0 si type invalide
+     */
     public function create( // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
         int $userId,
         string $type,
@@ -46,16 +61,17 @@ class AddressModel extends Model
         string $zipCode,
         string $country,
         string $phone
-    ): void {
+    ): int {
         if (!in_array($type, self::VALID_TYPES, true)) {
-            return;
+            return 0;
         }
-        $this->db->insert(
+        $id = $this->db->insert(
             "INSERT INTO {$this->table}
              (user_id, type, firstname, lastname, civility, street, city, zip_code, country, phone, saved)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
             [$userId, $type, $firstname, $lastname, $civility, $street, $city, $zipCode, $country, $phone]
         );
+        return (int) $id;
     }
 
     public function update( // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
