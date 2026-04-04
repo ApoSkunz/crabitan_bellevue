@@ -762,6 +762,7 @@ return [
     'checkout.newsletter_optin'       => 'Je souhaite recevoir les actualités et offres du Château Crabitan Bellevue par email.',
     'checkout.newsletter_subscribed'  => 'Vous êtes maintenant inscrit(e) à notre newsletter.',
     'checkout.age_confirmation'       => 'En validant cette commande, je certifie avoir 18 ans ou plus (Art. L3342-1 CSP — vente d\'alcool interdite aux mineurs).',
+    'checkout.withdrawal_right'       => 'Conformément à l\'art. L221-18 du Code de la consommation, vous disposez d\'un délai de rétractation de 14 jours à compter de la réception de votre commande.',
     'checkout.delivery_delay_notice'  => 'Délai de livraison estimé :',
     'checkout.delivery_delay_suffix'  => '',
     'checkout.submit'                 => 'Passer la commande',
