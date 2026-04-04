@@ -314,8 +314,24 @@ $pricingRules     = $pricingRules     ?? [];
         <!-- ======================================================
              Connecté — panier vide
         ====================================================== -->
+        <?php $randomWine = $randomWine ?? null; ?>
         <div class="cart-empty-state">
             <p class="cart-empty"><?= htmlspecialchars(__('cart.empty')) ?></p>
+            <?php if ($randomWine !== null) : ?>
+            <div class="cart-empty-wine">
+                <p class="cart-empty-wine__label"><?= htmlspecialchars($isEn ? 'You might enjoy:' : 'Vous pourriez apprécier :') ?></p>
+                <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
+                   class="cart-empty-wine__card">
+                    <?php $wineImage = '/assets/images/wines/' . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
+                    <img src="<?= $wineImage ?>"
+                         alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
+                         class="cart-empty-wine__img"
+                         width="120" height="160" loading="lazy">
+                    <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?></span>
+                    <span class="cart-empty-wine__price"><?= number_format((float)($randomWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
+                </a>
+            </div>
+            <?php endif; ?>
             <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--outline">
                 <?= htmlspecialchars(__('cart.browse')) ?>
             </a>

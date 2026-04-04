@@ -62,7 +62,7 @@ $isDeferred    = in_array($paymentMethod, ['virement', 'cheque'], true);
                 <div class="confirmation-bank-details">
                     <h2 class="confirmation-bank-details__title"><?= htmlspecialchars(__('checkout.cheque_send_to')) ?></h2>
                     <address class="confirmation-bank-details__address">
-                        Château Crabitan Bellevue<br>
+                        G.F.A Bernard Solane &amp; Fils<br>
                         2 Crabitan, 33410 Sainte-Croix-du-Mont
                     </address>
                     <p class="confirmation-bank-details__hint">
@@ -139,16 +139,37 @@ $isDeferred    = in_array($paymentMethod, ['virement', 'cheque'], true);
             <?php endif; ?>
 
             <div class="confirmation-card__actions">
-                <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes" class="btn btn--gold">
+                <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes" class="btn btn--gold" id="js-orders-btn">
                     <?= htmlspecialchars(__('checkout.view_orders')) ?>
                 </a>
                 <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--outline">
                     <?= htmlspecialchars(__('checkout.continue_shopping')) ?>
                 </a>
             </div>
+            <p class="confirmation-card__redirect" id="js-redirect-notice">
+                <?= htmlspecialchars($isEn ? 'Redirecting to your orders in ' : 'Redirection vers vos commandes dans ') ?>
+                <strong id="js-countdown">15</strong>
+                <?= htmlspecialchars($isEn ? ' seconds.' : ' secondes.') ?>
+            </p>
         </div>
 
     </section>
 </main>
+
+<script>
+(function () {
+    var seconds  = 15;
+    var counter  = document.getElementById('js-countdown');
+    var url      = '/<?= htmlspecialchars($lang) ?>/mon-compte/commandes';
+    var timer    = setInterval(function () {
+        seconds--;
+        if (counter) { counter.textContent = seconds; }
+        if (seconds <= 0) {
+            clearInterval(timer);
+            window.location.href = url;
+        }
+    }, 1000);
+})();
+</script>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

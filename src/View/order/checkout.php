@@ -30,8 +30,8 @@ $lang             = $lang             ?? 'fr';
 $deliveryDelay    = $deliveryDelay    ?? '3 à 5 jours ouvrés';
 $isEn             = ($lang === 'en');
 
-$billingAddresses  = array_values(array_filter($addresses, fn($a) => $a['type'] === 'billing'));
-$deliveryAddresses = array_values(array_filter($addresses, fn($a) => $a['type'] === 'delivery'));
+$billingAddresses  = array_values($addresses);
+$deliveryAddresses = array_values($addresses);
 
 $countries = [
     'France', 'Belgique', 'Luxembourg', 'Suisse', 'Allemagne', 'Pays-Bas',
@@ -206,11 +206,11 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                    value="1"
                                    id="checkout-same-address"
                                    class="js-same-address"
-                                   <?= !empty($post['same_address'] ?? '1') || empty($post) ? 'checked' : '' ?>>
+                                   <?= (empty($post) || array_key_exists('same_address', $post)) ? 'checked' : '' ?>>
                             <?= htmlspecialchars(__('checkout.same_as_billing')) ?>
                         </label>
 
-                        <div class="js-delivery-fields" <?= (!empty($post['same_address'] ?? '1') || empty($post)) ? 'hidden' : '' ?>>
+                        <div class="js-delivery-fields" <?= (empty($post) || array_key_exists('same_address', $post)) ? 'hidden' : '' ?>>
                             <?php if (!empty($deliveryAddresses)) : ?>
                             <div class="checkout-address-list">
                                 <?php foreach ($deliveryAddresses as $addr) :
@@ -310,7 +310,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                             <div class="checkout-bank-details">
                                 <p class="checkout-bank-details__label"><?= htmlspecialchars(__('checkout.cheque_order')) ?></p>
                                 <address class="checkout-bank-details__address">
-                                    Château Crabitan Bellevue<br>
+                                    G.F.A Bernard Solane &amp; Fils<br>
                                     2 Crabitan, 33410 Sainte-Croix-du-Mont
                                 </address>
                             </div>
@@ -400,7 +400,14 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                             <?= $totalQty ?> <?= htmlspecialchars($isEn ? ($totalQty > 1 ? 'bottles' : 'bottle') : ($totalQty > 1 ? 'bouteilles' : 'bouteille')) ?>
                         </p>
 
-                        <button type="submit" class="btn btn--gold checkout-summary__cta">
+                        <?php if (isset($errors['multiple_12'])) : ?>
+                        <p class="checkout-summary__error checkout-summary__error--multiple12" role="alert">
+                            <?= htmlspecialchars($errors['multiple_12']) ?>
+                        </p>
+                        <?php endif; ?>
+                        <p class="checkout-summary__multiple12-hint js-multiple12-hint" hidden></p>
+
+                        <button type="submit" class="btn btn--gold checkout-summary__cta" id="js-checkout-submit">
                             <?= htmlspecialchars(__('checkout.submit')) ?>
                         </button>
 
@@ -505,6 +512,25 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
             }
         });
     });
+
+    // ---- Validation multiple de 12 ----
+    var totalQty     = <?= (int) $totalQty ?>;
+    var hint         = document.querySelector('.js-multiple12-hint');
+    var submitBtn    = document.getElementById('js-checkout-submit');
+    var multiple12Msg = <?= json_encode($isEn
+        ? 'The total quantity must be a multiple of 12 bottles.'
+        : 'La quantité totale doit être un multiple de 12 bouteilles.') ?>;
+
+    function checkMultiple12() {
+        if (totalQty % 12 !== 0) {
+            if (hint)      { hint.textContent = multiple12Msg; hint.hidden = false; }
+            if (submitBtn) { submitBtn.disabled = true; }
+        } else {
+            if (hint)      { hint.hidden = true; }
+            if (submitBtn) { submitBtn.disabled = false; }
+        }
+    }
+    checkMultiple12();
 
 })();
 </script>
