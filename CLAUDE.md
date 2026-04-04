@@ -151,21 +151,13 @@ Avant toute implémentation, **demander explicitement la validation d'Alexandre*
 - Corrections de sécurité identifiées sur du code existant (vecteur exploitable immédiatement)
 - Corrections de syntaxe / linter / tests cassés bloquant la CI
 
-### 1. Méthode TDD — Red → Green → Refactor
+### 1. Approche tests
 
-Toute nouvelle logique métier (service, model, controller) est développée en **TDD strict** :
+L'IAG est plus efficace en écrivant le code d'abord, puis les tests qui couvrent toutes les branches et conditions limites — le TDD strict (Red → Green → Refactor) n'est **pas utilisé** dans ce projet.
 
-| Phase | Action |
-|---|---|
-| 🔴 **Red** | Écrire le(s) test(s) qui décrivent le comportement attendu — ils échouent (classe/méthode inexistante) |
-| 🟢 **Green** | Implémenter le minimum de code pour faire passer les tests — sans sur-ingénierie |
-| 🔵 **Refactor** | Nettoyer le code (nommage, extraction, PHPDoc) sans casser les tests |
+**Règle unique : les tests sont écrits dans le même commit que le code qu'ils couvrent.** Ils ne se reportent pas.
 
-**Règles d'application :**
-- Un cycle Red/Green/Refactor par comportement unitaire (pas par fichier entier)
-- Les tests TDD remplacent les TU/TI de l'étape 2 — ils sont écrits **avant** le code de production
-- Exception acceptée : vues PHP, SCSS, i18n — pas de TDD, tests E2E suffisent
-- Si la logique est triviale (getter pur, constante), un test post-hoc est acceptable
+Exception : lorsque le **contrat d'une API ou d'un service est flou**, écrire les tests en premier pour forcer la clarification du comportement attendu avant d'implémenter.
 
 ### 2. Ordre des tâches par US
 
@@ -173,10 +165,10 @@ Pour chaque feature ou correction, respecter cet ordre **sans exception** :
 
 | Étape | Contenu |
 |---|---|
-| **1. TDD Red** | Écrire les TU/TI décrivant le comportement attendu (tests échouent) |
-| **2. TDD Green** | Implémenter le code (Controller, Model, Service…) + PHPDoc pour faire passer les tests |
-| **3. TDD Refactor** | Nettoyer — PHPCS/PHPStan doivent être verts |
-| **4. Vue / i18n / SCSS** | Vues PHP, clés de traduction, styles (pas de TDD — E2E couvre) |
+| **1. Code** | Implémenter le code (Controller, Model, Service…) + PHPDoc |
+| **2. Tests** | Écrire les TU/TI couvrant toutes les branches — dans le même commit |
+| **3. Qualité** | PHPCS/PHPStan doivent être verts |
+| **4. Vue / i18n / SCSS** | Vues PHP, clés de traduction, styles (tests E2E suffisent) |
 | **5. BACKLOG** | Créer l'US si non tracée · Mettre à jour la colonne 🤖 dans `us-*.md` et `README.md` · **obligatoire avant le commit** |
 | **6. E2E** | Écrire et passer la spec Playwright (nominal + 1 erreur critique) |
 | **7. Commit** | `git add` fichier par fichier · commit(s) atomiques · sur la branche `feat/us-{sujet}` dédiée |
