@@ -747,7 +747,7 @@ VALUES
 -- société (id 5) — delivered hors fenêtre (> 15j)
 (9, 5, 'CBV-2026-000009',
  '[{"wine_id":34,"label_name":"Côtes de Bordeaux Rouge","vintage":2019,"wine_color":"red","format":"bottle","qty":48,"price":10.00,"subtotal":480.00}]',
- 480.00, 'transfer', 62.40, 4, 5, 'delivered', '2026-01-20 10:00:00', '2026-02-01 10:00:00'),
+ 480.00, 'virement', 62.40, 4, 5, 'delivered', '2026-01-20 10:00:00', '2026-02-01 10:00:00'),
 
 -- admin (id 2) — paid (pour tester vue admin)
 (10, 2, 'CBV-2026-000010',

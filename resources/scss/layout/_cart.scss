@@ -202,12 +202,59 @@
 .cart-empty-state {
     text-align: center;
     padding: 4rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
 }
 
 .cart-empty {
     font-size: 1.125rem;
     color: var(--color-text-muted);
     margin-bottom: 1.5rem;
+}
+
+.cart-empty-wine {
+    margin: 1.5rem auto;
+    max-width: 220px;
+
+    &__label {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    &__card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        color: var(--color-text);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 1rem;
+        transition: border-color 200ms ease;
+
+        &:hover { border-color: var(--color-gold); }
+    }
+
+    &__img {
+        width: 120px;
+        height: 160px;
+        object-fit: contain;
+    }
+
+    &__name {
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+    &__price {
+        font-size: 0.95rem;
+        color: var(--color-gold);
+        font-weight: 600;
+    }
 }
 
 // ----------------------------------------------------------------
@@ -307,6 +354,18 @@
     color: var(--color-text);
 
     p { margin: 0; }
+
+    &--error {
+        background: rgba(239, 68, 68, 0.07);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #dc2626;
+        font-weight: 600;
+        transition: background 200ms, border-color 200ms, color 200ms;
+    }
+
+    &--shake {
+        animation: cart-notice-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    }
 
     &--contact {
         display: flex;
@@ -739,4 +798,32 @@
 
         th, td { padding: 0.25rem 0.5rem; border: none; }
     }
+}
+
+// ----------------------------------------------------------------
+// Badge Cuvée Spéciale dans le tableau panier
+// ----------------------------------------------------------------
+
+.cart-table__cuvee {
+    display: block;
+    font-size: 0.68rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--color-gold);
+    font-family: Georgia, serif;
+    margin-top: 0.15rem;
+}
+
+// ----------------------------------------------------------------
+// Animation shake notice ×12
+// ----------------------------------------------------------------
+
+@keyframes cart-notice-shake {
+    0%, 100% { transform: translateX(0); }
+    15%       { transform: translateX(-6px); }
+    30%       { transform: translateX(6px); }
+    45%       { transform: translateX(-5px); }
+    60%       { transform: translateX(5px); }
+    75%       { transform: translateX(-3px); }
+    90%       { transform: translateX(3px); }
 }

@@ -22,6 +22,88 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     ];
 
     /**
+     * Crée une commande et retourne la référence générée.
+     *
+     * @param int                              $userId            Identifiant de l'utilisateur
+     * @param array<int, array<string, mixed>> $items             Snapshot des articles du panier
+     * @param float                            $price             Total TTC
+     * @param string                           $paymentMethod     Méthode de paiement ('card', 'virement', 'cheque')
+     * @param float                            $shippingDiscount  Remise livraison appliquée
+     * @param int                              $idBillingAddress  ID adresse de facturation
+     * @param int|null                         $idDeliveryAddress ID adresse de livraison (null = même que facturation)
+     * @param string                           $cgvVersion        Version des CGV acceptées
+     * @return string Référence de commande générée
+     */
+    public function create( // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
+        int $userId,
+        array $items,
+        float $price,
+        string $paymentMethod,
+        float $shippingDiscount,
+        int $idBillingAddress,
+        ?int $idDeliveryAddress,
+        string $cgvVersion
+    ): string {
+        if (!in_array($paymentMethod, self::VALID_PAYMENT_METHODS, true)) {
+            $paymentMethod = 'card';
+        }
+
+        $typeCode  = match ($paymentMethod) {
+            'virement' => 'VB',
+            'cheque'   => 'CHQ',
+            default    => 'CB',
+        };
+        $reference = 'WEB-' . $typeCode . '-' . strtoupper(bin2hex(random_bytes(4))) . '-' . date('Y');
+        $contentJson = json_encode($items, JSON_UNESCAPED_UNICODE);
+
+        $this->db->insert(
+            "INSERT INTO {$this->table}
+             (user_id, order_reference, content, price, payment_method, shipping_discount,
+              id_billing_address, id_delivery_address, cgv_version, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')", // phpcs:ignore Generic.Files.LineLength
+            [
+                $userId,
+                $reference,
+                $contentJson,
+                $price,
+                $paymentMethod,
+                $shippingDiscount,
+                $idBillingAddress,
+                $idDeliveryAddress,
+                $cgvVersion,
+            ]
+        );
+
+        return $reference;
+    }
+
+    /**
+     * Retrouve une commande par sa référence pour un utilisateur donné.
+     *
+     * @param string $reference Référence de commande
+     * @param int    $userId    Identifiant de l'utilisateur
+     * @return array<string, mixed>|null
+     */
+    public function findByReference(string $reference, int $userId): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT o.*,
+                    b.civility  AS bill_civility,  b.firstname AS bill_firstname, b.lastname AS bill_lastname,
+                    b.street    AS bill_street,     b.city      AS bill_city,
+                    b.zip_code  AS bill_zip,        b.country   AS bill_country,  b.phone AS bill_phone,
+                    d.civility  AS del_civility,    d.firstname AS del_firstname,  d.lastname AS del_lastname,
+                    d.street    AS del_street,      d.city      AS del_city,
+                    d.zip_code  AS del_zip,         d.country   AS del_country
+             FROM {$this->table} o
+             LEFT JOIN addresses b ON b.id = o.id_billing_address
+             LEFT JOIN addresses d ON d.id = o.id_delivery_address
+             WHERE o.order_reference = ? AND o.user_id = ?",
+            [$reference, $userId]
+        );
+        return $row ?: null;
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function getForAdmin(int $page, int $perPage, ?string $status, ?string $search, ?string $payment = null): array

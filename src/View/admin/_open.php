@@ -98,9 +98,12 @@ $adminRole    = $adminUser['role'] ?? 'admin';
                     <div class="admin-sidebar__user-role"><?= htmlspecialchars($adminRole) ?></div>
                 </div>
             </div>
-            <a href="/fr/deconnexion" class="admin-logout">
-                <span aria-hidden="true">↩</span> Déconnexion
-            </a>
+            <form method="POST" action="/fr/deconnexion" class="admin-logout-form">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                <button type="submit" class="admin-logout">
+                    <span aria-hidden="true">↩</span> Déconnexion
+                </button>
+            </form>
         </div>
 
     </aside>

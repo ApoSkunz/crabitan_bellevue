@@ -60,7 +60,12 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                     <?php else : ?>
                         <?php foreach ($cartItems as $item) : ?>
                             <tr>
-                                <td><?= htmlspecialchars($item['label_name'] ?? '—') ?></td>
+                                <td>
+                                    <?= htmlspecialchars($item['label_name'] ?? $item['name'] ?? '—') ?>
+                                    <?php if (!empty($item['is_cuvee_speciale'])) : ?>
+                                        <br><span style="font-size:0.72rem;letter-spacing:1.5px;text-transform:uppercase;color:#c9a84c;font-family:Georgia,serif;">Cuvée Spéciale</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?= htmlspecialchars($item['format'] ?? 'bottle') ?></td>
                                 <td><?= (int) ($item['qty'] ?? 0) ?></td>
                                 <td><?= number_format((float) ($item['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</td>

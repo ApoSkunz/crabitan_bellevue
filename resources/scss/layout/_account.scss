@@ -901,6 +901,16 @@
     a { color: var(--color-gold); text-decoration: underline; }
 }
 
+.account-table__cuvee {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--color-gold);
+    font-family: Georgia, serif;
+    margin-top: 0.1rem;
+}
+
 .account-table__vintage,
 .account-table__format {
     display: inline-block;

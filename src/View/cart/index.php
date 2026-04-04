@@ -202,6 +202,9 @@ $pricingRules     = $pricingRules     ?? [];
                             </td>
                             <td class="cart-table__col-product cart-table__name">
                                 <?= htmlspecialchars($name) ?>
+                                <?php if (!empty($item['is_cuvee_speciale'])) : ?>
+                                    <span class="cart-table__cuvee"><?= htmlspecialchars($isEn ? 'Special Cuvée' : 'Cuvée Spéciale') ?></span>
+                                <?php endif; ?>
                             </td>
                             <td class="cart-table__col-qty">
                                 <label for="qty-<?= $wineId ?>" class="sr-only">
@@ -300,7 +303,7 @@ $pricingRules     = $pricingRules     ?? [];
                 </div>
 
                 <a href="/<?= htmlspecialchars($lang) ?>/commande"
-                   id="cart-checkout-btn"
+                   id="js-cart-checkout-btn"
                    class="btn btn--gold cart-summary__cta">
                     <?= htmlspecialchars(__('cart.checkout')) ?>
                 </a>
@@ -314,9 +317,25 @@ $pricingRules     = $pricingRules     ?? [];
         <!-- ======================================================
              Connecté — panier vide
         ====================================================== -->
+        <?php $randomWine = $randomWine ?? null; ?>
         <div class="cart-empty-state">
             <p class="cart-empty"><?= htmlspecialchars(__('cart.empty')) ?></p>
-            <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--outline">
+            <?php if ($randomWine !== null) : ?>
+            <div class="cart-empty-wine">
+                <p class="cart-empty-wine__label"><?= htmlspecialchars($isEn ? 'You might enjoy:' : 'Vous pourriez apprécier :') ?></p>
+                <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
+                   class="cart-empty-wine__card">
+                    <?php $wineImage = '/assets/images/wines/' . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
+                    <img src="<?= $wineImage ?>"
+                         alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
+                         class="cart-empty-wine__img"
+                         width="120" height="160" loading="lazy">
+                    <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?></span>
+                    <span class="cart-empty-wine__price"><?= number_format((float)($randomWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
+                </a>
+            </div>
+            <?php endif; ?>
+            <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--gold">
                 <?= htmlspecialchars(__('cart.browse')) ?>
             </a>
         </div>
@@ -360,6 +379,24 @@ $pricingRules     = $pricingRules     ?? [];
                 <?= htmlspecialchars(__('cart.login_cta')) ?>
             </button>
         </div>
+        <?php if (isset($randomWine) && $randomWine !== null) : ?>
+        <div class="cart-empty-wine">
+            <p class="cart-empty-wine__label"><?= htmlspecialchars($isEn ? 'You might enjoy:' : 'Vous pourriez apprécier :') ?></p>
+            <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
+               class="cart-empty-wine__card">
+                <?php $wineImage = '/assets/images/wines/' . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
+                <img src="<?= $wineImage ?>"
+                     alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
+                     class="cart-empty-wine__img"
+                     width="120" height="160" loading="lazy">
+                <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?></span>
+                <span class="cart-empty-wine__price"><?= number_format((float)($randomWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
+            </a>
+        </div>
+        <?php endif; ?>
+        <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--outline">
+            <?= htmlspecialchars(__('cart.browse')) ?>
+        </a>
         <?php endif; ?>
 
     </section>
@@ -373,6 +410,76 @@ $pricingRules     = $pricingRules     ?? [];
             'price_type'     => (string) $r['price_type'],
         ];
     }, $pricingRules), JSON_UNESCAPED_UNICODE) ?>;
+    window.__totalQty = <?= (int) $totalQty ?>;
+    window.__isMultiple12Error = <?= ($totalQty > 0 && $totalQty % 12 !== 0) ? 'true' : 'false' ?>;
+    window.__multiple12Msg = <?= json_encode(
+        $isEn
+            ? 'The quantity must be a multiple of 12 bottles.'
+            : 'La quantité doit être un multiple de 12 bouteilles.',
+        JSON_UNESCAPED_UNICODE
+    ) ?>;
+
+    (function () {
+        var btn    = document.getElementById('js-cart-checkout-btn');
+        var notice = document.querySelector('.cart-notice');
+        if (!btn) { return; }
+
+        function getTotalQty() {
+            var inputs = document.querySelectorAll('.js-cart-qty');
+            var total = 0;
+            inputs.forEach(function (input) {
+                total += parseInt(input.value, 10) || 0;
+            });
+            return total > 0 ? total : window.__totalQty;
+        }
+
+        function shakeNotice() {
+            if (!notice) { return; }
+            notice.classList.remove('cart-notice--shake');
+            // Force reflow pour relancer l'animation si déjà active
+            void notice.offsetWidth;
+            notice.classList.add('cart-notice--shake');
+        }
+
+        // Intercept le clic sur le bouton commander : shake si invalide
+        btn.addEventListener('click', function (e) {
+            var qty = getTotalQty();
+            if (qty > 0 && qty % 12 !== 0) {
+                e.preventDefault();
+                if (notice) { notice.classList.add('cart-notice--error'); }
+                shakeNotice();
+                if (notice) {
+                    notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+
+        // Écoute les changements de quantité pour retirer le rouge si corrigé
+        function onQtyChange() {
+            var qty = getTotalQty();
+            if (notice) { notice.classList.toggle('cart-notice--error', qty > 0 && qty % 12 !== 0); }
+        }
+
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.classList.contains('js-cart-qty')) {
+                onQtyChange();
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (e.target && (
+                e.target.classList.contains('js-qty-minus') ||
+                e.target.classList.contains('js-qty-plus') ||
+                e.target.classList.contains('js-cart-remove')
+            )) {
+                setTimeout(onQtyChange, 50);
+            }
+        });
+
+        // Initialisation (rouge si déjà invalide au chargement)
+        if (window.__isMultiple12Error) {
+            if (notice) { notice.classList.add('cart-notice--error'); }
+        }
+    })();
     </script>
 </main>
 

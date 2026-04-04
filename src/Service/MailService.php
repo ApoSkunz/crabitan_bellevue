@@ -580,6 +580,245 @@ INNER;
     }
 
     /**
+     * Envoie le récapitulatif de commande au client après validation du paiement.
+     *
+     * @param string               $toEmail         Adresse email du client
+     * @param string               $toName          Prénom ou nom complet du client
+     * @param string               $orderRef        Référence de la commande (ex. CB-2026-001)
+     * @param string               $paymentMethod   Méthode de paiement (card, virement, cheque)
+     * @param array<int, array<string, mixed>> $items Articles de la commande [{name, qty, price}]
+     * @param float                $total           Total TTC en euros
+     * @param string               $lang            Langue du client ('fr' ou 'en')
+     * @return void
+     */
+    public function sendOrderConfirmationToClient(
+        string $toEmail,
+        string $toName,
+        string $orderRef,
+        string $paymentMethod,
+        array $items,
+        float $total,
+        string $lang
+    ): void {
+        $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeName = htmlspecialchars($toName, ENT_QUOTES);
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $ordersUrl = htmlspecialchars(
+            $appUrl . '/' . $lang . '/mon-compte/commandes',
+            ENT_QUOTES
+        );
+
+        if ($lang === 'en') {
+            $subject        = "Your order {$safeRef} — Château Crabitan Bellevue";
+            $title          = 'Order confirmed';
+            $greeting       = "Hello {$safeName},";
+            $colName        = 'Product';
+            $colQty         = 'Qty';
+            $colUnit        = 'Unit price';
+            $colSub         = 'Subtotal';
+            $labelTotal     = 'Total incl. tax';
+            $labelPayment   = 'Payment method';
+            $labelDelay     = 'Estimated delivery';
+            $delayValue     = '7 to 15 days upon receipt of payment';
+            $labelOrders    = 'My orders';
+            $paymentLabels  = [
+                'card'     => 'Credit card',
+                'virement' => 'Bank transfer',
+                'cheque'   => 'Cheque',
+            ];
+            $withdrawalNote = '<br><em style="font-size:12px;color:#8a7a60;">Under applicable consumer law, you have 14 days from receipt to exercise your right of withdrawal.</em>'; // phpcs:ignore Generic.Files.LineLength
+            $deferredNote   = in_array($paymentMethod, ['virement', 'cheque'], true)
+                ? '<br><em>Your order will be dispatched upon receipt of payment.</em>'
+                : '';
+            if ($paymentMethod === 'virement') {
+                $deferredNote .= '<br><br><strong>Bank details:</strong>'
+                    . '<br>Beneficiary: G.F.A Bernard Solane &amp; Fils'
+                    . '<br>IBAN: FR76 3000 6000 0112 3456 7890 189'
+                    . "<br>Reference: {$safeRef}";
+            } elseif ($paymentMethod === 'cheque') {
+                $deferredNote .= '<br><br><strong>Cheque payable to:</strong>'
+                    . '<br>G.F.A Bernard Solane &amp; Fils'
+                    . '<br>1 Château Crabitan Bellevue'
+                    . '<br>33410 Sainte-Croix-du-Mont, France'
+                    . "<br>Please write your reference on the back: {$safeRef}";
+            }
+        } else {
+            $subject        = "Votre commande {$safeRef} — Château Crabitan Bellevue";
+            $title          = 'Commande confirmée';
+            $greeting       = "Bonjour {$safeName},";
+            $colName        = 'Produit';
+            $colQty         = 'Qté';
+            $colUnit        = 'Prix unitaire';
+            $colSub         = 'Sous-total';
+            $labelTotal     = 'Total TTC';
+            $labelPayment   = 'Méthode de paiement';
+            $labelDelay     = 'Délai estimé';
+            $delayValue     = '7 à 15 jours à compter de la réception du paiement';
+            $labelOrders    = 'Mes commandes';
+            $paymentLabels  = [
+                'card'     => 'Carte bancaire',
+                'virement' => 'Virement bancaire',
+                'cheque'   => 'Chèque',
+            ];
+            $withdrawalNote = '<br><em style="font-size:12px;color:#8a7a60;">Conformément à l\'art. L221-18 du Code de la consommation, vous disposez de 14 jours pour exercer votre droit de rétractation à compter de la réception.</em>'; // phpcs:ignore Generic.Files.LineLength
+            $deferredNote   = in_array($paymentMethod, ['virement', 'cheque'], true)
+                ? '<br><em>Commande expédiée dès réception du paiement.</em>'
+                : '';
+            if ($paymentMethod === 'virement') {
+                $deferredNote .= '<br><br><strong>Coordonnées bancaires :</strong>'
+                    . '<br>Bénéficiaire : G.F.A Bernard Solane &amp; Fils'
+                    . '<br>IBAN : FR76 3000 6000 0112 3456 7890 189'
+                    . "<br>Référence à indiquer : {$safeRef}";
+            } elseif ($paymentMethod === 'cheque') {
+                $deferredNote .= '<br><br><strong>Chèque à l\'ordre de :</strong>'
+                    . '<br>G.F.A Bernard Solane &amp; Fils'
+                    . '<br>1 Château Crabitan Bellevue'
+                    . '<br>33410 Sainte-Croix-du-Mont'
+                    . "<br>Merci d'indiquer au dos : {$safeRef}";
+            }
+        }
+
+        $paymentLabel = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
+        $itemsHtml    = $this->buildOrderItemsTable(
+            $items,
+            $total,
+            $colName,
+            $colQty,
+            $colUnit,
+            $colSub,
+            $labelTotal
+        );
+
+        $message = $itemsHtml
+            . "<br><strong>{$labelPayment} :</strong> {$paymentLabel}{$deferredNote}"
+            . "<br><strong>{$labelDelay} :</strong> {$delayValue}"
+            . "<br>{$withdrawalNote}"
+            . '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$ordersUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . $labelOrders
+            . '</a></td></tr></table>';
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
+        $this->send($toEmail, $toName, $subject, $body);
+    }
+
+    /**
+     * Notifie le propriétaire de la boutique qu'une nouvelle commande a été passée.
+     *
+     * @param string               $clientEmail   Adresse email du client
+     * @param string               $clientName    Prénom ou nom complet du client
+     * @param string               $orderRef      Référence de la commande (ex. CB-2026-001)
+     * @param string               $paymentMethod Méthode de paiement (card, virement, cheque)
+     * @param array<int, array<string, mixed>> $items Articles de la commande [{name, qty, price}]
+     * @param float                $total         Total TTC en euros
+     * @return void
+     */
+    public function sendOrderConfirmationToOwner(
+        string $clientEmail,
+        string $clientName,
+        string $orderRef,
+        string $paymentMethod,
+        array $items,
+        float $total
+    ): void {
+        $ownerEmail    = $_ENV['CONTACT_EMAIL'] ?? 'contact@crabitanbellevue.fr';
+        $safeRef       = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeClient    = htmlspecialchars($clientName, ENT_QUOTES);
+        $safeEmail     = htmlspecialchars($clientEmail, ENT_QUOTES);
+        $paymentLabels = [
+            'card'     => 'Carte bancaire',
+            'virement' => 'Virement bancaire',
+            'cheque'   => 'Chèque',
+        ];
+        $paymentLabel  = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
+
+        $itemsHtml = $this->buildOrderItemsTable(
+            $items,
+            $total,
+            'Produit',
+            'Qté',
+            'Prix unitaire',
+            'Sous-total',
+            'Total TTC'
+        );
+
+        $message = "<strong>Client :</strong> {$safeClient} ({$safeEmail})<br>"
+            . "<strong>Référence :</strong> {$safeRef}<br>"
+            . "<strong>Paiement :</strong> {$paymentLabel}<br><br>"
+            . $itemsHtml;
+
+        $subject = "Nouvelle commande {$safeRef} — {$safeEmail}";
+        $body    = $this->emailSimpleLayout(
+            'Nouvelle commande',
+            "Nouvelle commande reçue",
+            $message,
+            'fr'
+        );
+        $this->send($ownerEmail, APP_NAME, $subject, $body);
+    }
+
+    /**
+     * Construit le tableau HTML des articles d'une commande pour les emails.
+     *
+     * @param array<int, array<string, mixed>> $items      Articles [{name, qty, price}]
+     * @param float                            $total      Total TTC
+     * @param string                           $colName    En-tête colonne nom
+     * @param string                           $colQty     En-tête colonne quantité
+     * @param string                           $colUnit    En-tête colonne prix unitaire
+     * @param string                           $colSub     En-tête colonne sous-total
+     * @param string                           $labelTotal Libellé ligne total
+     * @return string HTML du tableau
+     */
+    private function buildOrderItemsTable(
+        array $items,
+        float $total,
+        string $colName,
+        string $colQty,
+        string $colUnit,
+        string $colSub,
+        string $labelTotal
+    ): string {
+        $tdStyle   = 'padding:6px 8px;border-bottom:1px solid #ede8df;font-size:14px;color:#3d3425;';
+        $thStyle   = 'padding:8px;background:#f7f3ec;font-size:13px;'
+            . 'color:#8a7a60;letter-spacing:1px;text-align:left;';
+        $rows = '';
+        foreach ($items as $item) {
+            $name     = htmlspecialchars((string) ($item['name'] ?? $item['label_name'] ?? ''), ENT_QUOTES);
+            $isCuvee  = (bool) ($item['is_cuvee_speciale'] ?? false);
+            $cuveeStyle = 'font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#c9a84c;font-family:Georgia,serif;';
+            $cuveeHtml  = $isCuvee ? "<br><span style=\"{$cuveeStyle}\">Cuvée Spéciale</span>" : '';
+            $qty      = (int) ($item['qty'] ?? 0);
+            $price    = (float) ($item['price'] ?? 0.0);
+            $subtotal = number_format($qty * $price, 2, ',', ' ');
+            $unitFmt  = number_format($price, 2, ',', ' ');
+            $rows .= "<tr>"
+                . "<td style=\"{$tdStyle}\">{$name}{$cuveeHtml}</td>"
+                . "<td style=\"{$tdStyle}\">{$qty}</td>"
+                . "<td style=\"{$tdStyle}\">{$unitFmt} €</td>"
+                . "<td style=\"{$tdStyle}\">{$subtotal} €</td>"
+                . "</tr>";
+        }
+        $totalFmt = number_format($total, 2, ',', ' ');
+        return '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+            . '<tr>'
+            . "<th style=\"{$thStyle}\">{$colName}</th>"
+            . "<th style=\"{$thStyle}\">{$colQty}</th>"
+            . "<th style=\"{$thStyle}\">{$colUnit}</th>"
+            . "<th style=\"{$thStyle}\">{$colSub}</th>"
+            . '</tr>'
+            . $rows
+            . '<tr>'
+            . "<td colspan=\"3\" style=\"{$tdStyle}\"><strong>{$labelTotal}</strong></td>"
+            . "<td style=\"{$tdStyle}\"><strong>{$totalFmt} €</strong></td>"
+            . '</tr>'
+            . '</table>';
+    }
+
+    /**
      * Envoie un email transactionnel au client lors d'un changement de statut de commande.
      * N'envoie rien si le statut n'est pas dans la liste des déclencheurs.
      *
@@ -998,6 +1237,49 @@ INNER;
             'Hello,',
             $message
         );
+    }
+
+    /**
+     * Envoie un email de bienvenue après inscription newsletter via le tunnel de commande.
+     *
+     * Contrairement au double opt-in (inscription indépendante), l'abonnement via checkout
+     * est direct car le client est déjà authentifié et son email vérifié.
+     *
+     * @param string $to   Adresse email du destinataire
+     * @param string $name Nom affiché dans l'email
+     * @param string $lang Langue ('fr' ou 'en')
+     * @return void
+     */
+    public function sendNewsletterWelcome(string $to, string $name, string $lang): void
+    {
+        $subject = $lang === 'fr'
+            ? 'Bienvenue dans la newsletter Crabitan Bellevue'
+            : 'Welcome to the Crabitan Bellevue newsletter';
+
+        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $safeName    = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : $defaultName;
+        $greeting = $lang === 'fr' ? "Bonjour {$safeName}," : "Hello {$safeName},";
+
+        if ($lang === 'fr') {
+            $message = "Vous êtes désormais inscrit(e) à la newsletter du Château Crabitan Bellevue.<br><br>"
+                . "Vous recevrez en avant-première nos actualités : nouvelles cuvées, événements au château et offres exclusives.<br><br>"
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:24px;\">"
+                . "Pour vous désinscrire à tout moment, utilisez le lien présent en bas de chaque newsletter.</p>";
+        } else {
+            $message = "You are now subscribed to the Château Crabitan Bellevue newsletter.<br><br>"
+                . "You will receive our news first: new vintages, château events and exclusive offers.<br><br>"
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:24px;\">"
+                . "To unsubscribe at any time, use the link at the bottom of each newsletter.</p>";
+        }
+
+        $body = $this->emailSimpleLayout(
+            'Newsletter',
+            $greeting,
+            $message,
+            $lang
+        );
+
+        $this->send($to, $name, $subject, $body);
     }
 
     /**

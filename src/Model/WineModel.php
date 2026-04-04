@@ -16,6 +16,8 @@ class WineModel extends Model
     private const ORDER_DEFAULT   = 'wine_color DESC, vintage DESC';
     private const SQL_WHERE       = 'WHERE ';
     private const SQL_AND         = ' AND ';
+    private const COND_IMAGE      = "image_path IS NOT NULL AND image_path != ''";
+    private const SQL_RAND_LIMIT  = ' ORDER BY RAND() LIMIT 1';
 
     /** @param string[] $conditions */
     private function buildWhereClause(array $conditions): string
@@ -285,12 +287,29 @@ class WineModel extends Model
         }
 
         $row = $this->db->fetchOne(
-            "SELECT image_path, slug FROM {$this->table}
-             WHERE " . self::COND_AVAILABLE . "
-             AND " . self::COND_COLOR . "
-             AND image_path IS NOT NULL AND image_path != ''
-             ORDER BY RAND() LIMIT 1",
+            'SELECT image_path, slug FROM ' . $this->table
+            . ' WHERE ' . self::COND_AVAILABLE
+            . self::SQL_AND . self::COND_COLOR
+            . self::SQL_AND . self::COND_IMAGE
+            . self::SQL_RAND_LIMIT,
             [$color]
+        );
+
+        return $row ?: null;
+    }
+
+    /**
+     * Retourne un vin aléatoire disponible avec les champs nécessaires pour une carte produit.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getRandomForCart(): ?array
+    {
+        $row = $this->db->fetchOne(
+            'SELECT id, label_name, image_path, slug, price FROM ' . $this->table
+            . ' WHERE ' . self::COND_AVAILABLE
+            . self::SQL_AND . self::COND_IMAGE
+            . self::SQL_RAND_LIMIT
         );
 
         return $row ?: null;
@@ -304,10 +323,10 @@ class WineModel extends Model
     public function getRandom(): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT image_path, slug FROM {$this->table}
-             WHERE " . self::COND_AVAILABLE . "
-             AND image_path IS NOT NULL AND image_path != ''
-             ORDER BY RAND() LIMIT 1"
+            'SELECT image_path, slug FROM ' . $this->table
+            . ' WHERE ' . self::COND_AVAILABLE
+            . self::SQL_AND . self::COND_IMAGE
+            . self::SQL_RAND_LIMIT
         );
 
         return $row ?: null;
@@ -323,7 +342,7 @@ class WineModel extends Model
         return $this->db->fetchAll(
             "SELECT slug, image_path, label_name
              FROM {$this->table}
-             WHERE image_path IS NOT NULL AND image_path != ''
+             WHERE " . self::COND_IMAGE . "
              ORDER BY RAND()
              LIMIT ?",
             [$limit]

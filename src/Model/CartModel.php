@@ -141,4 +141,75 @@ class CartModel extends Model
 
         $this->save($userId, $merged);
     }
+
+    /**
+     * Supprime du panier les articles dont le vin est indisponible ou hors stock.
+     *
+     * Chaque article est vérifié via $wineData(wine_id) qui retourne les données du vin ou null.
+     * Les articles dont le vin est introuvable, non disponible ou en quantité nulle sont retirés.
+     * Les quantités sont plafonnées au stock restant.
+     *
+     * @param int      $userId    Identifiant de l'utilisateur
+     * @param callable $wineData  callable(int $wineId): ?array — retourne la ligne du vin ou null
+     * @return array<int, array<string, mixed>>  Articles retirés du panier
+     */
+    public function removeUnavailableItems(int $userId, callable $wineData): array
+    {
+        $row = $this->findByUserId($userId);
+        if ($row === false) {
+            return [];
+        }
+
+        $items   = $this->getContent($row);
+        $kept    = [];
+        $removed = [];
+        $changed = false;
+
+        foreach ($items as $item) {
+            $wineId = (int) ($item['wine_id'] ?? 0);
+            $wine   = $wineData($wineId);
+
+            if ($wine === null || !(bool) $wine['available']) {
+                $removed[] = $item;
+                $changed   = true;
+                continue;
+            }
+
+            $qty = min((int) $item['qty'], (int) $wine['quantity']);
+            if ($qty !== (int) $item['qty']) {
+                $changed = true;
+            }
+            $kept[] = array_merge($item, ['qty' => $qty]);
+        }
+
+        if ($changed) {
+            $this->save($userId, $kept);
+        }
+
+        return $removed;
+    }
+
+    /**
+     * Retire un vin spécifique de tous les paniers (ex. vin rendu indisponible par l'admin).
+     *
+     * @param int $wineId Identifiant du vin à retirer
+     * @return void
+     */
+    public function purgeWineFromAllCarts(int $wineId): void
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT id, user_id, content FROM {$this->table} WHERE total_quantity > 0"
+        );
+
+        foreach ($rows as $row) {
+            $items    = $this->getContent($row);
+            $filtered = array_values(
+                array_filter($items, fn(array $i): bool => (int) ($i['wine_id'] ?? 0) !== $wineId)
+            );
+
+            if (count($filtered) !== count($items)) {
+                $this->save((int) $row['user_id'], $filtered);
+            }
+        }
+    }
 }

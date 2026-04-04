@@ -476,4 +476,68 @@ class CartControllerTest extends TestCase
         $this->assertSame('', $result[0]['image']);
         $this->assertSame(8.0, $result[0]['price']);
     }
+
+    // ================================================================
+    // loadCartForUser — via réflexion
+    // ================================================================
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testLoadCartForUserReturnsB2BTrueWhenCompany(): void
+    {
+        $this->bootstrapApp();
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturn(['id' => 1, 'account_type' => 'company']);
+        $stub->method('fetchAll')->willReturn([]);
+
+        $method = new \ReflectionMethod(CartController::class, 'loadCartForUser');
+        $result = $method->invoke($this->makeController('/fr/panier'), 1);
+
+        $this->assertTrue($result['isB2B']);
+        $this->assertSame([], $result['cartItems']);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testLoadCartForUserReturnsEmptyCartWhenNoPanier(): void
+    {
+        $this->bootstrapApp();
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1, 'account_type' => 'individual'], // AccountModel::findById
+            false                                          // CartModel::findByUserId → pas de panier
+        );
+        $stub->method('fetchAll')->willReturn([]);
+
+        $method = new \ReflectionMethod(CartController::class, 'loadCartForUser');
+        $result = $method->invoke($this->makeController('/fr/panier'), 1);
+
+        $this->assertFalse($result['isB2B']);
+        $this->assertSame([], $result['cartItems']);
+        $this->assertSame(0, $result['totalQty']);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testLoadCartForUserWithItemsSetsPricingModel(): void
+    {
+        $this->bootstrapApp();
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1, 'account_type' => 'individual'], // AccountModel::findById
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12, 'name' => 'Wine', 'image' => '']])], // CartModel::findByUserId
+            // WineModel::getById (enrichItemsWithPrice)
+            ['id' => 1, 'price' => '10.00', 'label_name' => 'Wine', 'quantity' => 10, 'image_path' => ''],
+            false, // PricingRuleModel::findForQuantity
+            false  // PricingRuleModel::findNextTierFor
+        );
+        $stub->method('fetchAll')->willReturn([]);
+
+        $method = new \ReflectionMethod(CartController::class, 'loadCartForUser');
+        $result = $method->invoke($this->makeController('/fr/panier'), 1);
+
+        $this->assertFalse($result['isB2B']);
+        $this->assertSame(12, $result['totalQty']);
+        $this->assertNotEmpty($result['cartItems']);
+    }
 }

@@ -6,6 +6,7 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\AccountModel;
+use Model\CartModel;
 use Model\WineModel;
 use Service\MailService;
 use Service\TranslationService;
@@ -294,6 +295,9 @@ class WineAdminController extends AdminController
 
         try {
             $this->wines->update($id, $data);
+            if (!$data['available']) {
+                (new CartModel())->purgeWineFromAllCarts($id);
+            }
         } catch (\PDOException $e) {
             $isDuplicate = str_contains($e->getMessage(), '1062') || str_contains($e->getMessage(), 'uq_wines_slug');
             $errors['slug'] = $isDuplicate

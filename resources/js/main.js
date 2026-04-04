@@ -1817,7 +1817,7 @@ function initCartPage() {
         updateProgressBar(totalQty);
 
         // Bloquer le bouton commande si totalQty > 600
-        const checkoutBtn   = document.getElementById('cart-checkout-btn');
+        const checkoutBtn   = document.getElementById('js-cart-checkout-btn');
         const checkoutError = document.getElementById('cart-checkout-over600-error');
         if (checkoutBtn) {
             const over600 = totalQty > 600;

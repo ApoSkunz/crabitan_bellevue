@@ -245,6 +245,7 @@ CREATE TABLE `orders` (
   `id_billing_address`  INT            NOT NULL,
   `id_delivery_address` INT            DEFAULT NULL,
   `status`              ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested','refund_refused') NOT NULL DEFAULT 'pending',
+  `cgv_version`         VARCHAR(20)    NOT NULL DEFAULT '1.0' COMMENT 'Version des CGV acceptées au moment de la commande',
   `path_invoice`        VARCHAR(255)   DEFAULT NULL,
   `ordered_at`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `delivered_at`        DATETIME       DEFAULT NULL COMMENT 'Date de livraison confirmée ; base du délai de rétractation (15 j)',
