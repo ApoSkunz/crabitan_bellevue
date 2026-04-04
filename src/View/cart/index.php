@@ -139,7 +139,7 @@ $pricingRules     = $pricingRules     ?? [];
 
                     <!-- État palier max : remise maximale confirmée -->
                     <span id="cart-progress-max" <?= $isMaxTier ? '' : 'hidden' ?>>
-                        <?= $isEn ? 'Best delivery discount unlocked' : 'Remise livraison maximale atteinte' ?> : <strong id="cart-progress-max-value">−&nbsp;<?= number_format($deliveryDiscount, 2, ',', ' ') ?>&nbsp;€</strong>
+                        <?= $isEn ? 'Maximum delivery discount tier reached' : 'Palier remise livraison maximum atteint' ?> : <strong id="cart-progress-max-value">−&nbsp;<?= number_format($deliveryDiscount, 2, ',', ' ') ?>&nbsp;€</strong>
                     </span>
 
                 </p>
