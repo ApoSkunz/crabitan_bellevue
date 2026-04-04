@@ -138,18 +138,7 @@ class OrderController extends Controller
         $lang    = $this->resolveLang($params);
         $back    = "/{$lang}/commande";
 
-        if (!$this->verifyCsrf()) {
-            $_SESSION['flash']['checkout_errors']['csrf'] = __('error.csrf');
-            Response::redirect($back);
-        }
-
-        // Valider le token de soumission (anti double-submit)
-        $submitToken = $this->request->post('submit_token', '');
-        if (!isset($_SESSION['submit_token']) || !hash_equals($_SESSION['submit_token'], $submitToken)) {
-            $_SESSION['flash']['checkout_errors']['submit'] = __('error.csrf');
-            Response::redirect($back);
-        }
-        unset($_SESSION['submit_token']);
+        $this->validateCsrfAndSubmitToken($back);
 
         // Vérifier le panier
         $row = $this->carts->findByUserId($userId);
@@ -394,6 +383,30 @@ class OrderController extends Controller
         }
         $dept = (int) substr($zip, 0, 2);
         return $dept !== 20 && $dept < 97;
+    }
+
+    /**
+     * Vérifie le token CSRF et le token de soumission unique (anti double-submit).
+     *
+     * Redirige vers $back avec une erreur flash si l'un des deux tokens est invalide.
+     * Supprime le submit_token de session après vérification réussie.
+     *
+     * @param string $back URL de redirection en cas d'échec
+     * @return void
+     */
+    private function validateCsrfAndSubmitToken(string $back): void
+    {
+        if (!$this->verifyCsrf()) {
+            $_SESSION['flash']['checkout_errors']['csrf'] = __('error.csrf');
+            Response::redirect($back);
+        }
+
+        $submitToken = $this->request->post('submit_token', '');
+        if (!isset($_SESSION['submit_token']) || !hash_equals($_SESSION['submit_token'], $submitToken)) {
+            $_SESSION['flash']['checkout_errors']['submit'] = __('error.csrf');
+            Response::redirect($back);
+        }
+        unset($_SESSION['submit_token']);
     }
 
     /**
