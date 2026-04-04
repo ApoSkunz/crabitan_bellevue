@@ -341,15 +341,74 @@ class OrderController extends Controller
         $userId  = (int) $payload['sub'];
         $lang    = $this->resolveLang($params);
 
-        $ref   = $_GET['Ref'] ?? '';
-        $order = ($ref !== '') ? $this->orders->findByReference($ref, $userId) : null;
+        $ref    = $_GET['Ref']    ?? '';
+        $erreur = $_GET['Erreur'] ?? '';
 
         unset($_SESSION['ca_payment']);
 
+        // Vérifier si la commande existe déjà (IPN déjà traité)
+        $order = ($ref !== '') ? $this->orders->findByReference($ref, $userId) : null;
+
+        if ($order === null && $ref !== '' && $erreur === '00000') {
+            // Fallback : IPN absent ou en retard — créer la commande depuis payment_intents
+            // La vérification de signature RSA n'est pas possible ici (params GET différents du QUERY_STRING IPN)
+            // mais Erreur=00000 + référence présente dans notre BDD (payment_intents) suffit
+            $snapshot = (new \Model\PaymentIntentModel())->findByReference($ref);
+
+            if ($snapshot !== null && (int) $snapshot['user_id'] === $userId) {
+                $numappel = $_GET['Appel'] ?? '';
+                $numtrans = $_GET['Trans'] ?? '';
+
+                // Idempotence : re-vérifier avant création (race condition IPN/return)
+                if ($this->orders->findByReferenceOnly($ref) === null) {
+                    $this->orders->createFromIpn(
+                        $userId,
+                        (array)  $snapshot['items'],
+                        (float)  $snapshot['total'],
+                        (float)  $snapshot['delivery_discount'],
+                        (int)    $snapshot['billing_address_id'],
+                        (int)    $snapshot['delivery_address_id'],
+                        (string) $snapshot['cgv_version'],
+                        $ref,
+                        $numappel,
+                        $numtrans
+                    );
+
+                    (new \Model\PaymentIntentModel())->delete($ref);
+                    (new \Model\CartModel())->clear($userId);
+
+                    try {
+                        $mail = new \Service\MailService();
+                        $mail->sendOrderConfirmationToClient(
+                            (string) ($snapshot['client_email'] ?? ''),
+                            (string) ($snapshot['client_name']  ?? ''),
+                            $ref,
+                            'card',
+                            (array) $snapshot['items'],
+                            (float) $snapshot['total'],
+                            $lang
+                        );
+                        $mail->sendOrderConfirmationToOwner(
+                            (string) ($snapshot['client_email'] ?? ''),
+                            (string) ($snapshot['client_name']  ?? ''),
+                            $ref,
+                            'card',
+                            (array) $snapshot['items'],
+                            (float) $snapshot['total']
+                        );
+                    } catch (\Throwable $mailError) {
+                        error_log('[RETURN_OK] Mail error for ref=' . $ref . ' : ' . $mailError->getMessage());
+                    }
+                }
+
+                $order = $this->orders->findByReference($ref, $userId);
+            }
+        }
+
         if ($order === null) {
-            // IPN pas encore arrivé : redirection vers les commandes avec message flash
-            $_SESSION['flash']['checkout_errors']['payment'] = __('checkout.payment_pending');
-            Response::redirect("/{$lang}/mon-compte/commandes");
+            error_log('[RETURN_OK] Order not found and no intent — ref=' . $ref);
+            $_SESSION['flash']['checkout_errors']['payment'] = __('checkout.payment_error');
+            Response::redirect("/{$lang}/commande");
         }
 
         $_SESSION['last_order_ref']     = $ref;

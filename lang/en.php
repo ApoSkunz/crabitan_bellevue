@@ -777,6 +777,7 @@ return [
     'checkout.error_rate_limit'       => 'Too many payment attempts. Please wait before trying again.',
     'checkout.payment_cancelled'      => 'Payment cancelled. You may update your order and try again.',
     'checkout.payment_refused'        => 'Payment declined. Please check your details or use a different payment method.',
+    'checkout.payment_error'          => 'An error occurred while confirming your payment. Contact us if the amount was charged.',
 
     // Order confirmation
     'checkout.confirmation_title'     => 'Order confirmed',

@@ -780,6 +780,7 @@ return [
     'checkout.error_rate_limit'       => 'Trop de tentatives de paiement. Veuillez patienter avant de réessayer.',
     'checkout.payment_cancelled'      => 'Paiement annulé. Vous pouvez modifier votre commande et réessayer.',
     'checkout.payment_refused'        => 'Paiement refusé. Veuillez vérifier vos informations ou utiliser un autre moyen de paiement.',
+    'checkout.payment_error'          => 'Une erreur est survenue lors de la confirmation du paiement. Contactez-nous si le montant a été débité.',
 
     // Confirmation commande
     'checkout.confirmation_title'     => 'Commande confirmée',
