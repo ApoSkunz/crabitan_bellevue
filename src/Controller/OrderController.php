@@ -221,8 +221,7 @@ class OrderController extends Controller
             // Récupérer l'adresse de facturation pour PBX_BILLING
             $billingAddr = $this->addresses->findByIdForUser($billingAddressId, $userId);
 
-            // Stocker le snapshot dans la session
-            $_SESSION['ca_payment'] = [
+            $snapshot = [
                 'reference'           => $reference,
                 'user_id'             => $userId,
                 'items'               => $items,
@@ -236,6 +235,13 @@ class OrderController extends Controller
                 'client_email'        => $clientEmail,
                 'client_name'         => $clientName,
             ];
+
+            // Persister le snapshot en BDD — l'IPN CA (server-to-server) n'a pas
+            // accès à la session PHP du navigateur, il lira depuis payment_intents.
+            (new \Model\PaymentIntentModel())->save($reference, $userId, $snapshot);
+
+            // Conserver aussi en session pour l'UX (paymentReturnOk)
+            $_SESSION['ca_payment'] = $snapshot;
 
             // Construire les champs PBX via PaymentService
             $paymentService = new \Service\PaymentService();

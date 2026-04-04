@@ -8,6 +8,7 @@ use Controller\IpnController;
 use Core\Exception\HttpException;
 use Model\CartModel;
 use Model\OrderModel;
+use Model\PaymentIntentModel;
 use PHPUnit\Framework\TestCase;
 use Service\MailService;
 use Service\PaymentService;
@@ -16,7 +17,7 @@ use Service\PaymentService;
  * Tests unitaires pour IpnController.
  *
  * Couvre : vérification de signature, idempotence sur référence dupliquée,
- * paiement refusé, création de commande en cas de succès, mismatch de référence.
+ * paiement refusé, création de commande en cas de succès, intent introuvable.
  */
 class IpnControllerTest extends TestCase
 {
@@ -41,17 +42,19 @@ class IpnControllerTest extends TestCase
      * Crée un IpnController sans appeler le constructeur réel,
      * puis injecte les mocks dans ses propriétés privées via ReflectionProperty.
      *
-     * @param PaymentService&\PHPUnit\Framework\MockObject\MockObject $paymentMock
-     * @param OrderModel&\PHPUnit\Framework\MockObject\MockObject     $orderMock
-     * @param CartModel&\PHPUnit\Framework\MockObject\MockObject      $cartMock
-     * @param MailService&\PHPUnit\Framework\MockObject\MockObject    $mailMock
+     * @param PaymentService&\PHPUnit\Framework\MockObject\MockObject      $paymentMock
+     * @param OrderModel&\PHPUnit\Framework\MockObject\MockObject          $orderMock
+     * @param CartModel&\PHPUnit\Framework\MockObject\MockObject           $cartMock
+     * @param MailService&\PHPUnit\Framework\MockObject\MockObject         $mailMock
+     * @param PaymentIntentModel&\PHPUnit\Framework\MockObject\MockObject  $intentsMock
      * @return IpnController
      */
     private function makeController(
         \PHPUnit\Framework\MockObject\MockObject $paymentMock,
         \PHPUnit\Framework\MockObject\MockObject $orderMock,
         \PHPUnit\Framework\MockObject\MockObject $cartMock,
-        \PHPUnit\Framework\MockObject\MockObject $mailMock
+        \PHPUnit\Framework\MockObject\MockObject $mailMock,
+        \PHPUnit\Framework\MockObject\MockObject $intentsMock
     ): IpnController {
         $ref  = new \ReflectionClass(IpnController::class);
         $ctrl = $ref->newInstanceWithoutConstructor();
@@ -60,6 +63,7 @@ class IpnControllerTest extends TestCase
         $ref->getProperty('orders')->setValue($ctrl, $orderMock);
         $ref->getProperty('carts')->setValue($ctrl, $cartMock);
         $ref->getProperty('mail')->setValue($ctrl, $mailMock);
+        $ref->getProperty('intents')->setValue($ctrl, $intentsMock);
 
         return $ctrl;
     }
@@ -72,7 +76,8 @@ class IpnControllerTest extends TestCase
      *   1: PaymentService&\PHPUnit\Framework\MockObject\MockObject,
      *   2: OrderModel&\PHPUnit\Framework\MockObject\MockObject,
      *   3: CartModel&\PHPUnit\Framework\MockObject\MockObject,
-     *   4: MailService&\PHPUnit\Framework\MockObject\MockObject
+     *   4: MailService&\PHPUnit\Framework\MockObject\MockObject,
+     *   5: PaymentIntentModel&\PHPUnit\Framework\MockObject\MockObject
      * }
      */
     private function buildController(): array
@@ -81,15 +86,19 @@ class IpnControllerTest extends TestCase
         $orderMock   = $this->createMock(OrderModel::class);
         $cartMock    = $this->createMock(CartModel::class);
         $mailMock    = $this->createMock(MailService::class);
+        $intentsMock = $this->createMock(PaymentIntentModel::class);
 
-        $ctrl = $this->makeController($paymentMock, $orderMock, $cartMock, $mailMock);
+        $intentsMock->method('purgeExpired');
 
-        return [$ctrl, $paymentMock, $orderMock, $cartMock, $mailMock];
+        $ctrl = $this->makeController($paymentMock, $orderMock, $cartMock, $mailMock, $intentsMock);
+
+        return [$ctrl, $paymentMock, $orderMock, $cartMock, $mailMock, $intentsMock];
     }
 
-    private function defaultSession(string $reference = 'WEB-CB-AABBCCDD-2026'): void
+    /** @return array<string, mixed> */
+    private function defaultSnapshot(string $reference = 'WEB-CB-AABBCCDD-2026'): array
     {
-        $_SESSION['ca_payment'] = [
+        return [
             'reference'           => $reference,
             'user_id'             => 42,
             'items'               => [['wine_id' => 1, 'qty' => 2, 'price' => 15.0]],
@@ -214,17 +223,20 @@ class IpnControllerTest extends TestCase
     }
 
     // ================================================================
-    // 4. Paiement accepté + snapshot valide → commande créée, echo OK
+    // 4. Paiement accepté + intent valide → commande créée, echo OK
     // ================================================================
 
     public function testHandleCreatesOrderOnSuccess(): void
     {
-        $this->defaultSession();
+        [$ctrl, $paymentMock, $orderMock, $cartMock, $mailMock, $intentsMock] = $this->buildController();
 
-        [$ctrl, $paymentMock, $orderMock, $cartMock, $mailMock] = $this->buildController();
+        $snapshot = $this->defaultSnapshot();
 
         $paymentMock->method('verifyIpnSignature')->willReturn(true);
         $orderMock->method('findByReferenceOnly')->willReturn(null);
+        $intentsMock->method('findByReference')->with('WEB-CB-AABBCCDD-2026')->willReturn($snapshot);
+        $intentsMock->expects($this->once())->method('delete')->with('WEB-CB-AABBCCDD-2026');
+
         $orderMock->expects($this->once())
             ->method('createFromIpn')
             ->with(
@@ -258,22 +270,19 @@ class IpnControllerTest extends TestCase
         $this->assertNotNull($caught);
         $this->assertSame(200, $caught->status);
         $this->assertSame('OK', $output);
-        $this->assertArrayNotHasKey('ca_payment', $_SESSION);
     }
 
     // ================================================================
-    // 5. Mismatch référence session vs GET → 200 REF_MISMATCH
+    // 5. Intent introuvable ou expiré → 200 INTENT_NOT_FOUND
     // ================================================================
 
-    public function testHandleReturns200OnRefMismatch(): void
+    public function testHandleReturns200OnIntentNotFound(): void
     {
-        // Snapshot avec une référence différente de celle reçue en GET
-        $this->defaultSession('WEB-CB-DIFFERENT-2026');
-
-        [$ctrl, $paymentMock, $orderMock] = $this->buildController();
+        [$ctrl, $paymentMock, $orderMock, , , $intentsMock] = $this->buildController();
 
         $paymentMock->method('verifyIpnSignature')->willReturn(true);
         $orderMock->method('findByReferenceOnly')->willReturn(null);
+        $intentsMock->method('findByReference')->willReturn(null);
         $orderMock->expects($this->never())->method('createFromIpn');
 
         $caught = null;
@@ -288,6 +297,6 @@ class IpnControllerTest extends TestCase
 
         $this->assertNotNull($caught);
         $this->assertSame(200, $caught->status);
-        $this->assertSame('REF_MISMATCH', $output);
+        $this->assertSame('INTENT_NOT_FOUND', $output);
     }
 }

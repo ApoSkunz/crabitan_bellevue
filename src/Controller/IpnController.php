@@ -7,6 +7,7 @@ namespace Controller;
 use Core\Exception\HttpException;
 use Model\CartModel;
 use Model\OrderModel;
+use Model\PaymentIntentModel;
 use Service\MailService;
 use Service\PaymentService;
 
@@ -22,6 +23,7 @@ class IpnController
     private OrderModel $orders;
     private CartModel $carts;
     private MailService $mail;
+    private PaymentIntentModel $intents;
 
     /**
      * Initialise les dépendances du contrôleur IPN.
@@ -32,6 +34,7 @@ class IpnController
         $this->orders  = new OrderModel();
         $this->carts   = new CartModel();
         $this->mail    = new MailService();
+        $this->intents = new PaymentIntentModel();
     }
 
     /**
@@ -88,20 +91,17 @@ class IpnController
                 throw new HttpException(200);
             }
 
-            /** @var array<string, mixed>|null $snapshot */
-            $snapshot = $_SESSION['ca_payment'] ?? null;
+            // Purge opportuniste des intents expirés
+            $this->intents->purgeExpired();
 
-            if (
-                $snapshot === null
-                || !isset($snapshot['reference'])
-                || $snapshot['reference'] !== $ref
-            ) {
-                error_log(
-                    '[IPN] REF_MISMATCH — GET Ref=' . $ref
-                    . ' SESSION ref=' . ($snapshot['reference'] ?? 'n/a')
-                );
+            // Lecture du snapshot depuis BDD (l'IPN est server-to-server, pas de session navigateur)
+            /** @var array<string, mixed>|null $snapshot */
+            $snapshot = $this->intents->findByReference($ref);
+
+            if ($snapshot === null) {
+                error_log('[IPN] INTENT_NOT_FOUND — ref=' . $ref);
                 http_response_code(200);
-                echo 'REF_MISMATCH';
+                echo 'INTENT_NOT_FOUND';
                 throw new HttpException(200);
             }
 
@@ -118,6 +118,7 @@ class IpnController
                 $numtrans
             );
 
+            $this->intents->delete($ref);
             $this->carts->clear((int) $snapshot['user_id']);
 
             // Emails de confirmation — non bloquants
