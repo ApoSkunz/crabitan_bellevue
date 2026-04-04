@@ -588,6 +588,8 @@ return [
     'account.order_cancel_btn'   => 'Annuler la commande',
     'account.order_cancelled'    => 'Votre commande a bien été annulée.',
     'account.order_cancel_failed' => 'Impossible d\'annuler cette commande (statut non éligible).',
+    // phpcs:ignore Generic.Files.LineLength
+    'account.cancel_refund_failed' => 'Le remboursement auprès de votre banque a échoué. Veuillez contacter le support.',
     'account.order_cancel_confirm' => 'Souhaitez-vous vraiment annuler cette commande ? Cette action est irréversible.',
     'account.per_page'           => 'Par page',
     'account.filter_period'      => 'Période',
@@ -775,6 +777,9 @@ return [
     'checkout.error_address_invalid'  => 'Adresse invalide ou introuvable.',
     'checkout.error_address_required' => 'Tous les champs de l\'adresse sont obligatoires.',
     'checkout.error_multiple_12'      => 'La quantité totale doit être un multiple de 12 bouteilles.',
+    'checkout.error_rate_limit'       => 'Trop de tentatives de paiement. Veuillez patienter avant de réessayer.',
+    'checkout.payment_cancelled'      => 'Paiement annulé. Vous pouvez modifier votre commande et réessayer.',
+    'checkout.payment_refused'        => 'Paiement refusé. Veuillez vérifier vos informations ou utiliser un autre moyen de paiement.',
 
     // Confirmation commande
     'checkout.confirmation_title'     => 'Commande confirmée',
@@ -783,6 +788,17 @@ return [
     'checkout.deferred_order_notice'  => 'Votre commande sera expédiée dès réception de votre paiement.',
     'checkout.view_orders'            => 'Voir mes commandes',
     'checkout.continue_shopping'      => 'Continuer mes achats',
+
+    // Paiement CA e-Transactions
+    'payment.redirect_title'   => 'Redirection vers le paiement sécurisé',
+    'payment.redirect_message' => 'Redirection vers notre plateforme de paiement sécurisée…',
+    'payment.redirect_button'  => 'Accéder au paiement',
+    'payment.success_title'    => 'Paiement confirmé',
+    'payment.success_heading'  => 'Paiement confirmé',
+    'payment.success_message'  => 'Votre paiement a bien été reçu. Chargement de votre commande…',
+    'payment.success_fallback'  => 'Si la page ne se charge pas, <a href="/{lang}/mon-compte/commandes">cliquez ici</a>.',
+    'payment.success_loading'   => 'Votre commande est en cours de finalisation...',
+    'payment.success_redirect'  => 'Vous allez être redirigé vers votre espace commandes.',
 
     // Erreurs génériques
     'error.generic' => 'Une erreur est survenue. Veuillez réessayer.',
