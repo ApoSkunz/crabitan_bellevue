@@ -587,6 +587,26 @@ class CartApiControllerTest extends TestCase
     }
 
     // ================================================================
+    // requireAuth — invalid token → 401
+    // ================================================================
+
+    public function testRequireAuthReturns401ForInvalidToken(): void
+    {
+        $_COOKIE = ['auth_token' => 'invalid.jwt.token'];
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(401);
+
+        ob_start();
+        try {
+            $this->makeController()->count([]);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ================================================================
     // Helper : génère un JWT valide pour les tests
     // ================================================================
 
