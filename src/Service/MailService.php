@@ -1408,6 +1408,43 @@ INNER;
         $this->send($to, '', $subject, $body);
     }
 
+    /**
+     * Envoie une alerte email au mainteneur lorsqu'une signature IPN CA est invalide.
+     *
+     * Indique une possible rotation de la clé publique CA — mettre à jour CA_PUBKEY_PATH.
+     *
+     * @param string $to   Adresse du mainteneur (MAINTAINER_MAIL)
+     * @param string $date Date/heure de l'IPN reçu
+     * @param string $ip   Adresse IP source de l'IPN
+     * @return void
+     */
+    public function sendIpnSignatureAlert(string $to, string $date, string $ip): void
+    {
+        $safeDate = htmlspecialchars($date, ENT_QUOTES);
+        $safeIp   = htmlspecialchars($ip, ENT_QUOTES);
+
+        $message = "Une notification IPN du Crédit Agricole (Up2pay e-Transactions) "
+            . "a été reçue avec une <strong>signature RSA invalide</strong>.<br><br>"
+            . "<strong>Date :</strong> {$safeDate}<br>"
+            . "<strong>IP source :</strong> {$safeIp}<br><br>"
+            . "Causes possibles :<br>"
+            . "<ul style=\"margin:8px 0;padding-left:20px;\">"
+            . "<li>CA a <strong>fait tourner sa paire de clés</strong> — mettre à jour "
+            . "<code>CA_PUBKEY_PATH</code> avec la nouvelle clé publique.</li>"
+            . "<li>Tentative d'IPN frauduleux (vérifier les logs serveur).</li>"
+            . "</ul><br>"
+            . "Tant que la clé n'est pas mise à jour, les paiements CB ne seront pas enregistrés.";
+
+        $body = $this->emailSimpleLayout(
+            'Alerte sécurité paiement',
+            'Action requise — IPN CA signature invalide',
+            $message,
+            'fr'
+        );
+
+        $this->send($to, 'Mainteneur', '[ALERTE] IPN CA — signature invalide', $body);
+    }
+
     private function send(
         string $to,
         string $name,

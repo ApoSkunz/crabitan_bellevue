@@ -51,6 +51,19 @@ class IpnController
             $rawQuery = $_SERVER['QUERY_STRING'] ?? '';
 
             if (!$this->payment->verifyIpnSignature($rawQuery)) {
+                try {
+                    $maintainerMail = $_ENV['MAINTAINER_MAIL'] ?? getenv('MAINTAINER_MAIL');
+                    if (is_string($maintainerMail) && $maintainerMail !== '') {
+                        $this->mail->sendIpnSignatureAlert(
+                            $maintainerMail,
+                            date('d/m/Y à H:i:s'),
+                            $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                        );
+                    }
+                } catch (\Throwable $alertError) {
+                    error_log('[IPN] Alert mail error: ' . $alertError->getMessage());
+                }
+
                 http_response_code(400);
                 echo 'INVALID_SIGNATURE';
                 throw new HttpException(400);
