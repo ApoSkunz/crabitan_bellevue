@@ -50,5 +50,3 @@ Thumbs.db
 # Lighthouse CI — rapports locaux
 /.lighthouseci/
 
-# Clé publique CA e-Transactions (rotatable — ne pas versionner)
-config/pubkey.pem
