@@ -81,19 +81,20 @@ class CartModelCheckoutTest extends TestCase
         $this->assertSame(5, (int) $removed[0]['wine_id']);
     }
 
-    public function testRemoveUnavailableItemsRemovesWineWithZeroStock(): void
+    public function testRemoveUnavailableItemsKeepsWineWithZeroStock(): void
     {
         $this->dbMock->method('fetchOne')->willReturn([
             'user_id' => 1,
             'content' => json_encode([['wine_id' => 7, 'qty' => 1]]),
         ]);
 
+        // quantity = 0 signifie production totale nulle, pas rupture de stock — le vin reste
         $removed = $this->model->removeUnavailableItems(
             1,
             fn(int $id): ?array => ['available' => 1, 'quantity' => 0]
         );
 
-        $this->assertCount(1, $removed);
+        $this->assertSame([], $removed);
     }
 
     public function testRemoveUnavailableItemsRemovesWineNotFound(): void
