@@ -82,6 +82,9 @@ class OrderController extends Controller
             Response::redirect("/{$lang}/panier");
         }
 
+        $account     = (new AccountModel())->findById($userId);
+        $isNewsletterSubscribed = (bool) ($account !== false ? ($account['newsletter'] ?? false) : false);
+
         $items    = $this->enrichItems($this->carts->getContent($row));
         $totalQty = (int) array_sum(array_column($items, 'qty'));
         $subtotal = (float) array_sum(array_map(fn(array $i): float => (float) $i['price'] * (int) $i['qty'], $items));
@@ -94,19 +97,20 @@ class OrderController extends Controller
         unset($_SESSION['flash']['checkout_errors'], $_SESSION['flash']['checkout_post']);
 
         $this->view('order/checkout', [
-            'lang'             => $lang,
-            'items'            => $items,
-            'totalQty'         => $totalQty,
-            'subtotal'         => $subtotal,
-            'deliveryDiscount' => $deliveryDiscount,
-            'total'            => max(0.0, $subtotal - $deliveryDiscount),
-            'addresses'        => $this->addresses->getByUser($userId),
-            'errors'           => $errors,
-            'post'             => $post,
-            'removedItems'     => $removed,
-            'deliveryDelay'    => $lang === 'en' ? self::DELIVERY_DELAY_EN : self::DELIVERY_DELAY,
-            'csrfToken'        => $_SESSION['csrf'] ?? '',
-            'pricingRule'      => $pricingRule,
+            'lang'                   => $lang,
+            'items'                  => $items,
+            'totalQty'               => $totalQty,
+            'subtotal'               => $subtotal,
+            'deliveryDiscount'       => $deliveryDiscount,
+            'total'                  => max(0.0, $subtotal - $deliveryDiscount),
+            'addresses'              => $this->addresses->getByUser($userId),
+            'errors'                 => $errors,
+            'post'                   => $post,
+            'removedItems'           => $removed,
+            'deliveryDelay'          => $lang === 'en' ? self::DELIVERY_DELAY_EN : self::DELIVERY_DELAY,
+            'csrfToken'              => $_SESSION['csrf'] ?? '',
+            'pricingRule'            => $pricingRule,
+            'isNewsletterSubscribed' => $isNewsletterSubscribed,
         ]);
     }
 
@@ -166,6 +170,15 @@ class OrderController extends Controller
         // Résoudre l'adresse de livraison (toujours requise — saisie en premier dans le formulaire)
         $deliveryAddressId = $this->resolveAddress($userId, 'delivery', 'del_', $back);
 
+        // Valider que le code postal de livraison est en France métropolitaine
+        $deliveryAddr = $this->addresses->findByIdForUser($deliveryAddressId, $userId);
+        $deliveryZip  = (string) ($deliveryAddr !== null ? ($deliveryAddr['zip_code'] ?? '') : '');
+        if (!$this->isMainlandFranceZip($deliveryZip)) {
+            $_SESSION['flash']['checkout_errors']['delivery'] = __('checkout.error_zip_mainland');
+            $_SESSION['flash']['checkout_post'] = $_POST;
+            Response::redirect($back);
+        }
+
         // Résoudre l'adresse de facturation : même que livraison si case cochée
         if ($this->request->post('same_address', '')) {
             $billingAddressId = $deliveryAddressId;
@@ -178,9 +191,21 @@ class OrderController extends Controller
         $deliveryDiscount = $this->pricing->computeDeliveryDiscount($totalQty);
         $total            = round(max(0.0, $subtotal - $deliveryDiscount), 2);
 
+        // Charger le compte (nécessaire pour newsletter + emails)
+        $account     = (new AccountModel())->findById($userId);
+        $clientEmail = (string) ($account !== false ? ($account['email'] ?? '') : '');
+        $clientName  = trim(($account !== false ? ($account['firstname'] ?? '') : '') . ' ' . ($account !== false ? ($account['lastname'] ?? '') : '')); // phpcs:ignore Generic.Files.LineLength
+
         // Newsletter opt-in
         if ($this->request->post('newsletter', '')) {
             (new AccountModel())->updateNewsletter($userId, true);
+            if ($clientEmail !== '') {
+                try {
+                    (new \Service\MailService())->sendNewsletterWelcome($clientEmail, $clientName, $lang);
+                } catch (\Throwable $e) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
+                    // Mail non bloquant
+                }
+            }
         }
 
         // Créer la commande
@@ -198,11 +223,6 @@ class OrderController extends Controller
         // Vider le panier
         $this->carts->clear($userId);
         setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'samesite' => 'Lax']);
-
-        // Emails de confirmation commande
-        $account     = (new AccountModel())->findById($userId);
-        $clientEmail = (string) ($account['email'] ?? '');
-        $clientName  = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
         if ($clientEmail !== '') {
             try {
                 $mailer = new \Service\MailService();
@@ -370,6 +390,31 @@ class OrderController extends Controller
             Response::abort(404);
         }
         return $payload;
+    }
+
+    /**
+     * Vérifie qu'un code postal correspond à la France métropolitaine.
+     *
+     * Exclut la Corse (20xxx) et les DOM-TOM (97xxx–98xxx).
+     * Retourne true si le zip est vide ou non numérique (pas bloquant — la validation
+     * des champs requis est faite en amont dans resolveAddress).
+     *
+     * @param string $zip Code postal à vérifier
+     * @return bool
+     */
+    private function isMainlandFranceZip(string $zip): bool
+    {
+        if (!preg_match('/^\d{5}$/', $zip)) {
+            return true; // Format invalide : laissé passer, déjà rejeté par resolveAddress si vide
+        }
+        $dept = (int) substr($zip, 0, 2);
+        if ($dept === 20) {
+            return false; // Corse
+        }
+        if ($dept >= 97) {
+            return false; // DOM-TOM
+        }
+        return true;
     }
 
     /**
