@@ -525,6 +525,230 @@ class OrderControllerCheckoutTest extends TestCase
     }
 
     // ================================================================
+    // checkout() — GET : panier non vide → rendu de vue
+    // ================================================================
+
+    public function testCheckoutRendersViewWithCartItems(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+
+        $stub = $this->setDbMock();
+        // Ordre exact des appels fetchOne dans checkout() :
+        // 1. AuthMiddleware::handle()
+        // 2. CartModel::removeUnavailableItems → findByUserId (false = pas de panier à nettoyer)
+        // 3. CartModel::findByUserId (vérification explicite)
+        // 4. AccountModel::findById (avant enrichItems)
+        // 5. WineModel::getById (dans enrichItems)
+        // 6. PricingRuleModel::findForQuantity
+        // 7. PricingRuleModel::computeDeliveryDiscount → findForQuantity
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],
+            false,
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
+            ['id' => 1, 'newsletter' => false, 'account_type' => 'individual'],
+            ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
+            false,
+            false
+        );
+        $stub->method('fetchAll')->willReturn([]);
+
+        try {
+            (new OrderController(new Request()))->checkout(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            // Attendu : view() tente le rendu et échoue
+        } catch (\Throwable) {
+            // Vue non disponible en contexte unitaire
+        }
+
+        $this->assertArrayHasKey('submit_token', $_SESSION);
+    }
+
+    // ================================================================
+    // payment() — POST : succès virement (commande créée, redirect confirmation)
+    // ================================================================
+
+    public function testPaymentSuccessViremntRedirectsToConfirmation(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+        $_SESSION['submit_token']  = 'test-submit-token';
+        $_POST = [
+            'csrf_token'          => 'valid-csrf',
+            'submit_token'        => 'test-submit-token',
+            'payment_method'      => 'virement',
+            'cgv'                 => '1',
+            'same_address'        => '1',
+            'delivery_address_id' => '5',
+        ];
+
+        $stub = $this->setDbMock();
+        // Ordre exact des appels fetchOne dans payment() :
+        // 1. AuthMiddleware  2. CartModel::findByUserId  3. WineModel::getById (enrichItems)
+        // 4. AddressModel::findByIdForUser (resolveAddress delivery)
+        // 5. AddressModel::findByIdForUser (mainland zip check)
+        // 6. PricingRuleModel::computeDeliveryDiscount → findForQuantity
+        // 7. AccountModel::findById
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
+            ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
+            ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
+            ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
+            false,
+            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+        );
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->payment(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('last_order_ref', $_SESSION);
+    }
+
+    // ================================================================
+    // payment() — POST : succès chèque sans newsletter
+    // ================================================================
+
+    public function testPaymentSuccessChequeRedirectsToConfirmation(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+        $_SESSION['submit_token']  = 'test-submit-token';
+        $_POST = [
+            'csrf_token'          => 'valid-csrf',
+            'submit_token'        => 'test-submit-token',
+            'payment_method'      => 'cheque',
+            'cgv'                 => '1',
+            'same_address'        => '1',
+            'delivery_address_id' => '5',
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
+            ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
+            ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '33000'],
+            ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '33000'],
+            false,
+            ['id' => 1, 'email' => '', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+        );
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->payment(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertSame('cheque', $_SESSION['last_order_payment']);
+    }
+
+    // ================================================================
+    // payment() — POST : newsletter opt-in coché
+    // ================================================================
+
+    public function testPaymentWithNewsletterOptInCoversNotifyBranch(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+        $_SESSION['submit_token']  = 'test-submit-token';
+        $_POST = [
+            'csrf_token'          => 'valid-csrf',
+            'submit_token'        => 'test-submit-token',
+            'payment_method'      => 'virement',
+            'cgv'                 => '1',
+            'same_address'        => '1',
+            'delivery_address_id' => '5',
+            'newsletter'          => '1',
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
+            ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
+            ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
+            ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
+            false,
+            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+        );
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->payment(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertTrue((bool) ($_SESSION['last_order_newsletter'] ?? false));
+    }
+
+    // ================================================================
+    // payment() — POST : adresse de facturation distincte (same_address absent)
+    // ================================================================
+
+    public function testPaymentWithDistinctBillingAddressCoversElseBranch(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+        $_SESSION['submit_token']  = 'test-submit-token';
+        $_POST = [
+            'csrf_token'          => 'valid-csrf',
+            'submit_token'        => 'test-submit-token',
+            'payment_method'      => 'virement',
+            'cgv'                 => '1',
+            'delivery_address_id' => '5',
+            'billing_address_id'  => '7',
+        ];
+
+        $stub = $this->setDbMock();
+        // Ordre :
+        // 1. Auth  2. Cart  3. Wine (enrichItems)
+        // 4. AddressModel delivery (resolveAddress)
+        // 5. AddressModel mainland check
+        // 6. AddressModel billing (resolveAddress — else branch)
+        // 7. PricingRuleModel::computeDeliveryDiscount → findForQuantity
+        // 8. AccountModel
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
+            ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
+            ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
+            ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
+            ['id' => 7, 'firstname' => 'Jean', 'lastname' => 'Dupont'],
+            false,
+            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+        );
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->payment(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('last_order_ref', $_SESSION);
+    }
+
+    // ================================================================
     // confirmation() — GET : clears session et rend la vue
     // ================================================================
 
