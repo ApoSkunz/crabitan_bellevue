@@ -210,6 +210,49 @@
     margin-bottom: 1.5rem;
 }
 
+.cart-empty-wine {
+    margin: 1.5rem auto;
+    max-width: 220px;
+
+    &__label {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    &__card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        color: var(--color-text);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 1rem;
+        transition: border-color 200ms ease;
+
+        &:hover { border-color: var(--color-gold); }
+    }
+
+    &__img {
+        width: 120px;
+        height: 160px;
+        object-fit: contain;
+    }
+
+    &__name {
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+    &__price {
+        font-size: 0.95rem;
+        color: var(--color-gold);
+        font-weight: 600;
+    }
+}
+
 // ----------------------------------------------------------------
 // Panier invité
 // ----------------------------------------------------------------

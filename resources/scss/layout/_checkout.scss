@@ -577,3 +577,33 @@
         font-size: 1rem;
     }
 }
+
+// ---- Multiple de 12 / erreurs résumé ----
+
+.checkout-summary__error {
+    font-size: 0.82rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+
+    &--multiple12 {
+        background: rgba(239, 68, 68, 0.07);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+}
+
+.checkout-summary__multiple12-hint {
+    font-size: 0.82rem;
+    color: #dc2626;
+    margin-bottom: 0.75rem;
+}
+
+// ---- Confirmation redirect notice ----
+
+.confirmation-card__redirect {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 1rem;
+}
