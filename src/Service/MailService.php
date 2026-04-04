@@ -588,7 +588,6 @@ INNER;
      * @param string               $paymentMethod   Méthode de paiement (card, virement, cheque)
      * @param array<int, array<string, mixed>> $items Articles de la commande [{name, qty, price}]
      * @param float                $total           Total TTC en euros
-     * @param float                $shippingDiscount Remise livraison appliquée
      * @param string               $lang            Langue du client ('fr' ou 'en')
      * @return void
      */
@@ -599,7 +598,6 @@ INNER;
         string $paymentMethod,
         array $items,
         float $total,
-        float $shippingDiscount,
         string $lang
     ): void {
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
@@ -628,6 +626,7 @@ INNER;
                 'virement' => 'Bank transfer',
                 'cheque'   => 'Cheque',
             ];
+            $withdrawalNote = '<br><em style="font-size:12px;color:#8a7a60;">Under applicable consumer law, you have 14 days from receipt to exercise your right of withdrawal.</em>'; // phpcs:ignore Generic.Files.LineLength
             $deferredNote   = in_array($paymentMethod, ['virement', 'cheque'], true)
                 ? '<br><em>Your order will be dispatched upon receipt of payment.</em>'
                 : '';
@@ -661,6 +660,7 @@ INNER;
                 'virement' => 'Virement bancaire',
                 'cheque'   => 'Chèque',
             ];
+            $withdrawalNote = '<br><em style="font-size:12px;color:#8a7a60;">Conformément à l\'art. L221-18 du Code de la consommation, vous disposez de 14 jours pour exercer votre droit de rétractation à compter de la réception.</em>'; // phpcs:ignore Generic.Files.LineLength
             $deferredNote   = in_array($paymentMethod, ['virement', 'cheque'], true)
                 ? '<br><em>Commande expédiée dès réception du paiement.</em>'
                 : '';
@@ -692,6 +692,7 @@ INNER;
         $message = $itemsHtml
             . "<br><strong>{$labelPayment} :</strong> {$paymentLabel}{$deferredNote}"
             . "<br><strong>{$labelDelay} :</strong> {$delayValue}"
+            . "<br>{$withdrawalNote}"
             . '<br><br>'
             . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0 0;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
@@ -1255,7 +1256,8 @@ INNER;
             ? 'Bienvenue dans la newsletter Crabitan Bellevue'
             : 'Welcome to the Crabitan Bellevue newsletter';
 
-        $safeName = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : ($lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer');
+        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $safeName    = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : $defaultName;
         $greeting = $lang === 'fr' ? "Bonjour {$safeName}," : "Hello {$safeName},";
 
         if ($lang === 'fr') {
@@ -1271,7 +1273,7 @@ INNER;
         }
 
         $body = $this->emailSimpleLayout(
-            $lang === 'fr' ? 'Newsletter' : 'Newsletter',
+            'Newsletter',
             $greeting,
             $message,
             $lang
