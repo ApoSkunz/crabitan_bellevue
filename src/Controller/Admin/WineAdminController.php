@@ -295,7 +295,7 @@ class WineAdminController extends AdminController
 
         try {
             $this->wines->update($id, $data);
-            if (!$data['available'] || (int) ($data['quantity'] ?? 0) === 0) {
+            if (!$data['available']) {
                 (new CartModel())->purgeWineFromAllCarts($id);
             }
         } catch (\PDOException $e) {

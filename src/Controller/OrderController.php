@@ -155,6 +155,15 @@ class OrderController extends Controller
             Response::redirect($back);
         }
 
+        // Valider le multiple de 12
+        $items    = $this->enrichItems($this->carts->getContent($row));
+        $totalQty = (int) array_sum(array_column($items, 'qty'));
+        if ($totalQty % 12 !== 0) {
+            $_SESSION['flash']['checkout_errors']['multiple_12'] = __('checkout.error_multiple_12');
+            $_SESSION['flash']['checkout_post'] = $_POST;
+            Response::redirect($back);
+        }
+
         // Résoudre l'adresse de facturation
         $billingAddressId = $this->resolveAddress($userId, 'billing', '', $back);
 
@@ -164,9 +173,7 @@ class OrderController extends Controller
             $deliveryAddressId = $this->resolveAddress($userId, 'delivery', 'del_', $back);
         }
 
-        // Calculer les totaux
-        $items            = $this->enrichItems($this->carts->getContent($row));
-        $totalQty         = (int) array_sum(array_column($items, 'qty'));
+        // Calculer les totaux (items et totalQty déjà calculés avant la vérification multiple de 12)
         $subtotal         = (float) array_sum(array_map(fn(array $i): float => (float) $i['price'] * (int) $i['qty'], $items));
         $deliveryDiscount = $this->pricing->computeDeliveryDiscount($totalQty);
         $total            = round(max(0.0, $subtotal - $deliveryDiscount), 2);

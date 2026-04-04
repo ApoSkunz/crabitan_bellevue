@@ -93,6 +93,10 @@ class CartController extends Controller
             setcookie('cb-cart-count', (string) $totalQty, ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
         }
 
+        $randomWine = ($isAuth && !$isB2B && empty($cartItems))
+            ? (new WineModel())->getRandomForCart()
+            : null;
+
         $this->view('cart/index', [
             'lang'             => $lang,
             'cartItems'        => $cartItems,
@@ -104,6 +108,7 @@ class CartController extends Controller
             'subtotal'         => $subtotal,
             'deliveryDiscount' => $deliveryDiscount,
             'pricingRules'     => $pricingRules,
+            'randomWine'       => $randomWine,
         ]);
     }
 
