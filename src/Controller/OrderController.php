@@ -199,6 +199,36 @@ class OrderController extends Controller
         $this->carts->clear($userId);
         setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'samesite' => 'Lax']);
 
+        // Emails de confirmation commande
+        $account     = (new AccountModel())->findById($userId);
+        $clientEmail = (string) ($account['email'] ?? '');
+        $clientName  = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
+        if ($clientEmail !== '') {
+            try {
+                $mailer = new \Service\MailService();
+                $mailer->sendOrderConfirmationToClient(
+                    $clientEmail,
+                    $clientName,
+                    $reference,
+                    $paymentMethod,
+                    $items,
+                    $total,
+                    round($deliveryDiscount, 2),
+                    $lang
+                );
+                $mailer->sendOrderConfirmationToOwner(
+                    $clientEmail,
+                    $clientName,
+                    $reference,
+                    $paymentMethod,
+                    $items,
+                    $total
+                );
+            } catch (\Throwable $e) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
+                // Mail non bloquant — la commande est créée même en cas d'échec d'envoi
+            }
+        }
+
         // Stocker pour la page de confirmation
         $_SESSION['last_order_ref']     = $reference;
         $_SESSION['last_order_payment'] = $paymentMethod;

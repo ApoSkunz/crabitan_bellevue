@@ -580,6 +580,217 @@ INNER;
     }
 
     /**
+     * Envoie le récapitulatif de commande au client après validation du paiement.
+     *
+     * @param string               $toEmail         Adresse email du client
+     * @param string               $toName          Prénom ou nom complet du client
+     * @param string               $orderRef        Référence de la commande (ex. CB-2026-001)
+     * @param string               $paymentMethod   Méthode de paiement (card, bank_transfer, check)
+     * @param array<int, array<string, mixed>> $items Articles de la commande [{name, qty, price}]
+     * @param float                $total           Total TTC en euros
+     * @param float                $shippingDiscount Remise livraison appliquée
+     * @param string               $lang            Langue du client ('fr' ou 'en')
+     * @return void
+     */
+    public function sendOrderConfirmationToClient(
+        string $toEmail,
+        string $toName,
+        string $orderRef,
+        string $paymentMethod,
+        array $items,
+        float $total,
+        float $shippingDiscount,
+        string $lang
+    ): void {
+        $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeName = htmlspecialchars($toName, ENT_QUOTES);
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $ordersUrl = htmlspecialchars(
+            $appUrl . '/' . $lang . '/mon-compte/commandes',
+            ENT_QUOTES
+        );
+
+        if ($lang === 'en') {
+            $subject        = "Your order {$safeRef} — Château Crabitan Bellevue";
+            $title          = 'Order confirmed';
+            $greeting       = "Hello {$safeName},";
+            $colName        = 'Product';
+            $colQty         = 'Qty';
+            $colUnit        = 'Unit price';
+            $colSub         = 'Subtotal';
+            $labelTotal     = 'Total incl. tax';
+            $labelPayment   = 'Payment method';
+            $labelDelay     = 'Estimated delivery';
+            $delayValue     = '3 to 5 business days';
+            $labelOrders    = 'My orders';
+            $paymentLabels  = [
+                'card'          => 'Credit card',
+                'bank_transfer' => 'Bank transfer',
+                'check'         => 'Cheque',
+            ];
+            $deferredNote   = in_array($paymentMethod, ['bank_transfer', 'check'], true)
+                ? '<br><em>Your order will be dispatched upon receipt of payment.</em>'
+                : '';
+        } else {
+            $subject        = "Votre commande {$safeRef} — Château Crabitan Bellevue";
+            $title          = 'Commande confirmée';
+            $greeting       = "Bonjour {$safeName},";
+            $colName        = 'Produit';
+            $colQty         = 'Qté';
+            $colUnit        = 'Prix unitaire';
+            $colSub         = 'Sous-total';
+            $labelTotal     = 'Total TTC';
+            $labelPayment   = 'Méthode de paiement';
+            $labelDelay     = 'Délai estimé';
+            $delayValue     = '3 à 5 jours ouvrés';
+            $labelOrders    = 'Mes commandes';
+            $paymentLabels  = [
+                'card'          => 'Carte bancaire',
+                'bank_transfer' => 'Virement bancaire',
+                'check'         => 'Chèque',
+            ];
+            $deferredNote   = in_array($paymentMethod, ['bank_transfer', 'check'], true)
+                ? '<br><em>Commande expédiée dès réception du paiement.</em>'
+                : '';
+        }
+
+        $paymentLabel = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
+        $itemsHtml    = $this->buildOrderItemsTable(
+            $items,
+            $total,
+            $colName,
+            $colQty,
+            $colUnit,
+            $colSub,
+            $labelTotal
+        );
+
+        $message = $itemsHtml
+            . "<br><strong>{$labelPayment} :</strong> {$paymentLabel}{$deferredNote}"
+            . "<br><strong>{$labelDelay} :</strong> {$delayValue}"
+            . '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$ordersUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . $labelOrders
+            . '</a></td></tr></table>';
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
+        $this->send($toEmail, $toName, $subject, $body);
+    }
+
+    /**
+     * Notifie le propriétaire de la boutique qu'une nouvelle commande a été passée.
+     *
+     * @param string               $clientEmail   Adresse email du client
+     * @param string               $clientName    Prénom ou nom complet du client
+     * @param string               $orderRef      Référence de la commande (ex. CB-2026-001)
+     * @param string               $paymentMethod Méthode de paiement (card, bank_transfer, check)
+     * @param array<int, array<string, mixed>> $items Articles de la commande [{name, qty, price}]
+     * @param float                $total         Total TTC en euros
+     * @return void
+     */
+    public function sendOrderConfirmationToOwner(
+        string $clientEmail,
+        string $clientName,
+        string $orderRef,
+        string $paymentMethod,
+        array $items,
+        float $total
+    ): void {
+        $ownerEmail    = $_ENV['CONTACT_EMAIL'] ?? 'contact@crabitanbellevue.fr';
+        $safeRef       = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeClient    = htmlspecialchars($clientName, ENT_QUOTES);
+        $safeEmail     = htmlspecialchars($clientEmail, ENT_QUOTES);
+        $paymentLabels = [
+            'card'          => 'Carte bancaire',
+            'bank_transfer' => 'Virement bancaire',
+            'check'         => 'Chèque',
+        ];
+        $paymentLabel  = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
+
+        $itemsHtml = $this->buildOrderItemsTable(
+            $items,
+            $total,
+            'Produit',
+            'Qté',
+            'Prix unitaire',
+            'Sous-total',
+            'Total TTC'
+        );
+
+        $message = "<strong>Client :</strong> {$safeClient} ({$safeEmail})<br>"
+            . "<strong>Référence :</strong> {$safeRef}<br>"
+            . "<strong>Paiement :</strong> {$paymentLabel}<br><br>"
+            . $itemsHtml;
+
+        $subject = "Nouvelle commande {$safeRef} — {$safeEmail}";
+        $body    = $this->emailSimpleLayout(
+            'Nouvelle commande',
+            "Nouvelle commande reçue",
+            $message,
+            'fr'
+        );
+        $this->send($ownerEmail, APP_NAME, $subject, $body);
+    }
+
+    /**
+     * Construit le tableau HTML des articles d'une commande pour les emails.
+     *
+     * @param array<int, array<string, mixed>> $items      Articles [{name, qty, price}]
+     * @param float                            $total      Total TTC
+     * @param string                           $colName    En-tête colonne nom
+     * @param string                           $colQty     En-tête colonne quantité
+     * @param string                           $colUnit    En-tête colonne prix unitaire
+     * @param string                           $colSub     En-tête colonne sous-total
+     * @param string                           $labelTotal Libellé ligne total
+     * @return string HTML du tableau
+     */
+    private function buildOrderItemsTable(
+        array $items,
+        float $total,
+        string $colName,
+        string $colQty,
+        string $colUnit,
+        string $colSub,
+        string $labelTotal
+    ): string {
+        $tdStyle   = 'padding:6px 8px;border-bottom:1px solid #ede8df;font-size:14px;color:#3d3425;';
+        $thStyle   = 'padding:8px;background:#f7f3ec;font-size:13px;'
+            . 'color:#8a7a60;letter-spacing:1px;text-align:left;';
+        $rows = '';
+        foreach ($items as $item) {
+            $name     = htmlspecialchars((string) ($item['name'] ?? ''), ENT_QUOTES);
+            $qty      = (int) ($item['qty'] ?? 0);
+            $price    = (float) ($item['price'] ?? 0.0);
+            $subtotal = number_format($qty * $price, 2, ',', ' ');
+            $unitFmt  = number_format($price, 2, ',', ' ');
+            $rows .= "<tr>"
+                . "<td style=\"{$tdStyle}\">{$name}</td>"
+                . "<td style=\"{$tdStyle}\">{$qty}</td>"
+                . "<td style=\"{$tdStyle}\">{$unitFmt} €</td>"
+                . "<td style=\"{$tdStyle}\">{$subtotal} €</td>"
+                . "</tr>";
+        }
+        $totalFmt = number_format($total, 2, ',', ' ');
+        return '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+            . '<tr>'
+            . "<th style=\"{$thStyle}\">{$colName}</th>"
+            . "<th style=\"{$thStyle}\">{$colQty}</th>"
+            . "<th style=\"{$thStyle}\">{$colUnit}</th>"
+            . "<th style=\"{$thStyle}\">{$colSub}</th>"
+            . '</tr>'
+            . $rows
+            . '<tr>'
+            . "<td colspan=\"3\" style=\"{$tdStyle}\"><strong>{$labelTotal}</strong></td>"
+            . "<td style=\"{$tdStyle}\"><strong>{$totalFmt} €</strong></td>"
+            . '</tr>'
+            . '</table>';
+    }
+
+    /**
      * Envoie un email transactionnel au client lors d'un changement de statut de commande.
      * N'envoie rien si le statut n'est pas dans la liste des déclencheurs.
      *
