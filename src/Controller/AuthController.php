@@ -207,13 +207,13 @@ class AuthController extends Controller
         $this->updateDeviceTrust((int) $account['id'], $deviceToken, $deviceName, $isFirstEverLogin, $isAlreadyTrusted);
 
         // Fusion panier cookie → BDD après connexion réussie
-        $localCartJson = $_COOKIE['cb-cart'] ?? '';
+        $loginCartModel = new \Model\CartModel();
+        $localCartJson  = $_COOKIE['cb-cart'] ?? '';
         if ($localCartJson !== '') {
             $localItems = json_decode($localCartJson, true) ?? [];
             if (!empty($localItems)) {
-                $cartModel = new \Model\CartModel();
                 $wineModel = new \Model\WineModel();
-                $cartModel->mergeLocalCart(
+                $loginCartModel->mergeLocalCart(
                     (int) $account['id'],
                     $localItems,
                     fn(int $wineId): int => (int) ($wineModel->getById($wineId)['quantity'] ?? 0)
@@ -222,6 +222,11 @@ class AuthController extends Controller
                 setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
             }
         }
+
+        // Cookie badge count — évite le flash à 0 au chargement de page suivant
+        $loginCart   = $loginCartModel->findByUserId((int) $account['id']);
+        $loginCount  = $loginCart !== false ? (int) ($loginCart['total_quantity'] ?? 0) : 0;
+        setcookie('cb-cart-count', (string) $loginCount, ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
 
         Response::redirect($safeBack);
     }
@@ -260,29 +265,6 @@ class AuthController extends Controller
         $token = $_COOKIE['auth_token'] ?? null;
 
         if ($token) {
-            // Sauvegarder le panier BDD dans le cookie avant déconnexion
-            // → l'utilisateur retrouve son panier en mode invité
-            try {
-                $payload = Jwt::decode($token);
-                $userId  = (int) ($payload['sub'] ?? 0);
-                if ($userId > 0) {
-                    $cartModel = new \Model\CartModel();
-                    $cart      = $cartModel->findByUserId($userId);
-                    if ($cart !== false) {
-                        $dbItems = $cartModel->getContent($cart);
-                        if (!empty($dbItems)) {
-                            $cookieItems = array_values(array_map(
-                                fn(array $item): array => ['id' => (int) $item['wine_id'], 'qty' => (int) $item['qty']],
-                                $dbItems
-                            ));
-                            setcookie('cb-cart', (string) json_encode($cookieItems), ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
-                        }
-                    }
-                }
-            } catch (\Throwable) {
-                // JWT invalide — pas de panier à sauvegarder, on continue la déconnexion
-            }
-
             $this->connections->revoke($token);
             CookieHelper::clear();
         }

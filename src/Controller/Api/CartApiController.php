@@ -61,10 +61,11 @@ class CartApiController extends Controller
         foreach (array_unique($ids) as $id) {
             $wine = $this->wineModel->getById($id);
             if ($wine !== null) {
+                $rawImage = $wine['image_path'] ?? '';
                 $result[] = [
                     'wine_id' => (int) $id,
                     'name'    => $wine['label_name'] ?? '',
-                    'image'   => $wine['image_path'] ?? '',
+                    'image'   => $rawImage !== '' ? '/assets/images/wines/' . $rawImage : '',
                     'price'   => (float) ($wine['price'] ?? 0),
                 ];
             }
