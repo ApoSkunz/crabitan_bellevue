@@ -52,7 +52,7 @@ class PaymentService
         int $nbProducts,
         string $lang = 'fr'
     ): array {
-        $sandbox = ($this->getEnv('CA_SANDBOX_MODE') === 'true');
+        $sandbox = $this->isSandbox();
         $url     = $this->resolveServerUrl($sandbox);
 
         $site  = $this->getEnv('CA_PBX_SITE');
@@ -161,7 +161,7 @@ class PaymentService
         string $numtrans,
         int $amountCents
     ): bool {
-        $sandbox     = ($this->getEnv('CA_SANDBOX_MODE') === 'true');
+        $sandbox     = $this->isSandbox();
         $gaeUrl      = $sandbox ? self::URL_GAE_SANDBOX : self::URL_GAE_PROD;
         $site        = $this->getEnv('CA_PBX_SITE');
         $rang        = $this->getEnv('CA_PBX_RANG');
@@ -394,9 +394,32 @@ class PaymentService
      * @param string $key Nom de la variable
      * @return string Valeur ou chaîne vide
      */
+    /**
+     * Indique si le mode sandbox CA est actif.
+     *
+     * Compatible avec parse_ini_file qui convertit `true` en "1".
+     * Accepte : "true", "1", "yes", "on" (insensible à la casse).
+     *
+     * @return bool
+     */
+    private function isSandbox(): bool
+    {
+        return in_array(
+            strtolower($this->getEnv('CA_SANDBOX_MODE')),
+            ['true', '1', 'yes', 'on'],
+            true
+        );
+    }
+
+    /**
+     * Retourne la valeur d'une variable d'environnement (chaîne vide si absente).
+     *
+     * @param string $key Nom de la variable
+     * @return string Valeur ou chaîne vide
+     */
     private function getEnv(string $key): string
     {
         $value = $_ENV[$key] ?? getenv($key);
-        return is_string($value) ? $value : '';
+        return is_scalar($value) ? (string) $value : '';
     }
 }
