@@ -2,6 +2,42 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.26.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.25.0...v0.26.0) (2026-04-04)
+
+
+### Bug Fixes
+
+* **auth:** logout sauvegarde panier BDD → cookie cb-cart + clear setcookie secure=false ([e2e905b](https://github.com/ApoSkunz/crabitan_bellevue/commit/e2e905b32ded4bc9d29378ae64bcd6b7fcb76e35))
+* **controller:** CartApiController — constante INVALID_WINE_ID pour littéral dupliqué 3× (SonarCloud S1192) ([00e34f8](https://github.com/ApoSkunz/crabitan_bellevue/commit/00e34f89033a661192adf51c523167d5e57579e0))
+* **controller:** CartController::denyAdmin — déplacer redirect hors du try/catch pour éviter que HttpException soit absorbée silencieusement ([79936c3](https://github.com/ApoSkunz/crabitan_bellevue/commit/79936c3bb017bdbb71ce2bf7cf7a58b24315e4c8))
+* **model:** CartModel::mergeLocalCart — accepte "id" (JS cookie) et "wine_id" (BDD) ([733f489](https://github.com/ApoSkunz/crabitan_bellevue/commit/733f4892c0dbba85125c540a6e24054bdc360273))
+* **panier:** badge sync + CTA modal + suppression cookie connecté ([829e0f3](https://github.com/ApoSkunz/crabitan_bellevue/commit/829e0f3df4d1647c8deffc5bcc7137b70c88972d)), closes [#login-modal-trigger](https://github.com/ApoSkunz/crabitan_bellevue/issues/login-modal-trigger)
+* **phpcs:** lang/fr.php + lang/en.php — phpcs:disable LineLength sur fichiers de traduction ([78a3cbc](https://github.com/ApoSkunz/crabitan_bellevue/commit/78a3cbce0d15244d19bdad3cad29e7f7cdf89095))
+* **phpcs:** PricingRuleModelTest — couper les lignes de fixtures >150 caractères ([1f6c0d9](https://github.com/ApoSkunz/crabitan_bellevue/commit/1f6c0d9c517be8ac8744ca202d10578c7e80d9e9))
+* **scss:** panier — réduire espace page-hero → cart-section (padding-bottom 3rem→1rem, padding-top 3rem→1.25rem) ([28a5cbd](https://github.com/ApoSkunz/crabitan_bellevue/commit/28a5cbd3c30c3798d4eeb8eaf434106e445b320d))
+* **seed:** DELETE → TRUNCATE pour reset AUTO_INCREMENT + carts sans price/withdrawal/delivery ([cf1153e](https://github.com/ApoSkunz/crabitan_bellevue/commit/cf1153e02a5d729af9134fb45893373b66e5561e))
+* **view:** cart/index — extraire ternaires imbriqués en variables ($tierLabel, $bottleLabel) (SonarCloud S3358) ([ade3596](https://github.com/ApoSkunz/crabitan_bellevue/commit/ade3596a08cc00e4ffd1f33873540ece14701c3c))
+* **view:** panier — wording progress bar max tier : "Palier remise livraison maximum atteint" ([644738a](https://github.com/ApoSkunz/crabitan_bellevue/commit/644738ae8c7d3f02c64c667380af803188edad20))
+
+
+### Features
+
+* **auth:** fusion cookie cb-cart → BDD après login réussi (CartModel::mergeLocalCart) ([e10dfdb](https://github.com/ApoSkunz/crabitan_bellevue/commit/e10dfdbf0b6ae7f96b235c164a34e085b510060e))
+* **controller:** CartController + CartApiController — panier invité/connecté + API add/update/remove/count ([bfbb6cc](https://github.com/ApoSkunz/crabitan_bellevue/commit/bfbb6ccd09a5186ba42e97429f5d46956c107d5c))
+* **controller:** panier — B2B, pricing rules, cb-cart-count cookie, image prefix, logout sans copie cookie ([15d6f10](https://github.com/ApoSkunz/crabitan_bellevue/commit/15d6f10af66dc91f0b10ed2e6c9d783a01cf9056))
+* **i18n:** 7 clés cart — login_to_order, login_cta, browse, item_total, order_total, price_at_checkout, update_qty ([2770b87](https://github.com/ApoSkunz/crabitan_bellevue/commit/2770b87d151ef1260cc7451b67b69c9b64de5296))
+* **i18n:** footer — mention Loi Evin + interdiction vente alcool mineurs -18 ans (Art. L3342-1 CSP) ([b533edc](https://github.com/ApoSkunz/crabitan_bellevue/commit/b533edc27a0c090f84900c32e4844d3c07288635))
+* **i18n:** panier — over_600_checkout_error, clés B2B, notices livraison fr/en ([8a28048](https://github.com/ApoSkunz/crabitan_bellevue/commit/8a28048d56f5550f51b57ec149ff6d6ae3231dac))
+* **js:** panier — updateCartTotal, progress bar paliers, fix badge showCartSuccess, notices dynamiques, checkout >600 ([47fd315](https://github.com/ApoSkunz/crabitan_bellevue/commit/47fd315d360d234e85117a3dea11564be4bb0d7e))
+* **js:** panier hybride — cookie sans price, modal duale invité/connecté, initCartPage() ([9fbe165](https://github.com/ApoSkunz/crabitan_bellevue/commit/9fbe16517f0eab025596fea5b899fdf5da25a644))
+* **model:** CartModel — findByUserId, save (upsert), clear, mergeLocalCart ([b938952](https://github.com/ApoSkunz/crabitan_bellevue/commit/b9389529894f549f64046799b0b2d2ccd643c0f5))
+* **model:** PricingRuleModel — findForQuantity retourne min_quantity + findNextTierFor/findAllActive ([5fde2b7](https://github.com/ApoSkunz/crabitan_bellevue/commit/5fde2b75ababd1e997b55ce36ee391c950fb6814))
+* **routes:** GET /api/cart/count ([7ceafc3](https://github.com/ApoSkunz/crabitan_bellevue/commit/7ceafc3ddd304947634b5df18cb3b86515f99f10))
+* **scss:** _cart.scss — page panier table/résumé/invité, responsive mobile ([6dbecb9](https://github.com/ApoSkunz/crabitan_bellevue/commit/6dbecb994a192a5d1ea46f37d30e7e9d6f7e008d))
+* **scss:** panier — progress bar, btn--disabled, cart-checkout-error, qty input, btn-retirer, B2B, delivery accordion ([d9a5587](https://github.com/ApoSkunz/crabitan_bellevue/commit/d9a5587d8f420144106f2b8ee516b8e424f20f98))
+* **view:** page panier — invité (cookie JS) + connecté (BDD PHP) + CTA checkout ([03d87c5](https://github.com/ApoSkunz/crabitan_bellevue/commit/03d87c567b42ec6cef587b9f07ae4ca0208a5d46))
+* **view:** panier — notices statiques, progress bar paliers, sidebar TTC + compteur bouteilles, B2B, invité ([fbce664](https://github.com/ApoSkunz/crabitan_bellevue/commit/fbce6649740c4eff663c2b83cf9e4ce4f1e1385b))
+
 # [0.25.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.24.0...v0.25.0) (2026-04-03)
 
 
