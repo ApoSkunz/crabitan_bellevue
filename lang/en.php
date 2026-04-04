@@ -755,7 +755,7 @@ return [
     'checkout.cheque_order'           => 'Make cheque payable to: G.F.A Bernard Solane & Fils',
     'checkout.cheque_send_to'         => 'Send cheque to',
     'checkout.cheque_ref_mention'     => 'Write your order reference on the back of the cheque',
-    'checkout.cgv_accept'             => 'I accept the %s *',
+    'checkout.cgv_accept'             => 'I accept the %s',
     'checkout.cgv_link'               => 'Terms and Conditions',
     'checkout.newsletter_optin'       => 'I would like to receive news and offers from Château Crabitan Bellevue by email.',
     'checkout.newsletter_subscribed'  => 'You are now subscribed to our newsletter.',

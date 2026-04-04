@@ -757,7 +757,7 @@ return [
     'checkout.cheque_order'           => 'Chèque à l\'ordre de : G.F.A Bernard Solane & Fils',
     'checkout.cheque_send_to'         => 'Envoyer le chèque à',
     'checkout.cheque_ref_mention'     => 'Mentionner votre référence de commande au dos du chèque',
-    'checkout.cgv_accept'             => 'J\'accepte les %s *',
+    'checkout.cgv_accept'             => 'J\'accepte les %s',
     'checkout.cgv_link'               => 'Conditions Générales de Vente',
     'checkout.newsletter_optin'       => 'Je souhaite recevoir les actualités et offres du Château Crabitan Bellevue par email.',
     'checkout.newsletter_subscribed'  => 'Vous êtes maintenant inscrit(e) à notre newsletter.',
