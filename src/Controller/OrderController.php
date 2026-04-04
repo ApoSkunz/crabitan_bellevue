@@ -163,15 +163,14 @@ class OrderController extends Controller
             Response::redirect("/{$lang}/panier");
         }
 
-        // Résoudre l'adresse de facturation
-        $billingAddressId = $this->resolveAddress($userId, 'billing', '', $back);
+        // Résoudre l'adresse de livraison (toujours requise — saisie en premier dans le formulaire)
+        $deliveryAddressId = $this->resolveAddress($userId, 'delivery', 'del_', $back);
 
-        // Résoudre l'adresse de livraison (optionnelle)
-        $deliveryAddressId = null;
-        if (!$this->request->post('same_address', '')) {
-            $deliveryAddressId = $this->resolveAddress($userId, 'delivery', 'del_', $back);
+        // Résoudre l'adresse de facturation : même que livraison si case cochée
+        if ($this->request->post('same_address', '')) {
+            $billingAddressId = $deliveryAddressId;
         } else {
-            $deliveryAddressId = $billingAddressId;
+            $billingAddressId = $this->resolveAddress($userId, 'billing', '', $back);
         }
 
         // Calculer les totaux (items et totalQty déjà calculés avant la vérification multiple de 12)

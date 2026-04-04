@@ -202,6 +202,9 @@ $pricingRules     = $pricingRules     ?? [];
                             </td>
                             <td class="cart-table__col-product cart-table__name">
                                 <?= htmlspecialchars($name) ?>
+                                <?php if (!empty($item['is_cuvee_speciale'])) : ?>
+                                    <span class="cart-table__cuvee"><?= htmlspecialchars($isEn ? 'Special Cuvée' : 'Cuvée Spéciale') ?></span>
+                                <?php endif; ?>
                             </td>
                             <td class="cart-table__col-qty">
                                 <label for="qty-<?= $wineId ?>" class="sr-only">
@@ -417,7 +420,8 @@ $pricingRules     = $pricingRules     ?? [];
     ) ?>;
 
     (function () {
-        var btn = document.getElementById('js-cart-checkout-btn');
+        var btn    = document.getElementById('js-cart-checkout-btn');
+        var notice = document.querySelector('.cart-notice');
         if (!btn) { return; }
 
         function getTotalQty() {
@@ -429,19 +433,36 @@ $pricingRules     = $pricingRules     ?? [];
             return total > 0 ? total : window.__totalQty;
         }
 
-        function updateCheckoutState() {
-            var qty     = getTotalQty();
-            var invalid = qty > 0 && qty % 12 !== 0;
-            if (btn) { btn.classList.toggle('cart-summary__cta--invalid', invalid); }
+        function shakeNotice() {
+            if (!notice) { return; }
+            notice.classList.remove('cart-notice--shake');
+            // Force reflow pour relancer l'animation si déjà active
+            void notice.offsetWidth;
+            notice.classList.add('cart-notice--shake');
         }
 
-        // Initialisation
-        updateCheckoutState();
+        // Intercept le clic sur le bouton commander : shake si invalide
+        btn.addEventListener('click', function (e) {
+            var qty = getTotalQty();
+            if (qty > 0 && qty % 12 !== 0) {
+                e.preventDefault();
+                if (notice) { notice.classList.add('cart-notice--error'); }
+                shakeNotice();
+                if (notice) {
+                    notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
 
-        // Écoute les changements de quantité
+        // Écoute les changements de quantité pour retirer le rouge si corrigé
+        function onQtyChange() {
+            var qty = getTotalQty();
+            if (notice) { notice.classList.toggle('cart-notice--error', qty > 0 && qty % 12 !== 0); }
+        }
+
         document.addEventListener('change', function (e) {
             if (e.target && e.target.classList.contains('js-cart-qty')) {
-                updateCheckoutState();
+                onQtyChange();
             }
         });
         document.addEventListener('click', function (e) {
@@ -450,10 +471,14 @@ $pricingRules     = $pricingRules     ?? [];
                 e.target.classList.contains('js-qty-plus') ||
                 e.target.classList.contains('js-cart-remove')
             )) {
-                // Attendre le DOM update via mutation ou setTimeout court
-                setTimeout(updateCheckoutState, 50);
+                setTimeout(onQtyChange, 50);
             }
         });
+
+        // Initialisation (rouge si déjà invalide au chargement)
+        if (window.__isMultiple12Error) {
+            if (notice) { notice.classList.add('cart-notice--error'); }
+        }
     })();
     </script>
 </main>
