@@ -168,7 +168,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
             }
         }
 
-        return $reference; // @phpstan-ignore-line — unreachable, loop always returns or throws
+        return $reference;
     }
 
     /**
