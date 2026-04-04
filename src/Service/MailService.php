@@ -1239,6 +1239,48 @@ INNER;
     }
 
     /**
+     * Envoie un email de bienvenue après inscription newsletter via le tunnel de commande.
+     *
+     * Contrairement au double opt-in (inscription indépendante), l'abonnement via checkout
+     * est direct car le client est déjà authentifié et son email vérifié.
+     *
+     * @param string $to   Adresse email du destinataire
+     * @param string $name Nom affiché dans l'email
+     * @param string $lang Langue ('fr' ou 'en')
+     * @return void
+     */
+    public function sendNewsletterWelcome(string $to, string $name, string $lang): void
+    {
+        $subject = $lang === 'fr'
+            ? 'Bienvenue dans la newsletter Crabitan Bellevue'
+            : 'Welcome to the Crabitan Bellevue newsletter';
+
+        $safeName = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : ($lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer');
+        $greeting = $lang === 'fr' ? "Bonjour {$safeName}," : "Hello {$safeName},";
+
+        if ($lang === 'fr') {
+            $message = "Vous êtes désormais inscrit(e) à la newsletter du Château Crabitan Bellevue.<br><br>"
+                . "Vous recevrez en avant-première nos actualités : nouvelles cuvées, événements au château et offres exclusives.<br><br>"
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:24px;\">"
+                . "Pour vous désinscrire à tout moment, utilisez le lien présent en bas de chaque newsletter.</p>";
+        } else {
+            $message = "You are now subscribed to the Château Crabitan Bellevue newsletter.<br><br>"
+                . "You will receive our news first: new vintages, château events and exclusive offers.<br><br>"
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:24px;\">"
+                . "To unsubscribe at any time, use the link at the bottom of each newsletter.</p>";
+        }
+
+        $body = $this->emailSimpleLayout(
+            $lang === 'fr' ? 'Newsletter' : 'Newsletter',
+            $greeting,
+            $message,
+            $lang
+        );
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
      * Envoie l'email de confirmation de changement d'email à la NOUVELLE adresse.
      *
      * Le destinataire doit cliquer sur le lien pour que le changement soit effectif
