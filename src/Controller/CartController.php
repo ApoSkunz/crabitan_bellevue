@@ -182,9 +182,10 @@ class CartController extends Controller
             $wine          = $wineModel->getById((int) $item['wine_id']);
             $rawImage      = $wine['image_path'] ?? '';
             $fullImage     = $rawImage !== '' ? '/assets/images/wines/' . $rawImage : '';
-            $item['price'] = $wine !== null ? (float) ($wine['price'] ?? 0.0) : 0.0;
-            $item['image'] = ($item['image'] ?? '') !== '' ? $item['image'] : $fullImage;
-            $item['name']  = ($item['name']  ?? '') !== '' ? $item['name']  : ($wine['label_name'] ?? '');
+            $item['price']            = $wine !== null ? (float) ($wine['price'] ?? 0.0) : 0.0;
+            $item['image']            = ($item['image'] ?? '') !== '' ? $item['image'] : $fullImage;
+            $item['name']             = ($item['name']  ?? '') !== '' ? $item['name']  : ($wine['label_name'] ?? '');
+            $item['is_cuvee_speciale'] = $wine !== null ? (bool) ($wine['is_cuvee_speciale'] ?? false) : false;
         }
         unset($item);
         return $items;

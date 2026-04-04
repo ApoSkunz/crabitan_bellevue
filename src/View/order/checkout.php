@@ -27,7 +27,7 @@ $total            = $total            ?? 0.0;
 $totalQty         = $totalQty         ?? 0;
 $csrfToken        = $csrfToken        ?? '';
 $lang             = $lang             ?? 'fr';
-$deliveryDelay    = $deliveryDelay    ?? '3 à 5 jours ouvrés';
+$deliveryDelay    = $deliveryDelay    ?? ($lang === 'en' ? '7 to 15 days upon receipt of payment' : '7 à 15 jours à compter de la réception du paiement');
 $isEn             = ($lang === 'en');
 
 $billingAddresses  = array_values(array_filter($addresses, fn($a) => $a['type'] === 'billing'));
@@ -82,12 +82,18 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
         <div>
             <label for="addr-zip-<?= $idSuffix ?>"><?= htmlspecialchars(__('account.address_zip')) ?> *</label>
             <input type="text" id="addr-zip-<?= $idSuffix ?>" name="<?= $prefix ?>zip_code"
-                   value="<?= $v('zip_code') ?>" required autocomplete="postal-code" maxlength="10">
+                   value="<?= $v('zip_code') ?>" required autocomplete="postal-code" maxlength="10"
+                   placeholder="75001" class="js-addr-zip" data-suffix="<?= $idSuffix ?>">
+            <p class="form-hint js-zip-error-<?= $idSuffix ?>" hidden>
+                <?= htmlspecialchars(__('checkout.error_zip_mainland')) ?>
+            </p>
         </div>
         <div>
             <label for="addr-city-<?= $idSuffix ?>"><?= htmlspecialchars(__('account.address_city')) ?> *</label>
             <input type="text" id="addr-city-<?= $idSuffix ?>" name="<?= $prefix ?>city"
-                   value="<?= $v('city') ?>" required autocomplete="address-level2">
+                   value="<?= $v('city') ?>" required autocomplete="address-level2"
+                   list="addr-city-suggestions-<?= $idSuffix ?>">
+            <datalist id="addr-city-suggestions-<?= $idSuffix ?>"></datalist>
         </div>
     </div>
     <div class="form-group">
@@ -345,10 +351,13 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                             </label>
                         </div>
 
+                        <p class="checkout-terms__age-notice">
+                            <?= htmlspecialchars(__('checkout.age_confirmation')) ?>
+                        </p>
+
                         <p class="checkout-terms__legal">
                             <?= htmlspecialchars(__('checkout.delivery_delay_notice')) ?>
                             <strong><?= htmlspecialchars($deliveryDelay) ?></strong>
-                            <?= htmlspecialchars($isEn ? 'working days.' : 'jours ouvrés.') ?>
                         </p>
                     </section>
 
@@ -365,13 +374,15 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
 
                         <ul class="checkout-summary__items">
                             <?php foreach ($items as $item) :
-                                $name  = (string) ($item['name']  ?? '');
-                                $qty   = (int)   ($item['qty']   ?? 1);
-                                $price = (float) ($item['price'] ?? 0.0);
+                                $name    = (string) ($item['name']  ?? '');
+                                $qty     = (int)   ($item['qty']   ?? 1);
+                                $price   = (float) ($item['price'] ?? 0.0);
+                                $isCuvee = (bool)  ($item['is_cuvee_speciale'] ?? false);
                             ?>
                             <li class="checkout-summary__item">
                                 <span class="checkout-summary__item-name">
                                     <?= htmlspecialchars($name) ?>
+                                    <?php if ($isCuvee) : ?><span class="checkout-summary__item-cuvee"><?= htmlspecialchars($isEn ? 'Special' : 'Cuvée Spéciale') ?></span><?php endif; ?>
                                     <span class="checkout-summary__item-qty">× <?= $qty ?></span>
                                     <span class="checkout-summary__item-unit"><?= number_format($price, 2, ',', ' ') ?>&nbsp;€/btl</span>
                                 </span>
@@ -550,6 +561,72 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
         });
     });
 
+    // ---- BAN API : ZIP → datalist ville (France métro) ----
+    function isMetroZip(zip) {
+        if (!/^\d{5}$/.test(zip)) { return false; }
+        var pfx = parseInt(zip.substring(0, 2), 10);
+        return pfx >= 1 && pfx <= 95 && pfx !== 20;
+    }
+
+    function initZipCityAutocomplete(zipId, cityId, errorClass) {
+        var zipEl   = document.getElementById(zipId);
+        var cityEl  = document.getElementById(cityId);
+        var errEl   = document.querySelector('.' + errorClass);
+        if (!zipEl || !cityEl) { return; }
+        var dlId    = cityEl.getAttribute('list') || (cityId + '-dl');
+        var dl      = document.getElementById(dlId);
+        var cache   = {};
+        var timer;
+
+        zipEl.addEventListener('input', function () {
+            var zip = this.value.trim();
+            if (errEl) { errEl.hidden = true; }
+            clearTimeout(timer);
+            if (dl) { dl.innerHTML = ''; }
+            if (zip.length !== 5) { return; }
+            if (!isMetroZip(zip)) {
+                if (errEl) { errEl.hidden = false; }
+                zipEl.setCustomValidity(errEl ? errEl.textContent.trim() : 'ZIP invalide');
+                return;
+            }
+            zipEl.setCustomValidity('');
+            if (cache[zip]) { populateDl(dl, cache[zip], cityEl); return; }
+            timer = setTimeout(function () {
+                fetch('https://api-adresse.data.gouv.fr/search/?q=' + zip + '&postcode=' + zip + '&type=municipality&limit=6')
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        cache[zip] = d.features || [];
+                        populateDl(dl, cache[zip], cityEl);
+                    })
+                    .catch(function () {});
+            }, 350);
+        });
+
+        // Init si valeur déjà renseignée (retour erreur POST)
+        var initZip = zipEl.value.trim();
+        if (initZip.length === 5 && isMetroZip(initZip)) {
+            fetch('https://api-adresse.data.gouv.fr/search/?q=' + initZip + '&postcode=' + initZip + '&type=municipality&limit=6')
+                .then(function (r) { return r.json(); })
+                .then(function (d) { populateDl(dl, d.features || [], cityEl); })
+                .catch(function () {});
+        }
+    }
+
+    function populateDl(dl, features, cityEl) {
+        if (!dl) { return; }
+        dl.innerHTML = '';
+        features.forEach(function (f) {
+            var opt  = document.createElement('option');
+            opt.value = f.properties.city || f.properties.label;
+            dl.appendChild(opt);
+        });
+        if (features.length === 1 && cityEl && cityEl.value === '') {
+            cityEl.value = features[0].properties.city || features[0].properties.label;
+        }
+    }
+
+    initZipCityAutocomplete('addr-zip-del',  'addr-city-del',  'js-zip-error-del');
+    initZipCityAutocomplete('addr-zip-bill', 'addr-city-bill', 'js-zip-error-bill');
 
 })();
 </script>

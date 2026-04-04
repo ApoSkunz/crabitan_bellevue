@@ -312,6 +312,14 @@
         color: var(--color-text-muted);
         margin-top: 0.5rem;
     }
+
+    &__age-notice {
+        font-size: 0.82rem;
+        color: var(--color-text-muted);
+        border-left: 3px solid rgba(239, 68, 68, 0.5);
+        padding-left: 0.75rem;
+        margin-top: 0.25rem;
+    }
 }
 
 // ---- Récapitulatif (sidebar) ----
@@ -456,6 +464,16 @@
             color: var(--color-gold);
             letter-spacing: 0.04em;
         }
+    }
+
+    &__newsletter {
+        font-size: 0.85rem;
+        color: #16a34a;
+        background: rgba(22, 163, 74, 0.07);
+        border: 1px solid rgba(22, 163, 74, 0.25);
+        border-radius: 4px;
+        padding: 0.5rem 0.85rem;
+        text-align: center;
     }
 
     &__actions {

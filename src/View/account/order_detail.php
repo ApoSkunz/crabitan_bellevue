@@ -116,7 +116,10 @@ $paymentMap  = [
                             <?php foreach ($items as $item) : ?>
                                 <tr>
                                     <td>
-                                        <?= htmlspecialchars($item['label_name'] ?? '—') ?>
+                                        <?= htmlspecialchars($item['label_name'] ?? $item['name'] ?? '—') ?>
+                                        <?php if (!empty($item['is_cuvee_speciale'])) : ?>
+                                            <br><span class="account-table__cuvee"><?= htmlspecialchars($lang === 'en' ? 'Special Cuvée' : 'Cuvée Spéciale') ?></span>
+                                        <?php endif; ?>
                                         <?php if (!empty($item['vintage'])) : ?>
                                             <span class="account-table__vintage"><?= (int) $item['vintage'] ?></span>
                                         <?php endif; ?>

@@ -758,6 +758,8 @@ return [
     'checkout.cgv_accept'             => 'I accept the %s *',
     'checkout.cgv_link'               => 'Terms and Conditions',
     'checkout.newsletter_optin'       => 'I would like to receive news and offers from Château Crabitan Bellevue by email.',
+    'checkout.newsletter_subscribed'  => 'You are now subscribed to our newsletter.',
+    'checkout.age_confirmation'       => 'By placing this order, I confirm that I am 18 years of age or older (sale of alcohol to minors is prohibited by law).',
     'checkout.delivery_delay_notice'  => 'Estimated delivery time:',
     'checkout.delivery_delay_suffix'  => '',
     'checkout.submit'                 => 'Place order',

@@ -23,17 +23,16 @@ use Model\WineModel;
  */
 class OrderController extends Controller
 {
-    /** Version des CGV intégrée dans chaque commande. */
-    private const CGV_VERSION = '1.0';
-
     /** Délai de livraison estimé affiché au client (L216-1 Code conso). */
-    private const DELIVERY_DELAY = '3 à 5 jours ouvrés';
+    private const DELIVERY_DELAY    = '7 à 15 jours à compter de la réception du paiement';
+    private const DELIVERY_DELAY_EN = '7 to 15 days upon receipt of payment';
 
     private AddressModel $addresses;
     private CartModel $carts;
     private OrderModel $orders;
     private PricingRuleModel $pricing;
     private WineModel $wines;
+    private string $cgvVersion;
 
     /**
      * Initialise les dépendances du contrôleur.
@@ -43,11 +42,13 @@ class OrderController extends Controller
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
-        $this->addresses = new AddressModel();
-        $this->carts     = new CartModel();
-        $this->orders    = new OrderModel();
-        $this->pricing   = new PricingRuleModel();
-        $this->wines     = new WineModel();
+        $this->addresses  = new AddressModel();
+        $this->carts      = new CartModel();
+        $this->orders     = new OrderModel();
+        $this->pricing    = new PricingRuleModel();
+        $this->wines      = new WineModel();
+        $cgvConfig        = require ROOT_PATH . '/config/cgv.php';
+        $this->cgvVersion = (string) ($cgvConfig['version'] ?? '1.0');
     }
 
     // ----------------------------------------------------------------
@@ -103,7 +104,7 @@ class OrderController extends Controller
             'errors'           => $errors,
             'post'             => $post,
             'removedItems'     => $removed,
-            'deliveryDelay'    => self::DELIVERY_DELAY,
+            'deliveryDelay'    => $lang === 'en' ? self::DELIVERY_DELAY_EN : self::DELIVERY_DELAY,
             'csrfToken'        => $_SESSION['csrf'] ?? '',
             'pricingRule'      => $pricingRule,
         ]);
@@ -159,9 +160,7 @@ class OrderController extends Controller
         $items    = $this->enrichItems($this->carts->getContent($row));
         $totalQty = (int) array_sum(array_column($items, 'qty'));
         if ($totalQty % 12 !== 0) {
-            $_SESSION['flash']['checkout_errors']['multiple_12'] = __('checkout.error_multiple_12');
-            $_SESSION['flash']['checkout_post'] = $_POST;
-            Response::redirect($back);
+            Response::redirect("/{$lang}/panier");
         }
 
         // Résoudre l'adresse de facturation
@@ -171,6 +170,8 @@ class OrderController extends Controller
         $deliveryAddressId = null;
         if (!$this->request->post('same_address', '')) {
             $deliveryAddressId = $this->resolveAddress($userId, 'delivery', 'del_', $back);
+        } else {
+            $deliveryAddressId = $billingAddressId;
         }
 
         // Calculer les totaux (items et totalQty déjà calculés avant la vérification multiple de 12)
@@ -192,7 +193,7 @@ class OrderController extends Controller
             round($deliveryDiscount, 2),
             $billingAddressId,
             $deliveryAddressId,
-            self::CGV_VERSION
+            $this->cgvVersion
         );
 
         // Vider le panier
@@ -230,8 +231,9 @@ class OrderController extends Controller
         }
 
         // Stocker pour la page de confirmation
-        $_SESSION['last_order_ref']     = $reference;
-        $_SESSION['last_order_payment'] = $paymentMethod;
+        $_SESSION['last_order_ref']        = $reference;
+        $_SESSION['last_order_payment']    = $paymentMethod;
+        $_SESSION['last_order_newsletter'] = (bool) $this->request->post('newsletter', '');
 
         Response::redirect("/{$lang}/commande/confirmation");
     }
@@ -265,15 +267,17 @@ class OrderController extends Controller
             Response::redirect("/{$lang}/mon-compte/commandes");
         }
 
-        unset($_SESSION['last_order_ref'], $_SESSION['last_order_payment']);
+        $newsletterOptIn = (bool) ($_SESSION['last_order_newsletter'] ?? false);
+        unset($_SESSION['last_order_ref'], $_SESSION['last_order_payment'], $_SESSION['last_order_newsletter']);
 
         $items = json_decode((string) ($order['content'] ?? '[]'), true);
         $items = is_array($items) ? $items : [];
 
         $this->view('order/confirmation', [
-            'lang'  => $lang,
-            'order' => $order,
-            'items' => $items,
+            'lang'            => $lang,
+            'order'           => $order,
+            'items'           => $items,
+            'newsletterOptIn' => $newsletterOptIn,
         ]);
     }
 
@@ -345,8 +349,10 @@ class OrderController extends Controller
         foreach ($items as $item) {
             $wineId = (int) ($item['wine_id'] ?? 0);
             $wine   = $this->wines->getById($wineId);
-            $item['price'] = $wine ? (float) $wine['price'] : 0.0;
-            $item['name']  = ($item['name'] ?? '') !== '' ? (string) $item['name'] : ($wine ? (string) $wine['label_name'] : '');
+            $item['price']            = $wine ? (float) $wine['price'] : 0.0;
+            $item['name']             = ($item['name'] ?? '') !== '' ? (string) $item['name'] : ($wine ? (string) $wine['label_name'] : '');
+            $item['label_name']       = $item['name'];
+            $item['is_cuvee_speciale'] = $wine ? (bool) ($wine['is_cuvee_speciale'] ?? false) : false;
             $result[] = $item;
         }
         return $result;

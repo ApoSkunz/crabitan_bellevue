@@ -12,11 +12,12 @@ $items  = $items  ?? [];
 $lang   = $lang   ?? 'fr';
 $isEn   = ($lang === 'en');
 
-$ref           = (string)  ($order['order_reference'] ?? '');
-$paymentMethod = (string)  ($order['payment_method']  ?? '');
-$total         = (float)   ($order['price']           ?? 0.0);
-$discount      = (float)   ($order['shipping_discount'] ?? 0.0);
-$isDeferred    = in_array($paymentMethod, ['virement', 'cheque'], true);
+$ref             = (string)  ($order['order_reference'] ?? '');
+$paymentMethod   = (string)  ($order['payment_method']  ?? '');
+$total           = (float)   ($order['price']           ?? 0.0);
+$discount        = (float)   ($order['shipping_discount'] ?? 0.0);
+$isDeferred      = in_array($paymentMethod, ['virement', 'cheque'], true);
+$newsletterOptIn = (bool) ($newsletterOptIn ?? false);
 ?>
 
 <main class="page-confirmation" id="main-content">
@@ -40,6 +41,11 @@ $isDeferred    = in_array($paymentMethod, ['virement', 'cheque'], true);
                     <?= htmlspecialchars(__('checkout.order_reference')) ?>
                     <strong><?= htmlspecialchars($ref) ?></strong>
                 </p>
+                <?php if ($newsletterOptIn) : ?>
+                <p class="confirmation-card__newsletter">
+                    <?= htmlspecialchars(__('checkout.newsletter_subscribed')) ?>
+                </p>
+                <?php endif; ?>
             </div>
 
             <?php if ($isDeferred) : ?>
@@ -116,12 +122,17 @@ $isDeferred    = in_array($paymentMethod, ['virement', 'cheque'], true);
                 <h2 class="confirmation-items__title"><?= htmlspecialchars(__('checkout.summary_title')) ?></h2>
                 <ul class="confirmation-items__list">
                     <?php foreach ($items as $item) :
-                        $name  = (string) ($item['name']  ?? '');
-                        $qty   = (int)   ($item['qty']   ?? 1);
-                        $price = (float) ($item['price'] ?? 0.0);
+                        $name    = (string) ($item['name']  ?? '');
+                        $qty     = (int)   ($item['qty']   ?? 1);
+                        $price   = (float) ($item['price'] ?? 0.0);
+                        $isCuvee = (bool)  ($item['is_cuvee_speciale'] ?? false);
                     ?>
                     <li class="confirmation-items__item">
-                        <span><?= htmlspecialchars($name) ?> × <?= $qty ?></span>
+                        <span>
+                            <?= htmlspecialchars($name) ?>
+                            <?php if ($isCuvee) : ?><span class="checkout-summary__item-cuvee"><?= htmlspecialchars($isEn ? 'Special' : 'Cuvée Spéciale') ?></span><?php endif; ?>
+                            × <?= $qty ?>
+                        </span>
                         <span><?= number_format($price * $qty, 2, ',', ' ') ?>&nbsp;€</span>
                     </li>
                     <?php endforeach; ?>

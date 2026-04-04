@@ -299,13 +299,6 @@ $pricingRules     = $pricingRules     ?? [];
                     </p>
                 </div>
 
-                <?php if ($totalQty > 0 && $totalQty % 12 !== 0) : ?>
-                <p class="cart-multiple12-error" role="alert">
-                    <?= htmlspecialchars($isEn
-                        ? 'The quantity must be a multiple of 12 bottles.'
-                        : 'La quantité doit être un multiple de 12 bouteilles.') ?>
-                </p>
-                <?php endif; ?>
                 <a href="/<?= htmlspecialchars($lang) ?>/commande"
                    id="js-cart-checkout-btn"
                    class="btn btn--gold cart-summary__cta">
@@ -339,7 +332,7 @@ $pricingRules     = $pricingRules     ?? [];
                 </a>
             </div>
             <?php endif; ?>
-            <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--outline">
+            <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--gold">
                 <?= htmlspecialchars(__('cart.browse')) ?>
             </a>
         </div>
@@ -436,36 +429,10 @@ $pricingRules     = $pricingRules     ?? [];
             return total > 0 ? total : window.__totalQty;
         }
 
-        function getOrCreateError() {
-            var existing = document.querySelector('.cart-multiple12-error');
-            if (existing) { return existing; }
-            var p = document.createElement('p');
-            p.className = 'cart-multiple12-error';
-            p.setAttribute('role', 'alert');
-            p.textContent = window.__multiple12Msg;
-            btn.insertAdjacentElement('beforebegin', p);
-            return p;
-        }
-
         function updateCheckoutState() {
-            var qty = getTotalQty();
+            var qty     = getTotalQty();
             var invalid = qty > 0 && qty % 12 !== 0;
-            if (invalid) {
-                btn.classList.add('btn--disabled-multiple12');
-                btn.setAttribute('aria-disabled', 'true');
-                btn.addEventListener('click', preventNav);
-                getOrCreateError().removeAttribute('hidden');
-            } else {
-                btn.classList.remove('btn--disabled-multiple12');
-                btn.removeAttribute('aria-disabled');
-                btn.removeEventListener('click', preventNav);
-                var err = document.querySelector('.cart-multiple12-error');
-                if (err) { err.setAttribute('hidden', ''); }
-            }
-        }
-
-        function preventNav(e) {
-            e.preventDefault();
+            if (btn) { btn.classList.toggle('cart-summary__cta--invalid', invalid); }
         }
 
         // Initialisation

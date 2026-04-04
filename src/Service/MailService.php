@@ -585,7 +585,7 @@ INNER;
      * @param string               $toEmail         Adresse email du client
      * @param string               $toName          Prénom ou nom complet du client
      * @param string               $orderRef        Référence de la commande (ex. CB-2026-001)
-     * @param string               $paymentMethod   Méthode de paiement (card, bank_transfer, check)
+     * @param string               $paymentMethod   Méthode de paiement (card, virement, cheque)
      * @param array<int, array<string, mixed>> $items Articles de la commande [{name, qty, price}]
      * @param float                $total           Total TTC en euros
      * @param float                $shippingDiscount Remise livraison appliquée
@@ -621,16 +621,28 @@ INNER;
             $labelTotal     = 'Total incl. tax';
             $labelPayment   = 'Payment method';
             $labelDelay     = 'Estimated delivery';
-            $delayValue     = '3 to 5 business days';
+            $delayValue     = '7 to 15 days upon receipt of payment';
             $labelOrders    = 'My orders';
             $paymentLabels  = [
-                'card'          => 'Credit card',
-                'bank_transfer' => 'Bank transfer',
-                'check'         => 'Cheque',
+                'card'     => 'Credit card',
+                'virement' => 'Bank transfer',
+                'cheque'   => 'Cheque',
             ];
-            $deferredNote   = in_array($paymentMethod, ['bank_transfer', 'check'], true)
+            $deferredNote   = in_array($paymentMethod, ['virement', 'cheque'], true)
                 ? '<br><em>Your order will be dispatched upon receipt of payment.</em>'
                 : '';
+            if ($paymentMethod === 'virement') {
+                $deferredNote .= '<br><br><strong>Bank details:</strong>'
+                    . '<br>Beneficiary: G.F.A Bernard Solane &amp; Fils'
+                    . '<br>IBAN: FR76 3000 6000 0112 3456 7890 189'
+                    . "<br>Reference: {$safeRef}";
+            } elseif ($paymentMethod === 'cheque') {
+                $deferredNote .= '<br><br><strong>Cheque payable to:</strong>'
+                    . '<br>G.F.A Bernard Solane &amp; Fils'
+                    . '<br>1 Château Crabitan Bellevue'
+                    . '<br>33410 Sainte-Croix-du-Mont, France'
+                    . "<br>Please write your reference on the back: {$safeRef}";
+            }
         } else {
             $subject        = "Votre commande {$safeRef} — Château Crabitan Bellevue";
             $title          = 'Commande confirmée';
@@ -642,16 +654,28 @@ INNER;
             $labelTotal     = 'Total TTC';
             $labelPayment   = 'Méthode de paiement';
             $labelDelay     = 'Délai estimé';
-            $delayValue     = '3 à 5 jours ouvrés';
+            $delayValue     = '7 à 15 jours à compter de la réception du paiement';
             $labelOrders    = 'Mes commandes';
             $paymentLabels  = [
-                'card'          => 'Carte bancaire',
-                'bank_transfer' => 'Virement bancaire',
-                'check'         => 'Chèque',
+                'card'     => 'Carte bancaire',
+                'virement' => 'Virement bancaire',
+                'cheque'   => 'Chèque',
             ];
-            $deferredNote   = in_array($paymentMethod, ['bank_transfer', 'check'], true)
+            $deferredNote   = in_array($paymentMethod, ['virement', 'cheque'], true)
                 ? '<br><em>Commande expédiée dès réception du paiement.</em>'
                 : '';
+            if ($paymentMethod === 'virement') {
+                $deferredNote .= '<br><br><strong>Coordonnées bancaires :</strong>'
+                    . '<br>Bénéficiaire : G.F.A Bernard Solane &amp; Fils'
+                    . '<br>IBAN : FR76 3000 6000 0112 3456 7890 189'
+                    . "<br>Référence à indiquer : {$safeRef}";
+            } elseif ($paymentMethod === 'cheque') {
+                $deferredNote .= '<br><br><strong>Chèque à l\'ordre de :</strong>'
+                    . '<br>G.F.A Bernard Solane &amp; Fils'
+                    . '<br>1 Château Crabitan Bellevue'
+                    . '<br>33410 Sainte-Croix-du-Mont'
+                    . "<br>Merci d'indiquer au dos : {$safeRef}";
+            }
         }
 
         $paymentLabel = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
@@ -687,7 +711,7 @@ INNER;
      * @param string               $clientEmail   Adresse email du client
      * @param string               $clientName    Prénom ou nom complet du client
      * @param string               $orderRef      Référence de la commande (ex. CB-2026-001)
-     * @param string               $paymentMethod Méthode de paiement (card, bank_transfer, check)
+     * @param string               $paymentMethod Méthode de paiement (card, virement, cheque)
      * @param array<int, array<string, mixed>> $items Articles de la commande [{name, qty, price}]
      * @param float                $total         Total TTC en euros
      * @return void
@@ -705,9 +729,9 @@ INNER;
         $safeClient    = htmlspecialchars($clientName, ENT_QUOTES);
         $safeEmail     = htmlspecialchars($clientEmail, ENT_QUOTES);
         $paymentLabels = [
-            'card'          => 'Carte bancaire',
-            'bank_transfer' => 'Virement bancaire',
-            'check'         => 'Chèque',
+            'card'     => 'Carte bancaire',
+            'virement' => 'Virement bancaire',
+            'cheque'   => 'Chèque',
         ];
         $paymentLabel  = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
 
@@ -762,13 +786,16 @@ INNER;
             . 'color:#8a7a60;letter-spacing:1px;text-align:left;';
         $rows = '';
         foreach ($items as $item) {
-            $name     = htmlspecialchars((string) ($item['name'] ?? ''), ENT_QUOTES);
+            $name     = htmlspecialchars((string) ($item['name'] ?? $item['label_name'] ?? ''), ENT_QUOTES);
+            $isCuvee  = (bool) ($item['is_cuvee_speciale'] ?? false);
+            $cuveeStyle = 'font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#c9a84c;font-family:Georgia,serif;';
+            $cuveeHtml  = $isCuvee ? "<br><span style=\"{$cuveeStyle}\">Cuvée Spéciale</span>" : '';
             $qty      = (int) ($item['qty'] ?? 0);
             $price    = (float) ($item['price'] ?? 0.0);
             $subtotal = number_format($qty * $price, 2, ',', ' ');
             $unitFmt  = number_format($price, 2, ',', ' ');
             $rows .= "<tr>"
-                . "<td style=\"{$tdStyle}\">{$name}</td>"
+                . "<td style=\"{$tdStyle}\">{$name}{$cuveeHtml}</td>"
                 . "<td style=\"{$tdStyle}\">{$qty}</td>"
                 . "<td style=\"{$tdStyle}\">{$unitFmt} €</td>"
                 . "<td style=\"{$tdStyle}\">{$subtotal} €</td>"

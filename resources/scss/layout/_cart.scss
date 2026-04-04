@@ -192,6 +192,17 @@
     &__cta {
         width: 100%;
         justify-content: center;
+
+        &--invalid {
+            background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+            border-color: #b91c1c !important;
+            color: #fff !important;
+            transition: background 200ms, border-color 200ms;
+
+            &:hover {
+                background: linear-gradient(135deg, #b91c1c, #991b1b) !important;
+            }
+        }
     }
 }
 
@@ -202,6 +213,10 @@
 .cart-empty-state {
     text-align: center;
     padding: 4rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
 }
 
 .cart-empty {
@@ -350,6 +365,14 @@
     color: var(--color-text);
 
     p { margin: 0; }
+
+    &--error {
+        background: rgba(239, 68, 68, 0.07);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #dc2626;
+        font-weight: 600;
+        transition: background 200ms, border-color 200ms, color 200ms;
+    }
 
     &--contact {
         display: flex;
