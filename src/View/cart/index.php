@@ -124,6 +124,13 @@ $pricingRules     = $pricingRules     ?? [];
             <div class="cart-progress-bar"
                  id="cart-progress-bar"
                  <?= $progressHidden ? 'hidden' : '' ?>>
+                <?php
+                if ($isEn) {
+                    $tierLabel = $hasDiscount ? 'for the next tier' : 'for your delivery discount';
+                } else {
+                    $tierLabel = $hasDiscount ? 'pour le palier suivant' : 'pour votre remise livraison';
+                }
+                ?>
                 <p class="cart-progress-bar__label">
 
                     <!-- État normal : progression vers le palier suivant -->
@@ -134,7 +141,7 @@ $pricingRules     = $pricingRules     ?? [];
                         <strong id="cart-progress-remaining-cases"><?= $progressRemainCases ?></strong>
                         <?= $isEn ? 'case(s) of 12' : 'caisse(s) de 12' ?>
                         (<span id="cart-progress-remaining"><?= $progressRemain ?></span>&nbsp;<?= $isEn ? 'bottles' : 'bouteilles' ?>)
-                        <span id="cart-progress-tier-label"><?= $isEn ? ($hasDiscount ? 'for the next tier' : 'for your delivery discount') : ($hasDiscount ? 'pour le palier suivant' : 'pour votre remise livraison') ?></span>
+                        <span id="cart-progress-tier-label"><?= $tierLabel ?></span>
                     </span>
 
                     <!-- État palier max : remise maximale confirmée -->
@@ -246,10 +253,14 @@ $pricingRules     = $pricingRules     ?? [];
             <aside class="cart-summary">
 
                 <?php /* Sous-total + remise + total */ ?>
+                <?php
+                $suffix     = $totalQty > 1 ? 's' : '';
+                $bottleLabel = $isEn ? 'bottle' . $suffix : 'bouteille' . $suffix;
+                ?>
                 <div class="cart-summary__row cart-summary__subtotal-row">
                     <span class="cart-summary__row-label">
                         <?= $isEn ? 'Subtotal' : 'Sous-total' ?>
-                        (<span id="cart-article-count"><?= $totalQty ?></span>&nbsp;<?= $isEn ? 'bottle' . ($totalQty > 1 ? 's' : '') : 'bouteille' . ($totalQty > 1 ? 's' : '') ?>)
+                        (<span id="cart-article-count"><?= $totalQty ?></span>&nbsp;<?= $bottleLabel ?>)
                     </span>
                     <span class="cart-summary__row-value js-cart-subtotal-display"
                           id="cart-subtotal"
