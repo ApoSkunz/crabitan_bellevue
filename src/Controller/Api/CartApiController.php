@@ -19,6 +19,8 @@ use Model\WineModel;
  */
 class CartApiController extends Controller
 {
+    private const INVALID_WINE_ID = 'wine_id invalide';
+
     private CartModel $cartModel;
     private WineModel $wineModel;
 
@@ -119,7 +121,7 @@ class CartApiController extends Controller
         $quantity = (int) $this->request->post('quantity', '1');
 
         if ($wineId <= 0) {
-            $this->json(['success' => false, 'message' => 'wine_id invalide'], 422);
+            $this->json(['success' => false, 'message' => self::INVALID_WINE_ID], 422);
         }
 
         $wine  = $this->wineModel->getById($wineId);
@@ -168,7 +170,7 @@ class CartApiController extends Controller
         $quantity = (int) $this->request->post('quantity', '0');
 
         if ($wineId <= 0) {
-            $this->json(['success' => false, 'message' => 'wine_id invalide'], 422);
+            $this->json(['success' => false, 'message' => self::INVALID_WINE_ID], 422);
         }
 
         $existing = $this->cartModel->findByUserId($userId);
@@ -217,7 +219,7 @@ class CartApiController extends Controller
         $wineId = (int) $this->request->post('wine_id', '0');
 
         if ($wineId <= 0) {
-            $this->json(['success' => false, 'message' => 'wine_id invalide'], 422);
+            $this->json(['success' => false, 'message' => self::INVALID_WINE_ID], 422);
         }
 
         $existing = $this->cartModel->findByUserId($userId);
