@@ -18,7 +18,7 @@ class PricingRuleModel extends Model
     public function findForQuantity(int $qty, string $format = 'bottle'): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT delivery_price, price_type
+            "SELECT min_quantity, delivery_price, price_type
              FROM {$this->table}
              WHERE format = ?
                AND active = 1
@@ -29,6 +29,48 @@ class PricingRuleModel extends Model
             [$format, $qty, $qty]
         );
         return $row ?: null;
+    }
+
+    /**
+     * Retourne la prochaine tranche tarifaire au-dessus de la quantité donnée.
+     * Utile pour indiquer au client combien de bouteilles lui manquent pour
+     * atteindre le palier de remise suivant.
+     *
+     * @param int    $qty    Quantité actuelle dans le panier
+     * @param string $format Format du produit (bottle|bib)
+     * @return array<string, mixed>|null
+     */
+    public function findNextTierFor(int $qty, string $format = 'bottle'): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT id, min_quantity, delivery_price, price_type, label
+             FROM {$this->table}
+             WHERE format = ?
+               AND active = 1
+               AND min_quantity > ?
+             ORDER BY min_quantity ASC
+             LIMIT 1",
+            [$format, $qty]
+        );
+        return $row ?: null;
+    }
+
+    /**
+     * Retourne toutes les règles actives pour un format donné, triées par min_quantity ASC.
+     * Utilisé pour afficher le tableau des paliers de remise dans la vue panier.
+     *
+     * @param string $format Format du produit (bottle|bib)
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAllActive(string $format = 'bottle'): array
+    {
+        return $this->db->fetchAll(
+            "SELECT id, min_quantity, max_quantity, delivery_price, price_type, label
+             FROM {$this->table}
+             WHERE format = ? AND active = 1
+             ORDER BY min_quantity ASC",
+            [$format]
+        );
     }
 
     /**
