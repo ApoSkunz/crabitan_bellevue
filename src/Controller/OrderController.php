@@ -75,6 +75,13 @@ class OrderController extends Controller
         $userId  = (int) $payload['sub'];
         $lang    = $this->resolveLang($params);
 
+        // Lire et effacer les flash AVANT tout redirect, pour éviter qu'un flash
+        // stale (ex: checkout.payment_error posé par paymentReturnOk) réapparaisse
+        // lors d'une visite ultérieure si le panier était vide au premier passage.
+        $errors = $_SESSION['flash']['checkout_errors'] ?? [];
+        $post   = $_SESSION['flash']['checkout_post']   ?? [];
+        unset($_SESSION['flash']['checkout_errors'], $_SESSION['flash']['checkout_post']);
+
         // Nettoyer les articles indisponibles ou hors stock
         $removed = $this->carts->removeUnavailableItems(
             $userId,
@@ -95,10 +102,6 @@ class OrderController extends Controller
 
         $pricingRule      = $this->pricing->findForQuantity($totalQty);
         $deliveryDiscount = $this->pricing->computeDeliveryDiscount($totalQty);
-
-        $errors = $_SESSION['flash']['checkout_errors'] ?? [];
-        $post   = $_SESSION['flash']['checkout_post']   ?? [];
-        unset($_SESSION['flash']['checkout_errors'], $_SESSION['flash']['checkout_post']);
 
         $submitToken = bin2hex(random_bytes(16));
         $_SESSION['submit_token'] = $submitToken;
@@ -350,9 +353,16 @@ class OrderController extends Controller
         $order = ($ref !== '') ? $this->orders->findByReference($ref, $userId) : null;
 
         if ($order === null && $ref !== '' && $erreur === '00000') {
-            // Fallback : IPN absent ou en retard — créer la commande depuis payment_intents
-            // La vérification de signature RSA n'est pas possible ici (params GET différents du QUERY_STRING IPN)
-            // mais Erreur=00000 + référence présente dans notre BDD (payment_intents) suffit
+            // Fallback : IPN absent ou en retard — créer la commande depuis payment_intents.
+            // CA inclut Sign:K dans le QUERY_STRING des redirects navigateur (même mécanisme RSA que l'IPN).
+            // Vérification obligatoire avant création de commande pour empêcher la forge de l'URL de retour.
+            $qs = $_SERVER['QUERY_STRING'] ?? '';
+            if (!(new \Service\PaymentService())->verifyIpnSignature($qs)) {
+                error_log('[RETURN_OK] Invalid RSA signature on return URL — ref=' . $ref);
+                $_SESSION['flash']['checkout_errors']['payment'] = __('checkout.payment_error');
+                Response::redirect("/{$lang}/commande");
+            }
+
             $snapshot = (new \Model\PaymentIntentModel())->findByReference($ref);
 
             if ($snapshot !== null && (int) $snapshot['user_id'] === $userId) {
@@ -434,6 +444,11 @@ class OrderController extends Controller
         $this->requireCustomer();
         $lang = $this->resolveLang($params);
 
+        $ref = $_GET['Ref'] ?? '';
+        if ($ref !== '') {
+            (new \Model\PaymentIntentModel())->delete($ref);
+        }
+
         $_SESSION['flash']['checkout_errors']['payment'] = __('checkout.payment_cancelled');
         unset($_SESSION['ca_payment']);
         Response::redirect("/{$lang}/commande");
@@ -456,6 +471,11 @@ class OrderController extends Controller
     {
         $this->requireCustomer();
         $lang = $this->resolveLang($params);
+
+        $ref = $_GET['Ref'] ?? '';
+        if ($ref !== '') {
+            (new \Model\PaymentIntentModel())->delete($ref);
+        }
 
         $_SESSION['flash']['checkout_errors']['payment'] = __('checkout.payment_refused');
         unset($_SESSION['ca_payment']);
