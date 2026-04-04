@@ -231,7 +231,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
             if ($numappel !== '' && $numtrans !== '') {
                 $paymentService = new \Service\PaymentService();
-                $refunded = $paymentService->callGaeRefund(
+                $refunded = $paymentService->callGaeCancelOrRefund(
                     (string) ($order['order_reference'] ?? ''),
                     $numappel,
                     $numtrans,
