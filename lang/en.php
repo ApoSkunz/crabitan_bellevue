@@ -162,7 +162,16 @@ return [
     'cart.item_total'      => 'Subtotal',
     'cart.order_total'     => 'Total',
     'cart.price_at_checkout' => 'Price calculated at checkout',
-    'cart.update_qty'      => 'Update quantity',
+    'cart.update_qty'        => 'Update quantity',
+    'cart.min_12_notice'     => 'Orders are placed in multiples of 12 bottles (minimum 1 case).',
+    'cart.delivery_discount' => 'Delivery discount',
+    'cart.delivery_none'     => 'Delivery calculated at checkout',
+    'cart.b2b_title'         => 'Professional account',
+    'cart.b2b_message'       => 'You have a professional customer account. To benefit from our B2B rates and place an order, please contact us:',
+    'cart.b2b_subject'       => 'Enquiry — B2B Rates',
+    'cart.over_600_notice'         => 'For orders exceeding 600 bottles, please contact the château directly:',
+    'cart.over_600_subject'        => 'Large order enquiry — Over 600 bottles',
+    'cart.over_600_checkout_error' => 'Please contact us to finalise an order of more than 600 bottles.',
 
     // Order
     'order.confirm'   => 'Confirm order',
