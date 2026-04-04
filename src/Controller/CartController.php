@@ -52,25 +52,13 @@ class CartController extends Controller
         $userId = $this->resolveUserId();
         if ($userId !== null) {
             $isAuth       = true;
-            $accountModel = new AccountModel();
-            $account      = $accountModel->findById($userId);
-            $isB2B        = ($account !== false && ($account['account_type'] ?? '') === 'company');
-
-            if (!$isB2B) {
-                $cartModel = new CartModel();
-                $row       = $cartModel->findByUserId($userId);
-                if ($row !== false) {
-                    $cartItems = $cartModel->getContent($row);
-                    $cartItems = $this->enrichItemsWithPrice($cartItems);
-                }
-
-                if (!empty($cartItems)) {
-                    $totalQty     = (int) array_sum(array_column($cartItems, 'qty'));
-                    $pricingModel = new PricingRuleModel();
-                    $pricingRule  = $pricingModel->findForQuantity($totalQty);
-                    $nextTier     = $pricingModel->findNextTierFor($totalQty);
-                }
-            }
+            $cartData     = $this->loadCartForUser($userId);
+            $isB2B        = $cartData['isB2B'];
+            $cartItems    = $cartData['cartItems'];
+            $totalQty     = $cartData['totalQty'];
+            $pricingRule  = $cartData['pricingRule'];
+            $nextTier     = $cartData['nextTier'];
+            $pricingModel = $cartData['pricingModel'] ?? null;
         }
 
         $pricingModel    = $pricingModel ?? new PricingRuleModel();
@@ -167,6 +155,51 @@ class CartController extends Controller
     // ----------------------------------------------------------------
     // Helpers privés
     // ----------------------------------------------------------------
+
+    /**
+     * Charge le contenu du panier et les données de tarification pour un utilisateur connecté.
+     *
+     * Retourne les données B2B, articles enrichis, quantité totale et règle de tarification.
+     *
+     * @param int $userId Identifiant de l'utilisateur connecté
+     * @return array<string, mixed>
+     */
+    private function loadCartForUser(int $userId): array
+    {
+        $account = (new AccountModel())->findById($userId);
+        $isB2B   = ($account !== false && ($account['account_type'] ?? '') === 'company');
+
+        $cartItems    = [];
+        $totalQty     = 0;
+        $pricingRule  = null;
+        $nextTier     = null;
+        $pricingModel = null;
+
+        if (!$isB2B) {
+            $cartModel = new CartModel();
+            $row       = $cartModel->findByUserId($userId);
+            if ($row !== false) {
+                $cartItems = $cartModel->getContent($row);
+                $cartItems = $this->enrichItemsWithPrice($cartItems);
+            }
+
+            if (!empty($cartItems)) {
+                $totalQty     = (int) array_sum(array_column($cartItems, 'qty'));
+                $pricingModel = new PricingRuleModel();
+                $pricingRule  = $pricingModel->findForQuantity($totalQty);
+                $nextTier     = $pricingModel->findNextTierFor($totalQty);
+            }
+        }
+
+        return [
+            'isB2B'        => $isB2B,
+            'cartItems'    => $cartItems,
+            'totalQty'     => $totalQty,
+            'pricingRule'  => $pricingRule,
+            'nextTier'     => $nextTier,
+            'pricingModel' => $pricingModel,
+        ];
+    }
 
     /**
      * Enrichit chaque article du panier avec le prix récupéré depuis WineModel.
