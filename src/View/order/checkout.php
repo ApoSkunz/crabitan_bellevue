@@ -28,7 +28,8 @@ $totalQty         = $totalQty         ?? 0;
 $csrfToken        = $csrfToken        ?? '';
 $lang             = $lang             ?? 'fr';
 $deliveryDelay    = $deliveryDelay    ?? ($lang === 'en' ? '7 to 15 days upon receipt of payment' : '7 à 15 jours à compter de la réception du paiement');
-$isEn             = ($lang === 'en');
+$isEn                    = ($lang === 'en');
+$isNewsletterSubscribed  = (bool) ($isNewsletterSubscribed ?? false);
 
 $billingAddresses  = array_values(array_filter($addresses, fn($a) => $a['type'] === 'billing'));
 $deliveryAddresses = array_values(array_filter($addresses, fn($a) => $a['type'] === 'delivery'));
@@ -336,13 +337,13 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                 $cgvLabel = '<a href="' . htmlspecialchars($cgvUrl) . '" target="_blank" rel="noopener noreferrer">' . htmlspecialchars(__('checkout.cgv_link')) . '</a>';
                                 echo sprintf(__('checkout.cgv_accept'), $cgvLabel);
                                 ?>
-                                <span class="checkout-terms__required" aria-hidden="true"> *</span>
                             </label>
                             <?php if (isset($errors['cgv'])) : ?>
                             <p class="checkout-terms__error" role="alert"><?= htmlspecialchars($errors['cgv']) ?></p>
                             <?php endif; ?>
                         </div>
 
+                        <?php if (!$isNewsletterSubscribed) : ?>
                         <div class="checkout-terms">
                             <label class="checkout-terms__label checkout-terms__label--optional">
                                 <input type="checkbox" name="newsletter" value="1"
@@ -350,6 +351,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                 <?= htmlspecialchars(__('checkout.newsletter_optin')) ?>
                             </label>
                         </div>
+                        <?php endif; ?>
 
                         <p class="checkout-terms__age-notice">
                             <?= htmlspecialchars(__('checkout.age_confirmation')) ?>
@@ -568,10 +570,10 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
         return pfx >= 1 && pfx <= 95 && pfx !== 20;
     }
 
-    function initZipCityAutocomplete(zipId, cityId, errorClass) {
+    function initZipCityAutocomplete(zipId, cityId, errorClass, validateZip) {
         var zipEl   = document.getElementById(zipId);
         var cityEl  = document.getElementById(cityId);
-        var errEl   = document.querySelector('.' + errorClass);
+        var errEl   = errorClass ? document.querySelector('.' + errorClass) : null;
         if (!zipEl || !cityEl) { return; }
         var dlId    = cityEl.getAttribute('list') || (cityId + '-dl');
         var dl      = document.getElementById(dlId);
@@ -584,7 +586,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
             clearTimeout(timer);
             if (dl) { dl.innerHTML = ''; }
             if (zip.length !== 5) { return; }
-            if (!isMetroZip(zip)) {
+            if (validateZip && !isMetroZip(zip)) {
                 if (errEl) { errEl.hidden = false; }
                 zipEl.setCustomValidity(errEl ? errEl.textContent.trim() : 'ZIP invalide');
                 return;
@@ -625,8 +627,8 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
         }
     }
 
-    initZipCityAutocomplete('addr-zip-del',  'addr-city-del',  'js-zip-error-del');
-    initZipCityAutocomplete('addr-zip-bill', 'addr-city-bill', 'js-zip-error-bill');
+    initZipCityAutocomplete('addr-zip-del',  'addr-city-del',  'js-zip-error-del',  true);
+    initZipCityAutocomplete('addr-zip-bill', 'addr-city-bill', 'js-zip-error-bill', false);
 
 })();
 </script>
