@@ -209,11 +209,11 @@ class CartController extends Controller
         }
         try {
             $payload = Jwt::decode($token);
-            if (in_array($payload['role'] ?? '', ['admin', 'super_admin'], true)) {
-                $this->redirect('/admin');
-            }
         } catch (\Throwable) {
-            // Token invalide : on laisse passer, la page gérera l'auth
+            return; // Token invalide : on laisse passer, la page gérera l'auth
+        }
+        if (in_array($payload['role'] ?? '', ['admin', 'super_admin'], true)) {
+            $this->redirect('/admin');
         }
     }
 
