@@ -1,5 +1,6 @@
 <?php
 
+// phpcs:disable Generic.Files.LineLength -- fichier de traductions : les chaînes ne peuvent pas être coupées
 return [
     // Age gate
     'age_gate.quote'         => 'L\'art et la passion du vin, pour sublimer votre table',

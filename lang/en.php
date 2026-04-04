@@ -1,5 +1,6 @@
 <?php
 
+// phpcs:disable Generic.Files.LineLength -- translation file: strings cannot be split across lines
 return [
     // Age gate
     'age_gate.quote'         => 'The art and passion of wine, to elevate your table',
