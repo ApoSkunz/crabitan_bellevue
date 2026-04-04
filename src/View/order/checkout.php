@@ -30,6 +30,7 @@ $lang             = $lang             ?? 'fr';
 $deliveryDelay    = $deliveryDelay    ?? ($lang === 'en' ? '7 to 15 days upon receipt of payment' : '7 à 15 jours à compter de la réception du paiement');
 $isEn                    = ($lang === 'en');
 $isNewsletterSubscribed  = (bool) ($isNewsletterSubscribed ?? false);
+$submitToken             = $submitToken ?? '';
 
 $billingAddresses  = array_values(array_filter($addresses, fn($a) => $a['type'] === 'billing'));
 $deliveryAddresses = array_values(array_filter($addresses, fn($a) => $a['type'] === 'delivery'));
@@ -147,6 +148,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
               class="checkout-form"
               novalidate>
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
+            <input type="hidden" name="submit_token" value="<?= htmlspecialchars($submitToken) ?>">
 
             <div class="checkout-layout">
 
@@ -357,6 +359,10 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                             <?= htmlspecialchars(__('checkout.age_confirmation')) ?>
                         </p>
 
+                        <p class="checkout-terms__legal checkout-terms__legal--withdrawal">
+                            <?= htmlspecialchars(__('checkout.withdrawal_right')) ?>
+                        </p>
+
                         <p class="checkout-terms__legal">
                             <?= htmlspecialchars(__('checkout.delivery_delay_notice')) ?>
                             <strong><?= htmlspecialchars($deliveryDelay) ?></strong>
@@ -413,7 +419,8 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                         </div>
 
                         <p class="checkout-summary__qty">
-                            <?= $totalQty ?> <?= htmlspecialchars($isEn ? ($totalQty > 1 ? 'bottles' : 'bottle') : ($totalQty > 1 ? 'bouteilles' : 'bouteille')) ?>
+                            <?php $bottleLabel = $isEn ? ($totalQty > 1 ? 'bottles' : 'bottle') : ($totalQty > 1 ? 'bouteilles' : 'bouteille'); ?>
+                            <?= $totalQty ?> <?= htmlspecialchars($bottleLabel) ?>
                         </p>
 
                         <?php if (isset($errors['multiple_12'])) : ?>
