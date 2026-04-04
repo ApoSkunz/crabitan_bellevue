@@ -751,7 +751,7 @@ return [
     'checkout.payment_deferred_notice'=> 'Commande expédiée une fois le paiement reçu.',
     'checkout.iban_label'             => 'RIB / IBAN',
     'checkout.iban_reference_hint'    => 'Indiquer votre référence de commande en libellé du virement',
-    'checkout.cheque_order'           => 'Chèque à l\'ordre de : Château Crabitan Bellevue',
+    'checkout.cheque_order'           => 'Chèque à l\'ordre de : G.F.A Bernard Solane & Fils',
     'checkout.cheque_send_to'         => 'Envoyer le chèque à',
     'checkout.cheque_ref_mention'     => 'Mentionner votre référence de commande au dos du chèque',
     'checkout.cgv_accept'             => 'J\'accepte les %s *',
@@ -768,6 +768,7 @@ return [
     'checkout.error_cgv'              => 'Vous devez accepter les Conditions Générales de Vente pour continuer.',
     'checkout.error_address_invalid'  => 'Adresse invalide ou introuvable.',
     'checkout.error_address_required' => 'Tous les champs de l\'adresse sont obligatoires.',
+    'checkout.error_multiple_12'      => 'La quantité totale doit être un multiple de 12 bouteilles.',
 
     // Confirmation commande
     'checkout.confirmation_title'     => 'Commande confirmée',

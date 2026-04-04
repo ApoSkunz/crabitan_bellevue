@@ -749,7 +749,7 @@ return [
     'checkout.payment_deferred_notice'=> 'Order shipped once payment is received.',
     'checkout.iban_label'             => 'Bank details / IBAN',
     'checkout.iban_reference_hint'    => 'Include your order reference in the transfer description',
-    'checkout.cheque_order'           => 'Make cheque payable to: Château Crabitan Bellevue',
+    'checkout.cheque_order'           => 'Make cheque payable to: G.F.A Bernard Solane & Fils',
     'checkout.cheque_send_to'         => 'Send cheque to',
     'checkout.cheque_ref_mention'     => 'Write your order reference on the back of the cheque',
     'checkout.cgv_accept'             => 'I accept the %s *',
@@ -766,6 +766,7 @@ return [
     'checkout.error_cgv'              => 'You must accept the Terms and Conditions to continue.',
     'checkout.error_address_invalid'  => 'Invalid or unknown address.',
     'checkout.error_address_required' => 'All address fields are required.',
+    'checkout.error_multiple_12'      => 'The total quantity must be a multiple of 12 bottles.',
 
     // Order confirmation
     'checkout.confirmation_title'     => 'Order confirmed',
