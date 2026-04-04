@@ -419,7 +419,13 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                         </div>
 
                         <p class="checkout-summary__qty">
-                            <?php $bottleLabel = $isEn ? ($totalQty > 1 ? 'bottles' : 'bottle') : ($totalQty > 1 ? 'bouteilles' : 'bouteille'); ?>
+                            <?php
+                            if ($isEn) {
+                                $bottleLabel = $totalQty > 1 ? 'bottles' : 'bottle';
+                            } else {
+                                $bottleLabel = $totalQty > 1 ? 'bouteilles' : 'bouteille';
+                            }
+                            ?>
                             <?= $totalQty ?> <?= htmlspecialchars($bottleLabel) ?>
                         </p>
 
