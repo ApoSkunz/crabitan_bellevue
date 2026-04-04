@@ -8,10 +8,14 @@
     min-height: calc(100vh - 80px);
     background: var(--color-bg);
     color: var(--color-text);
+
+    .page-hero {
+        padding-bottom: 1rem;
+    }
 }
 
 .cart-section {
-    padding: 3rem 1.5rem 5rem;
+    padding: 1.25rem 1.5rem 5rem;
 }
 
 // ----------------------------------------------------------------
