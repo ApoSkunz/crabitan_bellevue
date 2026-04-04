@@ -29,7 +29,8 @@ class CartController extends Controller
      * Affiche la page du panier.
      *
      * Si l'utilisateur est connecté (JWT valide), charge les articles depuis la BDD.
-     * Si l'utilisateur est un invité, passe un tableau vide à la vue.
+     * Si l'utilisateur est un invité, passe un tableau vide à la vue (le JS lit le cookie cb-cart).
+     * Un vin aléatoire est passé à la vue (auth panier vide ou invité) pour suggestion d'achat.
      * Les admins/super_admins sont redirigés vers /admin.
      * Les clients B2B (account_type = 'company') voient un message de contact à la place du panier.
      *
@@ -93,7 +94,7 @@ class CartController extends Controller
             setcookie('cb-cart-count', (string) $totalQty, ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
         }
 
-        $randomWine = ($isAuth && !$isB2B && empty($cartItems))
+        $randomWine = (!$isB2B && empty($cartItems))
             ? (new WineModel())->getRandomForCart()
             : null;
 

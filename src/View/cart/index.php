@@ -299,8 +299,15 @@ $pricingRules     = $pricingRules     ?? [];
                     </p>
                 </div>
 
+                <?php if ($totalQty > 0 && $totalQty % 12 !== 0) : ?>
+                <p class="cart-multiple12-error" role="alert">
+                    <?= htmlspecialchars($isEn
+                        ? 'The quantity must be a multiple of 12 bottles.'
+                        : 'La quantité doit être un multiple de 12 bouteilles.') ?>
+                </p>
+                <?php endif; ?>
                 <a href="/<?= htmlspecialchars($lang) ?>/commande"
-                   id="cart-checkout-btn"
+                   id="js-cart-checkout-btn"
                    class="btn btn--gold cart-summary__cta">
                     <?= htmlspecialchars(__('cart.checkout')) ?>
                 </a>
@@ -376,6 +383,24 @@ $pricingRules     = $pricingRules     ?? [];
                 <?= htmlspecialchars(__('cart.login_cta')) ?>
             </button>
         </div>
+        <?php if (isset($randomWine) && $randomWine !== null) : ?>
+        <div class="cart-empty-wine">
+            <p class="cart-empty-wine__label"><?= htmlspecialchars($isEn ? 'You might enjoy:' : 'Vous pourriez apprécier :') ?></p>
+            <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
+               class="cart-empty-wine__card">
+                <?php $wineImage = '/assets/images/wines/' . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
+                <img src="<?= $wineImage ?>"
+                     alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
+                     class="cart-empty-wine__img"
+                     width="120" height="160" loading="lazy">
+                <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?></span>
+                <span class="cart-empty-wine__price"><?= number_format((float)($randomWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
+            </a>
+        </div>
+        <?php endif; ?>
+        <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--outline">
+            <?= htmlspecialchars(__('cart.browse')) ?>
+        </a>
         <?php endif; ?>
 
     </section>
@@ -389,6 +414,80 @@ $pricingRules     = $pricingRules     ?? [];
             'price_type'     => (string) $r['price_type'],
         ];
     }, $pricingRules), JSON_UNESCAPED_UNICODE) ?>;
+    window.__totalQty = <?= (int) $totalQty ?>;
+    window.__isMultiple12Error = <?= ($totalQty > 0 && $totalQty % 12 !== 0) ? 'true' : 'false' ?>;
+    window.__multiple12Msg = <?= json_encode(
+        $isEn
+            ? 'The quantity must be a multiple of 12 bottles.'
+            : 'La quantité doit être un multiple de 12 bouteilles.',
+        JSON_UNESCAPED_UNICODE
+    ) ?>;
+
+    (function () {
+        var btn = document.getElementById('js-cart-checkout-btn');
+        if (!btn) { return; }
+
+        function getTotalQty() {
+            var inputs = document.querySelectorAll('.js-cart-qty');
+            var total = 0;
+            inputs.forEach(function (input) {
+                total += parseInt(input.value, 10) || 0;
+            });
+            return total > 0 ? total : window.__totalQty;
+        }
+
+        function getOrCreateError() {
+            var existing = document.querySelector('.cart-multiple12-error');
+            if (existing) { return existing; }
+            var p = document.createElement('p');
+            p.className = 'cart-multiple12-error';
+            p.setAttribute('role', 'alert');
+            p.textContent = window.__multiple12Msg;
+            btn.insertAdjacentElement('beforebegin', p);
+            return p;
+        }
+
+        function updateCheckoutState() {
+            var qty = getTotalQty();
+            var invalid = qty > 0 && qty % 12 !== 0;
+            if (invalid) {
+                btn.classList.add('btn--disabled-multiple12');
+                btn.setAttribute('aria-disabled', 'true');
+                btn.addEventListener('click', preventNav);
+                getOrCreateError().removeAttribute('hidden');
+            } else {
+                btn.classList.remove('btn--disabled-multiple12');
+                btn.removeAttribute('aria-disabled');
+                btn.removeEventListener('click', preventNav);
+                var err = document.querySelector('.cart-multiple12-error');
+                if (err) { err.setAttribute('hidden', ''); }
+            }
+        }
+
+        function preventNav(e) {
+            e.preventDefault();
+        }
+
+        // Initialisation
+        updateCheckoutState();
+
+        // Écoute les changements de quantité
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.classList.contains('js-cart-qty')) {
+                updateCheckoutState();
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (e.target && (
+                e.target.classList.contains('js-qty-minus') ||
+                e.target.classList.contains('js-qty-plus') ||
+                e.target.classList.contains('js-cart-remove')
+            )) {
+                // Attendre le DOM update via mutation ou setTimeout court
+                setTimeout(updateCheckoutState, 50);
+            }
+        });
+    })();
     </script>
 </main>
 
