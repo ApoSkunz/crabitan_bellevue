@@ -34,6 +34,7 @@ DROP TABLE IF EXISTS `credit_card_token`;
 DROP TABLE IF EXISTS `device_confirm_tokens`;
 DROP TABLE IF EXISTS `trusted_devices`;
 DROP TABLE IF EXISTS `connections`;
+DROP TABLE IF EXISTS `payment_intents`;
 DROP TABLE IF EXISTS `orders`;
 DROP TABLE IF EXISTS `carts`;
 DROP TABLE IF EXISTS `pricing_rules`;
@@ -246,6 +247,8 @@ CREATE TABLE `orders` (
   `id_delivery_address` INT            DEFAULT NULL,
   `status`              ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested','refund_refused') NOT NULL DEFAULT 'pending',
   `cgv_version`         VARCHAR(20)    NOT NULL DEFAULT '1.0' COMMENT 'Version des CGV acceptées au moment de la commande',
+  `ca_numappel`         VARCHAR(11)    DEFAULT NULL COMMENT 'NUMAPPEL CA e-Transactions (lettre T PBX_RETOUR) — requis pour remboursement GAE',
+  `ca_numtrans`         VARCHAR(11)    DEFAULT NULL COMMENT 'NUMTRANS CA e-Transactions (lettre S PBX_RETOUR) — requis pour remboursement GAE',
   `path_invoice`        VARCHAR(255)   DEFAULT NULL,
   `ordered_at`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `delivered_at`        DATETIME       DEFAULT NULL COMMENT 'Date de livraison confirmée ; base du délai de rétractation (15 j)',
@@ -257,6 +260,22 @@ CREATE TABLE `orders` (
   CONSTRAINT `fk_orders_delivery_address` FOREIGN KEY (`id_delivery_address`) REFERENCES `addresses` (`id`) ON DELETE RESTRICT,
   INDEX `idx_orders_user_status` (`user_id`, `status`),
   INDEX `idx_orders_ordered_at` (`ordered_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : payment_intents
+-- Snapshot du panier/adresses stocké côté serveur avant envoi vers CA.
+-- Nécessaire car l'IPN CA (server-to-server) n'a pas accès à la session PHP
+-- du navigateur client. TTL 1 heure — purgé après création de commande ou expiration.
+-- ============================================================
+CREATE TABLE `payment_intents` (
+  `reference`  VARCHAR(50)  NOT NULL,
+  `user_id`    INT          NOT NULL,
+  `snapshot`   JSON         NOT NULL COMMENT 'Snapshot complet : items, total, adresses, cgv_version, lang, newsletter',
+  `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` TIMESTAMP    NOT NULL DEFAULT '2000-01-01 00:00:00',
+  PRIMARY KEY (`reference`),
+  KEY `idx_payment_intents_expires` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================

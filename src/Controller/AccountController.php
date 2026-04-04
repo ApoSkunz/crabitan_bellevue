@@ -194,6 +194,20 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     // POST /{lang}/mon-compte/commandes/{id}/annuler
     // ----------------------------------------------------------------
 
+    /**
+     * Annule une commande depuis l'espace-compte client.
+     *
+     * Gère deux cas selon le statut de la commande :
+     * - `pending`  : annulation immédiate via {@see OrderModel::cancelForUser()}.
+     * - `delivered` dans la fenêtre de rétractation : demande de retour via
+     *   {@see OrderModel::requestReturnForUser()}.
+     * - `paid` + `payment_method = 'card'` : appel GAE CA (TYPE=00014) via
+     *   {@see \Service\PaymentService::callGaeRefund()} avant de passer le statut
+     *   à `refunded`. Si le remboursement échoue, l'annulation est bloquée.
+     *
+     * @param array<string, string> $params Paramètres de route (`lang`, `id`)
+     * @return void
+     */
     public function cancelOrder(array $params): void
     {
         $payload = $this->requireCustomer();
@@ -207,6 +221,37 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         if (!$this->verifyCsrf()) {
             $_SESSION['flash']['order_error'] = __('error.csrf');
             Response::redirect($back);
+        }
+
+        // Remboursement CA si paiement par carte et commande payée
+        $order = $this->orders->findDetailForUser($id, $userId);
+        if (($order['payment_method'] ?? '') === 'card' && ($order['status'] ?? '') === 'paid') {
+            $numappel = (string) ($order['ca_numappel'] ?? '');
+            $numtrans = (string) ($order['ca_numtrans'] ?? '');
+
+            if ($numappel !== '' && $numtrans !== '') {
+                $paymentService = new \Service\PaymentService();
+                $refunded = $paymentService->callGaeCancelOrRefund(
+                    (string) ($order['order_reference'] ?? ''),
+                    $numappel,
+                    $numtrans,
+                    (int) round((float) ($order['price'] ?? 0) * 100)
+                );
+
+                if (!$refunded) {
+                    // Remboursement CA échoué → bloquer l'annulation, message d'erreur
+                    $_SESSION['flash']['order_error'] = __('account.cancel_refund_failed');
+                    Response::redirect($back);
+                }
+
+                // Remboursement réussi → statut 'refunded'
+                $this->orders->updateStatus($id, 'refunded');
+                $_SESSION['flash']['order_success'] = __('account.order_cancelled');
+                Response::redirect($back);
+            } else {
+                // ca_numappel/ca_numtrans manquants → ne pas bloquer, logger, annulation normale
+                error_log("cancelOrder: missing CA transaction refs for order {$id}");
+            }
         }
 
         // Annulation standard (pending) ou demande de rétractation (delivered dans la fenêtre)

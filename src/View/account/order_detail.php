@@ -24,7 +24,8 @@ $timeline      = $isReturnFlow
     ? ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', $returnEndStep]
     : ['pending', 'paid', 'processing', 'shipped', 'delivered'];
 $currentIdx  = array_search($order['status'], $timeline, true);
-$cancellable = $order['status'] === 'pending';
+$cancellable       = $order['status'] === 'pending';
+$cancellableRefund = $order['status'] === 'paid' && ($order['payment_method'] ?? '') === 'card';
 /** @var bool $cancellableReturn */
 /** @var string|null $returnDeadline */
 $paymentMap  = [
@@ -195,7 +196,20 @@ $paymentMap  = [
 
             <!-- Annulation (uniquement si en attente de paiement) -->
             <?php $qs = '?subject='; ?>
-            <?php if ($cancellable) : ?>
+            <?php if ($cancellableRefund) : ?>
+                <section class="account-section account-section--danger">
+                    <h2 class="account-section__title"><?= __('account.order_cancel_btn') ?></h2>
+                    <p><?= __('account.order_cancel_card_confirm') ?></p>
+                    <form method="POST"
+                          action="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/annuler"
+                          data-confirm="<?= htmlspecialchars(__('account.order_cancel_card_confirm')) ?>">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+                        <button type="submit" class="btn btn--danger">
+                            <?= __('account.order_cancel_btn') ?>
+                        </button>
+                    </form>
+                </section>
+            <?php elseif ($cancellable) : ?>
                 <section class="account-section account-section--danger">
                     <h2 class="account-section__title"><?= __('account.order_cancel_btn') ?></h2>
                     <p><?= __('account.order_cancel_confirm') ?></p>

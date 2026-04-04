@@ -104,6 +104,92 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     }
 
     /**
+     * Crée une commande depuis la confirmation IPN CA avec statut 'paid'.
+     *
+     * Appelée uniquement par le handler IPN après vérification de la signature.
+     * Si une collision sur order_reference survient (UNIQUE KEY), génère une nouvelle
+     * référence et retente (jusqu'à 3 essais).
+     *
+     * @param int                              $userId            Identifiant de l'utilisateur
+     * @param array<int, array<string, mixed>> $items             Articles du panier
+     * @param float                            $total             Total TTC en euros
+     * @param float                            $deliveryDiscount  Remise livraison
+     * @param int                              $billingAddressId  Identifiant adresse facturation
+     * @param int                              $deliveryAddressId Identifiant adresse livraison
+     * @param string                           $cgvVersion        Version CGV acceptée
+     * @param string                           $reference         Référence pré-générée (WEB-CB-XXXXX-YYYY)
+     * @param string                           $numappel          NUMAPPEL CA (lettre T PBX_RETOUR)
+     * @param string                           $numtrans          NUMTRANS CA (lettre S PBX_RETOUR)
+     * @return string Référence de la commande créée
+     * @throws \PDOException Si la collision de référence persiste après 3 tentatives
+     */
+    public function createFromIpn( // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
+        int $userId,
+        array $items,
+        float $total,
+        float $deliveryDiscount,
+        int $billingAddressId,
+        int $deliveryAddressId,
+        string $cgvVersion,
+        string $reference,
+        string $numappel,
+        string $numtrans
+    ): string {
+        $content  = json_encode($items, JSON_UNESCAPED_UNICODE);
+        $typeCode = 'CB';
+        $maxTries = 3;
+
+        for ($attempt = 1; $attempt <= $maxTries; $attempt++) {
+            try {
+                $this->db->insert(
+                    "INSERT INTO {$this->table}
+                     (user_id, order_reference, content, price, payment_method, shipping_discount,
+                      id_billing_address, id_delivery_address, status, cgv_version, ca_numappel, ca_numtrans)
+                     VALUES (?, ?, ?, ?, 'card', ?, ?, ?, 'paid', ?, ?, ?)", // phpcs:ignore Generic.Files.LineLength
+                    [
+                        $userId,
+                        $reference,
+                        $content,
+                        $total,
+                        $deliveryDiscount,
+                        $billingAddressId,
+                        $deliveryAddressId,
+                        $cgvVersion,
+                        $numappel,
+                        $numtrans,
+                    ]
+                );
+                return $reference;
+            } catch (\PDOException $e) {
+                if ($e->getCode() !== '23000' || $attempt === $maxTries) {
+                    throw $e;
+                }
+                $reference = 'WEB-' . $typeCode . '-' . strtoupper(bin2hex(random_bytes(4))) . '-' . date('Y');
+            }
+        }
+
+        return $reference;
+    }
+
+    /**
+     * Recherche une commande par sa référence uniquement (sans vérification userId).
+     *
+     * Utilisé par le handler IPN pour vérifier si une commande existe déjà
+     * (idempotence sur double notification).
+     *
+     * @param string $reference Référence de la commande
+     * @return array<string, mixed>|null null si non trouvée
+     */
+    public function findByReferenceOnly(string $reference): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT * FROM {$this->table} WHERE order_reference = ?",
+            [$reference]
+        );
+        return $row ?: null;
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function getForAdmin(int $page, int $perPage, ?string $status, ?string $search, ?string $payment = null): array

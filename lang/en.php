@@ -586,6 +586,7 @@ return [
     'account.order_cancel_btn'   => 'Cancel order',
     'account.order_cancelled'    => 'Your order has been successfully cancelled.',
     'account.order_cancel_failed' => 'Unable to cancel this order (ineligible status).',
+    'account.cancel_refund_failed' => 'The refund to your bank failed. Please contact support.',
     'account.order_cancel_confirm' => 'Are you sure you want to cancel this order? This action cannot be undone.',
     'account.per_page'           => 'Per page',
     'account.filter_period'      => 'Period',
@@ -773,6 +774,11 @@ return [
     'checkout.error_address_invalid'  => 'Invalid or unknown address.',
     'checkout.error_address_required' => 'All address fields are required.',
     'checkout.error_multiple_12'      => 'The total quantity must be a multiple of 12 bottles.',
+    'checkout.error_rate_limit'       => 'Too many payment attempts. Please wait before trying again.',
+    'checkout.payment_cancelled'      => 'Payment cancelled. You may update your order and try again.',
+    'checkout.payment_refused'        => 'Payment declined. Please check your details or use a different payment method.',
+    'checkout.payment_error'          => 'An error occurred while confirming your payment. Contact us if the amount was charged.',
+    'account.order_cancel_card_confirm' => 'This will trigger an immediate refund to your credit card. Confirm cancellation?',
 
     // Order confirmation
     'checkout.confirmation_title'     => 'Order confirmed',
@@ -781,6 +787,17 @@ return [
     'checkout.deferred_order_notice'  => 'Your order will be shipped once your payment is received.',
     'checkout.view_orders'            => 'View my orders',
     'checkout.continue_shopping'      => 'Continue shopping',
+
+    // CA e-Transactions payment
+    'payment.redirect_title'   => 'Redirecting to secure payment',
+    'payment.redirect_message' => 'Redirecting to our secure payment platform…',
+    'payment.redirect_button'  => 'Proceed to payment',
+    'payment.success_title'    => 'Payment confirmed',
+    'payment.success_heading'  => 'Payment confirmed',
+    'payment.success_message'  => 'Your payment has been received. Loading your order…',
+    'payment.success_fallback'  => 'If the page does not load, <a href="/{lang}/mon-compte/commandes">click here</a>.',
+    'payment.success_loading'   => 'Your order is being finalised...',
+    'payment.success_redirect'  => 'You will be redirected to your orders.',
 
     // Generic errors
     'error.generic' => 'An error occurred. Please try again.',

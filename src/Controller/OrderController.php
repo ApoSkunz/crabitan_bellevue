@@ -17,9 +17,13 @@ use Model\WineModel;
 /**
  * Contrôleur de la page de commande (checkout).
  *
- * GET  /{lang}/commande             → affiche le formulaire de commande
- * POST /{lang}/commande/paiement    → valide et crée la commande
- * GET  /{lang}/commande/confirmation → affiche la confirmation après paiement
+ * GET  /{lang}/commande                   → affiche le formulaire de commande
+ * POST /{lang}/commande/paiement          → valide et crée la commande (virement/chèque)
+ *                                           ou génère le formulaire CA (carte)
+ * GET  /{lang}/commande/paiement-ca/ok     → retour CA paiement accepté
+ * GET  /{lang}/commande/paiement-ca/annule → retour CA paiement annulé
+ * GET  /{lang}/commande/paiement-ca/refuse → retour CA paiement refusé
+ * GET  /{lang}/commande/confirmation       → affiche la confirmation après paiement
  */
 class OrderController extends Controller
 {
@@ -71,6 +75,13 @@ class OrderController extends Controller
         $userId  = (int) $payload['sub'];
         $lang    = $this->resolveLang($params);
 
+        // Lire et effacer les flash AVANT tout redirect, pour éviter qu'un flash
+        // stale (ex: checkout.payment_error posé par paymentReturnOk) réapparaisse
+        // lors d'une visite ultérieure si le panier était vide au premier passage.
+        $errors = $_SESSION['flash']['checkout_errors'] ?? [];
+        $post   = $_SESSION['flash']['checkout_post']   ?? [];
+        unset($_SESSION['flash']['checkout_errors'], $_SESSION['flash']['checkout_post']);
+
         // Nettoyer les articles indisponibles ou hors stock
         $removed = $this->carts->removeUnavailableItems(
             $userId,
@@ -91,10 +102,6 @@ class OrderController extends Controller
 
         $pricingRule      = $this->pricing->findForQuantity($totalQty);
         $deliveryDiscount = $this->pricing->computeDeliveryDiscount($totalQty);
-
-        $errors = $_SESSION['flash']['checkout_errors'] ?? [];
-        $post   = $_SESSION['flash']['checkout_post']   ?? [];
-        unset($_SESSION['flash']['checkout_errors'], $_SESSION['flash']['checkout_post']);
 
         $submitToken = bin2hex(random_bytes(16));
         $_SESSION['submit_token'] = $submitToken;
@@ -123,10 +130,14 @@ class OrderController extends Controller
     // ----------------------------------------------------------------
 
     /**
-     * Valide le formulaire de commande, crée la commande et vide le panier.
+     * Valide le formulaire de commande.
+     *
+     * - Pour `card` : génère une référence, stocke un snapshot en session et
+     *   retourne la vue formulaire auto-submit vers Crédit Agricole (CA).
+     * - Pour `virement` et `cheque` : crée la commande, vide le panier,
+     *   envoie les emails et redirige vers la confirmation.
      *
      * En cas d'erreur, redirige vers le checkout avec les messages flash.
-     * En cas de succès, stocke la référence en session et redirige vers la confirmation.
      *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
@@ -188,14 +199,87 @@ class OrderController extends Controller
         }
 
         // Calculer les totaux (items et totalQty déjà calculés avant la vérification multiple de 12)
-        $subtotal         = (float) array_sum(array_map(fn(array $i): float => (float) $i['price'] * (int) $i['qty'], $items));
+        $subtotal         = (float) array_sum(
+            array_map(fn(array $i): float => (float) $i['price'] * (int) $i['qty'], $items)
+        );
         $deliveryDiscount = $this->pricing->computeDeliveryDiscount($totalQty);
         $total            = round(max(0.0, $subtotal - $deliveryDiscount), 2);
+
+        // ---- Chemin carte bancaire (CA) ----
+        if ($paymentMethod === 'card') {
+            $this->checkPaymentRateLimit($userId, $lang);
+
+            // Charger le compte (email, nom, adresse facturation pour PBX_BILLING)
+            $account     = (new AccountModel())->findById($userId);
+            $clientEmail = (string) ($account !== false ? ($account['email'] ?? '') : '');
+            $clientName  = trim(
+                ($account !== false ? ($account['firstname'] ?? '') : '')
+                . ' '
+                . ($account !== false ? ($account['lastname'] ?? '') : '')
+            );
+
+            // Générer la référence avant envoi à CA
+            $reference = 'WEB-CB-' . strtoupper(bin2hex(random_bytes(4))) . '-' . date('Y');
+
+            // Récupérer l'adresse de facturation pour PBX_BILLING
+            $billingAddr = $this->addresses->findByIdForUser($billingAddressId, $userId);
+
+            $snapshot = [
+                'reference'           => $reference,
+                'user_id'             => $userId,
+                'items'               => $items,
+                'total'               => $total,
+                'delivery_discount'   => $deliveryDiscount,
+                'billing_address_id'  => $billingAddressId,
+                'delivery_address_id' => $deliveryAddressId,
+                'cgv_version'         => $this->cgvVersion,
+                'lang'                => $lang,
+                'newsletter'          => (bool) $this->request->post('newsletter', ''),
+                'client_email'        => $clientEmail,
+                'client_name'         => $clientName,
+            ];
+
+            // Persister le snapshot en BDD — l'IPN CA (server-to-server) n'a pas
+            // accès à la session PHP du navigateur, il lira depuis payment_intents.
+            (new \Model\PaymentIntentModel())->save($reference, $userId, $snapshot);
+
+            // Conserver aussi en session pour l'UX (paymentReturnOk)
+            $_SESSION['ca_payment'] = $snapshot;
+
+            // Construire les champs PBX via PaymentService
+            $paymentService = new \Service\PaymentService();
+            $pbx = $paymentService->buildPbxFields(
+                $reference,
+                (int) round($total * 100),
+                $clientEmail,
+                (string) ($billingAddr !== null ? ($billingAddr['firstname'] ?? '') : ($account['firstname'] ?? '')),
+                (string) ($billingAddr !== null ? ($billingAddr['lastname']  ?? '') : ($account['lastname']  ?? '')),
+                (string) ($billingAddr !== null ? ($billingAddr['street']    ?? '') : ''),
+                (string) ($billingAddr !== null ? ($billingAddr['zip_code']  ?? '') : ''),
+                (string) ($billingAddr !== null ? ($billingAddr['city']      ?? '') : ''),
+                $totalQty,
+                $lang
+            );
+
+            // Rendre la vue formulaire auto-submit (pas de redirection)
+            $this->view('order/payment-form', [
+                'lang'   => $lang,
+                'url'    => $pbx['url'],
+                'fields' => $pbx['fields'],
+            ]);
+            return;
+        }
+
+        // ---- Chemin virement / chèque ----
 
         // Charger le compte (nécessaire pour newsletter + emails)
         $account     = (new AccountModel())->findById($userId);
         $clientEmail = (string) ($account !== false ? ($account['email'] ?? '') : '');
-        $clientName  = trim(($account !== false ? ($account['firstname'] ?? '') : '') . ' ' . ($account !== false ? ($account['lastname'] ?? '') : '')); // phpcs:ignore Generic.Files.LineLength
+        $clientName  = trim(
+            ($account !== false ? ($account['firstname'] ?? '') : '')
+            . ' '
+            . ($account !== false ? ($account['lastname'] ?? '') : '')
+        ); // phpcs:ignore Generic.Files.LineLength
 
         // Newsletter opt-in
         if ($this->request->post('newsletter', '')) {
@@ -218,7 +302,15 @@ class OrderController extends Controller
         $this->carts->clear($userId);
         setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'samesite' => 'Lax']);
         if ($clientEmail !== '') {
-            $this->dispatchOrderEmails($clientEmail, $clientName, $reference, $paymentMethod, $items, $total, $lang); // phpcs:ignore Generic.Files.LineLength
+            $this->dispatchOrderEmails(
+                $clientEmail,
+                $clientName,
+                $reference,
+                $paymentMethod,
+                $items,
+                $total,
+                $lang
+            );
         }
 
         // Stocker pour la page de confirmation
@@ -227,6 +319,167 @@ class OrderController extends Controller
         $_SESSION['last_order_newsletter'] = (bool) $this->request->post('newsletter', '');
 
         Response::redirect("/{$lang}/commande/confirmation");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/commande/paiement-ca/ok
+    // ----------------------------------------------------------------
+
+    /**
+     * Gère le retour CA après un paiement carte accepté.
+     *
+     * Lit la référence transmise par CA via GET (?Ref=…).
+     * Si la commande est déjà créée en BDD (IPN arrivé), stocke la référence
+     * en session et redirige vers la confirmation.
+     * Si l'IPN n'est pas encore arrivé, redirige vers les commandes avec un
+     * message flash de succès en attente.
+     * Nettoie toujours le snapshot de session.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function paymentReturnOk(array $params): void
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $lang    = $this->resolveLang($params);
+
+        $ref    = $_GET['Ref']    ?? '';
+        $erreur = $_GET['Erreur'] ?? '';
+
+        unset($_SESSION['ca_payment']);
+
+        // Vérifier si la commande existe déjà (IPN déjà traité)
+        $order = ($ref !== '') ? $this->orders->findByReference($ref, $userId) : null;
+
+        if ($order === null && $ref !== '' && $erreur === '00000') {
+            // Fallback : IPN absent ou en retard — créer la commande depuis payment_intents.
+            // CA inclut Sign:K dans le QUERY_STRING des redirects navigateur (même mécanisme RSA que l'IPN).
+            // Vérification obligatoire avant création de commande pour empêcher la forge de l'URL de retour.
+            $qs = $_SERVER['QUERY_STRING'] ?? '';
+            if (!(new \Service\PaymentService())->verifyIpnSignature($qs)) {
+                error_log('[RETURN_OK] Invalid RSA signature on return URL — ref=' . $ref);
+                $_SESSION['flash']['checkout_errors']['payment'] = __('checkout.payment_error');
+                Response::redirect("/{$lang}/commande");
+            }
+
+            $snapshot = (new \Model\PaymentIntentModel())->findByReference($ref);
+
+            if ($snapshot !== null && (int) $snapshot['user_id'] === $userId) {
+                $numappel = $_GET['Appel'] ?? '';
+                $numtrans = $_GET['Trans'] ?? '';
+
+                // Idempotence : re-vérifier avant création (race condition IPN/return)
+                if ($this->orders->findByReferenceOnly($ref) === null) {
+                    $this->orders->createFromIpn(
+                        $userId,
+                        (array)  $snapshot['items'],
+                        (float)  $snapshot['total'],
+                        (float)  $snapshot['delivery_discount'],
+                        (int)    $snapshot['billing_address_id'],
+                        (int)    $snapshot['delivery_address_id'],
+                        (string) $snapshot['cgv_version'],
+                        $ref,
+                        $numappel,
+                        $numtrans
+                    );
+
+                    (new \Model\PaymentIntentModel())->delete($ref);
+                    (new \Model\CartModel())->clear($userId);
+
+                    try {
+                        $mail = new \Service\MailService();
+                        $mail->sendOrderConfirmationToClient(
+                            (string) ($snapshot['client_email'] ?? ''),
+                            (string) ($snapshot['client_name']  ?? ''),
+                            $ref,
+                            'card',
+                            (array) $snapshot['items'],
+                            (float) $snapshot['total'],
+                            $lang
+                        );
+                        $mail->sendOrderConfirmationToOwner(
+                            (string) ($snapshot['client_email'] ?? ''),
+                            (string) ($snapshot['client_name']  ?? ''),
+                            $ref,
+                            'card',
+                            (array) $snapshot['items'],
+                            (float) $snapshot['total']
+                        );
+                    } catch (\Throwable $mailError) {
+                        error_log('[RETURN_OK] Mail error for ref=' . $ref . ' : ' . $mailError->getMessage());
+                    }
+                }
+
+                $order = $this->orders->findByReference($ref, $userId);
+            }
+        }
+
+        if ($order === null) {
+            error_log('[RETURN_OK] Order not found and no intent — ref=' . $ref);
+            $_SESSION['flash']['checkout_errors']['payment'] = __('checkout.payment_error');
+            Response::redirect("/{$lang}/commande");
+        }
+
+        $_SESSION['last_order_ref']     = $ref;
+        $_SESSION['last_order_payment'] = 'card';
+        Response::redirect("/{$lang}/commande/confirmation");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/commande/paiement-ca/annule
+    // ----------------------------------------------------------------
+
+    /**
+     * Gère le retour CA après une annulation de paiement carte par le client.
+     *
+     * Stocke un message flash d'annulation, nettoie le snapshot de session
+     * et redirige vers le checkout.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function paymentReturnCancel(array $params): void
+    {
+        $this->requireCustomer();
+        $lang = $this->resolveLang($params);
+
+        $ref = $_GET['Ref'] ?? '';
+        if ($ref !== '') {
+            (new \Model\PaymentIntentModel())->delete($ref);
+        }
+
+        $_SESSION['flash']['checkout_errors']['payment'] = __('checkout.payment_cancelled');
+        unset($_SESSION['ca_payment']);
+        Response::redirect("/{$lang}/commande");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/commande/paiement-ca/refuse
+    // ----------------------------------------------------------------
+
+    /**
+     * Gère le retour CA après un refus de paiement carte (fonds insuffisants, etc.).
+     *
+     * Stocke un message flash de refus, nettoie le snapshot de session
+     * et redirige vers le checkout.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function paymentReturnRefuse(array $params): void
+    {
+        $this->requireCustomer();
+        $lang = $this->resolveLang($params);
+
+        $ref = $_GET['Ref'] ?? '';
+        if ($ref !== '') {
+            (new \Model\PaymentIntentModel())->delete($ref);
+        }
+
+        $_SESSION['flash']['checkout_errors']['payment'] = __('checkout.payment_refused');
+        unset($_SESSION['ca_payment']);
+        Response::redirect("/{$lang}/commande");
     }
 
     // ----------------------------------------------------------------
@@ -275,6 +528,40 @@ class OrderController extends Controller
     // ----------------------------------------------------------------
     // Helpers privés
     // ----------------------------------------------------------------
+
+    /**
+     * Vérifie et incrémente le compteur de tentatives de paiement carte par utilisateur.
+     *
+     * Limite : 10 tentatives par fenêtre glissante de 3 600 secondes.
+     * Si la limite est atteinte, stocke un message flash d'erreur et redirige
+     * vers le checkout. Réinitialise le compteur si la fenêtre est expirée.
+     *
+     * @param int    $userId Identifiant de l'utilisateur connecté
+     * @param string $lang   Langue courante, utilisée pour construire l'URL de retour
+     * @return void
+     */
+    private function checkPaymentRateLimit(int $userId, string $lang): void
+    {
+        $now         = time();
+        $windowSecs  = 3600;
+        $maxAttempts = 10;
+        $back        = "/{$lang}/commande";
+
+        $attempts = $_SESSION['payment_attempts'][$userId] ?? ['count' => 0, 'window_start' => $now];
+
+        if (($now - (int) $attempts['window_start']) >= $windowSecs) {
+            // Fenêtre expirée : réinitialiser
+            $attempts = ['count' => 0, 'window_start' => $now];
+        }
+
+        $attempts['count'] = (int) $attempts['count'] + 1;
+        $_SESSION['payment_attempts'][$userId] = $attempts;
+
+        if ($attempts['count'] > $maxAttempts) {
+            $_SESSION['flash']['checkout_errors']['rate_limit'] = __('checkout.error_rate_limit');
+            Response::redirect($back);
+        }
+    }
 
     /**
      * Résout une adresse (existante ou nouvelle) depuis les données POST.

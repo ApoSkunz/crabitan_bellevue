@@ -26,3 +26,12 @@ Site e-commerce de vins — [crabitanbellevue.fr](https://crabitanbellevue.fr)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=ApoSkunz_crabitan_bellevue&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=ApoSkunz_crabitan_bellevue)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ApoSkunz_crabitan_bellevue&metric=coverage)](https://sonarcloud.io/summary/new_code?id=ApoSkunz_crabitan_bellevue)
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=ApoSkunz_crabitan_bellevue&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=ApoSkunz_crabitan_bellevue)
+
+## Paiement CA Up2pay e-Transactions
+
+La clé publique CA pour la vérification des signatures IPN est versionnée dans `config/pubkey.pem`.
+Il s'agit de la clé recette fournie dans le kit d'intégration CA (aucun risque cryptographique à la publier).
+
+**Si CA fait tourner sa paire de clés :** remplacer `config/pubkey.pem` par la nouvelle clé publique
+fournie par CA, puis mettre à jour `CA_PUBKEY_PATH` dans `.env` si le chemin change.
+L'alerte email envoyée à `MAINTAINER_MAIL` lors d'une signature IPN invalide signale ce cas.

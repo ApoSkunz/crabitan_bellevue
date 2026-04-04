@@ -293,7 +293,14 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                         <!-- Carte bancaire -->
                         <div id="checkout-panel-card" role="tabpanel"
                              class="checkout-payment-panel <?= $selectedPayment !== 'card' ? 'checkout-payment-panel--hidden' : '' ?>">
-                            <p class="checkout-payment-info"><?= htmlspecialchars(__('checkout.payment_card_info')) ?></p>
+                            <p class="checkout-payment-info">
+                                <?= htmlspecialchars(__('checkout.payment_card_info')) ?>
+                                <img src="/assets/images/payment/payment-cb-banner.png"
+                                     alt="CB, Visa, Mastercard"
+                                     height="26"
+                                     style="vertical-align:middle;margin-left:8px;"
+                                     loading="lazy">
+                            </p>
                             <p class="checkout-payment-info checkout-payment-info--sub"><?= htmlspecialchars(__('checkout.payment_card_redirect')) ?></p>
                         </div>
 
@@ -448,6 +455,9 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
         </form>
     </section>
 </main>
+
+<style>
+</style>
 
 <script>
 (function () {
