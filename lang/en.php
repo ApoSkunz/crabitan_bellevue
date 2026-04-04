@@ -232,7 +232,7 @@ return [
     'footer.cgv'             => 'Terms and conditions',
     'footer.sitemap'         => 'Sitemap',
     'footer.carbon'          => 'Carbon Badge',
-    'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. To be consumed in moderation.',
+    'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. To be consumed in moderation. The sale of alcohol is prohibited to persons under 18 years of age.',
     'footer.made_by'         => 'Made by',
     'footer.webmaster'       => 'Alexandre Solane',
 
