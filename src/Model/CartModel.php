@@ -169,7 +169,7 @@ class CartModel extends Model
             $wineId = (int) ($item['wine_id'] ?? 0);
             $wine   = $wineData($wineId);
 
-            if ($wine === null || !(bool) $wine['available'] || (int) $wine['quantity'] <= 0) {
+            if ($wine === null || !(bool) $wine['available']) {
                 $removed[] = $item;
                 $changed   = true;
                 continue;

@@ -297,6 +297,23 @@ class WineModel extends Model
     }
 
     /**
+     * Retourne un vin aléatoire disponible avec les champs nécessaires pour une carte produit.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getRandomForCart(): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT id, label_name, image_path, slug, price FROM {$this->table}
+             WHERE " . self::COND_AVAILABLE . "
+             AND image_path IS NOT NULL AND image_path != ''
+             ORDER BY RAND() LIMIT 1"
+        );
+
+        return $row ?: null;
+    }
+
+    /**
      * Retourne un vin aléatoire disponible toutes couleurs (plan du site — collection).
      *
      * @return array<string, mixed>|null
