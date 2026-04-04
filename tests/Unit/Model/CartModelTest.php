@@ -170,6 +170,23 @@ class CartModelTest extends TestCase
         $this->assertTrue(true);
     }
 
+    public function testMergeLocalCartSkipsItemsWithInvalidWineId(): void
+    {
+        // Pas de panier existant
+        $this->dbMock->method('fetchOne')->willReturn(false);
+        $this->dbMock->expects($this->once())->method('execute');
+
+        // Tous les items sont invalides : doivent être ignorés via le continue
+        $localItems = [
+            ['wine_id' => 0, 'qty' => 2],   // wine_id <= 0 → skipped
+            ['wine_id' => 1, 'qty' => 0],   // qty <= 0 → skipped
+            ['id' => 0,      'qty' => 3],   // id <= 0 → skipped
+        ];
+
+        $this->model->mergeLocalCart(42, $localItems, fn(int $id): int => 10);
+        $this->assertTrue(true); // pas d'exception, save appelé avec tableau vide
+    }
+
     public function testMergeLocalCartCapsQuantityAtStock(): void
     {
         // BDD : panier existant avec 8 bouteilles du vin 1

@@ -144,6 +144,24 @@ class PricingRuleModelTest extends TestCase
         $this->assertSame(0.0, $discount);
     }
 
+    public function testComputeDeliveryDiscountReturnsZeroWhenNoRuleForPositiveQty(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn(false);
+
+        $discount = $this->model->computeDeliveryDiscount(6);
+        $this->assertSame(0.0, $discount);
+    }
+
+    public function testComputeDeliveryDiscountReturnsZeroWhenPriceIsZero(): void
+    {
+        $this->dbMock
+            ->method('fetchOne')
+            ->willReturn(['delivery_price' => '0.00', 'price_type' => 'fixed']);
+
+        $discount = $this->model->computeDeliveryDiscount(12);
+        $this->assertSame(0.0, $discount);
+    }
+
     // ----------------------------------------------------------------
     // findAllActive
     // ----------------------------------------------------------------
