@@ -327,6 +327,59 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         return $row !== false ? ($row['reactivation_token'] ?? null) : null;
     }
 
+    /**
+     * Enregistre un token de confirmation d'action de sécurité (haché SHA-256, TTL 1h).
+     *
+     * @param  int    $userId    Identifiant du compte
+     * @param  string $hash      Hash SHA-256 du token brut
+     * @param  string $expiresAt Date d'expiration au format 'Y-m-d H:i:s'
+     * @return void
+     */
+    public function saveSecurityConfirmToken(int $userId, string $hash, string $expiresAt): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET security_confirm_token_hash       = ?,
+                 security_confirm_token_expires_at = ?
+             WHERE id = ?",
+            [$hash, $expiresAt, $userId]
+        );
+    }
+
+    /**
+     * Recherche un compte par son token de confirmation de sécurité (haché SHA-256), non expiré.
+     *
+     * @param  string $hash Hash SHA-256 du token brut
+     * @return array<string, mixed>|false
+     */
+    public function findBySecurityConfirmToken(string $hash): array|false
+    {
+        return $this->db->fetchOne(
+            "SELECT id, email, lang FROM {$this->table}
+             WHERE security_confirm_token_hash = ?
+               AND security_confirm_token_expires_at > UTC_TIMESTAMP()
+               AND deleted_at IS NULL",
+            [$hash]
+        );
+    }
+
+    /**
+     * Invalide le token de confirmation de sécurité après usage.
+     *
+     * @param  int $userId Identifiant du compte
+     * @return void
+     */
+    public function consumeSecurityConfirmToken(int $userId): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET security_confirm_token_hash       = NULL,
+                 security_confirm_token_expires_at = NULL
+             WHERE id = ?",
+            [$userId]
+        );
+    }
+
     public function findByReactivationToken(string $token): array|false
     {
         return $this->db->fetchOne(
