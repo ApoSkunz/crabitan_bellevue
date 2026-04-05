@@ -2,6 +2,48 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.36.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.35.0...v0.36.0) (2026-04-05)
+
+
+### Bug Fixes
+
+* **coverage:** SessionApiController exit→HttpException + TU 204 + TI sessionExpired ([f23a2f2](https://github.com/ApoSkunz/crabitan_bellevue/commit/f23a2f2f9b99658d449d25d18b7e58b76d6b3c5e))
+* **i18n:** NOSONAR php:S1192 sur les valeurs dupliquées dans les fichiers de traduction ([7831464](https://github.com/ApoSkunz/crabitan_bellevue/commit/78314648ad2cd9b85e411bbba1042a49915294f1))
+* **security:** denySecurityAction — supprimer tous les appareils de confiance lors du refus ([9941bd2](https://github.com/ApoSkunz/crabitan_bellevue/commit/9941bd2ba5c43a479bf118d7ac37a783f2f14578))
+* **sonar:** ignorer php:S1192 sur lang/** via multicriteria — supprimer NOSONAR inline ([e40c029](https://github.com/ApoSkunz/crabitan_bellevue/commit/e40c0291b48cb6ebf28350262dc8b0acb110afec))
+* **ux:** harmoniser toutes les durées de flash à 5000ms ([da8c798](https://github.com/ApoSkunz/crabitan_bellevue/commit/da8c798d3169b56d3e026de20e5b0cff08c099e4))
+* **ux:** toast par défaut 1500ms → 5000ms pour meilleure lisibilité ([61d3bda](https://github.com/ApoSkunz/crabitan_bellevue/commit/61d3bda52d80c3cc0fbd3fb4b9ba08b337c9b690))
+
+
+### Features
+
+* **api:** SessionApiController — GET /api/session/ping (204 actif / 401 révoqué + clear cookie) ([2f798c8](https://github.com/ApoSkunz/crabitan_bellevue/commit/2f798c89b3fe5bf19fb982699997c434d41be5cc))
+* **controller:** AccountController — changePassword en mode pending, confirmSecurityAction applique le pending, denySecurityAction révoque ([39b1116](https://github.com/ApoSkunz/crabitan_bellevue/commit/39b1116fd5fdca93cdc072afb4d555f32798aec2))
+* **controller:** AccountController — confirmSecurityAction + génération token dans changePassword ([0176e9f](https://github.com/ApoSkunz/crabitan_bellevue/commit/0176e9fcccfc7f4e59338b21ab16c32f9aa8eb21))
+* **controller:** AccountController — confirmSecurityAction révoque uniquement la session de la demande + son trusted device ([53676c7](https://github.com/ApoSkunz/crabitan_bellevue/commit/53676c7408fcc161fafc7daee011d25b8071aa34))
+* **controller:** AuthController — sessionExpired() pose flash + redirige accueil ([c7e19ba](https://github.com/ApoSkunz/crabitan_bellevue/commit/c7e19baf924d90bb95514ab9de4c5fa2cdb9ad8b))
+* **i18n:** account — clés security_confirm_* (succès, erreur, expiré, boutons) ([f0ceb7a](https://github.com/ApoSkunz/crabitan_bellevue/commit/f0ceb7a23b76388946961746bbe6cd93430dd275))
+* **i18n:** account — password_change_pending + clés security_deny_* (FR/EN) ([833c754](https://github.com/ApoSkunz/crabitan_bellevue/commit/833c7544a0dd1ea3cba181efa9f790e6379e1c33))
+* **i18n:** ajouter common.close et auth.session_expired (fr + en) ([c846f81](https://github.com/ApoSkunz/crabitan_bellevue/commit/c846f8164da809332c4bc25f08b39ff11cfee746))
+* **i18n:** auth — ajouter auth.session_expired (FR/EN) ([6e4b6f4](https://github.com/ApoSkunz/crabitan_bellevue/commit/6e4b6f4bd1b4edc5117214bfd4c6cd2c8d87fafb))
+* **model:** AccountModel — savePendingPassword stocke session token, getPendingSessionToken, clear/apply effacent le token ([40dd2ce](https://github.com/ApoSkunz/crabitan_bellevue/commit/40dd2ce6304f5205e8a720dbf5da7dac05def1e7))
+* **model:** AccountModel — savePendingPassword, applyPendingPassword, clearPendingPassword ([bb2fe68](https://github.com/ApoSkunz/crabitan_bellevue/commit/bb2fe6876b2116be7965b3c374b6e18f5379fdf7))
+* **model:** AccountModel — saveSecurityConfirmToken, findBySecurityConfirmToken (UTC_TIMESTAMP), consumeSecurityConfirmToken ([1ec5aa8](https://github.com/ApoSkunz/crabitan_bellevue/commit/1ec5aa84ace3496fb4a91b30a91107be8ae3f49b))
+* **model:** ConnectionModel — getDeviceTokenByToken pour révocation ciblée trusted device ([de7bfbf](https://github.com/ApoSkunz/crabitan_bellevue/commit/de7bfbf695f719a973cbd4a375c7dca6db7f688a))
+* **routes:** ajouter GET /{lang}/securite/ce-netait-pas-moi → AccountController@denySecurityAction ([5709fab](https://github.com/ApoSkunz/crabitan_bellevue/commit/5709fab632d102a0bf71c5b22870d98308e2ae5c))
+* **routes:** ajouter GET /{lang}/securite/confirmer → AccountController@confirmSecurityAction ([55af587](https://github.com/ApoSkunz/crabitan_bellevue/commit/55af587fc012c0d8596e2914cb66fc7ac704b91e))
+* **routes:** ajouter GET /{lang}/session-expiree → AuthController@sessionExpired ([45e33c1](https://github.com/ApoSkunz/crabitan_bellevue/commit/45e33c1dc2b28a46f7c0c214e0b78663d95b6d02))
+* **routes:** ajouter GET /api/session/ping → Api\SessionApiController@ping ([4fae88d](https://github.com/ApoSkunz/crabitan_bellevue/commit/4fae88d639e04e7a7ee65b7854079e84d15ccf5f))
+* **scss:** bannière flash persistante cb-flash-banner avec bouton fermeture ([b2db4a9](https://github.com/ApoSkunz/crabitan_bellevue/commit/b2db4a9b281aa2ab73cc6421d776ae6d28caa476))
+* **service:** MailService — anti-phishing footer + CTAs C'était moi / Ce n'était pas moi dans sendPasswordChangedAlert ([985def9](https://github.com/ApoSkunz/crabitan_bellevue/commit/985def9996e09969624e395d66a0babdfcfe8314))
+* **service:** MailService — sendPasswordChangeConfirmation (remplace sendPasswordChangedAlert) + sendPasswordChangeDenied ([1dc4da6](https://github.com/ApoSkunz/crabitan_bellevue/commit/1dc4da641f3dc78739527606470660a6bc610eed))
+* **ux:** flash session expirée → message permanent dans la modale connexion ([0e04604](https://github.com/ApoSkunz/crabitan_bellevue/commit/0e046042015239cf3ebb61b9e0351bb8bf8eda28))
+* **view:** account/security-confirm — page résultat confirmation action sécurité (succès / erreur / expiré) ([06be804](https://github.com/ApoSkunz/crabitan_bellevue/commit/06be80479ac76889fef348534b819712754e101a))
+* **view:** head.php — polling BroadcastChannel 30s auto-logout si session révoquée ([2491da7](https://github.com/ApoSkunz/crabitan_bellevue/commit/2491da7c1d14ef5783b1eacfa0ff8e60c2ef5f48))
+* **view:** head.php — polling redirige vers session-expiree pour flash toast accueil ([3bb6af7](https://github.com/ApoSkunz/crabitan_bellevue/commit/3bb6af7c3b0c93417b509095d2c198ee08ffd757))
+* **view:** remplacer flashInfo toast par bannière HTML persistante (cb-flash-banner) ([28385d7](https://github.com/ApoSkunz/crabitan_bellevue/commit/28385d7b72f5fe1eb3bf6ca47339aff171148da3))
+* **view:** security-confirm redirect connexion après succès + nouvelle vue security-deny ([7cdd078](https://github.com/ApoSkunz/crabitan_bellevue/commit/7cdd0788c8eeee828e46d5aa86f4eb910bc73910))
+
 # [0.35.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.34.0...v0.35.0) (2026-04-05)
 
 
