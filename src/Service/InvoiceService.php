@@ -103,8 +103,9 @@ table { width: 100%; border-collapse: collapse; }
 <table style="margin-bottom:10px;">
 <tr>
 <td style="width:30%;vertical-align:bottom;">' . $logoTag . '</td>
-<td style="width:40%;text-align:center;vertical-align:bottom;padding-bottom:4px;">
-  <span style="font-size:28pt;font-weight:bold;color:#c1a14b;letter-spacing:4px;">FACTURE</span>
+<td style="width:40%;text-align:center;vertical-align:bottom;padding-bottom:6px;">
+  <span style="font-family:dejavuserif;font-size:15pt;font-weight:normal;color:#c1a14b;letter-spacing:8px;">FACTURE</span><br>
+  <span style="font-family:dejavuserif;font-size:6.5pt;font-weight:normal;color:#8a7060;letter-spacing:3px;">Ch&#226;teau Crabitan Bellevue</span>
 </td>
 <td style="width:30%;text-align:right;vertical-align:bottom;padding-bottom:4px;">
   <span style="font-size:9pt;color:#555;">N&#176;&nbsp;' . htmlspecialchars($invoiceNumber, ENT_QUOTES) . '</span><br>
