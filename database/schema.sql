@@ -78,6 +78,8 @@ CREATE TABLE `accounts` (
   `deleted_at`                   DATETIME       DEFAULT NULL COMMENT 'Soft delete',
   `scheduled_deletion_at`        DATETIME       DEFAULT NULL COMMENT 'Date de purge effective (J+30 après deleted_at)',
   `reactivation_token`           VARCHAR(64)    DEFAULT NULL COMMENT 'Token annulation suppression compte (valide 30 jours)',
+  `security_confirm_token_hash`       VARCHAR(64)    DEFAULT NULL COMMENT 'SHA-256 du token de confirmation action sécurité (TTL 1h)',
+  `security_confirm_token_expires_at` DATETIME       DEFAULT NULL COMMENT 'Expiration du token de confirmation action sécurité',
   `created_at`                   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`                   DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `has_connected`                TINYINT(1)     NOT NULL DEFAULT 0 COMMENT 'Vrai dès la première connexion réussie',
@@ -91,7 +93,8 @@ CREATE TABLE `accounts` (
   INDEX `idx_accounts_sched_del`     (`scheduled_deletion_at`),
   INDEX `idx_accounts_reactiv_token`        (`reactivation_token`),
   INDEX `idx_accounts_email_change_token`   (`email_change_token`),
-  INDEX `idx_accounts_nl_confirm_token`     (`newsletter_confirm_token`)
+  INDEX `idx_accounts_nl_confirm_token`     (`newsletter_confirm_token`),
+  INDEX `idx_accounts_sec_confirm_token`    (`security_confirm_token_hash`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
