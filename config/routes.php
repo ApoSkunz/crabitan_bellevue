@@ -35,6 +35,8 @@ $router->post('/admin/bons-de-commande/ajouter', 'Admin\OrderFormAdminController
 $router->post('/admin/bons-de-commande/{id}/supprimer', 'Admin\OrderFormAdminController@delete');
 $router->get('/admin/bons-de-commande/{id}/telecharger', 'Admin\OrderFormAdminController@download');
 $router->get('/admin/statistiques', 'Admin\StatsAdminController@index');
+$router->get('/admin/factures', 'Admin\InvoiceAdminController@index');
+$router->get('/admin/factures/export', 'Admin\InvoiceAdminController@export');
 $router->get('/admin/dpo', 'Admin\DpoAdminController@index');
 $router->get('/admin/dpo/registre-traitements', 'Admin\DpoAdminController@downloadRegistre');
 $router->get('/admin/dpo/sous-traitants', 'Admin\DpoAdminController@downloadSousTraitants');
@@ -125,6 +127,7 @@ $router->post('/{lang}/mon-compte/profil', 'AccountController@updateProfile');
 $router->get('/{lang}/mon-compte/commandes', 'AccountController@orders');
 $router->get('/{lang}/mon-compte/commandes/{id}', 'AccountController@orderDetail');
 $router->post('/{lang}/mon-compte/commandes/{id}/annuler', 'AccountController@cancelOrder');
+$router->get('/{lang}/mon-compte/factures', 'InvoiceController@list');
 $router->get('/{lang}/mon-compte/commandes/{id}/facture', 'InvoiceController@download');
 $router->get('/{lang}/mon-compte/commandes/{id}/fiche-retour', 'AccountController@returnSlip');
 $router->get('/{lang}/mon-compte/adresses', 'AccountController@addresses');

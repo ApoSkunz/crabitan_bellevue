@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Controller;
 
 use Core\Controller;
-use Core\Response;
+use Core\Exception\HttpException;
 use Middleware\AuthMiddleware;
 use Model\OrderModel;
 
@@ -20,10 +20,40 @@ class InvoiceController extends Controller
     }
 
     // ----------------------------------------------------------------
+    // GET /{lang}/mon-compte/factures
+    // ----------------------------------------------------------------
+
+    /**
+     * Liste toutes les factures (version courante par commande) de l'utilisateur connecté.
+     *
+     * @param  array<string, mixed> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function list(array $params): void
+    {
+        $this->resolveLang($params);
+        $payload  = AuthMiddleware::handle();
+        $userId   = (int) ($payload['sub'] ?? 0);
+        $invoices = $this->orders->getInvoiceFilesForUser($userId);
+
+        $this->view('account/invoices', [
+            'invoices'      => $invoices,
+            'lang'          => $this->lang(),
+            'activeSection' => 'invoices',
+        ]);
+    }
+
+    // ----------------------------------------------------------------
     // GET /{lang}/mon-compte/commandes/{id}/facture
     // ----------------------------------------------------------------
 
-    public function download(array $params): void
+    /**
+     * Télécharge la facture courante d'une commande.
+     *
+     * @param  array<string, mixed> $params Paramètres de route (lang, id)
+     * @return never
+     */
+    public function download(array $params): never
     {
         $this->resolveLang($params);
         $payload = AuthMiddleware::handle();
@@ -54,6 +84,6 @@ class InvoiceController extends Controller
         header('Content-Length: ' . filesize($filePath));
         header('Cache-Control: private, no-cache');
         readfile($filePath);
-        exit;
+        throw new HttpException(200); // NOSONAR — terminaison identique à exit dans le contexte du routeur
     }
 }
