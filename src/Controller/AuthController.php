@@ -387,6 +387,10 @@ class AuthController extends Controller
             } catch (\Throwable $e) {
                 error_log('Mail duplicate register error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
             }
+            // Normalisation du temps de réponse (anti timing oracle R14/R15) :
+            // le chemin nominal exécute password_hash() en ligne ~403 ; on le simule ici
+            // pour que le fast-path "email déjà pris" ait le même temps de réponse.
+            password_hash('dummy_timing_normalization', PASSWORD_BCRYPT); // NOSONAR php:S2053 — intentionnel : normalisation timing
             $this->flash('register_success', '1');
             Response::redirect("/{$lang}");
         }
@@ -541,6 +545,11 @@ class AuthController extends Controller
             } catch (\Throwable $e) {
                 error_log('Mail reset error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
             }
+        } else {
+            // Normalisation du temps de réponse (anti timing oracle R14/R15) :
+            // le fast-path (email inconnu ou non éligible) est artificiellement ralenti
+            // pour correspondre au temps du chemin nominal qui exécute password_hash().
+            password_hash('dummy_timing_normalization', PASSWORD_BCRYPT); // NOSONAR php:S2053 — intentionnel : normalisation timing
         }
 
         Response::redirect("/{$lang}");
