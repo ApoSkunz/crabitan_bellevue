@@ -1239,10 +1239,10 @@ function initPasswordStrengthIndicator() {
     ];
 
     /**
-     * Crée la checklist HTML et l'insère après le conteneur du champ.
+     * Crée la checklist HTML et l'indicateur de force, les insère après le conteneur du champ.
      * @param {HTMLInputElement} input
      * @param {string} uid - identifiant unique pour l'aria
-     * @returns {HTMLElement} l'élément <ul> inséré
+     * @returns {{ ul: HTMLElement, label: HTMLElement }}
      */
     function createChecklist(input, uid) {
         const ul = document.createElement('ul');
@@ -1259,18 +1259,24 @@ function initPasswordStrengthIndicator() {
             ul.appendChild(li);
         });
 
+        const label = document.createElement('p');
+        label.className = 'pwd-strength-label';
+        label.hidden = true;
+
         // Insérer après le parent immédiat (form-group, register-modal__field…)
         const container = input.closest('.form-group, .register-modal__field, .login-modal__field') ?? input.parentElement;
         container.insertAdjacentElement('afterend', ul);
-        return ul;
+        ul.insertAdjacentElement('beforebegin', label);
+        return { ul, label };
     }
 
     /**
-     * Met à jour les items de la checklist selon la valeur courante.
+     * Met à jour la checklist et l'indicateur de force selon la valeur courante.
      * @param {HTMLInputElement} input
      * @param {HTMLElement} ul
+     * @param {HTMLElement} label
      */
-    function updateChecklist(input, ul) {
+    function updateChecklist(input, ul, label) {
         const val = input.value;
         const checks = [
             val.length >= 12,
@@ -1285,15 +1291,30 @@ function initPasswordStrengthIndicator() {
             li.classList.toggle('pwd-strength-item--ko', !ok);
             li.querySelector('.pwd-strength-icon').textContent = ok ? '✓' : '✗';
         });
+
+        const score = checks.filter(Boolean).length;
+        if (!val.length) { label.hidden = true; return; }
+        label.hidden = false;
+        label.className = 'pwd-strength-label';
+        if (score <= 2) {
+            label.textContent = 'Force\u00a0: Faible';
+            label.classList.add('pwd-strength-label--weak');
+        } else if (score <= 4) {
+            label.textContent = 'Force\u00a0: Moyen';
+            label.classList.add('pwd-strength-label--medium');
+        } else {
+            label.textContent = 'Force\u00a0: Fort';
+            label.classList.add('pwd-strength-label--strong');
+        }
     }
 
-    // Champs ciblés : inscription (modal), reset password (modal), changement mdp (page sécurité)
-    const targetIds = ['reg-password', 'new_password', 'reset-modal-password'];
+    // Champs ciblés : inscription (modal), reset password (modal + page standalone), changement mdp (page sécurité)
+    const targetIds = ['reg-password', 'new_password', 'reset-modal-password', 'password'];
     targetIds.forEach((id) => {
         const input = document.getElementById(id);
         if (!input) return;
-        const ul = createChecklist(input, id);
-        input.addEventListener('input', () => updateChecklist(input, ul));
+        const { ul, label } = createChecklist(input, id);
+        input.addEventListener('input', () => updateChecklist(input, ul, label));
     });
 }
 
