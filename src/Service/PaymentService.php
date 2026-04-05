@@ -353,7 +353,7 @@ class PaymentService
             }
         }
 
-        throw new \RuntimeException('Aucun serveur CA e-Transactions disponible.'); // NOSONAR — php:S112 : exception générique, aucun type métier requis ici
+        throw new \RuntimeException('Aucun serveur CA e-Transactions disponible.'); // NOSONAR — php:S112
     }
 
     /**
