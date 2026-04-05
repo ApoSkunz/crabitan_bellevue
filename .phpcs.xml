@@ -23,4 +23,5 @@
     <exclude-pattern>node_modules/*</exclude-pattern>
     <exclude-pattern>src/View/*</exclude-pattern>
     <exclude-pattern>tests/bootstrap.php</exclude-pattern>
+    <exclude-pattern>lang/*</exclude-pattern>
 </ruleset>

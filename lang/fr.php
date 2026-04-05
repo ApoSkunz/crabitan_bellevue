@@ -1,6 +1,5 @@
 <?php
 
-// phpcs:disable Generic.Files.LineLength -- fichier de traductions : les chaînes ne peuvent pas être coupées
 return [
     // Age gate
     'age_gate.quote'         => 'L\'art et la passion du vin, pour sublimer votre table',
@@ -233,7 +232,7 @@ return [
     'footer.cgv'             => 'Conditions générales de vente',
     'footer.sitemap'         => 'Plan du site',
     'footer.carbon'          => 'Site Carbone',
-    'footer.alcohol_warning' => "L'abus d'alcool est dangereux pour la santé. À consommer avec modération. La vente d'alcool est interdite aux mineurs de moins de 18 ans.", // phpcs:ignore Generic.Files.LineLength
+    'footer.alcohol_warning' => "L'abus d'alcool est dangereux pour la santé. À consommer avec modération. La vente d'alcool est interdite aux mineurs de moins de 18 ans.",
     'footer.made_by'         => 'Réalisé par',
     'footer.webmaster'       => 'Alexandre Solane',
 
@@ -588,7 +587,6 @@ return [
     'account.order_cancel_btn'   => 'Annuler la commande',
     'account.order_cancelled'    => 'Votre commande a bien été annulée.',
     'account.order_cancel_failed' => 'Impossible d\'annuler cette commande (statut non éligible).',
-    // phpcs:ignore Generic.Files.LineLength
     'account.cancel_refund_failed' => 'Le remboursement auprès de votre banque a échoué. Veuillez contacter le support.',
     'account.order_cancel_confirm' => 'Souhaitez-vous vraiment annuler cette commande ? Cette action est irréversible.',
     'account.per_page'           => 'Par page',
