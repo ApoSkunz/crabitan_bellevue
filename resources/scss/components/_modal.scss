@@ -736,6 +736,46 @@
 
 // ---- Toast notification ----
 
+.cb-flash-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    background-color: var(--color-surface);
+    border-bottom: 2px solid var(--color-gold);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    z-index: 500;
+
+    &[hidden] {
+        display: none;
+    }
+
+    &__message {
+        flex: 1;
+    }
+
+    &__close {
+        flex-shrink: 0;
+        background: none;
+        border: 1px solid var(--color-border-gold);
+        color: var(--color-text-muted);
+        cursor: pointer;
+        padding: 0.25rem 0.625rem;
+        font-size: 1rem;
+        line-height: 1;
+        border-radius: 2px;
+        transition: color 150ms, border-color 150ms;
+
+        &:hover {
+            color: var(--color-text);
+            border-color: var(--color-gold);
+        }
+    }
+}
+
 .cb-toast {
     position: fixed;
     top: 50%;
