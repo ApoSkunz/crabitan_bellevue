@@ -1230,6 +1230,55 @@ function initResetModal() {
 function initPasswordStrengthIndicator() {
     const SPECIAL = /[^a-zA-Z0-9\s]/; // tout caractère non alphanumérique
 
+    // Normalisation leet-speak pour détection de mots courants
+    function normalizeLeet(s) {
+        return s.toLowerCase()
+            .replace(/@/g, 'a').replace(/4/g, 'a')
+            .replace(/3/g, 'e')
+            .replace(/1/g, 'i').replace(/!/g, 'i')
+            .replace(/0/g, 'o')
+            .replace(/\$/g, 's').replace(/5/g, 's')
+            .replace(/7/g, 't').replace(/\+/g, 't');
+    }
+
+    // Mini-blocklist : mots courants + variantes (normalisés)
+    const BLOCKLIST = [
+        'password','passw0rd','motdepasse','bienvenue','bienvenu',
+        'welcome','admin','administrator','root','user',
+        'azerty','qwerty','azertyuiop','qwertyuiop',
+        'abcdefgh','abcdef','123456','1234567','12345678',
+        'iloveyou','letmein','sunshine','dragon','monkey',
+        'chateau','crabitan','bellevue','bordeaux',
+    ];
+
+    /**
+     * Détecte une suite ascendante ou descendante de ≥4 caractères.
+     * Ex : "abcd", "1234", "dcba", "9876"
+     * @param {string} s
+     * @returns {boolean}
+     */
+    function hasSequence(s) {
+        const low = s.toLowerCase();
+        let asc = 1; let dsc = 1;
+        for (let i = 1; i < low.length; i++) {
+            const diff = low.charCodeAt(i) - low.charCodeAt(i - 1);
+            asc = diff === 1  ? asc + 1 : 1;
+            dsc = diff === -1 ? dsc + 1 : 1;
+            if (asc >= 4 || dsc >= 4) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Retourne true si le mot de passe contient un mot courant (après normalisation leet).
+     * @param {string} s
+     * @returns {boolean}
+     */
+    function hasCommonWord(s) {
+        const norm = normalizeLeet(s);
+        return BLOCKLIST.some((w) => norm.includes(w));
+    }
+
     const rules = [
         { id: 'len',     re: null,       label: '12 caractères minimum' },
         { id: 'upper',   re: /[A-Z]/,    label: 'Une majuscule' },
@@ -1293,12 +1342,19 @@ function initPasswordStrengthIndicator() {
             li.querySelector('.pwd-strength-icon').textContent = ok ? '✓' : '✗';
         });
 
-        const score  = checks.filter(Boolean).length;
-        const isLong = val.length >= 20; // bonus longueur — compense l'absence de special
+        const score    = checks.filter(Boolean).length;
+        const isLong   = val.length >= 20;
+        const isPenalty = hasSequence(val) || hasCommonWord(val);
+
         if (!val.length) { label.hidden = true; return; }
         label.hidden = false;
         label.className = 'pwd-strength-label';
-        if (score <= 2) {
+
+        // Pénalité : suite logique ou mot courant → Faible quelle que soit la variété
+        if (isPenalty) {
+            label.textContent = 'Force\u00a0: Faible';
+            label.classList.add('pwd-strength-label--weak');
+        } else if (score <= 2) {
             label.textContent = 'Force\u00a0: Faible';
             label.classList.add('pwd-strength-label--weak');
         } else if (score === 3) {
