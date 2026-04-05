@@ -21,10 +21,17 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
              VALUES (?, 'billing', 'Test', 'Order', 'M', '1 rue TI', 'Bordeaux', '33000', 'France', '0600000000')",
             [$this->adminId]
         );
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         return (int) self::$db->insert(
-            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, id_billing_address, status)
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, id_billing_snapshot, status)
              VALUES (?, ?, '[]', 99.00, 'card', ?, 'pending')",
-            [$this->adminId, 'TI-ORD-' . uniqid(), $addressId]
+            [$this->adminId, 'TI-ORD-' . uniqid(), $snapshotId]
         );
     }
 
@@ -790,11 +797,18 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
              VALUES (?, 'billing', 'Test', 'Refs', 'M', '1 rue TI', 'Lyon', '69001', 'France', '0600000001')",
             [$this->adminId]
         );
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         $id = (int) self::$db->insert(
             "INSERT INTO orders (user_id, order_reference, content, price, payment_method,
-              id_billing_address, status, ca_numappel, ca_numtrans)
+              id_billing_snapshot, status, ca_numappel, ca_numtrans)
              VALUES (?, ?, '[]', 120.00, 'card', ?, 'paid', '', '')",
-            [$this->adminId, 'TI-REFD-NOREFS-' . uniqid(), $addressId]
+            [$this->adminId, 'TI-REFD-NOREFS-' . uniqid(), $snapshotId]
         );
 
         $_POST['csrf_token'] = self::CSRF_TOKEN;
@@ -831,11 +845,18 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
              VALUES (?, 'billing', 'Test', 'GaeFail', 'M', '2 rue TI', 'Lyon', '69002', 'France', '0600000002')",
             [$this->adminId]
         );
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         $id = (int) self::$db->insert(
             "INSERT INTO orders (user_id, order_reference, content, price, payment_method,
-              id_billing_address, status, ca_numappel, ca_numtrans)
+              id_billing_snapshot, status, ca_numappel, ca_numtrans)
              VALUES (?, ?, '[]', 200.00, 'card', ?, 'paid', '11111', '22222')",
-            [$this->adminId, 'TI-REFD-GAEFAIL-' . uniqid(), $addressId]
+            [$this->adminId, 'TI-REFD-GAEFAIL-' . uniqid(), $snapshotId]
         );
 
         $_POST['csrf_token'] = self::CSRF_TOKEN;
@@ -906,11 +927,18 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
              VALUES (?, 'billing', 'Test', 'GaeOk', 'M', '3 rue TI', 'Lyon', '69003', 'France', '0600000003')",
             [$this->adminId]
         );
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         $id = (int) self::$db->insert(
             "INSERT INTO orders (user_id, order_reference, content, price, payment_method,
-              id_billing_address, status, ca_numappel, ca_numtrans)
+              id_billing_snapshot, status, ca_numappel, ca_numtrans)
              VALUES (?, ?, '[]', 150.00, 'card', ?, 'paid', '33333', '44444')",
-            [$this->adminId, 'TI-REFD-GAEOK-' . uniqid(), $addressId]
+            [$this->adminId, 'TI-REFD-GAEOK-' . uniqid(), $snapshotId]
         );
 
         $_POST['csrf_token'] = self::CSRF_TOKEN;

@@ -160,10 +160,17 @@ class AccountControllerTest extends IntegrationTestCase
      */
     private function insertOrder(int $userId, int $addressId, string $status = 'pending'): int
     {
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         return (int) self::$db->insert(
-            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status)
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_snapshot, status)
              VALUES (?, ?, '[]', 99.90, 'card', 0.00, ?, ?)",
-            [$userId, 'TEST-' . bin2hex(random_bytes(4)), $addressId, $status]
+            [$userId, 'TEST-' . bin2hex(random_bytes(4)), $snapshotId, $status]
         );
     }
 
@@ -177,11 +184,18 @@ class AccountControllerTest extends IntegrationTestCase
      */
     private function insertDeliveredOrder(int $userId, int $addressId, string $deliveredAt = 'NOW() - INTERVAL 7 DAY'): int
     {
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         return (int) self::$db->insert(
             "INSERT INTO orders
-             (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status, delivered_at)
+             (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_snapshot, status, delivered_at)
              VALUES (?, ?, '[]', 99.90, 'card', 0.00, ?, 'delivered', {$deliveredAt})",
-            [$userId, 'TEST-' . bin2hex(random_bytes(4)), $addressId]
+            [$userId, 'TEST-' . bin2hex(random_bytes(4)), $snapshotId]
         );
     }
 
@@ -2073,8 +2087,11 @@ class AccountControllerTest extends IntegrationTestCase
     /**
      * Une adresse liée à une commande active ne peut pas être modifiée.
      */
-    public function testUpdateAddressBlockedByActiveOrderRedirects(): void
+    public function testUpdateAddressSucceedsEvenWithActiveOrder(): void
     {
+        // Depuis l'enabler order-address-snapshot, les adresses sont découplées des commandes
+        // via des snapshots immuables : hasActiveOrderForAddress retourne toujours false,
+        // donc la modification d'une adresse est toujours permise.
         $userId    = $this->insertCustomer('updaddr.blocked@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
         $this->insertOrder($userId, $addressId, 'processing');
@@ -2098,7 +2115,7 @@ class AccountControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertNotEmpty($_SESSION['flash']['address_error'] ?? '');
+            $this->assertNotEmpty($_SESSION['flash']['address_success'] ?? '');
         }
     }
 
@@ -2130,8 +2147,11 @@ class AccountControllerTest extends IntegrationTestCase
     /**
      * Une adresse liée à une commande active ne peut pas être supprimée.
      */
-    public function testDeleteAddressBlockedByActiveOrderRedirects(): void
+    public function testDeleteAddressSucceedsEvenWithActiveOrder(): void
     {
+        // Depuis l'enabler order-address-snapshot, les adresses sont découplées des commandes
+        // via des snapshots immuables : hasActiveOrderForAddress retourne toujours false,
+        // donc la suppression d'une adresse est toujours permise (snapshot préservé).
         $userId    = $this->insertCustomer('deladdr.blocked@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
         $this->insertOrder($userId, $addressId, 'processing');
@@ -2145,7 +2165,7 @@ class AccountControllerTest extends IntegrationTestCase
             $this->fail('Expected HttpException');
         } catch (HttpException $e) {
             $this->assertSame(302, $e->status);
-            $this->assertNotEmpty($_SESSION['flash']['address_error'] ?? '');
+            $this->assertNotEmpty($_SESSION['flash']['address_success'] ?? '');
         }
     }
 
@@ -2404,15 +2424,22 @@ class AccountControllerTest extends IntegrationTestCase
     {
         $userId    = $this->insertCustomer('slip.win@test.local');
         $addressId = $this->insertAddress($userId);
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         $orderId   = (int) self::$db->insert(
             "INSERT INTO orders
-             (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status, delivered_at)
+             (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_snapshot, status, delivered_at)
              VALUES (?, ?, ?, 99.90, 'card', 0.00, ?, 'delivered', NOW() - INTERVAL 3 DAY)",
             [
                 $userId,
                 'TEST-' . bin2hex(random_bytes(4)),
                 json_encode([['label_name' => 'Bordeaux Rouge', 'format' => 'bottle', 'qty' => 2, 'price' => 24.00]]),
-                $addressId,
+                $snapshotId,
             ]
         );
         $this->loginAs($userId);
@@ -2553,10 +2580,17 @@ class AccountControllerTest extends IntegrationTestCase
         $userId    = $this->insertCustomer('odtl.ship@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
 
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         $orderId = (int) self::$db->insert(
-            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status)
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_snapshot, status)
              VALUES (?, ?, '[]', 120.00, 'card', 5.90, ?, 'shipped')",
-            [$userId, 'TEST-' . bin2hex(random_bytes(4)), $addressId]
+            [$userId, 'TEST-' . bin2hex(random_bytes(4)), $snapshotId]
         );
 
         $this->loginAs($userId);
@@ -2715,15 +2749,22 @@ class AccountControllerTest extends IntegrationTestCase
     {
         $userId    = $this->insertCustomer('slip.ret@test.local');
         $addressId = $this->insertAddress($userId);
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         $orderId   = (int) self::$db->insert(
             "INSERT INTO orders
-             (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status, delivered_at)
+             (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_snapshot, status, delivered_at)
              VALUES (?, ?, ?, 99.90, 'card', 0.00, ?, 'return_requested', NOW() - INTERVAL 5 DAY)",
             [
                 $userId,
                 'TEST-' . bin2hex(random_bytes(4)),
                 json_encode([['label_name' => 'Sauternes', 'format' => 'bottle', 'qty' => 1, 'price' => 35.00]]),
-                $addressId,
+                $snapshotId,
             ]
         );
         $this->loginAs($userId);
@@ -3500,12 +3541,19 @@ class AccountControllerTest extends IntegrationTestCase
     {
         $userId    = $this->insertCustomer('cancel.card.fail@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         $orderId   = (int) self::$db->insert(
             "INSERT INTO orders
-             (user_id, order_reference, content, price, payment_method, id_billing_address, status,
+             (user_id, order_reference, content, price, payment_method, id_billing_snapshot, status,
               ca_numappel, ca_numtrans)
              VALUES (?, ?, '[]', 50.00, 'card', ?, 'paid', '12345', '67890')",
-            [$userId, 'TEST-CARD-FAIL-' . bin2hex(random_bytes(4)), $addressId]
+            [$userId, 'TEST-CARD-FAIL-' . bin2hex(random_bytes(4)), $snapshotId]
         );
         $this->loginAs($userId);
 
@@ -3564,12 +3612,19 @@ class AccountControllerTest extends IntegrationTestCase
     {
         $userId    = $this->insertCustomer('cancel.card.ok@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         $orderId   = (int) self::$db->insert(
             "INSERT INTO orders
-             (user_id, order_reference, content, price, payment_method, id_billing_address, status,
+             (user_id, order_reference, content, price, payment_method, id_billing_snapshot, status,
               ca_numappel, ca_numtrans)
              VALUES (?, ?, '[]', 50.00, 'card', ?, 'paid', '12345', '67890')",
-            [$userId, 'TEST-CARD-OK-' . bin2hex(random_bytes(4)), $addressId]
+            [$userId, 'TEST-CARD-OK-' . bin2hex(random_bytes(4)), $snapshotId]
         );
         $this->loginAs($userId);
 
@@ -3630,12 +3685,19 @@ class AccountControllerTest extends IntegrationTestCase
         $userId    = $this->insertCustomer('cancel.card.norefs@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
         // Commande paid sans ca_numappel/ca_numtrans → branche else (logger uniquement)
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
+             SELECT ?, civility, firstname, lastname, street, city, zip_code, country, phone
+             FROM addresses WHERE id = ?",
+            [$addressId, $addressId]
+        );
         $orderId   = (int) self::$db->insert(
             "INSERT INTO orders
-             (user_id, order_reference, content, price, payment_method, id_billing_address, status,
+             (user_id, order_reference, content, price, payment_method, id_billing_snapshot, status,
               ca_numappel, ca_numtrans)
              VALUES (?, ?, '[]', 50.00, 'card', ?, 'paid', '', '')",
-            [$userId, 'TEST-CARD-NOREFS-' . bin2hex(random_bytes(4)), $addressId]
+            [$userId, 'TEST-CARD-NOREFS-' . bin2hex(random_bytes(4)), $snapshotId]
         );
         $this->loginAs($userId);
 
