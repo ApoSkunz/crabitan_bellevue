@@ -28,6 +28,9 @@ $deleteError = $errors['delete'] ?? null;
                 <?php if ($success) : ?>
                     <div class="alert alert--success" role="alert"><?= htmlspecialchars($success) ?></div>
                 <?php endif; ?>
+                <?php if (isset($errors['rate_limit'])) : ?>
+                    <div class="alert alert--error" role="alert"><?= htmlspecialchars($errors['rate_limit']) ?></div>
+                <?php endif; ?>
 
                 <form method="POST"
                       action="/<?= htmlspecialchars($lang) ?>/mon-compte/securite/mot-de-passe"
