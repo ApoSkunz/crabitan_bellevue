@@ -1570,8 +1570,10 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $addresses      = $this->addresses->getByUser($userId);
         $favorites      = $this->favorites->getByUser($userId);
         $orders         = $this->orders->getForUser($userId, 1, 9999);
-        $trustedDevices = $this->trustedDevices->getForUser($userId);
+        $trustedDevices = $this->trustedDevices->getForExport($userId);
         $sessions       = $this->connections->getActiveForUser($userId);
+        $recentLogs     = $this->connections->getRecentForUser($userId);
+        $consentData    = $this->accounts->getConsentData($userId);
 
         $export = [
             'exported_at' => date('c'),
@@ -1611,6 +1613,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 'device_name'  => $d['device_name'],
                 'confirmed_at' => $d['confirmed_at'],
                 'last_seen'    => $d['last_seen'],
+                'user_agent'   => $d['user_agent'],
             ], $trustedDevices),
             'active_sessions' => array_map(fn($s) => [
                 'device_name' => $s['device_name'],
@@ -1618,6 +1621,21 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 'created_at'  => $s['created_at'],
                 'expired_at'  => $s['expired_at'],
             ], $sessions),
+            'connection_logs' => array_map(fn($l) => [
+                'device_name' => $l['device_name'],
+                'ip_address'  => $l['ip_address'],
+                'user_agent'  => $l['user_agent'],
+                'auth_method' => $l['auth_method'],
+                'status'      => $l['status'],
+                'created_at'  => $l['created_at'],
+            ], $recentLogs),
+            'consentements' => [
+                'newsletter' => [
+                    'abonne'           => $consentData['newsletter']['abonne'] ? 'Oui' : 'Non',
+                    'email_verifie_le' => $consentData['newsletter']['email_verifie_le'],
+                ],
+                'cgv_versions_acceptees' => $consentData['cgv_versions'],
+            ],
         ];
 
         $date     = date('Y-m-d');
@@ -1762,12 +1780,13 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         );
 
         $h .= $this->buildPdfTableSection(
-            'Appareils de confiance',
+            'Appareils de confiance (MFA)',
             $export['trusted_devices'],
-            '<tr><th>Appareil</th><th>Confirmé le</th><th>Dernière activité</th></tr>',
+            '<tr><th>Appareil</th><th>Confirmé le</th><th>Dernière activité</th><th>User-Agent</th></tr>',
             static fn(array $d) => '<tr><td>' . htmlspecialchars($d['device_name'] ?? '—') . '</td>'
                 . '<td>' . htmlspecialchars((string) ($d['confirmed_at'] ?? '—')) . '</td>'
-                . '<td>' . htmlspecialchars((string) ($d['last_seen'] ?? '—')) . '</td></tr>',
+                . '<td>' . htmlspecialchars((string) ($d['last_seen'] ?? '—')) . '</td>'
+                . '<td>' . htmlspecialchars((string) ($d['user_agent'] ?? '—')) . '</td></tr>',
             'Aucun appareil de confiance.'
         );
 
@@ -1781,6 +1800,42 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 . '<td>' . htmlspecialchars((string) ($s['expired_at'] ?? '—')) . '</td></tr>',
             'Aucune session active.'
         );
+
+        /** @var array<int, array<string, mixed>> $connectionLogs */
+        $connectionLogs = $export['connection_logs'] ?? [];
+        $h .= $this->buildPdfTableSection(
+            'Logs de connexion (90 derniers jours)',
+            $connectionLogs,
+            '<tr><th>Appareil</th><th>IP</th><th>Méthode</th><th>Statut</th><th>Date</th></tr>',
+            static fn(array $l) => '<tr><td>' . htmlspecialchars($l['device_name'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars($l['ip_address'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars($l['auth_method'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars($l['status'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars((string) ($l['created_at'] ?? '—')) . '</td></tr>',
+            'Aucun log de connexion.'
+        );
+
+        /** @var array<string, mixed> $consent */
+        $consent         = $export['consentements'] ?? [];
+        /** @var array<string, mixed> $consentNl */
+        $consentNl       = $consent['newsletter'] ?? [];
+        /** @var array<int, string> $cgvVersions */
+        $cgvVersions     = $consent['cgv_versions_acceptees'] ?? [];
+        $h .= '<h2>Consentements</h2>';
+        $h .= '<table><tr><th>Newsletter abonné</th><th>Email vérifié le</th></tr>';
+        $h .= '<tr><td>' . htmlspecialchars((string) ($consentNl['abonne'] ?? '—')) . '</td>'
+            . '<td>' . htmlspecialchars((string) ($consentNl['email_verifie_le'] ?? '—')) . '</td></tr>';
+        $h .= '</table>';
+
+        if ($cgvVersions !== []) {
+            $h .= '<h2>Versions CGV acceptées</h2><table><tr><th>Version</th></tr>';
+            foreach ($cgvVersions as $version) {
+                $h .= '<tr><td>' . htmlspecialchars((string) $version) . '</td></tr>';
+            }
+            $h .= '</table>';
+        } else {
+            $h .= '<h2>Versions CGV acceptées (0)</h2><p class="muted">Aucune commande passée.</p>';
+        }
 
         $pdf->writeHTML($h, true, false, true, false, '');
 

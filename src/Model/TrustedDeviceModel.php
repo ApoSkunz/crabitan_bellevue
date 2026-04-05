@@ -66,4 +66,30 @@ class TrustedDeviceModel extends Model
             [$userId]
         );
     }
+
+    /**
+     * Retourne les appareils de confiance avec le user-agent de la dernière connexion connue.
+     * Utilisé pour l'export RGPD (Art. 20) — le token de device est exclu pour minimisation.
+     *
+     * @param int $userId Identifiant du compte
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForExport(int $userId): array
+    {
+        return $this->db->fetchAll(
+            "SELECT td.device_name,
+                    td.confirmed_at,
+                    td.last_seen,
+                    (SELECT c.user_agent
+                     FROM connections c
+                     WHERE c.user_id = td.user_id
+                       AND c.device_token = td.device_token
+                     ORDER BY c.created_at DESC
+                     LIMIT 1) AS user_agent
+             FROM {$this->table} td
+             WHERE td.user_id = ?
+             ORDER BY td.last_seen DESC",
+            [$userId]
+        );
+    }
 }

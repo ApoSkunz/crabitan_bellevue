@@ -125,6 +125,26 @@ class ConnectionModel extends Model
     }
 
     /**
+     * Retourne les connexions récentes (N derniers jours) pour l'export RGPD.
+     * Le token JWT est volontairement exclu (minimisation des données, Art. 5 RGPD).
+     *
+     * @param int $userId Identifiant du compte
+     * @param int $days   Fenêtre temporelle en jours (défaut : 90)
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRecentForUser(int $userId, int $days = 90): array
+    {
+        return $this->db->fetchAll(
+            "SELECT device_name, ip_address, user_agent, auth_method, status, created_at, expired_at
+             FROM {$this->table}
+             WHERE user_id = ?
+               AND created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+             ORDER BY created_at DESC",
+            [$userId, $days]
+        );
+    }
+
+    /**
      * Purge les connexions révoquées ou expirées.
      *
      * @return int Nombre de lignes supprimées

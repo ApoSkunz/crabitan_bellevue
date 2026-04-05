@@ -850,6 +850,46 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         return $account;
     }
 
+    /**
+     * Retourne les données de consentement RGPD pour l'export (Art. 20).
+     *
+     * - newsletter : statut courant + date d'activation (email_verified_at comme proxy
+     *   de premier opt-in ; aucune colonne consent_date dédiée n'existe côté comptes).
+     * - cgv : liste dédupliquée et triée des versions CGV acceptées via les commandes.
+     *
+     * @param int $userId Identifiant du compte
+     * @return array{newsletter: array<string, mixed>, cgv_versions: array<int, string>}
+     */
+    public function getConsentData(int $userId): array
+    {
+        $account = $this->db->fetchOne(
+            "SELECT newsletter, email_verified_at
+             FROM {$this->table}
+             WHERE id = ? AND deleted_at IS NULL",
+            [$userId]
+        );
+
+        $newsletter = [
+            'abonne'         => ($account && (bool) $account['newsletter']),
+            'email_verifie_le' => $account['email_verified_at'] ?? null,
+        ];
+
+        $rows = $this->db->fetchAll(
+            "SELECT DISTINCT cgv_version
+             FROM orders
+             WHERE user_id = ?
+             ORDER BY cgv_version ASC",
+            [$userId]
+        );
+
+        $cgvVersions = array_column($rows, 'cgv_version');
+
+        return [
+            'newsletter'   => $newsletter,
+            'cgv_versions' => $cgvVersions,
+        ];
+    }
+
     private function buildAdminFilters(?string $role, ?string $search, ?string $type = null): array
     {
         $conds  = ['a.deleted_at IS NULL'];
