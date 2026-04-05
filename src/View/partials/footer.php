@@ -51,8 +51,8 @@ if ($footerToken) {
             </div>
 
             <div class="footer-payments" aria-label="Moyens de paiement acceptés">
-                <img src="/assets/images/payment/payment-cb-banner.png"
-                    alt="CB, Visa, Mastercard" height="28" loading="lazy">
+                <img src="/assets/images/payment/payment-ca-up2pay.png"
+                    alt="Paiement sécurisé CA Up2pay e-Transactions" height="28" loading="lazy">
             </div>
         </div>
 

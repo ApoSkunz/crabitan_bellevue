@@ -70,7 +70,7 @@ class Router
     private function setLang(string $lang): void
     {
         $lang = in_array($lang, SUPPORTED_LANGS) ? $lang : DEFAULT_LANG;
-        define('CURRENT_LANG', $lang);
+        defined('CURRENT_LANG') || define('CURRENT_LANG', $lang);
         Lang::load($lang);
     }
 

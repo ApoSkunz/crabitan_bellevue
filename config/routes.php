@@ -109,6 +109,14 @@ $router->get('/{lang}/commande', 'OrderController@checkout');
 $router->post('/{lang}/commande/paiement', 'OrderController@payment');
 $router->get('/{lang}/commande/confirmation', 'OrderController@confirmation');
 
+// Paiement CA — retours navigateur
+$router->get('/{lang}/commande/paiement-ca/ok', 'OrderController@paymentReturnOk');
+$router->get('/{lang}/commande/paiement-ca/annule', 'OrderController@paymentReturnCancel');
+$router->get('/{lang}/commande/paiement-ca/refuse', 'OrderController@paymentReturnRefuse');
+
+// IPN CA — server-to-server (sans authentification)
+$router->post('/payment/ipn', 'IpnController@handle');
+
 // Espace client
 $router->get('/{lang}/mon-compte', 'AccountController@index');
 $router->get('/{lang}/mon-compte/profil', 'AccountController@profile');

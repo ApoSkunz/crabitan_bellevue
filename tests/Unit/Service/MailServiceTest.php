@@ -1460,4 +1460,175 @@ class MailServiceTest extends TestCase
         $this->assertStringNotContainsString('<script>', $stub->Body);
         $this->assertStringContainsString('&lt;script&gt;', $stub->Body);
     }
+
+    // ----------------------------------------------------------------
+    // sendOrderStatusEmail — statut déclencheur (delivered) — EN
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendOrderStatusEmail couvre la branche EN pour le statut delivered.
+     */
+    public function testSendOrderStatusEmailDeliveredEnCallsMailer(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendOrderStatusEmail(
+            'bob@example.com',
+            'Bob',
+            'CB-2026-010',
+            'delivered',
+            'en',
+            'http://crabitan.local'
+        );
+
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendOrderStatusEmail — statut déclencheur (cancelled) — EN
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendOrderStatusEmail couvre la branche EN pour le statut cancelled.
+     */
+    public function testSendOrderStatusEmailCancelledEnCallsMailer(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendOrderStatusEmail(
+            'bob@example.com',
+            'Bob',
+            'CB-2026-011',
+            'cancelled',
+            'en',
+            'http://crabitan.local'
+        );
+
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendOrderStatusEmail — statut déclencheur (processing) — EN
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendOrderStatusEmail couvre la branche EN pour le statut processing.
+     */
+    public function testSendOrderStatusEmailProcessingEnCallsMailer(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendOrderStatusEmail(
+            'bob@example.com',
+            'Bob',
+            'CB-2026-012',
+            'processing',
+            'en',
+            'http://crabitan.local'
+        );
+
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendReturnRequestedToOwner — orderId = 0 → pas de lien admin (branche orderLink vide)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendReturnRequestedToOwner fonctionne sans lien admin (orderId absent ou 0).
+     */
+    public function testSendReturnRequestedToOwnerWithNoOrderIdCoversEmptyLinkBranch(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $order = [
+            // Pas de 'id' => orderId = 0, branche $orderLink === '' déclenchée
+            'order_reference' => 'CB-2026-020',
+            'ordered_at'      => '2026-03-01 09:00:00',
+            'content'         => json_encode([
+                ['label_name' => 'Bordeaux Rouge', 'format' => 'bottle', 'qty' => 2, 'price' => 20.00],
+            ]),
+        ];
+
+        $this->service->sendReturnRequestedToOwner($order, 'Marc Dupont', 'marc@example.com');
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendReturnRequestedToOwner — contenu vide (items = [])
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendReturnRequestedToOwner fonctionne avec une liste d'articles vide.
+     */
+    public function testSendReturnRequestedToOwnerWithEmptyItemsCoversEmptyRows(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $order = [
+            'id'              => 55,
+            'order_reference' => 'CB-2026-021',
+            'ordered_at'      => '2026-03-15 14:00:00',
+            'content'         => '[]',
+        ];
+
+        $this->service->sendReturnRequestedToOwner($order, 'Lucie Martin', 'lucie@example.com');
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendReturnConfirmedToClient — orderId = 0 → pas de lien commande (FR)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendReturnConfirmedToClient FR couvre la branche orderId = 0 (lien vide).
+     */
+    public function testSendReturnConfirmedToClientFrWithNoOrderIdCoversEmptyLink(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $tmpPdf = tempnam(sys_get_temp_dir(), 'return_slip_noid_');
+        file_put_contents($tmpPdf, '%PDF-1.4 test');
+
+        $order = [
+            // Pas de 'id' => orderId = 0, branche $orderLink === '' déclenchée
+            'order_reference' => 'CB-2026-030',
+            'ordered_at'      => '2026-02-20 11:00:00',
+            'content'         => json_encode([
+                ['label_name' => 'Sauternes 2021', 'format' => 'bottle', 'qty' => 3, 'price' => 35.00],
+            ]),
+        ];
+
+        $this->service->sendReturnConfirmedToClient('claire@example.com', 'Claire', $order, $tmpPdf, 'fr');
+        unlink($tmpPdf);
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendReturnConfirmedToClient — orderId = 0 → pas de lien commande (EN)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que sendReturnConfirmedToClient EN couvre la branche orderId = 0 (lien vide).
+     */
+    public function testSendReturnConfirmedToClientEnWithNoOrderIdCoversEmptyLink(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $tmpPdf = tempnam(sys_get_temp_dir(), 'return_slip_noid_en_');
+        file_put_contents($tmpPdf, '%PDF-1.4 test');
+
+        $order = [
+            // Pas de 'id' => orderId = 0, branche $orderLink === '' déclenchée
+            'order_reference' => 'CB-2026-031',
+            'ordered_at'      => '2026-03-10 16:30:00',
+            'content'         => json_encode([
+                ['label_name' => 'Dry White 2022', 'format' => 'bib', 'qty' => 1, 'price' => 22.00],
+            ]),
+        ];
+
+        $this->service->sendReturnConfirmedToClient('david@example.com', 'David', $order, $tmpPdf, 'en');
+        unlink($tmpPdf);
+        $this->assertTrue(true);
+    }
 }

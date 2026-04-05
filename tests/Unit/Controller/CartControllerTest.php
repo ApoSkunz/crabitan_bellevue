@@ -341,10 +341,15 @@ class CartControllerTest extends TestCase
         $stub = $this->setDbMock();
         // fetchOne #1 : AccountModel::findById → compte individuel (non B2B)
         // fetchOne #2 : CartModel::findByUserId → pas de panier
-        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1, 'account_type' => 'individual'],
-            false
-        );
+        // fetchOne #3+ : WineModel::getRandomForCart + appels supplémentaires → false
+        $stub->method('fetchOne')->willReturnCallback(static function () {
+            static $calls = 0;
+            $calls++;
+            return match ($calls) {
+                1 => ['id' => 1, 'account_type' => 'individual'],
+                default => false,
+            };
+        });
         $stub->method('fetchAll')->willReturn([]);
 
         ob_start();

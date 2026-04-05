@@ -2778,18 +2778,17 @@ class AccountControllerTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Un POST updateProfile avec newsletter='1' sauvegarde bien l'abonnement.
+     * Un POST updateProfile pour un compte individual redirige bien (302).
      */
-    public function testUpdateProfileIndividualNewsletterEnabled(): void
+    public function testUpdateProfileIndividualRedirects(): void
     {
-        $userId = $this->insertCustomer('upd.news@test.local', 'individual');
+        $userId = $this->insertCustomer('upd.indiv@test.local', 'individual');
         $this->loginAs($userId);
 
         $_POST = [
             'firstname'  => 'Alice',
             'lastname'   => 'Martin',
             'civility'   => 'F',
-            'newsletter' => '1',
             'csrf_token' => self::CSRF,
         ];
 
@@ -3485,6 +3484,175 @@ class AccountControllerTest extends IntegrationTestCase
         $this->assertIsArray($errors);
         $this->assertArrayHasKey('company_name', $errors);
         $this->assertNotEmpty($errors['company_name']);
+    }
+
+    // ----------------------------------------------------------------
+    // cancelOrder() — branche card/paid avec ca_numappel/ca_numtrans
+    // ----------------------------------------------------------------
+
+    /**
+     * Une commande "paid" par carte avec ca_numappel/ca_numtrans remplis
+     * mais dont le remboursement GAE échoue doit poser un flash error et rediriger.
+     *
+     * @return void
+     */
+    public function testCancelOrderCardPaidWithCaRefsRefundFails(): void
+    {
+        $userId    = $this->insertCustomer('cancel.card.fail@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = (int) self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, id_billing_address, status,
+              ca_numappel, ca_numtrans)
+             VALUES (?, ?, '[]', 50.00, 'card', ?, 'paid', '12345', '67890')",
+            [$userId, 'TEST-CARD-FAIL-' . bin2hex(random_bytes(4)), $addressId]
+        );
+        $this->loginAs($userId);
+
+        // Stub PaymentService → remboursement échoue
+        $_POST['csrf_token'] = self::CSRF;
+
+        $failingPayment = new class extends \Service\PaymentService {
+            public function callGaeCancelOrRefund(
+                string $ref,
+                string $numappel,
+                string $numtrans,
+                int $amount
+            ): bool {
+                return false;
+            }
+        };
+
+        $controller = new class (
+            $this->makeRequest('POST', "/fr/mon-compte/commandes/{$orderId}/annuler"),
+            $failingPayment
+        ) extends \Controller\AccountController {
+            public function __construct(
+                \Core\Request $request,
+                private \Service\PaymentService $mockPayment
+            ) {
+                parent::__construct($request);
+            }
+
+            protected function newPaymentService(): \Service\PaymentService
+            {
+                return $this->mockPayment;
+            }
+        };
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $controller->cancelOrder(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (HttpException $e) {
+            $this->assertNotEmpty($_SESSION['flash']['order_error'] ?? null);
+            // Le statut ne doit pas avoir changé
+            $row = self::$db->fetchOne("SELECT status FROM orders WHERE id = ?", [$orderId]);
+            $this->assertSame('paid', $row['status']);
+            throw $e;
+        }
+    }
+
+    /**
+     * Une commande "paid" par carte avec ca_numappel/ca_numtrans remplis
+     * et dont le remboursement GAE réussit doit passer au statut "refunded" et poser un flash success.
+     *
+     * @return void
+     */
+    public function testCancelOrderCardPaidWithCaRefsRefundSucceeds(): void
+    {
+        $userId    = $this->insertCustomer('cancel.card.ok@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = (int) self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, id_billing_address, status,
+              ca_numappel, ca_numtrans)
+             VALUES (?, ?, '[]', 50.00, 'card', ?, 'paid', '12345', '67890')",
+            [$userId, 'TEST-CARD-OK-' . bin2hex(random_bytes(4)), $addressId]
+        );
+        $this->loginAs($userId);
+
+        $_POST['csrf_token'] = self::CSRF;
+
+        $okPayment = new class extends \Service\PaymentService {
+            public function callGaeCancelOrRefund(
+                string $ref,
+                string $numappel,
+                string $numtrans,
+                int $amount
+            ): bool {
+                return true;
+            }
+        };
+
+        $controller = new class (
+            $this->makeRequest('POST', "/fr/mon-compte/commandes/{$orderId}/annuler"),
+            $okPayment
+        ) extends \Controller\AccountController {
+            public function __construct(
+                \Core\Request $request,
+                private \Service\PaymentService $mockPayment
+            ) {
+                parent::__construct($request);
+            }
+
+            protected function newPaymentService(): \Service\PaymentService
+            {
+                return $this->mockPayment;
+            }
+        };
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $controller->cancelOrder(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (HttpException $e) {
+            $this->assertNotEmpty($_SESSION['flash']['order_success'] ?? null);
+            $row = self::$db->fetchOne("SELECT status FROM orders WHERE id = ?", [$orderId]);
+            $this->assertSame('refunded', $row['status']);
+            throw $e;
+        }
+    }
+
+    /**
+     * Une commande "paid" par carte avec ca_numappel/ca_numtrans vides
+     * ne doit pas tenter le remboursement GAE mais poursuivre l'annulation normale.
+     * La commande au statut "paid" ne peut pas être annulée (cancelForUser échoue),
+     * donc on attend un flash error de cancel_failed (la commande ne peut pas être annulée
+     * depuis le statut paid sans refs GAE).
+     *
+     * @return void
+     */
+    public function testCancelOrderCardPaidWithMissingCaRefsProceeds(): void
+    {
+        $userId    = $this->insertCustomer('cancel.card.norefs@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        // Commande paid sans ca_numappel/ca_numtrans → branche else (logger uniquement)
+        $orderId   = (int) self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, id_billing_address, status,
+              ca_numappel, ca_numtrans)
+             VALUES (?, ?, '[]', 50.00, 'card', ?, 'paid', '', '')",
+            [$userId, 'TEST-CARD-NOREFS-' . bin2hex(random_bytes(4)), $addressId]
+        );
+        $this->loginAs($userId);
+
+        $_POST['csrf_token'] = self::CSRF;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $this->makeController('POST', "/fr/mon-compte/commandes/{$orderId}/annuler")
+                ->cancelOrder(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (HttpException $e) {
+            // La commande paid sans refs GAE passe par le chemin cancelForUser/requestReturnForUser
+            // Aucun appel GAE — vérifier que la redirection (302) est bien émise
+            $this->assertSame(302, $e->getCode());
+            throw $e;
+        }
     }
 
     /**

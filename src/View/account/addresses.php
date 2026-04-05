@@ -65,7 +65,7 @@ $delivery = array_values(array_filter($addresses, fn($a) => $a['type'] === 'deli
                                     <article class="account-address-card<?= $isLocked ? ' account-address-card--locked' : '' ?>">
                                         <p class="account-address-card__name">
                                             <?= htmlspecialchars(
-                                                $addr['civility'] . ' '
+                                                formatCivility($addr['civility'] ?? '') . ' '
                                                 . $addr['firstname'] . ' '
                                                 . $addr['lastname']
                                             ) ?>

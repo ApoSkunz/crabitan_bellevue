@@ -770,6 +770,207 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
             throw $e;
         }
     }
+
+    // ----------------------------------------------------------------
+    // updateStatus — statut "refunded" sur commande card, NUMAPPEL/NUMTRANS vides
+    // ----------------------------------------------------------------
+
+    /**
+     * Quand on tente de passer une commande carte à "refunded" mais que
+     * ca_numappel ou ca_numtrans sont vides, un flash error est positionné et la
+     * commande n'est pas modifiée.
+     *
+     * @return void
+     */
+    public function testUpdateStatusRefundedCardMissingCaRefsFlashesError(): void
+    {
+        // Commande carte sans numappel/numtrans
+        $addressId = (int) self::$db->insert(
+            "INSERT INTO addresses (user_id, type, firstname, lastname, civility, street, city, zip_code, country, phone)
+             VALUES (?, 'billing', 'Test', 'Refs', 'M', '1 rue TI', 'Lyon', '69001', 'France', '0600000001')",
+            [$this->adminId]
+        );
+        $id = (int) self::$db->insert(
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method,
+              id_billing_address, status, ca_numappel, ca_numtrans)
+             VALUES (?, ?, '[]', 120.00, 'card', ?, 'paid', '', '')",
+            [$this->adminId, 'TI-REFD-NOREFS-' . uniqid(), $addressId]
+        );
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['status']     = 'refunded';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $this->makeController('POST')->updateStatus(['id' => (string) $id]);
+        } catch (HttpException $e) {
+            $this->assertNotEmpty($_SESSION['admin_flash']['error'] ?? null);
+            // Le statut ne doit pas avoir changé
+            $row = self::$db->fetchOne("SELECT status FROM orders WHERE id = ?", [$id]);
+            $this->assertSame('paid', $row['status']);
+            throw $e;
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // updateStatus — statut "refunded" sur commande card, GAE échoue
+    // ----------------------------------------------------------------
+
+    /**
+     * Quand le remboursement GAE échoue (callGaeCancelOrRefund retourne false),
+     * un flash error est positionné et le statut n'est pas mis à jour.
+     *
+     * @return void
+     */
+    public function testUpdateStatusRefundedCardGaeRefundFails(): void
+    {
+        $addressId = (int) self::$db->insert(
+            "INSERT INTO addresses (user_id, type, firstname, lastname, civility, street, city, zip_code, country, phone)
+             VALUES (?, 'billing', 'Test', 'GaeFail', 'M', '2 rue TI', 'Lyon', '69002', 'France', '0600000002')",
+            [$this->adminId]
+        );
+        $id = (int) self::$db->insert(
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method,
+              id_billing_address, status, ca_numappel, ca_numtrans)
+             VALUES (?, ?, '[]', 200.00, 'card', ?, 'paid', '11111', '22222')",
+            [$this->adminId, 'TI-REFD-GAEFAIL-' . uniqid(), $addressId]
+        );
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['status']     = 'refunded';
+
+        $failingPayment = new class extends \Service\PaymentService {
+            /**
+             * Simule un échec du remboursement GAE.
+             *
+             * @param string $ref      Référence commande
+             * @param string $numappel Numéro d'appel CA
+             * @param string $numtrans Numéro de transaction CA
+             * @param int    $amount   Montant en centimes
+             * @return bool
+             */
+            public function callGaeCancelOrRefund(
+                string $ref,
+                string $numappel,
+                string $numtrans,
+                int $amount
+            ): bool {
+                return false;
+            }
+        };
+
+        $controller = new class ($this->makeRequest('POST', '/admin/commandes'), $failingPayment) extends \Controller\Admin\OrderAdminController
+        {
+            public function __construct(
+                \Core\Request $request,
+                private \Service\PaymentService $mockPayment
+            ) {
+                parent::__construct($request);
+            }
+
+            protected function newPaymentService(): \Service\PaymentService
+            {
+                return $this->mockPayment;
+            }
+        };
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $controller->updateStatus(['id' => (string) $id]);
+        } catch (HttpException $e) {
+            $this->assertNotEmpty($_SESSION['admin_flash']['error'] ?? null);
+            $row = self::$db->fetchOne("SELECT status FROM orders WHERE id = ?", [$id]);
+            $this->assertSame('paid', $row['status']);
+            throw $e;
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // updateStatus — statut "refunded" sur commande card, GAE réussit
+    // ----------------------------------------------------------------
+
+    /**
+     * Quand le remboursement GAE réussit, le statut passe à "refunded",
+     * un email de notification est envoyé (mock MailService) et le flash success est positionné.
+     *
+     * @return void
+     */
+    public function testUpdateStatusRefundedCardGaeRefundSucceeds(): void
+    {
+        $addressId = (int) self::$db->insert(
+            "INSERT INTO addresses (user_id, type, firstname, lastname, civility, street, city, zip_code, country, phone)
+             VALUES (?, 'billing', 'Test', 'GaeOk', 'M', '3 rue TI', 'Lyon', '69003', 'France', '0600000003')",
+            [$this->adminId]
+        );
+        $id = (int) self::$db->insert(
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method,
+              id_billing_address, status, ca_numappel, ca_numtrans)
+             VALUES (?, ?, '[]', 150.00, 'card', ?, 'paid', '33333', '44444')",
+            [$this->adminId, 'TI-REFD-GAEOK-' . uniqid(), $addressId]
+        );
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['status']     = 'refunded';
+
+        $okPayment = new class extends \Service\PaymentService {
+            /**
+             * Simule un remboursement GAE réussi.
+             *
+             * @param string $ref      Référence commande
+             * @param string $numappel Numéro d'appel CA
+             * @param string $numtrans Numéro de transaction CA
+             * @param int    $amount   Montant en centimes
+             * @return bool
+             */
+            public function callGaeCancelOrRefund(
+                string $ref,
+                string $numappel,
+                string $numtrans,
+                int $amount
+            ): bool {
+                return true;
+            }
+        };
+
+        $stubMail = $this->createStub(\Service\MailService::class);
+
+        $controller = new class ($this->makeRequest('POST', '/admin/commandes'), $okPayment, $stubMail) extends \Controller\Admin\OrderAdminController
+        {
+            public function __construct(
+                \Core\Request $request,
+                private \Service\PaymentService $mockPayment,
+                private \Service\MailService $mockMail
+            ) {
+                parent::__construct($request);
+            }
+
+            protected function newPaymentService(): \Service\PaymentService
+            {
+                return $this->mockPayment;
+            }
+
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->mockMail;
+            }
+        };
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $controller->updateStatus(['id' => (string) $id]);
+        } catch (HttpException $e) {
+            $this->assertNotEmpty($_SESSION['admin_flash']['success'] ?? null);
+            $row = self::$db->fetchOne("SELECT status FROM orders WHERE id = ?", [$id]);
+            $this->assertSame('refunded', $row['status']);
+            throw $e;
+        }
+    }
 }
 
 /**
