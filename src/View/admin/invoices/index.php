@@ -189,7 +189,7 @@ if (!function_exists('buildInvoiceUrl')) {
             <!-- Pagination -->
             <?php
             $pages = max(1, (int) ceil($total / $perPage));
-            if ($pages > 1) :
+            if ($pages > 1) : // NOSONAR — php:S3973 : syntaxe alternative PHP template intentionnelle
             ?>
             <div class="admin-pagination">
                 <?php if ($page > 1) : ?>
