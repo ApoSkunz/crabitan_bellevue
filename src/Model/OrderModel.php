@@ -208,9 +208,18 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function getForAdmin(int $page, int $perPage, ?string $status, ?string $search, ?string $payment = null): array
-    {
-        [$where, $params] = $this->buildAdminFilters($status, $search, $payment);
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForAdmin(
+        int $page,
+        int $perPage,
+        ?string $status,
+        ?string $search,
+        ?string $payment = null,
+        bool $archived = false
+    ): array {
+        [$where, $params] = $this->buildAdminFilters($status, $search, $payment, $archived);
         $offset = ($page - 1) * $perPage;
         $params[] = $perPage;
         $params[] = $offset;
@@ -232,9 +241,16 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         );
     }
 
-    public function countForAdmin(?string $status, ?string $search, ?string $payment = null): int
-    {
-        [$where, $params] = $this->buildAdminFilters($status, $search, $payment);
+    /**
+     * @param bool $archived Filtrer uniquement les commandes de plus de 10 ans (archivage L123-22 C.com.)
+     */
+    public function countForAdmin(
+        ?string $status,
+        ?string $search,
+        ?string $payment = null,
+        bool $archived = false
+    ): int {
+        [$where, $params] = $this->buildAdminFilters($status, $search, $payment, $archived);
         $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total
              FROM {$this->table} o
@@ -281,6 +297,39 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $this->db->execute(
             "UPDATE {$this->table} SET path_invoice = ? WHERE id = ?",
             [$path, $id]
+        );
+    }
+
+    /**
+     * Ajoute une entrée dans l'historique des factures de la commande (L441-9 C.com.).
+     *
+     * @param int         $orderId       Identifiant de la commande
+     * @param string      $path          Chemin relatif du fichier PDF
+     * @param string|null $invoiceNumber Numéro de facture (WEB-INVOICE-… ou null pour uploads manuels)
+     * @param string      $source        'auto' (généré) ou 'upload' (téléversé par admin)
+     */
+    public function addInvoiceFile(int $orderId, string $path, ?string $invoiceNumber, string $source): void
+    {
+        $this->db->execute(
+            "INSERT INTO order_invoice_files (order_id, path, invoice_number, source) VALUES (?, ?, ?, ?)",
+            [$orderId, $path, $invoiceNumber, $source]
+        );
+    }
+
+    /**
+     * Retourne l'historique des factures d'une commande, du plus récent au plus ancien.
+     *
+     * @param  int $orderId Identifiant de la commande
+     * @return array<int, array<string, mixed>>
+     */
+    public function getInvoiceFiles(int $orderId): array
+    {
+        return $this->db->fetchAll(
+            "SELECT id, path, invoice_number, source, uploaded_at
+               FROM order_invoice_files
+              WHERE order_id = ?
+              ORDER BY uploaded_at DESC",
+            [$orderId]
         );
     }
 
@@ -791,10 +840,18 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     }
 
     /** @return array{string, array<int, mixed>} */
-    private function buildAdminFilters(?string $status, ?string $search, ?string $payment = null): array
-    {
+    private function buildAdminFilters(
+        ?string $status,
+        ?string $search,
+        ?string $payment = null,
+        bool $archived = false
+    ): array {
         $conds  = [];
         $params = [];
+
+        if ($archived) {
+            $conds[] = 'o.ordered_at < DATE_SUB(NOW(), INTERVAL 10 YEAR)';
+        }
 
         if ($status !== null && in_array($status, self::VALID_STATUSES, true)) {
             $conds[]  = 'o.status = ?';
@@ -815,5 +872,37 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
 
         $where = $conds !== [] ? 'WHERE ' . implode(' AND ', $conds) : '';
         return [$where, $params];
+    }
+
+    /**
+     * Pseudonymise les snapshots d'adresse des commandes de plus de 10 ans (Art. L123-22 C.com. + RGPD Art. 5).
+     *
+     * Les données personnelles (nom, prénom, rue, téléphone) sont remplacées par 'XXXXX'.
+     * Les données comptables (ville, code postal, pays, montant, référence) sont conservées.
+     *
+     * @return int Nombre de snapshots pseudonymisés
+     */
+    public function pseudonymizeExpired(): int
+    {
+        return $this->db->execute(
+            "UPDATE order_address_snapshots oas
+             SET oas.firstname        = 'XXXXX',
+                 oas.lastname         = 'XXXXX',
+                 oas.street           = 'XXXXX',
+                 oas.phone            = '',
+                 oas.pseudonymized_at = NOW()
+             WHERE oas.pseudonymized_at IS NULL
+               AND oas.id IN (
+                   SELECT snap_id FROM (
+                       SELECT id_billing_snapshot  AS snap_id FROM orders
+                        WHERE ordered_at < DATE_SUB(NOW(), INTERVAL 10 YEAR)
+                          AND id_billing_snapshot IS NOT NULL
+                       UNION
+                       SELECT id_delivery_snapshot AS snap_id FROM orders
+                        WHERE ordered_at < DATE_SUB(NOW(), INTERVAL 10 YEAR)
+                          AND id_delivery_snapshot IS NOT NULL
+                   ) AS expired_snaps
+               )"
+        );
     }
 }

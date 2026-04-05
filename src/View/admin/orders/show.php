@@ -232,6 +232,9 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                        style="display:block;text-align:center;margin-bottom:1rem;">
                         Télécharger / Ouvrir le PDF
                     </a>
+                    <div style="background:#fff8e1;border:1px solid #f59e0b;border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.82rem;color:#78350f;">
+                        ⚠ Une facture existe déjà pour cette commande. La remplacer ne supprime pas l'ancienne (archivage légal L441-9 C.com.).
+                    </div>
                 <?php else : ?>
                     <p style="font-size:0.85rem;color:#8a7a60;margin-bottom:1rem;">
                         Aucune facture uploadée.
@@ -249,10 +252,37 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                         <input type="file" id="invoice" name="invoice" accept="application/pdf"
                                class="admin-field__input" required>
                     </div>
+                    <?php if (!empty($order['path_invoice'])) : ?>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:#78350f;margin-bottom:1rem;cursor:pointer;">
+                        <input type="checkbox" name="confirm_replace" value="1" required
+                               style="width:1rem;height:1rem;accent-color:#b45309;">
+                        Je confirme vouloir remplacer la facture existante
+                    </label>
+                    <?php endif; ?>
                     <button type="submit" class="admin-btn admin-btn--primary" style="width:100%;">
                         Enregistrer la facture
                     </button>
                 </form>
+
+                <?php if (!empty($invoiceFiles)) : ?>
+                <div style="margin-top:1.25rem;border-top:1px solid rgba(8,8,8,0.06);padding-top:1rem;">
+                    <p style="font-family:var(--font-sans);font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a7a60;margin-bottom:0.5rem;">
+                        Historique des factures
+                    </p>
+                    <?php foreach ($invoiceFiles as $invFile) : ?>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:0.35rem 0;border-bottom:1px solid rgba(8,8,8,0.04);font-size:0.78rem;color:#3d3425;">
+                        <span>
+                            <?= $invFile['source'] === 'auto' ? '⚙' : '⬆' ?>
+                            <?= htmlspecialchars($invFile['invoice_number'] ?? basename($invFile['path'])) ?>
+                            <span style="color:#8a7a60;margin-left:0.25rem;"><?= date('d/m/Y H:i', strtotime($invFile['uploaded_at'])) ?></span>
+                        </span>
+                        <a href="<?= htmlspecialchars('/admin/commandes/' . (int) $order['id'] . '/facture/historique/' . (int) $invFile['id']) ?>"
+                           target="_blank"
+                           style="color:#c9a84c;white-space:nowrap;">PDF</a>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
         <?php endif; ?>

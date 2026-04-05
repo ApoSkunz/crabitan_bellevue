@@ -74,6 +74,27 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // index — vue archivée (?archived=1)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que le paramètre archived=1 passe correctement au modèle et à la vue.
+     *
+     * @return void
+     */
+    public function testIndexArchivedRendersView(): void
+    {
+        $_GET['archived'] = '1';
+
+        ob_start();
+        $this->makeController()->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('admin-table', $output);
+        $this->assertStringContainsString('archiv', strtolower($output));
+    }
+
+    // ----------------------------------------------------------------
     // show — commande existante
     // ----------------------------------------------------------------
 
@@ -610,38 +631,74 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
     }
 
     // ----------------------------------------------------------------
-    // uploadInvoice — ancienne facture supprimée avant le nouvel upload
+    // uploadInvoice — facture existante sans confirm_replace → flash error + 302
     // ----------------------------------------------------------------
 
     /**
-     * Vérifie que si une facture existante est enregistrée en BDD, son fichier disque
-     * est supprimé avant que le nouveau PDF soit déplacé.
+     * Quand une facture est déjà enregistrée et que confirm_replace n'est pas coché,
+     * l'upload est bloqué (archivage légal L441-9 C.com.) et un flash error est positionné.
      *
      * @return void
      */
-    public function testUploadInvoiceRemovesOldInvoiceBeforeUploadingNew(): void
+    public function testUploadInvoiceRedirectsWithErrorWhenExistingInvoiceWithoutConfirm(): void
     {
         $id = $this->insertOrder();
 
-        // Créer un fichier "ancienne facture" sur le disque
+        // Enregistrer un path_invoice existant en BDD
+        self::$db->execute(
+            "UPDATE orders SET path_invoice = 'storage/invoices/existing_invoice_ti.pdf' WHERE id = ?",
+            [$id]
+        );
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        // confirm_replace absent → guard doit bloquer
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $this->makeController('POST')->uploadInvoice(['id' => (string) $id]);
+        } catch (HttpException $e) {
+            $this->assertNotEmpty($_SESSION['admin_flash']['error'] ?? null);
+            // Le path_invoice ne doit pas avoir changé
+            $row = self::$db->fetchOne("SELECT path_invoice FROM orders WHERE id = ?", [$id]);
+            $this->assertSame('storage/invoices/existing_invoice_ti.pdf', $row['path_invoice']);
+            throw $e;
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // uploadInvoice — facture existante avec confirm_replace → succès, ancienne conservée
+    // ----------------------------------------------------------------
+
+    /**
+     * Quand confirm_replace=1, l'upload remplace le path_invoice en BDD.
+     * L'ancienne facture est conservée sur disque (archivage L441-9 C.com.).
+     *
+     * @return void
+     */
+    public function testUploadInvoiceSucceedsWithConfirmReplaceKeepsOldFile(): void
+    {
+        $id = $this->insertOrder();
+
+        // Créer l'ancien fichier sur disque et l'enregistrer en BDD
         $storageDir  = ROOT_PATH . '/storage/invoices/';
         if (!is_dir($storageDir)) {
             mkdir($storageDir, 0750, true);
         }
-        $oldFilename = 'invoice_old_ti_test_' . $id . '.pdf';
+        $oldFilename = 'invoice_old_confirm_ti_' . $id . '.pdf';
         $oldFilePath = $storageDir . $oldFilename;
         file_put_contents($oldFilePath, "%PDF-1.4 old invoice");
 
-        // Enregistrer ce path_invoice en BDD
         self::$db->execute(
             "UPDATE orders SET path_invoice = ? WHERE id = ?",
             ['storage/invoices/' . $oldFilename, $id]
         );
 
-        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['csrf_token']    = self::CSRF_TOKEN;
+        $_POST['confirm_replace'] = '1';
 
-        // Nouveau PDF à uploader
-        $tmpFile = tempnam(sys_get_temp_dir(), 'order_inv_new_');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'order_inv_confirm_');
         file_put_contents($tmpFile, "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF");
         $_FILES = [
             'invoice' => [
@@ -664,41 +721,150 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
             $controller->uploadInvoice(['id' => (string) $id]);
         } catch (HttpException $e) {
             @unlink($tmpFile);
-            // L'ancien fichier doit avoir été supprimé
-            $this->assertFileDoesNotExist($oldFilePath);
-            // Un nouveau path_invoice doit être enregistré
+            // L'ancienne facture doit être conservée sur disque (archivage légal)
+            $this->assertFileExists($oldFilePath);
+            @unlink($oldFilePath);
+            // Un nouveau path_invoice doit être enregistré en BDD
             $row = self::$db->fetchOne("SELECT path_invoice FROM orders WHERE id = ?", [$id]);
             $this->assertNotNull($row['path_invoice']);
             $this->assertNotSame('storage/invoices/' . $oldFilename, $row['path_invoice']);
+            $this->assertNotEmpty($_SESSION['admin_flash']['success'] ?? null);
             throw $e;
         }
     }
 
     // ----------------------------------------------------------------
-    // uploadInvoice — ancienne facture en BDD mais fichier absent sur disque → pas d'unlink, succès
+    // uploadInvoice — succès complet → entrée dans order_invoice_files
     // ----------------------------------------------------------------
 
     /**
-     * Quand path_invoice est enregistré en BDD mais que le fichier disque est absent,
-     * la branche is_file() retourne false et unlink() n'est pas appelé.
-     * L'upload continue et se termine avec succès (flash success + 302).
+     * Après un upload réussi, une ligne doit être créée dans order_invoice_files (source=upload).
      *
      * @return void
      */
-    public function testUploadInvoiceSkipsUnlinkWhenOldInvoiceFileIsMissingOnDisk(): void
+    public function testUploadInvoiceAddsEntryToInvoiceHistory(): void
+    {
+        $id = $this->insertOrder();
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'order_inv_hist_');
+        file_put_contents($tmpFile, "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF");
+        $_FILES = [
+            'invoice' => [
+                'tmp_name' => $tmpFile,
+                'error'    => UPLOAD_ERR_OK,
+                'name'     => 'facture_hist.pdf',
+                'type'     => 'application/pdf',
+                'size'     => filesize($tmpFile),
+            ],
+        ];
+
+        $controller = new OrderAdminControllerTestable(
+            $this->makeRequest('POST', '/admin/commandes')
+        );
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $controller->uploadInvoice(['id' => (string) $id]);
+        } catch (HttpException $e) {
+            @unlink($tmpFile);
+            $row = self::$db->fetchOne(
+                "SELECT source, path FROM order_invoice_files WHERE order_id = ?",
+                [$id]
+            );
+            $this->assertNotFalse($row);
+            $this->assertSame('upload', $row['source']);
+            $this->assertStringStartsWith('storage/invoices/', $row['path']);
+            throw $e;
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // downloadInvoiceFile — entrée historique présente mais fichier absent → 404
+    // ----------------------------------------------------------------
+
+    /**
+     * Quand order_invoice_files a une entrée valide mais le fichier disque est manquant, retourne 404.
+     *
+     * @return void
+     */
+    public function testDownloadInvoiceFileAborts404WhenFileMissingOnDisk(): void
     {
         $id = $this->insertOrder();
 
-        // Enregistrer un path_invoice dont le fichier disque n'existe pas
+        $fileId = (int) self::$db->insert(
+            "INSERT INTO order_invoice_files (order_id, path, invoice_number, source)
+             VALUES (?, 'storage/invoices/ghost_hist_ti.pdf', 'WEB-INVOICE-GHOST', 'auto')",
+            [$id]
+        );
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(404);
+
+        ob_start();
+        try {
+            $this->makeController()->downloadInvoiceFile([
+                'id'     => (string) $id,
+                'fileId' => (string) $fileId,
+            ]);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // downloadInvoiceFile — fileId inexistant pour cet order → 404
+    // ----------------------------------------------------------------
+
+    /**
+     * Un fileId qui n'appartient pas à la commande retourne 404.
+     *
+     * @return void
+     */
+    public function testDownloadInvoiceFileAborts404WhenFileNotFound(): void
+    {
+        $id = $this->insertOrder();
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(404);
+
+        ob_start();
+        try {
+            $this->makeController()->downloadInvoiceFile([
+                'id'     => (string) $id,
+                'fileId' => '999999',
+            ]);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // uploadInvoice — ancienne facture en BDD absente sur disque + confirm_replace → succès
+    // ----------------------------------------------------------------
+
+    /**
+     * Avec confirm_replace=1, même si le fichier de l'ancienne facture est absent sur disque,
+     * l'upload se termine avec succès.
+     *
+     * @return void
+     */
+    public function testUploadInvoiceSucceedsWithConfirmReplaceWhenOldFileMissing(): void
+    {
+        $id = $this->insertOrder();
+
+        // Enregistrer un path_invoice fantôme (fichier disque absent)
         self::$db->execute(
             "UPDATE orders SET path_invoice = CONCAT('storage/invoices/ghost_invoice_ti_', ?, '.pdf') WHERE id = ?",
             [$id, $id]
         );
 
-        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['csrf_token']      = self::CSRF_TOKEN;
+        $_POST['confirm_replace'] = '1';
 
-        // PDF minimal
-        $tmpFile = tempnam(sys_get_temp_dir(), 'order_inv_ghost_');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'order_inv_ghost2_');
         file_put_contents($tmpFile, "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF");
         $_FILES = [
             'invoice' => [
@@ -721,7 +887,6 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
             $controller->uploadInvoice(['id' => (string) $id]);
         } catch (HttpException $e) {
             @unlink($tmpFile);
-            // L'upload a bien été effectué malgré l'absence de l'ancienne facture
             $row = self::$db->fetchOne("SELECT path_invoice FROM orders WHERE id = ?", [$id]);
             $this->assertNotNull($row['path_invoice']);
             $this->assertNotEmpty($_SESSION['admin_flash']['success'] ?? null);

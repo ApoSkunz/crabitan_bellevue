@@ -172,4 +172,33 @@ class OrderModelTest extends TestCase
 
         $this->model->updateStatus(1, 'invalid_status');
     }
+
+    // ----------------------------------------------------------------
+    // pseudonymizeExpired()
+    // ----------------------------------------------------------------
+
+    /**
+     * pseudonymizeExpired() doit appeler execute() avec une requête UPDATE incluant pseudonymized_at.
+     */
+    public function testPseudonymizeExpiredExecutesUpdateQuery(): void
+    {
+        $this->dbMock->expects($this->once())
+            ->method('execute')
+            ->with($this->stringContains('pseudonymized_at'))
+            ->willReturn(3);
+
+        $result = $this->model->pseudonymizeExpired();
+
+        $this->assertSame(3, $result);
+    }
+
+    /**
+     * pseudonymizeExpired() retourne 0 quand aucun snapshot n'est expiré.
+     */
+    public function testPseudonymizeExpiredReturnsZeroWhenNoRows(): void
+    {
+        $this->dbMock->method('execute')->willReturn(0);
+
+        $this->assertSame(0, $this->model->pseudonymizeExpired());
+    }
 }
