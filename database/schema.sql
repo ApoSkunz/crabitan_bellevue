@@ -78,6 +78,8 @@ CREATE TABLE `accounts` (
   `deleted_at`                   DATETIME       DEFAULT NULL COMMENT 'Soft delete',
   `scheduled_deletion_at`        DATETIME       DEFAULT NULL COMMENT 'Date de purge effective (J+30 après deleted_at)',
   `reactivation_token`           VARCHAR(64)    DEFAULT NULL COMMENT 'Token annulation suppression compte (valide 30 jours)',
+  `pending_password_hash`             VARCHAR(255)   DEFAULT NULL COMMENT 'Nouveau MDP en attente de confirmation par email (TTL 1h)',
+  `pending_password_expires_at`       DATETIME       DEFAULT NULL COMMENT 'Expiration du MDP en attente',
   `security_confirm_token_hash`       VARCHAR(64)    DEFAULT NULL COMMENT 'SHA-256 du token de confirmation action sécurité (TTL 1h)',
   `security_confirm_token_expires_at` DATETIME       DEFAULT NULL COMMENT 'Expiration du token de confirmation action sécurité',
   `created_at`                   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
