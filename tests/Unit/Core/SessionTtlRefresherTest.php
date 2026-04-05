@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
  * Tests unitaires pour SessionTtlRefresher::maybeRefresh().
  *
  * Couvre : déclenchement du refresh, absence de refresh (TTL confortable),
- * session remember-me exclue, payload incomplet, TTL expiré ou nul.
+ * remember-me (refresh anti-coupure fin de vie uniquement), payload incomplet, TTL expiré ou nul.
  */
 class SessionTtlRefresherTest extends TestCase
 {
@@ -115,17 +115,17 @@ class SessionTtlRefresherTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // Sessions remember-me exclues
+    // Sessions remember-me — anti-coupure fin de vie
     // ------------------------------------------------------------------
 
     /**
-     * Une session remember-me n'est jamais rafraîchie, quel que soit le TTL restant.
+     * Remember-me avec TTL restant > JWT_EXPIRY × threshold → pas de refresh.
+     * Ex : 24h restantes, seuil = 3600 × 0.5 = 1800 s → pas de refresh.
      */
-    public function testRememberMeSessionIsNeverRefreshed(): void
+    public function testRememberMeNoRefreshWhenRemainingAboveThreshold(): void
     {
         $now = time();
-        // Token remember-me (30j) dont le TTL restant est très faible — on s'assure quand même du non-refresh
-        $payload = ['iat' => $now - (29 * 86400), 'exp' => $now + 86400];
+        $payload = ['iat' => $now - (29 * 86400), 'exp' => $now + 86400]; // 24h restantes
 
         $called    = false;
         $refresher = function () use (&$called): bool {
@@ -137,6 +137,47 @@ class SessionTtlRefresherTest extends TestCase
 
         $this->assertFalse($result);
         $this->assertFalse($called);
+    }
+
+    /**
+     * Remember-me avec TTL restant < JWT_EXPIRY × threshold → refresh déclenché à JWT_EXPIRY.
+     * Ex : 1000 s restantes < seuil 1800 s → refresh à 3600 s (durée standard, pas 30j).
+     */
+    public function testRememberMeRefreshedWhenNearExpiry(): void
+    {
+        $now = time();
+        // Remaining = 1000 s < seuil (3600 × 0.5 = 1800 s) → refresh
+        $payload = ['iat' => $now - (30 * 86400 - 1000), 'exp' => $now + 1000];
+
+        $called    = false;
+        $refresher = function () use (&$called): bool {
+            $called = true;
+            return true;
+        };
+
+        $result = SessionTtlRefresher::maybeRefresh($payload, 'tok', true, $refresher);
+
+        $this->assertTrue($result);
+        $this->assertTrue($called);
+    }
+
+    /**
+     * Remember-me refreshé à JWT_EXPIRY (durée standard), pas à la durée remember-me.
+     */
+    public function testRememberMeRefresherReceivesJwtExpiry(): void
+    {
+        $now = time();
+        $payload = ['iat' => $now - (30 * 86400 - 1000), 'exp' => $now + 1000];
+
+        $receivedExpiry = null;
+        $refresher = function (string $token, int $expiry) use (&$receivedExpiry): bool {
+            $receivedExpiry = $expiry;
+            return true;
+        };
+
+        SessionTtlRefresher::maybeRefresh($payload, 'tok', true, $refresher);
+
+        $this->assertSame(3600, $receivedExpiry, 'Le refresh remember-me doit utiliser JWT_EXPIRY, pas la durée remember-me');
     }
 
     // ------------------------------------------------------------------
