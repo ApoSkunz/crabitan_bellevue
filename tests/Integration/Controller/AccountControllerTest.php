@@ -1341,8 +1341,8 @@ class AccountControllerTest extends IntegrationTestCase
 
         $_POST = [
             'current_password'     => 'Password123!',
-            'new_password'         => 'NewFlashTest123!',
-            'new_password_confirm' => 'NewFlashTest123!',
+            'new_password'         => 'Zephyr9$mKlt2w',
+            'new_password_confirm' => 'Zephyr9$mKlt2w',
             'csrf_token'           => self::CSRF,
         ];
 

@@ -320,7 +320,7 @@ class AuthForgotResetTest extends IntegrationTestCase
         $this->insertValidResetToken($userId, $token);
 
         $_POST = [
-            'password'         => 'Password123!',
+            'password'         => 'Vigilant7#xKqm',
             'password_confirm' => 'Different456!',
             'csrf_token'       => self::CSRF,
         ];
@@ -436,8 +436,8 @@ class AuthForgotResetTest extends IntegrationTestCase
         $this->insertValidResetToken($userId, $token);
 
         $_POST = [
-            'password'         => 'NewPassword99!',
-            'password_confirm' => 'NewPassword99!',
+            'password'         => 'Zephyr9$mKlt2w',
+            'password_confirm' => 'Zephyr9$mKlt2w',
             'csrf_token'       => self::CSRF,
         ];
 
@@ -469,7 +469,7 @@ class AuthForgotResetTest extends IntegrationTestCase
         );
         $this->assertNotFalse($account);
         $this->assertTrue(
-            password_verify('NewPassword99!', $account['password']),
+            password_verify('Zephyr9$mKlt2w', $account['password']),
             'Le nouveau mot de passe doit être hashé et valide en BDD'
         );
     }
@@ -492,8 +492,8 @@ class AuthForgotResetTest extends IntegrationTestCase
 
         // Premier usage : succès
         $_POST = [
-            'password'         => 'NewPassword99!',
-            'password_confirm' => 'NewPassword99!',
+            'password'         => 'Zephyr9$mKlt2w',
+            'password_confirm' => 'Zephyr9$mKlt2w',
             'csrf_token'       => self::CSRF,
         ];
 

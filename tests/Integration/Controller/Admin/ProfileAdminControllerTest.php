@@ -101,8 +101,8 @@ class ProfileAdminControllerTest extends AdminIntegrationTestCase
         $_POST = [
             'csrf_token'           => self::CSRF_TOKEN,
             'current_password'     => 'Admin123!',
-            'new_password'         => 'NewAdminSecure456!',
-            'new_password_confirm' => 'NewAdminSecure456!',
+            'new_password'         => 'Zephyr9$mKlt2w',
+            'new_password_confirm' => 'Zephyr9$mKlt2w',
         ];
 
         try {

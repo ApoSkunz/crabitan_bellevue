@@ -1218,31 +1218,77 @@ function initResetModal() {
 }
 
 // ============================================================
-// Indicateur de force mot de passe (ANSSI MDP 2021)
-// Cible tous les champs [data-pwd-strength] de la page.
+// Indicateur de force mot de passe (miroir PHP PasswordValidator)
+// Checklist ANSSI + label Faible/Moyen/Fort/Très fort en temps réel.
 // ============================================================
 
 /**
- * Injecte une checklist de force sous chaque champ password
- * portant l'attribut data-pwd-strength="<uid>".
- * Les IDs de champ attendus : reg-password, new_password, reset-modal-password.
+ * Injecte une checklist ANSSI + indicateur de force sous chaque champ new-password.
+ * Logique identique à PasswordValidator côté serveur : cohérence garantie.
  */
 function initPasswordStrengthIndicator() {
-    const SPECIAL = /[!@#$%^&*()\-_+=[[\]{}|;:,.<>?]/;
+    const SPECIAL = /[^a-zA-Z0-9\s]/;
+
+    // Miroir de PasswordValidator::normalizeLeet()
+    function normalizeLeet(s) {
+        return s.toLowerCase()
+            .replace(/@/g, 'a').replace(/4/g, 'a')
+            .replace(/3/g, 'e')
+            .replace(/1/g, 'i').replace(/!/g, 'i')
+            .replace(/0/g, 'o')
+            .replace(/\$/g, 's').replace(/5/g, 's')
+            .replace(/7/g, 't').replace(/\+/g, 't');
+    }
+
+    // Miroir de PasswordValidator::BLOCKLIST
+    const BLOCKLIST = [
+        'password','passw0rd','motdepasse','bienvenue','bienvenu',
+        'welcome','admin','administrator','root','user',
+        'azerty','qwerty','azertyuiop','qwertyuiop',
+        'abcdefgh','abcdef','123456','1234567','12345678',
+        'iloveyou','letmein','sunshine','dragon','monkey',
+        'chateau','crabitan','bellevue','bordeaux',
+        'soleil','printemps','automne','hiver','ete',
+        'france','paris','marseille','lyon',
+        'football','basketball','tennis',
+        'superman','batman','spiderman',
+        'starwars','matrix',
+        'linkedin','facebook','google','twitter','instagram',
+        'master','secret','login','access','test',
+    ];
+
+    // Miroir de PasswordValidator::hasSequence()
+    function hasSequence(s) {
+        const low = s.toLowerCase();
+        let asc = 1; let dsc = 1;
+        for (let i = 1; i < low.length; i++) {
+            const diff = low.charCodeAt(i) - low.charCodeAt(i - 1);
+            asc = diff === 1  ? asc + 1 : 1;
+            dsc = diff === -1 ? dsc + 1 : 1;
+            if (asc >= 4 || dsc >= 4) return true;
+        }
+        return false;
+    }
+
+    // Miroir de PasswordValidator::isCommon()
+    function isCommon(s) {
+        const norm = normalizeLeet(s);
+        return BLOCKLIST.some((w) => norm.includes(w));
+    }
 
     const rules = [
-        { id: 'len',     re: null,       label: '12 caractères minimum' },
-        { id: 'upper',   re: /[A-Z]/,    label: 'Une majuscule' },
-        { id: 'lower',   re: /[a-z]/,    label: 'Une minuscule' },
-        { id: 'digit',   re: /[0-9]/,    label: 'Un chiffre' },
-        { id: 'special', re: SPECIAL,    label: 'Un caractère spécial (!@#$%…)' },
+        { id: 'len',     label: '12 caractères minimum',         check: (v) => v.length >= 12 },
+        { id: 'upper',   label: 'Une majuscule',                 check: (v) => /[A-Z]/.test(v) },
+        { id: 'lower',   label: 'Une minuscule',                 check: (v) => /[a-z]/.test(v) },
+        { id: 'digit',   label: 'Un chiffre',                    check: (v) => /[0-9]/.test(v) },
+        { id: 'special', label: 'Un caractère spécial (!@#$%…)', check: (v) => SPECIAL.test(v) },
     ];
 
     /**
-     * Crée la checklist HTML et l'insère après le conteneur du champ.
+     * Crée la checklist ANSSI + le label de force après le wrapper du champ.
      * @param {HTMLInputElement} input
-     * @param {string} uid - identifiant unique pour l'aria
-     * @returns {HTMLElement} l'élément <ul> inséré
+     * @param {string} uid
+     * @returns {{ ul: HTMLElement, label: HTMLElement }}
      */
     function createChecklist(input, uid) {
         const ul = document.createElement('ul');
@@ -1259,41 +1305,63 @@ function initPasswordStrengthIndicator() {
             ul.appendChild(li);
         });
 
-        // Insérer après le parent immédiat (form-group, register-modal__field…)
-        const container = input.closest('.form-group, .register-modal__field, .login-modal__field') ?? input.parentElement;
-        container.insertAdjacentElement('afterend', ul);
-        return ul;
+        const label = document.createElement('p');
+        label.className = 'pwd-strength-label';
+        label.hidden = true;
+
+        const wrap = input.closest('.form-pwd-wrap, .login-modal__password-wrap, .register-modal__password-wrap') ?? input.parentElement;
+        wrap.insertAdjacentElement('afterend', ul);
+        wrap.insertAdjacentElement('afterend', label);
+        return { ul, label };
     }
 
     /**
-     * Met à jour les items de la checklist selon la valeur courante.
+     * Met à jour la checklist et le label de force.
      * @param {HTMLInputElement} input
      * @param {HTMLElement} ul
+     * @param {HTMLElement} label
      */
-    function updateChecklist(input, ul) {
+    function updateChecklist(input, ul, label) {
         const val = input.value;
-        const checks = [
-            val.length >= 12,
-            /[A-Z]/.test(val),
-            /[a-z]/.test(val),
-            /[0-9]/.test(val),
-            SPECIAL.test(val),
-        ];
-        ul.querySelectorAll('.pwd-strength-item').forEach((li, i) => {
-            const ok = checks[i];
+
+        rules.forEach((rule, i) => {
+            const ok = rule.check(val);
+            const li = ul.querySelectorAll('.pwd-strength-item')[i];
             li.classList.toggle('pwd-strength-item--ok', ok);
             li.classList.toggle('pwd-strength-item--ko', !ok);
             li.querySelector('.pwd-strength-icon').textContent = ok ? '✓' : '✗';
         });
+
+        if (!val.length) { label.hidden = true; return; }
+
+        const score  = rules.filter((r) => r.check(val)).length;
+        const isLong = val.length >= 20;
+        const penalty = hasSequence(val) || isCommon(val);
+
+        label.hidden = false;
+        label.className = 'pwd-strength-label';
+
+        if (penalty || score <= 2) {
+            label.textContent = 'Force\u00a0: Faible';
+            label.classList.add('pwd-strength-label--weak');
+        } else if (score === 3) {
+            label.textContent = 'Force\u00a0: Moyen';
+            label.classList.add('pwd-strength-label--medium');
+        } else if (score === 4 && !isLong) {
+            label.textContent = 'Force\u00a0: Fort';
+            label.classList.add('pwd-strength-label--strong');
+        } else {
+            label.textContent = 'Force\u00a0: Très fort';
+            label.classList.add('pwd-strength-label--vstrong');
+        }
     }
 
-    // Champs ciblés : inscription (modal), reset password (modal), changement mdp (page sécurité)
-    const targetIds = ['reg-password', 'new_password', 'reset-modal-password'];
+    const targetIds = ['reg-password', 'new_password', 'reset-modal-password', 'password'];
     targetIds.forEach((id) => {
         const input = document.getElementById(id);
         if (!input) return;
-        const ul = createChecklist(input, id);
-        input.addEventListener('input', () => updateChecklist(input, ul));
+        const { ul, label } = createChecklist(input, id);
+        input.addEventListener('input', () => updateChecklist(input, ul, label));
     });
 }
 

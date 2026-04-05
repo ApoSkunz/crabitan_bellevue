@@ -41,3 +41,14 @@
         }
     }
 }
+
+.pwd-strength-label {
+    font-size:   0.78rem;
+    margin:      0.35rem 0 0;
+    font-weight: 600;
+
+    &--weak   { color: #e55; }
+    &--medium { color: #f90; }
+    &--strong { color: #4caf50; }
+    &--vstrong { color: #2196f3; } // bleu — niveau supérieur au vert
+}

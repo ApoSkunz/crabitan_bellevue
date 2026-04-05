@@ -107,4 +107,16 @@ class ConnectionModel extends Model
         );
         return (bool) $row;
     }
+
+    /**
+     * Purge les connexions révoquées ou expirées.
+     *
+     * @return int Nombre de lignes supprimées
+     */
+    public function purgeExpired(): int
+    {
+        return $this->db->execute(
+            "DELETE FROM {$this->table} WHERE status = 'revoked' OR expired_at < NOW()"
+        );
+    }
 }

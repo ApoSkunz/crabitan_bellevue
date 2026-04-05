@@ -49,8 +49,8 @@ class AuthControllerValidationTest extends TestCase
             'lastname'         => 'Dupont',
             'firstname'        => 'Jean',
             'email'            => 'jean@example.com',
-            'password'         => 'Password123!',
-            'password_confirm' => 'Password123!',
+            'password'         => 'Vigilant7#xKqm',
+            'password_confirm' => 'Vigilant7#xKqm',
             'company_name'     => '',
             'newsletter'       => '0',
             'csrf_token'       => 'test-csrf-token',
@@ -169,10 +169,10 @@ class AuthControllerValidationTest extends TestCase
 
     public function testRegisterPasswordErrorMentionsSpecificRuleWhenOnlyOneIsMissing(): void
     {
-        // Seule la majuscule manque : le message doit contenir exactement 1 phrase
+        // Seule la majuscule manque : pas de suite, pas de mot courant, 15 chars
         $e = $this->callRegister($this->makeController([
-            'password'         => 'password123!abc', // pas de majuscule, 15 chars
-            'password_confirm' => 'password123!abc',
+            'password'         => 'vigilant7#xkqmz', // pas de majuscule
+            'password_confirm' => 'vigilant7#xkqmz',
         ]));
         $this->assertSame(302, $e->status);
         $errors = $_SESSION['flash']['register_errors'] ?? [];
