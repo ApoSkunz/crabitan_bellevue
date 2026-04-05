@@ -25,26 +25,6 @@ class PasswordValidator
      */
     private const PATTERN_SPECIAL = '/[^a-zA-Z0-9\s]/';
 
-    /**
-     * Common passwords and patterns (checked after leet-speak normalization).
-     *
-     * @var string[]
-     */
-    private const BLOCKLIST = [
-        'password', 'passw0rd', 'motdepasse', 'bienvenue', 'bienvenu',
-        'welcome', 'admin', 'administrator', 'root', 'user',
-        'azerty', 'qwerty', 'azertyuiop', 'qwertyuiop',
-        'abcdefgh', 'abcdef', '123456', '1234567', '12345678',
-        'iloveyou', 'letmein', 'sunshine', 'dragon', 'monkey',
-        'chateau', 'crabitan', 'bellevue', 'bordeaux',
-        'soleil', 'printemps', 'automne', 'hiver', 'ete',
-        'france', 'paris', 'marseille', 'lyon',
-        'football', 'basketball', 'tennis',
-        'superman', 'batman', 'spiderman',
-        'starwars', 'matrix',
-        'linkedin', 'facebook', 'google', 'twitter', 'instagram',
-        'master', 'secret', 'login', 'access', 'test',
-    ];
 
     /**
      * Returns true if the password meets all strength requirements.
@@ -84,63 +64,5 @@ class PasswordValidator
         }
 
         return $errors;
-    }
-
-    /**
-     * Returns true if the password contains a common word after leet-speak normalization.
-     *
-     * @param string $password
-     * @return bool
-     */
-    private static function isCommon(string $password): bool
-    {
-        $normalized = self::normalizeLeet(strtolower($password));
-        foreach (self::BLOCKLIST as $word) {
-            if (str_contains($normalized, $word)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns true if the password contains an ascending or descending
-     * sequence of 4 or more consecutive characters (e.g. "1234", "abcd", "9876").
-     *
-     * @param string $password
-     * @return bool
-     */
-    private static function hasSequence(string $password): bool
-    {
-        $lower = strtolower($password);
-        $asc   = 1;
-        $dsc   = 1;
-        for ($i = 1, $len = strlen($lower); $i < $len; $i++) {
-            $diff = ord($lower[$i]) - ord($lower[$i - 1]);
-            $asc  = $diff === 1  ? $asc + 1 : 1;
-            $dsc  = $diff === -1 ? $dsc + 1 : 1;
-            if ($asc >= 4 || $dsc >= 4) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Normalizes common leet-speak substitutions to their base characters.
-     *
-     * @param string $password Already lowercased input.
-     * @return string
-     */
-    private static function normalizeLeet(string $password): string
-    {
-        return strtr($password, [
-            '@' => 'a', '4' => 'a',
-            '3' => 'e',
-            '1' => 'i', '!' => 'i',
-            '0' => 'o',
-            '$' => 's', '5' => 's',
-            '7' => 't', '+' => 't',
-        ]);
     }
 }

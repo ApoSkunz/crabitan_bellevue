@@ -179,7 +179,7 @@ Pour chaque feature ou correction, respecter cet ordre **sans exception** :
 
 ### 3. Vérifications avant push
 
-**C'est Claude qui exécute ces commandes**, pas l'utilisateur. Après chaque implémentation, lancer dans cet ordre sans attendre d'instruction :
+**C'est Claude qui exécute ces commandes**, pas l'utilisateur. **Obligatoire avant chaque push, y compris les commits de correction ou de refactoring.** Lancer dans cet ordre sans attendre d'instruction :
 
 ```bash
 # Build + linter JS/SCSS
