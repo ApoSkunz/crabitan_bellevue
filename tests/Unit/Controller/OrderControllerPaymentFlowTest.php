@@ -395,19 +395,19 @@ class OrderControllerPaymentFlowTest extends TestCase
             false,          // OrderModel::findByReference → commande absente
             $snapshotRow,   // PaymentIntentModel::findByReference → snapshot
             false,          // OrderModel::findByReferenceOnly → non créée
-            [               // OrderModel::findByReference après création
-                'order_reference' => 'WEB-CB-AABBCCDD-2026',
-                'payment_method'  => 'card',
-                'content'         => json_encode($snapshot['items']),
-            ],
-            [               // OrderModel::findByReferenceWithAddresses → génération facture
-                'id'              => 684,
-                'order_reference' => 'WEB-CB-AABBCCDD-2026',
-                'payment_method'  => 'card',
-                'content'         => json_encode($snapshot['items']),
-                'price'           => 120.0,
+            [               // OrderModel::findByReferenceWithAddresses → génération facture (#5 — avant findByReference line 420)
+                'id'               => 684,
+                'order_reference'  => 'WEB-CB-AABBCCDD-2026',
+                'payment_method'   => 'card',
+                'content'          => json_encode($snapshot['items']),
+                'price'            => 120.0,
                 'shipping_discount' => 0.0,
-                'ordered_at'      => date('Y-m-d H:i:s'),
+                'ordered_at'       => date('Y-m-d H:i:s'),
+            ],
+            [               // OrderModel::findByReference après création (#6 — line 420)
+                'order_reference' => 'WEB-CB-AABBCCDD-2026',
+                'payment_method'  => 'card',
+                'content'         => json_encode($snapshot['items']),
             ],
         );
         // insert et execute ne lèvent pas d'exception (stub no-op par défaut)
@@ -525,12 +525,12 @@ class OrderControllerPaymentFlowTest extends TestCase
             false,          // OrderModel::findByReference → absente
             $snapshotRow,   // PaymentIntentModel::findByReference
             false,          // findByReferenceOnly → non créée
-            [               // findByReference après création
+            null,           // findByReferenceWithAddresses → null (null-guard, #5)
+            [               // findByReference après création (#6 — line 420)
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
                 'content'         => json_encode($snapshot['items']),
             ],
-            null,           // findByReferenceWithAddresses → null (null-guard)
         );
 
         $caught = null;
@@ -578,16 +578,11 @@ class OrderControllerPaymentFlowTest extends TestCase
         $stub = $this->setDbMock();
         // 6e appel = findByReferenceWithAddresses → order avec email
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],
-            false,
-            $snapshotRow,
-            false,
-            [
-                'order_reference' => 'WEB-CB-AABBCCDD-2026',
-                'payment_method'  => 'card',
-                'content'         => json_encode($snapshot['items']),
-            ],
-            [
+            ['id' => 1],   // AuthMiddleware
+            false,          // OrderModel::findByReference → absente
+            $snapshotRow,   // PaymentIntentModel::findByReference
+            false,          // findByReferenceOnly → non créée
+            [               // findByReferenceWithAddresses → ordre avec email (#5)
                 'id'               => 684,
                 'order_reference'  => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'   => 'card',
@@ -599,6 +594,11 @@ class OrderControllerPaymentFlowTest extends TestCase
                 'firstname'        => 'Jean',
                 'lastname'         => 'Dupont',
                 'lang'             => 'fr',
+            ],
+            [               // findByReference après création (#6 — line 420)
+                'order_reference' => 'WEB-CB-AABBCCDD-2026',
+                'payment_method'  => 'card',
+                'content'         => json_encode($snapshot['items']),
             ],
         );
 
