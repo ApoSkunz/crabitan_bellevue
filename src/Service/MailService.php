@@ -18,7 +18,8 @@ class MailService
     private const URL_PRIVACY = '/fr/politique-de-confidentialite';
     private const URL_LEGAL   = '/fr/mentions-legales';
     private const URL_SUPPORT = '/fr/support';
-    private const URL_CGV     = '/fr/conditions-generales-de-vente';
+    private const URL_CGV        = '/fr/conditions-generales-de-vente';
+    private const DATE_FORMAT_FR = 'd/m/Y à H:i';
 
     private PHPMailer $mailer;
 
@@ -407,7 +408,7 @@ class MailService
 
         $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $safeName = htmlspecialchars($name, ENT_QUOTES);
-        $safeDate = htmlspecialchars(date('d/m/Y à H:i'), ENT_QUOTES);
+        $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
 
         $confirmUrl = $confirmToken !== ''
             ? htmlspecialchars(
@@ -481,7 +482,7 @@ class MailService
             ? 'Sécurité — Demande de changement de mot de passe annulée'
             : 'Security — Password change request cancelled';
         $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
-        $safeDate = htmlspecialchars(date('d/m/Y à H:i'), ENT_QUOTES);
+        $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
         $loginUrl = htmlspecialchars($appUrl . '/' . $lang . '/connexion', ENT_QUOTES);
 
         if ($lang === 'fr') {
@@ -551,7 +552,7 @@ class MailService
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
         $safeDevice  = htmlspecialchars($deviceName, ENT_QUOTES);
         $safeIp      = htmlspecialchars($ipAddress ?? 'N/A', ENT_QUOTES);
-        $safeDate    = htmlspecialchars(date('d/m/Y à H:i'), ENT_QUOTES);
+        $safeDate    = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
 
         $infoBlock = '<table role="presentation" cellpadding="0" cellspacing="0"'
             . ' style="width:100%;margin-bottom:24px;">'
