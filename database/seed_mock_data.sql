@@ -697,12 +697,32 @@ VALUES
 ALTER TABLE `addresses` AUTO_INCREMENT = 8;
 
 -- ============================================================
+-- ORDER ADDRESS SNAPSHOTS (instantanés des adresses de commande)
+-- ============================================================
+
+INSERT INTO `order_address_snapshots`
+    (`id`, `source_address_id`, `civility`, `firstname`, `lastname`, `street`, `city`, `zip`, `country`, `phone`)
+VALUES
+-- snapshot 1 : adresse id=1 (Sophie facturation)
+(1, 1, 'F', 'Sophie', 'Durand', '12 rue des Vignes', 'Bordeaux', '33000', 'France', '0612345678'),
+-- snapshot 2 : adresse id=2 (Sophie livraison)
+(2, 2, 'F', 'Sophie', 'Durand', '12 rue des Vignes', 'Bordeaux', '33000', 'France', '0612345678'),
+-- snapshot 3 : adresse id=4 (Pierre Moreau facturation)
+(3, 4, 'M', 'Pierre', 'Moreau', '8 avenue du Commerce', 'Toulouse', '31000', 'France', '0556789012'),
+-- snapshot 4 : adresse id=5 (Pierre Moreau livraison)
+(4, 5, 'M', 'Pierre', 'Moreau', '8 avenue du Commerce', 'Toulouse', '31000', 'France', '0556789012'),
+-- snapshot 5 : adresse id=7 (Admin facturation)
+(5, 7, 'M', 'Admin', 'Test', '1 rue de la Mairie', 'Paris', '75001', 'France', '0100000000');
+
+ALTER TABLE `order_address_snapshots` AUTO_INCREMENT = 6;
+
+-- ============================================================
 -- ORDERS (toutes statuts couverts pour les tests)
 -- ============================================================
 
 INSERT INTO `orders`
     (`id`, `user_id`, `order_reference`, `content`, `price`, `payment_method`,
-     `shipping_discount`, `id_billing_address`, `id_delivery_address`, `status`, `ordered_at`, `delivered_at`)
+     `shipping_discount`, `id_billing_snapshot`, `id_delivery_snapshot`, `status`, `ordered_at`, `delivered_at`)
 VALUES
 -- paid — Sophie (référence pour tests commandes)
 (1, 3, 'CBV-2026-000001',
@@ -747,12 +767,12 @@ VALUES
 -- société (id 5) — delivered hors fenêtre (> 15j)
 (9, 5, 'CBV-2026-000009',
  '[{"wine_id":34,"label_name":"Côtes de Bordeaux Rouge","vintage":2019,"wine_color":"red","format":"bottle","qty":48,"price":10.00,"subtotal":480.00}]',
- 480.00, 'virement', 62.40, 4, 5, 'delivered', '2026-01-20 10:00:00', '2026-02-01 10:00:00'),
+ 480.00, 'virement', 62.40, 3, 4, 'delivered', '2026-01-20 10:00:00', '2026-02-01 10:00:00'),
 
 -- admin (id 2) — paid (pour tester vue admin)
 (10, 2, 'CBV-2026-000010',
  '[{"wine_id":36,"label_name":"Sainte-Croix-du-Mont","vintage":2018,"wine_color":"sweet","format":"bottle","qty":12,"price":10.80,"subtotal":129.60}]',
- 129.60, 'card', 15.00, 7, NULL, 'paid', '2026-03-10 09:00:00', NULL);
+ 129.60, 'card', 15.00, 5, NULL, 'paid', '2026-03-10 09:00:00', NULL);
 
 ALTER TABLE `orders` AUTO_INCREMENT = 11;
 
