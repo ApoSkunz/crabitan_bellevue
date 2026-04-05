@@ -135,9 +135,10 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                             <?= __('account.email_change_cancel_btn') ?>
                         </button>
                     </form>
-                <?php elseif ($emailChangeSent) : ?>
-                    <div class="alert alert--success" role="alert"><?= htmlspecialchars($success ?? '') ?></div>
                 <?php else : ?>
+                    <?php if ($emailChangeSent) : ?>
+                        <div class="alert alert--success" role="alert"><?= htmlspecialchars($success ?? '') ?></div>
+                    <?php endif; ?>
                     <form method="POST"
                           action="/<?= htmlspecialchars($lang) ?>/mon-compte/profil/changer-email"
                           class="account-form"
