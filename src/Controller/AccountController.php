@@ -1432,6 +1432,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $userId = (int) $account['id'];
         $this->accounts->clearPendingPassword($userId);
         $this->accounts->revokeAllSessions($userId);
+        $this->trustedDevices->deleteAllForUser($userId);
         $this->accounts->consumeSecurityConfirmToken($userId);
 
         try {

@@ -3876,7 +3876,8 @@ class AccountControllerTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Un token valide annule le pending password, révoque les sessions et affiche le succès.
+     * Un token valide annule le pending password, révoque les sessions,
+     * supprime tous les appareils de confiance et affiche le succès.
      */
     public function testDenySecurityActionSuccessWithValidToken(): void
     {
@@ -3892,6 +3893,13 @@ class AccountControllerTest extends IntegrationTestCase
             [$hash, $expires, password_hash('ShouldBeCleared1!', PASSWORD_BCRYPT), $expires, $userId]
         );
 
+        // Insérer un appareil de confiance — doit être supprimé lors du refus
+        self::$db->execute(
+            "INSERT INTO trusted_devices (user_id, device_token, device_name, confirmed_at)
+             VALUES (?, 'deny.device.token', 'Test Device', NOW())",
+            [$userId]
+        );
+
         $_GET['token'] = $raw;
 
         ob_start();
@@ -3900,6 +3908,7 @@ class AccountControllerTest extends IntegrationTestCase
         $output = ob_get_clean();
 
         $this->assertStringContainsString('auth-status--ok', $output);
+
         // Token consommé + pending effacé
         $row = self::$db->fetchOne(
             "SELECT pending_password_hash, security_confirm_token_hash FROM accounts WHERE id = ?",
@@ -3908,6 +3917,13 @@ class AccountControllerTest extends IntegrationTestCase
         $this->assertIsArray($row);
         $this->assertNull($row['pending_password_hash']);
         $this->assertNull($row['security_confirm_token_hash']);
+
+        // Tous les appareils de confiance supprimés
+        $deviceCount = self::$db->fetchOne(
+            "SELECT COUNT(*) AS cnt FROM trusted_devices WHERE user_id = ?",
+            [$userId]
+        );
+        $this->assertSame(0, (int) $deviceCount['cnt']);
     }
 
     /**
