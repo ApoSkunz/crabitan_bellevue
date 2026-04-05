@@ -2,6 +2,21 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.37.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.37.0...v0.37.1) (2026-04-05)
+
+
+### Bug Fixes
+
+* **security:** anti-énumération requestEmailChange — retour silencieux si email pris ([45a9958](https://github.com/ApoSkunz/crabitan_bellevue/commit/45a9958d98d6b822ed1ed0dcb173f06d91976155))
+* **security:** anti-énumération UI — masquer pending/form immédiatement après soumission ([6d99e64](https://github.com/ApoSkunz/crabitan_bellevue/commit/6d99e64ef126ee43ed61acd724ba3ec12b07915d))
+* **security:** anti-énumération UI — sauvegarder pending sans token si email déjà pris ([bf79108](https://github.com/ApoSkunz/crabitan_bellevue/commit/bf79108ae9b70377cb0c90e4c0d7e9ceb40d3006))
+* **view,test:** profil — pending block identique email pris/libre + TU/TI mis à jour ([d4eac29](https://github.com/ApoSkunz/crabitan_bellevue/commit/d4eac29ccc793593bce4e480fa393fd1d854da04))
+* **view:** profil — flash email change affiché avant le bloc pending (toujours visible) ([51e8870](https://github.com/ApoSkunz/crabitan_bellevue/commit/51e8870a780f9a5151d3bb1dc4c63ba36a9e6eb6))
+* **view:** profil — flash email change affiché dans la section, pas en haut de page ([4db6921](https://github.com/ApoSkunz/crabitan_bellevue/commit/4db6921a1386a752b93ceb1aef941c5f39170f3b))
+* **view:** profil — formulaire email change reste visible après soumission + flash inline ([b0a48eb](https://github.com/ApoSkunz/crabitan_bellevue/commit/b0a48eb3a71f75942f28fdd12d391dac3f05dabf))
+* **view:** profil — masquer formulaire email après soumission + supprimer texte intro ([e95ba22](https://github.com/ApoSkunz/crabitan_bellevue/commit/e95ba221b2263123cb1f2286e41cdc2bc3caa743))
+* **view:** profil — redirect vers #email-change après soumission (scroll auto sur la section) ([4e1097a](https://github.com/ApoSkunz/crabitan_bellevue/commit/4e1097aed5193385af661b98fef9b904a1f765cb)), closes [#email-change](https://github.com/ApoSkunz/crabitan_bellevue/issues/email-change)
+
 # [0.37.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.36.0...v0.37.0) (2026-04-05)
 
 
