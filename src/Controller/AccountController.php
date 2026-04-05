@@ -14,6 +14,7 @@ use Model\ConnectionModel;
 use Model\FavoriteModel;
 use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
+use Model\OrderAddressSnapshotModel;
 use Model\OrderModel;
 use Service\AccountService;
 use Service\MailService;
@@ -41,6 +42,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     private OrderModel $orders;
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
+    private OrderAddressSnapshotModel $orderAddressSnapshots;
     private DeviceConfirmTokenModel $deviceConfirmTokens;
     private RateLimiterService $rateLimiter;
 
@@ -52,8 +54,9 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $this->favorites           = new FavoriteModel();
         $this->orders              = new OrderModel();
         $this->connections         = new ConnectionModel();
-        $this->trustedDevices      = new TrustedDeviceModel();
-        $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
+        $this->trustedDevices          = new TrustedDeviceModel();
+        $this->orderAddressSnapshots   = new OrderAddressSnapshotModel();
+        $this->deviceConfirmTokens     = new DeviceConfirmTokenModel();
         $this->rateLimiter         = new RateLimiterService();
     }
 
@@ -1611,10 +1614,11 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $addresses      = $this->addresses->getByUser($userId);
         $favorites      = $this->favorites->getByUser($userId);
         $orders         = $this->orders->getForUser($userId, 1, 9999);
-        $trustedDevices = $this->trustedDevices->getForExport($userId);
-        $sessions       = $this->connections->getActiveForUser($userId);
-        $recentLogs     = $this->connections->getRecentForUser($userId);
-        $consentData    = $this->accounts->getConsentData($userId);
+        $trustedDevices  = $this->trustedDevices->getForExport($userId);
+        $sessions        = $this->connections->getActiveForUser($userId);
+        $recentLogs      = $this->connections->getRecentForUser($userId);
+        $consentData     = $this->accounts->getConsentData($userId);
+        $addressSnapshots = $this->orderAddressSnapshots->getForUserExport($userId);
 
         return [
             'exported_at' => date('c'),
@@ -1677,6 +1681,19 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 ],
                 'cgv_versions_acceptees' => $consentData['cgv_versions'],
             ],
+            'adresses_commandes' => array_map(fn($s) => [
+                'order_reference' => $s['order_reference'],
+                'address_type'    => $s['address_type'],
+                'civility'        => $s['civility'],
+                'firstname'       => $s['firstname'],
+                'lastname'        => $s['lastname'],
+                'street'          => $s['street'],
+                'city'            => $s['city'],
+                'zip'             => $s['zip'],
+                'country'         => $s['country'],
+                'phone'           => $s['phone'],
+                'ordered_at'      => $s['ordered_at'],
+            ], $addressSnapshots),
         ];
     }
 
@@ -1781,6 +1798,21 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 . '<td>' . htmlspecialchars($a['zip_code'] . ' ' . $a['city']) . '</td>'
                 . '<td>' . htmlspecialchars($a['country']) . '</td></tr>',
             'Aucune adresse.'
+        );
+
+        /** @var array<int, array<string, mixed>> $adressesCommandes */
+        $adressesCommandes = $export['adresses_commandes'] ?? [];
+        $h .= $this->buildPdfTableSection(
+            'Adresses utilisées sur commandes',
+            $adressesCommandes,
+            '<tr><th>Commande</th><th>Type</th><th>Nom</th><th>Adresse</th><th>Ville</th><th>Pays</th></tr>',
+            static fn(array $s) => '<tr><td>' . htmlspecialchars($s['order_reference'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars($s['address_type'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars(($s['firstname'] ?? '') . ' ' . ($s['lastname'] ?? '')) . '</td>'
+                . '<td>' . htmlspecialchars($s['street'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars(($s['zip'] ?? '') . ' ' . ($s['city'] ?? '')) . '</td>'
+                . '<td>' . htmlspecialchars($s['country'] ?? '—') . '</td></tr>',
+            'Aucune adresse de commande.'
         );
 
         $h .= $this->buildPdfTableSection(

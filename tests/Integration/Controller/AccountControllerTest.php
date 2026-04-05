@@ -3103,10 +3103,12 @@ class AccountControllerTest extends IntegrationTestCase
         $this->assertArrayHasKey('connection_logs', $export, 'La clé connection_logs doit être présente');
         $this->assertArrayHasKey('consentements', $export, 'La clé consentements doit être présente');
         $this->assertArrayHasKey('trusted_devices', $export, 'La clé trusted_devices doit être présente');
+        $this->assertArrayHasKey('adresses_commandes', $export, 'La clé adresses_commandes doit être présente');
         $this->assertArrayHasKey('newsletter', $export['consentements']);
         $this->assertArrayHasKey('cgv_versions_acceptees', $export['consentements']);
         $this->assertIsArray($export['connection_logs']);
         $this->assertIsArray($export['trusted_devices']);
+        $this->assertIsArray($export['adresses_commandes']);
     }
 
     /**

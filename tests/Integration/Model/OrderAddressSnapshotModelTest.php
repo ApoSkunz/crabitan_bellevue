@@ -284,4 +284,145 @@ class OrderAddressSnapshotModelTest extends IntegrationTestCase
         $this->assertNotFalse($row);
         $this->assertSame(77, (int) $row['source_address_id']);
     }
+
+    // ----------------------------------------------------------------
+    // getForUserExport
+    // ----------------------------------------------------------------
+
+    /**
+     * Helper : crée un snapshot et une commande liée pour un user donné.
+     *
+     * @return array{snapshotId: int, orderId: int, reference: string}
+     */
+    private function createOrderWithSnapshot(int $userId, string $type = 'billing'): array
+    {
+        $snapshotId = $this->model->createFromAddress([
+            'firstname' => 'Jean', 'lastname' => 'Export',
+            'street' => '1 rue RGPD', 'city' => 'Paris',
+            'zip_code' => '75001', 'country' => 'France', 'phone' => '0600000001',
+        ]);
+
+        $reference = 'CBV-TEST-' . bin2hex(random_bytes(4));
+        $col       = $type === 'delivery' ? 'id_delivery_snapshot' : 'id_billing_snapshot';
+
+        $orderId = (int) self::$db->insert(
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method,
+                                  shipping_discount, {$col}, status, cgv_version)
+             VALUES (?, ?, '{}', 50.00, 'card', 0.00, ?, 'paid', '1.0')",
+            [$userId, $reference, $snapshotId]
+        );
+
+        return ['snapshotId' => $snapshotId, 'orderId' => $orderId, 'reference' => $reference];
+    }
+
+    /**
+     * getForUserExport() retourne les snapshots facturation liés aux commandes du user.
+     */
+    public function testGetForUserExportReturnsBillingSnapshots(): void
+    {
+        $userId   = (int) self::$db->insert(
+            "INSERT INTO accounts (email, lang, account_type) VALUES (?, 'fr', 'individual')",
+            ['export-snap@test.local']
+        );
+        $data = $this->createOrderWithSnapshot($userId, 'billing');
+
+        $rows = $this->model->getForUserExport($userId);
+
+        $references = array_column($rows, 'order_reference');
+        $this->assertContains($data['reference'], $references);
+
+        $row = current(array_filter($rows, fn($r) => $r['order_reference'] === $data['reference']));
+        $this->assertSame('facturation', $row['address_type']);
+        $this->assertSame('Jean', $row['firstname']);
+        $this->assertSame('Paris', $row['city']);
+    }
+
+    /**
+     * getForUserExport() retourne les snapshots livraison distincts (id_delivery_snapshot).
+     */
+    public function testGetForUserExportReturnsDeliverySnapshots(): void
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, lang, account_type) VALUES (?, 'fr', 'individual')",
+            ['export-snap-deliv@test.local']
+        );
+
+        // Créer d'abord un snapshot billing obligatoire
+        $billingId = $this->model->createFromAddress([
+            'firstname' => 'Billing', 'lastname' => 'Only', 'street' => '2 rue billing',
+            'city' => 'Lyon', 'zip_code' => '69001', 'country' => 'France', 'phone' => '',
+        ]);
+        $deliveryId = $this->model->createFromAddress([
+            'firstname' => 'Delivery', 'lastname' => 'Only', 'street' => '3 rue delivery',
+            'city' => 'Marseille', 'zip_code' => '13001', 'country' => 'France', 'phone' => '',
+        ]);
+
+        $reference = 'CBV-DELIV-' . bin2hex(random_bytes(4));
+        self::$db->insert(
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method,
+                                  shipping_discount, id_billing_snapshot, id_delivery_snapshot, status, cgv_version)
+             VALUES (?, ?, '{}', 60.00, 'card', 0.00, ?, ?, 'paid', '1.0')",
+            [$userId, $reference, $billingId, $deliveryId]
+        );
+
+        $rows  = $this->model->getForUserExport($userId);
+        $types = array_column(
+            array_filter($rows, fn($r) => $r['order_reference'] === $reference),
+            'address_type'
+        );
+
+        $this->assertContains('facturation', array_values($types));
+        $this->assertContains('livraison', array_values($types));
+    }
+
+    /**
+     * getForUserExport() retourne un tableau vide pour un user sans commande.
+     */
+    public function testGetForUserExportReturnsEmptyForUserWithNoOrders(): void
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, lang, account_type) VALUES (?, 'fr', 'individual')",
+            ['export-snap-empty@test.local']
+        );
+
+        $rows = $this->model->getForUserExport($userId);
+
+        $this->assertSame([], $rows);
+    }
+
+    /**
+     * getForUserExport() exclut les snapshots pseudonymisés (RGPD effacement).
+     */
+    public function testGetForUserExportExcludesPseudonymizedSnapshots(): void
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, lang, account_type) VALUES (?, 'fr', 'individual')",
+            ['export-snap-pseudo@test.local']
+        );
+
+        $snapshotId = $this->model->createFromAddress([
+            'firstname' => 'Ghost', 'lastname' => 'Data', 'street' => '0 rue pseudo',
+            'city' => 'Bordeaux', 'zip_code' => '33000', 'country' => 'France', 'phone' => '',
+        ]);
+        // Marquer comme pseudonymisé
+        self::$db->execute(
+            "UPDATE order_address_snapshots SET pseudonymized_at = NOW() WHERE id = ?",
+            [$snapshotId]
+        );
+
+        $reference = 'CBV-PSEUDO-' . bin2hex(random_bytes(4));
+        self::$db->insert(
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method,
+                                  shipping_discount, id_billing_snapshot, status, cgv_version)
+             VALUES (?, ?, '{}', 30.00, 'card', 0.00, ?, 'paid', '1.0')",
+            [$userId, $reference, $snapshotId]
+        );
+
+        $rows = $this->model->getForUserExport($userId);
+
+        $this->assertEmpty(
+            array_filter($rows, fn($r) => $r['order_reference'] === $reference),
+            'Un snapshot pseudonymisé ne doit pas figurer dans l\'export'
+        );
+    }
 }
