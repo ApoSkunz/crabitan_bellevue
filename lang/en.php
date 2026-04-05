@@ -55,6 +55,7 @@ return [
     'auth.reset_invalid'     => 'Invalid or expired reset link.',
     'auth.password_invalid'  => 'Password too short or passwords do not match.',
     'auth.password_updated'  => 'Password updated. You can now log in.',
+    'auth.session_expired'   => 'Your session has expired. Please sign in again.',
     'auth.forgot_instructions' => 'Enter your email address and we\'ll send you a reset link.',
     'auth.modal.or'          => 'or',
     'auth.modal.google'      => 'Continue with Google',

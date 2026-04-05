@@ -55,6 +55,7 @@ return [
     'auth.reset_invalid'     => 'Lien de réinitialisation invalide ou expiré.',
     'auth.password_invalid'  => 'Mot de passe trop court ou les mots de passe ne correspondent pas.',
     'auth.password_updated'  => 'Mot de passe mis à jour. Vous pouvez vous connecter.',
+    'auth.session_expired'   => 'Votre session a expiré. Veuillez vous reconnecter.',
     'auth.forgot_instructions' => 'Saisissez votre adresse email et nous vous enverrons un lien de réinitialisation.',
     'auth.modal.or'          => 'ou',
     'auth.modal.google'      => 'Continuer avec Google',
