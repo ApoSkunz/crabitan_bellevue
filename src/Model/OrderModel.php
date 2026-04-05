@@ -588,6 +588,22 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     }
 
     /**
+     * Retourne le nombre de commandes actives de l'utilisateur.
+     *
+     * @param  int $userId Identifiant du compte
+     * @return int
+     */
+    public function countActiveOrdersForUser(int $userId): int
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS cnt FROM {$this->table}
+             WHERE user_id = ? AND status IN ('pending','paid','processing','shipped')",
+            [$userId]
+        );
+        return (int) ($row['cnt'] ?? 0);
+    }
+
+    /**
      * Retourne les IDs d'adresses parmi celles fournies qui sont liées à une commande active.
      *
      * @param  array<int, int>  $addressIds
