@@ -148,6 +148,9 @@ $router->post('/{lang}/mon-compte/securite/appareils/retirer-confiance', 'Accoun
 $router->post('/{lang}/mon-compte/securite/reinitialiser', 'AccountController@resetSecurity');
 $router->post('/{lang}/mon-compte/securite/appareils/supprimer-toutes', 'AccountController@untrustAllDevices');
 $router->get('/{lang}/compte/reactiver', 'AccountController@reactivateAccount');
+$router->get('/{lang}/session-expiree', 'AuthController@sessionExpired');
+$router->get('/{lang}/securite/confirmer', 'AccountController@confirmSecurityAction');
+$router->get('/{lang}/securite/ce-netait-pas-moi', 'AccountController@denySecurityAction');
 $router->get('/{lang}/mon-compte/export', 'AccountController@exportPage');
 $router->get('/{lang}/mon-compte/export/telecharger', 'AccountController@exportData');
 $router->post('/{lang}/mon-compte/profil/changer-email', 'AccountController@requestEmailChange');
@@ -171,6 +174,7 @@ $router->post('/api/cart/update', 'Api\CartApiController@update');
 $router->post('/api/cart/remove', 'Api\CartApiController@remove');
 $router->post('/api/favorites/toggle', 'Api\FavoriteApiController@toggle');
 $router->get('/api/mfa/poll', 'Api\MfaController@poll');
+$router->get('/api/session/ping', 'Api\SessionApiController@ping');
 $router->post('/api/jeux/score', 'GameScoreController@save');
 $router->get('/api/jeux/score', 'GameScoreController@get');
 $router->get('/api/meteo', 'WeatherController@current');

@@ -55,6 +55,7 @@ return [
     'auth.reset_invalid'     => 'Lien de réinitialisation invalide ou expiré.',
     'auth.password_invalid'  => 'Mot de passe trop court ou les mots de passe ne correspondent pas.',
     'auth.password_updated'  => 'Mot de passe mis à jour. Vous pouvez vous connecter.',
+    'auth.session_expired'   => 'Votre session a expiré. Veuillez vous reconnecter.',
     'auth.forgot_instructions' => 'Saisissez votre adresse email et nous vous enverrons un lien de réinitialisation.',
     'auth.modal.or'          => 'ou',
     'auth.modal.google'      => 'Continuer avec Google',
@@ -185,6 +186,7 @@ return [
     'error.csrf'   => 'Requête invalide, veuillez réessayer.',
 
     // Formulaires
+    'common.close'          => 'Fermer',
     'form.lastname'         => 'Nom',
     'form.firstname'        => 'Prénom',
     'form.identity'                => 'Identité',
@@ -497,6 +499,7 @@ return [
     'account.wrong_current_password'   => 'Le mot de passe actuel est incorrect.',
     'account.password_same_as_current' => 'Le nouveau mot de passe doit être différent de l\'ancien.',
     'account.password_updated'         => 'Mot de passe mis à jour avec succès.',
+    'account.password_change_pending'  => 'Un email de confirmation vous a été envoyé. Votre mot de passe sera modifié uniquement après validation.',
     'account.active_sessions'    => 'Sessions actives',
     'account.no_sessions'        => 'Aucune session active.',
     'account.current_session'    => 'Session actuelle',
@@ -529,6 +532,25 @@ return [
     'account.device_last_seen'        => 'Dernière connexion le',
     'account.active_sessions_tab'     => 'Sessions actives',
     'account.trusted_devices_tab'     => 'Appareils de confiance',
+    'account.security_confirm_success_title'   => 'Changement de mot de passe confirmé',
+    // phpcs:ignore Generic.Files.LineLength
+    'account.security_confirm_success_body'    => 'Votre nouveau mot de passe est actif. Vos autres sessions ont été révoquées par mesure de sécurité. Reconnectez-vous.',
+    'account.security_confirm_error_title'     => 'Lien invalide ou expiré',
+    // phpcs:ignore Generic.Files.LineLength
+    'account.security_confirm_expired_body'    => 'Ce lien a expiré (validité 1 heure). Si vous n\'êtes pas à l\'origine de cette action, réinitialisez votre mot de passe immédiatement.',
+    'account.security_confirm_invalid_body'    => 'Ce lien est invalide ou a déjà été utilisé.',
+    'account.security_confirm_security_btn'    => 'Gérer la sécurité de mon compte',
+    'account.security_confirm_reset_btn'       => 'Réinitialiser mon mot de passe',
+    'account.security_confirm_login_btn'       => 'Se connecter',
+    'account.security_deny_success_title'      => 'Demande annulée — compte protégé',
+    // phpcs:ignore Generic.Files.LineLength
+    'account.security_deny_success_body'       => 'La demande de changement de mot de passe a été annulée. Toutes vos sessions actives ont été révoquées. Un email de confirmation vous a été envoyé.',
+    'account.security_deny_error_title'        => 'Lien invalide ou expiré',
+    // phpcs:ignore Generic.Files.LineLength
+    'account.security_deny_expired_body'       => 'Ce lien a expiré (validité 1 heure). Si vous pensez que votre compte est compromis, réinitialisez votre mot de passe.',
+    'account.security_deny_invalid_body'       => 'Ce lien est invalide ou a déjà été utilisé.',
+    'account.security_deny_login_btn'          => 'Se connecter',
+    'account.security_deny_reset_btn'          => 'Réinitialiser mon mot de passe',
     'account.reactivate_success_title' => 'Compte réactivé',
     'account.reactivate_success_body'  => 'Votre compte a été réactivé avec succès. Vous pouvez vous reconnecter.',
     'account.reactivate_error_title'   => 'Lien invalide ou expiré',

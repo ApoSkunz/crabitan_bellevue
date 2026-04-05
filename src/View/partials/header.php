@@ -354,6 +354,12 @@ document.addEventListener('DOMContentLoaded', function () {
             <button id="login-modal-close" class="login-modal__close" type="button" aria-label="Fermer">&times;</button>
         </div>
         <div class="login-modal__body">
+            <?php if ($flashInfo !== null) : ?>
+            <div class="login-modal__flash" role="alert" aria-live="polite">
+                <span class="login-modal__flash-msg"><?= htmlspecialchars($flashInfo) ?></span>
+                <button type="button" class="login-modal__flash-close" aria-label="<?= htmlspecialchars(__('common.close')) ?>" onclick="this.parentElement.remove()">&#10005;</button>
+            </div>
+            <?php endif; ?>
             <!-- Panel connexion -->
             <div id="login-panel">
                 <div class="login-modal__social">

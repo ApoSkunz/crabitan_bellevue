@@ -775,4 +775,137 @@ class AccountModelTest extends IntegrationTestCase
         $token = $this->model->getReactivationToken(999999);
         $this->assertNull($token);
     }
+
+    // ----------------------------------------------------------------
+    // savePendingPassword / applyPendingPassword / clearPendingPassword
+    // ----------------------------------------------------------------
+
+    /**
+     * savePendingPassword stocke le hash et applyPendingPassword le copie dans password.
+     *
+     * @return void
+     */
+    public function testSaveAndApplyPendingPassword(): void
+    {
+        $id          = (int) $this->createAccount('pending.apply@example.com');
+        $newHash     = password_hash('NewPassword1!', PASSWORD_BCRYPT);
+        $expiresAt   = date('Y-m-d H:i:s', time() + 3600);
+
+        $sessionToken = 'fake.jwt.token.for.test';
+        $this->model->savePendingPassword($id, $newHash, $expiresAt, $sessionToken);
+
+        // getPendingSessionToken retourne le token stocké
+        $this->assertSame($sessionToken, $this->model->getPendingSessionToken($id));
+
+        $affected = $this->model->applyPendingPassword($id);
+
+        $this->assertSame(1, $affected);
+        $account = $this->model->findById($id);
+        $this->assertIsArray($account);
+        $this->assertSame($newHash, $account['password']);
+        $this->assertNull($account['pending_password_hash']);
+        $this->assertNull($account['pending_password_session_token']);
+    }
+
+    /**
+     * applyPendingPassword retourne 0 si aucun pending n'est présent.
+     *
+     * @return void
+     */
+    public function testApplyPendingPasswordReturnZeroIfNoPending(): void
+    {
+        $id = (int) $this->createAccount('pending.noop@example.com');
+
+        $this->assertSame(0, $this->model->applyPendingPassword($id));
+    }
+
+    /**
+     * clearPendingPassword efface le pending sans l'appliquer.
+     *
+     * @return void
+     */
+    public function testClearPendingPasswordErasesWithoutApplying(): void
+    {
+        $id        = (int) $this->createAccount('pending.clear@example.com');
+        $original  = $this->model->findById($id);
+        $this->assertIsArray($original);
+        $origPwd   = $original['password'];
+
+        $this->model->savePendingPassword($id, password_hash('ToClear1!', PASSWORD_BCRYPT), date('Y-m-d H:i:s', time() + 3600), 'session.token.test');
+        $this->model->clearPendingPassword($id);
+
+        $account = $this->model->findById($id);
+        $this->assertIsArray($account);
+        $this->assertSame($origPwd, $account['password']);
+        $this->assertNull($account['pending_password_hash']);
+        $this->assertNull($account['pending_password_session_token']);
+    }
+
+    // ----------------------------------------------------------------
+    // saveSecurityConfirmToken / findBySecurityConfirmToken / consumeSecurityConfirmToken
+    // ----------------------------------------------------------------
+
+    /**
+     * saveSecurityConfirmToken stocke le hash et findBySecurityConfirmToken le retrouve.
+     *
+     * @return void
+     */
+    public function testSaveAndFindSecurityConfirmToken(): void
+    {
+        $id   = (int) $this->createAccount('sec.confirm@example.com');
+        $raw  = bin2hex(random_bytes(16));
+        $hash = hash('sha256', $raw);
+
+        $this->model->saveSecurityConfirmToken($id, $hash, date('Y-m-d H:i:s', time() + 3600));
+
+        $result = $this->model->findBySecurityConfirmToken($hash);
+        $this->assertIsArray($result);
+        $this->assertSame('sec.confirm@example.com', $result['email']);
+    }
+
+    /**
+     * findBySecurityConfirmToken retourne false si le token est inconnu.
+     *
+     * @return void
+     */
+    public function testFindBySecurityConfirmTokenReturnsFalseIfUnknown(): void
+    {
+        $this->assertFalse($this->model->findBySecurityConfirmToken('unknown-hash'));
+    }
+
+    /**
+     * findBySecurityConfirmToken retourne false si le token est expiré.
+     *
+     * @return void
+     */
+    public function testFindBySecurityConfirmTokenReturnsFalseIfExpired(): void
+    {
+        $id   = (int) $this->createAccount('sec.expired@example.com');
+        $raw  = bin2hex(random_bytes(16));
+        $hash = hash('sha256', $raw);
+
+        // TTL dans le passé
+        $this->model->saveSecurityConfirmToken($id, $hash, date('Y-m-d H:i:s', time() - 1));
+
+        $this->assertFalse($this->model->findBySecurityConfirmToken($hash));
+    }
+
+    /**
+     * consumeSecurityConfirmToken invalide le token — findBySecurityConfirmToken retourne false.
+     *
+     * @return void
+     */
+    public function testConsumeSecurityConfirmTokenInvalidatesIt(): void
+    {
+        $id   = (int) $this->createAccount('sec.consume@example.com');
+        $raw  = bin2hex(random_bytes(16));
+        $hash = hash('sha256', $raw);
+
+        $this->model->saveSecurityConfirmToken($id, $hash, date('Y-m-d H:i:s', time() + 3600));
+        $this->assertIsArray($this->model->findBySecurityConfirmToken($hash));
+
+        $this->model->consumeSecurityConfirmToken($id);
+
+        $this->assertFalse($this->model->findBySecurityConfirmToken($hash));
+    }
 }

@@ -736,6 +736,42 @@
 
 // ---- Toast notification ----
 
+// ---- Flash info dans la modale connexion ----
+// Rendu par header.php quand $_SESSION['flash']['info'] est défini
+// La modale s'ouvre automatiquement via window.__flashInfo en JS
+
+.login-modal__flash {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background-color: color-mix(in srgb, var(--color-gold) 12%, transparent);
+    border: 1px solid var(--color-border-gold);
+    border-radius: 4px;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    line-height: 1.45;
+
+    &-msg {
+        flex: 1;
+    }
+
+    &-close {
+        flex-shrink: 0;
+        background: none;
+        border: none;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        padding: 0;
+        font-size: 1rem;
+        line-height: 1;
+        transition: color 150ms;
+
+        &:hover { color: var(--color-gold); }
+    }
+}
+
 .cb-toast {
     position: fixed;
     top: 50%;

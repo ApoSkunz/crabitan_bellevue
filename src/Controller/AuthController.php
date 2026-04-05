@@ -296,6 +296,23 @@ class AuthController extends Controller
     }
 
     // ----------------------------------------------------------------
+    // GET /{lang}/session-expiree
+    // ----------------------------------------------------------------
+
+    /**
+     * Pose un flash "session expirée" et redirige vers l'accueil.
+     * Appelé par le polling BroadcastChannel côté client après détection de révocation.
+     *
+     * @param  array<string, mixed> $params Paramètres de route (lang)
+     * @return never
+     */
+    public function sessionExpired(array $params): never
+    {
+        $_SESSION['flash']['info'] = __('auth.session_expired');
+        Response::redirect('/' . $params['lang']);
+    }
+
+    // ----------------------------------------------------------------
     // POST /{lang}/inscription
     // ----------------------------------------------------------------
 

@@ -18,7 +18,8 @@ class MailService
     private const URL_PRIVACY = '/fr/politique-de-confidentialite';
     private const URL_LEGAL   = '/fr/mentions-legales';
     private const URL_SUPPORT = '/fr/support';
-    private const URL_CGV     = '/fr/conditions-generales-de-vente';
+    private const URL_CGV        = '/fr/conditions-generales-de-vente';
+    private const DATE_FORMAT_FR = 'd/m/Y à H:i';
 
     private PHPMailer $mailer;
 
@@ -376,47 +377,150 @@ class MailService
      * @param string $lang Langue du destinataire ('fr' ou 'en')
      * @return void
      */
-    public function sendPasswordChangedAlert(string $to, string $name, string $lang): void
-    {
+    /**
+     * Envoie une alerte de changement de mot de passe avec boutons "C'était moi" / "Ce n'était pas moi".
+     *
+     * @param  string $to           Adresse email du destinataire
+     * @param  string $name         Nom d'affichage
+     * @param  string $lang         Langue ('fr' ou 'en')
+     * @param  string $confirmToken Token brut (non haché) pour le bouton "C'était moi", vide si non généré
+     * @return void
+     */
+    /**
+     * Envoie la demande de confirmation de changement de mot de passe.
+     * Le mot de passe n'est PAS encore modifié — il sera appliqué uniquement après clic sur "C'était moi".
+     *
+     * @param string $to           Destinataire
+     * @param string $name         Nom affiché
+     * @param string $lang         Langue (fr|en)
+     * @param string $confirmToken Token brut (non haché) pour les deux CTAs
+     * @return void
+     */
+    public function sendPasswordChangeConfirmation(
+        string $to,
+        string $name,
+        string $lang,
+        string $confirmToken = ''
+    ): void {
         $subject = $lang === 'fr'
-            ? 'Modification de votre mot de passe'
-            : 'Your password has been changed';
+            ? 'Confirmez votre changement de mot de passe'
+            : 'Confirm your password change';
 
-        $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
-        $securityUrl = htmlspecialchars($appUrl . '/' . $lang . self::PATH_SECURITY, ENT_QUOTES);
-        $safeName    = htmlspecialchars($name, ENT_QUOTES);
-        $safeDate    = htmlspecialchars(date('d/m/Y à H:i'), ENT_QUOTES);
-        $contactUrl  = htmlspecialchars($appUrl . '/' . $lang . '/contact', ENT_QUOTES);
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
 
-        $manageLabel = $lang === 'fr' ? 'Gérer la sécurité de mon compte' : 'Manage my account security';
+        $confirmUrl = $confirmToken !== ''
+            ? htmlspecialchars(
+                $appUrl . '/' . $lang . '/securite/confirmer?token=' . urlencode($confirmToken),
+                ENT_QUOTES
+            )
+            : '';
+        $denyUrl = $confirmToken !== ''
+            ? htmlspecialchars(
+                $appUrl . '/' . $lang . '/securite/ce-netait-pas-moi?token=' . urlencode($confirmToken),
+                ENT_QUOTES
+            )
+            : htmlspecialchars($appUrl . '/' . $lang . '/mot-de-passe-oublie', ENT_QUOTES);
 
-        $ctaBlock = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
-            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$securityUrl}\" style=\"display:inline-block;padding:14px 36px;"
-            . self::BTN_STYLE_PRIMARY
-            . self::BTN_STYLE_LINK
-            . $manageLabel
-            . '</a></td></tr></table>';
+        $confirmLabel = $lang === 'fr' ? 'C\'était moi — Appliquer le changement' : 'This was me — Apply the change';
+        $notMeLabel   = $lang === 'fr'
+            ? 'Ce n\'était pas moi — Bloquer et révoquer mes sessions'
+            : 'This wasn\'t me — Block and revoke my sessions';
+
+        $ctaBlock = $confirmUrl !== ''
+            ? '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
+              . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+              . "<a href=\"{$confirmUrl}\" style=\"display:inline-block;padding:14px 36px;"
+              . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK . $confirmLabel
+              . '</a></td></tr></table>'
+              . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+              . '<tr><td>'
+              . "<a href=\"{$denyUrl}\" style=\"display:inline-block;padding:10px 24px;"
+              . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;'
+              . 'color:#c0392b;text-decoration:underline;">'
+              . $notMeLabel
+              . '</a></td></tr></table>'
+            : '';
 
         if ($lang === 'fr') {
-            $message = "Votre mot de passe a été modifié le <strong>{$safeDate}</strong>.<br><br>"
-                . 'Si vous êtes à l\'origine de cette modification, vous pouvez ignorer cet email.<br><br>'
-                . 'Si vous n\'avez pas effectué cette modification, votre compte est peut-être compromis.'
-                . ' Veuillez <a href="' . $contactUrl . '" style="color:#c9a84c;">contacter notre support</a>'
-                . ' immédiatement.<br><br>'
+            $message = "Une demande de changement de mot de passe a été initiée le <strong>{$safeDate}</strong>"
+                . ' depuis votre compte.<br><br>'
+                . '<strong>Votre mot de passe n\'a pas encore été modifié.</strong>'
+                . ' Cliquez sur "C\'était moi" pour appliquer le changement.<br><br>'
+                . 'Si vous n\'êtes pas à l\'origine de cette demande, cliquez sur "Ce n\'était pas moi"'
+                . ' — la demande sera annulée et toutes vos sessions révoquées immédiatement.'
+                . '<br><br>'
                 . $ctaBlock;
             $body = $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message, 'fr');
         } else {
-            $message = "Your password was changed on <strong>{$safeDate}</strong>.<br><br>"
-                . 'If you made this change, you can safely ignore this email.<br><br>'
-                . 'If you did not make this change, your account may be compromised.'
-                . ' Please <a href="' . $contactUrl . '" style="color:#c9a84c;">contact our support team</a>'
-                . ' immediately.<br><br>'
+            $message = "A password change request was initiated on <strong>{$safeDate}</strong>"
+                . ' from your account.<br><br>'
+                . '<strong>Your password has not been changed yet.</strong>'
+                . ' Click "This was me" to apply the change.<br><br>'
+                . 'If you did not initiate this request, click "This wasn\'t me"'
+                . ' — the request will be cancelled and all your sessions immediately revoked.'
+                . '<br><br>'
                 . $ctaBlock;
             $body = $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message, 'en');
         }
 
         $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Alerte de sécurité après refus du changement de mot de passe ("Ce n'était pas moi") :
+     * confirme que la demande a été annulée et les sessions révoquées.
+     *
+     * @param string $to   Destinataire
+     * @param string $lang Langue (fr|en)
+     * @return void
+     */
+    public function sendPasswordChangeDenied(string $to, string $lang): void
+    {
+        $subject  = $lang === 'fr'
+            ? 'Sécurité — Demande de changement de mot de passe annulée'
+            : 'Security — Password change request cancelled';
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
+        $loginUrl = htmlspecialchars($appUrl . '/' . $lang . '/connexion', ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $message = "La demande de changement de mot de passe du <strong>{$safeDate}</strong>"
+                . ' a bien été annulée.<br><br>'
+                . 'Toutes vos sessions actives ont été révoquées par mesure de sécurité.<br><br>'
+                . 'Si vous pensez que votre compte est compromis, réinitialisez votre mot de passe'
+                . ' depuis la page de connexion.<br><br>'
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$loginUrl}\" style=\"display:inline-block;padding:14px 36px;"
+                . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK . 'Se connecter'
+                . '</a></td></tr></table>';
+            $body = $this->emailSimpleLayout(
+                'Alerte de sécurité',
+                'Votre compte est protégé.',
+                $message,
+                'fr'
+            );
+        } else {
+            $message = "The password change request from <strong>{$safeDate}</strong>"
+                . ' has been cancelled.<br><br>'
+                . 'All your active sessions have been revoked as a security measure.<br><br>'
+                . 'If you believe your account is compromised, reset your password from the sign-in page.<br><br>'
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$loginUrl}\" style=\"display:inline-block;padding:14px 36px;"
+                . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK . 'Sign in'
+                . '</a></td></tr></table>';
+            $body = $this->emailSimpleLayout(
+                'Security alert',
+                'Your account is protected.',
+                $message,
+                'en'
+            );
+        }
+
+        $this->send($to, $to, $subject, $body);
     }
 
     public function sendNewDeviceAlert(
@@ -448,7 +552,7 @@ class MailService
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
         $safeDevice  = htmlspecialchars($deviceName, ENT_QUOTES);
         $safeIp      = htmlspecialchars($ipAddress ?? 'N/A', ENT_QUOTES);
-        $safeDate    = htmlspecialchars(date('d/m/Y à H:i'), ENT_QUOTES);
+        $safeDate    = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
 
         $infoBlock = '<table role="presentation" cellpadding="0" cellspacing="0"'
             . ' style="width:100%;margin-bottom:24px;">'
@@ -1796,13 +1900,18 @@ HTML;
         string $urlCgv,
         string $lang = 'fr'
     ): string {
-        $year    = date('Y');
-        $mention = $lang === 'fr'
+        $year     = date('Y');
+        $mention  = $lang === 'fr'
             ? "L'abus d'alcool est dangereux pour la santé. À consommer avec modération."
             : 'Alcohol abuse is dangerous for your health. To be consumed in moderation.';
-        $autoMsg = $lang === 'fr'
+        $autoMsg  = $lang === 'fr'
             ? 'Ce mail est généré automatiquement. Veuillez ne pas y répondre.'
             : 'This email was generated automatically. Please do not reply.';
+        $phishing = $lang === 'fr'
+            // phpcs:ignore Generic.Files.LineLength
+            ? 'Château Crabitan Bellevue ne vous demandera jamais votre mot de passe ni vos coordonnées bancaires par email.'
+            // phpcs:ignore Generic.Files.LineLength
+            : 'Château Crabitan Bellevue will never ask for your password or banking details by email.';
         return <<<HTML
           <tr>
             <td align="center" style="padding-top:24px;">
@@ -1829,6 +1938,9 @@ HTML;
               </p>
               <p style="margin:0 0 6px;font-size:11px;color:#a89880;letter-spacing:1px;">
                 © {$year} Château Crabitan Bellevue — Sainte-Croix-du-Mont, Gironde
+              </p>
+              <p style="margin:0 0 6px;font-size:10px;color:#b8aa95;font-style:italic;">
+                {$phishing}
               </p>
               <p style="margin:0;font-size:10px;color:#b8aa95;">
                 {$autoMsg}

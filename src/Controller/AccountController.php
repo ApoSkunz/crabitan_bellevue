@@ -22,11 +22,13 @@ use Service\PaymentService;
 
 class AccountController extends Controller // NOSONAR — php:S1448 : découpage prévu à l'audit génie logiciel
 {
-    private const PER_PAGE          = 10;
-    private const VALID_PER_PAGES   = [10, 25, 50];
-    private const VIEW_REACTIVATE   = 'account/reactivate';
-    private const VIEW_UNSUBSCRIBE  = 'account/unsubscribe';
-    private const DATE_FORMAT       = 'd/m/Y';
+    private const PER_PAGE               = 10;
+    private const VALID_PER_PAGES        = [10, 25, 50];
+    private const VIEW_REACTIVATE        = 'account/reactivate';
+    private const VIEW_UNSUBSCRIBE       = 'account/unsubscribe';
+    private const VIEW_SECURITY_CONFIRM  = 'account/security-confirm';
+    private const VIEW_SECURITY_DENY     = 'account/security-deny';
+    private const DATE_FORMAT            = 'd/m/Y';
 
     private AccountModel $accounts;
     private AddressModel $addresses;
@@ -800,25 +802,32 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             Response::redirect($back);
         }
 
-        $this->accounts->updatePassword($userId, password_hash($new, PASSWORD_BCRYPT));
+        $pendingHash    = password_hash($new, PASSWORD_BCRYPT);
+        $expiresAt      = date('Y-m-d H:i:s', time() + 3600);
+        $sessionToken   = $_COOKIE['auth_token'] ?? '';
+        $this->accounts->savePendingPassword($userId, $pendingHash, $expiresAt, $sessionToken);
 
-        // Notification de sécurité par email (non bloquante)
+        // Email de confirmation : le MDP ne sera appliqué qu'après clic sur "C'était moi"
         // $account est garanti non-null ici (la validation l'a vérifié au-dessus)
         if ($account && isset($account['email'])) {
             $notifName = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
                 ?: ($account['company_name'] ?? 'Client');
+            $rawToken  = bin2hex(random_bytes(32));
+            $tokenHash = hash('sha256', $rawToken);
+            $this->accounts->saveSecurityConfirmToken($userId, $tokenHash, $expiresAt);
             try {
-                (new \Service\MailService())->sendPasswordChangedAlert(
+                (new \Service\MailService())->sendPasswordChangeConfirmation(
                     (string) $account['email'],
                     (string) $notifName,
-                    $lang
+                    $lang,
+                    $rawToken
                 );
             } catch (\Throwable) {
-                // L'envoi de l'email ne bloque pas le changement de mot de passe
+                // L'envoi de l'email ne bloque pas la demande de changement
             }
         }
 
-        $_SESSION['flash']['security_success'] = __('account.password_updated');
+        $_SESSION['flash']['security_success'] = __('account.password_change_pending');
         Response::redirect($back);
     }
 
@@ -1340,6 +1349,104 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         CookieHelper::clear();
 
         Response::redirect("/{$lang}");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/securite/confirmer?token=xxx
+    // ----------------------------------------------------------------
+
+    /**
+     * Confirme un changement de mot de passe en attente ("C'était moi") :
+     * applique le pending password et révoque toutes les sessions actives.
+     * Token à usage unique (TTL 1h). Accessible sans authentification.
+     *
+     * @param  array<string, mixed> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function confirmSecurityAction(array $params): void
+    {
+        $lang  = $params['lang'];
+        $token = $this->request->get('token', '');
+
+        if ($token === '') {
+            $this->view(self::VIEW_SECURITY_CONFIRM, ['lang' => $lang, 'success' => false, 'expired' => false]);
+            return;
+        }
+
+        $hash    = hash('sha256', $token);
+        $account = $this->accounts->findBySecurityConfirmToken($hash);
+
+        if ($account === false) {
+            $this->view(self::VIEW_SECURITY_CONFIRM, ['lang' => $lang, 'success' => false, 'expired' => true]);
+            return;
+        }
+
+        $userId = (int) $account['id'];
+
+        // Récupère le token de session à l'origine de la demande avant d'appliquer le pending
+        $requestingToken = $this->accounts->getPendingSessionToken($userId);
+
+        $this->accounts->applyPendingPassword($userId);
+        $this->accounts->consumeSecurityConfirmToken($userId);
+
+        // Révocation ciblée : uniquement la session qui a initié la demande + son trusted device
+        if ($requestingToken !== null && $requestingToken !== '') {
+            $deviceToken = $this->connections->getDeviceTokenByToken($requestingToken);
+            $this->connections->revoke($requestingToken);
+            if ($deviceToken !== null) {
+                $this->trustedDevices->untrust($userId, $deviceToken);
+            }
+        }
+
+        $this->view(self::VIEW_SECURITY_CONFIRM, ['lang' => $lang, 'success' => true, 'expired' => false]);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/securite/ce-netait-pas-moi?token=xxx
+    // ----------------------------------------------------------------
+
+    /**
+     * Annule un changement de mot de passe en attente ("Ce n'était pas moi") :
+     * purge le pending password et révoque toutes les sessions actives.
+     * Token à usage unique (TTL 1h). Accessible sans authentification.
+     *
+     * @param  array<string, mixed> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function denySecurityAction(array $params): void
+    {
+        $lang  = $params['lang'];
+        $token = $this->request->get('token', '');
+
+        if ($token === '') {
+            $this->view(self::VIEW_SECURITY_DENY, ['lang' => $lang, 'success' => false, 'expired' => false]);
+            return;
+        }
+
+        $hash    = hash('sha256', $token);
+        $account = $this->accounts->findBySecurityConfirmToken($hash);
+
+        if ($account === false) {
+            $this->view(self::VIEW_SECURITY_DENY, ['lang' => $lang, 'success' => false, 'expired' => true]);
+            return;
+        }
+
+        $userId = (int) $account['id'];
+        $this->accounts->clearPendingPassword($userId);
+        $this->accounts->revokeAllSessions($userId);
+        $this->trustedDevices->deleteAllForUser($userId);
+        $this->accounts->consumeSecurityConfirmToken($userId);
+
+        try {
+            (new \Service\MailService())->sendPasswordChangeDenied(
+                (string) $account['email'],
+                (string) $account['lang']
+            );
+        } catch (\Throwable) {
+            // L'envoi ne bloque pas la révocation
+        }
+
+        $this->view(self::VIEW_SECURITY_DENY, ['lang' => $lang, 'success' => true, 'expired' => false]);
     }
 
     // ----------------------------------------------------------------

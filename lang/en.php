@@ -55,6 +55,7 @@ return [
     'auth.reset_invalid'     => 'Invalid or expired reset link.',
     'auth.password_invalid'  => 'Password too short or passwords do not match.',
     'auth.password_updated'  => 'Password updated. You can now log in.',
+    'auth.session_expired'   => 'Your session has expired. Please sign in again.',
     'auth.forgot_instructions' => 'Enter your email address and we\'ll send you a reset link.',
     'auth.modal.or'          => 'or',
     'auth.modal.google'      => 'Continue with Google',
@@ -185,6 +186,7 @@ return [
     'error.csrf'   => 'Invalid request, please try again.',
 
     // Forms
+    'common.close'          => 'Close',
     'form.lastname'         => 'Last name',
     'form.firstname'        => 'First name',
     'form.identity'                => 'Identity',
@@ -495,6 +497,7 @@ return [
     'account.wrong_current_password'   => 'The current password is incorrect.',
     'account.password_same_as_current' => 'The new password must be different from the current one.',
     'account.password_updated'         => 'Password updated successfully.',
+    'account.password_change_pending'  => 'A confirmation email has been sent. Your password will only be changed after validation.',
     'account.active_sessions'    => 'Active sessions',
     'account.no_sessions'        => 'No active sessions.',
     'account.current_session'    => 'Current session',
@@ -527,6 +530,25 @@ return [
     'account.device_last_seen'        => 'Last sign-in on',
     'account.active_sessions_tab'     => 'Active sessions',
     'account.trusted_devices_tab'     => 'Trusted devices',
+    'account.security_confirm_success_title'   => 'Password change confirmed',
+    // phpcs:ignore Generic.Files.LineLength
+    'account.security_confirm_success_body'    => 'Your new password is now active. All other sessions have been revoked as a security measure. Please sign in again.',
+    'account.security_confirm_error_title'     => 'Invalid or expired link',
+    // phpcs:ignore Generic.Files.LineLength
+    'account.security_confirm_expired_body'    => 'This link has expired (valid for 1 hour). If you did not perform this action, reset your password immediately.',
+    'account.security_confirm_invalid_body'    => 'This link is invalid or has already been used.',
+    'account.security_confirm_security_btn'    => 'Manage my account security',
+    'account.security_confirm_reset_btn'       => 'Reset my password',
+    'account.security_confirm_login_btn'       => 'Sign in',
+    'account.security_deny_success_title'      => 'Request cancelled — account protected',
+    // phpcs:ignore Generic.Files.LineLength
+    'account.security_deny_success_body'       => 'The password change request has been cancelled. All your active sessions have been revoked. A confirmation email has been sent.',
+    'account.security_deny_error_title'        => 'Invalid or expired link',
+    // phpcs:ignore Generic.Files.LineLength
+    'account.security_deny_expired_body'       => 'This link has expired (valid for 1 hour). If you think your account is compromised, reset your password.',
+    'account.security_deny_invalid_body'       => 'This link is invalid or has already been used.',
+    'account.security_deny_login_btn'          => 'Sign in',
+    'account.security_deny_reset_btn'          => 'Reset my password',
     'account.reactivate_success_title' => 'Account reactivated',
     'account.reactivate_success_body'  => 'Your account has been successfully reactivated. You can now log in.',
     'account.reactivate_error_title'   => 'Invalid or expired link',
