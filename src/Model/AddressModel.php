@@ -6,6 +6,13 @@ namespace Model;
 
 use Core\Model;
 
+/**
+ * Gestion des adresses de facturation et de livraison d'un compte utilisateur.
+ *
+ * Implémente la logique de soft-delete différenciée :
+ * - adresse liée à une commande (snapshot) → deleted_at = NOW()
+ * - adresse jamais utilisée dans une commande → suppression physique
+ */
 class AddressModel extends Model
 {
     protected string $table = 'addresses';
@@ -13,17 +20,31 @@ class AddressModel extends Model
     private const VALID_TYPES = ['billing', 'delivery'];
 
     /**
+     * Retourne les adresses sauvegardées et non supprimées de l'utilisateur.
+     *
+     * Les adresses soft-deleted (deleted_at IS NOT NULL) sont exclues.
+     *
+     * @param int $userId Identifiant de l'utilisateur
      * @return array<int, array<string, mixed>>
      */
     public function getByUser(int $userId): array
     {
         return $this->db->fetchAll(
-            "SELECT * FROM {$this->table} WHERE user_id = ? AND saved = 1 AND deleted_at IS NULL ORDER BY type ASC, id ASC",
+            "SELECT * FROM {$this->table}
+             WHERE user_id = ? AND saved = 1 AND deleted_at IS NULL
+             ORDER BY type ASC, id ASC",
             [$userId]
         );
     }
 
     /**
+     * Retourne une adresse active par son identifiant et son propriétaire.
+     *
+     * Les adresses soft-deleted (deleted_at IS NOT NULL) sont exclues :
+     * elles ne doivent plus être utilisables dans de nouvelles commandes.
+     *
+     * @param int $id     Identifiant de l'adresse
+     * @param int $userId Identifiant de l'utilisateur
      * @return array<string, mixed>|null
      */
     public function findByIdForUser(int $id, int $userId): ?array
@@ -89,6 +110,21 @@ class AddressModel extends Model
         return (int) $id;
     }
 
+    /**
+     * Met à jour les données d'une adresse appartenant à l'utilisateur.
+     *
+     * @param int    $id        Identifiant de l'adresse
+     * @param int    $userId    Identifiant du propriétaire (contrôle d'accès)
+     * @param string $firstname Prénom
+     * @param string $lastname  Nom
+     * @param string $civility  'M', 'F' ou 'other'
+     * @param string $street    Rue
+     * @param string $city      Ville
+     * @param string $zipCode   Code postal
+     * @param string $country   Pays
+     * @param string $phone     Téléphone
+     * @return void
+     */
     public function update( // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
         int $id,
         int $userId,
@@ -111,6 +147,7 @@ class AddressModel extends Model
     }
 
     /**
+<<<<<<< HEAD
      * Supprime une adresse pour un utilisateur.
      *
      * - Hard-delete si l'adresse n'a jamais été utilisée dans une commande (aucun snapshot).
@@ -119,12 +156,47 @@ class AddressModel extends Model
      *
      * @param int $id     Identifiant de l'adresse
      * @param int $userId Identifiant du propriétaire (sécurité IDOR)
+=======
+     * Vérifie si une adresse a été utilisée dans une commande via un snapshot.
+     *
+     * Consulte `order_address_snapshots.source_address_id` pour déterminer
+     * si cette adresse a déjà été snapshotée (commande passée, active ou archivée).
+     *
+     * @param int $id Identifiant de l'adresse
+     * @return bool true si l'adresse est référencée dans au moins un snapshot
+     */
+    public function hasOrderSnapshot(int $id): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT id FROM order_address_snapshots WHERE source_address_id = ? LIMIT 1",
+            [$id]
+        );
+        return $row !== false;
+    }
+
+    /**
+     * Supprime ou soft-delete une adresse appartenant à l'utilisateur.
+     *
+     * Règle métier :
+     * - Si l'adresse a été utilisée dans une commande (snapshot existant) →
+     *   soft-delete via deleted_at = NOW() pour préserver l'historique.
+     * - Si l'adresse n'a jamais été utilisée dans une commande →
+     *   suppression physique (DELETE).
+     *
+     * @param int $id     Identifiant de l'adresse
+     * @param int $userId Identifiant du propriétaire (contrôle d'accès)
+     * @return void
+>>>>>>> eb62025 (fix(phpstan): AddressModel — supprimer comparaison !== null toujours vraie (fetchOne retourne array|false))
      */
     public function deleteForUser(int $id, int $userId): void
     {
         if ($this->hasOrderSnapshot($id)) {
             $this->db->execute(
+<<<<<<< HEAD
                 "UPDATE {$this->table} SET saved = 0, deleted_at = NOW() WHERE id = ? AND user_id = ?",
+=======
+                "UPDATE {$this->table} SET deleted_at = NOW(), saved = 0 WHERE id = ? AND user_id = ?",
+>>>>>>> eb62025 (fix(phpstan): AddressModel — supprimer comparaison !== null toujours vraie (fetchOne retourne array|false))
                 [$id, $userId]
             );
         } else {
