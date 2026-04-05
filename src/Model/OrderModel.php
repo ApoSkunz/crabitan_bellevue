@@ -883,7 +883,8 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @return int Nombre de snapshots pseudonymisés
      */
     /**
-     * Returns paginated orders that have at least one invoice for the given period (L441-9 C.com.).
+     * Retourne les fichiers de facture paginés pour la période donnée (registre L441-9 C.com.).
+     * Chaque ligne = un fichier PDF (plusieurs possibles par commande).
      *
      * @param  int      $year    Année de filtrage (obligatoire)
      * @param  int|null $month   Mois (1-12) ou null
@@ -905,24 +906,26 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $params[] = $offset;
 
         return $this->db->fetchAll( // phpcs:ignore Generic.Files.LineLength
-            "SELECT o.id, o.order_reference, o.invoice_number, o.ordered_at, o.price, o.payment_method,
+            "SELECT f.id, f.path, f.invoice_number, f.source, f.uploaded_at,
+                    o.id AS order_id, o.order_reference, o.price, o.ordered_at, o.payment_method,
                     a.email,
                     COALESCE(ai.firstname, ac.company_name, '') AS firstname,
                     COALESCE(ai.lastname, '', '') AS lastname,
-                    (SELECT COUNT(*) FROM order_invoice_files f WHERE f.order_id = o.id) AS file_count
-             FROM {$this->table} o
+                    ROW_NUMBER() OVER (PARTITION BY f.order_id ORDER BY f.uploaded_at DESC) AS invoice_rank
+             FROM order_invoice_files f
+             JOIN {$this->table} o ON o.id = f.order_id
              JOIN accounts a ON a.id = o.user_id
              LEFT JOIN account_individuals ai ON ai.account_id = a.id
              LEFT JOIN account_companies   ac ON ac.account_id = a.id
              {$where}
-             ORDER BY o.ordered_at DESC
+             ORDER BY f.uploaded_at DESC
              LIMIT ? OFFSET ?",
             $params
         );
     }
 
     /**
-     * Compte les commandes avec facture pour la période donnée.
+     * Compte les fichiers de facture pour la période donnée.
      *
      * @param  int      $year
      * @param  int|null $month
@@ -933,7 +936,10 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     {
         [$where, $params] = $this->buildInvoicePeriodFilter($year, $month, $quarter);
         $row = $this->db->fetchOne(
-            "SELECT COUNT(*) AS total FROM {$this->table} o {$where}",
+            "SELECT COUNT(*) AS total
+             FROM order_invoice_files f
+             JOIN {$this->table} o ON o.id = f.order_id
+             {$where}",
             $params
         );
         return (int) ($row['total'] ?? 0);
@@ -941,6 +947,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
 
     /**
      * Retourne toutes les entrées order_invoice_files de la période pour l'export ZIP + CSV.
+     * Identique à getInvoicesForAdmin mais sans pagination et en ordre chronologique.
      *
      * @param  int      $year
      * @param  int|null $month
@@ -953,7 +960,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
 
         return $this->db->fetchAll( // phpcs:ignore Generic.Files.LineLength
             "SELECT f.id, f.path, f.invoice_number, f.source, f.uploaded_at,
-                    o.order_reference, o.price, o.ordered_at, o.payment_method,
+                    o.id AS order_id, o.order_reference, o.price, o.ordered_at, o.payment_method,
                     a.email,
                     COALESCE(ai.firstname, ac.company_name, '') AS firstname,
                     COALESCE(ai.lastname, '', '') AS lastname
@@ -969,23 +976,49 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     }
 
     /**
-     * Retourne les années distinctes pour lesquelles au moins une facture existe.
+     * Retourne la facture courante (la plus récente) de chaque commande de l'utilisateur.
+     * Une seule ligne par commande — la version précédente n'est pas exposée côté client.
+     *
+     * @param  int $userId Identifiant du compte
+     * @return array<int, array<string, mixed>>
+     */
+    public function getInvoiceFilesForUser(int $userId): array
+    {
+        return $this->db->fetchAll(
+            "SELECT ranked.id, ranked.path, ranked.invoice_number, ranked.uploaded_at,
+                    ranked.order_id, ranked.order_reference, ranked.price, ranked.ordered_at
+             FROM (
+                 SELECT f.id, f.path, f.invoice_number, f.uploaded_at,
+                        o.id AS order_id, o.order_reference, o.price, o.ordered_at,
+                        ROW_NUMBER() OVER (PARTITION BY f.order_id ORDER BY f.uploaded_at DESC) AS rn
+                 FROM order_invoice_files f
+                 JOIN {$this->table} o ON o.id = f.order_id
+                 WHERE o.user_id = ?
+             ) AS ranked
+             WHERE ranked.rn = 1
+             ORDER BY ranked.ordered_at DESC",
+            [$userId]
+        );
+    }
+
+    /**
+     * Retourne les années distinctes pour lesquelles au moins un fichier de facture existe.
      *
      * @return int[]
      */
     public function getAvailableYearsWithInvoices(): array
     {
         $rows = $this->db->fetchAll(
-            "SELECT DISTINCT YEAR(ordered_at) AS yr
-             FROM {$this->table}
-             WHERE path_invoice IS NOT NULL
+            "SELECT DISTINCT YEAR(o.ordered_at) AS yr
+             FROM order_invoice_files f
+             JOIN {$this->table} o ON o.id = f.order_id
              ORDER BY yr DESC"
         );
         return array_map('intval', array_column($rows, 'yr'));
     }
 
     /**
-     * Construit la clause WHERE pour le filtrage par période de facturation.
+     * Construit la clause WHERE pour le filtrage par période (utilisé par les requêtes sur order_invoice_files).
      *
      * @param  int      $year
      * @param  int|null $month
@@ -994,7 +1027,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      */
     private function buildInvoicePeriodFilter(int $year, ?int $month, ?int $quarter): array
     {
-        $conds  = ['o.path_invoice IS NOT NULL', 'YEAR(o.ordered_at) = ?'];
+        $conds  = ['YEAR(o.ordered_at) = ?'];
         $params = [$year];
 
         if ($month !== null) {
