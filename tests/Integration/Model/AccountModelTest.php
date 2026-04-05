@@ -908,4 +908,111 @@ class AccountModelTest extends IntegrationTestCase
 
         $this->assertFalse($this->model->findBySecurityConfirmToken($hash));
     }
+
+    // ----------------------------------------------------------------
+    // getConsentData
+    // ----------------------------------------------------------------
+
+    /**
+     * getConsentData retourne newsletter abonne=false et cgv_versions=[] pour un nouveau compte.
+     */
+    public function testGetConsentDataReturnsDefaultsForNewAccount(): void
+    {
+        $id = (int) $this->createAccount('consent.new@example.com');
+
+        $data = $this->model->getConsentData($id);
+
+        $this->assertArrayHasKey('newsletter', $data);
+        $this->assertArrayHasKey('cgv_versions', $data);
+        $this->assertFalse($data['newsletter']['abonne']);
+        $this->assertSame([], $data['cgv_versions']);
+    }
+
+    /**
+     * getConsentData retourne newsletter abonne=true quand newsletter = 1.
+     */
+    public function testGetConsentDataReturnsNewsletterSubscribedTrue(): void
+    {
+        $id = (int) $this->createAccount('consent.nl@example.com');
+        self::$db->execute(
+            "UPDATE accounts SET newsletter = 1 WHERE id = ?",
+            [$id]
+        );
+
+        $data = $this->model->getConsentData($id);
+
+        $this->assertTrue($data['newsletter']['abonne']);
+    }
+
+    /**
+     * getConsentData retourne email_verifie_le quand le compte est vérifié.
+     */
+    public function testGetConsentDataReturnsEmailVerifiedAt(): void
+    {
+        $id = (int) $this->createAccount('consent.verified@example.com');
+        self::$db->execute(
+            "UPDATE accounts SET email_verified_at = '2026-01-15 10:30:00' WHERE id = ?",
+            [$id]
+        );
+
+        $data = $this->model->getConsentData($id);
+
+        $this->assertSame('2026-01-15 10:30:00', $data['newsletter']['email_verifie_le']);
+    }
+
+    /**
+     * getConsentData retourne les versions CGV dédupliquées des commandes de l'utilisateur.
+     */
+    public function testGetConsentDataReturnsCgvVersionsFromOrders(): void
+    {
+        $id         = (int) $this->createAccount('consent.cgv@example.com');
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (civility, firstname, lastname, street, city, zip, country, phone)
+             VALUES ('M', 'Test', 'Consent', '1 rue Test', 'Paris', '75001', 'FR', '0600000000')"
+        );
+        self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, shipping_discount,
+              id_billing_snapshot, status, cgv_version)
+             VALUES (?, ?, '[]', 50.00, 'card', 0.00, ?, 'paid', '1.0')",
+            [$id, 'CGV-TEST-' . bin2hex(random_bytes(4)), $snapshotId]
+        );
+        self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, shipping_discount,
+              id_billing_snapshot, status, cgv_version)
+             VALUES (?, ?, '[]', 75.00, 'card', 0.00, ?, 'paid', '2.0')",
+            [$id, 'CGV-TEST-' . bin2hex(random_bytes(4)), $snapshotId]
+        );
+        // Doublon intentionnel pour tester le DISTINCT
+        self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, shipping_discount,
+              id_billing_snapshot, status, cgv_version)
+             VALUES (?, ?, '[]', 60.00, 'card', 0.00, ?, 'paid', '1.0')",
+            [$id, 'CGV-TEST-' . bin2hex(random_bytes(4)), $snapshotId]
+        );
+
+        $data = $this->model->getConsentData($id);
+
+        $this->assertCount(2, $data['cgv_versions']);
+        $this->assertContains('1.0', $data['cgv_versions']);
+        $this->assertContains('2.0', $data['cgv_versions']);
+    }
+
+    /**
+     * getConsentData isole les données par utilisateur (pas de fuite inter-comptes).
+     */
+    public function testGetConsentDataIsIsolatedByUser(): void
+    {
+        $id1 = (int) $this->createAccount('consent.iso1@example.com');
+        $id2 = (int) $this->createAccount('consent.iso2@example.com');
+
+        self::$db->execute("UPDATE accounts SET newsletter = 1 WHERE id = ?", [$id2]);
+
+        $data = $this->model->getConsentData($id1);
+
+        $this->assertFalse($data['newsletter']['abonne']);
+    }
 }

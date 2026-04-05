@@ -3174,6 +3174,69 @@ class AccountControllerTest extends IntegrationTestCase
         $this->assertSame('export.json@test.local', $decoded['account']['Email'] ?? null);
     }
 
+    /**
+     * buildExportContent() retourne un export JSON incluant les 3 nouvelles sections RGPD :
+     * connection_logs, consentements et user_agent dans trusted_devices.
+     */
+    public function testBuildExportContentIncludesRgpdComplement(): void
+    {
+        $userId = $this->insertCustomer('export.rgpd.complement@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportContent');
+        $method->setAccessible(true);
+
+        $export = [
+            'exported_at'     => date('c'),
+            'account'         => ['Email' => 'export.rgpd.complement@test.local'],
+            'addresses'       => [],
+            'orders'          => [],
+            'favorites'       => [],
+            'trusted_devices' => [
+                ['device_name' => 'Chrome · Win', 'confirmed_at' => '2026-01-01 10:00:00',
+                 'last_seen' => '2026-03-01 12:00:00', 'user_agent' => 'Mozilla/5.0 Chrome/120'],
+            ],
+            'active_sessions' => [],
+            'connection_logs' => [
+                ['device_name' => 'Chrome · Win', 'ip_address' => '1.2.3.4',
+                 'user_agent' => 'Mozilla/5.0', 'auth_method' => 'password',
+                 'status' => 'active', 'created_at' => '2026-03-01 10:00:00'],
+            ],
+            'consentements' => [
+                'newsletter' => ['abonne' => 'Oui', 'email_verifie_le' => '2026-01-01 09:00:00'],
+                'cgv_versions_acceptees' => ['1.0'],
+            ],
+        ];
+
+        $date   = date('Y-m-d');
+        /** @var array{0: string, 1: bool} $result */
+        $result          = (array) $method->invoke($ctrl, $export, $date, 'mes-donnees-' . $date);
+        [$content, $isZip] = $result;
+
+        if ($isZip) {
+            $tmp = tempnam(sys_get_temp_dir(), 'ti_rgpd_');
+            file_put_contents($tmp, $content);
+            $zip  = new \ZipArchive();
+            $zip->open($tmp);
+            $json = $zip->getFromName('mes-donnees-' . $date . '.json');
+            $zip->close();
+            unlink($tmp);
+            $decoded = json_decode((string) $json, true);
+        } else {
+            $decoded = json_decode($content, true);
+        }
+
+        $this->assertArrayHasKey('connection_logs', $decoded, 'La clé connection_logs doit être présente');
+        $this->assertArrayHasKey('consentements', $decoded, 'La clé consentements doit être présente');
+        $this->assertArrayHasKey('newsletter', $decoded['consentements']);
+        $this->assertArrayHasKey('cgv_versions_acceptees', $decoded['consentements']);
+        $this->assertArrayHasKey('user_agent', $decoded['trusted_devices'][0]);
+        $this->assertSame('Mozilla/5.0 Chrome/120', $decoded['trusted_devices'][0]['user_agent']);
+        $this->assertSame('Oui', $decoded['consentements']['newsletter']['abonne']);
+        $this->assertSame(['1.0'], $decoded['consentements']['cgv_versions_acceptees']);
+    }
+
     // ----------------------------------------------------------------
     // unsubscribePage() — token non vide mais compte non trouvé
     // ----------------------------------------------------------------
