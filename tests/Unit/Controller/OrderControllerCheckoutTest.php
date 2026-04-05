@@ -591,6 +591,8 @@ class OrderControllerCheckoutTest extends TestCase
         // 5. AddressModel::findByIdForUser (mainland zip check)
         // 6. PricingRuleModel::computeDeliveryDiscount → findForQuantity
         // 7. AccountModel::findById
+        // 8. OrderModel::create → fetchOne billing address  9. lookup snapshot billing → false
+        // 10. fetchOne delivery address  11. lookup snapshot delivery → false
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
             ['id' => 1],
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
@@ -598,7 +600,13 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
             false,
-            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false],
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false, // lookup snapshot billing → pas trouvé
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false, // lookup snapshot delivery → pas trouvé
         );
 
         $caught = null;
@@ -640,7 +648,13 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '33000'],
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '33000'],
             false,
-            ['id' => 1, 'email' => '', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+            ['id' => 1, 'email' => '', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false],
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '33000', 'country' => 'France', 'phone' => ''],
+            false, // lookup snapshot billing → pas trouvé
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '33000', 'country' => 'France', 'phone' => ''],
+            false, // lookup snapshot delivery → pas trouvé
         );
 
         $caught = null;
@@ -676,6 +690,13 @@ class OrderControllerCheckoutTest extends TestCase
         ];
 
         $stub = $this->setDbMock();
+        // Ordre :
+        // 1. Auth  2. Cart  3. Wine (enrichItems)
+        // 4. AddressModel delivery (resolveAddress)  5. mainland check
+        // 6. PricingRuleModel::computeDeliveryDiscount
+        // 7. AccountModel
+        // 8. billing address fetch  9. lookup snapshot billing → false
+        // 10. delivery address fetch  11. lookup snapshot delivery → false
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
             ['id' => 1],
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
@@ -683,7 +704,13 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
             false,
-            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false],
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false, // lookup snapshot billing → pas trouvé
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false, // lookup snapshot delivery → pas trouvé
         );
 
         $caught = null;
@@ -725,6 +752,8 @@ class OrderControllerCheckoutTest extends TestCase
         // 6. AddressModel billing (resolveAddress — else branch)
         // 7. PricingRuleModel::computeDeliveryDiscount → findForQuantity
         // 8. AccountModel
+        // 9. billing address fetch (id=7)  10. lookup snapshot billing → false
+        // 11. delivery address fetch (id=5)  12. lookup snapshot delivery → false
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
             ['id' => 1],
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
@@ -733,7 +762,13 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
             ['id' => 7, 'firstname' => 'Jean', 'lastname' => 'Dupont'],
             false,
-            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false],
+            ['id' => 7, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '7 rue Billing', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false, // lookup snapshot billing → pas trouvé
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false, // lookup snapshot delivery → pas trouvé
         );
 
         $caught = null;

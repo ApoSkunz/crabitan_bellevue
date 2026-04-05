@@ -77,11 +77,16 @@ class OrderModelTest extends IntegrationTestCase
         string $ref = 'REF-TEST-001',
         string $payment = 'card'
     ): int {
-        $content = json_encode([['wine_id' => 1, 'qty' => 2, 'price' => 25.00]]);
+        $content    = json_encode([['wine_id' => 1, 'qty' => 2, 'price' => 25.00]]);
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots (firstname, lastname, street, city, zip, country, phone)
+             SELECT firstname, lastname, street, city, zip_code, country, phone FROM addresses WHERE id = ?",
+            [$billingId]
+        );
         $id = self::$db->insert(
-            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_address, status)
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, shipping_discount, id_billing_snapshot, status)
              VALUES (?, ?, ?, 59.90, ?, 0.00, ?, ?)",
-            [$userId, $ref, $content, $payment, $billingId, $status]
+            [$userId, $ref, $content, $payment, $snapshotId, $status]
         );
         return (int) $id;
     }
@@ -722,10 +727,20 @@ class OrderModelTest extends IntegrationTestCase
         $deliveryId  = $this->insertAddress($userId, 'delivery');
         $content     = json_encode([['wine_id' => 1, 'qty' => 1, 'price' => 30.00]]);
 
-        $orderId = (int) self::$db->insert(
-            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, id_billing_address, id_delivery_address, status)
+        $billSnap = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots (firstname, lastname, street, city, zip, country, phone)
+             SELECT firstname, lastname, street, city, zip_code, country, phone FROM addresses WHERE id = ?",
+            [$billingId]
+        );
+        $delSnap  = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots (firstname, lastname, street, city, zip, country, phone)
+             SELECT firstname, lastname, street, city, zip_code, country, phone FROM addresses WHERE id = ?",
+            [$deliveryId]
+        );
+        $orderId  = (int) self::$db->insert(
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, id_billing_snapshot, id_delivery_snapshot, status)
              VALUES (?, 'REF-DETAIL-001', ?, 30.00, 'card', ?, ?, 'delivered')",
-            [$userId, $content, $billingId, $deliveryId]
+            [$userId, $content, $billSnap, $delSnap]
         );
 
         $row = $this->model->findDetailForUser($orderId, $userId);
@@ -886,11 +901,12 @@ class OrderModelTest extends IntegrationTestCase
     }
 
     /**
-     * Vérifie que getAddressIdsWithActiveOrders retourne l'adresse liée à une commande active.
+     * Depuis order-address-snapshot, orders ne référence plus les IDs d'adresses.
+     * getAddressIdsWithActiveOrders retourne toujours [].
      *
      * @return void
      */
-    public function testGetAddressIdsWithActiveOrdersReturnsActiveAddressId(): void
+    public function testGetAddressIdsWithActiveOrdersAlwaysReturnsEmpty(): void
     {
         $userId    = $this->insertAccount('addr_active@example.com');
         $billingId = $this->insertAddress($userId, 'billing');
@@ -898,8 +914,7 @@ class OrderModelTest extends IntegrationTestCase
 
         $result = $this->model->getAddressIdsWithActiveOrders([$billingId]);
 
-        $this->assertIsArray($result);
-        $this->assertContains($billingId, $result);
+        $this->assertSame([], $result);
     }
 
     /**
@@ -924,17 +939,18 @@ class OrderModelTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Vérifie que hasActiveOrderForAddress retourne true si l'adresse est liée à une commande active.
+     * Depuis order-address-snapshot, orders ne référence plus les IDs d'adresses.
+     * hasActiveOrderForAddress retourne toujours false.
      *
      * @return void
      */
-    public function testHasActiveOrderForAddressReturnsTrueIfActive(): void
+    public function testHasActiveOrderForAddressAlwaysReturnsFalse(): void
     {
         $userId    = $this->insertAccount('addr_check@example.com');
         $billingId = $this->insertAddress($userId, 'billing');
         $this->insertOrder($userId, $billingId, 'shipped', 'REF-ADDRCHECK-001');
 
-        $this->assertTrue($this->model->hasActiveOrderForAddress($billingId));
+        $this->assertFalse($this->model->hasActiveOrderForAddress($billingId));
     }
 
     /**
@@ -962,24 +978,35 @@ class OrderModelTest extends IntegrationTestCase
     }
 
     /**
-     * Vérifie que hasActiveOrderForAddress détecte via l'adresse de livraison.
+     * Depuis order-address-snapshot, orders ne référence plus les IDs d'adresses.
+     * hasActiveOrderForAddress retourne toujours false, même pour une adresse livraison.
      *
      * @return void
      */
-    public function testHasActiveOrderForAddressViaDeliveryAddress(): void
+    public function testHasActiveOrderForAddressViaDeliveryAddressAlwaysFalse(): void
     {
         $userId     = $this->insertAccount('delivery_check@example.com');
         $billingId  = $this->insertAddress($userId, 'billing');
         $deliveryId = $this->insertAddress($userId, 'delivery');
         $content    = json_encode([['wine_id' => 1, 'qty' => 1, 'price' => 20.00]]);
 
+        $billSnap = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots (firstname, lastname, street, city, zip, country, phone)
+             SELECT firstname, lastname, street, city, zip_code, country, phone FROM addresses WHERE id = ?",
+            [$billingId]
+        );
+        $delSnap  = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots (firstname, lastname, street, city, zip, country, phone)
+             SELECT firstname, lastname, street, city, zip_code, country, phone FROM addresses WHERE id = ?",
+            [$deliveryId]
+        );
         self::$db->insert(
-            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, id_billing_address, id_delivery_address, status)
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method, id_billing_snapshot, id_delivery_snapshot, status)
              VALUES (?, 'REF-DELIVERY-CHK', ?, 20.00, 'card', ?, ?, 'processing')",
-            [$userId, $content, $billingId, $deliveryId]
+            [$userId, $content, $billSnap, $delSnap]
         );
 
-        $this->assertTrue($this->model->hasActiveOrderForAddress($deliveryId));
+        $this->assertFalse($this->model->hasActiveOrderForAddress($deliveryId));
     }
 
     // ----------------------------------------------------------------

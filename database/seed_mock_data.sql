@@ -648,10 +648,10 @@ VALUES
 -- Client soft-deleted (en attente de suppression)
 (7, 'client.supprime@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'fr', 0, '2026-01-20 08:00:00', 0, '2026-01-20 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 
--- Soft delete du compte 7
+-- Soft delete du compte 7 (scheduled_deletion_at toujours dans le futur pour les tests de purge)
 UPDATE `accounts`
-SET `deleted_at` = '2026-03-01 10:00:00',
-    `scheduled_deletion_at` = '2026-03-31 10:00:00'
+SET `deleted_at` = DATE_SUB(NOW(), INTERVAL 5 DAY),
+    `scheduled_deletion_at` = DATE_ADD(NOW(), INTERVAL 25 DAY)
 WHERE `id` = 7;
 
 ALTER TABLE `accounts` AUTO_INCREMENT = 8;
@@ -697,12 +697,32 @@ VALUES
 ALTER TABLE `addresses` AUTO_INCREMENT = 8;
 
 -- ============================================================
+-- ORDER ADDRESS SNAPSHOTS (instantanés des adresses de commande)
+-- ============================================================
+
+INSERT INTO `order_address_snapshots`
+    (`id`, `source_address_id`, `civility`, `firstname`, `lastname`, `street`, `city`, `zip`, `country`, `phone`)
+VALUES
+-- snapshot 1 : adresse id=1 (Sophie facturation)
+(1, 1, 'F', 'Sophie', 'Durand', '12 rue des Vignes', 'Bordeaux', '33000', 'France', '0612345678'),
+-- snapshot 2 : adresse id=2 (Sophie livraison)
+(2, 2, 'F', 'Sophie', 'Durand', '12 rue des Vignes', 'Bordeaux', '33000', 'France', '0612345678'),
+-- snapshot 3 : adresse id=4 (Pierre Moreau facturation)
+(3, 4, 'M', 'Pierre', 'Moreau', '8 avenue du Commerce', 'Toulouse', '31000', 'France', '0556789012'),
+-- snapshot 4 : adresse id=5 (Pierre Moreau livraison)
+(4, 5, 'M', 'Pierre', 'Moreau', '8 avenue du Commerce', 'Toulouse', '31000', 'France', '0556789012'),
+-- snapshot 5 : adresse id=7 (Admin facturation)
+(5, 7, 'M', 'Admin', 'Test', '1 rue de la Mairie', 'Paris', '75001', 'France', '0100000000');
+
+ALTER TABLE `order_address_snapshots` AUTO_INCREMENT = 6;
+
+-- ============================================================
 -- ORDERS (toutes statuts couverts pour les tests)
 -- ============================================================
 
 INSERT INTO `orders`
     (`id`, `user_id`, `order_reference`, `content`, `price`, `payment_method`,
-     `shipping_discount`, `id_billing_address`, `id_delivery_address`, `status`, `ordered_at`, `delivered_at`)
+     `shipping_discount`, `id_billing_snapshot`, `id_delivery_snapshot`, `status`, `ordered_at`, `delivered_at`)
 VALUES
 -- paid — Sophie (référence pour tests commandes)
 (1, 3, 'CBV-2026-000001',
@@ -747,12 +767,12 @@ VALUES
 -- société (id 5) — delivered hors fenêtre (> 15j)
 (9, 5, 'CBV-2026-000009',
  '[{"wine_id":34,"label_name":"Côtes de Bordeaux Rouge","vintage":2019,"wine_color":"red","format":"bottle","qty":48,"price":10.00,"subtotal":480.00}]',
- 480.00, 'virement', 62.40, 4, 5, 'delivered', '2026-01-20 10:00:00', '2026-02-01 10:00:00'),
+ 480.00, 'virement', 62.40, 3, 4, 'delivered', '2026-01-20 10:00:00', '2026-02-01 10:00:00'),
 
 -- admin (id 2) — paid (pour tester vue admin)
 (10, 2, 'CBV-2026-000010',
  '[{"wine_id":36,"label_name":"Sainte-Croix-du-Mont","vintage":2018,"wine_color":"sweet","format":"bottle","qty":12,"price":10.80,"subtotal":129.60}]',
- 129.60, 'card', 15.00, 7, NULL, 'paid', '2026-03-10 09:00:00', NULL);
+ 129.60, 'card', 15.00, 5, NULL, 'paid', '2026-03-10 09:00:00', NULL);
 
 ALTER TABLE `orders` AUTO_INCREMENT = 11;
 
@@ -782,14 +802,14 @@ INSERT INTO `favorites` (`user_id`, `wine_id`) VALUES
 INSERT INTO `connections`
     (`user_id`, `token`, `device_token`, `ip_address`, `device_name`, `auth_method`, `status`, `last_used_at`, `created_at`, `expired_at`)
 VALUES
--- Sophie — active
-(3, 'mock-jwt-sophie-active-001', 'device-uuid-sophie-macbook', '82.65.10.1', 'Chrome · macOS', 'password', 'active', '2026-03-28 08:00:00', '2026-03-28 07:00:00', '2026-04-27 07:00:00'),
--- Sophie — expirée (historique)
-(3, 'mock-jwt-sophie-expired-001', 'device-uuid-sophie-macbook', '82.65.10.1', 'Chrome · macOS', 'password', 'expired', '2026-02-01 18:00:00', '2026-01-01 09:00:00', '2026-02-01 09:00:00'),
+-- Sophie — active (expired_at toujours dans le futur)
+(3, 'mock-jwt-sophie-active-001', 'device-uuid-sophie-macbook', '82.65.10.1', 'Chrome · macOS', 'password', 'active', NOW(), DATE_SUB(NOW(), INTERVAL 1 HOUR), DATE_ADD(NOW(), INTERVAL 30 DAY)),
+-- Sophie — expirée (historique) — expired_at futur pour ne pas être purgée lors des tests
+(3, 'mock-jwt-sophie-expired-001', 'device-uuid-sophie-macbook', '82.65.10.1', 'Chrome · macOS', 'password', 'expired', DATE_SUB(NOW(), INTERVAL 60 DAY), DATE_SUB(NOW(), INTERVAL 90 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY)),
 -- Admin — active
-(2, 'mock-jwt-admin-active-001', 'device-uuid-admin-chrome', '10.0.0.1', 'Firefox · Windows', 'password', 'active', '2026-03-28 07:30:00', '2026-03-28 07:00:00', '2026-04-27 07:00:00'),
--- Société — révoquée
-(5, 'mock-jwt-societe-revoked-001', 'device-uuid-societe-ipad', '81.33.20.5', 'Safari · iOS', 'password', 'revoked', '2026-03-01 10:00:00', '2026-03-01 09:00:00', '2026-04-01 09:00:00');
+(2, 'mock-jwt-admin-active-001', 'device-uuid-admin-chrome', '10.0.0.1', 'Firefox · Windows', 'password', 'active', NOW(), DATE_SUB(NOW(), INTERVAL 1 HOUR), DATE_ADD(NOW(), INTERVAL 30 DAY)),
+-- Société — expirée (status 'expired' au lieu de 'revoked' pour éviter la purge automatique lors des tests)
+(5, 'mock-jwt-societe-revoked-001', 'device-uuid-societe-ipad', '81.33.20.5', 'Safari · iOS', 'password', 'expired', DATE_SUB(NOW(), INTERVAL 30 DAY), DATE_SUB(NOW(), INTERVAL 35 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY));
 
 -- ============================================================
 -- TRUSTED DEVICES

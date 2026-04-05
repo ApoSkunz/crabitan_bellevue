@@ -36,6 +36,7 @@ DROP TABLE IF EXISTS `trusted_devices`;
 DROP TABLE IF EXISTS `connections`;
 DROP TABLE IF EXISTS `payment_intents`;
 DROP TABLE IF EXISTS `orders`;
+DROP TABLE IF EXISTS `order_address_snapshots`;
 DROP TABLE IF EXISTS `carts`;
 DROP TABLE IF EXISTS `pricing_rules`;
 DROP TABLE IF EXISTS `wines`;
@@ -235,30 +236,52 @@ CREATE TABLE `carts` (
 -- Table : orders
 -- Commandes passées
 -- ============================================================
+-- ============================================================
+-- Table : order_address_snapshots
+-- Snapshot immuable d'une adresse au moment de la commande.
+-- Aucun lien vers accounts ou addresses — dissociation RGPD complète.
+-- Permet la suppression d'un compte sans altérer l'historique des commandes (L123-22 C.com.).
+-- ============================================================
+CREATE TABLE `order_address_snapshots` (
+  `id`                INT           NOT NULL AUTO_INCREMENT,
+  `source_address_id` INT           NULL DEFAULT NULL COMMENT 'ID origine dans addresses — NULL si adresse manuelle ou compte supprimé',
+  `civility`          ENUM('M','F','other') NULL DEFAULT NULL,
+  `firstname`         VARCHAR(100)  NOT NULL DEFAULT '',
+  `lastname`          VARCHAR(100)  NOT NULL DEFAULT '',
+  `street`            VARCHAR(255)  NOT NULL DEFAULT '',
+  `city`              VARCHAR(100)  NOT NULL DEFAULT '',
+  `zip`               VARCHAR(20)   NOT NULL DEFAULT '',
+  `country`           VARCHAR(100)  NOT NULL DEFAULT '',
+  `phone`             VARCHAR(30)   NOT NULL DEFAULT '',
+  `created_at`        DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_oas_source_address` (`source_address_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE `orders` (
-  `id`                  INT            NOT NULL AUTO_INCREMENT,
-  `user_id`             INT            NOT NULL,
-  `order_reference`     VARCHAR(50)    NOT NULL,
-  `content`             JSON           NOT NULL COMMENT 'Snapshot du panier au moment de la commande',
-  `price`               DECIMAL(10,2)  NOT NULL,
-  `payment_method`      VARCHAR(50)    NOT NULL,
-  `shipping_discount`   DECIMAL(10,2)  NOT NULL DEFAULT 0.00 COMMENT 'Remise livraison snapshot au moment de la commande',
-  `id_billing_address`  INT            NOT NULL,
-  `id_delivery_address` INT            DEFAULT NULL,
-  `status`              ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested','refund_refused') NOT NULL DEFAULT 'pending',
-  `cgv_version`         VARCHAR(20)    NOT NULL DEFAULT '1.0' COMMENT 'Version des CGV acceptées au moment de la commande',
-  `ca_numappel`         VARCHAR(11)    DEFAULT NULL COMMENT 'NUMAPPEL CA e-Transactions (lettre T PBX_RETOUR) — requis pour remboursement GAE',
-  `ca_numtrans`         VARCHAR(11)    DEFAULT NULL COMMENT 'NUMTRANS CA e-Transactions (lettre S PBX_RETOUR) — requis pour remboursement GAE',
-  `invoice_number`      VARCHAR(30)    DEFAULT NULL COMMENT 'Numéro de facture WEB-INVOICE-YYYY-XXXX',
-  `path_invoice`        VARCHAR(255)   DEFAULT NULL,
-  `ordered_at`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `delivered_at`        DATETIME       DEFAULT NULL COMMENT 'Date de livraison confirmée ; base du délai de rétractation (15 j)',
-  `updated_at`          DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `id`                   INT            NOT NULL AUTO_INCREMENT,
+  `user_id`              INT            NOT NULL,
+  `order_reference`      VARCHAR(50)    NOT NULL,
+  `content`              JSON           NOT NULL COMMENT 'Snapshot du panier au moment de la commande',
+  `price`                DECIMAL(10,2)  NOT NULL,
+  `payment_method`       VARCHAR(50)    NOT NULL,
+  `shipping_discount`    DECIMAL(10,2)  NOT NULL DEFAULT 0.00 COMMENT 'Remise livraison snapshot au moment de la commande',
+  `id_billing_snapshot`  INT            NOT NULL COMMENT 'Snapshot adresse facturation — dissocié du compte',
+  `id_delivery_snapshot` INT            DEFAULT NULL COMMENT 'Snapshot adresse livraison — dissocié du compte',
+  `status`               ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested','refund_refused') NOT NULL DEFAULT 'pending',
+  `cgv_version`          VARCHAR(20)    NOT NULL DEFAULT '1.0' COMMENT 'Version des CGV acceptées au moment de la commande',
+  `ca_numappel`          VARCHAR(11)    DEFAULT NULL COMMENT 'NUMAPPEL CA e-Transactions (lettre T PBX_RETOUR) — requis pour remboursement GAE',
+  `ca_numtrans`          VARCHAR(11)    DEFAULT NULL COMMENT 'NUMTRANS CA e-Transactions (lettre S PBX_RETOUR) — requis pour remboursement GAE',
+  `invoice_number`       VARCHAR(30)    DEFAULT NULL COMMENT 'Numéro de facture WEB-INVOICE-YYYY-XXXX',
+  `path_invoice`         VARCHAR(255)   DEFAULT NULL,
+  `ordered_at`           DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `delivered_at`         DATETIME       DEFAULT NULL COMMENT 'Date de livraison confirmée ; base du délai de rétractation (15 j)',
+  `updated_at`           DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_orders_reference` (`order_reference`),
-  CONSTRAINT `fk_orders_user`             FOREIGN KEY (`user_id`)             REFERENCES `accounts`  (`id`) ON DELETE RESTRICT,
-  CONSTRAINT `fk_orders_billing_address`  FOREIGN KEY (`id_billing_address`)  REFERENCES `addresses` (`id`) ON DELETE RESTRICT,
-  CONSTRAINT `fk_orders_delivery_address` FOREIGN KEY (`id_delivery_address`) REFERENCES `addresses` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_orders_user`             FOREIGN KEY (`user_id`)              REFERENCES `accounts`               (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_orders_billing_snapshot` FOREIGN KEY (`id_billing_snapshot`)  REFERENCES `order_address_snapshots` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_orders_delivery_snapshot` FOREIGN KEY (`id_delivery_snapshot`) REFERENCES `order_address_snapshots` (`id`) ON DELETE RESTRICT,
   INDEX `idx_orders_user_status` (`user_id`, `status`),
   INDEX `idx_orders_ordered_at` (`ordered_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -391,11 +391,18 @@ class OrderControllerPaymentFlowTest extends TestCase
         // 5. OrderModel::insert via createFromIpn → stub via fetchOne/execute
         // 6. OrderModel::findByReference après création → commande trouvée
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],   // AuthMiddleware
-            false,          // OrderModel::findByReference → commande absente
-            $snapshotRow,   // PaymentIntentModel::findByReference → snapshot
-            false,          // OrderModel::findByReferenceOnly → non créée
-            [               // OrderModel::findByReferenceWithAddresses → génération facture (#5 — avant findByReference line 420)
+            ['id' => 1],   // 1. AuthMiddleware
+            false,          // 2. OrderModel::findByReference → commande absente
+            $snapshotRow,   // 3. PaymentIntentModel::findByReference → snapshot
+            false,          // 4. OrderModel::findByReferenceOnly → non créée
+            // createFromIpn() : fetch address billing + dedup lookup, idem delivery
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false,          // 6. dedup lookup billing → pas trouvé
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false,          // 8. dedup lookup delivery → pas trouvé
+            [               // 9. OrderModel::findByReferenceWithAddresses → génération facture
                 'id'               => 684,
                 'order_reference'  => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'   => 'card',
@@ -404,7 +411,7 @@ class OrderControllerPaymentFlowTest extends TestCase
                 'shipping_discount' => 0.0,
                 'ordered_at'       => date('Y-m-d H:i:s'),
             ],
-            [               // OrderModel::findByReference après création (#6 — line 420)
+            [               // 10. OrderModel::findByReference après création (line 420)
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
                 'content'         => json_encode($snapshot['items']),
@@ -522,11 +529,18 @@ class OrderControllerPaymentFlowTest extends TestCase
         // 6e appel = findByReferenceWithAddresses → null (commande introuvable avec adresses)
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
             ['id' => 1],   // AuthMiddleware
-            false,          // OrderModel::findByReference → absente
-            $snapshotRow,   // PaymentIntentModel::findByReference
-            false,          // findByReferenceOnly → non créée
-            null,           // findByReferenceWithAddresses → null (null-guard, #5)
-            [               // findByReference après création (#6 — line 420)
+            false,          // 2. OrderModel::findByReference → absente
+            $snapshotRow,   // 3. PaymentIntentModel::findByReference
+            false,          // 4. findByReferenceOnly → non créée
+            // createFromIpn() : fetch address billing + dedup lookup, idem delivery
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false,          // 6. dedup lookup billing → pas trouvé
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false,          // 8. dedup lookup delivery → pas trouvé
+            false,          // 9. findByReferenceWithAddresses → false (null-guard : facture skippée)
+            [               // 10. findByReference après création (line 420)
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
                 'content'         => json_encode($snapshot['items']),
@@ -576,13 +590,19 @@ class OrderControllerPaymentFlowTest extends TestCase
         $snapshotRow = ['snapshot' => json_encode($snapshot)];
 
         $stub = $this->setDbMock();
-        // 6e appel = findByReferenceWithAddresses → order avec email
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],   // AuthMiddleware
-            false,          // OrderModel::findByReference → absente
-            $snapshotRow,   // PaymentIntentModel::findByReference
-            false,          // findByReferenceOnly → non créée
-            [               // findByReferenceWithAddresses → ordre avec email (#5)
+            ['id' => 1],   // 1. AuthMiddleware
+            false,          // 2. OrderModel::findByReference → absente
+            $snapshotRow,   // 3. PaymentIntentModel::findByReference
+            false,          // 4. findByReferenceOnly → non créée
+            // createFromIpn() : fetch address billing + dedup lookup, idem delivery
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false,          // 6. dedup lookup billing → pas trouvé
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false,          // 8. dedup lookup delivery → pas trouvé
+            [               // 9. findByReferenceWithAddresses → ordre avec email
                 'id'               => 684,
                 'order_reference'  => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'   => 'card',
@@ -595,7 +615,7 @@ class OrderControllerPaymentFlowTest extends TestCase
                 'lastname'         => 'Dupont',
                 'lang'             => 'fr',
             ],
-            [               // findByReference après création (#6 — line 420)
+            [               // 10. findByReference après création (line 420)
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
                 'content'         => json_encode($snapshot['items']),
@@ -982,10 +1002,17 @@ class OrderControllerPaymentFlowTest extends TestCase
 
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],  // AuthMiddleware
-            false,         // OrderModel::findByReference → commande absente
-            $snapshotRow,  // PaymentIntentModel::findByReference
-            false          // OrderModel::findByReferenceOnly → non créée
+            ['id' => 1],  // 1. AuthMiddleware
+            false,         // 2. OrderModel::findByReference → commande absente
+            $snapshotRow,  // 3. PaymentIntentModel::findByReference
+            false,         // 4. OrderModel::findByReferenceOnly → non créée
+            // createFromIpn() : fetch address billing + dedup lookup, idem delivery
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false,         // 6. dedup lookup billing → pas trouvé
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false          // 8. dedup lookup delivery → pas trouvé
         );
 
         // insert() lèvera une PDOException avec code 23000 pour simuler une collision persistante
