@@ -734,6 +734,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             'errors'             => $errors,
             'success'            => $success,
             'csrf'               => $_SESSION['csrf'] ?? '',
+            'activeOrdersCount'  => $this->orders->countActiveOrdersForUser($userId),
         ]);
     }
 
@@ -1313,11 +1314,6 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 $_SESSION['flash']['security_errors'] = ['delete' => __('account.delete_wrong_password')];
                 Response::redirect($back);
             }
-        }
-
-        if ($this->orders->hasActiveOrdersForUser($userId)) {
-            $_SESSION['flash']['security_errors'] = ['delete' => __('account.delete_blocked_orders')];
-            Response::redirect($back);
         }
 
         // Révoquer toutes les sessions
