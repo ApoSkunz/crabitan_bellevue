@@ -2,6 +2,43 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.39.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.38.0...v0.39.0) (2026-04-05)
+
+
+### Bug Fixes
+
+* **db:** forcer timezone MySQL à UTC sur la connexion PDO ([0eecf5a](https://github.com/ApoSkunz/crabitan_bellevue/commit/0eecf5a8de3672544308650176c510e608a3fead))
+* **session:** remember-me anti-coupure fin de vie — refresh à JWT_EXPIRY si remaining < JWT_EXPIRY × threshold ([79eaa10](https://github.com/ApoSkunz/crabitan_bellevue/commit/79eaa1022e63ca9ebc30098101f112a285225a59))
+* **sonar:** SessionTtlRefresher — extraire needsRefresh() (php:S1142) + couvrir totalTtl<0, remember-me near-expiry, getRecentForUser ([2ef4f1b](https://github.com/ApoSkunz/crabitan_bellevue/commit/2ef4f1b7b53a668167acad34e5a67d69fafb7fee))
+
+
+### Features
+
+* **session:** refresh TTL automatique des sessions actives ([e24c6ae](https://github.com/ApoSkunz/crabitan_bellevue/commit/e24c6ae16df19758f2053700948aecf71f1d0f62))
+
+# [0.38.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.37.3...v0.38.0) (2026-04-05)
+
+
+### Features
+
+* **cron:** bin/send_deletion_reminders.php — emails de rappel avant suppression compte ([d505ecc](https://github.com/ApoSkunz/crabitan_bellevue/commit/d505ecc3048e81a9214dc363aed4b2f71b6633cb))
+* **mail:** MailService::sendDeletionReminder — rappel J-7/J-1 avant anonymisation ([ef82734](https://github.com/ApoSkunz/crabitan_bellevue/commit/ef82734aa2579a0dca6f08020956ea882ede37ce))
+* **model:** AccountModel — getAccountsPendingDeletionReminder + markDeletionReminderSent ([e5311d1](https://github.com/ApoSkunz/crabitan_bellevue/commit/e5311d1b0f74301b063a623876820426a859958b))
+
+## [0.37.3](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.37.2...v0.37.3) (2026-04-05)
+
+
+### Bug Fixes
+
+* **model:** adresses — smart-delete : hard-delete sans snapshot, soft-delete avec deleted_at si snapshot ([e9a73b0](https://github.com/ApoSkunz/crabitan_bellevue/commit/e9a73b011dab4c05b450414631011df643508e38))
+
+## [0.37.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.37.1...v0.37.2) (2026-04-05)
+
+
+### Bug Fixes
+
+* **security:** normalisation timing forgot/register — anti timing oracle ([316b02e](https://github.com/ApoSkunz/crabitan_bellevue/commit/316b02e8b4ac1d0e319ac09a67a42814b979e521))
+
 ## [0.37.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.37.0...v0.37.1) (2026-04-05)
 
 

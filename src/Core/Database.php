@@ -27,6 +27,9 @@ class Database
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
         ]);
+
+        // Forcer la timezone MySQL à UTC pour cohérence avec PHP (date/time functions)
+        $this->pdo->exec("SET time_zone = '+00:00'");
     }
 
     public static function getInstance(): self
