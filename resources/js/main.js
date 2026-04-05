@@ -1228,7 +1228,7 @@ function initResetModal() {
  * Les IDs de champ attendus : reg-password, new_password, reset-modal-password.
  */
 function initPasswordStrengthIndicator() {
-    const SPECIAL = /[!@#$%^&*()\-_+=[[\]{}|;:,.<>?]/;
+    const SPECIAL = /[^a-zA-Z0-9\s]/; // tout caractère non alphanumérique
 
     const rules = [
         { id: 'len',     re: null,       label: '12 caractères minimum' },
@@ -1263,10 +1263,10 @@ function initPasswordStrengthIndicator() {
         label.className = 'pwd-strength-label';
         label.hidden = true;
 
-        // Insérer après le parent immédiat (form-group, register-modal__field…)
+        // Insérer à l'intérieur du container (fin), directement sous le champ mot de passe
         const container = input.closest('.form-group, .register-modal__field, .login-modal__field') ?? input.parentElement;
-        container.insertAdjacentElement('afterend', ul);
-        ul.insertAdjacentElement('beforebegin', label);
+        container.insertAdjacentElement('beforeend', label);
+        container.insertAdjacentElement('beforeend', ul);
         return { ul, label };
     }
 
@@ -1299,11 +1299,14 @@ function initPasswordStrengthIndicator() {
         if (score <= 2) {
             label.textContent = 'Force\u00a0: Faible';
             label.classList.add('pwd-strength-label--weak');
-        } else if (score <= 4) {
+        } else if (score === 3) {
             label.textContent = 'Force\u00a0: Moyen';
             label.classList.add('pwd-strength-label--medium');
-        } else {
+        } else if (score === 4) {
             label.textContent = 'Force\u00a0: Fort';
+            label.classList.add('pwd-strength-label--strong');
+        } else {
+            label.textContent = 'Force\u00a0: Très fort';
             label.classList.add('pwd-strength-label--strong');
         }
     }
