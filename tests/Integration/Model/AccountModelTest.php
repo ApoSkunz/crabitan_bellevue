@@ -777,6 +777,64 @@ class AccountModelTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // savePendingPassword / applyPendingPassword / clearPendingPassword
+    // ----------------------------------------------------------------
+
+    /**
+     * savePendingPassword stocke le hash et applyPendingPassword le copie dans password.
+     *
+     * @return void
+     */
+    public function testSaveAndApplyPendingPassword(): void
+    {
+        $id          = (int) $this->createAccount('pending.apply@example.com');
+        $newHash     = password_hash('NewPassword1!', PASSWORD_BCRYPT);
+        $expiresAt   = date('Y-m-d H:i:s', time() + 3600);
+
+        $this->model->savePendingPassword($id, $newHash, $expiresAt);
+        $affected = $this->model->applyPendingPassword($id);
+
+        $this->assertSame(1, $affected);
+        $account = $this->model->findById($id);
+        $this->assertIsArray($account);
+        $this->assertSame($newHash, $account['password']);
+        $this->assertNull($account['pending_password_hash']);
+    }
+
+    /**
+     * applyPendingPassword retourne 0 si aucun pending n'est présent.
+     *
+     * @return void
+     */
+    public function testApplyPendingPasswordReturnZeroIfNoPending(): void
+    {
+        $id = (int) $this->createAccount('pending.noop@example.com');
+
+        $this->assertSame(0, $this->model->applyPendingPassword($id));
+    }
+
+    /**
+     * clearPendingPassword efface le pending sans l'appliquer.
+     *
+     * @return void
+     */
+    public function testClearPendingPasswordErasesWithoutApplying(): void
+    {
+        $id        = (int) $this->createAccount('pending.clear@example.com');
+        $original  = $this->model->findById($id);
+        $this->assertIsArray($original);
+        $origPwd   = $original['password'];
+
+        $this->model->savePendingPassword($id, password_hash('ToClear1!', PASSWORD_BCRYPT), date('Y-m-d H:i:s', time() + 3600));
+        $this->model->clearPendingPassword($id);
+
+        $account = $this->model->findById($id);
+        $this->assertIsArray($account);
+        $this->assertSame($origPwd, $account['password']);
+        $this->assertNull($account['pending_password_hash']);
+    }
+
+    // ----------------------------------------------------------------
     // saveSecurityConfirmToken / findBySecurityConfirmToken / consumeSecurityConfirmToken
     // ----------------------------------------------------------------
 

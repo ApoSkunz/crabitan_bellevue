@@ -3739,16 +3739,21 @@ class AccountControllerTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Un token valide affiche la page de succès et consomme le token.
+     * Un token valide applique le pending password, révoque les sessions et affiche le succès.
      */
     public function testConfirmSecurityActionSuccessWithValidToken(): void
     {
-        $userId  = $this->insertCustomer('sec.confirm.ok@test.local', 'individual');
-        $raw     = bin2hex(random_bytes(16));
-        $hash    = hash('sha256', $raw);
-        $expires = date('Y-m-d H:i:s', time() + 3600);
+        $userId      = $this->insertCustomer('sec.confirm.ok@test.local', 'individual');
+        $raw         = bin2hex(random_bytes(16));
+        $hash        = hash('sha256', $raw);
+        $expires     = date('Y-m-d H:i:s', time() + 3600);
+        $newPwdHash  = password_hash('ConfirmedPwd1!', PASSWORD_BCRYPT);
 
-        (new \Model\AccountModel())->saveSecurityConfirmToken($userId, $hash, $expires);
+        self::$db->execute(
+            "UPDATE accounts SET security_confirm_token_hash = ?, security_confirm_token_expires_at = ?,
+             pending_password_hash = ?, pending_password_expires_at = ? WHERE id = ?",
+            [$hash, $expires, $newPwdHash, $expires, $userId]
+        );
 
         $_GET['token'] = $raw;
 
@@ -3758,8 +3763,13 @@ class AccountControllerTest extends IntegrationTestCase
         $output = ob_get_clean();
 
         $this->assertStringContainsString('auth-status--ok', $output);
-        // Token consommé : findBySecurityConfirmToken retourne false
+        // Token consommé
         $this->assertFalse((new \Model\AccountModel())->findBySecurityConfirmToken($hash));
+        // Pending password appliqué
+        $row = self::$db->fetchOne("SELECT password, pending_password_hash FROM accounts WHERE id = ?", [$userId]);
+        $this->assertIsArray($row);
+        $this->assertSame($newPwdHash, $row['password']);
+        $this->assertNull($row['pending_password_hash']);
     }
 
     /**
@@ -3816,12 +3826,16 @@ class AccountControllerTest extends IntegrationTestCase
     }
 
     /**
-     * changePassword() génère un security_confirm_token en BDD après succès.
+     * changePassword() stocke un pending password et un security_confirm_token — ne modifie pas password.
      */
-    public function testChangePasswordStoresSecurityConfirmTokenInDb(): void
+    public function testChangePasswordStoresPendingPasswordAndToken(): void
     {
         $userId = $this->insertCustomer('chpwd.token@test.local', 'individual');
         $this->loginAs($userId);
+
+        $originalRow = self::$db->fetchOne("SELECT password FROM accounts WHERE id = ?", [$userId]);
+        $this->assertIsArray($originalRow);
+        $originalPwd = $originalRow['password'];
 
         $_POST = [
             'current_password'     => 'Password123!',
@@ -3838,11 +3852,109 @@ class AccountControllerTest extends IntegrationTestCase
         }
 
         $row = self::$db->fetchOne(
-            "SELECT security_confirm_token_hash, security_confirm_token_expires_at
+            "SELECT password, pending_password_hash, security_confirm_token_hash
              FROM accounts WHERE id = ?",
             [$userId]
         );
+        $this->assertIsArray($row);
+        // Mot de passe original inchangé
+        $this->assertSame($originalPwd, $row['password']);
+        // Pending password stocké
+        $this->assertNotNull($row['pending_password_hash']);
+        // Token de confirmation stocké
         $this->assertNotNull($row['security_confirm_token_hash']);
-        $this->assertNotNull($row['security_confirm_token_expires_at']);
+    }
+
+    // ----------------------------------------------------------------
+    // denySecurityAction() GET
+    // ----------------------------------------------------------------
+
+    /**
+     * Un token valide annule le pending password, révoque les sessions et affiche le succès.
+     */
+    public function testDenySecurityActionSuccessWithValidToken(): void
+    {
+        $userId  = $this->insertCustomer('sec.deny.ok@test.local', 'individual');
+        $raw     = bin2hex(random_bytes(16));
+        $hash    = hash('sha256', $raw);
+        $expires = date('Y-m-d H:i:s', time() + 3600);
+
+        self::$db->execute(
+            "UPDATE accounts SET security_confirm_token_hash = ?, security_confirm_token_expires_at = ?,
+             pending_password_hash = ?, pending_password_expires_at = ? WHERE id = ?",
+            [$hash, $expires, password_hash('ShouldBeCleared1!', PASSWORD_BCRYPT), $expires, $userId]
+        );
+
+        $_GET['token'] = $raw;
+
+        ob_start();
+        $this->makeController('GET', '/fr/securite/ce-netait-pas-moi')
+            ->denySecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--ok', $output);
+        // Token consommé + pending effacé
+        $row = self::$db->fetchOne(
+            "SELECT pending_password_hash, security_confirm_token_hash FROM accounts WHERE id = ?",
+            [$userId]
+        );
+        $this->assertIsArray($row);
+        $this->assertNull($row['pending_password_hash']);
+        $this->assertNull($row['security_confirm_token_hash']);
+    }
+
+    /**
+     * Un token expiré pour le refus affiche la page d'erreur.
+     */
+    public function testDenySecurityActionFailsWithExpiredToken(): void
+    {
+        $userId  = $this->insertCustomer('sec.deny.exp@test.local', 'individual');
+        $raw     = bin2hex(random_bytes(16));
+        $hash    = hash('sha256', $raw);
+        $expires = date('Y-m-d H:i:s', time() - 1);
+
+        self::$db->execute(
+            "UPDATE accounts SET security_confirm_token_hash = ?, security_confirm_token_expires_at = ? WHERE id = ?",
+            [$hash, $expires, $userId]
+        );
+
+        $_GET['token'] = $raw;
+
+        ob_start();
+        $this->makeController('GET', '/fr/securite/ce-netait-pas-moi')
+            ->denySecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
+
+    /**
+     * Un token inconnu pour le refus affiche la page d'erreur.
+     */
+    public function testDenySecurityActionFailsWithUnknownToken(): void
+    {
+        $_GET['token'] = 'deny-invalid-token-xyz';
+
+        ob_start();
+        $this->makeController('GET', '/fr/securite/ce-netait-pas-moi')
+            ->denySecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
+
+    /**
+     * Sans token, la page d'erreur s'affiche pour le refus.
+     */
+    public function testDenySecurityActionFailsWithNoToken(): void
+    {
+        unset($_GET['token']);
+
+        ob_start();
+        $this->makeController('GET', '/fr/securite/ce-netait-pas-moi')
+            ->denySecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
     }
 }
