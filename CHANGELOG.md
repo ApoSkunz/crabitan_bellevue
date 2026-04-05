@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.37.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.36.0...v0.37.0) (2026-04-05)
+
+
+### Features
+
+* **security:** rate limiting changement MDP — 3/15min compte, 1/jour admin ([0526a4b](https://github.com/ApoSkunz/crabitan_bellevue/commit/0526a4b2eb6fe7eead97ab82264fcc5606f8d79b))
+
 # [0.36.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.35.0...v0.36.0) (2026-04-05)
 
 
