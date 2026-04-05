@@ -1246,6 +1246,24 @@ function initResetModal() {
 function initPasswordStrengthIndicator() {
     const SPECIAL = /[^a-zA-Z0-9\s]/;
 
+    /**
+     * Détecte une suite ascendante ou descendante de ≥4 caractères consécutifs.
+     * Miroir de PasswordValidator::hasSequence() côté serveur.
+     * @param {string} s
+     * @returns {boolean}
+     */
+    function hasSequence(s) {
+        const low = s.toLowerCase();
+        let asc = 1; let dsc = 1;
+        for (let i = 1; i < low.length; i++) {
+            const diff = low.charCodeAt(i) - low.charCodeAt(i - 1);
+            asc = diff === 1  ? asc + 1 : 1;
+            dsc = diff === -1 ? dsc + 1 : 1;
+            if (asc >= 4 || dsc >= 4) return true;
+        }
+        return false;
+    }
+
     const rules = [
         { id: 'len',     label: '12 caractères minimum',           check: (v) => v.length >= 12 },
         { id: 'upper',   label: 'Une majuscule',                   check: (v) => /[A-Z]/.test(v) },
@@ -1316,7 +1334,9 @@ function initPasswordStrengthIndicator() {
 
         const zxcvbnFn = await getZxcvbn();
         const result   = zxcvbnFn(valCapped);
-        const { text, cls } = STRENGTH_LABELS[result.score];
+        // Si séquence détectée côté front (miroir backend) : plafonner à score 1 (Faible)
+        const score    = hasSequence(val) ? Math.min(result.score, 1) : result.score;
+        const { text, cls } = STRENGTH_LABELS[score];
         label.hidden = false;
         label.className = 'pwd-strength-label ' + cls;
         label.textContent = text;
