@@ -114,6 +114,10 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                     <div class="alert alert--error" role="alert"><?= htmlspecialchars($errors['email']) ?></div>
                 <?php endif; ?>
 
+                <?php if ($emailChangeSent) : ?>
+                    <div class="alert alert--success" role="alert"><?= htmlspecialchars($success ?? '') ?></div>
+                <?php endif; ?>
+
                 <?php
                 $hasPending = !empty($account['email_change_new_email'])
                     && !empty($account['email_change_expires_at'])
@@ -136,9 +140,6 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                         </button>
                     </form>
                 <?php else : ?>
-                    <?php if ($emailChangeSent) : ?>
-                        <div class="alert alert--success" role="alert"><?= htmlspecialchars($success ?? '') ?></div>
-                    <?php endif; ?>
                     <form method="POST"
                           action="/<?= htmlspecialchars($lang) ?>/mon-compte/profil/changer-email"
                           class="account-form"
