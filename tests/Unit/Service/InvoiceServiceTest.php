@@ -129,4 +129,25 @@ class InvoiceServiceTest extends TestCase
         $this->assertStringContainsString('<img', $result);
         $this->assertStringContainsString('/path/to/logo.png', $result);
     }
+
+    // ----------------------------------------------------------------
+    // Loi Évin — mention présente si articles, absente si panier vide
+    // ----------------------------------------------------------------
+
+    /**
+     * Le HTML de toute facture doit contenir la mention Loi Évin (Art. L3323-4 CSP) — mention
+     * systématique car le Château ne vend que des vins.
+     * On teste buildHtml() directement car le binaire TCPDF encode les glyphes.
+     */
+    public function testBuildHtmlAlwaysContainsLoiEvinMention(): void
+    {
+        $service = new InvoiceService();
+        $method  = new \ReflectionMethod(InvoiceService::class, 'buildHtml');
+        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+
+        $html = $method->invoke($service, $this->order, 'WEB-INVOICE-2026-0042', null);
+
+        $this->assertStringContainsString('L3323-4', $html);
+        $this->assertStringContainsString('abus', $html);
+    }
 }
