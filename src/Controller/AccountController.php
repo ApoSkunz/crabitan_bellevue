@@ -22,11 +22,13 @@ use Service\PaymentService;
 
 class AccountController extends Controller // NOSONAR — php:S1448 : découpage prévu à l'audit génie logiciel
 {
-    private const PER_PAGE          = 10;
-    private const VALID_PER_PAGES   = [10, 25, 50];
-    private const VIEW_REACTIVATE   = 'account/reactivate';
-    private const VIEW_UNSUBSCRIBE  = 'account/unsubscribe';
-    private const DATE_FORMAT       = 'd/m/Y';
+    private const PER_PAGE               = 10;
+    private const VALID_PER_PAGES        = [10, 25, 50];
+    private const VIEW_REACTIVATE        = 'account/reactivate';
+    private const VIEW_UNSUBSCRIBE       = 'account/unsubscribe';
+    private const VIEW_SECURITY_CONFIRM  = 'account/security-confirm';
+    private const VIEW_SECURITY_DENY     = 'account/security-deny';
+    private const DATE_FORMAT            = 'd/m/Y';
 
     private AccountModel $accounts;
     private AddressModel $addresses;
@@ -1367,7 +1369,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $token = $this->request->get('token', '');
 
         if ($token === '') {
-            $this->view('account/security-confirm', ['lang' => $lang, 'success' => false, 'expired' => false]);
+            $this->view(self::VIEW_SECURITY_CONFIRM, ['lang' => $lang, 'success' => false, 'expired' => false]);
             return;
         }
 
@@ -1375,7 +1377,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $account = $this->accounts->findBySecurityConfirmToken($hash);
 
         if ($account === false) {
-            $this->view('account/security-confirm', ['lang' => $lang, 'success' => false, 'expired' => true]);
+            $this->view(self::VIEW_SECURITY_CONFIRM, ['lang' => $lang, 'success' => false, 'expired' => true]);
             return;
         }
 
@@ -1396,7 +1398,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             }
         }
 
-        $this->view('account/security-confirm', ['lang' => $lang, 'success' => true, 'expired' => false]);
+        $this->view(self::VIEW_SECURITY_CONFIRM, ['lang' => $lang, 'success' => true, 'expired' => false]);
     }
 
     // ----------------------------------------------------------------
@@ -1417,7 +1419,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $token = $this->request->get('token', '');
 
         if ($token === '') {
-            $this->view('account/security-deny', ['lang' => $lang, 'success' => false, 'expired' => false]);
+            $this->view(self::VIEW_SECURITY_DENY, ['lang' => $lang, 'success' => false, 'expired' => false]);
             return;
         }
 
@@ -1425,7 +1427,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $account = $this->accounts->findBySecurityConfirmToken($hash);
 
         if ($account === false) {
-            $this->view('account/security-deny', ['lang' => $lang, 'success' => false, 'expired' => true]);
+            $this->view(self::VIEW_SECURITY_DENY, ['lang' => $lang, 'success' => false, 'expired' => true]);
             return;
         }
 
@@ -1444,7 +1446,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             // L'envoi ne bloque pas la révocation
         }
 
-        $this->view('account/security-deny', ['lang' => $lang, 'success' => true, 'expired' => false]);
+        $this->view(self::VIEW_SECURITY_DENY, ['lang' => $lang, 'success' => true, 'expired' => false]);
     }
 
     // ----------------------------------------------------------------
