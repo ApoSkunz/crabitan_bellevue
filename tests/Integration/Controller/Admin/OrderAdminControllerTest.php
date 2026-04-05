@@ -498,6 +498,72 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // updateStatus — guard @purged.invalid (compte supprimé définitivement)
+    // ----------------------------------------------------------------
+
+    /**
+     * Quand l'email du client se termine par @purged.invalid (compte purgé J+30),
+     * aucun email de statut ne doit être envoyé — le MailService ne doit pas être appelé.
+     */
+    public function testUpdateStatusSkipsEmailForPurgedAccount(): void
+    {
+        $id = $this->insertOrder(); // status = 'pending'
+
+        // Simuler un compte purgé : mettre à jour l'email de l'ordre via accounts
+        $order = self::$db->fetchOne("SELECT user_id FROM orders WHERE id = ?", [$id]);
+        self::$db->execute(
+            "UPDATE accounts SET email = CONCAT('deleted_', id, '@purged.invalid') WHERE id = ?",
+            [(int) ($order['user_id'] ?? 0)]
+        );
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['status']     = 'delivered'; // dans TRIGGER_STATUSES
+
+        $mailCalled = false;
+        $controller = new class (
+            $this->makeRequest('POST', '/admin/commandes'),
+            $mailCalled
+        ) extends \Controller\Admin\OrderAdminController {
+            public function __construct(
+                \Core\Request $request,
+                public bool &$mailCalled
+            ) {
+                parent::__construct($request);
+            }
+
+            protected function newMailService(): \Service\MailService
+            {
+                $ref = &$this->mailCalled;
+                return new class ($ref) extends \Service\MailService {
+                    public function __construct(public bool &$called)
+                    {
+                    }
+                    public function sendOrderStatusEmail(
+                        string $to,
+                        string $name,
+                        string $ref,
+                        string $status,
+                        string $lang,
+                        string $appUrl
+                    ): void {
+                        $this->called = true;
+                    }
+                };
+            }
+        };
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $controller->updateStatus(['id' => (string) $id]);
+        } catch (HttpException $e) {
+            $this->assertFalse($mailCalled, 'Aucun email ne doit être envoyé vers @purged.invalid');
+            throw $e;
+        }
+    }
+
+    // ----------------------------------------------------------------
     // uploadInvoice — MIME invalide (pas un PDF) → flash error + 302
     // ----------------------------------------------------------------
 

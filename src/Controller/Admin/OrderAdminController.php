@@ -187,18 +187,20 @@ class OrderAdminController extends AdminController
             // phpcs:ignore Generic.Files.LineLength
             $appUrl      = rtrim($_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'http://crabitan.local'), '/'); // NOSONAR — php:S5332
 
-            try {
-                $this->newMailService()->sendOrderStatusEmail(
-                    $clientEmail,
-                    $clientName,
-                    $orderRef,
-                    $status,
-                    $clientLang,
-                    $appUrl
-                );
-            } catch (\Throwable $e) {
-                // phpcs:ignore Generic.Files.LineLength
-                error_log('[OrderAdminController] SMTP error on status email: ' . $e->getMessage()); // NOSONAR — php:S4792
+            if ($clientEmail !== '' && !str_ends_with($clientEmail, '@purged.invalid')) {
+                try {
+                    $this->newMailService()->sendOrderStatusEmail(
+                        $clientEmail,
+                        $clientName,
+                        $orderRef,
+                        $status,
+                        $clientLang,
+                        $appUrl
+                    );
+                } catch (\Throwable $e) {
+                    // phpcs:ignore Generic.Files.LineLength
+                    error_log('[OrderAdminController] SMTP error on status email: ' . $e->getMessage()); // NOSONAR — php:S4792
+                }
             }
         }
 
@@ -229,7 +231,7 @@ class OrderAdminController extends AdminController
                         $invLname     = (string) ($order['lastname']  ?? '');
                         $invoiceName  = trim($invFname . ' ' . $invLname) ?: $invoiceEmail;
                         $invoiceLang  = (string) ($order['lang']      ?? 'fr');
-                        if ($invoiceEmail !== '') {
+                        if ($invoiceEmail !== '' && !str_ends_with($invoiceEmail, '@purged.invalid')) {
                             $this->newMailService()->sendInvoiceToClient(
                                 $invoiceEmail,
                                 $invoiceName,
