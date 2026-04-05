@@ -20,9 +20,39 @@ class InvoiceController extends Controller
     }
 
     // ----------------------------------------------------------------
+    // GET /{lang}/mon-compte/factures
+    // ----------------------------------------------------------------
+
+    /**
+     * Liste toutes les factures (version courante par commande) de l'utilisateur connecté.
+     *
+     * @param  array<string, mixed> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function list(array $params): void
+    {
+        $this->resolveLang($params);
+        $payload  = AuthMiddleware::handle();
+        $userId   = (int) ($payload['sub'] ?? 0);
+        $invoices = $this->orders->getInvoiceFilesForUser($userId);
+
+        $this->view('account/invoices', [
+            'invoices'      => $invoices,
+            'lang'          => $this->lang(),
+            'activeSection' => 'invoices',
+        ]);
+    }
+
+    // ----------------------------------------------------------------
     // GET /{lang}/mon-compte/commandes/{id}/facture
     // ----------------------------------------------------------------
 
+    /**
+     * Télécharge la facture courante d'une commande.
+     *
+     * @param  array<string, mixed> $params Paramètres de route (lang, id)
+     * @return void
+     */
     public function download(array $params): void
     {
         $this->resolveLang($params);

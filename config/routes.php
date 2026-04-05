@@ -127,6 +127,7 @@ $router->post('/{lang}/mon-compte/profil', 'AccountController@updateProfile');
 $router->get('/{lang}/mon-compte/commandes', 'AccountController@orders');
 $router->get('/{lang}/mon-compte/commandes/{id}', 'AccountController@orderDetail');
 $router->post('/{lang}/mon-compte/commandes/{id}/annuler', 'AccountController@cancelOrder');
+$router->get('/{lang}/mon-compte/factures', 'InvoiceController@list');
 $router->get('/{lang}/mon-compte/commandes/{id}/facture', 'InvoiceController@download');
 $router->get('/{lang}/mon-compte/commandes/{id}/fiche-retour', 'AccountController@returnSlip');
 $router->get('/{lang}/mon-compte/adresses', 'AccountController@addresses');
