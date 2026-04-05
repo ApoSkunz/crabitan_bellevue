@@ -630,6 +630,80 @@ class AuthController extends Controller
     }
 
     // ----------------------------------------------------------------
+    // POST /{lang}/renvoyer-activation
+    // ----------------------------------------------------------------
+
+    /**
+     * Renvoi explicite du lien d'activation pour un compte non vérifié.
+     *
+     * Anti-énumération : la réponse est identique quel que soit l'état de l'email
+     * (inconnu, déjà vérifié, ou compte valide en attente) — empêche de déterminer
+     * si une adresse est enregistrée ou active sur la plateforme.
+     *
+     * Rate limiting : max 3 envois par IP par 15 min + max 3 par userId par 15 min.
+     *
+     * @param array<string, string> $params Paramètres de route (contient 'lang')
+     * @return void
+     */
+    public function resendActivation(array $params): void
+    {
+        $lang = $params['lang'];
+        $back = "/{$lang}";
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('resend_activation_success', '1');
+            Response::redirect($back);
+        }
+
+        $email = trim($this->request->post('email', ''));
+        $ip    = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        // Rate limiting par IP (15 min)
+        $ipKey = 'resend_activation_ip:' . $ip;
+        if (!$this->rateLimiter->checkLimit($ipKey, self::MAX_RESEND_VERIF, self::WINDOW_LOGIN)) {
+            $this->flash('resend_activation_success', '1');
+            Response::redirect($back);
+        }
+
+        // Validation basique du format email
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
+            $this->flash('resend_activation_success', '1');
+            Response::redirect($back);
+        }
+
+        $account = $this->accounts->findByEmail($email);
+
+        // Anti-énumération : retour silencieux si email inconnu ou déjà vérifié
+        if (!$account || $account['email_verified_at']) {
+            $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
+            $this->flash('resend_activation_success', '1');
+            Response::redirect($back);
+        }
+
+        // Rate limiting par userId (15 min)
+        $userKey = 'resend_activation:' . (int) $account['id'];
+        if ($this->rateLimiter->checkLimit($userKey, self::MAX_RESEND_VERIF, self::WINDOW_LOGIN)) {
+            $newToken    = bin2hex(random_bytes(32));
+            $this->accounts->refreshVerificationToken((int) $account['id'], $newToken);
+            $verifyUrl   = APP_URL . "/{$lang}/verification/{$newToken}";
+            $displayName = $account['account_type'] === 'company'
+                ? ($account['company_name'] ?? '')
+                : trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
+            try {
+                (new MailService())->sendEmailVerification($account['email'], $displayName, $verifyUrl, $lang);
+            } catch (\Throwable $e) {
+                error_log('Resend activation error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+            }
+            $this->rateLimiter->recordAttempt($userKey, self::WINDOW_LOGIN);
+        }
+
+        $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
+        $this->flash('resend_activation_success', '1');
+        Response::redirect($back);
+    }
+
+    // ----------------------------------------------------------------
     // Helpers privés
     // ----------------------------------------------------------------
 
