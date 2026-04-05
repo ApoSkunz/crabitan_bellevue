@@ -1566,6 +1566,47 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
 
+        $export = $this->buildExportData($userId);
+
+        $date     = date('Y-m-d');
+        $basename = 'mes-donnees-' . $date;
+
+        if (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        [$content, $isZip] = $this->buildExportContent($export, $date, $basename);
+
+        $contentType = $isZip ? 'application/zip' : 'application/json; charset=utf-8';
+        header('Content-Type: ' . $contentType);
+        foreach ($this->buildExportHeaders($basename, $isZip) as $h) {
+            header($h);
+        }
+        header('Content-Length: ' . strlen($content));
+        echo $content;
+        exit;
+    }
+
+    /**
+     * Construit le contenu binaire de l'export RGPD (ZIP ou JSON fallback).
+     *
+     * Extrait pour permettre les tests unitaires sans `exit`.
+     *
+     * @param array<string, mixed> $export   Données à exporter
+     * @param string               $date     Date au format Y-m-d
+     * @param string               $basename Nom de base du fichier (ex : mes-donnees-2026-04-01)
+     * @return array{0: string, 1: bool} [content, isZip]
+     */
+    /**
+     * Assemble le tableau de données export RGPD (Art. 20) pour un utilisateur.
+     *
+     * Seam protégé pour permettre les tests d'intégration sans passer par exit().
+     *
+     * @param int $userId Identifiant du compte
+     * @return array<string, mixed>
+     */
+    protected function buildExportData(int $userId): array
+    {
         $account        = $this->accounts->findById($userId);
         $addresses      = $this->addresses->getByUser($userId);
         $favorites      = $this->favorites->getByUser($userId);
@@ -1575,7 +1616,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $recentLogs     = $this->connections->getRecentForUser($userId);
         $consentData    = $this->accounts->getConsentData($userId);
 
-        $export = [
+        return [
             'exported_at' => date('c'),
             'account'     => [
                 'Email'                  => $account['email']        ?? null,
@@ -1637,36 +1678,8 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 'cgv_versions_acceptees' => $consentData['cgv_versions'],
             ],
         ];
-
-        $date     = date('Y-m-d');
-        $basename = 'mes-donnees-' . $date;
-
-        if (ob_get_level() > 0) {
-            ob_end_clean();
-        }
-
-        [$content, $isZip] = $this->buildExportContent($export, $date, $basename);
-
-        $contentType = $isZip ? 'application/zip' : 'application/json; charset=utf-8';
-        header('Content-Type: ' . $contentType);
-        foreach ($this->buildExportHeaders($basename, $isZip) as $h) {
-            header($h);
-        }
-        header('Content-Length: ' . strlen($content));
-        echo $content;
-        exit;
     }
 
-    /**
-     * Construit le contenu binaire de l'export RGPD (ZIP ou JSON fallback).
-     *
-     * Extrait pour permettre les tests unitaires sans `exit`.
-     *
-     * @param array<string, mixed> $export   Données à exporter
-     * @param string               $date     Date au format Y-m-d
-     * @param string               $basename Nom de base du fichier (ex : mes-donnees-2026-04-01)
-     * @return array{0: string, 1: bool} [content, isZip]
-     */
     protected function buildExportContent(array $export, string $date, string $basename): array
     {
         $json = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '{}';

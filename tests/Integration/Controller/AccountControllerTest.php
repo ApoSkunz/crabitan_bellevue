@@ -3085,6 +3085,78 @@ class AccountControllerTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
+     * buildExportData() retourne les 3 nouvelles sections RGPD Art. 20.
+     * Couvre : appels getForExport(), getRecentForUser(), getConsentData() et leurs array_maps.
+     */
+    public function testBuildExportDataIncludesRgpdComplement(): void
+    {
+        $userId = $this->insertCustomer('build-export-data@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportData');
+        $method->setAccessible(true);
+
+        /** @var array<string, mixed> $export */
+        $export = $method->invoke($ctrl, $userId);
+
+        $this->assertArrayHasKey('connection_logs', $export, 'La clé connection_logs doit être présente');
+        $this->assertArrayHasKey('consentements', $export, 'La clé consentements doit être présente');
+        $this->assertArrayHasKey('trusted_devices', $export, 'La clé trusted_devices doit être présente');
+        $this->assertArrayHasKey('newsletter', $export['consentements']);
+        $this->assertArrayHasKey('cgv_versions_acceptees', $export['consentements']);
+        $this->assertIsArray($export['connection_logs']);
+        $this->assertIsArray($export['trusted_devices']);
+    }
+
+    /**
+     * buildExportData() — les entrées trusted_devices contiennent bien user_agent.
+     */
+    public function testBuildExportDataTrustedDevicesHaveUserAgent(): void
+    {
+        $userId = $this->insertCustomer('export-ua@test.local', 'individual');
+        $this->loginAs($userId);
+
+        // Insérer un appareil de confiance avec user_agent via connexion associée
+        self::$db->execute(
+            "INSERT INTO trusted_devices (user_id, device_token, device_name, confirmed_at, last_seen)
+             VALUES (?, ?, 'Chrome · Win', NOW(), NOW())",
+            [$userId, bin2hex(random_bytes(16))]
+        );
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportData');
+        $method->setAccessible(true);
+
+        /** @var array<string, mixed> $export */
+        $export = $method->invoke($ctrl, $userId);
+
+        $this->assertNotEmpty($export['trusted_devices'], 'Un appareil doit être retourné');
+        $this->assertArrayHasKey('user_agent', $export['trusted_devices'][0], 'user_agent doit être présent');
+    }
+
+    /**
+     * buildExportData() — consentements.newsletter contient abonne et email_verifie_le.
+     */
+    public function testBuildExportDataConsentementsStructure(): void
+    {
+        $userId = $this->insertCustomer('export-consent@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportData');
+        $method->setAccessible(true);
+
+        /** @var array<string, mixed> $export */
+        $export  = $method->invoke($ctrl, $userId);
+        $consent = $export['consentements'];
+
+        $this->assertArrayHasKey('abonne', $consent['newsletter']);
+        $this->assertArrayHasKey('email_verifie_le', $consent['newsletter']);
+        $this->assertContains($consent['newsletter']['abonne'], ['Oui', 'Non']);
+    }
+
+    /**
      * buildExportContent() avec ZipArchive retourne un ZIP valide contenant le JSON.
      *
      * Couvre les lignes L1244-L1254 (branche ZipArchive) d'AccountController::exportData().
