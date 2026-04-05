@@ -7,16 +7,16 @@ namespace Core;
 /**
  * Détermine et effectue le refresh de TTL d'une session active.
  *
- * Sessions standard : si le ratio de TTL restant est inférieur à JWT_REFRESH_THRESHOLD,
- * on prolonge connections.expired_at de JWT_EXPIRY secondes supplémentaires.
- *
- * Sessions remember-me : pas de renouvellement à la durée remember-me (évite les sessions
- * indéfinies). On évite uniquement la coupure mid-session en fin de vie en prolongeant
- * à JWT_EXPIRY quand il reste moins de JWT_EXPIRY × JWT_REFRESH_THRESHOLD secondes.
- * Exposition maximale : durée remember-me + JWT_EXPIRY.
+ * Règle : si le token expire dans moins de JWT_REFRESH_THRESHOLD × JWT_EXPIRY
+ * secondes, on prolonge expired_at en base de JWT_EXPIRY secondes supplémentaires.
  *
  * Le token JWT lui-même n'est PAS régénéré — seule la colonne connections.expired_at
  * est mise à jour. Cela évite toute émission de nouveau cookie.
+ *
+ * Les sessions remember-me (TTL > JWT_EXPIRY standard) sont exclues : leur durée
+ * de vie (30 j) est par conception bien supérieure à JWT_EXPIRY, donc le ratio
+ * calculé serait quasi-nul et le seuil ne serait jamais atteint. On les exclut
+ * explicitement via le paramètre $isRememberMe pour éviter toute ambiguïté.
  */
 class SessionTtlRefresher
 {
@@ -36,47 +36,32 @@ class SessionTtlRefresher
         bool $isRememberMe,
         callable $refresher
     ): bool {
+        // Les sessions remember-me ne sont pas concernées par le refresh TTL standard
+        if ($isRememberMe) {
+            return false;
+        }
+
         if (!isset($payload['exp'], $payload['iat'])) {
             return false;
         }
 
-        $remaining = (int) $payload['exp'] - time();
-        $expiry    = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
-        $threshold = (float) ($_ENV['JWT_REFRESH_THRESHOLD'] ?? 0.5);
+        $totalTtl   = (int) $payload['exp'] - (int) $payload['iat'];
+        $remaining  = (int) $payload['exp'] - time();
+        $threshold  = (float) ($_ENV['JWT_REFRESH_THRESHOLD'] ?? 0.5);
+        $expiry     = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
 
-        return self::needsRefresh($remaining, $isRememberMe, $payload, $expiry, $threshold)
-            && (bool) $refresher($token, $expiry);
-    }
-
-    /**
-     * Détermine si la session doit être prolongée.
-     *
-     * @param int   $remaining    Secondes restantes avant expiration
-     * @param bool  $isRememberMe true si session remember-me
-     * @param array $payload      Payload JWT (pour lire iat/exp sur session standard)
-     * @param int   $expiry       Durée standard JWT_EXPIRY en secondes
-     * @param float $threshold    Seuil JWT_REFRESH_THRESHOLD (ex : 0.5)
-     * @return bool               true si un refresh doit être effectué
-     */
-    private static function needsRefresh(
-        int $remaining,
-        bool $isRememberMe,
-        array $payload,
-        int $expiry,
-        float $threshold
-    ): bool {
-        if ($remaining <= 0) {
+        // Sécurité : totalTtl doit être strictement positif pour éviter une division par zéro
+        if ($totalTtl <= 0 || $remaining <= 0) {
             return false;
         }
 
-        if ($isRememberMe) {
-            // Refresh uniquement en fin de vie pour éviter la coupure mid-session
-            return $remaining <= $expiry * $threshold;
+        // Ratio de TTL restant (ex : 0.3 = 30% restant)
+        $remainingRatio = $remaining / $totalTtl;
+
+        if ($remainingRatio >= $threshold) {
+            return false; // TTL encore confortable — pas de refresh
         }
 
-        $totalTtl = (int) $payload['exp'] - (int) $payload['iat'];
-
-        // totalTtl > 0 garantit l'absence de division par zéro
-        return $totalTtl > 0 && ($remaining / $totalTtl) < $threshold;
+        return (bool) $refresher($token, $expiry);
     }
 }
