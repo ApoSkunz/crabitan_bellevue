@@ -2,6 +2,22 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.31.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.30.0...v0.31.0) (2026-04-05)
+
+
+### Bug Fixes
+
+* **seed:** remplacer les dates hardcodées passées par des expressions relatives NOW() ([0a804c9](https://github.com/ApoSkunz/crabitan_bellevue/commit/0a804c9882a73e942ed6ee1fd3f41ea72f0a9589))
+* **sonar:** OrderModel — extraire fetchAddressById + NOSONAR php:S1172 sur stubs ([a05361e](https://github.com/ApoSkunz/crabitan_bellevue/commit/a05361e17411a2343509a980ffc813b69af8f66e))
+* **test:** OrderControllerPaymentFlowTest — +4 fetchOne pour createFromIpn snapshot addresses ([b75a5d1](https://github.com/ApoSkunz/crabitan_bellevue/commit/b75a5d14d12791b5ce82110b30ff24b93bd98742))
+
+
+### Features
+
+* **model:** OrderAddressSnapshotModel — déduplication find-or-create par source_address_id ([d54b611](https://github.com/ApoSkunz/crabitan_bellevue/commit/d54b6114255a92eff2e0387127b45497666e6bb6))
+* **model:** OrderAddressSnapshotModel — snapshot immuable adresse commande, indépendant accounts/addresses (RGPD L123-22) ([470ca4b](https://github.com/ApoSkunz/crabitan_bellevue/commit/470ca4b653c420e7aab446a9e1cbf9fb41fd3185))
+* **model:** OrderModel — create/createFromIpn snapshotent les adresses + toutes les JOINs migrent vers order_address_snapshots ([00fcce7](https://github.com/ApoSkunz/crabitan_bellevue/commit/00fcce772807b051e0b0b4be6cd6193a19d1f2a0))
+
 # [0.30.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.29.0...v0.30.0) (2026-04-05)
 
 
