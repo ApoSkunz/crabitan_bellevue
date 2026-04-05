@@ -25,7 +25,7 @@
 
         function doLogout() {
             try { bc.close(); } catch (_) {}
-            window.location.href = '/' + LANG + '/connexion';
+            window.location.href = '/' + LANG + '/session-expiree';
         }
 
         async function poll() {
