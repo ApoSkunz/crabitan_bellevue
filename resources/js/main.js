@@ -262,7 +262,7 @@ function initAccountPanel() {
 // Toast notification
 // ============================================================
 
-function showToast(msg, isError = false, duration = 1500) {
+function showToast(msg, isError = false, duration = 5000) {
     const toast = document.getElementById('cb-toast');
     if (!toast) return;
     toast.textContent = msg;
@@ -2036,7 +2036,7 @@ function initCartPage() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.__flashInfo) showToast(window.__flashInfo, false, 2000);
+    // flashInfo est rendu comme bannière HTML persistante dans header.php — pas de toast
     initPageIntro();
     initTheme();
     initThemeToggle();
