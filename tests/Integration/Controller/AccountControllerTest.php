@@ -3749,10 +3749,12 @@ class AccountControllerTest extends IntegrationTestCase
         $expires     = date('Y-m-d H:i:s', time() + 3600);
         $newPwdHash  = password_hash('ConfirmedPwd1!', PASSWORD_BCRYPT);
 
+        $fakeSessionToken = 'fake.session.jwt.for.test';
         self::$db->execute(
             "UPDATE accounts SET security_confirm_token_hash = ?, security_confirm_token_expires_at = ?,
-             pending_password_hash = ?, pending_password_expires_at = ? WHERE id = ?",
-            [$hash, $expires, $newPwdHash, $expires, $userId]
+             pending_password_hash = ?, pending_password_expires_at = ?,
+             pending_password_session_token = ? WHERE id = ?",
+            [$hash, $expires, $newPwdHash, $expires, $fakeSessionToken, $userId]
         );
 
         $_GET['token'] = $raw;
@@ -3765,11 +3767,15 @@ class AccountControllerTest extends IntegrationTestCase
         $this->assertStringContainsString('auth-status--ok', $output);
         // Token consommé
         $this->assertFalse((new \Model\AccountModel())->findBySecurityConfirmToken($hash));
-        // Pending password appliqué
-        $row = self::$db->fetchOne("SELECT password, pending_password_hash FROM accounts WHERE id = ?", [$userId]);
+        // Pending password appliqué + session token effacé
+        $row = self::$db->fetchOne(
+            "SELECT password, pending_password_hash, pending_password_session_token FROM accounts WHERE id = ?",
+            [$userId]
+        );
         $this->assertIsArray($row);
         $this->assertSame($newPwdHash, $row['password']);
         $this->assertNull($row['pending_password_hash']);
+        $this->assertNull($row['pending_password_session_token']);
     }
 
     /**
@@ -3881,7 +3887,8 @@ class AccountControllerTest extends IntegrationTestCase
 
         self::$db->execute(
             "UPDATE accounts SET security_confirm_token_hash = ?, security_confirm_token_expires_at = ?,
-             pending_password_hash = ?, pending_password_expires_at = ? WHERE id = ?",
+             pending_password_hash = ?, pending_password_expires_at = ?,
+             pending_password_session_token = 'deny.session.token' WHERE id = ?",
             [$hash, $expires, password_hash('ShouldBeCleared1!', PASSWORD_BCRYPT), $expires, $userId]
         );
 

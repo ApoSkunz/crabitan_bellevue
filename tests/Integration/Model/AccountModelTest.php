@@ -791,7 +791,12 @@ class AccountModelTest extends IntegrationTestCase
         $newHash     = password_hash('NewPassword1!', PASSWORD_BCRYPT);
         $expiresAt   = date('Y-m-d H:i:s', time() + 3600);
 
-        $this->model->savePendingPassword($id, $newHash, $expiresAt);
+        $sessionToken = 'fake.jwt.token.for.test';
+        $this->model->savePendingPassword($id, $newHash, $expiresAt, $sessionToken);
+
+        // getPendingSessionToken retourne le token stocké
+        $this->assertSame($sessionToken, $this->model->getPendingSessionToken($id));
+
         $affected = $this->model->applyPendingPassword($id);
 
         $this->assertSame(1, $affected);
@@ -799,6 +804,7 @@ class AccountModelTest extends IntegrationTestCase
         $this->assertIsArray($account);
         $this->assertSame($newHash, $account['password']);
         $this->assertNull($account['pending_password_hash']);
+        $this->assertNull($account['pending_password_session_token']);
     }
 
     /**
@@ -825,13 +831,14 @@ class AccountModelTest extends IntegrationTestCase
         $this->assertIsArray($original);
         $origPwd   = $original['password'];
 
-        $this->model->savePendingPassword($id, password_hash('ToClear1!', PASSWORD_BCRYPT), date('Y-m-d H:i:s', time() + 3600));
+        $this->model->savePendingPassword($id, password_hash('ToClear1!', PASSWORD_BCRYPT), date('Y-m-d H:i:s', time() + 3600), 'session.token.test');
         $this->model->clearPendingPassword($id);
 
         $account = $this->model->findById($id);
         $this->assertIsArray($account);
         $this->assertSame($origPwd, $account['password']);
         $this->assertNull($account['pending_password_hash']);
+        $this->assertNull($account['pending_password_session_token']);
     }
 
     // ----------------------------------------------------------------
