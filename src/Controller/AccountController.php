@@ -220,7 +220,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
      * @param array<string, string> $params Paramètres de route (`lang`, `id`)
      * @return void
      */
-    public function cancelOrder(array $params): void // NOSONAR — php:S3776 : complexité inhérente au flux d'annulation (card/chèque, GAE, rétractation, emails)
+    public function cancelOrder(array $params): void // NOSONAR — php:S3776 : complexité flux annulation (card/chèque, GAE, rétractation, emails)
     {
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];

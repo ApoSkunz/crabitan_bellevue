@@ -48,7 +48,7 @@ class IpnController
      * @return void
      * @throws HttpException 400 si signature invalide, 200 dans tous les autres cas, 500 en erreur inattendue
      */
-    public function handle(array $params): void // NOSONAR — php:S1172 : $params requis par le dispatcher de routes, non utilisé pour l'IPN (appel server-to-server sans paramètres de route)
+    public function handle(array $params): void // NOSONAR — php:S1172 : $params imposé par le routeur MVC, non utilisé (IPN = server-to-server)
     {
         try {
             $rawQuery = $_SERVER['QUERY_STRING'] ?? '';

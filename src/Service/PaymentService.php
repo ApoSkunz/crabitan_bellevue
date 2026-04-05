@@ -47,7 +47,7 @@ class PaymentService
      * construites depuis CA_FALLBACK_BASE_URL. Si cette variable est vide, CA utilise
      * les URLs configurées dans Vision Air (déconseillé en prod).
      */
-    public function buildPbxFields( // NOSONAR — php:S107 : 10 paramètres requis par le protocole PBX CA (référence, montant, email, adresse facturation, panier, langue)
+    public function buildPbxFields( // NOSONAR — php:S107 : 10 params imposés par le protocole PBX CA (ref, montant, email, billing, panier, langue)
         string $reference,
         int $amountCents,
         string $clientEmail,
@@ -125,7 +125,7 @@ class PaymentService
      * @param string $rawQueryString QUERY_STRING brute du serveur ($_SERVER['QUERY_STRING'])
      * @return bool true si la signature est valide, false sinon
      */
-    public function verifyIpnSignature(string $rawQueryString): bool // NOSONAR — php:S1142 : sorties multiples nécessaires pour fail-fast sur chaque condition de sécurité RSA
+    public function verifyIpnSignature(string $rawQueryString): bool // NOSONAR — php:S1142 : fail-fast multi-sorties pour chaque condition RSA
     {
         $signKey = '&Sign=';
         $pos = strrpos($rawQueryString, $signKey);
@@ -183,7 +183,7 @@ class PaymentService
         $sandbox     = $this->isSandbox();
         $gaeUrl      = $sandbox ? self::URL_GAE_SANDBOX : self::URL_GAE_PROD;
         $numquestion = str_pad(
-            (string) (time() % 1000000000 + rand(0, 999)), // NOSONAR — weak-cryptography : NUMQUESTION est un identifiant de requête CA (unicité requise, non cryptographique)
+            (string) (time() % 1000000000 + rand(0, 999)), // NOSONAR — weak-cryptography : NUMQUESTION = identifiant CA non cryptographique
             10,
             '0',
             STR_PAD_LEFT
@@ -293,7 +293,7 @@ class PaymentService
         $site        = $this->getEnv('CA_PBX_SITE');
         $rang        = $this->getEnv('CA_PBX_RANG');
         $numquestion = str_pad(
-            (string) (time() % 1000000000 + rand(0, 999)), // NOSONAR — weak-cryptography : NUMQUESTION est un identifiant de requête CA (unicité requise, non cryptographique)
+            (string) (time() % 1000000000 + rand(0, 999)), // NOSONAR — weak-cryptography : NUMQUESTION = identifiant CA non cryptographique
             10,
             '0',
             STR_PAD_LEFT
@@ -353,7 +353,7 @@ class PaymentService
             }
         }
 
-        throw new \RuntimeException('Aucun serveur CA e-Transactions disponible.'); // NOSONAR — php:S112 : exception générique intentionnelle, aucun type métier spécifique requis pour cette erreur d'infrastructure
+        throw new \RuntimeException('Aucun serveur CA e-Transactions disponible.'); // NOSONAR — php:S112 : exception générique, aucun type métier requis ici
     }
 
     /**
