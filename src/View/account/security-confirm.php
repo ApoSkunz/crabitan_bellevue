@@ -14,9 +14,9 @@ require_once __DIR__ . '/../partials/header.php';
             </div>
             <h1><?= __('account.security_confirm_success_title') ?></h1>
             <p><?= __('account.security_confirm_success_body') ?></p>
-            <a class="btn btn--primary btn--sm" href="/<?= htmlspecialchars($lang) ?>/mon-compte/securite"
+            <a class="btn btn--primary btn--sm" href="/<?= htmlspecialchars($lang) ?>/connexion"
                style="display:block;text-align:center;margin-top:1.5rem;">
-                <?= __('account.security_confirm_security_btn') ?>
+                <?= __('account.security_confirm_login_btn') ?>
             </a>
         <?php else : ?>
             <div class="auth-status auth-status--error" aria-live="polite">
