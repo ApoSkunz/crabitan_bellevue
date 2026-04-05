@@ -489,6 +489,132 @@ class OrderControllerPaymentFlowTest extends TestCase
     }
 
     // ================================================================
+    // generateAndStoreInvoice() — findByReferenceWithAddresses null → null-guard
+    // ================================================================
+
+    /**
+     * Quand findByReferenceWithAddresses retourne null (commande introuvable avec adresses),
+     * generateAndStoreInvoice retourne immédiatement sans générer de facture.
+     *
+     * @return void
+     */
+    public function testGenerateAndStoreInvoiceSkipsWhenOrderNotFound(): void
+    {
+        if ($this->privateKey === false || $this->tmpPubkeyPath === '') {
+            $this->markTestSkipped('Génération de clé RSA non disponible dans cet environnement.');
+        }
+
+        $_ENV['CA_PUBKEY_PATH'] = $this->tmpPubkeyPath;
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement-ca/ok';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+
+        $dataQs   = 'Ref=WEB-CB-AABBCCDD-2026&Erreur=00000&Appel=1234&Trans=5678';
+        $signedQs = $this->buildSignedQueryString($dataQs);
+        $_SERVER['QUERY_STRING'] = $signedQs;
+        $_GET = ['Ref' => 'WEB-CB-AABBCCDD-2026', 'Erreur' => '00000', 'Appel' => '1234', 'Trans' => '5678'];
+
+        $snapshot    = $this->defaultSnapshot(1, 'WEB-CB-AABBCCDD-2026');
+        $snapshotRow = ['snapshot' => json_encode($snapshot)];
+
+        $stub = $this->setDbMock();
+        // 6e appel = findByReferenceWithAddresses → null (commande introuvable avec adresses)
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],   // AuthMiddleware
+            false,          // OrderModel::findByReference → absente
+            $snapshotRow,   // PaymentIntentModel::findByReference
+            false,          // findByReferenceOnly → non créée
+            [               // findByReference après création
+                'order_reference' => 'WEB-CB-AABBCCDD-2026',
+                'payment_method'  => 'card',
+                'content'         => json_encode($snapshot['items']),
+            ],
+            null,           // findByReferenceWithAddresses → null (null-guard)
+        );
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->paymentReturnOk(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
+
+    // ================================================================
+    // generateAndStoreInvoice() — avec email client → sendInvoiceToClient couvert
+    // ================================================================
+
+    /**
+     * Quand findByReferenceWithAddresses retourne un ordre avec email,
+     * generateAndStoreInvoice tente d'envoyer l'email facture.
+     * L'envoi SMTP échoue (pas de SMTP réel) mais est absorbé silencieusement.
+     *
+     * @return void
+     */
+    public function testGenerateAndStoreInvoiceCoversEmailBranchWithClientEmail(): void
+    {
+        if ($this->privateKey === false || $this->tmpPubkeyPath === '') {
+            $this->markTestSkipped('Génération de clé RSA non disponible dans cet environnement.');
+        }
+
+        $_ENV['CA_PUBKEY_PATH'] = $this->tmpPubkeyPath;
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement-ca/ok';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+
+        $dataQs   = 'Ref=WEB-CB-AABBCCDD-2026&Erreur=00000&Appel=1234&Trans=5678';
+        $signedQs = $this->buildSignedQueryString($dataQs);
+        $_SERVER['QUERY_STRING'] = $signedQs;
+        $_GET = ['Ref' => 'WEB-CB-AABBCCDD-2026', 'Erreur' => '00000', 'Appel' => '1234', 'Trans' => '5678'];
+
+        $snapshot    = $this->defaultSnapshot(1, 'WEB-CB-AABBCCDD-2026');
+        $snapshotRow = ['snapshot' => json_encode($snapshot)];
+
+        $stub = $this->setDbMock();
+        // 6e appel = findByReferenceWithAddresses → order avec email
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],
+            false,
+            $snapshotRow,
+            false,
+            [
+                'order_reference' => 'WEB-CB-AABBCCDD-2026',
+                'payment_method'  => 'card',
+                'content'         => json_encode($snapshot['items']),
+            ],
+            [
+                'id'               => 684,
+                'order_reference'  => 'WEB-CB-AABBCCDD-2026',
+                'payment_method'   => 'card',
+                'content'          => json_encode($snapshot['items']),
+                'price'            => 120.0,
+                'shipping_discount' => 0.0,
+                'ordered_at'       => date('Y-m-d H:i:s'),
+                'email'            => 'client@example.com',
+                'firstname'        => 'Jean',
+                'lastname'         => 'Dupont',
+                'lang'             => 'fr',
+            ],
+        );
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->paymentReturnOk(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        // L'email échoue silencieusement (pas de SMTP réel) → redirect confirmation quand même
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
+
+    // ================================================================
     // paymentReturnCancel() — avec Ref → delete intent + flash + redirect
     // ================================================================
 

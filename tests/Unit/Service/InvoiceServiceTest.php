@@ -95,4 +95,38 @@ class InvoiceServiceTest extends TestCase
 
         $this->assertStringStartsWith('%PDF', $result);
     }
+
+    // ----------------------------------------------------------------
+    // buildLogoTag — branche fallback (logo absent)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que buildLogoTag retourne un span texte quand le logo est absent.
+     */
+    public function testBuildLogoTagReturnsFallbackSpanWhenLogoAbsent(): void
+    {
+        $service = new InvoiceService();
+        $method  = new \ReflectionMethod(InvoiceService::class, 'buildLogoTag');
+        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+
+        $result = $method->invoke($service, null);
+
+        $this->assertStringContainsString('<span', $result);
+        $this->assertStringContainsString('Crabitan', $result);
+    }
+
+    /**
+     * Vérifie que buildLogoTag retourne un img quand un chemin logo est fourni.
+     */
+    public function testBuildLogoTagReturnsImgWhenLogoPresent(): void
+    {
+        $service = new InvoiceService();
+        $method  = new \ReflectionMethod(InvoiceService::class, 'buildLogoTag');
+        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+
+        $result = $method->invoke($service, '/path/to/logo.png');
+
+        $this->assertStringContainsString('<img', $result);
+        $this->assertStringContainsString('/path/to/logo.png', $result);
+    }
 }
