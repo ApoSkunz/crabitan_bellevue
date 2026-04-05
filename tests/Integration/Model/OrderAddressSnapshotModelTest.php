@@ -184,4 +184,104 @@ class OrderAddressSnapshotModelTest extends IntegrationTestCase
         $this->assertNotFalse($row);
         $this->assertSame($snapshotId, (int) $row['id']);
     }
+
+    // ----------------------------------------------------------------
+    // Déduplication — find-or-create par source_address_id
+    // ----------------------------------------------------------------
+
+    /**
+     * Deux commandes avec la même adresse non modifiée → même snapshot_id.
+     *
+     * @return void
+     */
+    public function testCreateFromAddressReusesSameSnapshotWhenAddressUnchanged(): void
+    {
+        $addr = [
+            'firstname' => 'Marie',
+            'lastname'  => 'Dupont',
+            'street'    => '3 rue du Vin',
+            'city'      => 'Bordeaux',
+            'zip_code'  => '33000',
+            'country'   => 'France',
+            'phone'     => '0600000001',
+        ];
+
+        $id1 = $this->model->createFromAddress($addr, 42);
+        $id2 = $this->model->createFromAddress($addr, 42);
+
+        $this->assertSame($id1, $id2);
+    }
+
+    /**
+     * Même source_address_id mais adresse modifiée → nouveau snapshot créé.
+     *
+     * @return void
+     */
+    public function testCreateFromAddressCreatesNewSnapshotWhenAddressChanged(): void
+    {
+        $addr = [
+            'firstname' => 'Paul',
+            'lastname'  => 'Martin',
+            'street'    => '10 rue Ancienne',
+            'city'      => 'Lyon',
+            'zip_code'  => '69001',
+            'country'   => 'France',
+            'phone'     => '',
+        ];
+        $addrModified = array_merge($addr, ['street' => '10 rue Nouvelle']);
+
+        $id1 = $this->model->createFromAddress($addr, 99);
+        $id2 = $this->model->createFromAddress($addrModified, 99);
+
+        $this->assertNotSame($id1, $id2);
+    }
+
+    /**
+     * Sans source_address_id (null) → toujours un nouveau snapshot (pas de déduplication).
+     *
+     * @return void
+     */
+    public function testCreateFromAddressWithoutSourceIdAlwaysCreatesNew(): void
+    {
+        $addr = [
+            'firstname' => 'Alex',
+            'lastname'  => 'Bernard',
+            'street'    => '1 Crabitan',
+            'city'      => 'Sainte-Croix-du-Mont',
+            'zip_code'  => '33410',
+            'country'   => 'France',
+            'phone'     => '',
+        ];
+
+        $id1 = $this->model->createFromAddress($addr, null);
+        $id2 = $this->model->createFromAddress($addr, null);
+
+        $this->assertNotSame($id1, $id2);
+    }
+
+    /**
+     * Vérifie que source_address_id est bien stocké dans le snapshot.
+     *
+     * @return void
+     */
+    public function testCreateFromAddressStoresSourceAddressId(): void
+    {
+        $id = $this->model->createFromAddress([
+            'firstname' => 'Sophie',
+            'lastname'  => 'Leblanc',
+            'street'    => '7 allée des Vignes',
+            'city'      => 'Bordeaux',
+            'zip_code'  => '33000',
+            'country'   => 'France',
+            'phone'     => '',
+        ], 77);
+
+        $row = self::$db->fetchOne(
+            "SELECT source_address_id FROM order_address_snapshots WHERE id = ?",
+            [$id]
+        );
+
+        $this->assertNotFalse($row);
+        $this->assertSame(77, (int) $row['source_address_id']);
+    }
 }
