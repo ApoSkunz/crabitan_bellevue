@@ -214,6 +214,7 @@ return [
     'validation.password_lowercase' => 'Le mot de passe doit contenir au moins une lettre minuscule.',
     'validation.password_digit'     => 'Le mot de passe doit contenir au moins un chiffre.',
     'validation.password_special'   => 'Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&*…).',
+    'validation.password_too_common' => 'Ce mot de passe est trop prévisible (suite logique ou mot courant). Choisissez-en un plus original.',
     'validation.password_match'     => 'Les mots de passe ne correspondent pas.',
     'auth.password_too_weak'        => 'Le mot de passe doit contenir au moins 12 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.',
 

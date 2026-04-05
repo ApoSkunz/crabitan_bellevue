@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Service\PasswordValidator;
 
 /**
- * Tests unitaires pour PasswordValidator (politique ANSSI MDP 2021).
+ * Tests unitaires pour PasswordValidator (politique ANSSI MDP 2021 + blocklist + séquences).
  */
 class PasswordValidatorTest extends TestCase
 {
@@ -18,12 +18,12 @@ class PasswordValidatorTest extends TestCase
 
     public function testStrongPasswordReturnsTrue(): void
     {
-        $this->assertTrue(PasswordValidator::isStrong('Password123!'));
+        $this->assertTrue(PasswordValidator::isStrong('Vigilant7#xKqm'));
     }
 
     public function testStrongPasswordWithAllSpecialCharsReturnsTrue(): void
     {
-        $this->assertTrue(PasswordValidator::isStrong('AbcDef1@ghij'));
+        $this->assertTrue(PasswordValidator::isStrong('Kiwi&Blue42sky'));
     }
 
     public function testPasswordExactly12CharsReturnsTrue(): void
@@ -34,7 +34,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testLongComplexPasswordReturnsTrue(): void
     {
-        $this->assertTrue(PasswordValidator::isStrong('MyVeryLong&SecurePassword99!'));
+        $this->assertTrue(PasswordValidator::isStrong('MyVeryLong&Secure99!Kiwi'));
     }
 
     // ----------------------------------------------------------------
@@ -63,7 +63,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testNoUppercaseReturnsFalse(): void
     {
-        $this->assertFalse(PasswordValidator::isStrong('password123!abc'));
+        $this->assertFalse(PasswordValidator::isStrong('vigilant7#xkqm'));
     }
 
     // ----------------------------------------------------------------
@@ -72,7 +72,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testNoLowercaseReturnsFalse(): void
     {
-        $this->assertFalse(PasswordValidator::isStrong('PASSWORD123!ABC'));
+        $this->assertFalse(PasswordValidator::isStrong('VIGILANT7#XKQM'));
     }
 
     // ----------------------------------------------------------------
@@ -81,7 +81,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testNoDigitReturnsFalse(): void
     {
-        $this->assertFalse(PasswordValidator::isStrong('PasswordNoDigit!'));
+        $this->assertFalse(PasswordValidator::isStrong('VigilantNoDigit!'));
     }
 
     // ----------------------------------------------------------------
@@ -90,7 +90,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testNoSpecialCharReturnsFalse(): void
     {
-        $this->assertFalse(PasswordValidator::isStrong('Password1234567'));
+        $this->assertFalse(PasswordValidator::isStrong('Vigilant7531abc'));
     }
 
     // ----------------------------------------------------------------
@@ -115,17 +115,17 @@ class PasswordValidatorTest extends TestCase
 
     public function testSpecialCharAtSymbolReturnsTrue(): void
     {
-        $this->assertTrue(PasswordValidator::isStrong('Password123@abc'));
+        $this->assertTrue(PasswordValidator::isStrong('Vigilant7@xKqm'));
     }
 
     public function testSpecialCharHashReturnsTrue(): void
     {
-        $this->assertTrue(PasswordValidator::isStrong('Password123#abc'));
+        $this->assertTrue(PasswordValidator::isStrong('Vigilant7#xKqm'));
     }
 
     public function testSpecialCharBracketReturnsTrue(): void
     {
-        $this->assertTrue(PasswordValidator::isStrong('Password123[abc'));
+        $this->assertTrue(PasswordValidator::isStrong('Vigilant7[xKqm'));
     }
 
     // ----------------------------------------------------------------
@@ -134,7 +134,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testGetErrorsReturnsEmptyArrayForStrongPassword(): void
     {
-        $this->assertSame([], PasswordValidator::getErrors('Password123!'));
+        $this->assertSame([], PasswordValidator::getErrors('Vigilant7#xKqm'));
     }
 
     // ----------------------------------------------------------------
@@ -153,7 +153,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testGetErrorsContainsUppercaseKeyWhenMissing(): void
     {
-        $errors = PasswordValidator::getErrors('password123!abc');
+        $errors = PasswordValidator::getErrors('vigilant7#xkqm');
         $this->assertContains('validation.password_uppercase', $errors);
         $this->assertNotContains('validation.password_lowercase', $errors);
         $this->assertNotContains('validation.password_digit', $errors);
@@ -166,7 +166,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testGetErrorsContainsLowercaseKeyWhenMissing(): void
     {
-        $errors = PasswordValidator::getErrors('PASSWORD123!ABC');
+        $errors = PasswordValidator::getErrors('VIGILANT7#XKQM');
         $this->assertContains('validation.password_lowercase', $errors);
         $this->assertNotContains('validation.password_uppercase', $errors);
     }
@@ -177,7 +177,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testGetErrorsContainsDigitKeyWhenMissing(): void
     {
-        $errors = PasswordValidator::getErrors('PasswordNoDigit!');
+        $errors = PasswordValidator::getErrors('VigilantNoDigit!');
         $this->assertContains('validation.password_digit', $errors);
     }
 
@@ -187,7 +187,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testGetErrorsContainsSpecialKeyWhenMissing(): void
     {
-        $errors = PasswordValidator::getErrors('Password1234567');
+        $errors = PasswordValidator::getErrors('Vigilant7531abc');
         $this->assertContains('validation.password_special', $errors);
     }
 
@@ -197,7 +197,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testGetErrorsContainsMultipleKeysWhenSeveralRulesFail(): void
     {
-        // Mot de passe vide : toutes les règles échouent
+        // Mot de passe vide : toutes les règles de base échouent
         $errors = PasswordValidator::getErrors('');
         $this->assertContains('validation.password_min', $errors);
         $this->assertContains('validation.password_uppercase', $errors);
@@ -225,36 +225,31 @@ class PasswordValidatorTest extends TestCase
 
     public function testGetErrorsExactlyOneErrorWhenOnlyMinViolated(): void
     {
-        // 11 chars, toutes autres règles OK → exactement ['validation.password_min']
         $errors = PasswordValidator::getErrors('Aa1!aaaaaaa');
         $this->assertSame(['validation.password_min'], $errors);
     }
 
     public function testGetErrorsExactlyOneErrorWhenOnlyUppercaseViolated(): void
     {
-        // ≥12 chars, pas de majuscule, tout le reste OK
-        $errors = PasswordValidator::getErrors('password123!ab');
+        $errors = PasswordValidator::getErrors('vigilant7#xkqm');
         $this->assertSame(['validation.password_uppercase'], $errors);
     }
 
     public function testGetErrorsExactlyOneErrorWhenOnlyLowercaseViolated(): void
     {
-        // ≥12 chars, pas de minuscule, tout le reste OK
-        $errors = PasswordValidator::getErrors('PASSWORD123!AB');
+        $errors = PasswordValidator::getErrors('VIGILANT7#XKQM');
         $this->assertSame(['validation.password_lowercase'], $errors);
     }
 
     public function testGetErrorsExactlyOneErrorWhenOnlyDigitViolated(): void
     {
-        // ≥12 chars, pas de chiffre, tout le reste OK
-        $errors = PasswordValidator::getErrors('PasswordNoDigit!');
+        $errors = PasswordValidator::getErrors('VigilantNoDigit!');
         $this->assertSame(['validation.password_digit'], $errors);
     }
 
     public function testGetErrorsExactlyOneErrorWhenOnlySpecialViolated(): void
     {
-        // ≥12 chars, pas de caractère spécial, tout le reste OK
-        $errors = PasswordValidator::getErrors('Password1234567');
+        $errors = PasswordValidator::getErrors('Vigilant7531abc');
         $this->assertSame(['validation.password_special'], $errors);
     }
 
@@ -264,7 +259,6 @@ class PasswordValidatorTest extends TestCase
 
     public function testGetErrorsEmptyArrayForExactly12CharsValid(): void
     {
-        // Exactement 12 caractères couvrant toutes les règles
         $errors = PasswordValidator::getErrors('Aa1!aaaaaaaa');
         $this->assertSame([], $errors);
     }
@@ -275,7 +269,7 @@ class PasswordValidatorTest extends TestCase
 
     public function testIsStrongReturnsTrueWhenGetErrorsIsEmpty(): void
     {
-        $password = 'Password123!';
+        $password = 'Vigilant7#xKqm';
         $this->assertSame([], PasswordValidator::getErrors($password));
         $this->assertTrue(PasswordValidator::isStrong($password));
     }
@@ -290,12 +284,11 @@ class PasswordValidatorTest extends TestCase
 
     public function testIsStrongCoherenceForValidPassword(): void
     {
-        // isStrong doit être équivalent à getErrors() === []
         $validPasswords = [
-            'Password123!',
+            'Vigilant7#xKqm',
             'Aa1!aaaaaaaa',
-            'MyVeryLong&SecurePassword99!',
-            'AbcDef1@ghij',
+            'MyVeryLong&Secure99!Kiwi',
+            'Kiwi&Blue42sky',
         ];
         foreach ($validPasswords as $pwd) {
             $this->assertSame(
@@ -308,14 +301,13 @@ class PasswordValidatorTest extends TestCase
 
     public function testIsStrongCoherenceForInvalidPasswords(): void
     {
-        // Pour chaque mot de passe invalide, isStrong doit être false et getErrors non vide
         $invalidPasswords = [
             '',
-            'Aa1!aaaaaaa',    // 11 chars
-            'password123!ab', // pas de majuscule
-            'PASSWORD123!AB', // pas de minuscule
-            'PasswordNoDigit!', // pas de chiffre
-            'Password1234567',  // pas de spécial
+            'Aa1!aaaaaaa',        // 11 chars
+            'vigilant7#xkqm',     // pas de majuscule
+            'VIGILANT7#XKQM',     // pas de minuscule
+            'VigilantNoDigit!',   // pas de chiffre
+            'Vigilant7531abc',    // pas de spécial
         ];
         foreach ($invalidPasswords as $pwd) {
             $errors = PasswordValidator::getErrors($pwd);
@@ -325,5 +317,56 @@ class PasswordValidatorTest extends TestCase
                 "isStrong devrait retourner false pour : $pwd"
             );
         }
+    }
+
+    // ----------------------------------------------------------------
+    // Blocklist — mots courants et substitutions leet
+    // ----------------------------------------------------------------
+
+    public function testCommonWordPasswordReturnsFalse(): void
+    {
+        $this->assertFalse(PasswordValidator::isStrong('Password123!'));
+    }
+
+    public function testLeetSpeakPasswordReturnsFalse(): void
+    {
+        $this->assertFalse(PasswordValidator::isStrong('P@ssw0rd123!'));
+    }
+
+    public function testAzertyPasswordReturnsFalse(): void
+    {
+        $this->assertFalse(PasswordValidator::isStrong('Azerty2024!X'));
+    }
+
+    public function testGetErrorsContainsTooCommonKeyForBlocklistedPassword(): void
+    {
+        $errors = PasswordValidator::getErrors('P@ssw0rd123!');
+        $this->assertContains('validation.password_too_common', $errors);
+    }
+
+    // ----------------------------------------------------------------
+    // Séquences — suites logiques
+    // ----------------------------------------------------------------
+
+    public function testAscendingSequenceReturnsFalse(): void
+    {
+        $this->assertFalse(PasswordValidator::isStrong('abcd1234!Xkqm'));
+    }
+
+    public function testDescendingSequenceReturnsFalse(): void
+    {
+        $this->assertFalse(PasswordValidator::isStrong('dcba9876!Xkqm'));
+    }
+
+    public function testGetErrorsContainsTooCommonKeyForSequence(): void
+    {
+        $errors = PasswordValidator::getErrors('Xkqm1234!abcd');
+        $this->assertContains('validation.password_too_common', $errors);
+    }
+
+    public function testThreeCharsRunIsNotASequence(): void
+    {
+        // abc = 3 chars consécutifs → ne déclenche pas la pénalité
+        $this->assertTrue(PasswordValidator::isStrong('AbcXkqm7#yZzz'));
     }
 }

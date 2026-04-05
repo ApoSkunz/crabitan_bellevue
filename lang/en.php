@@ -214,6 +214,7 @@ return [
     'validation.password_lowercase' => 'Password must contain at least one lowercase letter.',
     'validation.password_digit'     => 'Password must contain at least one digit.',
     'validation.password_special'   => 'Password must contain at least one special character (!@#$%^&*…).',
+    'validation.password_too_common' => 'This password is too predictable (sequential pattern or common word). Please choose a more original one.',
     'validation.password_match'     => 'Passwords do not match.',
     'auth.password_too_weak'        => 'Password must contain at least 12 characters, one uppercase letter, one lowercase letter, one digit, and one special character.',
 
