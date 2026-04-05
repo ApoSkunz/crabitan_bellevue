@@ -34,6 +34,7 @@ DROP TABLE IF EXISTS `credit_card_token`;
 DROP TABLE IF EXISTS `device_confirm_tokens`;
 DROP TABLE IF EXISTS `trusted_devices`;
 DROP TABLE IF EXISTS `connections`;
+DROP TABLE IF EXISTS `order_invoice_files`;
 DROP TABLE IF EXISTS `payment_intents`;
 DROP TABLE IF EXISTS `orders`;
 DROP TABLE IF EXISTS `order_address_snapshots`;
@@ -254,6 +255,7 @@ CREATE TABLE `order_address_snapshots` (
   `country`           VARCHAR(100)  NOT NULL DEFAULT '',
   `phone`             VARCHAR(30)   NOT NULL DEFAULT '',
   `created_at`        DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `pseudonymized_at`  DATETIME      NULL DEFAULT NULL COMMENT 'Date de pseudonymisation RGPD (J+3650 depuis ordered_at)',
   PRIMARY KEY (`id`),
   INDEX `idx_oas_source_address` (`source_address_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -284,6 +286,24 @@ CREATE TABLE `orders` (
   CONSTRAINT `fk_orders_delivery_snapshot` FOREIGN KEY (`id_delivery_snapshot`) REFERENCES `order_address_snapshots` (`id`) ON DELETE RESTRICT,
   INDEX `idx_orders_user_status` (`user_id`, `status`),
   INDEX `idx_orders_ordered_at` (`ordered_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : order_invoice_files
+-- Historique de toutes les factures liées à une commande.
+-- Conservation obligatoire 10 ans (Art. L441-9 C.com.) — jamais de DELETE.
+-- `source` = 'auto' pour les PDF générés automatiquement, 'upload' pour les PDF uploadés par l'admin.
+-- ============================================================
+CREATE TABLE `order_invoice_files` (
+  `id`             INT           NOT NULL AUTO_INCREMENT,
+  `order_id`       INT           NOT NULL,
+  `path`           VARCHAR(512)  NOT NULL COMMENT 'Chemin relatif depuis ROOT_PATH (ex: storage/invoices/xxx.pdf)',
+  `invoice_number` VARCHAR(100)  DEFAULT NULL COMMENT 'Numéro de facture si connu (WEB-INVOICE-YYYY-XXXX)',
+  `source`         ENUM('auto','upload') NOT NULL DEFAULT 'upload' COMMENT 'auto = généré automatiquement lors du changement de statut, upload = téléversé par admin',
+  `uploaded_at`    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_order_invoice_files_order_id` (`order_id`),
+  CONSTRAINT `fk_order_invoice_files_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
