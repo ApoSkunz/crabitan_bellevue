@@ -324,4 +324,73 @@ class ConnectionModelTest extends IntegrationTestCase
 
         $this->assertTrue($this->model->hasAnyConnection($this->userId));
     }
+
+    // ------------------------------------------------------------------
+    // purgeExpired
+    // ------------------------------------------------------------------
+
+    /**
+     * purgeExpired() supprime les connexions révoquées.
+     */
+    public function testPurgeExpiredDeletesRevokedConnections(): void
+    {
+        $token = bin2hex(random_bytes(32));
+        $this->model->create($this->userId, $token, null, null, null, null, 'password', 3600);
+        $this->model->revoke($token);
+
+        $purged = $this->model->purgeExpired();
+
+        $this->assertGreaterThanOrEqual(1, $purged);
+        $row = self::$db->fetchOne("SELECT id FROM connections WHERE token = ?", [$token]);
+        $this->assertFalse($row);
+    }
+
+    /**
+     * purgeExpired() supprime les connexions expirées (expired_at dans le passé).
+     */
+    public function testPurgeExpiredDeletesExpiredConnections(): void
+    {
+        $token = bin2hex(random_bytes(32));
+        self::$db->insert(
+            "INSERT INTO connections (user_id, token, auth_method, status, expired_at)
+             VALUES (?, ?, 'password', 'active', DATE_SUB(NOW(), INTERVAL 1 HOUR))",
+            [$this->userId, $token]
+        );
+
+        $purged = $this->model->purgeExpired();
+
+        $this->assertGreaterThanOrEqual(1, $purged);
+        $row = self::$db->fetchOne("SELECT id FROM connections WHERE token = ?", [$token]);
+        $this->assertFalse($row);
+    }
+
+    /**
+     * purgeExpired() ne supprime pas les connexions actives non expirées.
+     * expired_at calculé en SQL (DATE_ADD) pour éviter tout décalage PHP/MySQL.
+     */
+    public function testPurgeExpiredKeepsActiveConnections(): void
+    {
+        $token = bin2hex(random_bytes(32));
+        self::$db->insert(
+            "INSERT INTO connections (user_id, token, auth_method, status, expired_at)
+             VALUES (?, ?, 'password', 'active', DATE_ADD(NOW(), INTERVAL 1 DAY))",
+            [$this->userId, $token]
+        );
+
+        $this->model->purgeExpired();
+
+        $row = self::$db->fetchOne("SELECT id FROM connections WHERE token = ?", [$token]);
+        $this->assertIsArray($row);
+    }
+
+    /**
+     * purgeExpired() retourne 0 quand il n'y a rien à supprimer.
+     */
+    public function testPurgeExpiredReturnsZeroWhenNothingToDelete(): void
+    {
+        // Pas de connexion insérée dans ce test
+        $result = $this->model->purgeExpired();
+
+        $this->assertSame(0, $result);
+    }
 }
