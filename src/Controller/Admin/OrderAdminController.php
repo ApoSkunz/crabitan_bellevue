@@ -199,8 +199,8 @@ class OrderAdminController extends AdminController
             }
         }
 
-        // Génération automatique de la facture pour virement/chèque au passage à 'paid'
-        if ($status === 'paid' && $status !== $oldStatus && empty($order['path_invoice'])) {
+        // Génération automatique de la facture dès le premier changement de statut actif (virement/chèque)
+        if ($status !== $oldStatus && empty($order['path_invoice'])) {
             try {
                 $fullOrder = $this->orders->findByReferenceWithAddresses(
                     (string) ($order['order_reference'] ?? '')
@@ -217,6 +217,28 @@ class OrderAdminController extends AdminController
                         (new InvoiceService())->generate($fullOrder, $invoiceNumber)
                     );
                     $this->orders->updateInvoiceData($id, $invoiceNumber, $invoicePath);
+
+                    // Envoi facture par email au client — non bloquant
+                    try {
+                        $invoiceEmail = (string) ($order['email']     ?? '');
+                        $invFname     = (string) ($order['firstname'] ?? '');
+                        $invLname     = (string) ($order['lastname']  ?? '');
+                        $invoiceName  = trim($invFname . ' ' . $invLname) ?: $invoiceEmail;
+                        $invoiceLang  = (string) ($order['lang']      ?? 'fr');
+                        if ($invoiceEmail !== '') {
+                            $this->newMailService()->sendInvoiceToClient(
+                                $invoiceEmail,
+                                $invoiceName,
+                                (string) ($order['order_reference'] ?? ''),
+                                $invoiceNumber,
+                                realpath(ROOT_PATH . '/' . $invoicePath) ?: ROOT_PATH . '/' . $invoicePath,
+                                $invoiceLang
+                            );
+                        }
+                    } catch (\Throwable $mailErr) {
+                        // phpcs:ignore Generic.Files.LineLength
+                        error_log('[OrderAdmin] Invoice mail error for order #' . $id . ': ' . $mailErr->getMessage());
+                    }
                 }
             } catch (\Throwable $invoiceError) {
                 error_log('[OrderAdmin] Invoice error for order #' . $id . ': ' . $invoiceError->getMessage());

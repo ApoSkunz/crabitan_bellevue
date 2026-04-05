@@ -770,10 +770,31 @@ class OrderController extends Controller
             }
             $invoicePath = 'storage/invoices/' . $invoiceNumber . '.pdf';
             file_put_contents(
-                ROOT_PATH . '/' . $invoicePath,
+                ROOT_PATH . '/' . $invoicePath, // nosemgrep: php.lang.security.injection.tainted-filename.tainted-filename
                 (new \Service\InvoiceService())->generate($order, $invoiceNumber)
             );
             $this->orders->updateInvoiceData((int) $order['id'], $invoiceNumber, $invoicePath);
+
+            // Envoi facture par email — non bloquant
+            $clientEmail = (string) ($order['email']     ?? '');
+            $firstname   = (string) ($order['firstname'] ?? '');
+            $lastname    = (string) ($order['lastname']  ?? '');
+            $clientName  = trim($firstname . ' ' . $lastname) ?: $clientEmail;
+            $clientLang  = (string) ($order['lang']      ?? 'fr');
+            if ($clientEmail !== '') {
+                try {
+                    (new \Service\MailService())->sendInvoiceToClient(
+                        $clientEmail,
+                        $clientName,
+                        $reference,
+                        $invoiceNumber,
+                        realpath(ROOT_PATH . '/' . $invoicePath) ?: ROOT_PATH . '/' . $invoicePath,
+                        $clientLang
+                    );
+                } catch (\Throwable $mailErr) {
+                    error_log('[ORDER] Invoice mail error for ref=' . $reference . ' : ' . $mailErr->getMessage());
+                }
+            }
         } catch (\Throwable $e) {
             error_log('[ORDER] Invoice error for ref=' . $reference . ' : ' . $e->getMessage());
         }

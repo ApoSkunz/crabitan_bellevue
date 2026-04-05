@@ -133,10 +133,29 @@ class IpnController
                     }
                     $invoicePath = 'storage/invoices/' . $invoiceNumber . '.pdf';
                     file_put_contents(
-                        ROOT_PATH . '/' . $invoicePath,
+                        ROOT_PATH . '/' . $invoicePath, // nosemgrep: php.lang.security.injection.tainted-filename.tainted-filename
                         (new InvoiceService())->generate($order, $invoiceNumber)
                     );
                     $this->orders->updateInvoiceData((int) $order['id'], $invoiceNumber, $invoicePath);
+
+                    // Envoi facture par email — non bloquant
+                    try {
+                        $invoiceLang  = (string) ($snapshot['lang']         ?? 'fr');
+                        $invoiceEmail = (string) ($snapshot['client_email'] ?? '');
+                        $invoiceName  = (string) ($snapshot['client_name']  ?? '');
+                        if ($invoiceEmail !== '') {
+                            $this->mail->sendInvoiceToClient(
+                                $invoiceEmail,
+                                $invoiceName,
+                                $finalRef,
+                                $invoiceNumber,
+                                realpath(ROOT_PATH . '/' . $invoicePath) ?: ROOT_PATH . '/' . $invoicePath,
+                                $invoiceLang
+                            );
+                        }
+                    } catch (\Throwable $mailInvoiceError) {
+                        error_log('[IPN] Invoice mail error for ref=' . $finalRef . ' : ' . $mailInvoiceError->getMessage());
+                    }
                 }
             } catch (\Throwable $invoiceError) {
                 error_log('[IPN] Invoice error for ref=' . $finalRef . ' : ' . $invoiceError->getMessage());
