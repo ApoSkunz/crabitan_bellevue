@@ -102,17 +102,17 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
             <div style="padding:0.75rem 1.5rem;border-top:1px solid rgba(8,8,8,0.06);">
                 <table style="width:100%;border-collapse:collapse;font-size:0.875rem;">
                     <tr>
-                        <td style="padding:3px 0;color:#8a7a60;">Sous-total articles</td>
+                        <th scope="row" style="padding:3px 0;color:#8a7a60;font-weight:normal;text-align:left;">Sous-total articles</th>
                         <td style="padding:3px 0;text-align:right;color:#1a1208;"><?= number_format($itemsSubtotal, 2, ',', ' ') ?>&nbsp;€</td>
                     </tr>
                     <?php if ($shippingDiscount > 0.0) : ?>
                     <tr>
-                        <td style="padding:3px 0;color:#c9a84c;">Remise livraison</td>
+                        <th scope="row" style="padding:3px 0;color:#c9a84c;font-weight:normal;text-align:left;">Remise livraison</th>
                         <td style="padding:3px 0;text-align:right;color:#c9a84c;">− <?= number_format($shippingDiscount, 2, ',', ' ') ?>&nbsp;€</td>
                     </tr>
                     <?php endif; ?>
                     <tr style="border-top:1px solid rgba(8,8,8,0.08);">
-                        <td style="padding:6px 0 3px;font-weight:700;color:#1a1208;">Total TTC</td>
+                        <th scope="row" style="padding:6px 0 3px;font-weight:700;color:#1a1208;text-align:left;">Total TTC</th>
                         <td style="padding:6px 0 3px;text-align:right;font-weight:700;font-size:0.95rem;color:#1a1208;"><?= number_format($total, 2, ',', ' ') ?>&nbsp;€</td>
                     </tr>
                 </table>
