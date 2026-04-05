@@ -10,15 +10,21 @@ use Model\AccountModel;
 use Model\ConnectionModel;
 use Model\TrustedDeviceModel;
 use Service\PasswordValidator;
+use Service\RateLimiterService;
 
 class ProfileAdminController extends AdminController
 {
     private const ADMIN_URL    = '/admin';
     private const SECURITY_URL = '/admin/securite';
 
+    /** Rate limiting changement de mot de passe admin : 1 tentative / jour / IP. */
+    private const MAX_ADMIN_PW_IP  = 1;
+    private const WINDOW_ADMIN_PW  = 86400;
+
     private AccountModel $accounts;
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
+    private RateLimiterService $rateLimiter;
 
     public function __construct(\Core\Request $request)
     {
@@ -26,6 +32,7 @@ class ProfileAdminController extends AdminController
         $this->accounts       = new AccountModel();
         $this->connections    = new ConnectionModel();
         $this->trustedDevices = new TrustedDeviceModel();
+        $this->rateLimiter    = new RateLimiterService();
     }
 
     // ----------------------------------------------------------------
@@ -76,6 +83,16 @@ class ProfileAdminController extends AdminController
             $this->flash('error', 'Jeton CSRF invalide.');
             Response::redirect(self::SECURITY_URL);
         }
+
+        // Rate limiting : 1 tentative / jour / IP
+        // checkLimit d'abord, recordAttempt ensuite (compté même si le changement réussit)
+        $rlKey = 'admin_change_pw:' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        if (!$this->rateLimiter->checkLimit($rlKey, self::MAX_ADMIN_PW_IP, self::WINDOW_ADMIN_PW)) {
+            $wait = (int) ceil($this->rateLimiter->getRetryAfter($rlKey) / 3600);
+            $this->flash('error', sprintf(__('auth.too_many_attempts_hours'), max(1, $wait)));
+            Response::redirect(self::SECURITY_URL);
+        }
+        $this->rateLimiter->recordAttempt($rlKey, self::WINDOW_ADMIN_PW);
 
         $current = $this->request->post('current_password', '');
         $new     = $this->request->post('new_password', '');

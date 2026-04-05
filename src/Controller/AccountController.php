@@ -19,6 +19,7 @@ use Service\AccountService;
 use Service\MailService;
 use Service\PasswordValidator;
 use Service\PaymentService;
+use Service\RateLimiterService;
 
 class AccountController extends Controller // NOSONAR — php:S1448 : découpage prévu à l'audit génie logiciel
 {
@@ -30,6 +31,10 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     private const VIEW_SECURITY_DENY     = 'account/security-deny';
     private const DATE_FORMAT            = 'd/m/Y';
 
+    /** Rate limiting changement de mot de passe : 3 tentatives / 15 min / IP. */
+    private const MAX_CHANGE_PW_IP  = 3;
+    private const WINDOW_CHANGE_PW  = 900;
+
     private AccountModel $accounts;
     private AddressModel $addresses;
     private FavoriteModel $favorites;
@@ -37,6 +42,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
     private DeviceConfirmTokenModel $deviceConfirmTokens;
+    private RateLimiterService $rateLimiter;
 
     public function __construct(\Core\Request $request)
     {
@@ -48,6 +54,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $this->connections         = new ConnectionModel();
         $this->trustedDevices      = new TrustedDeviceModel();
         $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
+        $this->rateLimiter         = new RateLimiterService();
     }
 
     /**
@@ -765,6 +772,15 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $_SESSION['flash']['security_errors'] = ['csrf' => __('error.csrf')];
             Response::redirect($back);
         }
+
+        // Rate limiting : 3 tentatives / 15 min / IP
+        $rlKey = 'change_pw:' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        if (!$this->rateLimiter->checkLimit($rlKey, self::MAX_CHANGE_PW_IP, self::WINDOW_CHANGE_PW)) {
+            $wait = (int) ceil($this->rateLimiter->getRetryAfter($rlKey) / 60);
+            $_SESSION['flash']['security_errors'] = ['rate_limit' => sprintf(__('auth.too_many_attempts'), max(1, $wait))];
+            Response::redirect($back);
+        }
+        $this->rateLimiter->recordAttempt($rlKey, self::WINDOW_CHANGE_PW);
 
         $current = $this->request->post('current_password', '');
         $new     = $this->request->post('new_password', '');
