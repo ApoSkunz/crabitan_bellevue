@@ -648,10 +648,10 @@ VALUES
 -- Client soft-deleted (en attente de suppression)
 (7, 'client.supprime@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'fr', 0, '2026-01-20 08:00:00', 0, '2026-01-20 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 
--- Soft delete du compte 7
+-- Soft delete du compte 7 (scheduled_deletion_at toujours dans le futur pour les tests de purge)
 UPDATE `accounts`
-SET `deleted_at` = '2026-03-01 10:00:00',
-    `scheduled_deletion_at` = '2026-03-31 10:00:00'
+SET `deleted_at` = DATE_SUB(NOW(), INTERVAL 5 DAY),
+    `scheduled_deletion_at` = DATE_ADD(NOW(), INTERVAL 25 DAY)
 WHERE `id` = 7;
 
 ALTER TABLE `accounts` AUTO_INCREMENT = 8;
@@ -802,14 +802,14 @@ INSERT INTO `favorites` (`user_id`, `wine_id`) VALUES
 INSERT INTO `connections`
     (`user_id`, `token`, `device_token`, `ip_address`, `device_name`, `auth_method`, `status`, `last_used_at`, `created_at`, `expired_at`)
 VALUES
--- Sophie — active
-(3, 'mock-jwt-sophie-active-001', 'device-uuid-sophie-macbook', '82.65.10.1', 'Chrome · macOS', 'password', 'active', '2026-03-28 08:00:00', '2026-03-28 07:00:00', '2026-04-27 07:00:00'),
--- Sophie — expirée (historique)
-(3, 'mock-jwt-sophie-expired-001', 'device-uuid-sophie-macbook', '82.65.10.1', 'Chrome · macOS', 'password', 'expired', '2026-02-01 18:00:00', '2026-01-01 09:00:00', '2026-02-01 09:00:00'),
+-- Sophie — active (expired_at toujours dans le futur)
+(3, 'mock-jwt-sophie-active-001', 'device-uuid-sophie-macbook', '82.65.10.1', 'Chrome · macOS', 'password', 'active', NOW(), DATE_SUB(NOW(), INTERVAL 1 HOUR), DATE_ADD(NOW(), INTERVAL 30 DAY)),
+-- Sophie — expirée (historique) — expired_at futur pour ne pas être purgée lors des tests
+(3, 'mock-jwt-sophie-expired-001', 'device-uuid-sophie-macbook', '82.65.10.1', 'Chrome · macOS', 'password', 'expired', DATE_SUB(NOW(), INTERVAL 60 DAY), DATE_SUB(NOW(), INTERVAL 90 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY)),
 -- Admin — active
-(2, 'mock-jwt-admin-active-001', 'device-uuid-admin-chrome', '10.0.0.1', 'Firefox · Windows', 'password', 'active', '2026-03-28 07:30:00', '2026-03-28 07:00:00', '2026-04-27 07:00:00'),
--- Société — révoquée
-(5, 'mock-jwt-societe-revoked-001', 'device-uuid-societe-ipad', '81.33.20.5', 'Safari · iOS', 'password', 'revoked', '2026-03-01 10:00:00', '2026-03-01 09:00:00', '2026-04-01 09:00:00');
+(2, 'mock-jwt-admin-active-001', 'device-uuid-admin-chrome', '10.0.0.1', 'Firefox · Windows', 'password', 'active', NOW(), DATE_SUB(NOW(), INTERVAL 1 HOUR), DATE_ADD(NOW(), INTERVAL 30 DAY)),
+-- Société — expirée (status 'expired' au lieu de 'revoked' pour éviter la purge automatique lors des tests)
+(5, 'mock-jwt-societe-revoked-001', 'device-uuid-societe-ipad', '81.33.20.5', 'Safari · iOS', 'password', 'expired', DATE_SUB(NOW(), INTERVAL 30 DAY), DATE_SUB(NOW(), INTERVAL 35 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY));
 
 -- ============================================================
 -- TRUSTED DEVICES
