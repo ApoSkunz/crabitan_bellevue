@@ -58,12 +58,12 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
 
         $snapshots         = new OrderAddressSnapshotModel();
         $billingAddr       = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$idBillingAddress]);
-        $billingSnapshotId = $snapshots->createFromAddress($billingAddr ?: []);
+        $billingSnapshotId = $snapshots->createFromAddress($billingAddr ?: [], $idBillingAddress);
 
         $deliverySnapshotId = null;
         if ($idDeliveryAddress !== null) {
             $deliveryAddr       = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$idDeliveryAddress]);
-            $deliverySnapshotId = $snapshots->createFromAddress($deliveryAddr ?: []);
+            $deliverySnapshotId = $snapshots->createFromAddress($deliveryAddr ?: [], $idDeliveryAddress);
         }
 
         $this->db->insert(
@@ -151,9 +151,9 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
 
         $snapshots          = new OrderAddressSnapshotModel();
         $billingAddr        = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$billingAddressId]);
-        $billingSnapshotId  = $snapshots->createFromAddress($billingAddr ?: []);
+        $billingSnapshotId  = $snapshots->createFromAddress($billingAddr ?: [], $billingAddressId);
         $deliveryAddr       = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$deliveryAddressId]);
-        $deliverySnapshotId = $snapshots->createFromAddress($deliveryAddr ?: []);
+        $deliverySnapshotId = $snapshots->createFromAddress($deliveryAddr ?: [], $deliveryAddressId);
 
         for ($attempt = 1; $attempt <= $maxTries; $attempt++) {
             try {

@@ -243,17 +243,19 @@ CREATE TABLE `carts` (
 -- Permet la suppression d'un compte sans altérer l'historique des commandes (L123-22 C.com.).
 -- ============================================================
 CREATE TABLE `order_address_snapshots` (
-  `id`         INT           NOT NULL AUTO_INCREMENT,
-  `civility`   ENUM('M','F','other') NULL DEFAULT NULL,
-  `firstname`  VARCHAR(100)  NOT NULL DEFAULT '',
-  `lastname`   VARCHAR(100)  NOT NULL DEFAULT '',
-  `street`     VARCHAR(255)  NOT NULL DEFAULT '',
-  `city`       VARCHAR(100)  NOT NULL DEFAULT '',
-  `zip`        VARCHAR(20)   NOT NULL DEFAULT '',
-  `country`    VARCHAR(100)  NOT NULL DEFAULT '',
-  `phone`      VARCHAR(30)   NOT NULL DEFAULT '',
-  `created_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  `id`                INT           NOT NULL AUTO_INCREMENT,
+  `source_address_id` INT           NULL DEFAULT NULL COMMENT 'ID origine dans addresses — NULL si adresse manuelle ou compte supprimé',
+  `civility`          ENUM('M','F','other') NULL DEFAULT NULL,
+  `firstname`         VARCHAR(100)  NOT NULL DEFAULT '',
+  `lastname`          VARCHAR(100)  NOT NULL DEFAULT '',
+  `street`            VARCHAR(255)  NOT NULL DEFAULT '',
+  `city`              VARCHAR(100)  NOT NULL DEFAULT '',
+  `zip`               VARCHAR(20)   NOT NULL DEFAULT '',
+  `country`           VARCHAR(100)  NOT NULL DEFAULT '',
+  `phone`             VARCHAR(30)   NOT NULL DEFAULT '',
+  `created_at`        DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_oas_source_address` (`source_address_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `orders` (
