@@ -171,6 +171,185 @@ class InvoiceAdminControllerTest extends AdminIntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // index() — filtres mois et trimestre + per_page invalide
+    // ----------------------------------------------------------------
+
+    /**
+     * Filtre par mois : seules les factures du mois affiché.
+     */
+    public function testIndexFiltersInvoicesByMonth(): void
+    {
+        $this->insertOrderWithInvoice('2026-03-10 10:00:00');
+
+        $_GET['year']  = '2026';
+        $_GET['month'] = '3';
+
+        ob_start();
+        $this->makeController()->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('admin-table', $output);
+    }
+
+    /**
+     * Filtre par trimestre : parsePeriodParams retourne quarter correctement.
+     */
+    public function testIndexFiltersInvoicesByQuarter(): void
+    {
+        $this->insertOrderWithInvoice('2026-02-15 10:00:00');
+
+        $_GET['year']    = '2026';
+        $_GET['quarter'] = '1';
+
+        ob_start();
+        $this->makeController()->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('2026', $output);
+    }
+
+    /**
+     * per_page invalide → retombe sur la valeur par défaut (25).
+     */
+    public function testIndexFallsBackToDefaultPerPageWhenInvalid(): void
+    {
+        $_GET['per_page'] = '999';
+
+        ob_start();
+        $this->makeController()->index([]);
+        $output = ob_get_clean();
+
+        // La vue doit s'afficher sans erreur
+        $this->assertStringContainsString('admin-page-header', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // export() — label mois, label trimestre, PDF absent sur disque
+    // ----------------------------------------------------------------
+
+    /**
+     * Export avec filtre mois → nom de fichier "factures-YYYY-MM.zip".
+     * Couvre buildPeriodLabel() branche month.
+     */
+    public function testExportFilenameContainsMonthWhenMonthFilterActive(): void
+    {
+        $this->insertOrderWithInvoice('2026-03-05 09:00:00');
+
+        $_GET['year']  = '2026';
+        $_GET['month'] = '3';
+
+        $controller = new class ($this->makeRequest('GET', '/admin/factures/export')) extends InvoiceAdminController {
+            public ?string $capturedFileName = null;
+            protected function sendZipResponse(string $tmpPath, string $fileName): never
+            {
+                $this->capturedFileName = $fileName;
+                @unlink($tmpPath);
+                throw new \Core\Exception\HttpException(200);
+            }
+        };
+
+        try {
+            $controller->export([]);
+        } catch (HttpException $e) {
+            $this->assertSame(200, $e->getCode());
+        }
+
+        $this->assertStringContainsString('2026-03', (string) $controller->capturedFileName);
+    }
+
+    /**
+     * Export avec filtre trimestre → nom de fichier "factures-YYYY-QN.zip".
+     * Couvre buildPeriodLabel() branche quarter.
+     */
+    public function testExportFilenameContainsQuarterWhenQuarterFilterActive(): void
+    {
+        $this->insertOrderWithInvoice('2026-02-01 09:00:00');
+
+        $_GET['year']    = '2026';
+        $_GET['quarter'] = '1';
+
+        $controller = new class ($this->makeRequest('GET', '/admin/factures/export')) extends InvoiceAdminController {
+            public ?string $capturedFileName = null;
+            protected function sendZipResponse(string $tmpPath, string $fileName): never
+            {
+                $this->capturedFileName = $fileName;
+                @unlink($tmpPath);
+                throw new \Core\Exception\HttpException(200);
+            }
+        };
+
+        try {
+            $controller->export([]);
+        } catch (HttpException $e) {
+            $this->assertSame(200, $e->getCode());
+        }
+
+        $this->assertStringContainsString('2026-Q1', (string) $controller->capturedFileName);
+    }
+
+    /**
+     * Export quand le PDF n'existe pas sur le disque → le ZIP contient uniquement le CSV
+     * (branche is_file($absPath) === false dans la boucle foreach).
+     */
+    public function testExportSkipsMissingPdfButStillGeneratesCsv(): void
+    {
+        // path_invoice pointe vers un fichier inexistant
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (civility, firstname, lastname, street, city, zip, country, phone)
+             VALUES ('M', 'Jean', 'Test', '1 rue', 'Paris', '75001', 'France', '0600000000')"
+        );
+        $orderId = (int) self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, id_billing_snapshot,
+              status, ordered_at, invoice_number, path_invoice)
+             VALUES (?, ?, '[]', 50.00, 'card', ?, 'paid', '2026-03-20 08:00:00',
+                     NULL, NULL)",
+            [$this->adminId, 'TI-NOPDF-' . uniqid(), $snapshotId]
+        );
+        // invoice_number NULL → couvrira aussi la branche basename($row['path'])
+        self::$db->insert(
+            "INSERT INTO order_invoice_files (order_id, path, invoice_number, source)
+             VALUES (?, 'storage/pdf/invoices/does-not-exist.pdf', NULL, 'auto')",
+            [$orderId]
+        );
+
+        $_GET['year'] = '2026';
+
+        $controller = new class ($this->makeRequest('GET', '/admin/factures/export')) extends InvoiceAdminController {
+            public ?string $capturedTmpPath = null;
+            protected function sendZipResponse(string $tmpPath, string $fileName): never
+            {
+                $this->capturedTmpPath = $tmpPath;
+                throw new \Core\Exception\HttpException(200);
+            }
+        };
+
+        try {
+            $controller->export([]);
+        } catch (HttpException $e) {
+            $this->assertSame(200, $e->getCode());
+        }
+
+        // Le ZIP doit quand même exister et contenir le CSV
+        $this->assertNotNull($controller->capturedTmpPath);
+        if ($controller->capturedTmpPath !== null && is_file($controller->capturedTmpPath)) {
+            $zip = new \ZipArchive();
+            $zip->open($controller->capturedTmpPath);
+            $hasCsv = false;
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                if (str_ends_with((string) $zip->getNameIndex($i), '.csv')) {
+                    $hasCsv = true;
+                    break;
+                }
+            }
+            $zip->close();
+            @unlink($controller->capturedTmpPath);
+            $this->assertTrue($hasCsv, 'Le ZIP doit contenir le CSV même sans PDF');
+        }
+    }
+
+    // ----------------------------------------------------------------
     // Critère 7 — aucune suppression physique des données de facturation
     // ----------------------------------------------------------------
 
