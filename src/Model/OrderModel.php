@@ -57,12 +57,12 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $contentJson = json_encode($items, JSON_UNESCAPED_UNICODE);
 
         $snapshots         = new OrderAddressSnapshotModel();
-        $billingAddr       = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$idBillingAddress]);
+        $billingAddr       = $this->fetchAddressById($idBillingAddress);
         $billingSnapshotId = $snapshots->createFromAddress($billingAddr ?: [], $idBillingAddress);
 
         $deliverySnapshotId = null;
         if ($idDeliveryAddress !== null) {
-            $deliveryAddr       = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$idDeliveryAddress]);
+            $deliveryAddr       = $this->fetchAddressById($idDeliveryAddress);
             $deliverySnapshotId = $snapshots->createFromAddress($deliveryAddr ?: [], $idDeliveryAddress);
         }
 
@@ -150,9 +150,9 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $maxTries = 3;
 
         $snapshots          = new OrderAddressSnapshotModel();
-        $billingAddr        = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$billingAddressId]);
+        $billingAddr        = $this->fetchAddressById($billingAddressId);
         $billingSnapshotId  = $snapshots->createFromAddress($billingAddr ?: [], $billingAddressId);
-        $deliveryAddr       = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$deliveryAddressId]);
+        $deliveryAddr       = $this->fetchAddressById($deliveryAddressId);
         $deliverySnapshotId = $snapshots->createFromAddress($deliveryAddr ?: [], $deliveryAddressId);
 
         for ($attempt = 1; $attempt <= $maxTries; $attempt++) {
@@ -551,9 +551,9 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param  array<int, int>  $addressIds
      * @return array<int, int>
      */
-    public function getAddressIdsWithActiveOrders(array $addressIds): array
+    public function getAddressIdsWithActiveOrders(array $addressIds): array // NOSONAR — php:S1172 : stub, adresses snapshotées
     {
-        return []; // NOSONAR — Les adresses sont désormais snapshotées, plus de FK directe
+        return [];
     }
 
     /**
@@ -562,9 +562,24 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param int $addressId
      * @return bool
      */
-    public function hasActiveOrderForAddress(int $addressId): bool
+    public function hasActiveOrderForAddress(int $addressId): bool // NOSONAR — php:S1172 : stub, adresses snapshotées
     {
-        return false; // NOSONAR — Les adresses sont désormais snapshotées, plus de FK directe
+        return false;
+    }
+
+    // ----------------------------------------------------------------
+    // Helpers privés
+    // ----------------------------------------------------------------
+
+    /**
+     * Retourne une adresse depuis la table `addresses` par son ID.
+     *
+     * @param int $id Identifiant de l'adresse
+     * @return array<string, mixed>|false
+     */
+    private function fetchAddressById(int $id): array|false
+    {
+        return $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$id]);
     }
 
     // ----------------------------------------------------------------
