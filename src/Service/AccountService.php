@@ -52,7 +52,7 @@ class AccountService
      * @param string $currentPassword Mot de passe actuel en clair
      * @param string $ip              Adresse IP du demandeur (log RGPD)
      * @return void
-     * @throws HttpException 422 si mot de passe incorrect, email déjà pris ou rate limit atteint
+     * @throws HttpException 422 si mot de passe incorrect ou rate limit atteint
      * @throws HttpException 404 si le compte n'existe pas
      */
     public function requestEmailChange(
@@ -80,10 +80,12 @@ class AccountService
             throw new HttpException(429, null, 'Trop de demandes de changement d\'email. Réessayez dans 24h.');
         }
 
-        // Vérification unicité de la nouvelle adresse
+        // Anti-énumération : si l'adresse est déjà prise, retour silencieux sans erreur.
+        // La réponse côté contrôleur est identique au cas succès → l'appelant ne peut pas
+        // distinguer un email libre d'un email déjà enregistré (OWASP anti-enumeration).
         $existing = $this->accountModel->findByEmail($newEmail);
         if ($existing !== false) {
-            throw new HttpException(422, null, 'Cette adresse email est déjà utilisée.');
+            return;
         }
 
         // Génération du token (32 octets aléatoires → 64 hex chars)
