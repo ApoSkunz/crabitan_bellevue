@@ -775,4 +775,72 @@ class AccountModelTest extends IntegrationTestCase
         $token = $this->model->getReactivationToken(999999);
         $this->assertNull($token);
     }
+
+    // ----------------------------------------------------------------
+    // saveSecurityConfirmToken / findBySecurityConfirmToken / consumeSecurityConfirmToken
+    // ----------------------------------------------------------------
+
+    /**
+     * saveSecurityConfirmToken stocke le hash et findBySecurityConfirmToken le retrouve.
+     *
+     * @return void
+     */
+    public function testSaveAndFindSecurityConfirmToken(): void
+    {
+        $id   = (int) $this->createAccount('sec.confirm@example.com');
+        $raw  = bin2hex(random_bytes(16));
+        $hash = hash('sha256', $raw);
+
+        $this->model->saveSecurityConfirmToken($id, $hash, date('Y-m-d H:i:s', time() + 3600));
+
+        $result = $this->model->findBySecurityConfirmToken($hash);
+        $this->assertIsArray($result);
+        $this->assertSame('sec.confirm@example.com', $result['email']);
+    }
+
+    /**
+     * findBySecurityConfirmToken retourne false si le token est inconnu.
+     *
+     * @return void
+     */
+    public function testFindBySecurityConfirmTokenReturnsFalseIfUnknown(): void
+    {
+        $this->assertFalse($this->model->findBySecurityConfirmToken('unknown-hash'));
+    }
+
+    /**
+     * findBySecurityConfirmToken retourne false si le token est expiré.
+     *
+     * @return void
+     */
+    public function testFindBySecurityConfirmTokenReturnsFalseIfExpired(): void
+    {
+        $id   = (int) $this->createAccount('sec.expired@example.com');
+        $raw  = bin2hex(random_bytes(16));
+        $hash = hash('sha256', $raw);
+
+        // TTL dans le passé
+        $this->model->saveSecurityConfirmToken($id, $hash, date('Y-m-d H:i:s', time() - 1));
+
+        $this->assertFalse($this->model->findBySecurityConfirmToken($hash));
+    }
+
+    /**
+     * consumeSecurityConfirmToken invalide le token — findBySecurityConfirmToken retourne false.
+     *
+     * @return void
+     */
+    public function testConsumeSecurityConfirmTokenInvalidatesIt(): void
+    {
+        $id   = (int) $this->createAccount('sec.consume@example.com');
+        $raw  = bin2hex(random_bytes(16));
+        $hash = hash('sha256', $raw);
+
+        $this->model->saveSecurityConfirmToken($id, $hash, date('Y-m-d H:i:s', time() + 3600));
+        $this->assertIsArray($this->model->findBySecurityConfirmToken($hash));
+
+        $this->model->consumeSecurityConfirmToken($id);
+
+        $this->assertFalse($this->model->findBySecurityConfirmToken($hash));
+    }
 }

@@ -3733,4 +3733,116 @@ class AccountControllerTest extends IntegrationTestCase
         $this->assertIsArray($errors);
         $this->assertSame([], $errors);
     }
+
+    // ----------------------------------------------------------------
+    // confirmSecurityAction() GET
+    // ----------------------------------------------------------------
+
+    /**
+     * Un token valide affiche la page de succès et consomme le token.
+     */
+    public function testConfirmSecurityActionSuccessWithValidToken(): void
+    {
+        $userId  = $this->insertCustomer('sec.confirm.ok@test.local', 'individual');
+        $raw     = bin2hex(random_bytes(16));
+        $hash    = hash('sha256', $raw);
+        $expires = date('Y-m-d H:i:s', time() + 3600);
+
+        (new \Model\AccountModel())->saveSecurityConfirmToken($userId, $hash, $expires);
+
+        $_GET['token'] = $raw;
+
+        ob_start();
+        $this->makeController('GET', '/fr/securite/confirmer')
+            ->confirmSecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--ok', $output);
+        // Token consommé : findBySecurityConfirmToken retourne false
+        $this->assertFalse((new \Model\AccountModel())->findBySecurityConfirmToken($hash));
+    }
+
+    /**
+     * Un token expiré affiche la page d'erreur.
+     */
+    public function testConfirmSecurityActionFailsWithExpiredToken(): void
+    {
+        $userId  = $this->insertCustomer('sec.confirm.exp@test.local', 'individual');
+        $raw     = bin2hex(random_bytes(16));
+        $hash    = hash('sha256', $raw);
+        $expires = date('Y-m-d H:i:s', time() - 1);
+
+        (new \Model\AccountModel())->saveSecurityConfirmToken($userId, $hash, $expires);
+
+        $_GET['token'] = $raw;
+
+        ob_start();
+        $this->makeController('GET', '/fr/securite/confirmer')
+            ->confirmSecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
+
+    /**
+     * Un token inconnu affiche la page d'erreur.
+     */
+    public function testConfirmSecurityActionFailsWithUnknownToken(): void
+    {
+        $_GET['token'] = 'totally-invalid-token-xyz';
+
+        ob_start();
+        $this->makeController('GET', '/fr/securite/confirmer')
+            ->confirmSecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
+
+    /**
+     * Sans token dans la querystring, la page d'erreur s'affiche.
+     */
+    public function testConfirmSecurityActionFailsWithNoToken(): void
+    {
+        unset($_GET['token']);
+
+        ob_start();
+        $this->makeController('GET', '/fr/securite/confirmer')
+            ->confirmSecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        // Vue chargée sans succès (token vide = success false)
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
+
+    /**
+     * changePassword() génère un security_confirm_token en BDD après succès.
+     */
+    public function testChangePasswordStoresSecurityConfirmTokenInDb(): void
+    {
+        $userId = $this->insertCustomer('chpwd.token@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'current_password'     => 'Password123!',
+            'new_password'         => 'NewSecurePass456!',
+            'new_password_confirm' => 'NewSecurePass456!',
+            'csrf_token'           => self::CSRF,
+        ];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/securite/mot-de-passe')
+                ->changePassword(['lang' => 'fr']);
+        } catch (\Core\Exception\HttpException) {
+            // 302 attendu
+        }
+
+        $row = self::$db->fetchOne(
+            "SELECT security_confirm_token_hash, security_confirm_token_expires_at
+             FROM accounts WHERE id = ?",
+            [$userId]
+        );
+        $this->assertNotNull($row['security_confirm_token_hash']);
+        $this->assertNotNull($row['security_confirm_token_expires_at']);
+    }
 }
