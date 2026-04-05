@@ -79,6 +79,22 @@ class ConnectionModel extends Model
         return $row ?: null;
     }
 
+    /**
+     * Retourne le device_token associé à un token de session JWT.
+     * Utilisé pour révoquer le trusted device de la session à l'origine d'une demande.
+     *
+     * @param  string $token Token JWT de session
+     * @return string|null   device_token ou null si introuvable
+     */
+    public function getDeviceTokenByToken(string $token): string|null
+    {
+        $row = $this->db->fetchOne(
+            "SELECT device_token FROM {$this->table} WHERE token = ?",
+            [$token]
+        );
+        return $row ? ($row['device_token'] ?? null) : null;
+    }
+
     public function revokeById(int $id, int $userId): void
     {
         $this->db->execute(
