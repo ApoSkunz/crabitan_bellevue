@@ -2,6 +2,15 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.32.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.31.0...v0.32.0) (2026-04-05)
+
+
+### Features
+
+* **controller:** OrderAdminController — filtre archived, guard confirm_replace, historique factures (addInvoiceFile + downloadInvoiceFile) ([0fa8e46](https://github.com/ApoSkunz/crabitan_bellevue/commit/0fa8e4626c897dd7316f3b37b4c6e4da3c506dae))
+* **model:** OrderModel — pseudonymizeExpired, addInvoiceFile, getInvoiceFiles + filtre archived sur getForAdmin ([a5ed830](https://github.com/ApoSkunz/crabitan_bellevue/commit/a5ed8303b0d510f6b5b819ad4d174bdc1df50212))
+* **view:** admin/orders — toggle archivées + notice RGPD, historique factures dans show ([8ffa61b](https://github.com/ApoSkunz/crabitan_bellevue/commit/8ffa61b0c91b9219f3518f93ec0953f9d271d533))
+
 # [0.31.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.30.0...v0.31.0) (2026-04-05)
 
 
