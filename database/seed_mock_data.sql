@@ -26,6 +26,7 @@ TRUNCATE TABLE `trusted_devices`;
 TRUNCATE TABLE `connections`;
 TRUNCATE TABLE `password_reset`;
 TRUNCATE TABLE `favorites`;
+TRUNCATE TABLE `order_invoice_files`;
 TRUNCATE TABLE `orders`;
 TRUNCATE TABLE `carts`;
 TRUNCATE TABLE `addresses`;
@@ -646,7 +647,10 @@ VALUES
 -- Client EN
 (6, 'customer.en@dev.local',      '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'en', 0, '2026-02-10 11:00:00', 0, '2026-02-10 11:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client soft-deleted (en attente de suppression)
-(7, 'client.supprime@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'fr', 0, '2026-01-20 08:00:00', 0, '2026-01-20 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+(7, 'client.supprime@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'fr', 0, '2026-01-20 08:00:00', 0, '2026-01-20 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+-- Compte RGPD purgé (ancienne commande > 10 ans, compte anonymisé après effacement Art. 17)
+-- L'email @purged.invalid est la convention de pseudonymisation du compte
+(8, 'a1b2c3d4e5f6@purged.invalid', '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, NULL, 0, '2014-01-01 00:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 
 -- Soft delete du compte 7 (scheduled_deletion_at toujours dans le futur pour les tests de purge)
 UPDATE `accounts`
@@ -654,7 +658,7 @@ SET `deleted_at` = DATE_SUB(NOW(), INTERVAL 5 DAY),
     `scheduled_deletion_at` = DATE_ADD(NOW(), INTERVAL 25 DAY)
 WHERE `id` = 7;
 
-ALTER TABLE `accounts` AUTO_INCREMENT = 8;
+ALTER TABLE `accounts` AUTO_INCREMENT = 9;
 
 -- ============================================================
 -- PROFILS INDIVIDUELS
@@ -666,7 +670,9 @@ INSERT INTO `account_individuals` (`account_id`, `lastname`, `firstname`, `civil
 (3, 'Durand',   'Sophie',   'F'),
 (4, 'Lefebvre', 'Marc',     'M'),
 (6, 'Smith',    'James',    'M'),
-(7, 'Martin',   'Claire',   'F');
+(7, 'Martin',   'Claire',   'F'),
+-- Compte purgé — données personnelles effacées (RGPD Art. 17)
+(8, 'XXXXX',    'XXXXX',    'M');
 
 -- ============================================================
 -- PROFILS SOCIÉTÉS
@@ -712,9 +718,16 @@ VALUES
 -- snapshot 4 : adresse id=5 (Pierre Moreau livraison)
 (4, 5, 'M', 'Pierre', 'Moreau', '8 avenue du Commerce', 'Toulouse', '31000', 'France', '0556789012'),
 -- snapshot 5 : adresse id=7 (Admin facturation)
-(5, 7, 'M', 'Admin', 'Test', '1 rue de la Mairie', 'Paris', '75001', 'France', '0100000000');
+(5, 7, 'M', 'Admin', 'Test', '1 rue de la Mairie', 'Paris', '75001', 'France', '0100000000'),
+-- snapshots 6-8 : commandes archivées (> 10 ans) — données personnelles non pseudonymisées
+(6, NULL, 'M', 'Henri', 'Archivé', '3 allée des Chênes', 'Lyon', '69001', 'France', '0478000001'),
+(7, NULL, 'F', 'Lucie', 'Ancienne', '17 rue du Port', 'Nantes', '44000', 'France', '0240000002'),
+-- snapshot 8 : déjà pseudonymisé (simule cron déjà passé)
+(8, NULL, 'M', 'XXXXX', 'XXXXX', 'XXXXX', 'Marseille', '13001', 'France', '');
 
-ALTER TABLE `order_address_snapshots` AUTO_INCREMENT = 6;
+ALTER TABLE `order_address_snapshots` AUTO_INCREMENT = 9;
+
+UPDATE `order_address_snapshots` SET `pseudonymized_at` = '2015-04-05 02:00:00' WHERE `id` = 8;
 
 -- ============================================================
 -- ORDERS (toutes statuts couverts pour les tests)
@@ -772,9 +785,26 @@ VALUES
 -- admin (id 2) — paid (pour tester vue admin)
 (10, 2, 'CBV-2026-000010',
  '[{"wine_id":36,"label_name":"Sainte-Croix-du-Mont","vintage":2018,"wine_color":"sweet","format":"bottle","qty":12,"price":10.80,"subtotal":129.60}]',
- 129.60, 'card', 15.00, 5, NULL, 'paid', '2026-03-10 09:00:00', NULL);
+ 129.60, 'card', 15.00, 5, NULL, 'paid', '2026-03-10 09:00:00', NULL),
 
-ALTER TABLE `orders` AUTO_INCREMENT = 11;
+-- ── Commandes archivées (ordered_at > 10 ans) ─────────────────────────────
+-- user_id = 8 = compte RGPD purgé (email @purged.invalid — "Compte anonymisé" dans la vue)
+-- delivered il y a 11 ans — snapshot 6 non pseudonymisé (cron à déclencher)
+(11, 8, 'CBV-2015-000011',
+ '[{"wine_id":1,"label_name":"Sainte-Croix-du-Mont","vintage":2009,"wine_color":"sweet","format":"bottle","qty":6,"price":10.00,"subtotal":60.00}]',
+ 60.00, 'virement', 0.00, 6, 6, 'delivered', '2015-01-15 10:00:00', '2015-02-01 10:00:00'),
+
+-- delivered il y a 12 ans — snapshot 7 non pseudonymisé
+(12, 8, 'CBV-2014-000012',
+ '[{"wine_id":2,"label_name":"Bordeaux Rouge","vintage":2010,"wine_color":"red","format":"bottle","qty":12,"price":7.00,"subtotal":84.00}]',
+ 84.00, 'cheque', 0.00, 7, 7, 'delivered', '2014-06-10 14:00:00', '2014-06-25 10:00:00'),
+
+-- refunded il y a 11 ans — snapshot 8 déjà pseudonymisé (simule cron passé)
+(13, 8, 'CBV-2015-000013',
+ '[{"wine_id":3,"label_name":"Bordeaux Blanc","vintage":2011,"wine_color":"white","format":"bottle","qty":6,"price":6.50,"subtotal":39.00}]',
+ 39.00, 'card', 0.00, 8, 8, 'refunded', '2015-03-20 09:00:00', NULL);
+
+ALTER TABLE `orders` AUTO_INCREMENT = 14;
 
 -- ============================================================
 -- CARTS (paniers actifs)
