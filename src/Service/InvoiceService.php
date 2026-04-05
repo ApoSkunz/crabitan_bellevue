@@ -89,6 +89,7 @@ class InvoiceService
         $discountRow = $this->buildDiscountRow($shippingDiscount);
         $totalsRows  = $this->buildTotalsRows($total);
         $logoTag     = $this->buildLogoTag($logoPath);
+        $loiEvinBlock = $this->hasAlcoholicItems($items) ? $this->buildLoiEvinBlock() : '';
 
         $sectionLabel = 'font-size:7pt;font-weight:bold;color:#c1a14b;text-transform:uppercase;'
             . 'letter-spacing:1.5px;margin:0 0 6px;';
@@ -186,7 +187,9 @@ table { width: 100%; border-collapse: collapse; }
   &#224; compter de la r&#233;ception pour exercer votre droit de r&#233;tractation.
 </td>
 </tr>
-</table>';
+</table>
+' . $loiEvinBlock . '
+';
     }
 
     /**
@@ -289,5 +292,36 @@ table { width: 100%; border-collapse: collapse; }
                 . 'color:#c1a14b;background-color:#f5f0e8;border-top:2px solid #c1a14b;">'
                 . $totalFmt . '&nbsp;&euro;</td>'
             . '</tr>';
+    }
+
+    /**
+     * Retourne true si la commande contient des articles alcoolisés (vins).
+     * Toutes les références vendues par le Château étant des vins, le critère
+     * est la présence d'au moins un article dans le panier.
+     *
+     * @param  array<int, array<string, mixed>> $items
+     * @return bool
+     */
+    private function hasAlcoholicItems(array $items): bool
+    {
+        return !empty($items);
+    }
+
+    /**
+     * Retourne le bloc HTML de la mention Loi Évin (Art. L3323-4 CSP).
+     * Obligatoire sur tout support publicitaire et commercial contenant des boissons alcoolisées.
+     *
+     * @return string
+     */
+    private function buildLoiEvinBlock(): string
+    {
+        return '<table style="margin-top:6px;">'
+            . '<tr><td style="font-size:7pt;color:#8a7060;line-height:1.6;'
+            . 'border-top:1px solid #e0d8cc;padding-top:5px;">'
+            . '<strong>Avertissement (Art. L3323-4 CSP — Loi &#201;vin) :</strong> '
+            . 'L\'abus d\'alcool est dangereux pour la sant&#233;. '
+            . '&#192; consommer avec mod&#233;ration.'
+            . '</td></tr>'
+            . '</table>';
     }
 }
