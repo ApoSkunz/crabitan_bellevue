@@ -2,6 +2,25 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.34.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.33.0...v0.34.0) (2026-04-05)
+
+
+### Bug Fixes
+
+* **sonar:** InvoiceController — exit → HttpException(200), NOSONAR php:S3973 ([4facf53](https://github.com/ApoSkunz/crabitan_bellevue/commit/4facf5309c21811c819ef1aab331810fbfd72bce))
+* **view:** admin/invoices — 1 ligne = 1 PDF, colonne Valide (ROW_NUMBER), bouton Voir PDF ; Factures déplacée après Commandes dans la nav admin ([e4f4875](https://github.com/ApoSkunz/crabitan_bellevue/commit/e4f4875f50696a88ec1a768c96a4878ee873804e))
+* **view:** admin/invoices — filtres en ligne (flat admin-filters), Voir PDF target=_blank ; account/invoices — table avec account-table-wrap + btn--ghost ([676f467](https://github.com/ApoSkunz/crabitan_bellevue/commit/676f467353417f1297a5727424821f03bec58489))
+* **view:** header panel Mon Espace — lien Factures après Commandes (admin + client) ([62f6c60](https://github.com/ApoSkunz/crabitan_bellevue/commit/62f6c60fb16d9b3acbd74ff05e279d8cbe5acff3))
+
+
+### Features
+
+* **account:** page Mes factures — GET /{lang}/mon-compte/factures + nav espace client + i18n fr/en ([532999c](https://github.com/ApoSkunz/crabitan_bellevue/commit/532999cd24eb9d430666b81e9e718069663f61ad))
+* **controller:** InvoiceAdminController — index (liste par période) + export ZIP PDFs + CSV (L123-22 C.com.) ([a222b3c](https://github.com/ApoSkunz/crabitan_bellevue/commit/a222b3c3c6367459c7bc798b015e0de1f4c1f7c1))
+* **model:** méthodes getInvoicesForAdmin, countInvoicesForAdmin, getInvoiceFilesForExport, getAvailableYearsWithInvoices + buildInvoicePeriodFilter (L441-9 + L123-22 C.com.) ([ae9a49c](https://github.com/ApoSkunz/crabitan_bellevue/commit/ae9a49cedb66bb600c7c0f99a9ee8288fdd80e21))
+* **routes:** GET /admin/factures + GET /admin/factures/export ([47d6762](https://github.com/ApoSkunz/crabitan_bellevue/commit/47d6762946f660f10d772ac5910f8ce38518559d))
+* **view:** admin/invoices/index — liste factures + filtre période + export ZIP + entrée nav Factures ([2ecf365](https://github.com/ApoSkunz/crabitan_bellevue/commit/2ecf3650ce09edd0d2a7e553ee6ce31ca2517c5d))
+
 # [0.33.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.32.0...v0.33.0) (2026-04-05)
 
 
