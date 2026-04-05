@@ -2,6 +2,14 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.33.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.32.0...v0.33.0) (2026-04-05)
+
+
+### Features
+
+* **invoice:** mention Loi Évin (Art. L3323-4 CSP) en pied de facture si commande contient des vins ([f5ebb1b](https://github.com/ApoSkunz/crabitan_bellevue/commit/f5ebb1bb728b78feee5b2eae34fe922965b093a0))
+* **invoice:** titre FACTURE — 28pt bold → 15pt serif élégant + sous-titre château en lettres espacées ([e359ba4](https://github.com/ApoSkunz/crabitan_bellevue/commit/e359ba457ed145b575102001020102bb404718a1))
+
 # [0.32.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.31.0...v0.32.0) (2026-04-05)
 
 
