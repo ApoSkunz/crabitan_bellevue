@@ -21,7 +21,7 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                 <h1 class="account-header__title"><?= __('account.profile') ?></h1>
             </header>
 
-            <?php if ($success) : ?>
+            <?php if ($success && !$emailChangeSent) : ?>
                 <div class="alert alert--success" role="alert"><?= htmlspecialchars($success) ?></div>
             <?php endif; ?>
 
@@ -135,7 +135,9 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                             <?= __('account.email_change_cancel_btn') ?>
                         </button>
                     </form>
-                <?php elseif (!$emailChangeSent) : ?>
+                <?php elseif ($emailChangeSent) : ?>
+                    <div class="alert alert--success" role="alert"><?= htmlspecialchars($success ?? '') ?></div>
+                <?php else : ?>
                     <form method="POST"
                           action="/<?= htmlspecialchars($lang) ?>/mon-compte/profil/changer-email"
                           class="account-form"
