@@ -191,15 +191,21 @@ class AccountServiceEmailChangeTest extends TestCase
             ->method('countEmailChangeRequestsLast24h')
             ->willReturn(0);
 
-        // saveEmailChangeToken ne doit pas être appelé
+        // saveEmailChangeToken doit être appelé avec token null (pending visible, pas de confirmation possible)
         $this->accountModel
-            ->expects($this->never())
-            ->method('saveEmailChangeToken');
+            ->expects($this->once())
+            ->method('saveEmailChangeToken')
+            ->with(1, null, 'taken@example.com', $this->anything());
 
-        // Aucun email envoyé
+        // Aucun email de confirmation envoyé
         $this->mailService
             ->expects($this->never())
             ->method('sendEmailChangeConfirmation');
+
+        // Audit loggué quand même
+        $this->accountModel
+            ->expects($this->once())
+            ->method('logAuditEvent');
 
         // Pas d'exception — retour silencieux
         $this->service->requestEmailChange(1, 'taken@example.com', 'Password123!', '127.0.0.1');

@@ -411,12 +411,13 @@ class AccountEmailChangeTest extends IntegrationTestCase
             $this->assertSame(302, $e->status);
         }
 
-        // Aucun token stocké pour l'utilisateur demandeur
+        // Demande enregistrée sans token (pending visible, anti-énumération UI)
         $row = self::$db->fetchOne(
-            "SELECT email_change_token FROM accounts WHERE id = ?",
+            "SELECT email_change_token, email_change_new_email FROM accounts WHERE id = ?",
             [$userId]
         );
         $this->assertIsArray($row);
         $this->assertNull($row['email_change_token'], 'Aucun token ne doit être stocké si l\'email est déjà pris');
+        $this->assertSame(self::NEW_EMAIL, $row['email_change_new_email'], 'La nouvelle adresse doit être enregistrée pour afficher le bloc pending');
     }
 }
