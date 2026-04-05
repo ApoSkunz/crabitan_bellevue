@@ -173,6 +173,7 @@ $router->post('/api/cart/update', 'Api\CartApiController@update');
 $router->post('/api/cart/remove', 'Api\CartApiController@remove');
 $router->post('/api/favorites/toggle', 'Api\FavoriteApiController@toggle');
 $router->get('/api/mfa/poll', 'Api\MfaController@poll');
+$router->get('/api/session/ping', 'Api\SessionApiController@ping');
 $router->post('/api/jeux/score', 'GameScoreController@save');
 $router->get('/api/jeux/score', 'GameScoreController@get');
 $router->get('/api/meteo', 'WeatherController@current');
