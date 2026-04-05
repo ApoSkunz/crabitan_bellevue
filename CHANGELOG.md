@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.37.3](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.37.2...v0.37.3) (2026-04-05)
+
+
+### Bug Fixes
+
+* **model:** adresses — smart-delete : hard-delete sans snapshot, soft-delete avec deleted_at si snapshot ([e9a73b0](https://github.com/ApoSkunz/crabitan_bellevue/commit/e9a73b011dab4c05b450414631011df643508e38))
+
 ## [0.37.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.37.1...v0.37.2) (2026-04-05)
 
 
