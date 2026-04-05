@@ -150,11 +150,13 @@ CREATE TABLE `addresses` (
   `country`      VARCHAR(100)   NOT NULL,
   `phone`        VARCHAR(20)    NOT NULL,
   `saved`        TINYINT(1)     NOT NULL DEFAULT 0,
+  `deleted_at`   DATETIME       DEFAULT NULL COMMENT 'Soft-delete : adresse utilisée dans une commande — non supprimée physiquement',
   `created_at`   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`   DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_addresses_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
-  INDEX `idx_addresses_user_type` (`user_id`, `type`)
+  INDEX `idx_addresses_user_type` (`user_id`, `type`),
+  INDEX `idx_addresses_deleted` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================

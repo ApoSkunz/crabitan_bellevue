@@ -18,7 +18,7 @@ class AddressModel extends Model
     public function getByUser(int $userId): array
     {
         return $this->db->fetchAll(
-            "SELECT * FROM {$this->table} WHERE user_id = ? AND saved = 1 ORDER BY type ASC, id ASC",
+            "SELECT * FROM {$this->table} WHERE user_id = ? AND saved = 1 AND deleted_at IS NULL ORDER BY type ASC, id ASC",
             [$userId]
         );
     }
@@ -29,10 +29,25 @@ class AddressModel extends Model
     public function findByIdForUser(int $id, int $userId): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE id = ? AND user_id = ?",
+            "SELECT * FROM {$this->table} WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
             [$id, $userId]
         );
         return $row ?: null;
+    }
+
+    /**
+     * Vérifie si une adresse est référencée dans un snapshot de commande.
+     *
+     * @param int $id Identifiant de l'adresse
+     * @return bool   true si au moins un snapshot existe pour cette adresse
+     */
+    public function hasOrderSnapshot(int $id): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT 1 FROM order_address_snapshots WHERE source_address_id = ? LIMIT 1",
+            [$id]
+        );
+        return $row !== false;
     }
 
     /**
@@ -95,12 +110,28 @@ class AddressModel extends Model
         );
     }
 
+    /**
+     * Supprime une adresse pour un utilisateur.
+     *
+     * - Hard-delete si l'adresse n'a jamais été utilisée dans une commande (aucun snapshot).
+     * - Soft-delete (deleted_at + saved=0) si un snapshot existe : préserve la traçabilité
+     *   des commandes historiques (L123-22 C.com.) sans exposer les données à l'utilisateur.
+     *
+     * @param int $id     Identifiant de l'adresse
+     * @param int $userId Identifiant du propriétaire (sécurité IDOR)
+     */
     public function deleteForUser(int $id, int $userId): void
     {
-        // Soft-delete : on masque l'adresse (saved=0) pour préserver les FK des commandes historiques
-        $this->db->execute(
-            "UPDATE {$this->table} SET saved = 0 WHERE id = ? AND user_id = ?",
-            [$id, $userId]
-        );
+        if ($this->hasOrderSnapshot($id)) {
+            $this->db->execute(
+                "UPDATE {$this->table} SET saved = 0, deleted_at = NOW() WHERE id = ? AND user_id = ?",
+                [$id, $userId]
+            );
+        } else {
+            $this->db->execute(
+                "DELETE FROM {$this->table} WHERE id = ? AND user_id = ?",
+                [$id, $userId]
+            );
+        }
     }
 }
