@@ -11,7 +11,8 @@ use PHPUnit\Framework\TestCase;
  * Tests unitaires pour SessionTtlRefresher::maybeRefresh().
  *
  * Couvre : déclenchement du refresh, absence de refresh (TTL confortable),
- * remember-me (refresh anti-coupure fin de vie uniquement), payload incomplet, TTL expiré ou nul.
+ * remember-me (refresh anti-coupure fin de vie uniquement), payload incomplet,
+ * TTL expiré ou nul, totalTtl invalide.
  */
 class SessionTtlRefresherTest extends TestCase
 {
@@ -221,12 +222,13 @@ class SessionTtlRefresherTest extends TestCase
     }
 
     /**
-     * totalTtl = 0 (iat = exp) → pas de division par zéro, pas de refresh.
+     * totalTtl négatif (iat > exp) avec remaining > 0 → pas de refresh, pas de division par zéro.
      */
-    public function testNoRefreshWhenTotalTtlIsZero(): void
+    public function testNoRefreshWhenTotalTtlIsNegative(): void
     {
-        $now       = time();
-        $payload   = ['iat' => $now, 'exp' => $now]; // durée nulle
+        $now = time();
+        // iat dans le futur → totalTtl = exp - iat = -400 < 0, remaining = 100 > 0
+        $payload   = ['iat' => $now + 500, 'exp' => $now + 100];
         $called    = false;
         $refresher = function () use (&$called): bool {
             $called = true;

@@ -44,34 +44,39 @@ class SessionTtlRefresher
         $expiry    = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
         $threshold = (float) ($_ENV['JWT_REFRESH_THRESHOLD'] ?? 0.5);
 
+        return self::needsRefresh($remaining, $isRememberMe, $payload, $expiry, $threshold)
+            && (bool) $refresher($token, $expiry);
+    }
+
+    /**
+     * Détermine si la session doit être prolongée.
+     *
+     * @param int   $remaining    Secondes restantes avant expiration
+     * @param bool  $isRememberMe true si session remember-me
+     * @param array $payload      Payload JWT (pour lire iat/exp sur session standard)
+     * @param int   $expiry       Durée standard JWT_EXPIRY en secondes
+     * @param float $threshold    Seuil JWT_REFRESH_THRESHOLD (ex : 0.5)
+     * @return bool               true si un refresh doit être effectué
+     */
+    private static function needsRefresh(
+        int $remaining,
+        bool $isRememberMe,
+        array $payload,
+        int $expiry,
+        float $threshold
+    ): bool {
         if ($remaining <= 0) {
             return false;
         }
 
         if ($isRememberMe) {
-            // Ne renouvelle pas à la durée remember-me : évite la coupure mid-session
-            // uniquement en fin de vie, en prolongeant à JWT_EXPIRY standard.
-            if ($remaining > $expiry * $threshold) {
-                return false;
-            }
-
-            return (bool) $refresher($token, $expiry);
+            // Refresh uniquement en fin de vie pour éviter la coupure mid-session
+            return $remaining <= $expiry * $threshold;
         }
 
         $totalTtl = (int) $payload['exp'] - (int) $payload['iat'];
 
-        // Sécurité : totalTtl doit être strictement positif pour éviter une division par zéro
-        if ($totalTtl <= 0) {
-            return false;
-        }
-
-        // Ratio de TTL restant (ex : 0.3 = 30% restant)
-        $remainingRatio = $remaining / $totalTtl;
-
-        if ($remainingRatio >= $threshold) {
-            return false; // TTL encore confortable — pas de refresh
-        }
-
-        return (bool) $refresher($token, $expiry);
+        // totalTtl > 0 garantit l'absence de division par zéro
+        return $totalTtl > 0 && ($remaining / $totalTtl) < $threshold;
     }
 }

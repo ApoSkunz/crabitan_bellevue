@@ -88,17 +88,17 @@ class AuthMiddlewareTtlRefreshTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // Pas de refresh — session remember-me (TTL > JWT_EXPIRY)
+    // Sessions remember-me — anti-coupure fin de vie
     // ------------------------------------------------------------------
 
     /**
-     * Le refresher n'est PAS appelé pour une session remember-me, même si le TTL est bas.
+     * Le refresher n'est PAS appelé pour un remember-me avec TTL restant > JWT_EXPIRY × threshold.
+     * Ex : 24h restantes >> seuil 1800 s → pas de refresh.
      */
-    public function testRefresherNotCalledForRememberMeSession(): void
+    public function testRefresherNotCalledForRememberMeWithComfortableTtl(): void
     {
         $now = time();
-        $rememberMeTtl = 30 * 24 * 3600; // 30 jours
-        // Créé il y a 29 jours → TTL restant : 1 jour → ratio ~3% < seuil
+        // Créé il y a 29 jours → TTL restant : 24h >> seuil (3600 × 0.5 = 1800 s)
         $token = Jwt::encode([
             'sub'  => 3,
             'role' => 'customer',
@@ -116,7 +116,38 @@ class AuthMiddlewareTtlRefreshTest extends TestCase
             }
         );
 
-        $this->assertFalse($refreshCalled, 'Le refresher ne doit PAS être appelé pour une session remember-me');
+        $this->assertFalse($refreshCalled, 'Pas de refresh si le TTL remember-me est encore confortable');
+    }
+
+    /**
+     * Le refresher EST appelé pour un remember-me dont le TTL restant < JWT_EXPIRY × threshold.
+     * Refresh à JWT_EXPIRY (durée standard), pas à la durée remember-me.
+     */
+    public function testRefresherCalledForRememberMeNearExpiry(): void
+    {
+        $now = time();
+        // Remaining = 1000 s < seuil (3600 × 0.5 = 1800 s) → refresh déclenché
+        $token = Jwt::encode([
+            'sub'  => 5,
+            'role' => 'customer',
+            'iat'  => $now - (30 * 86400 - 1000),
+            'exp'  => $now + 1000,
+        ]);
+        $_COOKIE['auth_token'] = $token;
+
+        $refreshCalled  = false;
+        $receivedExpiry = null;
+        AuthMiddleware::handle(
+            fn() => true,
+            function (string $t, int $expiry) use (&$refreshCalled, &$receivedExpiry): bool {
+                $refreshCalled  = true;
+                $receivedExpiry = $expiry;
+                return true;
+            }
+        );
+
+        $this->assertTrue($refreshCalled, 'Le refresher doit être appelé pour un remember-me en fin de vie');
+        $this->assertSame(3600, $receivedExpiry, 'Le refresh doit utiliser JWT_EXPIRY, pas la durée remember-me');
     }
 
     // ------------------------------------------------------------------
