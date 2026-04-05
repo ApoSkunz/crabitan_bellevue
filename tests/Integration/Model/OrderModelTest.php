@@ -886,6 +886,52 @@ class OrderModelTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // countActiveOrdersForUser
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que countActiveOrdersForUser retourne le bon nombre de commandes actives.
+     *
+     * @return void
+     */
+    public function testCountActiveOrdersForUserReturnsCorrectCount(): void
+    {
+        $userId    = $this->insertAccount('count_active@example.com');
+        $billingId = $this->insertAddress($userId);
+        $this->insertOrder($userId, $billingId, 'pending', 'REF-CNT-ACT-001');
+        $this->insertOrder($userId, $billingId, 'processing', 'REF-CNT-ACT-002');
+        $this->insertOrder($userId, $billingId, 'delivered', 'REF-CNT-ACT-003'); // non comptée
+
+        $this->assertSame(2, $this->model->countActiveOrdersForUser($userId));
+    }
+
+    /**
+     * Vérifie que countActiveOrdersForUser retourne 0 quand aucune commande active.
+     *
+     * @return void
+     */
+    public function testCountActiveOrdersForUserReturnsZeroIfNone(): void
+    {
+        $userId    = $this->insertAccount('count_zero@example.com');
+        $billingId = $this->insertAddress($userId);
+        $this->insertOrder($userId, $billingId, 'delivered', 'REF-CNT-ZERO-001');
+
+        $this->assertSame(0, $this->model->countActiveOrdersForUser($userId));
+    }
+
+    /**
+     * Vérifie que countActiveOrdersForUser retourne 0 pour un utilisateur sans commande.
+     *
+     * @return void
+     */
+    public function testCountActiveOrdersForUserReturnsZeroIfNoOrders(): void
+    {
+        $userId = $this->insertAccount('count_noorders@example.com');
+
+        $this->assertSame(0, $this->model->countActiveOrdersForUser($userId));
+    }
+
+    // ----------------------------------------------------------------
     // getAddressIdsWithActiveOrders
     // ----------------------------------------------------------------
 

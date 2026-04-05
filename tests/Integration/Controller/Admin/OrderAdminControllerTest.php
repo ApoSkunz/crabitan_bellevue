@@ -535,7 +535,9 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
             {
                 $ref = &$this->mailCalled;
                 return new class ($ref) extends \Service\MailService {
-                    public function __construct(public bool &$called) {}
+                    public function __construct(public bool &$called)
+                    {
+                    }
                     public function sendOrderStatusEmail(
                         string $to,
                         string $name,
