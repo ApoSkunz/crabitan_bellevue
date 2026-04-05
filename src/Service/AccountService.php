@@ -80,18 +80,22 @@ class AccountService
             throw new HttpException(429, null, 'Trop de demandes de changement d\'email. Réessayez dans 24h.');
         }
 
-        // Anti-énumération : si l'adresse est déjà prise, retour silencieux sans erreur.
-        // La réponse côté contrôleur est identique au cas succès → l'appelant ne peut pas
-        // distinguer un email libre d'un email déjà enregistré (OWASP anti-enumeration).
+        $expiresAt = date('Y-m-d H:i:s', time() + self::EMAIL_CHANGE_TTL_SECONDS);
+
+        // Anti-énumération : si l'adresse est déjà prise, enregistrer la demande en BDD
+        // sans token → le bloc "demande en cours" s'affiche identiquement, mais aucun email
+        // n'est envoyé et la confirmation est impossible (pas de token valide).
+        // L'UI est indiscernable du cas nominal → l'appelant ne peut pas énumérer les comptes.
         $existing = $this->accountModel->findByEmail($newEmail);
         if ($existing !== false) {
+            $this->accountModel->saveEmailChangeToken($userId, null, $newEmail, $expiresAt);
+            $this->accountModel->logAuditEvent($userId, 'email_change_request', $ip, ['new_email' => $newEmail]);
             return;
         }
 
         // Génération du token (32 octets aléatoires → 64 hex chars)
         $rawToken    = bin2hex(random_bytes(32));
         $hashedToken = hash('sha256', $rawToken);
-        $expiresAt   = date('Y-m-d H:i:s', time() + self::EMAIL_CHANGE_TTL_SECONDS);
 
         // Persistance
         $this->accountModel->saveEmailChangeToken(
