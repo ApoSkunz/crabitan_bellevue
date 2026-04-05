@@ -116,7 +116,7 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
 
                 <?php if ($emailChangeSent) : ?>
                     <div class="alert alert--success" role="alert"><?= htmlspecialchars($success ?? '') ?></div>
-                <?php endif; ?>
+                <?php else : ?>
 
                 <?php
                 $hasPending = !empty($account['email_change_new_email'])
@@ -177,6 +177,7 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                             <?= __('account.email_change_submit_btn') ?>
                         </button>
                     </form>
+                <?php endif; ?>
                 <?php endif; ?>
             </section>
         </div>
