@@ -1366,4 +1366,57 @@ class OrderModelTest extends IntegrationTestCase
         $this->assertIsArray($row);
         $this->assertSame('refund_refused', $row['status']);
     }
+
+    // ----------------------------------------------------------------
+    // updateInvoiceData + findByReferenceWithAddresses
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que updateInvoiceData persiste invoice_number et path_invoice.
+     *
+     * @return void
+     */
+    public function testUpdateInvoiceDataPersistsNumberAndPath(): void
+    {
+        $userId    = $this->insertAccount('invoice_data@example.com');
+        $billingId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $billingId, 'paid', 'REF-INVOICE-001');
+
+        $this->model->updateInvoiceData($orderId, 'WEB-INVOICE-2026-0001', 'storage/pdf/invoices/WEB-INVOICE-2026-0001.pdf');
+
+        $row = $this->model->findByIdForAdmin($orderId);
+        $this->assertIsArray($row);
+        $this->assertSame('WEB-INVOICE-2026-0001', $row['invoice_number']);
+        $this->assertSame('storage/pdf/invoices/WEB-INVOICE-2026-0001.pdf', $row['path_invoice']);
+    }
+
+    /**
+     * Vérifie que findByReferenceWithAddresses retourne la commande avec l'adresse de facturation.
+     *
+     * @return void
+     */
+    public function testFindByReferenceWithAddressesReturnsOrderWithBillingData(): void
+    {
+        $userId    = $this->insertAccount('ref_addr@example.com');
+        $billingId = $this->insertAddress($userId);
+        $this->insertOrder($userId, $billingId, 'paid', 'REF-ADDR-001');
+
+        $order = $this->model->findByReferenceWithAddresses('REF-ADDR-001');
+
+        $this->assertIsArray($order);
+        $this->assertSame('REF-ADDR-001', $order['order_reference']);
+        $this->assertArrayHasKey('bill_firstname', $order);
+        $this->assertArrayHasKey('bill_street', $order);
+    }
+
+    /**
+     * Vérifie que findByReferenceWithAddresses retourne null pour une référence inconnue.
+     *
+     * @return void
+     */
+    public function testFindByReferenceWithAddressesReturnsNullForUnknownRef(): void
+    {
+        $result = $this->model->findByReferenceWithAddresses('REF-UNKNOWN-99999');
+        $this->assertNull($result);
+    }
 }
