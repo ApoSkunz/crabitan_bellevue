@@ -186,6 +186,7 @@ return [
     'error.csrf'   => 'Requête invalide, veuillez réessayer.',
 
     // Formulaires
+    'common.close'          => 'Fermer',
     'form.lastname'         => 'Nom',
     'form.firstname'        => 'Prénom',
     'form.identity'                => 'Identité',

@@ -186,6 +186,7 @@ return [
     'error.csrf'   => 'Invalid request, please try again.',
 
     // Forms
+    'common.close'          => 'Close',
     'form.lastname'         => 'Last name',
     'form.firstname'        => 'First name',
     'form.identity'                => 'Identity',
