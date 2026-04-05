@@ -2,6 +2,22 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.35.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.34.0...v0.35.0) (2026-04-05)
+
+
+### Bug Fixes
+
+* **controller:** OrderAdminController — guard [@purged](https://github.com/purged).invalid sur envois email ([87544fd](https://github.com/ApoSkunz/crabitan_bellevue/commit/87544fd33024bb9125da4c5ef95400da033427d0))
+* **phpcs:** OrderAdminControllerTest + OrderModelTest — alignement PSR-12 ([04c6438](https://github.com/ApoSkunz/crabitan_bellevue/commit/04c64382258a7be5d93c41c8d7b89dc0fbdd5bd4))
+
+
+### Features
+
+* **controller:** AccountController — lever le blocage suppression compte / commandes actives ([922bb62](https://github.com/ApoSkunz/crabitan_bellevue/commit/922bb62c1a520949dc930b12acf0f02f733c4219))
+* **i18n:** account — remplacer delete_blocked_orders par delete_active_orders_warning ([94c70d0](https://github.com/ApoSkunz/crabitan_bellevue/commit/94c70d0cd240b0dc195d7fcf7f1e7f0027a9c5b8))
+* **model:** OrderModel — ajouter countActiveOrdersForUser() ([e833668](https://github.com/ApoSkunz/crabitan_bellevue/commit/e833668d95daa871f6ef731f449036692e5fb4b7))
+* **view:** account/security — avertissement modal si commandes actives en cours ([6cbc869](https://github.com/ApoSkunz/crabitan_bellevue/commit/6cbc86991642b011568fd122673091bc9304281c))
+
 # [0.34.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.33.0...v0.34.0) (2026-04-05)
 
 
