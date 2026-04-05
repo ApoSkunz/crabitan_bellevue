@@ -2,6 +2,32 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.30.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.29.0...v0.30.0) (2026-04-05)
+
+
+### Bug Fixes
+
+* **controller:** pièce jointe facture — realpath() sur le chemin PDF + déclenchement envoi email ([34f9e17](https://github.com/ApoSkunz/crabitan_bellevue/commit/34f9e179134e7393e5b0abbac03caa8f7d37ba60))
+* **invoice:** adresse vendeur — "au Crabitan" → "1 Crabitan" ([c8fac43](https://github.com/ApoSkunz/crabitan_bellevue/commit/c8fac43f6e28924db1776642bef8a7136eacb5bf))
+* **invoice:** aligner chemin storage/invoices + facture virement/chèque déclenchée par admin au passage à paid ([adcc6e4](https://github.com/ApoSkunz/crabitan_bellevue/commit/adcc6e434e50afc52733bd83e1442b9d7d9e7f13))
+* **model:** findByReferenceWithAddresses — JOIN accounts/account_individuals pour récupérer email et lang ([2b75f39](https://github.com/ApoSkunz/crabitan_bellevue/commit/2b75f3900a7d1874dcf3211761f99f2f9aa8d6d3))
+* **quality:** php:S107 trop de paramètres → NOSONAR justifié sur MailService + OrderController ([8ea5c17](https://github.com/ApoSkunz/crabitan_bellevue/commit/8ea5c1764003b30d827a4c9a6c6f053cde8e4aee))
+* **scss:** order-discount-row — couleur var(--color-gold) au lieu de brun [#3](https://github.com/ApoSkunz/crabitan_bellevue/issues/3)d2e04 ([e1eaa18](https://github.com/ApoSkunz/crabitan_bellevue/commit/e1eaa180d9b96a2c7d9846761abb64c3cafc0338)), closes [#3d2e04](https://github.com/ApoSkunz/crabitan_bellevue/issues/3d2e04)
+* **test:** OrderControllerPaymentFlowTest — corriger ordre fetchOne [#5](https://github.com/ApoSkunz/crabitan_bellevue/issues/5)/[#6](https://github.com/ApoSkunz/crabitan_bellevue/issues/6) (findByReferenceWithAddresses avant findByReference line 420) ([1b7930a](https://github.com/ApoSkunz/crabitan_bellevue/commit/1b7930ad3c8d493997fb737ea2d36162f2a10993))
+* **view:** admin/orders/show — Web:S5256 table headers manquants → <th scope="row"> ([6c5f948](https://github.com/ApoSkunz/crabitan_bellevue/commit/6c5f948943e7636407f8d245d8b778ea5bdb7b3f))
+
+
+### Features
+
+* **controller:** IpnController + OrderController — génération et stockage facture PDF après paiement (CA IPN, fallback return, virement/chèque) ([20364ad](https://github.com/ApoSkunz/crabitan_bellevue/commit/20364ade565065dd64487bbaf45e49d8e292b22d))
+* **i18n:** clés annulation commande (pending CB, pending virement, paid CB) + colonne Produit ([95ac2ee](https://github.com/ApoSkunz/crabitan_bellevue/commit/95ac2ee0e8c37dae0918f89b1e96080399c5ffa5))
+* **invoice:** refonte PDF professionnel — logo, SIRET/RCS/TVA, layout vendeur/client, couleurs dark+gold ([de43ad6](https://github.com/ApoSkunz/crabitan_bellevue/commit/de43ad61b93dc2ee83a4e81b25c613c1050a5e18)), closes [#2c1a0e](https://github.com/ApoSkunz/crabitan_bellevue/issues/2c1a0e)
+* **mail:** buildOrderItemsTable — ligne remise livraison dans emails confirmation client et propriétaire ([30b765d](https://github.com/ApoSkunz/crabitan_bellevue/commit/30b765dd25bc72e2f29dd35e3bfda51cf18c0d9d))
+* **mail:** sendInvoiceToClient — envoi facture PDF en pièce jointe après génération ([572f406](https://github.com/ApoSkunz/crabitan_bellevue/commit/572f406a1677ecbb0a757b86685127935c0331ce))
+* **service:** InvoiceService — génération facture TCPDF conforme L441-9 (vendeur, client, articles, remise livraison, TVA 20%, total) ([30cc349](https://github.com/ApoSkunz/crabitan_bellevue/commit/30cc349f79de2e69af99db2c075a963977169ce5))
+* **view:** admin order show — alerte statut rétrograde (⚠ + pop-in rouge) + détail prix commande ([a6b57ab](https://github.com/ApoSkunz/crabitan_bellevue/commit/a6b57abab3694920c3fa7a06f7600f8b6461b4e1))
+* **view:** order_detail client — détail prix, colonne Produit, messages annulation contextuels ([9a5a113](https://github.com/ApoSkunz/crabitan_bellevue/commit/9a5a1138abc4c111c4e37174c70b613057134681))
+
 # [0.29.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.28.0...v0.29.0) (2026-04-05)
 
 
