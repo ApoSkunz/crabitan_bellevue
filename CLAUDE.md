@@ -281,6 +281,19 @@ Un seul fichier modifié peut faire l'objet d'un commit séparé si son changeme
 
 ---
 
+## Scripts cron et utilitaires (`bin/`)
+
+Les scripts exécutés en ligne de commande (cron jobs, purges, pseudonymisation…) vont dans **`bin/`**, pas dans `scripts/`.
+
+| Répertoire | Contenu |
+|---|---|
+| `bin/` | Scripts CLI / cron : purge_accounts, pseudonymize-orders, etc. |
+| `scripts/` | Outils de dev local uniquement (sonar-report, CI helpers…) |
+
+**Règle :** tout nouveau script destiné à être planifié via cron ou exécuté par le système doit être créé dans `bin/`, jamais dans `scripts/`.
+
+---
+
 ## Règles absolues
 
 Ces règles ne souffrent **aucune exception** :
