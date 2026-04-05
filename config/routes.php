@@ -148,6 +148,7 @@ $router->post('/{lang}/mon-compte/securite/appareils/retirer-confiance', 'Accoun
 $router->post('/{lang}/mon-compte/securite/reinitialiser', 'AccountController@resetSecurity');
 $router->post('/{lang}/mon-compte/securite/appareils/supprimer-toutes', 'AccountController@untrustAllDevices');
 $router->get('/{lang}/compte/reactiver', 'AccountController@reactivateAccount');
+$router->get('/{lang}/session-expiree', 'AuthController@sessionExpired');
 $router->get('/{lang}/securite/confirmer', 'AccountController@confirmSecurityAction');
 $router->get('/{lang}/securite/ce-netait-pas-moi', 'AccountController@denySecurityAction');
 $router->get('/{lang}/mon-compte/export', 'AccountController@exportPage');
