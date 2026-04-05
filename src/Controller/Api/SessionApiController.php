@@ -55,6 +55,6 @@ class SessionApiController extends Controller
         }
 
         http_response_code(204);
-        exit;
+        throw new \Core\Exception\HttpException(204);
     }
 }

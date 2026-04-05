@@ -136,6 +136,32 @@ class SessionApiControllerTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // ping() — session active → 204
+    // ----------------------------------------------------------------
+
+    /**
+     * JWT valide et session active en base → 204.
+     *
+     * @return void
+     */
+    public function testPingReturns204WhenSessionActive(): void
+    {
+        $this->mockDb(['id' => 1]); // fetchOne retourne une ligne = session active
+        $_COOKIE['auth_token'] = $this->forgeJwt();
+
+        $ctrl = new SessionApiController(new Request());
+
+        ob_start();
+        try {
+            $ctrl->ping();
+        } catch (\Throwable) {
+        }
+        ob_get_clean();
+
+        $this->assertSame(204, http_response_code());
+    }
+
+    // ----------------------------------------------------------------
     // Helpers internes
     // ----------------------------------------------------------------
 
@@ -144,15 +170,21 @@ class SessionApiControllerTest extends TestCase
      *
      * @return string
      */
+    /** Encode en base64url (sans padding, chars URL-safe) — même format que Jwt::encode(). */
+    private function b64url(string $data): string
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
     private function forgeJwt(): string
     {
-        $header  = base64_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
-        $payload = base64_encode(json_encode([
+        $header  = $this->b64url((string) json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
+        $payload = $this->b64url((string) json_encode([
             'sub' => 1,
             'exp' => time() + 3600,
             'iat' => time(),
         ]));
-        $sig = hash_hmac('sha256', $header . '.' . $payload, $_ENV['JWT_SECRET'], true);
-        return $header . '.' . $payload . '.' . base64_encode($sig);
+        $sig = $this->b64url(hash_hmac('sha256', $header . '.' . $payload, $_ENV['JWT_SECRET'], true));
+        return $header . '.' . $payload . '.' . $sig;
     }
 }

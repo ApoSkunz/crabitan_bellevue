@@ -1098,4 +1098,30 @@ class AuthControllerTest extends IntegrationTestCase
         $this->assertSame(0, (int)$account['newsletter'], 'newsletter doit rester 0 jusqu\'à vérification email');
         $this->assertSame(1, (int)$account['newsletter_optin_pending'], 'newsletter_optin_pending doit être 1');
     }
+
+    // ----------------------------------------------------------------
+    // sessionExpired() GET
+    // ----------------------------------------------------------------
+
+    /**
+     * sessionExpired() pose le flash info et redirige vers l'accueil.
+     *
+     * @return void
+     */
+    public function testSessionExpiredSetsFlashAndRedirects(): void
+    {
+        $_SESSION = [];
+
+        ob_start();
+        try {
+            $this->makeController('GET', '/fr/session-expiree')
+                ->sessionExpired(['lang' => 'fr']);
+        } catch (\Throwable) {
+        }
+        ob_get_clean();
+
+        $this->assertSame(302, http_response_code());
+        $this->assertArrayHasKey('info', $_SESSION['flash'] ?? []);
+        $this->assertNotEmpty($_SESSION['flash']['info']);
+    }
 }
