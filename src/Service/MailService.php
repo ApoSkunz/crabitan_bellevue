@@ -591,7 +591,7 @@ INNER;
      * @param string               $lang            Langue du client ('fr' ou 'en')
      * @return void
      */
-    public function sendOrderConfirmationToClient(
+    public function sendOrderConfirmationToClient( // NOSONAR — php:S107 : 8 paramètres requis pour composer l'email de confirmation complet
         string $toEmail,
         string $toName,
         string $orderRef,
@@ -781,7 +781,7 @@ INNER;
      * @param string                           $labelTotal Libellé ligne total
      * @return string HTML du tableau
      */
-    private function buildOrderItemsTable(
+    private function buildOrderItemsTable( // NOSONAR — php:S107 : 9 paramètres requis pour générer le tableau articles email (colonnes i18n + remise)
         array $items,
         float $total,
         string $colName,

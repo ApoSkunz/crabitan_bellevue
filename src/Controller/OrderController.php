@@ -815,7 +815,7 @@ class OrderController extends Controller
      * @param float                $shippingDiscount Remise livraison
      * @return void
      */
-    private function dispatchOrderEmails(
+    private function dispatchOrderEmails( // NOSONAR — php:S107 : 8 paramètres requis pour envoyer les emails de confirmation commande
         string $email,
         string $name,
         string $reference,
