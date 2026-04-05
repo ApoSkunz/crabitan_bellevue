@@ -7,14 +7,16 @@ namespace Service;
 /**
  * Validates password strength according to ANSSI MDP 2021 guidelines.
  *
- * Rules:
+ * Blocking rules (validation):
  * - Minimum 12 characters
  * - At least one uppercase letter [A-Z]
  * - At least one lowercase letter [a-z]
  * - At least one digit [0-9]
  * - At least one special character (any non-alphanumeric character)
- * - Not a common/dictionary password (after leet-speak normalization)
- * - No ascending or descending sequence of 4+ consecutive characters
+ *
+ * Informational only (not blocking — used by the front-end strength indicator):
+ * - Not a common/dictionary password (after leet-speak normalization) → isCommon()
+ * - No ascending or descending sequence of 4+ consecutive characters → hasSequence()
  */
 class PasswordValidator
 {
@@ -79,9 +81,6 @@ class PasswordValidator
         }
         if (!preg_match(self::PATTERN_SPECIAL, $password)) {
             $errors[] = 'validation.password_special';
-        }
-        if (self::isCommon($password) || self::hasSequence($password)) {
-            $errors[] = 'validation.password_too_common';
         }
 
         return $errors;

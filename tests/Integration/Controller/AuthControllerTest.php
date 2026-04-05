@@ -234,8 +234,8 @@ class AuthControllerTest extends IntegrationTestCase
             'lastname'         => 'Dupont',
             'firstname'        => 'Marie',
             'email'            => 'marie@example.com',
-            'password'         => 'Password123!',
-            'password_confirm' => 'Password123!',
+            'password'         => 'Vigilant7#xKqm',
+            'password_confirm' => 'Vigilant7#xKqm',
             'newsletter'       => '0',
             'csrf_token'       => self::CSRF,
         ];
@@ -371,8 +371,8 @@ class AuthControllerTest extends IntegrationTestCase
             'firstname'        => '',
             'company_name'     => 'Château Dupont SARL',
             'email'            => 'company@example.com',
-            'password'         => 'Password123!',
-            'password_confirm' => 'Password123!',
+            'password'         => 'Vigilant7#xKqm',
+            'password_confirm' => 'Vigilant7#xKqm',
             'newsletter'       => '1',
             'csrf_token'       => self::CSRF,
         ];
@@ -610,8 +610,8 @@ class AuthControllerTest extends IntegrationTestCase
         );
 
         $_POST = [
-            'password'         => 'NewPassword1!',
-            'password_confirm' => 'NewPassword1!',
+            'password'         => 'Zephyr9$mKlt2w',
+            'password_confirm' => 'Zephyr9$mKlt2w',
             'csrf_token'       => self::CSRF,
         ];
 
@@ -1075,8 +1075,8 @@ class AuthControllerTest extends IntegrationTestCase
             'lastname'         => 'Abonne',
             'firstname'        => 'Pierre',
             'email'            => 'newsletter-yes@example.com',
-            'password'         => 'Password123!',
-            'password_confirm' => 'Password123!',
+            'password'         => 'Vigilant7#xKqm',
+            'password_confirm' => 'Vigilant7#xKqm',
             'newsletter'       => '1',
             'csrf_token'       => self::CSRF,
         ];

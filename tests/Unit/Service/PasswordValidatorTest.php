@@ -320,53 +320,57 @@ class PasswordValidatorTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // Blocklist — mots courants et substitutions leet
+    // Blocklist & séquences — informatifs uniquement (ne bloquent plus)
+    // isCommon() et hasSequence() alimentent l'indicateur front mais ne
+    // font pas échouer la validation serveur.
     // ----------------------------------------------------------------
 
-    public function testCommonWordPasswordReturnsFalse(): void
+    public function testCommonWordPasswordPassesAnssiRules(): void
     {
-        $this->assertFalse(PasswordValidator::isStrong('Password123!'));
+        // 'password' est dans la blocklist mais respecte les 5 règles ANSSI
+        $this->assertTrue(PasswordValidator::isStrong('Password123!'));
     }
 
-    public function testLeetSpeakPasswordReturnsFalse(): void
+    public function testLeetSpeakPasswordPassesAnssiRules(): void
     {
-        $this->assertFalse(PasswordValidator::isStrong('P@ssw0rd123!'));
+        // Leet-speak de 'password' mais respecte les 5 règles ANSSI
+        $this->assertTrue(PasswordValidator::isStrong('P@ssw0rd123!'));
     }
 
-    public function testAzertyPasswordReturnsFalse(): void
+    public function testAzertyPasswordPassesAnssiRules(): void
     {
-        $this->assertFalse(PasswordValidator::isStrong('Azerty2024!X'));
+        // 'azerty' dans la blocklist mais respecte les 5 règles ANSSI
+        $this->assertTrue(PasswordValidator::isStrong('Azerty2024!X'));
     }
 
-    public function testGetErrorsContainsTooCommonKeyForBlocklistedPassword(): void
+    public function testGetErrorsDoesNotContainTooCommonKey(): void
     {
+        // La clé 'too_common' ne doit plus apparaître dans getErrors()
         $errors = PasswordValidator::getErrors('P@ssw0rd123!');
-        $this->assertContains('validation.password_too_common', $errors);
+        $this->assertNotContains('validation.password_too_common', $errors);
     }
 
-    // ----------------------------------------------------------------
-    // Séquences — suites logiques
-    // ----------------------------------------------------------------
-
-    public function testAscendingSequenceReturnsFalse(): void
+    public function testAscendingSequencePassesAnssiRules(): void
     {
-        $this->assertFalse(PasswordValidator::isStrong('abcd1234!Xkqm'));
+        // Séquence 'abcd' informative mais ne bloque plus la validation
+        $this->assertTrue(PasswordValidator::isStrong('abcd1234!Xkqm'));
     }
 
-    public function testDescendingSequenceReturnsFalse(): void
+    public function testDescendingSequencePassesAnssiRules(): void
     {
-        $this->assertFalse(PasswordValidator::isStrong('dcba9876!Xkqm'));
+        // Séquence 'dcba' informative mais ne bloque plus la validation
+        $this->assertTrue(PasswordValidator::isStrong('dcba9876!Xkqm'));
     }
 
-    public function testGetErrorsContainsTooCommonKeyForSequence(): void
+    public function testGetErrorsDoesNotContainTooCommonKeyForSequence(): void
     {
         $errors = PasswordValidator::getErrors('Xkqm1234!abcd');
-        $this->assertContains('validation.password_too_common', $errors);
+        $this->assertNotContains('validation.password_too_common', $errors);
     }
 
     public function testThreeCharsRunIsNotASequence(): void
     {
-        // abc = 3 chars consécutifs → ne déclenche pas la pénalité
+        // abc = 3 chars consécutifs → ne déclenche pas la pénalité front
         $this->assertTrue(PasswordValidator::isStrong('AbcXkqm7#yZzz'));
     }
 }
