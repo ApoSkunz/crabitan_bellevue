@@ -3980,4 +3980,90 @@ class AccountControllerTest extends IntegrationTestCase
 
         $this->assertStringContainsString('auth-status--error', $output);
     }
+
+    // ----------------------------------------------------------------
+    // changePassword() — rate limiting (3 tentatives / 15 min / IP)
+    // ----------------------------------------------------------------
+
+    /**
+     * Une tentative sur un bucket déjà saturé (count >= 3) est bloquée
+     * et pose la clé rate_limit dans les erreurs flash security.
+     *
+     * Utilise le pré-chargement de session pour simuler 3 tentatives déjà enregistrées,
+     * identique au pattern de AuthLoginRateLimitTest.
+     */
+    public function testChangePasswordRateLimitBlocksWhenBucketSaturated(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId = $this->insertCustomer('chpwd.rl@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_SERVER['REMOTE_ADDR'] = '10.99.88.77';
+
+        // Réinitialiser $_SESSION après session_start() pour garantir csrf + _rl
+        // Pré-charger 3 tentatives (= MAX_CHANGE_PW_IP) → prochaine checkLimit retourne false
+        $_SESSION = [
+            'csrf'    => self::CSRF,
+            '_rl'     => ['rl:change_pw:10.99.88.77:count' => 3],
+            '_rl_ttl' => ['rl:change_pw:10.99.88.77:count' => time() + 900],
+        ];
+
+        $_POST = [
+            'csrf_token'           => self::CSRF,
+            'current_password'     => 'WrongPassword!',
+            'new_password'         => 'NewPassword123!',
+            'new_password_confirm' => 'NewPassword123!',
+        ];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/securite/mot-de-passe')
+                ->changePassword(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        $this->assertArrayHasKey(
+            'rate_limit',
+            $_SESSION['flash']['security_errors'] ?? [],
+            'Une tentative sur bucket saturé doit être bloquée par le rate limiter'
+        );
+    }
+
+    /**
+     * Une tentative sur un bucket non saturé (count < 3) incrémente le compteur.
+     */
+    public function testChangePasswordRateLimitIncrementsCounterOnFailure(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId = $this->insertCustomer('chpwd.rl2@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_SERVER['REMOTE_ADDR'] = '10.99.77.66';
+
+        $_SESSION = ['csrf' => self::CSRF, '_rl' => [], '_rl_ttl' => []];
+
+        $_POST = [
+            'csrf_token'           => self::CSRF,
+            'current_password'     => 'WrongPassword!',
+            'new_password'         => 'NewPassword123!',
+            'new_password_confirm' => 'NewPassword123!',
+        ];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/securite/mot-de-passe')
+                ->changePassword(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        $count = (int) ($_SESSION['_rl']['rl:change_pw:10.99.77.66:count'] ?? 0);
+        $this->assertSame(1, $count, 'Le compteur doit être incrémenté après une tentative');
+    }
 }

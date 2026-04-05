@@ -324,4 +324,81 @@ class ProfileAdminControllerTest extends AdminIntegrationTestCase
 
         $this->makeController('POST')->resetSecurity([]);
     }
+
+    // ----------------------------------------------------------------
+    // changePassword() — rate limiting (1 tentative / jour / IP)
+    // ----------------------------------------------------------------
+
+    /**
+     * Une tentative sur un bucket déjà saturé (count >= 1) est bloquée
+     * et pose un flash error admin (auth.too_many_attempts_hours).
+     *
+     * Utilise le pré-chargement de session pour simuler 1 tentative déjà enregistrée,
+     * identique au pattern de AuthLoginRateLimitTest.
+     */
+    public function testChangePasswordAdminRateLimitBlocksWhenBucketSaturated(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $_SERVER['REMOTE_ADDR'] = '10.99.11.22';
+
+        // Réinitialiser $_SESSION après session_start() pour garantir csrf + _rl
+        // Pré-charger 1 tentative (= MAX_ADMIN_PW_IP) → prochaine checkLimit retourne false
+        $_SESSION = [
+            'csrf'    => self::CSRF_TOKEN,
+            '_rl'     => ['rl:admin_change_pw:10.99.11.22:count' => 1],
+            '_rl_ttl' => ['rl:admin_change_pw:10.99.11.22:count' => time() + 86400],
+        ];
+
+        $_POST = [
+            'csrf_token'           => self::CSRF_TOKEN,
+            'current_password'     => 'WrongPassword!',
+            'new_password'         => 'NewPassword123!',
+            'new_password_confirm' => 'NewPassword123!',
+        ];
+
+        try {
+            $this->makeController('POST')->changePassword([]);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        $this->assertNotEmpty(
+            $_SESSION['admin_flash']['error'] ?? '',
+            'Une tentative sur bucket saturé doit être bloquée (flash error admin attendu)'
+        );
+    }
+
+    /**
+     * Une tentative sur un bucket vide (count = 0) incrémente le compteur.
+     */
+    public function testChangePasswordAdminRateLimitIncrementsCounterOnAttempt(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $_SERVER['REMOTE_ADDR'] = '10.99.33.44';
+
+        $_SESSION = ['csrf' => self::CSRF_TOKEN, '_rl' => [], '_rl_ttl' => []];
+
+        $_POST = [
+            'csrf_token'           => self::CSRF_TOKEN,
+            'current_password'     => 'WrongPassword!',
+            'new_password'         => 'NewPassword123!',
+            'new_password_confirm' => 'NewPassword123!',
+        ];
+
+        try {
+            $this->makeController('POST')->changePassword([]);
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        $count = (int) ($_SESSION['_rl']['rl:admin_change_pw:10.99.33.44:count'] ?? 0);
+        $this->assertSame(1, $count, 'Le compteur admin doit être incrémenté après une tentative');
+    }
 }
