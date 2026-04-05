@@ -714,6 +714,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/admin">Tableau de bord</a>
                 <a href="/admin/vins">Vins</a>
                 <a href="/admin/commandes">Commandes</a>
+                <a href="/admin/factures">Factures</a>
                 <a href="/admin/comptes">Comptes</a>
                 <a href="/admin/tarifs">Tarifs</a>
                 <a href="/admin/actualites">Actualités</a>
@@ -732,6 +733,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 <?php if (!$isCompany) : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/commandes">
                     <?= htmlspecialchars(__('panel.orders')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/factures">
+                    <?= htmlspecialchars(__('panel.invoices')) ?>
                 </a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/adresses">
                     <?= htmlspecialchars(__('panel.addresses')) ?>
