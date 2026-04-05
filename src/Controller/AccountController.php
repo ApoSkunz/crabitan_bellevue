@@ -1051,17 +1051,23 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $userId  = (int) $payload['sub'];
         $lang    = $params['lang'];
 
-        $success = $_SESSION['flash']['profile_success'] ?? null;
-        $errors  = $_SESSION['flash']['profile_errors']  ?? [];
-        unset($_SESSION['flash']['profile_success'], $_SESSION['flash']['profile_errors']);
+        $success          = $_SESSION['flash']['profile_success'] ?? null;
+        $errors           = $_SESSION['flash']['profile_errors']  ?? [];
+        $emailChangeSent  = $_SESSION['flash']['email_change_sent'] ?? false;
+        unset(
+            $_SESSION['flash']['profile_success'],
+            $_SESSION['flash']['profile_errors'],
+            $_SESSION['flash']['email_change_sent']
+        );
 
         $this->view('account/profile', [
-            'lang'       => $lang,
-            'account'    => $this->accounts->findById($userId),
-            'errors'     => $errors,
-            'success'    => $success,
-            'csrf'       => $_SESSION['csrf'] ?? '',
-            'ownerEmail' => $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '',
+            'lang'            => $lang,
+            'account'         => $this->accounts->findById($userId),
+            'errors'          => $errors,
+            'success'         => $success,
+            'emailChangeSent' => $emailChangeSent,
+            'csrf'            => $_SESSION['csrf'] ?? '',
+            'ownerEmail'      => $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '',
         ]);
     }
 
@@ -1167,8 +1173,9 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             Response::redirect($back);
         }
 
-        $_SESSION['flash']['profile_success'] = __('account.email_change_sent');
-        Response::redirect("/{$lang}/mon-compte/profil");
+        $_SESSION['flash']['profile_success']      = __('account.email_change_sent');
+        $_SESSION['flash']['email_change_sent']     = true;
+        Response::redirect("/{$lang}/mon-compte/profil#email-change");
     }
 
     // ----------------------------------------------------------------

@@ -168,12 +168,12 @@ class AccountServiceEmailChangeTest extends TestCase
     }
 
     /**
-     * Vérifie que requestEmailChange lève une HttpException si la nouvelle adresse est déjà prise.
+     * Anti-énumération : requestEmailChange retourne silencieusement si l'adresse est déjà prise.
+     * Aucune exception ne doit être levée — la réponse est identique au cas succès.
+     * saveEmailChangeToken ne doit PAS être appelé (pas de token stocké pour une adresse prise).
      */
-    public function testRequestEmailChangeRejectsAlreadyTakenEmail(): void
+    public function testRequestEmailChangeSilentReturnWhenEmailAlreadyTaken(): void
     {
-        $this->expectException(HttpException::class);
-
         $this->accountModel
             ->method('findById')
             ->willReturn([
@@ -183,15 +183,31 @@ class AccountServiceEmailChangeTest extends TestCase
                 'lang'     => 'fr',
             ]);
 
-        // La nouvelle adresse est déjà prise
         $this->accountModel
             ->method('findByEmail')
-            ->willReturn(['id' => 99]);
+            ->willReturn(['id' => 99]); // adresse déjà prise
 
         $this->accountModel
             ->method('countEmailChangeRequestsLast24h')
             ->willReturn(0);
 
+        // saveEmailChangeToken doit être appelé avec token null (pending visible, pas de confirmation possible)
+        $this->accountModel
+            ->expects($this->once())
+            ->method('saveEmailChangeToken')
+            ->with(1, null, 'taken@example.com', $this->anything());
+
+        // Aucun email de confirmation envoyé
+        $this->mailService
+            ->expects($this->never())
+            ->method('sendEmailChangeConfirmation');
+
+        // Audit loggué quand même
+        $this->accountModel
+            ->expects($this->once())
+            ->method('logAuditEvent');
+
+        // Pas d'exception — retour silencieux
         $this->service->requestEmailChange(1, 'taken@example.com', 'Password123!', '127.0.0.1');
     }
 

@@ -372,4 +372,52 @@ class AccountEmailChangeTest extends IntegrationTestCase
         $this->expectException(HttpException::class);
         $ctrl->requestEmailChange(['lang' => 'fr']);
     }
+
+    // ----------------------------------------------------------------
+    // Anti-énumération : email déjà pris
+    // ----------------------------------------------------------------
+
+    /**
+     * Anti-énumération : POST avec un email déjà pris → réponse identique au succès (302).
+     * Aucun token ne doit être stocké en BDD — retour silencieux sans révéler l'existence du compte.
+     */
+    public function testRequestEmailChangeWithTakenEmailReturnsSilently(): void
+    {
+        // Créer deux comptes : l'un demande le changement, l'autre possède déjà la cible
+        $userId = $this->insertCustomer();
+        $this->loginAs($userId);
+
+        // Insérer un second compte qui possède déjà l'adresse cible
+        self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES (?, ?, 'customer', 'fr', NOW())",
+            [self::NEW_EMAIL, password_hash('OtherPass1!', PASSWORD_BCRYPT)]
+        );
+
+        $_POST = [
+            'csrf_token'       => self::CSRF,
+            'new_email'        => self::NEW_EMAIL,
+            'current_password' => self::PASSWORD,
+        ];
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/mon-compte/profil/changer-email';
+        $ctrl = new AccountController(new Request());
+
+        try {
+            $ctrl->requestEmailChange(['lang' => 'fr']);
+            $this->fail('Expected HttpException 302');
+        } catch (HttpException $e) {
+            // 302 = comportement normal (redirect), identique au cas succès
+            $this->assertSame(302, $e->status);
+        }
+
+        // Demande enregistrée sans token (pending visible, anti-énumération UI)
+        $row = self::$db->fetchOne(
+            "SELECT email_change_token, email_change_new_email FROM accounts WHERE id = ?",
+            [$userId]
+        );
+        $this->assertIsArray($row);
+        $this->assertNull($row['email_change_token'], 'Aucun token ne doit être stocké si l\'email est déjà pris');
+        $this->assertSame(self::NEW_EMAIL, $row['email_change_new_email'], 'La nouvelle adresse doit être enregistrée pour afficher le bloc pending');
+    }
 }

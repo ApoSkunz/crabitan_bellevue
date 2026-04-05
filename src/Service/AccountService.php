@@ -52,7 +52,7 @@ class AccountService
      * @param string $currentPassword Mot de passe actuel en clair
      * @param string $ip              Adresse IP du demandeur (log RGPD)
      * @return void
-     * @throws HttpException 422 si mot de passe incorrect, email déjà pris ou rate limit atteint
+     * @throws HttpException 422 si mot de passe incorrect ou rate limit atteint
      * @throws HttpException 404 si le compte n'existe pas
      */
     public function requestEmailChange(
@@ -80,16 +80,22 @@ class AccountService
             throw new HttpException(429, null, 'Trop de demandes de changement d\'email. Réessayez dans 24h.');
         }
 
-        // Vérification unicité de la nouvelle adresse
+        $expiresAt = date('Y-m-d H:i:s', time() + self::EMAIL_CHANGE_TTL_SECONDS);
+
+        // Anti-énumération : si l'adresse est déjà prise, enregistrer la demande en BDD
+        // sans token → le bloc "demande en cours" s'affiche identiquement, mais aucun email
+        // n'est envoyé et la confirmation est impossible (pas de token valide).
+        // L'UI est indiscernable du cas nominal → l'appelant ne peut pas énumérer les comptes.
         $existing = $this->accountModel->findByEmail($newEmail);
         if ($existing !== false) {
-            throw new HttpException(422, null, 'Cette adresse email est déjà utilisée.');
+            $this->accountModel->saveEmailChangeToken($userId, null, $newEmail, $expiresAt);
+            $this->accountModel->logAuditEvent($userId, 'email_change_request', $ip, ['new_email' => $newEmail]);
+            return;
         }
 
         // Génération du token (32 octets aléatoires → 64 hex chars)
         $rawToken    = bin2hex(random_bytes(32));
         $hashedToken = hash('sha256', $rawToken);
-        $expiresAt   = date('Y-m-d H:i:s', time() + self::EMAIL_CHANGE_TTL_SECONDS);
 
         // Persistance
         $this->accountModel->saveEmailChangeToken(

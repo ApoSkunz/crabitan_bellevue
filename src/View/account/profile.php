@@ -7,6 +7,7 @@ require_once __DIR__ . '/../partials/header.php';
 /** @var array<string, mixed> $account */
 /** @var array<string, string> $errors */
 /** @var string|null $success */
+/** @var bool $emailChangeSent */
 /** @var string $csrf */
 $isCompany = ($account['account_type'] ?? '') === 'company';
 $selected  = static fn(bool $c): string => $c ? ' selected' : '';
@@ -20,7 +21,7 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                 <h1 class="account-header__title"><?= __('account.profile') ?></h1>
             </header>
 
-            <?php if ($success) : ?>
+            <?php if ($success && !$emailChangeSent) : ?>
                 <div class="alert alert--success" role="alert"><?= htmlspecialchars($success) ?></div>
             <?php endif; ?>
 
@@ -113,6 +114,10 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                     <div class="alert alert--error" role="alert"><?= htmlspecialchars($errors['email']) ?></div>
                 <?php endif; ?>
 
+                <?php if ($emailChangeSent) : ?>
+                    <div class="alert alert--success" role="alert"><?= htmlspecialchars($success ?? '') ?></div>
+                <?php endif; ?>
+
                 <?php
                 $hasPending = !empty($account['email_change_new_email'])
                     && !empty($account['email_change_expires_at'])
@@ -135,8 +140,6 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                         </button>
                     </form>
                 <?php else : ?>
-                    <p class="account-text"><?= __('account.email_change_intro') ?></p>
-
                     <form method="POST"
                           action="/<?= htmlspecialchars($lang) ?>/mon-compte/profil/changer-email"
                           class="account-form"

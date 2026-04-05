@@ -567,17 +567,21 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     // ----------------------------------------------------------------
 
     /**
-     * Enregistre le token de changement d'email (haché SHA-256) avec TTL et nouvelle adresse.
+     * Enregistre la demande de changement d'email avec TTL et nouvelle adresse.
      *
-     * @param int    $userId      Identifiant du compte
-     * @param string $hashedToken Hash SHA-256 du token brut
-     * @param string $newEmail    Nouvelle adresse email en attente de confirmation
-     * @param string $expiresAt   Date d'expiration au format 'Y-m-d H:i:s'
+     * Le token est null quand l'adresse cible est déjà utilisée (anti-énumération) :
+     * la demande est visible en BDD (pending block affiché), mais aucun email n'est envoyé
+     * et la confirmation est impossible sans token.
+     *
+     * @param int         $userId      Identifiant du compte
+     * @param string|null $hashedToken Hash SHA-256 du token brut, ou null si email déjà pris
+     * @param string      $newEmail    Nouvelle adresse email en attente de confirmation
+     * @param string      $expiresAt   Date d'expiration au format 'Y-m-d H:i:s'
      * @return void
      */
     public function saveEmailChangeToken(
         int $userId,
-        string $hashedToken,
+        ?string $hashedToken,
         string $newEmail,
         string $expiresAt
     ): void {
