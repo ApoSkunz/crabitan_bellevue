@@ -399,7 +399,16 @@ class OrderControllerPaymentFlowTest extends TestCase
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
                 'content'         => json_encode($snapshot['items']),
-            ]
+            ],
+            [               // OrderModel::findByReferenceWithAddresses → génération facture
+                'id'              => 684,
+                'order_reference' => 'WEB-CB-AABBCCDD-2026',
+                'payment_method'  => 'card',
+                'content'         => json_encode($snapshot['items']),
+                'price'           => 120.0,
+                'shipping_discount' => 0.0,
+                'ordered_at'      => date('Y-m-d H:i:s'),
+            ],
         );
         // insert et execute ne lèvent pas d'exception (stub no-op par défaut)
 
