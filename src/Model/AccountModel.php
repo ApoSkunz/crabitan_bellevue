@@ -470,6 +470,66 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Retourne les comptes dont la suppression programmée tombe dans une fenêtre
+     * de ±windowHours autour de "maintenant + daysAhead jours" et pour lesquels
+     * le rappel correspondant n'a pas encore été envoyé.
+     *
+     * Seuls les comptes encore en attente de suppression (deleted_at IS NOT NULL,
+     * scheduled_deletion_at IS NOT NULL) et non réactivés sont inclus.
+     *
+     * @param int $daysAhead  7 (rappel J-7) ou 1 (rappel J-1)
+     * @param int $windowHours Demi-largeur de la fenêtre en heures (défaut 12)
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAccountsPendingDeletionReminder(int $daysAhead, int $windowHours = 12): array
+    {
+        $column = match ($daysAhead) {
+            7       => 'deletion_reminder_7d_sent_at',
+            1       => 'deletion_reminder_1d_sent_at',
+            default => throw new \InvalidArgumentException("daysAhead must be 1 or 7, got {$daysAhead}"),
+        };
+
+        $hoursMin = $daysAhead * 24 - $windowHours;
+        $hoursMax = $daysAhead * 24 + $windowHours;
+
+        return $this->db->fetchAll(
+            "SELECT a.id, a.email, a.lang, a.reactivation_token, a.scheduled_deletion_at,
+                    COALESCE(ai.firstname, ac.company_name, '') AS firstname,
+                    COALESCE(ai.lastname, '') AS lastname
+             FROM {$this->table} a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             WHERE a.deleted_at IS NOT NULL
+               AND a.scheduled_deletion_at IS NOT NULL
+               AND a.{$column} IS NULL
+               AND a.scheduled_deletion_at BETWEEN DATE_ADD(NOW(), INTERVAL ? HOUR)
+                                                AND DATE_ADD(NOW(), INTERVAL ? HOUR)
+             ORDER BY a.scheduled_deletion_at ASC",
+            [$hoursMin, $hoursMax]
+        );
+    }
+
+    /**
+     * Marque le rappel de suppression comme envoyé pour un compte.
+     *
+     * @param int $id       Identifiant du compte
+     * @param int $daysAhead 7 (rappel J-7) ou 1 (rappel J-1)
+     */
+    public function markDeletionReminderSent(int $id, int $daysAhead): void
+    {
+        $column = match ($daysAhead) {
+            7       => 'deletion_reminder_7d_sent_at',
+            1       => 'deletion_reminder_1d_sent_at',
+            default => throw new \InvalidArgumentException("daysAhead must be 1 or 7, got {$daysAhead}"),
+        };
+
+        $this->db->execute(
+            "UPDATE {$this->table} SET {$column} = NOW() WHERE id = ?",
+            [$id]
+        );
+    }
+
     public function reactivate(int $id): int
     {
         return $this->db->execute(
