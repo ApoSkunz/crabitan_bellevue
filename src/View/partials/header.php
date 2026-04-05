@@ -85,6 +85,15 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
     return '/' . $targetLang;
 };
 ?>
+<?php if ($flashInfo !== null) : ?>
+<div class="cb-flash-banner" role="alert" aria-live="polite">
+    <span class="cb-flash-banner__message"><?= htmlspecialchars($flashInfo) ?></span>
+    <button
+        class="cb-flash-banner__close"
+        aria-label="<?= htmlspecialchars(__('common.close')) ?>"
+        onclick="this.parentElement.setAttribute('hidden','')">&#10005;</button>
+</div>
+<?php endif; ?>
 <header class="site-header">
     <div class="header-main">
         <!-- Gauche : logo + langue + contact -->
