@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.37.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.37.1...v0.37.2) (2026-04-05)
+
+
+### Bug Fixes
+
+* **security:** normalisation timing forgot/register — anti timing oracle ([316b02e](https://github.com/ApoSkunz/crabitan_bellevue/commit/316b02e8b4ac1d0e319ac09a67a42814b979e521))
+
 ## [0.37.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.37.0...v0.37.1) (2026-04-05)
 
 
