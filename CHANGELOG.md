@@ -2,6 +2,20 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.39.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.38.0...v0.39.0) (2026-04-05)
+
+
+### Bug Fixes
+
+* **db:** forcer timezone MySQL à UTC sur la connexion PDO ([0eecf5a](https://github.com/ApoSkunz/crabitan_bellevue/commit/0eecf5a8de3672544308650176c510e608a3fead))
+* **session:** remember-me anti-coupure fin de vie — refresh à JWT_EXPIRY si remaining < JWT_EXPIRY × threshold ([79eaa10](https://github.com/ApoSkunz/crabitan_bellevue/commit/79eaa1022e63ca9ebc30098101f112a285225a59))
+* **sonar:** SessionTtlRefresher — extraire needsRefresh() (php:S1142) + couvrir totalTtl<0, remember-me near-expiry, getRecentForUser ([2ef4f1b](https://github.com/ApoSkunz/crabitan_bellevue/commit/2ef4f1b7b53a668167acad34e5a67d69fafb7fee))
+
+
+### Features
+
+* **session:** refresh TTL automatique des sessions actives ([e24c6ae](https://github.com/ApoSkunz/crabitan_bellevue/commit/e24c6ae16df19758f2053700948aecf71f1d0f62))
+
 # [0.38.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.37.3...v0.38.0) (2026-04-05)
 
 
