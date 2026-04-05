@@ -593,6 +593,7 @@ return [
     'account.filter_3months'     => 'Last 3 months',
     'account.filter_status'      => 'Status',
     'account.filter_status_all'  => 'All statuses',
+    'account.item_product'       => 'Product',
     'account.item_qty'           => 'Qty',
     'account.item_unit_price'    => 'Unit price',
     'account.item_subtotal'      => 'Subtotal',
@@ -777,7 +778,9 @@ return [
     'checkout.payment_cancelled'      => 'Payment cancelled. You may update your order and try again.',
     'checkout.payment_refused'        => 'Payment declined. Please check your details or use a different payment method.',
     'checkout.payment_error'          => 'An error occurred while confirming your payment. Contact us if the amount was charged.',
-    'account.order_cancel_card_confirm' => 'This will trigger an immediate refund to your credit card. Confirm cancellation?',
+    'account.order_cancel_card_confirm'       => 'This will trigger an immediate refund to your credit card. Confirm cancellation?',
+    // phpcs:ignore Generic.Files.LineLength
+    'account.order_cancel_pending_cb_confirm' => 'Your card payment is awaiting confirmation. Cancelling will terminate this transaction. Confirm?',
 
     // Order confirmation
     'checkout.confirmation_title'     => 'Order confirmed',
