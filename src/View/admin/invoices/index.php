@@ -9,7 +9,7 @@
 
 <div class="admin-page-header">
     <h1>Factures</h1>
-    <p class="admin-page-header__sub">Archivage légal — Art. L441-9 &amp; L123-22 C.com.</p>
+    <p class="admin-page-header__sub">Registre légal — Art. L441-9 &amp; L123-22 C.com.</p>
 </div>
 
 <!-- ================================================================
@@ -118,12 +118,12 @@ if (!function_exists('buildInvoiceUrl')) {
 </div>
 
 <!-- ================================================================
-     Tableau des factures
+     Registre des fichiers de facture (1 ligne = 1 PDF)
 ================================================================ -->
 <div class="admin-card">
     <div class="admin-card__header">
         <h2>
-            <?= number_format($total, 0, ',', ' ') ?> facture<?= $total > 1 ? 's' : '' ?>
+            <?= number_format($total, 0, ',', ' ') ?> fichier<?= $total > 1 ? 's' : '' ?>
         </h2>
     </div>
     <div class="admin-card__body" style="padding:0;">
@@ -137,12 +137,13 @@ if (!function_exists('buildInvoiceUrl')) {
                     <tr>
                         <th>N° Facture</th>
                         <th>Réf. commande</th>
-                        <th>Date</th>
+                        <th>Date commande</th>
                         <th style="text-align:right;">Montant TTC</th>
                         <th>Client</th>
-                        <th>Paiement</th>
-                        <th>Fichiers</th>
-                        <th style="text-align:center;">Actions</th>
+                        <th>Source</th>
+                        <th>Générée le</th>
+                        <th style="text-align:center;" title="Facture en vigueur pour cette commande">Valide</th>
+                        <th style="text-align:center;">PDF</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -152,11 +153,11 @@ if (!function_exists('buildInvoiceUrl')) {
                                 <?php if ($inv['invoice_number']) : ?>
                                     <code style="font-size:0.75rem;"><?= htmlspecialchars((string) $inv['invoice_number']) ?></code>
                                 <?php else : ?>
-                                    <span style="color:var(--color-text-muted);font-size:0.8rem;">—</span>
+                                    <span style="color:var(--color-text-muted);font-size:0.8rem;"><?= htmlspecialchars(basename((string) $inv['path'])) ?></span>
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <a href="/admin/commandes/<?= (int) $inv['id'] ?>"
+                                <a href="/admin/commandes/<?= (int) $inv['order_id'] ?>"
                                    style="font-size:0.8rem;">
                                     <?= htmlspecialchars((string) $inv['order_reference']) ?>
                                 </a>
@@ -171,20 +172,24 @@ if (!function_exists('buildInvoiceUrl')) {
                                 <?= htmlspecialchars(trim($inv['firstname'] . ' ' . $inv['lastname'])) ?><br>
                                 <span style="color:var(--color-text-muted);font-size:0.72rem;"><?= htmlspecialchars((string) $inv['email']) ?></span>
                             </td>
-                            <td style="font-size:0.8rem;">
-                                <?php
-                                $pmLabels = ['card' => 'CB', 'virement' => 'Virement', 'cheque' => 'Chèque'];
-                                echo htmlspecialchars($pmLabels[$inv['payment_method'] ?? ''] ?? (string) ($inv['payment_method'] ?? ''));
-                                ?>
+                            <td style="font-size:0.8rem;text-align:center;" title="<?= $inv['source'] === 'auto' ? 'Générée automatiquement' : 'Téléversée manuellement' ?>">
+                                <?= $inv['source'] === 'auto' ? '⚙' : '⬆' ?>
                             </td>
-                            <td style="font-size:0.8rem;text-align:center;">
-                                <?= (int) $inv['file_count'] ?>
+                            <td style="font-size:0.78rem;white-space:nowrap;color:var(--color-text-muted);">
+                                <?= date('d/m/Y H:i', strtotime((string) $inv['uploaded_at'])) ?>
                             </td>
                             <td style="text-align:center;">
-                                <a href="/admin/commandes/<?= (int) $inv['id'] ?>"
+                                <?php if ((int) $inv['invoice_rank'] === 1) : ?>
+                                    <span style="color:#27ae60;font-size:1rem;" title="Facture en vigueur">✓</span>
+                                <?php else : ?>
+                                    <span style="color:var(--color-text-muted);font-size:0.8rem;" title="Version remplacée">Historique</span>
+                                <?php endif; ?>
+                            </td>
+                            <td style="text-align:center;">
+                                <a href="/admin/commandes/<?= (int) $inv['order_id'] ?>/facture/historique/<?= (int) $inv['id'] ?>"
                                    class="admin-btn admin-btn--outline admin-btn--sm"
-                                   title="Voir la commande">
-                                    Voir
+                                   title="Télécharger ce PDF">
+                                    Voir PDF
                                 </a>
                             </td>
                         </tr>
