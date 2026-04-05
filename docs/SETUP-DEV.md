@@ -182,6 +182,7 @@ DB_PASS=                         # vide en dev local XAMPP
 # ── Authentification JWT ───────────────────────────────────────────────────
 JWT_SECRET=                      # chaîne aléatoire ≥ 32 caractères — NE PAS VERSIONNER
 JWT_EXPIRY=3600                  # durée de vie du token en secondes (optionnel)
+JWT_REFRESH_THRESHOLD=0.5        # seuil de refresh TTL session : rafraîchir quand il reste moins de X% du TTL (0.5 = 50%)
 
 # ── Emails (MailHog en dev, SMTP IONOS en prod) ────────────────────────────
 MAIL_HOST=localhost

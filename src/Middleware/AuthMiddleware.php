@@ -8,19 +8,26 @@ use Core\CookieHelper;
 use Core\Database;
 use Core\Jwt;
 use Core\Response;
+use Core\SessionTtlRefresher;
+use Model\ConnectionModel;
 
 class AuthMiddleware
 {
     /**
      * Vérifie le JWT en cookie et retourne le payload.
      * Vérifie aussi que la session est toujours active en base (non révoquée).
+     * Prolonge expired_at si le TTL restant est inférieur au seuil JWT_REFRESH_THRESHOLD.
      * Redirige vers /connexion si absent, invalide ou révoqué.
      *
      * @param  callable(string):bool|null  $sessionChecker  Injectable pour les tests unitaires.
      *                                                       null = vérification réelle en base.
+     * @param  callable(string,int):bool|null  $ttlRefresher    Injectable pour les tests unitaires.
+     *                                                           null = refresh réel en base.
      */
-    public static function handle(?callable $sessionChecker = null): array
-    {
+    public static function handle(
+        ?callable $sessionChecker = null,
+        ?callable $ttlRefresher = null
+    ): array {
         $token = $_COOKIE['auth_token'] ?? null;
         $lang  = defined('CURRENT_LANG') ? CURRENT_LANG : 'fr';
 
@@ -49,6 +56,40 @@ class AuthMiddleware
             Response::abort(404); // session révoquée — idem
         }
 
+        // Refresh TTL si le token approche de son expiration
+        // Les sessions remember-me ont auth_method = 'password' avec TTL 30j :
+        // on les détecte par comparaison entre la durée JWT et JWT_EXPIRY standard.
+        $isRememberMe = self::isRememberMeToken($payload);
+
+        $refresher = $ttlRefresher ?? static function (string $t, int $expiry): bool {
+            $model = new ConnectionModel();
+            return $model->refreshExpiry($t, $expiry);
+        };
+
+        SessionTtlRefresher::maybeRefresh($payload, $token, $isRememberMe, $refresher);
+
         return $payload;
+    }
+
+    /**
+     * Détermine si le token correspond à une session remember-me (longue durée).
+     *
+     * Un token remember-me a une TTL totale supérieure à JWT_EXPIRY standard.
+     * On compare exp - iat au seuil standard pour discriminer les deux cas.
+     *
+     * @param  array $payload Payload JWT décodé
+     * @return bool           true si remember-me
+     */
+    private static function isRememberMeToken(array $payload): bool
+    {
+        if (!isset($payload['exp'], $payload['iat'])) {
+            return false;
+        }
+
+        $standardExpiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+        $tokenTtl       = (int) $payload['exp'] - (int) $payload['iat'];
+
+        // Si la durée totale du token dépasse la durée standard, c'est un remember-me
+        return $tokenTtl > $standardExpiry;
     }
 }

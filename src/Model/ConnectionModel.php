@@ -125,6 +125,47 @@ class ConnectionModel extends Model
     }
 
     /**
+     * Prolonge expired_at d'une session active et non expirée.
+     *
+     * Ne touche que les lignes status = 'active' et expired_at > NOW()
+     * pour éviter de ressusciter une session déjà révoquée ou expirée.
+     *
+     * @param string $token  JWT de session à prolonger
+     * @param int    $expiry Nouvelle durée en secondes à partir de maintenant
+     * @return bool          true si une ligne a été mise à jour
+     */
+    public function refreshExpiry(string $token, int $expiry): bool
+    {
+        $affected = $this->db->execute(
+            "UPDATE {$this->table}
+             SET expired_at = ?
+             WHERE token = ? AND status = 'active' AND expired_at > NOW()",
+            [date('Y-m-d H:i:s', time() + $expiry), $token]
+        );
+        return $affected > 0;
+    }
+
+    /**
+     * Retourne les connexions récentes (N derniers jours) pour l'export RGPD.
+     * Le token JWT est volontairement exclu (minimisation des données, Art. 5 RGPD).
+     *
+     * @param int $userId Identifiant du compte
+     * @param int $days   Fenêtre temporelle en jours (défaut : 90)
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRecentForUser(int $userId, int $days = 90): array
+    {
+        return $this->db->fetchAll(
+            "SELECT device_name, ip_address, user_agent, auth_method, status, created_at, expired_at
+             FROM {$this->table}
+             WHERE user_id = ?
+               AND created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+             ORDER BY created_at DESC",
+            [$userId, $days]
+        );
+    }
+
+    /**
      * Purge les connexions révoquées ou expirées.
      *
      * @return int Nombre de lignes supprimées
