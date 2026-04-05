@@ -13,7 +13,7 @@ class InvoiceService
 {
     private const APP_NAME    = 'Château Crabitan Bellevue';
     private const VENDOR_NAME   = 'G.F.A Bernard Solane & Fils';
-    private const VENDOR_ADDR   = "au Crabitan\n33410 Sainte-Croix-du-Mont\nFrance";
+    private const VENDOR_ADDR   = "1 Crabitan\n33410 Sainte-Croix-du-Mont\nFrance";
     private const VENDOR_FORM   = 'Groupement foncier agricole';
     private const VENDOR_SIRET  = 'SIRET : 398 341 701 00017';
     private const VENDOR_RCS    = 'RCS Bordeaux : 398 341 701';
