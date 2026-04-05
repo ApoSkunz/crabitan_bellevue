@@ -944,7 +944,7 @@ function initContactForm() {
         feedback.className   = 'contact-form__feedback contact-form__feedback--' + (isSuccess ? 'success' : 'error');
         feedback.hidden      = false;
         if (isSuccess) {
-            feedbackTimer = setTimeout(() => { feedback.hidden = true; }, 3000);
+            feedbackTimer = setTimeout(() => { feedback.hidden = true; }, 5000);
         }
     }
 
@@ -1184,12 +1184,12 @@ function initResetModal() {
 
     if (window.__resetOpen) openModal();
 
-    // Succès reset : modal ouvert avec message, redirection automatique vers homepage après 3 s
+    // Succès reset : modal ouvert avec message, redirection automatique vers homepage après 5 s
     if (window.__resetSuccess) {
         openModal();
         setTimeout(() => { // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
             window.location.href = '/' + (window.__navLang || 'fr');
-        }, 3000);
+        }, 5000);
     }
 
     closeBtn?.addEventListener('click', closeModal);
@@ -1464,7 +1464,7 @@ function initAlertAutoDismiss() {
             el.style.transition = 'opacity 400ms ease';
             el.style.opacity = '0';
             setTimeout(() => el.remove(), 400);
-        }, 2500);
+        }, 5000);
     });
 }
 
