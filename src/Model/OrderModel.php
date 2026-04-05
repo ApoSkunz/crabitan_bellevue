@@ -56,10 +56,20 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $reference = 'WEB-' . $typeCode . '-' . strtoupper(bin2hex(random_bytes(4))) . '-' . date('Y');
         $contentJson = json_encode($items, JSON_UNESCAPED_UNICODE);
 
+        $snapshots         = new OrderAddressSnapshotModel();
+        $billingAddr       = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$idBillingAddress]);
+        $billingSnapshotId = $snapshots->createFromAddress($billingAddr ?: []);
+
+        $deliverySnapshotId = null;
+        if ($idDeliveryAddress !== null) {
+            $deliveryAddr       = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$idDeliveryAddress]);
+            $deliverySnapshotId = $snapshots->createFromAddress($deliveryAddr ?: []);
+        }
+
         $this->db->insert(
             "INSERT INTO {$this->table}
              (user_id, order_reference, content, price, payment_method, shipping_discount,
-              id_billing_address, id_delivery_address, cgv_version, status)
+              id_billing_snapshot, id_delivery_snapshot, cgv_version, status)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')", // phpcs:ignore Generic.Files.LineLength
             [
                 $userId,
@@ -68,8 +78,8 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                 $price,
                 $paymentMethod,
                 $shippingDiscount,
-                $idBillingAddress,
-                $idDeliveryAddress,
+                $billingSnapshotId,
+                $deliverySnapshotId,
                 $cgvVersion,
             ]
         );
@@ -89,14 +99,14 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.*,
                     b.civility  AS bill_civility,  b.firstname AS bill_firstname, b.lastname AS bill_lastname,
-                    b.street    AS bill_street,     b.city      AS bill_city,
-                    b.zip_code  AS bill_zip,        b.country   AS bill_country,  b.phone AS bill_phone,
-                    d.civility  AS del_civility,    d.firstname AS del_firstname,  d.lastname AS del_lastname,
-                    d.street    AS del_street,      d.city      AS del_city,
-                    d.zip_code  AS del_zip,         d.country   AS del_country
+                    b.street    AS bill_street,    b.city      AS bill_city,
+                    b.zip       AS bill_zip,       b.country   AS bill_country,  b.phone AS bill_phone,
+                    d.civility  AS del_civility,   d.firstname AS del_firstname,  d.lastname AS del_lastname,
+                    d.street    AS del_street,     d.city      AS del_city,
+                    d.zip       AS del_zip,        d.country   AS del_country
              FROM {$this->table} o
-             LEFT JOIN addresses b ON b.id = o.id_billing_address
-             LEFT JOIN addresses d ON d.id = o.id_delivery_address
+             LEFT JOIN order_address_snapshots b ON b.id = o.id_billing_snapshot
+             LEFT JOIN order_address_snapshots d ON d.id = o.id_delivery_snapshot
              WHERE o.order_reference = ? AND o.user_id = ?",
             [$reference, $userId]
         );
@@ -139,12 +149,18 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $typeCode = 'CB';
         $maxTries = 3;
 
+        $snapshots          = new OrderAddressSnapshotModel();
+        $billingAddr        = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$billingAddressId]);
+        $billingSnapshotId  = $snapshots->createFromAddress($billingAddr ?: []);
+        $deliveryAddr       = $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$deliveryAddressId]);
+        $deliverySnapshotId = $snapshots->createFromAddress($deliveryAddr ?: []);
+
         for ($attempt = 1; $attempt <= $maxTries; $attempt++) {
             try {
                 $this->db->insert(
                     "INSERT INTO {$this->table}
                      (user_id, order_reference, content, price, payment_method, shipping_discount,
-                      id_billing_address, id_delivery_address, status, cgv_version, ca_numappel, ca_numtrans)
+                      id_billing_snapshot, id_delivery_snapshot, status, cgv_version, ca_numappel, ca_numtrans)
                      VALUES (?, ?, ?, ?, 'card', ?, ?, ?, 'paid', ?, ?, ?)", // phpcs:ignore Generic.Files.LineLength
                     [
                         $userId,
@@ -152,8 +168,8 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                         $content,
                         $total,
                         $deliveryDiscount,
-                        $billingAddressId,
-                        $deliveryAddressId,
+                        $billingSnapshotId,
+                        $deliverySnapshotId,
                         $cgvVersion,
                         $numappel,
                         $numtrans,
@@ -243,17 +259,17 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                     COALESCE(ai.lastname, '', '') AS lastname,
                     b.firstname  AS bill_firstname, b.lastname  AS bill_lastname,
                     b.street     AS bill_street,    b.city      AS bill_city,
-                    b.zip_code   AS bill_zip,       b.country   AS bill_country,
+                    b.zip        AS bill_zip,       b.country   AS bill_country,
                     b.phone      AS bill_phone,
                     d.firstname  AS del_firstname,  d.lastname  AS del_lastname,
                     d.street     AS del_street,     d.city      AS del_city,
-                    d.zip_code   AS del_zip,        d.country   AS del_country
+                    d.zip        AS del_zip,        d.country   AS del_country
              FROM {$this->table} o
              JOIN accounts a ON a.id = o.user_id
              LEFT JOIN account_individuals ai ON ai.account_id = a.id
              LEFT JOIN account_companies   ac ON ac.account_id = a.id
-             LEFT JOIN addresses b ON b.id = o.id_billing_address
-             LEFT JOIN addresses d ON d.id = o.id_delivery_address
+             LEFT JOIN order_address_snapshots b ON b.id = o.id_billing_snapshot
+             LEFT JOIN order_address_snapshots d ON d.id = o.id_delivery_snapshot
              WHERE o.id = ?",
             [$id]
         );
@@ -299,13 +315,13 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                     b.civility  AS bill_civility,
                     b.firstname AS bill_firstname, b.lastname AS bill_lastname,
                     b.street    AS bill_street,    b.city     AS bill_city,
-                    b.zip_code  AS bill_zip,       b.country  AS bill_country,
+                    b.zip       AS bill_zip,       b.country  AS bill_country,
                     b.phone     AS bill_phone
              FROM {$this->table} o
-             JOIN accounts a             ON a.id   = o.user_id
-             LEFT JOIN account_individuals ai ON ai.account_id = a.id
-             LEFT JOIN account_companies   ac ON ac.account_id = a.id
-             LEFT JOIN addresses b ON b.id = o.id_billing_address
+             JOIN accounts a                    ON a.id          = o.user_id
+             LEFT JOIN account_individuals ai   ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac   ON ac.account_id = a.id
+             LEFT JOIN order_address_snapshots b ON b.id         = o.id_billing_snapshot
              WHERE o.order_reference = ?",
             [$reference]
         );
@@ -481,14 +497,14 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.*,
                     b.civility  AS bill_civility,  b.firstname AS bill_firstname, b.lastname AS bill_lastname,
-                    b.street    AS bill_street,     b.city      AS bill_city,
-                    b.zip_code  AS bill_zip,        b.country   AS bill_country,  b.phone AS bill_phone,
-                    d.civility  AS del_civility,    d.firstname AS del_firstname,  d.lastname AS del_lastname,
-                    d.street    AS del_street,      d.city      AS del_city,
-                    d.zip_code  AS del_zip,         d.country   AS del_country
+                    b.street    AS bill_street,    b.city      AS bill_city,
+                    b.zip       AS bill_zip,       b.country   AS bill_country,  b.phone AS bill_phone,
+                    d.civility  AS del_civility,   d.firstname AS del_firstname,  d.lastname AS del_lastname,
+                    d.street    AS del_street,     d.city      AS del_city,
+                    d.zip       AS del_zip,        d.country   AS del_country
              FROM {$this->table} o
-             LEFT JOIN addresses b ON b.id = o.id_billing_address
-             LEFT JOIN addresses d ON d.id = o.id_delivery_address
+             LEFT JOIN order_address_snapshots b ON b.id = o.id_billing_snapshot
+             LEFT JOIN order_address_snapshots d ON d.id = o.id_delivery_snapshot
              WHERE o.id = ? AND o.user_id = ?",
             [$orderId, $userId]
         );
@@ -528,34 +544,27 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param  array<int, int>  $addressIds
      * @return array<int, int>
      */
+    /**
+     * Les adresses ne sont plus référencées dans orders depuis l'enabler order-address-snapshot.
+     * Les snapshots étant indépendants, aucune adresse ne bloque la suppression d'une commande.
+     *
+     * @param  array<int, int>  $addressIds
+     * @return array<int, int>
+     */
     public function getAddressIdsWithActiveOrders(array $addressIds): array
     {
-        if ($addressIds === []) {
-            return [];
-        }
-        $ph   = implode(',', array_fill(0, count($addressIds), '?'));
-        $rows = $this->db->fetchAll(
-            "SELECT DISTINCT id_billing_address AS addr_id FROM {$this->table}
-             WHERE id_billing_address IN ({$ph})
-               AND status IN ('pending','paid','processing','shipped')
-             UNION
-             SELECT DISTINCT id_delivery_address FROM {$this->table}
-             WHERE id_delivery_address IN ({$ph})
-               AND status IN ('pending','paid','processing','shipped')",
-            array_merge($addressIds, $addressIds)
-        );
-        return array_map('intval', array_column($rows, 'addr_id'));
+        return []; // NOSONAR — Les adresses sont désormais snapshotées, plus de FK directe
     }
 
+    /**
+     * Les adresses ne sont plus référencées dans orders depuis l'enabler order-address-snapshot.
+     *
+     * @param int $addressId
+     * @return bool
+     */
     public function hasActiveOrderForAddress(int $addressId): bool
     {
-        $row = $this->db->fetchOne(
-            "SELECT COUNT(*) AS cnt FROM {$this->table}
-             WHERE (id_billing_address = ? OR id_delivery_address = ?)
-               AND status IN ('pending','paid','processing','shipped')",
-            [$addressId, $addressId]
-        );
-        return (int) ($row['cnt'] ?? 0) > 0;
+        return false; // NOSONAR — Les adresses sont désormais snapshotées, plus de FK directe
     }
 
     // ----------------------------------------------------------------
