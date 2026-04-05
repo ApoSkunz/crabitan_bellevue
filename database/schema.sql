@@ -249,6 +249,7 @@ CREATE TABLE `orders` (
   `cgv_version`         VARCHAR(20)    NOT NULL DEFAULT '1.0' COMMENT 'Version des CGV acceptées au moment de la commande',
   `ca_numappel`         VARCHAR(11)    DEFAULT NULL COMMENT 'NUMAPPEL CA e-Transactions (lettre T PBX_RETOUR) — requis pour remboursement GAE',
   `ca_numtrans`         VARCHAR(11)    DEFAULT NULL COMMENT 'NUMTRANS CA e-Transactions (lettre S PBX_RETOUR) — requis pour remboursement GAE',
+  `invoice_number`      VARCHAR(30)    DEFAULT NULL COMMENT 'Numéro de facture WEB-INVOICE-YYYY-XXXX',
   `path_invoice`        VARCHAR(255)   DEFAULT NULL,
   `ordered_at`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `delivered_at`        DATETIME       DEFAULT NULL COMMENT 'Date de livraison confirmée ; base du délai de rétractation (15 j)',
