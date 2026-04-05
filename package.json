@@ -31,9 +31,6 @@
     "vite-plugin-istanbul": "^6.0.2"
   },
   "dependencies": {
-    "@zxcvbn-ts/core": "^3.0.4",
-    "@zxcvbn-ts/language-common": "^3.0.4",
-    "@zxcvbn-ts/language-fr": "^3.0.2",
     "chart.js": "^4.5.1"
   }
 }

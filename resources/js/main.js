@@ -1,22 +1,5 @@
 import '../scss/main.scss';
 import { initCarbonBadge } from './carbon-badge.js';
-// zxcvbn-ts chargé en lazy uniquement sur les pages avec champ mot de passe
-let _zxcvbn = null;
-async function getZxcvbn() {
-    if (_zxcvbn) return _zxcvbn;
-    const [{ zxcvbn, zxcvbnOptions }, common, fr] = await Promise.all([
-        import('@zxcvbn-ts/core'),
-        import('@zxcvbn-ts/language-common'),
-        import('@zxcvbn-ts/language-fr'),
-    ]);
-    zxcvbnOptions.setOptions({
-        translations: fr.translations,
-        graphs: common.adjacencyGraphs,
-        dictionary: { ...common.dictionary, ...fr.dictionary },
-    });
-    _zxcvbn = zxcvbn;
-    return _zxcvbn;
-}
 
 // ============================================================
 // Thème jour / nuit
@@ -1235,23 +1218,46 @@ function initResetModal() {
 }
 
 // ============================================================
-// Indicateur de force mot de passe — zxcvbn-ts (score 0→4)
+// Indicateur de force mot de passe (miroir PHP PasswordValidator)
 // Checklist ANSSI + label Faible/Moyen/Fort/Très fort en temps réel.
 // ============================================================
 
 /**
- * Injecte une checklist ANSSI + indicateur zxcvbn sous chaque champ new-password.
- * Champs ciblés : inscription, reset password (modal + page), changement MDP.
+ * Injecte une checklist ANSSI + indicateur de force sous chaque champ new-password.
+ * Logique identique à PasswordValidator côté serveur : cohérence garantie.
  */
 function initPasswordStrengthIndicator() {
     const SPECIAL = /[^a-zA-Z0-9\s]/;
 
-    /**
-     * Détecte une suite ascendante ou descendante de ≥4 caractères consécutifs.
-     * Miroir de PasswordValidator::hasSequence() côté serveur.
-     * @param {string} s
-     * @returns {boolean}
-     */
+    // Miroir de PasswordValidator::normalizeLeet()
+    function normalizeLeet(s) {
+        return s.toLowerCase()
+            .replace(/@/g, 'a').replace(/4/g, 'a')
+            .replace(/3/g, 'e')
+            .replace(/1/g, 'i').replace(/!/g, 'i')
+            .replace(/0/g, 'o')
+            .replace(/\$/g, 's').replace(/5/g, 's')
+            .replace(/7/g, 't').replace(/\+/g, 't');
+    }
+
+    // Miroir de PasswordValidator::BLOCKLIST
+    const BLOCKLIST = [
+        'password','passw0rd','motdepasse','bienvenue','bienvenu',
+        'welcome','admin','administrator','root','user',
+        'azerty','qwerty','azertyuiop','qwertyuiop',
+        'abcdefgh','abcdef','123456','1234567','12345678',
+        'iloveyou','letmein','sunshine','dragon','monkey',
+        'chateau','crabitan','bellevue','bordeaux',
+        'soleil','printemps','automne','hiver','ete',
+        'france','paris','marseille','lyon',
+        'football','basketball','tennis',
+        'superman','batman','spiderman',
+        'starwars','matrix',
+        'linkedin','facebook','google','twitter','instagram',
+        'master','secret','login','access','test',
+    ];
+
+    // Miroir de PasswordValidator::hasSequence()
     function hasSequence(s) {
         const low = s.toLowerCase();
         let asc = 1; let dsc = 1;
@@ -1264,24 +1270,22 @@ function initPasswordStrengthIndicator() {
         return false;
     }
 
-    const rules = [
-        { id: 'len',     label: '12 caractères minimum',           check: (v) => v.length >= 12 },
-        { id: 'upper',   label: 'Une majuscule',                   check: (v) => /[A-Z]/.test(v) },
-        { id: 'lower',   label: 'Une minuscule',                   check: (v) => /[a-z]/.test(v) },
-        { id: 'digit',   label: 'Un chiffre',                      check: (v) => /[0-9]/.test(v) },
-        { id: 'special', label: 'Un caractère spécial (!@#$%…)',   check: (v) => SPECIAL.test(v) },
-    ];
+    // Miroir de PasswordValidator::isCommon()
+    function isCommon(s) {
+        const norm = normalizeLeet(s);
+        return BLOCKLIST.some((w) => norm.includes(w));
+    }
 
-    const STRENGTH_LABELS = [
-        { text: 'Force\u00a0: Très faible', cls: 'pwd-strength-label--weak' },
-        { text: 'Force\u00a0: Faible',      cls: 'pwd-strength-label--weak' },
-        { text: 'Force\u00a0: Moyen',       cls: 'pwd-strength-label--medium' },
-        { text: 'Force\u00a0: Fort',        cls: 'pwd-strength-label--strong' },
-        { text: 'Force\u00a0: Très fort',   cls: 'pwd-strength-label--vstrong' },
+    const rules = [
+        { id: 'len',     label: '12 caractères minimum',         check: (v) => v.length >= 12 },
+        { id: 'upper',   label: 'Une majuscule',                 check: (v) => /[A-Z]/.test(v) },
+        { id: 'lower',   label: 'Une minuscule',                 check: (v) => /[a-z]/.test(v) },
+        { id: 'digit',   label: 'Un chiffre',                    check: (v) => /[0-9]/.test(v) },
+        { id: 'special', label: 'Un caractère spécial (!@#$%…)', check: (v) => SPECIAL.test(v) },
     ];
 
     /**
-     * Crée la checklist ANSSI + le label de force et les insère après le wrapper du champ.
+     * Crée la checklist ANSSI + le label de force après le wrapper du champ.
      * @param {HTMLInputElement} input
      * @param {string} uid
      * @returns {{ ul: HTMLElement, label: HTMLElement }}
@@ -1312,15 +1316,13 @@ function initPasswordStrengthIndicator() {
     }
 
     /**
-     * Met à jour la checklist ANSSI et le label zxcvbn (async — dictionnaires en lazy).
-     * Input limité à 72 chars avant évaluation (limite bcrypt + mitigation DOS).
+     * Met à jour la checklist et le label de force.
      * @param {HTMLInputElement} input
      * @param {HTMLElement} ul
      * @param {HTMLElement} label
      */
-    async function updateChecklist(input, ul, label) {
-        const val       = input.value;
-        const valCapped = val.slice(0, 72);
+    function updateChecklist(input, ul, label) {
+        const val = input.value;
 
         rules.forEach((rule, i) => {
             const ok = rule.check(val);
@@ -1332,14 +1334,26 @@ function initPasswordStrengthIndicator() {
 
         if (!val.length) { label.hidden = true; return; }
 
-        const zxcvbnFn = await getZxcvbn();
-        const result   = zxcvbnFn(valCapped);
-        // Si séquence détectée côté front (miroir backend) : plafonner à score 1 (Faible)
-        const score    = hasSequence(val) ? Math.min(result.score, 1) : result.score;
-        const { text, cls } = STRENGTH_LABELS[score];
+        const score  = rules.filter((r) => r.check(val)).length;
+        const isLong = val.length >= 20;
+        const penalty = hasSequence(val) || isCommon(val);
+
         label.hidden = false;
-        label.className = 'pwd-strength-label ' + cls;
-        label.textContent = text;
+        label.className = 'pwd-strength-label';
+
+        if (penalty || score <= 2) {
+            label.textContent = 'Force\u00a0: Faible';
+            label.classList.add('pwd-strength-label--weak');
+        } else if (score === 3) {
+            label.textContent = 'Force\u00a0: Moyen';
+            label.classList.add('pwd-strength-label--medium');
+        } else if (score === 4 && !isLong) {
+            label.textContent = 'Force\u00a0: Fort';
+            label.classList.add('pwd-strength-label--strong');
+        } else {
+            label.textContent = 'Force\u00a0: Très fort';
+            label.classList.add('pwd-strength-label--vstrong');
+        }
     }
 
     const targetIds = ['reg-password', 'new_password', 'reset-modal-password', 'password'];
