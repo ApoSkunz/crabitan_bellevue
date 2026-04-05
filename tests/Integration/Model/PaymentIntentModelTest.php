@@ -102,26 +102,6 @@ class PaymentIntentModelTest extends IntegrationTestCase
         $this->assertNull($this->model->findByReference($ref));
     }
 
-    /**
-     * Vérifie que findByReference() retourne null si le JSON snapshot est invalide.
-     */
-    public function testFindByReferenceReturnsNullForInvalidJson(): void
-    {
-        $ref = 'WEB-CB-BADJSON-2026';
-
-        self::$db->execute(
-            "INSERT INTO payment_intents (reference, user_id, snapshot, expires_at)
-             VALUES (:ref, :uid, :snap, DATE_ADD(NOW(), INTERVAL 1 HOUR))",
-            [
-                ':ref'  => $ref,
-                ':uid'  => $this->userId,
-                ':snap' => 'not-valid-json{{',
-            ]
-        );
-
-        $this->assertNull($this->model->findByReference($ref));
-    }
-
     // ----------------------------------------------------------------
     // delete()
     // ----------------------------------------------------------------

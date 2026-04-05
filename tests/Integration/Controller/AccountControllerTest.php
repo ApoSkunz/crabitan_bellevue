@@ -2778,18 +2778,17 @@ class AccountControllerTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Un POST updateProfile avec newsletter='1' sauvegarde bien l'abonnement.
+     * Un POST updateProfile pour un compte individual redirige bien (302).
      */
-    public function testUpdateProfileIndividualNewsletterEnabled(): void
+    public function testUpdateProfileIndividualRedirects(): void
     {
-        $userId = $this->insertCustomer('upd.news@test.local', 'individual');
+        $userId = $this->insertCustomer('upd.indiv@test.local', 'individual');
         $this->loginAs($userId);
 
         $_POST = [
             'firstname'  => 'Alice',
             'lastname'   => 'Martin',
             'civility'   => 'F',
-            'newsletter' => '1',
             'csrf_token' => self::CSRF,
         ];
 

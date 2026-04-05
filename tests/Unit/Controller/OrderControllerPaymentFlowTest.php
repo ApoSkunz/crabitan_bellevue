@@ -394,7 +394,7 @@ class OrderControllerPaymentFlowTest extends TestCase
             ['id' => 1],   // AuthMiddleware
             false,          // OrderModel::findByReference → commande absente
             $snapshotRow,   // PaymentIntentModel::findByReference → snapshot
-            null,           // OrderModel::findByReferenceOnly → non créée
+            false,          // OrderModel::findByReferenceOnly → non créée
             [               // OrderModel::findByReference après création
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
@@ -850,7 +850,7 @@ class OrderControllerPaymentFlowTest extends TestCase
             ['id' => 1],  // AuthMiddleware
             false,         // OrderModel::findByReference → commande absente
             $snapshotRow,  // PaymentIntentModel::findByReference
-            null           // OrderModel::findByReferenceOnly → non créée
+            false          // OrderModel::findByReferenceOnly → non créée
         );
 
         // insert() lèvera une PDOException avec code 23000 pour simuler une collision persistante
