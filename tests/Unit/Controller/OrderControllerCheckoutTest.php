@@ -591,6 +591,8 @@ class OrderControllerCheckoutTest extends TestCase
         // 5. AddressModel::findByIdForUser (mainland zip check)
         // 6. PricingRuleModel::computeDeliveryDiscount → findForQuantity
         // 7. AccountModel::findById
+        // 8. OrderModel::create → fetchOne billing address snapshot
+        // 9. OrderModel::create → fetchOne delivery address snapshot (same_address=1 → même ID)
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
             ['id' => 1],
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
@@ -598,7 +600,9 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
             false,
-            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false],
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
         );
 
         $caught = null;
@@ -640,7 +644,9 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '33000'],
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '33000'],
             false,
-            ['id' => 1, 'email' => '', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+            ['id' => 1, 'email' => '', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false],
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '33000', 'country' => 'France', 'phone' => ''],
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '33000', 'country' => 'France', 'phone' => ''],
         );
 
         $caught = null;
@@ -683,7 +689,9 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
             false,
-            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false],
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
         );
 
         $caught = null;
@@ -725,6 +733,8 @@ class OrderControllerCheckoutTest extends TestCase
         // 6. AddressModel billing (resolveAddress — else branch)
         // 7. PricingRuleModel::computeDeliveryDiscount → findForQuantity
         // 8. AccountModel
+        // 9. OrderModel::create → fetchOne billing address (id=7) pour snapshot
+        // 10. OrderModel::create → fetchOne delivery address (id=5) pour snapshot
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
             ['id' => 1],
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
@@ -733,7 +743,9 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
             ['id' => 7, 'firstname' => 'Jean', 'lastname' => 'Dupont'],
             false,
-            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false]
+            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'newsletter' => false],
+            ['id' => 7, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'street' => '7 rue Billing', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont', 'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
         );
 
         $caught = null;
