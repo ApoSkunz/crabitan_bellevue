@@ -679,7 +679,7 @@ return [
     'account.delete_account'     => 'Supprimer mon compte',
     'account.delete_account_info' => 'Cette action est irréversible. Votre compte sera désactivé immédiatement et vos données personnelles supprimées dans 30 jours conformément au RGPD (Art. 17).',
     'account.delete_account_blocked' => 'Bloquer la suppression',
-    'account.delete_blocked_orders'  => 'Impossible de supprimer votre compte : vous avez des commandes en cours. Attendez leur livraison ou contactez-nous.',
+    'account.delete_active_orders_warning' => 'Vous avez %d commande(s) en cours. Elles seront traitées normalement jusqu\'à leur livraison. Votre compte sera définitivement supprimé dans 30 jours.',
     'account.delete_account_confirm' => 'Êtes-vous certain de vouloir supprimer définitivement votre compte ? Cette action est irréversible.',
     'account.delete_account_btn'     => 'Supprimer définitivement mon compte',
     'account.delete_modal_title'     => 'Confirmer la suppression',

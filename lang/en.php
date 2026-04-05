@@ -677,7 +677,7 @@ return [
     'account.delete_account'     => 'Delete my account',
     'account.delete_account_info' => 'This action is irreversible. Your account will be deactivated immediately and your personal data deleted within 30 days in accordance with GDPR (Art. 17).',
     'account.delete_account_blocked' => 'Block deletion',
-    'account.delete_blocked_orders'  => 'Unable to delete your account: you have active orders. Please wait for delivery or contact us.',
+    'account.delete_active_orders_warning' => 'You have %d active order(s). They will be processed normally until delivery. Your account will be permanently deleted in 30 days.',
     'account.delete_account_confirm' => 'Are you sure you want to permanently delete your account? This action cannot be undone.',
     'account.delete_account_btn'     => 'Permanently delete my account',
     'account.delete_modal_title'     => 'Confirm account deletion',
