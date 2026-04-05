@@ -7,6 +7,7 @@ require_once __DIR__ . '/../partials/header.php';
 /** @var array<string, mixed> $account */
 /** @var array<string, string> $errors */
 /** @var string|null $success */
+/** @var bool $emailChangeSent */
 /** @var string $csrf */
 $isCompany = ($account['account_type'] ?? '') === 'company';
 $selected  = static fn(bool $c): string => $c ? ' selected' : '';
@@ -134,9 +135,7 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                             <?= __('account.email_change_cancel_btn') ?>
                         </button>
                     </form>
-                <?php else : ?>
-                    <p class="account-text"><?= __('account.email_change_intro') ?></p>
-
+                <?php elseif (!$emailChangeSent) : ?>
                     <form method="POST"
                           action="/<?= htmlspecialchars($lang) ?>/mon-compte/profil/changer-email"
                           class="account-form"
