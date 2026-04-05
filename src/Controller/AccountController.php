@@ -1175,7 +1175,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
         $_SESSION['flash']['profile_success']      = __('account.email_change_sent');
         $_SESSION['flash']['email_change_sent']     = true;
-        Response::redirect("/{$lang}/mon-compte/profil");
+        Response::redirect("/{$lang}/mon-compte/profil#email-change");
     }
 
     // ----------------------------------------------------------------
