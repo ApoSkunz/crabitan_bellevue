@@ -1663,11 +1663,12 @@ class AccountControllerTest extends IntegrationTestCase
     }
 
     /**
-     * Un compte avec des commandes actives ne peut pas être supprimé.
+     * Un compte avec des commandes actives peut désormais être supprimé (RGPD Art. 17).
+     * Les commandes en cours ne bloquent plus la suppression.
      */
-    public function testDeleteAccountBlockedByActiveOrders(): void
+    public function testDeleteAccountWithActiveOrdersSucceeds(): void
     {
-        $userId    = $this->insertCustomer('del.blocked@test.local', 'individual');
+        $userId    = $this->insertCustomer('del.active@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
         $this->insertOrder($userId, $addressId, 'processing');
         $this->loginAs($userId);
@@ -1678,14 +1679,11 @@ class AccountControllerTest extends IntegrationTestCase
             'csrf_token'       => self::CSRF,
         ];
 
-        try {
-            $this->makeController('POST', '/fr/mon-compte/securite')
-                ->deleteAccount(['lang' => 'fr']);
-            $this->fail('Expected HttpException');
-        } catch (HttpException $e) {
-            $this->assertSame(302, $e->status);
-            $this->assertNotEmpty($_SESSION['flash']['security_errors'] ?? []);
-        }
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/mon-compte/securite')
+            ->deleteAccount(['lang' => 'fr']);
     }
 
     // ----------------------------------------------------------------
@@ -2976,9 +2974,10 @@ class AccountControllerTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Un compte avec des commandes 'paid' (active) ne peut pas être supprimé.
+     * Un compte avec une commande 'paid' peut être supprimé (RGPD Art. 17).
+     * Vérifie que la suppression aboutit bien (soft-delete, deleted_at positionné).
      */
-    public function testDeleteAccountBlockedByPaidOrderRedirects(): void
+    public function testDeleteAccountWithPaidOrderSoftDeletesAccount(): void
     {
         $userId    = $this->insertCustomer('del.paid@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
@@ -2991,14 +2990,11 @@ class AccountControllerTest extends IntegrationTestCase
             'csrf_token'       => self::CSRF,
         ];
 
-        try {
-            $this->makeController('POST', '/fr/mon-compte/securite/supprimer-compte')
-                ->deleteAccount(['lang' => 'fr']);
-            $this->fail('Expected HttpException');
-        } catch (HttpException $e) {
-            $this->assertSame(302, $e->status);
-            $this->assertNotEmpty($_SESSION['flash']['security_errors'] ?? []);
-        }
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/mon-compte/securite/supprimer-compte')
+            ->deleteAccount(['lang' => 'fr']);
     }
 
     // ----------------------------------------------------------------
