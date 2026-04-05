@@ -293,12 +293,18 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     {
         $row = $this->db->fetchOne(
             "SELECT o.*,
+                    a.email, a.lang,
+                    COALESCE(ai.firstname, ac.company_name, '') AS firstname,
+                    COALESCE(ai.lastname, '', '')                AS lastname,
                     b.civility  AS bill_civility,
                     b.firstname AS bill_firstname, b.lastname AS bill_lastname,
                     b.street    AS bill_street,    b.city     AS bill_city,
                     b.zip_code  AS bill_zip,       b.country  AS bill_country,
                     b.phone     AS bill_phone
              FROM {$this->table} o
+             JOIN accounts a             ON a.id   = o.user_id
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
              LEFT JOIN addresses b ON b.id = o.id_billing_address
              WHERE o.order_reference = ?",
             [$reference]
