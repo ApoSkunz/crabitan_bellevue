@@ -1,5 +1,22 @@
 import '../scss/main.scss';
 import { initCarbonBadge } from './carbon-badge.js';
+// zxcvbn-ts chargé en lazy uniquement sur les pages avec champ mot de passe
+let _zxcvbn = null;
+async function getZxcvbn() {
+    if (_zxcvbn) return _zxcvbn;
+    const [{ zxcvbn, zxcvbnOptions }, common, fr] = await Promise.all([
+        import('@zxcvbn-ts/core'),
+        import('@zxcvbn-ts/language-common'),
+        import('@zxcvbn-ts/language-fr'),
+    ]);
+    zxcvbnOptions.setOptions({
+        translations: fr.translations,
+        graphs: common.adjacencyGraphs,
+        dictionary: { ...common.dictionary, ...fr.dictionary },
+    });
+    _zxcvbn = zxcvbn;
+    return _zxcvbn;
+}
 
 // ============================================================
 // Thème jour / nuit
@@ -1218,79 +1235,37 @@ function initResetModal() {
 }
 
 // ============================================================
-// Indicateur de force mot de passe (ANSSI MDP 2021)
-// Cible tous les champs [data-pwd-strength] de la page.
+// Indicateur de force mot de passe — zxcvbn-ts (score 0→4)
+// Checklist ANSSI + label Faible/Moyen/Fort/Très fort en temps réel.
 // ============================================================
 
 /**
- * Injecte une checklist de force sous chaque champ password
- * portant l'attribut data-pwd-strength="<uid>".
- * Les IDs de champ attendus : reg-password, new_password, reset-modal-password.
+ * Injecte une checklist ANSSI + indicateur zxcvbn sous chaque champ new-password.
+ * Champs ciblés : inscription, reset password (modal + page), changement MDP.
  */
 function initPasswordStrengthIndicator() {
-    const SPECIAL = /[^a-zA-Z0-9\s]/; // tout caractère non alphanumérique
-
-    // Normalisation leet-speak pour détection de mots courants
-    function normalizeLeet(s) {
-        return s.toLowerCase()
-            .replace(/@/g, 'a').replace(/4/g, 'a')
-            .replace(/3/g, 'e')
-            .replace(/1/g, 'i').replace(/!/g, 'i')
-            .replace(/0/g, 'o')
-            .replace(/\$/g, 's').replace(/5/g, 's')
-            .replace(/7/g, 't').replace(/\+/g, 't');
-    }
-
-    // Mini-blocklist : mots courants + variantes (normalisés)
-    const BLOCKLIST = [
-        'password','passw0rd','motdepasse','bienvenue','bienvenu',
-        'welcome','admin','administrator','root','user',
-        'azerty','qwerty','azertyuiop','qwertyuiop',
-        'abcdefgh','abcdef','123456','1234567','12345678',
-        'iloveyou','letmein','sunshine','dragon','monkey',
-        'chateau','crabitan','bellevue','bordeaux',
-    ];
-
-    /**
-     * Détecte une suite ascendante ou descendante de ≥4 caractères.
-     * Ex : "abcd", "1234", "dcba", "9876"
-     * @param {string} s
-     * @returns {boolean}
-     */
-    function hasSequence(s) {
-        const low = s.toLowerCase();
-        let asc = 1; let dsc = 1;
-        for (let i = 1; i < low.length; i++) {
-            const diff = low.charCodeAt(i) - low.charCodeAt(i - 1);
-            asc = diff === 1  ? asc + 1 : 1;
-            dsc = diff === -1 ? dsc + 1 : 1;
-            if (asc >= 4 || dsc >= 4) return true;
-        }
-        return false;
-    }
-
-    /**
-     * Retourne true si le mot de passe contient un mot courant (après normalisation leet).
-     * @param {string} s
-     * @returns {boolean}
-     */
-    function hasCommonWord(s) {
-        const norm = normalizeLeet(s);
-        return BLOCKLIST.some((w) => norm.includes(w));
-    }
+    const SPECIAL = /[^a-zA-Z0-9\s]/;
 
     const rules = [
-        { id: 'len',     re: null,       label: '12 caractères minimum' },
-        { id: 'upper',   re: /[A-Z]/,    label: 'Une majuscule' },
-        { id: 'lower',   re: /[a-z]/,    label: 'Une minuscule' },
-        { id: 'digit',   re: /[0-9]/,    label: 'Un chiffre' },
-        { id: 'special', re: SPECIAL,    label: 'Un caractère spécial (!@#$%…)' },
+        { id: 'len',     label: '12 caractères minimum',           check: (v) => v.length >= 12 },
+        { id: 'upper',   label: 'Une majuscule',                   check: (v) => /[A-Z]/.test(v) },
+        { id: 'lower',   label: 'Une minuscule',                   check: (v) => /[a-z]/.test(v) },
+        { id: 'digit',   label: 'Un chiffre',                      check: (v) => /[0-9]/.test(v) },
+        { id: 'special', label: 'Un caractère spécial (!@#$%…)',   check: (v) => SPECIAL.test(v) },
+    ];
+
+    const STRENGTH_LABELS = [
+        { text: 'Force\u00a0: Très faible', cls: 'pwd-strength-label--weak' },
+        { text: 'Force\u00a0: Faible',      cls: 'pwd-strength-label--weak' },
+        { text: 'Force\u00a0: Moyen',       cls: 'pwd-strength-label--medium' },
+        { text: 'Force\u00a0: Fort',        cls: 'pwd-strength-label--strong' },
+        { text: 'Force\u00a0: Très fort',   cls: 'pwd-strength-label--vstrong' },
     ];
 
     /**
-     * Crée la checklist HTML et l'indicateur de force, les insère après le conteneur du champ.
+     * Crée la checklist ANSSI + le label de force et les insère après le wrapper du champ.
      * @param {HTMLInputElement} input
-     * @param {string} uid - identifiant unique pour l'aria
+     * @param {string} uid
      * @returns {{ ul: HTMLElement, label: HTMLElement }}
      */
     function createChecklist(input, uid) {
@@ -1312,8 +1287,6 @@ function initPasswordStrengthIndicator() {
         label.className = 'pwd-strength-label';
         label.hidden = true;
 
-        // Insérer juste après le wrapper du champ (form-pwd-wrap ou parent direct)
-        // pour rester sous le mot de passe mais avant la confirmation
         const wrap = input.closest('.form-pwd-wrap, .login-modal__password-wrap, .register-modal__password-wrap') ?? input.parentElement;
         wrap.insertAdjacentElement('afterend', ul);
         wrap.insertAdjacentElement('afterend', label);
@@ -1321,56 +1294,34 @@ function initPasswordStrengthIndicator() {
     }
 
     /**
-     * Met à jour la checklist et l'indicateur de force selon la valeur courante.
+     * Met à jour la checklist ANSSI et le label zxcvbn (async — dictionnaires en lazy).
+     * Input limité à 72 chars avant évaluation (limite bcrypt + mitigation DOS).
      * @param {HTMLInputElement} input
      * @param {HTMLElement} ul
      * @param {HTMLElement} label
      */
-    function updateChecklist(input, ul, label) {
-        const val = input.value;
-        const checks = [
-            val.length >= 12,
-            /[A-Z]/.test(val),
-            /[a-z]/.test(val),
-            /[0-9]/.test(val),
-            SPECIAL.test(val),
-        ];
-        ul.querySelectorAll('.pwd-strength-item').forEach((li, i) => {
-            const ok = checks[i];
+    async function updateChecklist(input, ul, label) {
+        const val       = input.value;
+        const valCapped = val.slice(0, 72);
+
+        rules.forEach((rule, i) => {
+            const ok = rule.check(val);
+            const li = ul.querySelectorAll('.pwd-strength-item')[i];
             li.classList.toggle('pwd-strength-item--ok', ok);
             li.classList.toggle('pwd-strength-item--ko', !ok);
             li.querySelector('.pwd-strength-icon').textContent = ok ? '✓' : '✗';
         });
 
-        const score    = checks.filter(Boolean).length;
-        const isLong   = val.length >= 20;
-        const isPenalty = hasSequence(val) || hasCommonWord(val);
-
         if (!val.length) { label.hidden = true; return; }
-        label.hidden = false;
-        label.className = 'pwd-strength-label';
 
-        // Pénalité : suite logique ou mot courant → Faible quelle que soit la variété
-        if (isPenalty) {
-            label.textContent = 'Force\u00a0: Faible';
-            label.classList.add('pwd-strength-label--weak');
-        } else if (score <= 2) {
-            label.textContent = 'Force\u00a0: Faible';
-            label.classList.add('pwd-strength-label--weak');
-        } else if (score === 3) {
-            label.textContent = 'Force\u00a0: Moyen';
-            label.classList.add('pwd-strength-label--medium');
-        } else if (score === 4 && !isLong) {
-            label.textContent = 'Force\u00a0: Fort';
-            label.classList.add('pwd-strength-label--strong');
-        } else {
-            // score 5/5 OU score 4/5 + longueur ≥ 20 → Très fort
-            label.textContent = 'Force\u00a0: Très fort';
-            label.classList.add('pwd-strength-label--vstrong');
-        }
+        const zxcvbnFn = await getZxcvbn();
+        const result   = zxcvbnFn(valCapped);
+        const { text, cls } = STRENGTH_LABELS[result.score];
+        label.hidden = false;
+        label.className = 'pwd-strength-label ' + cls;
+        label.textContent = text;
     }
 
-    // Champs ciblés : inscription (modal), reset password (modal + page standalone), changement mdp (page sécurité)
     const targetIds = ['reg-password', 'new_password', 'reset-modal-password', 'password'];
     targetIds.forEach((id) => {
         const input = document.getElementById(id);
