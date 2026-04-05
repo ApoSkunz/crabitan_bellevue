@@ -396,6 +396,96 @@ class MailService
      * @param string $confirmToken Token brut (non haché) pour les deux CTAs
      * @return void
      */
+    /**
+     * Envoie un rappel avant suppression définitive du compte (J-7 ou J-1).
+     *
+     * @param string $to                  Adresse email du destinataire
+     * @param string $name                Prénom ou nom d'affichage
+     * @param string $lang                Langue ('fr' ou 'en')
+     * @param int    $daysAhead           Délai restant en jours (1 ou 7)
+     * @param string $scheduledDeletionAt Date d'anonymisation programmée (Y-m-d H:i:s)
+     * @param string $reactivationToken   Token brut pour le lien d'annulation
+     * @return void
+     */
+    public function sendDeletionReminder(
+        string $to,
+        string $name,
+        string $lang,
+        int $daysAhead,
+        string $scheduledDeletionAt,
+        string $reactivationToken
+    ): void {
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $reactUrl    = $appUrl . '/' . $lang . '/compte/reactiver?token=' . urlencode($reactivationToken);
+        $safeName    = htmlspecialchars($name, ENT_QUOTES);
+        $safeReact   = htmlspecialchars($reactUrl, ENT_QUOTES);
+        $safeDate    = htmlspecialchars($scheduledDeletionAt, ENT_QUOTES);
+
+        $urgencyNote = $daysAhead === 1
+            ? ($lang === 'fr'
+                ? '<strong>⚠ Dernier avertissement — votre compte sera anonymisé demain.</strong><br><br>'
+                : '<strong>⚠ Final warning — your account will be anonymised tomorrow.</strong><br><br>')
+            : '';
+
+        $reactBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . '<a href="' . $safeReact . '" style="display:inline-block;padding:14px 36px;'
+            . self::BTN_STYLE_PRIMARY
+            . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+            . ($lang === 'fr' ? 'Annuler la suppression' : 'Cancel deletion')
+            . '</a></td></tr></table>';
+
+        if ($lang === 'fr') {
+            $subject = $daysAhead === 1
+                ? 'Dernier avertissement : votre compte Crabitan sera supprimé demain'
+                : "Rappel : votre compte Crabitan sera supprimé dans {$daysAhead} jours";
+            $message = $urgencyNote
+                . "Votre demande de suppression de compte est en cours de traitement."
+                . " Vos données personnelles seront définitivement anonymisées le <strong>{$safeDate}</strong>.<br><br>"
+                . "Si vous avez changé d'avis, vous pouvez annuler cette demande en cliquant sur le bouton ci-dessous.<br><br>"
+                . $reactBtn
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'Passé ce délai, vos données ne pourront plus être récupérées.'
+                . '</p>';
+            $body = $this->emailSimpleLayout(
+                'Suppression de compte — rappel',
+                "Bonjour {$safeName},",
+                $message,
+                'fr'
+            );
+        } else {
+            $subject = $daysAhead === 1
+                ? 'Final warning: your Crabitan account will be deleted tomorrow'
+                : "Reminder: your Crabitan account will be deleted in {$daysAhead} days";
+            $message = $urgencyNote
+                . "Your account deletion request is being processed."
+                . " Your personal data will be permanently anonymised on <strong>{$safeDate}</strong>.<br><br>"
+                . "If you have changed your mind, you can cancel this request by clicking the button below.<br><br>"
+                . $reactBtn
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'After this date, your data cannot be recovered.'
+                . '</p>';
+            $body = $this->emailSimpleLayout(
+                'Account deletion — reminder',
+                "Hello {$safeName},",
+                $message,
+                'en'
+            );
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Envoie la demande de confirmation de changement de mot de passe.
+     * Le mot de passe n'est PAS encore modifié — il sera appliqué uniquement après clic sur "C'était moi".
+     *
+     * @param string $to           Destinataire
+     * @param string $name         Nom affiché
+     * @param string $lang         Langue (fr|en)
+     * @param string $confirmToken Token brut (non haché) pour les deux CTAs
+     * @return void
+     */
     public function sendPasswordChangeConfirmation(
         string $to,
         string $name,
