@@ -547,7 +547,7 @@ function initLoginModal() {
         }
     }
 
-    if (window.__authModalError || new URLSearchParams(window.location.search).get('login') === '1') openModal();
+    if (window.__authModalError || window.__flashInfo || new URLSearchParams(window.location.search).get('login') === '1') openModal();
 
     // Switch vers panel mot de passe oublié
     document.getElementById('forgot-password-btn')?.addEventListener('click', showForgotPanel);

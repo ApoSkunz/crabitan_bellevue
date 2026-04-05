@@ -736,43 +736,39 @@
 
 // ---- Toast notification ----
 
-.cb-flash-banner {
+// ---- Flash info dans la modale connexion ----
+// Rendu par header.php quand $_SESSION['flash']['info'] est défini
+// La modale s'ouvre automatiquement via window.__flashInfo en JS
+
+.login-modal__flash {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 1rem;
-    width: 100%;
-    padding: 0.875rem 1.5rem;
-    background-color: var(--color-surface);
-    border-bottom: 2px solid var(--color-gold);
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background-color: color-mix(in srgb, var(--color-gold) 12%, transparent);
+    border: 1px solid var(--color-border-gold);
+    border-radius: 4px;
     color: var(--color-text);
-    font-size: 0.9rem;
-    z-index: 500;
+    font-size: 0.875rem;
+    line-height: 1.45;
 
-    &[hidden] {
-        display: none;
-    }
-
-    &__message {
+    &-msg {
         flex: 1;
     }
 
-    &__close {
+    &-close {
         flex-shrink: 0;
         background: none;
-        border: 1px solid var(--color-border-gold);
+        border: none;
         color: var(--color-text-muted);
         cursor: pointer;
-        padding: 0.25rem 0.625rem;
+        padding: 0;
         font-size: 1rem;
         line-height: 1;
-        border-radius: 2px;
-        transition: color 150ms, border-color 150ms;
+        transition: color 150ms;
 
-        &:hover {
-            color: var(--color-text);
-            border-color: var(--color-gold);
-        }
+        &:hover { color: var(--color-gold); }
     }
 }
 
