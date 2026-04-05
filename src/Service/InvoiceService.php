@@ -85,52 +85,10 @@ class InvoiceService
         $country    = htmlspecialchars((string) ($order['bill_country'] ?? ''), ENT_QUOTES);
         $orderRef   = htmlspecialchars((string) ($order['order_reference'] ?? ''), ENT_QUOTES);
 
-        // Items rows
-        $subtotalItems = 0.0;
-        $rows          = '';
-        foreach ($items as $item) {
-            $name     = htmlspecialchars(
-                (string) ($item['label_name'] ?? $item['name'] ?? '-'),
-                ENT_QUOTES
-            );
-            $qty      = (int)   ($item['qty']   ?? 0);
-            $price    = (float) ($item['price'] ?? 0.0);
-            $subtotal = $qty * $price;
-            $subtotalItems += $subtotal;
-            $rows .= '<tr>'
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;\">{$name}</td>"
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:center;\">{$qty}</td>"
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:right;\">"
-                    . number_format($price, 2, ',', ' ') . '&nbsp;&euro;</td>'
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:right;\">"
-                    . number_format($subtotal, 2, ',', ' ') . '&nbsp;&euro;</td>'
-                . '</tr>';
-        }
-
-        // Delivery discount row (use ASCII '-' — TCPDF may not render U+2212)
-        $discountRow = '';
-        if ($shippingDiscount > 0.0) {
-            $discountRow = '<tr>'
-                . '<td colspan="3" style="padding:4px 6px;border-bottom:1px solid #e8e0d0;">'
-                    . '<em>Remise livraison</em></td>'
-                . '<td style="padding:4px 6px;border-bottom:1px solid #e8e0d0;text-align:right;'
-                    . 'font-style:italic;">'
-                    . '-' . number_format($shippingDiscount, 2, ',', ' ') . '&nbsp;&euro;'
-                . '</td>'
-                . '</tr>';
-        }
-
-        // TVA breakdown (all prices are TTC, 20% standard rate)
-        $tva      = round($total * self::TVA_RATE / (1 + self::TVA_RATE), 2);
-        $totalHt  = round($total - $tva, 2);
-        $tvaFmt   = number_format($tva, 2, ',', ' ');
-        $htFmt    = number_format($totalHt, 2, ',', ' ');
-        $totalFmt = number_format($total, 2, ',', ' ');
-
-        $logoTag = $logoPath !== null
-            ? '<img src="' . $logoPath . '" style="width:32mm;" />'
-            : '<span style="font-size:10pt;font-weight:bold;color:#c1a14b;">'
-                . htmlspecialchars(self::APP_NAME, ENT_QUOTES) . '</span>';
+        $rows        = $this->buildItemsRows($items);
+        $discountRow = $this->buildDiscountRow($shippingDiscount);
+        $totalsRows  = $this->buildTotalsRows($total);
+        $logoTag     = $this->buildLogoTag($logoPath);
 
         $sectionLabel = 'font-size:7pt;font-weight:bold;color:#c1a14b;text-transform:uppercase;'
             . 'letter-spacing:1.5px;margin:0 0 6px;';
@@ -214,28 +172,7 @@ table { width: 100%; border-collapse: collapse; }
 <th style="padding:7px 8px;text-align:right;color:#f5f0e8;font-size:8pt;width:21%;background-color:#2c1a0e;">Prix unit. TTC</th>
 <th style="padding:7px 8px;text-align:right;color:#f5f0e8;font-size:8pt;width:21%;background-color:#2c1a0e;">Sous-total TTC</th>
 </tr>
-' . $rows . $discountRow . '
-<tr>
-<td colspan="4" style="padding:0;height:8px;"></td>
-</tr>
-<tr>
-<td colspan="3" style="padding:6px 8px;text-align:right;font-size:8.5pt;color:#555;
-                        border-top:1px solid #e0d5c5;">Total HT</td>
-<td style="padding:6px 8px;text-align:right;font-size:8.5pt;color:#555;
-           border-top:1px solid #e0d5c5;">' . $htFmt . '&nbsp;&euro;</td>
-</tr>
-<tr>
-<td colspan="3" style="padding:4px 8px;text-align:right;font-size:8.5pt;color:#555;">TVA (20%)</td>
-<td style="padding:4px 8px;text-align:right;font-size:8.5pt;color:#555;">' . $tvaFmt . '&nbsp;&euro;</td>
-</tr>
-<tr>
-<td colspan="3" style="padding:8px 8px;text-align:right;font-weight:bold;font-size:11pt;color:#2c1a0e;
-                        background-color:#f5f0e8;border-top:2px solid #c1a14b;">
-  Total TTC</td>
-<td style="padding:8px 8px;text-align:right;font-weight:bold;font-size:11pt;color:#c1a14b;
-           background-color:#f5f0e8;border-top:2px solid #c1a14b;">
-  ' . $totalFmt . '&nbsp;&euro;</td>
-</tr>
+' . $rows . $discountRow . $totalsRows . '
 </table>
 
 <!-- PIED DE PAGE LÉGAL -->
@@ -250,5 +187,107 @@ table { width: 100%; border-collapse: collapse; }
 </td>
 </tr>
 </table>';
+    }
+
+    /**
+     * Returns an inline logo img tag, or a fallback text span if the logo is absent.
+     *
+     * @param  string|null $logoPath Absolute path to the PNG, or null.
+     * @return string
+     */
+    private function buildLogoTag(?string $logoPath): string
+    {
+        if ($logoPath !== null) {
+            return '<img src="' . $logoPath . '" style="width:32mm;" />';
+        }
+        return '<span style="font-size:10pt;font-weight:bold;color:#c1a14b;">'
+            . htmlspecialchars(self::APP_NAME, ENT_QUOTES) . '</span>';
+    }
+
+    /**
+     * Builds the items rows HTML for the invoice table.
+     *
+     * @param  array<int, array<string, mixed>> $items
+     * @return string
+     */
+    private function buildItemsRows(array $items): string
+    {
+        $rows = '';
+        foreach ($items as $item) {
+            $name     = htmlspecialchars(
+                (string) ($item['label_name'] ?? $item['name'] ?? '-'),
+                ENT_QUOTES
+            );
+            $qty      = (int)   ($item['qty']   ?? 0);
+            $price    = (float) ($item['price'] ?? 0.0);
+            $subtotal = $qty * $price;
+            $rows .= '<tr>'
+                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;\">{$name}</td>"
+                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:center;\">{$qty}</td>"
+                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:right;\">"
+                    . number_format($price, 2, ',', ' ') . '&nbsp;&euro;</td>'
+                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:right;\">"
+                    . number_format($subtotal, 2, ',', ' ') . '&nbsp;&euro;</td>'
+                . '</tr>';
+        }
+        return $rows;
+    }
+
+    /**
+     * Builds the shipping discount row HTML, or empty string if no discount.
+     *
+     * @param  float $shippingDiscount Discount amount (positive value).
+     * @return string
+     */
+    private function buildDiscountRow(float $shippingDiscount): string
+    {
+        if ($shippingDiscount <= 0.0) {
+            return '';
+        }
+        return '<tr>'
+            . '<td colspan="3" style="padding:4px 6px;border-bottom:1px solid #e8e0d0;">'
+                . '<em>Remise livraison</em></td>'
+            . '<td style="padding:4px 6px;border-bottom:1px solid #e8e0d0;text-align:right;'
+                . 'font-style:italic;">'
+                . '-' . number_format($shippingDiscount, 2, ',', ' ') . '&nbsp;&euro;'
+            . '</td>'
+            . '</tr>';
+    }
+
+    /**
+     * Builds the totals section rows (spacer, Total HT, TVA, Total TTC).
+     *
+     * @param  float $total Grand total TTC.
+     * @return string
+     */
+    private function buildTotalsRows(float $total): string
+    {
+        $tva      = round($total * self::TVA_RATE / (1 + self::TVA_RATE), 2);
+        $totalHt  = round($total - $tva, 2);
+        $tvaFmt   = number_format($tva, 2, ',', ' ');
+        $htFmt    = number_format($totalHt, 2, ',', ' ');
+        $totalFmt = number_format($total, 2, ',', ' ');
+
+        return '<tr><td colspan="4" style="padding:0;height:8px;"></td></tr>'
+            . '<tr>'
+            . '<td colspan="3" style="padding:6px 8px;text-align:right;font-size:8.5pt;color:#555;'
+                . 'border-top:1px solid #e0d5c5;">Total HT</td>'
+            . '<td style="padding:6px 8px;text-align:right;font-size:8.5pt;color:#555;'
+                . 'border-top:1px solid #e0d5c5;">' . $htFmt . '&nbsp;&euro;</td>'
+            . '</tr>'
+            . '<tr>'
+            . '<td colspan="3" style="padding:4px 8px;text-align:right;font-size:8.5pt;color:#555;">'
+                . 'TVA (20%)</td>'
+            . '<td style="padding:4px 8px;text-align:right;font-size:8.5pt;color:#555;">'
+                . $tvaFmt . '&nbsp;&euro;</td>'
+            . '</tr>'
+            . '<tr>'
+            . '<td colspan="3" style="padding:8px 8px;text-align:right;font-weight:bold;'
+                . 'font-size:11pt;color:#2c1a0e;background-color:#f5f0e8;'
+                . 'border-top:2px solid #c1a14b;">Total TTC</td>'
+            . '<td style="padding:8px 8px;text-align:right;font-weight:bold;font-size:11pt;'
+                . 'color:#c1a14b;background-color:#f5f0e8;border-top:2px solid #c1a14b;">'
+                . $totalFmt . '&nbsp;&euro;</td>'
+            . '</tr>';
     }
 }
