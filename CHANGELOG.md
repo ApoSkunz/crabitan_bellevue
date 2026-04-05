@@ -2,6 +2,44 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.28.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.27.0...v0.28.0) (2026-04-05)
+
+
+### Bug Fixes
+
+* **account:** utiliser callGaeCancelOrRefund pour la rétractation client ([20c3f40](https://github.com/ApoSkunz/crabitan_bellevue/commit/20c3f40cfb4bde980bd3f7d5ded93c2acc9a0fe6))
+* **controller:** paymentReturnOk — fallback création commande si IPN absent ([d8cd279](https://github.com/ApoSkunz/crabitan_bellevue/commit/d8cd27916fdc5945f2632159164d961d6324c2d3))
+* **controller:** sanitize Ref param, NOSONAR S3776/S1172, flash stale orderDetail ([bd6d9a0](https://github.com/ApoSkunz/crabitan_bellevue/commit/bd6d9a066e0447b7579be7746cd71d11dbb8849d))
+* **ipn:** corriger isolation session PHP — snapshot en BDD via payment_intents ([5da313b](https://github.com/ApoSkunz/crabitan_bellevue/commit/5da313be6effd56e9187e89cca7f24e89b0e8c75))
+* **order:** RSA fallback retour CA, flash stale, nettoyage payment_intents annule/refuse ([ad295ca](https://github.com/ApoSkunz/crabitan_bellevue/commit/ad295ca6a32a1e09d360d141994af9b4befb93c7))
+* **payment:** constantes GAE, NOSONAR S107/S1142/S112/weak-cryptography ([d2e9537](https://github.com/ApoSkunz/crabitan_bellevue/commit/d2e9537cb90d7b24fa33b5fd74a0718bf4616419))
+* **phpcs:** PaymentService ligne 356 — NOSONAR S112 raccourci sous 150 chars ([5d73a61](https://github.com/ApoSkunz/crabitan_bellevue/commit/5d73a61f906e8248f29b1eae270e59d2fad21892))
+* **phpcs:** raccourcir les commentaires NOSONAR dépassant 150 caractères ([48d4628](https://github.com/ApoSkunz/crabitan_bellevue/commit/48d4628560d57a58cb3c80096c76e4681084743d))
+* **phpstan:** retirer [@phpstan-ignore-line](https://github.com/phpstan-ignore-line) obsolète sur OrderModel::createFromIpn ([824832b](https://github.com/ApoSkunz/crabitan_bellevue/commit/824832bef81ede9aacfc4c6dde8abbd4d8898234))
+* **service:** PaymentService — isSandbox() compatible parse_ini_file ([0ae3ace](https://github.com/ApoSkunz/crabitan_bellevue/commit/0ae3ace426693e6dd5e4bc7557acb9b50d99d24e))
+* **service:** PaymentService — PBX_LANGUE code ISO 3 lettres (FRA/GBR) ([ec708ad](https://github.com/ApoSkunz/crabitan_bellevue/commit/ec708adde5d71efb87d697bf30bf2b9f5cc31fbe))
+* **tests:** corriger 3 TI/TU cassés après ajout de couverture ([ba6412f](https://github.com/ApoSkunz/crabitan_bellevue/commit/ba6412fad418042decada2701e090a293f4af973))
+* **tests:** Router CURRENT_LANG guard + CartController fetchOne stub exhausted ([41800e0](https://github.com/ApoSkunz/crabitan_bellevue/commit/41800e0b335776effeba63630e6e2f82bb912281))
+* **view:** formatCivility() — afficher Mme/M au lieu du code brut F/M ([b94d9e6](https://github.com/ApoSkunz/crabitan_bellevue/commit/b94d9e6bc0556da51ec1ae8b6664822236332c45))
+* **view:** paiement — images + bouton annulation remboursement carte ([1e0281a](https://github.com/ApoSkunz/crabitan_bellevue/commit/1e0281a3928a41686eefddb2e6d74ae623d5a895))
+
+
+### Features
+
+* **admin:** remboursement/annulation GAE automatique sur passage statut refunded ([b48e46e](https://github.com/ApoSkunz/crabitan_bellevue/commit/b48e46edec7e816683d73dfc067db778480ae010))
+* **controller:** AccountController — cancelOrder déclenche remboursement GAE CA pour commandes card+paid ([01a378b](https://github.com/ApoSkunz/crabitan_bellevue/commit/01a378bed64851e3699674e5a1b207601bc464ea))
+* **controller:** IpnController — réception IPN CA, vérification RSA, création commande ([01c1b9b](https://github.com/ApoSkunz/crabitan_bellevue/commit/01c1b9bffc6bbc8d330da21cc8b3cac7690e38a5))
+* **controller:** OrderController — flux carte CA (session snapshot + return handlers + rate limiting) ([73db26a](https://github.com/ApoSkunz/crabitan_bellevue/commit/73db26a9710b06d09173633ecf60b1b4348b2268))
+* **i18n:** fr + en — clés paiement CA (rate limit, annulation, refus, redirection) ([0ee98df](https://github.com/ApoSkunz/crabitan_bellevue/commit/0ee98df18c4c746e1eb6a07a252257dba09ab6da))
+* **model:** OrderModel — createFromIpn + findByReferenceOnly pour flux IPN CA ([a9dc38d](https://github.com/ApoSkunz/crabitan_bellevue/commit/a9dc38d2b872d0748e811443456e45277cae45a4))
+* **payment:** URLs PBX dynamiques, 3DS > 200€, fix pubkey path, annulation/remboursement adaptatif ([091b08a](https://github.com/ApoSkunz/crabitan_bellevue/commit/091b08afc8ffd1c471b9b0d3d713a25e7b6b5a9e))
+* **routes:** ajouter routes retours CA (ok/annule/refuse) + IPN endpoint ([0feba8f](https://github.com/ApoSkunz/crabitan_bellevue/commit/0feba8ff2615d2537efc37bec84800286a629030))
+* **service:** MailService + IpnController — alerte email rotation clé CA ([9ec527b](https://github.com/ApoSkunz/crabitan_bellevue/commit/9ec527b89ed1775e8c918594240f438b2bdd33ec))
+* **service:** PaymentService — initiation paiement CA, vérification IPN RSA, remboursement GAE ([21cd265](https://github.com/ApoSkunz/crabitan_bellevue/commit/21cd26594d1aed8a350c5f9dfc8813306aee730a))
+* **view:** checkout — logos CB/Visa/Mastercard sur option carte ([d82b433](https://github.com/ApoSkunz/crabitan_bellevue/commit/d82b433810bd75e1488a42333cba3ed9450116e9))
+* **view:** payment-form — formulaire auto-submit POST vers CA e-Transactions ([028ec8f](https://github.com/ApoSkunz/crabitan_bellevue/commit/028ec8f49f99c26ea71e7a9cb65ba3d1d5cdcc17))
+* **view:** payment-return-ok — page attente confirmation commande ([123343a](https://github.com/ApoSkunz/crabitan_bellevue/commit/123343afe660cafdc091a986bb00077bd4243008))
+
 # [0.27.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.26.0...v0.27.0) (2026-04-04)
 
 
