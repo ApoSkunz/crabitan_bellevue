@@ -129,4 +129,83 @@ class InvoiceServiceTest extends TestCase
         $this->assertStringContainsString('<img', $result);
         $this->assertStringContainsString('/path/to/logo.png', $result);
     }
+
+    // ----------------------------------------------------------------
+    // Loi Évin — mention présente si articles, absente si panier vide
+    // ----------------------------------------------------------------
+
+    /**
+     * Le HTML de la facture avec des vins doit contenir la mention Loi Évin (Art. L3323-4 CSP).
+     * On teste buildHtml() directement car le binaire TCPDF encode les glyphes.
+     */
+    public function testBuildHtmlWithWinesContainsLoiEvinMention(): void
+    {
+        $service = new InvoiceService();
+        $method  = new \ReflectionMethod(InvoiceService::class, 'buildHtml');
+        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+
+        $items = json_decode((string) ($this->order['content'] ?? '[]'), true) ?: [];
+        $html  = $method->invoke($service, $this->order, 'WEB-INVOICE-2026-0042', null);
+
+        $this->assertNotEmpty($items); // pré-condition : articles présents
+        $this->assertStringContainsString('L3323-4', $html);
+        $this->assertStringContainsString('abus', $html);
+    }
+
+    /**
+     * Le HTML d'une facture sans article ne doit PAS contenir la mention Loi Évin.
+     */
+    public function testBuildHtmlWithEmptyItemsDoesNotContainLoiEvinMention(): void
+    {
+        $service = new InvoiceService();
+        $method  = new \ReflectionMethod(InvoiceService::class, 'buildHtml');
+        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+
+        $order            = $this->order;
+        $order['content'] = '[]';
+
+        $html = $method->invoke($service, $order, 'WEB-INVOICE-2026-0002', null);
+
+        $this->assertStringNotContainsString('L3323-4', $html);
+    }
+
+    /**
+     * hasAlcoholicItems() retourne true si le tableau d'articles est non vide.
+     */
+    public function testHasAlcoholicItemsReturnsTrueWhenItemsPresent(): void
+    {
+        $service = new InvoiceService();
+        $method  = new \ReflectionMethod(InvoiceService::class, 'hasAlcoholicItems');
+        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+
+        $this->assertTrue($method->invoke($service, [['label_name' => 'Vin', 'qty' => 1, 'price' => 10.0]]));
+    }
+
+    /**
+     * hasAlcoholicItems() retourne false si le tableau d'articles est vide.
+     */
+    public function testHasAlcoholicItemsReturnsFalseWhenItemsEmpty(): void
+    {
+        $service = new InvoiceService();
+        $method  = new \ReflectionMethod(InvoiceService::class, 'hasAlcoholicItems');
+        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+
+        $this->assertFalse($method->invoke($service, []));
+    }
+
+    /**
+     * buildLoiEvinBlock() retourne un bloc HTML contenant la mention réglementaire.
+     */
+    public function testBuildLoiEvinBlockContainsRequiredText(): void
+    {
+        $service = new InvoiceService();
+        $method  = new \ReflectionMethod(InvoiceService::class, 'buildLoiEvinBlock');
+        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+
+        $result = $method->invoke($service);
+
+        $this->assertStringContainsString('L3323-4', $result);
+        $this->assertStringContainsString('abus', $result);
+        $this->assertStringContainsString('mod', $result);
+    }
 }
