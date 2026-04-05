@@ -167,33 +167,50 @@ cp /dev/null .env
 ### Variables `.env` essentielles
 
 ```dotenv
-# Application
+# ── Application ────────────────────────────────────────────────────────────
 APP_URL=http://crabitan.local
 APP_NAME="Château Crabitan Bellevue"
 APP_ENV=development              # development | production
 
-# Base de données
+# ── Base de données ────────────────────────────────────────────────────────
 DB_HOST=localhost
 DB_PORT=3306                     # optionnel, 3306 par défaut
 DB_NAME=crabitan_bellevue
 DB_USER=root
 DB_PASS=                         # vide en dev local XAMPP
 
-# Authentification JWT
+# ── Authentification JWT ───────────────────────────────────────────────────
 JWT_SECRET=                      # chaîne aléatoire ≥ 32 caractères — NE PAS VERSIONNER
 JWT_EXPIRY=3600                  # durée de vie du token en secondes (optionnel)
 
-# Emails (MailHog en dev, SMTP IONOS en prod)
+# ── Emails (MailHog en dev, SMTP IONOS en prod) ────────────────────────────
 MAIL_HOST=localhost
 MAIL_PORT=1025
 MAIL_USER=
 MAIL_PASS=                       # NE PAS VERSIONNER
 MAIL_ENCRYPTION=                 # vide en dev, tls en prod
+MAIL_FROM=noreply@crabitan.local # adresse expéditrice technique
 MAIL_FROM_NAME="Château Crabitan Bellevue"
-CONTACT_OWNER_EMAIL=test@localhost
+CONTACT_EMAIL=contact@crabitan.local     # adresse de contact affichée
+CONTACT_OWNER_EMAIL=test@localhost       # destinataire des notifications internes
+MAINTAINER_MAIL=                         # email du mainteneur — alerte IPN signature invalide (optionnel)
 
-# API tierce (optionnel)
+# ── OAuth Google ───────────────────────────────────────────────────────────
+GOOGLE_CLIENT_ID=                # depuis Google Cloud Console — NE PAS VERSIONNER
+GOOGLE_CLIENT_SECRET=            # NE PAS VERSIONNER
+
+# ── Paiement CA e-Transactions ─────────────────────────────────────────────
+CA_SANDBOX_MODE=yes              # yes en dev/recette, no en prod
+CA_FALLBACK_BASE_URL=http://crabitan.local  # base URL pour PBX_EFFECTUE/REFUSE/ANNULE
+CA_PBX_SITE=                     # numéro de site CA — NE PAS VERSIONNER
+CA_PBX_RANG=                     # numéro de rang CA — NE PAS VERSIONNER
+CA_PBX_IDENTIFIANT=              # identifiant marchand CA — NE PAS VERSIONNER
+CA_PBX_HMAC_KEY=                 # clé HMAC CA en hexadécimal — NE PAS VERSIONNER
+CA_PUBKEY_PATH=config/ca-pubkey.pem  # chemin vers la clé publique RSA CA (vérification IPN)
+
+# ── APIs tierces (optionnel) ───────────────────────────────────────────────
 WEATHER_API_KEY=                 # clé OpenWeatherMap — NE PAS VERSIONNER
+TRANSLATION_API_KEY=             # clé API traduction — NE PAS VERSIONNER
 ```
 
 ---
