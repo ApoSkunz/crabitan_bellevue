@@ -1274,6 +1274,82 @@ class OrderModelTest extends IntegrationTestCase
     }
 
     /**
+     * Vérifie que requestReturnForUser retourne false si la commande n'existe pas
+     * ou n'appartient pas à l'utilisateur.
+     *
+     * @return void
+     */
+    public function testRequestReturnForUserReturnsFalseIfOrderNotFound(): void
+    {
+        $userId = $this->insertAccount('return_nf@example.com');
+
+        $result = $this->model->requestReturnForUser(999999, $userId);
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Vérifie que requestReturnForUser retourne false si l'utilisateur ne correspond pas.
+     *
+     * @return void
+     */
+    public function testRequestReturnForUserReturnsFalseIfWrongUser(): void
+    {
+        $userId    = $this->insertAccount('return_owner@example.com');
+        $otherId   = $this->insertAccount('return_other@example.com');
+        $billingId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $billingId, 'delivered', 'REF-RETURN-WRONG');
+
+        self::$db->execute(
+            "UPDATE orders SET delivered_at = DATE_SUB(NOW(), INTERVAL 5 DAY) WHERE id = ?",
+            [$orderId]
+        );
+
+        $result = $this->model->requestReturnForUser($orderId, $otherId);
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Vérifie que requestReturnForUser retourne false si le statut n'est pas 'delivered'.
+     *
+     * @return void
+     */
+    public function testRequestReturnForUserReturnsFalseIfStatusNotDelivered(): void
+    {
+        $userId    = $this->insertAccount('return_shipped@example.com');
+        $billingId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $billingId, 'shipped', 'REF-RETURN-SHIPPED');
+
+        $result = $this->model->requestReturnForUser($orderId, $userId);
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Vérifie que requestReturnForUser retourne false si delivered_at est NULL
+     * (livraison non confirmée en BDD).
+     *
+     * @return void
+     */
+    public function testRequestReturnForUserReturnsFalseIfDeliveredAtIsNull(): void
+    {
+        $userId    = $this->insertAccount('return_nulldate@example.com');
+        $billingId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $billingId, 'delivered', 'REF-RETURN-NULLDATE');
+
+        // S'assure explicitement que delivered_at est NULL
+        self::$db->execute(
+            "UPDATE orders SET delivered_at = NULL WHERE id = ?",
+            [$orderId]
+        );
+
+        $result = $this->model->requestReturnForUser($orderId, $userId);
+
+        $this->assertFalse($result);
+    }
+
+    /**
      * Vérifie que updateStatus passe correctement au statut 'refund_refused'.
      *
      * @return void
