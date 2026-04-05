@@ -328,6 +328,61 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     /**
+     * Stocke un nouveau mot de passe en attente de confirmation par email (TTL 1h).
+     *
+     * @param  int    $userId    Identifiant du compte
+     * @param  string $hash      Nouveau mot de passe haché (bcrypt)
+     * @param  string $expiresAt Date d'expiration au format 'Y-m-d H:i:s'
+     * @return void
+     */
+    public function savePendingPassword(int $userId, string $hash, string $expiresAt): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET pending_password_hash       = ?,
+                 pending_password_expires_at = ?
+             WHERE id = ?",
+            [$hash, $expiresAt, $userId]
+        );
+    }
+
+    /**
+     * Applique le mot de passe en attente et efface le pending (opération atomique).
+     * Ne fait rien si aucun mot de passe en attente n'est présent.
+     *
+     * @param  int $userId Identifiant du compte
+     * @return int Nombre de lignes modifiées (1 si appliqué, 0 si aucun pending)
+     */
+    public function applyPendingPassword(int $userId): int
+    {
+        return $this->db->execute(
+            "UPDATE {$this->table}
+             SET password                 = pending_password_hash,
+                 pending_password_hash       = NULL,
+                 pending_password_expires_at = NULL
+             WHERE id = ? AND pending_password_hash IS NOT NULL",
+            [$userId]
+        );
+    }
+
+    /**
+     * Efface le mot de passe en attente sans l'appliquer (action "Ce n'était pas moi").
+     *
+     * @param  int $userId Identifiant du compte
+     * @return void
+     */
+    public function clearPendingPassword(int $userId): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET pending_password_hash       = NULL,
+                 pending_password_expires_at = NULL
+             WHERE id = ?",
+            [$userId]
+        );
+    }
+
+    /**
      * Enregistre un token de confirmation d'action de sécurité (haché SHA-256, TTL 1h).
      *
      * @param  int    $userId    Identifiant du compte
