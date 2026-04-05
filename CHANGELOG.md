@@ -2,6 +2,29 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.29.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.28.0...v0.29.0) (2026-04-05)
+
+
+### Bug Fixes
+
+* **auth:** indicateur force MDP — détection suites logiques + mots courants (leet) ([b01bee0](https://github.com/ApoSkunz/crabitan_bellevue/commit/b01bee094e055c98a84ba25b1b20df2c59239c4b))
+* **auth:** indicateur force MDP — pénalité séquence override score zxcvbn ([f6d90d1](https://github.com/ApoSkunz/crabitan_bellevue/commit/f6d90d197d364e9ed710d14f51710b389220b859))
+* **auth:** indicateur force MDP — position + scoring + très fort ([02e78df](https://github.com/ApoSkunz/crabitan_bellevue/commit/02e78df82d9c8196dce58fb617227b1206be93e6))
+* **auth:** indicateur force MDP — position form-pwd-wrap + niveau Très fort longueur ([1babc7a](https://github.com/ApoSkunz/crabitan_bellevue/commit/1babc7ae035270503c7d77a714308349458c2d4c))
+* **tests:** AuthController — remplacer mots de passe bloqués par blocklist PasswordValidator ([215b858](https://github.com/ApoSkunz/crabitan_bellevue/commit/215b858debedab0a8f4a9e72e16e57bd092c267e)), closes [Vigilant7#xKqm](https://github.com/Vigilant7/issues/xKqm) [vigilant7#xkqmz](https://github.com/vigilant7/issues/xkqmz)
+
+
+### Features
+
+* **auth:** blocklist mots courants + séquences dans PasswordValidator (backend) ([de10e10](https://github.com/ApoSkunz/crabitan_bellevue/commit/de10e106b01bb8c613e2ee5e4d744a7c80d6a3ce))
+* **auth:** indicateur force MDP — zxcvbn-ts (score 0→4, lazy load) ([943ab54](https://github.com/ApoSkunz/crabitan_bellevue/commit/943ab5496da4060cd2aa7840554730c497a2e6d1))
+* **auth:** indicateur force MDP (faible/moyen/fort) + cron purge sessions expirées ([d3fe753](https://github.com/ApoSkunz/crabitan_bellevue/commit/d3fe75399e5e0eb4812141e082abc409df9748f4))
+
+
+### Reverts
+
+* **auth:** remplacer zxcvbn-ts par implémentation maison miroir PHP ([874cfb8](https://github.com/ApoSkunz/crabitan_bellevue/commit/874cfb8173295919c4299e0a5696cf727ca1e575))
+
 # [0.28.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.27.0...v0.28.0) (2026-04-05)
 
 
