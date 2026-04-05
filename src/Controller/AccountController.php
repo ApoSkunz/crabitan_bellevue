@@ -800,9 +800,10 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             Response::redirect($back);
         }
 
-        $pendingHash = password_hash($new, PASSWORD_BCRYPT);
-        $expiresAt   = date('Y-m-d H:i:s', time() + 3600);
-        $this->accounts->savePendingPassword($userId, $pendingHash, $expiresAt);
+        $pendingHash    = password_hash($new, PASSWORD_BCRYPT);
+        $expiresAt      = date('Y-m-d H:i:s', time() + 3600);
+        $sessionToken   = $_COOKIE['auth_token'] ?? '';
+        $this->accounts->savePendingPassword($userId, $pendingHash, $expiresAt, $sessionToken);
 
         // Email de confirmation : le MDP ne sera appliqué qu'après clic sur "C'était moi"
         // $account est garanti non-null ici (la validation l'a vérifié au-dessus)
@@ -1379,9 +1380,22 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         }
 
         $userId = (int) $account['id'];
+
+        // Récupère le token de session à l'origine de la demande avant d'appliquer le pending
+        $requestingToken = $this->accounts->getPendingSessionToken($userId);
+
         $this->accounts->applyPendingPassword($userId);
-        $this->accounts->revokeAllSessions($userId);
         $this->accounts->consumeSecurityConfirmToken($userId);
+
+        // Révocation ciblée : uniquement la session qui a initié la demande + son trusted device
+        if ($requestingToken !== null && $requestingToken !== '') {
+            $deviceToken = $this->connections->getDeviceTokenByToken($requestingToken);
+            $this->connections->revoke($requestingToken);
+            if ($deviceToken !== null) {
+                $this->trustedDevices->untrust($userId, $deviceToken);
+            }
+        }
+
         $this->view('account/security-confirm', ['lang' => $lang, 'success' => true, 'expired' => false]);
     }
 
