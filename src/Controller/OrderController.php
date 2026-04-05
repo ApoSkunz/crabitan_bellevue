@@ -301,7 +301,6 @@ class OrderController extends Controller
         // Vider le panier
         $this->carts->clear($userId);
         setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'samesite' => 'Lax']);
-        $this->generateAndStoreInvoice($reference);
         if ($clientEmail !== '') {
             $this->dispatchOrderEmails(
                 $clientEmail,
@@ -765,11 +764,11 @@ class OrderController extends Controller
                 return;
             }
             $invoiceNumber = sprintf('WEB-INVOICE-%s-%04d', date('Y'), (int) $order['id']);
-            $invoiceDir    = ROOT_PATH . '/storage/pdf/invoices';
+            $invoiceDir    = ROOT_PATH . '/storage/invoices';
             if (!is_dir($invoiceDir)) {
                 mkdir($invoiceDir, 0755, true);
             }
-            $invoicePath = 'storage/pdf/invoices/' . $invoiceNumber . '.pdf';
+            $invoicePath = 'storage/invoices/' . $invoiceNumber . '.pdf';
             file_put_contents(
                 ROOT_PATH . '/' . $invoicePath,
                 (new \Service\InvoiceService())->generate($order, $invoiceNumber)

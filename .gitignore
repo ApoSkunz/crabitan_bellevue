@@ -7,8 +7,8 @@
 
 # Logs & stockage
 /storage/logs/*.log
-/storage/pdf/invoices/*.pdf
-!/storage/pdf/invoices/.gitkeep
+/storage/invoices/*.pdf
+!/storage/invoices/.gitkeep
 /storage/uploads/
 
 # OS

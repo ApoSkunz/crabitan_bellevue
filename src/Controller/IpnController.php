@@ -127,11 +127,11 @@ class IpnController
                 $order = $this->orders->findByReferenceWithAddresses($finalRef);
                 if ($order !== null) {
                     $invoiceNumber = sprintf('WEB-INVOICE-%s-%04d', date('Y'), (int) $order['id']);
-                    $invoiceDir    = ROOT_PATH . '/storage/pdf/invoices';
+                    $invoiceDir    = ROOT_PATH . '/storage/invoices';
                     if (!is_dir($invoiceDir)) {
                         mkdir($invoiceDir, 0755, true);
                     }
-                    $invoicePath = 'storage/pdf/invoices/' . $invoiceNumber . '.pdf';
+                    $invoicePath = 'storage/invoices/' . $invoiceNumber . '.pdf';
                     file_put_contents(
                         ROOT_PATH . '/' . $invoicePath,
                         (new InvoiceService())->generate($order, $invoiceNumber)
