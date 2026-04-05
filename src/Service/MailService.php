@@ -591,14 +591,15 @@ INNER;
      * @param string               $lang            Langue du client ('fr' ou 'en')
      * @return void
      */
-    public function sendOrderConfirmationToClient(
+    public function sendOrderConfirmationToClient( // NOSONAR — php:S107 : 8 paramètres requis pour composer l'email de confirmation complet
         string $toEmail,
         string $toName,
         string $orderRef,
         string $paymentMethod,
         array $items,
         float $total,
-        string $lang
+        string $lang,
+        float $shippingDiscount = 0.0
     ): void {
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeName = htmlspecialchars($toName, ENT_QUOTES);
@@ -617,6 +618,7 @@ INNER;
             $colUnit        = 'Unit price';
             $colSub         = 'Subtotal';
             $labelTotal     = 'Total incl. tax';
+            $labelDiscount  = 'Delivery discount';
             $labelPayment   = 'Payment method';
             $labelDelay     = 'Estimated delivery';
             $delayValue     = '7 to 15 days upon receipt of payment';
@@ -651,6 +653,7 @@ INNER;
             $colUnit        = 'Prix unitaire';
             $colSub         = 'Sous-total';
             $labelTotal     = 'Total TTC';
+            $labelDiscount  = 'Remise livraison';
             $labelPayment   = 'Méthode de paiement';
             $labelDelay     = 'Délai estimé';
             $delayValue     = '7 à 15 jours à compter de la réception du paiement';
@@ -686,7 +689,9 @@ INNER;
             $colQty,
             $colUnit,
             $colSub,
-            $labelTotal
+            $labelTotal,
+            $shippingDiscount,
+            $labelDiscount
         );
 
         $message = $itemsHtml
@@ -723,7 +728,8 @@ INNER;
         string $orderRef,
         string $paymentMethod,
         array $items,
-        float $total
+        float $total,
+        float $shippingDiscount = 0.0
     ): void {
         $ownerEmail    = $_ENV['CONTACT_EMAIL'] ?? 'contact@crabitanbellevue.fr';
         $safeRef       = htmlspecialchars($orderRef, ENT_QUOTES);
@@ -743,7 +749,9 @@ INNER;
             'Qté',
             'Prix unitaire',
             'Sous-total',
-            'Total TTC'
+            'Total TTC',
+            $shippingDiscount,
+            'Remise livraison'
         );
 
         $message = "<strong>Client :</strong> {$safeClient} ({$safeEmail})<br>"
@@ -773,23 +781,27 @@ INNER;
      * @param string                           $labelTotal Libellé ligne total
      * @return string HTML du tableau
      */
-    private function buildOrderItemsTable(
+    private function buildOrderItemsTable( // NOSONAR — php:S107 : 9 paramètres requis pour générer le tableau articles email (colonnes i18n + remise)
         array $items,
         float $total,
         string $colName,
         string $colQty,
         string $colUnit,
         string $colSub,
-        string $labelTotal
+        string $labelTotal,
+        float $shippingDiscount = 0.0,
+        string $labelDiscount = ''
     ): string {
         $tdStyle   = 'padding:6px 8px;border-bottom:1px solid #ede8df;font-size:14px;color:#3d3425;';
         $thStyle   = 'padding:8px;background:#f7f3ec;font-size:13px;'
             . 'color:#8a7a60;letter-spacing:1px;text-align:left;';
+        $discountStyle = $tdStyle . 'color:#c9a84c;';
         $rows = '';
         foreach ($items as $item) {
-            $name     = htmlspecialchars((string) ($item['name'] ?? $item['label_name'] ?? ''), ENT_QUOTES);
-            $isCuvee  = (bool) ($item['is_cuvee_speciale'] ?? false);
-            $cuveeStyle = 'font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#c9a84c;font-family:Georgia,serif;';
+            $name    = htmlspecialchars((string) ($item['name'] ?? $item['label_name'] ?? ''), ENT_QUOTES);
+            $isCuvee = (bool) ($item['is_cuvee_speciale'] ?? false);
+            $cuveeStyle = 'font-size:11px;letter-spacing:1.5px;'
+                . 'text-transform:uppercase;color:#c9a84c;font-family:Georgia,serif;';
             $cuveeHtml  = $isCuvee ? "<br><span style=\"{$cuveeStyle}\">Cuvée Spéciale</span>" : '';
             $qty      = (int) ($item['qty'] ?? 0);
             $price    = (float) ($item['price'] ?? 0.0);
@@ -802,6 +814,14 @@ INNER;
                 . "<td style=\"{$tdStyle}\">{$subtotal} €</td>"
                 . "</tr>";
         }
+        $discountRow = '';
+        if ($shippingDiscount > 0.0 && $labelDiscount !== '') {
+            $discountFmt = number_format($shippingDiscount, 2, ',', ' ');
+            $discountRow = "<tr>"
+                . "<td colspan=\"3\" style=\"{$discountStyle}\"><em>{$labelDiscount}</em></td>"
+                . "<td style=\"{$discountStyle}\"><em>−{$discountFmt} €</em></td>"
+                . "</tr>";
+        }
         $totalFmt = number_format($total, 2, ',', ' ');
         return '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
             . '<tr>'
@@ -811,6 +831,7 @@ INNER;
             . "<th style=\"{$thStyle}\">{$colSub}</th>"
             . '</tr>'
             . $rows
+            . $discountRow
             . '<tr>'
             . "<td colspan=\"3\" style=\"{$tdStyle}\"><strong>{$labelTotal}</strong></td>"
             . "<td style=\"{$tdStyle}\"><strong>{$totalFmt} €</strong></td>"
@@ -1418,6 +1439,50 @@ INNER;
      * @param string $ip   Adresse IP source de l'IPN
      * @return void
      */
+    /**
+     * Envoie la facture PDF au client en pièce jointe.
+     *
+     * @param string $toEmail       Adresse email du client
+     * @param string $toName        Prénom ou nom complet du client
+     * @param string $orderRef      Référence de la commande
+     * @param string $invoiceNumber Numéro de facture (WEB-INVOICE-YYYY-XXXX)
+     * @param string $pdfPath       Chemin absolu vers le fichier PDF
+     * @param string $lang          Langue du client ('fr' ou 'en')
+     * @return void
+     */
+    public function sendInvoiceToClient(
+        string $toEmail,
+        string $toName,
+        string $orderRef,
+        string $invoiceNumber,
+        string $pdfPath,
+        string $lang
+    ): void {
+        $safeName = htmlspecialchars($toName, ENT_QUOTES);
+        $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeNum  = htmlspecialchars($invoiceNumber, ENT_QUOTES);
+
+        if ($lang === 'en') {
+            $subject  = 'Your invoice ' . $invoiceNumber . ' — Château Crabitan Bellevue';
+            $greeting = 'Hello ' . $safeName . ',';
+            $message  = 'Please find attached your invoice <strong>' . $safeNum . '</strong>'
+                . ' for order <strong>' . $safeRef . '</strong>.<br><br>'
+                . 'You can also download it at any time from your account in the Orders section.';
+        } else {
+            $subject  = 'Votre facture ' . $invoiceNumber . ' — Château Crabitan Bellevue';
+            $greeting = 'Bonjour ' . $safeName . ',';
+            $message  = 'Veuillez trouver en pièce jointe votre facture <strong>' . $safeNum . '</strong>'
+                . ' pour la commande <strong>' . $safeRef . '</strong>.<br><br>'
+                . 'Vous pouvez également la télécharger à tout moment depuis votre espace client,'
+                . ' rubrique Mes commandes.';
+        }
+
+        $body     = $this->emailSimpleLayout('Votre facture', $greeting, $message, $lang);
+        $filename = $invoiceNumber . '.pdf';
+
+        $this->send($toEmail, $toName, $subject, $body, $pdfPath, null, $filename);
+    }
+
     public function sendIpnSignatureAlert(string $to, string $date, string $ip): void
     {
         $safeDate = htmlspecialchars($date, ENT_QUOTES);

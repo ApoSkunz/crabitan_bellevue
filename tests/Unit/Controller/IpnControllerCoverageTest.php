@@ -317,6 +317,231 @@ class IpnControllerCoverageTest extends TestCase
     }
 
     // ================================================================
+    // 7. Paiement accepté + findByReferenceWithAddresses retourne null
+    //    → bloc facture entièrement ignoré
+    // ================================================================
+
+    /**
+     * Vérifie que le bloc de génération de facture est ignoré quand
+     * findByReferenceWithAddresses retourne null.
+     */
+    public function testHandleSkipsInvoiceWhenOrderNotFoundByReference(): void
+    {
+        [$ctrl, $paymentMock, $orderMock, $cartMock, $mailMock, $intentsMock] = $this->buildController();
+
+        $snapshot = $this->defaultSnapshot();
+
+        $paymentMock->method('verifyIpnSignature')->willReturn(true);
+        $orderMock->method('findByReferenceOnly')->willReturn(null);
+        $intentsMock->method('findByReference')->willReturn($snapshot);
+        $intentsMock->method('delete');
+        $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
+        $cartMock->method('clear');
+        $orderMock->method('findByReferenceWithAddresses')->willReturn(null);
+
+        // updateInvoiceData ne doit jamais être appelé
+        $orderMock->expects($this->never())->method('updateInvoiceData');
+        $mailMock->expects($this->never())->method('sendInvoiceToClient');
+
+        $caught = null;
+        ob_start();
+        try {
+            $ctrl->handle([]);
+        } catch (\Core\Exception\HttpException $e) {
+            ob_get_clean();
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(200, $caught->status);
+    }
+
+    // ================================================================
+    // 8. Paiement accepté + facture générée + email non envoyé (email vide)
+    // ================================================================
+
+    /**
+     * Vérifie que sendInvoiceToClient n'est pas appelé quand client_email est vide.
+     */
+    public function testHandleInvoiceGeneratedButEmailSkippedWhenClientEmailEmpty(): void
+    {
+        [$ctrl, $paymentMock, $orderMock, $cartMock, $mailMock, $intentsMock] = $this->buildController();
+
+        $snapshot                  = $this->defaultSnapshot();
+        $snapshot['client_email']  = ''; // email vide
+
+        $paymentMock->method('verifyIpnSignature')->willReturn(true);
+        $orderMock->method('findByReferenceOnly')->willReturn(null);
+        $intentsMock->method('findByReference')->willReturn($snapshot);
+        $intentsMock->method('delete');
+        $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
+        $cartMock->method('clear');
+        $orderMock->method('findByReferenceWithAddresses')->willReturn([
+            'id'               => 999,
+            'order_reference'  => 'WEB-CB-AABBCCDD-2026',
+            'payment_method'   => 'card',
+            'content'          => '[]',
+            'price'            => 30.0,
+            'shipping_discount' => 0.0,
+            'ordered_at'       => date('Y-m-d H:i:s'),
+        ]);
+        $orderMock->method('updateInvoiceData');
+
+        $mailMock->expects($this->never())->method('sendInvoiceToClient');
+
+        $caught = null;
+        ob_start();
+        try {
+            $ctrl->handle([]);
+        } catch (\Core\Exception\HttpException $e) {
+            ob_get_clean();
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(200, $caught->status);
+    }
+
+    // ================================================================
+    // 9. Paiement accepté + facture générée + email envoyé
+    // ================================================================
+
+    /**
+     * Vérifie que sendInvoiceToClient est bien appelé avec le bon email
+     * quand client_email est défini dans le snapshot.
+     */
+    public function testHandleInvoiceEmailSentWhenClientEmailSet(): void
+    {
+        [$ctrl, $paymentMock, $orderMock, $cartMock, $mailMock, $intentsMock] = $this->buildController();
+
+        $snapshot = $this->defaultSnapshot();
+        // client_email est déjà défini dans defaultSnapshot
+
+        $paymentMock->method('verifyIpnSignature')->willReturn(true);
+        $orderMock->method('findByReferenceOnly')->willReturn(null);
+        $intentsMock->method('findByReference')->willReturn($snapshot);
+        $intentsMock->method('delete');
+        $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
+        $cartMock->method('clear');
+        $orderMock->method('findByReferenceWithAddresses')->willReturn([
+            'id'               => 999,
+            'order_reference'  => 'WEB-CB-AABBCCDD-2026',
+            'payment_method'   => 'card',
+            'content'          => '[]',
+            'price'            => 30.0,
+            'shipping_discount' => 0.0,
+            'ordered_at'       => date('Y-m-d H:i:s'),
+        ]);
+        $orderMock->method('updateInvoiceData');
+
+        $mailMock->expects($this->once())
+            ->method('sendInvoiceToClient')
+            ->with(
+                'client@example.com',
+                'Jean Dupont',
+                $this->anything(),
+                $this->anything(),
+                $this->anything(),
+                'fr'
+            );
+
+        $caught = null;
+        ob_start();
+        try {
+            $ctrl->handle([]);
+        } catch (\Core\Exception\HttpException $e) {
+            ob_get_clean();
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(200, $caught->status);
+    }
+
+    // ================================================================
+    // 10. Paiement accepté + sendInvoiceToClient lève exception → catch interne
+    // ================================================================
+
+    /**
+     * Vérifie que si sendInvoiceToClient lève une exception, elle est absorbée
+     * et le traitement continue normalement (200 OK).
+     */
+    public function testHandleInvoiceEmailExceptionIsCaughtSilently(): void
+    {
+        [$ctrl, $paymentMock, $orderMock, $cartMock, $mailMock, $intentsMock] = $this->buildController();
+
+        $snapshot = $this->defaultSnapshot();
+
+        $paymentMock->method('verifyIpnSignature')->willReturn(true);
+        $orderMock->method('findByReferenceOnly')->willReturn(null);
+        $intentsMock->method('findByReference')->willReturn($snapshot);
+        $intentsMock->method('delete');
+        $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
+        $cartMock->method('clear');
+        $orderMock->method('findByReferenceWithAddresses')->willReturn([
+            'id'               => 999,
+            'order_reference'  => 'WEB-CB-AABBCCDD-2026',
+            'payment_method'   => 'card',
+            'content'          => '[]',
+            'price'            => 30.0,
+            'shipping_discount' => 0.0,
+            'ordered_at'       => date('Y-m-d H:i:s'),
+        ]);
+        $orderMock->method('updateInvoiceData');
+        $mailMock->method('sendInvoiceToClient')
+            ->willThrowException(new \RuntimeException('SMTP unavailable'));
+
+        $caught = null;
+        ob_start();
+        try {
+            $ctrl->handle([]);
+        } catch (\Core\Exception\HttpException $e) {
+            ob_get_clean();
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(200, $caught->status);
+    }
+
+    // ================================================================
+    // 11. Paiement accepté + findByReferenceWithAddresses lève exception
+    //     → catch externe bloc facture
+    // ================================================================
+
+    /**
+     * Vérifie que si findByReferenceWithAddresses lève une exception, elle est
+     * absorbée par le catch externe et le traitement continue (200 OK).
+     */
+    public function testHandleInvoiceOuterExceptionIsCaughtSilently(): void
+    {
+        [$ctrl, $paymentMock, $orderMock, $cartMock, $mailMock, $intentsMock] = $this->buildController();
+
+        $snapshot = $this->defaultSnapshot();
+
+        $paymentMock->method('verifyIpnSignature')->willReturn(true);
+        $orderMock->method('findByReferenceOnly')->willReturn(null);
+        $intentsMock->method('findByReference')->willReturn($snapshot);
+        $intentsMock->method('delete');
+        $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
+        $cartMock->method('clear');
+        $orderMock->method('findByReferenceWithAddresses')
+            ->willThrowException(new \RuntimeException('DB failure'));
+
+        $caught = null;
+        ob_start();
+        try {
+            $ctrl->handle([]);
+        } catch (\Core\Exception\HttpException $e) {
+            ob_get_clean();
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(200, $caught->status);
+    }
+
+    // ================================================================
     // 6. Paiement accepté + snapshot sans lang/client_email/client_name
     //    → valeurs par défaut utilisées (branches ?? dans les casts)
     // ================================================================

@@ -595,6 +595,7 @@ return [
     'account.filter_3months'     => '3 derniers mois',
     'account.filter_status'      => 'Statut',
     'account.filter_status_all'  => 'Tous les statuts',
+    'account.item_product'       => 'Produit',
     'account.item_qty'           => 'Qté',
     'account.item_unit_price'    => 'Prix unitaire',
     'account.item_subtotal'      => 'Sous-total',
@@ -779,7 +780,9 @@ return [
     'checkout.payment_cancelled'      => 'Paiement annulé. Vous pouvez modifier votre commande et réessayer.',
     'checkout.payment_refused'        => 'Paiement refusé. Veuillez vérifier vos informations ou utiliser un autre moyen de paiement.',
     'checkout.payment_error'          => 'Une erreur est survenue lors de la confirmation du paiement. Contactez-nous si le montant a été débité.',
-    'account.order_cancel_card_confirm' => 'Cette action déclenchera un remboursement immédiat par carte bancaire via notre établissement bancaire. Confirmer l\'annulation ?',
+    'account.order_cancel_card_confirm'       => 'Cette action déclenchera un remboursement immédiat par carte bancaire via notre établissement bancaire. Confirmer l\'annulation ?',
+    // phpcs:ignore Generic.Files.LineLength
+    'account.order_cancel_pending_cb_confirm' => 'Votre paiement par carte est en attente de confirmation. Annuler la commande mettra fin à cette transaction. Confirmer ?',
 
     // Confirmation commande
     'checkout.confirmation_title'     => 'Commande confirmée',

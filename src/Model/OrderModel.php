@@ -269,6 +269,50 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     }
 
     /**
+     * Met à jour le numéro et le chemin de la facture d'une commande en une seule requête.
+     *
+     * @param int    $id            Identifiant de la commande
+     * @param string $invoiceNumber Numéro de facture (WEB-INVOICE-YYYY-XXXX)
+     * @param string $invoicePath   Chemin relatif du fichier PDF (storage/pdf/invoices/…)
+     */
+    public function updateInvoiceData(int $id, string $invoiceNumber, string $invoicePath): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET invoice_number = ?, path_invoice = ? WHERE id = ?",
+            [$invoiceNumber, $invoicePath, $id]
+        );
+    }
+
+    /**
+     * Recherche une commande par référence avec les adresses (pour génération de facture).
+     *
+     * @param  string $reference Référence de la commande (WEB-CB-XXXXX-YYYY)
+     * @return array<string, mixed>|null
+     */
+    public function findByReferenceWithAddresses(string $reference): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT o.*,
+                    a.email, a.lang,
+                    COALESCE(ai.firstname, ac.company_name, '') AS firstname,
+                    COALESCE(ai.lastname, '', '')                AS lastname,
+                    b.civility  AS bill_civility,
+                    b.firstname AS bill_firstname, b.lastname AS bill_lastname,
+                    b.street    AS bill_street,    b.city     AS bill_city,
+                    b.zip_code  AS bill_zip,       b.country  AS bill_country,
+                    b.phone     AS bill_phone
+             FROM {$this->table} o
+             JOIN accounts a             ON a.id   = o.user_id
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             LEFT JOIN addresses b ON b.id = o.id_billing_address
+             WHERE o.order_reference = ?",
+            [$reference]
+        );
+        return $row ?: null;
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     public function findByIdForUser(int $orderId, int $userId): ?array

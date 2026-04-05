@@ -309,7 +309,8 @@ class OrderController extends Controller
                 $paymentMethod,
                 $items,
                 $total,
-                $lang
+                $lang,
+                round($deliveryDiscount, 2)
             );
         }
 
@@ -388,8 +389,10 @@ class OrderController extends Controller
                     (new \Model\PaymentIntentModel())->delete($ref);
                     (new \Model\CartModel())->clear($userId);
 
+                    $this->generateAndStoreInvoice($ref);
                     try {
-                        $mail = new \Service\MailService();
+                        $discount = (float) ($snapshot['delivery_discount'] ?? 0.0);
+                        $mail     = new \Service\MailService();
                         $mail->sendOrderConfirmationToClient(
                             (string) ($snapshot['client_email'] ?? ''),
                             (string) ($snapshot['client_name']  ?? ''),
@@ -397,7 +400,8 @@ class OrderController extends Controller
                             'card',
                             (array) $snapshot['items'],
                             (float) $snapshot['total'],
-                            $lang
+                            $lang,
+                            $discount
                         );
                         $mail->sendOrderConfirmationToOwner(
                             (string) ($snapshot['client_email'] ?? ''),
@@ -405,7 +409,8 @@ class OrderController extends Controller
                             $ref,
                             'card',
                             (array) $snapshot['items'],
-                            (float) $snapshot['total']
+                            (float) $snapshot['total'],
+                            $discount
                         );
                     } catch (\Throwable $mailError) {
                         error_log('[RETURN_OK] Mail error for ref=' . $ref . ' : ' . $mailError->getMessage());
@@ -745,19 +750,102 @@ class OrderController extends Controller
      * @param string               $lang          Langue du client ('fr' ou 'en')
      * @return void
      */
-    private function dispatchOrderEmails(
+    /**
+     * Génère la facture PDF, la stocke sur disque et met à jour la commande en BDD.
+     * Non bloquant : toute erreur est journalisée sans interrompre le flux.
+     *
+     * @param string $reference Référence de la commande
+     */
+    private function generateAndStoreInvoice(string $reference): void
+    {
+        try {
+            $order = $this->orders->findByReferenceWithAddresses($reference);
+            if ($order === null) {
+                return;
+            }
+            $invoiceNumber = sprintf('WEB-INVOICE-%s-%04d', date('Y'), (int) $order['id']);
+            $invoiceDir    = ROOT_PATH . '/storage/invoices';
+            if (!is_dir($invoiceDir)) {
+                mkdir($invoiceDir, 0755, true);
+            }
+            $invoicePath = 'storage/invoices/' . $invoiceNumber . '.pdf';
+            file_put_contents(
+                ROOT_PATH . '/' . $invoicePath, // nosemgrep: php.lang.security.injection.tainted-filename.tainted-filename
+                (new \Service\InvoiceService())->generate($order, $invoiceNumber)
+            );
+            $this->orders->updateInvoiceData((int) $order['id'], $invoiceNumber, $invoicePath);
+
+            // Envoi facture par email — non bloquant
+            $clientEmail = (string) ($order['email']     ?? '');
+            $firstname   = (string) ($order['firstname'] ?? '');
+            $lastname    = (string) ($order['lastname']  ?? '');
+            $clientName  = trim($firstname . ' ' . $lastname) ?: $clientEmail;
+            $clientLang  = (string) ($order['lang']      ?? 'fr');
+            if ($clientEmail !== '') {
+                try {
+                    (new \Service\MailService())->sendInvoiceToClient(
+                        $clientEmail,
+                        $clientName,
+                        $reference,
+                        $invoiceNumber,
+                        realpath(ROOT_PATH . '/' . $invoicePath) ?: ROOT_PATH . '/' . $invoicePath,
+                        $clientLang
+                    );
+                } catch (\Throwable $mailErr) {
+                    error_log('[ORDER] Invoice mail error for ref=' . $reference . ' : ' . $mailErr->getMessage());
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('[ORDER] Invoice error for ref=' . $reference . ' : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Envoie les emails de confirmation de commande au client et au propriétaire.
+     *
+     * Les envois sont non bloquants : toute exception est ignorée silencieusement.
+     *
+     * @param string               $email            Adresse email du client
+     * @param string               $name             Nom complet du client
+     * @param string               $reference        Référence de la commande
+     * @param string               $method           Méthode de paiement (card, virement, cheque)
+     * @param array<int, array<string, mixed>> $items Articles de la commande [{name, qty, price}]
+     * @param float                $total            Total TTC en euros
+     * @param string               $lang             Langue du client ('fr' ou 'en')
+     * @param float                $shippingDiscount Remise livraison
+     * @return void
+     */
+    private function dispatchOrderEmails( // NOSONAR — php:S107 : 8 paramètres requis pour envoyer les emails de confirmation commande
         string $email,
         string $name,
         string $reference,
         string $method,
         array $items,
         float $total,
-        string $lang
+        string $lang,
+        float $shippingDiscount = 0.0
     ): void {
         try {
             $mailer = new \Service\MailService();
-            $mailer->sendOrderConfirmationToClient($email, $name, $reference, $method, $items, $total, $lang); // phpcs:ignore Generic.Files.LineLength
-            $mailer->sendOrderConfirmationToOwner($email, $name, $reference, $method, $items, $total);
+            $mailer->sendOrderConfirmationToClient(
+                $email,
+                $name,
+                $reference,
+                $method,
+                $items,
+                $total,
+                $lang,
+                $shippingDiscount
+            );
+            $mailer->sendOrderConfirmationToOwner(
+                $email,
+                $name,
+                $reference,
+                $method,
+                $items,
+                $total,
+                $shippingDiscount
+            );
         } catch (\Throwable $e) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
             // Mail non bloquant — la commande est créée même en cas d'échec d'envoi
         }

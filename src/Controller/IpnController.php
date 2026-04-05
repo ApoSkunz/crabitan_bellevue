@@ -8,6 +8,7 @@ use Core\Exception\HttpException;
 use Model\CartModel;
 use Model\OrderModel;
 use Model\PaymentIntentModel;
+use Service\InvoiceService;
 use Service\MailService;
 use Service\PaymentService;
 
@@ -105,7 +106,7 @@ class IpnController
                 throw new HttpException(200);
             }
 
-            $this->orders->createFromIpn(
+            $finalRef = $this->orders->createFromIpn(
                 (int)    $snapshot['user_id'],
                 (array)  $snapshot['items'],
                 (float)  $snapshot['total'],
@@ -121,13 +122,53 @@ class IpnController
             $this->intents->delete($ref);
             $this->carts->clear((int) $snapshot['user_id']);
 
+            // Génération de la facture PDF — non bloquante
+            try {
+                $order = $this->orders->findByReferenceWithAddresses($finalRef);
+                if ($order !== null) {
+                    $invoiceNumber = sprintf('WEB-INVOICE-%s-%04d', date('Y'), (int) $order['id']);
+                    $invoiceDir    = ROOT_PATH . '/storage/invoices';
+                    if (!is_dir($invoiceDir)) {
+                        mkdir($invoiceDir, 0755, true);
+                    }
+                    $invoicePath = 'storage/invoices/' . $invoiceNumber . '.pdf';
+                    file_put_contents(
+                        ROOT_PATH . '/' . $invoicePath, // nosemgrep: php.lang.security.injection.tainted-filename.tainted-filename
+                        (new InvoiceService())->generate($order, $invoiceNumber)
+                    );
+                    $this->orders->updateInvoiceData((int) $order['id'], $invoiceNumber, $invoicePath);
+
+                    // Envoi facture par email — non bloquant
+                    try {
+                        $invoiceLang  = (string) ($snapshot['lang']         ?? 'fr');
+                        $invoiceEmail = (string) ($snapshot['client_email'] ?? '');
+                        $invoiceName  = (string) ($snapshot['client_name']  ?? '');
+                        if ($invoiceEmail !== '') {
+                            $this->mail->sendInvoiceToClient(
+                                $invoiceEmail,
+                                $invoiceName,
+                                $finalRef,
+                                $invoiceNumber,
+                                realpath(ROOT_PATH . '/' . $invoicePath) ?: ROOT_PATH . '/' . $invoicePath,
+                                $invoiceLang
+                            );
+                        }
+                    } catch (\Throwable $mailInvoiceError) {
+                        error_log('[IPN] Invoice mail error for ref=' . $finalRef . ' : ' . $mailInvoiceError->getMessage());
+                    }
+                }
+            } catch (\Throwable $invoiceError) {
+                error_log('[IPN] Invoice error for ref=' . $finalRef . ' : ' . $invoiceError->getMessage());
+            }
+
             // Emails de confirmation — non bloquants
             try {
-                $lang  = (string) ($snapshot['lang']         ?? 'fr');
-                $email = (string) ($snapshot['client_email'] ?? '');
-                $name  = (string) ($snapshot['client_name']  ?? '');
-                $items = (array)  $snapshot['items'];
-                $total = (float)  $snapshot['total'];
+                $lang     = (string) ($snapshot['lang']              ?? 'fr');
+                $email    = (string) ($snapshot['client_email']      ?? '');
+                $name     = (string) ($snapshot['client_name']       ?? '');
+                $items    = (array)  $snapshot['items'];
+                $total    = (float)  $snapshot['total'];
+                $discount = (float)  ($snapshot['delivery_discount'] ?? 0.0);
 
                 $this->mail->sendOrderConfirmationToClient(
                     $email,
@@ -136,16 +177,17 @@ class IpnController
                     'card',
                     $items,
                     $total,
-                    $lang
+                    $lang,
+                    $discount
                 );
-
                 $this->mail->sendOrderConfirmationToOwner(
                     $email,
                     $name,
                     $ref,
                     'card',
                     $items,
-                    $total
+                    $total,
+                    $discount
                 );
             } catch (\Throwable $mailError) {
                 error_log('[IPN] Mail error for ref=' . $ref . ' : ' . $mailError->getMessage());

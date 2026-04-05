@@ -13,6 +13,20 @@ $statusLabels = [
     'refund_refused'   => 'Remboursement refusé',
 ];
 $allStatuses   = array_keys($statusLabels);
+
+// Rang du flux normal (permet de détecter un retour en arrière)
+$statusRank = [
+    'pending'          => 0,
+    'paid'             => 1,
+    'processing'       => 2,
+    'shipped'          => 3,
+    'delivered'        => 4,
+    'return_requested' => 5,
+    'refunded'         => 6,
+    'refund_refused'   => 6,
+    'cancelled'        => 99, // toujours terminal, jamais "en arrière"
+];
+$currentRank = $statusRank[$order['status']] ?? 0;
 $paymentLabels = [
     'card'     => 'Carte bancaire',
     'virement' => 'Virement',
@@ -76,10 +90,32 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                     </tbody>
                 </table>
             </div>
-            <div style="padding:1rem 1.5rem;text-align:right;border-top:1px solid rgba(8,8,8,0.06);">
-                <strong style="font-family:var(--font-sans);font-size:0.9rem;color:#1a1208;">
-                    Total : <?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€
-                </strong>
+            <?php
+                $itemsSubtotal    = array_reduce(
+                    $cartItems,
+                    fn ($c, $i) => $c + (float) ($i['price'] ?? 0) * (int) ($i['qty'] ?? 0),
+                    0.0
+                );
+                $shippingDiscount = (float) ($order['shipping_discount'] ?? 0.0);
+                $total            = (float) $order['price'];
+            ?>
+            <div style="padding:0.75rem 1.5rem;border-top:1px solid rgba(8,8,8,0.06);">
+                <table style="width:100%;border-collapse:collapse;font-size:0.875rem;">
+                    <tr>
+                        <th scope="row" style="padding:3px 0;color:#8a7a60;font-weight:normal;text-align:left;">Sous-total articles</th>
+                        <td style="padding:3px 0;text-align:right;color:#1a1208;"><?= number_format($itemsSubtotal, 2, ',', ' ') ?>&nbsp;€</td>
+                    </tr>
+                    <?php if ($shippingDiscount > 0.0) : ?>
+                    <tr>
+                        <th scope="row" style="padding:3px 0;color:#c9a84c;font-weight:normal;text-align:left;">Remise livraison</th>
+                        <td style="padding:3px 0;text-align:right;color:#c9a84c;">− <?= number_format($shippingDiscount, 2, ',', ' ') ?>&nbsp;€</td>
+                    </tr>
+                    <?php endif; ?>
+                    <tr style="border-top:1px solid rgba(8,8,8,0.08);">
+                        <th scope="row" style="padding:6px 0 3px;font-weight:700;color:#1a1208;text-align:left;">Total TTC</th>
+                        <td style="padding:6px 0 3px;text-align:right;font-weight:700;font-size:0.95rem;color:#1a1208;"><?= number_format($total, 2, ',', ' ') ?>&nbsp;€</td>
+                    </tr>
+                </table>
             </div>
         </div>
 
@@ -161,9 +197,14 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                         <div class="admin-field" style="margin-bottom:1rem;">
                             <label class="admin-field__label" for="status">Nouveau statut</label>
                             <select id="js-status-select" name="status" class="admin-field__select">
-                                <?php foreach ($allStatuses as $s) : ?>
-                                    <option value="<?= htmlspecialchars($s) ?>" <?= $order['status'] === $s ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($statusLabels[$s] ?? $s) ?>
+                                <?php foreach ($allStatuses as $s) :
+                                    $rank     = $statusRank[$s] ?? 0;
+                                    $backward = ($rank < $currentRank && $s !== $order['status'] && $s !== 'cancelled');
+                                ?>
+                                    <option value="<?= htmlspecialchars($s) ?>"
+                                            <?= $order['status'] === $s ? 'selected' : '' ?>
+                                            <?= $backward ? 'data-backward="1"' : '' ?>>
+                                        <?= $backward ? '⚠ ' : '' ?><?= htmlspecialchars($statusLabels[$s] ?? $s) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -266,13 +307,28 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
     }
 
     trigger.addEventListener('click', function () {
-        var newStatus = select.value;
+        var newStatus  = select.value;
+        var selectedOpt = select.options[select.selectedIndex];
+        var isBackward  = selectedOpt && selectedOpt.getAttribute('data-backward') === '1';
         step = 1;
         var label = labels[newStatus] || newStatus;
-        openModal(
-            'Vous êtes sur le point de passer cette commande en statut « ' + label + ' ». Confirmer ?',
-            'Confirmer'
-        );
+
+        if (isBackward) {
+            btnOk.classList.remove('admin-btn--primary');
+            btnOk.classList.add('admin-btn--danger');
+            body.innerHTML = '<span style="color:#dc2626;font-weight:600;">⚠ Retour en arrière</span>'
+                + '<br><span style="color:#dc2626;">Vous vous apprêtez à repasser la commande en &laquo;&nbsp;'
+                + label + '&nbsp;&raquo;, un statut antérieur au statut actuel.</span>'
+                + '<br><br>Cette action est inhabituelle. Confirmez uniquement s\'il s\'agit d\'une correction d\'erreur.';
+            btnOk.textContent = 'Confirmer quand même';
+            modal.style.display = 'flex';
+            btnOk.focus();
+        } else {
+            openModal(
+                'Vous êtes sur le point de passer cette commande en statut « ' + label + ' ». Confirmer ?',
+                'Confirmer'
+            );
+        }
     });
 
     btnOk.addEventListener('click', function () {

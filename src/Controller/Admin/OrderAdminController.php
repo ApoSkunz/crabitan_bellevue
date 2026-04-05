@@ -6,6 +6,7 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\OrderModel;
+use Service\InvoiceService;
 use Service\MailService;
 use Service\PaymentService;
 
@@ -195,6 +196,52 @@ class OrderAdminController extends AdminController
             } catch (\Throwable $e) {
                 // phpcs:ignore Generic.Files.LineLength
                 error_log('[OrderAdminController] SMTP error on status email: ' . $e->getMessage()); // NOSONAR — php:S4792
+            }
+        }
+
+        // Génération automatique de la facture dès le premier changement de statut actif (virement/chèque)
+        if ($status !== $oldStatus && empty($order['path_invoice'])) {
+            try {
+                $fullOrder = $this->orders->findByReferenceWithAddresses(
+                    (string) ($order['order_reference'] ?? '')
+                );
+                if ($fullOrder !== null) {
+                    $invoiceNumber = sprintf('WEB-INVOICE-%s-%04d', date('Y'), $id);
+                    $invoiceDir    = ROOT_PATH . '/storage/invoices';
+                    if (!is_dir($invoiceDir)) {
+                        mkdir($invoiceDir, 0755, true);
+                    }
+                    $invoicePath = 'storage/invoices/' . $invoiceNumber . '.pdf';
+                    file_put_contents(
+                        ROOT_PATH . '/' . $invoicePath,
+                        (new InvoiceService())->generate($fullOrder, $invoiceNumber)
+                    );
+                    $this->orders->updateInvoiceData($id, $invoiceNumber, $invoicePath);
+
+                    // Envoi facture par email au client — non bloquant
+                    try {
+                        $invoiceEmail = (string) ($order['email']     ?? '');
+                        $invFname     = (string) ($order['firstname'] ?? '');
+                        $invLname     = (string) ($order['lastname']  ?? '');
+                        $invoiceName  = trim($invFname . ' ' . $invLname) ?: $invoiceEmail;
+                        $invoiceLang  = (string) ($order['lang']      ?? 'fr');
+                        if ($invoiceEmail !== '') {
+                            $this->newMailService()->sendInvoiceToClient(
+                                $invoiceEmail,
+                                $invoiceName,
+                                (string) ($order['order_reference'] ?? ''),
+                                $invoiceNumber,
+                                realpath(ROOT_PATH . '/' . $invoicePath) ?: ROOT_PATH . '/' . $invoicePath,
+                                $invoiceLang
+                            );
+                        }
+                    } catch (\Throwable $mailErr) {
+                        // phpcs:ignore Generic.Files.LineLength
+                        error_log('[OrderAdmin] Invoice mail error for order #' . $id . ': ' . $mailErr->getMessage());
+                    }
+                }
+            } catch (\Throwable $invoiceError) {
+                error_log('[OrderAdmin] Invoice error for order #' . $id . ': ' . $invoiceError->getMessage());
             }
         }
 
