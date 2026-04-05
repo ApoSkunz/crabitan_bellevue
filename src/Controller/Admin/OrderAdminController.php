@@ -72,17 +72,18 @@ class OrderAdminController extends AdminController
         if (!in_array($perPage, self::ALLOWED_PER_PAGES, true)) {
             $perPage = self::DEFAULT_PER_PAGE;
         }
-        $status  = $this->request->get('status') ?: null;
-        $payment = $this->request->get('payment') ?: null;
-        $search  = trim($this->request->get('search', ''));
+        $status   = $this->request->get('status') ?: null;
+        $payment  = $this->request->get('payment') ?: null;
+        $search   = trim($this->request->get('search', ''));
+        $archived = $this->request->get('archived') === '1';
 
-        $total = $this->orders->countForAdmin($status, $search ?: null, $payment);
-        $list  = $this->orders->getForAdmin($page, $perPage, $status, $search ?: null, $payment);
+        $total = $this->orders->countForAdmin($status, $search ?: null, $payment, $archived);
+        $list  = $this->orders->getForAdmin($page, $perPage, $status, $search ?: null, $payment, $archived);
 
         $this->view('admin/orders/index', [
             'adminUser'    => $adminUser,
             'adminSection' => 'orders',
-            'pageTitle'    => 'Commandes',
+            'pageTitle'    => $archived ? 'Commandes archivées (> 10 ans)' : 'Commandes',
             'breadcrumbs'  => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Commandes']],
             'orders'       => $list,
             'total'        => $total,
@@ -91,6 +92,7 @@ class OrderAdminController extends AdminController
             'status'       => $status,
             'payment'      => $payment,
             'search'       => $search,
+            'archived'     => $archived,
             'flash'        => $this->getFlash('success'),
         ]);
     }
@@ -117,10 +119,11 @@ class OrderAdminController extends AdminController
                 ['label' => 'Commandes', 'url' => self::ADMIN_URL],
                 ['label' => '#' . $order['order_reference']],
             ],
-            'order'     => $order,
-            'csrfToken' => $_SESSION['csrf'] ?? '',
-            'flash'     => $this->getFlash('success'),
-            'flashError' => $this->getFlash('error'),
+            'order'        => $order,
+            'invoiceFiles' => $this->orders->getInvoiceFiles((int) $order['id']),
+            'csrfToken'    => $_SESSION['csrf'] ?? '',
+            'flash'        => $this->getFlash('success'),
+            'flashError'   => $this->getFlash('error'),
         ]);
     }
 
@@ -217,6 +220,7 @@ class OrderAdminController extends AdminController
                         (new InvoiceService())->generate($fullOrder, $invoiceNumber)
                     );
                     $this->orders->updateInvoiceData($id, $invoiceNumber, $invoicePath);
+                    $this->orders->addInvoiceFile($id, $invoicePath, $invoiceNumber, 'auto');
 
                     // Envoi facture par email au client — non bloquant
                     try {
@@ -269,6 +273,13 @@ class OrderAdminController extends AdminController
             $this->abort(404, self::ORDER_NOT_FOUND);
         }
 
+        // Si une facture existe déjà, exiger confirmation explicite (archivage légal — L441-9 C.com.)
+        $existingInvoice = $order['path_invoice'] ?? null;
+        if ($existingInvoice !== null && $this->request->post('confirm_replace') !== '1') {
+            $this->flash('error', 'Une facture existe déjà. Cochez la case de confirmation pour la remplacer.');
+            Response::redirect(self::ADMIN_URL . '/' . $id);
+        }
+
         $file = $_FILES['invoice'] ?? [];
         if (empty($file['tmp_name'])) {
             $this->flash('error', 'Aucun fichier sélectionné.');
@@ -287,11 +298,7 @@ class OrderAdminController extends AdminController
             mkdir($destDir, 0750, true);
         }
 
-        // Remove old invoice file if it exists
-        $oldPath = $order['path_invoice'] ?? null;
-        if ($oldPath !== null && is_file(ROOT_PATH . '/' . $oldPath)) {
-            unlink(ROOT_PATH . '/' . $oldPath);
-        }
+        // Ne pas supprimer l'ancienne facture — obligation d'archivage L441-9 C.com. (10 ans)
 
         $filename = 'invoice_' . $id . '_' . bin2hex(random_bytes(6)) . '.pdf';
         $destPath = $destDir . $filename;
@@ -300,7 +307,9 @@ class OrderAdminController extends AdminController
             Response::redirect(self::ADMIN_URL . '/' . $id);
         }
 
-        $this->orders->updateInvoice($id, 'storage/invoices/' . $filename);
+        $invoicePath = 'storage/invoices/' . $filename;
+        $this->orders->updateInvoice($id, $invoicePath);
+        $this->orders->addInvoiceFile($id, $invoicePath, null, 'upload');
         $this->flash('success', 'Facture uploadée avec succès.');
         Response::redirect(self::ADMIN_URL . '/' . $id);
     }
@@ -327,6 +336,52 @@ class OrderAdminController extends AdminController
 
         header('Content-Type: application/pdf');
         header('Content-Disposition: inline; filename="facture_' . $order['order_reference'] . '.pdf"');
+        header('Content-Length: ' . filesize($filePath));
+        header('Cache-Control: private, no-cache');
+        readfile($filePath);
+        exit;
+    }
+
+    // ----------------------------------------------------------------
+    // GET /admin/commandes/{id}/facture/historique/{fileId}
+    // ----------------------------------------------------------------
+
+    /**
+     * Télécharge un fichier de l'historique des factures d'une commande.
+     *
+     * @param array<string, string> $params Paramètres de route : id (commande), fileId (order_invoice_files.id)
+     */
+    public function downloadInvoiceFile(array $params): void
+    {
+        $this->requireAdmin();
+
+        $orderId = (int) $params['id'];
+        $fileId  = (int) $params['fileId'];
+
+        $files = $this->orders->getInvoiceFiles($orderId);
+        $entry = null;
+        foreach ($files as $f) {
+            if ((int) $f['id'] === $fileId) {
+                $entry = $f;
+                break;
+            }
+        }
+
+        if ($entry === null) {
+            $this->abort(404, 'Fichier introuvable');
+        }
+
+        $filePath = ROOT_PATH . '/' . $entry['path'];
+        if (!is_file($filePath)) {
+            $this->abort(404, 'Fichier introuvable sur le disque');
+        }
+
+        $filename = $entry['invoice_number']
+            ? $entry['invoice_number'] . '.pdf'
+            : basename($entry['path']);
+
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $filename . '"');
         header('Content-Length: ' . filesize($filePath));
         header('Cache-Control: private, no-cache');
         readfile($filePath);

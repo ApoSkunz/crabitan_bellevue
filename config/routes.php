@@ -17,6 +17,7 @@ $router->get('/admin/commandes/{id}', 'Admin\OrderAdminController@show');
 $router->post('/admin/commandes/{id}/statut', 'Admin\OrderAdminController@updateStatus');
 $router->post('/admin/commandes/{id}/facture', 'Admin\OrderAdminController@uploadInvoice');
 $router->get('/admin/commandes/{id}/facture/telecharger', 'Admin\OrderAdminController@downloadInvoice');
+$router->get('/admin/commandes/{id}/facture/historique/{fileId}', 'Admin\OrderAdminController@downloadInvoiceFile');
 $router->get('/admin/comptes', 'Admin\AccountAdminController@index');
 $router->post('/admin/comptes/{id}/verifier', 'Admin\AccountAdminController@verify');
 $router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
