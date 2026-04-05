@@ -1439,6 +1439,50 @@ INNER;
      * @param string $ip   Adresse IP source de l'IPN
      * @return void
      */
+    /**
+     * Envoie la facture PDF au client en pièce jointe.
+     *
+     * @param string $toEmail       Adresse email du client
+     * @param string $toName        Prénom ou nom complet du client
+     * @param string $orderRef      Référence de la commande
+     * @param string $invoiceNumber Numéro de facture (WEB-INVOICE-YYYY-XXXX)
+     * @param string $pdfPath       Chemin absolu vers le fichier PDF
+     * @param string $lang          Langue du client ('fr' ou 'en')
+     * @return void
+     */
+    public function sendInvoiceToClient(
+        string $toEmail,
+        string $toName,
+        string $orderRef,
+        string $invoiceNumber,
+        string $pdfPath,
+        string $lang
+    ): void {
+        $safeName = htmlspecialchars($toName, ENT_QUOTES);
+        $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeNum  = htmlspecialchars($invoiceNumber, ENT_QUOTES);
+
+        if ($lang === 'en') {
+            $subject  = 'Your invoice ' . $invoiceNumber . ' — Château Crabitan Bellevue';
+            $greeting = 'Hello ' . $safeName . ',';
+            $message  = 'Please find attached your invoice <strong>' . $safeNum . '</strong>'
+                . ' for order <strong>' . $safeRef . '</strong>.<br><br>'
+                . 'You can also download it at any time from your account in the Orders section.';
+        } else {
+            $subject  = 'Votre facture ' . $invoiceNumber . ' — Château Crabitan Bellevue';
+            $greeting = 'Bonjour ' . $safeName . ',';
+            $message  = 'Veuillez trouver en pièce jointe votre facture <strong>' . $safeNum . '</strong>'
+                . ' pour la commande <strong>' . $safeRef . '</strong>.<br><br>'
+                . 'Vous pouvez également la télécharger à tout moment depuis votre espace client,'
+                . ' rubrique Mes commandes.';
+        }
+
+        $body     = $this->emailSimpleLayout('Votre facture', $greeting, $message, $lang);
+        $filename = $invoiceNumber . '.pdf';
+
+        $this->send($toEmail, $toName, $subject, $body, $pdfPath, null, $filename);
+    }
+
     public function sendIpnSignatureAlert(string $to, string $date, string $ip): void
     {
         $safeDate = htmlspecialchars($date, ENT_QUOTES);
