@@ -8,6 +8,7 @@ require_once __DIR__ . '/../partials/header.php';
 /** @var array<string, string> $errors */
 /** @var string|null $success */
 /** @var string $currentToken */
+/** @var int $activeOrdersCount */
 $deleteError = $errors['delete'] ?? null;
 ?>
 <main class="account-page">
@@ -282,6 +283,12 @@ $deleteError = $errors['delete'] ?? null;
             <?= __('account.delete_modal_title') ?>
         </h2>
         <p class="account-delete-modal__body"><?= __('account.delete_modal_body') ?></p>
+
+        <?php if ($activeOrdersCount > 0) : ?>
+            <div class="alert alert--warning" role="alert" style="margin-bottom:1rem;">
+                <?= sprintf(__('account.delete_active_orders_warning'), $activeOrdersCount) ?>
+            </div>
+        <?php endif; ?>
 
         <?php if ($deleteError) : ?>
             <div class="alert alert--error" role="alert" style="margin-bottom:1rem;">
