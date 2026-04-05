@@ -18,6 +18,7 @@ use Model\OrderModel;
 use Service\AccountService;
 use Service\MailService;
 use Service\PasswordValidator;
+use Service\PaymentService;
 
 class AccountController extends Controller // NOSONAR — php:S1448 : découpage prévu à l'audit génie logiciel
 {
@@ -45,6 +46,16 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $this->connections         = new ConnectionModel();
         $this->trustedDevices      = new TrustedDeviceModel();
         $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
+    }
+
+    /**
+     * Instancie le PaymentService (seam de testabilité).
+     *
+     * @return PaymentService
+     */
+    protected function newPaymentService(): PaymentService
+    {
+        return new PaymentService();
     }
 
     // ----------------------------------------------------------------
@@ -231,7 +242,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $numtrans = (string) ($order['ca_numtrans'] ?? '');
 
             if ($numappel !== '' && $numtrans !== '') {
-                $paymentService = new \Service\PaymentService();
+                $paymentService = $this->newPaymentService();
                 $refunded = $paymentService->callGaeCancelOrRefund(
                     (string) ($order['order_reference'] ?? ''),
                     $numappel,
