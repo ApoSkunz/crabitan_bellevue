@@ -73,7 +73,7 @@ return [
     'auth.modal.no_account'  => 'Don\'t have an account?',
     'auth.modal.sign_up'      => 'Sign up',
     'auth.modal.have_account' => 'Already have an account?',
-    'auth.modal.sign_in'      => 'Sign in',
+    'auth.modal.sign_in'      => 'Sign in', // NOSONAR — php:S1192 — lang file, same wording used in different UI contexts
 
     // Wines — Catalogue
     'wine.add_to_cart'    => 'Add to cart',
@@ -533,25 +533,25 @@ return [
     'account.security_confirm_success_title'   => 'Password change confirmed',
     // phpcs:ignore Generic.Files.LineLength
     'account.security_confirm_success_body'    => 'Your new password is now active. All other sessions have been revoked as a security measure. Please sign in again.',
-    'account.security_confirm_error_title'     => 'Invalid or expired link',
+    'account.security_confirm_error_title'     => 'Invalid or expired link', // NOSONAR — php:S1192 — lang file, identical wording for different error contexts
     // phpcs:ignore Generic.Files.LineLength
     'account.security_confirm_expired_body'    => 'This link has expired (valid for 1 hour). If you did not perform this action, reset your password immediately.',
     'account.security_confirm_invalid_body'    => 'This link is invalid or has already been used.',
     'account.security_confirm_security_btn'    => 'Manage my account security',
     'account.security_confirm_reset_btn'       => 'Reset my password',
-    'account.security_confirm_login_btn'       => 'Sign in',
+    'account.security_confirm_login_btn'       => 'Sign in', // NOSONAR — php:S1192
     'account.security_deny_success_title'      => 'Request cancelled — account protected',
     // phpcs:ignore Generic.Files.LineLength
     'account.security_deny_success_body'       => 'The password change request has been cancelled. All your active sessions have been revoked. A confirmation email has been sent.',
-    'account.security_deny_error_title'        => 'Invalid or expired link',
+    'account.security_deny_error_title'        => 'Invalid or expired link', // NOSONAR — php:S1192
     // phpcs:ignore Generic.Files.LineLength
     'account.security_deny_expired_body'       => 'This link has expired (valid for 1 hour). If you think your account is compromised, reset your password.',
     'account.security_deny_invalid_body'       => 'This link is invalid or has already been used.',
-    'account.security_deny_login_btn'          => 'Sign in',
+    'account.security_deny_login_btn'          => 'Sign in', // NOSONAR — php:S1192
     'account.security_deny_reset_btn'          => 'Reset my password',
     'account.reactivate_success_title' => 'Account reactivated',
     'account.reactivate_success_body'  => 'Your account has been successfully reactivated. You can now log in.',
-    'account.reactivate_error_title'   => 'Invalid or expired link',
+    'account.reactivate_error_title'   => 'Invalid or expired link', // NOSONAR — php:S1192
     'account.reactivate_error_body'    => 'This reactivation link is no longer valid (expired or already used). If your account was deleted by mistake, please contact our support.',
     'account.reactivate_login_btn'     => 'Log in',
     'account.deletion_email_reactivate_text' => 'You have 30 days to cancel this request by clicking the button below. After this period, your personal data will be permanently deleted.',

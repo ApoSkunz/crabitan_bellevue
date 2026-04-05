@@ -73,7 +73,7 @@ return [
     'auth.modal.no_account'  => 'Pas encore de compte ?',
     'auth.modal.sign_up'      => 'S\'inscrire',
     'auth.modal.have_account' => 'Déjà un compte ?',
-    'auth.modal.sign_in'      => 'Se connecter',
+    'auth.modal.sign_in'      => 'Se connecter', // NOSONAR — php:S1192 — fichier de traduction, même libellé utilisé dans des contextes UI distincts
 
     // Vins — Catalogue
     'wine.add_to_cart'    => 'Ajouter au panier',
@@ -158,7 +158,7 @@ return [
     'cart.added_offline'   => 'Ajouté au panier. Connectez-vous pour passer commande.',
     'cart.added'           => 'Ajouté au panier !',
     'cart.login_to_order'  => 'Connectez-vous pour passer commande',
-    'cart.login_cta'       => 'Se connecter',
+    'cart.login_cta'       => 'Se connecter', // NOSONAR — php:S1192
     'cart.browse'          => 'Voir notre boutique',
     'cart.item_total'      => 'Sous-total',
     'cart.order_total'     => 'Total',
@@ -535,25 +535,25 @@ return [
     'account.security_confirm_success_title'   => 'Changement de mot de passe confirmé',
     // phpcs:ignore Generic.Files.LineLength
     'account.security_confirm_success_body'    => 'Votre nouveau mot de passe est actif. Vos autres sessions ont été révoquées par mesure de sécurité. Reconnectez-vous.',
-    'account.security_confirm_error_title'     => 'Lien invalide ou expiré',
+    'account.security_confirm_error_title'     => 'Lien invalide ou expiré', // NOSONAR — php:S1192 — fichier de traduction, même libellé pour erreurs distinctes
     // phpcs:ignore Generic.Files.LineLength
     'account.security_confirm_expired_body'    => 'Ce lien a expiré (validité 1 heure). Si vous n\'êtes pas à l\'origine de cette action, réinitialisez votre mot de passe immédiatement.',
     'account.security_confirm_invalid_body'    => 'Ce lien est invalide ou a déjà été utilisé.',
     'account.security_confirm_security_btn'    => 'Gérer la sécurité de mon compte',
     'account.security_confirm_reset_btn'       => 'Réinitialiser mon mot de passe',
-    'account.security_confirm_login_btn'       => 'Se connecter',
+    'account.security_confirm_login_btn'       => 'Se connecter', // NOSONAR — php:S1192
     'account.security_deny_success_title'      => 'Demande annulée — compte protégé',
     // phpcs:ignore Generic.Files.LineLength
     'account.security_deny_success_body'       => 'La demande de changement de mot de passe a été annulée. Toutes vos sessions actives ont été révoquées. Un email de confirmation vous a été envoyé.',
-    'account.security_deny_error_title'        => 'Lien invalide ou expiré',
+    'account.security_deny_error_title'        => 'Lien invalide ou expiré', // NOSONAR — php:S1192
     // phpcs:ignore Generic.Files.LineLength
     'account.security_deny_expired_body'       => 'Ce lien a expiré (validité 1 heure). Si vous pensez que votre compte est compromis, réinitialisez votre mot de passe.',
     'account.security_deny_invalid_body'       => 'Ce lien est invalide ou a déjà été utilisé.',
-    'account.security_deny_login_btn'          => 'Se connecter',
+    'account.security_deny_login_btn'          => 'Se connecter', // NOSONAR — php:S1192
     'account.security_deny_reset_btn'          => 'Réinitialiser mon mot de passe',
     'account.reactivate_success_title' => 'Compte réactivé',
     'account.reactivate_success_body'  => 'Votre compte a été réactivé avec succès. Vous pouvez vous reconnecter.',
-    'account.reactivate_error_title'   => 'Lien invalide ou expiré',
+    'account.reactivate_error_title'   => 'Lien invalide ou expiré', // NOSONAR — php:S1192
     'account.reactivate_error_body'    => 'Ce lien de réactivation n\'est plus valide (expiré ou déjà utilisé). Si votre compte a été supprimé par erreur, contactez notre support.',
     'account.reactivate_login_btn'     => 'Se reconnecter',
     'account.deletion_email_reactivate_text' => 'Vous avez 30 jours pour annuler cette demande en cliquant sur le bouton ci-dessous. Passé ce délai, vos données personnelles seront définitivement supprimées.',
