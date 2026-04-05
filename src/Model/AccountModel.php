@@ -329,21 +329,43 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
 
     /**
      * Stocke un nouveau mot de passe en attente de confirmation par email (TTL 1h).
+     * Le token de session à l'origine de la demande est conservé pour révocation ciblée.
      *
-     * @param  int    $userId    Identifiant du compte
-     * @param  string $hash      Nouveau mot de passe haché (bcrypt)
-     * @param  string $expiresAt Date d'expiration au format 'Y-m-d H:i:s'
+     * @param  int    $userId       Identifiant du compte
+     * @param  string $hash         Nouveau mot de passe haché (bcrypt)
+     * @param  string $expiresAt    Date d'expiration au format 'Y-m-d H:i:s'
+     * @param  string $sessionToken Token JWT de la session ayant initié la demande
      * @return void
      */
-    public function savePendingPassword(int $userId, string $hash, string $expiresAt): void
-    {
+    public function savePendingPassword(
+        int $userId,
+        string $hash,
+        string $expiresAt,
+        string $sessionToken
+    ): void {
         $this->db->execute(
             "UPDATE {$this->table}
-             SET pending_password_hash       = ?,
-                 pending_password_expires_at = ?
+             SET pending_password_hash            = ?,
+                 pending_password_expires_at      = ?,
+                 pending_password_session_token   = ?
              WHERE id = ?",
-            [$hash, $expiresAt, $userId]
+            [$hash, $expiresAt, $sessionToken, $userId]
         );
+    }
+
+    /**
+     * Retourne le token de session à l'origine de la demande de changement MDP en attente.
+     *
+     * @param  int $userId Identifiant du compte
+     * @return string|null Token JWT ou null si aucun pending
+     */
+    public function getPendingSessionToken(int $userId): string|null
+    {
+        $row = $this->db->fetchOne(
+            "SELECT pending_password_session_token FROM {$this->table} WHERE id = ?",
+            [$userId]
+        );
+        return $row ? ($row['pending_password_session_token'] ?? null) : null;
     }
 
     /**
@@ -357,9 +379,10 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     {
         return $this->db->execute(
             "UPDATE {$this->table}
-             SET password                 = pending_password_hash,
-                 pending_password_hash       = NULL,
-                 pending_password_expires_at = NULL
+             SET password                        = pending_password_hash,
+                 pending_password_hash           = NULL,
+                 pending_password_expires_at     = NULL,
+                 pending_password_session_token  = NULL
              WHERE id = ? AND pending_password_hash IS NOT NULL",
             [$userId]
         );
@@ -375,8 +398,9 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     {
         $this->db->execute(
             "UPDATE {$this->table}
-             SET pending_password_hash       = NULL,
-                 pending_password_expires_at = NULL
+             SET pending_password_hash            = NULL,
+                 pending_password_expires_at      = NULL,
+                 pending_password_session_token   = NULL
              WHERE id = ?",
             [$userId]
         );
