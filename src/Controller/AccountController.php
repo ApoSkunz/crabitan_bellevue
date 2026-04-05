@@ -1623,15 +1623,19 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         return [
             'exported_at' => date('c'),
             'account'     => [
-                'Email'                  => $account['email']        ?? null,
-                'Type de compte'         => $account['account_type'] ?? null,
-                'Langue'                 => $account['lang']         ?? null,
-                'Date de création'       => $account['created_at']   ?? null,
-                'Prénom'                 => $account['firstname']    ?? null,
-                'Nom'                    => $account['lastname']     ?? null,
-                'Civilité'               => $account['civility']     ?? null,
-                'Raison sociale'         => $account['company_name'] ?? null,
-                'Newsletter'             => ($account['newsletter'] ?? 0) ? 'Oui' : 'Non',
+                'Email'          => $account['email']        ?? null,
+                'Type de compte' => $account['account_type'] ?? null,
+                'Langue'         => $account['lang']         ?? null,
+                'Date de création' => $account['created_at'] ?? null,
+                ...(($account['account_type'] ?? '') === 'company'
+                    ? ['Raison sociale' => $account['company_name'] ?? null]
+                    : [
+                        'Civilité' => $account['civility']  ?? null,
+                        'Prénom'   => $account['firstname'] ?? null,
+                        'Nom'      => $account['lastname']  ?? null,
+                    ]
+                ),
+                'Newsletter' => ($account['newsletter'] ?? 0) ? 'Oui' : 'Non',
             ],
             'addresses' => array_map(fn($a) => [
                 'type'      => $a['type'],

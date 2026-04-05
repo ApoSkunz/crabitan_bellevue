@@ -3112,6 +3112,50 @@ class AccountControllerTest extends IntegrationTestCase
     }
 
     /**
+     * buildExportData() — compte individuel : Prénom/Nom/Civilité présents, Raison sociale absente.
+     */
+    public function testBuildExportDataIndividualHasNamesNotCompany(): void
+    {
+        $userId = $this->insertCustomer('export-individual@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportData');
+        $method->setAccessible(true);
+
+        /** @var array<string, mixed> $export */
+        $export  = $method->invoke($ctrl, $userId);
+        $account = $export['account'];
+
+        $this->assertArrayHasKey('Prénom', $account);
+        $this->assertArrayHasKey('Nom', $account);
+        $this->assertArrayHasKey('Civilité', $account);
+        $this->assertArrayNotHasKey('Raison sociale', $account);
+    }
+
+    /**
+     * buildExportData() — compte société : Raison sociale présente, Prénom/Nom/Civilité absents.
+     */
+    public function testBuildExportDataCompanyHasRaisonSocialeNotNames(): void
+    {
+        $userId = $this->insertCustomer('export-company@test.local', 'company');
+        $this->loginAs($userId);
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportData');
+        $method->setAccessible(true);
+
+        /** @var array<string, mixed> $export */
+        $export  = $method->invoke($ctrl, $userId);
+        $account = $export['account'];
+
+        $this->assertArrayHasKey('Raison sociale', $account);
+        $this->assertArrayNotHasKey('Prénom', $account);
+        $this->assertArrayNotHasKey('Nom', $account);
+        $this->assertArrayNotHasKey('Civilité', $account);
+    }
+
+    /**
      * buildExportData() — les entrées trusted_devices contiennent bien user_agent.
      */
     public function testBuildExportDataTrustedDevicesHaveUserAgent(): void
