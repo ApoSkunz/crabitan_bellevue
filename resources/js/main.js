@@ -1263,10 +1263,11 @@ function initPasswordStrengthIndicator() {
         label.className = 'pwd-strength-label';
         label.hidden = true;
 
-        // Insérer à l'intérieur du container (fin), directement sous le champ mot de passe
-        const container = input.closest('.form-group, .register-modal__field, .login-modal__field') ?? input.parentElement;
-        container.insertAdjacentElement('beforeend', label);
-        container.insertAdjacentElement('beforeend', ul);
+        // Insérer juste après le wrapper du champ (form-pwd-wrap ou parent direct)
+        // pour rester sous le mot de passe mais avant la confirmation
+        const wrap = input.closest('.form-pwd-wrap, .login-modal__password-wrap, .register-modal__password-wrap') ?? input.parentElement;
+        wrap.insertAdjacentElement('afterend', ul);
+        wrap.insertAdjacentElement('afterend', label);
         return { ul, label };
     }
 
@@ -1292,7 +1293,8 @@ function initPasswordStrengthIndicator() {
             li.querySelector('.pwd-strength-icon').textContent = ok ? '✓' : '✗';
         });
 
-        const score = checks.filter(Boolean).length;
+        const score  = checks.filter(Boolean).length;
+        const isLong = val.length >= 20; // bonus longueur — compense l'absence de special
         if (!val.length) { label.hidden = true; return; }
         label.hidden = false;
         label.className = 'pwd-strength-label';
@@ -1302,12 +1304,13 @@ function initPasswordStrengthIndicator() {
         } else if (score === 3) {
             label.textContent = 'Force\u00a0: Moyen';
             label.classList.add('pwd-strength-label--medium');
-        } else if (score === 4) {
+        } else if (score === 4 && !isLong) {
             label.textContent = 'Force\u00a0: Fort';
             label.classList.add('pwd-strength-label--strong');
         } else {
+            // score 5/5 OU score 4/5 + longueur ≥ 20 → Très fort
             label.textContent = 'Force\u00a0: Très fort';
-            label.classList.add('pwd-strength-label--strong');
+            label.classList.add('pwd-strength-label--vstrong');
         }
     }
 
