@@ -495,10 +495,22 @@ body:has(.age-overlay) {
     cursor: pointer;
     padding: 0.3em 0.6em;
     transition: color 200ms ease;
-    width: 100%;
 
     &:hover {
         color: var(--color-text);
+    }
+
+    // Variante avec rectangle ghost (bordure neutre, même hauteur que btn--gold)
+    &--outline {
+        border: 1px solid var(--color-border);
+        padding: 0.55em 1.1em;
+        font-size: 0.75rem;
+        transition: border-color 200ms ease, color 200ms ease;
+
+        &:hover {
+            border-color: var(--color-text-muted);
+            color: var(--color-text);
+        }
     }
 }
 
