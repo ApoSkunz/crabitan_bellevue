@@ -55,7 +55,7 @@ require_once __DIR__ . '/../partials/header.php';
     </div>
 </main>
 <?php require_once __DIR__ . '/../partials/footer.php'; ?>
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {
     const token    = <?= json_encode($mfaToken) ?>;
     const interval = 3000;

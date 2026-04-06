@@ -290,7 +290,7 @@ $maxYear = (int) date('Y');
     </div>
 </div>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 const APPELLATION_COLORS = <?= json_encode(array_map(
     fn($c) => match ($c) {
         'sweet' => 'Liquoreux', 'white' => 'Blanc', 'rosé' => 'Rosé', 'red' => 'Rouge', default => $c,

@@ -57,6 +57,11 @@ if ($ageVerified && isset($_COOKIE['age_remember'])) {
 // Empêche le bfcache navigateur de restaurer des pages avec flash messages révolus
 header('Cache-Control: no-store');
 
+// ── CSP nonce-based (BT — sécurité headers) ─────────────────────────────────
+$cspNonce = base64_encode(random_bytes(16));
+define('CSP_NONCE', $cspNonce);
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{$cspNonce}'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+
 try {
     $router->dispatch();
 } catch (\Core\Exception\HttpException) {

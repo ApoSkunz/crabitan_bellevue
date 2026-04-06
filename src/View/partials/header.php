@@ -237,7 +237,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
     </nav>
 </header>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 window.__userLogged       = <?= $isLogged ? 'true' : 'false' ?>;
 window.__navLang          = '<?= htmlspecialchars($navLang) ?>';
 window.__authModalError   = <?= $modalError ? 'true' : 'false' ?>;
@@ -252,7 +252,7 @@ window.__resetValid       = <?= $resetValid ? 'true' : 'false' ?>;
 window.__resetSuccess     = <?= $resetSuccess ? 'true' : 'false' ?>;
 window.__resetSuccessMsg  = <?= $resetSuccess ? json_encode(htmlspecialchars(__('auth.password_updated'))) : 'null' ?>;
 </script>
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 document.addEventListener('DOMContentLoaded', function () {
     var loginForm = document.querySelector('.login-modal__form[action*="connexion"]');
     if (!loginForm) return;
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 document.addEventListener('DOMContentLoaded', function () {
     var loginPanel           = document.getElementById('login-panel');
     var resendPanel          = document.getElementById('resend-activation-panel');

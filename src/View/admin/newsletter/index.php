@@ -276,7 +276,7 @@ $cssDisabled = ' disabled';
     <?php endif; ?>
 </div>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 function previewNlImage(input) {
     const preview = document.getElementById('nl-image-preview');
     if (input.files && input.files[0]) {

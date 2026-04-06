@@ -152,7 +152,7 @@ $errClass = ' is-error';
     </div>
 </div>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 document.getElementById('news-form').addEventListener('submit', function(e) {
     let hasError = false;
     const checks = [
