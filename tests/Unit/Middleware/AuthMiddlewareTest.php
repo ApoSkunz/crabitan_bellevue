@@ -139,4 +139,25 @@ class AuthMiddlewareTest extends TestCase
         $this->assertSame(302, $exception->getCode());
         $this->assertStringContainsString('/en?login=1', $exception->location ?? '');
     }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testHandleReturns404ForAdminPathEvenWithRedirectToLoginTrue(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/fr/admin/dashboard';
+
+        $exception = null;
+        try {
+            ob_start();
+            AuthMiddleware::handle(redirectToLogin: true);
+        } catch (HttpException $e) {
+            ob_end_clean();
+            $exception = $e;
+        }
+
+        // Les chemins admin doivent toujours retourner 404, jamais 302 vers login
+        $this->assertNotNull($exception);
+        $this->assertSame(404, $exception->getCode());
+        $this->assertArrayNotHasKey('_intended', $_SESSION);
+    }
 }
