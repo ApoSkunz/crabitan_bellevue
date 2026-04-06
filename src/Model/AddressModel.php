@@ -147,34 +147,6 @@ class AddressModel extends Model
     }
 
     /**
-<<<<<<< HEAD
-     * Supprime une adresse pour un utilisateur.
-     *
-     * - Hard-delete si l'adresse n'a jamais été utilisée dans une commande (aucun snapshot).
-     * - Soft-delete (deleted_at + saved=0) si un snapshot existe : préserve la traçabilité
-     *   des commandes historiques (L123-22 C.com.) sans exposer les données à l'utilisateur.
-     *
-     * @param int $id     Identifiant de l'adresse
-     * @param int $userId Identifiant du propriétaire (sécurité IDOR)
-=======
-     * Vérifie si une adresse a été utilisée dans une commande via un snapshot.
-     *
-     * Consulte `order_address_snapshots.source_address_id` pour déterminer
-     * si cette adresse a déjà été snapshotée (commande passée, active ou archivée).
-     *
-     * @param int $id Identifiant de l'adresse
-     * @return bool true si l'adresse est référencée dans au moins un snapshot
-     */
-    public function hasOrderSnapshot(int $id): bool
-    {
-        $row = $this->db->fetchOne(
-            "SELECT id FROM order_address_snapshots WHERE source_address_id = ? LIMIT 1",
-            [$id]
-        );
-        return $row !== false;
-    }
-
-    /**
      * Supprime ou soft-delete une adresse appartenant à l'utilisateur.
      *
      * Règle métier :
@@ -186,17 +158,12 @@ class AddressModel extends Model
      * @param int $id     Identifiant de l'adresse
      * @param int $userId Identifiant du propriétaire (contrôle d'accès)
      * @return void
->>>>>>> eb62025 (fix(phpstan): AddressModel — supprimer comparaison !== null toujours vraie (fetchOne retourne array|false))
      */
     public function deleteForUser(int $id, int $userId): void
     {
         if ($this->hasOrderSnapshot($id)) {
             $this->db->execute(
-<<<<<<< HEAD
                 "UPDATE {$this->table} SET saved = 0, deleted_at = NOW() WHERE id = ? AND user_id = ?",
-=======
-                "UPDATE {$this->table} SET deleted_at = NOW(), saved = 0 WHERE id = ? AND user_id = ?",
->>>>>>> eb62025 (fix(phpstan): AddressModel — supprimer comparaison !== null toujours vraie (fetchOne retourne array|false))
                 [$id, $userId]
             );
         } else {
