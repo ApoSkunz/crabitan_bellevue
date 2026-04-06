@@ -7,6 +7,7 @@ namespace Controller\Admin;
 use Core\Response;
 use Model\AccountModel;
 use Model\CartModel;
+use Model\NewsletterModel;
 use Model\WineModel;
 use Service\MailService;
 use Service\TranslationService;
@@ -186,14 +187,10 @@ class WineAdminController extends AdminController
         }
         $cuveeMark = $data['is_cuvee_speciale'] ? ' — Cuvée Spéciale' : '';
 
-        $newsletterCount = 0;
+        $sentCount   = 0;
+        $failedCount = 0;
         if ((int) $data['available'] === 1) {
-            // Exclure les comptes société : newsletter vin → particuliers uniquement
-            $allSubs     = $this->accounts->getNewsletterSubscribers(10000, 0);
-            $subscribers = array_values(array_filter(
-                $allSubs,
-                static fn (array $s): bool => ($s['account_type'] ?? '') !== 'company'
-            ));
+            $subscribers = $this->accounts->getNewsletterSubscribers(10000, 0);
             $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
             foreach ($subscribers as $sub) {
                 $lang       = in_array($sub['lang'] ?? '', ['fr', 'en'], true) ? (string) $sub['lang'] : 'fr';
@@ -201,7 +198,6 @@ class WineAdminController extends AdminController
                 $name       = (string) ($sub['company_name'] ?? $personName);
                 $name       = $name !== '' ? $name : (string) $sub['email'];
                 $unsubToken = (string) ($sub['newsletter_unsubscribe_token'] ?? '');
-                $newsletterCount++; // comptabilise chaque tentative d'envoi
                 try {
                     $this->mailer->sendNewWineNewsletter(
                         (string) $sub['email'],
@@ -211,15 +207,24 @@ class WineAdminController extends AdminController
                         $appUrl,
                         $lang
                     );
+                    $sentCount++;
                 } catch (\Throwable) {
-                    // Échec SMTP capturé silencieusement — ne bloque pas la création du vin
+                    $failedCount++;
                 }
+            }
+            if ($sentCount > 0 || $failedCount > 0) {
+                $subject    = 'Nouveau vin : ' . $data['label_name'] . ' ' . $data['vintage'];
+                $body       = '<p>' . htmlspecialchars($data['label_name'] . ' ' . $data['vintage']) . '</p>';
+                $imageUrl   = !empty($data['image_path']) ? '/assets/images/wines/' . $data['image_path'] : null;
+                $newsletters = new NewsletterModel();
+                $campaignId  = $newsletters->create($subject, $body, $imageUrl);
+                $newsletters->updateStats($campaignId, $sentCount, $failedCount);
             }
         }
 
         $flashMsg = "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » ajouté avec succès.";
-        if ($newsletterCount > 0) {
-            $flashMsg .= " {$newsletterCount} newsletter(s) envoyée(s).";
+        if ($sentCount > 0) {
+            $flashMsg .= " {$sentCount} newsletter(s) envoyée(s).";
         }
         $this->flash('success', $flashMsg);
         Response::redirect(self::ADMIN_URL);
