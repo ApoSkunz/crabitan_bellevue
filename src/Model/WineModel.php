@@ -10,14 +10,15 @@ class WineModel extends Model
 {
     protected string $table = 'wines';
 
-    private const COND_AVAILABLE  = 'available = 1';
-    private const COND_OUT        = 'available = 0';
-    private const COND_COLOR      = 'wine_color = ?';
-    private const ORDER_DEFAULT   = 'wine_color DESC, vintage DESC';
+    private const COND_AVAILABLE   = 'available = 1';
+    private const COND_OUT         = 'available = 0';
+    private const COND_COLOR       = 'wine_color = ?';
+    private const COND_CUVEE       = 'is_cuvee_speciale = 1';
+    private const ORDER_DEFAULT    = 'wine_color DESC, vintage DESC';
     private const SQL_WHERE = 'WHERE ';
-    private const SQL_AND         = ' AND ';
-    private const COND_IMAGE      = "image_path IS NOT NULL AND image_path != ''";
-    private const SQL_RAND_LIMIT  = ' ORDER BY RAND() LIMIT 1';
+    private const SQL_AND          = ' AND ';
+    private const COND_IMAGE       = "image_path IS NOT NULL AND image_path != ''";
+    private const SQL_RAND_LIMIT   = ' ORDER BY RAND() LIMIT 1';
 
     /** @param string[] $conditions */
     private function buildWhereClause(array $conditions): string
@@ -28,14 +29,20 @@ class WineModel extends Model
     /**
      * Retourne les vins disponibles avec filtres, tri et pagination optionnels.
      *
-     * @param string|null $color   Couleur (red|white|rosé|sweet)
-     * @param string      $sort    Tri : 'default'|'likes_desc'|'price_asc'|'price_desc'|'vintage_asc'|'vintage_desc'
-     * @param int         $limit   Nombre de résultats (0 = pas de limite)
-     * @param int         $offset  Décalage pour la pagination
+     * @param string|null $color         Couleur (red|white|rosé|sweet)
+     * @param string      $sort          Tri : 'default'|'likes_desc'|'price_asc'|'price_desc'|'vintage_asc'|'vintage_desc'
+     * @param int         $limit         Nombre de résultats (0 = pas de limite)
+     * @param int         $offset        Décalage pour la pagination
+     * @param bool|null   $cuveSpeciale  true = cuvée spéciale uniquement, null = tous
      * @return array<int, array<string, mixed>>
      */
-    public function getAll(?string $color = null, string $sort = 'default', int $limit = 0, int $offset = 0): array
-    {
+    public function getAll(
+        ?string $color = null,
+        string $sort = 'default',
+        int $limit = 0,
+        int $offset = 0,
+        ?bool $cuveSpeciale = null
+    ): array {
         $where  = [];
         $params = [];
 
@@ -45,6 +52,10 @@ class WineModel extends Model
         if ($color !== null && in_array($color, $validColors, true)) {
             $where[]  = self::COND_COLOR;
             $params[] = $color;
+        }
+
+        if ($cuveSpeciale === true) {
+            $where[] = self::COND_CUVEE;
         }
 
         $orderBy = match ($sort) {
@@ -76,8 +87,10 @@ class WineModel extends Model
 
     /**
      * Compte les vins disponibles pour la pagination (mêmes filtres que getAll).
+     *
+     * @param bool|null $cuveSpeciale true = cuvée spéciale uniquement, null = tous
      */
-    public function countAll(?string $color = null): int
+    public function countAll(?string $color = null, ?bool $cuveSpeciale = null): int
     {
         $where  = [self::COND_AVAILABLE];
         $params = [];
@@ -86,6 +99,10 @@ class WineModel extends Model
         if ($color !== null && in_array($color, $validColors, true)) {
             $where[]  = self::COND_COLOR;
             $params[] = $color;
+        }
+
+        if ($cuveSpeciale === true) {
+            $where[] = self::COND_CUVEE;
         }
 
         $row = $this->db->fetchOne(
@@ -112,7 +129,8 @@ class WineModel extends Model
         string $sort = 'default',
         ?string $avail = null,
         int $perPage = 0,
-        int $offset = 0
+        int $offset = 0,
+        ?bool $cuveSpeciale = null
     ): array {
         $where  = [];
         $params = [];
@@ -127,6 +145,10 @@ class WineModel extends Model
             $where[] = self::COND_AVAILABLE;
         } elseif ($avail === 'out') {
             $where[] = self::COND_OUT;
+        }
+
+        if ($cuveSpeciale === true) {
+            $where[] = self::COND_CUVEE;
         }
 
         $orderBy = match ($sort) {
@@ -166,7 +188,10 @@ class WineModel extends Model
     /**
      * Compte les vins pour la pagination de la collection (mêmes filtres que getAllByColor).
      */
-    public function countAllByColor(?string $color = null, ?string $avail = null): int
+    /**
+     * @param bool|null $cuveSpeciale true = cuvée spéciale uniquement, null = tous
+     */
+    public function countAllByColor(?string $color = null, ?string $avail = null, ?bool $cuveSpeciale = null): int
     {
         $where  = [];
         $params = [];
@@ -181,6 +206,10 @@ class WineModel extends Model
             $where[] = self::COND_AVAILABLE;
         } elseif ($avail === 'out') {
             $where[] = self::COND_OUT;
+        }
+
+        if ($cuveSpeciale === true) {
+            $where[] = self::COND_CUVEE;
         }
 
         $whereClause = $this->buildWhereClause($where);

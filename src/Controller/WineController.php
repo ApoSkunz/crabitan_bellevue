@@ -46,29 +46,31 @@ class WineController extends Controller
         $lang  = $this->resolveLang($params);
         $model = new WineModel();
 
-        $color   = isset($_GET['color']) && $_GET['color'] !== '' ? $_GET['color'] : null;
-        $sort    = $_GET['sort'] ?? 'default';
-        $perPage = (int) ($_GET['per_page'] ?? self::DEFAULT_PER_PAGE);
+        $color        = isset($_GET['color']) && $_GET['color'] !== '' ? $_GET['color'] : null;
+        $sort         = $_GET['sort'] ?? 'default';
+        $cuveSpeciale = isset($_GET['cuvee_speciale']) && $_GET['cuvee_speciale'] === '1' ? true : null;
+        $perPage      = (int) ($_GET['per_page'] ?? self::DEFAULT_PER_PAGE);
         if (!in_array($perPage, self::VALID_PER_PAGE, true)) {
             $perPage = self::DEFAULT_PER_PAGE;
         }
         $page    = max(1, (int) ($_GET['page'] ?? 1));
         $offset  = ($page - 1) * $perPage;
 
-        $total      = $model->countAll($color);
+        $total      = $model->countAll($color, $cuveSpeciale);
         $totalPages = (int) ceil($total / $perPage);
-        $wines      = $model->getAll($color, $sort, $perPage, $offset);
+        $wines      = $model->getAll($color, $sort, $perPage, $offset, $cuveSpeciale);
 
         $this->view('wines/index', [
-            'lang'          => $lang,
-            'wines'         => $wines,
-            'likedIds'      => $this->getCurrentUserLikedIds(),
-            'activeColor'   => $color,
-            'activeSort'    => $sort,
-            'activePerPage' => $perPage,
-            'page'          => $page,
-            'totalPages'    => $totalPages,
-            'total'         => $total,
+            'lang'           => $lang,
+            'wines'          => $wines,
+            'likedIds'       => $this->getCurrentUserLikedIds(),
+            'activeColor'    => $color,
+            'activeSort'     => $sort,
+            'activePerPage'  => $perPage,
+            'activeCuvee'    => $cuveSpeciale === true,
+            'page'           => $page,
+            'totalPages'     => $totalPages,
+            'total'          => $total,
         ]);
     }
 
@@ -81,20 +83,21 @@ class WineController extends Controller
         $lang  = $this->resolveLang($params);
         $model = new WineModel();
 
-        $color   = isset($_GET['color']) && $_GET['color'] !== '' ? $_GET['color'] : null;
-        $sort    = $_GET['sort'] ?? 'default';
-        $rawAvail = $_GET['avail'] ?? '';
-        $avail   = in_array($rawAvail, ['available', 'out'], true) ? $rawAvail : null;
-        $perPage = (int) ($_GET['per_page'] ?? 25);
+        $color        = isset($_GET['color']) && $_GET['color'] !== '' ? $_GET['color'] : null;
+        $sort         = $_GET['sort'] ?? 'default';
+        $rawAvail     = $_GET['avail'] ?? '';
+        $avail        = in_array($rawAvail, ['available', 'out'], true) ? $rawAvail : null;
+        $cuveSpeciale = isset($_GET['cuvee_speciale']) && $_GET['cuvee_speciale'] === '1' ? true : null;
+        $perPage      = (int) ($_GET['per_page'] ?? 25);
         if (!in_array($perPage, self::VALID_PER_PAGE, true)) {
             $perPage = self::DEFAULT_PER_PAGE;
         }
         $page    = max(1, (int) ($_GET['page'] ?? 1));
         $offset  = ($page - 1) * $perPage;
 
-        $total        = $model->countAllByColor($color, $avail);
+        $total        = $model->countAllByColor($color, $avail, $cuveSpeciale);
         $totalPages   = (int) ceil($total / $perPage);
-        $winesByColor = $model->getAllByColor($color, $sort, $avail, $perPage, $offset);
+        $winesByColor = $model->getAllByColor($color, $sort, $avail, $perPage, $offset, $cuveSpeciale);
         // Page de première apparition de chaque couleur (sans filtre couleur, pour les raccourcis nav)
         $colorPages   = $model->getColorFirstPages($avail, $perPage);
 
@@ -105,6 +108,7 @@ class WineController extends Controller
             'activeColor'   => $color,
             'activeSort'    => $sort,
             'activeAvail'   => $rawAvail,
+            'activeCuvee'   => $cuveSpeciale === true,
             'activePerPage' => $perPage,
             'page'          => $page,
             'totalPages'    => $totalPages,
