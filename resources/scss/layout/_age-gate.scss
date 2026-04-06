@@ -405,13 +405,9 @@
 // Overlay age gate — injectée dans header.php
 // ============================================================
 
-// Bloque le scroll et masque le contenu de la page derrière l'overlay (évite le flash)
+// Bloque le scroll de la page tant que l'overlay est visible
 body:has(.age-overlay) {
     overflow: hidden;
-
-    > *:not(.age-overlay) {
-        visibility: hidden;
-    }
 }
 
 // Conteneur opaque plein écran — pas d'animation d'opacité (évite le flash au chargement)
