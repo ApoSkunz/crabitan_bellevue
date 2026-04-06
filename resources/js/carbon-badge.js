@@ -16,14 +16,14 @@ const BADGE_HTML = '<div id="wcb_p"><p id="wcb_g">Mesure CO<sub>2</sub>&hellip;<
 
 export function initCarbonBadge() {
     const wcb = document.getElementById('wcb');
-    if (!('fetch' in window) || !wcb) return;
+    if (!('fetch' in globalThis) || !wcb) return;
 
-    const url = encodeURIComponent(window.location.href);
+    const url = encodeURIComponent(globalThis.location.href);
 
     function renderResult(data) {
         // Caster en nombre pour neutraliser tout contenu non numérique de l'API (XSS)
-        const co2 = parseFloat(data.c) || 0;
-        const pct = parseFloat(data.p) || 0;
+        const co2 = Number.parseFloat(data.c) || 0;
+        const pct = Number.parseFloat(data.p) || 0;
 
         const g = document.getElementById('wcb_g');
         if (g) {
@@ -41,7 +41,7 @@ export function initCarbonBadge() {
 
     function fetchBadge(render = true) {
         fetch('https://api.websitecarbon.com/b?url=' + url)
-            .then((r) => { if (!r.ok) throw Error(r); return r.json(); })
+            .then((r) => { if (!r.ok) { throw new Error(String(r)); } return r.json(); })
             .then((data) => {
                 if (render) renderResult(data);
                 data.t = Date.now();

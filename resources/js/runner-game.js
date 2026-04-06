@@ -71,10 +71,9 @@ export function initRunnerGame() {
     let state       = 'idle';
     let score       = 0;
     let hiScore     = 0;
-    let worldRecord = parseInt(canvas.dataset.worldRecord, 10) || 0;
+    let worldRecord = Number.parseInt(canvas.dataset.worldRecord, 10) || 0;
     let speed       = 5;
     let frame       = 0;
-    let animId;     // eslint-disable-line no-unused-vars
     let hillOff     = 0;
 
     const char = { y: GROUND_Y - CHAR_H, vy: 0, grounded: true };
@@ -83,7 +82,7 @@ export function initRunnerGame() {
     let nextSpawn  = 90;
     let clouds     = [];
     let tractors   = [];
-    let nextTractor = 300 + Math.floor(Math.random() * 200);
+    let nextTractor = 300 + Math.floor(Math.random() * 200); // NOSONAR javascript:S2245 — Math.random() pour génération aléatoire de jeu
 
     // ── Reset ─────────────────────────────────────────────────────
     function reset() {
@@ -93,7 +92,7 @@ export function initRunnerGame() {
         obstacles    = [];
         tractors     = [];
         nextSpawn    = 90;
-        nextTractor  = 300 + Math.floor(Math.random() * 200);
+        nextTractor  = 300 + Math.floor(Math.random() * 200); // NOSONAR javascript:S2245 — Math.random() pour génération aléatoire de jeu
         hillOff      = 0;
         char.y       = GROUND_Y - CHAR_H;
         char.vy      = 0;
@@ -148,7 +147,7 @@ export function initRunnerGame() {
             { w: 28, h: 64 },
             { w: 42, h: 34 },
         ];
-        const t = types[Math.floor(Math.random() * types.length)];
+        const t = types[Math.floor(Math.random() * types.length)]; // NOSONAR javascript:S2245 — Math.random() pour génération aléatoire de jeu
         obstacles.push({ x: canvas.width + 10, w: t.w, h: t.h });
     }
 
@@ -569,7 +568,7 @@ export function initRunnerGame() {
         nextTractor--;
         if (nextTractor <= 0) {
             spawnTractor();
-            nextTractor = 400 + Math.floor(Math.random() * 300);
+            nextTractor = 400 + Math.floor(Math.random() * 300); // NOSONAR javascript:S2245 — Math.random() pour génération aléatoire de jeu
         }
         tractors.forEach((t) => { t.x -= t.speed; });
         tractors = tractors.filter((t) => t.x + 80 > 0);
@@ -579,7 +578,7 @@ export function initRunnerGame() {
         if (nextSpawn <= 0) {
             spawnObstacle();
             const base = Math.max(42, 100 - Math.floor(score / 80) * 8);
-            nextSpawn  = base + Math.floor(Math.random() * 48);
+            nextSpawn  = base + Math.floor(Math.random() * 48); // NOSONAR javascript:S2245 — Math.random() pour génération aléatoire de jeu
         }
         obstacles.forEach((o) => { o.x -= speed; });
         obstacles = obstacles.filter((o) => o.x + o.w > 0);
@@ -635,7 +634,7 @@ export function initRunnerGame() {
     function loop() {
         update();
         draw();
-        animId = requestAnimationFrame(loop);
+        requestAnimationFrame(loop);
     }
 
     reset();

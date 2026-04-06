@@ -79,20 +79,19 @@ export function initTonneauCatapulteGame() {
     let throwScore   = 0;
     let totalScore   = 0;
     let hiScore      = 0;
-    let worldRecord  = parseInt(canvas.dataset.worldRecord, 10) || 0;
+    let worldRecord  = Number.parseInt(canvas.dataset.worldRecord, 10) || 0;
     let throwAnim    = 0;
     let landedFrames = 0;
     let travelTimer  = 0;
-    let target       = null;  // { worldX, r1, r2, r3 }
+    let target       = null;  // current throw target coords
     let accuracyMsg  = '';
     let wasWorldRecord = false;
-    let animId;               // eslint-disable-line no-unused-vars
 
     // ── Génération d'un lancer ────────────────────────────────
     function newThrow() {
 
         // Cible lointaine : 350–900 px monde (70–180 m)
-        const dist = 350 + Math.random() * 550;
+        const dist = 350 + Math.random() * 550; // NOSONAR javascript:S2245 — Math.random() pour jeu côté client
         target = {
             worldX: VIG_X + dist,
             r1: 22,   // bullseye  (≈4 m)
@@ -180,7 +179,7 @@ export function initTonneauCatapulteGame() {
     // ── Bras vigneron ─────────────────────────────────────────
     function armAngleRad() {
         const base = (angle * Math.PI) / 180;
-        if (state === 'charging') return base + (power / 100) * 1.0;
+        if (state === 'charging') return base + (power / 100) * 1;
         if (throwAnim > 0)        return base - throwAnim * 0.8;
         return base;
     }
@@ -197,7 +196,7 @@ export function initTonneauCatapulteGame() {
         const hand = handPos();
         barrel    = { x: hand.x, y: hand.y, vx: Math.cos(rad) * spd, vy: -Math.sin(rad) * spd };
         camX      = 0;
-        throwAnim = 1.0;
+        throwAnim = 1;
         state     = 'flying';
     }
 
@@ -221,7 +220,7 @@ export function initTonneauCatapulteGame() {
     }
 
     // ── Update ────────────────────────────────────────────────
-    function update() {
+    function update() { // NOSONAR javascript:S3776 — fonction update() de boucle de jeu, complexité inhérente
         if (state === 'idle' || state === 'gameover') return;
 
         // ── Travelling : focus sur la cible ──────────────────
@@ -462,7 +461,10 @@ export function initTonneauCatapulteGame() {
         const by = SHOULDER_Y - 20;
         ctx.fillStyle = 'rgba(42,28,14,0.45)';
         ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
-        const col = power > 70 ? C.powerHi : power > 40 ? C.powerMid : C.powerLow;
+        let col;
+        if (power > 70) { col = C.powerHi; }
+        else if (power > 40) { col = C.powerMid; }
+        else { col = C.powerLow; }
         ctx.fillStyle = col;
         ctx.fillRect(bx, by, bw * power / 100, bh);
         ctx.strokeStyle = C.gold;
@@ -595,11 +597,10 @@ export function initTonneauCatapulteGame() {
 
         if (state === 'gameover') {
             const isPersonalRecord = totalScore >= hiScore && totalScore > 0;
-            const recordMsg = wasWorldRecord
-                ? '✦ Record Mondial ! ✦'
-                : isPersonalRecord
-                    ? '✦ Nouveau record personnel ! ✦'
-                    : `Meilleur : ${hiScore} pts`;
+            let recordMsg;
+            if (wasWorldRecord) { recordMsg = '✦ Record Mondial ! ✦'; }
+            else if (isPersonalRecord) { recordMsg = '✦ Nouveau record personnel ! ✦'; }
+            else { recordMsg = `Meilleur : ${hiScore} pts`; }
             drawOverlay([
                 { text: `Score total : ${totalScore} pts`, size: 20, color: '#F5F0E8', dy: -22 },
                 { text: recordMsg,                         size: 14, color: C.gold,    dy:   6 },
@@ -612,7 +613,7 @@ export function initTonneauCatapulteGame() {
     function loop() {
         update();
         draw();
-        animId = requestAnimationFrame(loop);
+        requestAnimationFrame(loop);
     }
 
     loop();

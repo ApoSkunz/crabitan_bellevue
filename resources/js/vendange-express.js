@@ -67,17 +67,16 @@ export function initVendangeExpressGame() {
     let crateX      = 0;   // centre du panier
     let moveLeft    = false;
     let moveRight   = false;
-    let items       = [];  // { x, y, type, speed }
-    let particles   = [];  // { x, y, text, life, color }
+    let items       = [];  // falling items: x, y, type, speed
+    let particles   = [];  // score particles: x, y, text, life, color
     let score       = 0;
     let lives       = 10;
     let hiScore     = 0;
-    let worldRecord = parseInt(canvas.dataset.worldRecord, 10) || 0;
+    let worldRecord = Number.parseInt(canvas.dataset.worldRecord, 10) || 0;
     let frame          = 0;
     let baseSpeed      = 2.4;
     let shakeLives     = 0;
     let wasWorldRecord = false;
-    let animId;             // eslint-disable-line no-unused-vars
 
     const VALUES = { grape: 10, bottle: 30, golden: 50 };
 
@@ -91,10 +90,13 @@ export function initVendangeExpressGame() {
     }
 
     function spawnItem() {
-        const col  = Math.floor(Math.random() * N_COLS);
-        const rand = Math.random();
-        const type = rand < 0.62 ? 'grape' : rand < 0.88 ? 'bottle' : 'golden';
-        items.push({ x: colX(col), y: -22, type, speed: baseSpeed + Math.random() * 0.6 });
+        const col  = Math.floor(Math.random() * N_COLS); // NOSONAR javascript:S2245 — Math.random() pour jeu côté client
+        const rand = Math.random(); // NOSONAR javascript:S2245 — Math.random() pour jeu côté client
+        let type;
+        if (rand < 0.62) { type = 'grape'; }
+        else if (rand < 0.88) { type = 'bottle'; }
+        else { type = 'golden'; }
+        items.push({ x: colX(col), y: -22, type, speed: baseSpeed + Math.random() * 0.6 }); // NOSONAR javascript:S2245 — Math.random() pour jeu côté client
     }
 
     // ── Input ─────────────────────────────────────────────────
@@ -171,7 +173,7 @@ export function initVendangeExpressGame() {
         if (shakeLives > 0) shakeLives--;
 
         // Items
-        items = items.filter((item) => {
+        items = items.filter((item) => { // NOSONAR javascript:S3776 — filtre items jeu, logique métier dense intentionnelle
             item.y += item.speed;
 
             // Collision avec la caisse
@@ -180,7 +182,10 @@ export function initVendangeExpressGame() {
                 && item.x >= crateX - catchZone && item.x <= crateX + catchZone) {
                 const val = VALUES[item.type];
                 score    += val;
-                const col = item.type === 'golden' ? C.goldenHi : item.type === 'bottle' ? C.bottleLbl : C.grapeHi;
+                let col;
+                if (item.type === 'golden') { col = C.goldenHi; }
+                else if (item.type === 'bottle') { col = C.bottleLbl; }
+                else { col = C.grapeHi; }
                 particles.push({ x: item.x, y: CRATE_Y - 10, text: `+${val}`, life: 40, color: col });
                 return false;
             }
@@ -479,11 +484,10 @@ export function initVendangeExpressGame() {
 
         if (state === 'dead') {
             const isPersonalRecord = score >= hiScore && score > 0;
-            const recordMsg        = wasWorldRecord
-                ? '✦ Record Mondial ! ✦'
-                : isPersonalRecord
-                    ? '✦ Nouveau record personnel ! ✦'
-                    : `Meilleur : ${hiScore} pts`;
+            let recordMsg;
+            if (wasWorldRecord) { recordMsg = '✦ Record Mondial ! ✦'; }
+            else if (isPersonalRecord) { recordMsg = '✦ Nouveau record personnel ! ✦'; }
+            else { recordMsg = `Meilleur : ${hiScore} pts`; }
             drawOverlay([
                 { text: `Score : ${score} pts`, size: 22, color: '#F5F0E8', dy: -22 },
                 { text: recordMsg,              size: 14, color: C.gold,    dy:   6 },
@@ -495,7 +499,7 @@ export function initVendangeExpressGame() {
     function loop() {
         update();
         draw();
-        animId = requestAnimationFrame(loop);
+        requestAnimationFrame(loop);
     }
 
     reset();

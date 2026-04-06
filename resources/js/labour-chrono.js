@@ -65,19 +65,18 @@ export function initLabourChronoGame() {
     let state        = 'idle';
     let lane         = 1;
     let targetLane   = 1;
-    let laneT        = 1.0;
+    let laneT        = 1;
     let scrollX      = 0;
     let speed        = 3.2;
     let score        = 0;
     let bonus        = 0;   // raisins + barriques
     let hiScore      = 0;
-    let worldRecord  = parseInt(canvas.dataset.worldRecord, 10) || 0;
+    let worldRecord  = Number.parseInt(canvas.dataset.worldRecord, 10) || 0;
     let frame        = 0;
-    let animId;             // eslint-disable-line no-unused-vars
-    let obstacles    = [];  // { x, lane }
-    let grapes       = [];  // { x, lane }
-    let barrels      = [];  // { x, lane }   — barriques 100 pts
-    let powerups     = [];  // { x, lane }   — boucliers
+    let obstacles    = [];  // items with x-position and lane index
+    let grapes       = [];  // items with x-position and lane index
+    let barrels      = [];  // items with x-position and lane index   — barriques 100 pts
+    let powerups     = [];  // items with x-position and lane index   — boucliers
     let posts        = [];
     let stunFrames   = 0;
     let shieldFrames   = 0;   // frames restantes de bouclier actif
@@ -89,7 +88,7 @@ export function initLabourChronoGame() {
     }
 
     function spawnAt(arr, extra = {}) {
-        arr.push({ x: canvas.width + 60 + Math.random() * 100, lane: Math.floor(Math.random() * N_LANES), ...extra });
+        arr.push({ x: canvas.width + 60 + Math.random() * 100, lane: Math.floor(Math.random() * N_LANES), ...extra }); // NOSONAR javascript:S2245 — Math.random() pour jeu côté client (non cryptographique intentionnel)
     }
 
     function generatePosts() {
@@ -98,7 +97,7 @@ export function initLabourChronoGame() {
     }
 
     function reset() {
-        lane = 1; targetLane = 1; laneT = 1.0;
+        lane = 1; targetLane = 1; laneT = 1;
         scrollX = 0; speed = 3.2; score = 0; bonus = 0;
         frame = 0; stunFrames = 0; shieldFrames = 0; wasWorldRecord = false;
         obstacles = []; grapes = []; barrels = []; powerups = [];
@@ -177,13 +176,13 @@ export function initLabourChronoGame() {
 
         // Avancement (vitesse croissante)
         scrollX += speed;
-        speed    = Math.min(9.0, 3.2 + scrollX / 2500);
+        speed    = Math.min(9, 3.2 + scrollX / 2500);
         score    = Math.floor(scrollX / 50);
 
         // Transition de rangée
-        if (laneT < 1.0) {
-            laneT = Math.min(1.0, laneT + 0.12);
-            if (laneT >= 1.0) lane = targetLane;
+        if (laneT < 1) {
+            laneT = Math.min(1, laneT + 0.12);
+            if (laneT >= 1) lane = targetLane;
         }
 
         // Spawn — difficultés progressives
@@ -377,7 +376,10 @@ export function initLabourChronoGame() {
         ctx.fillRect(-TRACTOR_W / 2 + 4, -TRACTOR_H / 2 + 4, TRACTOR_W, TRACTOR_H);
 
         // Corps
-        const bodyColor = stunFrames > 0 ? '#E08040' : (shieldFrames > 0 ? '#50A8E0' : C.tractor);
+        let bodyColor;
+        if (stunFrames > 0) { bodyColor = '#E08040'; }
+        else if (shieldFrames > 0) { bodyColor = '#50A8E0'; }
+        else { bodyColor = C.tractor; }
         ctx.fillStyle = bodyColor;
         ctx.fillRect(-TRACTOR_W / 2, -TRACTOR_H / 2, TRACTOR_W, TRACTOR_H);
 
@@ -514,11 +516,10 @@ export function initLabourChronoGame() {
         if (state === 'dead') {
             const totalScore       = score + bonus;
             const isPersonalRecord = totalScore >= hiScore && totalScore > 0;
-            const recordMsg        = wasWorldRecord
-                ? '✦ Record Mondial ! ✦'
-                : isPersonalRecord
-                    ? '✦ Nouveau record personnel ! ✦'
-                    : `Meilleur : ${hiScore} pts`;
+            let recordMsg;
+            if (wasWorldRecord) { recordMsg = '✦ Record Mondial ! ✦'; }
+            else if (isPersonalRecord) { recordMsg = '✦ Nouveau record personnel ! ✦'; }
+            else { recordMsg = `Meilleur : ${hiScore} pts`; }
             drawOverlay([
                 { text: `Score : ${totalScore} pts`, size: 22, color: '#F5F0E8', dy: -22 },
                 { text: recordMsg,                   size: 14, color: C.gold,    dy:   6 },
@@ -530,7 +531,7 @@ export function initLabourChronoGame() {
     function loop() {
         update();
         draw();
-        animId = requestAnimationFrame(loop);
+        requestAnimationFrame(loop);
     }
 
     reset();

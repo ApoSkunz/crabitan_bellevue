@@ -1,5 +1,13 @@
 # CLAUDE.md — Instructions projet crabitan_bellevue
 
+## Style de réponse
+
+**Par défaut : ultra-court.** Aller droit au but — résultat en 1 ligne, liste à puces si plusieurs actions, zéro préambule ni récap.
+
+**Exception : challenges inter-experts.** Quand plusieurs experts sont en désaccord (Red Team vs Blue Team, Expert Juridique vs RGPD, etc.), exprimer pleinement les divergences — la richesse du débat prime sur l'économie de tokens.
+
+---
+
 ## Initialisation de session
 
 `CLAUDE.md` est chargé automatiquement — ne pas le relire.
