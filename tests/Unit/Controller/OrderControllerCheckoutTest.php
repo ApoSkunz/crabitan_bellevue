@@ -228,6 +228,36 @@ class OrderControllerCheckoutTest extends TestCase
     }
 
     // ================================================================
+    // payment() — Guard majorité non déclarée → redirect /panier
+    // ================================================================
+
+    public function testPaymentRedirectsToCartWhenMajorityNotDeclared(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+        $_POST = ['csrf_token' => 'valid-csrf'];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],    // AuthMiddleware session check
+            false           // hasDeclaredMajority → non déclaré
+        );
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->payment(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertSame('/fr/commande', $caught->location); // $back = "/{lang}/commande"
+        $this->assertTrue($_SESSION['majority_pending'] ?? false);
+    }
+
+    // ================================================================
     // confirmation() — GET : pas de référence → redirect commandes
     // ================================================================
 
