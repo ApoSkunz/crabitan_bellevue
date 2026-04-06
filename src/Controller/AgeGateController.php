@@ -37,9 +37,10 @@ class AgeGateController extends Controller
         $remember = !empty($_POST['remember']);
         $redirect = $_POST['redirect'] ?? '/' . DEFAULT_LANG;
 
-        // Mineur ou choix absent → redirection Google (JS disabled fallback)
+        // Mineur ou choix absent → redirection vers l'URL de sortie (referer externe ou Google)
         if ($legalAge !== '1') {
-            Response::redirect('https://www.google.com');
+            $exitUrl = $_POST['exit_url'] ?? '';
+            Response::redirect($this->sanitizeExitUrl($exitUrl));
         }
 
         $this->logAgeVerification();
@@ -88,6 +89,26 @@ class AgeGateController extends Controller
         }
 
         error_log(date('Y-m-d H:i:s') . ' | ' . $ip . PHP_EOL, 3, $logDir . '/age-gate.log');
+    }
+
+    /**
+     * Valide une URL de sortie externe (http/https, hors domaine courant).
+     * Tout ce qui ne correspond pas à une URL absolue externe est remplacé par Google.
+     *
+     * @param string $url URL candidate fournie via POST exit_url
+     * @return string URL sûre vers laquelle rediriger
+     */
+    private function sanitizeExitUrl(string $url): string
+    {
+        if (
+            filter_var($url, FILTER_VALIDATE_URL) !== false
+            && preg_match('#^https?://#i', $url)
+            && !str_contains($url, (string) ($_SERVER['HTTP_HOST'] ?? ''))
+        ) {
+            return $url;
+        }
+
+        return 'https://www.google.com';
     }
 
     /**

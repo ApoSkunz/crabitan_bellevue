@@ -5,6 +5,13 @@
  * Requiert : $navLang (string).
  */
 $overlayRedirect = $_SERVER['REQUEST_URI'] ?? '/' . ($navLang ?? 'fr');
+
+// URL de sortie : referer externe si disponible, sinon Google
+$siteOrigin  = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '');
+$httpReferer = $_SERVER['HTTP_REFERER'] ?? '';
+$exitUrl = (!empty($httpReferer) && !str_starts_with($httpReferer, $siteOrigin))
+    ? $httpReferer
+    : 'https://www.google.com';
 ?>
 <div class="age-overlay" id="age-overlay" role="dialog" aria-modal="true" aria-labelledby="age-overlay-title">
     <div class="age-overlay__card">
@@ -31,6 +38,7 @@ $overlayRedirect = $_SERVER['REQUEST_URI'] ?? '/' . ($navLang ?? 'fr');
             </form>
             <form method="POST" action="/age-gate">
                 <input type="hidden" name="legal_age" value="0">
+                <input type="hidden" name="exit_url" value="<?= htmlspecialchars($exitUrl) ?>">
                 <button type="submit" class="age-overlay__btn-exit">
                     <?= htmlspecialchars(__('age_gate.exit')) ?>
                 </button>
