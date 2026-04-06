@@ -394,6 +394,120 @@
     }
 }
 
+// ============================================================
+// Overlay age gate — injectée dans header.php
+// ============================================================
+
+.age-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: rgba(0, 0, 0, 0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: fade-in 0.35s ease both;
+
+    [data-theme='light'] & {
+        background: rgba(20, 16, 10, 0.78);
+    }
+}
+
+.age-overlay__card {
+    background: var(--color-surface);
+    border: 1px solid rgba(201, 168, 76, 0.55);
+    box-shadow: 0 0 40px rgba(201, 168, 76, 0.12);
+    padding: 2.5rem 2rem;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+}
+
+.age-overlay__logo {
+    margin-bottom: 1.25rem;
+
+    img {
+        margin: 0 auto;
+        display: block;
+    }
+}
+
+.age-overlay__title {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: 1.25rem;
+}
+
+.age-overlay__text {
+    font-size: 0.925rem;
+    color: var(--color-text);
+    line-height: 1.75;
+    margin-bottom: 2rem;
+    max-width: 36ch;
+    margin-inline: auto;
+}
+
+.age-overlay__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+
+    form {
+        width: 100%;
+    }
+}
+
+.age-overlay__btn-enter {
+    width: 100%;
+}
+
+.age-overlay__btn-exit {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0.3em 0.6em;
+    transition: color 200ms ease;
+    width: 100%;
+
+    &:hover {
+        color: var(--color-text);
+    }
+}
+
+.age-overlay__legal {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+
+    a {
+        color: var(--color-text-muted);
+        opacity: 0.55;
+        text-transform: uppercase;
+        transition: opacity 200ms ease;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    span {
+        color: var(--color-text-muted);
+        opacity: 0.35;
+    }
+}
+
 // Micro-footer légal — liens politique de confidentialité et mentions légales
 .age-gate__legal-footer {
     position: fixed;
