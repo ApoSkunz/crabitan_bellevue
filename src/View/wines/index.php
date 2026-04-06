@@ -52,7 +52,7 @@ $colorLabels = [
 
                     <label class="wines-filters__check wines-filters__check--cuvee<?= $activeCuvee ? ' is-active' : '' ?>">
                         <input type="checkbox" name="cuvee_speciale" value="1" <?= $activeCuvee ? 'checked' : '' ?>>
-                        &#11088; <?= htmlspecialchars(__('wine.filter_cuvee')) ?>
+                        <?= htmlspecialchars(__('wine.filter_cuvee')) ?>
                     </label>
 
                     <button type="submit" class="btn btn--gold wines-filters__submit">

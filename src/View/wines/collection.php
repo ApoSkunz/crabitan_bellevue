@@ -73,7 +73,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
 
                     <label class="wines-filters__check wines-filters__check--cuvee<?= $activeCuvee ? $cls : '' ?>">
                         <input type="checkbox" name="cuvee_speciale" value="1" <?= $activeCuvee ? 'checked' : '' ?>>
-                        &#11088; <?= htmlspecialchars(__('wine.filter_cuvee')) ?>
+                        <?= htmlspecialchars(__('wine.filter_cuvee')) ?>
                     </label>
 
                     <button type="submit" class="btn btn--gold wines-filters__submit">
