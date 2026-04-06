@@ -44,7 +44,7 @@ $pricingRules     = $pricingRules     ?? [];
             <p class="cart-b2b__message"><?= htmlspecialchars(__('cart.b2b_message')) ?></p>
             <?php
             $b2bSubject = rawurlencode(__('cart.b2b_subject'));
-            $b2bEmail   = 'contact@crabitanbellevue.fr';
+            $b2bEmail   = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
             ?>
             <a
                 href="mailto:<?= htmlspecialchars($b2bEmail) ?>?subject=<?= $b2bSubject ?>"
@@ -65,7 +65,7 @@ $pricingRules     = $pricingRules     ?? [];
         <!-- Notice > 600 bouteilles -->
         <?php
         $over600Subject = rawurlencode(__('cart.over_600_subject'));
-        $over600Email   = 'contact@crabitanbellevue.fr';
+        $over600Email   = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
         ?>
         <div class="cart-notice cart-notice--contact js-notice-600"
              id="cart-notice-600"
