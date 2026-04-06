@@ -74,6 +74,16 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         return new PaymentService();
     }
 
+    /**
+     * Instancie le MailService (seam de testabilité).
+     *
+     * @return MailService
+     */
+    protected function newMailService(): MailService
+    {
+        return new MailService();
+    }
+
     // ----------------------------------------------------------------
     // GET /{lang}/mon-compte
     // ----------------------------------------------------------------
@@ -1624,7 +1634,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $filename = $basename . ($isZip ? '.zip' : '.json');
 
         try {
-            (new MailService())->sendRgpdExport($email, $name, $content, $filename, $lang);
+            $this->newMailService()->sendRgpdExport($email, $name, $content, $filename, $lang);
             $this->rateLimiter->remember('rgpd_export_ts:' . $userId, time(), self::WINDOW_EXPORT);
             $_SESSION['flash']['export_sent'] = self::maskEmail($email);
         } catch (\Exception $e) {
