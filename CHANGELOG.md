@@ -2,6 +2,34 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.41.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.40.0...v0.41.0) (2026-04-06)
+
+
+### Bug Fixes
+
+* **controller:** AuthController — budget email combiné IP (MAX=5/15min) partagé forgot+resend, erreur visible au blocage ([12b95a9](https://github.com/ApoSkunz/crabitan_bellevue/commit/12b95a9a896a9180b3f3b76ff9fc6fc3c16be7a4))
+* **js:** main.js — window → globalThis dans initLoginModal (javascript:S7764) ([6ca2339](https://github.com/ApoSkunz/crabitan_bellevue/commit/6ca233971ef86bd9f7d61a05b3dc464d89727f69))
+* **lint:** main.js — remplacer var par let/const (règle ESLint no-var, lignes 560-563) ([0d29b82](https://github.com/ApoSkunz/crabitan_bellevue/commit/0d29b8210da70cb1e4c6b1cc0aece0c8bf250d9a))
+* **model:** AddressModel — résoudre le conflit de merge sur deleteForUser() et hasOrderSnapshot() ([9a8f5f0](https://github.com/ApoSkunz/crabitan_bellevue/commit/9a8f5f01e4caa74608792f17b725576b32292913))
+* **model:** adresses — smart-delete : hard-delete sans snapshot, soft-delete avec deleted_at si snapshot ([509c1df](https://github.com/ApoSkunz/crabitan_bellevue/commit/509c1dffc951007a437f92a90c268f73de69b45d))
+* **phpstan:** AddressModel — supprimer comparaison !== null toujours vraie (fetchOne retourne array|false) ([9dfc810](https://github.com/ApoSkunz/crabitan_bellevue/commit/9dfc81045c73ef39bb6e28d88d492d349ea6709a))
+* **phpstan:** AddressModel — supprimer comparaison !== null toujours vraie (fetchOne retourne array|false) ([c5c5a5d](https://github.com/ApoSkunz/crabitan_bellevue/commit/c5c5a5ddbf3006eed4b194a40c44bb21c6e0a168))
+* **rebase:** restaurer SessionTtlRefresher — version main avec refresh remember-me fin de vie ([d2e7d4f](https://github.com/ApoSkunz/crabitan_bellevue/commit/d2e7d4f3107bcd0ecdce12843453a32dc384eec0))
+* **service:** MailService — désactiver SMTPAutoTLS pour compatibilité MailHog (dev) ([36ae4c2](https://github.com/ApoSkunz/crabitan_bellevue/commit/36ae4c2495029f64672fafaa49f98a1d15c29303))
+* **service:** RateLimiterService — appliquer le TTL session au get() pour expirer les entrées périmées ([9770d5b](https://github.com/ApoSkunz/crabitan_bellevue/commit/9770d5b977f8547ed6aed9675db36ad3e9d5f5b1))
+* **service:** RateLimiterService::get() — 4 returns → 3 (php:S1142) ([06e548c](https://github.com/ApoSkunz/crabitan_bellevue/commit/06e548cc1a9c176a855875522bbc3bd0c10447ac))
+* **test:** corriger la pollution namespace APCu dans les TU CI ([77e748d](https://github.com/ApoSkunz/crabitan_bellevue/commit/77e748dbc95130bf8f81cdc85e28983c28fc0035))
+* **view:** header.php — IDs dupliqués resend-activation-back-btn et forgot-back-btn (Web:S7930) ([cd21bfa](https://github.com/ApoSkunz/crabitan_bellevue/commit/cd21bfa4a98ec44919158e9d709029ee1f59fb00))
+
+
+### Features
+
+* **auth:** resendActivation — renvoi lien activation avec anti-énumération + rate limiting ([ce1730d](https://github.com/ApoSkunz/crabitan_bellevue/commit/ce1730d44aef1ba06ed061ccd9781c50f30ee128))
+* **routes,i18n:** renvoyer-activation — route POST + clés fr/en ([97eb2c3](https://github.com/ApoSkunz/crabitan_bellevue/commit/97eb2c33f4822cb26ced7d1b28a763668474748d))
+* **session:** refresh TTL automatique des sessions actives ([bc578cb](https://github.com/ApoSkunz/crabitan_bellevue/commit/bc578cb2f8e080d1a8a634180c2fa5a877502338))
+* **view:** modal login — visibilité lien renvoi activation, flash succès 5s + bouton retour, double-panel fix ([c996c64](https://github.com/ApoSkunz/crabitan_bellevue/commit/c996c6489696e6b0cbf91a5b5940cf564bf08411))
+* **view:** modale login — panel renvoi activation + lien + JS auto-open ([52a357d](https://github.com/ApoSkunz/crabitan_bellevue/commit/52a357d775bc3a3b16de5573e4bc2dc226758074))
+
 # [0.40.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.39.0...v0.40.0) (2026-04-06)
 
 
