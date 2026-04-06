@@ -1,14 +1,22 @@
 <?php
-$pageTitle = __('footer.privacy_policy');
-$navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
-$isBare    = $bare ?? false;
+$pageTitle    = __('footer.privacy_policy');
+$navLang      = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$isBare       = $bare ?? false;
+
+$legal        = require ROOT_PATH . '/config/legal.php';
+$legalVersion = $legal['politique_confidentialite']['version'];
+$legalDate    = $legal['politique_confidentialite']['updated_at'];
+$contactEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
+$safeEmail    = htmlspecialchars($contactEmail, ENT_QUOTES);
 
 require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : require_once bloquerait le re-rendu entre tests (même convention que Response::view)
 ?>
 
+        <p class="legal-version"><?= htmlspecialchars(__('legal.version')) ?> <?= htmlspecialchars($legalVersion) ?> &mdash; <?= htmlspecialchars(__('legal.updated_at')) ?> <?= htmlspecialchars($legalDate) ?></p>
+
         <h2>I. Responsable du traitement</h2>
         <p>Le responsable du traitement de vos données personnelles est le GFA Bernard Solane et Fils, dont le siège social est sis Château Crabitan Bellevue, 33410 Sainte-Croix-du-Mont &ndash; FRANCE (SIRET&nbsp;: 398&nbsp;341&nbsp;701&nbsp;00017).</p>
-        <p>Contact&nbsp;: <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a> &mdash; Téléphone&nbsp;: <a href="tel:+33556620153">+33&nbsp;(0)5&nbsp;56&nbsp;62&nbsp;01&nbsp;53</a></p>
+        <p>Contact&nbsp;: <a href="mailto:<?= $safeEmail ?>"><?= $safeEmail ?></a> &mdash; Téléphone&nbsp;: <a href="tel:+33556620153">+33&nbsp;(0)5&nbsp;56&nbsp;62&nbsp;01&nbsp;53</a></p>
 
         <h2>II. Données collectées et finalités</h2>
 

@@ -335,6 +335,8 @@ return [
     'contact.order_form_btn'      => 'Download order form (PDF)',
 
     // Legal notice
+    'legal.version'       => 'Version',
+    'legal.updated_at'    => 'Last updated',
     'legal.editor_title'  => 'Website editor',
     'legal.hosting_title' => 'Hosting',
     'legal.ai_mention'    => 'This website was developed with the assistance of Claude, an artificial intelligence model published by Anthropic.',
