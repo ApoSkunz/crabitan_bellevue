@@ -93,8 +93,14 @@ class OrderController extends Controller
             Response::redirect("/{$lang}/panier");
         }
 
-        $account     = (new AccountModel())->findById($userId);
+        $accountModel = new AccountModel();
+        $account      = $accountModel->findById($userId);
         $isNewsletterSubscribed = (bool) ($account !== false ? ($account['newsletter'] ?? false) : false);
+
+        if ($account !== false && !$accountModel->hasDeclaredMajority($userId)) {
+            $_SESSION['majority_pending'] = true;
+            Response::redirect("/{$lang}/commande");
+        }
 
         $items    = $this->enrichItems($this->carts->getContent($row));
         $totalQty = (int) array_sum(array_column($items, 'qty'));
@@ -652,7 +658,7 @@ class OrderController extends Controller
      */
     private function requireCustomer(): array
     {
-        $payload = AuthMiddleware::handle();
+        $payload = AuthMiddleware::handle(redirectToLogin: true);
         if (($payload['role'] ?? '') !== 'customer') {
             Response::abort(404);
         }

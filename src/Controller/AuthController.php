@@ -257,7 +257,15 @@ class AuthController extends Controller
         $loginCount  = $loginCart !== false ? (int) ($loginCart['total_quantity'] ?? 0) : 0;
         setcookie('cb-cart-count', (string) $loginCount, ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
 
-        Response::redirect($safeBack);
+        // _intended — URL mémorisée par AuthMiddleware lors d'un accès à une page protégée sans auth.
+        // Priorité : _intended (navigation directe) > redirect_back (modal header) > accueil.
+        $intended = $_SESSION['_intended'] ?? null;
+        unset($_SESSION['_intended']);
+        $validIntended = $intended !== null
+            && is_string($intended)
+            && preg_match('#^/[^/]#', $intended)
+            && !str_contains($intended, '://');
+        Response::redirect($validIntended ? $intended : $safeBack);
     }
 
     // ----------------------------------------------------------------
@@ -463,10 +471,15 @@ class AuthController extends Controller
             Response::redirect("/{$lang}");
         }
 
-        $this->accounts->verifyEmail((int) $account['id']);
+        $accountId = (int) $account['id'];
+        $this->accounts->verifyEmail($accountId);
 
         if (!empty($account['newsletter_optin_pending'])) {
-            $this->accounts->activateNewsletterFromPending((int) $account['id']);
+            $this->accounts->activateNewsletterFromPending($accountId);
+        }
+
+        if (!$this->accounts->hasDeclaredMajority($accountId)) {
+            $_SESSION['majority_pending'] = true;
         }
 
         $this->view('auth/verify', [

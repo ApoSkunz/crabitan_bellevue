@@ -19,18 +19,24 @@ class AuthMiddleware
      * Prolonge expired_at si le TTL restant est inférieur au seuil JWT_REFRESH_THRESHOLD.
      * Redirige vers /connexion si absent, invalide ou révoqué.
      *
-     * @param  callable(string):bool|null  $sessionChecker  Injectable pour les tests unitaires.
-     *                                                       null = vérification réelle en base.
+     * @param  callable(string):bool|null      $sessionChecker  Injectable pour les tests unitaires.
+     *                                                           null = vérification réelle en base.
      * @param  callable(string,int):bool|null  $ttlRefresher    Injectable pour les tests unitaires.
      *                                                           null = refresh réel en base.
+     * @param  bool                            $redirectToLogin  true = mémorise _intended et redirige vers le modal
+     *                                                           de connexion (pages utilisateur) au lieu d'un 404.
      */
     public static function handle(
         ?callable $sessionChecker = null,
-        ?callable $ttlRefresher = null
+        ?callable $ttlRefresher = null,
+        bool $redirectToLogin = false
     ): array {
         $token = $_COOKIE['auth_token'] ?? null;
 
         if (!$token) {
+            if ($redirectToLogin) {
+                self::storeIntendedAndRedirect();
+            }
             Response::abort(404); // 404 — ne révèle pas l'existence des routes protégées
         }
 
@@ -68,6 +74,24 @@ class AuthMiddleware
         SessionTtlRefresher::maybeRefresh($payload, $token, $isRememberMe, $refresher);
 
         return $payload;
+    }
+
+    /**
+     * Stocke l'URL courante en session comme destination post-connexion,
+     * puis redirige vers le modal de connexion.
+     *
+     * @return never
+     */
+    private static function storeIntendedAndRedirect(): never
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $uri = strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
+        preg_match('#^/(fr|en)(/|$)#', (string) $uri, $m);
+        $lang = $m[1] ?? 'fr';
+        $_SESSION['_intended'] = $uri;
+        Response::redirect("/{$lang}?login=1");
     }
 
     /**
