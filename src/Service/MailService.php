@@ -11,6 +11,7 @@ use PHPMailer\PHPMailer\Exception;
 class MailService
 {
     private const PATH_SECURITY     = '/mon-compte/securite';
+    private const BTN_ANCHOR_STYLE_ATTR = '" style="';
     private const BTN_STYLE_PRIMARY     = 'display:inline-block;padding:14px 36px;'
         . 'font-family:Georgia,serif;font-size:14px;'
         . 'letter-spacing:2px;text-transform:uppercase;';
@@ -335,7 +336,7 @@ class MailService
                   . '<br><br>'
                   . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-                  . '<a href="' . $safeReactUrl . '" style="'
+                  . '<a href="' . $safeReactUrl . self::BTN_ANCHOR_STYLE_ATTR
                   . self::BTN_STYLE_PRIMARY
                   . 'color:#1a1208;text-decoration:none;font-weight:bold;">Annuler la suppression</a>'
                   . '</td></tr></table>'
@@ -358,7 +359,7 @@ class MailService
                   . '<br><br>'
                   . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-                  . '<a href="' . $safeReactUrl . '" style="'
+                  . '<a href="' . $safeReactUrl . self::BTN_ANCHOR_STYLE_ATTR
                   . self::BTN_STYLE_PRIMARY
                   . 'color:#1a1208;text-decoration:none;font-weight:bold;">Cancel deletion</a>'
                   . '</td></tr></table>'
@@ -436,7 +437,7 @@ class MailService
 
         $reactBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . '<a href="' . $safeReact . '" style="'
+            . '<a href="' . $safeReact . self::BTN_ANCHOR_STYLE_ATTR
             . self::BTN_STYLE_PRIMARY
             . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
             . ($lang === 'fr' ? 'Annuler la suppression' : 'Cancel deletion')
