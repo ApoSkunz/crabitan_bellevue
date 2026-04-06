@@ -128,19 +128,24 @@ class WineController extends Controller
      * Vérifie le rate limiting pour la génération PDF (10 req/IP/vin/heure).
      * Répond 429 avec Retry-After et page d'erreur visuelle si la limite est dépassée.
      *
-     * @param string $slug Slug du vin
+     * @param string $slug      Slug du vin
+     * @param string $wineLabel Nom du vin affiché dans le message d'erreur
      * @return void
      */
-    private function checkPdfRateLimit(string $slug): void
+    private function checkPdfRateLimit(string $slug, string $wineLabel): void
     {
         $ip      = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         $key     = 'pdf_wine:' . $ip . ':' . $slug;
         $limiter = new RateLimiterService();
 
         if (!$limiter->checkLimit($key, self::PDF_RATE_MAX, self::PDF_RATE_WINDOW)) {
-            $retryAfter = $limiter->getRetryAfter($key);
+            $retryAfter   = $limiter->getRetryAfter($key);
+            $retryMinutes = (int) ceil($retryAfter / 60);
             Response::setHeader('Retry-After', (string) $retryAfter);
-            Response::abort(429);
+            Response::abortWithData(429, [
+                'retryMinutes' => $retryMinutes,
+                'wineLabel'    => $wineLabel,
+            ]);
         }
 
         $limiter->recordAttempt($key, self::PDF_RATE_WINDOW);
@@ -156,6 +161,13 @@ class WineController extends Controller
     {
         $lang  = $this->resolveLang($params);
         $slug  = $params['slug'] ?? '';
+
+        // Vérification de majorité — la fiche technique est un contenu alcool
+        if (($_COOKIE['age_verified'] ?? '') !== '1') {
+            $redirect = urlencode('/' . $lang . '/vins/' . $slug . '/fiche-technique');
+            Response::redirect('/age-gate?lang=' . $lang . '&redirect=' . $redirect);
+        }
+
         $model = new WineModel();
         $wine  = $model->getBySlug($slug);
 
@@ -163,7 +175,8 @@ class WineController extends Controller
             Response::abort(404);
         }
 
-        $this->checkPdfRateLimit($slug);
+        $wineLabel = ($wine['label_name'] ?? '') . ($wine['vintage'] ? ' ' . $wine['vintage'] : '');
+        $this->checkPdfRateLimit($slug, $wineLabel);
 
         require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
 

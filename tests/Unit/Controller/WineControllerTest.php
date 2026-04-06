@@ -172,6 +172,7 @@ class WineControllerTest extends TestCase
     {
         $this->bootstrapApp();
         $_SERVER['REQUEST_URI'] = '/en/vins/test-slug/fiche-technique';
+        $_COOKIE['age_verified'] = '1'; // simuler la vérification d'âge
 
         ob_start();
         try {
@@ -294,7 +295,7 @@ class WineControllerTest extends TestCase
         $method = new \ReflectionMethod(\Controller\WineController::class, 'checkPdfRateLimit');
 
         // Doit passer sans exception pour les premières requêtes
-        $method->invoke($ctrl, 'test-slug-rate');
+        $method->invoke($ctrl, 'test-slug-rate', 'Château Test 2020');
         $this->assertTrue(true);
     }
 
@@ -310,12 +311,12 @@ class WineControllerTest extends TestCase
 
         // Épuiser la limite (PDF_RATE_MAX = 10)
         for ($i = 0; $i < 10; $i++) {
-            $method->invoke($ctrl, 'slug-block-test');
+            $method->invoke($ctrl, 'slug-block-test', 'Vin Test');
         }
 
         // La 11ème doit déclencher un HttpException(429)
         $this->expectException(\Core\Exception\HttpException::class);
-        $method->invoke($ctrl, 'slug-block-test');
+        $method->invoke($ctrl, 'slug-block-test', 'Vin Test');
     }
 
     #[RunInSeparateProcess]
@@ -330,11 +331,11 @@ class WineControllerTest extends TestCase
 
         // Épuiser sur slug A
         for ($i = 0; $i < 10; $i++) {
-            $method->invoke($ctrl, 'slug-a');
+            $method->invoke($ctrl, 'slug-a', 'Vin A');
         }
 
         // slug B doit rester libre
-        $method->invoke($ctrl, 'slug-b');
+        $method->invoke($ctrl, 'slug-b', 'Vin B');
         $this->assertTrue(true);
     }
 }
