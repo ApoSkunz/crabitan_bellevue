@@ -10,6 +10,7 @@ use PHPMailer\PHPMailer\Exception;
 class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
 {
     private const PATH_SECURITY     = '/mon-compte/securite';
+    private const PATH_REACTIVER    = '/compte/reactiver?token=';
     private const BTN_ANCHOR_STYLE_ATTR = '" style="';
     private const BTN_STYLE_PRIMARY     = 'display:inline-block;padding:14px 36px;'
         . 'font-family:Georgia,serif;font-size:14px;'
@@ -319,7 +320,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $safeName  = htmlspecialchars($name, ENT_QUOTES);
         $appUrl    = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $reactUrl  = $reactivationToken !== ''
-            ? $appUrl . '/' . $lang . '/compte/reactiver?token=' . urlencode($reactivationToken)
+            ? $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken)
             : '';
         $safeReactUrl = htmlspecialchars($reactUrl, ENT_QUOTES);
 
@@ -421,7 +422,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $reactivationToken
     ): void {
         $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
-        $reactUrl    = $appUrl . '/' . $lang . '/compte/reactiver?token=' . urlencode($reactivationToken);
+        $reactUrl    = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
         $safeReact   = htmlspecialchars($reactUrl, ENT_QUOTES);
         $safeDate    = htmlspecialchars($scheduledDeletionAt, ENT_QUOTES);
@@ -438,7 +439,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
             . '<a href="' . $safeReact . self::BTN_ANCHOR_STYLE_ATTR
             . self::BTN_STYLE_PRIMARY
-            . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+            . self::BTN_STYLE_LINK
             . ($lang === 'fr' ? 'Annuler la suppression' : 'Cancel deletion')
             . '</a></td></tr></table>';
 
@@ -2394,7 +2395,7 @@ HTML;
         string $scheduledDeletionAt
     ): void {
         $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
-        $reactUrl = $appUrl . '/' . $lang . '/compte/reactiver?token=' . urlencode($reactivationToken);
+        $reactUrl = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
         $safeDate = htmlspecialchars($scheduledDeletionAt, ENT_QUOTES);
         $safeUrl  = htmlspecialchars($reactUrl, ENT_QUOTES);
@@ -2403,7 +2404,7 @@ HTML;
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
             . '<a href="' . $safeUrl . self::BTN_ANCHOR_STYLE_ATTR
             . self::BTN_STYLE_PRIMARY
-            . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+            . self::BTN_STYLE_LINK
             . ($lang === 'fr' ? 'Annuler la suppression' : 'Cancel deletion')
             . '</a></td></tr></table>';
 

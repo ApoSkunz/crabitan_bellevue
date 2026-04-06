@@ -53,7 +53,7 @@ $majorityPending   = isset($_SESSION['majority_pending']) && $_SESSION['majority
 $majorityHasCookie = isset($_COOKIE['auth_token']);
 if ($majorityPending && $majorityHasCookie) :
     $majorityRedirect = $_SERVER['REQUEST_URI'] ?? "/{$navLang}/mon-compte";
-    include SRC_PATH . '/View/components/majority-modal.php';
+    include_once SRC_PATH . '/View/components/majority-modal.php';
 endif;
 ?>
 </head>
