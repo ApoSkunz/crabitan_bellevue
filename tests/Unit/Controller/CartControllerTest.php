@@ -545,4 +545,59 @@ class CartControllerTest extends TestCase
         $this->assertSame(12, $result['totalQty']);
         $this->assertNotEmpty($result['cartItems']);
     }
+
+    // ================================================================
+    // add() / update() / remove() — fallbacks sans JS
+    // ================================================================
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testAddRedirectsToCartForGuest(): void
+    {
+        $this->bootstrapApp();
+        $_COOKIE = [];
+
+        ob_start();
+        try {
+            $this->expectException(HttpException::class);
+            $this->expectExceptionCode(302);
+            $this->makeController('/fr/panier/ajouter')->add(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testUpdateRedirectsToCartForGuest(): void
+    {
+        $this->bootstrapApp();
+        $_COOKIE = [];
+
+        ob_start();
+        try {
+            $this->expectException(HttpException::class);
+            $this->expectExceptionCode(302);
+            $this->makeController('/fr/panier/modifier')->update(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testRemoveRedirectsToCartForGuest(): void
+    {
+        $this->bootstrapApp();
+        $_COOKIE = [];
+
+        ob_start();
+        try {
+            $this->expectException(HttpException::class);
+            $this->expectExceptionCode(302);
+            $this->makeController('/fr/panier/supprimer')->remove(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
 }
