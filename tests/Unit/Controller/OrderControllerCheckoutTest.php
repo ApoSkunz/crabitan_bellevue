@@ -79,9 +79,11 @@ class OrderControllerCheckoutTest extends TestCase
 
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],   // AuthMiddleware::handle() → connections check
-            false,          // CartModel::removeUnavailableItems → findByUserId → pas de panier
-            false           // CartModel::findByUserId → pas de panier (explicit check)
+            ['id' => 1],                                                      // AuthMiddleware
+            ['id' => 1, 'newsletter' => false, 'account_type' => 'individual'], // findById (guard majorité)
+            ['majority_declared_at' => '2025-01-01 00:00:00'],               // hasDeclaredMajority → true
+            false,                                                             // removeUnavailableItems
+            false                                                              // findByUserId → panier vide
         );
 
         $caught = null;
@@ -107,7 +109,10 @@ class OrderControllerCheckoutTest extends TestCase
         $_POST = ['csrf_token' => 'wrong-token'];
 
         $stub = $this->setDbMock();
-        $stub->method('fetchOne')->willReturn(['id' => 1]); // AuthMiddleware session check
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],                                         // AuthMiddleware session check
+            ['majority_declared_at' => '2025-01-01 00:00:00']   // hasDeclaredMajority → true
+        );
 
         $caught = null;
         try {
@@ -135,8 +140,9 @@ class OrderControllerCheckoutTest extends TestCase
 
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],   // AuthMiddleware session check
-            false           // CartModel::findByUserId → pas de panier
+            ['id' => 1],                                         // AuthMiddleware session check
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority → true
+            false                                                  // CartModel::findByUserId → pas de panier
         );
 
         $caught = null;
@@ -168,9 +174,9 @@ class OrderControllerCheckoutTest extends TestCase
 
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],   // AuthMiddleware session check
-            // CartModel::findByUserId — panier avec contenu
-            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 2]])]
+            ['id' => 1],                                         // AuthMiddleware session check
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority → true
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 2]])]  // CartModel
         );
 
         $caught = null;
@@ -204,8 +210,9 @@ class OrderControllerCheckoutTest extends TestCase
 
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],
-            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 2]])]
+            ['id' => 1],                                         // AuthMiddleware session check
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority → true
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 2]])]  // CartModel
         );
 
         $caught = null;
@@ -387,7 +394,8 @@ class OrderControllerCheckoutTest extends TestCase
 
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],  // AuthMiddleware
+            ['id' => 1],                                         // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority → true
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 13]])], // cart
             ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false]  // wine
         );
@@ -424,7 +432,8 @@ class OrderControllerCheckoutTest extends TestCase
 
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],  // AuthMiddleware
+            ['id' => 1],                                         // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority → true
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])], // cart
             ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false], // wine
             ['id' => 5, 'firstname' => 'Test', 'lastname' => 'User'],  // resolveAddress findByIdForUser
@@ -470,7 +479,8 @@ class OrderControllerCheckoutTest extends TestCase
 
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],  // AuthMiddleware
+            ['id' => 1],                                         // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority → true
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])], // cart
             ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false]  // wine
         );
@@ -503,7 +513,10 @@ class OrderControllerCheckoutTest extends TestCase
         ];
 
         $stub = $this->setDbMock();
-        $stub->method('fetchOne')->willReturn(['id' => 1]); // AuthMiddleware
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],                                         // AuthMiddleware session check
+            ['majority_declared_at' => '2025-01-01 00:00:00']    // hasDeclaredMajority → true
+        );
 
         $caught = null;
         try {
@@ -530,22 +543,22 @@ class OrderControllerCheckoutTest extends TestCase
         $stub = $this->setDbMock();
         // Ordre exact des appels fetchOne dans checkout() :
         // 1. AuthMiddleware::handle()
-        // 2. CartModel::removeUnavailableItems → findByUserId (false = pas de panier à nettoyer)
-        // 3. CartModel::findByUserId (vérification explicite)
-        // 4. AccountModel::findById (avant enrichItems)
-        // 5. AccountModel::hasDeclaredMajority (Sprint 5 — vérifie déclaration majorité)
+        // 2. AccountModel::findById (guard majorité — en premier)
+        // 3. AccountModel::hasDeclaredMajority (Sprint 5 — vérifie déclaration majorité → true = on continue)
+        // 4. CartModel::removeUnavailableItems → findByUserId (false = pas de panier à nettoyer)
+        // 5. CartModel::findByUserId (vérification explicite)
         // 6. WineModel::getById (dans enrichItems)
         // 7. PricingRuleModel::findForQuantity
         // 8. PricingRuleModel::computeDeliveryDiscount → findForQuantity
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],
-            false,
-            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
-            ['id' => 1, 'newsletter' => false, 'account_type' => 'individual'],
-            ['majority_declared_at' => '2025-01-01 00:00:00'],  // hasDeclaredMajority → true
-            ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
-            false,
-            false
+            ['id' => 1],                                                                        // AuthMiddleware
+            ['id' => 1, 'newsletter' => false, 'account_type' => 'individual'],                // findById
+            ['majority_declared_at' => '2025-01-01 00:00:00'],                                 // hasDeclaredMajority → true
+            false,                                                                              // removeUnavailableItems
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],       // findByUserId
+            ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false], // enrichItems
+            false,                                                                              // findForQuantity
+            false                                                                               // computeDeliveryDiscount
         );
         $stub->method('fetchAll')->willReturn([]);
 
@@ -589,7 +602,8 @@ class OrderControllerCheckoutTest extends TestCase
         // 8. OrderModel::create → fetchOne billing address  9. lookup snapshot billing → false
         // 10. fetchOne delivery address  11. lookup snapshot delivery → false
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],
+            ['id' => 1],                                         // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority → true
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
             ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
@@ -637,7 +651,8 @@ class OrderControllerCheckoutTest extends TestCase
 
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],
+            ['id' => 1],                                         // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority → true
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
             ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '33000'],
@@ -693,7 +708,8 @@ class OrderControllerCheckoutTest extends TestCase
         // 8. billing address fetch  9. lookup snapshot billing → false
         // 10. delivery address fetch  11. lookup snapshot delivery → false
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],
+            ['id' => 1],                                         // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority → true
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
             ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
@@ -750,7 +766,8 @@ class OrderControllerCheckoutTest extends TestCase
         // 9. billing address fetch (id=7)  10. lookup snapshot billing → false
         // 11. delivery address fetch (id=5)  12. lookup snapshot delivery → false
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],
+            ['id' => 1],                                         // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority → true
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
             ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
             ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
