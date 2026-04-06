@@ -7,8 +7,7 @@ namespace Service;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// NOSONAR — php:S1448 : seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
-class MailService
+class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
 {
     private const PATH_SECURITY     = '/mon-compte/securite';
     private const BTN_ANCHOR_STYLE_ATTR = '" style="';

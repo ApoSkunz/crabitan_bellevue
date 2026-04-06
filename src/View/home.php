@@ -182,8 +182,7 @@ $carouselSlides = [
                 // Déposer le fichier vidéo dans /assets/videos/domaine.mp4
                 // (format MP4 H.264 recommandé, et optionnellement .webm pour Firefox)
                 ?>
-                <!-- NOSONAR Web:S4084 — sous-titres non disponibles pour cette vidéo de présentation -->
-                <video
+                <!-- NOSONAR Web:S4084 — sous-titres non disponibles pour cette vidéo de présentation --><video
                     class="home-video__element"
                     controls
                     preload="metadata"
