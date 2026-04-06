@@ -142,6 +142,7 @@ return [
     // Vins — Collection
     'wine.collection_nav'  => 'Navigation par type de vin',
     'wine.filter_avail'    => 'Disponibilité :',
+    'wine.filter_cuvee'    => 'Cuvée spéciale',
     'wine.avail.all'       => 'Tous',
     'wine.avail.available' => 'Disponible',
     'wine.avail.out'       => 'Épuisé',

@@ -13,9 +13,10 @@ $colorLabels = [
 
 // Ordre d'affichage des groupes
 $colorOrder  = ['sweet', 'white', 'red', 'rosé'];
-$activeColor = $activeColor ?? null;
-$activeSort  = $activeSort  ?? 'default';
-$activeAvail = $activeAvail ?? '';
+$activeColor  = $activeColor  ?? null;
+$activeSort   = $activeSort   ?? 'default';
+$activeAvail  = $activeAvail  ?? '';
+$activeCuvee  = $activeCuvee  ?? false;
 $activePerPage = $activePerPage ?? 25;
 $page        = $page        ?? 1;
 $totalPages  = $totalPages  ?? 1;
@@ -69,6 +70,8 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                             </label>
                         <?php endforeach; ?>
                     </fieldset>
+
+                    <?php require_once SRC_PATH . '/View/partials/wines-filter-cuvee.php'; ?>
 
                     <button type="submit" class="btn btn--gold wines-filters__submit">
                         <?= htmlspecialchars(__('wine.filter_apply')) ?>

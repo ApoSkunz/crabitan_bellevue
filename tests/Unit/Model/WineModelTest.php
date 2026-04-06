@@ -851,6 +851,70 @@ class WineModelTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // cuvée spéciale filter
+    // ----------------------------------------------------------------
+
+    public function testGetAllWithCuveeSpecialeAddsCond(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('is_cuvee_speciale = 1'),
+                $this->anything()
+            )
+            ->willReturn([]);
+
+        $this->model->getAll(null, 'default', 0, 0, true);
+    }
+
+    public function testCountAllWithCuveeSpecialeAddsCond(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->stringContains('is_cuvee_speciale = 1'),
+                $this->anything()
+            )
+            ->willReturn(['total' => 2]);
+
+        $result = $this->model->countAll(null, true);
+
+        $this->assertSame(2, $result);
+    }
+
+    public function testGetAllByColorWithCuveeSpecialeAddsCond(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('is_cuvee_speciale = 1'),
+                $this->anything()
+            )
+            ->willReturn([]);
+
+        $this->model->getAllByColor(null, 'default', null, 0, 0, true);
+    }
+
+    public function testCountAllByColorWithCuveeSpecialeAddsCond(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with(
+                $this->stringContains('is_cuvee_speciale = 1'),
+                $this->anything()
+            )
+            ->willReturn(['total' => 3]);
+
+        $result = $this->model->countAllByColor(null, null, true);
+
+        $this->assertSame(3, $result);
+    }
+
+    // ----------------------------------------------------------------
     // update (admin)
     // ----------------------------------------------------------------
 

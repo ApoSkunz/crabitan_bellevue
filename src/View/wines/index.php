@@ -1,6 +1,7 @@
 <?php
-$isAdmin   = $isAdmin ?? false;
-$pageTitle = __('nav.wines');
+$isAdmin    = $isAdmin    ?? false;
+$activeCuvee = $activeCuvee ?? false;
+$pageTitle  = __('nav.wines');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
@@ -10,6 +11,7 @@ $colorLabels = [
     'red'   => __('wine.color.red'),
     'rosé'  => __('wine.color.rosé'),
 ];
+$cls = ' is-active'; // single definition — used for radio/checkbox filter active state
 ?>
 
 <main class="page-wines" id="main-content">
@@ -31,13 +33,13 @@ $colorLabels = [
                     <fieldset class="wines-filters__colors">
                         <legend><?= htmlspecialchars(__('wine.filter_show')) ?></legend>
 
-                        <label class="wines-filters__check<?= $activeColor === null ? ' is-active' : '' ?>">
+                        <label class="wines-filters__check<?= $activeColor === null ? $cls : '' ?>">
                             <input type="radio" name="color" value="" <?= $activeColor === null ? 'checked' : '' ?>>
                             <?= htmlspecialchars(__('wine.color.all')) ?>
                         </label>
 
                         <?php foreach ($colorLabels as $val => $label) : ?>
-                            <label class="wines-filters__check<?= $activeColor === $val ? ' is-active' : '' ?>">
+                            <label class="wines-filters__check<?= $activeColor === $val ? $cls : '' ?>">
                                 <input
                                     type="radio"
                                     name="color"
@@ -48,6 +50,8 @@ $colorLabels = [
                             </label>
                         <?php endforeach; ?>
                     </fieldset>
+
+                    <?php require_once SRC_PATH . '/View/partials/wines-filter-cuvee.php'; ?>
 
                     <button type="submit" class="btn btn--gold wines-filters__submit">
                         <?= htmlspecialchars(__('wine.filter_apply')) ?>

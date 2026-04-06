@@ -119,7 +119,8 @@
         cursor: pointer;
         transition: color 200ms ease;
 
-        input[type='radio'] {
+        input[type='radio'],
+        input[type='checkbox'] {
             accent-color: var(--color-gold);
         }
 

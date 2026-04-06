@@ -142,6 +142,7 @@ return [
     // Wines — Collection
     'wine.collection_nav'  => 'Navigate by wine type',
     'wine.filter_avail'    => 'Availability:',
+    'wine.filter_cuvee'    => 'Special cuvée',
     'wine.avail.all'       => 'All',
     'wine.avail.available' => 'Available',
     'wine.avail.out'       => 'Out of stock',
