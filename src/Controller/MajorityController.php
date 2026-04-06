@@ -43,7 +43,11 @@ class MajorityController extends Controller
             Response::redirect("/{$lang}");
         }
 
-        $payload = Jwt::decode($_COOKIE['auth_token'] ?? '');
+        try {
+            $payload = Jwt::decode($_COOKIE['auth_token'] ?? '');
+        } catch (\Throwable) {
+            $payload = null;
+        }
         if (!$payload) {
             Response::redirect("/{$lang}");
         }
