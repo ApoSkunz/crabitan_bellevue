@@ -4298,21 +4298,39 @@ class AccountControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
-    // exportSend() — SMTP indisponible → catch → flash error
+    // exportSend() — MailService lève une exception → catch → flash error
     // ----------------------------------------------------------------
 
     /**
-     * Quand l'envoi email échoue (SMTP indisponible en test), le flash export_error est posé.
+     * Quand sendRgpdExport() lève une exception, le flash export_error est posé.
+     * Utilise le seam newMailService() pour injecter un MailService déterministe
+     * qui lance systématiquement une RuntimeException — indépendant de SMTP.
      */
-    public function testExportSendSmtpFailureSetsFlashError(): void
+    public function testExportSendMailerExceptionSetsFlashError(): void
     {
         $userId = $this->insertCustomer('exp-smtp@test.local', 'individual');
         $this->loginAs($userId);
         $_POST['csrf_token'] = self::CSRF;
 
+        $ctrl = new class ($this->makeRequest('POST', '/fr/mon-compte/export/envoyer')) extends AccountController {
+            protected function newMailService(): \Service\MailService
+            {
+                return new class extends \Service\MailService {
+                    public function sendRgpdExport(
+                        string $to,
+                        string $name,
+                        string $zipContent,
+                        string $filename,
+                        string $lang
+                    ): void {
+                        throw new \RuntimeException('SMTP simulé indisponible');
+                    }
+                };
+            }
+        };
+
         try {
-            $this->makeController('POST', '/fr/mon-compte/export/envoyer')
-                ->exportSend(['lang' => 'fr']);
+            $ctrl->exportSend(['lang' => 'fr']);
         } catch (HttpException $e) {
             // redirect() lève HttpException
         }
