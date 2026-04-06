@@ -306,6 +306,9 @@ class AuthController extends Controller
             CookieHelper::clear();
         }
 
+        // Nettoyer _intended pour éviter toute redirection résiduelle après reconnexion
+        unset($_SESSION['_intended']);
+
         Response::redirect('/' . $params['lang']);
     }
 
