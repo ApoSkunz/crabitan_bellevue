@@ -557,10 +557,10 @@ function initLoginModal() {
 
     // Switch vers panel mot de passe oublié
     document.getElementById('forgot-password-btn')?.addEventListener('click', showForgotPanel);
-    var forgotSuccessTimer = null;
-    var resendSuccessTimer = null;
+    let forgotSuccessTimer = null;
+    let resendSuccessTimer = null;
 
-    var forgotWasSuccess = !!window.__forgotSuccess;
+    const forgotWasSuccess = !!window.__forgotSuccess;
     document.getElementById('forgot-back-btn')?.addEventListener('click', () => {
         clearTimeout(forgotSuccessTimer);
         if (forgotWasSuccess) {
