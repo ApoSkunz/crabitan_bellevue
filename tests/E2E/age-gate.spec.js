@@ -67,8 +67,9 @@ test.describe('Age Gate — comportements', () => {
 
     test('soumettre sans répondre au cookie → formulaire non bloqué', async ({ page, context }) => {
         await resetState(context, page);
-        await page.locator('input[name="legal_age"][value="1"]').check();
-        await page.locator('button[type="submit"]').click();
+
+        // Cliquer ENTRER sans avoir répondu au cookie — la soumission doit passer librement
+        await page.locator('#age-gate-enter button[type="submit"]').click();
 
         // Le banner ne doit pas secouer — la soumission passe librement
         await expect(page.locator('#cookie-banner')).not.toHaveClass(/is-shaking/);
@@ -99,8 +100,7 @@ test.describe('Age Gate — comportements', () => {
     test('majeur + cookies répondus → redirigé vers le site, cookie age_verified posé', async ({ page, context }) => {
         await resetState(context, page);
         await page.locator('#cookie-refuse').click();
-        await page.locator('input[name="legal_age"][value="1"]').check();
-        await page.locator('button[type="submit"]').click();
+        await page.locator('#age-gate-enter button[type="submit"]').click();
 
         await expect(page).not.toHaveURL(/\/age-gate/);
 
@@ -113,9 +113,8 @@ test.describe('Age Gate — comportements', () => {
     test('majeur sans "se souvenir" → cookie session (pas d\'expiry fixe)', async ({ page, context }) => {
         await resetState(context, page);
         await page.locator('#cookie-refuse').click();
-        await page.locator('input[name="legal_age"][value="1"]').check();
         // Ne pas cocher "se souvenir"
-        await page.locator('button[type="submit"]').click();
+        await page.locator('#age-gate-enter button[type="submit"]').click();
 
         const cookies = await context.cookies();
         const ageCookie = cookies.find(c => c.name === 'age_verified');
@@ -131,8 +130,7 @@ test.describe('Age Gate — comportements', () => {
         await resetState(context, page);
         await page.locator('#cookie-refuse').click();
         await page.locator('input[name="remember"]').check();
-        await page.locator('input[name="legal_age"][value="1"]').check();
-        await page.locator('button[type="submit"]').click();
+        await page.locator('#age-gate-enter button[type="submit"]').click();
 
         const cookies = await context.cookies();
         const ageCookie     = cookies.find(c => c.name === 'age_verified');
@@ -148,27 +146,32 @@ test.describe('Age Gate — comportements', () => {
         expect(ageCookie?.expires).toBeLessThan(nowSec + expectedTtl + 60);
     });
 
-    // ── Mineur ─────────────────────────────────────────────────────────────
+    // ── Mineur / Quitter ───────────────────────────────────────────────────
 
-    test('mineur → message erreur visible + formulaire bloqué', async ({ page, context }) => {
+    test('cliquer Quitter → redirigé hors du site (Google)', async ({ page, context }) => {
         await resetState(context, page);
         await page.locator('#cookie-refuse').click();
-        await page.locator('input[name="legal_age"][value="0"]').check();
-        await page.locator('button[type="submit"]').click();
 
-        await expect(page.locator('#age-gate-error')).toBeVisible();
-        await expect(page.locator('input[name="legal_age"]').first()).toBeDisabled();
-        await expect(page.locator('button[type="submit"]')).toBeDisabled();
+        // Bouton QUITTER → soumet legal_age=0, le serveur redirige vers Google
+        // On attend la navigation externe (timeout 5s)
+        await Promise.all([
+            page.waitForURL(/google\.com/, { timeout: 5000 }),
+            page.locator('.age-overlay__btn-exit--outline').click(),
+        ]);
     });
 
-    test('mineur → redirection Google après 3 secondes', async ({ page, context }) => {
+    test('cliquer Quitter → aucun cookie age_verified posé', async ({ page, context }) => {
         await resetState(context, page);
         await page.locator('#cookie-refuse').click();
-        await page.locator('input[name="legal_age"][value="0"]').check();
-        await page.locator('button[type="submit"]').click();
 
-        // Attendre la redirection (timeout 5s pour couvrir les 3s + latence)
-        await page.waitForURL('https://www.google.com/**', { timeout: 5000 });
+        await Promise.all([
+            page.waitForURL(/google\.com/, { timeout: 5000 }),
+            page.locator('.age-overlay__btn-exit--outline').click(),
+        ]);
+
+        const cookies = await context.cookies();
+        const ageCookie = cookies.find(c => c.name === 'age_verified');
+        expect(ageCookie).toBeUndefined();
     });
 
     // ── Navigation protégée ─────────────────────────────────────────────────
