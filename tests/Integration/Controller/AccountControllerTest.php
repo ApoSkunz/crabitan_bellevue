@@ -257,7 +257,7 @@ class AccountControllerTest extends IntegrationTestCase
     public function testIndexRedirectsUnauthenticated(): void
     {
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(404); // 404 — path enumeration prevention
+        $this->expectExceptionCode(302); // 302 — redirect-post-login : _intended mémorisé, redirection login
         $this->makeController('GET', '/fr/mon-compte')->index(['lang' => 'fr']);
     }
 
@@ -299,7 +299,7 @@ class AccountControllerTest extends IntegrationTestCase
     public function testOrdersRedirectsUnauthenticated(): void
     {
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(404);
+        $this->expectExceptionCode(302);
         $this->makeController('GET', '/fr/mon-compte/commandes')->orders(['lang' => 'fr']);
     }
 
@@ -341,7 +341,7 @@ class AccountControllerTest extends IntegrationTestCase
     public function testAddressesRedirectsUnauthenticated(): void
     {
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(404);
+        $this->expectExceptionCode(302);
         $this->makeController('GET', '/fr/mon-compte/adresses')->addresses(['lang' => 'fr']);
     }
 
@@ -385,7 +385,7 @@ class AccountControllerTest extends IntegrationTestCase
     public function testFavoritesRedirectsUnauthenticated(): void
     {
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(404);
+        $this->expectExceptionCode(302);
         $this->makeController('GET', '/fr/mon-compte/favoris')->favorites(['lang' => 'fr']);
     }
 
@@ -429,7 +429,7 @@ class AccountControllerTest extends IntegrationTestCase
     public function testSecurityRedirectsUnauthenticated(): void
     {
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(404);
+        $this->expectExceptionCode(302);
         $this->makeController('GET', '/fr/mon-compte/securite')->security(['lang' => 'fr']);
     }
 
@@ -473,7 +473,7 @@ class AccountControllerTest extends IntegrationTestCase
     public function testProfileRedirectsUnauthenticated(): void
     {
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(404);
+        $this->expectExceptionCode(302);
         $this->makeController('GET', '/fr/mon-compte/profil')->profile(['lang' => 'fr']);
     }
 
@@ -895,7 +895,7 @@ class AccountControllerTest extends IntegrationTestCase
     public function testEditAddressRedirectsUnauthenticated(): void
     {
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(404);
+        $this->expectExceptionCode(302);
         $this->makeController('GET', '/fr/mon-compte/adresses/1/modifier')
             ->editAddress(['lang' => 'fr', 'id' => '1']);
     }
@@ -1168,7 +1168,7 @@ class AccountControllerTest extends IntegrationTestCase
     public function testExportPageRedirectsUnauthenticated(): void
     {
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(404);
+        $this->expectExceptionCode(302);
         $this->makeController('GET', '/fr/mon-compte/export')->exportPage(['lang' => 'fr']);
     }
 
@@ -1946,7 +1946,7 @@ class AccountControllerTest extends IntegrationTestCase
     public function testExportSendUnauthenticatedRedirects(): void
     {
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(404);
+        $this->expectExceptionCode(302);
 
         $this->makeController('POST', '/fr/mon-compte/export/envoyer')
             ->exportSend(['lang' => 'fr']);
