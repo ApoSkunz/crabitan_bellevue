@@ -83,8 +83,8 @@ class TestableOrderAdminController extends OrderAdminController
  *
  * Couvre les 4 actions : index, show, updateStatus, uploadInvoice, downloadInvoice.
  */
-// phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
 #[AllowMockObjectsWithoutExpectations]
+// phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
 class OrderAdminControllerTest extends TestCase
 {
     private \ReflectionProperty $dbInstanceProp;
