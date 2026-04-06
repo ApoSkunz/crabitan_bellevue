@@ -1656,6 +1656,17 @@ function initDeleteAccountModal() {
 }
 
 // ============================================================
+// Accessibilité — autofocus sur les messages flash hors modal
+// ============================================================
+
+function initFlashAutofocus() {
+    const alert = document.querySelector('[role="alert"]:not([aria-hidden="true"])');
+    if (!alert || alert.closest('[role="dialog"]') || alert.closest('.modal')) return;
+    if (!alert.hasAttribute('tabindex')) alert.setAttribute('tabindex', '-1');
+    alert.focus({ preventScroll: false });
+}
+
+// ============================================================
 // Page panier — interactions connecté + affichage invité
 // ============================================================
 
@@ -2125,6 +2136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFaqAccordion();
     initCarbonBadge();
     initCartPage();
+    initFlashAutofocus();
 
     // Chargement à la demande — uniquement sur la page jeux
     if (document.getElementById('memo-game')) {
