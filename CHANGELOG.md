@@ -2,6 +2,19 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.45.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.45.0...v0.45.1) (2026-04-06)
+
+
+### Bug Fixes
+
+* **a11y:** autofocus sur les messages flash hors modal au chargement ([8926e7d](https://github.com/ApoSkunz/crabitan_bellevue/commit/8926e7db7e4549c4badfa4c615b7402153e28c54))
+* **checkout:** afficher mention zone livraison avant sélection adresse (L111-1) ([be08fbb](https://github.com/ApoSkunz/crabitan_bellevue/commit/be08fbb10a3a2d68b1b4424b4b05739687a94b80))
+* **contact:** supprimer section bon de commande de la page contact ([c71744f](https://github.com/ApoSkunz/crabitan_bellevue/commit/c71744f36ca2ce989c8631ede50b38f4ef571ad2))
+* **newsletter:** inclure comptes company dans newsletter nouveau vin + historique ([398957e](https://github.com/ApoSkunz/crabitan_bellevue/commit/398957e6f9b53b076acab0d9488e09a348caf621))
+* **panier:** bouton boutique invité — btn--gold + centrage ([cb83cd2](https://github.com/ApoSkunz/crabitan_bellevue/commit/cb83cd29dbce69218ea379822e14daca2bf5df80))
+* **panier:** état vide iso PHP/JS après vidage — vin aléatoire + wording ([d013773](https://github.com/ApoSkunz/crabitan_bellevue/commit/d013773453fd653c38e3f11cd8ab00b7f5209d5d))
+* **tests:** corriger TI WineAdmin company + warnings require_once legal.php ([c20a190](https://github.com/ApoSkunz/crabitan_bellevue/commit/c20a19059544fa4c705fae6881c5b4beeda15e80))
+
 # [0.45.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.44.0...v0.45.0) (2026-04-06)
 
 
