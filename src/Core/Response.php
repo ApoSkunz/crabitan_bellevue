@@ -48,7 +48,7 @@ class Response
         if ($errorView !== null && file_exists($errorView)) {
             $statusCode = $status; // NOSONAR — exposed to included error view via PHP scope (php:S1481)
             extract($data, EXTR_SKIP);
-            include $errorView;
+            include_once $errorView;
         } else {
             echo $message ?: $status;
         }

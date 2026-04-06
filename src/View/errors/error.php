@@ -33,9 +33,10 @@ if ($wineLabel !== null) {
         : ' La fiche technique de "' . htmlspecialchars($wineLabel) . '" est temporairement indisponible.';
 }
 if ($retryMinutes !== null) {
+    $plural    = $retryMinutes > 1 ? 's' : '';
     $retryMsg .= $lang === 'en'
-        ? ' Please try again in ' . $retryMinutes . ' minute' . ($retryMinutes > 1 ? 's' : '') . '.'
-        : ' Réessayez dans ' . $retryMinutes . ' minute' . ($retryMinutes > 1 ? 's' : '') . '.';
+        ? ' Please try again in ' . $retryMinutes . ' minute' . $plural . '.'
+        : ' Réessayez dans ' . $retryMinutes . ' minute' . $plural . '.';
 }
 
 $descriptions = [

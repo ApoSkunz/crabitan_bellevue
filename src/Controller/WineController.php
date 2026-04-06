@@ -203,7 +203,7 @@ class WineController extends Controller
     {
         $appName = APP_NAME;
 
-        $pdf = new class ($logoPath, $appName, $lang) extends TCPDF {
+        return new class ($logoPath, $appName, $lang) extends TCPDF {
             public function __construct(
                 private string $logoPath,
                 private string $appName,
@@ -284,16 +284,14 @@ class WineController extends Controller
                 $this->Cell($pageW - 30, 4, $evin, 0, 0, 'C');
             }
         };
-
-        return $pdf;
     }
 
     /**
      * Render the full PDF body:
-     *  - Bandeau sombre (nom château + AOC/millésime)
-     *  - Colonne gauche : image bouteille (35 mm)
-     *  - Colonne droite : TOUTES les sections (INFORMATIONS → DÉGUSTATION → VITICULTURE → VINIFICATION)
-     * Conçu pour tenir sur une seule page A4.
+     *  - Subtitle AOC/millésime + cuvée spéciale badge
+     *  - Left column : bottle image (35 mm fixed bounding box)
+     *  - Right column : all sections (DÉGUSTATION → INFORMATIONS → VITICULTURE → VINIFICATION)
+     * Designed to fit on a single A4 page.
      *
      * @param array<string, mixed>                    $wine
      * @param callable(array<string, string>): string $l
@@ -304,96 +302,20 @@ class WineController extends Controller
 
         $pageW   = $pdf->getPageWidth();
         $margins = 15;
-        $isEn    = $lang === 'en';
+        $boxW    = 35.0;
+        $boxH    = 95.0;
 
-        // ── AOC + millésime + cuvée spéciale — sous le double filet, élégant ──
-        $pdf->SetFont('dejavusans', '', 9.5);
-        $pdf->SetTextColor(100, 80, 30);
-        $pdf->SetX(0);
-        $pdf->Cell($pageW, 6, 'AOC ' . ($wine['label_name'] ?? '') . '  —  ' . ($wine['vintage'] ?? ''), 0, 1, 'C');
-
-        if (!empty($wine['is_cuvee_speciale'])) {
-            $pdf->SetFont('dejavusans', 'I', 8.5);
-            $pdf->SetTextColor(180, 140, 50);
-            $pdf->SetX(0);
-            $pdf->Cell($pageW, 5, '✦   Cuvée Spéciale   ✦', 0, 1, 'C');
-        }
+        $this->renderPdfSubtitle($pdf, $wine, $pageW);
 
         $pdf->Ln(3);
         $layoutStartY = $pdf->GetY();
 
-        // ── Image bouteille gauche — boîte fixe 35×95 mm (toutes images homogènes) ──
-        $boxW = 35.0;
-        $boxH = 95.0;
+        $this->renderPdfBottleImage($pdf, $imgPath, $margins, $boxW, $boxH, $layoutStartY);
 
-        if (is_file($imgPath)) {
-            $size = @getimagesize($imgPath);
-            if ($size !== false && $size[0] > 0) {
-                $ratio = $size[1] / $size[0];
-                // Ajuster pour tenir dans la boîte en conservant le ratio
-                $iW = $boxW;
-                $iH = $iW * $ratio;
-                if ($iH > $boxH) {
-                    $iH = $boxH;
-                    $iW = $iH / $ratio;
-                }
-                // Centrer dans la boîte
-                $iX = (float) $margins + ($boxW - $iW) / 2;
-                $iY = $layoutStartY + ($boxH - $iH) / 2;
-                $pdf->Image($imgPath, $iX, $iY, $iW, $iH, 'PNG');
-            }
-        }
-        $imgH = $boxH; // la colonne gauche occupe toujours 95 mm
-
-        // ── Colonne droite : toutes les sections ────────────────────────
         $rightX    = $margins + $boxW + 5;
         $rightW    = $pageW - $rightX - $margins;
         $labelColW = 36;
-
-        // Décoder les champs JSON
-        $oeno    = json_decode((string) ($wine['oenological_comment'] ?? '{}'), true) ?? [];
-        $soil    = json_decode((string) ($wine['soil']                ?? '{}'), true) ?? [];
-        $pruning = json_decode((string) ($wine['pruning']             ?? '{}'), true) ?? [];
-        $harvest = json_decode((string) ($wine['harvest']             ?? '{}'), true) ?? [];
-        $vinif   = json_decode((string) ($wine['vinification']        ?? '{}'), true) ?? [];
-        $barrel  = json_decode((string) ($wine['barrel_fermentation'] ?? '{}'), true) ?? [];
-        $award   = json_decode((string) ($wine['award']               ?? '{}'), true) ?? [];
-
-        $areaFmt = $wine['area']            ? number_format((float) $wine['area'], 2, ',', ' ') . ' ha' : '';
-        $ageStr  = $wine['age_of_vineyard'] ? $wine['age_of_vineyard'] . ' ans'                         : '';
-
-        $colorMap = [
-            'red'   => ['fr' => 'Rouge',           'en' => 'Red'],
-            'white' => ['fr' => 'Blanc',           'en' => 'White'],
-            'rosé'  => ['fr' => 'Rosé',            'en' => 'Rosé'],
-            'sweet' => ['fr' => 'Blanc liquoreux', 'en' => 'Sweet white'],
-        ];
-        $colorStr = $colorMap[$wine['wine_color'] ?? ''][$lang] ?? (string) ($wine['wine_color'] ?? '');
-
-        // Ordre marketing : DÉGUSTATION en premier (ce qui vend), puis technique
-        $sections = [
-            ($isEn ? 'TASTING NOTES' : 'DÉGUSTATION') => array_filter([
-                ($isEn ? 'Tasting notes' : 'Commentaire') => $l($oeno),
-                ($isEn ? 'Award'         : 'Récompense')  => $l($award),
-            ]),
-            ($isEn ? 'INFORMATION' : 'INFORMATIONS') => array_filter([
-                ($isEn ? 'Colour'  : 'Couleur')   => $colorStr,
-                ($isEn ? 'Vintage' : 'Millésime') => (string) ($wine['vintage'] ?? ''),
-            ]),
-            ($isEn ? 'VITICULTURE' : 'VITICULTURE') => array_filter([
-                ($isEn ? 'Soil'         : 'Terroir')         => $l($soil),
-                ($isEn ? 'Pruning'      : 'Taille')          => $l($pruning),
-                ($isEn ? 'Grape'        : 'Encépagement')    => (string) ($wine['variety_of_vine'] ?? ''),
-                ($isEn ? 'Village'      : 'Commune')         => (string) ($wine['city'] ?? ''),
-                ($isEn ? 'Area'         : 'Surface')         => $areaFmt,
-                ($isEn ? 'Age of vines' : 'Âge des vignes')  => $ageStr,
-            ]),
-            ($isEn ? 'WINEMAKING' : 'VINIFICATION') => array_filter([
-                ($isEn ? 'Harvest'  : 'Vendanges')  => $l($harvest),
-                'Vinification'                      => $l($vinif),
-                ($isEn ? 'Ageing'   : 'Élevage')    => $l($barrel),
-            ]),
-        ];
+        $sections  = $this->buildPdfSections($wine, $lang, $l);
 
         $pdf->SetXY($rightX, $layoutStartY);
         $first = true;
@@ -405,9 +327,113 @@ class WineController extends Controller
             $first = false;
         }
 
-        // Curseur sous les deux colonnes
-        $rightBottomY = $pdf->GetY();
-        $pdf->SetY(max($layoutStartY + $imgH, $rightBottomY) + 4);
+        $pdf->SetY(max($layoutStartY + $boxH, $pdf->GetY()) + 4);
+    }
+
+    /**
+     * Render the AOC/vintage subtitle and optional cuvée spéciale badge.
+     *
+     * @param array<string, mixed> $wine
+     */
+    private function renderPdfSubtitle(TCPDF $pdf, array $wine, float $pageW): void
+    {
+        $pdf->SetFont('dejavusans', '', 9.5);
+        $pdf->SetTextColor(100, 80, 30);
+        $pdf->SetX(0);
+        $pdf->Cell($pageW, 6, 'AOC ' . ($wine['label_name'] ?? '') . '  —  ' . ($wine['vintage'] ?? ''), 0, 1, 'C');
+
+        if (!empty($wine['is_cuvee_speciale'])) {
+            $pdf->SetFont('dejavusans', 'I', 8.5);
+            $pdf->SetTextColor(180, 140, 50);
+            $pdf->SetX(0);
+            $pdf->Cell($pageW, 5, '✦   Cuvée Spéciale   ✦', 0, 1, 'C');
+        }
+    }
+
+    /**
+     * Render the bottle image in a fixed 35×95 mm bounding box, centered within it.
+     */
+    private function renderPdfBottleImage(
+        TCPDF $pdf,
+        string $imgPath,
+        float $margins,
+        float $boxW,
+        float $boxH,
+        float $startY
+    ): void {
+        if (!is_file($imgPath)) {
+            return;
+        }
+
+        $size = @getimagesize($imgPath);
+        if ($size === false || $size[0] === 0) {
+            return;
+        }
+
+        $ratio = $size[1] / $size[0];
+        $iW    = $boxW;
+        $iH    = $iW * $ratio;
+        if ($iH > $boxH) {
+            $iH = $boxH;
+            $iW = $iH / $ratio;
+        }
+
+        $iX = $margins + ($boxW - $iW) / 2;
+        $iY = $startY  + ($boxH - $iH) / 2;
+        $pdf->Image($imgPath, $iX, $iY, $iW, $iH, 'PNG');
+    }
+
+    /**
+     * Build the ordered sections array for the PDF right column.
+     *
+     * @param array<string, mixed>                    $wine
+     * @param callable(array<string, string>): string $l
+     * @return array<string, array<string, string>>
+     */
+    private function buildPdfSections(array $wine, string $lang, callable $l): array
+    {
+        $isEn    = $lang === 'en';
+        $oeno    = json_decode((string) ($wine['oenological_comment'] ?? '{}'), true) ?? [];
+        $soil    = json_decode((string) ($wine['soil']                ?? '{}'), true) ?? [];
+        $pruning = json_decode((string) ($wine['pruning']             ?? '{}'), true) ?? [];
+        $harvest = json_decode((string) ($wine['harvest']             ?? '{}'), true) ?? [];
+        $vinif   = json_decode((string) ($wine['vinification']        ?? '{}'), true) ?? [];
+        $barrel  = json_decode((string) ($wine['barrel_fermentation'] ?? '{}'), true) ?? [];
+        $award   = json_decode((string) ($wine['award']               ?? '{}'), true) ?? [];
+
+        $areaFmt  = $wine['area']            ? number_format((float) $wine['area'], 2, ',', ' ') . ' ha' : '';
+        $ageStr   = $wine['age_of_vineyard'] ? $wine['age_of_vineyard'] . ' ans'                         : '';
+        $colorMap = [
+            'red'   => ['fr' => 'Rouge',           'en' => 'Red'],
+            'white' => ['fr' => 'Blanc',           'en' => 'White'],
+            'rosé'  => ['fr' => 'Rosé',            'en' => 'Rosé'],
+            'sweet' => ['fr' => 'Blanc liquoreux', 'en' => 'Sweet white'],
+        ];
+        $colorStr = $colorMap[$wine['wine_color'] ?? ''][$lang] ?? (string) ($wine['wine_color'] ?? '');
+
+        return [
+            ($isEn ? 'TASTING NOTES' : 'DÉGUSTATION') => array_filter([
+                ($isEn ? 'Tasting notes' : 'Commentaire') => $l($oeno),
+                ($isEn ? 'Award'         : 'Récompense')  => $l($award),
+            ]),
+            ($isEn ? 'INFORMATION' : 'INFORMATIONS') => array_filter([
+                ($isEn ? 'Colour'  : 'Couleur')   => $colorStr,
+                ($isEn ? 'Vintage' : 'Millésime') => (string) ($wine['vintage'] ?? ''),
+            ]),
+            'VITICULTURE' => array_filter([
+                ($isEn ? 'Soil'         : 'Terroir')        => $l($soil),
+                ($isEn ? 'Pruning'      : 'Taille')         => $l($pruning),
+                ($isEn ? 'Grape'        : 'Encépagement')   => (string) ($wine['variety_of_vine'] ?? ''),
+                ($isEn ? 'Village'      : 'Commune')        => (string) ($wine['city'] ?? ''),
+                ($isEn ? 'Area'         : 'Surface')        => $areaFmt,
+                ($isEn ? 'Age of vines' : 'Âge des vignes') => $ageStr,
+            ]),
+            ($isEn ? 'WINEMAKING' : 'VINIFICATION') => array_filter([
+                ($isEn ? 'Harvest' : 'Vendanges') => $l($harvest),
+                'Vinification'                    => $l($vinif),
+                ($isEn ? 'Ageing'  : 'Élevage')   => $l($barrel),
+            ]),
+        ];
     }
 
     /**
