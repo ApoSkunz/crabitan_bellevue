@@ -142,6 +142,21 @@ class AuthController extends Controller
             }
         }
 
+        // Compte soft-deleted : identifiants valides → message de réactivation (sans révéler l'existence si mdp faux)
+        if (!$account) {
+            $deleted = $this->accounts->findDeletedByEmail($email);
+            if (
+                $deleted
+                && $deleted['password'] !== null
+                && password_verify($password, (string) $deleted['password'])
+                && !empty($deleted['scheduled_deletion_at'])
+                && strtotime((string) $deleted['scheduled_deletion_at']) > time()
+            ) {
+                $this->flash('modal_error', __('auth.account_pending_deletion'));
+                Response::redirect($safeBack);
+            }
+        }
+
         if (!$account || $account['password'] === null || !password_verify($password, $account['password'])) {
             $this->recordLoginFailure($ipKey, $account);
 

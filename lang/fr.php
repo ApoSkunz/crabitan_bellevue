@@ -37,7 +37,8 @@ return [
     'auth.invalid_credentials' => 'Email ou mot de passe incorrect',
     'auth.too_many_attempts'       => 'Trop de tentatives. Réessayez dans %d minute(s).',
     'auth.too_many_attempts_hours' => 'Trop de tentatives. Réessayez dans %d heure(s).',
-    'auth.account_locked'      => 'Compte temporairement verrouillé après trop d\'échecs. Réessayez dans %d minute(s).',
+    'auth.account_locked'           => 'Compte temporairement verrouillé après trop d\'échecs. Réessayez dans %d minute(s).',
+    'auth.account_pending_deletion' => 'Votre compte est en cours de suppression. Pour l\'annuler, utilisez le lien reçu par e-mail lors de votre demande.', // phpcs:ignore Generic.Files.LineLength
     'auth.too_many_registrations' => 'Trop d\'inscriptions depuis cette adresse IP. Réessayez dans %d minute(s).',
     'auth.too_many_reset_requests'      => 'Trop de demandes de réinitialisation. Réessayez dans %d minute(s).',
     'auth.too_many_activation_requests' => 'Trop de demandes d\'activation. Réessayez dans %d minute(s).', // phpcs:ignore Generic.Files.LineLength
