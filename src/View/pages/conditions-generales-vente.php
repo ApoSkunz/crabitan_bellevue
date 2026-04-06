@@ -1,8 +1,9 @@
 <?php
-$pageTitle = __('footer.cgv');
-$navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
-$isBare    = $bare ?? false;
-$isFr      = $navLang === 'fr';
+$pageTitle    = __('footer.cgv');
+$navLang      = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$isBare       = $bare ?? false;
+$isFr         = $navLang === 'fr';
+$contactEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
 
 require_once SRC_PATH . '/View/partials/legal-open.php';
 ?>
@@ -30,7 +31,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             <strong>GFA Bernard Solane &amp; Fils</strong><br>
             Château Crabitan Bellevue – 33410 Sainte-Croix-du-Mont – France<br>
             Tél. : <a href="tel:+33556620153">05 56 62 01 53</a><br>
-            Email : <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a>
+            Email : <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
         </p>
         <p>
             Nos produits sont réservés aux particuliers majeurs (18 ans et plus).
@@ -156,7 +157,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         </p>
         <p>
             GFA Bernard Solane &amp; Fils – Château Crabitan Bellevue – 33410 Sainte-Croix-du-Mont – France<br>
-            Email : <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a>
+            Email : <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
         </p>
         <p>
             Les produits retournés doivent l'être dans leur état d'origine et complets
@@ -279,7 +280,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         </p>
         <ul>
             <li><strong>Téléphone :</strong> <a href="tel:+33556620153">05 56 62 01 53</a></li>
-            <li><strong>Email :</strong> <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a></li>
+            <li><strong>Email :</strong> <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a></li>
         </ul>
         <p><strong>Horaires d'ouverture :</strong></p>
         <ul>
@@ -322,7 +323,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement
             et d'opposition sur vos données.
             Pour exercer ces droits, contactez-nous à
-            <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a>
+            <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
             ou par courrier à l'adresse du Château.
         </p>
 
@@ -349,7 +350,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             <strong>GFA Bernard Solane &amp; Fils</strong><br>
             Château Crabitan Bellevue – 33410 Sainte-Croix-du-Mont – France<br>
             Phone: <a href="tel:+33556620153">+33 5 56 62 01 53</a><br>
-            Email: <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a>
+            Email: <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
         </p>
         <p>
             Our products are reserved for adults of legal drinking age (18 years or older).
@@ -455,7 +456,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         <p>
             Send an unambiguous declaration (by post or email) to:<br>
             GFA Bernard Solane &amp; Fils – Château Crabitan Bellevue – 33410 Sainte-Croix-du-Mont – France<br>
-            Email: <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a>
+            Email: <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
         </p>
         <p>
             Returned products must be in their original, sealed condition and complete with all packaging,
@@ -568,7 +569,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         <p>For any enquiry, question or complaint, our team is available:</p>
         <ul>
             <li><strong>Phone:</strong> <a href="tel:+33556620153">+33 5 56 62 01 53</a></li>
-            <li><strong>Email:</strong> <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a></li>
+            <li><strong>Email:</strong> <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a></li>
         </ul>
         <p><strong>Opening hours:</strong></p>
         <ul>
@@ -601,7 +602,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         <p>
             You have the right to access, rectify, erase and object to processing of your personal data
             by contacting us at
-            <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a>
+            <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
             or by post to the Château address.
         </p>
 

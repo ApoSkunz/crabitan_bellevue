@@ -51,8 +51,8 @@ class OrderController extends Controller
         $this->orders     = new OrderModel();
         $this->pricing    = new PricingRuleModel();
         $this->wines      = new WineModel();
-        $cgvConfig        = require_once ROOT_PATH . '/config/cgv.php';
-        $this->cgvVersion = (string) ($cgvConfig['version'] ?? '1.0');
+        $legalConfig      = require_once ROOT_PATH . '/config/legal.php';
+        $this->cgvVersion = (string) ($legalConfig['cgv']['version'] ?? '1.0');
     }
 
     // ----------------------------------------------------------------

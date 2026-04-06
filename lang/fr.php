@@ -337,6 +337,8 @@ return [
     'contact.order_form_btn'      => 'Télécharger le bon de commande (PDF)',
 
     // Mentions légales
+    'legal.version'       => 'Version',
+    'legal.updated_at'    => 'Mise à jour le',
     'legal.editor_title'  => 'Éditeur du site',
     'legal.hosting_title' => 'Hébergement',
     'legal.ai_mention'    => 'Ce site a été développé avec l\'assistance de Claude, un modèle d\'intelligence artificielle édité par Anthropic.',

@@ -1,14 +1,22 @@
 <?php
-$pageTitle = __('footer.privacy_policy');
-$navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
-$isBare    = $bare ?? false;
+$pageTitle    = __('footer.privacy_policy');
+$navLang      = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$isBare       = $bare ?? false;
+
+$legal        = require_once ROOT_PATH . '/config/legal.php';
+$legalVersion = $legal['politique_confidentialite']['version'];
+$legalDate    = $legal['politique_confidentialite']['updated_at'];
+$contactEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
+$safeEmail    = htmlspecialchars($contactEmail, ENT_QUOTES);
 
 require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : require_once bloquerait le re-rendu entre tests (même convention que Response::view)
 ?>
 
+        <p class="legal-version"><?= htmlspecialchars(__('legal.version')) ?> <?= htmlspecialchars($legalVersion) ?> &mdash; <?= htmlspecialchars(__('legal.updated_at')) ?> <?= htmlspecialchars($legalDate) ?></p>
+
         <h2>I. Responsable du traitement</h2>
         <p>Le responsable du traitement de vos données personnelles est le GFA Bernard Solane et Fils, dont le siège social est sis Château Crabitan Bellevue, 33410 Sainte-Croix-du-Mont &ndash; FRANCE (SIRET&nbsp;: 398&nbsp;341&nbsp;701&nbsp;00017).</p>
-        <p>Contact&nbsp;: <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a> &mdash; Téléphone&nbsp;: <a href="tel:+33556620153">+33&nbsp;(0)5&nbsp;56&nbsp;62&nbsp;01&nbsp;53</a></p>
+        <p>Contact&nbsp;: <a href="mailto:<?= $safeEmail ?>"><?= $safeEmail ?></a> &mdash; Téléphone&nbsp;: <a href="tel:+33556620153">+33&nbsp;(0)5&nbsp;56&nbsp;62&nbsp;01&nbsp;53</a></p>
 
         <h2>II. Données collectées et finalités</h2>
 
@@ -91,7 +99,7 @@ require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : r
         <p>Ces prestataires sont contractuellement tenus de respecter la confidentialité de vos données et de ne les utiliser qu&#8217;aux fins convenues.</p>
 
         <h2>VI. Transferts de données hors de l&#8217;Union européenne</h2>
-        <p>Certains de nos sous-traitants (Google LLC, Apple Inc., GitHub Inc.) sont établis aux États-Unis. Ces transferts sont encadrés par des <strong>Clauses Contractuelles Types (SCCs)</strong> adoptées par la Commission européenne, dans le respect du cadre EU-US Data Privacy Framework. Vous pouvez demander communication des garanties mises en place en contactant&nbsp;: <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a>.</p>
+        <p>Certains de nos sous-traitants (Google LLC, Apple Inc., GitHub Inc.) sont établis aux États-Unis. Ces transferts sont encadrés par des <strong>Clauses Contractuelles Types (SCCs)</strong> adoptées par la Commission européenne, dans le respect du cadre EU-US Data Privacy Framework. Vous pouvez demander communication des garanties mises en place en contactant&nbsp;: <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>.</p>
 
         <h2>VII. Vos droits</h2>
         <p>Conformément au Règlement Général sur la Protection des Données (RGPD &ndash; Règlement UE 2016/679) et à la loi Informatique et Libertés n°78-17 du 6&nbsp;janvier 1978 modifiée, vous disposez des droits suivants&nbsp;:</p>
@@ -103,7 +111,7 @@ require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : r
             <li><strong>Droit d&#8217;opposition</strong> (art. 21) &mdash; vous opposer à un traitement fondé sur l&#8217;intérêt légitime.</li>
             <li><strong>Droit de retrait du consentement</strong> (art. 7) &mdash; à tout moment pour les traitements fondés sur le consentement (ex.&nbsp;: cookies analytics, newsletter).</li>
         </ul>
-        <p>Pour exercer ces droits, adressez-vous à&nbsp;: GFA Bernard Solane et Fils, Château Crabitan Bellevue, 33410 Sainte-Croix-du-Mont ou par e-mail à <a href="mailto:crabitan.bellevue@orange.fr">crabitan.bellevue@orange.fr</a>. Nous répondons dans un délai d&#8217;un mois (Art. 12 RGPD).</p>
+        <p>Pour exercer ces droits, adressez-vous à&nbsp;: GFA Bernard Solane et Fils, Château Crabitan Bellevue, 33410 Sainte-Croix-du-Mont ou par e-mail à <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>. Nous répondons dans un délai d&#8217;un mois (Art. 12 RGPD).</p>
         <p>Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de la <strong>CNIL</strong> (Commission Nationale de l&#8217;Informatique et des Libertés) &mdash; <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer">www.cnil.fr</a>.</p>
 
         <h2>VIII. Sécurité des données</h2>
