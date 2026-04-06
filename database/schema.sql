@@ -75,6 +75,8 @@ CREATE TABLE `accounts` (
   `email_change_used_at`         DATETIME       DEFAULT NULL COMMENT 'Horodatage usage unique',
   `google_id`                    VARCHAR(255)   DEFAULT NULL COMMENT 'Google OAuth ID',
   `apple_id`                     VARCHAR(255)   DEFAULT NULL COMMENT 'Apple Sign In ID',
+  `majority_declared_at`         DATETIME       DEFAULT NULL COMMENT 'Horodatage déclaration majorité (Art. L3342-1 CSP)',
+  `majority_declared_ip`         VARCHAR(45)    DEFAULT NULL COMMENT 'IP lors de la déclaration majorité (preuve RGPD Art. 7)',
   `deleted_at`                   DATETIME       DEFAULT NULL COMMENT 'Soft delete',
   `scheduled_deletion_at`        DATETIME       DEFAULT NULL COMMENT 'Date de purge effective (J+30 après deleted_at)',
   `reactivation_token`           VARCHAR(64)    DEFAULT NULL COMMENT 'Token annulation suppression compte (valide 30 jours)',
