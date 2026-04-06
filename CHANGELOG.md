@@ -2,6 +2,20 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.42.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.41.2...v0.42.0) (2026-04-06)
+
+
+### Bug Fixes
+
+* **controller:** DpoAdminController + MailService → CONTACT_OWNER_EMAIL env var ([49ccc46](https://github.com/ApoSkunz/crabitan_bellevue/commit/49ccc46fb5870740db33d24cc7d3574b1a7be075))
+* **view:** emails hardcodés → CONTACT_OWNER_EMAIL (CGV, politique confidentialité, panier) ([7b1f66d](https://github.com/ApoSkunz/crabitan_bellevue/commit/7b1f66d6f021b9a0c63484be2ef5a485324ad655))
+* **view:** S2003 — require → require_once pour config/legal.php (mentions légales + politique confidentialité) ([c6e86bc](https://github.com/ApoSkunz/crabitan_bellevue/commit/c6e86bc49d6db8887f62983f72847b3526a53092))
+
+
+### Features
+
+* **legal:** config/legal.php + version/date mentions légales et politique confidentialité ([a0e908e](https://github.com/ApoSkunz/crabitan_bellevue/commit/a0e908e7a1ceb3f8cdb1a05bc6e748e12777902b))
+
 ## [0.41.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.41.1...v0.41.2) (2026-04-06)
 
 
