@@ -737,10 +737,14 @@ function initRegisterModal() {
     pwdInput?.addEventListener('input', checkPasswordMatch);
     confirmInput?.addEventListener('input', checkPasswordMatch);
 
-    // Auto-open si erreurs de soumission — scroll + focus sur la première erreur visible
+    // Auto-open si erreurs de soumission — marque les champs en erreur + scroll + focus
     if (globalThis.__authRegisterOpen) {
         openModal();
-        const firstError = modal.querySelector('.register-modal__error:not([hidden])');
+        modal.querySelectorAll('.register-modal__error').forEach((err) => {
+            err.closest('.register-modal__field, .register-modal__field--radio')
+                ?.classList.add('is-invalid');
+        });
+        const firstError = modal.querySelector('.register-modal__error');
         if (firstError) {
             firstError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             firstError.closest('.register-modal__field, .register-modal__field--radio')
