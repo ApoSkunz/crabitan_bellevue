@@ -997,7 +997,7 @@ function initContactForm() {
         const group = field.closest('.contact-form__group, .contact-form__fieldset, .contact-form__rgpd');
         if (!group) return;
         group.classList.remove('is-invalid');
-        group.offsetWidth; // eslint-disable-line no-unused-expressions // force reflow pour re-déclencher l'animation
+        group.offsetWidth; // force reflow to re-trigger animation
         group.classList.add('is-invalid');
         field.addEventListener('change', () => group.classList.remove('is-invalid'), { once: true });
         field.addEventListener('input',  () => group.classList.remove('is-invalid'), { once: true });
