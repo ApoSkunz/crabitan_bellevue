@@ -394,9 +394,11 @@ $pricingRules     = $pricingRules     ?? [];
             </a>
         </div>
         <?php endif; ?>
-        <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--outline">
-            <?= htmlspecialchars(__('cart.browse')) ?>
-        </a>
+        <div class="cart-guest-cta">
+            <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--gold">
+                <?= htmlspecialchars(__('cart.browse')) ?>
+            </a>
+        </div>
         <?php endif; ?>
 
     </section>
