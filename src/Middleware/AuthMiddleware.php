@@ -88,6 +88,12 @@ class AuthMiddleware
             session_start();
         }
         $uri = strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
+
+        // Guard : les chemins admin ne doivent jamais révéler leur existence via une redirection login
+        if (preg_match('#/admin/#i', (string) $uri)) {
+            Response::abort(404);
+        }
+
         preg_match('#^/(fr|en)(/|$)#', (string) $uri, $m);
         $lang = $m[1] ?? 'fr';
         $_SESSION['_intended'] = $uri;
