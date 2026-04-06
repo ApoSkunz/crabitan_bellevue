@@ -2,6 +2,23 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.40.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.39.0...v0.40.0) (2026-04-06)
+
+
+### Bug Fixes
+
+* **export-rgpd:** compte individuel → Prénom/Nom/Civilité, société → Raison sociale (exclusivité mutuelle) ([691581b](https://github.com/ApoSkunz/crabitan_bellevue/commit/691581b5b97d2647ed4ea9fdb7b0f04c43465682))
+* **phpcs:** AccountControllerTest — espace après class + accolade fermante ([49957b8](https://github.com/ApoSkunz/crabitan_bellevue/commit/49957b825bfe7c7ccea0e00733998905468b36f4))
+* **test:** rendre testExportSendMailerException déterministe + exclure resources/js coverage ([9b97468](https://github.com/ApoSkunz/crabitan_bellevue/commit/9b974682a8d90ef253cc018443b9e65e11858eb6))
+
+
+### Features
+
+* **export-rgpd:** adresses_commandes (snapshots RGPD Art.20 — conformité CNIL maximale) ([2791f8a](https://github.com/ApoSkunz/crabitan_bellevue/commit/2791f8a592e08262a8ed9754b9653defd8dbb96a))
+* **export-rgpd:** complément export Art. 20 — logs connexion 90j, appareils MFA, consentements ([6fff357](https://github.com/ApoSkunz/crabitan_bellevue/commit/6fff3575a906015524b991521c71852264a56ce5))
+* **export-rgpd:** livraison archive par email + rate limit 3/24h ([5c96741](https://github.com/ApoSkunz/crabitan_bellevue/commit/5c967412a5289dec66fe4b7a107cc67df7a9cbd4))
+* **profile:** masquer l'email dans les inputs readonly (j***[@domain](https://github.com/domain).com) ([4828b08](https://github.com/ApoSkunz/crabitan_bellevue/commit/4828b08da61d9ee94dffc7c5cc498ce1cb381c01))
+
 # [0.39.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.38.0...v0.39.0) (2026-04-05)
 
 
