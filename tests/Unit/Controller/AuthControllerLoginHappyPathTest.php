@@ -139,4 +139,68 @@ class AuthControllerLoginHappyPathTest extends TestCase
         $this->assertNotNull($caught);
         $this->assertSame(302, $caught->status);
     }
+
+    // ================================================================
+    // redirect-post-login — _intended mémorisé par AuthMiddleware
+    // ================================================================
+
+    public function testLoginRedirectsToIntendedWhenSetInSession(): void
+    {
+        $_SESSION['_intended'] = '/fr/mon-compte/commandes';
+        $_COOKIE['device_token'] = 'existing-device-token';
+        $_POST = [
+            'email'        => 'jean@example.com',
+            'password'     => 'TestPass123!',
+            'csrf_token'   => 'valid-csrf',
+            'redirect_back' => '/fr',
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            $this->baseAccount(),
+            ['id' => 1],  // TrustedDeviceModel::isTrusted
+            false         // CartModel::findByUserId
+        );
+
+        $caught = null;
+        try {
+            (new AuthController(new Request()))->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertSame('/fr/mon-compte/commandes', $caught->location);
+        $this->assertArrayNotHasKey('_intended', $_SESSION); // consommé
+    }
+
+    public function testLoginFallsBackToRedirectBackWhenNoIntended(): void
+    {
+        $_COOKIE['device_token'] = 'existing-device-token';
+        $_POST = [
+            'email'         => 'jean@example.com',
+            'password'      => 'TestPass123!',
+            'csrf_token'    => 'valid-csrf',
+            'redirect_back' => '/fr/boutique',
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            $this->baseAccount(),
+            ['id' => 1],  // TrustedDeviceModel::isTrusted
+            false         // CartModel::findByUserId
+        );
+
+        $caught = null;
+        try {
+            (new AuthController(new Request()))->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertSame('/fr/boutique', $caught->location);
+    }
 }

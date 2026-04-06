@@ -533,14 +533,16 @@ class OrderControllerCheckoutTest extends TestCase
         // 2. CartModel::removeUnavailableItems → findByUserId (false = pas de panier à nettoyer)
         // 3. CartModel::findByUserId (vérification explicite)
         // 4. AccountModel::findById (avant enrichItems)
-        // 5. WineModel::getById (dans enrichItems)
-        // 6. PricingRuleModel::findForQuantity
-        // 7. PricingRuleModel::computeDeliveryDiscount → findForQuantity
+        // 5. AccountModel::hasDeclaredMajority (Sprint 5 — vérifie déclaration majorité)
+        // 6. WineModel::getById (dans enrichItems)
+        // 7. PricingRuleModel::findForQuantity
+        // 8. PricingRuleModel::computeDeliveryDiscount → findForQuantity
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
             ['id' => 1],
             false,
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
             ['id' => 1, 'newsletter' => false, 'account_type' => 'individual'],
+            ['majority_declared_at' => '2025-01-01 00:00:00'],  // hasDeclaredMajority → true
             ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
             false,
             false

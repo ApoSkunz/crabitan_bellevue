@@ -81,4 +81,62 @@ class AuthMiddlewareTest extends TestCase
             ob_end_clean();
         }
     }
+
+    // ----------------------------------------------------------------
+    // redirectToLogin = true
+    // ----------------------------------------------------------------
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testHandleRedirectsToLoginWhenNoCookieAndRedirectToLoginTrue(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/fr/mon-compte/commandes';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302); // redirect vers /{lang}?login=1
+
+        ob_start();
+        try {
+            AuthMiddleware::handle(redirectToLogin: true);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testHandleStoresIntendedInSessionWhenRedirectToLogin(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/fr/mon-compte/profil';
+
+        try {
+            ob_start();
+            AuthMiddleware::handle(redirectToLogin: true);
+        } catch (HttpException) {
+            ob_end_clean();
+        }
+
+        $this->assertSame('/fr/mon-compte/profil', $_SESSION['_intended'] ?? null);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testHandleExtractsEnLangFromUriWhenRedirectToLogin(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/en/my-account/orders?page=2';
+
+        $exception = null;
+        try {
+            ob_start();
+            AuthMiddleware::handle(redirectToLogin: true);
+        } catch (HttpException $e) {
+            ob_end_clean();
+            $exception = $e;
+        }
+
+        // Redirect URL doit contenir /en?login=1
+        $this->assertNotNull($exception);
+        $this->assertSame(302, $exception->getCode());
+        $this->assertStringContainsString('/en?login=1', $exception->location ?? '');
+    }
 }
