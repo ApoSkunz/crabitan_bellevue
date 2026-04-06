@@ -172,7 +172,6 @@ class WineControllerTest extends TestCase
     {
         $this->bootstrapApp();
         $_SERVER['REQUEST_URI'] = '/en/vins/test-slug/fiche-technique';
-        $_COOKIE['age_verified'] = '1'; // simuler la vérification d'âge
 
         ob_start();
         try {

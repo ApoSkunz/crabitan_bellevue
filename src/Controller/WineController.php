@@ -162,12 +162,6 @@ class WineController extends Controller
         $lang  = $this->resolveLang($params);
         $slug  = $params['slug'] ?? '';
 
-        // Vérification de majorité — la fiche technique est un contenu alcool
-        if (($_COOKIE['age_verified'] ?? '') !== '1') {
-            $redirect = urlencode('/' . $lang . '/vins/' . $slug . '/fiche-technique');
-            Response::redirect('/age-gate?lang=' . $lang . '&redirect=' . $redirect);
-        }
-
         $model = new WineModel();
         $wine  = $model->getBySlug($slug);
 
