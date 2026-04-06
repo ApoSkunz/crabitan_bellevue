@@ -53,7 +53,17 @@ class OrderControllerPaymentFlowTest extends TestCase
         $_SERVER['QUERY_STRING']    = '';
 
         // Générer une paire RSA temporaire pour les tests nécessitant une signature valide
-        $this->privateKey = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+        // Sur Windows (XAMPP) openssl_pkey_new() échoue sans chemin explicite vers openssl.cnf
+        $opensslConfig = ['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA];
+        if (PHP_OS_FAMILY === 'Windows') {
+            foreach (['C:/xampp/apache/conf/openssl.cnf', 'C:/xampp/php/extras/ssl/openssl.cnf'] as $candidate) {
+                if (file_exists($candidate)) {
+                    $opensslConfig['config'] = $candidate;
+                    break;
+                }
+            }
+        }
+        $this->privateKey = openssl_pkey_new($opensslConfig);
         if ($this->privateKey !== false) {
             $details = openssl_pkey_get_details($this->privateKey);
             if ($details !== false) {
