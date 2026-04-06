@@ -398,20 +398,21 @@
 // Overlay age gate — injectée dans header.php
 // ============================================================
 
+// Bloque le scroll de la page tant que l'overlay est visible
+body:has(.age-overlay) {
+    overflow: hidden;
+}
+
 .age-overlay {
     position: fixed;
     inset: 0;
     z-index: 9000;
-    background: rgba(0, 0, 0, 0.82);
+    background: var(--color-bg);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
     animation: fade-in 0.35s ease both;
-
-    [data-theme='light'] & {
-        background: rgba(20, 16, 10, 0.78);
-    }
 }
 
 .age-overlay__card {
