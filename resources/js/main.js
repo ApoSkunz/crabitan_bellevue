@@ -544,27 +544,27 @@ function initLoginModal() {
         document.body.style.overflow = '';
         showLoginPanel();
         trigger.focus();
-        if (window.__forgotSuccess) {
-            window.__forgotSuccess = false;
-            window.location.replace(window.location.pathname);
+        if (globalThis.__forgotSuccess) {
+            globalThis.__forgotSuccess = false;
+            globalThis.location.replace(globalThis.location.pathname);
         }
-        if (window.__resendActivationSuccess) {
-            window.__resendActivationSuccess = false;
+        if (globalThis.__resendActivationSuccess) {
+            globalThis.__resendActivationSuccess = false;
         }
     }
 
-    if (window.__authModalError || window.__flashInfo || new URLSearchParams(window.location.search).get('login') === '1') openModal();
+    if (globalThis.__authModalError || globalThis.__flashInfo || new URLSearchParams(globalThis.location.search).get('login') === '1') openModal();
 
     // Switch vers panel mot de passe oublié
     document.getElementById('forgot-password-btn')?.addEventListener('click', showForgotPanel);
     let forgotSuccessTimer = null;
     let resendSuccessTimer = null;
 
-    const forgotWasSuccess = !!window.__forgotSuccess;
+    const forgotWasSuccess = !!globalThis.__forgotSuccess;
     document.getElementById('forgot-back-btn')?.addEventListener('click', () => {
         clearTimeout(forgotSuccessTimer);
         if (forgotWasSuccess) {
-            window.location.replace(window.location.pathname + '?login=1');
+            globalThis.location.replace(globalThis.location.pathname + '?login=1');
         } else {
             showLoginPanel();
         }
@@ -609,27 +609,27 @@ function initLoginModal() {
     });
 
     // Expose pour le reset modal (token invalide → ouvrir panel forgot)
-    window.__openLoginModalForgot = openModalForgot;
+    globalThis.__openLoginModalForgot = openModalForgot;
 
-    if (window.__forgotSuccess) {
+    if (globalThis.__forgotSuccess) {
         openModalForgot();
         forgotSuccessTimer = setTimeout(function () {
-            window.location.replace(window.location.pathname + '?login=1');
+            globalThis.location.replace(globalThis.location.pathname + '?login=1');
         }, 5000);
     }
 
-    if (window.__resendActivationSuccess) {
+    if (globalThis.__resendActivationSuccess) {
         modal.setAttribute('aria-hidden', 'false');
         trigger.setAttribute('aria-expanded', 'true');
         document.body.style.overflow = 'hidden';
         loginPanel?.setAttribute('hidden', '');
         document.getElementById('resend-activation-panel')?.removeAttribute('hidden');
         resendSuccessTimer = setTimeout(function () {
-            window.location.replace(window.location.pathname + '?login=1');
+            globalThis.location.replace(globalThis.location.pathname + '?login=1');
         }, 5000);
         document.getElementById('resend-activation-back-btn')?.addEventListener('click', function () {
             clearTimeout(resendSuccessTimer);
-            window.location.replace(window.location.pathname + '?login=1');
+            globalThis.location.replace(globalThis.location.pathname + '?login=1');
         });
     }
 }
