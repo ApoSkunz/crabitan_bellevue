@@ -8,6 +8,8 @@ return [
     'age_gate.not_legal'     => 'Je ne suis pas en âge légal de consommer de l\'alcool dans mon pays de résidence',
     'age_gate.remember'      => 'Se souvenir de moi',
     'age_gate.enter'         => 'Entrer',
+    'age_gate.exit'          => 'Quitter',
+    'age_gate.overlay_text'  => 'En entrant sur ce site, je certifie avoir l\'âge légal pour consommer de l\'alcool dans mon pays.',
     'age_gate.info_label'    => 'Informations légales',
     'age_gate.choice_legend' => 'Vérification de l\'âge',
     'age_gate.legal_more'    => 'En savoir plus.',

@@ -8,6 +8,8 @@ return [
     'age_gate.not_legal'     => 'I am not of legal drinking age in my country of residence',
     'age_gate.remember'      => 'Remember me',
     'age_gate.enter'         => 'Enter',
+    'age_gate.exit'          => 'Leave',
+    'age_gate.overlay_text'  => 'By entering this site, I confirm I am of legal drinking age in my country.',
     'age_gate.info_label'    => 'Legal information',
     'age_gate.choice_legend' => 'Age verification',
     'age_gate.legal_more'    => 'Learn more.',
