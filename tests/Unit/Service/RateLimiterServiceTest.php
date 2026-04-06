@@ -271,12 +271,10 @@ class RateLimiterServiceTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * Documente le comportement connu : en mode session, le TTL est stocké
-     * dans $_SESSION['_rl_ttl'] mais n'est PAS relu lors du get().
-     * Une clé dont le TTL est expiré est donc toujours retournée telle quelle.
-     * Ce test fixe ce comportement pour détecter toute régression future.
+     * En mode session, le TTL est maintenant appliqué lors du get() :
+     * une clé dont le TTL est expiré est purgée et retourne la valeur par défaut.
      */
-    public function testSessionFallbackDoesNotEnforceTtlOnGet(): void
+    public function testSessionFallbackEnforcesTtlOnGet(): void
     {
         $key     = 'ttl:test:ip';
         $fullKey = 'rl:' . $key . ':count';
@@ -285,12 +283,12 @@ class RateLimiterServiceTest extends TestCase
         $_SESSION['_rl'][$fullKey]     = 3;
         $_SESSION['_rl_ttl'][$fullKey] = time() - 1;
 
-        // Le service renvoie quand même la valeur (pas de purge TTL côté get)
-        // → checkLimit lit count = 3, pas de lockout → autorisé (3 < 5)
+        // Le TTL est expiré → la clé est purgée et le compteur revient à 0
+        // → checkLimit considère le bucket vide → autorisé
         $this->assertTrue($this->service->checkLimit($key, 5, 900));
 
-        // Et le compteur en session vaut toujours 3
-        $this->assertSame(3, $_SESSION['_rl'][$fullKey]);
+        // La clé doit avoir été supprimée de la session
+        $this->assertArrayNotHasKey($fullKey, $_SESSION['_rl'] ?? []);
     }
 
     // ----------------------------------------------------------------
@@ -392,18 +390,15 @@ class RateLimiterServiceTest extends TestCase
         $this->assertTrue($this->service->checkLimit($key, 1, 0));
     }
 
-    public function testCheckLimitWithZeroWindowSecondsBlocksAfterRecordAttempt(): void
+    public function testCheckLimitWithZeroWindowSecondsAllowsAfterRecordAttempt(): void
     {
         $key = 'zero:window:block:ip';
 
         $this->service->recordAttempt($key, 0);
 
-        // count = 1 >= maxAttempts = 1 → bloqué
-        // Le lockout est posé avec TTL = 0 + 60 = 60 s
-        $this->assertFalse($this->service->checkLimit($key, 1, 0));
-
-        // windowSeconds=0 → until = time()+0 = time() → expire immédiatement
-        // getRetryAfter retourne max(0, time()-time()) = 0 : comportement attendu
+        // TTL = 0 → l'entrée expire immédiatement dès la lecture
+        // → count revient à 0 → checkLimit autorisé
+        $this->assertTrue($this->service->checkLimit($key, 1, 0));
         $this->assertSame(0, $this->service->getRetryAfter($key));
     }
 

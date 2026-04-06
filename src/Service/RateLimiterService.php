@@ -152,7 +152,15 @@ class RateLimiterService
         }
 
         $this->ensureSession();
-        return $_SESSION['_rl'][$fullKey] ?? $default;
+        if (!isset($_SESSION['_rl'][$fullKey])) {
+            return $default;
+        }
+        $ttlAt = $_SESSION['_rl_ttl'][$fullKey] ?? null;
+        if ($ttlAt !== null && time() >= $ttlAt) {
+            unset($_SESSION['_rl'][$fullKey], $_SESSION['_rl_ttl'][$fullKey]);
+            return $default;
+        }
+        return $_SESSION['_rl'][$fullKey];
     }
 
     /**
