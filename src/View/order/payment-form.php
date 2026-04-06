@@ -47,6 +47,6 @@
         </noscript>
     </form>
 </div>
-<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">document.getElementById('ca-payment-form').submit();</script>
+<script>document.getElementById('ca-payment-form').submit();</script>
 </body>
 </html>

@@ -84,7 +84,7 @@
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
 
-<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+<script>
 (function () {
     'use strict';
 

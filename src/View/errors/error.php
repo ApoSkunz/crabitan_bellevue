@@ -76,7 +76,7 @@ $homeLbl = $lang === 'en' ? '← Back to home' : '← Retour à l\'accueil';
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/css/main.css">
-    <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+    <script>
         // Restore theme preference without flash
         (function () {
             var t = localStorage.getItem('cb-theme');

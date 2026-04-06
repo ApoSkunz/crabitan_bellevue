@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/assets/css/main.css">
 
 <?php if (isset($_COOKIE['auth_token'])) : ?>
-    <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+    <script>
     (function () {
         'use strict';
         var LANG      = '<?= htmlspecialchars(defined('CURRENT_LANG') ? CURRENT_LANG : 'fr', ENT_QUOTES) ?>';

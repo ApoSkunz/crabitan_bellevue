@@ -187,7 +187,7 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
     </section>
 </main>
 
-<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+<script>
 (function () {
     var seconds  = 15;
     var counter  = document.getElementById('js-countdown');

@@ -464,7 +464,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
 <style>
 </style>
 
-<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+<script>
 (function () {
     'use strict';
 

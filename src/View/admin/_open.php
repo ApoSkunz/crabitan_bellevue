@@ -51,7 +51,7 @@ $adminRole    = $adminUser['role'] ?? 'admin';
     <title><?= htmlspecialchars($pageTitle) ?> — Admin · Crabitan Bellevue</title>
     <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/css/main.css">
-    <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+    <script>
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.admin-flash--success').forEach(function (el) {
             setTimeout(function () {
