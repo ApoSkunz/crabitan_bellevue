@@ -34,6 +34,27 @@ class Response
         throw new \Core\Exception\HttpException($status, null, $message);
     }
 
+    /**
+     * Affiche la page d'erreur visuelle avec des données supplémentaires accessibles dans la vue.
+     *
+     * @param int                  $status Code HTTP (ex. 429)
+     * @param array<string, mixed> $data   Variables injectées dans la vue error.php (ex. retryMinutes)
+     * @param string               $message Message de fallback si la vue est absente
+     */
+    public static function abortWithData(int $status, array $data = [], string $message = ''): never
+    {
+        http_response_code($status);
+        $errorView = defined('SRC_PATH') ? SRC_PATH . '/View/errors/error.php' : null;
+        if ($errorView !== null && file_exists($errorView)) {
+            $statusCode = $status; // NOSONAR — exposed to included error view via PHP scope (php:S1481)
+            extract($data, EXTR_SKIP);
+            include_once $errorView;
+        } else {
+            echo $message ?: $status;
+        }
+        throw new \Core\Exception\HttpException($status, null, $message);
+    }
+
     public static function view(string $template, array $data = [], int $httpStatus = 200): void
     {
         http_response_code($httpStatus);

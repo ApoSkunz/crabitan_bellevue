@@ -22,6 +22,23 @@ $labels = [
     429 => ['fr' => 'Trop de requêtes',          'en' => 'Too Many Requests'],
 ];
 
+// Pour 429 avec délai et nom du vin ($retryMinutes, $wineLabel injectés via Response::abortWithData)
+$retryMinutes = isset($retryMinutes) && $retryMinutes > 0 ? (int) $retryMinutes : null;
+$wineLabel    = isset($wineLabel) && $wineLabel !== '' ? (string) $wineLabel : null;
+
+$retryMsg = '';
+if ($wineLabel !== null) {
+    $retryMsg .= $lang === 'en'
+        ? ' The technical sheet for "' . htmlspecialchars($wineLabel) . '" is temporarily unavailable.'
+        : ' La fiche technique de "' . htmlspecialchars($wineLabel) . '" est temporairement indisponible.';
+}
+if ($retryMinutes !== null) {
+    $plural    = $retryMinutes > 1 ? 's' : '';
+    $retryMsg .= $lang === 'en'
+        ? ' Please try again in ' . $retryMinutes . ' minute' . $plural . '.'
+        : ' Réessayez dans ' . $retryMinutes . ' minute' . $plural . '.';
+}
+
 $descriptions = [
     400 => [
         'fr' => 'Votre requête ne peut pas être traitée.',
@@ -40,8 +57,8 @@ $descriptions = [
         'en' => 'This HTTP method is not allowed on this resource.',
     ],
     429 => [
-        'fr' => 'Vous avez effectué trop de requêtes. Veuillez patienter un instant.',
-        'en' => 'You have made too many requests. Please wait a moment.',
+        'fr' => 'Vous avez effectué trop de demandes.' . $retryMsg,
+        'en' => 'You have made too many requests.' . $retryMsg,
     ],
 ];
 

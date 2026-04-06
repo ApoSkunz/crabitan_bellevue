@@ -30,7 +30,8 @@ $isPublicPath = str_starts_with($path, '/age-gate')
     || str_ends_with($path, '/conditions-generales-de-vente')
     || str_ends_with($path, '/support')
     || str_contains($path, '/newsletter/desabonnement')
-    || str_contains($path, '/auth/google');
+    || str_contains($path, '/auth/google')
+    || str_ends_with($path, '/fiche-technique'); // QR codes — mention Loi Evin incluse dans le PDF
 
 // Crawlers SEO connus : pas de cookie mais on laisse passer pour l'indexation
 $ua        = $_SERVER['HTTP_USER_AGENT'] ?? '';

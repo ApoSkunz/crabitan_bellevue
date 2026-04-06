@@ -223,68 +223,13 @@ class WineControllerTest extends TestCase
         ];
     }
 
-    public function testStripAlphaReturnsFallbackForMissingFile(): void
-    {
-        $this->bootstrapApp();
-        $method = new \ReflectionMethod(\Controller\WineController::class, 'stripAlpha');
-        $result = $method->invoke($this->makeController(), '/tmp/cb_nonexistent_abc123.png');
-        $this->assertNull($result['path']);
-        $this->assertSame('PNG', $result['type']);
-        $this->assertNull($result['tmp']);
-    }
-
-    public function testStripAlphaReturnsFallbackForNonPngExtension(): void
-    {
-        $this->bootstrapApp();
-        $tmp = tempnam(sys_get_temp_dir(), 'cb_test') . '.jpg';
-        file_put_contents($tmp, 'fake-image-data');
-        try {
-            $method = new \ReflectionMethod(\Controller\WineController::class, 'stripAlpha');
-            $result = $method->invoke($this->makeController(), $tmp);
-            $this->assertSame($tmp, $result['path']);
-            $this->assertSame('PNG', $result['type']);
-            $this->assertNull($result['tmp']);
-        } finally {
-            if (is_file($tmp)) {
-                unlink($tmp);
-            }
-        }
-    }
-
-    public function testStripAlphaConvertsValidPng(): void
-    {
-        if (!function_exists('imagecreatetruecolor')) {
-            $this->markTestSkipped('Extension GD non disponible');
-        }
-        $this->bootstrapApp();
-        $src = imagecreatetruecolor(10, 10);
-        $tmp = tempnam(sys_get_temp_dir(), 'cb_test') . '.png';
-        imagepng($src, $tmp);
-        imagedestroy($src);
-        try {
-            $method = new \ReflectionMethod(\Controller\WineController::class, 'stripAlpha');
-            $result = $method->invoke($this->makeController(), $tmp);
-            $this->assertNotNull($result['path']);
-            $this->assertSame('JPG', $result['type']);
-            $this->assertNotNull($result['tmp']);
-            if ($result['tmp'] !== null && is_file($result['tmp'])) {
-                unlink($result['tmp']);
-            }
-        } finally {
-            if (is_file($tmp)) {
-                unlink($tmp);
-            }
-        }
-    }
-
     public function testBuildPdfReturnsTCPDFInstance(): void
     {
         $this->bootstrapApp();
         $this->requireTcpdf();
         $method = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
-        $logo   = ['path' => null, 'type' => 'PNG', 'tmp' => null];
         ob_start();
-        $pdf = $method->invoke($this->makeController(), $this->makeFakeWine(), $logo);
+        $pdf = $method->invoke($this->makeController(), '');
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
@@ -296,12 +241,10 @@ class WineControllerTest extends TestCase
         $ctrl       = $this->makeController();
         $buildPdf   = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
         $renderBody = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfBody');
-        $logo = ['path' => null, 'type' => 'PNG', 'tmp' => null];
-        $img  = ['path' => null, 'type' => 'PNG', 'tmp' => null];
-        $l    = fn(array $arr): string => $arr['fr'] ?? '';
+        $l = fn(array $arr): string => $arr['fr'] ?? '';
         ob_start();
-        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine(), $logo);
-        $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), $img, 'fr', $l);
+        $pdf = $buildPdf->invoke($ctrl, '', 'fr');
+        $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), '', 'fr', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
@@ -313,12 +256,10 @@ class WineControllerTest extends TestCase
         $ctrl       = $this->makeController();
         $buildPdf   = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
         $renderBody = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfBody');
-        $logo = ['path' => null, 'type' => 'PNG', 'tmp' => null];
-        $img  = ['path' => null, 'type' => 'PNG', 'tmp' => null];
-        $l    = fn(array $arr): string => $arr['en'] ?? ($arr['fr'] ?? '');
+        $l = fn(array $arr): string => $arr['en'] ?? ($arr['fr'] ?? '');
         ob_start();
-        $pdf = $buildPdf->invoke($ctrl, $this->makeFakeWine(), $logo);
-        $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), $img, 'en', $l);
+        $pdf = $buildPdf->invoke($ctrl, '', 'en');
+        $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), '', 'en', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
@@ -330,15 +271,70 @@ class WineControllerTest extends TestCase
         $ctrl       = $this->makeController();
         $buildPdf   = new \ReflectionMethod(\Controller\WineController::class, 'buildPdf');
         $renderBody = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfBody');
-        $logo = ['path' => null, 'type' => 'PNG', 'tmp' => null];
-        $img  = ['path' => null, 'type' => 'PNG', 'tmp' => null];
         $l    = fn(array $arr): string => $arr['fr'] ?? '';
         $wine = $this->makeFakeWine();
         $wine['award'] = '{"fr":"","en":""}';
         ob_start();
-        $pdf = $buildPdf->invoke($ctrl, $wine, $logo);
-        $renderBody->invoke($ctrl, $pdf, $wine, $img, 'fr', $l);
+        $pdf = $buildPdf->invoke($ctrl, '', 'fr');
+        $renderBody->invoke($ctrl, $pdf, $wine, '', 'fr', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
+    }
+
+    // ── checkPdfRateLimit() ─────────────────────────────────────────────────
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCheckPdfRateLimitAllowsWithinLimit(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod(\Controller\WineController::class, 'checkPdfRateLimit');
+
+        // Doit passer sans exception pour les premières requêtes
+        $method->invoke($ctrl, 'test-slug-rate', 'Château Test 2020');
+        $this->assertTrue(true);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCheckPdfRateLimitBlocks429AfterLimit(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REMOTE_ADDR'] = '127.9.9.1';
+
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod(\Controller\WineController::class, 'checkPdfRateLimit');
+
+        // Épuiser la limite (PDF_RATE_MAX = 10)
+        for ($i = 0; $i < 10; $i++) {
+            $method->invoke($ctrl, 'slug-block-test', 'Vin Test');
+        }
+
+        // La 11ème doit déclencher un HttpException(429)
+        $this->expectException(\Core\Exception\HttpException::class);
+        $method->invoke($ctrl, 'slug-block-test', 'Vin Test');
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCheckPdfRateLimitIsolatedPerSlug(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.2';
+
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod(\Controller\WineController::class, 'checkPdfRateLimit');
+
+        // Épuiser sur slug A
+        for ($i = 0; $i < 10; $i++) {
+            $method->invoke($ctrl, 'slug-a', 'Vin A');
+        }
+
+        // slug B doit rester libre
+        $method->invoke($ctrl, 'slug-b', 'Vin B');
+        $this->assertTrue(true);
     }
 }
