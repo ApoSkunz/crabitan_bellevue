@@ -663,8 +663,9 @@ WHERE `id` IN (1, 2, 3);
 
 -- Soft delete du compte 7 (scheduled_deletion_at toujours dans le futur pour les tests de purge)
 UPDATE `accounts`
-SET `deleted_at` = DATE_SUB(NOW(), INTERVAL 5 DAY),
-    `scheduled_deletion_at` = DATE_ADD(NOW(), INTERVAL 25 DAY)
+SET `deleted_at`            = DATE_SUB(NOW(), INTERVAL 5 DAY),
+    `scheduled_deletion_at` = DATE_ADD(NOW(), INTERVAL 25 DAY),
+    `reactivation_token`    = 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2'
 WHERE `id` = 7;
 
 ALTER TABLE `accounts` AUTO_INCREMENT = 9;
