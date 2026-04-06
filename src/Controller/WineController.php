@@ -126,13 +126,12 @@ class WineController extends Controller
 
     /**
      * Vérifie le rate limiting pour la génération PDF (10 req/IP/vin/heure).
-     * Répond 429 avec Retry-After si la limite est dépassée.
+     * Répond 429 avec Retry-After et page d'erreur visuelle si la limite est dépassée.
      *
      * @param string $slug Slug du vin
-     * @param string $lang Langue courante (fr|en)
      * @return void
      */
-    private function checkPdfRateLimit(string $slug, string $lang): void
+    private function checkPdfRateLimit(string $slug): void
     {
         $ip      = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         $key     = 'pdf_wine:' . $ip . ':' . $slug;
@@ -141,12 +140,7 @@ class WineController extends Controller
         if (!$limiter->checkLimit($key, self::PDF_RATE_MAX, self::PDF_RATE_WINDOW)) {
             $retryAfter = $limiter->getRetryAfter($key);
             Response::setHeader('Retry-After', (string) $retryAfter);
-            Response::json([
-                'error'       => $lang === 'en'
-                    ? 'Too many requests. Please try again later.'
-                    : 'Trop de demandes. Veuillez réessayer plus tard.',
-                'retry_after' => $retryAfter,
-            ], 429);
+            Response::abort(429);
         }
 
         $limiter->recordAttempt($key, self::PDF_RATE_WINDOW);
@@ -169,7 +163,7 @@ class WineController extends Controller
             Response::abort(404);
         }
 
-        $this->checkPdfRateLimit($slug, $lang);
+        $this->checkPdfRateLimit($slug);
 
         require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
 
@@ -177,7 +171,7 @@ class WineController extends Controller
         $logoPath = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo.png';
         $imgPath  = ROOT_PATH . '/public/assets/images/wines/' . ($wine['image_path'] ?? '');
 
-        $pdf = $this->buildPdf($logoPath);
+        $pdf = $this->buildPdf($logoPath, $lang);
         $this->renderPdfBody($pdf, $wine, $imgPath, $lang, $l);
 
         $label    = preg_replace('/[^a-zA-Z0-9_-]/', '_', (string) ($wine['label_name'] ?? 'vin'));
@@ -192,29 +186,31 @@ class WineController extends Controller
     // ----------------------------------------------------------------
 
     /**
-     * Build a TCPDF instance: cream background, elegant centered header (logo + name),
-     * gold footer. PNG images passed directly — alpha rendered on cream rect.
+     * Build a TCPDF instance: white background, elegant centered header (logo + name),
+     * gold footer with Loi Evin mention. PNG images passed directly — alpha rendered on white rect.
      *
      * @param string $logoPath Absolute path to the logo PNG
+     * @param string $lang     Language code (fr|en) for Loi Evin footer wording
      */
-    private function buildPdf(string $logoPath): TCPDF
+    private function buildPdf(string $logoPath, string $lang = 'fr'): TCPDF
     {
         $appName = APP_NAME;
 
-        $pdf = new class ($logoPath, $appName) extends TCPDF {
+        $pdf = new class ($logoPath, $appName, $lang) extends TCPDF {
             public function __construct(
                 private string $logoPath,
                 private string $appName,
+                private string $lang,
             ) {
                 parent::__construct('P', 'mm', 'A4', true, 'UTF-8', false);
                 $this->SetCreator($this->appName);
                 $this->SetAuthor($this->appName);
                 $this->SetMargins(15, 44, 15);
                 $this->SetHeaderMargin(5);
-                $this->SetFooterMargin(12);
+                $this->SetFooterMargin(15);
                 $this->setPrintHeader(true);
                 $this->setPrintFooter(true);
-                $this->SetAutoPageBreak(true, 22);
+                $this->SetAutoPageBreak(true, 26);
             }
 
             public function Header(): void // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -256,19 +252,29 @@ class WineController extends Controller
             public function Footer(): void // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
             {
                 $pageW = $this->getPageWidth();
-                $y     = $this->getPageHeight() - 11;
+                $y     = $this->getPageHeight() - 14;
 
                 // Double filet doré au-dessus du footer (symétrique avec le header)
                 $this->SetDrawColor(201, 168, 76);
                 $this->SetLineWidth(0.8);
-                $this->Line(20, $y - 3, $pageW - 20, $y - 3);
+                $this->Line(20, $y - 2.5, $pageW - 20, $y - 2.5);
                 $this->SetLineWidth(0.2);
-                $this->Line(20, $y - 1.5, $pageW - 20, $y - 1.5);
+                $this->Line(20, $y - 1, $pageW - 20, $y - 1);
 
+                // Ligne 1 — message de bienvenue
                 $this->SetFont('dejavusans', 'I', 7.5);
                 $this->SetTextColor(160, 130, 60);
                 $this->SetXY(15, $y);
-                $this->Cell($pageW - 30, 5, $this->appName . ' est ravi de vous offrir ces informations.', 0, 0, 'C');
+                $this->Cell($pageW - 30, 4.5, $this->appName . ' est ravi de vous offrir ces informations.', 0, 1, 'C');
+
+                // Ligne 2 — mention Loi Evin (Art. L3323-4 CSP)
+                $evin = $this->lang === 'en'
+                    ? 'Alcohol abuse is dangerous for your health. Please drink responsibly.'
+                    : "L'abus d'alcool est dangereux pour la santé. À consommer avec modération.";
+                $this->SetFont('dejavusans', '', 6.5);
+                $this->SetTextColor(120, 100, 60);
+                $this->SetX(15);
+                $this->Cell($pageW - 30, 4, $evin, 0, 0, 'C');
             }
         };
 

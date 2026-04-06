@@ -243,7 +243,7 @@ class WineControllerTest extends TestCase
         $renderBody = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfBody');
         $l = fn(array $arr): string => $arr['fr'] ?? '';
         ob_start();
-        $pdf = $buildPdf->invoke($ctrl, '');
+        $pdf = $buildPdf->invoke($ctrl, '', 'fr');
         $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), '', 'fr', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
@@ -258,7 +258,7 @@ class WineControllerTest extends TestCase
         $renderBody = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfBody');
         $l = fn(array $arr): string => $arr['en'] ?? ($arr['fr'] ?? '');
         ob_start();
-        $pdf = $buildPdf->invoke($ctrl, '');
+        $pdf = $buildPdf->invoke($ctrl, '', 'en');
         $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), '', 'en', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
@@ -275,7 +275,7 @@ class WineControllerTest extends TestCase
         $wine = $this->makeFakeWine();
         $wine['award'] = '{"fr":"","en":""}';
         ob_start();
-        $pdf = $buildPdf->invoke($ctrl, '');
+        $pdf = $buildPdf->invoke($ctrl, '', 'fr');
         $renderBody->invoke($ctrl, $pdf, $wine, '', 'fr', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
@@ -294,7 +294,7 @@ class WineControllerTest extends TestCase
         $method = new \ReflectionMethod(\Controller\WineController::class, 'checkPdfRateLimit');
 
         // Doit passer sans exception pour les premières requêtes
-        $method->invoke($ctrl, 'test-slug-rate', 'fr');
+        $method->invoke($ctrl, 'test-slug-rate');
         $this->assertTrue(true);
     }
 
@@ -310,12 +310,12 @@ class WineControllerTest extends TestCase
 
         // Épuiser la limite (PDF_RATE_MAX = 10)
         for ($i = 0; $i < 10; $i++) {
-            $method->invoke($ctrl, 'slug-block-test', 'fr');
+            $method->invoke($ctrl, 'slug-block-test');
         }
 
         // La 11ème doit déclencher un HttpException(429)
         $this->expectException(\Core\Exception\HttpException::class);
-        $method->invoke($ctrl, 'slug-block-test', 'fr');
+        $method->invoke($ctrl, 'slug-block-test');
     }
 
     #[RunInSeparateProcess]
@@ -330,11 +330,11 @@ class WineControllerTest extends TestCase
 
         // Épuiser sur slug A
         for ($i = 0; $i < 10; $i++) {
-            $method->invoke($ctrl, 'slug-a', 'en');
+            $method->invoke($ctrl, 'slug-a');
         }
 
         // slug B doit rester libre
-        $method->invoke($ctrl, 'slug-b', 'en');
+        $method->invoke($ctrl, 'slug-b');
         $this->assertTrue(true);
     }
 }
