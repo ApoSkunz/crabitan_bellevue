@@ -2,6 +2,27 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.44.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.43.0...v0.44.0) (2026-04-06)
+
+
+### Bug Fixes
+
+* **age-gate:** overlay premier enfant de body (head.php) — zéro flash garanti, sans hack visibility ([e0e719f](https://github.com/ApoSkunz/crabitan_bellevue/commit/e0e719f26a3951ebb44ea3a3e99a8f22d6ed62c5))
+* **age-gate:** QUITTER à droite de ENTRER + rectangle ghost outline ([885aca4](https://github.com/ApoSkunz/crabitan_bellevue/commit/885aca4d0a80f64c77002addea276faf02d68fee))
+* **age-gate:** supprimer flash page — visibility hidden derrière overlay + fond opaque sans animation; UX 2 boutons + checkbox; cookie banner dans overlay ([197f027](https://github.com/ApoSkunz/crabitan_bellevue/commit/197f027500f6919371748d242289408e28b0f18e))
+* **scss:** age-overlay — fond opaque var(--color-bg) + body:has overflow hidden ([4be8b0e](https://github.com/ApoSkunz/crabitan_bellevue/commit/4be8b0e30832314c6f6d883c44ab8efab7d56699))
+* **test:** DpoAdminControllerTest — adapter assertion email à \$_ENV['CONTACT_OWNER_EMAIL'] ([30a09eb](https://github.com/ApoSkunz/crabitan_bellevue/commit/30a09eb0291804f7b0dabeeb0e0290aa33a8d317))
+* **test:** OrderControllerPaymentFlowTest — fournir openssl.cnf XAMPP sur Windows pour openssl_pkey_new() ([e48f183](https://github.com/ApoSkunz/crabitan_bellevue/commit/e48f18379147b5dfd525fb47e1a9fb5cfbc464ab))
+
+
+### Features
+
+* **age-gate:** exit redirige vers referer externe si disponible, sinon Google ([53ec6cc](https://github.com/ApoSkunz/crabitan_bellevue/commit/53ec6cc962df4b9393994ac7b4255b3310eb3e9e))
+* **controller:** AgeGateController — log IP+timestamp (Art. L3342-1), SameSite=Strict, TU log ([31eab5a](https://github.com/ApoSkunz/crabitan_bellevue/commit/31eab5a317c98a120c39f10ae7855f1865e216fa))
+* **front-controller:** rétablir vérification age côté serveur — redirect /age-gate sauf crawlers SEO (Googlebot…) ([58c25f5](https://github.com/ApoSkunz/crabitan_bellevue/commit/58c25f59c42b6e951b3bf76c1ab095b919c18856))
+* **scss:** age-gate overlay — styles .age-overlay (position fixed, z-index 9000, carte dorée) ([46f06a5](https://github.com/ApoSkunz/crabitan_bellevue/commit/46f06a5a7f354fa8382fcb1f64c95e62bcb716a4))
+* **view:** age-gate overlay — partial HTML + injection header.php + i18n FR/EN ([a8761b9](https://github.com/ApoSkunz/crabitan_bellevue/commit/a8761b9345095500392f24c9101bb2ba73835e7f))
+
 # [0.43.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.42.0...v0.43.0) (2026-04-06)
 
 
