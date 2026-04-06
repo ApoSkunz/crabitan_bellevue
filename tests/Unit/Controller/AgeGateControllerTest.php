@@ -228,6 +228,37 @@ class AgeGateControllerTest extends TestCase
     }
 
     /**
+     * Vérifie que confirm() écrit un log IP+horodatage dans logs/age-gate.log (Art. L3342-1 CSP).
+     *
+     * @return void
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testConfirmMajorWritesAgeGateLog(): void
+    {
+        $this->bootstrapApp();
+        $_POST                  = ['legal_age' => '1', 'redirect' => '/fr'];
+        $_COOKIE                = [];
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $logFile = ROOT_PATH . '/logs/age-gate.log';
+        if (file_exists($logFile)) {
+            unlink($logFile);
+        }
+
+        ob_start();
+        try {
+            $this->makeController()->confirm();
+        } catch (HttpException $e) {
+            // redirection attendue
+        }
+        ob_end_clean();
+
+        $this->assertFileExists($logFile, 'confirm() doit créer logs/age-gate.log');
+        $this->assertStringContainsString('127.0.0.1', (string) file_get_contents($logFile));
+    }
+
+    /**
      * Vérifie que sanitizeRedirect refuse une URL commençant par "//"
      * (open redirect via protocole implicite) et retourne DEFAULT_LANG.
      *

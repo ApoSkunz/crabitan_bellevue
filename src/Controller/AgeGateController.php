@@ -42,11 +42,13 @@ class AgeGateController extends Controller
             Response::redirect('https://www.google.com');
         }
 
+        $this->logAgeVerification();
+
         $cookieBase = [
             'path'     => '/',
             'secure'   => isset($_SERVER['HTTPS']),
             'httponly' => true,
-            'samesite' => 'Lax',
+            'samesite' => 'Strict',
         ];
 
         setcookie(self::COOKIE_NAME, '1', array_merge($cookieBase, [
@@ -70,6 +72,22 @@ class AgeGateController extends Controller
         ]);
 
         Response::redirect($this->sanitizeRedirect($redirect));
+    }
+
+    /**
+     * Enregistre l'IP et l'horodatage de la vérification d'âge
+     * à des fins de preuve légale (Art. L3342-1 CSP).
+     */
+    private function logAgeVerification(): void
+    {
+        $ip     = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $logDir = ROOT_PATH . '/logs';
+
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+
+        error_log(date('Y-m-d H:i:s') . ' | ' . $ip . PHP_EOL, 3, $logDir . '/age-gate.log');
     }
 
     /**
