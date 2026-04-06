@@ -652,6 +652,14 @@ VALUES
 -- L'email @purged.invalid est la convention de pseudonymisation du compte
 (8, 'a1b2c3d4e5f6@purged.invalid', '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, NULL, 0, '2014-01-01 00:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 
+-- Déclaration de majorité pré-remplie pour les comptes actifs (Sprint 5 — Art. L3342-1 CSP)
+-- Comptes id 1-3 et 5-6 : déclaration simulée depuis 127.0.0.1 (dev local)
+-- Compte id 4 (non vérifié) et id 7-8 (supprimé/purgé) : laissés à NULL intentionnellement
+UPDATE `accounts`
+SET `majority_declared_at` = `created_at`,
+    `majority_declared_ip`  = '127.0.0.1'
+WHERE `id` IN (1, 2, 3, 5, 6);
+
 -- Soft delete du compte 7 (scheduled_deletion_at toujours dans le futur pour les tests de purge)
 UPDATE `accounts`
 SET `deleted_at` = DATE_SUB(NOW(), INTERVAL 5 DAY),
