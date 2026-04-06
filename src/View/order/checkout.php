@@ -162,6 +162,11 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                         <h2 class="checkout-card__title" id="checkout-delivery-title">
                             <?= htmlspecialchars(__('checkout.delivery_address')) ?>
                         </h2>
+                        <p class="checkout-delivery-zone">
+                            <?= htmlspecialchars($isEn
+                                ? 'Delivery to mainland France only (excluding Corsica and overseas territories).'
+                                : 'Livraison en France métropolitaine uniquement (hors Corse et DOM-TOM).') ?>
+                        </p>
 
                         <?php if (!empty($deliveryAddresses)) : ?>
                         <div class="checkout-address-list">
