@@ -184,4 +184,75 @@ class TrustedDeviceModelTest extends IntegrationTestCase
         $this->assertContains('device-a', $tokens);
         $this->assertContains('device-b', $tokens);
     }
+
+    // ----------------------------------------------------------------
+    // getForExport
+    // ----------------------------------------------------------------
+
+    /**
+     * getForExport retourne un tableau vide si aucun appareil de confiance.
+     */
+    public function testGetForExportReturnsEmptyArrayWhenNoDevices(): void
+    {
+        $result = $this->model->getForExport($this->userId);
+
+        $this->assertSame([], $result);
+    }
+
+    /**
+     * getForExport retourne les appareils avec device_name, confirmed_at, last_seen et user_agent.
+     * Le device_token est volontairement absent (minimisation RGPD).
+     */
+    public function testGetForExportReturnsDeviceWithUserAgent(): void
+    {
+        $deviceToken = bin2hex(random_bytes(16));
+        $this->model->trust($this->userId, $deviceToken, 'Firefox · Linux');
+
+        // Insérer une connexion associée pour fournir le user_agent
+        self::$db->insert(
+            "INSERT INTO connections
+             (user_id, token, device_token, user_agent, auth_method, status, expired_at)
+             VALUES (?, ?, ?, ?, 'password', 'active', DATE_ADD(NOW(), INTERVAL 1 DAY))",
+            [$this->userId, bin2hex(random_bytes(32)), $deviceToken, 'Mozilla/5.0 Firefox/120']
+        );
+
+        $result = $this->model->getForExport($this->userId);
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Firefox · Linux', $result[0]['device_name']);
+        $this->assertSame('Mozilla/5.0 Firefox/120', $result[0]['user_agent']);
+        $this->assertArrayHasKey('confirmed_at', $result[0]);
+        $this->assertArrayHasKey('last_seen', $result[0]);
+        $this->assertArrayNotHasKey('device_token', $result[0]);
+    }
+
+    /**
+     * getForExport retourne null pour user_agent si aucune connexion associée.
+     */
+    public function testGetForExportReturnsNullUserAgentWhenNoConnection(): void
+    {
+        $this->model->trust($this->userId, bin2hex(random_bytes(16)), 'Safari · iOS');
+
+        $result = $this->model->getForExport($this->userId);
+
+        $this->assertCount(1, $result);
+        $this->assertNull($result[0]['user_agent']);
+    }
+
+    /**
+     * getForExport ne renvoie pas les appareils des autres utilisateurs.
+     */
+    public function testGetForExportIsIsolatedByUser(): void
+    {
+        $otherId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW())",
+            ['export.other.' . bin2hex(random_bytes(4)) . '@test.local']
+        );
+
+        $this->model->trust($otherId, bin2hex(random_bytes(16)), 'Chrome · Windows');
+        $result = $this->model->getForExport($this->userId);
+
+        $this->assertSame([], $result);
+    }
 }

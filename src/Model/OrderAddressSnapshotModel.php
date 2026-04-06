@@ -65,4 +65,37 @@ class OrderAddressSnapshotModel extends Model
         );
         return (int) $id;
     }
+
+    /**
+     * Retourne les snapshots d'adresse liés aux commandes d'un utilisateur.
+     *
+     * Utilisé pour l'export RGPD Art. 20 — portabilité des données personnelles.
+     * Exclut les snapshots pseudonymisés (données effacées après 10 ans, L123-22 C.com.).
+     *
+     * @param int $userId Identifiant du compte
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForUserExport(int $userId): array
+    {
+        return $this->db->fetchAll(
+            "SELECT oas.civility, oas.firstname, oas.lastname, oas.street,
+                    oas.city, oas.zip, oas.country, oas.phone,
+                    o.order_reference, o.ordered_at, 'facturation' AS address_type
+             FROM {$this->table} oas
+             JOIN orders o ON o.id_billing_snapshot = oas.id
+             WHERE o.user_id = ? AND oas.pseudonymized_at IS NULL
+
+             UNION
+
+             SELECT oas.civility, oas.firstname, oas.lastname, oas.street,
+                    oas.city, oas.zip, oas.country, oas.phone,
+                    o.order_reference, o.ordered_at, 'livraison' AS address_type
+             FROM {$this->table} oas
+             JOIN orders o ON o.id_delivery_snapshot = oas.id
+             WHERE o.user_id = ? AND oas.pseudonymized_at IS NULL
+
+             ORDER BY ordered_at DESC",
+            [$userId, $userId]
+        );
+    }
 }

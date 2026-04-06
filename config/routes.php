@@ -152,7 +152,7 @@ $router->get('/{lang}/session-expiree', 'AuthController@sessionExpired');
 $router->get('/{lang}/securite/confirmer', 'AccountController@confirmSecurityAction');
 $router->get('/{lang}/securite/ce-netait-pas-moi', 'AccountController@denySecurityAction');
 $router->get('/{lang}/mon-compte/export', 'AccountController@exportPage');
-$router->get('/{lang}/mon-compte/export/telecharger', 'AccountController@exportData');
+$router->post('/{lang}/mon-compte/export/envoyer', 'AccountController@exportSend');
 $router->post('/{lang}/mon-compte/profil/changer-email', 'AccountController@requestEmailChange');
 $router->post('/{lang}/mon-compte/email/annuler', 'AccountController@cancelEmailChange');
 $router->get('/{lang}/mon-compte/email/confirmer', 'AccountController@confirmEmailChange');

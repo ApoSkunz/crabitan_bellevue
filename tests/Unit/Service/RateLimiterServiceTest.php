@@ -406,4 +406,38 @@ class RateLimiterServiceTest extends TestCase
         // getRetryAfter retourne max(0, time()-time()) = 0 : comportement attendu
         $this->assertSame(0, $this->service->getRetryAfter($key));
     }
+
+    // ----------------------------------------------------------------
+    // remember / recall — stockage de métadonnées arbitraires
+    // ----------------------------------------------------------------
+
+    /**
+     * remember() stocke une valeur et recall() la retourne correctement.
+     */
+    public function testRememberAndRecallRoundTrip(): void
+    {
+        $this->service->remember('rgpd_export_ts:42', 1712345678, 86400);
+
+        $this->assertSame(1712345678, $this->service->recall('rgpd_export_ts:42'));
+    }
+
+    /**
+     * recall() retourne la valeur par défaut quand la clé est absente.
+     */
+    public function testRecallReturnsDefaultWhenKeyAbsent(): void
+    {
+        $this->assertNull($this->service->recall('rgpd_export_ts:999'));
+        $this->assertSame(0, $this->service->recall('rgpd_export_ts:999', 0));
+    }
+
+    /**
+     * remember() écrase une valeur précédemment stockée.
+     */
+    public function testRememberOverwritesPreviousValue(): void
+    {
+        $this->service->remember('rgpd_export_ts:7', 111, 86400);
+        $this->service->remember('rgpd_export_ts:7', 222, 86400);
+
+        $this->assertSame(222, $this->service->recall('rgpd_export_ts:7'));
+    }
 }

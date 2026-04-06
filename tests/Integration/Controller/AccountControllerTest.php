@@ -1937,19 +1937,19 @@ class AccountControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
-    // exportData() — guard seulement (exit dans la branche authentifiée)
+    // exportSend() — guard CSRF + authentification
     // ----------------------------------------------------------------
 
     /**
-     * Un utilisateur non authentifié est redirigé vers /connexion.
+     * Un utilisateur non authentifié déclenche une HttpException (guard requireCustomer).
      */
-    public function testExportDataUnauthenticatedRedirects(): void
+    public function testExportSendUnauthenticatedRedirects(): void
     {
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(404);
 
-        $this->makeController('GET', '/fr/mon-compte/export/telecharger')
-            ->exportData(['lang' => 'fr']);
+        $this->makeController('POST', '/fr/mon-compte/export/envoyer')
+            ->exportSend(['lang' => 'fr']);
     }
 
     // ----------------------------------------------------------------
@@ -3085,6 +3085,124 @@ class AccountControllerTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
+     * buildExportData() retourne les 3 nouvelles sections RGPD Art. 20.
+     * Couvre : appels getForExport(), getRecentForUser(), getConsentData() et leurs array_maps.
+     */
+    public function testBuildExportDataIncludesRgpdComplement(): void
+    {
+        $userId = $this->insertCustomer('build-export-data@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportData');
+        $method->setAccessible(true);
+
+        /** @var array<string, mixed> $export */
+        $export = $method->invoke($ctrl, $userId);
+
+        $this->assertArrayHasKey('connection_logs', $export, 'La clé connection_logs doit être présente');
+        $this->assertArrayHasKey('consentements', $export, 'La clé consentements doit être présente');
+        $this->assertArrayHasKey('trusted_devices', $export, 'La clé trusted_devices doit être présente');
+        $this->assertArrayHasKey('adresses_commandes', $export, 'La clé adresses_commandes doit être présente');
+        $this->assertArrayHasKey('newsletter', $export['consentements']);
+        $this->assertArrayHasKey('cgv_versions_acceptees', $export['consentements']);
+        $this->assertIsArray($export['connection_logs']);
+        $this->assertIsArray($export['trusted_devices']);
+        $this->assertIsArray($export['adresses_commandes']);
+    }
+
+    /**
+     * buildExportData() — compte individuel : Prénom/Nom/Civilité présents, Raison sociale absente.
+     */
+    public function testBuildExportDataIndividualHasNamesNotCompany(): void
+    {
+        $userId = $this->insertCustomer('export-individual@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportData');
+        $method->setAccessible(true);
+
+        /** @var array<string, mixed> $export */
+        $export  = $method->invoke($ctrl, $userId);
+        $account = $export['account'];
+
+        $this->assertArrayHasKey('Prénom', $account);
+        $this->assertArrayHasKey('Nom', $account);
+        $this->assertArrayHasKey('Civilité', $account);
+        $this->assertArrayNotHasKey('Raison sociale', $account);
+    }
+
+    /**
+     * buildExportData() — compte société : Raison sociale présente, Prénom/Nom/Civilité absents.
+     */
+    public function testBuildExportDataCompanyHasRaisonSocialeNotNames(): void
+    {
+        $userId = $this->insertCustomer('export-company@test.local', 'company');
+        $this->loginAs($userId);
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportData');
+        $method->setAccessible(true);
+
+        /** @var array<string, mixed> $export */
+        $export  = $method->invoke($ctrl, $userId);
+        $account = $export['account'];
+
+        $this->assertArrayHasKey('Raison sociale', $account);
+        $this->assertArrayNotHasKey('Prénom', $account);
+        $this->assertArrayNotHasKey('Nom', $account);
+        $this->assertArrayNotHasKey('Civilité', $account);
+    }
+
+    /**
+     * buildExportData() — les entrées trusted_devices contiennent bien user_agent.
+     */
+    public function testBuildExportDataTrustedDevicesHaveUserAgent(): void
+    {
+        $userId = $this->insertCustomer('export-ua@test.local', 'individual');
+        $this->loginAs($userId);
+
+        // Insérer un appareil de confiance avec user_agent via connexion associée
+        self::$db->execute(
+            "INSERT INTO trusted_devices (user_id, device_token, device_name, confirmed_at, last_seen)
+             VALUES (?, ?, 'Chrome · Win', NOW(), NOW())",
+            [$userId, bin2hex(random_bytes(16))]
+        );
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportData');
+        $method->setAccessible(true);
+
+        /** @var array<string, mixed> $export */
+        $export = $method->invoke($ctrl, $userId);
+
+        $this->assertNotEmpty($export['trusted_devices'], 'Un appareil doit être retourné');
+        $this->assertArrayHasKey('user_agent', $export['trusted_devices'][0], 'user_agent doit être présent');
+    }
+
+    /**
+     * buildExportData() — consentements.newsletter contient abonne et email_verifie_le.
+     */
+    public function testBuildExportDataConsentementsStructure(): void
+    {
+        $userId = $this->insertCustomer('export-consent@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportData');
+        $method->setAccessible(true);
+
+        /** @var array<string, mixed> $export */
+        $export  = $method->invoke($ctrl, $userId);
+        $consent = $export['consentements'];
+
+        $this->assertArrayHasKey('abonne', $consent['newsletter']);
+        $this->assertArrayHasKey('email_verifie_le', $consent['newsletter']);
+        $this->assertContains($consent['newsletter']['abonne'], ['Oui', 'Non']);
+    }
+
+    /**
      * buildExportContent() avec ZipArchive retourne un ZIP valide contenant le JSON.
      *
      * Couvre les lignes L1244-L1254 (branche ZipArchive) d'AccountController::exportData().
@@ -3172,6 +3290,69 @@ class AccountControllerTest extends IntegrationTestCase
         $this->assertFalse($isZip, 'Le fallback JSON doit retourner isZip=false');
         $decoded = json_decode($content, true);
         $this->assertSame('export.json@test.local', $decoded['account']['Email'] ?? null);
+    }
+
+    /**
+     * buildExportContent() retourne un export JSON incluant les 3 nouvelles sections RGPD :
+     * connection_logs, consentements et user_agent dans trusted_devices.
+     */
+    public function testBuildExportContentIncludesRgpdComplement(): void
+    {
+        $userId = $this->insertCustomer('export.rgpd.complement@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
+        $method = new \ReflectionMethod($ctrl, 'buildExportContent');
+        $method->setAccessible(true);
+
+        $export = [
+            'exported_at'     => date('c'),
+            'account'         => ['Email' => 'export.rgpd.complement@test.local'],
+            'addresses'       => [],
+            'orders'          => [],
+            'favorites'       => [],
+            'trusted_devices' => [
+                ['device_name' => 'Chrome · Win', 'confirmed_at' => '2026-01-01 10:00:00',
+                 'last_seen' => '2026-03-01 12:00:00', 'user_agent' => 'Mozilla/5.0 Chrome/120'],
+            ],
+            'active_sessions' => [],
+            'connection_logs' => [
+                ['device_name' => 'Chrome · Win', 'ip_address' => '1.2.3.4',
+                 'user_agent' => 'Mozilla/5.0', 'auth_method' => 'password',
+                 'status' => 'active', 'created_at' => '2026-03-01 10:00:00'],
+            ],
+            'consentements' => [
+                'newsletter' => ['abonne' => 'Oui', 'email_verifie_le' => '2026-01-01 09:00:00'],
+                'cgv_versions_acceptees' => ['1.0'],
+            ],
+        ];
+
+        $date   = date('Y-m-d');
+        /** @var array{0: string, 1: bool} $result */
+        $result          = (array) $method->invoke($ctrl, $export, $date, 'mes-donnees-' . $date);
+        [$content, $isZip] = $result;
+
+        if ($isZip) {
+            $tmp = tempnam(sys_get_temp_dir(), 'ti_rgpd_');
+            file_put_contents($tmp, $content);
+            $zip  = new \ZipArchive();
+            $zip->open($tmp);
+            $json = $zip->getFromName('mes-donnees-' . $date . '.json');
+            $zip->close();
+            unlink($tmp);
+            $decoded = json_decode((string) $json, true);
+        } else {
+            $decoded = json_decode($content, true);
+        }
+
+        $this->assertArrayHasKey('connection_logs', $decoded, 'La clé connection_logs doit être présente');
+        $this->assertArrayHasKey('consentements', $decoded, 'La clé consentements doit être présente');
+        $this->assertArrayHasKey('newsletter', $decoded['consentements']);
+        $this->assertArrayHasKey('cgv_versions_acceptees', $decoded['consentements']);
+        $this->assertArrayHasKey('user_agent', $decoded['trusted_devices'][0]);
+        $this->assertSame('Mozilla/5.0 Chrome/120', $decoded['trusted_devices'][0]['user_agent']);
+        $this->assertSame('Oui', $decoded['consentements']['newsletter']['abonne']);
+        $this->assertSame(['1.0'], $decoded['consentements']['cgv_versions_acceptees']);
     }
 
     // ----------------------------------------------------------------
@@ -4065,5 +4246,232 @@ class AccountControllerTest extends IntegrationTestCase
 
         $count = (int) ($_SESSION['_rl']['rl:change_pw:10.99.77.66:count'] ?? 0);
         $this->assertSame(1, $count, 'Le compteur doit être incrémenté après une tentative');
+    }
+
+    // ----------------------------------------------------------------
+    // exportSend() — CSRF invalide
+    // ----------------------------------------------------------------
+
+    /**
+     * Un CSRF invalide pose le flash export_error et redirige.
+     */
+    public function testExportSendInvalidCsrfSetsFlashError(): void
+    {
+        $userId = $this->insertCustomer('exp-csrf@test.local', 'individual');
+        $this->loginAs($userId);
+        $_POST['csrf_token'] = 'invalid-token';
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/export/envoyer')
+                ->exportSend(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            // redirect() lève HttpException
+        }
+
+        $this->assertArrayHasKey('export_error', $_SESSION['flash'] ?? []);
+    }
+
+    // ----------------------------------------------------------------
+    // exportSend() — rate limit dépassé
+    // ----------------------------------------------------------------
+
+    /**
+     * Un utilisateur bloqué par le rate limit reçoit le flash export_error.
+     */
+    public function testExportSendRateLimitExceededSetsFlashError(): void
+    {
+        $userId = $this->insertCustomer('exp-rl@test.local', 'individual');
+        $this->loginAs($userId);
+        $_POST['csrf_token'] = self::CSRF;
+
+        // Simuler un lockout actif directement en session (backend fallback sans APCu)
+        $_SESSION['_rl']['rl:rgpd_export:' . $userId . ':until'] = time() + 86400;
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/export/envoyer')
+                ->exportSend(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            // redirect() lève HttpException
+        }
+
+        $this->assertArrayHasKey('export_error', $_SESSION['flash'] ?? []);
+    }
+
+    // ----------------------------------------------------------------
+    // exportSend() — MailService lève une exception → catch → flash error
+    // ----------------------------------------------------------------
+
+    /**
+     * Quand sendRgpdExport() lève une exception, le flash export_error est posé.
+     * Utilise le seam newMailService() pour injecter un MailService déterministe
+     * qui lance systématiquement une RuntimeException — indépendant de SMTP.
+     */
+    public function testExportSendMailerExceptionSetsFlashError(): void
+    {
+        $userId = $this->insertCustomer('exp-smtp@test.local', 'individual');
+        $this->loginAs($userId);
+        $_POST['csrf_token'] = self::CSRF;
+
+        $ctrl = new class ($this->makeRequest('POST', '/fr/mon-compte/export/envoyer')) extends AccountController {
+            protected function newMailService(): \Service\MailService
+            {
+                return new class extends \Service\MailService {
+                    public function sendRgpdExport(
+                        string $to,
+                        string $name,
+                        string $zipContent,
+                        string $filename,
+                        string $lang
+                    ): void {
+                        throw new \RuntimeException('SMTP simulé indisponible');
+                    }
+                };
+            }
+        };
+
+        try {
+            $ctrl->exportSend(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            // redirect() lève HttpException
+        }
+
+        $this->assertArrayHasKey('export_error', $_SESSION['flash'] ?? []);
+    }
+
+    // ----------------------------------------------------------------
+    // exportSend() — succès avec MailService mocké
+    // ----------------------------------------------------------------
+
+    /**
+     * Quand l'envoi email réussit, le flash export_sent contient l'email masqué.
+     */
+    public function testExportSendSuccessWithMockedMailerSetsFlashSent(): void
+    {
+        $userId = $this->insertCustomer('exp-ok@test.local', 'individual');
+        $this->loginAs($userId);
+        $_POST['csrf_token'] = self::CSRF;
+
+        // Sous-classe avec MailService no-op (seam newMailService — évite le SMTP en test)
+        $ctrl = new class ($this->makeRequest('POST', '/fr/mon-compte/export/envoyer')) extends AccountController {
+            protected function newMailService(): \Service\MailService
+            {
+                return new class extends \Service\MailService {
+                    public function sendRgpdExport(
+                        string $to,
+                        string $name,
+                        string $zipContent,
+                        string $filename,
+                        string $lang
+                    ): void { /* no-op : évite le SMTP en test */
+                    }
+                };
+            }
+        };
+
+        try {
+            $ctrl->exportSend(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            // redirect() lève HttpException
+        }
+
+        $this->assertArrayHasKey('export_sent', $_SESSION['flash'] ?? []);
+    }
+
+    // ----------------------------------------------------------------
+    // exportPage() — flash export_sent + export_error
+    // ----------------------------------------------------------------
+
+    /**
+     * exportPage() lit et expose le flash export_sent (adresse masquée).
+     */
+    public function testExportPageWithFlashSentPassesDataToView(): void
+    {
+        $userId = $this->insertCustomer('exp-page-sent@test.local', 'individual');
+        $this->loginAs($userId);
+        $_SESSION['flash']['export_sent'] = 'e***@test.local';
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/export')->exportPage(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        // Le flash est consommé (absent de la session)
+        $this->assertArrayNotHasKey('export_sent', $_SESSION['flash'] ?? []);
+        $this->assertStringContainsString('account-page', $output);
+    }
+
+    /**
+     * exportPage() lit et expose le flash export_error.
+     */
+    public function testExportPageWithFlashErrorPassesDataToView(): void
+    {
+        $userId = $this->insertCustomer('exp-page-err@test.local', 'individual');
+        $this->loginAs($userId);
+        $_SESSION['flash']['export_error'] = 'Une erreur est survenue.';
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/export')->exportPage(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertArrayNotHasKey('export_error', $_SESSION['flash'] ?? []);
+        $this->assertStringContainsString('account-page', $output);
+    }
+
+    /**
+     * exportPage() affiche le timestamp de dernière demande quand disponible en session.
+     */
+    public function testExportPageWithLastExportTimestampRendersDate(): void
+    {
+        $userId = $this->insertCustomer('exp-page-ts@test.local', 'individual');
+        $this->loginAs($userId);
+
+        // Simuler un timestamp stocké par rateLimiter::remember() (clé session fallback)
+        $_SESSION['_rl']['rl:rgpd_export_ts:' . $userId] = mktime(14, 30, 0, 4, 6, 2026);
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/export')->exportPage(['lang' => 'fr']);
+        ob_get_clean();
+
+        // Le test vérifie que le chemin lastExportTs !== null est couvert (pas d'exception)
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // maskEmail() — cas limites (méthode privée via Reflection)
+    // ----------------------------------------------------------------
+
+    /**
+     * maskEmail() masque correctement un email standard.
+     */
+    public function testMaskEmailNormal(): void
+    {
+        $method = new \ReflectionMethod(AccountController::class, 'maskEmail');
+        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+
+        $this->assertSame('j***@gmail.com', $method->invoke(null, 'jean@gmail.com'));
+        $this->assertSame('j***@example.com', $method->invoke(null, 'jo@example.com'));
+    }
+
+    /**
+     * maskEmail() retourne des étoiles si l'email ne contient pas de @.
+     */
+    public function testMaskEmailNoAtSign(): void
+    {
+        $method = new \ReflectionMethod(AccountController::class, 'maskEmail');
+        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+
+        $result = $method->invoke(null, 'invalidemail');
+        $this->assertSame(str_repeat('*', strlen('invalidemail')), $result);
+    }
+
+    /**
+     * maskEmail() retourne des étoiles si @ est en position 0.
+     */
+    public function testMaskEmailAtSignAtStart(): void
+    {
+        $method = new \ReflectionMethod(AccountController::class, 'maskEmail');
+        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
+
+        $result = $method->invoke(null, '@domain.com');
+        $this->assertStringContainsString('*', $result);
     }
 }

@@ -682,8 +682,13 @@ return [
     'account.export_item_trusted_devices' => 'Your registered trusted devices',
     'account.export_item_sessions' => 'Your active sessions',
     'account.export_retention'   => 'Retention period: your personal data (name, email, addresses…) is deleted within 30 days of account closure. Your orders are retained for 10 years as required by law, but anonymised — with no link to your identity.',
-    'account.export_download'    => 'Download my data (ZIP)',
-    'account.export_at'          => 'Generated on',
+    'account.export_send_btn'    => 'Receive my data by email',
+    'account.export_sent_title'  => 'Export sent!',
+    'account.export_sent_body'   => 'Your archive has been sent to <strong>%s</strong>. Please check your spam folder.',
+    'account.export_error'       => 'An error occurred while sending. Please try again.',
+    'account.export_last_request' => 'Last request',
+    'account.export_no_request'  => 'No recent request',
+    'account.export_send_to'     => 'Will be sent to',
 
     // Security reset
     'account.security_reset_btn'        => 'Reset security',

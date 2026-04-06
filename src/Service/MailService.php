@@ -1704,6 +1704,60 @@ INNER;
         $this->send($to, 'Mainteneur', '[ALERTE] IPN CA — signature invalide', $body);
     }
 
+    /**
+     * Envoie l'archive RGPD (ZIP ou JSON) à l'adresse email du titulaire du compte.
+     *
+     * Utilise addStringAttachment() pour joindre le contenu binaire en mémoire,
+     * sans écrire de fichier temporaire sur le disque.
+     *
+     * @param string $to          Adresse email du destinataire
+     * @param string $name        Prénom ou nom complet
+     * @param string $zipContent  Contenu binaire du fichier à joindre
+     * @param string $filename    Nom du fichier joint (ex : mes-donnees-2026-04-06.zip)
+     * @param string $lang        Langue du compte ('fr' ou 'en')
+     * @return void
+     */
+    public function sendRgpdExport(
+        string $to,
+        string $name,
+        string $zipContent,
+        string $filename,
+        string $lang
+    ): void {
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject  = 'Vos données personnelles — RGPD Art. 20';
+            $title    = 'Export RGPD';
+            $greeting = "Bonjour {$safeName},";
+            $message  = 'Suite à votre demande, votre archive de données personnelles est jointe à cet email '
+                . '(RGPD Art. 20 — droit à la portabilité).<br><br>'
+                . 'Elle contient l\'ensemble des données enregistrées sur votre compte Crabitan Bellevue.<br><br>'
+                . '<strong>Conservez ce fichier en lieu sûr</strong> et supprimez cet email après téléchargement.';
+        } else {
+            $subject  = 'Your personal data — GDPR Art. 20';
+            $title    = 'GDPR Export';
+            $greeting = "Hello {$safeName},";
+            $message  = 'Following your request, your personal data archive is attached to this email '
+                . '(GDPR Art. 20 — right to data portability).<br><br>'
+                . 'It contains all data stored on your Crabitan Bellevue account.<br><br>'
+                . '<strong>Keep this file in a safe place</strong> and delete this email after downloading.';
+        }
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
+
+        $this->mailer->clearAddresses();
+        $this->mailer->clearAttachments();
+        $this->mailer->clearReplyTos();
+        $this->mailer->addAddress($to, $name);
+        $this->mailer->isHTML(true);
+        $this->mailer->Subject = $subject;
+        $this->mailer->Body    = $body;
+        $this->mailer->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], "\n", $body));
+        $this->mailer->addStringAttachment($zipContent, $filename);
+        $this->mailer->send();
+    }
+
     private function send(
         string $to,
         string $name,

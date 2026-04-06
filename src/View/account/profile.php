@@ -5,6 +5,7 @@ require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 
 /** @var array<string, mixed> $account */
+/** @var string $maskedEmail */
 /** @var array<string, string> $errors */
 /** @var string|null $success */
 /** @var bool $emailChangeSent */
@@ -34,10 +35,10 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                       novalidate>
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 
-                    <!-- Email (lecture seule — modifiable via la section ci-dessous) -->
+                    <!-- Email (lecture seule — masqué, modifiable via la section ci-dessous) -->
                     <div class="form-group">
                         <label for="profile-email">Email</label>
-                        <input type="email" id="profile-email" value="<?= htmlspecialchars($account['email'] ?? '') ?>"
+                        <input type="text" id="profile-email" value="<?= htmlspecialchars($maskedEmail) ?>"
                                disabled class="form-input--readonly">
                     </div>
 
@@ -148,8 +149,8 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
 
                         <div class="form-group">
                             <label for="email_change_current"><?= __('account.email_current') ?></label>
-                            <input type="email" id="email_change_current"
-                                   value="<?= htmlspecialchars($account['email'] ?? '') ?>"
+                            <input type="text" id="email_change_current"
+                                   value="<?= htmlspecialchars($maskedEmail) ?>"
                                    disabled class="form-input--readonly">
                         </div>
 

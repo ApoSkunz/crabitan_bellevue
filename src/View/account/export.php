@@ -3,6 +3,12 @@ $pageTitle     = __('account.export_title');
 $activeSection = 'export';
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
+
+/** @var string $maskedEmail */
+/** @var string|null $sent         Adresse masquée si l'export vient d'être envoyé */
+/** @var string|null $error        Message d'erreur éventuel */
+/** @var string|null $lastExportAt Date/heure de la dernière demande (format d/m/Y à H:i) ou null */
+/** @var string $csrf */
 ?>
 <main class="account-page">
     <div class="account-shell">
@@ -12,6 +18,17 @@ require_once __DIR__ . '/../partials/header.php';
             <header class="account-header">
                 <h1 class="account-header__title"><?= __('account.export_title') ?></h1>
             </header>
+
+            <?php if ($sent !== null) : ?>
+                <div class="alert alert--success" role="alert">
+                    <strong><?= __('account.export_sent_title') ?></strong><br>
+                    <?= sprintf(__('account.export_sent_body'), htmlspecialchars($sent)) ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($error !== null) : ?>
+                <div class="alert alert--error" role="alert"><?= htmlspecialchars($error) ?></div>
+            <?php endif; ?>
 
             <section class="account-section">
                 <p class="account-export__intro"><?= __('account.export_intro') ?></p>
@@ -28,14 +45,24 @@ require_once __DIR__ . '/../partials/header.php';
 
                 <p class="account-export__retention"><?= __('account.export_retention') ?></p>
 
-                <p class="account-export__generated">
-                    <?= __('account.export_at') ?> : <?= htmlspecialchars(date('d/m/Y à H:i')) ?>
+                <p class="account-export__meta">
+                    <?= __('account.export_last_request') ?> :
+                    <strong>
+                        <?= $lastExportAt !== null
+                            ? htmlspecialchars($lastExportAt)
+                            : __('account.export_no_request') ?>
+                    </strong><br>
+                    <?= __('account.export_send_to') ?> :
+                    <strong><?= htmlspecialchars($maskedEmail) ?></strong>
                 </p>
 
-                <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/export/telecharger"
-                   class="btn btn--gold">
-                    <?= __('account.export_download') ?>
-                </a>
+                <form method="POST"
+                      action="/<?= htmlspecialchars($lang) ?>/mon-compte/export/envoyer">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+                    <button type="submit" class="btn btn--gold">
+                        <?= __('account.export_send_btn') ?>
+                    </button>
+                </form>
             </section>
         </div>
     </div>

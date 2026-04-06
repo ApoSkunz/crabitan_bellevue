@@ -94,6 +94,33 @@ class RateLimiterService
     }
 
     /**
+     * Stocke une valeur arbitraire avec TTL (métadonnée associée à une clé de rate limiting).
+     *
+     * Utilise le même backend que le rate limiter (APCu ou session).
+     *
+     * @param string $key Identifiant de la donnée (ex. "rgpd_export_ts:42")
+     * @param mixed  $value Valeur à stocker
+     * @param int    $ttl  Durée de vie en secondes
+     * @return void
+     */
+    public function remember(string $key, mixed $value, int $ttl): void
+    {
+        $this->set($key, $value, $ttl);
+    }
+
+    /**
+     * Lit une valeur arbitraire précédemment stockée avec remember().
+     *
+     * @param string $key     Identifiant de la donnée
+     * @param mixed  $default Valeur par défaut si absente
+     * @return mixed
+     */
+    public function recall(string $key, mixed $default = null): mixed
+    {
+        return $this->get($key, $default);
+    }
+
+    /**
      * Indique si APCu est disponible et activé.
      *
      * @return bool

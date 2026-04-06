@@ -393,4 +393,79 @@ class ConnectionModelTest extends IntegrationTestCase
 
         $this->assertSame(0, $result);
     }
+
+    // ------------------------------------------------------------------
+    // getRecentForUser
+    // ------------------------------------------------------------------
+
+    /**
+     * getRecentForUser retourne les connexions créées dans la fenêtre demandée.
+     */
+    public function testGetRecentForUserReturnsConnectionsWithinWindow(): void
+    {
+        $token = bin2hex(random_bytes(32));
+        $this->model->create($this->userId, $token, 'device-r', '10.0.0.1', 'Chrome/120', 'Chrome · Win', 'password', 3600);
+
+        $rows = $this->model->getRecentForUser($this->userId, 90);
+
+        $this->assertCount(1, $rows);
+        $this->assertSame('Chrome · Win', $rows[0]['device_name']);
+        $this->assertSame('10.0.0.1', $rows[0]['ip_address']);
+        $this->assertSame('Chrome/120', $rows[0]['user_agent']);
+        $this->assertSame('password', $rows[0]['auth_method']);
+    }
+
+    /**
+     * getRecentForUser exclut le token JWT de la réponse (minimisation RGPD).
+     */
+    public function testGetRecentForUserDoesNotExposeJwtToken(): void
+    {
+        $token = bin2hex(random_bytes(32));
+        $this->model->create($this->userId, $token, null, null, null, null, 'password', 3600);
+
+        $rows = $this->model->getRecentForUser($this->userId, 90);
+
+        $this->assertCount(1, $rows);
+        $this->assertArrayNotHasKey('token', $rows[0]);
+    }
+
+    /**
+     * getRecentForUser exclut les connexions plus anciennes que la fenêtre.
+     */
+    public function testGetRecentForUserExcludesOldConnections(): void
+    {
+        $token = bin2hex(random_bytes(32));
+        self::$db->insert(
+            "INSERT INTO connections (user_id, token, auth_method, status, created_at, expired_at)
+             VALUES (?, ?, 'password', 'revoked', DATE_SUB(NOW(), INTERVAL 91 DAY), DATE_SUB(NOW(), INTERVAL 91 DAY))",
+            [$this->userId, $token]
+        );
+
+        $rows = $this->model->getRecentForUser($this->userId, 90);
+
+        $this->assertCount(0, $rows);
+    }
+
+    /**
+     * getRecentForUser retourne un tableau vide si aucune connexion dans la fenêtre.
+     */
+    public function testGetRecentForUserReturnsEmptyArrayWhenNoConnections(): void
+    {
+        $this->assertSame([], $this->model->getRecentForUser($this->userId, 90));
+    }
+
+    /**
+     * getRecentForUser inclut les connexions révoquées (historique complet, pas seulement actives).
+     */
+    public function testGetRecentForUserIncludesRevokedConnections(): void
+    {
+        $token = bin2hex(random_bytes(32));
+        $this->model->create($this->userId, $token, null, null, null, null, 'password', 3600);
+        $this->model->revoke($token);
+
+        $rows = $this->model->getRecentForUser($this->userId, 90);
+
+        $this->assertCount(1, $rows);
+        $this->assertSame('revoked', $rows[0]['status']);
+    }
 }

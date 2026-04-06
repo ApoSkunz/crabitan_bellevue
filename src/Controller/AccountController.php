@@ -14,6 +14,7 @@ use Model\ConnectionModel;
 use Model\FavoriteModel;
 use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
+use Model\OrderAddressSnapshotModel;
 use Model\OrderModel;
 use Service\AccountService;
 use Service\MailService;
@@ -35,12 +36,17 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     private const MAX_CHANGE_PW_IP  = 3;
     private const WINDOW_CHANGE_PW  = 900;
 
+    /** Rate limiting export RGPD : 3 exports / 24 h / utilisateur. */
+    private const MAX_EXPORT_USER   = 3;
+    private const WINDOW_EXPORT     = 86400;
+
     private AccountModel $accounts;
     private AddressModel $addresses;
     private FavoriteModel $favorites;
     private OrderModel $orders;
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
+    private OrderAddressSnapshotModel $orderAddressSnapshots;
     private DeviceConfirmTokenModel $deviceConfirmTokens;
     private RateLimiterService $rateLimiter;
 
@@ -52,8 +58,9 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $this->favorites           = new FavoriteModel();
         $this->orders              = new OrderModel();
         $this->connections         = new ConnectionModel();
-        $this->trustedDevices      = new TrustedDeviceModel();
-        $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
+        $this->trustedDevices          = new TrustedDeviceModel();
+        $this->orderAddressSnapshots   = new OrderAddressSnapshotModel();
+        $this->deviceConfirmTokens     = new DeviceConfirmTokenModel();
         $this->rateLimiter         = new RateLimiterService();
     }
 
@@ -65,6 +72,16 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     protected function newPaymentService(): PaymentService
     {
         return new PaymentService();
+    }
+
+    /**
+     * Instancie le MailService (seam de testabilité).
+     *
+     * @return MailService
+     */
+    protected function newMailService(): MailService
+    {
+        return new MailService();
     }
 
     // ----------------------------------------------------------------
@@ -1060,9 +1077,12 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $_SESSION['flash']['email_change_sent']
         );
 
+        $account = $this->accounts->findById($userId);
+
         $this->view('account/profile', [
             'lang'            => $lang,
-            'account'         => $this->accounts->findById($userId),
+            'account'         => $account,
+            'maskedEmail'     => self::maskEmail((string) ($account['email'] ?? '')),
             'errors'          => $errors,
             'success'         => $success,
             'emailChangeSent' => $emailChangeSent,
@@ -1550,41 +1570,143 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $payload = $this->requireCustomer();
         $lang    = $params['lang'];
 
+        $sent  = $_SESSION['flash']['export_sent']  ?? null;
+        $error = $_SESSION['flash']['export_error'] ?? null;
+        unset($_SESSION['flash']['export_sent'], $_SESSION['flash']['export_error']);
+
+        $userId  = (int) $payload['sub'];
+        $account = $this->accounts->findById($userId);
+
+        $lastExportTs = $this->rateLimiter->recall('rgpd_export_ts:' . $userId);
+
         $this->view('account/export', [
-            'lang'    => $lang,
-            'account' => $this->accounts->findById((int) $payload['sub']),
-            'csrf'    => $_SESSION['csrf'] ?? '',
+            'lang'         => $lang,
+            'account'      => $account,
+            'maskedEmail'  => self::maskEmail((string) ($account['email'] ?? '')),
+            'sent'         => $sent,
+            'error'        => $error,
+            'lastExportAt' => $lastExportTs !== null ? date('d/m/Y à H:i', (int) $lastExportTs) : null,
+            'csrf'         => $_SESSION['csrf'] ?? '',
         ]);
     }
 
     // ----------------------------------------------------------------
-    // GET /{lang}/mon-compte/export/telecharger
+    // POST /{lang}/mon-compte/export/envoyer
     // ----------------------------------------------------------------
 
-    public function exportData(array $params): void // NOSONAR php:S1172 — paramètre requis par convention du routeur
+    /**
+     * Génère l'archive RGPD et l'envoie par email au titulaire du compte.
+     *
+     * L'envoi par email (plutôt qu'un téléchargement direct) protège contre le vol
+     * de token de session : l'attaquant ne peut récupérer l'archive que s'il contrôle
+     * aussi la boîte mail du titulaire (deux vecteurs indépendants requis).
+     *
+     * @param array<string, mixed> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function exportSend(array $params): void
     {
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
 
+        if (!$this->verifyCsrf()) {
+            $_SESSION['flash']['export_error'] = __('error.csrf');
+            Response::redirect("/{$lang}/mon-compte/export");
+        }
+
+        $rlKey = 'rgpd_export:' . $userId;
+        if (!$this->rateLimiter->checkLimit($rlKey, self::MAX_EXPORT_USER, self::WINDOW_EXPORT)) {
+            $wait = (int) ceil($this->rateLimiter->getRetryAfter($rlKey) / 3600);
+            $_SESSION['flash']['export_error'] = sprintf(__('auth.too_many_attempts'), max(1, $wait) . 'h');
+            Response::redirect("/{$lang}/mon-compte/export");
+        }
+        $this->rateLimiter->recordAttempt($rlKey, self::WINDOW_EXPORT);
+
+        $account  = $this->accounts->findById($userId);
+        $email    = (string) ($account['email'] ?? '');
+        $name     = (string) ($account['firstname'] ?? ($account['company_name'] ?? $email));
+        $export   = $this->buildExportData($userId);
+        $date     = date('Y-m-d');
+        $basename = 'mes-donnees-' . $date;
+
+        [$content, $isZip] = $this->buildExportContent($export, $date, $basename);
+        $filename = $basename . ($isZip ? '.zip' : '.json');
+
+        try {
+            $this->newMailService()->sendRgpdExport($email, $name, $content, $filename, $lang);
+            $this->rateLimiter->remember('rgpd_export_ts:' . $userId, time(), self::WINDOW_EXPORT);
+            $_SESSION['flash']['export_sent'] = self::maskEmail($email);
+        } catch (\Exception $e) {
+            $_SESSION['flash']['export_error'] = __('account.export_error');
+        }
+
+        Response::redirect("/{$lang}/mon-compte/export");
+    }
+
+    /**
+     * Masque partiellement une adresse email pour l'affichage (protection vie privée).
+     *
+     * Exemples : jean.dupont@gmail.com → j***@gmail.com, jo@example.com → j***@example.com
+     *
+     * @param string $email Adresse email à masquer
+     * @return string Email masqué
+     */
+    private static function maskEmail(string $email): string
+    {
+        $at = strpos($email, '@');
+        if ($at === false || $at === 0) {
+            return str_repeat('*', strlen($email));
+        }
+        return $email[0] . '***' . substr($email, $at);
+    }
+
+    /**
+     * Construit le contenu binaire de l'export RGPD (ZIP ou JSON fallback).
+     *
+     * Extrait pour permettre les tests unitaires sans `exit`.
+     *
+     * @param array<string, mixed> $export   Données à exporter
+     * @param string               $date     Date au format Y-m-d
+     * @param string               $basename Nom de base du fichier (ex : mes-donnees-2026-04-01)
+     * @return array{0: string, 1: bool} [content, isZip]
+     */
+    /**
+     * Assemble le tableau de données export RGPD (Art. 20) pour un utilisateur.
+     *
+     * Seam protégé pour permettre les tests d'intégration sans passer par exit().
+     *
+     * @param int $userId Identifiant du compte
+     * @return array<string, mixed>
+     */
+    protected function buildExportData(int $userId): array
+    {
         $account        = $this->accounts->findById($userId);
         $addresses      = $this->addresses->getByUser($userId);
         $favorites      = $this->favorites->getByUser($userId);
         $orders         = $this->orders->getForUser($userId, 1, 9999);
-        $trustedDevices = $this->trustedDevices->getForUser($userId);
-        $sessions       = $this->connections->getActiveForUser($userId);
+        $trustedDevices  = $this->trustedDevices->getForExport($userId);
+        $sessions        = $this->connections->getActiveForUser($userId);
+        $recentLogs      = $this->connections->getRecentForUser($userId);
+        $consentData     = $this->accounts->getConsentData($userId);
+        $addressSnapshots = $this->orderAddressSnapshots->getForUserExport($userId);
 
-        $export = [
+        return [
             'exported_at' => date('c'),
             'account'     => [
-                'Email'                  => $account['email']        ?? null,
-                'Type de compte'         => $account['account_type'] ?? null,
-                'Langue'                 => $account['lang']         ?? null,
-                'Date de création'       => $account['created_at']   ?? null,
-                'Prénom'                 => $account['firstname']    ?? null,
-                'Nom'                    => $account['lastname']     ?? null,
-                'Civilité'               => $account['civility']     ?? null,
-                'Raison sociale'         => $account['company_name'] ?? null,
-                'Newsletter'             => ($account['newsletter'] ?? 0) ? 'Oui' : 'Non',
+                'Email'          => $account['email']        ?? null,
+                'Type de compte' => $account['account_type'] ?? null,
+                'Langue'         => $account['lang']         ?? null,
+                'Date de création' => $account['created_at'] ?? null,
+                ...(($account['account_type'] ?? '') === 'company'
+                    ? ['Raison sociale' => $account['company_name'] ?? null]
+                    : [
+                        'Civilité' => $account['civility']  ?? null,
+                        'Prénom'   => $account['firstname'] ?? null,
+                        'Nom'      => $account['lastname']  ?? null,
+                    ]
+                ),
+                'Newsletter' => ($account['newsletter'] ?? 0) ? 'Oui' : 'Non',
             ],
             'addresses' => array_map(fn($a) => [
                 'type'      => $a['type'],
@@ -1611,6 +1733,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 'device_name'  => $d['device_name'],
                 'confirmed_at' => $d['confirmed_at'],
                 'last_seen'    => $d['last_seen'],
+                'user_agent'   => $d['user_agent'],
             ], $trustedDevices),
             'active_sessions' => array_map(fn($s) => [
                 'device_name' => $s['device_name'],
@@ -1618,37 +1741,37 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 'created_at'  => $s['created_at'],
                 'expired_at'  => $s['expired_at'],
             ], $sessions),
+            'connection_logs' => array_map(fn($l) => [
+                'device_name' => $l['device_name'],
+                'ip_address'  => $l['ip_address'],
+                'user_agent'  => $l['user_agent'],
+                'auth_method' => $l['auth_method'],
+                'status'      => $l['status'],
+                'created_at'  => $l['created_at'],
+            ], $recentLogs),
+            'consentements' => [
+                'newsletter' => [
+                    'abonne'           => $consentData['newsletter']['abonne'] ? 'Oui' : 'Non',
+                    'email_verifie_le' => $consentData['newsletter']['email_verifie_le'],
+                ],
+                'cgv_versions_acceptees' => $consentData['cgv_versions'],
+            ],
+            'adresses_commandes' => array_map(fn($s) => [
+                'order_reference' => $s['order_reference'],
+                'address_type'    => $s['address_type'],
+                'civility'        => $s['civility'],
+                'firstname'       => $s['firstname'],
+                'lastname'        => $s['lastname'],
+                'street'          => $s['street'],
+                'city'            => $s['city'],
+                'zip'             => $s['zip'],
+                'country'         => $s['country'],
+                'phone'           => $s['phone'],
+                'ordered_at'      => $s['ordered_at'],
+            ], $addressSnapshots),
         ];
-
-        $date     = date('Y-m-d');
-        $basename = 'mes-donnees-' . $date;
-
-        if (ob_get_level() > 0) {
-            ob_end_clean();
-        }
-
-        [$content, $isZip] = $this->buildExportContent($export, $date, $basename);
-
-        $contentType = $isZip ? 'application/zip' : 'application/json; charset=utf-8';
-        header('Content-Type: ' . $contentType);
-        foreach ($this->buildExportHeaders($basename, $isZip) as $h) {
-            header($h);
-        }
-        header('Content-Length: ' . strlen($content));
-        echo $content;
-        exit;
     }
 
-    /**
-     * Construit le contenu binaire de l'export RGPD (ZIP ou JSON fallback).
-     *
-     * Extrait pour permettre les tests unitaires sans `exit`.
-     *
-     * @param array<string, mixed> $export   Données à exporter
-     * @param string               $date     Date au format Y-m-d
-     * @param string               $basename Nom de base du fichier (ex : mes-donnees-2026-04-01)
-     * @return array{0: string, 1: bool} [content, isZip]
-     */
     protected function buildExportContent(array $export, string $date, string $basename): array
     {
         $json = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '{}';
@@ -1752,6 +1875,21 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             'Aucune adresse.'
         );
 
+        /** @var array<int, array<string, mixed>> $adressesCommandes */
+        $adressesCommandes = $export['adresses_commandes'] ?? [];
+        $h .= $this->buildPdfTableSection(
+            'Adresses utilisées sur commandes',
+            $adressesCommandes,
+            '<tr><th>Commande</th><th>Type</th><th>Nom</th><th>Adresse</th><th>Ville</th><th>Pays</th></tr>',
+            static fn(array $s) => '<tr><td>' . htmlspecialchars($s['order_reference'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars($s['address_type'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars(($s['firstname'] ?? '') . ' ' . ($s['lastname'] ?? '')) . '</td>'
+                . '<td>' . htmlspecialchars($s['street'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars(($s['zip'] ?? '') . ' ' . ($s['city'] ?? '')) . '</td>'
+                . '<td>' . htmlspecialchars($s['country'] ?? '—') . '</td></tr>',
+            'Aucune adresse de commande.'
+        );
+
         $h .= $this->buildPdfTableSection(
             'Favoris',
             $export['favorites'],
@@ -1762,12 +1900,13 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         );
 
         $h .= $this->buildPdfTableSection(
-            'Appareils de confiance',
+            'Appareils de confiance (MFA)',
             $export['trusted_devices'],
-            '<tr><th>Appareil</th><th>Confirmé le</th><th>Dernière activité</th></tr>',
+            '<tr><th>Appareil</th><th>Confirmé le</th><th>Dernière activité</th><th>User-Agent</th></tr>',
             static fn(array $d) => '<tr><td>' . htmlspecialchars($d['device_name'] ?? '—') . '</td>'
                 . '<td>' . htmlspecialchars((string) ($d['confirmed_at'] ?? '—')) . '</td>'
-                . '<td>' . htmlspecialchars((string) ($d['last_seen'] ?? '—')) . '</td></tr>',
+                . '<td>' . htmlspecialchars((string) ($d['last_seen'] ?? '—')) . '</td>'
+                . '<td>' . htmlspecialchars((string) ($d['user_agent'] ?? '—')) . '</td></tr>',
             'Aucun appareil de confiance.'
         );
 
@@ -1781,6 +1920,42 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 . '<td>' . htmlspecialchars((string) ($s['expired_at'] ?? '—')) . '</td></tr>',
             'Aucune session active.'
         );
+
+        /** @var array<int, array<string, mixed>> $connectionLogs */
+        $connectionLogs = $export['connection_logs'] ?? [];
+        $h .= $this->buildPdfTableSection(
+            'Logs de connexion (90 derniers jours)',
+            $connectionLogs,
+            '<tr><th>Appareil</th><th>IP</th><th>Méthode</th><th>Statut</th><th>Date</th></tr>',
+            static fn(array $l) => '<tr><td>' . htmlspecialchars($l['device_name'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars($l['ip_address'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars($l['auth_method'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars($l['status'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars((string) ($l['created_at'] ?? '—')) . '</td></tr>',
+            'Aucun log de connexion.'
+        );
+
+        /** @var array<string, mixed> $consent */
+        $consent         = $export['consentements'] ?? [];
+        /** @var array<string, mixed> $consentNl */
+        $consentNl       = $consent['newsletter'] ?? [];
+        /** @var array<int, string> $cgvVersions */
+        $cgvVersions     = $consent['cgv_versions_acceptees'] ?? [];
+        $h .= '<h2>Consentements</h2>';
+        $h .= '<table><tr><th>Newsletter abonné</th><th>Email vérifié le</th></tr>';
+        $h .= '<tr><td>' . htmlspecialchars((string) ($consentNl['abonne'] ?? '—')) . '</td>'
+            . '<td>' . htmlspecialchars((string) ($consentNl['email_verifie_le'] ?? '—')) . '</td></tr>';
+        $h .= '</table>';
+
+        if ($cgvVersions !== []) {
+            $h .= '<h2>Versions CGV acceptées</h2><table><tr><th>Version</th></tr>';
+            foreach ($cgvVersions as $version) {
+                $h .= '<tr><td>' . htmlspecialchars((string) $version) . '</td></tr>';
+            }
+            $h .= '</table>';
+        } else {
+            $h .= '<h2>Versions CGV acceptées (0)</h2><p class="muted">Aucune commande passée.</p>';
+        }
 
         $pdf->writeHTML($h, true, false, true, false, '');
 
