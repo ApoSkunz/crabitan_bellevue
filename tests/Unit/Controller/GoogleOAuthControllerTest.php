@@ -21,7 +21,6 @@ class GoogleOAuthControllerTest extends TestCase
     {
         $dbMock = $this->createStub(Database::class);
         $this->dbInstanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->dbInstanceProp->setAccessible(true);
         $this->dbInstanceProp->setValue(null, $dbMock);
 
         $_SESSION = [];

@@ -14,7 +14,7 @@ class WineModel extends Model
     private const COND_OUT        = 'available = 0';
     private const COND_COLOR      = 'wine_color = ?';
     private const ORDER_DEFAULT   = 'wine_color DESC, vintage DESC';
-    private const SQL_WHERE       = 'WHERE ';
+    private const SQL_WHERE = 'WHERE ';
     private const SQL_AND         = ' AND ';
     private const COND_IMAGE      = "image_path IS NOT NULL AND image_path != ''";
     private const SQL_RAND_LIMIT  = ' ORDER BY RAND() LIMIT 1';
@@ -288,7 +288,7 @@ class WineModel extends Model
 
         $row = $this->db->fetchOne(
             'SELECT image_path, slug FROM ' . $this->table
-            . ' WHERE ' . self::COND_AVAILABLE
+            . ' ' . self::SQL_WHERE . self::COND_AVAILABLE
             . self::SQL_AND . self::COND_COLOR
             . self::SQL_AND . self::COND_IMAGE
             . self::SQL_RAND_LIMIT,
@@ -307,7 +307,7 @@ class WineModel extends Model
     {
         $row = $this->db->fetchOne(
             'SELECT id, label_name, image_path, slug, price FROM ' . $this->table
-            . ' WHERE ' . self::COND_AVAILABLE
+            . ' ' . self::SQL_WHERE . self::COND_AVAILABLE
             . self::SQL_AND . self::COND_IMAGE
             . self::SQL_RAND_LIMIT
         );
@@ -324,7 +324,7 @@ class WineModel extends Model
     {
         $row = $this->db->fetchOne(
             'SELECT image_path, slug FROM ' . $this->table
-            . ' WHERE ' . self::COND_AVAILABLE
+            . ' ' . self::SQL_WHERE . self::COND_AVAILABLE
             . self::SQL_AND . self::COND_IMAGE
             . self::SQL_RAND_LIMIT
         );

@@ -335,7 +335,6 @@ class PaymentServiceTest extends TestCase
 
         $ref    = new ReflectionClass(PaymentService::class);
         $method = $ref->getMethod('formatBillingField');
-        $method->setAccessible(true);
 
         // 'Éléonore Ça' → normalisation NFD → suppression diacritiques → majuscules → alphanum+espace
         $result = $method->invoke($service, 'Éléonore Ça', 50);
@@ -352,7 +351,6 @@ class PaymentServiceTest extends TestCase
 
         $ref    = new ReflectionClass(PaymentService::class);
         $method = $ref->getMethod('formatBillingField');
-        $method->setAccessible(true);
 
         $result = $method->invoke($service, 'ABCDEFGHIJ', 5);
 

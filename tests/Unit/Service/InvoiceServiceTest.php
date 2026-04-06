@@ -107,7 +107,6 @@ class InvoiceServiceTest extends TestCase
     {
         $service = new InvoiceService();
         $method  = new \ReflectionMethod(InvoiceService::class, 'buildLogoTag');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $result = $method->invoke($service, null);
 
@@ -122,7 +121,6 @@ class InvoiceServiceTest extends TestCase
     {
         $service = new InvoiceService();
         $method  = new \ReflectionMethod(InvoiceService::class, 'buildLogoTag');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $result = $method->invoke($service, '/path/to/logo.png');
 
@@ -143,7 +141,6 @@ class InvoiceServiceTest extends TestCase
     {
         $service = new InvoiceService();
         $method  = new \ReflectionMethod(InvoiceService::class, 'buildHtml');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $html = $method->invoke($service, $this->order, 'WEB-INVOICE-2026-0042', null);
 

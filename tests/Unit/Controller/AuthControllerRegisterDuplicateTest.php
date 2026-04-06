@@ -8,6 +8,7 @@ use Controller\AuthController;
 use Core\Database;
 use Core\Exception\HttpException;
 use Core\Request;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -18,6 +19,7 @@ use PHPUnit\Framework\TestCase;
  * (R5 anti-énumération) et aucun message d'erreur révélant l'existence
  * du compte ne doit être présent en session.
  */
+#[AllowMockObjectsWithoutExpectations]
 class AuthControllerRegisterDuplicateTest extends TestCase
 {
     private \ReflectionProperty $instanceProp;
@@ -36,7 +38,6 @@ class AuthControllerRegisterDuplicateTest extends TestCase
         ]);
 
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $this->instanceProp->setValue(null, $dbMock);
 
         $_COOKIE  = [];

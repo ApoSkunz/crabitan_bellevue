@@ -32,7 +32,6 @@ class AuthControllerResendActivationTest extends TestCase
 
         $dbMock = $this->createStub(Database::class);
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $dbMock);
 
         $_COOKIE  = [];
@@ -69,7 +68,6 @@ class AuthControllerResendActivationTest extends TestCase
     {
         $controller = new AuthController(new Request());
         $prop = new \ReflectionProperty(AuthController::class, 'rateLimiter');
-        $prop->setAccessible(true);
         $prop->setValue($controller, new class extends RateLimiterService {
             public function isApcuAvailable(): bool
             {

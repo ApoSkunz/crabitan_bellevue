@@ -558,7 +558,6 @@ class PaymentServiceCoverageTest extends TestCase
 
         $ref    = new ReflectionClass(PaymentService::class);
         $method = $ref->getMethod('formatBillingField');
-        $method->setAccessible(true);
 
         $result = $method->invoke($service, '', 50);
 
@@ -574,7 +573,6 @@ class PaymentServiceCoverageTest extends TestCase
 
         $ref    = new ReflectionClass(PaymentService::class);
         $method = $ref->getMethod('formatBillingField');
-        $method->setAccessible(true);
 
         $result = $method->invoke($service, '75001', 10);
 
@@ -594,7 +592,6 @@ class PaymentServiceCoverageTest extends TestCase
 
         $ref    = new ReflectionClass(PaymentService::class);
         $method = $ref->getMethod('buildBillingXml');
-        $method->setAccessible(true);
 
         $xml = $method->invoke($service, 'Jean', 'Dupont', '12 rue de la Paix', '75001', 'Paris');
 
@@ -614,7 +611,6 @@ class PaymentServiceCoverageTest extends TestCase
 
         $ref    = new ReflectionClass(PaymentService::class);
         $method = $ref->getMethod('buildBillingXml');
-        $method->setAccessible(true);
 
         // Les caractères < > & passent par htmlspecialchars → mais formatBillingField
         // les supprime (non alphanumériques). On vérifie juste que le XML est bien formé.
@@ -637,7 +633,6 @@ class PaymentServiceCoverageTest extends TestCase
 
         $ref    = new ReflectionClass(PaymentService::class);
         $method = $ref->getMethod('buildMessage');
-        $method->setAccessible(true);
 
         $fields = ['PBX_SITE' => '1234', 'PBX_RANG' => '032', 'PBX_TOTAL' => '5000'];
         $result = $method->invoke($service, $fields);

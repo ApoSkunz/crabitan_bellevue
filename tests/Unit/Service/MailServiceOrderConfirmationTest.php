@@ -23,7 +23,6 @@ class MailServiceOrderConfirmationTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($service, $stub); // NOSONAR — test unitaire, accès privé délibéré
     }
 

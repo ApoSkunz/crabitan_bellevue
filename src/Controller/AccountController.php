@@ -28,8 +28,9 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     private const VALID_PER_PAGES        = [10, 25, 50];
     private const VIEW_REACTIVATE        = 'account/reactivate';
     private const VIEW_UNSUBSCRIBE       = 'account/unsubscribe';
-    private const VIEW_SECURITY_CONFIRM  = 'account/security-confirm';
-    private const VIEW_SECURITY_DENY     = 'account/security-deny';
+    private const VIEW_SECURITY_CONFIRM    = 'account/security-confirm';
+    private const VIEW_SECURITY_DENY       = 'account/security-deny';
+    private const VIEW_EMAIL_CHANGE_CONFIRM = 'account/email_change_confirm';
     private const DATE_FORMAT            = 'd/m/Y';
 
     /** Rate limiting changement de mot de passe : 3 tentatives / 15 min / IP. */
@@ -1217,7 +1218,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $rawToken = $this->request->get('token', '');
 
         if ($rawToken === '') {
-            $this->view('account/email_change_confirm', [
+            $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
                 'lang'    => $lang,
                 'success' => false,
                 'error'   => __('account.email_change_token_invalid'),
@@ -1230,7 +1231,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         try {
             $service->confirmEmailChange($rawToken);
         } catch (\Core\Exception\HttpException $e) {
-            $this->view('account/email_change_confirm', [
+            $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
                 'lang'    => $lang,
                 'success' => false,
                 'error'   => $e->getMessage(),
@@ -1241,7 +1242,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         // Déconnecter le compte courant (sessions révoquées par le service)
         CookieHelper::clear();
 
-        $this->view('account/email_change_confirm', [
+        $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
             'lang'    => $lang,
             'success' => true,
             'error'   => null,
@@ -1267,7 +1268,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $rawToken = $this->request->get('token', '');
 
         if ($rawToken === '') {
-            $this->view('account/email_change_confirm', [
+            $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
                 'lang'    => $lang,
                 'success' => false,
                 'error'   => __('account.email_change_token_invalid'),
@@ -1279,7 +1280,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $account     = $this->accounts->findByEmailChangeToken($hashedToken);
 
         if (!$account) {
-            $this->view('account/email_change_confirm', [
+            $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
                 'lang'    => $lang,
                 'success' => false,
                 'error'   => __('account.email_change_token_invalid'),
@@ -1289,7 +1290,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
         $this->accounts->clearEmailChangeToken((int) $account['id']);
 
-        $this->view('account/email_change_confirm', [
+        $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
             'lang'    => $lang,
             'success' => true,
             'revoked' => true,

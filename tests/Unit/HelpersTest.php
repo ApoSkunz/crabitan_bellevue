@@ -18,7 +18,6 @@ class HelpersTest extends TestCase
     protected function tearDown(): void
     {
         $prop = new \ReflectionProperty(Lang::class, 'translations');
-        $prop->setAccessible(true);
         $prop->setValue(null, []);
     }
 

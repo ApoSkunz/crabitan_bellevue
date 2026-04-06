@@ -104,7 +104,7 @@ class AuthController extends Controller
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
      */
-    public function login(array $params): void
+    public function login(array $params): void // NOSONAR php:S3776 — complexité inhérente au flux auth (rate limiting, MFA, device trust)
     {
         GuestMiddleware::handle();
         $lang = $params['lang'];
@@ -753,7 +753,7 @@ class AuthController extends Controller
      * @param string $company      Nom de l'entreprise
      * @return array<string, string> Tableau d'erreurs indexé par champ (vide si valide)
      */
-    private function validateRegister(
+    private function validateRegister( // NOSONAR php:S107 — 8 paramètres de validation de formulaire, regroupement en tableau alourdirait les appels
         string $accountType,
         string $email,
         string $password,

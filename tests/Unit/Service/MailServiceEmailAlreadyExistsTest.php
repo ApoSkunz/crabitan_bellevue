@@ -30,14 +30,12 @@ class MailServiceEmailAlreadyExistsTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($service, $stub); // NOSONAR — test unitaire, accès privé délibéré
     }
 
     private function callPrivate(string $method, mixed ...$args): string
     {
         $m = $this->reflection->getMethod($method);
-        $m->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         return $m->invoke($this->service, ...$args);
     }
 

@@ -8,6 +8,7 @@ use Controller\NewsletterController;
 use Core\Database;
 use Core\Exception\HttpException;
 use Core\Request;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -15,6 +16,7 @@ use PHPUnit\Framework\TestCase;
  *
  * La Database est mockée — aucune connexion BDD réelle requise.
  */
+#[AllowMockObjectsWithoutExpectations]
 class NewsletterControllerTest extends TestCase
 {
     private \ReflectionProperty $instanceProp;
@@ -26,7 +28,6 @@ class NewsletterControllerTest extends TestCase
         $dbMock->method('fetchAll')->willReturn([]);
 
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $dbMock);
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
@@ -144,6 +145,136 @@ class NewsletterControllerTest extends TestCase
         $_GET['token'] = bin2hex(random_bytes(32));
 
         $controller = new NewsletterController(new Request());
+
+        ob_start();
+        $controller->confirmSubscription(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // Tests complémentaires — branches manquantes
+    // ----------------------------------------------------------------
+
+    /**
+     * subscribe() — succès : le service ne lève pas d'exception → JSON 200.
+     */
+    public function testSubscribeSuccessReturnsJson200(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['email']            = 'nouveau@example.com';
+
+        $controller = new NewsletterController(new Request());
+
+        // Injecter un NewsletterService mock qui ne lève pas d'exception
+        $serviceMock = $this->createMock(\Service\NewsletterService::class);
+        $serviceMock->expects($this->once())->method('subscribe');
+
+        $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
+        $prop->setValue($controller, $serviceMock);
+
+        ob_start();
+        try {
+            $this->expectException(HttpException::class);
+            $this->expectExceptionCode(200);
+            $controller->subscribe(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * subscribe() — already_confirmed : même réponse JSON 200 neutre (anti-énumération).
+     */
+    public function testSubscribeAlreadyConfirmedReturnsJson200(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['email']            = 'deja@example.com';
+
+        $controller = new NewsletterController(new Request());
+
+        $serviceMock = $this->createMock(\Service\NewsletterService::class);
+        $serviceMock->method('subscribe')
+            ->willThrowException(new \Core\Exception\NewsletterException('already_confirmed'));
+
+        $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
+        $prop->setValue($controller, $serviceMock);
+
+        ob_start();
+        try {
+            $this->expectException(HttpException::class);
+            $this->expectExceptionCode(200);
+            $controller->subscribe(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * subscribe() — erreur générique NewsletterException → JSON 429.
+     */
+    public function testSubscribeGenericNewsletterExceptionReturnsJson429(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['email']            = 'erreur@example.com';
+
+        $controller = new NewsletterController(new Request());
+
+        $serviceMock = $this->createMock(\Service\NewsletterService::class);
+        $serviceMock->method('subscribe')
+            ->willThrowException(new \Core\Exception\NewsletterException('some_other_error'));
+
+        $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
+        $prop->setValue($controller, $serviceMock);
+
+        ob_start();
+        try {
+            $this->expectException(HttpException::class);
+            $this->expectExceptionCode(429);
+            $controller->subscribe(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * confirmSubscription() — succès : le service ne lève pas d'exception → vue success.
+     */
+    public function testConfirmSubscriptionSuccessShowsSuccessView(): void
+    {
+        $_GET['token'] = 'valid-token-xyz';
+
+        $controller = new NewsletterController(new Request());
+
+        $serviceMock = $this->createMock(\Service\NewsletterService::class);
+        $serviceMock->expects($this->once())->method('confirmSubscription');
+
+        $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
+        $prop->setValue($controller, $serviceMock);
+
+        ob_start();
+        $controller->confirmSubscription(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--ok', $output);
+    }
+
+    /**
+     * confirmSubscription() — token expiré → vue d'erreur avec reason 'expired'.
+     */
+    public function testConfirmSubscriptionExpiredTokenShowsErrorView(): void
+    {
+        $_GET['token'] = 'expired-token-abc';
+
+        $controller = new NewsletterController(new Request());
+
+        $serviceMock = $this->createMock(\Service\NewsletterService::class);
+        $serviceMock->method('confirmSubscription')
+            ->willThrowException(new \Core\Exception\NewsletterException('expired'));
+
+        $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
+        $prop->setValue($controller, $serviceMock);
 
         ob_start();
         $controller->confirmSubscription(['lang' => 'fr']);

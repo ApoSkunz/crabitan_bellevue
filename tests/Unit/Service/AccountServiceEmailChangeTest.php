@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Service;
 
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Service\AccountService;
 use Service\MailService;
@@ -16,6 +17,7 @@ use Core\Exception\HttpException;
  *
  * Pattern : mock AccountModel + MailService → pas de BDD nécessaire.
  */
+#[AllowMockObjectsWithoutExpectations]
 class AccountServiceEmailChangeTest extends TestCase
 {
     private AccountService $service;
@@ -55,7 +57,6 @@ class AccountServiceEmailChangeTest extends TestCase
 
         $this->accountModel
             ->method('findById')
-            ->with($userId)
             ->willReturn([
                 'id'       => $userId,
                 'email'    => $oldEmail,
@@ -69,13 +70,11 @@ class AccountServiceEmailChangeTest extends TestCase
         // La nouvelle adresse n'est pas déjà prise
         $this->accountModel
             ->method('findByEmail')
-            ->with($newEmail)
             ->willReturn(false);
 
         // Rate limit : compteur à 0
         $this->accountModel
             ->method('countEmailChangeRequestsLast24h')
-            ->with($userId)
             ->willReturn(0);
 
         // On attend que saveEmailChangeToken soit appelé
@@ -227,7 +226,6 @@ class AccountServiceEmailChangeTest extends TestCase
 
         $this->accountModel
             ->method('findByEmailChangeToken')
-            ->with($hashedToken)
             ->willReturn([
                 'id'                      => $userId,
                 'email'                   => 'old@example.com',
@@ -266,7 +264,6 @@ class AccountServiceEmailChangeTest extends TestCase
 
         $this->accountModel
             ->method('findByEmailChangeToken')
-            ->with($hashedToken)
             ->willReturn([
                 'id'                      => 1,
                 'email'                   => 'old@example.com',
@@ -291,7 +288,6 @@ class AccountServiceEmailChangeTest extends TestCase
 
         $this->accountModel
             ->method('findByEmailChangeToken')
-            ->with($hashedToken)
             ->willReturn([
                 'id'                      => 1,
                 'email'                   => 'old@example.com',
@@ -316,7 +312,6 @@ class AccountServiceEmailChangeTest extends TestCase
 
         $this->accountModel
             ->method('findByEmailChangeToken')
-            ->with($hashedToken)
             ->willReturn(false);
 
         $this->service->confirmEmailChange($rawToken);

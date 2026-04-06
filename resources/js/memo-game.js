@@ -13,10 +13,10 @@ export function initMemoGame() {
     const section = document.getElementById('memo-game');
     if (!section) return;
 
-    const PAIR_COUNT = parseInt(section.dataset.pairCount, 10);
+    const PAIR_COUNT = Number.parseInt(section.dataset.pairCount, 10);
     const WIN_MSG    = section.dataset.winMsg;
     const LOSE_MSG   = section.dataset.loseMsg;
-    let worldRecord  = parseInt(section.dataset.worldRecord, 10) || 0;
+    let worldRecord  = Number.parseInt(section.dataset.worldRecord, 10) || 0;
 
     // Record mondial
     const wrEl = document.createElement('p');
@@ -46,7 +46,7 @@ export function initMemoGame() {
 
     let timer, secondsLeft, flipped, locked, matched, timerStarted;
 
-    function pad(n) { return String(n).padStart(2, '0'); }
+    function pad(n) { return String(n).padStart(2, '0'); } // NOSONAR javascript:S7721 — pure function dans DOMContentLoaded
 
     function updateTimer() {
         const h = Math.floor(secondsLeft / 3600);
@@ -173,7 +173,7 @@ export function initMemoGame() {
         // Mélanger les <li>
         const items = Array.from(grid.children);
         for (let i = items.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
+            const j = Math.floor(Math.random() * (i + 1)); // NOSONAR javascript:S2245 — Math.random() pour mélange de jeu côté client
             grid.appendChild(items[j]);
             items.splice(j, 1);
         }

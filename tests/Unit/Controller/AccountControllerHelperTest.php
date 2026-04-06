@@ -25,7 +25,6 @@ class AccountControllerHelperTest extends TestCase
         $dbMock->method('fetchAll')->willReturn([]);
 
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $dbMock);
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
@@ -54,7 +53,6 @@ class AccountControllerHelperTest extends TestCase
     private function callBuildPdfTableSection(string $label, array $rows, string $header, callable $rowFn, string $emptyMsg): string
     {
         $method = new \ReflectionMethod(AccountController::class, 'buildPdfTableSection');
-        $method->setAccessible(true);
         return (string) $method->invoke($this->controller, $label, $rows, $header, $rowFn, $emptyMsg);
     }
 
@@ -136,7 +134,6 @@ class AccountControllerHelperTest extends TestCase
     private function callValidateAndSaveIndividual(int $userId, string $civility, string $firstname, string $lastname): array
     {
         $method = new \ReflectionMethod(AccountController::class, 'validateAndSaveIndividual');
-        $method->setAccessible(true);
         return (array) $method->invoke($this->controller, $userId, $civility, $firstname, $lastname);
     }
 
@@ -191,7 +188,6 @@ class AccountControllerHelperTest extends TestCase
     private function callNormalizePhone(string $phone): string
     {
         $method = new \ReflectionMethod(AccountController::class, 'normalizePhone');
-        $method->setAccessible(true);
         return (string) $method->invoke($this->controller, $phone);
     }
 
@@ -245,7 +241,6 @@ class AccountControllerHelperTest extends TestCase
     private function callIsValidZip(string $zip): bool
     {
         $method = new \ReflectionMethod(AccountController::class, 'isValidFranceMetroZip');
-        $method->setAccessible(true);
         return (bool) $method->invoke($this->controller, $zip);
     }
 
@@ -363,7 +358,6 @@ class AccountControllerHelperTest extends TestCase
     private function callVerifyCsrf(): bool
     {
         $method = new \ReflectionMethod(AccountController::class, 'verifyCsrf');
-        $method->setAccessible(true);
         return (bool) $method->invoke($this->controller);
     }
 
@@ -425,7 +419,6 @@ class AccountControllerHelperTest extends TestCase
     private function callValidateAndSaveCompany(int $userId, string $companyName, ?string $siret): array
     {
         $method = new \ReflectionMethod(AccountController::class, 'validateAndSaveCompany');
-        $method->setAccessible(true);
         return (array) $method->invoke($this->controller, $userId, $companyName, $siret);
     }
 
@@ -469,7 +462,6 @@ class AccountControllerHelperTest extends TestCase
     private function callBuildExportHeaders(string $basename, bool $isZip): array
     {
         $method = new \ReflectionMethod(AccountController::class, 'buildExportHeaders');
-        $method->setAccessible(true);
         return (array) $method->invoke($this->controller, $basename, $isZip);
     }
 
@@ -551,7 +543,6 @@ class AccountControllerHelperTest extends TestCase
     private function callBuildExportContent(array $export, string $date, string $basename): array
     {
         $method = new \ReflectionMethod(AccountController::class, 'buildExportContent');
-        $method->setAccessible(true);
         /** @var array{0: string, 1: bool} */
         return (array) $method->invoke($this->controller, $export, $date, $basename);
     }
@@ -620,7 +611,6 @@ class AccountControllerHelperTest extends TestCase
         };
 
         $method = new \ReflectionMethod($stub, 'buildExportContent');
-        $method->setAccessible(true);
         /** @var array{0: string, 1: bool} $result */
         $result  = (array) $method->invoke($stub, $export, '2026-04-02', $basename);
         [$content, $isZip] = $result;

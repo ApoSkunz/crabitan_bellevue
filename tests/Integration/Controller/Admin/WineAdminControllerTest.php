@@ -864,7 +864,6 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $fakeModel = new WineModelThrowOnUpdate();
         $reflection = new \ReflectionClass(\Controller\Admin\WineAdminController::class);
         $prop = $reflection->getProperty('wines');
-        $prop->setAccessible(true);
         $prop->setValue($controller, $fakeModel);
 
         ob_start();
@@ -921,7 +920,6 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $fakeModel = new WineModelThrowGenericOnCreate();
         $reflection = new \ReflectionClass(\Controller\Admin\WineAdminController::class);
         $prop = $reflection->getProperty('wines');
-        $prop->setAccessible(true);
         $prop->setValue($controller, $fakeModel);
 
         ob_start();
@@ -978,7 +976,6 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $fakeModel = new WineModelThrowGenericOnUpdate();
         $reflection = new \ReflectionClass(\Controller\Admin\WineAdminController::class);
         $prop = $reflection->getProperty('wines');
-        $prop->setAccessible(true);
         $prop->setValue($controller, $fakeModel);
 
         ob_start();

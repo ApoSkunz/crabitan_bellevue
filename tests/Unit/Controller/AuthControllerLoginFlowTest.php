@@ -30,7 +30,6 @@ class AuthControllerLoginFlowTest extends TestCase
 
         $dbMock = $this->createStub(Database::class);
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $dbMock);
 
         $_COOKIE  = [];
