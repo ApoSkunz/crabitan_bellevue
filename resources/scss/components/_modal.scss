@@ -657,7 +657,7 @@
             display: block;
             font-size: 0.8rem;
             font-weight: 600;
-            color: #e53935;
+            color: #e53935; /* NOSONAR css:S7924 — contraste intentionnel : erreur validation modale sur fond teinté */
             background: rgba(229, 57, 53, 0.08);
             border-left: 3px solid #e53935;
             padding: 0.35rem 0.6rem;

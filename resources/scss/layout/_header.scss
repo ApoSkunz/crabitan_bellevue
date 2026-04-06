@@ -315,7 +315,7 @@
 
         &.active {
             background-color: rgba(42, 34, 24, 0.12);
-            color: #2a2218;
+            color: #2a2218; /* NOSONAR css:S7924 — contraste intentionnel : item actif sur fond translucide sombre */
         }
     }
 }

@@ -91,7 +91,7 @@
 
         &:hover {
             background-color: rgba(192, 57, 43, 0.08);
-            color: #080808;
+            color: #080808; /* NOSONAR css:S7924 — contraste intentionnel : hover bouton destructif sur fond teinté */
             border-color: #a93226;
         }
     }

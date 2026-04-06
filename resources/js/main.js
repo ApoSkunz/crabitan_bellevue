@@ -828,9 +828,9 @@ function initFavoriteToggle() {
                 btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
 
                 const favIcon  = liked ? '\u2665' : '\u2661';
-                const favLabel = liked
-                    ? (isEn ? 'Remove from favourites' : 'Retirer des favoris')
-                    : (isEn ? 'Add to favourites'      : 'Ajouter aux favoris');
+                const favLabelLiked   = isEn ? 'Remove from favourites' : 'Retirer des favoris';
+                const favLabelUnliked = isEn ? 'Add to favourites'      : 'Ajouter aux favoris';
+                const favLabel = liked ? favLabelLiked : favLabelUnliked;
                 if (iconEl)  iconEl.textContent  = favIcon;
                 else         btn.textContent     = favIcon;
                 if (labelEl) labelEl.textContent = favLabel;
@@ -1817,9 +1817,9 @@ function initCartPage() {
         // Label fin
         const tierLabelEl = document.getElementById('cart-progress-tier-label');
         if (tierLabelEl) {
-            const tierLabel = hasDiscount
-                ? (isEn ? 'for the next tier' : 'pour le palier suivant')
-                : (isEn ? 'for your delivery discount' : 'pour votre remise livraison');
+            const tierLabelWithDiscount    = isEn ? 'for the next tier'          : 'pour le palier suivant';
+            const tierLabelWithoutDiscount = isEn ? 'for your delivery discount'  : 'pour votre remise livraison';
+            const tierLabel = hasDiscount ? tierLabelWithDiscount : tierLabelWithoutDiscount;
             tierLabelEl.textContent = tierLabel;
         }
 

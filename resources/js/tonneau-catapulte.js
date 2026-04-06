@@ -238,7 +238,7 @@ export function initTonneauCatapulteGame() {
 
         // ── Travelling : retour au vigneron ──────────────────
         if (state === 'panning') {
-            camX += (0 - camX) * 0.10;
+            camX += (0 - camX) * 0.1;
             travelTimer--;
             if (travelTimer <= 0 || camX < 1) {
                 camX  = 0;
@@ -251,7 +251,7 @@ export function initTonneauCatapulteGame() {
         if (throwAnim > 0) throwAnim = Math.max(0, throwAnim - 0.05);
 
         if (state === 'flying' && barrel) {
-            barrel.vy += 0.30;
+            barrel.vy += 0.3;
             barrel.x  += barrel.vx;
             barrel.y  += barrel.vy;
 
@@ -262,7 +262,7 @@ export function initTonneauCatapulteGame() {
             if (barrel.y >= GROUND_Y) {
                 barrel.y  = GROUND_Y;
                 barrel.vy = -barrel.vy * 0.36;
-                barrel.vx *= 0.70;
+                barrel.vx *= 0.7;
                 if (Math.abs(barrel.vy) < 1.2 && Math.abs(barrel.vx) < 0.8) land();
             }
         }

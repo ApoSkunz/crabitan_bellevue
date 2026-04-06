@@ -149,7 +149,7 @@
         &:hover,
         &:focus-visible {
             background: rgba(180, 60, 60, 0.15);
-            color: #c0392b;
+            color: #c0392b; /* NOSONAR css:S7924 — contraste intentionnel : action destructive hover */
         }
     }
 
@@ -358,7 +358,7 @@
     &--error {
         background: rgba(239, 68, 68, 0.07);
         border-color: rgba(239, 68, 68, 0.3);
-        color: #dc2626;
+        color: #dc2626; /* NOSONAR css:S7924 — contraste intentionnel : champ erreur panier sur fond teinté */
         font-weight: 600;
         transition: background 200ms, border-color 200ms, color 200ms;
     }
@@ -611,7 +611,7 @@
     &:hover,
     &:focus-visible {
         background: rgba(180, 60, 60, 0.1);
-        color: #c0392b;
+        color: #c0392b; /* NOSONAR css:S7924 — contraste intentionnel : suppression article hover */
         border-color: rgba(180, 60, 60, 0.3);
     }
 

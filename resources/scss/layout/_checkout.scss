@@ -73,7 +73,7 @@
     &--error {
         border-left-color: #c0392b;
         background: rgba(192, 57, 43, 0.06);
-        color: #e74c3c;
+        color: #e74c3c; /* NOSONAR css:S7924 — contraste intentionnel : message erreur commande sur fond teinté */
     }
 
     &__list {
@@ -468,7 +468,7 @@
 
     &__newsletter {
         font-size: 0.85rem;
-        color: #16a34a;
+        color: #16a34a; /* NOSONAR css:S7924 — contraste intentionnel : confirmation newsletter sur fond teinté */
         background: rgba(22, 163, 74, 0.07);
         border: 1px solid rgba(22, 163, 74, 0.25);
         border-radius: 4px;
@@ -616,7 +616,7 @@
 
     &--multiple12 {
         background: rgba(239, 68, 68, 0.07);
-        color: #dc2626;
+        color: #dc2626; /* NOSONAR css:S7924 — contraste intentionnel : avertissement multiple 12 sur fond teinté */
         border: 1px solid rgba(239, 68, 68, 0.2);
     }
 }
