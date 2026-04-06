@@ -280,4 +280,61 @@ class WineControllerTest extends TestCase
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
+
+    // ── checkPdfRateLimit() ─────────────────────────────────────────────────
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCheckPdfRateLimitAllowsWithinLimit(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod(\Controller\WineController::class, 'checkPdfRateLimit');
+
+        // Doit passer sans exception pour les premières requêtes
+        $method->invoke($ctrl, 'test-slug-rate', 'fr');
+        $this->assertTrue(true);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCheckPdfRateLimitBlocks429AfterLimit(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REMOTE_ADDR'] = '127.9.9.1';
+
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod(\Controller\WineController::class, 'checkPdfRateLimit');
+
+        // Épuiser la limite (PDF_RATE_MAX = 10)
+        for ($i = 0; $i < 10; $i++) {
+            $method->invoke($ctrl, 'slug-block-test', 'fr');
+        }
+
+        // La 11ème doit déclencher un HttpException(429)
+        $this->expectException(\Core\Exception\HttpException::class);
+        $method->invoke($ctrl, 'slug-block-test', 'fr');
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCheckPdfRateLimitIsolatedPerSlug(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.2';
+
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod(\Controller\WineController::class, 'checkPdfRateLimit');
+
+        // Épuiser sur slug A
+        for ($i = 0; $i < 10; $i++) {
+            $method->invoke($ctrl, 'slug-a', 'en');
+        }
+
+        // slug B doit rester libre
+        $method->invoke($ctrl, 'slug-b', 'en');
+        $this->assertTrue(true);
+    }
 }

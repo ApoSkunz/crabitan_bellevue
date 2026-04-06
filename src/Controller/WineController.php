@@ -9,6 +9,7 @@ use Core\Jwt;
 use Core\Response;
 use Model\FavoriteModel;
 use Model\WineModel;
+use Service\RateLimiterService;
 use TCPDF;
 
 class WineController extends Controller
@@ -120,6 +121,43 @@ class WineController extends Controller
     // GET /{lang}/vins/{slug}/fiche-technique
     // ----------------------------------------------------------------
 
+    private const PDF_RATE_MAX    = 10;
+    private const PDF_RATE_WINDOW = 3600; // 1 heure
+
+    /**
+     * Vérifie le rate limiting pour la génération PDF (10 req/IP/vin/heure).
+     * Répond 429 avec Retry-After si la limite est dépassée.
+     *
+     * @param string $slug Slug du vin
+     * @param string $lang Langue courante (fr|en)
+     * @return void
+     */
+    private function checkPdfRateLimit(string $slug, string $lang): void
+    {
+        $ip      = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $key     = 'pdf_wine:' . $ip . ':' . $slug;
+        $limiter = new RateLimiterService();
+
+        if (!$limiter->checkLimit($key, self::PDF_RATE_MAX, self::PDF_RATE_WINDOW)) {
+            $retryAfter = $limiter->getRetryAfter($key);
+            Response::setHeader('Retry-After', (string) $retryAfter);
+            Response::json([
+                'error'       => $lang === 'en'
+                    ? 'Too many requests. Please try again later.'
+                    : 'Trop de demandes. Veuillez réessayer plus tard.',
+                'retry_after' => $retryAfter,
+            ], 429);
+        }
+
+        $limiter->recordAttempt($key, self::PDF_RATE_WINDOW);
+    }
+
+    /**
+     * Génère et retourne inline la fiche technique PDF du vin.
+     *
+     * @param array<string, string> $params Paramètres de route (lang, slug)
+     * @return void
+     */
     public function technicalSheet(array $params): void
     {
         $lang  = $this->resolveLang($params);
@@ -130,6 +168,8 @@ class WineController extends Controller
         if ($wine === null) {
             Response::abort(404);
         }
+
+        $this->checkPdfRateLimit($slug, $lang);
 
         require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
 
