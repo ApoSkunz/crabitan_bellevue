@@ -48,37 +48,25 @@
 
             <p class="age-gate__intro"><?= htmlspecialchars(__('age_gate.intro')) ?></p>
 
-            <form id="age-gate-form" method="post" action="/age-gate">
-                <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect) ?>">
+            <p class="age-gate__declare"><?= __('age_gate.declare') ?></p>
 
-                <div class="age-gate__choices-wrap">
-                    <fieldset class="age-gate__choices">
-                        <legend class="sr-only"><?= htmlspecialchars(__('age_gate.choice_legend')) ?></legend>
-
-                        <label class="age-gate__choice">
-                            <input type="radio" name="legal_age" value="1" required>
-                            <span><?= htmlspecialchars(__('age_gate.legal')) ?></span>
-                        </label>
-
-                        <label class="age-gate__choice">
-                            <input type="radio" name="legal_age" value="0">
-                            <span><?= htmlspecialchars(__('age_gate.not_legal')) ?></span>
-                        </label>
-                    </fieldset>
-
-                    <p id="age-gate-error" class="age-gate__error" hidden>
-                        <?= htmlspecialchars(__('age_gate.error')) ?>
-                    </p>
+            <div class="age-gate__footer">
+                <label class="age-gate__remember">
+                    <input type="checkbox" name="remember" value="1" form="age-gate-enter">
+                    <span><?= htmlspecialchars(__('age_gate.remember')) ?></span>
+                </label>
+                <div class="age-gate__footer-actions">
+                    <form method="post" action="/age-gate" id="age-gate-enter">
+                        <input type="hidden" name="legal_age" value="1">
+                        <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect) ?>">
+                        <button type="submit" class="btn btn--gold"><?= htmlspecialchars(__('age_gate.enter')) ?></button>
+                    </form>
+                    <form method="post" action="/age-gate">
+                        <input type="hidden" name="legal_age" value="0">
+                        <button type="submit" class="age-overlay__btn-exit age-overlay__btn-exit--outline"><?= htmlspecialchars(__('age_gate.exit')) ?></button>
+                    </form>
                 </div>
-
-                <div class="age-gate__footer">
-                    <label class="age-gate__remember">
-                        <input type="checkbox" name="remember" value="1">
-                        <span><?= htmlspecialchars(__('age_gate.remember')) ?></span>
-                    </label>
-                    <button type="submit" class="btn btn--gold"><?= htmlspecialchars(__('age_gate.enter')) ?></button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 

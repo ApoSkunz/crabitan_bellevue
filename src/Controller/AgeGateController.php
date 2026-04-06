@@ -37,16 +37,19 @@ class AgeGateController extends Controller
         $remember = !empty($_POST['remember']);
         $redirect = $_POST['redirect'] ?? '/' . DEFAULT_LANG;
 
-        // Mineur ou choix absent → redirection Google (JS disabled fallback)
+        // Mineur ou choix absent → redirection vers l'URL de sortie (referer externe ou Google)
         if ($legalAge !== '1') {
-            Response::redirect('https://www.google.com');
+            $exitUrl = $_POST['exit_url'] ?? '';
+            Response::redirect($this->sanitizeExitUrl($exitUrl));
         }
+
+        $this->logAgeVerification();
 
         $cookieBase = [
             'path'     => '/',
             'secure'   => isset($_SERVER['HTTPS']),
             'httponly' => true,
-            'samesite' => 'Lax',
+            'samesite' => 'Strict',
         ];
 
         setcookie(self::COOKIE_NAME, '1', array_merge($cookieBase, [
@@ -70,6 +73,42 @@ class AgeGateController extends Controller
         ]);
 
         Response::redirect($this->sanitizeRedirect($redirect));
+    }
+
+    /**
+     * Enregistre l'IP et l'horodatage de la vérification d'âge
+     * à des fins de preuve légale (Art. L3342-1 CSP).
+     */
+    private function logAgeVerification(): void
+    {
+        $ip     = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $logDir = ROOT_PATH . '/logs';
+
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+
+        error_log(date('Y-m-d H:i:s') . ' | ' . $ip . PHP_EOL, 3, $logDir . '/age-gate.log');
+    }
+
+    /**
+     * Valide une URL de sortie externe (http/https, hors domaine courant).
+     * Tout ce qui ne correspond pas à une URL absolue externe est remplacé par Google.
+     *
+     * @param string $url URL candidate fournie via POST exit_url
+     * @return string URL sûre vers laquelle rediriger
+     */
+    private function sanitizeExitUrl(string $url): string
+    {
+        if (
+            filter_var($url, FILTER_VALIDATE_URL) !== false
+            && preg_match('#^https?://#i', $url)
+            && !str_contains($url, (string) ($_SERVER['HTTP_HOST'] ?? ''))
+        ) {
+            return $url;
+        }
+
+        return 'https://www.google.com';
     }
 
     /**

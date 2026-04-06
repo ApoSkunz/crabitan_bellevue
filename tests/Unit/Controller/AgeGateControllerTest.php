@@ -85,8 +85,9 @@ class AgeGateControllerTest extends TestCase
     public function testConfirmMinorRedirectsToGoogle(): void
     {
         $this->bootstrapApp();
-        $_POST   = ['legal_age' => '0', 'redirect' => '/fr'];
-        $_COOKIE = [];
+        $_POST              = ['legal_age' => '0', 'redirect' => '/fr'];
+        $_COOKIE            = [];
+        $_SERVER['HTTP_HOST'] = 'crabitan.local';
 
         $caught = null;
         ob_start();
@@ -101,8 +102,54 @@ class AgeGateControllerTest extends TestCase
         $this->assertStringContainsString(
             'google.com',
             $caught->location ?? '',
-            'confirm() doit rediriger vers Google pour un mineur'
+            'Sans exit_url valide, confirm() doit rediriger vers Google'
         );
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testConfirmMinorWithExternalRefererRedirectsToReferer(): void
+    {
+        $this->bootstrapApp();
+        $_POST              = ['legal_age' => '0', 'exit_url' => 'https://www.example.com/page'];
+        $_COOKIE            = [];
+        $_SERVER['HTTP_HOST'] = 'crabitan.local';
+
+        $caught = null;
+        ob_start();
+        try {
+            $this->makeController()->confirm();
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+        ob_end_clean();
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertStringContainsString('example.com', $caught->location ?? '');
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testConfirmMinorWithInternalExitUrlFallsBackToGoogle(): void
+    {
+        $this->bootstrapApp();
+        // exit_url pointant vers le site lui-même → doit être rejeté → Google
+        $_POST              = ['legal_age' => '0', 'exit_url' => 'https://crabitan.local/fr'];
+        $_COOKIE            = [];
+        $_SERVER['HTTP_HOST'] = 'crabitan.local';
+
+        $caught = null;
+        ob_start();
+        try {
+            $this->makeController()->confirm();
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+        ob_end_clean();
+
+        $this->assertNotNull($caught);
+        $this->assertStringContainsString('google.com', $caught->location ?? '');
     }
 
     #[RunInSeparateProcess]
@@ -110,8 +157,9 @@ class AgeGateControllerTest extends TestCase
     public function testConfirmAbsentChoiceRedirectsToGoogle(): void
     {
         $this->bootstrapApp();
-        $_POST   = ['redirect' => '/fr']; // legal_age absent
-        $_COOKIE = [];
+        $_POST              = ['redirect' => '/fr']; // legal_age absent
+        $_COOKIE            = [];
+        $_SERVER['HTTP_HOST'] = 'crabitan.local';
 
         $caught = null;
         ob_start();
@@ -225,6 +273,37 @@ class AgeGateControllerTest extends TestCase
         ob_get_clean();
 
         $this->assertTrue(true);
+    }
+
+    /**
+     * Vérifie que confirm() écrit un log IP+horodatage dans logs/age-gate.log (Art. L3342-1 CSP).
+     *
+     * @return void
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testConfirmMajorWritesAgeGateLog(): void
+    {
+        $this->bootstrapApp();
+        $_POST                  = ['legal_age' => '1', 'redirect' => '/fr'];
+        $_COOKIE                = [];
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $logFile = ROOT_PATH . '/logs/age-gate.log';
+        if (file_exists($logFile)) {
+            unlink($logFile);
+        }
+
+        ob_start();
+        try {
+            $this->makeController()->confirm();
+        } catch (HttpException $e) {
+            // redirection attendue
+        }
+        ob_end_clean();
+
+        $this->assertFileExists($logFile, 'confirm() doit créer logs/age-gate.log');
+        $this->assertStringContainsString('127.0.0.1', (string) file_get_contents($logFile));
     }
 
     /**

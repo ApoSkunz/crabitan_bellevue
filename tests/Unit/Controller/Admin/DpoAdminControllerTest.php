@@ -218,6 +218,8 @@ class DpoAdminControllerTest extends TestCase
 
         $this->assertStringContainsString('GFA Bernard Solane et Fils', $html);
         $this->assertStringContainsString('398 341 701 00017', $html);
-        $this->assertStringContainsString('crabitan.bellevue@orange.fr', $html);
+        // L'email est lu depuis $_ENV['CONTACT_OWNER_EMAIL'] (fallback : crabitan.bellevue@orange.fr)
+        $expectedEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
+        $this->assertStringContainsString($expectedEmail, $html);
     }
 }

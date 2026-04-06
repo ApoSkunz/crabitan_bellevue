@@ -50,3 +50,6 @@
 <?php endif; ?>
 </head>
 <body>
+<?php if (($_COOKIE['age_verified'] ?? '') !== '1') : ?>
+<?php require_once SRC_PATH . '/View/partials/age-gate-overlay.php'; ?>
+<?php endif; ?>

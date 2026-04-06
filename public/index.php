@@ -18,7 +18,8 @@ $router  = new Router($request);
 
 require_once ROOT_PATH . '/config/routes.php';
 
-// Vérification d'âge — obligatoire pour les sites vendant de l'alcool
+// ── Vérification d'âge côté serveur (Art. L3342-1 CSP) ──────────────────────
+// Chemins accessibles sans cookie (page age-gate elle-même, admin, assets, pages légales…)
 $path         = $request->path;
 $ageVerified  = ($_COOKIE['age_verified'] ?? '') === '1';
 $isPublicPath = str_starts_with($path, '/age-gate')
@@ -29,9 +30,16 @@ $isPublicPath = str_starts_with($path, '/age-gate')
     || str_ends_with($path, '/conditions-generales-de-vente')
     || str_ends_with($path, '/support')
     || str_contains($path, '/newsletter/desabonnement')
-    || str_contains($path, '/auth/google'); // Google OAuth — Google redirige vers ce callback sans cookie age_verified
+    || str_contains($path, '/auth/google');
 
-if (!$ageVerified && !$isPublicPath) {
+// Crawlers SEO connus : pas de cookie mais on laisse passer pour l'indexation
+$ua        = $_SERVER['HTTP_USER_AGENT'] ?? '';
+$isCrawler = (bool) preg_match(
+    '/googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver|crawler|spider/i',
+    $ua
+);
+
+if (!$ageVerified && !$isPublicPath && !$isCrawler) {
     $redirect = rawurlencode($path !== '/' ? $path : '/' . DEFAULT_LANG);
     header('Location: /age-gate?redirect=' . $redirect);
     exit;
