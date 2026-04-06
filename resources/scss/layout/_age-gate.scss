@@ -360,6 +360,13 @@
     border-top: 1px solid var(--color-border);
 }
 
+// Overlay : Quitter (texte) + Entrer (gold) côte à côte
+.age-gate__footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
 .age-gate__topbar {
     position: fixed;
     top: 1rem;
@@ -398,21 +405,31 @@
 // Overlay age gate — injectée dans header.php
 // ============================================================
 
-// Bloque le scroll de la page tant que l'overlay est visible
+// Bloque le scroll et masque le contenu de la page derrière l'overlay (évite le flash)
 body:has(.age-overlay) {
     overflow: hidden;
+
+    > *:not(.age-overlay) {
+        visibility: hidden;
+    }
 }
 
+// Conteneur opaque plein écran — pas d'animation d'opacité (évite le flash au chargement)
+// Seul le contenu intérieur anime son entrée via .age-gate (fade-in 0.6s)
 .age-overlay {
     position: fixed;
     inset: 0;
     z-index: 9000;
     background: var(--color-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-    animation: fade-in 0.35s ease both;
+    overflow-y: auto;
+
+    // lang, topbar et legal-footer sont en position:fixed — on remonte leur z-index
+    // pour qu'ils restent visibles au-dessus de l'overlay
+    .age-gate__lang,
+    .age-gate__topbar,
+    .age-gate__legal-footer {
+        z-index: 9001;
+    }
 }
 
 .age-overlay__card {
