@@ -36,6 +36,10 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     private const MAX_CHANGE_PW_IP  = 3;
     private const WINDOW_CHANGE_PW  = 900;
 
+    /** Rate limiting export RGPD : 3 exports / 24 h / utilisateur. */
+    private const MAX_EXPORT_USER   = 3;
+    private const WINDOW_EXPORT     = 86400;
+
     private AccountModel $accounts;
     private AddressModel $addresses;
     private FavoriteModel $favorites;
@@ -1063,9 +1067,12 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $_SESSION['flash']['email_change_sent']
         );
 
+        $account = $this->accounts->findById($userId);
+
         $this->view('account/profile', [
             'lang'            => $lang,
-            'account'         => $this->accounts->findById($userId),
+            'account'         => $account,
+            'maskedEmail'     => self::maskEmail((string) ($account['email'] ?? '')),
             'errors'          => $errors,
             'success'         => $success,
             'emailChangeSent' => $emailChangeSent,
@@ -1553,41 +1560,95 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $payload = $this->requireCustomer();
         $lang    = $params['lang'];
 
+        $sent  = $_SESSION['flash']['export_sent']  ?? null;
+        $error = $_SESSION['flash']['export_error'] ?? null;
+        unset($_SESSION['flash']['export_sent'], $_SESSION['flash']['export_error']);
+
+        $userId  = (int) $payload['sub'];
+        $account = $this->accounts->findById($userId);
+
+        $lastExportTs = $this->rateLimiter->recall('rgpd_export_ts:' . $userId);
+
         $this->view('account/export', [
-            'lang'    => $lang,
-            'account' => $this->accounts->findById((int) $payload['sub']),
-            'csrf'    => $_SESSION['csrf'] ?? '',
+            'lang'         => $lang,
+            'account'      => $account,
+            'maskedEmail'  => self::maskEmail((string) ($account['email'] ?? '')),
+            'sent'         => $sent,
+            'error'        => $error,
+            'lastExportAt' => $lastExportTs !== null ? date('d/m/Y à H:i', (int) $lastExportTs) : null,
+            'csrf'         => $_SESSION['csrf'] ?? '',
         ]);
     }
 
     // ----------------------------------------------------------------
-    // GET /{lang}/mon-compte/export/telecharger
+    // POST /{lang}/mon-compte/export/envoyer
     // ----------------------------------------------------------------
 
-    public function exportData(array $params): void // NOSONAR php:S1172 — paramètre requis par convention du routeur
+    /**
+     * Génère l'archive RGPD et l'envoie par email au titulaire du compte.
+     *
+     * L'envoi par email (plutôt qu'un téléchargement direct) protège contre le vol
+     * de token de session : l'attaquant ne peut récupérer l'archive que s'il contrôle
+     * aussi la boîte mail du titulaire (deux vecteurs indépendants requis).
+     *
+     * @param array<string, mixed> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function exportSend(array $params): void
     {
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
 
-        $export = $this->buildExportData($userId);
+        if (!$this->verifyCsrf()) {
+            $_SESSION['flash']['export_error'] = __('error.csrf');
+            Response::redirect("/{$lang}/mon-compte/export");
+        }
 
+        $rlKey = 'rgpd_export:' . $userId;
+        if (!$this->rateLimiter->checkLimit($rlKey, self::MAX_EXPORT_USER, self::WINDOW_EXPORT)) {
+            $wait = (int) ceil($this->rateLimiter->getRetryAfter($rlKey) / 3600);
+            $_SESSION['flash']['export_error'] = sprintf(__('auth.too_many_attempts'), max(1, $wait) . 'h');
+            Response::redirect("/{$lang}/mon-compte/export");
+        }
+        $this->rateLimiter->recordAttempt($rlKey, self::WINDOW_EXPORT);
+
+        $account  = $this->accounts->findById($userId);
+        $email    = (string) ($account['email'] ?? '');
+        $name     = (string) ($account['firstname'] ?? ($account['company_name'] ?? $email));
+        $export   = $this->buildExportData($userId);
         $date     = date('Y-m-d');
         $basename = 'mes-donnees-' . $date;
 
-        if (ob_get_level() > 0) {
-            ob_end_clean();
-        }
-
         [$content, $isZip] = $this->buildExportContent($export, $date, $basename);
+        $filename = $basename . ($isZip ? '.zip' : '.json');
 
-        $contentType = $isZip ? 'application/zip' : 'application/json; charset=utf-8';
-        header('Content-Type: ' . $contentType);
-        foreach ($this->buildExportHeaders($basename, $isZip) as $h) {
-            header($h);
+        try {
+            (new MailService())->sendRgpdExport($email, $name, $content, $filename, $lang);
+            $this->rateLimiter->remember('rgpd_export_ts:' . $userId, time(), self::WINDOW_EXPORT);
+            $_SESSION['flash']['export_sent'] = self::maskEmail($email);
+        } catch (\Exception $e) {
+            $_SESSION['flash']['export_error'] = __('account.export_error');
         }
-        header('Content-Length: ' . strlen($content));
-        echo $content;
-        exit;
+
+        Response::redirect("/{$lang}/mon-compte/export");
+    }
+
+    /**
+     * Masque partiellement une adresse email pour l'affichage (protection vie privée).
+     *
+     * Exemples : jean.dupont@gmail.com → j***@gmail.com, jo@example.com → j***@example.com
+     *
+     * @param string $email Adresse email à masquer
+     * @return string Email masqué
+     */
+    private static function maskEmail(string $email): string
+    {
+        $at = strpos($email, '@');
+        if ($at === false || $at === 0) {
+            return str_repeat('*', strlen($email));
+        }
+        return $email[0] . '***' . substr($email, $at);
     }
 
     /**

@@ -1937,19 +1937,19 @@ class AccountControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
-    // exportData() — guard seulement (exit dans la branche authentifiée)
+    // exportSend() — guard CSRF + authentification
     // ----------------------------------------------------------------
 
     /**
-     * Un utilisateur non authentifié est redirigé vers /connexion.
+     * Un utilisateur non authentifié déclenche une HttpException (guard requireCustomer).
      */
-    public function testExportDataUnauthenticatedRedirects(): void
+    public function testExportSendUnauthenticatedRedirects(): void
     {
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(404);
 
-        $this->makeController('GET', '/fr/mon-compte/export/telecharger')
-            ->exportData(['lang' => 'fr']);
+        $this->makeController('POST', '/fr/mon-compte/export/envoyer')
+            ->exportSend(['lang' => 'fr']);
     }
 
     // ----------------------------------------------------------------

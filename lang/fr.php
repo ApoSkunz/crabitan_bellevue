@@ -684,8 +684,13 @@ return [
     'account.export_item_trusted_devices' => 'Vos appareils de confiance enregistrés',
     'account.export_item_sessions' => 'Vos sessions actives',
     'account.export_retention'   => 'Durée de conservation : vos données personnelles (nom, e-mail, adresses…) sont supprimées dans les 30 jours suivant la fermeture de votre compte. Vos commandes sont conservées 10 ans conformément aux obligations légales, mais anonymisées — sans aucun lien vers votre identité.',
-    'account.export_download'    => 'Télécharger mes données (ZIP)',
-    'account.export_at'          => 'Généré le',
+    'account.export_send_btn'    => 'Recevoir mes données par email',
+    'account.export_sent_title'  => 'Export envoyé !',
+    'account.export_sent_body'   => 'Votre archive a été envoyée à <strong>%s</strong>. Pensez à vérifier vos spams.',
+    'account.export_error'       => 'Une erreur est survenue lors de l\'envoi. Veuillez réessayer.',
+    'account.export_last_request' => 'Dernière demande',
+    'account.export_no_request'  => 'Aucune demande récente',
+    'account.export_send_to'     => 'Envoyée à',
 
     // Réinitialisation sécurité
     'account.security_reset_btn'        => 'Réinitialiser la sécurité',
