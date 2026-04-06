@@ -2,6 +2,16 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.41.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.41.1...v0.41.2) (2026-04-06)
+
+
+### Bug Fixes
+
+* **js:** corriger S3358 (ternaires imbriqués) et S7748 (zéros superflus) ([492c04c](https://github.com/ApoSkunz/crabitan_bellevue/commit/492c04cfd9064935f755eb44cb20910cc94c5562))
+* **php:** déplacer NOSONAR sur la ligne de l'issue (S3776, S1448, S4084) ([c905b11](https://github.com/ApoSkunz/crabitan_bellevue/commit/c905b11fc3e3d8b62c5b5bc4abf47f4f338752aa))
+* **scss:** NOSONAR css:S7924 sur toutes les couleurs sémantiques (contraste intentionnel) ([a1e8d45](https://github.com/ApoSkunz/crabitan_bellevue/commit/a1e8d45cb694a9443794d67bcc3c835a870377b8))
+* **view:** préciser NOSONAR S4084 — musique d'ambiance, pas de paroles ([ae93daa](https://github.com/ApoSkunz/crabitan_bellevue/commit/ae93daa9381b6d487a5754a6748f15071f9b9574))
+
 ## [0.41.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.41.0...v0.41.1) (2026-04-06)
 
 
