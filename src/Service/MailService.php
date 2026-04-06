@@ -11,9 +11,13 @@ use PHPMailer\PHPMailer\Exception;
 class MailService
 {
     private const PATH_SECURITY     = '/mon-compte/securite';
-    private const BTN_STYLE_PRIMARY = 'font-family:Georgia,serif;font-size:14px;'
+    private const BTN_STYLE_PRIMARY     = 'display:inline-block;padding:14px 36px;'
+        . 'font-family:Georgia,serif;font-size:14px;'
         . 'letter-spacing:2px;text-transform:uppercase;';
-    private const BTN_STYLE_LINK    = 'color:#1a1208;text-decoration:none;font-weight:bold;">';
+    private const BTN_STYLE_LINK        = 'color:#1a1208;text-decoration:none;font-weight:bold;">';
+    private const BTN_STYLE_SECONDARY   = 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;';
+    private const MAIL_SUBJECT_SEC_FR   = 'Sécurité du compte';
+    private const MAIL_SUBJECT_SEC_EN   = 'Account security';
     private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
     private const URL_PRIVACY = '/fr/politique-de-confidentialite';
     private const URL_LEGAL   = '/fr/mentions-legales';
@@ -273,7 +277,7 @@ class MailService
 
         $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$wineUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . "<a href=\"{$wineUrl}\" style=\""
             . self::BTN_STYLE_PRIMARY
             . self::BTN_STYLE_LINK
             . $discoverBtn
@@ -331,7 +335,7 @@ class MailService
                   . '<br><br>'
                   . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-                  . '<a href="' . $safeReactUrl . '" style="display:inline-block;padding:14px 36px;'
+                  . '<a href="' . $safeReactUrl . '" style="'
                   . self::BTN_STYLE_PRIMARY
                   . 'color:#1a1208;text-decoration:none;font-weight:bold;">Annuler la suppression</a>'
                   . '</td></tr></table>'
@@ -354,7 +358,7 @@ class MailService
                   . '<br><br>'
                   . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-                  . '<a href="' . $safeReactUrl . '" style="display:inline-block;padding:14px 36px;'
+                  . '<a href="' . $safeReactUrl . '" style="'
                   . self::BTN_STYLE_PRIMARY
                   . 'color:#1a1208;text-decoration:none;font-weight:bold;">Cancel deletion</a>'
                   . '</td></tr></table>'
@@ -422,15 +426,17 @@ class MailService
         $safeReact   = htmlspecialchars($reactUrl, ENT_QUOTES);
         $safeDate    = htmlspecialchars($scheduledDeletionAt, ENT_QUOTES);
 
-        $urgencyNote = $daysAhead === 1
-            ? ($lang === 'fr'
+        if ($daysAhead === 1) {
+            $urgencyNote = $lang === 'fr'
                 ? '<strong>⚠ Dernier avertissement — votre compte sera anonymisé demain.</strong><br><br>'
-                : '<strong>⚠ Final warning — your account will be anonymised tomorrow.</strong><br><br>')
-            : '';
+                : '<strong>⚠ Final warning — your account will be anonymised tomorrow.</strong><br><br>';
+        } else {
+            $urgencyNote = '';
+        }
 
         $reactBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . '<a href="' . $safeReact . '" style="display:inline-block;padding:14px 36px;'
+            . '<a href="' . $safeReact . '" style="'
             . self::BTN_STYLE_PRIMARY
             . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
             . ($lang === 'fr' ? 'Annuler la suppression' : 'Cancel deletion')
@@ -522,13 +528,13 @@ class MailService
         $ctaBlock = $confirmUrl !== ''
             ? '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-              . "<a href=\"{$confirmUrl}\" style=\"display:inline-block;padding:14px 36px;"
+              . "<a href=\"{$confirmUrl}\" style=\""
               . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK . $confirmLabel
               . '</a></td></tr></table>'
               . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
               . '<tr><td>'
               . "<a href=\"{$denyUrl}\" style=\"display:inline-block;padding:10px 24px;"
-              . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;'
+              . self::BTN_STYLE_SECONDARY
               . 'color:#c0392b;text-decoration:underline;">'
               . $notMeLabel
               . '</a></td></tr></table>'
@@ -543,7 +549,7 @@ class MailService
                 . ' — la demande sera annulée et toutes vos sessions révoquées immédiatement.'
                 . '<br><br>'
                 . $ctaBlock;
-            $body = $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message, 'fr');
+            $body = $this->emailSimpleLayout(self::MAIL_SUBJECT_SEC_FR, "Bonjour {$safeName},", $message, 'fr');
         } else {
             $message = "A password change request was initiated on <strong>{$safeDate}</strong>"
                 . ' from your account.<br><br>'
@@ -553,7 +559,7 @@ class MailService
                 . ' — the request will be cancelled and all your sessions immediately revoked.'
                 . '<br><br>'
                 . $ctaBlock;
-            $body = $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message, 'en');
+            $body = $this->emailSimpleLayout(self::MAIL_SUBJECT_SEC_EN, "Hello {$safeName},", $message, 'en');
         }
 
         $this->send($to, $name, $subject, $body);
@@ -584,7 +590,7 @@ class MailService
                 . ' depuis la page de connexion.<br><br>'
                 . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
                 . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-                . "<a href=\"{$loginUrl}\" style=\"display:inline-block;padding:14px 36px;"
+                . "<a href=\"{$loginUrl}\" style=\""
                 . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK . 'Se connecter'
                 . '</a></td></tr></table>';
             $body = $this->emailSimpleLayout(
@@ -600,7 +606,7 @@ class MailService
                 . 'If you believe your account is compromised, reset your password from the sign-in page.<br><br>'
                 . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
                 . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-                . "<a href=\"{$loginUrl}\" style=\"display:inline-block;padding:14px 36px;"
+                . "<a href=\"{$loginUrl}\" style=\""
                 . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK . 'Sign in'
                 . '</a></td></tr></table>';
             $body = $this->emailSimpleLayout(
@@ -674,7 +680,7 @@ class MailService
         $confirmBlock  = $confirmUrl !== ''
             ? '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-              . "<a href=\"{$confirmUrl}\" style=\"display:inline-block;padding:14px 36px;"
+              . "<a href=\"{$confirmUrl}\" style=\""
               . self::BTN_STYLE_PRIMARY
               . self::BTN_STYLE_LINK
               . $confirmLabel
@@ -682,13 +688,13 @@ class MailService
               . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
               . '<tr><td>'
               . "<a href=\"{$revokeUrl}\" style=\"display:inline-block;padding:10px 24px;"
-              . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;'
+              . self::BTN_STYLE_SECONDARY
               . 'color:#c0392b;text-decoration:underline;">'
               . $cancelLabel
               . '</a></td></tr></table>'
             : '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
               . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-              . "<a href=\"{$securityUrl}\" style=\"display:inline-block;padding:14px 36px;"
+              . "<a href=\"{$securityUrl}\" style=\""
               . self::BTN_STYLE_PRIMARY
               . self::BTN_STYLE_LINK
               . $manageLabel
@@ -700,14 +706,14 @@ class MailService
                 . '<br><br>'
                 . $infoBlock
                 . $confirmBlock;
-            $body = $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message, 'fr');
+            $body = $this->emailSimpleLayout(self::MAIL_SUBJECT_SEC_FR, "Bonjour {$safeName},", $message, 'fr');
         } else {
             $message = 'A sign-in from an unrecognised device was detected on your account.'
                 . ' If this was you, confirm the device to stop receiving these alerts.'
                 . '<br><br>'
                 . $infoBlock
                 . $confirmBlock;
-            $body = $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message, 'en');
+            $body = $this->emailSimpleLayout(self::MAIL_SUBJECT_SEC_EN, "Hello {$safeName},", $message, 'en');
         }
 
         $this->send($to, $name, $subject, $body);
@@ -896,7 +902,7 @@ INNER;
             . '<br><br>'
             . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0 0;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$ordersUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . "<a href=\"{$ordersUrl}\" style=\""
             . self::BTN_STYLE_PRIMARY
             . self::BTN_STYLE_LINK
             . $labelOrders
@@ -1397,7 +1403,7 @@ INNER;
 
         $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$safeUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . "<a href=\"{$safeUrl}\" style=\""
             . self::BTN_STYLE_PRIMARY
             . self::BTN_STYLE_LINK
             . 'Confirmer mon abonnement'
@@ -1432,7 +1438,7 @@ INNER;
 
         $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$safeUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . "<a href=\"{$safeUrl}\" style=\""
             . self::BTN_STYLE_PRIMARY
             . self::BTN_STYLE_LINK
             . 'Confirm my subscription'
@@ -1524,7 +1530,7 @@ INNER;
 
         $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 16px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$safeUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . "<a href=\"{$safeUrl}\" style=\""
             . self::BTN_STYLE_PRIMARY
             . self::BTN_STYLE_LINK
             . ($lang === 'fr' ? 'Confirmer le changement' : 'Confirm the change')
@@ -2262,7 +2268,7 @@ HTML;
             . '<br><br>'
             . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$safeResetUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . "<a href=\"{$safeResetUrl}\" style=\""
             . self::BTN_STYLE_PRIMARY
             . self::BTN_STYLE_LINK
             . 'Changer mon mot de passe'
@@ -2292,7 +2298,7 @@ HTML;
             . '<br><br>'
             . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$safeResetUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . "<a href=\"{$safeResetUrl}\" style=\""
             . self::BTN_STYLE_PRIMARY
             . self::BTN_STYLE_LINK
             . 'Change my password'
@@ -2315,7 +2321,7 @@ HTML;
             . '<br><br>'
             . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$safeLoginUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . "<a href=\"{$safeLoginUrl}\" style=\""
             . self::BTN_STYLE_PRIMARY
             . self::BTN_STYLE_LINK
             . 'Me connecter'
@@ -2323,12 +2329,12 @@ HTML;
             . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
             . '<tr><td>'
             . "<a href=\"{$safeResetUrl}\" style=\"display:inline-block;padding:10px 24px;"
-            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;'
+            . self::BTN_STYLE_SECONDARY
             . 'color:#1a1208;text-decoration:underline;">'
             . 'Mot de passe oublié ?'
             . '</a></td></tr></table>';
 
-        return $this->emailSimpleLayout('Sécurité du compte', "Bonjour {$safeName},", $message, 'fr');
+        return $this->emailSimpleLayout(self::MAIL_SUBJECT_SEC_FR, "Bonjour {$safeName},", $message, 'fr');
     }
 
     /**
@@ -2353,7 +2359,7 @@ HTML;
             . '<br><br>'
             . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">'
             . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$safeLoginUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . "<a href=\"{$safeLoginUrl}\" style=\""
             . self::BTN_STYLE_PRIMARY
             . self::BTN_STYLE_LINK
             . 'Log in'
@@ -2361,11 +2367,11 @@ HTML;
             . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">'
             . '<tr><td>'
             . "<a href=\"{$safeResetUrl}\" style=\"display:inline-block;padding:10px 24px;"
-            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;'
+            . self::BTN_STYLE_SECONDARY
             . 'color:#1a1208;text-decoration:underline;">'
             . 'Forgot your password?'
             . '</a></td></tr></table>';
 
-        return $this->emailSimpleLayout('Account security', "Hello {$safeName},", $message, 'en');
+        return $this->emailSimpleLayout(self::MAIL_SUBJECT_SEC_EN, "Hello {$safeName},", $message, 'en');
     }
 }

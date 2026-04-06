@@ -29,7 +29,6 @@ class AuthMiddleware
         ?callable $ttlRefresher = null
     ): array {
         $token = $_COOKIE['auth_token'] ?? null;
-        $lang  = defined('CURRENT_LANG') ? CURRENT_LANG : 'fr';
 
         if (!$token) {
             Response::abort(404); // 404 — ne révèle pas l'existence des routes protégées

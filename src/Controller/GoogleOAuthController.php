@@ -94,6 +94,7 @@ class GoogleOAuthController extends Controller
      *
      * @param array<string, string> $params Paramètres de route (lang)
      */
+    // NOSONAR php:S3776 — complexité OAuth : état CSRF, échange de code, 3 cas d'association
     public function callback(array $params): void
     {
         if (session_status() === PHP_SESSION_NONE) {
