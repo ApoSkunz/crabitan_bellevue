@@ -1,6 +1,7 @@
 <?php
-$isAdmin   = $isAdmin ?? false;
-$pageTitle = __('nav.wines');
+$isAdmin    = $isAdmin    ?? false;
+$activeCuvee = $activeCuvee ?? false;
+$pageTitle  = __('nav.wines');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
@@ -48,6 +49,11 @@ $colorLabels = [
                             </label>
                         <?php endforeach; ?>
                     </fieldset>
+
+                    <label class="wines-filters__check wines-filters__check--cuvee<?= $activeCuvee ? ' is-active' : '' ?>">
+                        <input type="checkbox" name="cuvee_speciale" value="1" <?= $activeCuvee ? 'checked' : '' ?>>
+                        &#11088; <?= htmlspecialchars(__('wine.filter_cuvee')) ?>
+                    </label>
 
                     <button type="submit" class="btn btn--gold wines-filters__submit">
                         <?= htmlspecialchars(__('wine.filter_apply')) ?>
