@@ -189,4 +189,79 @@ class AuthControllerLoginFlowTest extends TestCase
         // pending_device doit être positionné en session
         $this->assertArrayHasKey('pending_device', $_SESSION);
     }
+
+    // ================================================================
+    // Compte soft-deleted : creds valides → message dédié + flag session
+    // ================================================================
+
+    public function testLoginFlashesPendingDeletionMessageForSoftDeletedAccountWithValidCreds(): void
+    {
+        $hash = password_hash('CorrectPass1!', PASSWORD_BCRYPT, ['cost' => 4]);
+
+        $_POST = ['email' => 'deleted@example.com', 'password' => 'CorrectPass1!', 'csrf_token' => 'valid-csrf'];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            false,  // findByEmail → aucun compte actif
+            [       // findDeletedByEmail → compte soft-deleted dans la période de grâce
+                'id'                    => 42,
+                'email'                 => 'deleted@example.com',
+                'password'              => $hash,
+                'lang'                  => 'fr',
+                'firstname'             => 'Jean',
+                'company_name'          => null,
+                'scheduled_deletion_at' => date('Y-m-d H:i:s', strtotime('+15 days')),
+                'reactivation_token'    => 'fake-reactivation-token-xyz',
+            ]
+        );
+
+        $caught = null;
+        try {
+            (new AuthController(new Request()))->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+        // Flag session positionné pour éviter le spam email
+        $this->assertTrue($_SESSION['deletion_alert_sent_42'] ?? false);
+    }
+
+    public function testLoginFlashesGenericErrorWhenSoftDeletedAccountGracePeriodExpired(): void
+    {
+        $hash = password_hash('CorrectPass1!', PASSWORD_BCRYPT, ['cost' => 4]);
+
+        $_POST = ['email' => 'gone@example.com', 'password' => 'CorrectPass1!', 'csrf_token' => 'valid-csrf'];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            false,  // findByEmail → aucun compte actif
+            [       // findDeletedByEmail → compte soft-deleted MAIS grâce expirée
+                'id'                    => 99,
+                'email'                 => 'gone@example.com',
+                'password'              => $hash,
+                'lang'                  => 'fr',
+                'firstname'             => 'Ex',
+                'company_name'          => null,
+                'scheduled_deletion_at' => date('Y-m-d H:i:s', strtotime('-1 day')), // période expirée
+                'reactivation_token'    => 'old-token',
+            ]
+        );
+
+        $caught = null;
+        try {
+            (new AuthController(new Request()))->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        // Message générique (invalid_credentials), pas le message dédié suppression
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+        // Aucun flag session positionné (pas d'email envoyé)
+        $this->assertArrayNotHasKey('deletion_alert_sent_99', $_SESSION);
+    }
 }

@@ -92,9 +92,10 @@ class AuthControllerLoginHappyPathTest extends TestCase
 
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            $this->baseAccount(),           // 1. AccountModel::findByEmail
-            ['id' => 1],                    // 2. TrustedDeviceModel::isTrusted → connu
-            false                           // 3. CartModel::findByUserId (badge count)
+            $this->baseAccount(),                                        // 1. AccountModel::findByEmail
+            ['id' => 1],                                                 // 2. TrustedDeviceModel::isTrusted → connu
+            false,                                                       // 3. CartModel::findByUserId (badge count)
+            ['majority_declared_at' => '2025-01-01 00:00:00']           // 4. AccountModel::hasDeclaredMajority
         );
 
         $caught = null;
@@ -126,7 +127,9 @@ class AuthControllerLoginHappyPathTest extends TestCase
             // 2. TrustedDeviceModel::isTrusted — valeur ignorée (isFirstEverLogin = true → trusted de toute façon)
             false,
             // 3. CartModel::findByUserId (badge count)
-            false
+            false,
+            // 4. AccountModel::hasDeclaredMajority
+            ['majority_declared_at' => '2025-01-01 00:00:00']
         );
 
         $caught = null;
@@ -158,8 +161,9 @@ class AuthControllerLoginHappyPathTest extends TestCase
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
             $this->baseAccount(),
-            ['id' => 1],  // TrustedDeviceModel::isTrusted
-            false         // CartModel::findByUserId
+            ['id' => 1],                                        // TrustedDeviceModel::isTrusted
+            false,                                              // CartModel::findByUserId
+            ['majority_declared_at' => '2025-01-01 00:00:00']  // AccountModel::hasDeclaredMajority
         );
 
         $caught = null;
@@ -175,6 +179,39 @@ class AuthControllerLoginHappyPathTest extends TestCase
         $this->assertArrayNotHasKey('_intended', $_SESSION); // consommé
     }
 
+    // ================================================================
+    // Majorité non déclarée — flag majority_pending positionné en session
+    // ================================================================
+
+    public function testLoginSetsMajorityPendingWhenNotDeclared(): void
+    {
+        $_COOKIE['device_token'] = 'existing-device-token';
+        $_POST = [
+            'email'        => 'jean@example.com',
+            'password'     => 'TestPass123!',
+            'csrf_token'   => 'valid-csrf',
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            $this->baseAccount(),
+            ['id' => 1],    // TrustedDeviceModel::isTrusted
+            false,          // CartModel::findByUserId
+            false           // AccountModel::hasDeclaredMajority → non déclaré
+        );
+
+        $caught = null;
+        try {
+            (new AuthController(new Request()))->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertTrue($_SESSION['majority_pending'] ?? false);
+    }
+
     public function testLoginFallsBackToRedirectBackWhenNoIntended(): void
     {
         $_COOKIE['device_token'] = 'existing-device-token';
@@ -188,8 +225,9 @@ class AuthControllerLoginHappyPathTest extends TestCase
         $stub = $this->setDbMock();
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
             $this->baseAccount(),
-            ['id' => 1],  // TrustedDeviceModel::isTrusted
-            false         // CartModel::findByUserId
+            ['id' => 1],                                        // TrustedDeviceModel::isTrusted
+            false,                                              // CartModel::findByUserId
+            ['majority_declared_at' => '2025-01-01 00:00:00']  // AccountModel::hasDeclaredMajority
         );
 
         $caught = null;
