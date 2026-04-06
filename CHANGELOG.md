@@ -2,6 +2,22 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.43.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.42.0...v0.43.0) (2026-04-06)
+
+
+### Bug Fixes
+
+* **model:** S2003 + duplication — extraire applyCuveeFilter(), require_once vues ([02051bc](https://github.com/ApoSkunz/crabitan_bellevue/commit/02051bcddfb5904c66f48625648549d39b6340b4))
+* **scss:** filtre cuvée spéciale — étendre accent-color doré au checkbox ([29826b2](https://github.com/ApoSkunz/crabitan_bellevue/commit/29826b29c3126ee3cbb89d9bdf67c5cd5e31e100))
+* **view:** cuvée spéciale — retirer l'étoile &[#11088](https://github.com/ApoSkunz/crabitan_bellevue/issues/11088); du label checkbox ([8dd2a6a](https://github.com/ApoSkunz/crabitan_bellevue/commit/8dd2a6ab7b7da1eb5295bdfa45670c32c459e8f5))
+* **view:** S1192 + duplication — extraire checkbox cuvée spéciale en partial ([0a6ae0c](https://github.com/ApoSkunz/crabitan_bellevue/commit/0a6ae0c347606563cacf73521f979692a9c7f837))
+
+
+### Features
+
+* **model:** filtre cuvée spéciale sur getAll / countAll / getAllByColor / countAllByColor ([3d5d095](https://github.com/ApoSkunz/crabitan_bellevue/commit/3d5d09508683b1329ddac8856989192e119b6de6))
+* **view:** filtre cuvée spéciale — toggle checkbox boutique + collection + i18n ([e8a50fd](https://github.com/ApoSkunz/crabitan_bellevue/commit/e8a50fd80e89246a68e1c3bfdac7b432ffea6ff0))
+
 # [0.42.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.41.2...v0.42.0) (2026-04-06)
 
 
