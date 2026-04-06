@@ -71,10 +71,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                         <?php endforeach; ?>
                     </fieldset>
 
-                    <label class="wines-filters__check wines-filters__check--cuvee<?= $activeCuvee ? $cls : '' ?>">
-                        <input type="checkbox" name="cuvee_speciale" value="1" <?= $activeCuvee ? 'checked' : '' ?>>
-                        <?= htmlspecialchars(__('wine.filter_cuvee')) ?>
-                    </label>
+                    <?php require SRC_PATH . '/View/partials/wines-filter-cuvee.php'; ?>
 
                     <button type="submit" class="btn btn--gold wines-filters__submit">
                         <?= htmlspecialchars(__('wine.filter_apply')) ?>

@@ -11,6 +11,7 @@ $colorLabels = [
     'red'   => __('wine.color.red'),
     'rosé'  => __('wine.color.rosé'),
 ];
+$cls = ' is-active'; // single definition — used for radio/checkbox filter active state
 ?>
 
 <main class="page-wines" id="main-content">
@@ -32,13 +33,13 @@ $colorLabels = [
                     <fieldset class="wines-filters__colors">
                         <legend><?= htmlspecialchars(__('wine.filter_show')) ?></legend>
 
-                        <label class="wines-filters__check<?= $activeColor === null ? ' is-active' : '' ?>">
+                        <label class="wines-filters__check<?= $activeColor === null ? $cls : '' ?>">
                             <input type="radio" name="color" value="" <?= $activeColor === null ? 'checked' : '' ?>>
                             <?= htmlspecialchars(__('wine.color.all')) ?>
                         </label>
 
                         <?php foreach ($colorLabels as $val => $label) : ?>
-                            <label class="wines-filters__check<?= $activeColor === $val ? ' is-active' : '' ?>">
+                            <label class="wines-filters__check<?= $activeColor === $val ? $cls : '' ?>">
                                 <input
                                     type="radio"
                                     name="color"
@@ -50,10 +51,7 @@ $colorLabels = [
                         <?php endforeach; ?>
                     </fieldset>
 
-                    <label class="wines-filters__check wines-filters__check--cuvee<?= $activeCuvee ? ' is-active' : '' ?>">
-                        <input type="checkbox" name="cuvee_speciale" value="1" <?= $activeCuvee ? 'checked' : '' ?>>
-                        <?= htmlspecialchars(__('wine.filter_cuvee')) ?>
-                    </label>
+                    <?php require SRC_PATH . '/View/partials/wines-filter-cuvee.php'; ?>
 
                     <button type="submit" class="btn btn--gold wines-filters__submit">
                         <?= htmlspecialchars(__('wine.filter_apply')) ?>
