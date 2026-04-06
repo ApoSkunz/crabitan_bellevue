@@ -41,7 +41,7 @@ export function initCarbonBadge() {
 
     function fetchBadge(render = true) {
         fetch('https://api.websitecarbon.com/b?url=' + url)
-            .then((r) => { if (!r.ok) { throw new Error(String(r)); } return r.json(); })
+            .then((r) => { if (!r.ok) { throw new Error(r.status + ' ' + r.statusText); } return r.json(); })
             .then((data) => {
                 if (render) renderResult(data);
                 data.t = Date.now();

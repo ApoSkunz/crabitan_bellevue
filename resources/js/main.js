@@ -350,7 +350,7 @@ function initCartModal() {
 
     // Parse "15,50 €" → 15.50 (float)
     function parsePrice(str) { // NOSONAR javascript:S7721 — fermeture intentionnelle pour contexte DOMContentLoaded
-        return Number.parseFloat((str || '0').replace(/\s/g, '').replaceAll(',', '.').replaceAll('€', '')) || 0;
+        return Number.parseFloat((str || '0').replaceAll(/\s/g, '').replaceAll(',', '.').replaceAll('€', '')) || 0;
     }
 
     function refreshTotal() {
@@ -997,7 +997,7 @@ function initContactForm() {
         const group = field.closest('.contact-form__group, .contact-form__fieldset, .contact-form__rgpd');
         if (!group) return;
         group.classList.remove('is-invalid');
-        group.offsetWidth; // force reflow to re-trigger animation
+        group.offsetWidth; // NOSONAR javascript:S905 — force reflow intentionnel pour relancer l'animation CSS
         group.classList.add('is-invalid');
         field.addEventListener('change', () => group.classList.remove('is-invalid'), { once: true });
         field.addEventListener('input',  () => group.classList.remove('is-invalid'), { once: true });
