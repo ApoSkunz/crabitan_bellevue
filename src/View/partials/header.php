@@ -443,17 +443,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             <!-- Panel renvoi activation -->
             <div id="resend-activation-panel" hidden>
+                <button type="button" id="resend-activation-back-btn" class="login-modal__back">
+                    &#8592; <?= htmlspecialchars(__('btn.back')) ?>
+                </button>
                 <?php if ($resendActivationSuccess) : ?>
-                    <button type="button" id="resend-activation-back-btn" class="login-modal__back">
-                        &#8592; <?= htmlspecialchars(__('btn.back')) ?>
-                    </button>
                     <div class="alert alert--success" role="alert" aria-live="polite">
                         <?= htmlspecialchars(__('auth.resend_activation_success')) ?>
                     </div>
                 <?php else : ?>
-                    <button type="button" id="resend-activation-back-btn" class="login-modal__back">
-                        &#8592; <?= htmlspecialchars(__('btn.back')) ?>
-                    </button>
                     <p class="login-modal__forgot-desc"><?= htmlspecialchars(__('auth.resend_activation_desc')) ?></p>
                     <form method="POST"
                           action="/<?= htmlspecialchars($navLang) ?>/renvoyer-activation"
@@ -472,17 +469,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             <!-- Panel mot de passe oublié -->
             <div id="forgot-panel" hidden>
+                <button type="button" id="forgot-back-btn" class="login-modal__back">
+                    &#8592; <?= htmlspecialchars(__('btn.back')) ?>
+                </button>
                 <?php if ($forgotSuccess) : ?>
-                    <button type="button" id="forgot-back-btn" class="login-modal__back">
-                        &#8592; <?= htmlspecialchars(__('btn.back')) ?>
-                    </button>
                     <div class="alert alert--success" role="alert" aria-live="polite">
                         <?= htmlspecialchars(__('auth.reset_email_sent')) ?>
                     </div>
                 <?php else : ?>
-                    <button type="button" id="forgot-back-btn" class="login-modal__back">
-                        &#8592; <?= htmlspecialchars(__('btn.back')) ?>
-                    </button>
                     <p class="login-modal__forgot-desc"><?= htmlspecialchars(__('auth.forgot_instructions')) ?></p>
                     <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/mot-de-passe-oublie"
                           id="forgot-modal-form" class="login-modal__form">
