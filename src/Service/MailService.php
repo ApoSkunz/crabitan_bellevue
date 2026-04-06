@@ -2374,4 +2374,71 @@ HTML;
 
         return $this->emailSimpleLayout(self::MAIL_SUBJECT_SEC_EN, "Hello {$safeName},", $message, 'en');
     }
+
+    /**
+     * Envoie un email de rappel de réactivation lorsqu'un utilisateur tente de se
+     * connecter avec des identifiants valides sur un compte en cours de suppression.
+     *
+     * @param string $to               Adresse email du destinataire
+     * @param string $name             Prénom ou nom affiché
+     * @param string $lang             Langue (fr|en)
+     * @param string $reactivationToken Token de réactivation brut
+     * @param string $scheduledDeletionAt Date de suppression programmée (Y-m-d H:i:s)
+     * @return void
+     */
+    public function sendPendingDeletionLoginAlert(
+        string $to,
+        string $name,
+        string $lang,
+        string $reactivationToken,
+        string $scheduledDeletionAt
+    ): void {
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $reactUrl = $appUrl . '/' . $lang . '/compte/reactiver?token=' . urlencode($reactivationToken);
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $safeDate = htmlspecialchars($scheduledDeletionAt, ENT_QUOTES);
+        $safeUrl  = htmlspecialchars($reactUrl, ENT_QUOTES);
+
+        $reactBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . '<a href="' . $safeUrl . self::BTN_ANCHOR_STYLE_ATTR
+            . self::BTN_STYLE_PRIMARY
+            . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+            . ($lang === 'fr' ? 'Annuler la suppression' : 'Cancel deletion')
+            . '</a></td></tr></table>';
+
+        if ($lang === 'fr') {
+            $subject = 'Tentative de connexion — votre compte Crabitan est en cours de suppression';
+            $message = 'Nous avons détecté une tentative de connexion à votre compte, qui est actuellement en cours de suppression.'
+                . ' Vos données seront définitivement anonymisées le <strong>' . $safeDate . '</strong>.<br><br>'
+                . 'Si vous souhaitez conserver votre compte, cliquez sur le bouton ci-dessous avant cette date.<br><br>'
+                . $reactBtn
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . "Si vous n'êtes pas à l'origine de cette tentative, vous pouvez ignorer cet email."
+                . '</p>';
+            $body = $this->emailSimpleLayout(
+                'Réactivation de compte',
+                "Bonjour {$safeName},",
+                $message,
+                'fr'
+            );
+        } else {
+            $subject = 'Login attempt — your Crabitan account is scheduled for deletion';
+            $message = 'We detected a login attempt on your account, which is currently scheduled for deletion.'
+                . ' Your data will be permanently anonymised on <strong>' . $safeDate . '</strong>.<br><br>'
+                . 'If you wish to keep your account, click the button below before that date.<br><br>'
+                . $reactBtn
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'If you did not make this attempt, you can ignore this email.'
+                . '</p>';
+            $body = $this->emailSimpleLayout(
+                'Account reactivation',
+                "Hello {$safeName},",
+                $message,
+                'en'
+            );
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
 }
