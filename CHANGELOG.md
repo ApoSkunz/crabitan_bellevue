@@ -2,6 +2,18 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.41.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.41.0...v0.41.1) (2026-04-06)
+
+
+### Bug Fixes
+
+* **js:** corriger 3 issues Sonar PR[#70](https://github.com/ApoSkunz/crabitan_bellevue/issues/70) (S905, S6551, S7781) ([b81a2a9](https://github.com/ApoSkunz/crabitan_bellevue/commit/b81a2a9654e69dbf26499777eebab32c7e1a3c78))
+* **mail:** extraire BTN_ANCHOR_STYLE_ATTR — éliminer S1192 (string dupliqué 3×) ([64439dd](https://github.com/ApoSkunz/crabitan_bellevue/commit/64439dd5f2ea80fe66e5aa098ceaea8d65e8a24d))
+* **phpcs:** OrderAdminControllerTest — phpcs:ignore avant class, pas avant attribut ([8208aec](https://github.com/ApoSkunz/crabitan_bellevue/commit/8208aec86a328b2266194612e75db0c644cb8476))
+* **sonar:** JS — globalThis, Number.parseInt/Float/isNaN, replaceAll, dataset, nested ternaries, NOSONAR hotspots jeux ([f9476ee](https://github.com/ApoSkunz/crabitan_bellevue/commit/f9476eeec46e29a1811fc535ce4cbd60155d85a6)), closes [String#replace](https://github.com/String/issues/replace)
+* **sonar:** main.js — eslint-disable invalide sur group.offsetWidth ([1a7dc90](https://github.com/ApoSkunz/crabitan_bellevue/commit/1a7dc90e97a31cd9305e5f75def23e70ce679a8c))
+* **sonar:** PHP — constantes dupliquées, complexité, vars inutilisées ([0ff1a2d](https://github.com/ApoSkunz/crabitan_bellevue/commit/0ff1a2d5bf7f14d7dee6621cf0cf88dfcc23ca1d))
+
 # [0.41.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.40.0...v0.41.0) (2026-04-06)
 
 
