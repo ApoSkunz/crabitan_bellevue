@@ -27,6 +27,19 @@ class WineModel extends Model
     }
 
     /**
+     * Ajoute la condition cuvée spéciale au tableau de conditions si le filtre est actif.
+     *
+     * @param string[]  $where
+     * @param bool|null $cuveSpeciale
+     */
+    private function applyCuveeFilter(array &$where, ?bool $cuveSpeciale): void
+    {
+        if ($cuveSpeciale === true) {
+            $where[] = self::COND_CUVEE;
+        }
+    }
+
+    /**
      * Retourne les vins disponibles avec filtres, tri et pagination optionnels.
      *
      * @param string|null $color         Couleur (red|white|rosé|sweet)
@@ -54,9 +67,7 @@ class WineModel extends Model
             $params[] = $color;
         }
 
-        if ($cuveSpeciale === true) {
-            $where[] = self::COND_CUVEE;
-        }
+        $this->applyCuveeFilter($where, $cuveSpeciale);
 
         $orderBy = match ($sort) {
             'likes_desc'   => 'likes_count DESC, vintage DESC',
@@ -101,9 +112,7 @@ class WineModel extends Model
             $params[] = $color;
         }
 
-        if ($cuveSpeciale === true) {
-            $where[] = self::COND_CUVEE;
-        }
+        $this->applyCuveeFilter($where, $cuveSpeciale);
 
         $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total FROM {$this->table} " . $this->buildWhereClause($where),
@@ -147,9 +156,7 @@ class WineModel extends Model
             $where[] = self::COND_OUT;
         }
 
-        if ($cuveSpeciale === true) {
-            $where[] = self::COND_CUVEE;
-        }
+        $this->applyCuveeFilter($where, $cuveSpeciale);
 
         $orderBy = match ($sort) {
             'likes_desc'   => 'wine_color DESC, likes_count DESC, vintage DESC',
@@ -208,9 +215,7 @@ class WineModel extends Model
             $where[] = self::COND_OUT;
         }
 
-        if ($cuveSpeciale === true) {
-            $where[] = self::COND_CUVEE;
-        }
+        $this->applyCuveeFilter($where, $cuveSpeciale);
 
         $whereClause = $this->buildWhereClause($where);
 

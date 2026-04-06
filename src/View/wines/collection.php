@@ -71,7 +71,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                         <?php endforeach; ?>
                     </fieldset>
 
-                    <?php require SRC_PATH . '/View/partials/wines-filter-cuvee.php'; ?>
+                    <?php require_once SRC_PATH . '/View/partials/wines-filter-cuvee.php'; ?>
 
                     <button type="submit" class="btn btn--gold wines-filters__submit">
                         <?= htmlspecialchars(__('wine.filter_apply')) ?>
