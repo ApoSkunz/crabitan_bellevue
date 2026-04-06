@@ -57,6 +57,12 @@ class AuthController extends Controller
     /** Nombre maximum de renvois de token de vérification par compte par fenêtre. */
     private const MAX_RESEND_VERIF = 3;
 
+    /** Budget email combiné par IP (forgot + resend activation) sur 15 min. */
+    private const MAX_EMAIL_IP = 5;
+
+    /** Fenêtre du budget email combiné par IP (15 min). */
+    private const WINDOW_EMAIL_IP = 900;
+
     private AccountModel $accounts;
     private PasswordResetModel $resets;
     private ConnectionModel $connections;
@@ -510,6 +516,13 @@ class AuthController extends Controller
 
         // R1 — Rate limiting mot-de-passe oublié par IP
         $ip        = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $emailIpKey = 'email_ip:' . $ip;
+        if (!$this->rateLimiter->checkLimit($emailIpKey, self::MAX_EMAIL_IP, self::WINDOW_EMAIL_IP)) {
+            $wait = (int) ceil($this->rateLimiter->getRetryAfter($emailIpKey) / 60);
+            $this->flash('modal_error', sprintf(__('auth.too_many_reset_requests'), max(1, $wait)));
+            Response::redirect("/{$lang}");
+        }
+
         $forgotKey = 'forgot:' . $ip;
         if (!$this->rateLimiter->checkLimit($forgotKey, self::MAX_FORGOT_IP, self::WINDOW_FORGOT)) {
             $wait = (int) ceil($this->rateLimiter->getRetryAfter($forgotKey) / 60);
@@ -517,6 +530,7 @@ class AuthController extends Controller
             Response::redirect("/{$lang}");
         }
 
+        $this->rateLimiter->recordAttempt($emailIpKey, self::WINDOW_EMAIL_IP);
         $this->rateLimiter->recordAttempt($forgotKey, self::WINDOW_FORGOT);
 
         $email   = strtolower(trim($this->request->post('email', '')));
@@ -627,6 +641,99 @@ class AuthController extends Controller
         unset($_SESSION['reset_modal']);
         $this->flash('info', __('auth.password_updated'));
         Response::redirect("/{$lang}?login=1");
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/renvoyer-activation
+    // ----------------------------------------------------------------
+
+    /**
+     * Renvoi explicite du lien d'activation pour un compte non vérifié.
+     *
+     * Anti-énumération : la réponse est identique quel que soit l'état de l'email
+     * (inconnu, déjà vérifié, ou compte valide en attente) — empêche de déterminer
+     * si une adresse est enregistrée ou active sur la plateforme.
+     *
+     * Rate limiting : max 3 envois par IP par 15 min + max 3 par userId par 15 min.
+     *
+     * @param array<string, string> $params Paramètres de route (contient 'lang')
+     * @return void
+     */
+    public function resendActivation(array $params): void
+    {
+        $lang = $params['lang'];
+        $back = "/{$lang}";
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('resend_activation_success', '1');
+            Response::redirect($back);
+        }
+
+        $email      = trim($this->request->post('email', ''));
+        $ip         = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $emailIpKey = 'email_ip:' . $ip;
+
+        // Budget email combiné par IP (forgot + resend) — 3 mails / 15 min
+        if (!$this->rateLimiter->checkLimit($emailIpKey, self::MAX_EMAIL_IP, self::WINDOW_EMAIL_IP)) {
+            $wait = (int) ceil($this->rateLimiter->getRetryAfter($emailIpKey) / 60);
+            $this->flash('modal_error', sprintf(__('auth.too_many_activation_requests'), max(1, $wait)));
+            Response::redirect($back);
+        }
+
+        // Rate limiting par IP spécifique resend (15 min)
+        $ipKey = 'resend_activation_ip:' . $ip;
+        if (!$this->rateLimiter->checkLimit($ipKey, self::MAX_RESEND_VERIF, self::WINDOW_LOGIN)) {
+            $wait = (int) ceil($this->rateLimiter->getRetryAfter($ipKey) / 60);
+            $this->flash('modal_error', sprintf(__('auth.too_many_activation_requests'), max(1, $wait)));
+            Response::redirect($back);
+        }
+
+        // Validation basique du format email
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->rateLimiter->recordAttempt($emailIpKey, self::WINDOW_EMAIL_IP);
+            $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
+            $this->flash('resend_activation_success', '1');
+            Response::redirect($back);
+        }
+
+        $account = $this->accounts->findByEmail($email);
+
+        // Anti-énumération : retour silencieux si email inconnu ou déjà vérifié
+        if (!$account || $account['email_verified_at']) {
+            $this->rateLimiter->recordAttempt($emailIpKey, self::WINDOW_EMAIL_IP);
+            $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
+            $this->flash('resend_activation_success', '1');
+            Response::redirect($back);
+        }
+
+        // Rate limiting par userId (15 min)
+        $userKey = 'resend_activation:' . (int) $account['id'];
+        if ($this->rateLimiter->checkLimit($userKey, self::MAX_RESEND_VERIF, self::WINDOW_LOGIN)) {
+            $newToken    = bin2hex(random_bytes(32));
+            $this->accounts->refreshVerificationToken((int) $account['id'], $newToken);
+            $verifyUrl   = APP_URL . "/{$lang}/verification/{$newToken}";
+            $displayName = $account['account_type'] === 'company'
+                ? ($account['company_name'] ?? '')
+                : trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
+            try {
+                (new MailService())->sendEmailVerification($account['email'], $displayName, $verifyUrl, $lang);
+            } catch (\Throwable $e) {
+                error_log('Resend activation error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+                if (($_ENV['APP_ENV'] ?? 'prod') === 'dev') {
+                    file_put_contents(
+                        dirname(__DIR__, 2) . '/logs/mail_debug.log',
+                        date('Y-m-d H:i:s') . ' [resend] ' . get_class($e) . ': ' . $e->getMessage() . "\n",
+                        FILE_APPEND | LOCK_EX
+                    );
+                }
+            }
+            $this->rateLimiter->recordAttempt($userKey, self::WINDOW_LOGIN);
+        }
+
+        $this->rateLimiter->recordAttempt($emailIpKey, self::WINDOW_EMAIL_IP);
+        $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
+        $this->flash('resend_activation_success', '1');
+        Response::redirect($back);
     }
 
     // ----------------------------------------------------------------

@@ -502,20 +502,23 @@ function initLoginModal() {
     const closeBtn     = document.getElementById('login-modal-close');
     const backdrop     = document.getElementById('login-modal-backdrop');
     const titleEl      = document.getElementById('login-modal-title');
-    const loginPanel   = document.getElementById('login-panel');
-    const forgotPanel  = document.getElementById('forgot-panel');
+    const loginPanel          = document.getElementById('login-panel');
+    const forgotPanel         = document.getElementById('forgot-panel');
+    const resendActivPanel    = document.getElementById('resend-activation-panel');
 
     if (!trigger || !modal) return;
 
     function showLoginPanel() {
         loginPanel?.removeAttribute('hidden');
         forgotPanel?.setAttribute('hidden', '');
+        resendActivPanel?.setAttribute('hidden', '');
         if (titleEl) titleEl.textContent = titleEl.dataset.titleLogin || titleEl.textContent;
     }
 
     function showForgotPanel() {
         loginPanel?.setAttribute('hidden', '');
         forgotPanel?.removeAttribute('hidden');
+        resendActivPanel?.setAttribute('hidden', '');
         if (titleEl) titleEl.textContent = titleEl.dataset.titleForgot || titleEl.textContent;
         document.getElementById('forgot-modal-email')?.focus();
     }
@@ -541,17 +544,31 @@ function initLoginModal() {
         document.body.style.overflow = '';
         showLoginPanel();
         trigger.focus();
-        if (window.__forgotSuccess) {
-            window.__forgotSuccess = false;
-            window.location.replace(window.location.pathname);
+        if (globalThis.__forgotSuccess) {
+            globalThis.__forgotSuccess = false;
+            globalThis.location.replace(globalThis.location.pathname);
+        }
+        if (globalThis.__resendActivationSuccess) {
+            globalThis.__resendActivationSuccess = false;
         }
     }
 
-    if (window.__authModalError || window.__flashInfo || new URLSearchParams(window.location.search).get('login') === '1') openModal();
+    if (globalThis.__authModalError || globalThis.__flashInfo || new URLSearchParams(globalThis.location.search).get('login') === '1') openModal();
 
     // Switch vers panel mot de passe oublié
     document.getElementById('forgot-password-btn')?.addEventListener('click', showForgotPanel);
-    document.getElementById('forgot-back-btn')?.addEventListener('click', showLoginPanel);
+    let forgotSuccessTimer = null;
+    let resendSuccessTimer = null;
+
+    const forgotWasSuccess = !!globalThis.__forgotSuccess;
+    document.getElementById('forgot-back-btn')?.addEventListener('click', () => {
+        clearTimeout(forgotSuccessTimer);
+        if (forgotWasSuccess) {
+            globalThis.location.replace(globalThis.location.pathname + '?login=1');
+        } else {
+            showLoginPanel();
+        }
+    });
 
     // Switch vers register modal
     document.getElementById('login-to-register')?.addEventListener('click', () => {
@@ -592,9 +609,29 @@ function initLoginModal() {
     });
 
     // Expose pour le reset modal (token invalide → ouvrir panel forgot)
-    window.__openLoginModalForgot = openModalForgot;
+    globalThis.__openLoginModalForgot = openModalForgot;
 
-    if (window.__forgotSuccess) openModalForgot();
+    if (globalThis.__forgotSuccess) {
+        openModalForgot();
+        forgotSuccessTimer = setTimeout(function () {
+            globalThis.location.replace(globalThis.location.pathname + '?login=1');
+        }, 5000);
+    }
+
+    if (globalThis.__resendActivationSuccess) {
+        modal.setAttribute('aria-hidden', 'false');
+        trigger.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+        loginPanel?.setAttribute('hidden', '');
+        document.getElementById('resend-activation-panel')?.removeAttribute('hidden');
+        resendSuccessTimer = setTimeout(function () {
+            globalThis.location.replace(globalThis.location.pathname + '?login=1');
+        }, 5000);
+        document.getElementById('resend-activation-back-btn')?.addEventListener('click', function () {
+            clearTimeout(resendSuccessTimer);
+            globalThis.location.replace(globalThis.location.pathname + '?login=1');
+        });
+    }
 }
 
 // ============================================================

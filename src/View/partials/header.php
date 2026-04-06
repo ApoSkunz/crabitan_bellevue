@@ -31,9 +31,10 @@ $registerErrors  = $_SESSION['flash']['register_errors'] ?? [];
 $registerOld     = $_SESSION['flash']['register_old'] ?? [];
 $registerSuccess = !empty($_SESSION['flash']['register_success']);
 $registerOpen    = !empty($registerErrors) || !empty($registerOld) || $registerSuccess;
-$forgotSuccess   = !empty($_SESSION['flash']['forgot_success']);
-$flashInfo       = $_SESSION['flash']['info'] ?? null;
-unset($_SESSION['flash']['modal_error'], $_SESSION['flash']['register_errors'], $_SESSION['flash']['register_old'], $_SESSION['flash']['register_success'], $_SESSION['flash']['forgot_success'], $_SESSION['flash']['info']);
+$forgotSuccess          = !empty($_SESSION['flash']['forgot_success']);
+$resendActivationSuccess = !empty($_SESSION['flash']['resend_activation_success']);
+$flashInfo              = $_SESSION['flash']['info'] ?? null;
+unset($_SESSION['flash']['modal_error'], $_SESSION['flash']['register_errors'], $_SESSION['flash']['register_old'], $_SESSION['flash']['register_success'], $_SESSION['flash']['forgot_success'], $_SESSION['flash']['resend_activation_success'], $_SESSION['flash']['info']);
 
 $resetModalData    = $_SESSION['reset_modal'] ?? null;
 $resetOpen         = isset($_GET['modal']) && $_GET['modal'] === 'reset' && $resetModalData !== null;
@@ -242,7 +243,8 @@ window.__navLang          = '<?= htmlspecialchars($navLang) ?>';
 window.__authModalError   = <?= $modalError ? 'true' : 'false' ?>;
 window.__authRegisterOpen   = <?= $registerOpen ? 'true' : 'false' ?>;
 window.__registerSuccess    = <?= $registerSuccess ? 'true' : 'false' ?>;
-window.__forgotSuccess      = <?= $forgotSuccess ? 'true' : 'false' ?>;
+window.__forgotSuccess           = <?= $forgotSuccess ? 'true' : 'false' ?>;
+window.__resendActivationSuccess = <?= $resendActivationSuccess ? 'true' : 'false' ?>;
 window.__flashInfo          = <?= $flashInfo ? json_encode(htmlspecialchars($flashInfo)) : 'null' ?>;
 window.__resetOpen        = <?= $resetOpen ? 'true' : 'false' ?>;
 window.__resetToken       = <?= json_encode($resetToken) ?>;
@@ -265,6 +267,33 @@ document.addEventListener('DOMContentLoaded', function () {
             + 'border-top-color:transparent;border-radius:50%;animation:cb-spin .6s linear infinite;'
             + 'vertical-align:middle;margin-right:.4em;"></span>Connexion en cours\u2026';
     });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var loginPanel           = document.getElementById('login-panel');
+    var resendPanel          = document.getElementById('resend-activation-panel');
+    var resendBtn            = document.getElementById('resend-activation-btn');
+    var resendBackBtn        = document.getElementById('resend-activation-back-btn');
+    if (!resendPanel || !loginPanel) return;
+
+    var forgotPanel = document.getElementById('forgot-panel');
+    function showResendPanel() {
+        loginPanel.hidden = true;
+        resendPanel.hidden = false;
+        if (forgotPanel) forgotPanel.hidden = true;
+        var emailInput = resendPanel.querySelector('input[type="email"]');
+        if (emailInput) emailInput.focus();
+    }
+    function showLoginPanel() {
+        resendPanel.hidden = true;
+        loginPanel.hidden = false;
+        if (forgotPanel) forgotPanel.hidden = true;
+    }
+    if (resendBtn) resendBtn.addEventListener('click', showResendPanel);
+    // resend-activation-back-btn géré par main.js (accès à showLoginPanel + timer)
+
+    // Auto-open géré par main.js (initLoginModal) via window.__resendActivationSuccess
 });
 </script>
 <style>
@@ -405,6 +434,37 @@ document.addEventListener('DOMContentLoaded', function () {
                         <?= htmlspecialchars(__('auth.modal.sign_up')) ?>
                     </button>
                 </div>
+                <div class="login-modal__resend-link">
+                    <button type="button" id="resend-activation-btn" class="login-modal__forgot">
+                        <?= htmlspecialchars(__('auth.resend_activation_link')) ?>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel renvoi activation -->
+            <div id="resend-activation-panel" hidden>
+                <button type="button" id="resend-activation-back-btn" class="login-modal__back">
+                    &#8592; <?= htmlspecialchars(__('btn.back')) ?>
+                </button>
+                <?php if ($resendActivationSuccess) : ?>
+                    <div class="alert alert--success" role="alert" aria-live="polite">
+                        <?= htmlspecialchars(__('auth.resend_activation_success')) ?>
+                    </div>
+                <?php else : ?>
+                    <p class="login-modal__forgot-desc"><?= htmlspecialchars(__('auth.resend_activation_desc')) ?></p>
+                    <form method="POST"
+                          action="/<?= htmlspecialchars($navLang) ?>/renvoyer-activation"
+                          id="resend-activation-form" class="login-modal__form">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
+                        <div class="login-modal__field">
+                            <label for="resend-activation-email"><?= htmlspecialchars(__('auth.email')) ?></label>
+                            <input type="email" id="resend-activation-email" name="email" required autocomplete="email">
+                        </div>
+                        <button type="submit" class="btn btn--gold login-modal__submit">
+                            <?= htmlspecialchars(__('btn.submit')) ?>
+                        </button>
+                    </form>
+                <?php endif; ?>
             </div>
 
             <!-- Panel mot de passe oublié -->

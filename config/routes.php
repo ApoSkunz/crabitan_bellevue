@@ -93,6 +93,7 @@ $router->post('/{lang}/auth/google/link', 'GoogleOAuthController@linkConfirmPost
 
 $router->post('/{lang}/connexion', 'AuthController@login');
 $router->post('/{lang}/inscription', 'AuthController@register');
+$router->post('/{lang}/renvoyer-activation', 'AuthController@resendActivation');
 $router->get('/{lang}/deconnexion', 'AuthController@logout');   // Retourne 405 — protection CSRF passive
 $router->post('/{lang}/deconnexion', 'AuthController@logout');
 $router->get('/{lang}/verification/{token}', 'AuthController@verifyEmail');

@@ -43,6 +43,7 @@ class MailService
         } else {
             $this->mailer->SMTPAuth   = false;
             $this->mailer->SMTPSecure = '';
+            $this->mailer->SMTPAutoTLS = false;
         }
 
         $appUrl      = $_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'http://localhost');
