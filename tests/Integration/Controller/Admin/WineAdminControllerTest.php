@@ -1237,8 +1237,8 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Vérifie que les abonnés newsletter de type "company" sont exclus
-     * de la newsletter automatique vin (particuliers uniquement).
+     * Vérifie que les abonnés newsletter de type "company" sont inclus
+     * dans la newsletter automatique vin (tous abonnés, y compris sociétés).
      */
     public function testStoreAvailableWineSkipsCompanySubscribers(): void
     {
@@ -1302,8 +1302,8 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         @unlink($tmpFile);
 
         $flash = $_SESSION['admin_flash']['success'] ?? '';
-        // Aucun abonné particulier → pas de mention newsletter dans le flash
-        $this->assertStringNotContainsStringIgnoringCase('newsletter', $flash);
+        // L'abonné company est désormais inclus → newsletter envoyée
+        $this->assertStringContainsStringIgnoringCase('newsletter', $flash);
     }
 }
 

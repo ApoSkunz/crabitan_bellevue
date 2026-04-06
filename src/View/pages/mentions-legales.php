@@ -3,7 +3,7 @@ $pageTitle = __('footer.legal_notice');
 $navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 $isBare    = $bare ?? false;
 
-$legal         = require_once ROOT_PATH . '/config/legal.php';
+$legal         = require ROOT_PATH . '/config/legal.php'; // NOSONAR — php:S2003 : require_once retourne true au 2e appel (re-rendu tests)
 $legalVersion  = $legal['mentions_legales']['version'];
 $legalDate     = $legal['mentions_legales']['updated_at'];
 $contactEmail  = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';

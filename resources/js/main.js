@@ -1656,6 +1656,17 @@ function initDeleteAccountModal() {
 }
 
 // ============================================================
+// Accessibilité — autofocus sur les messages flash hors modal
+// ============================================================
+
+function initFlashAutofocus() {
+    const alert = document.querySelector('[role="alert"]:not([aria-hidden="true"])');
+    if (!alert || alert.closest('[role="dialog"]') || alert.closest('.modal')) return;
+    if (!alert.hasAttribute('tabindex')) alert.setAttribute('tabindex', '-1');
+    alert.focus({ preventScroll: false });
+}
+
+// ============================================================
 // Page panier — interactions connecté + affichage invité
 // ============================================================
 
@@ -2044,11 +2055,30 @@ function initCartPage() {
                         if (tbody && !tbody.querySelector('.cart-table__row')) {
                             const section = document.querySelector('.cart-section');
                             if (section) {
+                                const lang     = section.dataset.lang || (globalThis.__navLang || 'fr');
+                                const isEnSec  = section.dataset.isEn === '1';
+                                let wineHtml   = '';
+                                try {
+                                    const wine = JSON.parse(section.dataset.randomWine || 'null');
+                                    if (wine) {
+                                        const price = Number.parseFloat(wine.price || 0).toFixed(2).replace('.', ',');
+                                        wineHtml = `
+                                            <div class="cart-empty-wine">
+                                                <p class="cart-empty-wine__label">${isEnSec ? 'You might enjoy' : 'Vous pourriez apprécier'}</p>
+                                                <a href="/${lang}/vins/${wine.slug}" class="cart-empty-wine__card">
+                                                    <img src="/assets/images/wines/${wine.image_path}" alt="${wine.label_name}" class="cart-empty-wine__img" width="120" height="160" loading="lazy">
+                                                    <span class="cart-empty-wine__name">${wine.label_name}</span>
+                                                    <span class="cart-empty-wine__price">${price}\u00a0€</span>
+                                                </a>
+                                            </div>`;
+                                    }
+                                } catch { /* JSON invalide — on ignore */ }
                                 section.innerHTML = `
                                     <div class="cart-empty-state">
-                                        <p class="cart-empty">${isEn ? 'Your cart is empty' : 'Votre panier est vide'}</p>
-                                        <a href="/${globalThis.__navLang || 'fr'}/vins" class="btn btn--outline">
-                                            ${isEn ? 'Browse wines' : 'Voir les vins'}
+                                        <p class="cart-empty">${isEnSec ? 'Your cart is empty' : 'Votre panier est vide'}</p>
+                                        ${wineHtml}
+                                        <a href="/${lang}/vins" class="btn btn--gold">
+                                            ${isEnSec ? 'Browse our shop' : 'Voir notre boutique'}
                                         </a>
                                     </div>`;
                             }
@@ -2125,6 +2155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFaqAccordion();
     initCarbonBadge();
     initCartPage();
+    initFlashAutofocus();
 
     // Chargement à la demande — uniquement sur la page jeux
     if (document.getElementById('memo-game')) {

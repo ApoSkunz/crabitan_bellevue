@@ -33,7 +33,9 @@ $pricingRules     = $pricingRules     ?? [];
         </div>
     </div>
 
-    <section class="cart-section container">
+    <section class="cart-section container" data-random-wine="<?= htmlspecialchars(json_encode($randomWine ?? null)) ?>"
+             data-lang="<?= htmlspecialchars($lang) ?>"
+             data-is-en="<?= $isEn ? '1' : '0' ?>">
 
         <?php if ($isAuth && $isB2B) : ?>
         <!-- ======================================================
@@ -322,7 +324,7 @@ $pricingRules     = $pricingRules     ?? [];
             <p class="cart-empty"><?= htmlspecialchars(__('cart.empty')) ?></p>
             <?php if ($randomWine !== null) : ?>
             <div class="cart-empty-wine">
-                <p class="cart-empty-wine__label"><?= htmlspecialchars($isEn ? 'You might enjoy:' : 'Vous pourriez apprécier :') ?></p>
+                <p class="cart-empty-wine__label"><?= htmlspecialchars($isEn ? 'You might enjoy' : 'Vous pourriez apprécier') ?></p>
                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
                    class="cart-empty-wine__card">
                     <?php $wineImage = '/assets/images/wines/' . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
@@ -381,7 +383,7 @@ $pricingRules     = $pricingRules     ?? [];
         </div>
         <?php if (isset($randomWine) && $randomWine !== null) : ?>
         <div class="cart-empty-wine">
-            <p class="cart-empty-wine__label"><?= htmlspecialchars($isEn ? 'You might enjoy:' : 'Vous pourriez apprécier :') ?></p>
+            <p class="cart-empty-wine__label"><?= htmlspecialchars($isEn ? 'You might enjoy' : 'Vous pourriez apprécier') ?></p>
             <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
                class="cart-empty-wine__card">
                 <?php $wineImage = '/assets/images/wines/' . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
@@ -394,9 +396,11 @@ $pricingRules     = $pricingRules     ?? [];
             </a>
         </div>
         <?php endif; ?>
-        <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--outline">
-            <?= htmlspecialchars(__('cart.browse')) ?>
-        </a>
+        <div class="cart-guest-cta">
+            <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--gold">
+                <?= htmlspecialchars(__('cart.browse')) ?>
+            </a>
+        </div>
         <?php endif; ?>
 
     </section>
