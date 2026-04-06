@@ -18,26 +18,8 @@ $router  = new Router($request);
 
 require_once ROOT_PATH . '/config/routes.php';
 
-// Vérification d'âge — obligatoire pour les sites vendant de l'alcool
-$path         = $request->path;
-$ageVerified  = ($_COOKIE['age_verified'] ?? '') === '1';
-$isPublicPath = str_starts_with($path, '/age-gate')
-    || str_starts_with($path, '/admin')
-    || str_starts_with($path, '/assets')
-    || str_ends_with($path, '/mentions-legales')
-    || str_ends_with($path, '/politique-de-confidentialite')
-    || str_ends_with($path, '/conditions-generales-de-vente')
-    || str_ends_with($path, '/support')
-    || str_contains($path, '/newsletter/desabonnement')
-    || str_contains($path, '/auth/google'); // Google OAuth — Google redirige vers ce callback sans cookie age_verified
-
-if (!$ageVerified && !$isPublicPath) {
-    $redirect = rawurlencode($path !== '/' ? $path : '/' . DEFAULT_LANG);
-    header('Location: /age-gate?redirect=' . $redirect);
-    exit;
-}
-
 // Sliding refresh : si "Se souvenir de moi" était coché, on repousse l'expiry à chaque visite
+$ageVerified = ($_COOKIE['age_verified'] ?? '') === '1';
 if ($ageVerified && isset($_COOKIE['age_remember'])) {
     $ttl        = 397 * 24 * 3600;
     $cookieBase = ['path' => '/', 'secure' => isset($_SERVER['HTTPS']), 'httponly' => true, 'samesite' => 'Lax'];
