@@ -932,7 +932,7 @@ INNER;
         float $total,
         float $shippingDiscount = 0.0
     ): void {
-        $ownerEmail    = $_ENV['CONTACT_EMAIL'] ?? 'contact@crabitanbellevue.fr';
+        $ownerEmail    = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
         $safeRef       = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeClient    = htmlspecialchars($clientName, ENT_QUOTES);
         $safeEmail     = htmlspecialchars($clientEmail, ENT_QUOTES);

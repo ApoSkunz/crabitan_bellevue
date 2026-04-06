@@ -14,7 +14,11 @@ class DpoAdminController extends AdminController
     private const AUTHOR      = 'GFA Bernard Solane et Fils';
     private const SIRET       = '398 341 701 00017';
     private const ADDRESS     = 'Château Crabitan Bellevue — 33410 Sainte-Croix-du-Mont — France';
-    private const DPO_EMAIL   = 'crabitan.bellevue@orange.fr';
+    /** @return string Email DPO lu depuis la variable d'environnement CONTACT_OWNER_EMAIL */
+    private function dpoEmail(): string
+    {
+        return $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
+    }
     private const DATE_FORMAT = 'd/m/Y';
 
     // ----------------------------------------------------------------
@@ -181,7 +185,7 @@ class DpoAdminController extends AdminController
             . '<p class="meta">'
             . htmlspecialchars(self::AUTHOR) . ' — SIRET&nbsp;: ' . htmlspecialchars(self::SIRET) . '<br>'
             . htmlspecialchars(self::ADDRESS) . '<br>'
-            . 'DPO&nbsp;: ' . htmlspecialchars(self::DPO_EMAIL)
+            . 'DPO&nbsp;: ' . htmlspecialchars($this->dpoEmail())
             . '</p>'
             . '<h2>' . htmlspecialchars($title) . '</h2>'
             . '<p class="meta">' . htmlspecialchars($subtitle) . ' — Généré le ' . htmlspecialchars($date) . '</p>';
@@ -470,7 +474,7 @@ class DpoAdminController extends AdminController
 
         $html .= '<h2>4. Contacts d\'urgence</h2>'
             . '<table>'
-            . $this->row('Référent RGPD / DPO', htmlspecialchars(self::DPO_EMAIL))
+            . $this->row('Référent RGPD / DPO', htmlspecialchars($this->dpoEmail()))
             . $this->row('CNIL — notification en ligne', 'https://notifications.cnil.fr/')
             . $this->row('CNIL — standard', '01 53 73 22 22')
             . '</table>';
