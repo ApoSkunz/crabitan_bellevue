@@ -1,0 +1,97 @@
+// ============================================================
+// Modal déclaration de majorité (Art. L3342-1 CSP)
+// ============================================================
+
+.majority-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &__backdrop {
+        position: absolute;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.72);
+    }
+
+    &__inner {
+        position: relative;
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-gold);
+        width: min(480px, 95vw);
+        max-height: 90vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        z-index: 1;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.55);
+    }
+
+    &__header {
+        padding: 1.5rem 1.75rem 1rem;
+        border-bottom: 1px solid color-mix(in srgb, var(--color-gold) 30%, transparent);
+    }
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: clamp(1rem, 2.5vw, 1.3rem);
+        color: var(--color-gold);
+        margin: 0;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+    }
+
+    &__body {
+        padding: 1.5rem 1.75rem 1.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    &__legal {
+        font-size: 0.9rem;
+        color: var(--color-text);
+        line-height: 1.65;
+        margin: 0;
+        padding: 0.875rem 1rem;
+        background-color: color-mix(in srgb, var(--color-gold) 8%, transparent);
+        border-left: 3px solid var(--color-gold);
+    }
+
+    &__form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    &__checkbox-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        font-size: 0.9rem;
+        color: var(--color-text);
+        cursor: pointer;
+        line-height: 1.5;
+    }
+
+    &__checkbox {
+        margin-top: 0.15rem;
+        flex-shrink: 0;
+        accent-color: var(--color-gold);
+        width: 1rem;
+        height: 1rem;
+        cursor: pointer;
+    }
+
+    &__submit {
+        width: 100%;
+        margin-top: 0.25rem;
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    }
+}

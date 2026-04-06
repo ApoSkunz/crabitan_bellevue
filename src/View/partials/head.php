@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/assets/css/main.css">
 
 <?php if (isset($_COOKIE['auth_token'])) : ?>
-    <script>
+    <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
     (function () {
         'use strict';
         var LANG      = '<?= htmlspecialchars(defined('CURRENT_LANG') ? CURRENT_LANG : 'fr', ENT_QUOTES) ?>';
@@ -48,6 +48,14 @@
     }());
     </script>
 <?php endif; ?>
+<?php
+$majorityPending   = isset($_SESSION['majority_pending']) && $_SESSION['majority_pending'] === true;
+$majorityHasCookie = isset($_COOKIE['auth_token']);
+if ($majorityPending && $majorityHasCookie) :
+    $majorityRedirect = $_SERVER['REQUEST_URI'] ?? "/{$navLang}/mon-compte";
+    include SRC_PATH . '/View/components/majority-modal.php';
+endif;
+?>
 </head>
 <body>
 <?php if (($_COOKIE['age_verified'] ?? '') !== '1') : ?>
