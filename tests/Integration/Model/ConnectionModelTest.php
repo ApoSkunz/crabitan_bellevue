@@ -385,10 +385,12 @@ class ConnectionModelTest extends IntegrationTestCase
 
     /**
      * purgeExpired() retourne 0 quand il n'y a rien à supprimer.
+     * Premier appel pour éliminer tout résidu de tests manuels (connexions révoquées/expirées
+     * laissées en BDD hors transaction), second appel doit renvoyer 0.
      */
     public function testPurgeExpiredReturnsZeroWhenNothingToDelete(): void
     {
-        // Pas de connexion insérée dans ce test
+        $this->model->purgeExpired(); // nettoyage des résidus éventuels hors-seed
         $result = $this->model->purgeExpired();
 
         $this->assertSame(0, $result);
