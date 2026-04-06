@@ -2,18 +2,12 @@
 
 return [
     // Age gate
-    'age_gate.quote'         => 'L\'art et la passion du vin, pour sublimer votre table',
-    'age_gate.intro'         => 'Pour visiter ce site, vous devez être en âge légal de consommer de l\'alcool dans votre pays de résidence.',
-    'age_gate.legal'         => 'Je suis en âge légal de consommer de l\'alcool dans mon pays de résidence',
-    'age_gate.not_legal'     => 'Je ne suis pas en âge légal de consommer de l\'alcool dans mon pays de résidence',
-    'age_gate.remember'      => 'Se souvenir de moi',
-    'age_gate.enter'         => 'Entrer',
-    'age_gate.exit'          => 'Quitter',
-    'age_gate.overlay_text'  => 'En entrant sur ce site, je certifie avoir l\'âge légal pour consommer de l\'alcool dans mon pays.',
-    'age_gate.info_label'    => 'Informations légales',
-    'age_gate.choice_legend' => 'Vérification de l\'âge',
-    'age_gate.legal_more'    => 'En savoir plus.',
-    'age_gate.error'         => 'Vous devez être en âge légal pour accéder à ce site. Vous allez être redirigé dans 3 secondes.',
+    'age_gate.quote'   => 'L\'art et la passion du vin, pour sublimer votre table',
+    'age_gate.intro'   => 'Pour visiter ce site, vous devez être en âge légal de consommer de l\'alcool dans votre pays de résidence.',
+    'age_gate.declare' => 'En cliquant sur Entrer, je certifie avoir l\'âge légal de consommer de l\'alcool dans mon pays de résidence (Art.&#160;L3342-1 CSP).',
+    'age_gate.enter'    => 'Entrer',
+    'age_gate.exit'     => 'Quitter',
+    'age_gate.remember' => 'Se souvenir de moi',
 
     // Navigation
     'nav.home'        => 'Accueil',

@@ -60,26 +60,20 @@ $exitUrl = (!empty($httpReferer) && !str_starts_with($httpReferer, $siteOrigin))
                 <p id="age-overlay-title" class="age-gate__intro"><?= htmlspecialchars(__('age_gate.intro')) ?></p>
 
                 <div class="age-gate__footer">
-                    <label class="age-gate__remember">
-                        <input type="checkbox" name="remember" value="1" form="age-gate-enter">
-                        <span><?= htmlspecialchars(__('age_gate.remember')) ?></span>
-                    </label>
-                    <div class="age-gate__footer-actions">
-                        <form method="POST" action="/age-gate" id="age-gate-enter">
-                            <input type="hidden" name="legal_age" value="1">
-                            <input type="hidden" name="redirect" value="<?= htmlspecialchars($currentUri) ?>">
-                            <button type="submit" class="btn btn--gold">
-                                <?= htmlspecialchars(__('age_gate.enter')) ?>
-                            </button>
-                        </form>
-                        <form method="POST" action="/age-gate" id="age-gate-exit">
-                            <input type="hidden" name="legal_age" value="0">
-                            <input type="hidden" name="exit_url" value="<?= htmlspecialchars($exitUrl) ?>">
-                            <button type="submit" class="age-overlay__btn-exit age-overlay__btn-exit--outline">
-                                <?= htmlspecialchars(__('age_gate.exit')) ?>
-                            </button>
-                        </form>
-                    </div>
+                    <form method="POST" action="/age-gate">
+                        <input type="hidden" name="legal_age" value="1">
+                        <input type="hidden" name="redirect" value="<?= htmlspecialchars($currentUri) ?>">
+                        <button type="submit" class="btn btn--gold">
+                            <?= htmlspecialchars(__('age_gate.enter')) ?>
+                        </button>
+                    </form>
+                    <form method="POST" action="/age-gate">
+                        <input type="hidden" name="legal_age" value="0">
+                        <input type="hidden" name="exit_url" value="<?= htmlspecialchars($exitUrl) ?>">
+                        <button type="submit" class="age-overlay__btn-exit age-overlay__btn-exit--outline">
+                            <?= htmlspecialchars(__('age_gate.exit')) ?>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

@@ -2,18 +2,12 @@
 
 return [
     // Age gate
-    'age_gate.quote'         => 'The art and passion of wine, to elevate your table',
-    'age_gate.intro'         => 'To visit this site, you must be of legal drinking age in your country of residence.',
-    'age_gate.legal'         => 'I am of legal drinking age in my country of residence',
-    'age_gate.not_legal'     => 'I am not of legal drinking age in my country of residence',
-    'age_gate.remember'      => 'Remember me',
-    'age_gate.enter'         => 'Enter',
-    'age_gate.exit'          => 'Leave',
-    'age_gate.overlay_text'  => 'By entering this site, I confirm I am of legal drinking age in my country.',
-    'age_gate.info_label'    => 'Legal information',
-    'age_gate.choice_legend' => 'Age verification',
-    'age_gate.legal_more'    => 'Learn more.',
-    'age_gate.error'         => 'You must be of legal drinking age to access this site. You will be redirected in 3 seconds.',
+    'age_gate.quote'   => 'The art and passion of wine, to elevate your table',
+    'age_gate.intro'   => 'To visit this site, you must be of legal drinking age in your country of residence.',
+    'age_gate.declare' => 'By clicking Enter, I confirm I am of legal drinking age in my country of residence (Art.&#160;L3342-1 CSP).',
+    'age_gate.enter'    => 'Enter',
+    'age_gate.exit'     => 'Leave',
+    'age_gate.remember' => 'Remember me',
 
     // Navigation
     'nav.home'        => 'Home',
