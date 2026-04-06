@@ -4334,7 +4334,7 @@ class AccountControllerTest extends IntegrationTestCase
         $_POST['csrf_token'] = self::CSRF;
 
         // Sous-classe avec MailService no-op (seam newMailService — évite le SMTP en test)
-        $ctrl = new class($this->makeRequest('POST', '/fr/mon-compte/export/envoyer')) extends AccountController {
+        $ctrl = new class ($this->makeRequest('POST', '/fr/mon-compte/export/envoyer')) extends AccountController {
             protected function newMailService(): \Service\MailService
             {
                 return new class extends \Service\MailService {
@@ -4344,7 +4344,8 @@ class AccountControllerTest extends IntegrationTestCase
                         string $zipContent,
                         string $filename,
                         string $lang
-                    ): void { /* no-op : évite le SMTP en test */ }
+                    ): void { /* no-op : évite le SMTP en test */
+                    }
                 };
             }
         };
