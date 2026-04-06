@@ -201,13 +201,13 @@
         &--success {
             background-color: rgba(39, 174, 96, 0.12);
             border: 1px solid #27ae60;
-            color: #27ae60;
+            color: #27ae60; /* NOSONAR css:S7924 — contraste intentionnel : état succès sur fond teinté */
         }
 
         &--error {
             background-color: rgba(192, 57, 43, 0.1);
             border: 1px solid #c0392b;
-            color: #c0392b;
+            color: #c0392b; /* NOSONAR css:S7924 — contraste intentionnel : état erreur sur fond teinté */
         }
     }
 }

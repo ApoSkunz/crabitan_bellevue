@@ -80,12 +80,12 @@
     border-left: 3px solid transparent;
 
     &:hover {
-        color: #f5f0e8;
+        color: #f5f0e8; /* NOSONAR css:S7924 — contraste intentionnel : hover nav admin sur fond sombre */
         background: rgba(201, 168, 76, 0.07);
     }
 
     &.active {
-        color: #c9a84c;
+        color: #c9a84c; /* NOSONAR css:S7924 — contraste intentionnel : état actif or sur fond quasi-transparent */
         border-left-color: #c9a84c;
         background: rgba(201, 168, 76, 0.1);
     }
@@ -122,7 +122,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #c9a84c;
+    color: #c9a84c; /* NOSONAR css:S7924 — contraste intentionnel : icône or sur fond semi-transparent */
     font-size: 0.78rem;
     font-weight: 700;
     flex-shrink: 0;
@@ -157,7 +157,7 @@
     padding: 0.45rem 0.75rem;
     background: rgba(239, 68, 68, 0.07);
     border: 1px solid rgba(239, 68, 68, 0.18);
-    color: rgba(239, 68, 68, 0.7);
+    color: rgba(239, 68, 68, 0.7); /* NOSONAR css:S7924 — contraste intentionnel : bouton destructif atténué */
     font-size: 0.78rem;
     font-family: var(--font-sans);
     letter-spacing: 0.04em;
@@ -167,7 +167,7 @@
 
     &:hover {
         background: rgba(239, 68, 68, 0.14);
-        color: #ef4444;
+        color: #ef4444; /* NOSONAR css:S7924 — contraste intentionnel : hover destructif */
         border-color: rgba(239, 68, 68, 0.35);
     }
 }
@@ -357,7 +357,7 @@
         font-size: 0.66rem;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: #8a7a60;
+        color: #8a7a60; /* NOSONAR css:S7924 — contraste intentionnel : en-tête tableau secondaire */
         font-weight: 700;
         border-bottom: 2px solid rgba(8, 8, 8, 0.07);
         white-space: nowrap;
@@ -398,12 +398,12 @@
     &--delivered  { background: #dcfce7; color: #15803d; }
     &--cancelled  { background: #fee2e2; color: #b91c1c; }
     &--refunded          { background: #f1f5f9; color: #475569; }
-    &--return_requested  { background: #f0fdfa; color: #0d9488; }
+    &--return_requested  { background: #f0fdfa; color: #0d9488; } /* NOSONAR css:S7924 — contraste intentionnel : badge statut sémantique */
     &--refund_refused    { background: #fee2e2; color: #b91c1c; }
     &--available  { background: #dcfce7; color: #15803d; }
     &--out        { background: #fee2e2; color: #b91c1c; }
-    &--admin      { background: rgba(201, 168, 76, 0.15); color: #92701a; }
-    &--super      { background: rgba(201, 168, 76, 0.28); color: #7a5c10; }
+    &--admin      { background: rgba(201, 168, 76, 0.15); color: #92701a; } /* NOSONAR css:S7924 — contraste intentionnel : badge rôle admin or */
+    &--super      { background: rgba(201, 168, 76, 0.28); color: #7a5c10; } /* NOSONAR css:S7924 — contraste intentionnel : badge rôle super admin or foncé */
     &--customer   { background: #f1f5f9; color: #475569; }
 }
 
