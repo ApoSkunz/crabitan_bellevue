@@ -82,6 +82,18 @@ class OrderController extends Controller
         $post   = $_SESSION['flash']['checkout_post']   ?? [];
         unset($_SESSION['flash']['checkout_errors'], $_SESSION['flash']['checkout_post']);
 
+        // Guard majorité — vérifié en premier pour que la modale s'affiche
+        // même si le panier est vide (l'utilisateur doit déclarer sa majorité
+        // avant de pouvoir accéder à la zone checkout)
+        $accountModel = new AccountModel();
+        $account      = $accountModel->findById($userId);
+        $isNewsletterSubscribed = (bool) ($account !== false ? ($account['newsletter'] ?? false) : false);
+
+        if ($account !== false && !$accountModel->hasDeclaredMajority($userId)) {
+            $_SESSION['majority_pending'] = true;
+            Response::redirect("/{$lang}/panier");
+        }
+
         // Nettoyer les articles indisponibles ou hors stock
         $removed = $this->carts->removeUnavailableItems(
             $userId,
@@ -91,15 +103,6 @@ class OrderController extends Controller
         $row = $this->carts->findByUserId($userId);
         if ($row === false || $this->carts->getContent($row) === []) {
             Response::redirect("/{$lang}/panier");
-        }
-
-        $accountModel = new AccountModel();
-        $account      = $accountModel->findById($userId);
-        $isNewsletterSubscribed = (bool) ($account !== false ? ($account['newsletter'] ?? false) : false);
-
-        if ($account !== false && !$accountModel->hasDeclaredMajority($userId)) {
-            $_SESSION['majority_pending'] = true;
-            Response::redirect("/{$lang}/commande");
         }
 
         $items    = $this->enrichItems($this->carts->getContent($row));
@@ -154,6 +157,13 @@ class OrderController extends Controller
         $userId  = (int) $payload['sub'];
         $lang    = $this->resolveLang($params);
         $back    = "/{$lang}/commande";
+
+        // Guard backend majorité — manipulation DOM côté client ne suffit pas
+        $accountModel = new AccountModel();
+        if (!$accountModel->hasDeclaredMajority($userId)) {
+            $_SESSION['majority_pending'] = true;
+            Response::redirect($back);
+        }
 
         $this->validateCsrfAndSubmitToken($back);
 
