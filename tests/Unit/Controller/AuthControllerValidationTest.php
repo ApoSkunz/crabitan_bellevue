@@ -24,7 +24,6 @@ class AuthControllerValidationTest extends TestCase
         // lors d'un échec de validation, le redirect se fait avant tout accès BDD)
         $dbMock = $this->createStub(Database::class);
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $dbMock);
 
         $_COOKIE  = [];

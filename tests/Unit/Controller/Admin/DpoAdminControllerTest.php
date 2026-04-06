@@ -27,7 +27,6 @@ class DpoAdminControllerTest extends TestCase
 
         $dbMock = $this->createStub(\Core\Database::class);
         $this->instanceProp = new \ReflectionProperty(\Core\Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $dbMock);
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
@@ -43,7 +42,6 @@ class DpoAdminControllerTest extends TestCase
     private function callPrivate(string $method): string
     {
         $ref = new \ReflectionMethod(\Controller\Admin\DpoAdminController::class, $method);
-        $ref->setAccessible(true);
         return (string) $ref->invoke($this->ctrl);
     }
 
@@ -181,7 +179,6 @@ class DpoAdminControllerTest extends TestCase
     public function testRowGeneratesValidHtml(): void
     {
         $ref = new \ReflectionMethod(\Controller\Admin\DpoAdminController::class, 'row');
-        $ref->setAccessible(true);
         $html = (string) $ref->invoke($this->ctrl, 'Finalité', 'Gestion comptes');
 
         $this->assertStringContainsString('<tr>', $html);
@@ -217,7 +214,6 @@ class DpoAdminControllerTest extends TestCase
     public function testPdfHeaderContainsCompanyName(): void
     {
         $ref = new \ReflectionMethod(\Controller\Admin\DpoAdminController::class, 'pdfHeader');
-        $ref->setAccessible(true);
         $html = (string) $ref->invoke($this->ctrl, 'Test', 'Sous-titre', '01/01/2026');
 
         $this->assertStringContainsString('GFA Bernard Solane et Fils', $html);

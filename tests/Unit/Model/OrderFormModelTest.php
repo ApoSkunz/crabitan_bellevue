@@ -19,7 +19,6 @@ class OrderFormModelTest extends TestCase
     {
         $this->dbMock       = $this->createMock(Database::class);
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $this->dbMock);
 
         $this->model = new OrderFormModel();

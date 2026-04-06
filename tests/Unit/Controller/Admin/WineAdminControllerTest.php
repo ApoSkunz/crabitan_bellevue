@@ -28,14 +28,12 @@ class WineAdminControllerTest extends TestCase
         // Mock Database to avoid real connection
         $dbMock = $this->createStub(\Core\Database::class);
         $this->instanceProp = new \ReflectionProperty(\Core\Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $dbMock);
 
         $this->generateSlug = new \ReflectionMethod(
             \Controller\Admin\WineAdminController::class,
             'generateSlug'
         );
-        $this->generateSlug->setAccessible(true);
     }
 
     protected function tearDown(): void

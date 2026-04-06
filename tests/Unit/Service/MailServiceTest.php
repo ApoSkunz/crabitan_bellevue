@@ -38,14 +38,12 @@ class MailServiceTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($service, $stub); // NOSONAR — test unitaire, accès privé délibéré
     }
 
     private function callPrivate(string $method, mixed ...$args): string
     {
         $m = $this->reflection->getMethod($method);
-        $m->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         return $m->invoke($this->service, ...$args);
     }
 
@@ -160,7 +158,6 @@ class MailServiceTest extends TestCase
         $this->assertInstanceOf(MailService::class, $service);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         /** @var PHPMailer $mailer */
         $mailer = $prop->getValue($service);
         $this->assertTrue($mailer->SMTPAuth);
@@ -184,7 +181,6 @@ class MailServiceTest extends TestCase
 
         // Vérifie via Reflection que SMTPAuth est bien false
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         /** @var PHPMailer $mailer */
         $mailer = $prop->getValue($service);
         $this->assertFalse($mailer->SMTPAuth);
@@ -304,7 +300,6 @@ class MailServiceTest extends TestCase
     private function callPrivateArray(string $method, mixed ...$args): array
     {
         $m = $this->reflection->getMethod($method);
-        $m->setAccessible(true);
         return $m->invoke($this->service, ...$args);
     }
 
@@ -528,7 +523,6 @@ class MailServiceTest extends TestCase
 
         // Appelle send() via Reflection pour passer un attachmentPath non-null
         $m = $this->reflection->getMethod('send');
-        $m->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $m->invoke($this->service, 'dest@example.com', 'Dest', 'Subject', '<p>Body</p>', $tmpFile, null);
 
         unlink($tmpFile);
@@ -933,7 +927,6 @@ class MailServiceTest extends TestCase
         $mailerMock->expects($this->never())->method('send');
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($this->service, $mailerMock);
 
         $this->service->sendOrderStatusEmail(
@@ -959,7 +952,6 @@ class MailServiceTest extends TestCase
         $mailerMock->expects($this->never())->method('send');
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($this->service, $mailerMock);
 
         $this->service->sendOrderStatusEmail(
@@ -1275,7 +1267,6 @@ class MailServiceTest extends TestCase
         $service = new MailService();
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         /** @var PHPMailer $mailer */
         $mailer = $prop->getValue($service);
         $this->assertSame(PHPMailer::ENCRYPTION_SMTPS, $mailer->SMTPSecure);
@@ -1334,7 +1325,6 @@ class MailServiceTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($this->service, $stub);
 
         $this->service->sendPasswordChangeConfirmation('alice@example.com', 'Alice', 'fr');
@@ -1358,7 +1348,6 @@ class MailServiceTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($this->service, $stub);
 
         $this->service->sendPasswordChangeConfirmation('bob@example.com', 'Bob', 'en');
@@ -1382,7 +1371,6 @@ class MailServiceTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($this->service, $stub);
 
         $_ENV['APP_URL'] = 'http://crabitan.local';
@@ -1407,7 +1395,6 @@ class MailServiceTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($this->service, $stub);
 
         $_ENV['APP_URL'] = 'http://crabitan.local';
@@ -1435,7 +1422,6 @@ class MailServiceTest extends TestCase
             ->with('alice@example.com', $this->anything());
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($this->service, $mock);
 
         $this->service->sendPasswordChangeConfirmation('alice@example.com', 'Alice', 'fr');
@@ -1456,7 +1442,6 @@ class MailServiceTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($this->service, $stub);
 
         $this->service->sendPasswordChangeConfirmation(
@@ -1484,7 +1469,6 @@ class MailServiceTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($this->service, $stub);
 
         $this->service->sendPasswordChangeDenied('alice@example.com', 'fr');
@@ -1507,7 +1491,6 @@ class MailServiceTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($this->service, $stub);
 
         $this->service->sendPasswordChangeDenied('bob@example.com', 'en');
@@ -1530,7 +1513,6 @@ class MailServiceTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($this->service, $stub);
 
         $_ENV['APP_URL'] = 'http://crabitan.local';

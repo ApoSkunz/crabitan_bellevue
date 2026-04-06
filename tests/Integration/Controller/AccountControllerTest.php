@@ -3095,7 +3095,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
         $method = new \ReflectionMethod($ctrl, 'buildExportData');
-        $method->setAccessible(true);
 
         /** @var array<string, mixed> $export */
         $export = $method->invoke($ctrl, $userId);
@@ -3121,7 +3120,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
         $method = new \ReflectionMethod($ctrl, 'buildExportData');
-        $method->setAccessible(true);
 
         /** @var array<string, mixed> $export */
         $export  = $method->invoke($ctrl, $userId);
@@ -3143,7 +3141,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
         $method = new \ReflectionMethod($ctrl, 'buildExportData');
-        $method->setAccessible(true);
 
         /** @var array<string, mixed> $export */
         $export  = $method->invoke($ctrl, $userId);
@@ -3172,7 +3169,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
         $method = new \ReflectionMethod($ctrl, 'buildExportData');
-        $method->setAccessible(true);
 
         /** @var array<string, mixed> $export */
         $export = $method->invoke($ctrl, $userId);
@@ -3191,7 +3187,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
         $method = new \ReflectionMethod($ctrl, 'buildExportData');
-        $method->setAccessible(true);
 
         /** @var array<string, mixed> $export */
         $export  = $method->invoke($ctrl, $userId);
@@ -3219,7 +3214,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
         $method = new \ReflectionMethod($ctrl, 'buildExportContent');
-        $method->setAccessible(true);
 
         $export   = [
             'exported_at'    => date('c'),
@@ -3279,7 +3273,6 @@ class AccountControllerTest extends IntegrationTestCase
         };
 
         $method = new \ReflectionMethod($stub, 'buildExportContent');
-        $method->setAccessible(true);
 
         $export   = ['account' => ['Email' => 'export.json@test.local'], 'addresses' => []];
         $date     = date('Y-m-d');
@@ -3303,7 +3296,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl   = $this->makeController('GET', '/fr/mon-compte/export/telecharger');
         $method = new \ReflectionMethod($ctrl, 'buildExportContent');
-        $method->setAccessible(true);
 
         $export = [
             'exported_at'     => date('c'),
@@ -3441,7 +3433,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl = $this->makeController('GET', '/fr/mon-compte');
         $ref  = new \ReflectionMethod(AccountController::class, 'buildReturnSlipPdf');
-        $ref->setAccessible(true);
 
         $result = $ref->invoke($ctrl, $order);
 
@@ -3495,7 +3486,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl = $this->makeController('GET', '/fr/mon-compte');
         $ref  = new \ReflectionMethod(AccountController::class, 'buildReturnSlipPdf');
-        $ref->setAccessible(true);
 
         $result = $ref->invoke($ctrl, $order);
 
@@ -3516,7 +3506,6 @@ class AccountControllerTest extends IntegrationTestCase
     {
         $ctrl = $this->makeController('GET', '/fr/mon-compte');
         $ref  = new \ReflectionMethod(AccountController::class, 'buildPdfTableSection');
-        $ref->setAccessible(true);
 
         $result = $ref->invoke(
             $ctrl,
@@ -3542,7 +3531,6 @@ class AccountControllerTest extends IntegrationTestCase
     {
         $ctrl = $this->makeController('GET', '/fr/mon-compte');
         $ref  = new \ReflectionMethod(AccountController::class, 'buildPdfTableSection');
-        $ref->setAccessible(true);
 
         $rows = [
             ['reference' => 'CMD-001', 'status' => 'delivered', 'price' => '99.90', 'ordered_at' => '2025-01-10'],
@@ -3600,7 +3588,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl = $this->makeController('GET', '/fr/mon-compte');
         $ref  = new \ReflectionMethod(AccountController::class, 'buildExportPdf');
-        $ref->setAccessible(true);
 
         $result = $ref->invoke($ctrl, $export, '29/03/2026');
 
@@ -3673,7 +3660,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl = $this->makeController('GET', '/fr/mon-compte');
         $ref  = new \ReflectionMethod(AccountController::class, 'buildExportPdf');
-        $ref->setAccessible(true);
 
         $result = $ref->invoke($ctrl, $export, '29/03/2026');
 
@@ -3695,7 +3681,6 @@ class AccountControllerTest extends IntegrationTestCase
     {
         $ctrl = $this->makeController('GET', '/fr/mon-compte');
         $ref  = new \ReflectionMethod(AccountController::class, 'validateAndSaveCompany');
-        $ref->setAccessible(true);
 
         $errors = $ref->invoke($ctrl, 999999, '', null);
 
@@ -3907,7 +3892,6 @@ class AccountControllerTest extends IntegrationTestCase
 
         $ctrl = $this->makeController('GET', '/fr/mon-compte');
         $ref  = new \ReflectionMethod(AccountController::class, 'validateAndSaveCompany');
-        $ref->setAccessible(true);
 
         $errors = $ref->invoke($ctrl, $userId, 'Nouvelle Société SAS', '98765432109876');
 
@@ -4445,7 +4429,6 @@ class AccountControllerTest extends IntegrationTestCase
     public function testMaskEmailNormal(): void
     {
         $method = new \ReflectionMethod(AccountController::class, 'maskEmail');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $this->assertSame('j***@gmail.com', $method->invoke(null, 'jean@gmail.com'));
         $this->assertSame('j***@example.com', $method->invoke(null, 'jo@example.com'));
@@ -4457,7 +4440,6 @@ class AccountControllerTest extends IntegrationTestCase
     public function testMaskEmailNoAtSign(): void
     {
         $method = new \ReflectionMethod(AccountController::class, 'maskEmail');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $result = $method->invoke(null, 'invalidemail');
         $this->assertSame(str_repeat('*', strlen('invalidemail')), $result);
@@ -4469,7 +4451,6 @@ class AccountControllerTest extends IntegrationTestCase
     public function testMaskEmailAtSignAtStart(): void
     {
         $method = new \ReflectionMethod(AccountController::class, 'maskEmail');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $result = $method->invoke(null, '@domain.com');
         $this->assertStringContainsString('*', $result);

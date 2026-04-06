@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Service;
 
 use PHPMailer\PHPMailer\PHPMailer;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use Service\MailService;
@@ -15,6 +16,7 @@ use Service\MailService;
  * Couvre les branches FR/EN de sendInvoiceToClient ainsi que l'alerte IPN.
  * Le mailer PHPMailer est stubé pour éviter toute connexion SMTP réelle.
  */
+#[AllowMockObjectsWithoutExpectations]
 class MailServiceInvoiceTest extends TestCase
 {
     private function injectMockMailer(MailService $service): void
@@ -23,7 +25,6 @@ class MailServiceInvoiceTest extends TestCase
         $stub->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($service, $stub); // NOSONAR — test unitaire, accès privé délibéré
     }
 
@@ -90,7 +91,6 @@ class MailServiceInvoiceTest extends TestCase
         $mailerMock->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire
         $prop->setValue($service, $mailerMock); // NOSONAR — test unitaire
 
         $service->sendInvoiceToClient(
@@ -103,7 +103,6 @@ class MailServiceInvoiceTest extends TestCase
         );
 
         $subjectProp = new \ReflectionProperty(PHPMailer::class, 'Subject');
-        $subjectProp->setAccessible(true); // NOSONAR — test unitaire
         $this->assertStringContainsString('WEB-INVOICE-2026-0099', (string) $mailerMock->Subject);
     }
 
@@ -143,7 +142,6 @@ class MailServiceInvoiceTest extends TestCase
         $mailerMock->method('send')->willReturn(true);
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
-        $prop->setAccessible(true); // NOSONAR — test unitaire
         $prop->setValue($service, $mailerMock); // NOSONAR — test unitaire
 
         $service->sendIpnSignatureAlert('admin@example.com', '2026-04-05 10:00:00', '10.0.0.1');

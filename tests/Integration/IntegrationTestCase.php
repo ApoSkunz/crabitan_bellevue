@@ -37,7 +37,6 @@ abstract class IntegrationTestCase extends TestCase
     {
         $reflection = new \ReflectionClass(Database::class);
         $prop = $reflection->getProperty('instance');
-        $prop->setAccessible(true);
         $prop->setValue(null, null);
     }
 }

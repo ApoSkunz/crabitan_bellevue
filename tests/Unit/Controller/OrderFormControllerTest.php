@@ -29,7 +29,6 @@ class OrderFormControllerTest extends TestCase
         $dbMock->method('fetchOne')->willReturn(false);
 
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $this->instanceProp->setValue(null, $dbMock);
 
         $_SERVER['REQUEST_METHOD'] = 'GET';

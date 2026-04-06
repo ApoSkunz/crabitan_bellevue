@@ -37,7 +37,6 @@ class OrderControllerCheckoutTest extends TestCase
 
         $dbMock = $this->createStub(Database::class);
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $dbMock);
 
         $_COOKIE  = [];
@@ -281,7 +280,6 @@ class OrderControllerCheckoutTest extends TestCase
     public function testIsMainlandFranceZipAcceptsValidZip(): void
     {
         $method = new \ReflectionMethod(OrderController::class, 'isMainlandFranceZip');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI']    = '/fr/commande';
@@ -295,7 +293,6 @@ class OrderControllerCheckoutTest extends TestCase
     public function testIsMainlandFranceZipRejectsCorse(): void
     {
         $method = new \ReflectionMethod(OrderController::class, 'isMainlandFranceZip');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI']    = '/fr/commande';
@@ -307,7 +304,6 @@ class OrderControllerCheckoutTest extends TestCase
     public function testIsMainlandFranceZipRejectsDomTom(): void
     {
         $method = new \ReflectionMethod(OrderController::class, 'isMainlandFranceZip');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI']    = '/fr/commande';
@@ -321,7 +317,6 @@ class OrderControllerCheckoutTest extends TestCase
     public function testIsMainlandFranceZipAcceptsNonNumeric(): void
     {
         $method = new \ReflectionMethod(OrderController::class, 'isMainlandFranceZip');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI']    = '/fr/commande';
@@ -350,7 +345,6 @@ class OrderControllerCheckoutTest extends TestCase
         $ctrl = new OrderController(new Request());
 
         $method = new \ReflectionMethod(OrderController::class, 'enrichItems');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $result = $method->invoke($ctrl, [['wine_id' => 1, 'qty' => 2]]);
 
@@ -368,7 +362,6 @@ class OrderControllerCheckoutTest extends TestCase
         $ctrl = new OrderController(new Request());
 
         $method = new \ReflectionMethod(OrderController::class, 'enrichItems');
-        $method->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
 
         $result = $method->invoke($ctrl, [['wine_id' => 99, 'qty' => 1]]);
 

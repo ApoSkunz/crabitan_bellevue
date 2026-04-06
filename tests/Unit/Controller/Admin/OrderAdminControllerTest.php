@@ -7,6 +7,7 @@ namespace Tests\Unit\Controller\Admin;
 use Controller\Admin\OrderAdminController;
 use Core\Exception\HttpException;
 use Model\OrderModel;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use Service\MailService;
@@ -83,6 +84,7 @@ class TestableOrderAdminController extends OrderAdminController
  * Couvre les 4 actions : index, show, updateStatus, uploadInvoice, downloadInvoice.
  */
 // phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
+#[AllowMockObjectsWithoutExpectations]
 class OrderAdminControllerTest extends TestCase
 {
     private \ReflectionProperty $dbInstanceProp;
@@ -99,7 +101,6 @@ class OrderAdminControllerTest extends TestCase
 
         $dbMock = $this->createStub(\Core\Database::class);
         $this->dbInstanceProp = new \ReflectionProperty(\Core\Database::class, 'instance');
-        $this->dbInstanceProp->setAccessible(true); // NOSONAR — test unitaire
         $this->dbInstanceProp->setValue(null, $dbMock); // NOSONAR — test unitaire
 
         $_SESSION = ['csrf' => 'valid-csrf'];
@@ -139,7 +140,6 @@ class OrderAdminControllerTest extends TestCase
         \PHPUnit\Framework\MockObject\MockObject $mock
     ): void {
         $prop = new ReflectionProperty(OrderAdminController::class, 'orders');
-        $prop->setAccessible(true); // NOSONAR — test unitaire
         $prop->setValue($ctrl, $mock); // NOSONAR — test unitaire
     }
 

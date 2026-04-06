@@ -20,7 +20,6 @@ class SessionApiControllerTest extends TestCase
     protected function setUp(): void
     {
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
 
         $_COOKIE  = [];
         $_SESSION = [];

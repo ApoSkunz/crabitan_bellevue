@@ -28,7 +28,6 @@ class GoogleOAuthControllerCoverageTest extends TestCase
     {
         $dbMock = $this->createStub(Database::class);
         $this->dbInstanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->dbInstanceProp->setAccessible(true);
         $this->dbInstanceProp->setValue(null, $dbMock);
 
         $_SESSION = [];
@@ -64,7 +63,6 @@ class GoogleOAuthControllerCoverageTest extends TestCase
     private function callPrivate(GoogleOAuthController $ctrl, string $method, mixed ...$args): mixed
     {
         $m = new \ReflectionMethod(GoogleOAuthController::class, $method);
-        $m->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         return $m->invoke($ctrl, ...$args);
     }
 
@@ -80,7 +78,6 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         $ctrl = $this->makeController();
 
         $prop = new \ReflectionProperty(GoogleOAuthController::class, 'oauth');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($ctrl, $oauthMock);
 
         try {
@@ -171,7 +168,6 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         ]);
 
         $oauthProp = new \ReflectionProperty(GoogleOAuthController::class, 'oauth');
-        $oauthProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $oauthProp->setValue($ctrl, $oauthMock);
 
         $accountsMock = $this->createStub(AccountModel::class);
@@ -180,14 +176,12 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         // updateLang() et markAsConnected() retournent void — createStub les gère sans configuration
 
         $accountsProp = new \ReflectionProperty(GoogleOAuthController::class, 'accounts');
-        $accountsProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $accountsProp->setValue($ctrl, $accountsMock);
 
         $connsMock = $this->createStub(ConnectionModel::class);
         // create() retourne void — createStub le gère sans configuration
 
         $connsProp = new \ReflectionProperty(GoogleOAuthController::class, 'connections');
-        $connsProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $connsProp->setValue($ctrl, $connsMock);
 
         try {
@@ -221,7 +215,6 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         ]);
 
         $oauthProp = new \ReflectionProperty(GoogleOAuthController::class, 'oauth');
-        $oauthProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $oauthProp->setValue($ctrl, $oauthMock);
 
         $accountsMock = $this->createStub(AccountModel::class);
@@ -231,12 +224,10 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         // updateLang et markAsConnected retournent void — createStub les gère sans configuration
 
         $accountsProp = new \ReflectionProperty(GoogleOAuthController::class, 'accounts');
-        $accountsProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $accountsProp->setValue($ctrl, $accountsMock);
 
         $connsMock = $this->createStub(ConnectionModel::class);
         $connsProp = new \ReflectionProperty(GoogleOAuthController::class, 'connections');
-        $connsProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $connsProp->setValue($ctrl, $connsMock);
 
         try {
@@ -268,7 +259,6 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         ]);
 
         $oauthProp = new \ReflectionProperty(GoogleOAuthController::class, 'oauth');
-        $oauthProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $oauthProp->setValue($ctrl, $oauthMock);
 
         $accountsMock = $this->createStub(AccountModel::class);
@@ -280,12 +270,10 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         // reactivate() et linkGoogleId() retournent void — createStub les gère sans configuration
 
         $accountsProp = new \ReflectionProperty(GoogleOAuthController::class, 'accounts');
-        $accountsProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $accountsProp->setValue($ctrl, $accountsMock);
 
         $connsMock = $this->createStub(ConnectionModel::class);
         $connsProp = new \ReflectionProperty(GoogleOAuthController::class, 'connections');
-        $connsProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $connsProp->setValue($ctrl, $connsMock);
 
         try {
@@ -315,7 +303,6 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         ]);
 
         $oauthProp = new \ReflectionProperty(GoogleOAuthController::class, 'oauth');
-        $oauthProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $oauthProp->setValue($ctrl, $oauthMock);
 
         $accountsMock = $this->createStub(AccountModel::class);
@@ -323,7 +310,6 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         $accountsMock->method('findByEmail')->willReturn(['id' => 7, 'email' => 'existing@example.com']);
 
         $accountsProp = new \ReflectionProperty(GoogleOAuthController::class, 'accounts');
-        $accountsProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $accountsProp->setValue($ctrl, $accountsMock);
 
         try {
@@ -356,7 +342,6 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         ]);
 
         $oauthProp = new \ReflectionProperty(GoogleOAuthController::class, 'oauth');
-        $oauthProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $oauthProp->setValue($ctrl, $oauthMock);
 
         $accountsMock = $this->createStub(AccountModel::class);
@@ -367,14 +352,12 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         // updateLang() et markAsConnected() retournent void — createStub les gère sans configuration
 
         $accountsProp = new \ReflectionProperty(GoogleOAuthController::class, 'accounts');
-        $accountsProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $accountsProp->setValue($ctrl, $accountsMock);
 
         $connsMock = $this->createStub(ConnectionModel::class);
         // create() retourne void — createStub le gère sans configuration
 
         $connsProp = new \ReflectionProperty(GoogleOAuthController::class, 'connections');
-        $connsProp->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $connsProp->setValue($ctrl, $connsMock);
 
         try {

@@ -23,7 +23,6 @@ class GoogleOAuthControllerHelperTest extends TestCase
     {
         $dbMock = $this->createStub(Database::class);
         $this->dbInstanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->dbInstanceProp->setAccessible(true);
         $this->dbInstanceProp->setValue(null, $dbMock);
 
         $_SESSION = [];
@@ -55,7 +54,6 @@ class GoogleOAuthControllerHelperTest extends TestCase
     private function callPrivate(GoogleOAuthController $ctrl, string $method, mixed ...$args): mixed
     {
         $m = new \ReflectionMethod(GoogleOAuthController::class, $method);
-        $m->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         return $m->invoke($ctrl, ...$args);
     }
 
@@ -195,7 +193,6 @@ class GoogleOAuthControllerHelperTest extends TestCase
         $oauthMock->method('exchangeCode')->willThrowException(new GoogleOAuthException('failed'));
 
         $prop = new \ReflectionProperty(GoogleOAuthController::class, 'oauth');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($ctrl, $oauthMock);
 
         try {

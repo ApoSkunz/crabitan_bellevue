@@ -23,7 +23,6 @@ class AuthControllerDeriveDeviceNameTest extends TestCase
     {
         $dbMock = $this->createStub(Database::class);
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $dbMock);
 
         $_COOKIE  = [];
@@ -34,7 +33,6 @@ class AuthControllerDeriveDeviceNameTest extends TestCase
         $this->controller = new AuthController(new Request());
 
         $this->method = new \ReflectionMethod(AuthController::class, 'deriveDeviceName');
-        $this->method->setAccessible(true);
     }
 
     protected function tearDown(): void

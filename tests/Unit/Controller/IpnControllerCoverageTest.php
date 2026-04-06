@@ -9,6 +9,7 @@ use Core\Exception\HttpException;
 use Model\CartModel;
 use Model\OrderModel;
 use Model\PaymentIntentModel;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Service\MailService;
 use Service\PaymentService;
@@ -22,6 +23,7 @@ use Service\PaymentService;
  *  - Paiement accepté + erreur lors de l'envoi des emails de confirmation
  *  - Erreur inattendue non-HttpException → catch global → 500 ERROR
  */
+#[AllowMockObjectsWithoutExpectations]
 class IpnControllerCoverageTest extends TestCase
 {
     // ================================================================

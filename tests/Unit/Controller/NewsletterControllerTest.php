@@ -8,6 +8,7 @@ use Controller\NewsletterController;
 use Core\Database;
 use Core\Exception\HttpException;
 use Core\Request;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -15,6 +16,7 @@ use PHPUnit\Framework\TestCase;
  *
  * La Database est mockée — aucune connexion BDD réelle requise.
  */
+#[AllowMockObjectsWithoutExpectations]
 class NewsletterControllerTest extends TestCase
 {
     private \ReflectionProperty $instanceProp;
@@ -26,7 +28,6 @@ class NewsletterControllerTest extends TestCase
         $dbMock->method('fetchAll')->willReturn([]);
 
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $dbMock);
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
@@ -171,7 +172,6 @@ class NewsletterControllerTest extends TestCase
         $serviceMock->expects($this->once())->method('subscribe');
 
         $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($controller, $serviceMock);
 
         ob_start();
@@ -199,7 +199,6 @@ class NewsletterControllerTest extends TestCase
             ->willThrowException(new \Core\Exception\NewsletterException('already_confirmed'));
 
         $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($controller, $serviceMock);
 
         ob_start();
@@ -227,7 +226,6 @@ class NewsletterControllerTest extends TestCase
             ->willThrowException(new \Core\Exception\NewsletterException('some_other_error'));
 
         $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($controller, $serviceMock);
 
         ob_start();
@@ -253,7 +251,6 @@ class NewsletterControllerTest extends TestCase
         $serviceMock->expects($this->once())->method('confirmSubscription');
 
         $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($controller, $serviceMock);
 
         ob_start();
@@ -277,7 +274,6 @@ class NewsletterControllerTest extends TestCase
             ->willThrowException(new \Core\Exception\NewsletterException('expired'));
 
         $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
-        $prop->setAccessible(true); // NOSONAR — test unitaire, accès privé délibéré
         $prop->setValue($controller, $serviceMock);
 
         ob_start();

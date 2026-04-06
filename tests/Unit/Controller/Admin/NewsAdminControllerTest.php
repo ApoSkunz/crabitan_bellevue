@@ -27,14 +27,12 @@ class NewsAdminControllerTest extends TestCase
 
         $dbMock = $this->createStub(\Core\Database::class);
         $this->instanceProp = new \ReflectionProperty(\Core\Database::class, 'instance');
-        $this->instanceProp->setAccessible(true);
         $this->instanceProp->setValue(null, $dbMock);
 
         $this->generateSlug = new \ReflectionMethod(
             \Controller\Admin\NewsAdminController::class,
             'generateSlug'
         );
-        $this->generateSlug->setAccessible(true);
     }
 
     protected function tearDown(): void

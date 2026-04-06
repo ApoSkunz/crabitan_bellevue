@@ -27,7 +27,6 @@ class RouterTest extends TestCase
         // Vérifie que la route est enregistrée (via réflexion)
         $reflection = new \ReflectionClass($router);
         $prop = $reflection->getProperty('routes');
-        $prop->setAccessible(true);
         $routes = $prop->getValue($router);
 
         $this->assertCount(1, $routes);
@@ -43,7 +42,6 @@ class RouterTest extends TestCase
 
         $reflection = new \ReflectionClass($router);
         $prop = $reflection->getProperty('routes');
-        $prop->setAccessible(true);
         $routes = $prop->getValue($router);
 
         $pattern = $routes[0]['pattern'];
@@ -60,7 +58,6 @@ class RouterTest extends TestCase
 
         $reflection = new \ReflectionClass($router);
         $prop = $reflection->getProperty('routes');
-        $prop->setAccessible(true);
         $routes = $prop->getValue($router);
 
         $this->assertSame('POST', $routes[0]['method']);
@@ -75,7 +72,6 @@ class RouterTest extends TestCase
 
         $reflection = new \ReflectionClass($router);
         $prop = $reflection->getProperty('routes');
-        $prop->setAccessible(true);
         $routes = $prop->getValue($router);
 
         $this->assertCount(3, $routes);
@@ -88,7 +84,6 @@ class RouterTest extends TestCase
 
         $reflection = new \ReflectionClass($router);
         $prop = $reflection->getProperty('routes');
-        $prop->setAccessible(true);
         $routes = $prop->getValue($router);
 
         $pattern = $routes[0]['pattern'];

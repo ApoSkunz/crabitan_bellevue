@@ -9,6 +9,7 @@ use Core\Exception\HttpException;
 use Model\CartModel;
 use Model\OrderModel;
 use Model\PaymentIntentModel;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Service\MailService;
 use Service\PaymentService;
@@ -19,6 +20,7 @@ use Service\PaymentService;
  * Couvre : vérification de signature, idempotence sur référence dupliquée,
  * paiement refusé, création de commande en cas de succès, intent introuvable.
  */
+#[AllowMockObjectsWithoutExpectations]
 class IpnControllerTest extends TestCase
 {
     // ================================================================
@@ -234,7 +236,7 @@ class IpnControllerTest extends TestCase
 
         $paymentMock->method('verifyIpnSignature')->willReturn(true);
         $orderMock->method('findByReferenceOnly')->willReturn(null);
-        $intentsMock->method('findByReference')->with('WEB-CB-AABBCCDD-2026')->willReturn($snapshot);
+        $intentsMock->method('findByReference')->willReturn($snapshot);
         $intentsMock->expects($this->once())->method('delete')->with('WEB-CB-AABBCCDD-2026');
 
         $orderMock->expects($this->once())
