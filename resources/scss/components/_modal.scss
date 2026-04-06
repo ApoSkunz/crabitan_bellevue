@@ -434,6 +434,22 @@
         text-align: center;
         text-decoration: none;
     }
+
+    &__resend-link {
+        border-top: 1px solid var(--color-border);
+        padding-top: 0.875rem;
+        margin-top: 0.375rem;
+        text-align: center;
+
+        button {
+            font-size: 0.85rem;
+            color: var(--color-text);
+            text-align: center;
+            margin-top: 0;
+
+            &:hover { color: var(--color-gold); }
+        }
+    }
 }
 
 // ---- Register modal ----

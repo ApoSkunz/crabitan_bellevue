@@ -277,27 +277,23 @@ document.addEventListener('DOMContentLoaded', function () {
     var resendBackBtn        = document.getElementById('resend-activation-back-btn');
     if (!resendPanel || !loginPanel) return;
 
+    var forgotPanel = document.getElementById('forgot-panel');
     function showResendPanel() {
         loginPanel.hidden = true;
         resendPanel.hidden = false;
+        if (forgotPanel) forgotPanel.hidden = true;
         var emailInput = resendPanel.querySelector('input[type="email"]');
         if (emailInput) emailInput.focus();
     }
     function showLoginPanel() {
         resendPanel.hidden = true;
         loginPanel.hidden = false;
+        if (forgotPanel) forgotPanel.hidden = true;
     }
     if (resendBtn) resendBtn.addEventListener('click', showResendPanel);
-    if (resendBackBtn) resendBackBtn.addEventListener('click', showLoginPanel);
+    // resend-activation-back-btn géré par main.js (accès à showLoginPanel + timer)
 
-    // Auto-open si la réponse de renvoi vient d'arriver
-    if (window.__resendActivationSuccess) {
-        if (window.__authModalError === false) {
-            var trigger = document.getElementById('login-modal-trigger');
-            if (trigger) trigger.click();
-        }
-        showResendPanel();
-    }
+    // Auto-open géré par main.js (initLoginModal) via window.__resendActivationSuccess
 });
 </script>
 <style>
@@ -447,14 +443,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             <!-- Panel renvoi activation -->
             <div id="resend-activation-panel" hidden>
-                <button type="button" id="resend-activation-back-btn" class="login-modal__back">
-                    &#8592; <?= htmlspecialchars(__('btn.back')) ?>
-                </button>
                 <?php if ($resendActivationSuccess) : ?>
+                    <button type="button" id="resend-activation-back-btn" class="login-modal__back">
+                        &#8592; <?= htmlspecialchars(__('btn.back')) ?>
+                    </button>
                     <div class="alert alert--success" role="alert" aria-live="polite">
                         <?= htmlspecialchars(__('auth.resend_activation_success')) ?>
                     </div>
                 <?php else : ?>
+                    <button type="button" id="resend-activation-back-btn" class="login-modal__back">
+                        &#8592; <?= htmlspecialchars(__('btn.back')) ?>
+                    </button>
                     <p class="login-modal__forgot-desc"><?= htmlspecialchars(__('auth.resend_activation_desc')) ?></p>
                     <form method="POST"
                           action="/<?= htmlspecialchars($navLang) ?>/renvoyer-activation"
@@ -473,14 +472,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             <!-- Panel mot de passe oublié -->
             <div id="forgot-panel" hidden>
-                <button type="button" id="forgot-back-btn" class="login-modal__back">
-                    &#8592; <?= htmlspecialchars(__('btn.back')) ?>
-                </button>
                 <?php if ($forgotSuccess) : ?>
+                    <button type="button" id="forgot-back-btn" class="login-modal__back">
+                        &#8592; <?= htmlspecialchars(__('btn.back')) ?>
+                    </button>
                     <div class="alert alert--success" role="alert" aria-live="polite">
                         <?= htmlspecialchars(__('auth.reset_email_sent')) ?>
                     </div>
                 <?php else : ?>
+                    <button type="button" id="forgot-back-btn" class="login-modal__back">
+                        &#8592; <?= htmlspecialchars(__('btn.back')) ?>
+                    </button>
                     <p class="login-modal__forgot-desc"><?= htmlspecialchars(__('auth.forgot_instructions')) ?></p>
                     <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/mot-de-passe-oublie"
                           id="forgot-modal-form" class="login-modal__form">
