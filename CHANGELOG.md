@@ -2,6 +2,28 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.45.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.44.0...v0.45.0) (2026-04-06)
+
+
+### Bug Fixes
+
+* **age-gate:** exempter /fiche-technique du check global age gate ([e2c6456](https://github.com/ApoSkunz/crabitan_bellevue/commit/e2c6456fc8dc93f499b4fbce6b85e680fdd93ea3))
+* **pdf:** 429 page visuelle + mention Loi Evin footer ([a2b3b2f](https://github.com/ApoSkunz/crabitan_bellevue/commit/a2b3b2ff8904acb1182e2c5de66a37469456fbcc))
+* **sonar:** corriger 5 issues PR [#75](https://github.com/ApoSkunz/crabitan_bellevue/issues/75) ([70b3a5a](https://github.com/ApoSkunz/crabitan_bellevue/commit/70b3a5ababc46f9457d729a85e790bc1760151c2))
+* **tests:** TI WineController — supprimer tests stripAlpha/buildPdfFields/convertPngToJpg ([15b14d2](https://github.com/ApoSkunz/crabitan_bellevue/commit/15b14d214673de2fc6238150320a70fe323b4e7f))
+
+
+### Features
+
+* **pdf:** age gate requis + 429 avec nom du vin et délai ([9283098](https://github.com/ApoSkunz/crabitan_bellevue/commit/9283098b0c1ad23fcddc11e4bcec6efd93be1c7a))
+* **pdf:** rate limiting fiche technique PDF — 10 req/IP/vin/heure ([daee5bf](https://github.com/ApoSkunz/crabitan_bellevue/commit/daee5bfb0988e198e281241850e536b9b59debd3))
+* **pdf:** refonte professionnelle fiche technique PDF (TCPDF) ([044b7bd](https://github.com/ApoSkunz/crabitan_bellevue/commit/044b7bdf6fdecef950fe60f63ea1cdb3f58a93cb))
+
+
+### Reverts
+
+* **pdf:** supprimer le check age gate sur la fiche technique ([0d7f3aa](https://github.com/ApoSkunz/crabitan_bellevue/commit/0d7f3aa8bab2ace05b7f164ca39520a2895dc534))
+
 # [0.44.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.43.0...v0.44.0) (2026-04-06)
 
 
