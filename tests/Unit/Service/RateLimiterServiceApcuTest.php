@@ -4,13 +4,15 @@
  * Tests unitaires pour les chemins APCu de RateLimiterService.
  *
  * Ce fichier utilise la syntaxe multi-namespace PHP pour définir des fonctions
- * de substitution `apcu_*` dans le namespace `Service`. PHP résout d'abord les
- * fonctions dans le namespace courant avant de remonter au namespace global :
- * les appels `apcu_fetch()` / `apcu_store()` / `apcu_delete()` de RateLimiterService
+ * de substitution `apcu_fetch`, `apcu_store`, `apcu_delete` dans le namespace
+ * `Service`. PHP résout d'abord les fonctions dans le namespace courant avant de
+ * remonter au namespace global : les appels sans `\` de RateLimiterService
  * utilisent donc nos implémentations en mémoire, sans besoin de l'extension APCu.
  *
- * Les tests utilisent une sous-classe qui force isApcuAvailable() = true pour
- * activer les branches APCu du service.
+ * Important : `apcu_enabled()` n'est PAS redéfinie ici afin d'éviter que
+ * `function_exists('apcu_enabled')` retourne true dans d'autres suites de test
+ * chargées dans le même processus PHPUnit. La sous-classe override `isApcuAvailable()`
+ * directement, ce qui suffit pour activer les branches APCu du service.
  */
 
 declare(strict_types=1);
@@ -26,16 +28,6 @@ namespace Service {
      * @var array<string, mixed>
      */
     $GLOBALS['_test_apcu_store'] = [];
-
-    /**
-     * Substitut de apcu_enabled() — toujours activé dans ce contexte de test.
-     *
-     * @return bool
-     */
-    function apcu_enabled(): bool
-    {
-        return true;
-    }
 
     /**
      * Substitut de apcu_fetch().

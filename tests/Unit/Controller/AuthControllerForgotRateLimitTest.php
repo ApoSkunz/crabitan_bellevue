@@ -9,6 +9,7 @@ use Core\Database;
 use Core\Exception\HttpException;
 use Core\Request;
 use PHPUnit\Framework\TestCase;
+use Service\RateLimiterService;
 
 /**
  * Tests unitaires pour AuthController::forgot() — rate limiting et branches de couverture.
@@ -59,6 +60,26 @@ class AuthControllerForgotRateLimitTest extends TestCase
     }
 
     /**
+     * Crée un AuthController avec un RateLimiterService forcé en mode session,
+     * indépendamment de la disponibilité d'APCu sur le runner CI.
+     *
+     * @return AuthController
+     */
+    private function makeSessionController(): AuthController
+    {
+        $controller = new AuthController(new Request());
+        $prop = new \ReflectionProperty(AuthController::class, 'rateLimiter');
+        $prop->setAccessible(true);
+        $prop->setValue($controller, new class extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+        });
+        return $controller;
+    }
+
+    /**
      * @param string $email Email à soumettre
      * @return ?HttpException Exception capturée (redirect)
      */
@@ -67,7 +88,7 @@ class AuthControllerForgotRateLimitTest extends TestCase
         $_POST  = ['csrf_token' => 'valid-csrf', 'email' => $email];
         $caught = null;
         try {
-            (new AuthController(new Request()))->forgot(['lang' => 'fr']);
+            $this->makeSessionController()->forgot(['lang' => 'fr']);
         } catch (HttpException $e) {
             $caught = $e;
         }
@@ -125,7 +146,7 @@ class AuthControllerForgotRateLimitTest extends TestCase
         $_POST  = ['csrf_token' => 'wrong-token', 'email' => 'user@example.com'];
         $caught = null;
         try {
-            (new AuthController(new Request()))->forgot(['lang' => 'fr']);
+            $this->makeSessionController()->forgot(['lang' => 'fr']);
         } catch (HttpException $e) {
             $caught = $e;
         }

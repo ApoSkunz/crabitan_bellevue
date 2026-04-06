@@ -9,6 +9,7 @@ use Core\Database;
 use Core\Exception\HttpException;
 use Core\Request;
 use PHPUnit\Framework\TestCase;
+use Service\RateLimiterService;
 
 /**
  * Tests unitaires pour AuthController::resendActivation().
@@ -59,6 +60,26 @@ class AuthControllerResendActivationTest extends TestCase
     }
 
     /**
+     * Crée un AuthController avec un RateLimiterService forcé en mode session,
+     * indépendamment de la disponibilité d'APCu sur le runner CI.
+     *
+     * @return AuthController
+     */
+    private function makeSessionController(): AuthController
+    {
+        $controller = new AuthController(new Request());
+        $prop = new \ReflectionProperty(AuthController::class, 'rateLimiter');
+        $prop->setAccessible(true);
+        $prop->setValue($controller, new class extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+        });
+        return $controller;
+    }
+
+    /**
      * @param array<string, string> $extra Surcharge de $_POST
      */
     private function invoke(array $extra = []): ?HttpException
@@ -66,7 +87,7 @@ class AuthControllerResendActivationTest extends TestCase
         $_POST  = array_merge(['csrf_token' => 'valid-csrf', 'email' => 'user@example.com'], $extra);
         $caught = null;
         try {
-            (new AuthController(new Request()))->resendActivation(['lang' => 'fr']);
+            $this->makeSessionController()->resendActivation(['lang' => 'fr']);
         } catch (HttpException $e) {
             $caught = $e;
         }
