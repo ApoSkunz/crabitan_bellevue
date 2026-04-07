@@ -87,11 +87,11 @@ class AdminGestionAdminsControllerTest extends TestCase
         (new AdminGestionAdminsController(new Request()))->index([]);
     }
 
-    public function testIndexAborts403ForSimpleAdmin(): void
+    public function testIndexAborts404ForSimpleAdmin(): void
     {
         $this->withActiveSession(1, 'admin');
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(403);
+        $this->expectExceptionCode(404);
         (new AdminGestionAdminsController(new Request()))->index([]);
     }
 
@@ -147,13 +147,13 @@ class AdminGestionAdminsControllerTest extends TestCase
         (new AdminGestionAdminsController(new Request()))->block(['id' => '0']);
     }
 
-    public function testRequireSuperAdminAborts403ForAdmin(): void
+    public function testRequireSuperAdminAborts404ForAdmin(): void
     {
         $this->withActiveSession(1, 'admin');
         $ref  = new \ReflectionMethod(\Controller\Admin\AdminController::class, 'requireSuperAdmin');
         $ctrl = new AdminGestionAdminsController(new Request());
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(403);
+        $this->expectExceptionCode(404);
         $ref->invoke($ctrl);
     }
 }
