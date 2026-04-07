@@ -33,6 +33,23 @@ abstract class AdminController extends Controller
         ];
     }
 
+    /**
+     * Vérifie le JWT admin ET que le rôle est super_admin.
+     * Renvoie une 403 sinon.
+     *
+     * @return array{id: int, role: string, name: string}
+     */
+    protected function requireSuperAdmin(): array
+    {
+        $adminUser = $this->requireAdmin();
+
+        if (($adminUser['role'] ?? '') !== 'super_admin') {
+            $this->abort(403, 'Réservé au super administrateur.');
+        }
+
+        return $adminUser;
+    }
+
     protected function verifyCsrf(): bool
     {
         $token = $this->request->post('csrf_token', '');
