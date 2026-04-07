@@ -24,7 +24,7 @@ class AdminMiddlewareTest extends TestCase
     {
         $_COOKIE['auth_token'] = Jwt::generate(1, 'admin');
 
-        $payload = AdminMiddleware::handle(fn() => true);
+        $payload = AdminMiddleware::handle(fn() => true, fn() => false);
 
         $this->assertSame('admin', $payload['role']);
     }
@@ -33,7 +33,7 @@ class AdminMiddlewareTest extends TestCase
     {
         $_COOKIE['auth_token'] = Jwt::generate(2, 'super_admin');
 
-        $payload = AdminMiddleware::handle(fn() => true);
+        $payload = AdminMiddleware::handle(fn() => true, fn() => false);
 
         $this->assertSame('super_admin', $payload['role']);
     }
