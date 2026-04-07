@@ -23,7 +23,7 @@ if (APP_ENV === 'development') {
 }
 
 // Langues supportées
-define('SUPPORTED_LANGS', ['fr', 'en']);
+defined('SUPPORTED_LANGS') || define('SUPPORTED_LANGS', ['fr', 'en']);
 
 // Détection langue navigateur : fr si le browser est en français, sinon en
 $_detectedLang = 'en';
@@ -35,7 +35,7 @@ foreach ($_langMatches[1] as $_l) {
         break;
     }
 }
-define('DEFAULT_LANG', $_detectedLang);
+defined('DEFAULT_LANG') || define('DEFAULT_LANG', $_detectedLang);
 unset($_detectedLang, $_acceptLang, $_langMatches, $_l);
 
 // Chargement de la langue par défaut (surchargée par le Router si {lang} dans l'URL)
