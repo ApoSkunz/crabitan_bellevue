@@ -634,4 +634,28 @@ CREATE TABLE `rgpd_requests` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Demandes RGPD Art. 15-21 — délai légal 1 mois (Art. 12)';
 
+-- ============================================================
+-- Table : rgpd_export_logs
+-- Journal des exports Art. 20 déclenchés par les utilisateurs.
+-- Append-only — aucune suppression manuelle autorisée.
+-- Rétention 3 ans (accountability Art. 5.2 RGPD).
+-- ============================================================
+DROP TABLE IF EXISTS `rgpd_export_logs`;
+CREATE TABLE `rgpd_export_logs` (
+  `id`           INT           NOT NULL AUTO_INCREMENT,
+  `user_id`      INT           DEFAULT NULL              COMMENT 'FK accounts.id — nullable si compte supprimé',
+  `email`        VARCHAR(255)  NOT NULL                  COMMENT 'Email dénormalisé (consultation post-suppression)',
+  `ip`           VARCHAR(45)   DEFAULT NULL              COMMENT 'IP de la requête (IPv4/IPv6)',
+  `filename`     VARCHAR(255)  NOT NULL                  COMMENT 'Nom du fichier généré',
+  `requested_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at`   DATETIME      NOT NULL                  COMMENT 'Date de purge automatique (rétention 3 ans)',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_rgpd_export_logs_user`
+    FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE SET NULL,
+  INDEX `idx_rgpd_export_logs_user_id`      (`user_id`),
+  INDEX `idx_rgpd_export_logs_requested_at` (`requested_at`),
+  INDEX `idx_rgpd_export_logs_expires_at`   (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Journal exports RGPD Art. 20 — accountability Art. 5.2 — rétention 3 ans';
+
 COMMIT;
