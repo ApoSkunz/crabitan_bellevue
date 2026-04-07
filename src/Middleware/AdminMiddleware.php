@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Middleware;
 
+use Core\CookieHelper;
 use Core\Database;
 use Core\Response;
 
@@ -37,7 +38,10 @@ class AdminMiddleware
         };
 
         if ($userId > 0 && $checker($userId)) {
-            Response::abort(403, 'Votre compte administrateur a été bloqué. Contactez le super administrateur.');
+            CookieHelper::clear();
+            $lang = defined('DEFAULT_LANG') ? DEFAULT_LANG : 'fr';
+            $_SESSION['flash']['modal_error'] = 'Votre compte administrateur a été bloqué. Contactez votre super administrateur.';
+            Response::redirect('/' . $lang . '/connexion');
         }
 
         return $payload;
