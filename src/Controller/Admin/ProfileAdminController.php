@@ -11,6 +11,7 @@ use Model\ConnectionModel;
 use Model\TrustedDeviceModel;
 use Service\PasswordValidator;
 use Service\RateLimiterService;
+use Service\SecurityAlertService;
 
 class ProfileAdminController extends AdminController
 {
@@ -18,13 +19,18 @@ class ProfileAdminController extends AdminController
     private const SECURITY_URL = '/admin/securite';
 
     /** Rate limiting changement de mot de passe admin : 1 tentative / jour / IP. */
-    private const MAX_ADMIN_PW_IP  = 1;
-    private const WINDOW_ADMIN_PW  = 86400;
+    private const MAX_ADMIN_PW_IP      = 1;
+    private const WINDOW_ADMIN_PW      = 86400;
+
+    /** Rate limiting supplémentaire : max 2 changements de mdp / 24h / compte admin. */
+    private const MAX_ADMIN_PW_ACCOUNT = 2;
+    private const WINDOW_ADMIN_PW_ACC  = 86400;
 
     private AccountModel $accounts;
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
     private RateLimiterService $rateLimiter;
+    private SecurityAlertService $securityAlert;
 
     public function __construct(\Core\Request $request)
     {
@@ -33,6 +39,7 @@ class ProfileAdminController extends AdminController
         $this->connections    = new ConnectionModel();
         $this->trustedDevices = new TrustedDeviceModel();
         $this->rateLimiter    = new RateLimiterService();
+        $this->securityAlert  = new SecurityAlertService();
     }
 
     // ----------------------------------------------------------------
@@ -94,6 +101,14 @@ class ProfileAdminController extends AdminController
         }
         $this->rateLimiter->recordAttempt($rlKey, self::WINDOW_ADMIN_PW);
 
+        // Rate limiting supplémentaire : max 2 changements de mdp / 24h / compte admin
+        $rlAccountKey = 'admin_change_pw_account:' . $adminUser['id'];
+        if (!$this->rateLimiter->checkLimit($rlAccountKey, self::MAX_ADMIN_PW_ACCOUNT, self::WINDOW_ADMIN_PW_ACC)) {
+            $wait = (int) ceil($this->rateLimiter->getRetryAfter($rlAccountKey) / 3600);
+            $this->flash('error', sprintf(__('auth.too_many_attempts_hours'), max(1, $wait)));
+            Response::redirect(self::SECURITY_URL);
+        }
+
         $current = $this->request->post('current_password', '');
         $new     = $this->request->post('new_password', '');
         $confirm = $this->request->post('new_password_confirm', '');
@@ -120,7 +135,17 @@ class ProfileAdminController extends AdminController
             Response::redirect(self::SECURITY_URL);
         }
 
+        $this->rateLimiter->recordAttempt($rlAccountKey, self::WINDOW_ADMIN_PW_ACC);
         $this->accounts->updatePassword($adminUser['id'], password_hash($new, PASSWORD_BCRYPT));
+
+        // Alerte email : changement de mot de passe admin (IP + user-agent)
+        // $account est garanti non-null ici (la branche !$account redirige plus haut)
+        $this->securityAlert->sendPasswordChangeAlert(
+            $account,
+            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+        );
+
         $this->flash('success', __('account.password_updated'));
         Response::redirect(self::SECURITY_URL);
     }

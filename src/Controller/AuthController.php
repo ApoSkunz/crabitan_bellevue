@@ -17,6 +17,7 @@ use Model\DeviceConfirmTokenModel;
 use Service\MailService;
 use Service\PasswordValidator;
 use Service\RateLimiterService;
+use Service\SecurityAlertService;
 
 /**
  * Gère l'authentification des utilisateurs : connexion, déconnexion,
@@ -69,6 +70,7 @@ class AuthController extends Controller
     private TrustedDeviceModel $trustedDevices;
     private DeviceConfirmTokenModel $deviceConfirmTokens;
     private RateLimiterService $rateLimiter;
+    private SecurityAlertService $securityAlert;
 
     /**
      * Initialise les dépendances du contrôleur.
@@ -84,6 +86,7 @@ class AuthController extends Controller
         $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
         $this->trustedDevices      = new TrustedDeviceModel();
         $this->rateLimiter         = new RateLimiterService();
+        $this->securityAlert       = new SecurityAlertService();
     }
 
     // ----------------------------------------------------------------
@@ -200,6 +203,13 @@ class AuthController extends Controller
                 }
             }
 
+            // Alerte sécurité admin : 3 échecs en 5 minutes
+            if ($account && in_array($account['role'] ?? '', ['admin', 'super_admin'], true)) {
+                if ($this->securityAlert->shouldAlertOnFailedLogins((int) $account['id'])) {
+                    $this->securityAlert->sendAdminLoginAlert($account, $_SERVER['REMOTE_ADDR'] ?? 'unknown');
+                }
+            }
+
             $this->flash('modal_error', __('auth.invalid_credentials'));
             Response::redirect($safeBack);
         }
@@ -230,6 +240,9 @@ class AuthController extends Controller
         // Connexion réussie — réinitialiser les compteurs
         $this->rateLimiter->reset($ipKey);
         $this->rateLimiter->reset('account_lockout:' . (int) $account['id']);
+        if (in_array($account['role'] ?? '', ['admin', 'super_admin'], true)) {
+            $this->securityAlert->resetFailedLoginCount((int) $account['id']);
+        }
 
         $deviceToken = $this->resolveDeviceToken();
 
