@@ -142,6 +142,19 @@ class AdminGestionAdminsController extends AdminController
         }
 
         $this->accounts->unblockAccount($targetId);
+
+        $unblockerName = (string) ($adminUser['name'] ?? 'Super Admin');
+        try {
+            (new MailService())->sendAdminAccountUnblocked(
+                (string) $target['email'],
+                trim(($target['firstname'] ?? '') . ' ' . ($target['lastname'] ?? '')) ?: (string) $target['email'],
+                (string) ($target['lang'] ?? 'fr'),
+                (string) $unblockerName
+            );
+        } catch (\Throwable) {
+            // Mail non bloquant
+        }
+
         $this->flash('success', sprintf('Le compte %s a été débloqué.', $target['email']));
         Response::redirect(self::ADMINS_URL);
     }

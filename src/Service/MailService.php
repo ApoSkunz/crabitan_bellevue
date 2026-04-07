@@ -1747,7 +1747,8 @@ INNER;
             }
             $action = $targetName !== null
                 ? "Contactez <strong>" . htmlspecialchars($targetName, ENT_QUOTES) . "</strong> afin d'être sûr de la tentative de connexion."
-                : "Si vous êtes à l'origine de ces tentatives, vous pouvez ignorer ce message.<br>Dans le cas contraire, changez immédiatement votre mot de passe et signalez l'incident.";
+                : "Si vous êtes à l'origine de ces tentatives, vous pouvez ignorer ce message.<br>"
+                . "Dans le cas contraire, changez immédiatement votre mot de passe et signalez l'incident.";
             $message = "{$intro}<br><br>"
                 . "<strong>Date :</strong> {$safeDate}<br>"
                 . "<strong>IP source :</strong> {$safeIp}<br><br>"
@@ -1767,7 +1768,8 @@ INNER;
                 $intro = "Multiple suspicious login attempts were detected on your admin account.";
             }
             $action = $targetName !== null
-                ? "Please contact <strong>" . htmlspecialchars($targetName, ENT_QUOTES) . "</strong> to confirm whether the login attempt was legitimate."
+                ? "Please contact <strong>" . htmlspecialchars($targetName, ENT_QUOTES)
+                    . "</strong> to confirm whether the login attempt was legitimate."
                 : "If you made these attempts, you can ignore this message.<br>Otherwise, change your password immediately and report the incident.";
             $message = "{$intro}<br><br>"
                 . "<strong>Date:</strong> {$safeDate}<br>"
@@ -1875,16 +1877,50 @@ INNER;
             $subject = '[ACTION] Votre compte administrateur a été bloqué — Crabitan Bellevue';
             $message = "Votre compte administrateur a été bloqué le <strong>{$safeDate}</strong> "
                 . "par <strong>{$safeBlocker}</strong>.<br><br>"
-                . "Vous ne pouvez plus accéder au back-office. "
-                . "Si vous pensez qu'il s'agit d'une erreur, contactez votre super administrateur.";
+                . "Vous ne pouvez plus vous connecter au back-office.<br><br>"
+                . "Pour retrouver l'accès, demandez à votre super administrateur de débloquer "
+                . "votre compte depuis la page <em>Gestion des admins</em>.";
             $body = $this->emailSimpleLayout('Compte bloqué', "Bonjour {$safeName},", $message, 'fr');
         } else {
             $subject = '[ACTION] Your administrator account has been blocked — Crabitan Bellevue';
             $message = "Your administrator account was blocked on <strong>{$safeDate}</strong> "
                 . "by <strong>{$safeBlocker}</strong>.<br><br>"
-                . "You can no longer access the back-office. "
-                . "If you believe this is an error, please contact your super administrator.";
+                . "You can no longer sign in to the back-office.<br><br>"
+                . "To restore access, ask your super administrator to unblock your account "
+                . "from the <em>Admin management</em> page.";
             $body = $this->emailSimpleLayout('Account blocked', "Hello {$safeName},", $message, 'en');
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Notifie un admin que son compte a été débloqué par un super_admin.
+     *
+     * @param string $to           Email du compte débloqué
+     * @param string $name         Nom affiché du compte débloqué
+     * @param string $lang         Langue (fr|en)
+     * @param string $unblockerName Prénom + nom du super_admin ayant effectué le déblocage
+     * @return void
+     */
+    public function sendAdminAccountUnblocked(string $to, string $name, string $lang, string $unblockerName): void
+    {
+        $safeName      = htmlspecialchars($name, ENT_QUOTES);
+        $safeUnblocker = htmlspecialchars($unblockerName, ENT_QUOTES);
+        $safeDate      = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject = '[INFO] Votre compte administrateur a été débloqué — Crabitan Bellevue';
+            $message = "Votre compte administrateur a été débloqué le <strong>{$safeDate}</strong> "
+                . "par <strong>{$safeUnblocker}</strong>.<br><br>"
+                . "Vous pouvez à nouveau vous connecter au back-office.";
+            $body = $this->emailSimpleLayout('Compte débloqué', "Bonjour {$safeName},", $message, 'fr');
+        } else {
+            $subject = '[INFO] Your administrator account has been unblocked — Crabitan Bellevue';
+            $message = "Your administrator account was unblocked on <strong>{$safeDate}</strong> "
+                . "by <strong>{$safeUnblocker}</strong>.<br><br>"
+                . "You can sign in to the back-office again.";
+            $body = $this->emailSimpleLayout('Account unblocked', "Hello {$safeName},", $message, 'en');
         }
 
         $this->send($to, $name, $subject, $body);
