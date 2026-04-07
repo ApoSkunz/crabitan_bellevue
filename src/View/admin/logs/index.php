@@ -66,6 +66,14 @@
                 >
             </div>
             <div>
+                <div style="font-size:0.72rem;color:#8a7060;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Par page</div>
+                <select name="per_page" class="admin-filters__select" aria-label="Résultats par page">
+                    <?php foreach ([25, 50, 100] as $n) : ?>
+                        <option value="<?= $n ?>" <?= (int) $perPage === $n ? 'selected' : '' ?>><?= $n ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
                 <div style="font-size:0.72rem;color:transparent;margin-bottom:3px;">.</div>
                 <button type="submit" class="admin-filters__btn">Filtrer</button>
             </div>
