@@ -16,8 +16,15 @@ class SecurityAlertService
     private const DEFAULT_THRESHOLD  = 3;
     private const DEFAULT_WINDOW_MIN = 5;
 
-    /** Clé APCu/session pour compter les échecs de connexion admin. */
+    /** Seuil auto-blocage définitif : 5 échecs en 1h → compte bloqué jusqu'à déblocage manuel. */
+    public const AUTO_BLOCK_THRESHOLD  = 5;
+    public const AUTO_BLOCK_WINDOW_MIN = 60;
+
+    /** Clé APCu/session pour compter les échecs de connexion admin (fenêtre 5 min, alerte). */
     private const ADMIN_FAIL_PREFIX = 'admin_login_fail:';
+
+    /** Clé APCu/session pour le compteur cumulatif auto-blocage (fenêtre 1h). */
+    private const ADMIN_FAIL_CUMUL_PREFIX = 'admin_fail_cumul:';
 
     private RateLimiterService $rateLimiter;
     private MailService $mail;
@@ -67,6 +74,38 @@ class SecurityAlertService
     }
 
     /**
+     * Enregistre un échec de connexion dans le compteur cumulatif (fenêtre 1h).
+     *
+     * À appeler sur chaque échec de connexion admin, indépendamment du compteur d'alerte.
+     *
+     * @param int $adminId Identifiant du compte admin
+     * @return void
+     */
+    public function recordAutoBlockFailure(int $adminId): void
+    {
+        $key    = self::ADMIN_FAIL_CUMUL_PREFIX . $adminId;
+        $window = self::AUTO_BLOCK_WINDOW_MIN * 60;
+        $this->rateLimiter->recordAttempt($key, $window);
+    }
+
+    /**
+     * Indique si le compte admin doit être bloqué définitivement.
+     *
+     * Retourne true si le compteur cumulatif (1h) atteint ou dépasse AUTO_BLOCK_THRESHOLD (5).
+     * Le blocage est définitif : seul un super_admin peut le lever manuellement.
+     *
+     * @param int $adminId Identifiant du compte admin
+     * @return bool True si le compte doit être bloqué
+     */
+    public function shouldAutoBlock(int $adminId): bool
+    {
+        $key   = self::ADMIN_FAIL_CUMUL_PREFIX . $adminId;
+        $count = $this->rateLimiter->recall($key . ':count', 0);
+
+        return (int) $count >= self::AUTO_BLOCK_THRESHOLD;
+    }
+
+    /**
      * Réinitialise le compteur d'échecs de connexion pour un admin.
      *
      * À appeler après une connexion réussie.
@@ -76,8 +115,8 @@ class SecurityAlertService
      */
     public function resetFailedLoginCount(int $adminId): void
     {
-        $key = self::ADMIN_FAIL_PREFIX . $adminId;
-        $this->rateLimiter->reset($key);
+        $this->rateLimiter->reset(self::ADMIN_FAIL_PREFIX . $adminId);
+        $this->rateLimiter->reset(self::ADMIN_FAIL_CUMUL_PREFIX . $adminId);
     }
 
     // ----------------------------------------------------------------

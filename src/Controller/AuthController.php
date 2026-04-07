@@ -47,10 +47,10 @@ class AuthController extends Controller
     private const MAX_REGISTER_IP = 5;
 
     /** Nombre max d'échecs consécutifs avant lockout du compte (BT2). */
-    private const MAX_ACCOUNT_FAILURES = 5;
+    private const MAX_ACCOUNT_FAILURES = 3;
 
-    /** Durée du lockout compte en secondes (15 min). */
-    private const ACCOUNT_LOCKOUT_WINDOW = 900;
+    /** Durée du lockout compte en secondes (30 min). */
+    private const ACCOUNT_LOCKOUT_WINDOW = 1800;
 
     /** Fenêtre de rate limiting pour le renvoi silencieux du token de vérification (1 heure). */
     private const WINDOW_RESEND_VERIF = 3600;
@@ -203,10 +203,23 @@ class AuthController extends Controller
                 }
             }
 
-            // Alerte sécurité admin : 3 échecs en 5 minutes
+            // Blocage définitif admin : 5 échecs cumulés en 1h (1 seul mail, pas d'alerte intermédiaire)
             if ($account && in_array($account['role'] ?? '', ['admin', 'super_admin'], true)) {
-                if ($this->securityAlert->shouldAlertOnFailedLogins((int) $account['id'])) {
-                    $this->securityAlert->sendAdminLoginAlert($account, $_SERVER['REMOTE_ADDR'] ?? 'unknown');
+                $this->securityAlert->recordAutoBlockFailure((int) $account['id']);
+                if ($this->securityAlert->shouldAutoBlock((int) $account['id'])) {
+                    (new \Model\AccountModel())->blockAccount((int) $account['id']);
+                    $displayName = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
+                        ?: ($account['company_name'] ?? (string) $account['email']);
+                    try {
+                        (new MailService())->sendAdminAccountBlocked(
+                            (string) $account['email'],
+                            $displayName,
+                            (string) ($account['lang'] ?? 'fr'),
+                            'Système (blocage automatique)'
+                        );
+                    } catch (\Throwable) {
+                        // Mail non bloquant
+                    }
                 }
             }
 

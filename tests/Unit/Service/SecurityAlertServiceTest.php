@@ -97,16 +97,86 @@ class SecurityAlertServiceTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // shouldAutoBlock — blocage définitif à 5 échecs
+    // ----------------------------------------------------------------
+
+    /**
+     * recordAutoBlockFailure appelle recordAttempt avec une fenêtre de 1h (3600s).
+     */
+    public function testRecordAutoBlockFailureCallsRecordAttempt(): void
+    {
+        $rl = $this->createMock(RateLimiterService::class);
+        $rl->expects($this->once())
+            ->method('recordAttempt')
+            ->with(
+                $this->stringContains('42'),
+                SecurityAlertService::AUTO_BLOCK_WINDOW_MIN * 60
+            );
+
+        $service = new SecurityAlertService($rl);
+        $service->recordAutoBlockFailure(42);
+    }
+
+    /**
+     * shouldAutoBlock retourne true quand le compteur atteint AUTO_BLOCK_THRESHOLD (5).
+     */
+    public function testShouldAutoBlockReturnsTrueAtThreshold(): void
+    {
+        $rl = $this->createMock(RateLimiterService::class);
+        $rl->method('recall')->willReturn(SecurityAlertService::AUTO_BLOCK_THRESHOLD);
+
+        $service = new SecurityAlertService($rl);
+        $this->assertTrue($service->shouldAutoBlock(42));
+    }
+
+    /**
+     * shouldAutoBlock retourne true quand le compteur dépasse le seuil (ex: 7).
+     */
+    public function testShouldAutoBlockReturnsTrueAboveThreshold(): void
+    {
+        $rl = $this->createMock(RateLimiterService::class);
+        $rl->method('recall')->willReturn(7);
+
+        $service = new SecurityAlertService($rl);
+        $this->assertTrue($service->shouldAutoBlock(42));
+    }
+
+    /**
+     * shouldAutoBlock retourne false sous le seuil (4 échecs).
+     */
+    public function testShouldAutoBlockReturnsFalseBelowThreshold(): void
+    {
+        $rl = $this->createMock(RateLimiterService::class);
+        $rl->method('recall')->willReturn(4);
+
+        $service = new SecurityAlertService($rl);
+        $this->assertFalse($service->shouldAutoBlock(42));
+    }
+
+    /**
+     * shouldAutoBlock retourne false à 0 échec.
+     */
+    public function testShouldAutoBlockReturnsFalseAtZero(): void
+    {
+        $rl = $this->createMock(RateLimiterService::class);
+        $rl->method('recall')->willReturn(0);
+
+        $service = new SecurityAlertService($rl);
+        $this->assertFalse($service->shouldAutoBlock(1));
+    }
+
+    // ----------------------------------------------------------------
     // resetFailedLoginCount
     // ----------------------------------------------------------------
 
     /**
-     * resetFailedLoginCount appelle RateLimiterService::reset avec la bonne clé.
+     * resetFailedLoginCount appelle RateLimiterService::reset deux fois
+     * (compteur alerte 5 min + compteur cumul 1h).
      */
     public function testResetFailedLoginCountCallsReset(): void
     {
         $rl = $this->createMock(RateLimiterService::class);
-        $rl->expects($this->once())
+        $rl->expects($this->exactly(2))
             ->method('reset')
             ->with($this->stringContains('42'));
 
