@@ -78,6 +78,22 @@ class DpoAdminController extends AdminController
     }
 
     // ----------------------------------------------------------------
+    // GET /admin/dpo/matrice-habilitations
+    // ----------------------------------------------------------------
+
+    /**
+     * Génère et télécharge la matrice des habilitations RGPD au format PDF.
+     *
+     * @param array<string, string> $_params Paramètres de route (non utilisés)
+     */
+    public function downloadMatrice(array $_params): void // NOSONAR — php:S1172
+    {
+        $this->requireAdmin();
+        $pdfBytes = $this->buildPdf('Matrice des habilitations RGPD', $this->htmlMatrice());
+        $this->sendPdf($pdfBytes, 'matrice-habilitations-rgpd.pdf');
+    }
+
+    // ----------------------------------------------------------------
     // GET /admin/dpo/procedure-violation
     // ----------------------------------------------------------------
 
@@ -496,6 +512,95 @@ class DpoAdminController extends AdminController
             . '<p>Exercice annuel avant le 30 juin. Scénario type : "détection d\'une requête SQL suspecte — données clients potentiellement extraites." Déroulé : qualification (30 min) &#8594; test chaîne escalade &#8594; rédaction template CNIL (sans envoi) &#8594; debriefing. Responsable : DevSecOps + DPO.</p>'; // phpcs:ignore Generic.Files.LineLength.TooLong
 
         $html .= $this->pdfFooter('Document confidentiel — Art. 33 &amp; 34 RGPD — Prochaine révision : ' . $revision, $date);
+
+        return $html;
+    }
+
+    /**
+     * Retourne le contenu HTML de la matrice des habilitations RGPD.
+     * Basé sur le code réel du projet (controllers, models, vues, schéma BDD v3).
+     */
+    private function htmlMatrice(): string
+    {
+        $legal    = require ROOT_PATH . '/config/legal.php';
+        $version  = $legal['matrice_habilitations']['version'] ?? '1.0';
+        $updatedAt = \DateTime::createFromFormat('Y-m-d', $legal['matrice_habilitations']['updated_at'] ?? date('Y-m-d'));
+        $date     = $updatedAt !== false ? $updatedAt->format(self::DATE_FORMAT) : date(self::DATE_FORMAT);
+        $revision = date(self::DATE_FORMAT, strtotime('+1 year', $updatedAt !== false ? $updatedAt->getTimestamp() : time())); // phpcs:ignore Generic.Files.LineLength.TooLong
+
+        $html = $this->pdfOpen(
+            'Matrice des habilitations RGPD — v' . htmlspecialchars($version),
+            'Rôle × Ressource × Données personnelles visibles — Art. 5-1-c &amp; Art. 32 RGPD',
+            $date
+        );
+
+        $html .= '<h2>1. Rôles applicatifs</h2>'
+            . '<table>'
+            . '<tr><th>Rôle</th><th>Définition</th><th>Middleware</th></tr>'
+            . '<tr><td>visiteur</td><td>Utilisateur non authentifié</td><td>Aucun</td></tr>'
+            . '<tr><td>customer</td><td>Client authentifié (JWT valide)</td><td>AuthMiddleware</td></tr>'
+            . '<tr><td>admin</td><td>Administrateur</td><td>AdminMiddleware (admin | super_admin)</td></tr>'
+            . '<tr><td>super_admin</td><td>Super administrateur</td><td>AdminMiddleware</td></tr>'
+            . '</table>';
+
+        $html .= '<h2>2. Comptes clients (table accounts)</h2>'
+            . '<table>'
+            . '<tr><th>Donnée</th><th>Visiteur</th><th>Customer</th><th>Admin</th><th>Super Admin</th></tr>'
+            . '<tr><td>id, email, role, lang, account_type</td><td>—</td><td>Oui</td><td>Oui</td><td>Oui</td></tr>'
+            . '<tr><td>firstname, lastname, civility (profil)</td><td>—</td><td>Oui</td><td>Oui</td><td>Oui</td></tr>'
+            . '<tr><td>company_name, siret (profil société)</td><td>—</td><td>Oui</td><td>Oui</td><td>Oui</td></tr>'
+            . '<tr><td>email_verified_at, has_connected, created_at</td><td>—</td><td>—</td><td>Oui</td><td>Oui</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '<tr><td class="tag-ok">password (hash bcrypt)</td><td>—</td><td>—</td><td class="tag-ok">Exclu du SELECT admin</td><td class="tag-ok">Exclu du SELECT admin</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '<tr><td class="tag-ok">Tokens internes (email, newsletter, sécurité)</td><td>—</td><td>—</td><td class="tag-ok">Exclus du SELECT admin</td><td class="tag-ok">Exclus du SELECT admin</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '<tr><td class="tag-ok">google_id, apple_id, majority_declared_ip</td><td>—</td><td>—</td><td class="tag-ok">Exclus du SELECT admin</td><td class="tag-ok">Exclus du SELECT admin</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '</table>'
+            . '<p><small>Les colonnes sensibles sont explicitement exclues de la requête AccountModel::getForAdmin() (minimisation Art. 5-1-c RGPD).</small></p>'; // phpcs:ignore Generic.Files.LineLength.TooLong
+
+        $html .= '<h2>3. Adresses (table addresses)</h2>'
+            . '<table>'
+            . '<tr><th>Donnée</th><th>Visiteur</th><th>Customer</th><th>Admin</th><th>Super Admin</th></tr>'
+            . '<tr><td>Nom, prénom, adresse, téléphone</td><td>—</td><td>Propres adresses</td><td>Via snapshots commandes</td><td>Via snapshots commandes</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '</table>';
+
+        $html .= '<h2>4. Commandes (orders + snapshots)</h2>'
+            . '<table>'
+            . '<tr><th>Donnée</th><th>Visiteur</th><th>Customer</th><th>Admin</th><th>Super Admin</th></tr>'
+            . '<tr><td>Référence, contenu, prix, statut, méthode paiement</td><td>—</td><td>Propres</td><td>Toutes (lecture + MAJ statut)</td><td>Toutes</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '<tr><td>Snapshot adresse livraison/facturation</td><td>—</td><td>Propres</td><td>Oui</td><td>Oui</td></tr>'
+            . '<tr><td>Email client (jointure)</td><td>—</td><td>Propre</td><td>Oui</td><td>Oui</td></tr>'
+            . '<tr><td class="tag-ok">Données bancaires CB</td><td>—</td><td>—</td><td>— (PSP PCI-DSS)</td><td>— (PSP PCI-DSS)</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '</table>';
+
+        $html .= '<h2>5. Sessions / Logs connexion (table connections)</h2>'
+            . '<table>'
+            . '<tr><th>Donnée</th><th>Visiteur</th><th>Customer</th><th>Admin</th><th>Super Admin</th></tr>'
+            . '<tr><td>Token JWT, IP, user-agent, device</td><td>—</td><td>Propres sessions</td><td>—</td><td>Propres sessions + gestion</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '</table>';
+
+        $html .= '<h2>6. Journaux d\'audit</h2>'
+            . '<table>'
+            . '<tr><th>Journal</th><th>Visiteur</th><th>Customer</th><th>Admin</th><th>Super Admin</th></tr>'
+            . '<tr><td>audit_log (RGPD Art. 30)</td><td>—</td><td>—</td><td>—</td><td>Accès BDD direct (DevSecOps)</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '<tr><td>admin_logs (accountability Art. 5.2)</td><td>—</td><td>—</td><td>—</td><td>Lecture via /admin/logs (AuditLogAdminController)</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '</table>';
+
+        $html .= '<h2>7. Documents RGPD DPO</h2>'
+            . '<table>'
+            . '<tr><th>Document</th><th>Visiteur</th><th>Customer</th><th>Admin</th><th>Super Admin</th></tr>'
+            . '<tr><td>Registre des traitements (Art. 30)</td><td>—</td><td>—</td><td>Oui</td><td>Oui</td></tr>'
+            . '<tr><td>Sous-traitants DPA (Art. 28)</td><td>—</td><td>—</td><td>Oui</td><td>Oui</td></tr>'
+            . '<tr><td>Procédure violation (Art. 33)</td><td>—</td><td>—</td><td>Oui</td><td>Oui</td></tr>'
+            . '<tr><td>Matrice des habilitations</td><td>—</td><td>—</td><td>Oui</td><td>Oui</td></tr>'
+            . '</table>';
+
+        $html .= '<h2>8. Procédure de révision</h2>'
+            . '<p>Révision annuelle obligatoire (au plus tard le 31 mars), ou à chaque nouveau controller/route admin exposant des données personnelles, ou après tout audit Red Team. Responsable : Expert PHP + Expert RGPD. Validation : DPO.</p>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '<p>Document source : <strong>docs/rgpd/matrice-habilitations.md</strong> (versionné dans le dépôt).</p>';
+
+        $html .= $this->pdfFooter(
+            'Document confidentiel — v' . htmlspecialchars($version) . ' — Art. 5-1-c &amp; Art. 32 RGPD — Prochaine révision : ' . $revision, // phpcs:ignore Generic.Files.LineLength.TooLong
+            $date
+        );
 
         return $html;
     }
