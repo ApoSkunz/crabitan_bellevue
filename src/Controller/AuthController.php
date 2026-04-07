@@ -183,7 +183,34 @@ class AuthController extends Controller
         if (!$account || $account['password'] === null || !password_verify($password, $account['password'])) {
             $this->recordLoginFailure($ipKey, $account);
 
-            // BT2 — Détecter si ce dernier échec vient de déclencher le lockout (5ème tentative)
+            // Sécurité admin : alerte à 3 échecs / 5 min + blocage définitif à 5 cumulés / 1h
+            // Traité AVANT BT2 pour ne pas être court-circuité par le redirect du lockout
+            if ($account && in_array($account['role'] ?? '', ['admin', 'super_admin'], true)) {
+                if ($this->securityAlert->shouldAlertOnFailedLogins((int) $account['id'])) {
+                    $this->securityAlert->sendAdminLoginAlert(
+                        $account,
+                        $_SERVER['REMOTE_ADDR'] ?? 'inconnue'
+                    );
+                }
+                $this->securityAlert->recordAutoBlockFailure((int) $account['id']);
+                if ($this->securityAlert->shouldAutoBlock((int) $account['id'])) {
+                    (new \Model\AccountModel())->blockAccount((int) $account['id']);
+                    $displayName = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
+                        ?: ($account['company_name'] ?? (string) $account['email']);
+                    try {
+                        (new MailService())->sendAdminAccountBlocked(
+                            (string) $account['email'],
+                            $displayName,
+                            (string) ($account['lang'] ?? 'fr'),
+                            'Système (blocage automatique)'
+                        );
+                    } catch (\Throwable) {
+                        // Mail non bloquant
+                    }
+                }
+            }
+
+            // BT2 — Lockout temporaire 30 min après 3 échecs (tous comptes)
             if ($account) {
                 $accountKey = 'account_lockout:' . (int) $account['id'];
                 if (!$this->rateLimiter->checkLimit($accountKey, self::MAX_ACCOUNT_FAILURES, self::ACCOUNT_LOCKOUT_WINDOW)) {
@@ -200,26 +227,6 @@ class AuthController extends Controller
                     }
                     $this->flash('modal_error', sprintf(__('auth.account_locked'), max(1, $wait)));
                     Response::redirect($safeBack);
-                }
-            }
-
-            // Blocage définitif admin : 5 échecs cumulés en 1h (1 seul mail, pas d'alerte intermédiaire)
-            if ($account && in_array($account['role'] ?? '', ['admin', 'super_admin'], true)) {
-                $this->securityAlert->recordAutoBlockFailure((int) $account['id']);
-                if ($this->securityAlert->shouldAutoBlock((int) $account['id'])) {
-                    (new \Model\AccountModel())->blockAccount((int) $account['id']);
-                    $displayName = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
-                        ?: ($account['company_name'] ?? (string) $account['email']);
-                    try {
-                        (new MailService())->sendAdminAccountBlocked(
-                            (string) $account['email'],
-                            $displayName,
-                            (string) ($account['lang'] ?? 'fr'),
-                            'Système (blocage automatique)'
-                        );
-                    } catch (\Throwable) {
-                        // Mail non bloquant
-                    }
                 }
             }
 
