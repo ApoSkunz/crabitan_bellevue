@@ -36,7 +36,7 @@ abstract class AdminController extends Controller
 
     /**
      * Vérifie le JWT admin ET que le rôle est super_admin.
-     * Renvoie une 403 sinon.
+     * Renvoie une 404 sinon (évite de révéler l'existence de la route).
      *
      * @return array{id: int, role: string, name: string}
      */
@@ -45,7 +45,7 @@ abstract class AdminController extends Controller
         $adminUser = $this->requireAdmin();
 
         if (($adminUser['role'] ?? '') !== 'super_admin') {
-            $this->abort(403, 'Réservé au super administrateur.');
+            $this->abort(404);
         }
 
         return $adminUser;
