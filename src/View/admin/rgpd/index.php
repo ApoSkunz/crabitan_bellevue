@@ -163,15 +163,6 @@ if (!function_exists('rgpdUrl')) {
                                         </details>
                                     <?php endif; ?>
 
-                                    <form method="POST" action="/admin/rgpd/demandes/<?= (int) $req['id'] ?>/supprimer"
-                                          style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;"
-                                          onsubmit="return confirm('Supprimer définitivement cette demande ?')">
-                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                        <button type="submit" class="admin-btn admin-btn--xs"
-                                                style="width:100%;color:#b91c1c;border:1px solid #b91c1c;background:transparent;">
-                                            &#128465; Supprimer
-                                        </button>
-                                    </form>
                                 </div>
                             </details>
                         </td>
@@ -211,5 +202,92 @@ document.addEventListener('click', function (e) {
     });
 });
 </script>
+
+<?php
+// ----------------------------------------------------------------
+// Section : Journal des exports RGPD automatiques (Art. 20)
+// ----------------------------------------------------------------
+$logTotalPages = \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE > 0 ? (int) ceil(($logTotal ?? 0) / \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE) : 1;
+?>
+
+<hr style="margin:32px 0;border:none;border-top:1px solid #e8e0d0;">
+
+<h2 style="font-size:1.1rem;margin-bottom:16px;">
+    Journal des exports automatiques — Art. 20
+    <small style="font-size:0.75rem;font-variant:normal;letter-spacing:0;color:#8a7a60;">(<?= (int) ($logTotal ?? 0) ?>)</small>
+</h2>
+
+<form method="GET" action="/admin/rgpd/demandes" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+    <?php foreach (['status' => $statusFilter ?? null, 'type' => $typeFilter ?? null, 'page' => $page ?? 1, 'per_page' => $perPage ?? 20] as $k => $v) : ?>
+        <?php if ($v) : ?><input type="hidden" name="<?= htmlspecialchars($k) ?>" value="<?= htmlspecialchars((string) $v) ?>"><?php endif; ?>
+    <?php endforeach; ?>
+    <input type="text" name="log_email" placeholder="Filtrer par email"
+           value="<?= htmlspecialchars($logEmail ?? '') ?>"
+           class="admin-filters__select" style="min-width:200px;">
+    <input type="date" name="log_date_from" value="<?= htmlspecialchars($logDateFrom ?? '') ?>" class="admin-filters__select">
+    <input type="date" name="log_date_to"   value="<?= htmlspecialchars($logDateTo   ?? '') ?>" class="admin-filters__select">
+    <button type="submit" class="admin-btn admin-btn--outline admin-btn--sm">Filtrer</button>
+    <a href="/admin/rgpd/demandes" class="admin-btn admin-btn--ghost admin-btn--sm">Réinitialiser</a>
+</form>
+
+<?php if (empty($exportLogs)) : ?>
+    <p style="color:#8a7a60;">Aucun export enregistré.</p>
+<?php else : ?>
+    <div class="admin-table-wrapper">
+        <table class="admin-table" style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Email</th>
+                    <th>IP</th>
+                    <th>Fichier</th>
+                    <th>Date</th>
+                    <th>Expiration</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($exportLogs as $log) : ?>
+                    <tr>
+                        <td><?= (int) $log['id'] ?></td>
+                        <td><?= htmlspecialchars($log['email']) ?></td>
+                        <td style="font-family:monospace;font-size:0.85rem;"><?= htmlspecialchars($log['ip'] ?? '—') ?></td>
+                        <td style="font-size:0.85rem;"><?= htmlspecialchars($log['filename']) ?></td>
+                        <td><?= htmlspecialchars(date('d/m/Y H:i', strtotime($log['requested_at']))) ?></td>
+                        <td style="color:#8a7a60;font-size:0.8rem;"><?= htmlspecialchars(date('d/m/Y', strtotime($log['expires_at']))) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <?php if (($logTotalPages ?? 1) > 1) : ?>
+        <nav style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
+            <?php
+            $logPerPage = \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE;
+            $buildLogUrl = static function (int $p) use ($statusFilter, $typeFilter, $perPage, $page, $logEmail, $logDateFrom, $logDateTo, $logPerPage): string {
+                $q = ['log_page' => $p];
+                if ($statusFilter) { $q['status'] = $statusFilter; }
+                if ($typeFilter)   { $q['type']   = $typeFilter; }
+                if ($page > 1)     { $q['page']   = $page; }
+                if ($perPage !== $logPerPage) { $q['per_page'] = $perPage; }
+                if ($logEmail)     { $q['log_email'] = $logEmail; }
+                if ($logDateFrom)  { $q['log_date_from'] = $logDateFrom; }
+                if ($logDateTo)    { $q['log_date_to'] = $logDateTo; }
+                return '/admin/rgpd/demandes?' . http_build_query($q);
+            };
+            ?>
+            <?php if (($logPage ?? 1) > 1) : ?>
+                <a href="<?= htmlspecialchars($buildLogUrl(($logPage ?? 1) - 1)) ?>" class="admin-btn admin-btn--outline admin-btn--sm">&#8592; Précédent</a>
+            <?php endif; ?>
+            <?php for ($p = max(1, ($logPage ?? 1) - 2); $p <= min($logTotalPages, ($logPage ?? 1) + 2); $p++) : ?>
+                <a href="<?= htmlspecialchars($buildLogUrl($p)) ?>"
+                   class="admin-btn admin-btn--outline admin-btn--sm<?= $p === ($logPage ?? 1) ? ' active' : '' ?>"><?= $p ?></a>
+            <?php endfor; ?>
+            <?php if (($logPage ?? 1) < $logTotalPages) : ?>
+                <a href="<?= htmlspecialchars($buildLogUrl(($logPage ?? 1) + 1)) ?>" class="admin-btn admin-btn--outline admin-btn--sm">Suivant &#8594;</a>
+            <?php endif; ?>
+        </nav>
+    <?php endif; ?>
+<?php endif; ?>
 
 <?php require_once SRC_PATH . '/View/admin/_close.php'; ?>
