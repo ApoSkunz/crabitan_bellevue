@@ -1,0 +1,336 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Controller\Admin;
+
+use Core\Response;
+use Model\AccountModel;
+use Model\RgpdRequestModel;
+use Service\MailService;
+
+/**
+ * Contrôleur back-office — gestion des demandes d'exercice de droits RGPD.
+ *
+ * Couvre les droits : accès (Art. 15), rectification (Art. 16),
+ * effacement (Art. 17), portabilité (Art. 20), opposition (Art. 21).
+ * Délai légal de traitement : 1 mois (Art. 12 RGPD).
+ */
+class RgpdAdminController extends AdminController
+{
+    private const DEFAULT_PER_PAGE = 20;
+    private const ALLOWED_PER_PAGE = [10, 20, 50];
+
+    // ----------------------------------------------------------------
+    // GET /admin/rgpd/demandes
+    // ----------------------------------------------------------------
+
+    /**
+     * Liste paginée des demandes RGPD avec filtres statut / type.
+     *
+     * @param array<string, string> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
+    public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
+    {
+        $adminUser = $this->requireAdmin();
+        $model     = new RgpdRequestModel();
+
+        $page       = max(1, (int) $this->request->get('page', 1));
+        $perPageReq = (int) $this->request->get('per_page', self::DEFAULT_PER_PAGE);
+        $perPage    = in_array($perPageReq, self::ALLOWED_PER_PAGE, true) ? $perPageReq : self::DEFAULT_PER_PAGE;
+        $status     = $this->request->get('status') ?: null;
+        $type       = $this->request->get('type')   ?: null;
+
+        $total    = $model->count($status, $type);
+        $requests = $model->getAll($perPage, ($page - 1) * $perPage, $status, $type);
+        $overdue  = $model->countOverdue();
+
+        $this->view('admin/rgpd/index', [
+            'adminUser'    => $adminUser,
+            'adminSection' => 'dpo',
+            'pageTitle'    => 'Demandes RGPD',
+            'breadcrumbs'  => [
+                ['label' => 'Admin',       'url' => '/admin'],
+                ['label' => 'DPO — RGPD',  'url' => '/admin/dpo'],
+                ['label' => 'Demandes RGPD'],
+            ],
+            'requests'     => $requests,
+            'total'        => $total,
+            'page'         => $page,
+            'perPage'      => $perPage,
+            'overdue'      => $overdue,
+            'statusFilter' => $status,
+            'typeFilter'   => $type,
+            'flash'        => $this->getFlash('success'),
+            'flashError'   => $this->getFlash('error'),
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /admin/rgpd/demandes/ajouter
+    // ----------------------------------------------------------------
+
+    /**
+     * Formulaire de saisie d'une nouvelle demande RGPD reçue par email.
+     *
+     * @param array<string, string> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
+    public function create(array $_params): void // NOSONAR — php:S1172
+    {
+        $adminUser = $this->requireAdmin();
+
+        $this->view('admin/rgpd/create', [
+            'adminUser'    => $adminUser,
+            'adminSection' => 'dpo',
+            'pageTitle'    => 'Nouvelle demande RGPD',
+            'breadcrumbs'  => [
+                ['label' => 'Admin',          'url' => '/admin'],
+                ['label' => 'DPO — RGPD',     'url' => '/admin/dpo'],
+                ['label' => 'Demandes RGPD',  'url' => '/admin/rgpd/demandes'],
+                ['label' => 'Nouvelle demande'],
+            ],
+            'flashError' => $this->getFlash('error'),
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /admin/rgpd/demandes/ajouter
+    // ----------------------------------------------------------------
+
+    /**
+     * Enregistre une nouvelle demande RGPD saisie par un admin.
+     *
+     * @param array<string, string> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
+    public function store(array $_params): void // NOSONAR — php:S1172
+    {
+        $this->requireAdmin();
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', 'Token CSRF invalide.');
+            Response::redirect('/admin/rgpd/demandes/ajouter');
+        }
+
+        $type       = trim($this->request->post('type', ''));
+        $email      = trim($this->request->post('requester_email', ''));
+        $name       = trim($this->request->post('requester_name', ''));
+        $receivedAt = trim($this->request->post('received_at', ''));
+
+        if (!in_array($type, RgpdRequestModel::VALID_TYPES, true)) {
+            $this->flash('error', 'Type de demande invalide.');
+            Response::redirect('/admin/rgpd/demandes/ajouter');
+        }
+
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->flash('error', 'Adresse email invalide.');
+            Response::redirect('/admin/rgpd/demandes/ajouter');
+        }
+
+        if ($name === '') {
+            $this->flash('error', 'Le nom du demandeur est requis.');
+            Response::redirect('/admin/rgpd/demandes/ajouter');
+        }
+
+        $parsedDate = null;
+        if ($receivedAt !== '') {
+            $ts = strtotime($receivedAt);
+            if ($ts === false) {
+                $this->flash('error', 'Date de réception invalide.');
+                Response::redirect('/admin/rgpd/demandes/ajouter');
+            }
+            $parsedDate = date('Y-m-d H:i:s', $ts);
+        }
+
+        $model = new RgpdRequestModel();
+        $model->create($type, $email, $name, $parsedDate);
+
+        $this->flash('success', 'Demande RGPD enregistrée avec succès.');
+        Response::redirect('/admin/rgpd/demandes');
+    }
+
+    // ----------------------------------------------------------------
+    // POST /admin/rgpd/demandes/{id}/statut
+    // ----------------------------------------------------------------
+
+    /**
+     * Met à jour le statut d'une demande RGPD.
+     * Pour le type "effacement" et statut "traitee", déclenche l'anonymisation du compte.
+     * Pour le type "portabilite" et statut "traitee", déclenche l'export RGPD par email.
+     *
+     * @param array<string, string> $params Paramètres de route (id)
+     * @return void
+     */
+    public function updateStatus(array $params): void
+    {
+        $adminUser = $this->requireAdmin();
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', 'Token CSRF invalide.');
+            Response::redirect('/admin/rgpd/demandes');
+        }
+
+        $id     = (int) ($params['id'] ?? 0);
+        $status = trim($this->request->post('status', ''));
+        $note   = trim($this->request->post('response_note', '')) ?: null;
+
+        $model   = new RgpdRequestModel();
+        $request = $model->findById($id);
+
+        if (!$request) {
+            Response::abort(404);
+        }
+
+        if (!in_array($status, RgpdRequestModel::VALID_STATUSES, true)) {
+            $this->flash('error', 'Statut invalide.');
+            Response::redirect('/admin/rgpd/demandes');
+        }
+
+        $ok = $model->updateStatus($id, $status, $adminUser['id'], $note);
+
+        if (!$ok) {
+            $this->flash('error', 'Erreur lors de la mise à jour.');
+            Response::redirect('/admin/rgpd/demandes');
+        }
+
+        if ($status === 'traitee') {
+            if ($request['type'] === 'effacement') {
+                $this->handleEffacement($request, $adminUser['id']);
+            } elseif ($request['type'] === 'portabilite') {
+                $this->handlePortabilite($request);
+            }
+        }
+
+        $this->flash('success', 'Statut mis à jour.');
+        Response::redirect('/admin/rgpd/demandes');
+    }
+
+    // ----------------------------------------------------------------
+    // POST /admin/rgpd/demandes/{id}/supprimer (super_admin uniquement)
+    // ----------------------------------------------------------------
+
+    /**
+     * Supprime physiquement une demande RGPD (super_admin uniquement).
+     *
+     * @param array<string, string> $params Paramètres de route (id)
+     * @return void
+     */
+    public function delete(array $params): void
+    {
+        $adminUser = $this->requireAdmin();
+
+        if (($adminUser['role'] ?? '') !== 'super_admin') {
+            Response::abort(403);
+        }
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', 'Token CSRF invalide.');
+            Response::redirect('/admin/rgpd/demandes');
+        }
+
+        $id    = (int) ($params['id'] ?? 0);
+        $model = new RgpdRequestModel();
+
+        if (!$model->findById($id)) {
+            Response::abort(404);
+        }
+
+        $model->delete($id);
+
+        $this->flash('success', 'Demande supprimée.');
+        Response::redirect('/admin/rgpd/demandes');
+    }
+
+    // ----------------------------------------------------------------
+    // GET /admin/rgpd/demandes/{id}/export-portabilite
+    // ----------------------------------------------------------------
+
+    /**
+     * Déclenche manuellement un export RGPD pour une demande de portabilité.
+     *
+     * @param array<string, string> $params Paramètres de route (id)
+     * @return void
+     */
+    public function exportPortabilite(array $params): void
+    {
+        $this->requireAdmin();
+
+        $id    = (int) ($params['id'] ?? 0);
+        $model = new RgpdRequestModel();
+        $req   = $model->findById($id);
+
+        if (!$req) {
+            Response::abort(404);
+        }
+
+        if ($req['type'] !== 'portabilite') {
+            $this->flash('error', 'Cette action est réservée aux demandes de portabilité.');
+            Response::redirect('/admin/rgpd/demandes');
+        }
+
+        $this->handlePortabilite($req);
+        $this->flash('success', 'Export RGPD envoyé à ' . htmlspecialchars($req['requester_email']) . '.');
+        Response::redirect('/admin/rgpd/demandes');
+    }
+
+    // ----------------------------------------------------------------
+    // Helpers privés
+    // ----------------------------------------------------------------
+
+    /**
+     * Gère l'effacement : recherche le compte par email et déclenche le soft-delete.
+     *
+     * @param array<string, mixed> $request  Demande RGPD
+     * @param int                  $adminId  ID de l'admin traitant
+     * @return void
+     */
+    private function handleEffacement(array $request, int $adminId): void
+    {
+        $email        = (string) ($request['requester_email'] ?? '');
+        $accountModel = new AccountModel();
+        $account      = $accountModel->findByEmail($email);
+
+        if ($account) {
+            $accountModel->delete((int) $account['id']);
+        }
+    }
+
+    /**
+     * Gère la portabilité : envoie l'export RGPD par email au demandeur.
+     *
+     * @param array<string, mixed> $request Demande RGPD
+     * @return void
+     */
+    private function handlePortabilite(array $request): void
+    {
+        $email = (string) ($request['requester_email'] ?? '');
+        $name  = (string) ($request['requester_name']  ?? $email);
+
+        $exportData = [
+            'source'          => 'admin_rgpd_request',
+            'requester_email' => $email,
+            'requester_name'  => $name,
+            'request_date'    => $request['received_at'] ?? date('Y-m-d'),
+            'note'            => 'Export généré suite à demande RGPD Art. 20',
+        ];
+
+        $accountModel = new AccountModel();
+        $account      = $accountModel->findByEmail($email);
+
+        if ($account) {
+            $exportData['account_id'] = $account['id'];
+        }
+
+        $content  = (string) json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $filename = 'export-rgpd-' . date('Y-m-d') . '.json';
+
+        try {
+            $mailService = new MailService();
+            $mailService->sendRgpdExport($email, $name, $content, $filename, 'fr');
+        } catch (\Exception) {
+            // Échec d'envoi non bloquant — l'admin peut retenter via exportPortabilite()
+        }
+    }
+}
