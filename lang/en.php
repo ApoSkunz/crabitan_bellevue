@@ -38,6 +38,7 @@ return [
     'auth.too_many_attempts'       => 'Too many attempts. Please try again in %d minute(s).',
     'auth.too_many_attempts_hours' => 'Too many attempts. Please try again in %d hour(s).',
     'auth.account_locked'           => 'Account temporarily locked after too many failures. Try again in %d minute(s).',
+    'auth.admin_account_blocked'    => 'Your administrator account has been blocked. Please contact your super administrator.',
     'auth.account_pending_deletion' => 'Your account is scheduled for deletion. A reactivation link has just been sent to your email address.',
     'auth.too_many_registrations' => 'Too many registrations from this IP address. Try again in %d minute(s).',
     'auth.too_many_reset_requests'      => 'Too many reset requests. Try again in %d minute(s).',
