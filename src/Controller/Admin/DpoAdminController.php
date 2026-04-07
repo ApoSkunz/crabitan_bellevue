@@ -110,6 +110,22 @@ class DpoAdminController extends AdminController
     }
 
     // ----------------------------------------------------------------
+    // GET /admin/dpo/dpia
+    // ----------------------------------------------------------------
+
+    /**
+     * Génère et télécharge la DPIA — Analyse d'impact (Art. 35 RGPD).
+     *
+     * @param array<string, string> $_params Paramètres de route (non utilisés)
+     */
+    public function downloadDpia(array $_params): void // NOSONAR — php:S1172
+    {
+        $this->requireAdmin();
+        $pdfBytes = $this->buildPdf('DPIA — Analyse d\'impact relative à la protection des données — Art. 35 RGPD', $this->htmlDpia());
+        $this->sendPdf($pdfBytes, 'dpia-art35-rgpd.pdf');
+    }
+
+    // ----------------------------------------------------------------
     // Helpers privés — génération PDF
     // ----------------------------------------------------------------
 
@@ -608,6 +624,185 @@ class DpoAdminController extends AdminController
 
         $html .= $this->pdfFooter(
             'Document confidentiel — v' . htmlspecialchars($version) . ' — Art. 5-1-c &amp; Art. 32 RGPD — Prochaine révision : ' . $revision, // phpcs:ignore Generic.Files.LineLength.TooLong
+            $date
+        );
+
+        return $html;
+    }
+
+    /**
+     * Retourne le contenu HTML de la DPIA (Art. 35 RGPD).
+     *
+     * Couvre les trois traitements identifiés comme susceptibles d'engendrer un risque élevé :
+     * relance panier abandonné, profilage inactivité client, tracking newsletter.
+     */
+    private function htmlDpia(): string
+    {
+        $legal    = require ROOT_PATH . '/config/legal.php';
+        $version  = $legal['dpia']['version'] ?? '1.0';
+        $updatedAt = \DateTime::createFromFormat('Y-m-d', $legal['dpia']['updated_at'] ?? date('Y-m-d'));
+        $date      = $updatedAt !== false ? $updatedAt->format(self::DATE_FORMAT) : date(self::DATE_FORMAT);
+        $revision  = date(self::DATE_FORMAT, strtotime('+1 year', $updatedAt !== false ? $updatedAt->getTimestamp() : time())); // phpcs:ignore Generic.Files.LineLength.TooLong
+
+        $html = $this->pdfOpen(
+            'DPIA — Analyse d\'impact relative à la protection des données — v' . htmlspecialchars($version),
+            'Art. 35 RGPD — Traitements à risque élevé — ' . htmlspecialchars(self::CREATOR),
+            $date
+        );
+
+        $html .= '<h2>1. Contexte et périmètre</h2>'
+            . '<p>L\'Art. 35 RGPD impose une analyse d\'impact (DPIA) avant la mise en œuvre de tout traitement '
+            . 'susceptible d\'engendrer un risque élevé pour les droits et libertés des personnes. '
+            . 'Les lignes directrices CNIL/EDPB identifient 9 critères déclencheurs — 2 critères remplis suffisent.</p>'
+            . '<p>Les traitements suivants ont été identifiés sur ' . htmlspecialchars(self::CREATOR) . ' comme nécessitant une DPIA. '
+            . 'Ils sont planifiés (non encore déployés) et cette analyse est réalisée <strong>avant</strong> leur mise en œuvre, '
+            . 'conformément à l\'obligation préalable de l\'Art. 35-1.</p>';
+
+        // ---- Traitement 1 : Relance panier abandonné ----
+        $html .= '<h2>2. DPIA n°1 — Relance panier abandonné (profilage comportemental)</h2>';
+        $html .= '<h3>2.1 Description du traitement</h3>'
+            . '<table>'
+            . $this->row('Finalité', 'Relancer automatiquement les clients ayant abandonné leur panier sans finaliser la commande, par envoi d\'un email personnalisé.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Base légale', 'Art. 6-1-a — consentement (opt-in lors de l\'inscription) + Art. 6-1-f — intérêt légitime')
+            . $this->row('Données traitées', 'Email, prénom, contenu du panier (produits, quantités, montant), horodatage d\'abandon, historique de navigation (pages produits visitées)') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Personnes concernées', 'Clients authentifiés ayant ajouté des produits au panier sans finaliser la commande')
+            . $this->row('Destinataires', 'GFA Bernard Solane et Fils (interne) — IONOS SE (SMTP sortant)')
+            . $this->row('Durée de conservation', '30 jours après l\'abandon (donnée de relance) — email envoyé 24h après l\'abandon')
+            . $this->row('Critères DPIA remplis', 'Profilage comportemental (critère 2) + décision automatisée (critère 3)')
+            . '</table>';
+
+        $html .= '<h3>2.2 Nécessité et proportionnalité</h3>'
+            . '<table>'
+            . $this->row('Nécessité', 'Le traitement est limité aux données strictement nécessaires (email + contenu panier). Aucune donnée de navigation hors panier n\'est collectée.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Proportionnalité', 'Un seul email de relance — pas de séquence automatisée multi-messages. Délai de 24h pour éviter le caractère intrusif.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Droit d\'opposition', 'Lien de désinscription obligatoire dans chaque email de relance. Opposition possible depuis l\'espace client.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Minimisation', 'Seul le contenu du panier actif est utilisé — aucun historique de commandes précédentes')
+            . '</table>';
+
+        $html .= '<h3>2.3 Risques identifiés</h3>'
+            . '<table>'
+            . '<tr><th>Risque</th><th>Gravité</th><th>Probabilité</th><th>Niveau</th></tr>'
+            . '<tr><td>Envoi non souhaité (spam perçu)</td><td>Faible</td><td>Modérée</td><td class="tag-warn">Modéré</td></tr>'
+            . '<tr><td>Détournement d\'usage (profilage extensif)</td><td>Modérée</td><td>Faible</td><td class="tag-ok">Faible</td></tr>'
+            . '<tr><td>Fuite email + contenu panier (violation)</td><td>Modérée</td><td>Faible</td><td class="tag-ok">Faible</td></tr>'
+            . '</table>';
+
+        $html .= '<h3>2.4 Mesures d\'atténuation</h3>'
+            . '<table>'
+            . $this->row('Consentement', 'Opt-in explicite à l\'inscription ou case dédiée "Recevoir un rappel si panier abandonné"')
+            . $this->row('Limitation', '1 seul email — délai minimum 24h — suppression des données à J+30')
+            . $this->row('Droit d\'opposition', 'Lien one-click dans chaque email + gestion depuis l\'espace client')
+            . $this->row('Sécurité', 'Accès restreint aux logs de relance (admin uniquement) — chiffrement SMTP TLS')
+            . $this->row('Audit trail', 'Journalisation de chaque envoi dans admin_logs')
+            . '</table>';
+
+        $html .= '<h3>2.5 Conclusion</h3>'
+            . '<p><strong>Risque résiduel : Faible.</strong> Consultation CNIL préalable non requise (Art. 35-4). '
+            . 'La mise en œuvre est conditionnée à l\'implémentation préalable du consentement opt-in et du lien d\'opposition.</p>';
+
+        // ---- Traitement 2 : Profilage inactivité client ----
+        $html .= '<h2>3. DPIA n°2 — Profilage inactivité client</h2>';
+        $html .= '<h3>3.1 Description du traitement</h3>'
+            . '<table>'
+            . $this->row('Finalité', 'Détecter les comptes inactifs depuis plus de 3 ans afin de procéder à la pseudonymisation ou suppression conforme au RGPD Art. 5-1-e (limitation de la durée de conservation).') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Base légale', 'Art. 6-1-c — obligation légale (RGPD Art. 5-1-e) + Art. 6-1-f — intérêt légitime (hygiène des données)')
+            . $this->row('Données traitées', 'Email, date de dernière connexion, date de dernière commande, statut du compte')
+            . $this->row('Personnes concernées', 'Clients n\'ayant pas effectué de connexion ni de commande depuis plus de 3 ans')
+            . $this->row('Destinataires', 'GFA Bernard Solane et Fils (interne) — traitement automatisé par cron')
+            . $this->row('Durée de conservation', 'Données pseudonymisées conservées pour archivage comptable légal — données personnelles supprimées') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Critères DPIA remplis', 'Profilage (critère 2) + traitement à grande échelle potentiel (critère 5) + décision automatisée (critère 3)') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '</table>';
+
+        $html .= '<h3>3.2 Nécessité et proportionnalité</h3>'
+            . '<table>'
+            . $this->row('Nécessité', 'Obligation RGPD de ne pas conserver les données au-delà de la durée nécessaire (Art. 5-1-e). Le traitement est obligatoire.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Proportionnalité', 'Envoi d\'un email d\'avertissement 30 jours avant toute suppression. Possibilité de réactivation du compte.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Minimisation', 'Seule la date de dernière activité est analysée — aucun profilage sur le comportement d\'achat')
+            . $this->row('Transparence', 'Information dans la politique de confidentialité et dans l\'email d\'avertissement')
+            . '</table>';
+
+        $html .= '<h3>3.3 Risques identifiés</h3>'
+            . '<table>'
+            . '<tr><th>Risque</th><th>Gravité</th><th>Probabilité</th><th>Niveau</th></tr>'
+            . '<tr><td>Suppression involontaire d\'un compte actif (bug cron)</td><td>Élevée</td><td>Faible</td><td class="tag-warn">Modéré</td></tr>'
+            . '<tr><td>Non-réception de l\'email d\'avertissement</td><td>Modérée</td><td>Modérée</td><td class="tag-warn">Modéré</td></tr>'
+            . '<tr><td>Perte de données nécessaires à un litige</td><td>Élevée</td><td>Faible</td><td class="tag-warn">Modéré</td></tr>'
+            . '</table>';
+
+        $html .= '<h3>3.4 Mesures d\'atténuation</h3>'
+            . '<table>'
+            . $this->row('Email d\'avertissement', 'Email envoyé 30 jours avant toute action, avec lien de réactivation valable 30 jours')
+            . $this->row('Pseudonymisation', 'Pseudonymisation des données personnelles avant suppression complète (conservation des données comptables)') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Journal', 'Chaque action cron journalisée dans admin_logs avec horodatage et nombre de comptes traités')
+            . $this->row('Sauvegarde', 'Sauvegarde BDD réalisée systématiquement avant exécution du cron de suppression')
+            . $this->row('Test préproduction', 'Simulation obligatoire en préprod avant déploiement en production')
+            . '</table>';
+
+        $html .= '<h3>3.5 Conclusion</h3>'
+            . '<p><strong>Risque résiduel : Modéré.</strong> Consultation CNIL préalable non requise si les mesures d\'atténuation sont intégralement déployées. ' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . 'La mise en œuvre nécessite l\'implémentation préalable du cron RGPD (us-rgpd-cron) et du script de pseudonymisation.</p>';
+
+        // ---- Traitement 3 : Tracking newsletter ----
+        $html .= '<h2>4. DPIA n°3 — Tracking newsletter (pixel ouverture + clics)</h2>';
+        $html .= '<h3>4.1 Description du traitement</h3>'
+            . '<table>'
+            . $this->row('Finalité', 'Mesurer le taux d\'ouverture et de clic des newsletters afin d\'optimiser les campagnes marketing.')
+            . $this->row('Base légale', 'Art. 6-1-a — consentement (opt-in newsletter avec mention explicite du tracking)')
+            . $this->row('Données traitées', 'Email, horodatage d\'ouverture, URLs cliquées, identifiant de campagne, user-agent, IP (anonymisée)')
+            . $this->row('Personnes concernées', 'Abonnés à la newsletter ayant consenti au tracking')
+            . $this->row('Destinataires', 'GFA Bernard Solane et Fils (interne uniquement) — aucun prestataire tiers de tracking')
+            . $this->row('Durée de conservation', '13 mois (aligné CNIL recommandation analytics) — suppression automatique')
+            . $this->row('Critères DPIA remplis', 'Surveillance systématique (critère 6) + profilage comportemental (critère 2)')
+            . '</table>';
+
+        $html .= '<h3>4.2 Nécessité et proportionnalité</h3>'
+            . '<table>'
+            . $this->row('Nécessité', 'Amélioration des campagnes pour limiter les envois non pertinents — réduction indirecte du volume de données traitées.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Proportionnalité', 'IP anonymisée (derniers octets masqués) — pixel unique par campagne — pas de tracking cross-site.')
+            . $this->row('Information', 'Mention explicite du tracking dans le formulaire d\'inscription à la newsletter et dans la politique de confidentialité.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row('Droit d\'opposition', 'Désinscription newsletter = fin du tracking. Pas de tracking sans inscription active.')
+            . '</table>';
+
+        $html .= '<h3>4.3 Risques identifiés</h3>'
+            . '<table>'
+            . '<tr><th>Risque</th><th>Gravité</th><th>Probabilité</th><th>Niveau</th></tr>'
+            . '<tr><td>Profilage comportemental non consenti</td><td>Modérée</td><td>Faible</td><td class="tag-ok">Faible</td></tr>'
+            . '<tr><td>Fuite des données de tracking (violation)</td><td>Faible</td><td>Faible</td><td class="tag-ok">Faible</td></tr>'
+            . '<tr><td>Usage secondaire des données de clic</td><td>Modérée</td><td>Faible</td><td class="tag-ok">Faible</td></tr>'
+            . '</table>';
+
+        $html .= '<h3>4.4 Mesures d\'atténuation</h3>'
+            . '<table>'
+            . $this->row('Consentement granulaire', 'Case dédiée "Accepter le suivi d\'ouverture et de clic" séparée du consentement newsletter')
+            . $this->row('Anonymisation IP', 'Masquage du dernier octet IPv4 et des 80 derniers bits IPv6 avant stockage')
+            . $this->row('Hébergement interne', 'Pixel hébergé sur le domaine crabitan.fr — aucun appel vers un tiers tracking')
+            . $this->row('Purge automatique', 'Suppression automatique des données de tracking à J+395 (13 mois + marge)')
+            . $this->row('Accès restreint', 'Statistiques visibles uniquement par les admins — non exportables vers des tiers')
+            . '</table>';
+
+        $html .= '<h3>4.5 Conclusion</h3>'
+            . '<p><strong>Risque résiduel : Faible.</strong> Consultation CNIL préalable non requise. '
+            . 'La mise en œuvre nécessite la mise à jour de la politique de confidentialité et du formulaire d\'inscription newsletter.</p>';
+
+        // ---- Bilan ----
+        $html .= '<h2>5. Bilan et décision</h2>'
+            . '<table>'
+            . '<tr><th>Traitement</th><th>Risque résiduel</th><th>Consultation CNIL</th><th>Statut</th></tr>'
+            . '<tr><td>Relance panier abandonné</td><td>Faible</td><td>Non requise</td><td>Planifié — DPIA préalable réalisée</td></tr>'
+            . '<tr><td>Profilage inactivité client</td><td>Modéré</td><td>Non requise (mesures déployées)</td><td>Planifié — DPIA préalable réalisée</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '<tr><td>Tracking newsletter</td><td>Faible</td><td>Non requise</td><td>Planifié — DPIA préalable réalisée</td></tr>'
+            . '</table>'
+            . '<p>Aucun des traitements analysés ne présente un risque résiduel élevé après application des mesures d\'atténuation. '
+            . 'La consultation préalable de la CNIL (Art. 35-4) n\'est pas requise.</p>';
+
+        $html .= '<h2>6. Révision</h2>'
+            . '<p>Cette DPIA doit être réexaminée à chaque modification substantielle des traitements concernés, '
+            . 'ou au minimum tous les 3 ans (recommandation EDPB). '
+            . 'Prochaine révision prévue avant le&nbsp;: ' . htmlspecialchars($revision) . '.</p>'
+            . '<p>Responsable : Expert RGPD + DPO (' . htmlspecialchars($this->dpoEmail()) . ').</p>';
+
+        $html .= $this->pdfFooter(
+            'Document confidentiel — v' . htmlspecialchars($version) . ' — Art. 35 RGPD — Prochaine révision : ' . $revision,
             $date
         );
 

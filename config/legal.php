@@ -42,4 +42,8 @@ return [
         'version'    => '1.0',
         'updated_at' => '2026-04-07',
     ],
+    'dpia' => [
+        'version'    => '1.0',
+        'updated_at' => '2026-04-07',
+    ],
 ];

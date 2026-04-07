@@ -42,6 +42,7 @@ $router->get('/admin/dpo/registre-traitements', 'Admin\DpoAdminController@downlo
 $router->get('/admin/dpo/sous-traitants', 'Admin\DpoAdminController@downloadSousTraitants');
 $router->get('/admin/dpo/procedure-violation', 'Admin\DpoAdminController@downloadProcedure');
 $router->get('/admin/dpo/matrice-habilitations', 'Admin\DpoAdminController@downloadMatrice');
+$router->get('/admin/dpo/dpia', 'Admin\DpoAdminController@downloadDpia');
 $router->get('/admin/securite', 'Admin\ProfileAdminController@index');
 $router->post('/admin/securite/mot-de-passe', 'Admin\ProfileAdminController@changePassword');
 $router->post('/admin/securite/session/{id}/revoquer', 'Admin\ProfileAdminController@revokeSession');
