@@ -979,4 +979,34 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         $where = 'WHERE ' . implode(' AND ', $conds);
         return [$where, $params];
     }
+
+    /**
+     * Enregistre la déclaration de majorité d'un compte.
+     *
+     * @param int    $id Identifiant du compte
+     * @param string $ip Adresse IP du déclarant
+     * @return void
+     */
+    public function declareMajority(int $id, string $ip): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET majority_declared_at = NOW(), majority_declared_ip = ? WHERE id = ?",
+            [$ip, $id]
+        );
+    }
+
+    /**
+     * Vérifie si un compte a déclaré sa majorité.
+     *
+     * @param int $id Identifiant du compte
+     * @return bool
+     */
+    public function hasDeclaredMajority(int $id): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT majority_declared_at FROM {$this->table} WHERE id = ? AND deleted_at IS NULL",
+            [$id]
+        );
+        return $row !== false && $row['majority_declared_at'] !== null;
+    }
 }

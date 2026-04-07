@@ -142,6 +142,41 @@ class AuthController extends Controller
             }
         }
 
+        // Compte soft-deleted : identifiants valides → message de réactivation (sans révéler l'existence si mdp faux)
+        if (!$account) {
+            $deleted = $this->accounts->findDeletedByEmail($email);
+            if (
+                $deleted
+                && $deleted['password'] !== null
+                && password_verify($password, (string) $deleted['password'])
+                && !empty($deleted['scheduled_deletion_at'])
+                && strtotime((string) $deleted['scheduled_deletion_at']) > time()
+            ) {
+                // Envoi de l'email de réactivation — une seule fois par session pour éviter le spam
+                $alertKey = 'deletion_alert_sent_' . (int) $deleted['id'];
+                if (empty($_SESSION[$alertKey]) && !empty($deleted['reactivation_token'])) {
+                    $name = $deleted['firstname'] ?? ($deleted['company_name'] ?? '');
+                    $lang = in_array((string) ($deleted['lang'] ?? ''), ['fr', 'en'], true)
+                        ? (string) $deleted['lang']
+                        : 'fr';
+                    try {
+                        (new \Service\MailService())->sendPendingDeletionLoginAlert(
+                            (string) $deleted['email'],
+                            (string) $name,
+                            $lang,
+                            (string) $deleted['reactivation_token'],
+                            (string) $deleted['scheduled_deletion_at']
+                        );
+                    } catch (\Throwable) {
+                        // Échec silencieux — le message flash est toujours affiché
+                    }
+                    $_SESSION[$alertKey] = true;
+                }
+                $this->flash('modal_error', __('auth.account_pending_deletion'));
+                Response::redirect($safeBack);
+            }
+        }
+
         if (!$account || $account['password'] === null || !password_verify($password, $account['password'])) {
             $this->recordLoginFailure($ipKey, $account);
 
@@ -257,7 +292,20 @@ class AuthController extends Controller
         $loginCount  = $loginCart !== false ? (int) ($loginCart['total_quantity'] ?? 0) : 0;
         setcookie('cb-cart-count', (string) $loginCount, ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
 
-        Response::redirect($safeBack);
+        // Déclaration de majorité — positionner le flag si le compte n'a pas encore déclaré
+        if (!$this->accounts->hasDeclaredMajority((int) $account['id'])) {
+            $_SESSION['majority_pending'] = true;
+        }
+
+        // _intended — URL mémorisée par AuthMiddleware lors d'un accès à une page protégée sans auth.
+        // Priorité : _intended (navigation directe) > redirect_back (modal header) > accueil.
+        $intended = $_SESSION['_intended'] ?? null;
+        unset($_SESSION['_intended']);
+        $validIntended = $intended !== null
+            && is_string($intended)
+            && preg_match('#^/[^/]#', $intended)
+            && !str_contains($intended, '://');
+        Response::redirect($validIntended ? $intended : $safeBack);
     }
 
     // ----------------------------------------------------------------
@@ -297,6 +345,9 @@ class AuthController extends Controller
             $this->connections->revoke($token);
             CookieHelper::clear();
         }
+
+        // Nettoyer _intended pour éviter toute redirection résiduelle après reconnexion
+        unset($_SESSION['_intended']);
 
         Response::redirect('/' . $params['lang']);
     }
@@ -463,10 +514,15 @@ class AuthController extends Controller
             Response::redirect("/{$lang}");
         }
 
-        $this->accounts->verifyEmail((int) $account['id']);
+        $accountId = (int) $account['id'];
+        $this->accounts->verifyEmail($accountId);
 
         if (!empty($account['newsletter_optin_pending'])) {
-            $this->accounts->activateNewsletterFromPending((int) $account['id']);
+            $this->accounts->activateNewsletterFromPending($accountId);
+        }
+
+        if (!$this->accounts->hasDeclaredMajority($accountId)) {
+            $_SESSION['majority_pending'] = true;
         }
 
         $this->view('auth/verify', [

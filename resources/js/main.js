@@ -737,8 +737,21 @@ function initRegisterModal() {
     pwdInput?.addEventListener('input', checkPasswordMatch);
     confirmInput?.addEventListener('input', checkPasswordMatch);
 
-    // Auto-open si erreurs de soumission
-    if (globalThis.__authRegisterOpen) openModal();
+    // Auto-open si erreurs de soumission — marque les champs en erreur + scroll + focus
+    if (globalThis.__authRegisterOpen) {
+        openModal();
+        modal.querySelectorAll('.register-modal__error').forEach((err) => {
+            err.closest('.register-modal__field, .register-modal__field--radio')
+                ?.classList.add('is-invalid');
+        });
+        const firstError = modal.querySelector('.register-modal__error');
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            firstError.closest('.register-modal__field, .register-modal__field--radio')
+                ?.querySelector('input, select')
+                ?.focus();
+        }
+    }
 
     // Boutons mobile nav
     document.querySelectorAll('[data-open-modal="register-modal"]').forEach((btn) => {
@@ -1318,7 +1331,7 @@ function initPasswordStrengthIndicator() {
         { id: 'len',     label: '12 caractères minimum',         check: (v) => v.length >= 12 },
         { id: 'upper',   label: 'Une majuscule',                 check: (v) => /[A-Z]/.test(v) },
         { id: 'lower',   label: 'Une minuscule',                 check: (v) => /[a-z]/.test(v) },
-        { id: 'digit',   label: 'Un chiffre',                    check: (v) => /d/.test(v) },
+        { id: 'digit',   label: 'Un chiffre',                    check: (v) => /\d/.test(v) },
         { id: 'special', label: 'Un caractère spécial (!@#$%…)', check: (v) => SPECIAL.test(v) },
     ];
 

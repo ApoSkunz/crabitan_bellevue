@@ -652,10 +652,20 @@ VALUES
 -- L'email @purged.invalid est la convention de pseudonymisation du compte
 (8, 'a1b2c3d4e5f6@purged.invalid', '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, NULL, 0, '2014-01-01 00:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 
+-- Déclaration de majorité (Sprint 5 — Art. L3342-1 CSP)
+-- id 1 (super_admin), id 2 (admin), id 3 (client principal) : déclarés → pas de modal intempestif
+-- id 5 (societe), id 6 (customer EN) : NULL → permettent de tester le flux modal en dev
+-- id 4 (non vérifié), id 7 (supprimé), id 8 (purgé) : NULL intentionnel
+UPDATE `accounts`
+SET `majority_declared_at` = `created_at`,
+    `majority_declared_ip`  = '127.0.0.1'
+WHERE `id` IN (1, 2, 3);
+
 -- Soft delete du compte 7 (scheduled_deletion_at toujours dans le futur pour les tests de purge)
 UPDATE `accounts`
-SET `deleted_at` = DATE_SUB(NOW(), INTERVAL 5 DAY),
-    `scheduled_deletion_at` = DATE_ADD(NOW(), INTERVAL 25 DAY)
+SET `deleted_at`            = DATE_SUB(NOW(), INTERVAL 5 DAY),
+    `scheduled_deletion_at` = DATE_ADD(NOW(), INTERVAL 25 DAY),
+    `reactivation_token`    = 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2'
 WHERE `id` = 7;
 
 ALTER TABLE `accounts` AUTO_INCREMENT = 9;

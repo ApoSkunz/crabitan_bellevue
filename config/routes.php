@@ -165,6 +165,9 @@ $router->post('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribe
 $router->get('/{lang}/newsletter/confirmation', 'NewsletterController@confirmSubscription');
 $router->post('/{lang}/newsletter/inscription', 'NewsletterController@subscribe');
 
+// Déclaration de majorité (Art. L3342-1 CSP)
+$router->post('/{lang}/declaration-majorite', 'MajorityController@declare');
+
 // ============================================================
 // Routes API (AJAX)
 // ============================================================

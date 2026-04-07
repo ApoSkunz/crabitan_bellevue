@@ -37,7 +37,8 @@ return [
     'auth.invalid_credentials' => 'Invalid email or password',
     'auth.too_many_attempts'       => 'Too many attempts. Please try again in %d minute(s).',
     'auth.too_many_attempts_hours' => 'Too many attempts. Please try again in %d hour(s).',
-    'auth.account_locked'      => 'Account temporarily locked after too many failures. Try again in %d minute(s).',
+    'auth.account_locked'           => 'Account temporarily locked after too many failures. Try again in %d minute(s).',
+    'auth.account_pending_deletion' => 'Your account is scheduled for deletion. A reactivation link has just been sent to your email address.',
     'auth.too_many_registrations' => 'Too many registrations from this IP address. Try again in %d minute(s).',
     'auth.too_many_reset_requests'      => 'Too many reset requests. Try again in %d minute(s).',
     'auth.too_many_activation_requests' => 'Too many activation requests. Try again in %d minute(s).',
@@ -536,20 +537,16 @@ return [
     'account.active_sessions_tab'     => 'Active sessions',
     'account.trusted_devices_tab'     => 'Trusted devices',
     'account.security_confirm_success_title'   => 'Password change confirmed',
-    // phpcs:ignore Generic.Files.LineLength
     'account.security_confirm_success_body'    => 'Your new password is now active. All other sessions have been revoked as a security measure. Please sign in again.',
     'account.security_confirm_error_title'     => 'Invalid or expired link',
-    // phpcs:ignore Generic.Files.LineLength
     'account.security_confirm_expired_body'    => 'This link has expired (valid for 1 hour). If you did not perform this action, reset your password immediately.',
     'account.security_confirm_invalid_body'    => 'This link is invalid or has already been used.',
     'account.security_confirm_security_btn'    => 'Manage my account security',
     'account.security_confirm_reset_btn'       => 'Reset my password',
     'account.security_confirm_login_btn'       => 'Sign in',
     'account.security_deny_success_title'      => 'Request cancelled — account protected',
-    // phpcs:ignore Generic.Files.LineLength
     'account.security_deny_success_body'       => 'The password change request has been cancelled. All your active sessions have been revoked. A confirmation email has been sent.',
     'account.security_deny_error_title'        => 'Invalid or expired link',
-    // phpcs:ignore Generic.Files.LineLength
     'account.security_deny_expired_body'       => 'This link has expired (valid for 1 hour). If you think your account is compromised, reset your password.',
     'account.security_deny_invalid_body'       => 'This link is invalid or has already been used.',
     'account.security_deny_login_btn'          => 'Sign in',
@@ -813,7 +810,6 @@ return [
     'checkout.payment_refused'        => 'Payment declined. Please check your details or use a different payment method.',
     'checkout.payment_error'          => 'An error occurred while confirming your payment. Contact us if the amount was charged.',
     'account.order_cancel_card_confirm'       => 'This will trigger an immediate refund to your credit card. Confirm cancellation?',
-    // phpcs:ignore Generic.Files.LineLength
     'account.order_cancel_pending_cb_confirm' => 'Your card payment is awaiting confirmation. Cancelling will terminate this transaction. Confirm?',
 
     // Order confirmation

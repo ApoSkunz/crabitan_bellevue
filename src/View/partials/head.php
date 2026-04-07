@@ -48,6 +48,14 @@
     }());
     </script>
 <?php endif; ?>
+<?php
+$majorityPending   = isset($_SESSION['majority_pending']) && $_SESSION['majority_pending'] === true;
+$majorityHasCookie = isset($_COOKIE['auth_token']);
+if ($majorityPending && $majorityHasCookie) :
+    $majorityRedirect = $_SERVER['REQUEST_URI'] ?? "/{$navLang}/mon-compte";
+    include_once SRC_PATH . '/View/components/majority-modal.php';
+endif;
+?>
 </head>
 <body>
 <?php if (($_COOKIE['age_verified'] ?? '') !== '1') : ?>

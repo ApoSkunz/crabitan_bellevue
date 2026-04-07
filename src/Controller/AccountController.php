@@ -2057,7 +2057,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
     private function requireCustomer(): array
     {
-        $payload = AuthMiddleware::handle();
+        $payload = AuthMiddleware::handle(redirectToLogin: true);
         if (($payload['role'] ?? '') !== 'customer') {
             Response::abort(404);
         }

@@ -32,7 +32,7 @@ class InvoiceController extends Controller
     public function list(array $params): void
     {
         $this->resolveLang($params);
-        $payload  = AuthMiddleware::handle();
+        $payload  = AuthMiddleware::handle(redirectToLogin: true);
         $userId   = (int) ($payload['sub'] ?? 0);
         $invoices = $this->orders->getInvoiceFilesForUser($userId);
 
@@ -56,7 +56,7 @@ class InvoiceController extends Controller
     public function download(array $params): never
     {
         $this->resolveLang($params);
-        $payload = AuthMiddleware::handle();
+        $payload = AuthMiddleware::handle(redirectToLogin: true);
 
         $userId  = (int) ($payload['sub'] ?? 0);
         $role    = $payload['role'] ?? '';

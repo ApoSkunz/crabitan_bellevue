@@ -305,9 +305,20 @@ class GoogleOAuthController extends Controller
 
         $this->accounts->markAsConnected((int) $account['id']);
 
-        $returnPath = $_SESSION['oauth_return_path'] ?? "/{$lang}";
-        unset($_SESSION['oauth_return_path']);
-        Response::redirect($returnPath);
+        if (!$this->accounts->hasDeclaredMajority((int) $account['id'])) {
+            $_SESSION['majority_pending'] = true;
+        }
+
+        // _intended prioritaire sur oauth_return_path (navigation directe vers page protégée)
+        $intended    = $_SESSION['_intended'] ?? null;
+        $returnPath  = $_SESSION['oauth_return_path'] ?? "/{$lang}";
+        unset($_SESSION['_intended'], $_SESSION['oauth_return_path']);
+
+        $validIntended = $intended !== null
+            && is_string($intended)
+            && preg_match('#^/[^/]#', $intended)
+            && !str_contains($intended, '://');
+        Response::redirect($validIntended ? $intended : $returnPath);
     }
 
     /**
