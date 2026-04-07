@@ -234,8 +234,8 @@ class WineAdminController extends AdminController
         }
 
         $flashMsg = "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » ajouté avec succès.";
-        if ($sentCount > 0) {
-            $flashMsg .= " {$sentCount} newsletter(s) envoyée(s).";
+        if ($sentCount > 0 || $failedCount > 0) {
+            $flashMsg .= " Newsletter : {$sentCount} envoyée(s), {$failedCount} échec(s).";
         }
         $this->flash('success', $flashMsg);
         Response::redirect(self::ADMIN_URL);

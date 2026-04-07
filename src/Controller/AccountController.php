@@ -16,6 +16,7 @@ use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
 use Model\OrderAddressSnapshotModel;
 use Model\OrderModel;
+use Model\RgpdExportLogModel;
 use Service\AccountService;
 use Service\MailService;
 use Service\PasswordValidator;
@@ -50,6 +51,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     private OrderAddressSnapshotModel $orderAddressSnapshots;
     private DeviceConfirmTokenModel $deviceConfirmTokens;
     private RateLimiterService $rateLimiter;
+    private RgpdExportLogModel $rgpdExportLogs;
 
     public function __construct(\Core\Request $request)
     {
@@ -63,6 +65,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $this->orderAddressSnapshots   = new OrderAddressSnapshotModel();
         $this->deviceConfirmTokens     = new DeviceConfirmTokenModel();
         $this->rateLimiter         = new RateLimiterService();
+        $this->rgpdExportLogs      = new RgpdExportLogModel();
     }
 
     /**
@@ -1637,6 +1640,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         try {
             $this->newMailService()->sendRgpdExport($email, $name, $content, $filename, $lang);
             $this->rateLimiter->remember('rgpd_export_ts:' . $userId, time(), self::WINDOW_EXPORT);
+            $this->rgpdExportLogs->log($email, \Service\AuditLogger::getIp(), $filename, $userId);
             $_SESSION['flash']['export_sent'] = self::maskEmail($email);
         } catch (\Exception $e) {
             $_SESSION['flash']['export_error'] = __('account.export_error');

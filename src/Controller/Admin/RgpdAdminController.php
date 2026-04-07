@@ -6,6 +6,7 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\AccountModel;
+use Model\RgpdExportLogModel;
 use Model\RgpdRequestModel;
 use Service\MailService;
 
@@ -18,7 +19,7 @@ use Service\MailService;
  */
 class RgpdAdminController extends AdminController
 {
-    private const DEFAULT_PER_PAGE = 20;
+    public const DEFAULT_PER_PAGE = 20;
     private const ALLOWED_PER_PAGE = [10, 20, 50];
 
     // ----------------------------------------------------------------
@@ -33,9 +34,11 @@ class RgpdAdminController extends AdminController
      */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
-        $adminUser = $this->requireAdmin();
-        $model     = new RgpdRequestModel();
+        $adminUser   = $this->requireSuperAdmin();
+        $model       = new RgpdRequestModel();
+        $exportModel = new RgpdExportLogModel();
 
+        // Demandes manuelles
         $page       = max(1, (int) $this->request->get('page', 1));
         $perPageReq = (int) $this->request->get('per_page', self::DEFAULT_PER_PAGE);
         $perPage    = in_array($perPageReq, self::ALLOWED_PER_PAGE, true) ? $perPageReq : self::DEFAULT_PER_PAGE;
@@ -46,10 +49,18 @@ class RgpdAdminController extends AdminController
         $requests = $model->getAll($perPage, ($page - 1) * $perPage, $status, $type);
         $overdue  = $model->countOverdue();
 
+        // Journal exports automatiques
+        $logPage     = max(1, (int) $this->request->get('log_page', 1));
+        $logEmail    = $this->request->get('log_email') ?: null;
+        $logDateFrom = $this->request->get('log_date_from') ?: null;
+        $logDateTo   = $this->request->get('log_date_to')   ?: null;
+        $logTotal    = $exportModel->count($logEmail, $logDateFrom, $logDateTo);
+        $exportLogs  = $exportModel->getAll(self::DEFAULT_PER_PAGE, ($logPage - 1) * self::DEFAULT_PER_PAGE, $logEmail, $logDateFrom, $logDateTo);
+
         $this->view('admin/rgpd/index', [
             'adminUser'    => $adminUser,
             'adminSection' => 'dpo',
-            'pageTitle'    => 'Demandes RGPD',
+            'pageTitle'    => 'RGPD — Demandes & Exports',
             'breadcrumbs'  => [
                 ['label' => 'Admin',       'url' => '/admin'],
                 ['label' => 'DPO — RGPD',  'url' => '/admin/dpo'],
@@ -62,6 +73,12 @@ class RgpdAdminController extends AdminController
             'overdue'      => $overdue,
             'statusFilter' => $status,
             'typeFilter'   => $type,
+            'exportLogs'   => $exportLogs,
+            'logTotal'     => $logTotal,
+            'logPage'      => $logPage,
+            'logEmail'     => $logEmail,
+            'logDateFrom'  => $logDateFrom,
+            'logDateTo'    => $logDateTo,
             'flash'        => $this->getFlash('success'),
             'flashError'   => $this->getFlash('error'),
         ]);
@@ -204,42 +221,6 @@ class RgpdAdminController extends AdminController
         }
 
         $this->flash('success', 'Statut mis à jour.');
-        Response::redirect('/admin/rgpd/demandes');
-    }
-
-    // ----------------------------------------------------------------
-    // POST /admin/rgpd/demandes/{id}/supprimer (super_admin uniquement)
-    // ----------------------------------------------------------------
-
-    /**
-     * Supprime physiquement une demande RGPD (super_admin uniquement).
-     *
-     * @param array<string, string> $params Paramètres de route (id)
-     * @return void
-     */
-    public function delete(array $params): void
-    {
-        $adminUser = $this->requireAdmin();
-
-        if (($adminUser['role'] ?? '') !== 'super_admin') {
-            Response::abort(403);
-        }
-
-        if (!$this->verifyCsrf()) {
-            $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/rgpd/demandes');
-        }
-
-        $id    = (int) ($params['id'] ?? 0);
-        $model = new RgpdRequestModel();
-
-        if (!$model->findById($id)) {
-            Response::abort(404);
-        }
-
-        $model->delete($id);
-
-        $this->flash('success', 'Demande supprimée.');
         Response::redirect('/admin/rgpd/demandes');
     }
 

@@ -59,7 +59,7 @@ $router->get('/admin/rgpd/demandes', 'Admin\RgpdAdminController@index');
 $router->get('/admin/rgpd/demandes/ajouter', 'Admin\RgpdAdminController@create');
 $router->post('/admin/rgpd/demandes/ajouter', 'Admin\RgpdAdminController@store');
 $router->post('/admin/rgpd/demandes/{id}/statut', 'Admin\RgpdAdminController@updateStatus');
-$router->post('/admin/rgpd/demandes/{id}/supprimer', 'Admin\RgpdAdminController@delete');
+
 $router->get('/admin/rgpd/demandes/{id}/export-portabilite', 'Admin\RgpdAdminController@exportPortabilite');
 
 // ============================================================
