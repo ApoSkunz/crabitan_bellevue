@@ -22,6 +22,8 @@ $navIcons = [
     'invoices'     => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="1.5" width="10" height="12" rx="1"/><line x1="5" y1="5" x2="10" y2="5"/><line x1="5" y1="7.5" x2="10" y2="7.5"/><line x1="5" y1="10" x2="8" y2="10"/><path d="M9 9.5l1.5 2" stroke-linecap="round"/></svg>',
     'dpo'          => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 1.5L2 4v4c0 3 2.5 5.5 5.5 6 3-0.5 5.5-3 5.5-6V4L7.5 1.5z"/><path d="M5 7.5l2 2 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     'profile'      => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="11" height="7" rx="1"/><path d="M4.5 7V5a3 3 0 016 0v2"/><circle cx="7.5" cy="10.5" r="1" fill="currentColor" stroke="none"/></svg>',
+    'logs'         => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="12" height="12" rx="1"/><line x1="4" y1="5" x2="11" y2="5"/><line x1="4" y1="7.5" x2="11" y2="7.5"/><line x1="4" y1="10" x2="8" y2="10"/></svg>',
+    'admins'       => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="4" r="2"/><circle cx="10" cy="4" r="2"/><path d="M1 13c0-2.5 2-4 4.5-4"/><path d="M8 10h5.5a1.5 1.5 0 011.5 1.5v1.5"/><line x1="11" y1="9" x2="11" y2="13"/><line x1="9" y1="11" x2="13" y2="11"/></svg>',
 ];
 
 $navItems = [
@@ -37,6 +39,8 @@ $navItems = [
     'stats'       => ['url' => '/admin/statistiques',          'label' => 'Statistiques CA'],
     'dpo'         => ['url' => '/admin/dpo',                  'label' => 'DPO — RGPD'],
     'profile'     => ['url' => '/admin/securite',             'label' => 'Sécurité'],
+    'logs'        => ['url' => '/admin/logs',                 'label' => 'Journal d\'audit'],
+    'admins'      => ['url' => '/admin/admins',               'label' => 'Admins'],
 ];
 
 $adminInitial = strtoupper(substr($adminUser['name'] ?? 'A', 0, 1));
