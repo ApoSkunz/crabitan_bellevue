@@ -27,6 +27,18 @@ return [
         'updated_at' => '2026-04-07',
     ],
     'matrice_habilitations' => [
+        'version'    => '1.1',
+        'updated_at' => '2026-04-07',
+    ],
+    'registre_traitements' => [
+        'version'    => '1.0',
+        'updated_at' => '2026-04-07',
+    ],
+    'sous_traitants' => [
+        'version'    => '1.0',
+        'updated_at' => '2026-04-07',
+    ],
+    'procedure_violation' => [
         'version'    => '1.0',
         'updated_at' => '2026-04-07',
     ],

@@ -1745,11 +1745,13 @@ INNER;
             } else {
                 $intro = "Plusieurs tentatives de connexion suspectes ont été détectées sur votre compte administrateur.";
             }
+            $action = $targetName !== null
+                ? "Contactez <strong>" . htmlspecialchars($targetName, ENT_QUOTES) . "</strong> afin d'être sûr de la tentative de connexion."
+                : "Si vous êtes à l'origine de ces tentatives, vous pouvez ignorer ce message.<br>Dans le cas contraire, changez immédiatement votre mot de passe et signalez l'incident.";
             $message = "{$intro}<br><br>"
                 . "<strong>Date :</strong> {$safeDate}<br>"
                 . "<strong>IP source :</strong> {$safeIp}<br><br>"
-                . "Si vous êtes à l'origine de ces tentatives, vous pouvez ignorer ce message.<br>"
-                . "Dans le cas contraire, changez immédiatement votre mot de passe et signalez l'incident.";
+                . $action;
             $body = $this->emailSimpleLayout(
                 'Alerte sécurité admin',
                 "Bonjour {$safeName},",
@@ -1764,11 +1766,13 @@ INNER;
             } else {
                 $intro = "Multiple suspicious login attempts were detected on your admin account.";
             }
+            $action = $targetName !== null
+                ? "Please contact <strong>" . htmlspecialchars($targetName, ENT_QUOTES) . "</strong> to confirm whether the login attempt was legitimate."
+                : "If you made these attempts, you can ignore this message.<br>Otherwise, change your password immediately and report the incident.";
             $message = "{$intro}<br><br>"
                 . "<strong>Date:</strong> {$safeDate}<br>"
                 . "<strong>Source IP:</strong> {$safeIp}<br><br>"
-                . "If you made these attempts, you can ignore this message.<br>"
-                . "Otherwise, change your password immediately and report the incident.";
+                . $action;
             $body = $this->emailSimpleLayout(
                 'Admin security alert',
                 "Hello {$safeName},",
@@ -1847,6 +1851,40 @@ INNER;
                 $message,
                 'en'
             );
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Notifie un admin que son compte a été bloqué par un super_admin.
+     *
+     * @param string $to          Email du compte bloqué
+     * @param string $name        Nom affiché du compte bloqué
+     * @param string $lang        Langue (fr|en)
+     * @param string $blockerName Prénom + nom du super_admin ayant effectué le blocage
+     * @return void
+     */
+    public function sendAdminAccountBlocked(string $to, string $name, string $lang, string $blockerName): void
+    {
+        $safeName    = htmlspecialchars($name, ENT_QUOTES);
+        $safeBlocker = htmlspecialchars($blockerName, ENT_QUOTES);
+        $safeDate    = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject = '[ACTION] Votre compte administrateur a été bloqué — Crabitan Bellevue';
+            $message = "Votre compte administrateur a été bloqué le <strong>{$safeDate}</strong> "
+                . "par <strong>{$safeBlocker}</strong>.<br><br>"
+                . "Vous ne pouvez plus accéder au back-office. "
+                . "Si vous pensez qu'il s'agit d'une erreur, contactez votre super administrateur.";
+            $body = $this->emailSimpleLayout('Compte bloqué', "Bonjour {$safeName},", $message, 'fr');
+        } else {
+            $subject = '[ACTION] Your administrator account has been blocked — Crabitan Bellevue';
+            $message = "Your administrator account was blocked on <strong>{$safeDate}</strong> "
+                . "by <strong>{$safeBlocker}</strong>.<br><br>"
+                . "You can no longer access the back-office. "
+                . "If you believe this is an error, please contact your super administrator.";
+            $body = $this->emailSimpleLayout('Account blocked', "Hello {$safeName},", $message, 'en');
         }
 
         $this->send($to, $name, $subject, $body);

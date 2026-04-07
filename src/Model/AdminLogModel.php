@@ -126,7 +126,7 @@ class AdminLogModel extends Model
         // BOM UTF-8 pour compatibilité Excel
         fwrite($handle, "\xEF\xBB\xBF");
 
-        fputcsv($handle, ['ID', 'Date', 'Admin ID', 'Admin', 'Email admin', 'Action', 'Cible', 'ID cible', 'Détails', 'IP'], ';'); // phpcs:ignore Generic.Files.LineLength
+        fputcsv($handle, ['ID', 'Date', 'Admin ID', 'Admin', 'Email admin', 'Action', 'Cible', 'ID cible', 'Détails', 'IP'], ';', '"', ''); // phpcs:ignore Generic.Files.LineLength
 
         foreach ($rows as $row) {
             fputcsv($handle, [
@@ -140,7 +140,7 @@ class AdminLogModel extends Model
                 $row['target_id'] ?? '',
                 $row['details'] ?? '',
                 $row['ip_address'],
-            ], ';');
+            ], ';', '"', '');
         }
 
         rewind($handle);

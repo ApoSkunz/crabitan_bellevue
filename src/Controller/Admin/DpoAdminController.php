@@ -219,7 +219,10 @@ class DpoAdminController extends AdminController
      */
     private function htmlRegistre(): string
     {
-        $date = date(self::DATE_FORMAT);
+        $legal   = require ROOT_PATH . '/config/legal.php';
+        $version = $legal['registre_traitements']['version'] ?? '1.0';
+        $updAt   = \DateTime::createFromFormat('Y-m-d', $legal['registre_traitements']['updated_at'] ?? date('Y-m-d'));
+        $date    = $updAt !== false ? $updAt->format(self::DATE_FORMAT) : date(self::DATE_FORMAT);
 
         $treatments = [
             [
@@ -335,7 +338,7 @@ class DpoAdminController extends AdminController
         ];
 
         $html = $this->pdfOpen(
-            'Registre des activités de traitement',
+            'Registre des activités de traitement — v' . htmlspecialchars($version),
             'Conformément à l\'Art. 30 RGPD — Règlement UE 2016/679',
             $date
         );
@@ -364,7 +367,10 @@ class DpoAdminController extends AdminController
      */
     private function htmlSousTraitants(): string
     {
-        $date = date(self::DATE_FORMAT);
+        $legal   = require ROOT_PATH . '/config/legal.php';
+        $version = $legal['sous_traitants']['version'] ?? '1.0';
+        $updAt   = \DateTime::createFromFormat('Y-m-d', $legal['sous_traitants']['updated_at'] ?? date('Y-m-d'));
+        $date    = $updAt !== false ? $updAt->format(self::DATE_FORMAT) : date(self::DATE_FORMAT);
 
         $processors = [
             [
@@ -424,7 +430,7 @@ class DpoAdminController extends AdminController
         ];
 
         $html = $this->pdfOpen(
-            'Sous-traitants — DPA',
+            'Sous-traitants — DPA — v' . htmlspecialchars($version),
             'Conformément à l\'Art. 28 RGPD — Règlement UE 2016/679',
             $date
         );
@@ -452,12 +458,15 @@ class DpoAdminController extends AdminController
      */
     private function htmlProcedure(): string
     {
-        $date     = date(self::DATE_FORMAT);
+        $legal    = require ROOT_PATH . '/config/legal.php';
+        $version  = $legal['procedure_violation']['version'] ?? '1.0';
+        $updAt    = \DateTime::createFromFormat('Y-m-d', $legal['procedure_violation']['updated_at'] ?? date('Y-m-d'));
+        $date     = $updAt !== false ? $updAt->format(self::DATE_FORMAT) : date(self::DATE_FORMAT);
         $revision = date(self::DATE_FORMAT, strtotime('+1 year'));
 
         $html = $this->pdfOpen(
-            'Procédure de notification de violation de données',
-            'Conformément aux Art. 33 & 34 RGPD — délai légal 72h',
+            'Procédure violation de données — v' . htmlspecialchars($version),
+            'Conformément aux Art. 33 &amp; 34 RGPD — délai légal 72h',
             $date
         );
 
@@ -550,11 +559,11 @@ class DpoAdminController extends AdminController
             . '<tr><td>firstname, lastname, civility (profil)</td><td>—</td><td>Oui</td><td>Oui</td><td>Oui</td></tr>'
             . '<tr><td>company_name, siret (profil société)</td><td>—</td><td>Oui</td><td>Oui</td><td>Oui</td></tr>'
             . '<tr><td>email_verified_at, has_connected, created_at</td><td>—</td><td>—</td><td>Oui</td><td>Oui</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
-            . '<tr><td class="tag-ok">password (hash bcrypt)</td><td>—</td><td>—</td><td class="tag-ok">Exclu du SELECT admin</td><td class="tag-ok">Exclu du SELECT admin</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
-            . '<tr><td class="tag-ok">Tokens internes (email, newsletter, sécurité)</td><td>—</td><td>—</td><td class="tag-ok">Exclus du SELECT admin</td><td class="tag-ok">Exclus du SELECT admin</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
-            . '<tr><td class="tag-ok">google_id, apple_id, majority_declared_ip</td><td>—</td><td>—</td><td class="tag-ok">Exclus du SELECT admin</td><td class="tag-ok">Exclus du SELECT admin</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '<tr><td>password (hash bcrypt)</td><td>—</td><td>—</td><td>—</td><td>Oui</td></tr>'
+            . '<tr><td>Tokens internes (email, newsletter, sécurité)</td><td>—</td><td>—</td><td>—</td><td>Oui</td></tr>'
+            . '<tr><td>google_id, apple_id, majority_declared_ip</td><td>—</td><td>—</td><td>—</td><td>Oui</td></tr>'
             . '</table>'
-            . '<p><small>Les colonnes sensibles sont explicitement exclues de la requête AccountModel::getForAdmin() (minimisation Art. 5-1-c RGPD).</small></p>'; // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '<p><small>(*) Colonnes sensibles exclues de AccountModel::getForAdmin() — minimisation Art. 5-1-c RGPD. Accessibles au super_admin via accès direct BDD (rôle mainteneur).</small></p>'; // phpcs:ignore Generic.Files.LineLength.TooLong
 
         $html .= '<h2>3. Adresses (table addresses)</h2>'
             . '<table>'
@@ -568,7 +577,7 @@ class DpoAdminController extends AdminController
             . '<tr><td>Référence, contenu, prix, statut, méthode paiement</td><td>—</td><td>Propres</td><td>Toutes (lecture + MAJ statut)</td><td>Toutes</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
             . '<tr><td>Snapshot adresse livraison/facturation</td><td>—</td><td>Propres</td><td>Oui</td><td>Oui</td></tr>'
             . '<tr><td>Email client (jointure)</td><td>—</td><td>Propre</td><td>Oui</td><td>Oui</td></tr>'
-            . '<tr><td class="tag-ok">Données bancaires CB</td><td>—</td><td>—</td><td>— (PSP PCI-DSS)</td><td>— (PSP PCI-DSS)</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
+            . '<tr><td>Données bancaires CB</td><td>—</td><td>—</td><td>— (PSP PCI-DSS)</td><td>— (PSP PCI-DSS)</td></tr>' // phpcs:ignore Generic.Files.LineLength.TooLong
             . '</table>';
 
         $html .= '<h2>5. Sessions / Logs connexion (table connections)</h2>'

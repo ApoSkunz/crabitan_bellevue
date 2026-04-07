@@ -65,11 +65,17 @@
                     aria-label="Date de fin"
                 >
             </div>
-            <button type="submit" class="admin-filters__btn">Filtrer</button>
-            <a href="/admin/logs"
-               style="padding:0.42rem 1rem;font-size:0.82rem;letter-spacing:0.06em;border:1px solid rgba(8,8,8,0.2);color:#1a1208;text-decoration:none;">
-                Réinitialiser
-            </a>
+            <div>
+                <div style="font-size:0.72rem;color:transparent;margin-bottom:3px;">.</div>
+                <button type="submit" class="admin-filters__btn">Filtrer</button>
+            </div>
+            <div>
+                <div style="font-size:0.72rem;color:transparent;margin-bottom:3px;">.</div>
+                <a href="/admin/logs"
+                   style="display:inline-block;padding:0.42rem 1rem;font-size:0.82rem;letter-spacing:0.06em;border:1px solid rgba(8,8,8,0.2);color:#1a1208;text-decoration:none;">
+                    Réinitialiser
+                </a>
+            </div>
         </form>
 
         <?php

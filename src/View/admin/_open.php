@@ -85,6 +85,9 @@ $adminRole    = $adminUser['role'] ?? 'admin';
 
         <nav class="admin-nav" aria-label="Menu principal">
             <?php foreach ($navItems as $key => $item) : ?>
+                <?php if (in_array($key, ['logs', 'admins'], true) && $adminRole !== 'super_admin') : ?>
+                    <?php continue; ?>
+                <?php endif; ?>
                 <a
                     href="<?= htmlspecialchars($item['url']) ?>"
                     class="admin-nav__item<?= $adminSection === $key ? ' active' : '' ?>"

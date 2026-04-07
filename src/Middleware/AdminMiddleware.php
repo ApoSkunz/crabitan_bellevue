@@ -37,7 +37,7 @@ class AdminMiddleware
         };
 
         if ($userId > 0 && $checker($userId)) {
-            Response::abort(403, 'Compte bloqué.');
+            Response::abort(403, 'Votre compte administrateur a été bloqué. Contactez le super administrateur.');
         }
 
         return $payload;

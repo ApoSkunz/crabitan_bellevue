@@ -129,8 +129,8 @@ if (!function_exists('rgpdUrl')) {
                         </td>
                         <td><?= htmlspecialchars((string) $treatedName) ?></td>
                         <td>
-                            <details style="position:relative;">
-                                <summary class="admin-btn admin-btn--outline admin-btn--xs" style="cursor:pointer;">Actions &#9660;</summary>
+                            <details class="rgpd-actions-details" style="position:relative;">
+                                <summary class="admin-btn admin-btn--outline admin-btn--xs" style="cursor:pointer;list-style:none;">Actions &#9660;</summary>
                                 <div style="position:absolute;z-index:10;background:#fff;border:1px solid #ddd;border-radius:4px;padding:8px;min-width:220px;right:0;top:100%;box-shadow:0 2px 8px rgba(0,0,0,.1);">
                                     <form method="POST" action="/admin/rgpd/demandes/<?= (int) $req['id'] ?>/statut" style="margin-bottom:6px;">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
@@ -162,6 +162,16 @@ if (!function_exists('rgpdUrl')) {
                                             <p style="margin:4px 0 0;"><?= nl2br(htmlspecialchars($req['response_note'])) ?></p>
                                         </details>
                                     <?php endif; ?>
+
+                                    <form method="POST" action="/admin/rgpd/demandes/<?= (int) $req['id'] ?>/supprimer"
+                                          style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;"
+                                          onsubmit="return confirm('Supprimer définitivement cette demande ?')">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                        <button type="submit" class="admin-btn admin-btn--xs"
+                                                style="width:100%;color:#b91c1c;border:1px solid #b91c1c;background:transparent;">
+                                            &#128465; Supprimer
+                                        </button>
+                                    </form>
                                 </div>
                             </details>
                         </td>
@@ -193,5 +203,13 @@ if (!function_exists('rgpdUrl')) {
         </nav>
     <?php endif; ?>
 <?php endif; ?>
+
+<script>
+document.addEventListener('click', function (e) {
+    document.querySelectorAll('.rgpd-actions-details[open]').forEach(function (d) {
+        if (!d.contains(e.target)) { d.removeAttribute('open'); }
+    });
+});
+</script>
 
 <?php require_once SRC_PATH . '/View/admin/_close.php'; ?>
