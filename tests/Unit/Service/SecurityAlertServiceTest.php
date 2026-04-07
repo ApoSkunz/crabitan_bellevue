@@ -46,7 +46,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testShouldAlertReturnsFalseWhenBelowThreshold(): void
     {
-        $rl = $this->createMock(RateLimiterService::class);
+        $rl = $this->createStub(RateLimiterService::class);
         $rl->method('recall')->willReturn(2);
 
         $service = new SecurityAlertService($rl);
@@ -61,7 +61,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testShouldAlertReturnsFalseWhenAboveThreshold(): void
     {
-        $rl = $this->createMock(RateLimiterService::class);
+        $rl = $this->createStub(RateLimiterService::class);
         $rl->method('recall')->willReturn(4);
 
         $service = new SecurityAlertService($rl);
@@ -75,7 +75,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testShouldAlertReturnsFalseWhenZeroFailures(): void
     {
-        $rl = $this->createMock(RateLimiterService::class);
+        $rl = $this->createStub(RateLimiterService::class);
         $rl->method('recall')->willReturn(0);
 
         $service = new SecurityAlertService($rl);
@@ -89,7 +89,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testShouldAlertUsesCustomThreshold(): void
     {
-        $rl = $this->createMock(RateLimiterService::class);
+        $rl = $this->createStub(RateLimiterService::class);
         $rl->method('recall')->willReturn(5);
 
         $service = new SecurityAlertService($rl);
@@ -122,7 +122,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testShouldAutoBlockReturnsTrueAtThreshold(): void
     {
-        $rl = $this->createMock(RateLimiterService::class);
+        $rl = $this->createStub(RateLimiterService::class);
         $rl->method('recall')->willReturn(SecurityAlertService::AUTO_BLOCK_THRESHOLD);
 
         $service = new SecurityAlertService($rl);
@@ -134,7 +134,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testShouldAutoBlockReturnsTrueAboveThreshold(): void
     {
-        $rl = $this->createMock(RateLimiterService::class);
+        $rl = $this->createStub(RateLimiterService::class);
         $rl->method('recall')->willReturn(7);
 
         $service = new SecurityAlertService($rl);
@@ -146,7 +146,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testShouldAutoBlockReturnsFalseBelowThreshold(): void
     {
-        $rl = $this->createMock(RateLimiterService::class);
+        $rl = $this->createStub(RateLimiterService::class);
         $rl->method('recall')->willReturn(4);
 
         $service = new SecurityAlertService($rl);
@@ -158,7 +158,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testShouldAutoBlockReturnsFalseAtZero(): void
     {
-        $rl = $this->createMock(RateLimiterService::class);
+        $rl = $this->createStub(RateLimiterService::class);
         $rl->method('recall')->willReturn(0);
 
         $service = new SecurityAlertService($rl);
@@ -193,7 +193,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testSendAdminLoginAlertDoesNotThrow(): void
     {
-        $rl   = $this->createMock(RateLimiterService::class);
+        $rl   = $this->createStub(RateLimiterService::class);
         $mail = $this->createMock(MailService::class);
         $mail->expects($this->atLeastOnce())->method('sendAdminLoginFailureAlert');
 
@@ -213,7 +213,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testSendAdminLoginAlertNotifiesMaintainerSeparately(): void
     {
-        $rl   = $this->createMock(RateLimiterService::class);
+        $rl   = $this->createStub(RateLimiterService::class);
         $mail = $this->createMock(MailService::class);
         $mail->expects($this->exactly(2))->method('sendAdminLoginFailureAlert');
 
@@ -234,7 +234,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testSendAdminLoginAlertSingleEmailWhenSameAddress(): void
     {
-        $rl   = $this->createMock(RateLimiterService::class);
+        $rl   = $this->createStub(RateLimiterService::class);
         $mail = $this->createMock(MailService::class);
         $mail->expects($this->once())->method('sendAdminLoginFailureAlert');
 
@@ -255,8 +255,8 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testSendAdminLoginAlertIsSilentOnMailFailure(): void
     {
-        $rl   = $this->createMock(RateLimiterService::class);
-        $mail = $this->createMock(MailService::class);
+        $rl   = $this->createStub(RateLimiterService::class);
+        $mail = $this->createStub(MailService::class);
         $mail->method('sendAdminLoginFailureAlert')
             ->willThrowException(new \RuntimeException('SMTP down'));
 
@@ -280,7 +280,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testSendPasswordChangeAlertDoesNotThrow(): void
     {
-        $rl   = $this->createMock(RateLimiterService::class);
+        $rl   = $this->createStub(RateLimiterService::class);
         $mail = $this->createMock(MailService::class);
         $mail->expects($this->atLeastOnce())->method('sendAdminPasswordChangeAlert');
 
@@ -301,7 +301,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testSendPasswordChangeAlertNotifiesMaintainer(): void
     {
-        $rl   = $this->createMock(RateLimiterService::class);
+        $rl   = $this->createStub(RateLimiterService::class);
         $mail = $this->createMock(MailService::class);
         $mail->expects($this->exactly(2))->method('sendAdminPasswordChangeAlert');
 
@@ -323,8 +323,8 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testSendPasswordChangeAlertIsSilentOnMailFailure(): void
     {
-        $rl   = $this->createMock(RateLimiterService::class);
-        $mail = $this->createMock(MailService::class);
+        $rl   = $this->createStub(RateLimiterService::class);
+        $mail = $this->createStub(MailService::class);
         $mail->method('sendAdminPasswordChangeAlert')
             ->willThrowException(new \RuntimeException('SMTP down'));
 
@@ -345,7 +345,7 @@ class SecurityAlertServiceTest extends TestCase
      */
     public function testSendPasswordChangeAlertUsesCompanyName(): void
     {
-        $rl   = $this->createMock(RateLimiterService::class);
+        $rl   = $this->createStub(RateLimiterService::class);
         $mail = $this->createMock(MailService::class);
         $mail->expects($this->once())
             ->method('sendAdminPasswordChangeAlert')

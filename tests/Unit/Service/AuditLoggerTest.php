@@ -66,7 +66,7 @@ class AuditLoggerTest extends TestCase
      */
     public function testLogIsSilentOnException(): void
     {
-        $modelMock = $this->createMock(AdminLogModel::class);
+        $modelMock = $this->createStub(AdminLogModel::class);
         $modelMock->method('insert')
             ->willThrowException(new \RuntimeException('DB error'));
 
