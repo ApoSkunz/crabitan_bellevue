@@ -2,6 +2,39 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.46.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.45.1...v0.46.0) (2026-04-07)
+
+
+### Bug Fixes
+
+* **auth:** _intended non vidé au logout + ANSSI /d/ → /\d/ + focus erreur register ([bcbbb05](https://github.com/ApoSkunz/crabitan_bellevue/commit/bcbbb05841640bf4294ece027189f4960e031011))
+* **controller:** MajorityController — wrap Jwt::decode in try-catch for empty/invalid token ([e265d9b](https://github.com/ApoSkunz/crabitan_bellevue/commit/e265d9b0cbe152e7a4e1aaea0a720279c476f23d))
+* **controller:** move majority guard before cart-empty check in checkout ([d424b16](https://github.com/ApoSkunz/crabitan_bellevue/commit/d424b16c1c50ee017857c4e8506741142a663b66))
+* **i18n:** pending deletion flash — message now mentions the resent reactivation link ([b2bbb29](https://github.com/ApoSkunz/crabitan_bellevue/commit/b2bbb29cc378791580e625476880d9f8aef3d73c))
+* **middleware:** guard admin paths with 404 in storeIntendedAndRedirect ([30d5fe0](https://github.com/ApoSkunz/crabitan_bellevue/commit/30d5fe0065cf0902e790dabba2e997539ffcf0aa))
+* **seed:** add reactivation_token for soft-deleted account client.supprime@dev.local ([783013d](https://github.com/ApoSkunz/crabitan_bellevue/commit/783013d4a19a8286ad4d46906742b198948dbb81))
+* **seed:** majority_declared_at — uniquement sur id 1-3, laisser NULL sur 5-6 pour tests ([c64502d](https://github.com/ApoSkunz/crabitan_bellevue/commit/c64502d12c2a8beecf85eb4fe98fa1496d25b46b))
+* **seed:** majority_declared_at = created_at pour les comptes mock actifs ([12dea18](https://github.com/ApoSkunz/crabitan_bellevue/commit/12dea1843ed8a231fd5577f3e925e8a674780c14))
+* **sonar:** head.php include→include_once (S2003) + MailService PATH_REACTIVER constant (S1192) ([2c81e2c](https://github.com/ApoSkunz/crabitan_bellevue/commit/2c81e2cb44cc044a81c9194ec643379a163432d0))
+* **view:** register modal — label + bordure en rouge sur champs invalides (serveur) ([d41e715](https://github.com/ApoSkunz/crabitan_bellevue/commit/d41e71559d659270b5f846152ee762f2ce275cb0)), closes [#c0392b](https://github.com/ApoSkunz/crabitan_bellevue/issues/c0392b)
+
+
+### Features
+
+* **auth:** majority_pending au login/OAuth/checkout + redirect-post-login ([4430be3](https://github.com/ApoSkunz/crabitan_bellevue/commit/4430be300f68da752663eefdb1d0a9bb3fffc5b0))
+* **auth:** majority_pending flag at login + reactivation email for soft-deleted accounts ([2259696](https://github.com/ApoSkunz/crabitan_bellevue/commit/2259696305f1906725c6f67893a7e06c6d0b05c8))
+* **auth:** message de réactivation si connexion avec compte en cours de suppression ([d7fb6f1](https://github.com/ApoSkunz/crabitan_bellevue/commit/d7fb6f178e07af4521b15f9ae5008b995c7de32b))
+* **controller:** MajorityController — déclaration légale de majorité (L3342-1 CSP) ([d2b7e86](https://github.com/ApoSkunz/crabitan_bellevue/commit/d2b7e867c3d7abcd97c4da4b66d5e1c5998558bf))
+* **model:** AccountModel — declareMajority + hasDeclaredMajority ([a46e00c](https://github.com/ApoSkunz/crabitan_bellevue/commit/a46e00c6965d34b2b3e9bda871b704b33dcad08f))
+* **security:** HSTS conditionnel + nonce CSP sur tous les scripts inline ([1dc3875](https://github.com/ApoSkunz/crabitan_bellevue/commit/1dc3875f87c92f12b75c5c23bea87854fcbc4ad9))
+* **tests:** TU AuthMiddleware redirectToLogin + redirect-post-login + fix checkout ([18fd8a4](https://github.com/ApoSkunz/crabitan_bellevue/commit/18fd8a4f38e2396f27fc10af77d0db9772875891))
+* **view:** majority-modal — composant overlay bilingue + hook head.php ([1053d5c](https://github.com/ApoSkunz/crabitan_bellevue/commit/1053d5cbcb8453a8f10b4c577661b4bcba2f36de))
+
+
+### Reverts
+
+* **security:** annuler HSTS + nonce CSP — reporté à l'audit final ([083658f](https://github.com/ApoSkunz/crabitan_bellevue/commit/083658f186c149938fb39f550e3f26807d27fd10))
+
 ## [0.45.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.45.0...v0.45.1) (2026-04-06)
 
 
