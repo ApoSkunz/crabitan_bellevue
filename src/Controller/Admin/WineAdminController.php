@@ -9,6 +9,7 @@ use Model\AccountModel;
 use Model\CartModel;
 use Model\NewsletterModel;
 use Model\WineModel;
+use Service\AuditLogger;
 use Service\MailService;
 use Service\TranslationService;
 
@@ -185,6 +186,16 @@ class WineAdminController extends AdminController
             ]);
             return;
         }
+
+        AuditLogger::log(
+            $adminUser['id'],
+            'wine.created',
+            'wine',
+            null,
+            ['label_name' => $data['label_name'], 'vintage' => $data['vintage']],
+            AuditLogger::getIp()
+        );
+
         $cuveeMark = $data['is_cuvee_speciale'] ? ' — Cuvée Spéciale' : '';
 
         $sentCount   = 0;
@@ -303,6 +314,14 @@ class WineAdminController extends AdminController
             if (!$data['available']) {
                 (new CartModel())->purgeWineFromAllCarts($id);
             }
+            AuditLogger::log(
+                $adminUser['id'],
+                'wine.updated',
+                'wine',
+                $id,
+                ['label_name' => $data['label_name'], 'vintage' => $data['vintage'], 'available' => $data['available']],
+                AuditLogger::getIp()
+            );
         } catch (\PDOException $e) {
             $isDuplicate = str_contains($e->getMessage(), '1062') || str_contains($e->getMessage(), 'uq_wines_slug');
             $errors['slug'] = $isDuplicate

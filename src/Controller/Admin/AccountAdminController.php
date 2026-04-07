@@ -6,6 +6,7 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\AccountModel;
+use Service\AuditLogger;
 
 class AccountAdminController extends AdminController
 {
@@ -54,11 +55,7 @@ class AccountAdminController extends AdminController
 
     public function verify(array $params): void
     {
-        $adminUser = $this->requireAdmin();
-
-        if (($adminUser['role'] ?? '') !== 'super_admin') {
-            $this->abort(403, 'Réservé au super administrateur.');
-        }
+        $adminUser = $this->requireSuperAdmin();
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
@@ -68,6 +65,15 @@ class AccountAdminController extends AdminController
         $id      = (int) $params['id'];
         $account = new AccountModel();
         $account->verifyEmail($id);
+
+        AuditLogger::log(
+            $adminUser['id'],
+            'account.email_verified',
+            'account',
+            $id,
+            [],
+            AuditLogger::getIp()
+        );
 
         $this->flash('success', "Compte #{$id} vérifié avec succès.");
         Response::redirect('/admin/comptes');

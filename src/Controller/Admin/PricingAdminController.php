@@ -6,6 +6,7 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\PricingModel;
+use Service\AuditLogger;
 
 class PricingAdminController extends AdminController
 {
@@ -43,7 +44,7 @@ class PricingAdminController extends AdminController
 
     public function update(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
-        $this->requireAdmin();
+        $adminUser = $this->requireAdmin();
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
@@ -70,6 +71,15 @@ class PricingAdminController extends AdminController
                 $this->pricing->update($id, $delivery, $withdrawal, $labelFr, $labelEn, $active, $minQty, $maxQty);
             }
         }
+
+        AuditLogger::log(
+            $adminUser['id'],
+            'pricing.updated',
+            'pricing_rules',
+            null,
+            [],
+            AuditLogger::getIp()
+        );
 
         $this->flash('success', 'Tarifs mis à jour avec succès.');
         Response::redirect('/admin/tarifs');
