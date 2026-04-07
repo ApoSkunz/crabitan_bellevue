@@ -1014,7 +1014,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             "SELECT majority_declared_at FROM {$this->table} WHERE id = ? AND deleted_at IS NULL",
             [$id]
         );
-        return $row !== false && $row['majority_declared_at'] !== null;
+        return $row !== false && ($row['majority_declared_at'] ?? null) !== null;
     }
 
     // ----------------------------------------------------------------
