@@ -23,7 +23,8 @@ abstract class AdminController extends Controller
         $account = (new AccountModel())->findById((int) $payload['sub']);
         $name = 'Admin';
         if ($account) {
-            $name = $account['firstname'] ?? $account['company_name'] ?? 'Admin';
+            $full = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
+            $name = $full !== '' ? $full : ($account['company_name'] ?? 'Admin');
         }
 
         return [
