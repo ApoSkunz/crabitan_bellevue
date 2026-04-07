@@ -38,10 +38,10 @@ return [
     'auth.too_many_attempts'       => 'Trop de tentatives. Réessayez dans %d minute(s).',
     'auth.too_many_attempts_hours' => 'Trop de tentatives. Réessayez dans %d heure(s).',
     'auth.account_locked'           => 'Compte temporairement verrouillé après trop d\'échecs. Réessayez dans %d minute(s).',
-    'auth.account_pending_deletion' => 'Votre compte est en cours de suppression. Un lien de réactivation vient de vous être envoyé par e-mail.', // phpcs:ignore Generic.Files.LineLength
+    'auth.account_pending_deletion' => 'Votre compte est en cours de suppression. Un lien de réactivation vient de vous être envoyé par e-mail.',
     'auth.too_many_registrations' => 'Trop d\'inscriptions depuis cette adresse IP. Réessayez dans %d minute(s).',
     'auth.too_many_reset_requests'      => 'Trop de demandes de réinitialisation. Réessayez dans %d minute(s).',
-    'auth.too_many_activation_requests' => 'Trop de demandes d\'activation. Réessayez dans %d minute(s).', // phpcs:ignore Generic.Files.LineLength
+    'auth.too_many_activation_requests' => 'Trop de demandes d\'activation. Réessayez dans %d minute(s).',
     'auth.account_inactive'  => 'Veuillez vérifier votre email pour activer votre compte',
     'auth.email_taken'       => 'Cette adresse email est déjà utilisée',
     'auth.login_success'     => 'Connexion réussie',
@@ -539,20 +539,16 @@ return [
     'account.active_sessions_tab'     => 'Sessions actives',
     'account.trusted_devices_tab'     => 'Appareils de confiance',
     'account.security_confirm_success_title'   => 'Changement de mot de passe confirmé',
-    // phpcs:ignore Generic.Files.LineLength
     'account.security_confirm_success_body'    => 'Votre nouveau mot de passe est actif. Vos autres sessions ont été révoquées par mesure de sécurité. Reconnectez-vous.',
     'account.security_confirm_error_title'     => 'Lien invalide ou expiré',
-    // phpcs:ignore Generic.Files.LineLength
     'account.security_confirm_expired_body'    => 'Ce lien a expiré (validité 1 heure). Si vous n\'êtes pas à l\'origine de cette action, réinitialisez votre mot de passe immédiatement.',
     'account.security_confirm_invalid_body'    => 'Ce lien est invalide ou a déjà été utilisé.',
     'account.security_confirm_security_btn'    => 'Gérer la sécurité de mon compte',
     'account.security_confirm_reset_btn'       => 'Réinitialiser mon mot de passe',
     'account.security_confirm_login_btn'       => 'Se connecter',
     'account.security_deny_success_title'      => 'Demande annulée — compte protégé',
-    // phpcs:ignore Generic.Files.LineLength
     'account.security_deny_success_body'       => 'La demande de changement de mot de passe a été annulée. Toutes vos sessions actives ont été révoquées. Un email de confirmation vous a été envoyé.',
     'account.security_deny_error_title'        => 'Lien invalide ou expiré',
-    // phpcs:ignore Generic.Files.LineLength
     'account.security_deny_expired_body'       => 'Ce lien a expiré (validité 1 heure). Si vous pensez que votre compte est compromis, réinitialisez votre mot de passe.',
     'account.security_deny_invalid_body'       => 'Ce lien est invalide ou a déjà été utilisé.',
     'account.security_deny_login_btn'          => 'Se connecter',
@@ -816,7 +812,6 @@ return [
     'checkout.payment_refused'        => 'Paiement refusé. Veuillez vérifier vos informations ou utiliser un autre moyen de paiement.',
     'checkout.payment_error'          => 'Une erreur est survenue lors de la confirmation du paiement. Contactez-nous si le montant a été débité.',
     'account.order_cancel_card_confirm'       => 'Cette action déclenchera un remboursement immédiat par carte bancaire via notre établissement bancaire. Confirmer l\'annulation ?',
-    // phpcs:ignore Generic.Files.LineLength
     'account.order_cancel_pending_cb_confirm' => 'Votre paiement par carte est en attente de confirmation. Annuler la commande mettra fin à cette transaction. Confirmer ?',
 
     // Confirmation commande
