@@ -51,4 +51,3 @@ Thumbs.db
 # Lighthouse CI — rapports locaux
 /.lighthouseci/
 logs/
-!src/View/admin/logs/
