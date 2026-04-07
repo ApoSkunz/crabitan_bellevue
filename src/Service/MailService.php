@@ -1713,6 +1713,146 @@ INNER;
     }
 
     /**
+     * Alerte de sécurité : trop d'échecs de connexion admin détectés.
+     *
+     * Envoyée à l'admin concerné et/ou au mainteneur selon le contexte.
+     * Si $targetName est fourni, le message mentionne le compte ciblé (email du mainteneur).
+     *
+     * @param string      $to         Adresse email du destinataire
+     * @param string      $name       Nom affiché dans l'email
+     * @param string      $lang       Langue (fr|en)
+     * @param string      $ip         Adresse IP de l'attaquant
+     * @param string|null $targetName Nom du compte admin ciblé (null si destinataire = admin lui-même)
+     * @return void
+     */
+    public function sendAdminLoginFailureAlert(
+        string $to,
+        string $name,
+        string $lang,
+        string $ip,
+        ?string $targetName = null
+    ): void {
+        $safeIp   = htmlspecialchars($ip, ENT_QUOTES);
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject = '[ALERTE] Tentatives de connexion admin suspectes — Crabitan Bellevue';
+            if ($targetName !== null) {
+                $safeTarget = htmlspecialchars($targetName, ENT_QUOTES);
+                $intro      = "Des tentatives de connexion suspectes ont été détectées sur le compte admin "
+                    . "<strong>{$safeTarget}</strong>.";
+            } else {
+                $intro = "Plusieurs tentatives de connexion suspectes ont été détectées sur votre compte administrateur.";
+            }
+            $message = "{$intro}<br><br>"
+                . "<strong>Date :</strong> {$safeDate}<br>"
+                . "<strong>IP source :</strong> {$safeIp}<br><br>"
+                . "Si vous êtes à l'origine de ces tentatives, vous pouvez ignorer ce message.<br>"
+                . "Dans le cas contraire, changez immédiatement votre mot de passe et signalez l'incident.";
+            $body = $this->emailSimpleLayout(
+                'Alerte sécurité admin',
+                "Bonjour {$safeName},",
+                $message,
+                'fr'
+            );
+        } else {
+            $subject = '[ALERT] Suspicious admin login attempts — Crabitan Bellevue';
+            if ($targetName !== null) {
+                $safeTarget = htmlspecialchars($targetName, ENT_QUOTES);
+                $intro      = "Suspicious login attempts were detected on admin account <strong>{$safeTarget}</strong>.";
+            } else {
+                $intro = "Multiple suspicious login attempts were detected on your admin account.";
+            }
+            $message = "{$intro}<br><br>"
+                . "<strong>Date:</strong> {$safeDate}<br>"
+                . "<strong>Source IP:</strong> {$safeIp}<br><br>"
+                . "If you made these attempts, you can ignore this message.<br>"
+                . "Otherwise, change your password immediately and report the incident.";
+            $body = $this->emailSimpleLayout(
+                'Admin security alert',
+                "Hello {$safeName},",
+                $message,
+                'en'
+            );
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Alerte de sécurité : changement de mot de passe admin effectué.
+     *
+     * Envoyée à l'admin concerné et/ou au mainteneur selon le contexte.
+     * Si $targetName est fourni, le message mentionne le compte ciblé.
+     *
+     * @param string      $to         Adresse email du destinataire
+     * @param string      $name       Nom affiché dans l'email
+     * @param string      $lang       Langue (fr|en)
+     * @param string      $ip         Adresse IP de la requête
+     * @param string      $userAgent  User-Agent du navigateur
+     * @param string|null $targetName Nom du compte admin ciblé (null si destinataire = admin lui-même)
+     * @return void
+     */
+    public function sendAdminPasswordChangeAlert(
+        string $to,
+        string $name,
+        string $lang,
+        string $ip,
+        string $userAgent,
+        ?string $targetName = null
+    ): void {
+        $safeIp    = htmlspecialchars($ip, ENT_QUOTES);
+        $safeUa    = htmlspecialchars(substr($userAgent, 0, 200), ENT_QUOTES);
+        $safeName  = htmlspecialchars($name, ENT_QUOTES);
+        $safeDate  = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject = '[ALERTE] Mot de passe admin modifié — Crabitan Bellevue';
+            if ($targetName !== null) {
+                $safeTarget = htmlspecialchars($targetName, ENT_QUOTES);
+                $intro      = "Le mot de passe du compte admin <strong>{$safeTarget}</strong> vient d'être modifié.";
+            } else {
+                $intro = "Le mot de passe de votre compte administrateur vient d'être modifié.";
+            }
+            $message = "{$intro}<br><br>"
+                . "<strong>Date :</strong> {$safeDate}<br>"
+                . "<strong>IP :</strong> {$safeIp}<br>"
+                . "<strong>Navigateur :</strong> {$safeUa}<br><br>"
+                . "Si vous êtes à l'origine de cette action, vous pouvez ignorer ce message.<br>"
+                . "Dans le cas contraire, contactez immédiatement le mainteneur.";
+            $body = $this->emailSimpleLayout(
+                'Alerte sécurité admin',
+                "Bonjour {$safeName},",
+                $message,
+                'fr'
+            );
+        } else {
+            $subject = '[ALERT] Admin password changed — Crabitan Bellevue';
+            if ($targetName !== null) {
+                $safeTarget = htmlspecialchars($targetName, ENT_QUOTES);
+                $intro      = "The password for admin account <strong>{$safeTarget}</strong> was just changed.";
+            } else {
+                $intro = "Your admin account password was just changed.";
+            }
+            $message = "{$intro}<br><br>"
+                . "<strong>Date:</strong> {$safeDate}<br>"
+                . "<strong>IP:</strong> {$safeIp}<br>"
+                . "<strong>Browser:</strong> {$safeUa}<br><br>"
+                . "If you made this change, you can ignore this message.<br>"
+                . "Otherwise, contact the maintainer immediately.";
+            $body = $this->emailSimpleLayout(
+                'Admin security alert',
+                "Hello {$safeName},",
+                $message,
+                'en'
+            );
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
      * Envoie l'archive RGPD (ZIP ou JSON) à l'adresse email du titulaire du compte.
      *
      * Utilise addStringAttachment() pour joindre le contenu binaire en mémoire,
