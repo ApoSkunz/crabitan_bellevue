@@ -4455,4 +4455,98 @@ class AccountControllerTest extends IntegrationTestCase
         $result = $method->invoke(null, '@domain.com');
         $this->assertStringContainsString('*', $result);
     }
+
+    // ----------------------------------------------------------------
+    // updateLangPreference — AJAX endpoint
+    // ----------------------------------------------------------------
+
+    /**
+     * Sans auth → redirect 302 (requireCustomer).
+     */
+    public function testUpdateLangPreferenceRequiresAuth(): void
+    {
+        $_COOKIE = [];
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/mon-compte/preference-langue')
+            ->updateLangPreference(['lang' => 'fr']);
+    }
+
+    /**
+     * CSRF invalide → JSON 403.
+     */
+    public function testUpdateLangPreferenceRejectsInvalidCsrf(): void
+    {
+        $userId = $this->insertCustomer('langpref.csrf@test.local');
+        $this->loginAs($userId);
+        $_POST = ['lang' => 'en', 'csrf_token' => 'wrong'];
+
+        ob_start();
+        $this->makeController('POST', '/fr/mon-compte/preference-langue')
+            ->updateLangPreference(['lang' => 'fr']);
+        $body = ob_get_clean();
+
+        $data = json_decode($body, true);
+        $this->assertFalse($data['success']);
+        $this->assertSame('csrf', $data['error']);
+    }
+
+    /**
+     * Lang invalide → JSON 422.
+     */
+    public function testUpdateLangPreferenceRejectsInvalidLang(): void
+    {
+        $userId = $this->insertCustomer('langpref.invalid@test.local');
+        $this->loginAs($userId);
+        $_POST = ['lang' => 'de', 'csrf_token' => self::CSRF];
+
+        ob_start();
+        $this->makeController('POST', '/fr/mon-compte/preference-langue')
+            ->updateLangPreference(['lang' => 'fr']);
+        $body = ob_get_clean();
+
+        $data = json_decode($body, true);
+        $this->assertFalse($data['success']);
+        $this->assertSame('invalid_lang', $data['error']);
+    }
+
+    /**
+     * Lang valide → accounts.lang mis à jour en BDD + JSON success.
+     */
+    public function testUpdateLangPreferenceUpdatesDatabaseAndReturnsSuccess(): void
+    {
+        $userId = $this->insertCustomer('langpref.ok@test.local');
+        $this->loginAs($userId);
+        $_POST = ['lang' => 'en', 'csrf_token' => self::CSRF];
+
+        ob_start();
+        $this->makeController('POST', '/fr/mon-compte/preference-langue')
+            ->updateLangPreference(['lang' => 'fr']);
+        $body = ob_get_clean();
+
+        $data = json_decode($body, true);
+        $this->assertTrue($data['success']);
+
+        $row = self::$db->fetchOne("SELECT lang FROM accounts WHERE id = ?", [$userId]);
+        $this->assertSame('en', $row['lang']);
+    }
+
+    /**
+     * Lang fr → accepté (no-op si déjà fr, mais toujours succès).
+     */
+    public function testUpdateLangPreferenceAcceptsFr(): void
+    {
+        $userId = $this->insertCustomer('langpref.fr@test.local');
+        $this->loginAs($userId);
+        $_POST = ['lang' => 'fr', 'csrf_token' => self::CSRF];
+
+        ob_start();
+        $this->makeController('POST', '/fr/mon-compte/preference-langue')
+            ->updateLangPreference(['lang' => 'fr']);
+        $body = ob_get_clean();
+
+        $data = json_decode($body, true);
+        $this->assertTrue($data['success']);
+    }
 }
