@@ -1100,6 +1100,92 @@ class AuthControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // resendActivation()
+    // ----------------------------------------------------------------
+
+    /**
+     * POST resendActivation sans CSRF valide → redirect silencieux (anti-énumération).
+     */
+    public function testResendActivationInvalidCsrfRedirects(): void
+    {
+        $_POST['csrf_token'] = 'bad-token';
+        $_POST['email']      = 'user@example.com';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/renvoyer-activation')
+            ->resendActivation(['lang' => 'fr']);
+    }
+
+    /**
+     * POST resendActivation avec email invalide → redirect silencieux (anti-énumération).
+     */
+    public function testResendActivationInvalidEmailRedirects(): void
+    {
+        $_POST['csrf_token'] = self::CSRF;
+        $_POST['email']      = 'not-an-email';
+        $_SERVER['REMOTE_ADDR'] = '127.1.2.3';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/renvoyer-activation')
+            ->resendActivation(['lang' => 'fr']);
+    }
+
+    /**
+     * POST resendActivation avec email inconnu → redirect silencieux (anti-énumération).
+     */
+    public function testResendActivationUnknownEmailRedirects(): void
+    {
+        $_POST['csrf_token'] = self::CSRF;
+        $_POST['email']      = 'nobody@nowhere.com';
+        $_SERVER['REMOTE_ADDR'] = '127.1.2.4';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/renvoyer-activation')
+            ->resendActivation(['lang' => 'fr']);
+    }
+
+    /**
+     * POST resendActivation avec un compte déjà vérifié → redirect silencieux.
+     */
+    public function testResendActivationAlreadyVerifiedRedirects(): void
+    {
+        $this->insertVerifiedAccount('verified@example.com');
+        $_POST['csrf_token'] = self::CSRF;
+        $_POST['email']      = 'verified@example.com';
+        $_SERVER['REMOTE_ADDR'] = '127.1.2.5';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/renvoyer-activation')
+            ->resendActivation(['lang' => 'fr']);
+    }
+
+    /**
+     * POST resendActivation avec un compte non vérifié → envoie (tente) l'email + redirect.
+     */
+    public function testResendActivationUnverifiedAccountTriggersEmailAndRedirects(): void
+    {
+        $this->insertUnverifiedAccount('pending@example.com');
+        $_POST['csrf_token'] = self::CSRF;
+        $_POST['email']      = 'pending@example.com';
+        $_SERVER['REMOTE_ADDR'] = '127.1.2.6';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/fr/renvoyer-activation')
+            ->resendActivation(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
     // sessionExpired() GET
     // ----------------------------------------------------------------
 

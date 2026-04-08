@@ -173,4 +173,76 @@ class AuditLogAdminControllerTest extends AdminIntegrationTestCase
         $this->assertStringContainsString('newsletter.sent', $csv);
         $this->assertStringContainsString('newsletter', $csv);
     }
+
+    // ----------------------------------------------------------------
+    // extractFilters — couverture via index avec paramètres GET
+    // ----------------------------------------------------------------
+
+    /**
+     * GET /admin/logs avec filtre admin_id → extractFilters branch admin_id couverte.
+     */
+    public function testIndexWithAdminIdFilterCoversExtractFilters(): void
+    {
+        $superAdminId          = $this->insertAdminAccount('super_admin', 'super7@test.local');
+        $token                 = \Core\Jwt::generate($superAdminId, 'super_admin');
+        $_COOKIE['auth_token'] = $token;
+        $this->insertConnection($superAdminId, $token);
+        $_GET['admin_id'] = (string) $superAdminId;
+
+        $request    = $this->makeRequest('GET', '/admin/logs?admin_id=' . $superAdminId);
+        $controller = new AuditLogAdminController($request);
+
+        ob_start();
+        $controller->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Journal', $output);
+    }
+
+    /**
+     * GET /admin/logs avec filtre action + date_from + date_to → toutes les branches extractFilters couvertes.
+     */
+    public function testIndexWithAllFiltersCoversExtractFiltersBranches(): void
+    {
+        $superAdminId          = $this->insertAdminAccount('super_admin', 'super8@test.local');
+        $token                 = \Core\Jwt::generate($superAdminId, 'super_admin');
+        $_COOKIE['auth_token'] = $token;
+        $this->insertConnection($superAdminId, $token);
+
+        $_GET['action']    = 'order.status_updated';
+        $_GET['date_from'] = '2026-01-01';
+        $_GET['date_to']   = '2026-12-31';
+
+        $request    = $this->makeRequest('GET', '/admin/logs?action=order.status_updated&date_from=2026-01-01&date_to=2026-12-31');
+        $controller = new AuditLogAdminController($request);
+
+        ob_start();
+        $controller->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Journal', $output);
+    }
+
+    /**
+     * GET /admin/logs avec date invalide (pas le format YYYY-MM-DD) → branch preg_match false couverte.
+     */
+    public function testIndexWithInvalidDateFilterCoversRegexBranch(): void
+    {
+        $superAdminId          = $this->insertAdminAccount('super_admin', 'super9@test.local');
+        $token                 = \Core\Jwt::generate($superAdminId, 'super_admin');
+        $_COOKIE['auth_token'] = $token;
+        $this->insertConnection($superAdminId, $token);
+
+        $_GET['date_from'] = 'not-a-date';
+        $_GET['date_to']   = '01/01/2026';
+
+        $request    = $this->makeRequest('GET', '/admin/logs?date_from=not-a-date&date_to=01/01/2026');
+        $controller = new AuditLogAdminController($request);
+
+        ob_start();
+        $controller->index([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Journal', $output);
+    }
 }

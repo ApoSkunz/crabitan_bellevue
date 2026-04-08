@@ -398,4 +398,95 @@ class RgpdAdminControllerTest extends AdminIntegrationTestCase
 
         $this->makeController()->exportPortabilite(['id' => (string) $id]);
     }
+
+    /**
+     * GET exportPortabilite sur une demande de type portabilite → handlePortabilite déclenché + redirect.
+     */
+    public function testExportPortabiliteHappyPathRedirects(): void
+    {
+        $this->makeSuperAdmin();
+        $id = $this->insertRequest('portabilite', 'export-happy@example.com');
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController()->exportPortabilite(['id' => (string) $id]);
+    }
+
+    // ----------------------------------------------------------------
+    // updateStatus — traitee avec effacement / portabilite
+    // ----------------------------------------------------------------
+
+    /**
+     * POST updateStatus status=traitee + type=effacement → handleEffacement déclenché (compte inconnu → no-op) + redirect.
+     */
+    public function testUpdateStatusTraiteeEffacementTriggersHandler(): void
+    {
+        $this->makeSuperAdmin();
+        $id = $this->insertRequest('effacement', 'effacement-handler@example.com');
+        $_POST['csrf_token']    = self::CSRF_TOKEN;
+        $_POST['status']        = 'traitee';
+        $_POST['response_note'] = '';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->updateStatus(['id' => (string) $id]);
+    }
+
+    /**
+     * POST updateStatus status=traitee + type=portabilite → handlePortabilite déclenché + redirect.
+     */
+    public function testUpdateStatusTraiteePortabiliteTriggersHandler(): void
+    {
+        $this->makeSuperAdmin();
+        $id = $this->insertRequest('portabilite', 'portabilite-handler@example.com');
+        $_POST['csrf_token']    = self::CSRF_TOKEN;
+        $_POST['status']        = 'traitee';
+        $_POST['response_note'] = '';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->updateStatus(['id' => (string) $id]);
+    }
+
+    /**
+     * POST updateStatus status=traitee + type=effacement + compte existant → compte supprimé (soft-delete).
+     */
+    public function testUpdateStatusTraiteeEffacementDeletesMatchingAccount(): void
+    {
+        $this->makeSuperAdmin();
+
+        // Créer un compte utilisateur avec le même email que la demande RGPD
+        $accountId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES (?, ?, 'customer', 'fr', NOW())",
+            ['effacement-match@example.com', password_hash('Pass123!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Test', 'Effacement', 'M')",
+            [$accountId]
+        );
+
+        $id = $this->insertRequest('effacement', 'effacement-match@example.com');
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['status']     = 'traitee';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $this->makeController('POST')->updateStatus(['id' => (string) $id]);
+        } catch (HttpException $e) {
+            $row = self::$db->fetchOne(
+                "SELECT deleted_at FROM accounts WHERE id = ?",
+                [$accountId]
+            );
+            $this->assertNotFalse($row);
+            $this->assertNotNull($row['deleted_at']);
+            throw $e;
+        }
+    }
 }
