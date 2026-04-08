@@ -366,4 +366,44 @@ class SecurityAlertServiceTest extends TestCase
             'Firefox'
         );
     }
+
+    /**
+     * resolveDisplayName : firstname et lastname vides, company_name absent → fallback 'Admin'.
+     */
+    public function testSendAdminLoginAlertFallsBackToAdminWhenNoName(): void
+    {
+        $rl   = $this->createStub(RateLimiterService::class);
+        $mail = $this->createMock(MailService::class);
+        $mail->expects($this->once())
+            ->method('sendAdminLoginFailureAlert')
+            ->with($this->anything(), $this->equalTo('Admin'), $this->anything(), $this->anything());
+
+        $_ENV['MAINTAINER_MAIL'] = '';
+
+        $service = new SecurityAlertService($rl, $mail);
+        $service->sendAdminLoginAlert(
+            ['email' => 'ghost@admin.com'], // ni firstname, ni lastname, ni company_name
+            '1.2.3.4'
+        );
+    }
+
+    /**
+     * resolveLang : langue inconnue → fallback 'fr'.
+     */
+    public function testSendAdminLoginAlertFallsBackToFrForUnknownLang(): void
+    {
+        $rl   = $this->createStub(RateLimiterService::class);
+        $mail = $this->createMock(MailService::class);
+        $mail->expects($this->once())
+            ->method('sendAdminLoginFailureAlert')
+            ->with($this->anything(), $this->anything(), $this->equalTo('fr'), $this->anything());
+
+        $_ENV['MAINTAINER_MAIL'] = '';
+
+        $service = new SecurityAlertService($rl, $mail);
+        $service->sendAdminLoginAlert(
+            ['email' => 'de@admin.com', 'firstname' => 'Hans', 'lang' => 'de'], // 'de' inconnu → 'fr'
+            '1.2.3.5'
+        );
+    }
 }
