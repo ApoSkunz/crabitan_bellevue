@@ -1672,6 +1672,40 @@ function initDeleteAccountModal() {
 // Accessibilité — autofocus sur les messages flash hors modal
 // ============================================================
 
+// ----------------------------------------------------------------
+// Lang preference — save via AJAX when user is logged in
+// ----------------------------------------------------------------
+function initLangPreference() {
+    if (!window.__userLogged) return;
+
+    const csrf    = window.__csrf    ?? '';
+    const navLang = window.__navLang ?? 'fr';
+
+    const saveLang = (targetLang, onSuccess) => {
+        fetch(`/${navLang}/mon-compte/preference-langue`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ lang: targetLang, csrf_token: csrf }),
+        })
+            .then(() => onSuccess())
+            .catch(() => onSuccess()); // redirect even on network error
+    };
+
+    // Profile page — form submit → save then redirect to new lang URL
+    const langForm = document.getElementById('lang-pref-form');
+    if (!langForm) return;
+
+    langForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const targetLang = langForm.querySelector('#lang-pref-select')?.value ?? '';
+        if (!['fr', 'en'].includes(targetLang)) return;
+        saveLang(targetLang, () => {
+            const newPath = globalThis.location.pathname.replace(/^\/(fr|en)(\/|$)/, `/${targetLang}$2`);
+            globalThis.location.href = newPath + globalThis.location.search; // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
+        });
+    });
+}
+
 function initFlashAutofocus() {
     const alert = document.querySelector('[role="alert"]:not([aria-hidden="true"])');
     if (!alert || alert.closest('[role="dialog"]') || alert.closest('.modal')) return;
@@ -2169,6 +2203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCarbonBadge();
     initCartPage();
     initFlashAutofocus();
+    initLangPreference();
 
     // Chargement à la demande — uniquement sur la page jeux
     if (document.getElementById('memo-game')) {
