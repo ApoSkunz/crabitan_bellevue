@@ -86,7 +86,7 @@ $adminRole    = $adminUser['role'] ?? 'admin';
         <nav class="admin-nav" aria-label="Menu principal">
             <?php foreach ($navItems as $key => $item) : ?>
                 <?php if (in_array($key, ['logs', 'admins'], true) && $adminRole !== 'super_admin') : ?>
-                    <?php continue; ?>
+                    <?php continue; // NOSONAR — php:S1763 : continue dans un foreach PHP template, détecté à tort comme inatteignable ?>
                 <?php endif; ?>
                 <a
                     href="<?= htmlspecialchars($item['url']) ?>"

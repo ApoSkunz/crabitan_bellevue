@@ -13,6 +13,8 @@
  * (preuve de la version acceptée en cas de litige — L221-11 Code de la consommation).
  */
 
+$legalDate = '2026-04-07'; // NOSONAR — php:S1192 : date commune à tous les documents RGPD, définie une seule fois ici
+
 return [
     'cgv' => [
         'version'    => '1.0',
@@ -20,30 +22,30 @@ return [
     ],
     'mentions_legales' => [
         'version'    => '1.0',
-        'updated_at' => '2026-04-07',
+        'updated_at' => $legalDate,
     ],
     'politique_confidentialite' => [
         'version'    => '1.0',
-        'updated_at' => '2026-04-07',
+        'updated_at' => $legalDate,
     ],
     'matrice_habilitations' => [
         'version'    => '1.0',
-        'updated_at' => '2026-04-07',
+        'updated_at' => $legalDate,
     ],
     'registre_traitements' => [
         'version'    => '1.0',
-        'updated_at' => '2026-04-07',
+        'updated_at' => $legalDate,
     ],
     'sous_traitants' => [
         'version'    => '1.0',
-        'updated_at' => '2026-04-07',
+        'updated_at' => $legalDate,
     ],
     'procedure_violation' => [
         'version'    => '1.0',
-        'updated_at' => '2026-04-07',
+        'updated_at' => $legalDate,
     ],
     'dpia' => [
         'version'    => '1.0',
-        'updated_at' => '2026-04-07',
+        'updated_at' => $legalDate,
     ],
 ];

@@ -20,6 +20,37 @@ class DpoAdminController extends AdminController
         return $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
     }
     private const DATE_FORMAT = 'd/m/Y';
+    // Chemin de la configuration légale
+    private const LEGAL_CONFIG = '/config/legal.php';
+    // Offset révision annuelle (S1192)
+    private const NEXT_YEAR = '+1 year';
+    // Labels répétés dans les tableaux RGPD (S1192)
+    private const ROW_FINALITE      = 'Finalité';
+    private const ROW_BASE_LEGALE   = 'Base légale';
+    private const ROW_DUREE         = 'Durée de conservation';
+    private const ROW_DONNEES       = 'Données traitées';
+    private const ROW_PERSONNES     = 'Personnes concernées';
+    private const ROW_CRITERES_DPIA = 'Critères DPIA remplis';
+    private const ROW_NECESSITE     = 'Nécessité';
+    private const ROW_PROPORTION    = 'Proportionnalité';
+    private const ROW_OPPOSITION    = "Droit d'opposition";
+
+    /** @var array<string, array<string, string>>|null Cache de la configuration légale */
+    private ?array $legalConfigCache = null;
+
+    /**
+     * Charge et met en cache la configuration légale depuis config/legal.php.
+     * Évite les inclusions multiples du même fichier (S2003).
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function legalConfig(): array
+    {
+        if ($this->legalConfigCache === null) {
+            $this->legalConfigCache = require ROOT_PATH . self::LEGAL_CONFIG;
+        }
+        return $this->legalConfigCache;
+    }
 
     // ----------------------------------------------------------------
     // GET /admin/dpo
@@ -235,7 +266,7 @@ class DpoAdminController extends AdminController
      */
     private function htmlRegistre(): string
     {
-        $legal   = require ROOT_PATH . '/config/legal.php';
+        $legal   = $this->legalConfig();
         $version = $legal['registre_traitements']['version'] ?? '1.0';
         $updAt   = \DateTime::createFromFormat('Y-m-d', $legal['registre_traitements']['updated_at'] ?? date('Y-m-d'));
         $date    = $updAt !== false ? $updAt->format(self::DATE_FORMAT) : date(self::DATE_FORMAT);
@@ -362,12 +393,12 @@ class DpoAdminController extends AdminController
         foreach ($treatments as $t) {
             $html .= '<h3>' . htmlspecialchars($t['title']) . '</h3>'
                 . '<table>'
-                . $this->row('Finalité', htmlspecialchars($t['finalite']))
-                . $this->row('Base légale', htmlspecialchars($t['base']))
+                . $this->row(self::ROW_FINALITE, htmlspecialchars($t['finalite']))
+                . $this->row(self::ROW_BASE_LEGALE, htmlspecialchars($t['base']))
                 . $this->row('Catégories de données', htmlspecialchars($t['donnees']))
                 . $this->row('Catégories de personnes', htmlspecialchars($t['personnes']))
                 . $this->row('Destinataires', htmlspecialchars($t['destinataires']))
-                . $this->row('Durée de conservation', htmlspecialchars($t['duree']))
+                . $this->row(self::ROW_DUREE, htmlspecialchars($t['duree']))
                 . $this->row('Transfert hors UE', htmlspecialchars($t['transfert']))
                 . $this->row('Mesures de sécurité', htmlspecialchars($t['securite']))
                 . '</table>';
@@ -383,7 +414,7 @@ class DpoAdminController extends AdminController
      */
     private function htmlSousTraitants(): string
     {
-        $legal   = require ROOT_PATH . '/config/legal.php';
+        $legal   = $this->legalConfig();
         $version = $legal['sous_traitants']['version'] ?? '1.0';
         $updAt   = \DateTime::createFromFormat('Y-m-d', $legal['sous_traitants']['updated_at'] ?? date('Y-m-d'));
         $date    = $updAt !== false ? $updAt->format(self::DATE_FORMAT) : date(self::DATE_FORMAT);
@@ -451,7 +482,7 @@ class DpoAdminController extends AdminController
             $date
         );
 
-        $html .= '<p class="meta">Prochaine révision annuelle : ' . date(self::DATE_FORMAT, strtotime('+1 year')) . '</p>';
+        $html .= '<p class="meta">Prochaine révision annuelle : ' . date(self::DATE_FORMAT, strtotime(self::NEXT_YEAR)) . '</p>';
 
         foreach ($processors as $p) {
             $html .= '<h3>' . htmlspecialchars($p['name']) . ' — <span class="tag-ok">Conforme</span></h3>'
@@ -474,11 +505,11 @@ class DpoAdminController extends AdminController
      */
     private function htmlProcedure(): string
     {
-        $legal    = require ROOT_PATH . '/config/legal.php';
+        $legal    = $this->legalConfig();
         $version  = $legal['procedure_violation']['version'] ?? '1.0';
         $updAt    = \DateTime::createFromFormat('Y-m-d', $legal['procedure_violation']['updated_at'] ?? date('Y-m-d'));
         $date     = $updAt !== false ? $updAt->format(self::DATE_FORMAT) : date(self::DATE_FORMAT);
-        $revision = date(self::DATE_FORMAT, strtotime('+1 year'));
+        $revision = date(self::DATE_FORMAT, strtotime(self::NEXT_YEAR));
 
         $html = $this->pdfOpen(
             'Procédure violation de données — v' . htmlspecialchars($version),
@@ -547,11 +578,11 @@ class DpoAdminController extends AdminController
      */
     private function htmlMatrice(): string
     {
-        $legal    = require ROOT_PATH . '/config/legal.php';
+        $legal    = $this->legalConfig();
         $version  = $legal['matrice_habilitations']['version'] ?? '1.0';
         $updatedAt = \DateTime::createFromFormat('Y-m-d', $legal['matrice_habilitations']['updated_at'] ?? date('Y-m-d'));
         $date     = $updatedAt !== false ? $updatedAt->format(self::DATE_FORMAT) : date(self::DATE_FORMAT);
-        $revision = date(self::DATE_FORMAT, strtotime('+1 year', $updatedAt !== false ? $updatedAt->getTimestamp() : time())); // phpcs:ignore Generic.Files.LineLength.TooLong
+        $revision = date(self::DATE_FORMAT, strtotime(self::NEXT_YEAR, $updatedAt !== false ? $updatedAt->getTimestamp() : time())); // phpcs:ignore Generic.Files.LineLength.TooLong
 
         $html = $this->pdfOpen(
             'Matrice des habilitations RGPD — v' . htmlspecialchars($version),
@@ -638,11 +669,11 @@ class DpoAdminController extends AdminController
      */
     private function htmlDpia(): string
     {
-        $legal    = require ROOT_PATH . '/config/legal.php';
+        $legal    = $this->legalConfig();
         $version  = $legal['dpia']['version'] ?? '1.0';
         $updatedAt = \DateTime::createFromFormat('Y-m-d', $legal['dpia']['updated_at'] ?? date('Y-m-d'));
         $date      = $updatedAt !== false ? $updatedAt->format(self::DATE_FORMAT) : date(self::DATE_FORMAT);
-        $revision  = date(self::DATE_FORMAT, strtotime('+1 year', $updatedAt !== false ? $updatedAt->getTimestamp() : time())); // phpcs:ignore Generic.Files.LineLength.TooLong
+        $revision  = date(self::DATE_FORMAT, strtotime(self::NEXT_YEAR, $updatedAt !== false ? $updatedAt->getTimestamp() : time())); // phpcs:ignore Generic.Files.LineLength.TooLong
 
         $html = $this->pdfOpen(
             'DPIA — Analyse d\'impact relative à la protection des données — v' . htmlspecialchars($version),
@@ -662,20 +693,20 @@ class DpoAdminController extends AdminController
         $html .= '<h2>2. DPIA n°1 — Relance panier abandonné (profilage comportemental)</h2>';
         $html .= '<h3>2.1 Description du traitement</h3>'
             . '<table>'
-            . $this->row('Finalité', 'Relancer automatiquement les clients ayant abandonné leur panier sans finaliser la commande, par envoi d\'un email personnalisé.') // phpcs:ignore Generic.Files.LineLength.TooLong
-            . $this->row('Base légale', 'Art. 6-1-a — consentement (opt-in lors de l\'inscription) + Art. 6-1-f — intérêt légitime')
-            . $this->row('Données traitées', 'Email, prénom, contenu du panier (produits, quantités, montant), horodatage d\'abandon, historique de navigation (pages produits visitées)') // phpcs:ignore Generic.Files.LineLength.TooLong
-            . $this->row('Personnes concernées', 'Clients authentifiés ayant ajouté des produits au panier sans finaliser la commande')
+            . $this->row(self::ROW_FINALITE, 'Relancer automatiquement les clients ayant abandonné leur panier sans finaliser la commande, par envoi d\'un email personnalisé.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_BASE_LEGALE, 'Art. 6-1-a — consentement (opt-in lors de l\'inscription) + Art. 6-1-f — intérêt légitime')
+            . $this->row(self::ROW_DONNEES, 'Email, prénom, contenu du panier (produits, quantités, montant), horodatage d\'abandon, historique de navigation (pages produits visitées)') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_PERSONNES, 'Clients authentifiés ayant ajouté des produits au panier sans finaliser la commande')
             . $this->row('Destinataires', 'GFA Bernard Solane et Fils (interne) — IONOS SE (SMTP sortant)')
-            . $this->row('Durée de conservation', '30 jours après l\'abandon (donnée de relance) — email envoyé 24h après l\'abandon')
-            . $this->row('Critères DPIA remplis', 'Profilage comportemental (critère 2) + décision automatisée (critère 3)')
+            . $this->row(self::ROW_DUREE, '30 jours après l\'abandon (donnée de relance) — email envoyé 24h après l\'abandon')
+            . $this->row(self::ROW_CRITERES_DPIA, 'Profilage comportemental (critère 2) + décision automatisée (critère 3)')
             . '</table>';
 
         $html .= '<h3>2.2 Nécessité et proportionnalité</h3>'
             . '<table>'
-            . $this->row('Nécessité', 'Le traitement est limité aux données strictement nécessaires (email + contenu panier). Aucune donnée de navigation hors panier n\'est collectée.') // phpcs:ignore Generic.Files.LineLength.TooLong
-            . $this->row('Proportionnalité', 'Un seul email de relance — pas de séquence automatisée multi-messages. Délai de 24h pour éviter le caractère intrusif.') // phpcs:ignore Generic.Files.LineLength.TooLong
-            . $this->row('Droit d\'opposition', 'Lien de désinscription obligatoire dans chaque email de relance. Opposition possible depuis l\'espace client.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_NECESSITE, 'Le traitement est limité aux données strictement nécessaires (email + contenu panier). Aucune donnée de navigation hors panier n\'est collectée.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_PROPORTION, 'Un seul email de relance — pas de séquence automatisée multi-messages. Délai de 24h pour éviter le caractère intrusif.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_OPPOSITION, 'Lien de désinscription obligatoire dans chaque email de relance. Opposition possible depuis l\'espace client.') // phpcs:ignore Generic.Files.LineLength.TooLong
             . $this->row('Minimisation', 'Seul le contenu du panier actif est utilisé — aucun historique de commandes précédentes')
             . '</table>';
 
@@ -691,7 +722,7 @@ class DpoAdminController extends AdminController
             . '<table>'
             . $this->row('Consentement', 'Opt-in explicite à l\'inscription ou case dédiée "Recevoir un rappel si panier abandonné"')
             . $this->row('Limitation', '1 seul email — délai minimum 24h — suppression des données à J+30')
-            . $this->row('Droit d\'opposition', 'Lien one-click dans chaque email + gestion depuis l\'espace client')
+            . $this->row(self::ROW_OPPOSITION, 'Lien one-click dans chaque email + gestion depuis l\'espace client')
             . $this->row('Sécurité', 'Accès restreint aux logs de relance (admin uniquement) — chiffrement SMTP TLS')
             . $this->row('Audit trail', 'Journalisation de chaque envoi dans admin_logs')
             . '</table>';
@@ -704,19 +735,19 @@ class DpoAdminController extends AdminController
         $html .= '<h2>3. DPIA n°2 — Profilage inactivité client</h2>';
         $html .= '<h3>3.1 Description du traitement</h3>'
             . '<table>'
-            . $this->row('Finalité', 'Détecter les comptes inactifs depuis plus de 3 ans afin de procéder à la pseudonymisation ou suppression conforme au RGPD Art. 5-1-e (limitation de la durée de conservation).') // phpcs:ignore Generic.Files.LineLength.TooLong
-            . $this->row('Base légale', 'Art. 6-1-c — obligation légale (RGPD Art. 5-1-e) + Art. 6-1-f — intérêt légitime (hygiène des données)')
-            . $this->row('Données traitées', 'Email, date de dernière connexion, date de dernière commande, statut du compte')
-            . $this->row('Personnes concernées', 'Clients n\'ayant pas effectué de connexion ni de commande depuis plus de 3 ans')
+            . $this->row(self::ROW_FINALITE, 'Détecter les comptes inactifs depuis plus de 3 ans afin de procéder à la pseudonymisation ou suppression conforme au RGPD Art. 5-1-e (limitation de la durée de conservation).') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_BASE_LEGALE, 'Art. 6-1-c — obligation légale (RGPD Art. 5-1-e) + Art. 6-1-f — intérêt légitime (hygiène des données)') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_DONNEES, 'Email, date de dernière connexion, date de dernière commande, statut du compte')
+            . $this->row(self::ROW_PERSONNES, 'Clients n\'ayant pas effectué de connexion ni de commande depuis plus de 3 ans')
             . $this->row('Destinataires', 'GFA Bernard Solane et Fils (interne) — traitement automatisé par cron')
-            . $this->row('Durée de conservation', 'Données pseudonymisées conservées pour archivage comptable légal — données personnelles supprimées') // phpcs:ignore Generic.Files.LineLength.TooLong
-            . $this->row('Critères DPIA remplis', 'Profilage (critère 2) + traitement à grande échelle potentiel (critère 5) + décision automatisée (critère 3)') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_DUREE, 'Données pseudonymisées conservées pour archivage comptable légal — données personnelles supprimées') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_CRITERES_DPIA, 'Profilage (critère 2) + traitement à grande échelle potentiel (critère 5) + décision automatisée (critère 3)') // phpcs:ignore Generic.Files.LineLength.TooLong
             . '</table>';
 
         $html .= '<h3>3.2 Nécessité et proportionnalité</h3>'
             . '<table>'
-            . $this->row('Nécessité', 'Obligation RGPD de ne pas conserver les données au-delà de la durée nécessaire (Art. 5-1-e). Le traitement est obligatoire.') // phpcs:ignore Generic.Files.LineLength.TooLong
-            . $this->row('Proportionnalité', 'Envoi d\'un email d\'avertissement 30 jours avant toute suppression. Possibilité de réactivation du compte.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_NECESSITE, 'Obligation RGPD de ne pas conserver les données au-delà de la durée nécessaire (Art. 5-1-e). Le traitement est obligatoire.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_PROPORTION, 'Envoi d\'un email d\'avertissement 30 jours avant toute suppression. Possibilité de réactivation du compte.') // phpcs:ignore Generic.Files.LineLength.TooLong
             . $this->row('Minimisation', 'Seule la date de dernière activité est analysée — aucun profilage sur le comportement d\'achat')
             . $this->row('Transparence', 'Information dans la politique de confidentialité et dans l\'email d\'avertissement')
             . '</table>';
@@ -746,21 +777,21 @@ class DpoAdminController extends AdminController
         $html .= '<h2>4. DPIA n°3 — Tracking newsletter (pixel ouverture + clics)</h2>';
         $html .= '<h3>4.1 Description du traitement</h3>'
             . '<table>'
-            . $this->row('Finalité', 'Mesurer le taux d\'ouverture et de clic des newsletters afin d\'optimiser les campagnes marketing.')
-            . $this->row('Base légale', 'Art. 6-1-a — consentement (opt-in newsletter avec mention explicite du tracking)')
-            . $this->row('Données traitées', 'Email, horodatage d\'ouverture, URLs cliquées, identifiant de campagne, user-agent, IP (anonymisée)')
-            . $this->row('Personnes concernées', 'Abonnés à la newsletter ayant consenti au tracking')
+            . $this->row(self::ROW_FINALITE, 'Mesurer le taux d\'ouverture et de clic des newsletters afin d\'optimiser les campagnes marketing.')
+            . $this->row(self::ROW_BASE_LEGALE, 'Art. 6-1-a — consentement (opt-in newsletter avec mention explicite du tracking)')
+            . $this->row(self::ROW_DONNEES, 'Email, horodatage d\'ouverture, URLs cliquées, identifiant de campagne, user-agent, IP (anonymisée)')
+            . $this->row(self::ROW_PERSONNES, 'Abonnés à la newsletter ayant consenti au tracking')
             . $this->row('Destinataires', 'GFA Bernard Solane et Fils (interne uniquement) — aucun prestataire tiers de tracking')
-            . $this->row('Durée de conservation', '13 mois (aligné CNIL recommandation analytics) — suppression automatique')
-            . $this->row('Critères DPIA remplis', 'Surveillance systématique (critère 6) + profilage comportemental (critère 2)')
+            . $this->row(self::ROW_DUREE, '13 mois (aligné CNIL recommandation analytics) — suppression automatique')
+            . $this->row(self::ROW_CRITERES_DPIA, 'Surveillance systématique (critère 6) + profilage comportemental (critère 2)')
             . '</table>';
 
         $html .= '<h3>4.2 Nécessité et proportionnalité</h3>'
             . '<table>'
-            . $this->row('Nécessité', 'Amélioration des campagnes pour limiter les envois non pertinents — réduction indirecte du volume de données traitées.') // phpcs:ignore Generic.Files.LineLength.TooLong
-            . $this->row('Proportionnalité', 'IP anonymisée (derniers octets masqués) — pixel unique par campagne — pas de tracking cross-site.')
+            . $this->row(self::ROW_NECESSITE, 'Amélioration des campagnes pour limiter les envois non pertinents — réduction indirecte du volume de données traitées.') // phpcs:ignore Generic.Files.LineLength.TooLong
+            . $this->row(self::ROW_PROPORTION, 'IP anonymisée (derniers octets masqués) — pixel unique par campagne — pas de tracking cross-site.')
             . $this->row('Information', 'Mention explicite du tracking dans le formulaire d\'inscription à la newsletter et dans la politique de confidentialité.') // phpcs:ignore Generic.Files.LineLength.TooLong
-            . $this->row('Droit d\'opposition', 'Désinscription newsletter = fin du tracking. Pas de tracking sans inscription active.')
+            . $this->row(self::ROW_OPPOSITION, 'Désinscription newsletter = fin du tracking. Pas de tracking sans inscription active.')
             . '</table>';
 
         $html .= '<h3>4.3 Risques identifiés</h3>'

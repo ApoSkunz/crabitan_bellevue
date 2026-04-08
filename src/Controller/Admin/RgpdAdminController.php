@@ -21,6 +21,8 @@ class RgpdAdminController extends AdminController
 {
     public const DEFAULT_PER_PAGE = 20;
     private const ALLOWED_PER_PAGE = [10, 20, 50];
+    private const ROUTE_LIST = '/admin/rgpd/demandes';
+    private const ROUTE_ADD  = '/admin/rgpd/demandes/ajouter';
 
     // ----------------------------------------------------------------
     // GET /admin/rgpd/demandes
@@ -105,7 +107,7 @@ class RgpdAdminController extends AdminController
             'breadcrumbs'  => [
                 ['label' => 'Admin',          'url' => '/admin'],
                 ['label' => 'DPO — RGPD',     'url' => '/admin/dpo'],
-                ['label' => 'Demandes RGPD',  'url' => '/admin/rgpd/demandes'],
+                ['label' => 'Demandes RGPD',  'url' => self::ROUTE_LIST],
                 ['label' => 'Nouvelle demande'],
             ],
             'flashError' => $this->getFlash('error'),
@@ -128,7 +130,7 @@ class RgpdAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/rgpd/demandes/ajouter');
+            Response::redirect(self::ROUTE_ADD);
         }
 
         $type       = trim($this->request->post('type', ''));
@@ -138,17 +140,17 @@ class RgpdAdminController extends AdminController
 
         if (!in_array($type, RgpdRequestModel::VALID_TYPES, true)) {
             $this->flash('error', 'Type de demande invalide.');
-            Response::redirect('/admin/rgpd/demandes/ajouter');
+            Response::redirect(self::ROUTE_ADD);
         }
 
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->flash('error', 'Adresse email invalide.');
-            Response::redirect('/admin/rgpd/demandes/ajouter');
+            Response::redirect(self::ROUTE_ADD);
         }
 
         if ($name === '') {
             $this->flash('error', 'Le nom du demandeur est requis.');
-            Response::redirect('/admin/rgpd/demandes/ajouter');
+            Response::redirect(self::ROUTE_ADD);
         }
 
         $parsedDate = null;
@@ -156,7 +158,7 @@ class RgpdAdminController extends AdminController
             $ts = strtotime($receivedAt);
             if ($ts === false) {
                 $this->flash('error', 'Date de réception invalide.');
-                Response::redirect('/admin/rgpd/demandes/ajouter');
+                Response::redirect(self::ROUTE_ADD);
             }
             $parsedDate = date('Y-m-d H:i:s', $ts);
         }
@@ -165,7 +167,7 @@ class RgpdAdminController extends AdminController
         $model->create($type, $email, $name, $parsedDate);
 
         $this->flash('success', 'Demande RGPD enregistrée avec succès.');
-        Response::redirect('/admin/rgpd/demandes');
+        Response::redirect(self::ROUTE_LIST);
     }
 
     // ----------------------------------------------------------------
@@ -186,7 +188,7 @@ class RgpdAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/rgpd/demandes');
+            Response::redirect(self::ROUTE_LIST);
         }
 
         $id     = (int) ($params['id'] ?? 0);
@@ -202,26 +204,26 @@ class RgpdAdminController extends AdminController
 
         if (!in_array($status, RgpdRequestModel::VALID_STATUSES, true)) {
             $this->flash('error', 'Statut invalide.');
-            Response::redirect('/admin/rgpd/demandes');
+            Response::redirect(self::ROUTE_LIST);
         }
 
         $ok = $model->updateStatus($id, $status, $adminUser['id'], $note);
 
         if (!$ok) {
             $this->flash('error', 'Erreur lors de la mise à jour.');
-            Response::redirect('/admin/rgpd/demandes');
+            Response::redirect(self::ROUTE_LIST);
         }
 
         if ($status === 'traitee') {
             if ($request['type'] === 'effacement') {
-                $this->handleEffacement($request, $adminUser['id']);
+                $this->handleEffacement($request);
             } elseif ($request['type'] === 'portabilite') {
                 $this->handlePortabilite($request);
             }
         }
 
         $this->flash('success', 'Statut mis à jour.');
-        Response::redirect('/admin/rgpd/demandes');
+        Response::redirect(self::ROUTE_LIST);
     }
 
     // ----------------------------------------------------------------
@@ -248,12 +250,12 @@ class RgpdAdminController extends AdminController
 
         if ($req['type'] !== 'portabilite') {
             $this->flash('error', 'Cette action est réservée aux demandes de portabilité.');
-            Response::redirect('/admin/rgpd/demandes');
+            Response::redirect(self::ROUTE_LIST);
         }
 
         $this->handlePortabilite($req);
         $this->flash('success', 'Export RGPD envoyé à ' . htmlspecialchars($req['requester_email']) . '.');
-        Response::redirect('/admin/rgpd/demandes');
+        Response::redirect(self::ROUTE_LIST);
     }
 
     // ----------------------------------------------------------------
@@ -263,11 +265,10 @@ class RgpdAdminController extends AdminController
     /**
      * Gère l'effacement : recherche le compte par email et déclenche le soft-delete.
      *
-     * @param array<string, mixed> $request  Demande RGPD
-     * @param int                  $adminId  ID de l'admin traitant
+     * @param array<string, mixed> $request Demande RGPD
      * @return void
      */
-    private function handleEffacement(array $request, int $adminId): void
+    private function handleEffacement(array $request): void // NOSONAR — php:S1172 : adminId retiré (non utilisé)
     {
         $email        = (string) ($request['requester_email'] ?? '');
         $accountModel = new AccountModel();

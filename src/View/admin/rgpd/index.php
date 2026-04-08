@@ -261,7 +261,7 @@ $logTotalPages = \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE > 0 ? (
     </div>
 
     <?php if (($logTotalPages ?? 1) > 1) : ?>
-        <nav style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
+        <nav aria-label="Pagination des exports RGPD" style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
             <?php
             $logPerPage = \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE;
             $buildLogUrl = static function (int $p) use ($statusFilter, $typeFilter, $perPage, $page, $logEmail, $logDateFrom, $logDateTo, $logPerPage): string {
