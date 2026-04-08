@@ -286,9 +286,10 @@ class AuthController extends Controller
 
         CookieHelper::set($token, $cookieExpiry);
 
-        if ($account['lang'] !== $lang) {
-            $this->accounts->updateLang((int) $account['id'], $lang);
-        }
+        // Respecte la langue préférée enregistrée — ne pas l'écraser avec la lang de l'URL.
+        $accountLang = in_array((string) ($account['lang'] ?? ''), ['fr', 'en'], true)
+            ? (string) $account['lang']
+            : $lang;
 
         $this->connections->create(
             (int) $account['id'],
@@ -338,7 +339,11 @@ class AuthController extends Controller
             && is_string($intended)
             && preg_match('#^/[^/]#', $intended)
             && !str_contains($intended, '://');
-        Response::redirect($validIntended ? $intended : $safeBack);
+        $redirectTarget = $validIntended ? $intended : $safeBack;
+        if ($accountLang !== $lang && preg_match('#^/(fr|en)(/.+)?$#', $redirectTarget, $m)) {
+            $redirectTarget = '/' . $accountLang . ($m[2] ?? '');
+        }
+        Response::redirect($redirectTarget);
     }
 
     // ----------------------------------------------------------------
