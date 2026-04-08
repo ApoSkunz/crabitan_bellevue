@@ -2,6 +2,48 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.47.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.46.0...v0.47.0) (2026-04-08)
+
+
+### Bug Fixes
+
+* **admin:** requireAdmin() retourne firstname + lastname dans name (plus firstname seul) ([bda00dc](https://github.com/ApoSkunz/crabitan_bellevue/commit/bda00dc8aa0cd8c38c7fbdb0d572ddba2ac22c44))
+* **auth:** restore 3-failure alert + fix admin security block order (before BT2 lockout) ([6c301fe](https://github.com/ApoSkunz/crabitan_bellevue/commit/6c301fe52b19964cb5a390efda1c6a0589f0492d))
+* **config:** guard define() with defined() to prevent PHP warning in test context ([d13d30a](https://github.com/ApoSkunz/crabitan_bellevue/commit/d13d30a2a75f5bc5492d7264b159ab97c3f3ba4e))
+* **legal:** matrice_habilitations version 1.1→1.0 (pas encore en PROD) ([a95f36c](https://github.com/ApoSkunz/crabitan_bellevue/commit/a95f36ce5c8e711527bfc828facdb0a49082de8a))
+* **middleware:** blocked admin → flash + redirect /connexion instead of abort(403) ([8bd3f01](https://github.com/ApoSkunz/crabitan_bellevue/commit/8bd3f01cb37110dc4b99f714626d7270b7c48c36))
+* **model:** null coalesce majority_declared_at to suppress undefined key warning ([8db9721](https://github.com/ApoSkunz/crabitan_bellevue/commit/8db97214c465d84dccca1ec749ddba79db61a20f))
+* **security:** lockout 30min/3 échecs, blocage auto admin 5 cumulés/1h compteur dédié ([df43ff4](https://github.com/ApoSkunz/crabitan_bellevue/commit/df43ff46270b3c3f9d2365f233c99797d0455fc2))
+* **security:** requireSuperAdmin returns 404 instead of 403 to avoid route enumeration ([602d306](https://github.com/ApoSkunz/crabitan_bellevue/commit/602d306b9aea71206e8dd63b60dbeb61c2768013))
+* **sonar:** add NOSONAR php:S2003 on legalConfig require — require_once would break caching on subsequent calls ([de3a999](https://github.com/ApoSkunz/crabitan_bellevue/commit/de3a99970259fde36814a0e3c814b3709f88d36e))
+* **sonar:** move NOSONAR php:S2003 inline on require line in legalConfig() ([f268c0a](https://github.com/ApoSkunz/crabitan_bellevue/commit/f268c0a4101331dd8d80133332a52897ef1a3c2f))
+* **sonar:** resolve all SonarCloud issues — S1192 constants, S2003 legalConfig cache, S1763/S5255 NOSONAR+aria-label, S1172 remove unused param, PHPStan/PHPCS clean ([b4ba468](https://github.com/ApoSkunz/crabitan_bellevue/commit/b4ba468f1d8810098bc44f4f61b827a2135507ce))
+* **sprint-5:** recette — mail MAINTAINER, blocage message, fputcsv, nav super_admin, supprimer RGPD, select JS, matrice PDF formalisme, versioning DPO, lien demandes RGPD depuis DPO ([beeacf2](https://github.com/ApoSkunz/crabitan_bellevue/commit/beeacf229a2e88b05a868bb28eec615cef3e312c))
+
+
+### Features
+
+* **config:** add matrice_habilitations versioning in legal.php (v1.1) ([4d96b9e](https://github.com/ApoSkunz/crabitan_bellevue/commit/4d96b9e9fd7988353a911e12656deb1378d2e7ea))
+* **controller:** add AdminGestionAdminsController, AuditLogAdminController, RgpdAdminController ([8599fb9](https://github.com/ApoSkunz/crabitan_bellevue/commit/8599fb947bafa00b27caf9a2aa0782b011325877))
+* **controller:** DpoAdminController — matrice habilitations PDF versioned via config/legal.php ([09e7597](https://github.com/ApoSkunz/crabitan_bellevue/commit/09e7597c22c8cbfa5c758b0620fa5f33e90a990d))
+* **controller:** integrate AuditLogger in admin controllers (order, account, newsletter, wine, pricing) ([0c5d0ae](https://github.com/ApoSkunz/crabitan_bellevue/commit/0c5d0ae4fd6ce554ba59546fc1e12a666b000fc1))
+* **controller:** integrate SecurityAlertService in AuthController + ProfileAdminController ([8d495a1](https://github.com/ApoSkunz/crabitan_bellevue/commit/8d495a1543765b9d77b7f0d19b74d6e685502a9f))
+* **controller:** track RGPD exports + restrict admin journal to super_admin ([7235ffb](https://github.com/ApoSkunz/crabitan_bellevue/commit/7235ffb7df0e66717e6dc37eed609d972781b7ed))
+* **i18n:** add auth.admin_account_blocked key (fr + en) ([14256b7](https://github.com/ApoSkunz/crabitan_bellevue/commit/14256b7dbf3b8caa6e71b91cd5b5237900ed8ebc))
+* **mail:** sendAdminAccountUnblocked + mail déblocage depuis unblock() + message blocage explicite ([801c574](https://github.com/ApoSkunz/crabitan_bellevue/commit/801c57459ddc8feec5139a5d9dd8e94cd1355701))
+* **middleware:** add is_blocked check in AdminMiddleware + requireSuperAdmin in AdminController ([51b507b](https://github.com/ApoSkunz/crabitan_bellevue/commit/51b507bfce170f49d05f1038ad9f062dd59150a6))
+* **model:** AccountModel — findAdmins, blockAccount, unblockAccount + getForAdmin RGPD minimisation ([930412e](https://github.com/ApoSkunz/crabitan_bellevue/commit/930412e4676931dc51bf5b71bedc3f14676151c1))
+* **model:** add AdminLogModel (audit journal) + RgpdRequestModel (Art. 15-21 RGPD) ([50e68cd](https://github.com/ApoSkunz/crabitan_bellevue/commit/50e68cda2a69a74a9df11f2087d86f14073e1b82))
+* **model:** add RgpdExportLogModel — append-only log exports Art. 20 ([7ded35f](https://github.com/ApoSkunz/crabitan_bellevue/commit/7ded35fae09a1abd9c7c9cf39c515468ccbac49e))
+* **rgpd:** implement DPIA Art. 35 — PDF runtime from /admin/dpo/dpia ([c201472](https://github.com/ApoSkunz/crabitan_bellevue/commit/c20147267ef6316d85a49182fe89d2aacc37ad29))
+* **routes:** add sprint-5 admin routes (admins, logs, rgpd demandes, dpo matrice) ([a212651](https://github.com/ApoSkunz/crabitan_bellevue/commit/a21265146ff7d6f4e5685719f1cd24e283f6ee5b))
+* **service:** add AuditLogger — silent static log to admin_logs (Art. 5.2 RGPD) ([781d00e](https://github.com/ApoSkunz/crabitan_bellevue/commit/781d00e6b4dcaf8951754bcb4a2ba7365e6cfa8f))
+* **service:** add SecurityAlertService + MailService admin login/password alerts ([a20e6e0](https://github.com/ApoSkunz/crabitan_bellevue/commit/a20e6e01fad5976baa97af318ca90145cd746d14))
+* **view:** add admin views for admins, logs, rgpd demandes + update nav + dpo matrice card ([a3990b6](https://github.com/ApoSkunz/crabitan_bellevue/commit/a3990b6de0155fc980e2ad5f1534e5000f4cbfa8))
+* **view:** add admin/logs view + fix .gitignore logs/ exception for src/View/admin/logs ([486fbd9](https://github.com/ApoSkunz/crabitan_bellevue/commit/486fbd90d41aa50b12dee422d8fbeb67b9460a71))
+* **view:** admin/rgpd/index — add export log journal section, remove delete button ([1b33642](https://github.com/ApoSkunz/crabitan_bellevue/commit/1b336421de071c17d25240c5c2260266efdb5627))
+* **view:** sélecteur per_page logs, super_admin shortcuts Mon Espace, retrait encart sidebar back-office ([fea3af6](https://github.com/ApoSkunz/crabitan_bellevue/commit/fea3af67c8b936fbbb101b7e8b14787258bd8a4f))
+
 # [0.46.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.45.1...v0.46.0) (2026-04-07)
 
 
