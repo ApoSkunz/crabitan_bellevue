@@ -574,6 +574,7 @@ return [
     'account.siret'              => 'SIRET',
     'account.newsletter_label'   => 'I would like to receive the newsletter and offers from the estate',
     'account.save_profile'       => 'Save changes',
+    'account.lang_pref'          => 'Preferred language',
     'account.email_readonly'          => 'To change your email address, contact us:',
     'account.email_change_request_btn' => 'Contact support',
     'account.email_change_subject'    => 'Request to change email address',

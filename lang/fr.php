@@ -576,6 +576,7 @@ return [
     'account.siret'              => 'SIRET',
     'account.newsletter_label'   => 'Je souhaite recevoir la newsletter et les offres du domaine',
     'account.save_profile'       => 'Enregistrer les modifications',
+    'account.lang_pref'          => 'Langue préférée',
     'account.email_readonly'          => 'Pour modifier votre adresse e-mail, contactez-nous :',
     'account.email_change_request_btn' => 'Contacter le support',
     'account.email_change_subject'    => 'Demande de changement d\'adresse e-mail',
