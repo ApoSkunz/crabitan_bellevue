@@ -38,6 +38,7 @@ return [
     'auth.too_many_attempts'       => 'Trop de tentatives. Réessayez dans %d minute(s).',
     'auth.too_many_attempts_hours' => 'Trop de tentatives. Réessayez dans %d heure(s).',
     'auth.account_locked'           => 'Compte temporairement verrouillé après trop d\'échecs. Réessayez dans %d minute(s).',
+    'auth.admin_account_blocked'    => 'Votre compte administrateur a été bloqué. Contactez votre super administrateur.',
     'auth.account_pending_deletion' => 'Votre compte est en cours de suppression. Un lien de réactivation vient de vous être envoyé par e-mail.',
     'auth.too_many_registrations' => 'Trop d\'inscriptions depuis cette adresse IP. Réessayez dans %d minute(s).',
     'auth.too_many_reset_requests'      => 'Trop de demandes de réinitialisation. Réessayez dans %d minute(s).',

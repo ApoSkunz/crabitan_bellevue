@@ -23,7 +23,8 @@ abstract class AdminController extends Controller
         $account = (new AccountModel())->findById((int) $payload['sub']);
         $name = 'Admin';
         if ($account) {
-            $name = $account['firstname'] ?? $account['company_name'] ?? 'Admin';
+            $full = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
+            $name = $full !== '' ? $full : ($account['company_name'] ?? 'Admin');
         }
 
         return [
@@ -31,6 +32,23 @@ abstract class AdminController extends Controller
             'role' => $payload['role'] ?? 'admin',
             'name' => $name,
         ];
+    }
+
+    /**
+     * Vérifie le JWT admin ET que le rôle est super_admin.
+     * Renvoie une 404 sinon (évite de révéler l'existence de la route).
+     *
+     * @return array{id: int, role: string, name: string}
+     */
+    protected function requireSuperAdmin(): array
+    {
+        $adminUser = $this->requireAdmin();
+
+        if (($adminUser['role'] ?? '') !== 'super_admin') {
+            $this->abort(404);
+        }
+
+        return $adminUser;
     }
 
     protected function verifyCsrf(): bool

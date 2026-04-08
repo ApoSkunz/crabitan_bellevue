@@ -59,6 +59,53 @@
         </a>
     </div>
 
+    <!-- Matrice des habilitations RGPD -->
+    <div class="admin-card" style="padding:1.5rem;">
+        <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">🔐</div>
+        <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">Matrice des habilitations</h2>
+        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;">
+            Tableau rôle × ressource × données personnelles visibles — base du contrôle d'accès RGPD.
+            À réviser annuellement ou à chaque nouveau traitement.
+        </p>
+        <a href="/admin/dpo/matrice-habilitations"
+           class="admin-btn admin-btn--primary"
+           style="display:inline-block;text-decoration:none;"
+           target="_blank" rel="noopener noreferrer">
+            ⬇ Télécharger le PDF
+        </a>
+    </div>
+
+    <!-- DPIA — Art. 35 -->
+    <div class="admin-card" style="padding:1.5rem;">
+        <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">🔍</div>
+        <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">DPIA — Analyse d'impact</h2>
+        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;">
+            Art. 35 RGPD — Analyse d'impact sur les traitements à risque élevé : relance panier abandonné,
+            profilage inactivité client, tracking newsletter.
+        </p>
+        <a href="/admin/dpo/dpia"
+           class="admin-btn admin-btn--primary"
+           style="display:inline-block;text-decoration:none;"
+           target="_blank" rel="noopener noreferrer">
+            ⬇ Télécharger le PDF
+        </a>
+    </div>
+
+    <!-- Demandes RGPD -->
+    <div class="admin-card" style="padding:1.5rem;">
+        <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">📬</div>
+        <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">Demandes RGPD</h2>
+        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;">
+            Art. 15-21 RGPD — Suivi des demandes d'accès, rectification, effacement, portabilité
+            et opposition. Délai légal de traitement : 1 mois (CNIL).
+        </p>
+        <a href="/admin/rgpd/demandes"
+           class="admin-btn admin-btn--primary"
+           style="display:inline-block;text-decoration:none;">
+            Gérer les demandes →
+        </a>
+    </div>
+
 </div>
 
 <div style="margin-top:2rem;padding:1rem;background:#f5f0e8;border-left:3px solid #c1a14b;font-size:0.8rem;color:#5a4030;border-radius:0 4px 4px 0;">

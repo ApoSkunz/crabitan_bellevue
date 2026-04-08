@@ -41,6 +41,8 @@ $router->get('/admin/dpo', 'Admin\DpoAdminController@index');
 $router->get('/admin/dpo/registre-traitements', 'Admin\DpoAdminController@downloadRegistre');
 $router->get('/admin/dpo/sous-traitants', 'Admin\DpoAdminController@downloadSousTraitants');
 $router->get('/admin/dpo/procedure-violation', 'Admin\DpoAdminController@downloadProcedure');
+$router->get('/admin/dpo/matrice-habilitations', 'Admin\DpoAdminController@downloadMatrice');
+$router->get('/admin/dpo/dpia', 'Admin\DpoAdminController@downloadDpia');
 $router->get('/admin/securite', 'Admin\ProfileAdminController@index');
 $router->post('/admin/securite/mot-de-passe', 'Admin\ProfileAdminController@changePassword');
 $router->post('/admin/securite/session/{id}/revoquer', 'Admin\ProfileAdminController@revokeSession');
@@ -48,6 +50,17 @@ $router->post('/admin/securite/sessions/revoquer-toutes', 'Admin\ProfileAdminCon
 $router->post('/admin/securite/appareils/retirer-confiance', 'Admin\ProfileAdminController@untrustDevice');
 $router->post('/admin/securite/appareils/supprimer-toutes', 'Admin\ProfileAdminController@untrustAllDevices');
 $router->post('/admin/securite/reinitialiser', 'Admin\ProfileAdminController@resetSecurity');
+$router->get('/admin/logs', 'Admin\AuditLogAdminController@index');
+$router->get('/admin/logs/export', 'Admin\AuditLogAdminController@export');
+$router->get('/admin/admins', 'Admin\AdminGestionAdminsController@index');
+$router->post('/admin/admins/{id}/bloquer', 'Admin\AdminGestionAdminsController@block');
+$router->post('/admin/admins/{id}/debloquer', 'Admin\AdminGestionAdminsController@unblock');
+$router->get('/admin/rgpd/demandes', 'Admin\RgpdAdminController@index');
+$router->get('/admin/rgpd/demandes/ajouter', 'Admin\RgpdAdminController@create');
+$router->post('/admin/rgpd/demandes/ajouter', 'Admin\RgpdAdminController@store');
+$router->post('/admin/rgpd/demandes/{id}/statut', 'Admin\RgpdAdminController@updateStatus');
+
+$router->get('/admin/rgpd/demandes/{id}/export-portabilite', 'Admin\RgpdAdminController@exportPortabilite');
 
 // ============================================================
 // Routes publiques

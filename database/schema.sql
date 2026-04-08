@@ -21,6 +21,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- DROP (ordre FK inverse pour éviter les contraintes)
 -- ============================================================
 DROP TABLE IF EXISTS `newsletter_subscriptions`;
+DROP TABLE IF EXISTS `admin_logs`;
 DROP TABLE IF EXISTS `audit_log`;
 DROP TABLE IF EXISTS `newsletter_subscriptions`;
 DROP TABLE IF EXISTS `newsletter_attachments`;
@@ -87,6 +88,7 @@ CREATE TABLE `accounts` (
   `pending_password_session_token`    VARCHAR(512)   DEFAULT NULL COMMENT 'Token de session à l\'origine de la demande de changement MDP',
   `security_confirm_token_hash`       VARCHAR(64)    DEFAULT NULL COMMENT 'SHA-256 du token de confirmation action sécurité (TTL 1h)',
   `security_confirm_token_expires_at` DATETIME       DEFAULT NULL COMMENT 'Expiration du token de confirmation action sécurité',
+  `is_blocked`                   TINYINT(1)     NOT NULL DEFAULT 0 COMMENT 'Compte bloqué par un super_admin (accès révoqué)',
   `created_at`                   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`                   DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `has_connected`                TINYINT(1)     NOT NULL DEFAULT 0 COMMENT 'Vrai dès la première connexion réussie',
@@ -579,5 +581,81 @@ CREATE TABLE `audit_log` (
   INDEX `idx_audit_log_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Log d\'audit RGPD — Art. 30 RGPD';
+
+-- ============================================================
+-- Table : admin_logs
+-- Journal d'audit des actions admin (RGPD Art. 5.2 accountability).
+-- Rétention légale recommandée : 3 ans.
+-- Journal immuable — pas de DELETE depuis l'interface.
+-- ============================================================
+CREATE TABLE `admin_logs` (
+  `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `admin_id`    INT             NOT NULL COMMENT 'FK accounts — identifiant de l\'admin ayant réalisé l\'action',
+  `action`      VARCHAR(100)    NOT NULL COMMENT 'Identifiant d\'action ex: order.status_updated',
+  `target_type` VARCHAR(50)     NOT NULL COMMENT 'Type de cible ex: order, wine, account',
+  `target_id`   INT             DEFAULT NULL COMMENT 'ID de la cible NULL si non applicable',
+  `details`     JSON            DEFAULT NULL COMMENT 'Contexte supplémentaire (ancien/nouveau statut, etc.)',
+  `ip_address`  VARCHAR(45)     NOT NULL DEFAULT '' COMMENT 'IPv4 ou IPv6 de l\'admin',
+  `created_at`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_admin_logs_admin` FOREIGN KEY (`admin_id`) REFERENCES `accounts` (`id`) ON DELETE RESTRICT,
+  INDEX `idx_admin_logs_admin_id`   (`admin_id`),
+  INDEX `idx_admin_logs_action`     (`action`),
+  INDEX `idx_admin_logs_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Journal audit admin — rétention 3 ans (Art. 5.2 RGPD accountability)';
+
+-- ============================================================
+-- Table : rgpd_requests
+-- Demandes d'exercice de droits RGPD (Art. 15-21 RGPD).
+-- Délai légal de traitement : 1 mois (Art. 12 RGPD).
+-- Alerte back-office à J+25 (J-5 du délai légal).
+-- ============================================================
+DROP TABLE IF EXISTS `rgpd_requests`;
+CREATE TABLE `rgpd_requests` (
+  `id`               INT            NOT NULL AUTO_INCREMENT,
+  `type`             ENUM('acces','rectification','effacement','portabilite','opposition') NOT NULL
+                       COMMENT 'Art. 15 = accès, 16 = rectification, 17 = effacement, 20 = portabilité, 21 = opposition',
+  `requester_email`  VARCHAR(255)   NOT NULL COMMENT 'Email du demandeur',
+  `requester_name`   VARCHAR(255)   NOT NULL COMMENT 'Nom complet du demandeur',
+  `status`           ENUM('nouvelle','en_cours','traitee','refusee') NOT NULL DEFAULT 'nouvelle',
+  `received_at`      DATETIME       NOT NULL                         COMMENT 'Date de réception de la demande (J0 du délai légal)',
+  `treated_at`       DATETIME       DEFAULT NULL                     COMMENT 'Date de clôture du traitement',
+  `treated_by`       INT            DEFAULT NULL                     COMMENT 'FK accounts.id de l\'admin traitant',
+  `response_note`    TEXT           DEFAULT NULL                     COMMENT 'Note interne de traitement',
+  `created_at`       TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_rgpd_requests_treated_by`
+    FOREIGN KEY (`treated_by`) REFERENCES `accounts` (`id`) ON DELETE SET NULL,
+  INDEX `idx_rgpd_requests_status`      (`status`),
+  INDEX `idx_rgpd_requests_type`        (`type`),
+  INDEX `idx_rgpd_requests_received_at` (`received_at`),
+  INDEX `idx_rgpd_requests_email`       (`requester_email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Demandes RGPD Art. 15-21 — délai légal 1 mois (Art. 12)';
+
+-- ============================================================
+-- Table : rgpd_export_logs
+-- Journal des exports Art. 20 déclenchés par les utilisateurs.
+-- Append-only — aucune suppression manuelle autorisée.
+-- Rétention 3 ans (accountability Art. 5.2 RGPD).
+-- ============================================================
+DROP TABLE IF EXISTS `rgpd_export_logs`;
+CREATE TABLE `rgpd_export_logs` (
+  `id`           INT           NOT NULL AUTO_INCREMENT,
+  `user_id`      INT           DEFAULT NULL              COMMENT 'FK accounts.id — nullable si compte supprimé',
+  `email`        VARCHAR(255)  NOT NULL                  COMMENT 'Email dénormalisé (consultation post-suppression)',
+  `ip`           VARCHAR(45)   DEFAULT NULL              COMMENT 'IP de la requête (IPv4/IPv6)',
+  `filename`     VARCHAR(255)  NOT NULL                  COMMENT 'Nom du fichier généré',
+  `requested_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at`   DATETIME      NOT NULL                  COMMENT 'Date de purge automatique (rétention 3 ans)',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_rgpd_export_logs_user`
+    FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE SET NULL,
+  INDEX `idx_rgpd_export_logs_user_id`      (`user_id`),
+  INDEX `idx_rgpd_export_logs_requested_at` (`requested_at`),
+  INDEX `idx_rgpd_export_logs_expires_at`   (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Journal exports RGPD Art. 20 — accountability Art. 5.2 — rétention 3 ans';
 
 COMMIT;

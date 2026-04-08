@@ -49,13 +49,15 @@ if ($resetOpen) {
     }
 }
 
-$isCompany = false;
+$isCompany    = false;
+$isSuperAdmin = false;
 
 if ($token) {
     try {
         $jwtPayload = \Core\Jwt::decode($token);
-        $isLogged   = true;
-        $isAdmin    = in_array($jwtPayload['role'] ?? '', ['admin', 'super_admin'], true);
+        $isLogged      = true;
+        $isAdmin       = in_array($jwtPayload['role'] ?? '', ['admin', 'super_admin'], true);
+        $isSuperAdmin  = ($jwtPayload['role'] ?? '') === 'super_admin';
 
         if (!$isAdmin) {
             $headerUserId      = (int) ($jwtPayload['sub'] ?? 0);
@@ -789,6 +791,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/admin/statistiques">Statistiques CA</a>
                 <a href="/admin/dpo">DPO — RGPD</a>
                 <a href="/admin/securite">Sécurité</a>
+                <?php if ($isSuperAdmin) : ?>
+                    <a href="/admin/logs">Journal d'audit</a>
+                    <a href="/admin/admins">Gestion des admins</a>
+                <?php endif; ?>
             <?php else : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">
                     <?= htmlspecialchars(__('panel.account')) ?>

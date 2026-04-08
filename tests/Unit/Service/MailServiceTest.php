@@ -1692,4 +1692,126 @@ class MailServiceTest extends TestCase
         unlink($tmpPdf);
         $this->assertTrue(true);
     }
+
+    // ----------------------------------------------------------------
+    // sendAdminAccountBlocked
+    // ----------------------------------------------------------------
+
+    /**
+     * sendAdminAccountBlocked FR — sujet et corps corrects.
+     */
+    public function testSendAdminAccountBlockedFrCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendAdminAccountBlocked('admin@test.com', 'Jean Admin', 'fr', 'Super User');
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('bloqué', $mailer->Subject);
+        $this->assertStringContainsString('Super User', $mailer->Body);
+        $this->assertStringContainsString('Jean Admin', $mailer->Body);
+    }
+
+    /**
+     * sendAdminAccountBlocked EN — branche else couverte.
+     */
+    public function testSendAdminAccountBlockedEnCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendAdminAccountBlocked('admin@test.com', 'John Admin', 'en', 'Big Boss');
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('blocked', $mailer->Subject);
+        $this->assertStringContainsString('Big Boss', $mailer->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendAdminAccountUnblocked
+    // ----------------------------------------------------------------
+
+    /**
+     * sendAdminAccountUnblocked FR — sujet et corps corrects.
+     */
+    public function testSendAdminAccountUnblockedFrCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendAdminAccountUnblocked('admin@test.com', 'Jean Admin', 'fr', 'Super User');
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('débloqué', $mailer->Subject);
+        $this->assertStringContainsString('Super User', $mailer->Body);
+    }
+
+    /**
+     * sendAdminAccountUnblocked EN — branche else couverte.
+     */
+    public function testSendAdminAccountUnblockedEnCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendAdminAccountUnblocked('admin@test.com', 'John Admin', 'en', 'Big Boss');
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('unblocked', $mailer->Subject);
+        $this->assertStringContainsString('Big Boss', $mailer->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendRgpdExport
+    // ----------------------------------------------------------------
+
+    /**
+     * sendRgpdExport FR — sujet, corps et pièce jointe couverts.
+     */
+    public function testSendRgpdExportFrCoversBodyAndAttachment(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendRgpdExport(
+            'user@test.com',
+            'Marie Curie',
+            '{"test":"data"}',
+            'export-rgpd-2026-04-08.json',
+            'fr'
+        );
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('RGPD Art. 20', $mailer->Subject);
+        $this->assertStringContainsString('Marie Curie', $mailer->Body);
+        $this->assertStringContainsString('portabilit', $mailer->Body);
+    }
+
+    /**
+     * sendRgpdExport EN — branche else couverte.
+     */
+    public function testSendRgpdExportEnCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendRgpdExport(
+            'user@test.com',
+            'John Doe',
+            '{"test":"data"}',
+            'export-gdpr-2026-04-08.json',
+            'en'
+        );
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('GDPR Art. 20', $mailer->Subject);
+        $this->assertStringContainsString('John Doe', $mailer->Body);
+    }
 }

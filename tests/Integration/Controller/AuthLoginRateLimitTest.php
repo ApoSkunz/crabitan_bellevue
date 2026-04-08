@@ -315,9 +315,9 @@ class AuthLoginRateLimitTest extends IntegrationTestCase
         $_SERVER['REMOTE_ADDR'] = self::IP_CLEAN;
         $id = $this->insertVerifiedAccount('resetok@rl.test', 'Password123!');
 
-        // Pré-charger 3 tentatives sur IP et 3 sur le compte
-        $this->preloadRlCount('login:' . self::IP_CLEAN, 3);
-        $this->preloadRlCount('account_lockout:' . $id, 3);
+        // Pré-charger 2 tentatives (< MAX_ACCOUNT_FAILURES=3 et < MAX_LOGIN_IP=5)
+        $this->preloadRlCount('login:' . self::IP_CLEAN, 2);
+        $this->preloadRlCount('account_lockout:' . $id, 2);
 
         $_POST = [
             'email'      => 'resetok@rl.test',

@@ -770,7 +770,14 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         $params[] = $offset;
 
         return $this->db->fetchAll(
-            $this->withProfile() . "
+            "SELECT a.id, a.email, a.account_type, a.role, a.lang, a.newsletter,
+                    a.email_verified_at, a.has_connected, a.created_at, a.deleted_at,
+                    a.is_blocked,
+                    ai.lastname, ai.firstname, ai.civility,
+                    ac.company_name, ac.siret
+             FROM {$this->table} a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
              {$where}
              ORDER BY a.created_at DESC
              LIMIT ? OFFSET ?",
@@ -1007,6 +1014,68 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             "SELECT majority_declared_at FROM {$this->table} WHERE id = ? AND deleted_at IS NULL",
             [$id]
         );
-        return $row !== false && $row['majority_declared_at'] !== null;
+        return $row !== false && ($row['majority_declared_at'] ?? null) !== null;
+    }
+
+    // ----------------------------------------------------------------
+    // Gestion des comptes admin
+    // ----------------------------------------------------------------
+
+    /**
+     * Retourne tous les comptes de rôle admin ou super_admin, avec date de dernière connexion.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAdmins(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT a.id, a.email, a.role, a.is_blocked, a.created_at,
+                    COALESCE(ai.firstname, ac.company_name, '') AS firstname,
+                    COALESCE(ai.lastname, '') AS lastname,
+                    (SELECT c.created_at
+                     FROM connections c
+                     WHERE c.user_id = a.id AND c.status = 'active'
+                     ORDER BY c.created_at DESC
+                     LIMIT 1) AS last_login_at
+             FROM {$this->table} a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             WHERE a.role IN ('admin', 'super_admin')
+               AND a.deleted_at IS NULL
+             ORDER BY a.role DESC, a.id ASC"
+        );
+    }
+
+    /**
+     * Bloque un compte admin : is_blocked = 1, révoque toutes les sessions actives et appareils de confiance.
+     *
+     * @param int $id Identifiant du compte à bloquer
+     * @return void
+     */
+    public function blockAccount(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET is_blocked = 1 WHERE id = ?",
+            [$id]
+        );
+        $this->revokeAllSessions($id);
+        $this->db->execute(
+            "DELETE FROM trusted_devices WHERE user_id = ?",
+            [$id]
+        );
+    }
+
+    /**
+     * Débloque un compte admin : is_blocked = 0.
+     *
+     * @param int $id Identifiant du compte à débloquer
+     * @return void
+     */
+    public function unblockAccount(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET is_blocked = 0 WHERE id = ?",
+            [$id]
+        );
     }
 }

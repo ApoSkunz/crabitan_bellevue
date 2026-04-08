@@ -66,11 +66,11 @@ class AccountAdminControllerTest extends AdminIntegrationTestCase
     // verify — rôle insuffisant
     // ----------------------------------------------------------------
 
-    public function testVerifyAborts403ForNonSuperAdmin(): void
+    public function testVerifyAborts404ForNonSuperAdmin(): void
     {
-        // admin (non super_admin) → doit recevoir 403
+        // admin (non super_admin) → requireSuperAdmin retourne 404 (pas de révélation de route)
         $this->expectException(HttpException::class);
-        $this->expectExceptionCode(403);
+        $this->expectExceptionCode(404);
 
         ob_start();
         try {

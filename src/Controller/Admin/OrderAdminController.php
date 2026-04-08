@@ -6,6 +6,7 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\OrderModel;
+use Service\AuditLogger;
 use Service\InvoiceService;
 use Service\MailService;
 use Service\PaymentService;
@@ -133,7 +134,7 @@ class OrderAdminController extends AdminController
 
     public function updateStatus(array $params): void // NOSONAR — php:S3776 : complexité flux changement statut admin (GAE, emails, CSRF, guards)
     {
-        $this->requireAdmin();
+        $adminUser = $this->requireAdmin();
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
@@ -176,6 +177,15 @@ class OrderAdminController extends AdminController
         }
 
         $this->orders->updateStatus($id, $status);
+
+        AuditLogger::log(
+            $adminUser['id'],
+            'order.status_updated',
+            'order',
+            $id,
+            ['old_status' => $oldStatus, 'new_status' => $status],
+            AuditLogger::getIp()
+        );
 
         if ($status !== $oldStatus && in_array($status, self::TRIGGER_STATUSES, true)) {
             $clientEmail = (string) ($order['email'] ?? '');

@@ -7,6 +7,7 @@ namespace Controller\Admin;
 use Core\Response;
 use Model\AccountModel;
 use Model\NewsletterModel;
+use Service\AuditLogger;
 use Service\MailService;
 
 /**
@@ -112,7 +113,7 @@ class NewsletterAdminController extends AdminController
 
     public function send(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
-        $this->requireAdmin();
+        $adminUser = $this->requireAdmin();
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
@@ -191,6 +192,15 @@ class NewsletterAdminController extends AdminController
         }
 
         $this->newsletters->updateStats($campaignId, $sent, $failed);
+
+        AuditLogger::log(
+            $adminUser['id'],
+            'newsletter.sent',
+            'newsletter',
+            $campaignId,
+            ['subject' => $subjectLine, 'sent' => $sent, 'failed' => $failed],
+            AuditLogger::getIp()
+        );
 
         $msg = "{$sent} email(s) envoyé(s)";
         $msg .= $failed > 0 ? ", {$failed} échec(s)." : ' avec succès.';
