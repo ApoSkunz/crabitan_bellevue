@@ -47,8 +47,7 @@ class DpoAdminController extends AdminController
     private function legalConfig(): array
     {
         if ($this->legalConfigCache === null) {
-            // NOSONAR — php:S2003 : require intentionnel — require_once retournerait true lors des appels suivants, cassant le cache
-            $this->legalConfigCache = require ROOT_PATH . self::LEGAL_CONFIG;
+            $this->legalConfigCache = require ROOT_PATH . self::LEGAL_CONFIG; // NOSONAR php:S2003
         }
         return $this->legalConfigCache;
     }
