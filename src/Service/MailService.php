@@ -942,8 +942,8 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $urlSupport = $appUrl . self::URL_SUPPORT;
         $urlCgv     = $appUrl . self::URL_CGV;
         $urlUnsub   = $unsubToken !== null
-            ? $appUrl . '/fr/newsletter/desabonnement?token=' . urlencode($unsubToken)
-            : $appUrl . '/fr/mon-compte';
+            ? $appUrl . '/' . $lang . '/newsletter/desabonnement?token=' . urlencode($unsubToken)
+            : $appUrl . '/' . $lang . '/mon-compte';
         $safeTitle  = htmlspecialchars($title, ENT_QUOTES);
         // Image optionnelle : centrée dans le bloc blanc, avant le séparateur/désabonnement
         $safeImage = $imageUrl !== null ? htmlspecialchars($imageUrl, ENT_QUOTES) : null;
@@ -962,6 +962,11 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
             $pixelHtml = "\n              <img src=\"{$pixelSrc}\" width=\"1\" height=\"1\" alt=\"\""
                 . " style=\"display:block;width:1px;height:1px;border:0;\">";
         }
+
+        $unsubInfo  = $lang === 'en'
+            ? 'You are receiving this email because you subscribed to the Château Crabitan Bellevue newsletter.'
+            : 'Vous recevez cet email car vous êtes abonné(e) à la newsletter du Château Crabitan Bellevue.';
+        $unsubLink  = $lang === 'en' ? 'Unsubscribe from the newsletter' : 'Se désinscrire de la newsletter';
 
         $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
         $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $urlCgv, $lang);
@@ -986,8 +991,8 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
                 <tr><td style="border-top:1px solid #ede8df;padding-bottom:20px;"></td></tr>
               </table>
               <p style="margin:0;font-size:12px;color:#8a7a60;line-height:1.6;">
-                Vous recevez cet email car vous êtes abonné(e) à la newsletter du Château Crabitan Bellevue.<br>
-                <a href="{$urlUnsub}" style="color:#c9a84c;">Se désinscrire de la newsletter</a>
+                {$unsubInfo}<br>
+                <a href="{$urlUnsub}" style="color:#c9a84c;">{$unsubLink}</a>
               </p>
             </td>
           </tr>
