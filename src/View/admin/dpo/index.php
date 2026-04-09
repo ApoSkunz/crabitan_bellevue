@@ -91,7 +91,8 @@
         </a>
     </div>
 
-    <!-- Pages légales versionnées -->
+    <?php if (($adminUser['role'] ?? '') === 'super_admin') : ?>
+    <!-- Pages légales versionnées — super_admin uniquement -->
     <div class="admin-card" style="padding:1.5rem;display:flex;flex-direction:column;">
         <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">📝</div>
         <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">Pages légales</h2>
@@ -106,7 +107,7 @@
         </a>
     </div>
 
-    <!-- Demandes RGPD -->
+    <!-- Demandes RGPD — super_admin uniquement -->
     <div class="admin-card" style="padding:1.5rem;display:flex;flex-direction:column;">
         <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">📬</div>
         <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">Demandes RGPD</h2>
@@ -120,6 +121,7 @@
             Gérer les demandes →
         </a>
     </div>
+    <?php endif; ?>
 
 </div>
 
