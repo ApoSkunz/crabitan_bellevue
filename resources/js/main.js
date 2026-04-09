@@ -2218,10 +2218,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const qrModal = document.getElementById('admin-qr-modal');
     if (qrModal) {
         const appUrl    = globalThis.__appUrl ?? '';
-        const modalCanvas = document.getElementById('admin-qr-modal-canvas');
-        const modalTitle  = document.getElementById('admin-qr-modal-title');
-        const modalUrl    = document.getElementById('admin-qr-modal-url');
-        const closeBtn    = document.getElementById('admin-qr-modal-close');
+        const modalCanvas   = document.getElementById('admin-qr-modal-canvas');
+        const modalTitle    = document.getElementById('admin-qr-modal-title');
+        const modalUrl      = document.getElementById('admin-qr-modal-url');
+        const modalDownload = document.getElementById('admin-qr-modal-download');
+        const closeBtn      = document.getElementById('admin-qr-modal-close');
 
         function openQrModal(slug, label) {
             const url = appUrl + '/fr/vins/' + encodeURIComponent(slug) + '/fiche-technique';
@@ -2230,7 +2231,12 @@ document.addEventListener('DOMContentLoaded', () => {
             qrModal.style.display  = 'flex';
 
             import('qrcode').then((QRCode) => {
-                QRCode.default.toCanvas(modalCanvas, url, { width: 300, margin: 2 });
+                QRCode.default.toCanvas(modalCanvas, url, { width: 300, margin: 2 }, () => {
+                    if (modalDownload) {
+                        modalDownload.href     = modalCanvas.toDataURL('image/png');
+                        modalDownload.download = 'qr-' + slug + '.png';
+                    }
+                });
             }).catch(() => {});
         }
 

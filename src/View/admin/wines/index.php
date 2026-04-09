@@ -108,7 +108,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                                         class="admin-btn admin-btn--outline admin-btn--sm js-qr-btn"
                                         data-slug="<?= htmlspecialchars($wine['slug'], ENT_QUOTES) ?>"
                                         data-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage'], ENT_QUOTES) ?>"
-                                        aria-label="QR code <?= htmlspecialchars($wine['label_name'], ENT_QUOTES) ?>">QR</button>
+                                        aria-label="QR code <?= htmlspecialchars($wine['label_name'], ENT_QUOTES) ?>">QR Code</button>
                                 <a href="/fr/vins/<?= htmlspecialchars($wine['slug']) ?>"
                                    class="admin-btn admin-btn--outline admin-btn--sm"
                                    target="_blank" rel="noopener">↗</a>
@@ -147,7 +147,10 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
         <h3 id="admin-qr-modal-title" style="margin:0 0 0.5rem;font-size:0.9rem;"></h3>
         <canvas id="admin-qr-modal-canvas" width="300" height="300"
                 style="border:1px solid #e0d5c0;border-radius:4px;display:block;margin:0 auto 0.75rem;"></canvas>
-        <p id="admin-qr-modal-url" style="font-size:0.68rem;color:#8a7a60;word-break:break-all;"></p>
+        <p id="admin-qr-modal-url" style="font-size:0.68rem;color:#8a7a60;word-break:break-all;margin-bottom:0.75rem;"></p>
+        <a id="admin-qr-modal-download" href="#" download=""
+           class="admin-btn admin-btn--gold admin-btn--sm"
+           style="display:inline-block;">Télécharger</a>
     </div>
 </div>
 
