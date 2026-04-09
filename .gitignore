@@ -54,3 +54,7 @@ logs/
 
 # Vite — artefacts de build non versionnés
 /public/assets/js/browser.js
+
+# Scripts utilitaires locaux
+/coverage-check.php
+/coverage/
