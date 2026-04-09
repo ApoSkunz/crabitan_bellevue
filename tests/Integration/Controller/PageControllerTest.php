@@ -184,6 +184,33 @@ class PageControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // conditionsGeneralesVente
+    // ----------------------------------------------------------------
+
+    public function testConditionsGeneralesVenteRendersView(): void
+    {
+        $_COOKIE['age_verified'] = '1';
+        ob_start();
+        $this->makeController('/fr/conditions-generales-de-vente')->conditionsGeneralesVente(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Conditions G', $output);
+    }
+
+    public function testConditionsGeneralesVenteBareMode(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/conditions-generales-de-vente';
+        $_GET['bare'] = '';
+        ob_start();
+        (new PageController(new Request()))->conditionsGeneralesVente(['lang' => 'fr']);
+        $output = ob_get_clean();
+        $_GET = [];
+
+        $this->assertGreaterThan(0, strlen($output));
+    }
+
+    // ----------------------------------------------------------------
     // contactPost — chemin succès (SMTP via mailhog sur localhost:1025)
     // ----------------------------------------------------------------
 
@@ -224,6 +251,94 @@ class PageControllerTest extends IntegrationTestCase
 
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(200);
+
+        $controller->contactPost(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // contactPost — CSRF invalide → 400
+    // ----------------------------------------------------------------
+
+    public function testContactPostReturnsBadRequestOnInvalidCsrf(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/contact';
+        $_GET  = [];
+        $_POST = ['csrf_token' => 'wrong-token'];
+        $_SESSION['csrf'] = 'valid-token';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(400);
+
+        (new PageController(new Request()))->contactPost(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // contactPost — champs invalides → 422
+    // ----------------------------------------------------------------
+
+    public function testContactPostReturnsUnprocessableOnMissingFields(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/contact';
+        $_GET  = [];
+        $token = bin2hex(random_bytes(16));
+        $_SESSION['csrf'] = $token;
+        $_POST = [
+            'csrf_token' => $token,
+            'firstname'  => '',
+            'lastname'   => '',
+            'email'      => 'not-an-email',
+            'subject'    => '',
+            'message'    => '',
+            'rgpd'       => '0',
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(422);
+
+        (new PageController(new Request()))->contactPost(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // contactPost — SMTP exception → 500
+    // ----------------------------------------------------------------
+
+    public function testContactPostReturnsServerErrorOnSmtpFailure(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/contact';
+        $_GET = [];
+        $token = bin2hex(random_bytes(16));
+        $_SESSION['csrf'] = $token;
+        $_POST = [
+            'csrf_token' => $token,
+            'firstname'  => 'Test',
+            'lastname'   => 'User',
+            'email'      => 'test@example.com',
+            'subject'    => 'general',
+            'message'    => 'Message.',
+            'rgpd'       => '1',
+        ];
+
+        $stub = $this->createStub(\Service\MailService::class);
+        $stub->method('sendContactToOwner')->willThrowException(new \RuntimeException('SMTP down'));
+
+        $controller = new class (new Request(), $stub) extends PageController {
+            public function __construct(
+                Request $request,
+                private \Service\MailService $mockMail
+            ) {
+                parent::__construct($request);
+            }
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->mockMail;
+            }
+        };
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(500);
 
         $controller->contactPost(['lang' => 'fr']);
     }
