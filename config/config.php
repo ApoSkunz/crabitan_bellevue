@@ -35,8 +35,10 @@ foreach ($_langMatches[1] as $_l) {
         break;
     }
 }
-defined('DEFAULT_LANG') || define('DEFAULT_LANG', $_detectedLang);
-unset($_detectedLang, $_acceptLang, $_langMatches, $_l);
+// Cookie cb-lang (posé à la connexion) prioritaire sur la détection navigateur
+$_savedLang = in_array($_COOKIE['cb-lang'] ?? '', SUPPORTED_LANGS, true) ? $_COOKIE['cb-lang'] : null;
+defined('DEFAULT_LANG') || define('DEFAULT_LANG', $_savedLang ?? $_detectedLang);
+unset($_detectedLang, $_acceptLang, $_langMatches, $_l, $_savedLang);
 
 // Chargement de la langue par défaut (surchargée par le Router si {lang} dans l'URL)
 \Core\Lang::load(DEFAULT_LANG);
