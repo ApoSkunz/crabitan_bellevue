@@ -545,4 +545,16 @@ class WineModel extends Model
             ]
         );
     }
+
+    /**
+     * Retourne tous les slugs des vins disponibles (pour sitemap.xml).
+     *
+     * @return array<int, array{slug: string}>
+     */
+    public function getAllSlugs(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT slug FROM {$this->table} WHERE available = 1 ORDER BY slug"
+        );
+    }
 }

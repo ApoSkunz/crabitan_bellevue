@@ -287,6 +287,26 @@ $maxYear = (int) date('Y');
         </div>
 
     </form>
+
+    <?php if ($isEdit && !empty($wine['slug'])) : ?>
+    <?php
+        $appUrl  = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/');
+        $wineUrl = $appUrl . '/fr/vins/' . htmlspecialchars($wine['slug'], ENT_QUOTES);
+    ?>
+    <div class="admin-form__section" style="margin-top:2rem;">
+        <h3>QR Code</h3>
+        <p style="font-size:0.75rem;color:#8a7a60;margin-bottom:1rem;">
+            Encodé sur la fiche publique du vin · Résolution 300×300 px
+        </p>
+        <canvas id="admin-qr-canvas"
+                data-wine-url="<?= htmlspecialchars($wineUrl, ENT_QUOTES) ?>"
+                width="300" height="300"
+                style="border:1px solid #e0d5c0;border-radius:4px;display:block;"></canvas>
+        <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.5rem;">
+            URL encodée : <code><?= htmlspecialchars($wineUrl) ?></code>
+        </p>
+    </div>
+    <?php endif; ?>
     </div>
 </div>
 

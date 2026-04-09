@@ -2203,6 +2203,17 @@ document.addEventListener('DOMContentLoaded', () => {
     initFlashAutofocus();
     initLangPreference();
 
+    // QR Code admin — uniquement sur la fiche d'édition d'un vin
+    if (document.getElementById('admin-qr-canvas')) {
+        import('qrcode').then((QRCode) => {
+            const canvas = document.getElementById('admin-qr-canvas');
+            const url    = canvas?.dataset.wineUrl ?? '';
+            if (canvas && url) {
+                QRCode.default.toCanvas(canvas, url, { width: 300, margin: 2 });
+            }
+        }).catch(() => {});
+    }
+
     // Chargement à la demande — uniquement sur la page jeux
     if (document.getElementById('memo-game')) {
         import('./memo-game.js').then((m) => m.initMemoGame());

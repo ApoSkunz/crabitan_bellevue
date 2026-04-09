@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Controller;
 
 use Core\Controller;
+use Model\NewsModel;
 use Model\OrderFormModel;
 use Model\WineModel;
 use Service\MailService;
@@ -162,6 +163,88 @@ class PageController extends Controller
     {
         $lang = $this->resolveLang($params);
         $this->view('pages/webmaster', ['lang' => $lang, 'noindex' => true]);
+    }
+
+    /**
+     * Génère et retourne le sitemap.xml dynamique.
+     * Inclut les pages statiques publiques + slugs vins + slugs actualités en FR/EN.
+     * Les pages marquées noindex sont exclues.
+     *
+     * @param array<string, mixed> $params
+     */
+    public function sitemapXml(array $params): void
+    {
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $today     = date('Y-m-d');
+        $langs     = ['fr', 'en'];
+
+        // Pages statiques publiques (noindex exclues : mentions-legales, politique-de-confidentialite, plan-du-site)
+        $staticRoutes = [
+            ''                              => '1.0',
+            '/vins'                         => '0.9',
+            '/vins/collection'              => '0.8',
+            '/actualites'                   => '0.9',
+            '/le-chateau'                   => '0.7',
+            '/savoir-faire'                 => '0.7',
+            '/contact'                      => '0.6',
+            '/conditions-generales-de-vente' => '0.4',
+        ];
+
+        $wineModel = new WineModel();
+        $newsModel = new NewsModel();
+        $wineSlugs = $wineModel->getAllSlugs();
+        $newsSlugs = $newsModel->getAll();
+
+        header('Content-Type: application/xml; charset=utf-8');
+        header('X-Robots-Tag: noindex');
+
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
+        echo '        xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
+
+        // Pages statiques
+        foreach ($staticRoutes as $path => $priority) {
+            echo "  <url>\n";
+            echo "    <loc>" . htmlspecialchars($appUrl . '/fr' . $path) . "</loc>\n";
+            echo "    <lastmod>{$today}</lastmod>\n";
+            echo "    <priority>{$priority}</priority>\n";
+            foreach ($langs as $l) {
+                $alt = htmlspecialchars($appUrl . '/' . $l . $path);
+                echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$alt}\"/>\n";
+            }
+            echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\""
+                . htmlspecialchars($appUrl . '/fr' . $path) . "\"/>\n";
+            echo "  </url>\n";
+        }
+
+        // Vins
+        foreach ($wineSlugs as $row) {
+            $slug = htmlspecialchars((string) $row['slug']);
+            echo "  <url>\n";
+            echo "    <loc>{$appUrl}/fr/vins/{$slug}</loc>\n";
+            echo "    <priority>0.8</priority>\n";
+            foreach ($langs as $l) {
+                echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$appUrl}/{$l}/vins/{$slug}\"/>\n";
+            }
+            echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/vins/{$slug}\"/>\n";
+            echo "  </url>\n";
+        }
+
+        // Actualités
+        foreach ($newsSlugs as $row) {
+            $slug = htmlspecialchars((string) $row['slug']);
+            echo "  <url>\n";
+            echo "    <loc>{$appUrl}/fr/actualites/{$slug}</loc>\n";
+            echo "    <priority>0.7</priority>\n";
+            foreach ($langs as $l) {
+                echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$appUrl}/{$l}/actualites/{$slug}\"/>\n";
+            }
+            echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/actualites/{$slug}\"/>\n";
+            echo "  </url>\n";
+        }
+
+        echo '</urlset>' . "\n";
+        exit;
     }
 
     protected function newMailService(): MailService
