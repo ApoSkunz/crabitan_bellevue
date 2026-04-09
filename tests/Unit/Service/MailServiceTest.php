@@ -1890,4 +1890,85 @@ class MailServiceTest extends TestCase
         $this->assertStringNotContainsString('<script>', $mailer->Body);
         $this->assertStringNotContainsString('<b>date</b>', $mailer->Body);
     }
+
+    // ----------------------------------------------------------------
+    // sendInactivityDeletion — branche FR
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testSendInactivityDeletionFrCoversBody(): void
+    {
+        $_ENV['APP_URL'] = 'http://crabitan.local';
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendInactivityDeletion(
+            'deleted@test.com',
+            'Marie Dupont',
+            'fr',
+            '09/05/2026',
+            'abc123token'
+        );
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('suspendu', $mailer->Subject);
+        $this->assertStringContainsString('Marie Dupont', $mailer->Body);
+        $this->assertStringContainsString('09/05/2026', $mailer->Body);
+        $this->assertStringContainsString('Réactiver mon compte', $mailer->Body);
+        $this->assertStringContainsString('abc123token', $mailer->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendInactivityDeletion — branche EN
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testSendInactivityDeletionEnCoversBody(): void
+    {
+        $_ENV['APP_URL'] = 'http://crabitan.local';
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendInactivityDeletion(
+            'deleted@test.com',
+            'John Smith',
+            'en',
+            '09/05/2026',
+            'abc123token'
+        );
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('suspended', $mailer->Subject);
+        $this->assertStringContainsString('John Smith', $mailer->Body);
+        $this->assertStringContainsString('09/05/2026', $mailer->Body);
+        $this->assertStringContainsString('Reactivate my account', $mailer->Body);
+        $this->assertStringContainsString('abc123token', $mailer->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendInactivityDeletion — XSS escaping
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testSendInactivityDeletionEscapesXss(): void
+    {
+        $_ENV['APP_URL'] = 'http://crabitan.local';
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendInactivityDeletion(
+            'xss@test.com',
+            '<script>alert(1)</script>',
+            'fr',
+            '<b>date</b>',
+            'safetoken'
+        );
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringNotContainsString('<script>', $mailer->Body);
+        $this->assertStringNotContainsString('<b>date</b>', $mailer->Body);
+    }
 }

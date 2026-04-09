@@ -554,6 +554,80 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     }
 
     /**
+     * Notifie l'utilisateur que son compte a été suspendu pour inactivité.
+     * Le compte est déjà soft-deleted — l'utilisateur dispose de 30 jours
+     * pour le réactiver via le token avant suppression définitive.
+     *
+     * @param string $to               Destinataire
+     * @param string $name             Nom affiché
+     * @param string $lang             Langue (fr|en)
+     * @param string $deletionDate     Date de suppression définitive (format lisible)
+     * @param string $reactivationToken Token de réactivation (brut, non haché)
+     * @return void
+     */
+    public function sendInactivityDeletion(
+        string $to,
+        string $name,
+        string $lang,
+        string $deletionDate,
+        string $reactivationToken
+    ): void {
+        $appUrl       = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $reactUrl     = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
+        $safeName     = htmlspecialchars($name, ENT_QUOTES);
+        $safeDate     = htmlspecialchars($deletionDate, ENT_QUOTES);
+        $safeReactUrl = htmlspecialchars($reactUrl, ENT_QUOTES);
+
+        $reactBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . '<a href="' . $safeReactUrl . self::BTN_ANCHOR_STYLE_ATTR
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . ($lang === 'fr' ? 'Réactiver mon compte' : 'Reactivate my account')
+            . '</a></td></tr></table>';
+
+        if ($lang === 'fr') {
+            $subject = 'Votre compte Crabitan a été suspendu pour inactivité';
+            $message = "Votre compte n'ayant enregistré aucune connexion depuis plus de 36 mois,"
+                . " il a été <strong>suspendu automatiquement</strong> conformément à notre politique RGPD"
+                . " (Art. 5 §1e — minimisation des données).<br><br>"
+                . "Vos données personnelles seront définitivement supprimées le <strong>{$safeDate}</strong>."
+                . " Vous disposez de 30 jours pour réactiver votre compte en cliquant sur le bouton ci-dessous.<br><br>"
+                . $reactBtn
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'Si vous n\'utilisez plus ce compte, vous n\'avez rien à faire —'
+                . ' vos données seront supprimées à la date indiquée.'
+                . '</p>';
+            $body = $this->emailSimpleLayout(
+                'Compte suspendu',
+                "Bonjour {$safeName},",
+                $message,
+                'fr'
+            );
+        } else {
+            $subject = 'Your Crabitan account has been suspended due to inactivity';
+            $message = "Your account has not recorded any login for over 36 months and has been"
+                . " <strong>automatically suspended</strong> in accordance with our GDPR policy"
+                . " (Art. 5 §1e — data minimisation).<br><br>"
+                . "Your personal data will be permanently deleted on <strong>{$safeDate}</strong>."
+                . " You have 30 days to reactivate your account by clicking the button below.<br><br>"
+                . $reactBtn
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'If you no longer use this account, no action is required —'
+                . ' your data will be deleted on the date shown above.'
+                . '</p>';
+            $body = $this->emailSimpleLayout(
+                'Account suspended',
+                "Hello {$safeName},",
+                $message,
+                'en'
+            );
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
      * Envoie la demande de confirmation de changement de mot de passe.
      * Le mot de passe n'est PAS encore modifié — il sera appliqué uniquement après clic sur "C'était moi".
      *

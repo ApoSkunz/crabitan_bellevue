@@ -709,19 +709,23 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      *
      * @param int $id Identifiant du compte
      */
-    public function softDeleteForInactivity(int $id): void
+    public function softDeleteForInactivity(int $id): string
     {
+        $token = bin2hex(random_bytes(32));
+
         $this->db->execute(
             "UPDATE {$this->table}
              SET deleted_at = NOW(),
                  scheduled_deletion_at = DATE_ADD(NOW(), INTERVAL 30 DAY),
                  reactivation_token = ?
              WHERE id = ?",
-            [bin2hex(random_bytes(32)), $id]
+            [$token, $id]
         );
 
         $this->revokeAllSessions($id);
         $this->preserveAddressesForActiveOrders($id);
+
+        return $token;
     }
 
     /**
