@@ -2,6 +2,20 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.49.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.48.0...v0.49.0) (2026-04-09)
+
+
+### Bug Fixes
+
+* **test:** AccountModelInactivityTest — auth_method 'standard' → 'password' (ENUM constraint) ([c2798dc](https://github.com/ApoSkunz/crabitan_bellevue/commit/c2798dcd5258842a7c482ddbdd28c3492949fa1b))
+
+
+### Features
+
+* **bin:** purge_inactive_accounts.php (warn+soft-delete) + purge_addresses.php (orphans) ([d793978](https://github.com/ApoSkunz/crabitan_bellevue/commit/d793978e1d9783235568d521449777b4d2ab0066))
+* **mail:** sendInactivityWarning — email d'avertissement inactivité RGPD (fr/en) ([f8856be](https://github.com/ApoSkunz/crabitan_bellevue/commit/f8856be54e1bffabe3f0a63b5cb1e22d0cb8549e))
+* **model:** AccountModel inactivity detection + soft-delete, AddressModel orphan purge (RGPD Art. 5 §1e) ([f6c8a13](https://github.com/ApoSkunz/crabitan_bellevue/commit/f6c8a13eae14722e2dae44680841bd79b5662bbd))
+
 # [0.48.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.47.0...v0.48.0) (2026-04-09)
 
 
