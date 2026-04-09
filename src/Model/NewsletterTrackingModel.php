@@ -81,17 +81,36 @@ class NewsletterTrackingModel extends Model
      * @param  int                $newsletterId Identifiant de la campagne
      * @return array<string, int> opens_count, clicks_count
      */
+    /**
+     * Enregistre une désinscription liée à une campagne (INSERT IGNORE — idempotent).
+     *
+     * @param int $newsletterId Identifiant de la campagne
+     * @param int $accountId    Identifiant du compte désabonné
+     * @return void
+     */
+    public function recordUnsubscribe(int $newsletterId, int $accountId): void
+    {
+        $this->db->execute(
+            'INSERT IGNORE INTO newsletter_unsubscribes (newsletter_id, account_id) VALUES (?, ?)',
+            [$newsletterId, $accountId]
+        );
+    }
+
     public function getStats(int $newsletterId): array
     {
         $row = $this->db->fetchOne(
             'SELECT
-                (SELECT COUNT(*)          FROM newsletter_opens  WHERE newsletter_id = ?) AS opens_count,
-                (SELECT COUNT(*)          FROM newsletter_clicks WHERE newsletter_id = ?) AS clicks_count,
+                (SELECT COUNT(*)          FROM newsletter_opens        WHERE newsletter_id = ?) AS opens_count,
+                (SELECT COUNT(*)          FROM newsletter_clicks       WHERE newsletter_id = ?) AS clicks_count,
                 (SELECT COUNT(DISTINCT subscriber_id)
-                                          FROM newsletter_clicks WHERE newsletter_id = ?) AS unique_clicks_count',
-            [$newsletterId, $newsletterId, $newsletterId]
+                                          FROM newsletter_clicks       WHERE newsletter_id = ?) AS unique_clicks_count,
+                (SELECT COUNT(*)          FROM newsletter_unsubscribes WHERE newsletter_id = ?) AS unsubscribes_count',
+            [$newsletterId, $newsletterId, $newsletterId, $newsletterId]
         );
-        return $row !== false ? $row : ['opens_count' => 0, 'clicks_count' => 0, 'unique_clicks_count' => 0];
+        return $row !== false ? $row : [
+            'opens_count' => 0, 'clicks_count' => 0,
+            'unique_clicks_count' => 0, 'unsubscribes_count' => 0,
+        ];
     }
 
     /**
