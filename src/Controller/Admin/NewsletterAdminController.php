@@ -7,6 +7,7 @@ namespace Controller\Admin;
 use Core\Response;
 use Model\AccountModel;
 use Model\NewsletterModel;
+use Model\NewsletterTrackingModel;
 use Service\AuditLogger;
 use Service\MailService;
 
@@ -117,6 +118,10 @@ class NewsletterAdminController extends AdminController
             $this->abort(404, 'Campagne introuvable');
         }
 
+        $stats = (new NewsletterTrackingModel())->getStats((int) $campaign['id']);
+        $campaign['opens_count']  = (int) $stats['opens_count'];
+        $campaign['clicks_count'] = (int) $stats['clicks_count'];
+
         $this->view('admin/newsletter/show', [
             'adminUser'    => $adminUser,
             'adminSection' => 'newsletter',
@@ -177,11 +182,10 @@ class NewsletterAdminController extends AdminController
             $pdfName = $attachment['original_name'];
         }
 
-        $all         = $this->accounts->getNewsletterSubscribersBySegment($segment, 10000, 0);
-        $mailer      = new MailService();
-        $sent        = 0;
-        $failed      = 0;
-        $safeContent = nl2br(htmlspecialchars($body, ENT_QUOTES));
+        $all    = $this->accounts->getNewsletterSubscribersBySegment($segment, 10000, 0);
+        $mailer = new MailService();
+        $sent   = 0;
+        $failed = 0;
 
         // Bloc titre optionnel affiché en h2 au-dessus du corps
         $titleHtml = $title !== ''
@@ -190,11 +194,28 @@ class NewsletterAdminController extends AdminController
               . htmlspecialchars($title, ENT_QUOTES) . '</h2>'
             : '';
 
+        // Tracking : extraire les liens uniques et les persister avant l'envoi
+        $trackingModel = new NewsletterTrackingModel();
+        $linkMap       = []; // url → linkId
+        preg_match_all('/https?:\/\/[^\s<>"\']+/', $body, $urlMatches);
+        foreach (array_unique($urlMatches[0]) as $url) {
+            $linkMap[$url] = $trackingModel->saveLink($campaignId, $url);
+        }
+
         foreach ($all as $sub) {
-            $name = $sub['account_type'] === 'company'
+            $name  = $sub['account_type'] === 'company'
                 ? ($sub['company_name'] ?? '')
                 : trim(($sub['firstname'] ?? '') . ' ' . ($sub['lastname'] ?? ''));
             $token = $sub['newsletter_unsubscribe_token'] ?? null;
+
+            // Corps avec liens trackés (par abonné car token différent)
+            $trackedBody = $body;
+            foreach ($linkMap as $url => $linkId) {
+                $trackUrl    = $appUrl . '/track/click/' . $campaignId . '/' . $linkId
+                    . ($token !== null ? '/' . rawurlencode($token) : '');
+                $trackedBody = str_replace($url, $trackUrl, $trackedBody);
+            }
+            $safeContent = nl2br(htmlspecialchars($trackedBody, ENT_QUOTES));
 
             // Salutation : prénom seul pour les particuliers (pas nom complet)
             $firstname    = htmlspecialchars(trim($sub['firstname'] ?? ''), ENT_QUOTES);
@@ -205,9 +226,16 @@ class NewsletterAdminController extends AdminController
             $greetingHtml = '<p style="margin:0 0 20px;font-size:22px;color:#1a1208;font-family:Georgia,serif;">'
                 . $greeting . '</p>';
 
-            $htmlBody = $mailer->buildNewsletterHtml('Newsletter · Abonnés', $greetingHtml . $titleHtml . $safeContent, $imageUrl, $token);
+            $htmlBody = $mailer->buildNewsletterHtml(
+                'Newsletter · Abonnés',
+                $greetingHtml . $titleHtml . $safeContent,
+                $imageUrl,
+                $token,
+                'fr',
+                $campaignId
+            );
             try {
-                $mailer->sendNewsletter($sub['email'], $name ?: 'Abonné', $subjectLine, $htmlBody, $pdfPath, $pdfName);
+                $mailer->sendNewsletter($sub['email'], $name ?: 'Abonné', $subjectLine, $htmlBody, $pdfPath, $pdfName, $token);
                 $sent++;
             } catch (\Throwable) {
                 $failed++;
