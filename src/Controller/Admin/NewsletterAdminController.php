@@ -124,6 +124,7 @@ class NewsletterAdminController extends AdminController
         $campaign['opens_count']         = (int) $stats['opens_count'];
         $campaign['clicks_count']        = (int) $stats['clicks_count'];
         $campaign['unique_clicks_count'] = (int) $stats['unique_clicks_count'];
+        $campaign['unsubscribes_count']  = (int) $stats['unsubscribes_count'];
 
         $this->view('admin/newsletter/show', [
             'adminUser'    => $adminUser,
@@ -181,7 +182,7 @@ class NewsletterAdminController extends AdminController
 
         // Persister la campagne avant l'envoi (avec objet complet)
         $segmentLabel = $segment !== 'tous' ? $segment : null;
-        $campaignId   = $this->newsletters->create($subjectLine, $body, $imageUrl, $segmentLabel);
+        $campaignId   = $this->newsletters->create($subjectLine, $title !== '' ? $title : null, $body, $imageUrl, $segmentLabel);
 
         // Gérer la pièce jointe PDF — copie permanente pour l'historique
         $pdfPath    = null;
