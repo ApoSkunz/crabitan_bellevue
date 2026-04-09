@@ -379,6 +379,16 @@ class PageControllerTest extends IntegrationTestCase
         $this->assertStringContainsString('/fr/contact', $output);
     }
 
+    public function testSitemapXmlContainsWineAndNewsSlugs(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemap();
+
+        // Vérifie que les boucles foreach slugs s'exécutent (données seed requises)
+        $this->assertMatchesRegularExpression('#/fr/vins/[a-z0-9\-]+#', $output);
+        $this->assertMatchesRegularExpression('#/fr/actualites/[a-z0-9\-]+#', $output);
+    }
+
     public function testSitemapXmlExcludesNoindexPages(): void
     {
         $_ENV['APP_URL'] = 'https://crabitan.local';
