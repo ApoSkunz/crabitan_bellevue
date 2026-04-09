@@ -243,13 +243,13 @@ class NewsletterAdminController extends AdminController
 
             // Salutation selon langue et type de compte
             $firstname    = htmlspecialchars(trim($sub['firstname'] ?? ''), ENT_QUOTES);
-            $fallbackName = $firstname ?: htmlspecialchars(
-                $name ?: ($lang === 'en' ? 'dear subscriber' : 'cher abonné'),
-                ENT_QUOTES
-            );
-            $greeting     = $sub['account_type'] === 'company'
-                ? ($lang === 'en' ? 'Dear Sir/Madam,' : 'Madame, Monsieur,')
-                : ($lang === 'en' ? 'Hello ' . $fallbackName . ',' : 'Bonjour ' . $fallbackName . ',');
+            $defaultName  = $lang === 'en' ? 'dear subscriber' : 'cher abonné';
+            $fallbackName = $firstname ?: htmlspecialchars($name ?: $defaultName, ENT_QUOTES);
+            if ($sub['account_type'] === 'company') {
+                $greeting = $lang === 'en' ? 'Dear Sir/Madam,' : 'Madame, Monsieur,';
+            } else {
+                $greeting = $lang === 'en' ? 'Hello ' . $fallbackName . ',' : 'Bonjour ' . $fallbackName . ',';
+            }
             $greetingHtml = '<p style="margin:0 0 20px;font-size:22px;color:#1a1208;font-family:Georgia,serif;">'
                 . $greeting . '</p>';
 
