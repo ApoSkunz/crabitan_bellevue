@@ -48,7 +48,7 @@ class AccountModelInactivityTest extends IntegrationTestCase
         // Utilisation directe de la date calculée
         self::$db->insert(
             "INSERT INTO connections (user_id, token, device_token, ip_address, user_agent, device_name, auth_method, status, expired_at, created_at)
-             VALUES (?, 'tok', 'dev', '127.0.0.1', 'UA', 'PC', 'standard', 'active',
+             VALUES (?, 'tok', 'dev', '127.0.0.1', 'UA', 'PC', 'password', 'active',
                      DATE_ADD(NOW(), INTERVAL 30 DAY), DATE_SUB(NOW(), INTERVAL 1 MONTH))",
             [$userId]
         );
@@ -58,7 +58,7 @@ class AccountModelInactivityTest extends IntegrationTestCase
     {
         self::$db->insert(
             "INSERT INTO connections (user_id, token, device_token, ip_address, user_agent, device_name, auth_method, status, expired_at, created_at)
-             VALUES (?, 'tok_recent', 'dev_recent', '127.0.0.1', 'UA', 'PC', 'standard', 'active', DATE_ADD(NOW(), INTERVAL 30 DAY), NOW())",
+             VALUES (?, 'tok_recent', 'dev_recent', '127.0.0.1', 'UA', 'PC', 'password', 'active', DATE_ADD(NOW(), INTERVAL 30 DAY), NOW())",
             [$userId]
         );
     }
@@ -203,7 +203,7 @@ class AccountModelInactivityTest extends IntegrationTestCase
         // Connexion APRÈS l'avertissement
         self::$db->insert(
             "INSERT INTO connections (user_id, token, device_token, ip_address, user_agent, device_name, auth_method, status, expired_at, created_at)
-             VALUES (?, 'tok_after', 'dev_after', '127.0.0.1', 'UA', 'PC', 'standard', 'active', DATE_ADD(NOW(), INTERVAL 30 DAY), NOW())",
+             VALUES (?, 'tok_after', 'dev_after', '127.0.0.1', 'UA', 'PC', 'password', 'active', DATE_ADD(NOW(), INTERVAL 30 DAY), NOW())",
             [$id]
         );
 
@@ -258,7 +258,7 @@ class AccountModelInactivityTest extends IntegrationTestCase
         $id = $this->insertCustomer('inactive.revoke@test.local');
         self::$db->insert(
             "INSERT INTO connections (user_id, token, device_token, ip_address, user_agent, device_name, auth_method, status, expired_at)
-             VALUES (?, 'tok_active', 'dev', '127.0.0.1', 'UA', 'PC', 'standard', 'active', DATE_ADD(NOW(), INTERVAL 30 DAY))",
+             VALUES (?, 'tok_active', 'dev', '127.0.0.1', 'UA', 'PC', 'password', 'active', DATE_ADD(NOW(), INTERVAL 30 DAY))",
             [$id]
         );
 
