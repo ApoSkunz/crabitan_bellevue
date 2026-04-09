@@ -28,6 +28,7 @@ TRUNCATE TABLE `password_reset`;
 TRUNCATE TABLE `favorites`;
 TRUNCATE TABLE `order_invoice_files`;
 TRUNCATE TABLE `orders`;
+TRUNCATE TABLE `order_address_snapshots`;
 TRUNCATE TABLE `carts`;
 TRUNCATE TABLE `addresses`;
 TRUNCATE TABLE `account_individuals`;
@@ -650,7 +651,14 @@ VALUES
 (7, 'client.supprime@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'fr', 0, '2026-01-20 08:00:00', 0, '2026-01-20 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Compte RGPD purgé (ancienne commande > 10 ans, compte anonymisé après effacement Art. 17)
 -- L'email @purged.invalid est la convention de pseudonymisation du compte
-(8, 'a1b2c3d4e5f6@purged.invalid', '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, NULL, 0, '2014-01-01 00:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+(8, 'a1b2c3d4e5f6@purged.invalid', '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, NULL, 0, '2014-01-01 00:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+-- ── Comptes RGPD inactivité (cron test) ───────────────────────────────────────
+-- id 9 : inactif 37 mois, aucune connexion, aucun avertissement → cible phase 1 (purge_inactive_accounts.php)
+(9, 'rgpd.inactif.warn@dev.local',   '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, '2023-01-01 08:00:00', 0, '2023-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+-- id 10 : averti il y a 31 jours, aucune reconnexion → cible phase 2 (soft-delete)
+(10, 'rgpd.inactif.delete@dev.local', '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, '2023-01-01 08:00:00', 0, '2023-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+-- id 11 : inactif 37 mois MAIS commande pending en cours → protégé (ni avertissement ni suppression)
+(11, 'rgpd.inactif.protege@dev.local','$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, '2023-01-01 08:00:00', 0, '2023-01-01 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 
 -- Déclaration de majorité (Sprint 5 — Art. L3342-1 CSP)
 -- id 1 (super_admin), id 2 (admin), id 3 (client principal) : déclarés → pas de modal intempestif
@@ -668,7 +676,12 @@ SET `deleted_at`            = DATE_SUB(NOW(), INTERVAL 5 DAY),
     `reactivation_token`    = 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2'
 WHERE `id` = 7;
 
-ALTER TABLE `accounts` AUTO_INCREMENT = 9;
+-- Antidater created_at pour simuler l'inactivité (37 mois en arrière)
+UPDATE `accounts` SET `created_at` = DATE_SUB(NOW(), INTERVAL 37 MONTH) WHERE `id` IN (9, 10, 11);
+-- Marquer id 10 comme averti il y a 31 jours
+UPDATE `accounts` SET `inactivity_warning_sent_at` = DATE_SUB(NOW(), INTERVAL 31 DAY) WHERE `id` = 10;
+
+ALTER TABLE `accounts` AUTO_INCREMENT = 12;
 
 -- ============================================================
 -- PROFILS INDIVIDUELS
@@ -682,7 +695,11 @@ INSERT INTO `account_individuals` (`account_id`, `lastname`, `firstname`, `civil
 (6, 'Smith',    'James',    'M'),
 (7, 'Martin',   'Claire',   'F'),
 -- Compte purgé — données personnelles effacées (RGPD Art. 17)
-(8, 'XXXXX',    'XXXXX',    'M');
+(8, 'XXXXX',    'XXXXX',    'M'),
+-- Comptes cron RGPD
+(9,  'Inactif',  'Warn',   'M'),
+(10, 'Inactif',  'Delete', 'F'),
+(11, 'Inactif',  'Protege','M');
 
 -- ============================================================
 -- PROFILS SOCIÉTÉS
@@ -708,9 +725,15 @@ VALUES
 -- James Smith (id 6)
 (6, 6, 'billing',  'James',  'Smith',    'M', '10 Baker Street',      'London',    'W1U 3BW', 'United Kingdom', '+441234567890', 1),
 -- Admin (id 2) — pour test admin
-(7, 2, 'billing',  'Admin',  'Test',     'M', '1 rue de la Mairie',   'Paris',     '75001', 'France', '0100000000', 1);
+(7, 2, 'billing',  'Admin',  'Test',     'M', '1 rue de la Mairie',   'Paris',     '75001', 'France', '0100000000', 1),
+-- Claire Martin (id 7, soft-deleted) — adresse préservée pour commande livrée → cible purge_addresses.php
+(8, 7, 'delivery', 'Claire', 'Martin',   'F', '3 rue des Lilas',      'Lyon',      '69002', 'France', '0478000010', 0),
+-- Client protégé (id 11) — adresse pour commande pending
+(9, 11, 'billing',  'Test', 'Protege', 'M', '7 rue des Tests', 'Paris', '75001', 'France', '0600000011', 0);
 
-ALTER TABLE `addresses` AUTO_INCREMENT = 8;
+UPDATE `addresses` SET `preserved_for_order` = 1 WHERE `id` = 8;
+
+ALTER TABLE `addresses` AUTO_INCREMENT = 10;
 
 -- ============================================================
 -- ORDER ADDRESS SNAPSHOTS (instantanés des adresses de commande)
@@ -733,9 +756,13 @@ VALUES
 (6, NULL, 'M', 'Henri', 'Archivé', '3 allée des Chênes', 'Lyon', '69001', 'France', '0478000001'),
 (7, NULL, 'F', 'Lucie', 'Ancienne', '17 rue du Port', 'Nantes', '44000', 'France', '0240000002'),
 -- snapshot 8 : déjà pseudonymisé (simule cron déjà passé)
-(8, NULL, 'M', 'XXXXX', 'XXXXX', 'XXXXX', 'Marseille', '13001', 'France', '');
+(8, NULL, 'M', 'XXXXX', 'XXXXX', 'XXXXX', 'Marseille', '13001', 'France', ''),
+-- snapshot 9 : adresse id=8 (Claire Martin id 7, commande livrée — preserved_for_order=1)
+(9, 8, 'F', 'Claire', 'Martin', '3 rue des Lilas', 'Lyon', '69002', 'France', '0478000010'),
+-- snapshot 10 : adresse id=9 (Test Protege id 11, commande pending)
+(10, 9, 'M', 'Test', 'Protege', '7 rue des Tests', 'Paris', '75001', 'France', '0600000011');
 
-ALTER TABLE `order_address_snapshots` AUTO_INCREMENT = 9;
+ALTER TABLE `order_address_snapshots` AUTO_INCREMENT = 11;
 
 UPDATE `order_address_snapshots` SET `pseudonymized_at` = '2015-04-05 02:00:00' WHERE `id` = 8;
 
@@ -812,9 +839,20 @@ VALUES
 -- refunded il y a 11 ans — snapshot 8 déjà pseudonymisé (simule cron passé)
 (13, 8, 'CBV-2015-000013',
  '[{"wine_id":3,"label_name":"Bordeaux Blanc","vintage":2011,"wine_color":"white","format":"bottle","qty":6,"price":6.50,"subtotal":39.00}]',
- 39.00, 'card', 0.00, 8, 8, 'refunded', '2015-03-20 09:00:00', NULL);
+ 39.00, 'card', 0.00, 8, 8, 'refunded', '2015-03-20 09:00:00', NULL),
 
-ALTER TABLE `orders` AUTO_INCREMENT = 14;
+-- ── Commandes cron RGPD ───────────────────────────────────────────────────────
+-- Claire Martin (id 7, soft-deleted) — delivered il y a 2 ans → adresse id=8 purge_addresses.php cible
+(14, 7, 'CBV-2024-000014',
+ '[{"wine_id":16,"label_name":"Sainte-Croix-du-Mont","vintage":2020,"wine_color":"sweet","format":"bottle","qty":6,"price":11.50,"subtotal":69.00}]',
+ 69.00, 'card', 0.00, 9, 9, 'delivered', DATE_SUB(NOW(), INTERVAL 2 YEAR), DATE_SUB(NOW(), INTERVAL 23 MONTH)),
+
+-- Client protégé (id 11) — commande pending → protège du cron inactivité
+(15, 11, 'CBV-2026-000015',
+ '[{"wine_id":30,"label_name":"Bordeaux Rouge","vintage":2022,"wine_color":"red","format":"bottle","qty":6,"price":7.70,"subtotal":46.20}]',
+ 46.20, 'card', 0.00, 10, 10, 'pending', DATE_SUB(NOW(), INTERVAL 1 DAY), NULL);
+
+ALTER TABLE `orders` AUTO_INCREMENT = 16;
 
 -- ============================================================
 -- CARTS (paniers actifs)
