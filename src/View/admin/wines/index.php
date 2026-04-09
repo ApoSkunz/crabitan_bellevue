@@ -104,6 +104,11 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                             <div class="admin-actions">
                                 <a href="/admin/vins/<?= (int) $wine['id'] ?>/modifier"
                                    class="admin-btn admin-btn--outline admin-btn--sm">Modifier</a>
+                                <button type="button"
+                                        class="admin-btn admin-btn--outline admin-btn--sm js-qr-btn"
+                                        data-slug="<?= htmlspecialchars($wine['slug'], ENT_QUOTES) ?>"
+                                        data-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage'], ENT_QUOTES) ?>"
+                                        aria-label="QR code <?= htmlspecialchars($wine['label_name'], ENT_QUOTES) ?>">QR</button>
                                 <a href="/fr/vins/<?= htmlspecialchars($wine['slug']) ?>"
                                    class="admin-btn admin-btn--outline admin-btn--sm"
                                    target="_blank" rel="noopener">↗</a>
@@ -128,6 +133,22 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>">›</a>
         </div>
     <?php endif; ?>
+</div>
+
+<!-- Modal QR Code -->
+<div id="admin-qr-modal" role="dialog" aria-modal="true" aria-labelledby="admin-qr-modal-title"
+     style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.6);
+            align-items:center;justify-content:center;">
+    <div style="background:var(--color-surface,#fff);border-radius:6px;padding:2rem;
+                max-width:360px;width:90%;text-align:center;position:relative;">
+        <button type="button" id="admin-qr-modal-close"
+                style="position:absolute;top:0.75rem;right:1rem;background:none;border:none;
+                       font-size:1.25rem;cursor:pointer;color:#6b5f50;" aria-label="Fermer">✕</button>
+        <h3 id="admin-qr-modal-title" style="margin:0 0 0.5rem;font-size:0.9rem;"></h3>
+        <canvas id="admin-qr-modal-canvas" width="300" height="300"
+                style="border:1px solid #e0d5c0;border-radius:4px;display:block;margin:0 auto 0.75rem;"></canvas>
+        <p id="admin-qr-modal-url" style="font-size:0.68rem;color:#8a7a60;word-break:break-all;"></p>
+    </div>
 </div>
 
 <?php require_once SRC_PATH . '/View/admin/_close.php'; ?>

@@ -2203,7 +2203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFlashAutofocus();
     initLangPreference();
 
-    // QR Code admin — uniquement sur la fiche d'édition d'un vin
+    // QR Code admin — fiche d'édition d'un vin (canvas inline)
     if (document.getElementById('admin-qr-canvas')) {
         import('qrcode').then((QRCode) => {
             const canvas = document.getElementById('admin-qr-canvas');
@@ -2212,6 +2212,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 QRCode.default.toCanvas(canvas, url, { width: 300, margin: 2 });
             }
         }).catch(() => {});
+    }
+
+    // QR Code admin — modal depuis le tableau des vins
+    const qrModal = document.getElementById('admin-qr-modal');
+    if (qrModal) {
+        const appUrl    = globalThis.__appUrl ?? '';
+        const modalCanvas = document.getElementById('admin-qr-modal-canvas');
+        const modalTitle  = document.getElementById('admin-qr-modal-title');
+        const modalUrl    = document.getElementById('admin-qr-modal-url');
+        const closeBtn    = document.getElementById('admin-qr-modal-close');
+
+        function openQrModal(slug, label) {
+            const url = appUrl + '/fr/vins/' + encodeURIComponent(slug) + '/fiche-technique';
+            modalTitle.textContent = label;
+            modalUrl.textContent   = url;
+            qrModal.style.display  = 'flex';
+
+            import('qrcode').then((QRCode) => {
+                QRCode.default.toCanvas(modalCanvas, url, { width: 300, margin: 2 });
+            }).catch(() => {});
+        }
+
+        function closeQrModal() {
+            qrModal.style.display = 'none';
+        }
+
+        document.querySelectorAll('.js-qr-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                openQrModal(btn.dataset.slug ?? '', btn.dataset.label ?? '');
+            });
+        });
+
+        closeBtn?.addEventListener('click', closeQrModal);
+        qrModal.addEventListener('click', (e) => { if (e.target === qrModal) closeQrModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeQrModal(); });
     }
 
     // Chargement à la demande — uniquement sur la page jeux
