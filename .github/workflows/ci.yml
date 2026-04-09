@@ -103,6 +103,9 @@ jobs:
       - name: Run schema on test DB
         run: mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/schema.sql
 
+      - name: Seed mock data
+        run: mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/seed_mock_data.sql
+
       - name: PHPUnit (TU)
         env:
           DB_HOST: 127.0.0.1
