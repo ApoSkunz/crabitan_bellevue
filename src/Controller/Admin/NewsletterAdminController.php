@@ -10,6 +10,7 @@ use Model\NewsletterModel;
 use Model\NewsletterTrackingModel;
 use Service\AuditLogger;
 use Service\MailService;
+use Service\TranslationService;
 
 /**
  * Gestion de la newsletter : liste abonnés, envoi de campagne, historique.
@@ -165,11 +166,13 @@ class NewsletterAdminController extends AdminController
         }
 
         // Préfixe branding uniquement — "Newsletter" retiré de l'objet (délivrabilité + spam)
-        $subjectLine   = 'Château Crabitan Bellevue — ' . $subject;
-        $subjectEn     = trim($this->request->post('subject_en', ''));
-        $subjectLineEn = $subjectEn !== '' ? 'Château Crabitan Bellevue — ' . $subjectEn : $subjectLine;
-        $titleEn       = trim($this->request->post('nl_title_en', ''));
-        $bodyEn        = trim($this->request->post('body_en', ''));
+        $subjectLine = 'Château Crabitan Bellevue — ' . $subject;
+
+        // Traduction automatique FR → EN via DeepL (une seule fois avant la boucle)
+        $translator    = new TranslationService($_ENV['TRANSLATION_API_KEY'] ?? '');
+        $subjectLineEn = 'Château Crabitan Bellevue — ' . $translator->translate($subject);
+        $titleEn       = $title !== '' ? $translator->translate($title) : '';
+        $bodyEn        = $translator->translate($body);
 
         $allowed  = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
         $appUrl   = rtrim($_ENV['APP_URL'] ?? '', '/');

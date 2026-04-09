@@ -88,41 +88,6 @@ $cssDisabled = ' disabled';
                         Le texte sera envoyé en HTML avec mise en page Crabitan Bellevue.
                     </p>
                 </div>
-                <!-- Version anglaise optionnelle -->
-                <details style="margin-bottom:1rem;border:1px solid #e8e0d0;border-radius:4px;padding:0.75rem 1rem;">
-                    <summary style="font-size:0.82rem;font-weight:600;color:#6b5f50;cursor:pointer;letter-spacing:0.05em;">
-                        Version anglaise (EN) — optionnelle
-                        <span style="font-weight:400;color:#8a7a60;"> · Si renseignée, envoyée aux abonnés EN à la place de la version FR</span>
-                    </summary>
-                    <div style="margin-top:1rem;">
-                        <div class="admin-field" style="margin-bottom:0.75rem;">
-                            <label class="admin-field__label" for="nl-subject-en">Objet EN</label>
-                            <div style="display:flex;align-items:center;gap:0;border:1px solid #ccc;border-radius:4px;overflow:hidden;">
-                                <span style="padding:0.5rem 0.75rem;background:#f5f0e8;color:#8a7a60;font-size:0.82rem;
-                                             white-space:nowrap;border-right:1px solid #ccc;">
-                                    Château Crabitan Bellevue —
-                                </span>
-                                <input type="text" id="nl-subject-en" name="subject_en"
-                                       class="admin-field__input"
-                                       style="border:0;border-radius:0;flex:1;margin:0;"
-                                       placeholder="Our new vintages are waiting for you…">
-                            </div>
-                        </div>
-                        <div class="admin-field" style="margin-bottom:0.75rem;">
-                            <label class="admin-field__label" for="nl-title-en">Titre EN <span style="font-weight:400;font-size:0.72rem;">(optionnel)</span></label>
-                            <input type="text" id="nl-title-en" name="nl_title_en"
-                                   class="admin-field__input"
-                                   placeholder="Ex: Discover our new 2024 vintages…">
-                        </div>
-                        <div class="admin-field">
-                            <label class="admin-field__label" for="nl-body-en">Contenu EN</label>
-                            <textarea id="nl-body-en" name="body_en"
-                                      class="admin-field__textarea" rows="8"
-                                      placeholder="Write your newsletter in English…"></textarea>
-                        </div>
-                    </div>
-                </details>
-
                 <div class="admin-field" style="margin-bottom:1rem;">
                     <label class="admin-field__label" for="nl-segment">Segment</label>
                     <select id="nl-segment" name="segment" class="admin-field__input"
