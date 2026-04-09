@@ -2203,18 +2203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFlashAutofocus();
     initLangPreference();
 
-    // QR Code admin — fiche d'édition d'un vin (canvas inline)
-    if (document.getElementById('admin-qr-canvas')) {
-        import('qrcode').then((QRCode) => {
-            const canvas = document.getElementById('admin-qr-canvas');
-            const url    = canvas?.dataset.wineUrl ?? '';
-            if (canvas && url) {
-                QRCode.default.toCanvas(canvas, url, { width: 300, margin: 2 });
-            }
-        }).catch(() => {});
-    }
-
-    // QR Code admin — modal depuis le tableau des vins
+// QR Code admin — modal depuis le tableau des vins
     const qrModal = document.getElementById('admin-qr-modal');
     if (qrModal) {
         const appUrl    = globalThis.__appUrl ?? '';
