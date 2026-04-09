@@ -24,12 +24,12 @@ class NewsletterModel extends Model
      * @param string|null $segmentLabel Segment ciblé (NULL = tous les abonnés)
      * @return int Identifiant de la campagne créée
      */
-    public function create(string $subject, string $body, ?string $imageUrl, ?string $segmentLabel = null): int
+    public function create(string $subject, ?string $title, string $body, ?string $imageUrl, ?string $segmentLabel = null): int
     {
         return (int) $this->db->insert(
-            "INSERT INTO {$this->table} (subject, body, image_url, segment_label)
-             VALUES (?, ?, ?, ?)",
-            [$subject, $body, $imageUrl, $segmentLabel]
+            "INSERT INTO {$this->table} (subject, title, body, image_url, segment_label)
+             VALUES (?, ?, ?, ?, ?)",
+            [$subject, $title !== '' ? $title : null, $body, $imageUrl, $segmentLabel]
         );
     }
 
@@ -103,7 +103,7 @@ class NewsletterModel extends Model
     public function findCampaignById(int $id): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT id, subject, body, image_url, sent_count, failed_count, sent_at, segment_label
+            "SELECT id, subject, title, body, image_url, sent_count, failed_count, sent_at, segment_label
              FROM {$this->table}
              WHERE id = ?",
             [$id]

@@ -519,6 +519,7 @@ INSERT INTO `game_scores` (`game`, `score`) VALUES
 CREATE TABLE `newsletters` (
   `id`           INT            NOT NULL AUTO_INCREMENT,
   `subject`      VARCHAR(255)   NOT NULL,
+  `title`        VARCHAR(255)   DEFAULT NULL COMMENT 'Titre optionnel affiché dans la newsletter',
   `body`         TEXT           NOT NULL,
   `image_url`    VARCHAR(500)   DEFAULT NULL COMMENT 'URL publique de l\'image d\'en-tête optionnelle',
   `sent_count`   INT            NOT NULL DEFAULT 0,
@@ -597,6 +598,22 @@ CREATE TABLE `newsletter_clicks` (
     FOREIGN KEY (`newsletter_id`) REFERENCES `newsletters` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_nl_click_link`
     FOREIGN KEY (`link_id`) REFERENCES `newsletter_links` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : newsletter_unsubscribes
+-- Désinscriptions tracées par campagne (abonnés avec compte uniquement)
+-- ============================================================
+DROP TABLE IF EXISTS `newsletter_unsubscribes`;
+CREATE TABLE `newsletter_unsubscribes` (
+  `id`              INT      NOT NULL AUTO_INCREMENT,
+  `newsletter_id`   INT      NOT NULL,
+  `account_id`      INT      NOT NULL,
+  `unsubscribed_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_nl_unsub` (`newsletter_id`, `account_id`),
+  CONSTRAINT `fk_nl_unsub_newsletter` FOREIGN KEY (`newsletter_id`) REFERENCES `newsletters` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_nl_unsub_account`    FOREIGN KEY (`account_id`)    REFERENCES `accounts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
