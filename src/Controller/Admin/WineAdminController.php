@@ -202,7 +202,7 @@ class WineAdminController extends AdminController
         $failedCount = 0;
         if ((int) $data['available'] === 1) {
             $subscribers = $this->accounts->getNewsletterSubscribers(10000, 0);
-            $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+            $appUrl      = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
             foreach ($subscribers as $sub) {
                 $lang       = in_array($sub['lang'] ?? '', ['fr', 'en'], true) ? (string) $sub['lang'] : 'fr';
                 $personName = trim(($sub['firstname'] ?? '') . ' ' . ($sub['lastname'] ?? ''));

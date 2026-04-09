@@ -174,7 +174,7 @@ class PageController extends Controller
      */
     public function sitemapXml(array $_params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- NOSONAR S1172
     {
-        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
         $today     = date('Y-m-d');
         $langs     = ['fr', 'en'];
 

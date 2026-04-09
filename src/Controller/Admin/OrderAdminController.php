@@ -195,7 +195,7 @@ class OrderAdminController extends AdminController
             $clientLang  = (string) ($order['lang'] ?? 'fr');
             $orderRef    = (string) ($order['order_reference'] ?? '');
             // phpcs:ignore Generic.Files.LineLength
-            $appUrl      = rtrim($_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'http://crabitan.local'), '/'); // NOSONAR — php:S5332
+            $appUrl      = rtrim($_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'https://crabitanbellevue.fr'), '/');
 
             if ($clientEmail !== '' && !str_ends_with($clientEmail, '@purged.invalid')) {
                 try {

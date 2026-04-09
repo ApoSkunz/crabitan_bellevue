@@ -26,7 +26,7 @@ class GoogleOAuthController extends Controller
     private const JWT_EXPIRY = 86400;
 
     /** Fallback APP_URL pour l'environnement de développement local. */
-    private const LOCALHOST_FALLBACK = 'http://localhost';
+    private const LOCALHOST_FALLBACK = 'https://crabitanbellevue.fr';
 
     private AccountModel $accounts;
     private ConnectionModel $connections;
