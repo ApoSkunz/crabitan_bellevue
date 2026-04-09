@@ -291,7 +291,7 @@ $maxYear = (int) date('Y');
     <?php if ($isEdit && !empty($wine['slug'])) : ?>
     <?php
         $appUrl  = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/');
-        $wineUrl = $appUrl . '/fr/vins/' . htmlspecialchars($wine['slug'], ENT_QUOTES);
+        $wineUrl = $appUrl . '/fr/vins/' . htmlspecialchars($wine['slug'], ENT_QUOTES) . '/fiche-technique';
     ?>
     <div class="admin-form__section" style="margin-top:2rem;">
         <h3>QR Code</h3>
