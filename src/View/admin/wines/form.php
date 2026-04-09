@@ -290,7 +290,7 @@ $maxYear = (int) date('Y');
 
     <?php if ($isEdit && !empty($wine['slug'])) : ?>
     <?php
-        $appUrl  = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/');
+        $appUrl  = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $wineUrl = $appUrl . '/fr/vins/' . htmlspecialchars($wine['slug'], ENT_QUOTES) . '/fiche-technique';
     ?>
     <div class="admin-form__section" style="margin-top:2rem;">

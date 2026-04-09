@@ -170,9 +170,9 @@ class PageController extends Controller
      * Inclut les pages statiques publiques + slugs vins + slugs actualités en FR/EN.
      * Les pages marquées noindex sont exclues.
      *
-     * @param array<string, mixed> $params
+     * @param array<string, mixed> $_params
      */
-    public function sitemapXml(array $params): void
+    public function sitemapXml(array $_params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
     {
         $appUrl    = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
         $today     = date('Y-m-d');
@@ -244,7 +244,7 @@ class PageController extends Controller
         }
 
         echo '</urlset>' . "\n";
-        exit;
+        throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux XML (testable)
     }
 
     protected function newMailService(): MailService

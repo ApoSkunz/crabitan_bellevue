@@ -227,4 +227,50 @@ class PageControllerTest extends IntegrationTestCase
 
         $controller->contactPost(['lang' => 'fr']);
     }
+
+    // ----------------------------------------------------------------
+    // sitemapXml
+    // ----------------------------------------------------------------
+
+    private function captureSitemap(): string
+    {
+        ob_start();
+        try {
+            $this->makeController('/sitemap.xml')->sitemapXml([]);
+        } catch (\Core\Exception\HttpException) {
+            // HttpException code 0 = arrêt propre flux XML
+        }
+        return (string) ob_get_clean();
+    }
+
+    public function testSitemapXmlOutputsValidXml(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemap();
+
+        $this->assertStringContainsString('<?xml', $output);
+        $this->assertStringContainsString('<urlset', $output);
+        $this->assertStringContainsString('hreflang', $output);
+        $this->assertStringContainsString('https://crabitan.local', $output);
+    }
+
+    public function testSitemapXmlContainsStaticPages(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemap();
+
+        $this->assertStringContainsString('/fr/vins', $output);
+        $this->assertStringContainsString('/fr/actualites', $output);
+        $this->assertStringContainsString('/fr/contact', $output);
+    }
+
+    public function testSitemapXmlExcludesNoindexPages(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemap();
+
+        $this->assertStringNotContainsString('mentions-legales', $output);
+        $this->assertStringNotContainsString('politique-de-confidentialite', $output);
+        $this->assertStringNotContainsString('plan-du-site', $output);
+    }
 }
