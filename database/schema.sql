@@ -45,6 +45,8 @@ DROP TABLE IF EXISTS `wines`;
 DROP TABLE IF EXISTS `addresses`;
 DROP TABLE IF EXISTS `account_companies`;
 DROP TABLE IF EXISTS `account_individuals`;
+DROP TABLE IF EXISTS `legal_notification_logs`;
+DROP TABLE IF EXISTS `legal_documents`;
 DROP TABLE IF EXISTS `accounts`;
 
 SET FOREIGN_KEY_CHECKS = 1;
@@ -733,5 +735,58 @@ CREATE TABLE `rgpd_export_logs` (
   INDEX `idx_rgpd_export_logs_expires_at`   (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Journal exports RGPD Art. 20 — accountability Art. 5.2 — rétention 3 ans';
+
+-- ============================================================
+-- Table : legal_documents
+-- Versioning BDD des documents légaux (remplace config/legal.php)
+-- ============================================================
+DROP TABLE IF EXISTS `legal_documents`;
+CREATE TABLE `legal_documents` (
+  `id`                    TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `slug`                  VARCHAR(64)      NOT NULL UNIQUE,
+  `label`                 VARCHAR(128)     NOT NULL,
+  `version`               VARCHAR(10)      NOT NULL DEFAULT '1.0',
+  `updated_at`            DATE             NOT NULL,
+  `requires_notification` TINYINT(1)       NOT NULL DEFAULT 0
+    COMMENT '1 = email aux utilisateurs requis lors d\'une MàJ substantielle',
+  `last_notified_at`      DATETIME         NULL     DEFAULT NULL,
+  `notified_count`        INT UNSIGNED     NOT NULL DEFAULT 0,
+  `updated_by`            INT              NULL     DEFAULT NULL
+    COMMENT 'FK accounts.id — admin ayant effectué la dernière MàJ',
+  `created_at`            DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_legal_documents_admin`
+    FOREIGN KEY (`updated_by`) REFERENCES `accounts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Versions et dates des documents légaux — source de vérité BDD';
+
+INSERT INTO `legal_documents` (`slug`, `label`, `version`, `updated_at`, `requires_notification`) VALUES
+('cgv',                    'Conditions Générales de Vente',              '1.0', '2026-04-04', 1),
+('politique_confidentialite', 'Politique de confidentialité',            '1.0', '2026-04-07', 1),
+('mentions_legales',       'Mentions légales',                           '1.0', '2026-04-07', 0),
+('matrice_habilitations',  'Matrice des habilitations',                  '1.0', '2026-04-07', 0),
+('registre_traitements',   'Registre des activités de traitement',       '1.0', '2026-04-07', 0),
+('sous_traitants',         'Liste des sous-traitants',                   '1.0', '2026-04-07', 0),
+('procedure_violation',    'Procédure violation de données',             '1.0', '2026-04-07', 0),
+('dpia',                   'DPIA — Analyse d\'impact',                   '1.0', '2026-04-07', 0);
+
+-- ============================================================
+-- Table : legal_notification_logs
+-- Preuve d'envoi RGPD Art. 5.2 — garantit l'idempotence
+-- ============================================================
+CREATE TABLE `legal_notification_logs` (
+  `id`                INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+  `legal_document_id` TINYINT UNSIGNED NOT NULL,
+  `version`           VARCHAR(10)      NOT NULL,
+  `account_id`        INT              NOT NULL,
+  `sent_at`           DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_legal_notif_once` (`legal_document_id`, `version`, `account_id`),
+  CONSTRAINT `fk_legal_notif_doc`
+    FOREIGN KEY (`legal_document_id`) REFERENCES `legal_documents` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_legal_notif_account`
+    FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Historique des notifications légales envoyées — preuve RGPD Art. 5.2';
 
 COMMIT;
