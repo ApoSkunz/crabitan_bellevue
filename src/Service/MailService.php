@@ -2929,8 +2929,8 @@ HTML;
                   . 'margin:16px 0;font-size:13px;color:#5a4030;">'
                   . '<strong>Résumé des modifications :</strong><br>' . $safeNote . '</p>'
                 : '';
-            $message = 'Nous vous informons que notre <strong>' . $safeLabel . '</strong>'
-                . ' a été mise à jour en version <strong>' . $version . '</strong>'
+            $message = 'Nous vous informons que le document <strong>' . $safeLabel . '</strong>'
+                . ' a été mis à jour en version <strong>' . $version . '</strong>'
                 . ' le ' . $dateFormatted . '.<br><br>'
                 . $noteHtml
                 . 'Nous vous invitons à prendre connaissance de ce document mis à jour.<br><br>'
