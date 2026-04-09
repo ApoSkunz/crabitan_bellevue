@@ -289,7 +289,7 @@ Un seul fichier modifié peut faire l'objet d'un commit séparé si son changeme
 2. Relance du seed mock : `"C:/xampp/mysql/bin/mysql.exe" -u root crabitan_bellevue < database/seed_mock_data.sql`
 
 > Chemin mysql sur ce poste : `C:/xampp/mysql/bin/mysql.exe`
-> Commande complète schema : `"C:/xampp/mysql/bin/mysql.exe" -u root crabitan_bellevue < database/schema.sql`
+> Commande complète schema : `"C:/xampp/mysql/bin/mysql.exe" -u root < database/schema.sql` (sans spécifier la base — le schema crée lui-même `crabitan_bellevue` via `CREATE DATABASE IF NOT EXISTS`)
 
 > `database/migrations/` est gitignored — seul `schema.sql` est versionné. Sans cette règle, les colonnes manquent en local et les TI échouent silencieusement.
 

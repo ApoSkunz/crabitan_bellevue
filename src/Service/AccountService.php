@@ -114,7 +114,7 @@ class AccountService
         );
 
         // Construction des URLs
-        $appUrl     = defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? 'http://localhost');
+        $appUrl     = defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr');
         $lang       = (string) ($account['lang'] ?? 'fr');
         $confirmUrl = rtrim($appUrl, '/') . "/{$lang}/mon-compte/email/confirmer?token={$rawToken}";
         $revokeUrl  = rtrim($appUrl, '/') . "/{$lang}/mon-compte/email/revoquer?token={$rawToken}";

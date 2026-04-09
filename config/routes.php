@@ -84,6 +84,7 @@ $router->get('/{lang}/mentions-legales', 'PageController@mentionsLegales');
 $router->get('/{lang}/politique-de-confidentialite', 'PageController@politiqueConfidentialite');
 $router->get('/{lang}/conditions-generales-de-vente', 'PageController@conditionsGeneralesVente');
 $router->get('/{lang}/plan-du-site', 'PageController@planDuSite');
+$router->get('/sitemap.xml', 'PageController@sitemapXml');
 $router->get('/{lang}/support', 'PageController@support');
 $router->get('/{lang}/jeux', 'PageController@jeux');
 $router->get('/{lang}/webmaster', 'PageController@webmaster');

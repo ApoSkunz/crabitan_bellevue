@@ -71,7 +71,7 @@ class NewsletterService
      */
     public function subscribe(string $email, string $lang, string $ip): void
     {
-        $appUrl = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback dev local, APP_URL est https en production
+        $appUrl = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
 
         // Flux accounts — email rattaché à un compte existant
         $account = $this->accounts->findByEmail($email);
@@ -151,7 +151,7 @@ class NewsletterService
      */
     public function resendConfirmation(string $email, string $lang): void
     {
-        $appUrl = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback dev local, APP_URL est https en production
+        $appUrl = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
 
         // Flux accounts
         $account = $this->accounts->findByEmail($email);

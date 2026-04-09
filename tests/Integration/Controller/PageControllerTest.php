@@ -184,6 +184,33 @@ class PageControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // conditionsGeneralesVente
+    // ----------------------------------------------------------------
+
+    public function testConditionsGeneralesVenteRendersView(): void
+    {
+        $_COOKIE['age_verified'] = '1';
+        ob_start();
+        $this->makeController('/fr/conditions-generales-de-vente')->conditionsGeneralesVente(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Conditions G', $output);
+    }
+
+    public function testConditionsGeneralesVenteBareMode(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/conditions-generales-de-vente';
+        $_GET['bare'] = '';
+        ob_start();
+        (new PageController(new Request()))->conditionsGeneralesVente(['lang' => 'fr']);
+        $output = ob_get_clean();
+        $_GET = [];
+
+        $this->assertGreaterThan(0, strlen($output));
+    }
+
+    // ----------------------------------------------------------------
     // contactPost — chemin succès (SMTP via mailhog sur localhost:1025)
     // ----------------------------------------------------------------
 
@@ -226,5 +253,193 @@ class PageControllerTest extends IntegrationTestCase
         $this->expectExceptionCode(200);
 
         $controller->contactPost(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // contactPost — CSRF invalide → 400
+    // ----------------------------------------------------------------
+
+    public function testContactPostReturnsBadRequestOnInvalidCsrf(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/contact';
+        $_GET  = [];
+        $_POST = ['csrf_token' => 'wrong-token'];
+        $_SESSION['csrf'] = 'valid-token';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(400);
+
+        (new PageController(new Request()))->contactPost(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // contactPost — champs invalides → 422
+    // ----------------------------------------------------------------
+
+    public function testContactPostReturnsUnprocessableOnMissingFields(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/contact';
+        $_GET  = [];
+        $token = bin2hex(random_bytes(16));
+        $_SESSION['csrf'] = $token;
+        $_POST = [
+            'csrf_token' => $token,
+            'firstname'  => '',
+            'lastname'   => '',
+            'email'      => 'not-an-email',
+            'subject'    => '',
+            'message'    => '',
+            'rgpd'       => '0',
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(422);
+
+        (new PageController(new Request()))->contactPost(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // contactPost — SMTP exception → 500
+    // ----------------------------------------------------------------
+
+    public function testContactPostReturnsServerErrorOnSmtpFailure(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/contact';
+        $_GET = [];
+        $token = bin2hex(random_bytes(16));
+        $_SESSION['csrf'] = $token;
+        $_POST = [
+            'csrf_token' => $token,
+            'firstname'  => 'Test',
+            'lastname'   => 'User',
+            'email'      => 'test@example.com',
+            'subject'    => 'general',
+            'message'    => 'Message.',
+            'rgpd'       => '1',
+        ];
+
+        $stub = $this->createStub(\Service\MailService::class);
+        $stub->method('sendContactToOwner')->willThrowException(new \RuntimeException('SMTP down'));
+
+        $controller = new class (new Request(), $stub) extends PageController {
+            public function __construct(
+                Request $request,
+                private \Service\MailService $mockMail
+            ) {
+                parent::__construct($request);
+            }
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->mockMail;
+            }
+        };
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(500);
+
+        $controller->contactPost(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // contactPost — HttpException propagée (garde-fou défensif)
+    // ----------------------------------------------------------------
+
+    public function testContactPostPropagatesHttpException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/contact';
+        $_GET  = [];
+        $token = bin2hex(random_bytes(16));
+        $_SESSION['csrf'] = $token;
+        $_POST = [
+            'csrf_token' => $token,
+            'firstname'  => 'Test',
+            'lastname'   => 'User',
+            'email'      => 'test@example.com',
+            'subject'    => 'general',
+            'message'    => 'Message.',
+            'rgpd'       => '1',
+        ];
+
+        $stub = $this->createStub(\Service\MailService::class);
+        $stub->method('sendContactToOwner')
+             ->willThrowException(new HttpException(503));
+
+        $controller = new class (new Request(), $stub) extends PageController {
+            public function __construct(
+                Request $request,
+                private \Service\MailService $mockMail
+            ) {
+                parent::__construct($request);
+            }
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->mockMail;
+            }
+        };
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(503);
+
+        $controller->contactPost(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // sitemapXml
+    // ----------------------------------------------------------------
+
+    private function captureSitemap(): string
+    {
+        ob_start();
+        try {
+            $this->makeController('/sitemap.xml')->sitemapXml([]);
+        } catch (\Core\Exception\HttpException) {
+            // HttpException code 0 = arrêt propre flux XML
+        }
+        return (string) ob_get_clean();
+    }
+
+    public function testSitemapXmlOutputsValidXml(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemap();
+
+        $this->assertStringContainsString('<?xml', $output);
+        $this->assertStringContainsString('<urlset', $output);
+        $this->assertStringContainsString('hreflang', $output);
+        $this->assertStringContainsString('https://crabitan.local', $output);
+    }
+
+    public function testSitemapXmlContainsStaticPages(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemap();
+
+        $this->assertStringContainsString('/fr/vins', $output);
+        $this->assertStringContainsString('/fr/actualites', $output);
+        $this->assertStringContainsString('/fr/contact', $output);
+    }
+
+    public function testSitemapXmlContainsWineAndNewsSlugs(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemap();
+
+        // Slugs présents dans seed_mock_data.sql
+        $this->assertStringContainsString('/fr/vins/bordeaux-blanc-2024', $output);
+        $this->assertStringContainsString('/fr/actualites/portes-ouvertes-2025', $output);
+    }
+
+    public function testSitemapXmlExcludesNoindexPages(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemap();
+
+        $this->assertStringNotContainsString('mentions-legales', $output);
+        $this->assertStringNotContainsString('politique-de-confidentialite', $output);
+        $this->assertStringNotContainsString('plan-du-site', $output);
     }
 }

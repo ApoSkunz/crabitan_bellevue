@@ -25,9 +25,6 @@ class GoogleOAuthController extends Controller
     /** Durée de vie du JWT Google OAuth (24h). */
     private const JWT_EXPIRY = 86400;
 
-    /** Fallback APP_URL pour l'environnement de développement local. */
-    private const LOCALHOST_FALLBACK = 'http://localhost';
-
     private AccountModel $accounts;
     private ConnectionModel $connections;
     private GoogleOAuthService $oauth;
@@ -341,7 +338,7 @@ class GoogleOAuthController extends Controller
      * Construit l'URI de callback OAuth pour la langue donnée.
      *
      * Priorité :
-     *   1. GOOGLE_FR_FALBACK / GOOGLE_EN_FALBACK  — valeur explicite .env (localhost en dev)
+     *   1. GOOGLE_FR_FALBACK / GOOGLE_EN_FALBACK  — valeur explicite .env
      *   2. APP_URL + /{lang}/auth/google/callback  — fallback générique
      *
      * @param string $lang Code langue (fr|en)
@@ -353,7 +350,7 @@ class GoogleOAuthController extends Controller
         if (!empty($_ENV[$envKey])) {
             return $_ENV[$envKey];
         }
-        return rtrim($_ENV['APP_URL'] ?? self::LOCALHOST_FALLBACK, '/') . "/{$lang}/auth/google/callback";
+        return rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/') . "/{$lang}/auth/google/callback";
     }
 
     /**

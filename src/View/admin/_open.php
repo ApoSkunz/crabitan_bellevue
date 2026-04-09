@@ -56,6 +56,7 @@ $adminRole    = $adminUser['role'] ?? 'admin';
     <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/css/main.css">
     <script>
+    window.__appUrl = '<?= htmlspecialchars(rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/'), ENT_QUOTES) ?>';
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.admin-flash--success').forEach(function (el) {
             setTimeout(function () {

@@ -287,6 +287,7 @@ $maxYear = (int) date('Y');
         </div>
 
     </form>
+
     </div>
 </div>
 

@@ -944,4 +944,30 @@ class WineModelTest extends TestCase
 
         $this->model->update(7, $data);
     }
+
+    // ----------------------------------------------------------------
+    // getAllSlugs
+    // ----------------------------------------------------------------
+
+    public function testGetAllSlugsReturnsAvailableSlugs(): void
+    {
+        $rows = [
+            ['slug' => 'bordeaux-rouge-2020'],
+            ['slug' => 'sainte-croix-du-mont-2021'],
+        ];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('WHERE available = 1'),
+                $this->equalTo([])
+            )
+            ->willReturn($rows);
+
+        $result = $this->model->getAllSlugs();
+
+        $this->assertCount(2, $result);
+        $this->assertSame('bordeaux-rouge-2020', $result[0]['slug']);
+    }
 }

@@ -9,6 +9,7 @@ use PHPMailer\PHPMailer\Exception;
 
 class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
 {
+    private const DEFAULT_URL       = 'https://crabitanbellevue.fr';
     private const PATH_SECURITY     = '/mon-compte/securite';
     private const PATH_REACTIVER    = '/compte/reactiver?token=';
     private const BTN_ANCHOR_STYLE_ATTR = '" style="';
@@ -36,7 +37,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
         $this->mailer = new PHPMailer(true);
         $this->mailer->isSMTP();
-        $this->mailer->Host    = $_ENV['MAIL_HOST'] ?? 'localhost';
+        $this->mailer->Host    = $_ENV['MAIL_HOST'] ?? 'crabitanbellevue.fr';
         $this->mailer->Port    = (int) ($_ENV['MAIL_PORT'] ?? 25);
         $this->mailer->CharSet = 'UTF-8';
 
@@ -51,8 +52,8 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
             $this->mailer->SMTPAutoTLS = false;
         }
 
-        $appUrl      = $_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'http://localhost');
-        $host        = parse_url($appUrl, PHP_URL_HOST) ?? 'localhost';
+        $appUrl      = $_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : self::DEFAULT_URL);
+        $host        = parse_url($appUrl, PHP_URL_HOST) ?? 'crabitanbellevue.fr';
         $fromAddress = $mailUser !== ''
             ? $mailUser
             : ($_ENV['MAIL_FROM'] ?? ('noreply@' . $host));
@@ -318,7 +319,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
             : 'Account deletion confirmation';
 
         $safeName  = htmlspecialchars($name, ENT_QUOTES);
-        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $reactUrl  = $reactivationToken !== ''
             ? $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken)
             : '';
@@ -421,7 +422,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $scheduledDeletionAt,
         string $reactivationToken
     ): void {
-        $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $reactUrl    = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
         $safeReact   = htmlspecialchars($reactUrl, ENT_QUOTES);
@@ -502,7 +503,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $lang,
         string $deletionDate
     ): void {
-        $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $loginUrl    = $appUrl . '/' . $lang . '?login=1';
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
         $safeDate    = htmlspecialchars($deletionDate, ENT_QUOTES);
@@ -572,7 +573,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $deletionDate,
         string $reactivationToken
     ): void {
-        $appUrl       = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl       = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $reactUrl     = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
         $safeName     = htmlspecialchars($name, ENT_QUOTES);
         $safeDate     = htmlspecialchars($deletionDate, ENT_QUOTES);
@@ -698,7 +699,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
             ? 'Confirmez votre changement de mot de passe'
             : 'Confirm your password change';
 
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $safeName = htmlspecialchars($name, ENT_QUOTES);
         $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
 
@@ -773,7 +774,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $subject  = $lang === 'fr'
             ? 'Sécurité — Demande de changement de mot de passe annulée'
             : 'Security — Password change request cancelled';
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
         $loginUrl = htmlspecialchars($appUrl . '/' . $lang . '/connexion', ENT_QUOTES);
 
@@ -827,7 +828,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
             ? 'Sécurité — Nouvelle connexion depuis un appareil inconnu'
             : 'Security — New sign-in from an unrecognised device';
 
-        $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $confirmUrl  = $deviceToken !== ''
             ? htmlspecialchars(
                 $appUrl . '/' . $lang . '/mon-compte/appareil/confirmer?token=' . urlencode($deviceToken),
@@ -921,7 +922,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         ?string $unsubToken = null,
         string $lang = 'fr'
     ): string {
-        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $logoUrl    = $appUrl . self::LOGO_PATH;
         $urlPrivacy = $appUrl . self::URL_PRIVACY;
         $urlLegal   = $appUrl . self::URL_LEGAL;
@@ -999,7 +1000,7 @@ INNER;
     ): void {
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeName = htmlspecialchars($toName, ENT_QUOTES);
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $ordersUrl = htmlspecialchars(
             $appUrl . '/' . $lang . '/mon-compte/commandes',
             ENT_QUOTES
@@ -1424,7 +1425,7 @@ INNER;
         $safeEmail    = htmlspecialchars($clientEmail, ENT_QUOTES);
         $orderedAt    = isset($order['ordered_at']) ? date('d/m/Y', strtotime((string) $order['ordered_at'])) : '—';
         $items        = json_decode((string) ($order['content'] ?? '[]'), true) ?: [];
-        $appUrl       = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl       = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $orderId      = (int) ($order['id'] ?? 0);
         $orderLink    = $orderId > 0
             ? htmlspecialchars($appUrl . '/admin/commandes/' . $orderId, ENT_QUOTES)
@@ -1522,7 +1523,7 @@ INNER;
             . "</th>"
             . "</tr></thead><tbody>{$rows}</tbody></table>";
 
-        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $orderId   = (int) ($order['id'] ?? 0);
         $orderLink = $orderId > 0
             ? htmlspecialchars($appUrl . '/' . $lang . '/mon-compte/commandes/' . $orderId, ENT_QUOTES)
@@ -2202,7 +2203,7 @@ INNER;
 
     private function emailSimpleLayout(string $title, string $greeting, string $message, string $lang = 'fr'): string
     {
-        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $logoUrl    = $appUrl . self::LOGO_PATH;
         $urlPrivacy = $appUrl . self::URL_PRIVACY;
         $urlLegal   = $appUrl . self::URL_LEGAL;
@@ -2345,7 +2346,7 @@ INNER;
         string $footnote,
         string $lang = 'fr'
     ): string {
-        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $logoUrl    = $appUrl . self::LOGO_PATH;
         $urlPrivacy = $appUrl . self::URL_PRIVACY;
         $urlLegal   = $appUrl . self::URL_LEGAL;
@@ -2802,7 +2803,7 @@ HTML;
         string $reactivationToken,
         string $scheduledDeletionAt
     ): void {
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $reactUrl = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
         $safeDate = htmlspecialchars($scheduledDeletionAt, ENT_QUOTES);

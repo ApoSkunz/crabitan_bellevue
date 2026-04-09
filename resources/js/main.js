@@ -2203,6 +2203,48 @@ document.addEventListener('DOMContentLoaded', () => {
     initFlashAutofocus();
     initLangPreference();
 
+// QR Code admin — modal depuis le tableau des vins
+    const qrModal = document.getElementById('admin-qr-modal');
+    if (qrModal) {
+        const appUrl    = globalThis.__appUrl ?? '';
+        const modalCanvas   = document.getElementById('admin-qr-modal-canvas');
+        const modalTitle    = document.getElementById('admin-qr-modal-title');
+        const modalUrl      = document.getElementById('admin-qr-modal-url');
+        const modalDownload = document.getElementById('admin-qr-modal-download');
+        const closeBtn      = document.getElementById('admin-qr-modal-close');
+
+        function openQrModal(slug, label) {
+            const url = appUrl + '/fr/vins/' + encodeURIComponent(slug) + '/fiche-technique';
+            modalTitle.textContent = label;
+            modalUrl.textContent   = url;
+            qrModal.style.display  = 'flex';
+
+            import('qrcode').then((QRCode) => {
+                QRCode.default.toCanvas(modalCanvas, url, { width: 300, margin: 2 }, () => {
+                    if (modalDownload) {
+                        modalDownload.href     = modalCanvas.toDataURL('image/png');
+                        modalDownload.download = 'qr-' + slug + '.png';
+                    }
+                });
+            }).catch(() => {});
+        }
+
+        function closeQrModal() {
+            qrModal.style.display = 'none';
+        }
+
+        document.querySelectorAll('.js-qr-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const label = (btn.dataset.label ?? '') + (btn.dataset.cuvee === '1' ? ' — Cuvée spéciale' : '');
+                openQrModal(btn.dataset.slug ?? '', label);
+            });
+        });
+
+        closeBtn?.addEventListener('click', closeQrModal);
+        qrModal.addEventListener('click', (e) => { if (e.target === qrModal) closeQrModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeQrModal(); });
+    }
+
     // Chargement à la demande — uniquement sur la page jeux
     if (document.getElementById('memo-game')) {
         import('./memo-game.js').then((m) => m.initMemoGame());
