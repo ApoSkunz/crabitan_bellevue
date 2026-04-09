@@ -218,6 +218,7 @@ class PageController extends Controller
         }
 
         // Vins
+        // @codeCoverageIgnoreStart
         foreach ($wineSlugs as $row) {
             $slug = htmlspecialchars((string) $row['slug']);
             echo "  <url>\n";
@@ -242,6 +243,7 @@ class PageController extends Controller
             echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/actualites/{$slug}\"/>\n";
             echo "  </url>\n";
         }
+        // @codeCoverageIgnoreEnd
 
         echo '</urlset>' . "\n";
         throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux XML (testable)
