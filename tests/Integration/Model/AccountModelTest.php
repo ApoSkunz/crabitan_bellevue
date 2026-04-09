@@ -1015,4 +1015,155 @@ class AccountModelTest extends IntegrationTestCase
 
         $this->assertFalse($data['newsletter']['abonne']);
     }
+
+    // ----------------------------------------------------------------
+    // getNewsletterSubscribersBySegment + countNewsletterSubscribersBySegment
+    // ----------------------------------------------------------------
+
+    private function insertNewsletterSubscriber(string $email, string $type = 'individual'): int
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, lang, newsletter, account_type, email_verified_at)
+             VALUES (?, 'x', 'fr', 1, ?, NOW())",
+            [$email, $type]
+        );
+        if ($type === 'company') {
+            self::$db->insert(
+                "INSERT INTO account_companies (account_id, company_name, siret) VALUES (?, 'SARL Test', '12345678901234')",
+                [$id]
+            );
+        } else {
+            self::$db->insert(
+                "INSERT INTO account_individuals (account_id, lastname, firstname, civility) VALUES (?, 'Test', 'Sub', 'M')",
+                [$id]
+            );
+        }
+        return $id;
+    }
+
+    private function insertOrderForAccount(int $accountId, string $orderedAt = 'NOW()'): void
+    {
+        // Réutilise le snapshot 1 (Sophie billing) comme FK valide
+        self::$db->execute(
+            "INSERT INTO order_address_snapshots (civility, firstname, lastname, street, city, zip, country, phone)
+             VALUES ('M', 'Test', 'Seg', '1 rue Test', 'Paris', '75001', 'France', '0600000000')"
+        );
+        $snapshotId = (int) self::$db->fetchOne("SELECT LAST_INSERT_ID() AS id")['id'];
+        self::$db->execute(
+            "INSERT INTO orders (user_id, order_reference, content, price, payment_method,
+                                 shipping_discount, id_billing_snapshot, status, ordered_at)
+             VALUES (?, ?, '[]', 10.00, 'card', 0.00, ?, 'delivered', {$orderedAt})",
+            [$accountId, 'SEG-TEST-' . $accountId, $snapshotId]
+        );
+    }
+
+    /**
+     * countNewsletterSubscribersBySegment('tous') = tous les abonnés newsletter.
+     */
+    public function testCountBySegmentTousEqualsTotal(): void
+    {
+        $id1 = $this->insertNewsletterSubscriber('seg.tous1@example.com');
+        $id2 = $this->insertNewsletterSubscriber('seg.tous2@example.com');
+
+        $total  = $this->model->countNewsletterSubscribers();
+        $byTous = $this->model->countNewsletterSubscribersBySegment('tous');
+
+        $this->assertSame($total, $byTous);
+    }
+
+    /**
+     * Segment 'particuliers' retourne uniquement les comptes individual.
+     */
+    public function testCountBySegmentParticuliers(): void
+    {
+        $this->insertNewsletterSubscriber('seg.part@example.com', 'individual');
+        $this->insertNewsletterSubscriber('seg.comp@example.com', 'company');
+
+        $count = $this->model->countNewsletterSubscribersBySegment('particuliers');
+
+        // Au moins le particulier inséré dans ce test
+        $this->assertGreaterThanOrEqual(1, $count);
+
+        $rows = $this->model->getNewsletterSubscribersBySegment('particuliers', 1000, 0);
+        foreach ($rows as $row) {
+            $this->assertSame('individual', $row['account_type']);
+        }
+    }
+
+    /**
+     * Segment 'professionnels' retourne uniquement les comptes company.
+     */
+    public function testCountBySegmentProfessionnels(): void
+    {
+        $this->insertNewsletterSubscriber('seg.pro@example.com', 'company');
+
+        $count = $this->model->countNewsletterSubscribersBySegment('professionnels');
+        $this->assertGreaterThanOrEqual(1, $count);
+
+        $rows = $this->model->getNewsletterSubscribersBySegment('professionnels', 1000, 0);
+        foreach ($rows as $row) {
+            $this->assertSame('company', $row['account_type']);
+        }
+    }
+
+    /**
+     * Segment 'commandes' retourne uniquement les abonnés ayant au moins une commande.
+     */
+    public function testCountBySegmentCommandes(): void
+    {
+        $idWith    = $this->insertNewsletterSubscriber('seg.cmd@example.com');
+        $idWithout = $this->insertNewsletterSubscriber('seg.nocmd@example.com');
+        $this->insertOrderForAccount($idWith);
+
+        $rows = $this->model->getNewsletterSubscribersBySegment('commandes', 1000, 0);
+        $ids  = array_column($rows, 'id');
+
+        $this->assertContains($idWith, $ids);
+        $this->assertNotContains($idWithout, $ids);
+    }
+
+    /**
+     * Segment 'sans-commande' retourne uniquement les abonnés sans commande.
+     */
+    public function testCountBySegmentSansCommande(): void
+    {
+        $idWith    = $this->insertNewsletterSubscriber('seg.wc@example.com');
+        $idWithout = $this->insertNewsletterSubscriber('seg.sc@example.com');
+        $this->insertOrderForAccount($idWith);
+
+        $rows = $this->model->getNewsletterSubscribersBySegment('sans-commande', 1000, 0);
+        $ids  = array_column($rows, 'id');
+
+        $this->assertContains($idWithout, $ids);
+        $this->assertNotContains($idWith, $ids);
+    }
+
+    /**
+     * Segment 'inactifs' retourne les abonnés dont la dernière commande > 6 mois.
+     */
+    public function testCountBySegmentInactifs(): void
+    {
+        $idInactif = $this->insertNewsletterSubscriber('seg.inactif@example.com');
+        $idActif   = $this->insertNewsletterSubscriber('seg.actif@example.com');
+
+        $this->insertOrderForAccount($idInactif, "DATE_SUB(NOW(), INTERVAL 8 MONTH)");
+        $this->insertOrderForAccount($idActif, "DATE_SUB(NOW(), INTERVAL 1 MONTH)");
+
+        $rows = $this->model->getNewsletterSubscribersBySegment('inactifs', 1000, 0);
+        $ids  = array_column($rows, 'id');
+
+        $this->assertContains($idInactif, $ids);
+        $this->assertNotContains($idActif, $ids);
+    }
+
+    /**
+     * Segment inconnu retourne tous les abonnés (comportement 'tous').
+     */
+    public function testCountBySegmentUnknownDefaultsToTous(): void
+    {
+        $total  = $this->model->countNewsletterSubscribers();
+        $byUnk  = $this->model->countNewsletterSubscribersBySegment('inexistant');
+
+        $this->assertSame($total, $byUnk);
+    }
 }

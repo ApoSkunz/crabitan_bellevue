@@ -524,6 +524,7 @@ CREATE TABLE `newsletters` (
   `sent_count`   INT            NOT NULL DEFAULT 0,
   `failed_count` INT            NOT NULL DEFAULT 0,
   `sent_at`      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `segment_label` VARCHAR(100)  DEFAULT NULL COMMENT 'Segment ciblé lors de l\'envoi (NULL = tous)',
   PRIMARY KEY (`id`),
   INDEX `idx_newsletters_sent_at` (`sent_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

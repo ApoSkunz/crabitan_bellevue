@@ -996,6 +996,69 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         return (int) ($row['total'] ?? 0);
     }
 
+    /**
+     * Retourne la clause SQL WHERE additionnelle pour un segment donné.
+     *
+     * @param string $segment Identifiant du segment
+     * @return string Clause SQL (vide pour 'tous')
+     */
+    private function segmentWhere(string $segment): string
+    {
+        return match ($segment) {
+            'particuliers'   => "AND a.account_type = 'individual'",
+            'professionnels' => "AND a.account_type = 'company'",
+            'commandes'      => "AND EXISTS (SELECT 1 FROM orders o WHERE o.user_id = a.id)",
+            'sans-commande'  => "AND NOT EXISTS (SELECT 1 FROM orders o WHERE o.user_id = a.id)",
+            'inactifs'       => "AND EXISTS (SELECT 1 FROM orders o WHERE o.user_id = a.id)
+                                 AND (SELECT MAX(o2.ordered_at) FROM orders o2 WHERE o2.user_id = a.id)
+                                     < DATE_SUB(NOW(), INTERVAL 6 MONTH)",
+            default => '',
+        };
+    }
+
+    /**
+     * Retourne les abonnés newsletter filtrés par segment.
+     *
+     * @param  string $segment Identifiant du segment (tous, particuliers, professionnels, commandes, sans-commande, inactifs)
+     * @param  int    $limit   Nombre de lignes
+     * @param  int    $offset  Décalage
+     * @return array<int, array<string, mixed>>
+     */
+    public function getNewsletterSubscribersBySegment(string $segment, int $limit, int $offset): array
+    {
+        $where = $this->segmentWhere($segment);
+        return $this->db->fetchAll(
+            "SELECT a.id, a.email, a.account_type, a.lang, a.created_at,
+                    a.newsletter_unsubscribe_token,
+                    ai.firstname, ai.lastname,
+                    ac.company_name
+             FROM {$this->table} a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             WHERE a.newsletter = 1 AND a.deleted_at IS NULL {$where}
+             ORDER BY a.created_at DESC
+             LIMIT ? OFFSET ?",
+            [$limit, $offset]
+        );
+    }
+
+    /**
+     * Compte les abonnés newsletter pour un segment donné.
+     *
+     * @param  string $segment Identifiant du segment
+     * @return int
+     */
+    public function countNewsletterSubscribersBySegment(string $segment): int
+    {
+        $where = $this->segmentWhere($segment);
+        $row   = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total
+             FROM {$this->table} a
+             WHERE a.newsletter = 1 AND a.deleted_at IS NULL {$where}"
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
     /** @return array{string, array<int, mixed>} */
     /**
      * Active la newsletter pour un compte dont le consentement était en attente

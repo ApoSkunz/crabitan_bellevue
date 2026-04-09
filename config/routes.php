@@ -28,6 +28,7 @@ $router->post('/admin/actualites/ajouter', 'Admin\NewsAdminController@store');
 $router->get('/admin/actualites/{id}/modifier', 'Admin\NewsAdminController@edit');
 $router->post('/admin/actualites/{id}/modifier', 'Admin\NewsAdminController@update');
 $router->get('/admin/newsletter', 'Admin\NewsletterAdminController@index');
+$router->get('/admin/newsletter/segment-count', 'Admin\NewsletterAdminController@segmentCount');
 $router->get('/admin/newsletter/{id}', 'Admin\NewsletterAdminController@show');
 $router->post('/admin/newsletter/envoyer', 'Admin\NewsletterAdminController@send');
 $router->get('/admin/bons-de-commande', 'Admin\OrderFormAdminController@index');

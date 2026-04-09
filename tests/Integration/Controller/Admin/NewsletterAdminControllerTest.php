@@ -646,6 +646,145 @@ class NewsletterAdminControllerTest extends AdminIntegrationTestCase
         }
     }
 
+    // ----------------------------------------------------------------
+    // segmentCount — endpoint AJAX
+    // ----------------------------------------------------------------
+
+    /**
+     * segmentCount() retourne JSON avec count pour segment 'tous'.
+     */
+    public function testSegmentCountReturnsTousCount(): void
+    {
+        ob_start();
+        try {
+            $this->makeController()->segmentCount([]);
+        } catch (\Core\Exception\HttpException $e) {
+            // json() lève HttpException 200
+        }
+        $output = ob_get_clean() ?: '';
+
+        $data = json_decode($output, true);
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('count', $data);
+        $this->assertIsInt($data['count']);
+    }
+
+    /**
+     * segmentCount() normalise un segment inconnu vers 'tous'.
+     */
+    public function testSegmentCountUnknownSegmentDefaultsToTous(): void
+    {
+        $_GET['segment'] = 'inexistant';
+
+        ob_start();
+        try {
+            $this->makeController()->segmentCount([]);
+        } catch (\Core\Exception\HttpException) {
+            // attendu
+        }
+        $output = ob_get_clean() ?: '';
+
+        $data = json_decode($output, true);
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('count', $data);
+    }
+
+    /**
+     * segmentCount() retourne le bon count pour segment 'particuliers'.
+     */
+    public function testSegmentCountParticuliers(): void
+    {
+        $_GET['segment'] = 'particuliers';
+
+        ob_start();
+        try {
+            $this->makeController()->segmentCount([]);
+        } catch (\Core\Exception\HttpException) {
+            // attendu
+        }
+        $output = ob_get_clean() ?: '';
+
+        $data = json_decode($output, true);
+        $this->assertIsArray($data);
+        $this->assertGreaterThanOrEqual(0, $data['count']);
+    }
+
+    // ----------------------------------------------------------------
+    // send — avec segment
+    // ----------------------------------------------------------------
+
+    /**
+     * send() avec segment 'particuliers' sauvegarde le segment_label en BDD.
+     */
+    public function testSendWithSegmentPersistsSegmentLabel(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['subject']    = 'Newsletter segment particuliers';
+        $_POST['body']       = 'Corps segmenté.';
+        $_POST['segment']    = 'particuliers';
+
+        try {
+            $this->makeController('POST')->send([]);
+        } catch (HttpException) {
+            // redirect attendu
+        }
+
+        $row = self::$db->fetchOne(
+            "SELECT segment_label FROM newsletters WHERE subject = ?",
+            ['Château Crabitan Bellevue — Newsletter segment particuliers']
+        );
+        $this->assertNotEmpty($row);
+        $this->assertSame('particuliers', $row['segment_label']);
+    }
+
+    /**
+     * send() avec segment 'tous' sauvegarde segment_label NULL en BDD.
+     */
+    public function testSendWithSegmentTousSavesNullLabel(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['subject']    = 'Newsletter segment tous null';
+        $_POST['body']       = 'Corps tous.';
+        $_POST['segment']    = 'tous';
+
+        try {
+            $this->makeController('POST')->send([]);
+        } catch (HttpException) {
+            // redirect attendu
+        }
+
+        $row = self::$db->fetchOne(
+            "SELECT segment_label FROM newsletters WHERE subject = ?",
+            ['Château Crabitan Bellevue — Newsletter segment tous null']
+        );
+        $this->assertNotEmpty($row);
+        $this->assertNull($row['segment_label']);
+    }
+
+    /**
+     * send() avec segment invalide normalise vers 'tous' (segment_label NULL).
+     */
+    public function testSendWithInvalidSegmentDefaultsToTous(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['subject']    = 'Newsletter segment invalide';
+        $_POST['body']       = 'Corps invalide.';
+        $_POST['segment']    = 'hacker-injection';
+
+        try {
+            $this->makeController('POST')->send([]);
+        } catch (HttpException) {
+            // redirect attendu
+        }
+
+        $row = self::$db->fetchOne(
+            "SELECT segment_label FROM newsletters WHERE subject = ?",
+            ['Château Crabitan Bellevue — Newsletter segment invalide']
+        );
+        $this->assertNotEmpty($row);
+        $this->assertNull($row['segment_label']);
+    }
+
     /**
      * show() avec un id valide affiche le détail de la campagne.
      */

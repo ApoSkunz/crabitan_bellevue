@@ -68,6 +68,38 @@ class NewsletterModelTest extends TestCase
         $this->model->create('Sujet', 'Corps', 'https://example.com/img.jpg');
     }
 
+    /**
+     * create() transmet le segment_label quand fourni.
+     */
+    public function testCreatePassesSegmentLabel(): void
+    {
+        $this->dbMock->expects($this->once())
+            ->method('insert')
+            ->with(
+                $this->stringContains('segment_label'),
+                $this->callback(fn ($params) => $params[3] === 'particuliers')
+            )
+            ->willReturn('5');
+
+        $this->model->create('Sujet', 'Corps', null, 'particuliers');
+    }
+
+    /**
+     * create() passe NULL pour segment_label par défaut.
+     */
+    public function testCreateSegmentLabelDefaultsToNull(): void
+    {
+        $this->dbMock->expects($this->once())
+            ->method('insert')
+            ->with(
+                $this->anything(),
+                $this->callback(fn ($params) => $params[3] === null)
+            )
+            ->willReturn('6');
+
+        $this->model->create('Sujet', 'Corps', null);
+    }
+
     // ----------------------------------------------------------------
     // updateStats()
     // ----------------------------------------------------------------

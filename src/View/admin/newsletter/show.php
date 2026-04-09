@@ -15,6 +15,11 @@ $attachments = $campaign['attachments'] ?? [];
             <dt style="color:#8a7a60;">Date d'envoi</dt>
             <dd><?= date('d/m/Y à H:i', strtotime($campaign['sent_at'])) ?></dd>
 
+            <dt style="color:#8a7a60;">Segment</dt>
+            <dd><?= $campaign['segment_label'] !== null
+                    ? htmlspecialchars((string) $campaign['segment_label'])
+                    : 'Tous les abonnés' ?></dd>
+
             <dt style="color:#8a7a60;">Envoyés</dt>
             <dd style="color:#2e7d32;font-weight:600;"><?= (int) $campaign['sent_count'] ?></dd>
 
