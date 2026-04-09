@@ -670,6 +670,11 @@ VALUES
 -- id 13 : abonné newsletter avec commande ancienne (> 6 mois) → segment 'inactifs'
 (13, 'newsletter.inactif@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 1, '2025-01-10 08:00:00', 0, '2025-01-10 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 
+-- Tokens de désabonnement newsletter (déterministes pour les tests)
+UPDATE `accounts`
+SET `newsletter_unsubscribe_token` = SHA2(CONCAT('dev-unsub-token-', `id`), 256)
+WHERE `newsletter_unsubscribe_token` IS NULL;
+
 -- Déclaration de majorité (Sprint 5 — Art. L3342-1 CSP)
 -- id 1 (super_admin), id 2 (admin), id 3 (client principal) : déclarés → pas de modal intempestif
 -- id 5 (societe), id 6 (customer EN) : NULL → permettent de tester le flux modal en dev
