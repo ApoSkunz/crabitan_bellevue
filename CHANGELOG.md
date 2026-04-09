@@ -2,6 +2,24 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.48.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.47.0...v0.48.0) (2026-04-09)
+
+
+### Bug Fixes
+
+* **lang:** cb-lang cookie sets DEFAULT_LANG over browser detection, age-gate infers lang from redirect path ([6772b24](https://github.com/ApoSkunz/crabitan_bellevue/commit/6772b24401de07f188326d78802b547d664075a6))
+* **sonar:** AccountController CONTENT_TYPE_JSON constant + NOSONAR S3776/S1172, profile.php reuse \$selected, main.js window→globalThis ([503a48c](https://github.com/ApoSkunz/crabitan_bellevue/commit/503a48c1e512384c1fa69e05e0bb8cffa00b6644))
+
+
+### Features
+
+* **account:** add updateLangPreference endpoint (POST /{lang}/mon-compte/preference-langue) ([73c6785](https://github.com/ApoSkunz/crabitan_bellevue/commit/73c6785f4569dc389de1cd910fe82ce580552fe2))
+* **account:** use accounts.lang preference for login redirect ([d75ac31](https://github.com/ApoSkunz/crabitan_bellevue/commit/d75ac316300484c38a1cb577122f9bc2ef7c00f1))
+* **js:** initLangPreference — AJAX save on profile form submit ([d927628](https://github.com/ApoSkunz/crabitan_bellevue/commit/d92762830ff8fd487215230acbdfe30ccf0ac053))
+* **lang:** redirect to account lang on login, clear cb-lang on logout ([fc7f16a](https://github.com/ApoSkunz/crabitan_bellevue/commit/fc7f16afe95237b776678ff36d2f2d9ea59788b9))
+* **view:** add lang preference section to profile page (select + submit) ([97006fb](https://github.com/ApoSkunz/crabitan_bellevue/commit/97006fbed74f8480de56c5b0a83ff8ecad25647d))
+* **view:** header lang switcher uses form POST for logged-in users ([d6540f1](https://github.com/ApoSkunz/crabitan_bellevue/commit/d6540f1bea0df512319a2670325dc3a4df160b4e))
+
 # [0.47.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.46.0...v0.47.0) (2026-04-08)
 
 
