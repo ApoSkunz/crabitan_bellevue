@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Controller;
 
 use Core\Controller;
+use Core\Exception\HttpException;
+use Core\Response;
 use Model\AccountModel;
 use Model\NewsletterTrackingModel;
 
@@ -29,6 +31,7 @@ class TrackingController extends Controller
      * Retourne un GIF 1×1 et enregistre l'ouverture de l'e-mail (une seule fois par abonné).
      *
      * @param array<string, string> $params
+     * @throws HttpException Code 200 après envoi du pixel
      * @return void
      */
     public function open(array $params): void
@@ -43,12 +46,7 @@ class TrackingController extends Controller
             }
         }
 
-        header('Content-Type: image/gif');
-        header('Cache-Control: no-store, no-cache, must-revalidate');
-        header('Pragma: no-cache');
-        // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found -- pixel GIF tracking intentionnel
-        echo base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
-        exit;
+        $this->sendPixel();
     }
 
     /**
@@ -56,6 +54,7 @@ class TrackingController extends Controller
      * Enregistre le clic et redirige vers l'URL cible.
      *
      * @param array<string, string> $params
+     * @throws HttpException Code 302 (redirect) ou 404 (lien introuvable)
      * @return void
      */
     public function click(array $params): void
@@ -67,8 +66,7 @@ class TrackingController extends Controller
         $link = $this->tracking->findLink($linkId, $newsletterId);
 
         if ($link === null) {
-            http_response_code(404);
-            exit;
+            $this->abort(404);
         }
 
         $subscriberId = null;
@@ -81,7 +79,23 @@ class TrackingController extends Controller
 
         $this->tracking->recordClick($newsletterId, $linkId, $subscriberId);
 
-        header('Location: ' . $link['url']);
-        exit;
+        Response::redirect($link['url']);
+    }
+
+    /**
+     * Envoie le pixel GIF 1×1 et termine la réponse.
+     * Méthode protégée pour permettre le mock en test.
+     *
+     * @throws HttpException Code 200
+     * @return void
+     */
+    protected function sendPixel(): void
+    {
+        header('Content-Type: image/gif');
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+        header('Pragma: no-cache');
+        // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found -- pixel GIF tracking intentionnel
+        echo base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
+        throw new HttpException(200);
     }
 }
