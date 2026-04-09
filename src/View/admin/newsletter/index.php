@@ -92,7 +92,7 @@ $cssDisabled = ' disabled';
                     <label class="admin-field__label" for="nl-segment">Segment</label>
                     <select id="nl-segment" name="segment" class="admin-field__input"
                             onchange="onSegmentChange(this)">
-                        <option value="tous">Tous les abonnés (<?= $total ?>)</option>
+                        <option value="tous">Tous les abonnés</option>
                         <option value="particuliers">Particuliers</option>
                         <option value="professionnels">Professionnels</option>
                         <option value="commandes">Clients ayant commandé</option>
