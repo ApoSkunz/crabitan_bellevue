@@ -20,8 +20,16 @@ class AgeGateController extends Controller
             Response::redirect('/' . DEFAULT_LANG);
         }
 
-        $lang     = in_array($_GET['lang'] ?? '', ['fr', 'en'], true) ? $_GET['lang'] : DEFAULT_LANG;
-        $redirect = $_GET['redirect'] ?? '/' . $lang;
+        $redirect = $_GET['redirect'] ?? '';
+        // Extraire la langue depuis le chemin de redirection (/fr/... ou /en/...) si pas de ?lang=
+        preg_match('#^/(fr|en)(/|$)#', $redirect, $_rm);
+        $lang     = in_array($_GET['lang'] ?? '', ['fr', 'en'], true)
+            ? $_GET['lang']
+            : ($_rm[1] ?? DEFAULT_LANG);
+        if ($redirect === '') {
+            $redirect = '/' . $lang;
+        }
+        unset($_rm);
 
         \Core\Lang::load($lang);
 

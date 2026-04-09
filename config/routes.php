@@ -138,6 +138,7 @@ $router->post('/payment/ipn', 'IpnController@handle');
 $router->get('/{lang}/mon-compte', 'AccountController@index');
 $router->get('/{lang}/mon-compte/profil', 'AccountController@profile');
 $router->post('/{lang}/mon-compte/profil', 'AccountController@updateProfile');
+$router->post('/{lang}/mon-compte/preference-langue', 'AccountController@updateLangPreference');
 $router->get('/{lang}/mon-compte/commandes', 'AccountController@orders');
 $router->get('/{lang}/mon-compte/commandes/{id}', 'AccountController@orderDetail');
 $router->post('/{lang}/mon-compte/commandes/{id}/annuler', 'AccountController@cancelOrder');

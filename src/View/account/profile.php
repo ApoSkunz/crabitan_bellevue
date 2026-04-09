@@ -107,6 +107,23 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                 </form>
             </section>
 
+            <!-- Langue préférée -->
+            <section class="account-section">
+                <h2 class="account-section__title"><?= __('account.lang_pref') ?></h2>
+
+                <form id="lang-pref-form" class="account-form" novalidate>
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+                    <div class="form-group">
+                        <label for="lang-pref-select"><?= __('account.lang_pref') ?></label>
+                        <select id="lang-pref-select" name="lang" class="form-select">
+                            <option value="fr"<?= $selected(($account['lang'] ?? 'fr') === 'fr') ?>>Français</option>
+                            <option value="en"<?= $selected(($account['lang'] ?? 'fr') === 'en') ?>>English</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn--primary"><?= __('account.save_profile') ?></button>
+                </form>
+            </section>
+
             <!-- Changement d'email (double opt-in) -->
             <section class="account-section" id="email-change">
                 <h2 class="account-section__title"><?= __('account.email_change_section_title') ?></h2>

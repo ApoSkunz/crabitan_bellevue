@@ -286,9 +286,20 @@ class AuthController extends Controller
 
         CookieHelper::set($token, $cookieExpiry);
 
-        if ($account['lang'] !== $lang) {
-            $this->accounts->updateLang((int) $account['id'], $lang);
-        }
+        // Respecte la langue préférée enregistrée — ne pas l'écraser avec la lang de l'URL.
+        $accountLang = in_array((string) ($account['lang'] ?? ''), ['fr', 'en'], true)
+            ? (string) $account['lang']
+            : $lang;
+
+        // Cookie cb-lang : rend la préférence de langue disponible côté PHP (config.php)
+        // sans décodage JWT — utilisé comme fallback sur DEFAULT_LANG (langue navigateur).
+        setcookie('cb-lang', $accountLang, [
+            'expires'  => $cookieExpiry > 0 ? time() + $cookieExpiry : 0,
+            'path'     => '/',
+            'secure'   => isset($_SERVER['HTTPS']),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
 
         $this->connections->create(
             (int) $account['id'],
@@ -338,7 +349,12 @@ class AuthController extends Controller
             && is_string($intended)
             && preg_match('#^/[^/]#', $intended)
             && !str_contains($intended, '://');
-        Response::redirect($validIntended ? $intended : $safeBack);
+        // À la connexion : rediriger vers la langue préférée du compte (une seule fois)
+        $redirectTarget = $validIntended ? $intended : $safeBack;
+        if ($accountLang !== $lang && preg_match('#^/(fr|en)(/.+)?$#', $redirectTarget, $m)) {
+            $redirectTarget = '/' . $accountLang . ($m[2] ?? '');
+        }
+        Response::redirect($redirectTarget);
     }
 
     // ----------------------------------------------------------------
@@ -378,6 +394,9 @@ class AuthController extends Controller
             $this->connections->revoke($token);
             CookieHelper::clear();
         }
+
+        // Effacer la préférence de langue mémorisée (cookie cb-lang)
+        setcookie('cb-lang', '', ['expires' => time() - 3600, 'path' => '/', 'secure' => isset($_SERVER['HTTPS']), 'httponly' => true, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
 
         // Nettoyer _intended pour éviter toute redirection résiduelle après reconnexion
         unset($_SESSION['_intended']);

@@ -288,9 +288,19 @@ class GoogleOAuthController extends Controller
 
         CookieHelper::set($token, self::JWT_EXPIRY);
 
-        if (($account['lang'] ?? $lang) !== $lang) {
-            $this->accounts->updateLang((int) $account['id'], $lang);
-        }
+        // Respecter la préférence de langue enregistrée — ne pas écraser avec la langue de l'URL
+        $accountLang = in_array((string) ($account['lang'] ?? ''), SUPPORTED_LANGS, true)
+            ? (string) $account['lang']
+            : $lang;
+
+        // Cookie cb-lang : rend la préférence disponible dans config.php (DEFAULT_LANG)
+        setcookie('cb-lang', $accountLang, [
+            'expires'  => time() + self::JWT_EXPIRY,
+            'path'     => '/',
+            'secure'   => isset($_SERVER['HTTPS']),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
 
         $this->connections->create(
             (int) $account['id'],
@@ -311,14 +321,20 @@ class GoogleOAuthController extends Controller
 
         // _intended prioritaire sur oauth_return_path (navigation directe vers page protégée)
         $intended    = $_SESSION['_intended'] ?? null;
-        $returnPath  = $_SESSION['oauth_return_path'] ?? "/{$lang}";
+        $returnPath  = $_SESSION['oauth_return_path'] ?? "/{$accountLang}";
         unset($_SESSION['_intended'], $_SESSION['oauth_return_path']);
 
         $validIntended = $intended !== null
             && is_string($intended)
             && preg_match('#^/[^/]#', $intended)
             && !str_contains($intended, '://');
-        Response::redirect($validIntended ? $intended : $returnPath);
+
+        // À la connexion : rediriger vers la langue préférée du compte (une seule fois)
+        $redirectTarget = $validIntended ? $intended : $returnPath;
+        if ($accountLang !== $lang && preg_match('#^/(fr|en)(/.+)?$#', $redirectTarget, $m)) {
+            $redirectTarget = '/' . $accountLang . ($m[2] ?? '');
+        }
+        Response::redirect($redirectTarget);
     }
 
     /**

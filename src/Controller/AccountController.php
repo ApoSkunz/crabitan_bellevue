@@ -41,6 +41,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     /** Rate limiting export RGPD : 3 exports / 24 h / utilisateur. */
     private const MAX_EXPORT_USER   = 3;
     private const WINDOW_EXPORT     = 86400;
+    private const CONTENT_TYPE_JSON = 'Content-Type: application/json';
 
     private AccountModel $accounts;
     private AddressModel $addresses;
@@ -250,7 +251,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
      * @param array<string, string> $params Paramètres de route (`lang`, `id`)
      * @return void
      */
-    public function cancelOrder(array $params): void // NOSONAR — php:S3776 : complexité flux annulation (card/chèque, GAE, rétractation, emails)
+    public function cancelOrder(array $params): void // NOSONAR php:S3776 — complexité flux annulation (card/chèque, GAE, rétractation, emails)
     {
         $payload = $this->requireCustomer();
         $userId  = (int) $payload['sub'];
@@ -798,7 +799,8 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $rlKey = 'change_pw:' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
         if (!$this->rateLimiter->checkLimit($rlKey, self::MAX_CHANGE_PW_IP, self::WINDOW_CHANGE_PW)) {
             $wait = (int) ceil($this->rateLimiter->getRetryAfter($rlKey) / 60);
-            $_SESSION['flash']['security_errors'] = ['rate_limit' => sprintf(__('auth.too_many_attempts'), max(1, $wait))];
+            $msg = sprintf(__('auth.too_many_attempts'), max(1, $wait));
+            $_SESSION['flash']['security_errors'] = ['rate_limit' => $msg];
             Response::redirect($back);
         }
         $this->rateLimiter->recordAttempt($rlKey, self::WINDOW_CHANGE_PW);
@@ -2080,6 +2082,55 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $_SESSION['flash']['info'] = __('account.b2b_restricted');
             Response::redirect("/{$lang}/mon-compte");
         }
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/mon-compte/preference-langue — AJAX
+    // ----------------------------------------------------------------
+
+    /**
+     * Met à jour la langue préférée du compte.
+     *
+     * Deux modes :
+     * - Formulaire header (redirect_to fourni) → redirect après mise à jour.
+     * - AJAX profil (pas de redirect_to) → JSON.
+     *
+     * Protégé par CSRF dans les deux cas.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function updateLangPreference(array $params): void // NOSONAR php:S1172 — $params requis par le routeur
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+
+        if (!$this->verifyCsrf()) {
+            header(self::CONTENT_TYPE_JSON);
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'csrf']);
+            return;
+        }
+
+        $newLang = $this->request->post('lang', '');
+        if (!in_array($newLang, ['fr', 'en'], true)) {
+            header(self::CONTENT_TYPE_JSON);
+            http_response_code(422);
+            echo json_encode(['success' => false, 'error' => 'invalid_lang']);
+            return;
+        }
+
+        $this->accounts->updateLang($userId, $newLang);
+
+        // Formulaire header : redirect vers l'URL cible (validée)
+        $redirectTo = $this->request->post('redirect_to', '');
+        if ($redirectTo !== '' && preg_match('#^/(fr|en)(/|$)#', $redirectTo)) {
+            Response::redirect($redirectTo);
+        }
+
+        // AJAX (profil) : réponse JSON
+        header(self::CONTENT_TYPE_JSON);
+        echo json_encode(['success' => true]);
     }
 
     private function verifyCsrf(): bool

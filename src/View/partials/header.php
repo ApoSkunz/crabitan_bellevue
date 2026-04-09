@@ -242,6 +242,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
 <script>
 window.__userLogged       = <?= $isLogged ? 'true' : 'false' ?>;
 window.__navLang          = '<?= htmlspecialchars($navLang) ?>';
+window.__csrf             = '<?= htmlspecialchars($modalCsrf) ?>';
 window.__authModalError   = <?= $modalError ? 'true' : 'false' ?>;
 window.__authRegisterOpen   = <?= $registerOpen ? 'true' : 'false' ?>;
 window.__registerSuccess    = <?= $registerSuccess ? 'true' : 'false' ?>;
