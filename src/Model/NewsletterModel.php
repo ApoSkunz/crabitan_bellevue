@@ -18,17 +18,18 @@ class NewsletterModel extends Model
     /**
      * Enregistre une nouvelle campagne et retourne son identifiant.
      *
-     * @param string      $subject  Objet de la newsletter
-     * @param string      $body     Corps HTML brut (avant nl2br)
-     * @param string|null $imageUrl URL publique de l'image d'en-tête
+     * @param string      $subject      Objet de la newsletter
+     * @param string      $body         Corps HTML brut (avant nl2br)
+     * @param string|null $imageUrl     URL publique de l'image d'en-tête
+     * @param string|null $segmentLabel Segment ciblé (NULL = tous les abonnés)
      * @return int Identifiant de la campagne créée
      */
-    public function create(string $subject, string $body, ?string $imageUrl): int
+    public function create(string $subject, string $body, ?string $imageUrl, ?string $segmentLabel = null): int
     {
         return (int) $this->db->insert(
-            "INSERT INTO {$this->table} (subject, body, image_url)
-             VALUES (?, ?, ?)",
-            [$subject, $body, $imageUrl]
+            "INSERT INTO {$this->table} (subject, body, image_url, segment_label)
+             VALUES (?, ?, ?, ?)",
+            [$subject, $body, $imageUrl, $segmentLabel]
         );
     }
 
@@ -73,7 +74,7 @@ class NewsletterModel extends Model
     public function getAll(int $limit, int $offset): array
     {
         return $this->db->fetchAll(
-            "SELECT id, subject, image_url, sent_count, failed_count, sent_at
+            "SELECT id, subject, image_url, sent_count, failed_count, sent_at, segment_label
              FROM {$this->table}
              ORDER BY sent_at DESC
              LIMIT ? OFFSET ?",
@@ -100,7 +101,7 @@ class NewsletterModel extends Model
     public function findCampaignById(int $id): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT id, subject, body, image_url, sent_count, failed_count, sent_at
+            "SELECT id, subject, body, image_url, sent_count, failed_count, sent_at, segment_label
              FROM {$this->table}
              WHERE id = ?",
             [$id]
