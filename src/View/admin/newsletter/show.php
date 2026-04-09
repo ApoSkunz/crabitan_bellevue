@@ -3,6 +3,11 @@
 <?php
 /** @var array<string, mixed> $campaign */
 $attachments = $campaign['attachments'] ?? [];
+$sentCount   = (int) ($campaign['sent_count']   ?? 0);
+$opensCount  = (int) ($campaign['opens_count']  ?? 0);
+$clicksCount = (int) ($campaign['clicks_count'] ?? 0);
+$openRate    = $sentCount > 0 ? round($opensCount  / $sentCount * 100, 1) : 0.0;
+$clickRate   = $sentCount > 0 ? round($clicksCount / $sentCount * 100, 1) : 0.0;
 ?>
 
 <div class="admin-page-header">
@@ -49,6 +54,27 @@ $attachments = $campaign['attachments'] ?? [];
                     <?php endforeach; ?>
                 </dd>
             <?php endif; ?>
+        </dl>
+    </div>
+</div>
+
+<div class="admin-card" style="margin-bottom:1.5rem;">
+    <div class="admin-card__body">
+        <h2 style="font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;color:#6b5f50;margin-bottom:1rem;">
+            Statistiques de tracking
+        </h2>
+        <dl style="display:grid;grid-template-columns:max-content 1fr;gap:0.4rem 1.5rem;font-size:0.9rem;">
+            <dt style="color:#8a7a60;">Ouvertures</dt>
+            <dd><?= $opensCount ?> / <?= $sentCount ?>
+                &nbsp;&middot;&nbsp;
+                <span style="font-weight:600;"><?= $openRate ?>%</span>
+            </dd>
+
+            <dt style="color:#8a7a60;">Clics</dt>
+            <dd><?= $clicksCount ?> / <?= $sentCount ?>
+                &nbsp;&middot;&nbsp;
+                <span style="font-weight:600;"><?= $clickRate ?>%</span>
+            </dd>
         </dl>
     </div>
 </div>
