@@ -12,96 +12,111 @@
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;">
 
     <!-- Registre des traitements — Art. 30 -->
-    <div class="admin-card" style="padding:1.5rem;">
+    <div class="admin-card" style="padding:1.5rem;display:flex;flex-direction:column;">
         <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">📋</div>
         <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">Registre des traitements</h2>
-        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;">
+        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;flex:1;">
             Art. 30 RGPD — Liste de toutes les activités de traitement avec bases légales,
             catégories de données, destinataires et durées de conservation.
         </p>
         <a href="/admin/dpo/registre-traitements"
            class="admin-btn admin-btn--primary"
-           style="display:inline-block;text-decoration:none;"
+           style="display:inline-block;text-decoration:none;margin-top:auto;"
            target="_blank" rel="noopener noreferrer">
             ⬇ Télécharger le PDF
         </a>
     </div>
 
     <!-- Sous-traitants — Art. 28 -->
-    <div class="admin-card" style="padding:1.5rem;">
+    <div class="admin-card" style="padding:1.5rem;display:flex;flex-direction:column;">
         <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">🤝</div>
         <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">Sous-traitants (DPA)</h2>
-        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;">
+        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;flex:1;">
             Art. 28 RGPD — Inventaire de tous les sous-traitants (IONOS, Google, GitHub, Crédit Agricole…)
             avec statut de conformité et liens DPA.
         </p>
         <a href="/admin/dpo/sous-traitants"
            class="admin-btn admin-btn--primary"
-           style="display:inline-block;text-decoration:none;"
+           style="display:inline-block;text-decoration:none;margin-top:auto;"
            target="_blank" rel="noopener noreferrer">
             ⬇ Télécharger le PDF
         </a>
     </div>
 
     <!-- Procédure violation — Art. 33 -->
-    <div class="admin-card" style="padding:1.5rem;">
+    <div class="admin-card" style="padding:1.5rem;display:flex;flex-direction:column;">
         <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">🚨</div>
         <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">Procédure violation de données</h2>
-        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;">
+        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;flex:1;">
             Art. 33 & 34 RGPD — Procédure d'escalade, arbre de décision notification CNIL (72h),
             template de notification et registre interne des violations.
         </p>
         <a href="/admin/dpo/procedure-violation"
            class="admin-btn admin-btn--primary"
-           style="display:inline-block;text-decoration:none;"
+           style="display:inline-block;text-decoration:none;margin-top:auto;"
            target="_blank" rel="noopener noreferrer">
             ⬇ Télécharger le PDF
         </a>
     </div>
 
     <!-- Matrice des habilitations RGPD -->
-    <div class="admin-card" style="padding:1.5rem;">
+    <div class="admin-card" style="padding:1.5rem;display:flex;flex-direction:column;">
         <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">🔐</div>
         <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">Matrice des habilitations</h2>
-        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;">
+        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;flex:1;">
             Tableau rôle × ressource × données personnelles visibles — base du contrôle d'accès RGPD.
             À réviser annuellement ou à chaque nouveau traitement.
         </p>
         <a href="/admin/dpo/matrice-habilitations"
            class="admin-btn admin-btn--primary"
-           style="display:inline-block;text-decoration:none;"
+           style="display:inline-block;text-decoration:none;margin-top:auto;"
            target="_blank" rel="noopener noreferrer">
             ⬇ Télécharger le PDF
         </a>
     </div>
 
     <!-- DPIA — Art. 35 -->
-    <div class="admin-card" style="padding:1.5rem;">
+    <div class="admin-card" style="padding:1.5rem;display:flex;flex-direction:column;">
         <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">🔍</div>
         <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">DPIA — Analyse d'impact</h2>
-        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;">
+        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;flex:1;">
             Art. 35 RGPD — Analyse d'impact sur les traitements à risque élevé : relance panier abandonné,
             profilage inactivité client, tracking newsletter.
         </p>
         <a href="/admin/dpo/dpia"
            class="admin-btn admin-btn--primary"
-           style="display:inline-block;text-decoration:none;"
+           style="display:inline-block;text-decoration:none;margin-top:auto;"
            target="_blank" rel="noopener noreferrer">
             ⬇ Télécharger le PDF
         </a>
     </div>
 
+    <!-- Pages légales versionnées -->
+    <div class="admin-card" style="padding:1.5rem;display:flex;flex-direction:column;">
+        <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">📝</div>
+        <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">Pages légales</h2>
+        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;flex:1;">
+            CGV, mentions légales, politique de confidentialité — gestion des versions et dates
+            de mise à jour publiées sur le site.
+        </p>
+        <a href="/admin/dpo/pages-legales"
+           class="admin-btn admin-btn--primary"
+           style="display:inline-block;text-decoration:none;margin-top:auto;">
+            Gérer les versions →
+        </a>
+    </div>
+
     <!-- Demandes RGPD -->
-    <div class="admin-card" style="padding:1.5rem;">
+    <div class="admin-card" style="padding:1.5rem;display:flex;flex-direction:column;">
         <div style="font-size:1.5rem;margin-bottom:0.75rem;" aria-hidden="true">📬</div>
         <h2 style="font-size:1rem;margin:0 0 0.5rem;color:var(--color-gold,#c1a14b);">Demandes RGPD</h2>
-        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;">
+        <p style="font-size:0.8rem;color:#8a7a60;margin:0 0 1rem;flex:1;">
             Art. 15-21 RGPD — Suivi des demandes d'accès, rectification, effacement, portabilité
             et opposition. Délai légal de traitement : 1 mois (CNIL).
         </p>
         <a href="/admin/rgpd/demandes"
            class="admin-btn admin-btn--primary"
-           style="display:inline-block;text-decoration:none;">
+           style="display:inline-block;text-decoration:none;margin-top:auto;">
             Gérer les demandes →
         </a>
     </div>
