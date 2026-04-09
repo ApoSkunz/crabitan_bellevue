@@ -943,6 +943,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $urlCgv     = $appUrl . self::URL_CGV;
         $urlUnsub   = $unsubToken !== null
             ? $appUrl . '/' . $lang . '/newsletter/desabonnement?token=' . urlencode($unsubToken)
+              . ($campaignId !== null ? '&cid=' . $campaignId : '')
             : $appUrl . '/' . $lang . '/mon-compte';
         $safeTitle  = htmlspecialchars($title, ENT_QUOTES);
         // Image optionnelle : centrée dans le bloc blanc, avant le séparateur/désabonnement

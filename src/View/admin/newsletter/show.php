@@ -8,8 +8,10 @@ $sentCount         = (int) ($campaign['sent_count']          ?? 0);
 $opensCount        = (int) ($campaign['opens_count']         ?? 0);
 $clicksCount       = (int) ($campaign['clicks_count']        ?? 0);
 $uniqueClicksCount = (int) ($campaign['unique_clicks_count'] ?? 0);
+$unsubscribesCount = (int) ($campaign['unsubscribes_count']  ?? 0);
 $openRate          = $sentCount > 0 ? round($opensCount  / $sentCount * 100, 1) : 0.0;
 $clickRate         = $sentCount > 0 ? round($uniqueClicksCount / $sentCount * 100, 1) : 0.0;
+$hasLinks          = !empty($linkStats);
 ?>
 
 <div class="admin-page-header">
@@ -19,6 +21,11 @@ $clickRate         = $sentCount > 0 ? round($uniqueClicksCount / $sentCount * 10
 <div class="admin-card" style="margin-bottom:1.5rem;">
     <div class="admin-card__body">
         <dl style="display:grid;grid-template-columns:max-content 1fr;gap:0.4rem 1.5rem;font-size:0.9rem;">
+            <?php if (!empty($campaign['title'])) : ?>
+                <dt style="color:#8a7a60;">Titre</dt>
+                <dd><?= htmlspecialchars((string) $campaign['title']) ?></dd>
+            <?php endif; ?>
+
             <dt style="color:#8a7a60;">Date d'envoi</dt>
             <dd><?= date('d/m/Y à H:i', strtotime($campaign['sent_at'])) ?></dd>
 
@@ -72,6 +79,7 @@ $clickRate         = $sentCount > 0 ? round($uniqueClicksCount / $sentCount * 10
                 <span style="font-weight:600;"><?= $openRate ?>%</span>
             </dd>
 
+            <?php if ($hasLinks) : ?>
             <dt style="color:#8a7a60;">Clics uniques</dt>
             <dd><?= $uniqueClicksCount ?> / <?= $sentCount ?>
                 &nbsp;&middot;&nbsp;
@@ -80,6 +88,10 @@ $clickRate         = $sentCount > 0 ? round($uniqueClicksCount / $sentCount * 10
 
             <dt style="color:#8a7a60;">Clics totaux</dt>
             <dd><?= $clicksCount ?></dd>
+            <?php endif; ?>
+
+            <dt style="color:#8a7a60;">Désinscriptions</dt>
+            <dd><?= $unsubscribesCount ?></dd>
         </dl>
 
         <?php if (!empty($linkStats)) : ?>

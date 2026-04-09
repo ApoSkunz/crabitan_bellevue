@@ -26,7 +26,10 @@ require_once __DIR__ . '/../partials/header.php';
             <p style="margin-bottom:1.5rem;">Confirmez-vous votre désabonnement de la newsletter du Château Crabitan Bellevue ?</p>
             <form method="POST"
                   action="/<?= htmlspecialchars($lang) ?>/newsletter/desabonnement">
-                <input type="hidden" name="unsub_token" value="<?= htmlspecialchars($unsubToken ?? '') ?>">
+                <input type="hidden" name="unsub_token"  value="<?= htmlspecialchars($unsubToken ?? '') ?>">
+                <?php if (!empty($campaignId)) : ?>
+                <input type="hidden" name="campaign_id" value="<?= (int) $campaignId ?>">
+                <?php endif; ?>
                 <button type="submit" class="btn btn--primary btn--sm"
                         style="display:block;width:100%;text-align:center;margin-bottom:0.75rem;">
                     Confirmer le désabonnement
