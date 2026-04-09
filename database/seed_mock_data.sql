@@ -38,6 +38,12 @@ TRUNCATE TABLE `pricing_rules`;
 TRUNCATE TABLE `wines`;
 TRUNCATE TABLE `news`;
 TRUNCATE TABLE `order_forms`;
+TRUNCATE TABLE `newsletter_clicks`;
+TRUNCATE TABLE `newsletter_opens`;
+TRUNCATE TABLE `newsletter_links`;
+TRUNCATE TABLE `newsletter_subscriptions`;
+TRUNCATE TABLE `newsletter_attachments`;
+TRUNCATE TABLE `newsletters`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -966,3 +972,26 @@ VALUES
 ('visitor.confirmed@dev.local', NULL, NULL,
  1, '2026-03-10 14:00:00', '127.0.0.1',
  '127.0.0.1', 'en', 1, '2026-03-10 13:58:00', '2026-03-10 13:58:00');
+
+-- ============================================================
+-- NEWSLETTER TRACKING (liens, ouvertures, clics — campagne id=1)
+-- ============================================================
+
+INSERT INTO `newsletter_links` (`id`, `newsletter_id`, `url`) VALUES
+(1, 1, 'https://crabitanbellevue.fr/fr/vins'),
+(2, 1, 'https://crabitanbellevue.fr/fr/actualites');
+
+ALTER TABLE `newsletter_links` AUTO_INCREMENT = 3;
+
+INSERT INTO `newsletter_opens` (`newsletter_id`, `subscriber_id`, `opened_at`) VALUES
+(1, 3, '2026-03-01 11:30:00'),
+(1, 5, '2026-03-01 14:00:00'),
+(1, 12, '2026-03-02 08:45:00');
+
+ALTER TABLE `newsletter_opens` AUTO_INCREMENT = 4;
+
+INSERT INTO `newsletter_clicks` (`newsletter_id`, `link_id`, `subscriber_id`, `clicked_at`) VALUES
+(1, 1, 3, '2026-03-01 11:32:00'),
+(1, 2, 5, '2026-03-01 14:05:00');
+
+ALTER TABLE `newsletter_clicks` AUTO_INCREMENT = 3;
