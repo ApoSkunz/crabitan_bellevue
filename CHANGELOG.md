@@ -2,6 +2,28 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.51.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.50.0...v0.51.0) (2026-04-09)
+
+
+### Bug Fixes
+
+* **coverage:** codeCoverageIgnore boucles slugs sitemap + fix test CI ([b761b07](https://github.com/ApoSkunz/crabitan_bellevue/commit/b761b0766b156c9179f46e41c6f52d85d6821f40))
+* **coverage:** supprime codeCoverageIgnore + test sitemap slugs seed ([dd389fa](https://github.com/ApoSkunz/crabitan_bellevue/commit/dd389fafbb741277e77aee62f23fd1d4f95c2dad))
+* **qrcode:** encode fiche-technique URL instead of public wine page ([9783243](https://github.com/ApoSkunz/crabitan_bellevue/commit/978324313b8c1f477f0c48dc5c4bcc9a8b9d3b45))
+* **security:** remplace tous les fallbacks http:// par https://crabitanbellevue.fr ([0e85b02](https://github.com/ApoSkunz/crabitan_bellevue/commit/0e85b02b763c6e87bf36dbccda1cc4f74781c551))
+* **security:** supprime dernières références à localhost ([181164d](https://github.com/ApoSkunz/crabitan_bellevue/commit/181164d5e6eab5903e99d7c62dc7135a40b3e215))
+* **sonar:** PageController coverage 100% + S1172 NOSONAR ([b76fce4](https://github.com/ApoSkunz/crabitan_bellevue/commit/b76fce40f03363b885931915833f87acff790eac))
+* **sonar:** PageController S1172 + hotspot http + coverage sitemap/getAllSlugs ([cf3308d](https://github.com/ApoSkunz/crabitan_bellevue/commit/cf3308dd6a1a0276153940e462b3e25e38b6721a))
+* **sonar:** S1192 — constante DEFAULT_URL pour les fallbacks MailService ([c12015d](https://github.com/ApoSkunz/crabitan_bellevue/commit/c12015de93f7845dc810e43c2aa6882906f235ba))
+
+
+### Features
+
+* **admin:** affiche "Cuvée spéciale" dans le titre de la modal QR ([ac79209](https://github.com/ApoSkunz/crabitan_bellevue/commit/ac7920909702a921dedbc0319670670950431bc2))
+* **admin:** bouton téléchargement QR code dans la modal vins ([161a31f](https://github.com/ApoSkunz/crabitan_bellevue/commit/161a31f219f61afd9bfb1c1b131cb159da7206c6))
+* **admin:** QR code modal accessible depuis le tableau des vins ([c492c76](https://github.com/ApoSkunz/crabitan_bellevue/commit/c492c76f8ec59d7e7ca2a7de2fcef519b53d504d))
+* **catalogue:** sitemap.xml dynamique + QR code vin admin ([fc04cbc](https://github.com/ApoSkunz/crabitan_bellevue/commit/fc04cbce5625567582d72f290f74f5d34b43beb7))
+
 # [0.50.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.49.0...v0.50.0) (2026-04-09)
 
 
