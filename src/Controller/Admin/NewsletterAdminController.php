@@ -19,6 +19,7 @@ class NewsletterAdminController extends AdminController
     private const PER_PAGE                = 25;
     private const HISTORY_PER_PAGE        = 10;
     private const ALLOWED_HISTORY_PER_PAGE = [10, 25, 50];
+    private const ALLOWED_SEGMENTS = ['tous', 'particuliers', 'professionnels', 'commandes', 'sans-commande', 'inactifs'];
     private const ATTACHMENT_DIR = 'storage/newsletters/attachments/';
 
     private AccountModel $accounts;
@@ -77,6 +78,28 @@ class NewsletterAdminController extends AdminController
     }
 
     // ----------------------------------------------------------------
+    // GET /admin/newsletter/segment-count
+    // ----------------------------------------------------------------
+
+    /**
+     * Retourne en JSON le nombre d'abonnés correspondant au segment demandé.
+     *
+     * @param array<string, string> $_params
+     */
+    public function segmentCount(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
+    {
+        $this->requireAdmin();
+
+        $segment = $this->request->get('segment', 'tous');
+        if (!in_array($segment, self::ALLOWED_SEGMENTS, true)) {
+            $segment = 'tous';
+        }
+
+        $count = $this->accounts->countNewsletterSubscribersBySegment($segment);
+        $this->json(['count' => $count]);
+    }
+
+    // ----------------------------------------------------------------
     // GET /admin/newsletter/{id}
     // ----------------------------------------------------------------
 
@@ -123,6 +146,10 @@ class NewsletterAdminController extends AdminController
         $subject = trim($this->request->post('subject', ''));
         $title   = trim($this->request->post('nl_title', ''));
         $body    = trim($this->request->post('body', ''));
+        $segment = $this->request->post('segment', 'tous');
+        if (!in_array($segment, self::ALLOWED_SEGMENTS, true)) {
+            $segment = 'tous';
+        }
 
         if ($subject === '' || $body === '') {
             $this->flash('error', 'Objet et contenu sont obligatoires.');
@@ -138,7 +165,8 @@ class NewsletterAdminController extends AdminController
         $imageUrl = $this->uploadNewsletterImage($_FILES['nl_image'] ?? [], $allowed, $destDir, $appUrl);
 
         // Persister la campagne avant l'envoi (avec objet complet)
-        $campaignId = $this->newsletters->create($subjectLine, $body, $imageUrl);
+        $segmentLabel = $segment !== 'tous' ? $segment : null;
+        $campaignId   = $this->newsletters->create($subjectLine, $body, $imageUrl, $segmentLabel);
 
         // Gérer la pièce jointe PDF — copie permanente pour l'historique
         $pdfPath    = null;
@@ -149,7 +177,7 @@ class NewsletterAdminController extends AdminController
             $pdfName = $attachment['original_name'];
         }
 
-        $all         = $this->accounts->getNewsletterSubscribers(10000, 0);
+        $all         = $this->accounts->getNewsletterSubscribersBySegment($segment, 10000, 0);
         $mailer      = new MailService();
         $sent        = 0;
         $failed      = 0;
@@ -198,7 +226,7 @@ class NewsletterAdminController extends AdminController
             'newsletter.sent',
             'newsletter',
             $campaignId,
-            ['subject' => $subjectLine, 'sent' => $sent, 'failed' => $failed],
+            ['subject' => $subjectLine, 'sent' => $sent, 'failed' => $failed, 'segment' => $segment],
             AuditLogger::getIp()
         );
 
