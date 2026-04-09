@@ -25,9 +25,6 @@ class GoogleOAuthController extends Controller
     /** Durée de vie du JWT Google OAuth (24h). */
     private const JWT_EXPIRY = 86400;
 
-    /** Fallback APP_URL si la variable d'environnement n'est pas définie. */
-    private const APP_URL_FALLBACK = 'https://crabitanbellevue.fr';
-
     private AccountModel $accounts;
     private ConnectionModel $connections;
     private GoogleOAuthService $oauth;
@@ -353,7 +350,7 @@ class GoogleOAuthController extends Controller
         if (!empty($_ENV[$envKey])) {
             return $_ENV[$envKey];
         }
-        return rtrim($_ENV['APP_URL'] ?? self::APP_URL_FALLBACK, '/') . "/{$lang}/auth/google/callback";
+        return rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/') . "/{$lang}/auth/google/callback";
     }
 
     /**
