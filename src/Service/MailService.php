@@ -36,7 +36,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
         $this->mailer = new PHPMailer(true);
         $this->mailer->isSMTP();
-        $this->mailer->Host    = $_ENV['MAIL_HOST'] ?? 'localhost';
+        $this->mailer->Host    = $_ENV['MAIL_HOST'] ?? 'crabitanbellevue.fr';
         $this->mailer->Port    = (int) ($_ENV['MAIL_PORT'] ?? 25);
         $this->mailer->CharSet = 'UTF-8';
 
@@ -52,7 +52,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         }
 
         $appUrl      = $_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : 'https://crabitanbellevue.fr');
-        $host        = parse_url($appUrl, PHP_URL_HOST) ?? 'localhost';
+        $host        = parse_url($appUrl, PHP_URL_HOST) ?? 'crabitanbellevue.fr';
         $fromAddress = $mailUser !== ''
             ? $mailUser
             : ($_ENV['MAIL_FROM'] ?? ('noreply@' . $host));

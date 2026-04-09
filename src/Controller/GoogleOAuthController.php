@@ -341,7 +341,7 @@ class GoogleOAuthController extends Controller
      * Construit l'URI de callback OAuth pour la langue donnée.
      *
      * Priorité :
-     *   1. GOOGLE_FR_FALBACK / GOOGLE_EN_FALBACK  — valeur explicite .env (localhost en dev)
+     *   1. GOOGLE_FR_FALBACK / GOOGLE_EN_FALBACK  — valeur explicite .env
      *   2. APP_URL + /{lang}/auth/google/callback  — fallback générique
      *
      * @param string $lang Code langue (fr|en)
