@@ -1814,4 +1814,80 @@ class MailServiceTest extends TestCase
         $this->assertStringContainsString('GDPR Art. 20', $mailer->Subject);
         $this->assertStringContainsString('John Doe', $mailer->Body);
     }
+
+    // ----------------------------------------------------------------
+    // sendInactivityWarning — branche FR
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testSendInactivityWarningFrCoversBody(): void
+    {
+        $_ENV['APP_URL'] = 'http://crabitan.local';
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendInactivityWarning(
+            'inactive@test.com',
+            'Marie Dupont',
+            'fr',
+            '30/06/2026'
+        );
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('inactivité', $mailer->Subject);
+        $this->assertStringContainsString('Marie Dupont', $mailer->Body);
+        $this->assertStringContainsString('30/06/2026', $mailer->Body);
+        $this->assertStringContainsString('Me connecter', $mailer->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendInactivityWarning — branche EN
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testSendInactivityWarningEnCoversBody(): void
+    {
+        $_ENV['APP_URL'] = 'http://crabitan.local';
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendInactivityWarning(
+            'inactive@test.com',
+            'John Smith',
+            'en',
+            '30/06/2026'
+        );
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('inactivity', $mailer->Subject);
+        $this->assertStringContainsString('John Smith', $mailer->Body);
+        $this->assertStringContainsString('30/06/2026', $mailer->Body);
+        $this->assertStringContainsString('Log in', $mailer->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendInactivityWarning — XSS escaping
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testSendInactivityWarningEscapesXss(): void
+    {
+        $_ENV['APP_URL'] = 'http://crabitan.local';
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendInactivityWarning(
+            'xss@test.com',
+            '<script>alert(1)</script>',
+            'fr',
+            '<b>date</b>'
+        );
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringNotContainsString('<script>', $mailer->Body);
+        $this->assertStringNotContainsString('<b>date</b>', $mailer->Body);
+    }
 }

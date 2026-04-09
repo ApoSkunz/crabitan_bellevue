@@ -614,12 +614,136 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
 
         // Suppression des adresses sauvegardées (données personnelles, non nécessaires à la comptabilité)
         // Les snapshots adresses/facturation dans orders.content sont conservés pour obligation comptable.
+        // Les adresses preserved_for_order = 1 sont purgées séparément par bin/purge_addresses.php.
         $this->db->execute(
-            "DELETE FROM addresses WHERE user_id IN ({$placeholders})",
+            "DELETE FROM addresses WHERE user_id IN ({$placeholders}) AND preserved_for_order = 0",
             $ids
         );
 
         return count($ids);
+    }
+
+    // ----------------------------------------------------------------
+    // RGPD — Inactivité (Art. 5 §1e — minimisation des données)
+    // ----------------------------------------------------------------
+
+    /**
+     * Retourne les comptes clients inactifs depuis $months mois, non encore avertis.
+     *
+     * Critères d'exclusion : admin/super_admin, déjà soft-deleted,
+     * avertissement déjà envoyé, commande pending/processing active.
+     *
+     * @param int $months Durée d'inactivité en mois (lu depuis RGPD_INACTIVITY_MONTHS)
+     * @return array<int, array<string, mixed>>
+     */
+    public function getInactiveAccounts(int $months): array
+    {
+        return $this->db->fetchAll(
+            "SELECT a.id, a.email, a.lang,
+                    COALESCE(ai.firstname, ac.company_name, a.email) AS name
+             FROM {$this->table} a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             WHERE a.role = 'customer'
+               AND a.deleted_at IS NULL
+               AND a.inactivity_warning_sent_at IS NULL
+               AND NOT EXISTS (
+                   SELECT 1 FROM orders o
+                   WHERE o.user_id = a.id AND o.status IN ('pending', 'processing')
+               )
+               AND COALESCE(
+                   (SELECT MAX(c.created_at) FROM connections c WHERE c.user_id = a.id),
+                   a.created_at
+               ) < DATE_SUB(NOW(), INTERVAL ? MONTH)",
+            [$months]
+        );
+    }
+
+    /**
+     * Retourne les comptes à soft-delete : avertis il y a plus de 30 jours
+     * et n'ayant pas reconnecté depuis l'avertissement.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAccountsToSoftDelete(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT a.id, a.email, a.lang,
+                    COALESCE(ai.firstname, ac.company_name, a.email) AS name
+             FROM {$this->table} a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             WHERE a.role = 'customer'
+               AND a.deleted_at IS NULL
+               AND a.inactivity_warning_sent_at IS NOT NULL
+               AND a.inactivity_warning_sent_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+               AND NOT EXISTS (
+                   SELECT 1 FROM connections c
+                   WHERE c.user_id = a.id AND c.created_at > a.inactivity_warning_sent_at
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM orders o
+                   WHERE o.user_id = a.id AND o.status IN ('pending', 'processing')
+               )"
+        );
+    }
+
+    /**
+     * Marque l'avertissement d'inactivité comme envoyé.
+     *
+     * @param int $id Identifiant du compte
+     */
+    public function markInactivityWarningSent(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET inactivity_warning_sent_at = NOW() WHERE id = ?",
+            [$id]
+        );
+    }
+
+    /**
+     * Soft-delete un compte inactif : pose deleted_at, scheduled_deletion_at J+30,
+     * génère un token de réactivation et révoque toutes les sessions actives.
+     *
+     * Préserve les adresses liées à des commandes actives (pending/processing).
+     *
+     * @param int $id Identifiant du compte
+     */
+    public function softDeleteForInactivity(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET deleted_at = NOW(),
+                 scheduled_deletion_at = DATE_ADD(NOW(), INTERVAL 30 DAY),
+                 reactivation_token = ?
+             WHERE id = ?",
+            [bin2hex(random_bytes(32)), $id]
+        );
+
+        $this->revokeAllSessions($id);
+        $this->preserveAddressesForActiveOrders($id);
+    }
+
+    /**
+     * Marque les adresses liées à des commandes actives comme préservées.
+     * Elles seront purgées par bin/purge_addresses.php une fois les commandes terminées.
+     *
+     * @param int $id Identifiant du compte
+     */
+    private function preserveAddressesForActiveOrders(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE addresses a
+             SET a.preserved_for_order = 1
+             WHERE a.user_id = ?
+               AND EXISTS (
+                   SELECT 1 FROM order_address_snapshots oas
+                   JOIN orders o ON (o.id_billing_snapshot = oas.id OR o.id_delivery_snapshot = oas.id)
+                   WHERE oas.source_address_id = a.id
+                     AND o.status IN ('pending', 'processing')
+               )",
+            [$id]
+        );
     }
 
     // ----------------------------------------------------------------

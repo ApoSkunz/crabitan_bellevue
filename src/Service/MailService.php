@@ -485,6 +485,75 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     }
 
     /**
+     * Envoie un email d'avertissement d'inactivité RGPD (Art. 5 §1e).
+     *
+     * Le compte n'est PAS encore supprimé — l'utilisateur peut se reconnecter
+     * pour annuler la suppression programmée dans 30 jours.
+     *
+     * @param string $to           Destinataire
+     * @param string $name         Nom affiché
+     * @param string $lang         Langue (fr|en)
+     * @param string $deletionDate Date de suppression prévue (format lisible)
+     * @return void
+     */
+    public function sendInactivityWarning(
+        string $to,
+        string $name,
+        string $lang,
+        string $deletionDate
+    ): void {
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://crabitan.local', '/'); // NOSONAR — fallback local dev
+        $loginUrl    = $appUrl . '/' . $lang . '?login=1';
+        $safeName    = htmlspecialchars($name, ENT_QUOTES);
+        $safeDate    = htmlspecialchars($deletionDate, ENT_QUOTES);
+        $safeLogin   = htmlspecialchars($loginUrl, ENT_QUOTES);
+
+        $loginBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . '<a href="' . $safeLogin . self::BTN_ANCHOR_STYLE_ATTR
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . ($lang === 'fr' ? 'Me connecter' : 'Log in')
+            . '</a></td></tr></table>';
+
+        if ($lang === 'fr') {
+            $subject = 'Votre compte Crabitan sera supprimé pour inactivité';
+            $message = "Nous n'avons pas détecté de connexion à votre compte depuis plus de 36 mois."
+                . " Conformément à notre politique RGPD (Art. 5 §1e), votre compte sera automatiquement"
+                . " supprimé le <strong>{$safeDate}</strong>.<br><br>"
+                . "Si vous souhaitez conserver votre compte, il vous suffit de vous connecter avant cette date.<br><br>"
+                . $loginBtn
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'Si vous n\'utilisez plus ce compte, vous n\'avez rien à faire.'
+                . '</p>';
+            $body = $this->emailSimpleLayout(
+                'Avertissement inactivité',
+                "Bonjour {$safeName},",
+                $message,
+                'fr'
+            );
+        } else {
+            $subject = 'Your Crabitan account will be deleted due to inactivity';
+            $message = "We have not detected any login to your account for over 36 months."
+                . " In accordance with our GDPR policy (Art. 5 §1e), your account will be automatically"
+                . " deleted on <strong>{$safeDate}</strong>.<br><br>"
+                . "If you wish to keep your account, simply log in before that date.<br><br>"
+                . $loginBtn
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'If you no longer use this account, no action is required.'
+                . '</p>';
+            $body = $this->emailSimpleLayout(
+                'Inactivity warning',
+                "Hello {$safeName},",
+                $message,
+                'en'
+            );
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
      * Envoie la demande de confirmation de changement de mot de passe.
      * Le mot de passe n'est PAS encore modifié — il sera appliqué uniquement après clic sur "C'était moi".
      *
