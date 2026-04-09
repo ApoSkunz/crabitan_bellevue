@@ -105,7 +105,7 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
     {
         $_POST['csrf_token'] = self::CSRF_TOKEN;
         $_POST['version']    = '1.2';
-        $_POST['updated_at'] = '2026-05-01';
+        $_POST['updated_at'] = '2026-04-01';
 
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(302);
@@ -118,7 +118,7 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
     {
         $_POST['csrf_token'] = self::CSRF_TOKEN;
         $_POST['version']    = 'v1.2bad';
-        $_POST['updated_at'] = '2026-05-01';
+        $_POST['updated_at'] = '2026-04-01';
 
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(302);
@@ -140,11 +140,37 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
             ->store(['slug' => 'cgv']);
     }
 
+    public function testStoreFutureDateFlashesError(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['version']    = '1.2';
+        $_POST['updated_at'] = date('Y-m-d', strtotime('+1 year'));
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/admin/dpo/pages-legales/cgv/modifier')
+            ->store(['slug' => 'cgv']);
+    }
+
+    public function testStoreThreePartVersionAccepted(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['version']    = '1.2.3';
+        $_POST['updated_at'] = '2026-04-01';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/admin/dpo/pages-legales/cgv/modifier')
+            ->store(['slug' => 'cgv']);
+    }
+
     public function testStoreUnknownSlugAborts404(): void
     {
         $_POST['csrf_token'] = self::CSRF_TOKEN;
         $_POST['version']    = '1.0';
-        $_POST['updated_at'] = '2026-05-01';
+        $_POST['updated_at'] = '2026-04-01';
 
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(404);
@@ -161,7 +187,7 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
 
         $_POST['csrf_token'] = self::CSRF_TOKEN;
         $_POST['version']    = '1.0';
-        $_POST['updated_at'] = '2026-05-01';
+        $_POST['updated_at'] = '2026-04-01';
 
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(404);
@@ -178,7 +204,7 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
     {
         $_POST['csrf_token']        = self::CSRF_TOKEN;
         $_POST['version']           = '1.2';
-        $_POST['updated_at']        = '2026-05-01';
+        $_POST['updated_at']        = '2026-04-01';
         $_POST['send_notification'] = '1';
 
         $this->expectException(HttpException::class);
@@ -192,7 +218,7 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
     {
         $_POST['csrf_token']        = self::CSRF_TOKEN;
         $_POST['version']           = '1.2';
-        $_POST['updated_at']        = '2026-05-01';
+        $_POST['updated_at']        = '2026-04-01';
         $_POST['send_notification'] = '1';
         $_POST['change_note']       = 'Résumé test.';
 
@@ -220,7 +246,7 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
             'version'     => '1.2',
             'doc_id'      => 1,
             'doc_label'   => 'Conditions Générales de Vente',
-            'updated_at'  => '2026-05-01',
+            'updated_at'  => '2026-04-01',
             'change_note' => '',
         ];
 
@@ -255,7 +281,7 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
             'version'     => '1.2',
             'doc_id'      => 1,
             'doc_label'   => 'Conditions Générales de Vente',
-            'updated_at'  => '2026-05-01',
+            'updated_at'  => '2026-04-01',
             'change_note' => '',
         ];
         $_POST['csrf_token'] = self::CSRF_TOKEN;

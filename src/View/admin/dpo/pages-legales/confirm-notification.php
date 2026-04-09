@@ -36,7 +36,7 @@
                     background:#e8f5e9;border-left:4px solid #2e7d32;border-radius:0 4px 4px 0;">
             <p style="margin:0;font-size:1rem;color:#1b5e20;">
                 <strong><?= $count ?> utilisateur<?= $count > 1 ? 's' : '' ?></strong>
-                va<?= $count > 1 ? 'nt' : '' ?> recevoir un email de notification.
+                <?= $count > 1 ? 'vont' : 'va' ?> recevoir un email de notification.
             </p>
             <?php if ($count === 0) : ?>
             <p style="margin:0.5rem 0 0;font-size:0.85rem;color:#4a7a50;">

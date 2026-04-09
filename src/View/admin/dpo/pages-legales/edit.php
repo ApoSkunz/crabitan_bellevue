@@ -44,7 +44,7 @@
                 </label>
                 <input type="text" id="version" name="version"
                        value="<?= htmlspecialchars($document['version']) ?>"
-                       pattern="^\d+\.\d+$" required
+                       pattern="^\d+\.\d+(\.\d+)?$" required
                        style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d4c9b0;
                               border-radius:4px;font-size:0.9rem;">
             </div>

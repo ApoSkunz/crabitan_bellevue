@@ -16,7 +16,7 @@ use Service\MailService;
 class LegalDocumentAdminController extends AdminController
 {
     private const ADMIN_URL     = '/admin/dpo/pages-legales';
-    private const VERSION_REGEX = '/^\d+\.\d+$/';
+    private const VERSION_REGEX = '/^\d+\.\d+(\.\d+)?$/';
 
     /**
      * Correspondance slug → chemin public (sans la langue).
@@ -136,13 +136,18 @@ class LegalDocumentAdminController extends AdminController
         $changeNote = trim($this->request->post('change_note', ''));
 
         if (!preg_match(self::VERSION_REGEX, $version)) {
-            $this->flash('error', 'Format de version invalide (attendu : MAJEUR.MINEUR, ex. 1.2).');
+            $this->flash('error', 'Format de version invalide (attendu : X.Y ou X.Y.Z, ex. 1.2 ou 1.2.3).');
             Response::redirect(self::ADMIN_URL . '/' . rawurlencode($slug) . '/modifier');
         }
 
         $date = \DateTimeImmutable::createFromFormat('Y-m-d', $updatedAt);
         if ($date === false || $date->format('Y-m-d') !== $updatedAt) {
             $this->flash('error', 'Date invalide.');
+            Response::redirect(self::ADMIN_URL . '/' . rawurlencode($slug) . '/modifier');
+        }
+
+        if ($date > new \DateTimeImmutable('today')) {
+            $this->flash('error', 'La date de mise à jour ne peut pas être dans le futur.');
             Response::redirect(self::ADMIN_URL . '/' . rawurlencode($slug) . '/modifier');
         }
 
