@@ -2,6 +2,20 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.52.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.51.0...v0.52.0) (2026-04-09)
+
+
+### Bug Fixes
+
+* **view:** newsletter — retire le count total de l'option 'Tous les abonnés' ([3c83fd8](https://github.com/ApoSkunz/crabitan_bellevue/commit/3c83fd80eeac897fd859999a22516285ba3964fb))
+
+
+### Features
+
+* **controller:** segmentation newsletter — endpoint AJAX segment-count + filtrage send() par segment ([4ac3e15](https://github.com/ApoSkunz/crabitan_bellevue/commit/4ac3e15c5f64bb941cb37b2866b630d917358629))
+* **model:** segmentation newsletter — getNewsletterSubscribersBySegment + countNewsletterSubscribersBySegment + segment_label dans NewsletterModel ([b3ff9a9](https://github.com/ApoSkunz/crabitan_bellevue/commit/b3ff9a9881a43e5df7473723217277697f9a9d31))
+* **view:** newsletter admin — select segment + compteur AJAX + colonne historique + modale mise à jour ([9bc5dd2](https://github.com/ApoSkunz/crabitan_bellevue/commit/9bc5dd2e6f08a77a72d8b99fcf76816c3a1f4e20))
+
 # [0.51.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.50.0...v0.51.0) (2026-04-09)
 
 
