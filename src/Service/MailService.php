@@ -628,6 +628,57 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     }
 
     /**
+     * Notifie l'utilisateur que son compte vient d'être définitivement supprimé.
+     * Envoyé juste avant l'anonymisation RGPD — dernière communication possible.
+     *
+     * @param string $to   Destinataire
+     * @param string $name Nom affiché
+     * @param string $lang Langue (fr|en)
+     * @return void
+     */
+    public function sendFinalDeletion(string $to, string $name, string $lang): void
+    {
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject = 'Votre compte Crabitan a été définitivement supprimé';
+            $message = "Conformément à notre politique RGPD (Art. 17), votre compte et l'ensemble"
+                . " de vos données personnelles (nom, e-mail, adresses…) ont été"
+                . " <strong>définitivement supprimés</strong>.<br><br>"
+                . "Vos commandes sont conservées 10 ans conformément aux obligations légales"
+                . " comptables (Art. L123-22 Code de commerce), mais anonymisées —"
+                . " sans aucun lien vers votre identité.<br><br>"
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'Si vous souhaitez créer un nouveau compte à l\'avenir, rendez-vous sur notre site.'
+                . '</p>';
+            $body = $this->emailSimpleLayout(
+                'Compte supprimé',
+                "Bonjour {$safeName},",
+                $message,
+                'fr'
+            );
+        } else {
+            $subject = 'Your Crabitan account has been permanently deleted';
+            $message = "In accordance with our GDPR policy (Art. 17), your account and all"
+                . " your personal data (name, email, addresses…) have been"
+                . " <strong>permanently deleted</strong>.<br><br>"
+                . "Your orders are retained for 10 years as required by accounting law,"
+                . " but anonymised — with no link to your identity.<br><br>"
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'If you wish to create a new account in the future, visit our website.'
+                . '</p>';
+            $body = $this->emailSimpleLayout(
+                'Account deleted',
+                "Hello {$safeName},",
+                $message,
+                'en'
+            );
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
      * Envoie la demande de confirmation de changement de mot de passe.
      * Le mot de passe n'est PAS encore modifié — il sera appliqué uniquement après clic sur "C'était moi".
      *

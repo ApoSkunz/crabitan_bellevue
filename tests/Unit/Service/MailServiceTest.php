@@ -1971,4 +1971,59 @@ class MailServiceTest extends TestCase
         $this->assertStringNotContainsString('<script>', $mailer->Body);
         $this->assertStringNotContainsString('<b>date</b>', $mailer->Body);
     }
+
+    // ----------------------------------------------------------------
+    // sendFinalDeletion — branche FR
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testSendFinalDeletionFrCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendFinalDeletion('purged@test.com', 'Marie Dupont', 'fr');
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('supprimé', $mailer->Subject);
+        $this->assertStringContainsString('Marie Dupont', $mailer->Body);
+        $this->assertStringContainsString('définitivement supprimés', $mailer->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendFinalDeletion — branche EN
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testSendFinalDeletionEnCoversBody(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendFinalDeletion('purged@test.com', 'John Smith', 'en');
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('deleted', $mailer->Subject);
+        $this->assertStringContainsString('John Smith', $mailer->Body);
+        $this->assertStringContainsString('permanently deleted', $mailer->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendFinalDeletion — XSS escaping
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testSendFinalDeletionEscapesXss(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendFinalDeletion('xss@test.com', '<script>alert(1)</script>', 'fr');
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringNotContainsString('<script>', $mailer->Body);
+    }
 }
