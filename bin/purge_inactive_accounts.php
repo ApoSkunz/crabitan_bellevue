@@ -78,10 +78,23 @@ foreach ($toDelete as $account) {
     $id = (int) $account['id'];
 
     try {
-        $accountModel->softDeleteForInactivity($id);
-        $softDeleted++;
+        $token        = $accountModel->softDeleteForInactivity($id);
+        $deletionDate = date('d/m/Y', strtotime('+30 days'));
+        $name         = trim(($account['name'] ?? ''));
+        if ($name === '') {
+            $name = $account['email'];
+        }
 
-        echo $now . " — [DELETE] Compte id={$id} ({$account['email']}) soft-deleted" . PHP_EOL;
+        $mailer->sendInactivityDeletion(
+            $account['email'],
+            $name,
+            $account['lang'] ?? 'fr',
+            $deletionDate,
+            $token
+        );
+
+        $softDeleted++;
+        echo $now . " — [DELETE] Compte id={$id} ({$account['email']}) soft-deleted, email envoyé" . PHP_EOL;
     } catch (\Throwable $e) {
         $deleteErrors++;
         echo $now . " — [DELETE-ERR] id={$id} : " . $e->getMessage() . PHP_EOL;

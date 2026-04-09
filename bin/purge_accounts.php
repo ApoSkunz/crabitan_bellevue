@@ -23,6 +23,30 @@ require_once ROOT_PATH . '/src/helpers.php';
 require_once ROOT_PATH . '/config/config.php';
 
 $model  = new \Model\AccountModel();
+$mailer = new \Service\MailService();
+$now    = date('Y-m-d H:i:s');
+
+// Récupérer les comptes AVANT anonymisation pour pouvoir envoyer l'email
+$due = $model->getAccountsDueForDeletion();
+
+foreach ($due as $account) {
+    $name = trim((string) ($account['name'] ?? ''));
+    if ($name === '') {
+        $name = $account['email'];
+    }
+
+    try {
+        $mailer->sendFinalDeletion(
+            $account['email'],
+            $name,
+            $account['lang'] ?? 'fr'
+        );
+        echo $now . " — [EMAIL] Notification suppression envoyée à {$account['email']} (id={$account['id']})" . PHP_EOL;
+    } catch (\Throwable $e) {
+        echo $now . " — [EMAIL-ERR] id={$account['id']} : " . $e->getMessage() . PHP_EOL;
+    }
+}
+
 $purged = $model->purgeScheduledDeletions();
 
-echo date('Y-m-d H:i:s') . ' — ' . $purged . ' compte(s) anonymisé(s)' . PHP_EOL;
+echo $now . ' — ' . $purged . ' compte(s) anonymisé(s)' . PHP_EOL;

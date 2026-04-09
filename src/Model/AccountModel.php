@@ -565,6 +565,25 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     /**
+     * Retourne les comptes dont la suppression définitive est échue,
+     * avec les données nécessaires à l'envoi de l'email final (avant anonymisation).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAccountsDueForDeletion(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT a.id, a.email, a.lang,
+                    COALESCE(ai.firstname, ac.company_name, a.email) AS name
+             FROM {$this->table} a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             WHERE a.scheduled_deletion_at IS NOT NULL
+               AND a.scheduled_deletion_at < NOW()"
+        );
+    }
+
+    /**
      * Anonymise les comptes dont la suppression programmée est échue.
      * Les données de commandes sont conservées (obligations légales comptables — 10 ans).
      */
@@ -709,19 +728,23 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      *
      * @param int $id Identifiant du compte
      */
-    public function softDeleteForInactivity(int $id): void
+    public function softDeleteForInactivity(int $id): string
     {
+        $token = bin2hex(random_bytes(32));
+
         $this->db->execute(
             "UPDATE {$this->table}
              SET deleted_at = NOW(),
                  scheduled_deletion_at = DATE_ADD(NOW(), INTERVAL 30 DAY),
                  reactivation_token = ?
              WHERE id = ?",
-            [bin2hex(random_bytes(32)), $id]
+            [$token, $id]
         );
 
         $this->revokeAllSessions($id);
         $this->preserveAddressesForActiveOrders($id);
+
+        return $token;
     }
 
     /**
