@@ -2,6 +2,32 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.53.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.52.0...v0.53.0) (2026-04-09)
+
+
+### Bug Fixes
+
+* **controller:** NewsletterModel::create() +title param dans WineAdminController + refactor nested ternaries (php:S3358) ([d90e316](https://github.com/ApoSkunz/crabitan_bellevue/commit/d90e3163d798d7c3e0d8a349ea199f1ce599ca6a))
+* **mail:** buildNewsletterHtml — urlUnsub et texte footer bilingues (FR/EN) selon $lang ([8af6d0d](https://github.com/ApoSkunz/crabitan_bellevue/commit/8af6d0d25ba7e7d9cb1479c97157a660fb8aac80))
+
+
+### Features
+
+* **bin:** add purge_newsletter_tracking.php — cron mensuel purge données tracking > 13 mois (RGPD Art. 5-1-e) ([bb093ac](https://github.com/ApoSkunz/crabitan_bellevue/commit/bb093ac7ecba9b4c8c04d2c2e90102bef08608d4))
+* **controller:** add TrackingController — open() pixel 1×1 GIF + click() redirect avec enregistrement ([17dd867](https://github.com/ApoSkunz/crabitan_bellevue/commit/17dd867e15253242b928592d54dadc492e2810cf))
+* **controller:** NewsletterAdminController — extraction liens + tracking par abonné dans send(), stats dans show() ([c1ca885](https://github.com/ApoSkunz/crabitan_bellevue/commit/c1ca885f659ca9355144db2bb951347e06960b4b))
+* **controller:** tracking désinscriptions newsletter par campagne (cid propagé GET→POST) ([b680c78](https://github.com/ApoSkunz/crabitan_bellevue/commit/b680c78a92d94c76092d4fbd877420e2345396ed))
+* **model:** add NewsletterTrackingModel — saveLink, recordOpen, recordClick, getStats, purge 13 months ([58723f4](https://github.com/ApoSkunz/crabitan_bellevue/commit/58723f40765719f46314e8b80bba6c7ae84a6865))
+* **model:** NewsletterTrackingModel — recordUnsubscribe + unsubscribes_count dans getStats ([666e894](https://github.com/ApoSkunz/crabitan_bellevue/commit/666e8946a1b57018b046d525343f04b44f0ead90))
+* **newsletter:** historique index — colonne Ouvertures X/N Y% ([2843559](https://github.com/ApoSkunz/crabitan_bellevue/commit/2843559cc95c0135ba6c210f95bd438b2b754285))
+* **newsletter:** traduction automatique FR→EN via DeepL avant dispatch ([9148953](https://github.com/ApoSkunz/crabitan_bellevue/commit/91489534246cc4e02c88d8b0c06eb5705be79f19))
+* **newsletter:** version EN optionnelle — objet/titre/corps traduits une fois avant dispatch ([e501a49](https://github.com/ApoSkunz/crabitan_bellevue/commit/e501a49d8f48f90f3d28aae415ed3d46025bd7a9))
+* **routes:** add /track/open/{id}/{token} + /track/click/{id}/{linkId}/{token} ([0933113](https://github.com/ApoSkunz/crabitan_bellevue/commit/093311392fa380e7bb7af036c125d72a1819b23c))
+* **service:** MailService — pixel tracking dans buildNewsletterHtml, List-Unsubscribe RFC 8058 dans sendNewsletter ([1a693ab](https://github.com/ApoSkunz/crabitan_bellevue/commit/1a693aba2e5b3fa67aa5d609cb56b57773397b6c))
+* **tracking:** unique_clicks_count, getLinkStats(), détail par lien dans show + fix clic <a> + traduction FR/EN newsletter ([04f9f08](https://github.com/ApoSkunz/crabitan_bellevue/commit/04f9f084ac3707c38b205fdccf213d2e0a916d8e))
+* **view:** newsletter show — section stats tracking ; politique-confidentialité — tracking + durée 13 mois ([8733f34](https://github.com/ApoSkunz/crabitan_bellevue/commit/8733f3452186aa8a2deca429db7f0da1ff32dac6))
+* **view:** unsubscribe cid propagé dans form + show affiche titre/désabo/clics conditionnels ([dbdcd5b](https://github.com/ApoSkunz/crabitan_bellevue/commit/dbdcd5b77158b7d03ed3d2bb770b3df93cf00438))
+
 # [0.52.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.51.0...v0.52.0) (2026-04-09)
 
 
