@@ -88,10 +88,26 @@ $cssDisabled = ' disabled';
                         Le texte sera envoyé en HTML avec mise en page Crabitan Bellevue.
                     </p>
                 </div>
+                <div class="admin-field" style="margin-bottom:1rem;">
+                    <label class="admin-field__label" for="nl-segment">Segment</label>
+                    <select id="nl-segment" name="segment" class="admin-field__input"
+                            onchange="onSegmentChange(this)">
+                        <option value="tous">Tous les abonnés (<?= $total ?>)</option>
+                        <option value="particuliers">Particuliers</option>
+                        <option value="professionnels">Professionnels</option>
+                        <option value="commandes">Clients ayant commandé</option>
+                        <option value="sans-commande">Abonnés sans commande</option>
+                        <option value="inactifs">Inactifs 6 mois</option>
+                    </select>
+                    <p id="nl-segment-count"
+                       style="font-size:0.78rem;color:#8a7a60;margin-top:0.25rem;">
+                        <?= $total ?> abonné<?= $total > 1 ? 's' : '' ?> dans ce segment
+                    </p>
+                </div>
                 <div class="admin-form__actions">
                     <button type="button" class="admin-btn admin-btn--primary"
                             onclick="openNlModal()">
-                        Envoyer à <?= $total ?> abonné<?= $total > 1 ? 's' : '' ?>
+                        Envoyer
                     </button>
                 </div>
             </form>
@@ -110,8 +126,11 @@ $cssDisabled = ' disabled';
                         Objet : <strong style="color:#8a7a60;">Château Crabitan Bellevue —&nbsp;</strong><strong id="nl-modal-subject" style="color:#1a1208;">—</strong>
                     </p>
                     <p style="font-size:0.9rem;color:#3d3425;margin:0 0 0.5rem;">
+                        Segment : <strong id="nl-modal-segment" style="color:#8a7a60;">Tous les abonnés</strong>
+                    </p>
+                    <p style="font-size:0.9rem;color:#3d3425;margin:0 0 0.5rem;">
                         Cette newsletter sera envoyée à
-                        <strong style="color:#c9a84c;"><?= $total ?> abonné<?= $total > 1 ? 's' : '' ?></strong>.
+                        <strong id="nl-modal-count" style="color:#c9a84c;"><?= $total ?> abonné<?= $total > 1 ? 's' : '' ?></strong>.
                         Cette action est irréversible.
                     </p>
                     <p id="nl-modal-pdf" style="display:none;font-size:0.85rem;color:#3d3425;margin:0 0 1rem;">
@@ -161,6 +180,7 @@ $cssDisabled = ' disabled';
                 <tr>
                     <th>#</th>
                     <th>Objet</th>
+                    <th>Segment</th>
                     <th>Envoyés</th>
                     <th>Échecs</th>
                     <th>Date</th>
@@ -169,12 +189,17 @@ $cssDisabled = ' disabled';
             </thead>
             <tbody>
             <?php if (empty($history)) : ?>
-                <tr><td colspan="6" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune campagne envoyée</td></tr>
+                <tr><td colspan="7" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune campagne envoyée</td></tr>
             <?php else : ?>
                 <?php foreach ($history as $campaign) : ?>
                     <tr>
                         <td style="color:#8a7a60;"><?= (int) $campaign['id'] ?></td>
                         <td><strong><?= htmlspecialchars($campaign['subject']) ?></strong></td>
+                        <td style="font-size:0.78rem;color:#8a7a60;">
+                            <?= $campaign['segment_label'] !== null
+                                ? htmlspecialchars((string) $campaign['segment_label'])
+                                : '—' ?>
+                        </td>
                         <td style="color:#2e7d32;"><?= (int) $campaign['sent_count'] ?></td>
                         <td style="color:<?= (int) $campaign['failed_count'] > 0 ? '#c62828' : '#8a7a60' ?>;">
                             <?= (int) $campaign['failed_count'] ?>
@@ -277,6 +302,29 @@ $cssDisabled = ' disabled';
 </div>
 
 <script>
+const NL_SEGMENT_LABELS = {
+    'tous':          'Tous les abonnés',
+    'particuliers':  'Particuliers',
+    'professionnels':'Professionnels',
+    'commandes':     'Clients ayant commandé',
+    'sans-commande': 'Abonnés sans commande',
+    'inactifs':      'Inactifs 6 mois',
+};
+
+function onSegmentChange(select) {
+    const segment   = select.value;
+    const countEl   = document.getElementById('nl-segment-count');
+    const url       = '/admin/newsletter/segment-count?segment=' + encodeURIComponent(segment);
+    countEl.textContent = '…';
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.json())
+        .then(data => {
+            const n = data.count ?? 0;
+            countEl.textContent = n + ' abonné' + (n > 1 ? 's' : '') + ' dans ce segment';
+        })
+        .catch(() => { countEl.textContent = '—'; });
+}
+
 function previewNlImage(input) {
     const preview = document.getElementById('nl-image-preview');
     if (input.files && input.files[0]) {
@@ -329,6 +377,12 @@ function openNlModal() {
     }
 
     document.getElementById('nl-modal-subject').textContent = subject || '—';
+    const segmentSelect = document.getElementById('nl-segment');
+    const segmentVal    = segmentSelect ? segmentSelect.value : 'tous';
+    const segmentCountEl = document.getElementById('nl-segment-count');
+    document.getElementById('nl-modal-segment').textContent = NL_SEGMENT_LABELS[segmentVal] ?? segmentVal;
+    document.getElementById('nl-modal-count').textContent   =
+        (segmentCountEl ? segmentCountEl.textContent : '—');
     const pdfInput  = document.getElementById('nl-pdf');
     const modalPdf  = document.getElementById('nl-modal-pdf');
     const modalPdfName = document.getElementById('nl-modal-pdf-name');
