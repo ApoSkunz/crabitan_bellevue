@@ -31,6 +31,7 @@ require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : r
 
         <h3>4. Newsletter</h3>
         <p>Si vous vous inscrivez à notre newsletter, nous conservons votre adresse e-mail sur la base de votre consentement (article 6-1-a du RGPD). Vous pouvez vous désinscrire à tout moment depuis votre espace «&nbsp;Mon Compte&nbsp;» ou via le lien de désinscription présent dans chaque e-mail. La newsletter utilise un mécanisme de double opt-in&nbsp;: votre inscription n&#8217;est confirmée qu&#8217;après validation de votre e-mail.</p>
+        <p>Nos newsletters intègrent un pixel de mesure (image 1&times;1 invisible) et des liens de suivi afin de mesurer le nombre d&#8217;ouvertures et de clics. Ces données sont traitées sur la base de notre intérêt légitime (article&nbsp;6-1-f du RGPD) à améliorer la pertinence de nos communications. Vous pouvez vous opposer à ce traitement à tout moment en vous désabonnant de la newsletter via le lien présent dans chaque e-mail ou depuis votre espace «&nbsp;Mon Compte&nbsp;».</p>
 
         <h3>5. Cookies de mesure d&#8217;audience</h3>
         <p>Avec votre consentement, nous utilisons Google Analytics 4 pour mesurer l&#8217;audience de notre site (pages consultées, durée de visite, type d&#8217;appareil). Votre adresse IP est anonymisée avant tout stockage. Aucun script de mesure n&#8217;est chargé sans votre consentement préalable (Art. 82 Loi Informatique et Libertés). Vous pouvez retirer votre consentement à tout moment depuis le lien «&nbsp;Gérer les cookies&nbsp;» en bas de chaque page.</p>
@@ -47,6 +48,7 @@ require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : r
             <li><strong>Données de compte client</strong>&nbsp;: durée de la relation commerciale, puis 3&nbsp;ans en archivage intermédiaire après inactivité.</li>
             <li><strong>Données de contact</strong>&nbsp;: 3&nbsp;ans à compter du dernier contact.</li>
             <li><strong>Newsletter</strong>&nbsp;: jusqu&#8217;à la désinscription.</li>
+            <li><strong>Données de tracking newsletter</strong>&nbsp;: 13&nbsp;mois à compter de la date d&#8217;ouverture ou de clic (intérêt légitime, recommandation CNIL).</li>
             <li><strong>Logs de connexion et logs serveur</strong>&nbsp;: 1&nbsp;an (recommandation CNIL &mdash; Art. L34-1 CPCE).</li>
             <li><strong>Cookie de consentement</strong>&nbsp;: 13&nbsp;mois maximum (recommandation CNIL 2020).</li>
             <li><strong>Données Google Analytics</strong>&nbsp;: 26&nbsp;mois (paramétrage GA4 par défaut).</li>

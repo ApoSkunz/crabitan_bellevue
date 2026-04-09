@@ -857,4 +857,142 @@ class NewsletterAdminControllerTest extends AdminIntegrationTestCase
 
         $this->makeController('POST')->send([]);
     }
+
+    // ----------------------------------------------------------------
+    // send — corps avec URL https:// → extraction + newsletter_links
+    // Couvre la branche foreach ($linkMap) dans la boucle abonnés
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que send() avec un body contenant une URL https:// persiste le lien
+     * dans newsletter_links (branche preg_match_all + saveLink).
+     */
+    public function testSendWithUrlInBodyPersistsLink(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['subject']    = 'Newsletter avec lien';
+        $_POST['body']       = 'Visitez https://crabitanbellevue.fr/fr/vins pour découvrir nos vins.';
+
+        try {
+            $this->makeController('POST')->send([]);
+        } catch (HttpException) {
+            // redirect attendu
+        }
+
+        $nl = self::$db->fetchOne(
+            "SELECT id FROM newsletters WHERE subject = ?",
+            ['Château Crabitan Bellevue — Newsletter avec lien']
+        );
+        $this->assertNotEmpty($nl);
+
+        $link = self::$db->fetchOne(
+            'SELECT url FROM newsletter_links WHERE newsletter_id = ?',
+            [(int) $nl['id']]
+        );
+        $this->assertNotEmpty($link);
+        $this->assertSame('https://crabitanbellevue.fr/fr/vins', $link['url']);
+    }
+
+    /**
+     * Vérifie que send() avec un abonné sans token (newsletter_unsubscribe_token NULL)
+     * couvre la branche ($token !== null ? '/'.rawurlencode($token) : '').
+     */
+    public function testSendWithSubscriberWithoutTokenCoversNullTokenBranch(): void
+    {
+        // Abonné sans token de désabonnement
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at, newsletter, newsletter_unsubscribe_token)
+             VALUES ('notoken@test.local', 'x', 'customer', 'fr', NOW(), 1, NULL)"
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'NoToken', 'Test', 'M')",
+            [$id]
+        );
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['subject']    = 'Test sans token';
+        $_POST['body']       = 'Corps avec https://example.com pour tester la branche token null.';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->send([]);
+    }
+
+    // ----------------------------------------------------------------
+    // show() — section statistiques de tracking
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que show() affiche la section "Statistiques de tracking".
+     */
+    public function testShowDisplaysTrackingStatsSection(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_count, failed_count)
+             VALUES ('Campagne stats tracking', 'Corps', 10, 0)"
+        );
+
+        $ctrl = new NewsletterAdminController(
+            $this->makeRequest('GET', '/admin/newsletter/' . $id)
+        );
+
+        ob_start();
+        $ctrl->show(['id' => (string) $id]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Statistiques de tracking', $output);
+        $this->assertStringContainsString('Ouvertures', $output);
+        $this->assertStringContainsString('Désinscriptions', $output);
+        // Clics masqués si pas de liens détectés
+        $this->assertStringNotContainsString('Clics uniques', $output);
+    }
+
+    /**
+     * show() affiche le tableau "Détail par lien" si des liens existent.
+     */
+    public function testShowDisplaysLinkStatsTableWhenLinksExist(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_count, failed_count)
+             VALUES ('Campagne liens tracking', 'Corps', 5, 0)"
+        );
+        self::$db->insert(
+            'INSERT INTO newsletter_links (newsletter_id, url) VALUES (?, ?)',
+            [$id, 'https://crabitanbellevue.fr/fr/vins']
+        );
+
+        $ctrl = new NewsletterAdminController(
+            $this->makeRequest('GET', '/admin/newsletter/' . $id)
+        );
+
+        ob_start();
+        $ctrl->show(['id' => (string) $id]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Détail par lien', $output);
+        $this->assertStringContainsString('crabitanbellevue.fr/fr/vins', $output);
+    }
+
+    /**
+     * show() n'affiche pas le tableau liens si aucun lien n'existe.
+     */
+    public function testShowHidesLinkStatsTableWhenNoLinks(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_count, failed_count)
+             VALUES ('Campagne sans lien', 'Corps', 2, 0)"
+        );
+
+        $ctrl = new NewsletterAdminController(
+            $this->makeRequest('GET', '/admin/newsletter/' . $id)
+        );
+
+        ob_start();
+        $ctrl->show(['id' => (string) $id]);
+        $output = ob_get_clean();
+
+        $this->assertStringNotContainsString('Détail par lien', $output);
+    }
 }

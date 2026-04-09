@@ -7,8 +7,10 @@ namespace Controller\Admin;
 use Core\Response;
 use Model\AccountModel;
 use Model\NewsletterModel;
+use Model\NewsletterTrackingModel;
 use Service\AuditLogger;
 use Service\MailService;
+use Service\TranslationService;
 
 /**
  * Gestion de la newsletter : liste abonnés, envoi de campagne, historique.
@@ -117,6 +119,13 @@ class NewsletterAdminController extends AdminController
             $this->abort(404, 'Campagne introuvable');
         }
 
+        $trackingModel = new NewsletterTrackingModel();
+        $stats         = $trackingModel->getStats((int) $campaign['id']);
+        $campaign['opens_count']         = (int) $stats['opens_count'];
+        $campaign['clicks_count']        = (int) $stats['clicks_count'];
+        $campaign['unique_clicks_count'] = (int) $stats['unique_clicks_count'];
+        $campaign['unsubscribes_count']  = (int) $stats['unsubscribes_count'];
+
         $this->view('admin/newsletter/show', [
             'adminUser'    => $adminUser,
             'adminSection' => 'newsletter',
@@ -126,7 +135,8 @@ class NewsletterAdminController extends AdminController
                 ['label' => 'Newsletter', 'url' => self::ADMIN_URL],
                 ['label' => '#' . $campaign['id']],
             ],
-            'campaign' => $campaign,
+            'campaign'   => $campaign,
+            'linkStats'  => $trackingModel->getLinkStats((int) $campaign['id']),
         ]);
     }
 
@@ -159,6 +169,12 @@ class NewsletterAdminController extends AdminController
         // Préfixe branding uniquement — "Newsletter" retiré de l'objet (délivrabilité + spam)
         $subjectLine = 'Château Crabitan Bellevue — ' . $subject;
 
+        // Traduction automatique FR → EN via DeepL (une seule fois avant la boucle)
+        $translator    = new TranslationService($_ENV['TRANSLATION_API_KEY'] ?? '');
+        $subjectLineEn = 'Château Crabitan Bellevue — ' . $translator->translate($subject);
+        $titleEn       = $title !== '' ? $translator->translate($title) : '';
+        $bodyEn        = $translator->translate($body);
+
         $allowed  = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
         $appUrl   = rtrim($_ENV['APP_URL'] ?? '', '/');
         $destDir  = ROOT_PATH . '/public/assets/images/newsletter/';
@@ -166,7 +182,7 @@ class NewsletterAdminController extends AdminController
 
         // Persister la campagne avant l'envoi (avec objet complet)
         $segmentLabel = $segment !== 'tous' ? $segment : null;
-        $campaignId   = $this->newsletters->create($subjectLine, $body, $imageUrl, $segmentLabel);
+        $campaignId   = $this->newsletters->create($subjectLine, $title !== '' ? $title : null, $body, $imageUrl, $segmentLabel);
 
         // Gérer la pièce jointe PDF — copie permanente pour l'historique
         $pdfPath    = null;
@@ -177,37 +193,77 @@ class NewsletterAdminController extends AdminController
             $pdfName = $attachment['original_name'];
         }
 
-        $all         = $this->accounts->getNewsletterSubscribersBySegment($segment, 10000, 0);
-        $mailer      = new MailService();
-        $sent        = 0;
-        $failed      = 0;
-        $safeContent = nl2br(htmlspecialchars($body, ENT_QUOTES));
+        $all    = $this->accounts->getNewsletterSubscribersBySegment($segment, 10000, 0);
+        $mailer = new MailService();
+        $sent   = 0;
+        $failed = 0;
 
-        // Bloc titre optionnel affiché en h2 au-dessus du corps
-        $titleHtml = $title !== ''
-            ? '<h2 style="margin:0 0 16px;font-family:Georgia,serif;font-size:22px;'
-              . 'color:#1a1208;line-height:1.3;">'
-              . htmlspecialchars($title, ENT_QUOTES) . '</h2>'
-            : '';
+        // Tracking : extraire les liens uniques des deux corps (FR + EN) et les persister
+        $trackingModel = new NewsletterTrackingModel();
+        $linkMap       = []; // url → linkId
+        preg_match_all('/https?:\/\/[^\s<>"\']+/', $body, $matchesFr);
+        $bodyEnForLinks = $bodyEn !== '' ? $bodyEn : $body;
+        preg_match_all('/https?:\/\/[^\s<>"\']+/', $bodyEnForLinks, $matchesEn);
+        foreach (array_unique(array_merge($matchesFr[0], $matchesEn[0])) as $url) {
+            $linkMap[$url] = $trackingModel->saveLink($campaignId, $url);
+        }
 
         foreach ($all as $sub) {
-            $name = $sub['account_type'] === 'company'
+            $name  = $sub['account_type'] === 'company'
                 ? ($sub['company_name'] ?? '')
                 : trim(($sub['firstname'] ?? '') . ' ' . ($sub['lastname'] ?? ''));
             $token = $sub['newsletter_unsubscribe_token'] ?? null;
+            $lang  = $sub['lang'] ?? 'fr';
 
-            // Salutation : prénom seul pour les particuliers (pas nom complet)
+            // Sélection de la variante linguistique
+            $subjectSend = $lang === 'en' ? $subjectLineEn : $subjectLine;
+            $bodySend    = ($lang === 'en' && $bodyEn !== '') ? $bodyEn : $body;
+            $titleSend   = ($lang === 'en' && $titleEn !== '') ? $titleEn : $title;
+
+            // Bloc titre optionnel dans la langue sélectionnée
+            $titleHtmlSend = $titleSend !== ''
+                ? '<h2 style="margin:0 0 16px;font-family:Georgia,serif;font-size:22px;'
+                  . 'color:#1a1208;line-height:1.3;">'
+                  . htmlspecialchars($titleSend, ENT_QUOTES) . '</h2>'
+                : '';
+
+            // Corps : htmlspecialchars d'abord, puis remplacement des URLs par des ancres trackées
+            $safeContent = nl2br(htmlspecialchars($bodySend, ENT_QUOTES));
+            foreach ($linkMap as $url => $linkId) {
+                $trackUrl    = $appUrl . '/track/click/' . $campaignId . '/' . $linkId
+                    . ($token !== null ? '/' . rawurlencode($token) : '');
+                $safeUrl     = htmlspecialchars($url, ENT_QUOTES);
+                $safeTrack   = htmlspecialchars($trackUrl, ENT_QUOTES);
+                $safeContent = str_replace(
+                    $safeUrl,
+                    '<a href="' . $safeTrack . '" style="color:#8a6a2e;">' . $safeUrl . '</a>',
+                    $safeContent
+                );
+            }
+
+            // Salutation selon langue et type de compte
             $firstname    = htmlspecialchars(trim($sub['firstname'] ?? ''), ENT_QUOTES);
-            $fallbackName = $firstname ?: htmlspecialchars($name ?: 'cher abonné', ENT_QUOTES);
-            $greeting     = $sub['account_type'] === 'company'
-                ? 'Madame, Monsieur,'
-                : 'Bonjour ' . $fallbackName . ',';
+            $defaultName  = $lang === 'en' ? 'dear subscriber' : 'cher abonné';
+            $fallbackName = $firstname ?: htmlspecialchars($name ?: $defaultName, ENT_QUOTES);
+            if ($sub['account_type'] === 'company') {
+                $greeting = $lang === 'en' ? 'Dear Sir/Madam,' : 'Madame, Monsieur,';
+            } else {
+                $greeting = $lang === 'en' ? 'Hello ' . $fallbackName . ',' : 'Bonjour ' . $fallbackName . ',';
+            }
             $greetingHtml = '<p style="margin:0 0 20px;font-size:22px;color:#1a1208;font-family:Georgia,serif;">'
                 . $greeting . '</p>';
 
-            $htmlBody = $mailer->buildNewsletterHtml('Newsletter · Abonnés', $greetingHtml . $titleHtml . $safeContent, $imageUrl, $token);
+            $nlTitle  = $lang === 'en' ? 'Newsletter · Subscribers' : 'Newsletter · Abonnés';
+            $htmlBody = $mailer->buildNewsletterHtml(
+                $nlTitle,
+                $greetingHtml . $titleHtmlSend . $safeContent,
+                $imageUrl,
+                $token,
+                $lang,
+                $campaignId
+            );
             try {
-                $mailer->sendNewsletter($sub['email'], $name ?: 'Abonné', $subjectLine, $htmlBody, $pdfPath, $pdfName);
+                $mailer->sendNewsletter($sub['email'], $name ?: 'Abonné', $subjectSend, $htmlBody, $pdfPath, $pdfName, $token);
                 $sent++;
             } catch (\Throwable) {
                 $failed++;

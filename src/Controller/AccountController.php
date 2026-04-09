@@ -1530,6 +1530,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     {
         $lang  = $params['lang'];
         $token = $this->request->get('token', '');
+        $cid   = (int) $this->request->get('cid', 0);
 
         if ($token === '' || !$this->accounts->findByUnsubscribeToken($token)) {
             $this->view(self::VIEW_UNSUBSCRIBE, ['lang' => $lang, 'success' => false, 'confirm' => false]);
@@ -1541,6 +1542,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             'success'    => false,
             'confirm'    => true,
             'unsubToken' => $token,
+            'campaignId' => $cid > 0 ? $cid : null,
         ]);
     }
 
@@ -1552,11 +1554,15 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     {
         $lang       = $params['lang'];
         $unsubToken = $this->request->post('unsub_token', '');
+        $campaignId = (int) $this->request->post('campaign_id', 0);
         $account    = $unsubToken !== '' ? $this->accounts->findByUnsubscribeToken($unsubToken) : false;
-        $success = false;
+        $success    = false;
 
         if ($account !== false) {
             $this->accounts->unsubscribeByToken($unsubToken);
+            if ($campaignId > 0) {
+                (new \Model\NewsletterTrackingModel())->recordUnsubscribe($campaignId, (int) $account['id']);
+            }
             $success = true;
         }
 

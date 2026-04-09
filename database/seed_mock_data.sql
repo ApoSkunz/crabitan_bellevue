@@ -38,6 +38,12 @@ TRUNCATE TABLE `pricing_rules`;
 TRUNCATE TABLE `wines`;
 TRUNCATE TABLE `news`;
 TRUNCATE TABLE `order_forms`;
+TRUNCATE TABLE `newsletter_clicks`;
+TRUNCATE TABLE `newsletter_opens`;
+TRUNCATE TABLE `newsletter_links`;
+TRUNCATE TABLE `newsletter_subscriptions`;
+TRUNCATE TABLE `newsletter_attachments`;
+TRUNCATE TABLE `newsletters`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -646,7 +652,7 @@ VALUES
 -- Client société
 (5, 'societe@dev.local',          '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'company',    'customer',    'fr', 1, '2026-01-15 14:00:00', 0, '2026-01-15 14:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client EN
-(6, 'customer.en@dev.local',      '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'en', 0, '2026-02-10 11:00:00', 0, '2026-02-10 11:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+(6, 'customer.en@dev.local',      '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'en', 1, '2026-02-10 11:00:00', 0, '2026-02-10 11:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client soft-deleted (en attente de suppression)
 (7, 'client.supprime@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'fr', 0, '2026-01-20 08:00:00', 0, '2026-01-20 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Compte RGPD purgé (ancienne commande > 10 ans, compte anonymisé après effacement Art. 17)
@@ -663,6 +669,11 @@ VALUES
 (12, 'newsletter.noorder@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 1, '2026-01-20 08:00:00', 0, '2026-01-20 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- id 13 : abonné newsletter avec commande ancienne (> 6 mois) → segment 'inactifs'
 (13, 'newsletter.inactif@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 1, '2025-01-10 08:00:00', 0, '2025-01-10 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+
+-- Tokens de désabonnement newsletter (déterministes pour les tests)
+UPDATE `accounts`
+SET `newsletter_unsubscribe_token` = SHA2(CONCAT('dev-unsub-token-', `id`), 256)
+WHERE `newsletter_unsubscribe_token` IS NULL;
 
 -- Déclaration de majorité (Sprint 5 — Art. L3342-1 CSP)
 -- id 1 (super_admin), id 2 (admin), id 3 (client principal) : déclarés → pas de modal intempestif
@@ -966,3 +977,26 @@ VALUES
 ('visitor.confirmed@dev.local', NULL, NULL,
  1, '2026-03-10 14:00:00', '127.0.0.1',
  '127.0.0.1', 'en', 1, '2026-03-10 13:58:00', '2026-03-10 13:58:00');
+
+-- ============================================================
+-- NEWSLETTER TRACKING (liens, ouvertures, clics — campagne id=1)
+-- ============================================================
+
+INSERT INTO `newsletter_links` (`id`, `newsletter_id`, `url`) VALUES
+(1, 1, 'https://crabitanbellevue.fr/fr/vins'),
+(2, 1, 'https://crabitanbellevue.fr/fr/actualites');
+
+ALTER TABLE `newsletter_links` AUTO_INCREMENT = 3;
+
+INSERT INTO `newsletter_opens` (`newsletter_id`, `subscriber_id`, `opened_at`) VALUES
+(1, 3, '2026-03-01 11:30:00'),
+(1, 5, '2026-03-01 14:00:00'),
+(1, 12, '2026-03-02 08:45:00');
+
+ALTER TABLE `newsletter_opens` AUTO_INCREMENT = 4;
+
+INSERT INTO `newsletter_clicks` (`newsletter_id`, `link_id`, `subscriber_id`, `clicked_at`) VALUES
+(1, 1, 3, '2026-03-01 11:32:00'),
+(1, 2, 5, '2026-03-01 14:05:00');
+
+ALTER TABLE `newsletter_clicks` AUTO_INCREMENT = 3;

@@ -199,5 +199,9 @@ $router->post('/api/jeux/score', 'GameScoreController@save');
 $router->get('/api/jeux/score', 'GameScoreController@get');
 $router->get('/api/meteo', 'WeatherController@current');
 
+// Tracking newsletter (pixel ouverture + redirect clic)
+$router->get('/track/open/{id}/{token}',                 'TrackingController@open');
+$router->get('/track/click/{id}/{linkId}/{token}',       'TrackingController@click');
+
 // Bons de commande (téléchargement public, servi via PHP)
 $router->get('/bons-de-commande/{id}/telecharger', 'OrderFormController@download');

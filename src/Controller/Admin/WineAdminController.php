@@ -228,7 +228,7 @@ class WineAdminController extends AdminController
                 $body       = '<p>' . htmlspecialchars($data['label_name'] . ' ' . $data['vintage']) . '</p>';
                 $imageUrl   = !empty($data['image_path']) ? '/assets/images/wines/' . $data['image_path'] : null;
                 $newsletters = new NewsletterModel();
-                $campaignId  = $newsletters->create($subject, $body, $imageUrl);
+                $campaignId  = $newsletters->create($subject, null, $body, $imageUrl);
                 $newsletters->updateStats($campaignId, $sentCount, $failedCount);
             }
         }

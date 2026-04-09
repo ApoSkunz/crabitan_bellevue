@@ -180,9 +180,21 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $subject,
         string $htmlBody,
         ?string $attachmentPath = null,
-        ?string $attachmentName = null
+        ?string $attachmentName = null,
+        ?string $unsubToken = null
     ): void {
+        if ($unsubToken !== null) {
+            $appUrl = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+            $this->mailer->addCustomHeader(
+                'List-Unsubscribe',
+                '<' . $appUrl . '/fr/newsletter/desabonnement?token=' . urlencode($unsubToken) . '>'
+            );
+            $this->mailer->addCustomHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
+        }
         $this->send($to, $name, $subject, $htmlBody, $attachmentPath, null, $attachmentName);
+        if ($unsubToken !== null) {
+            $this->mailer->clearCustomHeaders();
+        }
     }
 
     /**
@@ -920,7 +932,8 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $htmlContent,
         ?string $imageUrl = null,
         ?string $unsubToken = null,
-        string $lang = 'fr'
+        string $lang = 'fr',
+        ?int $campaignId = null
     ): string {
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $logoUrl    = $appUrl . self::LOGO_PATH;
@@ -929,8 +942,9 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $urlSupport = $appUrl . self::URL_SUPPORT;
         $urlCgv     = $appUrl . self::URL_CGV;
         $urlUnsub   = $unsubToken !== null
-            ? $appUrl . '/fr/newsletter/desabonnement?token=' . urlencode($unsubToken)
-            : $appUrl . '/fr/mon-compte';
+            ? $appUrl . '/' . $lang . '/newsletter/desabonnement?token=' . urlencode($unsubToken)
+              . ($campaignId !== null ? '&cid=' . $campaignId : '')
+            : $appUrl . '/' . $lang . '/mon-compte';
         $safeTitle  = htmlspecialchars($title, ENT_QUOTES);
         // Image optionnelle : centrée dans le bloc blanc, avant le séparateur/désabonnement
         $safeImage = $imageUrl !== null ? htmlspecialchars($imageUrl, ENT_QUOTES) : null;
@@ -939,6 +953,21 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
               . " style=\"display:block;width:192px;max-width:100%;height:auto;"
               . "margin:24px auto 0;border:0;border-radius:4px;\">"
             : '';
+        // Pixel de tracking d'ouverture (1×1 GIF invisible)
+        $pixelHtml = '';
+        if ($campaignId !== null && $unsubToken !== null) {
+            $pixelSrc  = htmlspecialchars(
+                $appUrl . '/track/open/' . $campaignId . '/' . rawurlencode($unsubToken),
+                ENT_QUOTES
+            );
+            $pixelHtml = "\n              <img src=\"{$pixelSrc}\" width=\"1\" height=\"1\" alt=\"\""
+                . " style=\"display:block;width:1px;height:1px;border:0;\">";
+        }
+
+        $unsubInfo  = $lang === 'en'
+            ? 'You are receiving this email because you subscribed to the Château Crabitan Bellevue newsletter.'
+            : 'Vous recevez cet email car vous êtes abonné(e) à la newsletter du Château Crabitan Bellevue.';
+        $unsubLink  = $lang === 'en' ? 'Unsubscribe from the newsletter' : 'Se désinscrire de la newsletter';
 
         $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
         $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $urlCgv, $lang);
@@ -957,13 +986,14 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
                 {$htmlContent}
               </div>
               {$imageHtml}
+              {$pixelHtml}
               <!-- Divider -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:32px;">
                 <tr><td style="border-top:1px solid #ede8df;padding-bottom:20px;"></td></tr>
               </table>
               <p style="margin:0;font-size:12px;color:#8a7a60;line-height:1.6;">
-                Vous recevez cet email car vous êtes abonné(e) à la newsletter du Château Crabitan Bellevue.<br>
-                <a href="{$urlUnsub}" style="color:#c9a84c;">Se désinscrire de la newsletter</a>
+                {$unsubInfo}<br>
+                <a href="{$urlUnsub}" style="color:#c9a84c;">{$unsubLink}</a>
               </p>
             </td>
           </tr>

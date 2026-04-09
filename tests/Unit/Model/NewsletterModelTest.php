@@ -47,7 +47,7 @@ class NewsletterModelTest extends TestCase
             ->method('insert')
             ->willReturn('42');
 
-        $id = $this->model->create('Sujet test', 'Corps test', null);
+        $id = $this->model->create('Sujet test', null, 'Corps test', null);
 
         $this->assertSame(42, $id);
     }
@@ -61,11 +61,11 @@ class NewsletterModelTest extends TestCase
             ->method('insert')
             ->with(
                 $this->stringContains('INSERT INTO'),
-                $this->callback(fn ($params) => $params[2] === 'https://example.com/img.jpg')
+                $this->callback(fn ($params) => $params[3] === 'https://example.com/img.jpg')
             )
             ->willReturn('1');
 
-        $this->model->create('Sujet', 'Corps', 'https://example.com/img.jpg');
+        $this->model->create('Sujet', null, 'Corps', 'https://example.com/img.jpg');
     }
 
     /**
@@ -77,11 +77,11 @@ class NewsletterModelTest extends TestCase
             ->method('insert')
             ->with(
                 $this->stringContains('segment_label'),
-                $this->callback(fn ($params) => $params[3] === 'particuliers')
+                $this->callback(fn ($params) => $params[4] === 'particuliers')
             )
             ->willReturn('5');
 
-        $this->model->create('Sujet', 'Corps', null, 'particuliers');
+        $this->model->create('Sujet', null, 'Corps', null, 'particuliers');
     }
 
     /**
@@ -93,11 +93,43 @@ class NewsletterModelTest extends TestCase
             ->method('insert')
             ->with(
                 $this->anything(),
-                $this->callback(fn ($params) => $params[3] === null)
+                $this->callback(fn ($params) => $params[4] === null)
             )
             ->willReturn('6');
 
-        $this->model->create('Sujet', 'Corps', null);
+        $this->model->create('Sujet', null, 'Corps', null);
+    }
+
+    /**
+     * create() stocke le titre quand fourni, NULL si chaîne vide.
+     */
+    public function testCreateStoresTitleWhenProvided(): void
+    {
+        $this->dbMock->expects($this->once())
+            ->method('insert')
+            ->with(
+                $this->stringContains('title'),
+                $this->callback(fn ($params) => $params[1] === 'Mon titre')
+            )
+            ->willReturn('7');
+
+        $this->model->create('Sujet', 'Mon titre', 'Corps', null);
+    }
+
+    /**
+     * create() stocke NULL pour title si chaîne vide.
+     */
+    public function testCreateStoresTitleAsNullWhenEmpty(): void
+    {
+        $this->dbMock->expects($this->once())
+            ->method('insert')
+            ->with(
+                $this->anything(),
+                $this->callback(fn ($params) => $params[1] === null)
+            )
+            ->willReturn('8');
+
+        $this->model->create('Sujet', '', 'Corps', null);
     }
 
     // ----------------------------------------------------------------
