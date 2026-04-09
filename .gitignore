@@ -51,3 +51,6 @@ Thumbs.db
 # Lighthouse CI — rapports locaux
 /.lighthouseci/
 logs/
+
+# Vite — artefacts de build non versionnés
+/public/assets/js/browser.js
