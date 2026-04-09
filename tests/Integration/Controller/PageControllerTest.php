@@ -379,14 +379,14 @@ class PageControllerTest extends IntegrationTestCase
         $this->assertStringContainsString('/fr/contact', $output);
     }
 
-    public function testSitemapXmlCallsWineAndNewsModels(): void
+    public function testSitemapXmlContainsWineAndNewsSlugs(): void
     {
-        // Les boucles foreach slugs sont @codeCoverageIgnore (DB vide en CI)
-        // Ce test vérifie que sitemapXml s'exécute sans erreur même avec DB vide
         $_ENV['APP_URL'] = 'https://crabitan.local';
         $output = $this->captureSitemap();
 
-        $this->assertStringContainsString('<urlset', $output);
+        // Slugs présents dans seed_mock_data.sql
+        $this->assertStringContainsString('/fr/vins/bordeaux-blanc-2024', $output);
+        $this->assertStringContainsString('/fr/actualites/portes-ouvertes-2025', $output);
     }
 
     public function testSitemapXmlExcludesNoindexPages(): void
