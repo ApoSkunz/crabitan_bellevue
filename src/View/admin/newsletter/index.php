@@ -182,6 +182,7 @@ $cssDisabled = ' disabled';
                     <th>Objet</th>
                     <th>Segment</th>
                     <th>Envoyés</th>
+                    <th>Ouvertures</th>
                     <th>Échecs</th>
                     <th>Date</th>
                     <th></th>
@@ -189,7 +190,7 @@ $cssDisabled = ' disabled';
             </thead>
             <tbody>
             <?php if (empty($history)) : ?>
-                <tr><td colspan="7" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune campagne envoyée</td></tr>
+                <tr><td colspan="8" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune campagne envoyée</td></tr>
             <?php else : ?>
                 <?php foreach ($history as $campaign) : ?>
                     <tr>
@@ -201,6 +202,15 @@ $cssDisabled = ' disabled';
                                 : '—' ?>
                         </td>
                         <td style="color:#2e7d32;"><?= (int) $campaign['sent_count'] ?></td>
+                        <?php
+                        $sent  = (int) $campaign['sent_count'];
+                        $opens = (int) ($campaign['opens_count'] ?? 0);
+                        $rate  = $sent > 0 ? round($opens / $sent * 100, 1) : 0.0;
+                        ?>
+                        <td style="font-size:0.82rem;">
+                            <?= $opens ?> / <?= $sent ?>
+                            &nbsp;<span style="font-weight:600;color:#5a5040;"><?= $rate ?>%</span>
+                        </td>
                         <td style="color:<?= (int) $campaign['failed_count'] > 0 ? '#c62828' : '#8a7a60' ?>;">
                             <?= (int) $campaign['failed_count'] ?>
                         </td>

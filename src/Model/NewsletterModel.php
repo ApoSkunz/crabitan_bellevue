@@ -74,9 +74,11 @@ class NewsletterModel extends Model
     public function getAll(int $limit, int $offset): array
     {
         return $this->db->fetchAll(
-            "SELECT id, subject, image_url, sent_count, failed_count, sent_at, segment_label
-             FROM {$this->table}
-             ORDER BY sent_at DESC
+            "SELECT nl.id, nl.subject, nl.image_url, nl.sent_count, nl.failed_count,
+                    nl.sent_at, nl.segment_label,
+                    (SELECT COUNT(*) FROM newsletter_opens WHERE newsletter_id = nl.id) AS opens_count
+             FROM {$this->table} nl
+             ORDER BY nl.sent_at DESC
              LIMIT ? OFFSET ?",
             [$limit, $offset]
         );
