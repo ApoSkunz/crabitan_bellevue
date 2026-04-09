@@ -2246,7 +2246,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.querySelectorAll('.js-qr-btn').forEach((btn) => {
             btn.addEventListener('click', () => {
-                openQrModal(btn.dataset.slug ?? '', btn.dataset.label ?? '');
+                const label = (btn.dataset.label ?? '') + (btn.dataset.cuvee === '1' ? ' — Cuvée spéciale' : '');
+                openQrModal(btn.dataset.slug ?? '', label);
             });
         });
 

@@ -108,6 +108,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                                         class="admin-btn admin-btn--outline admin-btn--sm js-qr-btn"
                                         data-slug="<?= htmlspecialchars($wine['slug'], ENT_QUOTES) ?>"
                                         data-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage'], ENT_QUOTES) ?>"
+                                        data-cuvee="<?= $wine['is_cuvee_speciale'] ? '1' : '0' ?>"
                                         aria-label="QR code <?= htmlspecialchars($wine['label_name'], ENT_QUOTES) ?>">QR Code</button>
                                 <a href="/fr/vins/<?= htmlspecialchars($wine['slug']) ?>"
                                    class="admin-btn admin-btn--outline admin-btn--sm"
