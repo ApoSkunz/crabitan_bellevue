@@ -12,6 +12,7 @@ use Model\AddressModel;
 use Model\CartModel;
 use Model\OrderModel;
 use Model\PricingRuleModel;
+use Model\LegalDocumentModel;
 use Model\WineModel;
 
 /**
@@ -36,7 +37,6 @@ class OrderController extends Controller
     private OrderModel $orders;
     private PricingRuleModel $pricing;
     private WineModel $wines;
-    private string $cgvVersion;
 
     /**
      * Initialise les dépendances du contrôleur.
@@ -51,8 +51,6 @@ class OrderController extends Controller
         $this->orders     = new OrderModel();
         $this->pricing    = new PricingRuleModel();
         $this->wines      = new WineModel();
-        $legalConfig      = require_once ROOT_PATH . '/config/legal.php';
-        $this->cgvVersion = (string) ($legalConfig['cgv']['version'] ?? '1.0');
     }
 
     // ----------------------------------------------------------------
@@ -220,6 +218,8 @@ class OrderController extends Controller
         );
         $deliveryDiscount = $this->pricing->computeDeliveryDiscount($totalQty);
         $total            = round(max(0.0, $subtotal - $deliveryDiscount), 2);
+        $cgvDoc           = (new LegalDocumentModel())->findBySlug('cgv');
+        $cgvVersion       = (string) ($cgvDoc['version'] ?? '1.0');
 
         // ---- Chemin carte bancaire (CA) ----
         if ($paymentMethod === 'card') {
@@ -248,7 +248,7 @@ class OrderController extends Controller
                 'delivery_discount'   => $deliveryDiscount,
                 'billing_address_id'  => $billingAddressId,
                 'delivery_address_id' => $deliveryAddressId,
-                'cgv_version'         => $this->cgvVersion,
+                'cgv_version'         => $cgvVersion,
                 'lang'                => $lang,
                 'newsletter'          => (bool) $this->request->post('newsletter', ''),
                 'client_email'        => $clientEmail,
@@ -311,7 +311,7 @@ class OrderController extends Controller
             round($deliveryDiscount, 2),
             $billingAddressId,
             $deliveryAddressId,
-            $this->cgvVersion
+            $cgvVersion
         );
 
         // Vider le panier
