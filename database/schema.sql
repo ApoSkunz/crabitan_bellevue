@@ -81,6 +81,7 @@ CREATE TABLE `accounts` (
   `deleted_at`                   DATETIME       DEFAULT NULL COMMENT 'Soft delete',
   `scheduled_deletion_at`        DATETIME       DEFAULT NULL COMMENT 'Date de purge effective (J+30 après deleted_at)',
   `reactivation_token`           VARCHAR(64)    DEFAULT NULL COMMENT 'Token annulation suppression compte (valide 30 jours)',
+  `inactivity_warning_sent_at`   DATETIME       DEFAULT NULL COMMENT 'Horodatage envoi avertissement inactivité RGPD (Art. 5 §1e)',
   `deletion_reminder_7d_sent_at` DATETIME       DEFAULT NULL COMMENT 'Horodatage envoi rappel J-7 avant anonymisation',
   `deletion_reminder_1d_sent_at` DATETIME       DEFAULT NULL COMMENT 'Horodatage envoi rappel J-1 avant anonymisation',
   `pending_password_hash`             VARCHAR(255)   DEFAULT NULL COMMENT 'Nouveau MDP en attente de confirmation par email (TTL 1h)',
@@ -99,7 +100,8 @@ CREATE TABLE `accounts` (
   INDEX `idx_accounts_role`          (`role`),
   INDEX `idx_accounts_deleted`       (`deleted_at`),
   INDEX `idx_accounts_unsub_token`   (`newsletter_unsubscribe_token`),
-  INDEX `idx_accounts_sched_del`     (`scheduled_deletion_at`),
+  INDEX `idx_accounts_sched_del`         (`scheduled_deletion_at`),
+  INDEX `idx_accounts_inactivity_warning` (`inactivity_warning_sent_at`),
   INDEX `idx_accounts_reactiv_token`        (`reactivation_token`),
   INDEX `idx_accounts_email_change_token`   (`email_change_token`),
   INDEX `idx_accounts_nl_confirm_token`     (`newsletter_confirm_token`),
@@ -156,13 +158,15 @@ CREATE TABLE `addresses` (
   `country`      VARCHAR(100)   NOT NULL,
   `phone`        VARCHAR(20)    NOT NULL,
   `saved`        TINYINT(1)     NOT NULL DEFAULT 0,
-  `deleted_at`   DATETIME       DEFAULT NULL COMMENT 'Soft-delete : adresse utilisée dans une commande — non supprimée physiquement',
-  `created_at`   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at`   DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at`          DATETIME    DEFAULT NULL COMMENT 'Soft-delete : adresse utilisée dans une commande — non supprimée physiquement',
+  `preserved_for_order` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'Préservée pour commande active — purgée par bin/purge_addresses.php',
+  `created_at`          DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`          DATETIME    DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_addresses_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
   INDEX `idx_addresses_user_type` (`user_id`, `type`),
-  INDEX `idx_addresses_deleted` (`deleted_at`)
+  INDEX `idx_addresses_deleted`   (`deleted_at`),
+  INDEX `idx_addresses_preserved` (`preserved_for_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
