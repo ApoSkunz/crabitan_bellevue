@@ -2,6 +2,14 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.50.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.49.0...v0.50.0) (2026-04-09)
+
+
+### Features
+
+* **rgpd:** send final deletion email before hard-delete in purge_accounts.php ([3cdc1c6](https://github.com/ApoSkunz/crabitan_bellevue/commit/3cdc1c61705e09564abf5ed43556929969a72155))
+* **rgpd:** send inactivity deletion email on cron phase 2 ([be630f3](https://github.com/ApoSkunz/crabitan_bellevue/commit/be630f3dd9dfceaacff40d977733f24c5ed3968e))
+
 # [0.49.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.48.0...v0.49.0) (2026-04-09)
 
 
