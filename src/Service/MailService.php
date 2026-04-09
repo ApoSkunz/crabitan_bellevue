@@ -2881,4 +2881,83 @@ HTML;
 
         $this->send($to, $name, $subject, $body);
     }
+
+    /**
+     * Notifie un utilisateur d'une mise à jour substantielle d'un document légal.
+     *
+     * @param string $to         Adresse email du destinataire
+     * @param string $name       Prénom ou nom affiché
+     * @param string $lang       Langue du compte (fr|en)
+     * @param string $docLabel   Nom du document (ex. "Conditions Générales de Vente")
+     * @param string $docUrl     URL publique complète du document
+     * @param string $version    Nouvelle version (ex. "1.2")
+     * @param string $updatedAt  Date de mise à jour (Y-m-d)
+     * @param string $changeNote Résumé des modifications (optionnel)
+     * @return void
+     */
+    public function sendLegalDocumentUpdate(
+        string $to,
+        string $name,
+        string $lang,
+        string $docLabel,
+        string $docUrl,
+        string $version,
+        string $updatedAt,
+        string $changeNote
+    ): void {
+        $safeName  = htmlspecialchars($name, ENT_QUOTES);
+        $safeLabel = htmlspecialchars($docLabel, ENT_QUOTES);
+        $safeUrl   = htmlspecialchars($docUrl, ENT_QUOTES);
+        $safeNote  = $changeNote !== '' ? htmlspecialchars($changeNote, ENT_QUOTES) : '';
+
+        $dateFormatted = $lang === 'fr'
+            ? (new \DateTimeImmutable($updatedAt))->format('d/m/Y')
+            : (new \DateTimeImmutable($updatedAt))->format('m/d/Y');
+
+        $docBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . '<a href="' . $safeUrl . self::BTN_ANCHOR_STYLE_ATTR
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . ($lang === 'fr' ? 'Consulter le document' : 'View document')
+            . '</a></td></tr></table>';
+
+        if ($lang === 'fr') {
+            $subject = '[Mise à jour] ' . $safeLabel . ' — version ' . $version;
+            $noteHtml = $safeNote !== ''
+                ? '<p style="background:#f5f0e8;border-left:3px solid #c1a14b;padding:10px 14px;'
+                  . 'margin:16px 0;font-size:13px;color:#5a4030;">'
+                  . '<strong>Résumé des modifications :</strong><br>' . $safeNote . '</p>'
+                : '';
+            $message = 'Nous vous informons que notre <strong>' . $safeLabel . '</strong>'
+                . ' a été mise à jour en version <strong>' . $version . '</strong>'
+                . ' le ' . $dateFormatted . '.<br><br>'
+                . $noteHtml
+                . 'Nous vous invitons à prendre connaissance de ce document mis à jour.<br><br>'
+                . $docBtn
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'Si vous avez des questions, n\'hésitez pas à nous contacter.'
+                . '</p>';
+            $body = $this->emailSimpleLayout($safeLabel . ' mise à jour', "Bonjour {$safeName},", $message, 'fr');
+        } else {
+            $subject = '[Update] ' . $safeLabel . ' — version ' . $version;
+            $noteHtml = $safeNote !== ''
+                ? '<p style="background:#f5f0e8;border-left:3px solid #c1a14b;padding:10px 14px;'
+                  . 'margin:16px 0;font-size:13px;color:#5a4030;">'
+                  . '<strong>Summary of changes:</strong><br>' . $safeNote . '</p>'
+                : '';
+            $message = 'We are informing you that our <strong>' . $safeLabel . '</strong>'
+                . ' has been updated to version <strong>' . $version . '</strong>'
+                . ' on ' . $dateFormatted . '.<br><br>'
+                . $noteHtml
+                . 'We invite you to review this updated document.<br><br>'
+                . $docBtn
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'If you have any questions, please do not hesitate to contact us.'
+                . '</p>';
+            $body = $this->emailSimpleLayout($safeLabel . ' updated', "Hello {$safeName},", $message, 'en');
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
 }
