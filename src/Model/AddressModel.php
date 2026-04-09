@@ -173,4 +173,46 @@ class AddressModel extends Model
             );
         }
     }
+
+    /**
+     * Retourne les adresses orphelines éligibles à la purge définitive.
+     *
+     * Éligible si : preserved_for_order = 1 ET aucune commande active (pending/processing)
+     * ne référence cette adresse via un snapshot.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getOrphanedAddresses(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT a.id, a.user_id
+             FROM {$this->table} a
+             WHERE a.preserved_for_order = 1
+               AND NOT EXISTS (
+                   SELECT 1 FROM order_address_snapshots oas
+                   JOIN orders o ON (o.id_billing_snapshot = oas.id OR o.id_delivery_snapshot = oas.id)
+                   WHERE oas.source_address_id = a.id
+                     AND o.status IN ('pending', 'processing')
+               )"
+        );
+    }
+
+    /**
+     * Supprime définitivement les adresses orphelines éligibles.
+     *
+     * @return int Nombre d'adresses supprimées
+     */
+    public function purgeOrphaned(): int
+    {
+        return $this->db->execute(
+            "DELETE a FROM {$this->table} a
+             WHERE a.preserved_for_order = 1
+               AND NOT EXISTS (
+                   SELECT 1 FROM order_address_snapshots oas
+                   JOIN orders o ON (o.id_billing_snapshot = oas.id OR o.id_delivery_snapshot = oas.id)
+                   WHERE oas.source_address_id = a.id
+                     AND o.status IN ('pending', 'processing')
+               )"
+        );
+    }
 }
