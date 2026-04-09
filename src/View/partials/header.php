@@ -98,27 +98,12 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
 
             <nav class="lang-switch" aria-label="Langue / Language">
                 <?php foreach (['fr', 'en'] as $l) : ?>
-                    <?php if ($isLogged) : ?>
-                        <form method="POST"
-                              action="/<?= htmlspecialchars($navLang) ?>/mon-compte/preference-langue"
-                              class="lang-pref-inline-form">
-                            <input type="hidden" name="csrf_token"   value="<?= htmlspecialchars($modalCsrf) ?>">
-                            <input type="hidden" name="lang"         value="<?= htmlspecialchars($l) ?>">
-                            <input type="hidden" name="redirect_to"  value="<?= htmlspecialchars($langSwitch($l)) ?>">
-                            <button type="submit"
-                                    lang="<?= htmlspecialchars($l) ?>"
-                                    class="<?= $l === $navLang ? 'active' : '' ?>"
-                                    <?= $l === $navLang ? 'aria-current="true"' : '' ?>
-                            ><?= strtoupper(htmlspecialchars($l)) ?></button>
-                        </form>
-                    <?php else : ?>
-                        <a
-                            href="<?= htmlspecialchars($langSwitch($l)) ?>"
-                            lang="<?= htmlspecialchars($l) ?>"
-                            class="<?= $l === $navLang ? 'active' : '' ?>"
-                            <?= $l === $navLang ? 'aria-current="true"' : '' ?>
-                        ><?= strtoupper(htmlspecialchars($l)) ?></a>
-                    <?php endif; ?>
+                    <a
+                        href="<?= htmlspecialchars($langSwitch($l)) ?>"
+                        lang="<?= htmlspecialchars($l) ?>"
+                        class="<?= $l === $navLang ? 'active' : '' ?>"
+                        <?= $l === $navLang ? 'aria-current="true"' : '' ?>
+                    ><?= strtoupper(htmlspecialchars($l)) ?></a>
                 <?php endforeach; ?>
             </nav>
 

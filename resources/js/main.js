@@ -1681,14 +1681,13 @@ function initLangPreference() {
     const csrf    = window.__csrf    ?? '';
     const navLang = window.__navLang ?? 'fr';
 
-    const saveLang = (targetLang, onSuccess) => {
+    const saveLang = (targetLang) => {
+        // Fire-and-forget — navigation non bloquée, erreur réseau silencieuse
         fetch(`/${navLang}/mon-compte/preference-langue`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ lang: targetLang, csrf_token: csrf }),
-        })
-            .then(() => onSuccess())
-            .catch(() => onSuccess()); // redirect even on network error
+        }).catch(() => {}); // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
     };
 
     // Profile page — form submit → save then redirect to new lang URL
@@ -1699,10 +1698,9 @@ function initLangPreference() {
         e.preventDefault();
         const targetLang = langForm.querySelector('#lang-pref-select')?.value ?? '';
         if (!['fr', 'en'].includes(targetLang)) return;
-        saveLang(targetLang, () => {
-            const newPath = globalThis.location.pathname.replace(/^\/(fr|en)(\/|$)/, `/${targetLang}$2`);
-            globalThis.location.href = newPath + globalThis.location.search; // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
-        });
+        saveLang(targetLang);
+        const newPath = globalThis.location.pathname.replace(/^\/(fr|en)(\/|$)/, `/${targetLang}$2`);
+        globalThis.location.href = newPath + globalThis.location.search; // nosemgrep: javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression
     });
 }
 
