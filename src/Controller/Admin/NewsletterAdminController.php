@@ -118,9 +118,11 @@ class NewsletterAdminController extends AdminController
             $this->abort(404, 'Campagne introuvable');
         }
 
-        $stats = (new NewsletterTrackingModel())->getStats((int) $campaign['id']);
-        $campaign['opens_count']  = (int) $stats['opens_count'];
-        $campaign['clicks_count'] = (int) $stats['clicks_count'];
+        $trackingModel = new NewsletterTrackingModel();
+        $stats         = $trackingModel->getStats((int) $campaign['id']);
+        $campaign['opens_count']         = (int) $stats['opens_count'];
+        $campaign['clicks_count']        = (int) $stats['clicks_count'];
+        $campaign['unique_clicks_count'] = (int) $stats['unique_clicks_count'];
 
         $this->view('admin/newsletter/show', [
             'adminUser'    => $adminUser,
@@ -131,7 +133,8 @@ class NewsletterAdminController extends AdminController
                 ['label' => 'Newsletter', 'url' => self::ADMIN_URL],
                 ['label' => '#' . $campaign['id']],
             ],
-            'campaign' => $campaign,
+            'campaign'   => $campaign,
+            'linkStats'  => $trackingModel->getLinkStats((int) $campaign['id']),
         ]);
     }
 
@@ -207,31 +210,38 @@ class NewsletterAdminController extends AdminController
                 ? ($sub['company_name'] ?? '')
                 : trim(($sub['firstname'] ?? '') . ' ' . ($sub['lastname'] ?? ''));
             $token = $sub['newsletter_unsubscribe_token'] ?? null;
+            $lang  = $sub['lang'] ?? 'fr';
 
-            // Corps avec liens trackés (par abonné car token différent)
-            $trackedBody = $body;
+            // Corps : htmlspecialchars d'abord, puis remplacement des URLs par des ancres trackées
+            $safeContent = nl2br(htmlspecialchars($body, ENT_QUOTES));
             foreach ($linkMap as $url => $linkId) {
                 $trackUrl    = $appUrl . '/track/click/' . $campaignId . '/' . $linkId
                     . ($token !== null ? '/' . rawurlencode($token) : '');
-                $trackedBody = str_replace($url, $trackUrl, $trackedBody);
+                $safeUrl     = htmlspecialchars($url, ENT_QUOTES);
+                $safeTrack   = htmlspecialchars($trackUrl, ENT_QUOTES);
+                $safeContent = str_replace(
+                    $safeUrl,
+                    '<a href="' . $safeTrack . '" style="color:#8a6a2e;">' . $safeUrl . '</a>',
+                    $safeContent
+                );
             }
-            $safeContent = nl2br(htmlspecialchars($trackedBody, ENT_QUOTES));
 
             // Salutation : prénom seul pour les particuliers (pas nom complet)
             $firstname    = htmlspecialchars(trim($sub['firstname'] ?? ''), ENT_QUOTES);
             $fallbackName = $firstname ?: htmlspecialchars($name ?: 'cher abonné', ENT_QUOTES);
             $greeting     = $sub['account_type'] === 'company'
-                ? 'Madame, Monsieur,'
-                : 'Bonjour ' . $fallbackName . ',';
+                ? ($lang === 'en' ? 'Dear Sir/Madam,' : 'Madame, Monsieur,')
+                : ($lang === 'en' ? 'Hello ' . $fallbackName . ',' : 'Bonjour ' . $fallbackName . ',');
             $greetingHtml = '<p style="margin:0 0 20px;font-size:22px;color:#1a1208;font-family:Georgia,serif;">'
                 . $greeting . '</p>';
 
+            $nlTitle  = $lang === 'en' ? 'Newsletter · Subscribers' : 'Newsletter · Abonnés';
             $htmlBody = $mailer->buildNewsletterHtml(
-                'Newsletter · Abonnés',
+                $nlTitle,
                 $greetingHtml . $titleHtml . $safeContent,
                 $imageUrl,
                 $token,
-                'fr',
+                $lang,
                 $campaignId
             );
             try {

@@ -944,6 +944,54 @@ class NewsletterAdminControllerTest extends AdminIntegrationTestCase
 
         $this->assertStringContainsString('Statistiques de tracking', $output);
         $this->assertStringContainsString('Ouvertures', $output);
-        $this->assertStringContainsString('Clics', $output);
+        $this->assertStringContainsString('Clics uniques', $output);
+        $this->assertStringContainsString('Clics totaux', $output);
+    }
+
+    /**
+     * show() affiche le tableau "Détail par lien" si des liens existent.
+     */
+    public function testShowDisplaysLinkStatsTableWhenLinksExist(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_count, failed_count)
+             VALUES ('Campagne liens tracking', 'Corps', 5, 0)"
+        );
+        self::$db->insert(
+            'INSERT INTO newsletter_links (newsletter_id, url) VALUES (?, ?)',
+            [$id, 'https://crabitanbellevue.fr/fr/vins']
+        );
+
+        $ctrl = new NewsletterAdminController(
+            $this->makeRequest('GET', '/admin/newsletter/' . $id)
+        );
+
+        ob_start();
+        $ctrl->show(['id' => (string) $id]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Détail par lien', $output);
+        $this->assertStringContainsString('crabitanbellevue.fr/fr/vins', $output);
+    }
+
+    /**
+     * show() n'affiche pas le tableau liens si aucun lien n'existe.
+     */
+    public function testShowHidesLinkStatsTableWhenNoLinks(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_count, failed_count)
+             VALUES ('Campagne sans lien', 'Corps', 2, 0)"
+        );
+
+        $ctrl = new NewsletterAdminController(
+            $this->makeRequest('GET', '/admin/newsletter/' . $id)
+        );
+
+        ob_start();
+        $ctrl->show(['id' => (string) $id]);
+        $output = ob_get_clean();
+
+        $this->assertStringNotContainsString('Détail par lien', $output);
     }
 }

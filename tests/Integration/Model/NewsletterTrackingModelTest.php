@@ -117,12 +117,58 @@ class NewsletterTrackingModelTest extends IntegrationTestCase
         $this->model->recordOpen($this->newsletterId, 3);
         $this->model->recordOpen($this->newsletterId, 5);
         $this->model->recordClick($this->newsletterId, $linkId, 3);
+        $this->model->recordClick($this->newsletterId, $linkId, 3); // doublon → unique_clicks = 1
         $this->model->recordClick($this->newsletterId, $linkId, 5);
         $this->model->recordClick($this->newsletterId, $linkId, null);
 
         $stats = $this->model->getStats($this->newsletterId);
         $this->assertSame(2, (int) $stats['opens_count']);
-        $this->assertSame(3, (int) $stats['clicks_count']);
+        $this->assertSame(4, (int) $stats['clicks_count']);
+        $this->assertSame(2, (int) $stats['unique_clicks_count']); // subscriber 3 et 5 (null exclu du DISTINCT)
+    }
+
+    // ----------------------------------------------------------------
+    // getLinkStats()
+    // ----------------------------------------------------------------
+
+    public function testGetLinkStatsReturnsPerLinkBreakdown(): void
+    {
+        $linkId1 = $this->model->saveLink($this->newsletterId, 'https://example.com/a');
+        $linkId2 = $this->model->saveLink($this->newsletterId, 'https://example.com/b');
+
+        $this->model->recordClick($this->newsletterId, $linkId1, 3);
+        $this->model->recordClick($this->newsletterId, $linkId1, 3); // même abonné → unique=1, total=2
+        $this->model->recordClick($this->newsletterId, $linkId1, 5); // 2e abonné → unique=2, total=3
+        $this->model->recordClick($this->newsletterId, $linkId2, 3); // lien 2 → unique=1, total=1
+
+        $rows = $this->model->getLinkStats($this->newsletterId);
+
+        $this->assertCount(2, $rows);
+        // Trié par total_clicks DESC → lien 1 en premier
+        $this->assertSame('https://example.com/a', $rows[0]['url']);
+        $this->assertSame(3, (int) $rows[0]['total_clicks']);
+        $this->assertSame(2, (int) $rows[0]['unique_clicks']);
+
+        $this->assertSame('https://example.com/b', $rows[1]['url']);
+        $this->assertSame(1, (int) $rows[1]['total_clicks']);
+        $this->assertSame(1, (int) $rows[1]['unique_clicks']);
+    }
+
+    public function testGetLinkStatsReturnsEmptyArrayWhenNoLinks(): void
+    {
+        $rows = $this->model->getLinkStats($this->newsletterId);
+        $this->assertSame([], $rows);
+    }
+
+    public function testGetLinkStatsReturnsLinkWithZeroClicksWhenNoClicks(): void
+    {
+        $this->model->saveLink($this->newsletterId, 'https://example.com/no-clicks');
+
+        $rows = $this->model->getLinkStats($this->newsletterId);
+
+        $this->assertCount(1, $rows);
+        $this->assertSame(0, (int) $rows[0]['total_clicks']);
+        $this->assertSame(0, (int) $rows[0]['unique_clicks']);
     }
 
     // ----------------------------------------------------------------

@@ -85,11 +85,36 @@ class NewsletterTrackingModel extends Model
     {
         $row = $this->db->fetchOne(
             'SELECT
-                (SELECT COUNT(*) FROM newsletter_opens  WHERE newsletter_id = ?) AS opens_count,
-                (SELECT COUNT(*) FROM newsletter_clicks WHERE newsletter_id = ?) AS clicks_count',
-            [$newsletterId, $newsletterId]
+                (SELECT COUNT(*)          FROM newsletter_opens  WHERE newsletter_id = ?) AS opens_count,
+                (SELECT COUNT(*)          FROM newsletter_clicks WHERE newsletter_id = ?) AS clicks_count,
+                (SELECT COUNT(DISTINCT subscriber_id)
+                                          FROM newsletter_clicks WHERE newsletter_id = ?) AS unique_clicks_count',
+            [$newsletterId, $newsletterId, $newsletterId]
         );
-        return $row !== false ? $row : ['opens_count' => 0, 'clicks_count' => 0];
+        return $row !== false ? $row : ['opens_count' => 0, 'clicks_count' => 0, 'unique_clicks_count' => 0];
+    }
+
+    /**
+     * Retourne le détail des clics par lien pour une campagne.
+     * Chaque ligne contient : url, total_clicks, unique_clicks.
+     *
+     * @param  int                          $newsletterId Identifiant de la campagne
+     * @return array<int, array<string, mixed>>
+     */
+    public function getLinkStats(int $newsletterId): array
+    {
+        return $this->db->fetchAll(
+            'SELECT nl.url,
+                    COUNT(nc.id)                   AS total_clicks,
+                    COUNT(DISTINCT nc.subscriber_id) AS unique_clicks
+             FROM newsletter_links nl
+             LEFT JOIN newsletter_clicks nc
+                    ON nc.link_id = nl.id AND nc.newsletter_id = nl.newsletter_id
+             WHERE nl.newsletter_id = ?
+             GROUP BY nl.id, nl.url
+             ORDER BY total_clicks DESC',
+            [$newsletterId]
+        );
     }
 
     /**

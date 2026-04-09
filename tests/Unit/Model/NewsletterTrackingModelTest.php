@@ -153,16 +153,21 @@ class NewsletterTrackingModelTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * getStats() retourne opens_count et clicks_count.
+     * getStats() retourne opens_count, clicks_count et unique_clicks_count.
      */
     public function testGetStatsReturnsCountsFromDb(): void
     {
-        $this->dbMock->method('fetchOne')->willReturn(['opens_count' => '3', 'clicks_count' => '7']);
+        $this->dbMock->method('fetchOne')->willReturn([
+            'opens_count'         => '3',
+            'clicks_count'        => '7',
+            'unique_clicks_count' => '4',
+        ]);
 
         $stats = $this->model->getStats(1);
 
         $this->assertSame('3', $stats['opens_count']);
         $this->assertSame('7', $stats['clicks_count']);
+        $this->assertSame('4', $stats['unique_clicks_count']);
     }
 
     /**
@@ -176,6 +181,37 @@ class NewsletterTrackingModelTest extends TestCase
 
         $this->assertSame(0, $stats['opens_count']);
         $this->assertSame(0, $stats['clicks_count']);
+        $this->assertSame(0, $stats['unique_clicks_count']);
+    }
+
+    // ----------------------------------------------------------------
+    // getLinkStats()
+    // ----------------------------------------------------------------
+
+    /**
+     * getLinkStats() appelle fetchAll et retourne le résultat.
+     */
+    public function testGetLinkStatsReturnsFetchAllResult(): void
+    {
+        $rows = [
+            ['url' => 'https://example.com', 'total_clicks' => '5', 'unique_clicks' => '3'],
+            ['url' => 'https://example.com/page', 'total_clicks' => '2', 'unique_clicks' => '2'],
+        ];
+        $this->dbMock->method('fetchAll')->willReturn($rows);
+
+        $result = $this->model->getLinkStats(1);
+
+        $this->assertSame($rows, $result);
+    }
+
+    /**
+     * getLinkStats() retourne un tableau vide si aucun lien.
+     */
+    public function testGetLinkStatsReturnsEmptyArrayWhenNoLinks(): void
+    {
+        $this->dbMock->method('fetchAll')->willReturn([]);
+
+        $this->assertSame([], $this->model->getLinkStats(99));
     }
 
     // ----------------------------------------------------------------
