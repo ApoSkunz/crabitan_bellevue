@@ -652,7 +652,7 @@ VALUES
 -- Client société
 (5, 'societe@dev.local',          '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'company',    'customer',    'fr', 1, '2026-01-15 14:00:00', 0, '2026-01-15 14:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client EN
-(6, 'customer.en@dev.local',      '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'en', 0, '2026-02-10 11:00:00', 0, '2026-02-10 11:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+(6, 'customer.en@dev.local',      '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'en', 1, '2026-02-10 11:00:00', 0, '2026-02-10 11:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Client soft-deleted (en attente de suppression)
 (7, 'client.supprime@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer',    'fr', 0, '2026-01-20 08:00:00', 0, '2026-01-20 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- Compte RGPD purgé (ancienne commande > 10 ans, compte anonymisé après effacement Art. 17)
