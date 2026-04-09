@@ -944,8 +944,9 @@ class NewsletterAdminControllerTest extends AdminIntegrationTestCase
 
         $this->assertStringContainsString('Statistiques de tracking', $output);
         $this->assertStringContainsString('Ouvertures', $output);
-        $this->assertStringContainsString('Clics uniques', $output);
-        $this->assertStringContainsString('Clics totaux', $output);
+        $this->assertStringContainsString('Désinscriptions', $output);
+        // Clics masqués si pas de liens détectés
+        $this->assertStringNotContainsString('Clics uniques', $output);
     }
 
     /**

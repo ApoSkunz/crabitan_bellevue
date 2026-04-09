@@ -161,6 +161,7 @@ class NewsletterTrackingModelTest extends TestCase
             'opens_count'         => '3',
             'clicks_count'        => '7',
             'unique_clicks_count' => '4',
+            'unsubscribes_count'  => '2',
         ]);
 
         $stats = $this->model->getStats(1);
@@ -168,6 +169,7 @@ class NewsletterTrackingModelTest extends TestCase
         $this->assertSame('3', $stats['opens_count']);
         $this->assertSame('7', $stats['clicks_count']);
         $this->assertSame('4', $stats['unique_clicks_count']);
+        $this->assertSame('2', $stats['unsubscribes_count']);
     }
 
     /**
@@ -182,6 +184,26 @@ class NewsletterTrackingModelTest extends TestCase
         $this->assertSame(0, $stats['opens_count']);
         $this->assertSame(0, $stats['clicks_count']);
         $this->assertSame(0, $stats['unique_clicks_count']);
+        $this->assertSame(0, $stats['unsubscribes_count']);
+    }
+
+    // ----------------------------------------------------------------
+    // recordUnsubscribe()
+    // ----------------------------------------------------------------
+
+    /**
+     * recordUnsubscribe() exécute un INSERT IGNORE dans newsletter_unsubscribes.
+     */
+    public function testRecordUnsubscribeExecutesInsertIgnore(): void
+    {
+        $this->dbMock->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->stringContains('INSERT IGNORE INTO newsletter_unsubscribes'),
+                [5, 42]
+            );
+
+        $this->model->recordUnsubscribe(5, 42);
     }
 
     // ----------------------------------------------------------------
