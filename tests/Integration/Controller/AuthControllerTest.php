@@ -878,12 +878,12 @@ class AuthControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
-    // login() — updateLang branch (lang différente du compte)
+    // login() — lang preference preserved (URL lang ne doit pas écraser accounts.lang)
     // ----------------------------------------------------------------
 
-    public function testLoginUpdatesLangWhenAccountLangDiffers(): void
+    public function testLoginPreservesAccountLangOverUrlLang(): void
     {
-        // Account with lang = 'fr', login in 'en' → updateLang must be called
+        // Account with lang = 'fr', login via URL /en → accounts.lang must remain 'fr'
         $id = (int) self::$db->insert(
             "INSERT INTO accounts (email, password, role, lang, email_verified_at)
              VALUES ('langdiff@example.com', ?, 'customer', 'fr', NOW())",
@@ -912,7 +912,8 @@ class AuthControllerTest extends IntegrationTestCase
             "SELECT lang FROM accounts WHERE id = ?",
             [$id]
         );
-        $this->assertSame('en', $account['lang']);
+            // La préférence de langue du compte est conservée en DB — jamais écrasée par l'URL
+        $this->assertSame('fr', $account['lang']);
     }
 
     // ----------------------------------------------------------------
