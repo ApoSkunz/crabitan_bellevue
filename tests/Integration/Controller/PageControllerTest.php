@@ -344,6 +344,50 @@ class PageControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // contactPost — HttpException propagée (garde-fou défensif)
+    // ----------------------------------------------------------------
+
+    public function testContactPostPropagatesHttpException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/contact';
+        $_GET  = [];
+        $token = bin2hex(random_bytes(16));
+        $_SESSION['csrf'] = $token;
+        $_POST = [
+            'csrf_token' => $token,
+            'firstname'  => 'Test',
+            'lastname'   => 'User',
+            'email'      => 'test@example.com',
+            'subject'    => 'general',
+            'message'    => 'Message.',
+            'rgpd'       => '1',
+        ];
+
+        $stub = $this->createStub(\Service\MailService::class);
+        $stub->method('sendContactToOwner')
+             ->willThrowException(new HttpException(503));
+
+        $controller = new class (new Request(), $stub) extends PageController {
+            public function __construct(
+                Request $request,
+                private \Service\MailService $mockMail
+            ) {
+                parent::__construct($request);
+            }
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->mockMail;
+            }
+        };
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(503);
+
+        $controller->contactPost(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
     // sitemapXml
     // ----------------------------------------------------------------
 

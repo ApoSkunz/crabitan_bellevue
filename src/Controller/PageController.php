@@ -63,9 +63,7 @@ class PageController extends Controller
             $mail->sendContactToOwner($firstname, $lastname, $email, $subject, $message, $lang);
             $mail->sendContactConfirmation($email, $firstname, $subject, $lang, $message);
         } catch (\Core\Exception\HttpException $e) {
-            // @codeCoverageIgnoreStart
-            throw $e; // MailService ne lance jamais HttpException — garde fou défensif
-            // @codeCoverageIgnoreEnd
+            throw $e;
         } catch (\Exception $e) {
             $this->json(['success' => false, 'message' => __('contact.error_smtp')], 500);
         }
