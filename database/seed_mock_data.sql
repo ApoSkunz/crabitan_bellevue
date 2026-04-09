@@ -658,7 +658,11 @@ VALUES
 -- id 10 : averti il y a 31 jours, aucune reconnexion → cible phase 2 (soft-delete)
 (10, 'rgpd.inactif.delete@dev.local', '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, '2023-01-01 08:00:00', 0, '2023-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- id 11 : inactif 37 mois MAIS commande pending en cours → protégé (ni avertissement ni suppression)
-(11, 'rgpd.inactif.protege@dev.local','$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, '2023-01-01 08:00:00', 0, '2023-01-01 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+(11, 'rgpd.inactif.protege@dev.local','$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, '2023-01-01 08:00:00', 0, '2023-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+-- id 12 : abonné newsletter sans commande → segment 'sans-commande'
+(12, 'newsletter.noorder@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 1, '2026-01-20 08:00:00', 0, '2026-01-20 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
+-- id 13 : abonné newsletter avec commande ancienne (> 6 mois) → segment 'inactifs'
+(13, 'newsletter.inactif@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 1, '2025-01-10 08:00:00', 0, '2025-01-10 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 
 -- Déclaration de majorité (Sprint 5 — Art. L3342-1 CSP)
 -- id 1 (super_admin), id 2 (admin), id 3 (client principal) : déclarés → pas de modal intempestif
@@ -681,7 +685,7 @@ UPDATE `accounts` SET `created_at` = DATE_SUB(NOW(), INTERVAL 37 MONTH) WHERE `i
 -- Marquer id 10 comme averti il y a 31 jours
 UPDATE `accounts` SET `inactivity_warning_sent_at` = DATE_SUB(NOW(), INTERVAL 31 DAY) WHERE `id` = 10;
 
-ALTER TABLE `accounts` AUTO_INCREMENT = 12;
+ALTER TABLE `accounts` AUTO_INCREMENT = 14;
 
 -- ============================================================
 -- PROFILS INDIVIDUELS
@@ -699,7 +703,10 @@ INSERT INTO `account_individuals` (`account_id`, `lastname`, `firstname`, `civil
 -- Comptes cron RGPD
 (9,  'Inactif',  'Warn',   'M'),
 (10, 'Inactif',  'Delete', 'F'),
-(11, 'Inactif',  'Protege','M');
+(11, 'Inactif',  'Protege','M'),
+-- Comptes segmentation newsletter
+(12, 'NoOrder',  'Newsletter', 'M'),
+(13, 'Inactif',  'Newsletter', 'F');
 
 -- ============================================================
 -- PROFILS SOCIÉTÉS
@@ -850,9 +857,14 @@ VALUES
 -- Client protégé (id 11) — commande pending → protège du cron inactivité
 (15, 11, 'CBV-2026-000015',
  '[{"wine_id":30,"label_name":"Bordeaux Rouge","vintage":2022,"wine_color":"red","format":"bottle","qty":6,"price":7.70,"subtotal":46.20}]',
- 46.20, 'card', 0.00, 10, 10, 'pending', DATE_SUB(NOW(), INTERVAL 1 DAY), NULL);
+ 46.20, 'card', 0.00, 10, 10, 'pending', DATE_SUB(NOW(), INTERVAL 1 DAY), NULL),
 
-ALTER TABLE `orders` AUTO_INCREMENT = 16;
+-- Newsletter inactif (id 13) — commande delivered il y a 8 mois → segment 'inactifs'
+(16, 13, 'CBV-2025-000016',
+ '[{"wine_id":1,"label_name":"Sainte-Croix-du-Mont","vintage":2019,"wine_color":"sweet","format":"bottle","qty":6,"price":10.00,"subtotal":60.00}]',
+ 60.00, 'card', 0.00, 1, 1, 'delivered', DATE_SUB(NOW(), INTERVAL 8 MONTH), DATE_SUB(NOW(), INTERVAL 7 MONTH));
+
+ALTER TABLE `orders` AUTO_INCREMENT = 17;
 
 -- ============================================================
 -- CARTS (paniers actifs)
@@ -907,19 +919,19 @@ INSERT INTO `trusted_devices` (`user_id`, `device_token`, `device_name`, `confir
 -- NEWSLETTERS (12 campagnes pour tester la pagination admin)
 -- ============================================================
 
-INSERT INTO `newsletters` (`subject`, `body`, `image_url`, `sent_count`, `failed_count`, `sent_at`) VALUES
-('Ouverture des inscriptions — millésime 2024', '<p>Découvrez les premiers vins du millésime 2024, prometteur après un été exceptionnel.</p>', NULL, 142, 2, '2026-03-01 10:00:00'),
-('Printemps au château — visite & dégustation', '<p>À l\'occasion du printemps, venez nous rendre visite et découvrir nos nouvelles cuvées.</p>', NULL, 138, 1, '2026-02-15 09:30:00'),
-('Bon de commande 2025 disponible', '<p>Notre bon de commande 2025 est disponible. Téléchargez-le et retournez-le avant le 31 mars.</p>', NULL, 155, 0, '2026-02-01 11:00:00'),
-('Saint-Valentin — offrez du Crabitan Bellevue', '<p>Pour la Saint-Valentin, offrez une sélection de nos meilleurs vins liquoreux.</p>', NULL, 130, 3, '2026-01-28 08:00:00'),
-('Bilan 2025 & perspectives 2026', '<p>Retour sur une excellente année 2025 et les projets que nous préparons pour 2026.</p>', NULL, 160, 0, '2026-01-10 10:00:00'),
-('Vœux 2026 — merci de votre fidélité', '<p>Toute l\'équipe du Château Crabitan Bellevue vous souhaite une excellente année 2026.</p>', NULL, 175, 1, '2026-01-01 08:00:00'),
-('Fêtes de fin d\'année — dernières commandes', '<p>Dernière chance pour recevoir votre commande avant Noël. Passez commande avant le 18 décembre.</p>', NULL, 148, 2, '2025-12-12 09:00:00'),
-('Harmonie mets & vins pour les fêtes', '<p>Nos conseils pour sublimer votre table de fête avec les vins du Château Crabitan Bellevue.</p>', NULL, 122, 0, '2025-12-01 10:30:00'),
-('Millésime 2023 — disponible en boutique', '<p>Les vins du millésime 2023 sont désormais disponibles à la commande en ligne.</p>', NULL, 134, 1, '2025-11-15 11:00:00'),
-('Vendanges 2025 — les premières impressions', '<p>Les vendanges 2025 sont terminées. Découvrez les premières impressions de notre maître de chai.</p>', NULL, 118, 0, '2025-10-10 09:00:00'),
-('Automne au domaine — photos & coulisses', '<p>Plongez dans l\'atmosphère automnale du Château Crabitan Bellevue avec notre reportage photo.</p>', NULL, 109, 2, '2025-09-20 10:00:00'),
-('Rentrée des amateurs de vin', '<p>La rentrée est là ! Découvrez notre sélection de vins pour l\'automne et retrouvez-nous sur le site.</p>', NULL, 97, 0, '2025-09-01 09:00:00');
+INSERT INTO `newsletters` (`subject`, `body`, `image_url`, `sent_count`, `failed_count`, `sent_at`, `segment_label`) VALUES
+('Ouverture des inscriptions — millésime 2024', '<p>Découvrez les premiers vins du millésime 2024, prometteur après un été exceptionnel.</p>', NULL, 142, 2, '2026-03-01 10:00:00', NULL),
+('Printemps au château — visite & dégustation', '<p>À l\'occasion du printemps, venez nous rendre visite et découvrir nos nouvelles cuvées.</p>', NULL, 138, 1, '2026-02-15 09:30:00', 'particuliers'),
+('Bon de commande 2025 disponible', '<p>Notre bon de commande 2025 est disponible. Téléchargez-le et retournez-le avant le 31 mars.</p>', NULL, 155, 0, '2026-02-01 11:00:00', 'commandes'),
+('Saint-Valentin — offrez du Crabitan Bellevue', '<p>Pour la Saint-Valentin, offrez une sélection de nos meilleurs vins liquoreux.</p>', NULL, 130, 3, '2026-01-28 08:00:00', NULL),
+('Bilan 2025 & perspectives 2026', '<p>Retour sur une excellente année 2025 et les projets que nous préparons pour 2026.</p>', NULL, 160, 0, '2026-01-10 10:00:00', NULL),
+('Vœux 2026 — merci de votre fidélité', '<p>Toute l\'équipe du Château Crabitan Bellevue vous souhaite une excellente année 2026.</p>', NULL, 175, 1, '2026-01-01 08:00:00', NULL),
+('Fêtes de fin d\'année — dernières commandes', '<p>Dernière chance pour recevoir votre commande avant Noël. Passez commande avant le 18 décembre.</p>', NULL, 148, 2, '2025-12-12 09:00:00', NULL),
+('Harmonie mets & vins pour les fêtes', '<p>Nos conseils pour sublimer votre table de fête avec les vins du Château Crabitan Bellevue.</p>', NULL, 122, 0, '2025-12-01 10:30:00', NULL),
+('Millésime 2023 — disponible en boutique', '<p>Les vins du millésime 2023 sont désormais disponibles à la commande en ligne.</p>', NULL, 134, 1, '2025-11-15 11:00:00', NULL),
+('Vendanges 2025 — les premières impressions', '<p>Les vendanges 2025 sont terminées. Découvrez les premières impressions de notre maître de chai.</p>', NULL, 118, 0, '2025-10-10 09:00:00', NULL),
+('Automne au domaine — photos & coulisses', '<p>Plongez dans l\'atmosphère automnale du Château Crabitan Bellevue avec notre reportage photo.</p>', NULL, 109, 2, '2025-09-20 10:00:00', NULL),
+('Rentrée des amateurs de vin', '<p>La rentrée est là ! Découvrez notre sélection de vins pour l\'automne et retrouvez-nous sur le site.</p>', NULL, 97, 0, '2025-09-01 09:00:00', NULL);
 
 -- ============================================================
 -- PASSWORD RESET TOKENS (quelques-uns pour les tests)
