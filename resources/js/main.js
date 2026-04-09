@@ -1676,10 +1676,10 @@ function initDeleteAccountModal() {
 // Lang preference — save via AJAX when user is logged in
 // ----------------------------------------------------------------
 function initLangPreference() {
-    if (!window.__userLogged) return;
+    if (!globalThis.__userLogged) return;
 
-    const csrf    = window.__csrf    ?? '';
-    const navLang = window.__navLang ?? 'fr';
+    const csrf    = globalThis.__csrf    ?? '';
+    const navLang = globalThis.__navLang ?? 'fr';
 
     const saveLang = (targetLang) => {
         // Fire-and-forget — navigation non bloquée, erreur réseau silencieuse

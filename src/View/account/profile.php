@@ -116,8 +116,8 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                     <div class="form-group">
                         <label for="lang-pref-select"><?= __('account.lang_pref') ?></label>
                         <select id="lang-pref-select" name="lang" class="form-select">
-                            <option value="fr"<?= ($account['lang'] ?? 'fr') === 'fr' ? ' selected' : '' ?>>Français</option>
-                            <option value="en"<?= ($account['lang'] ?? 'fr') === 'en' ? ' selected' : '' ?>>English</option>
+                            <option value="fr"<?= $selected(($account['lang'] ?? 'fr') === 'fr') ?>>Français</option>
+                            <option value="en"<?= $selected(($account['lang'] ?? 'fr') === 'en') ?>>English</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn--primary"><?= __('account.save_profile') ?></button>
