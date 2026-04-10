@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.63.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.63.0...v0.63.1) (2026-04-10)
+
+
+### Bug Fixes
+
+* **auth:** corriger fusion panier hors-ligne post-connexion ([60ef05e](https://github.com/ApoSkunz/crabitan_bellevue/commit/60ef05e235769068104774b30c8911372be29ab5))
+
 # [0.63.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.62.0...v0.63.0) (2026-04-10)
 
 
