@@ -2,6 +2,21 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.56.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.55.0...v0.56.0) (2026-04-10)
+
+
+### Bug Fixes
+
+* **age-gate:** passer SameSite=Lax sur le cookie age_verified ([3bef442](https://github.com/ApoSkunz/crabitan_bellevue/commit/3bef44207ef0bf480c35f3660a43a4eb9b09bda3))
+* **model:** déchiffrer email_change_new_email dans findById/findByEmail ([ae3fb84](https://github.com/ApoSkunz/crabitan_bellevue/commit/ae3fb84652ba34221b527eb6763dace18b70c0bc))
+* **schema:** corriger l'ordre DROP — newsletter_clicks avant newsletter_links ([e3cfa4c](https://github.com/ApoSkunz/crabitan_bellevue/commit/e3cfa4c696a21f32d4bcf5bfef8950c4eb2b810a))
+* **test:** décrypter email_change_new_email dans AccountEmailChangeTest ([8b191de](https://github.com/ApoSkunz/crabitan_bellevue/commit/8b191de469ea93b0607c871645c05e62a7c31703))
+
+
+### Features
+
+* **security:** chiffrement AES-256-GCM colonnes sensibles — us-chiffrement-colonnes-sensibles-bdd ([6bfd5d3](https://github.com/ApoSkunz/crabitan_bellevue/commit/6bfd5d370b22f5fe6c64ea56c4cc1c185009554b))
+
 # [0.55.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.54.2...v0.55.0) (2026-04-10)
 
 
