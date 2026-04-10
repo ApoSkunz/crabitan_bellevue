@@ -7,11 +7,17 @@ namespace Model;
 use Core\Model;
 
 /**
- * Modèle de gestion des notations de vins.
+ * Modèle de gestion des avis et notes des vins.
+ *
+ * La table wine_ratings stocke les notes individuelles (1–5).
+ * Une note n'est affichée que si le vin totalise au moins 2 avis.
  */
 class RatingModel extends Model
 {
     protected string $table = 'wine_ratings';
+
+    /** Nombre minimum d'avis pour afficher une note moyenne. */
+    private const MIN_REVIEWS = 2;
 
     /**
      * Insère ou met à jour la note d'un client pour un vin.
@@ -51,7 +57,7 @@ class RatingModel extends Model
             [$wineId]
         );
 
-        if (!$row || (int) $row['cnt'] < 2) {
+        if (!$row || (int) $row['cnt'] < self::MIN_REVIEWS) {
             return null;
         }
 
@@ -168,20 +174,20 @@ class RatingModel extends Model
     }
 
     /**
-     * Retourne les notes moyennes pour un ensemble de wine_ids.
-     * Retourne array<int, array{avg: float|null, count: int}> indexé par wine_id.
-     * Inclut seulement les vins ayant >= 2 avis pour avg.
+     * Retourne les notes moyennes pour un ensemble de wine_ids en une seule requête.
+     * Les vins ayant moins de MIN_REVIEWS avis reçoivent null.
      *
-     * @param int[] $wineIds Liste d'identifiants de vins
-     * @return array<int, array{avg: float|null, count: int}>
+     * @param  int[]                 $wineIds Liste des identifiants de vins
+     * @return array<int, float|null>         Tableau [wine_id => avg|null]
      */
     public function getAvgBulk(array $wineIds): array
     {
-        if (empty($wineIds)) {
+        if ($wineIds === []) {
             return [];
         }
 
         $placeholders = implode(',', array_fill(0, count($wineIds), '?'));
+
         $rows = $this->db->fetchAll(
             "SELECT wine_id, AVG(rating) AS avg, COUNT(*) AS cnt
              FROM {$this->table}
@@ -190,14 +196,15 @@ class RatingModel extends Model
             $wineIds
         );
 
-        $result = [];
+        // Initialise tout à null
+        $result = array_fill_keys($wineIds, null);
+
         foreach ($rows as $row) {
-            $cnt = (int) $row['cnt'];
-            $result[(int) $row['wine_id']] = [
-                'avg'   => $cnt >= 2 ? round((float) $row['avg'], 2) : null,
-                'count' => $cnt,
-            ];
+            if ((int) $row['cnt'] >= self::MIN_REVIEWS) {
+                $result[(int) $row['wine_id']] = round((float) $row['avg'], 1);
+            }
         }
+
         return $result;
     }
 
@@ -219,5 +226,45 @@ class RatingModel extends Model
              LIMIT ?",
             [$limit]
         );
+    }
+
+    /**
+     * Génère un token de commande pour la page de notation globale.
+     * Stocké dans order_rating_tokens.
+     *
+     * @param int $orderId   Identifiant de la commande
+     * @param int $accountId Identifiant du compte
+     * @return string Token hexadécimal de 64 caractères
+     */
+    public function generateOrderToken(int $orderId, int $accountId): string
+    {
+        $token = bin2hex(random_bytes(32));
+
+        $this->db->execute(
+            "INSERT INTO order_rating_tokens (order_id, account_id, token)
+             VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+               token      = VALUES(token),
+               used_at    = NULL,
+               created_at = NOW()",
+            [$orderId, $accountId, $token]
+        );
+
+        return $token;
+    }
+
+    /**
+     * Résout un token de commande — retourne les données ou null si invalide/utilisé.
+     *
+     * @param string $token Token de la page de notation
+     * @return array<string, mixed>|null
+     */
+    public function resolveOrderToken(string $token): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT * FROM order_rating_tokens WHERE token = ? AND used_at IS NULL",
+            [$token]
+        );
+        return $row ?: null;
     }
 }

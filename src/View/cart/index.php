@@ -23,6 +23,8 @@ $isEn             = ($lang === 'en');
 $subtotal         = $subtotal         ?? 0.0;
 $deliveryDiscount = $deliveryDiscount ?? 0.0;
 $pricingRules     = $pricingRules     ?? [];
+$crossSellWines   = $crossSellWines   ?? [];
+$featuredWine     = $featuredWine     ?? null;
 ?>
 
 <?php $checkoutStep = 1; require_once SRC_PATH . '/View/partials/checkout-stepper.php'; ?>
@@ -310,6 +312,27 @@ $pricingRules     = $pricingRules     ?? [];
             </aside>
         </div>
 
+        <?php if (!empty($crossSellWines)) : ?>
+        <!-- Cross-sell panier non vide -->
+        <div class="cart-cross-sell">
+            <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
+            <div class="cart-cross-sell__list">
+                <?php foreach ($crossSellWines as $csWine) : ?>
+                <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($csWine['slug'] ?? '')) ?>"
+                   class="cart-empty-wine__card">
+                    <?php $csImage = '/assets/images/wines/' . htmlspecialchars((string)($csWine['image_path'] ?? '')); ?>
+                    <img src="<?= $csImage ?>"
+                         alt="<?= htmlspecialchars((string)($csWine['label_name'] ?? '')) ?>"
+                         class="cart-empty-wine__img"
+                         width="120" height="160" loading="lazy">
+                    <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($csWine['label_name'] ?? '')) ?></span>
+                    <span class="cart-empty-wine__price"><?= number_format((float)($csWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <?php elseif ($isAuth && empty($cartItems)) : ?>
         <!-- ======================================================
              Connecté — panier vide
@@ -317,7 +340,21 @@ $pricingRules     = $pricingRules     ?? [];
         <?php $randomWine = $randomWine ?? null; ?>
         <div class="cart-empty-state">
             <p class="cart-empty"><?= htmlspecialchars(__('cart.empty')) ?></p>
-            <?php if ($randomWine !== null) : ?>
+            <?php if ($featuredWine !== null) : ?>
+            <div class="cart-empty-wine">
+                <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
+                <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($featuredWine['slug'] ?? '')) ?>"
+                   class="cart-empty-wine__card">
+                    <?php $featuredImage = '/assets/images/wines/' . htmlspecialchars((string)($featuredWine['image_path'] ?? '')); ?>
+                    <img src="<?= $featuredImage ?>"
+                         alt="<?= htmlspecialchars((string)($featuredWine['label_name'] ?? '')) ?>"
+                         class="cart-empty-wine__img"
+                         width="120" height="160" loading="lazy">
+                    <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($featuredWine['label_name'] ?? '')) ?></span>
+                    <span class="cart-empty-wine__price"><?= number_format((float)($featuredWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
+                </a>
+            </div>
+            <?php elseif ($randomWine !== null) : ?>
             <div class="cart-empty-wine">
                 <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
