@@ -2,9 +2,12 @@ Options -Indexes
 
 RewriteEngine On
 
-# ---- HTTPS redirect (production) — géré côté PHP (APP_ENV=production) ----
-# La redirection 301 http→https est effectuée dans public/index.php via Response::forceHttps()
-# afin d'être conditionnée à APP_ENV sans modifier ce fichier au déploiement.
+# ---- HTTPS redirect (décommenter en production) -----------------------------
+# RewriteCond %{HTTP_HOST} ^(www\.)?crabitanbellevue\.fr$ [NC]
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+# Fallback PHP : Response::forceHttps() dans index.php (APP_ENV=production)
+# -----------------------------------------------------------------------------
 
 # ---- Mode maintenance -------------------------------------------------------
 # Pour activer : décommenter les 5 lignes RewriteCond/Rule ci-dessous.
