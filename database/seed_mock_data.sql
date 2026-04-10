@@ -1001,16 +1001,4 @@ INSERT INTO `newsletter_clicks` (`newsletter_id`, `link_id`, `subscriber_id`, `c
 
 ALTER TABLE `newsletter_clicks` AUTO_INCREMENT = 3;
 
--- ============================================================
--- LEGAL DOCUMENTS (version et date des pages légales)
--- ============================================================
-
-INSERT IGNORE INTO `legal_documents` (`slug`, `label`, `version`, `updated_at`, `requires_notification`) VALUES
-('cgv',                       'Conditions Générales de Vente',              '1.0', '2026-04-04', 1),
-('politique_confidentialite', 'Politique de confidentialité',               '1.0', '2026-04-07', 1),
-('mentions_legales',          'Mentions légales',                           '1.0', '2026-04-07', 0),
-('matrice_habilitations',     'Matrice des habilitations',                  '1.0', '2026-04-07', 0),
-('registre_traitements',      'Registre des activités de traitement',       '1.0', '2026-04-07', 0),
-('sous_traitants',            'Liste des sous-traitants',                   '1.0', '2026-04-07', 0),
-('procedure_violation',       'Procédure violation de données',             '1.0', '2026-04-07', 0),
-('dpia',                      'DPIA — Analyse d\'impact',                   '1.0', '2026-04-07', 0);
+-- legal_documents : données initiales incluses dans schema.sql (INSERT au schéma)
