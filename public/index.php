@@ -12,6 +12,9 @@ require_once ROOT_PATH . '/config/config.php';
 
 use Core\Router;
 use Core\Request;
+use Middleware\SecurityHeaderMiddleware;
+
+SecurityHeaderMiddleware::apply();
 
 $request = new Request();
 $router  = new Router($request);
