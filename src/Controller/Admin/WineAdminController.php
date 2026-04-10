@@ -149,7 +149,8 @@ class WineAdminController extends AdminController
 
         [$data, $errors] = $this->parseWineForm(null);
 
-        $nutritionPost = $this->parseNutritionPost();
+        $nutritionPost   = $this->parseNutritionPost();
+        $errors          = array_merge($errors, $this->validateNutrition($nutritionPost));
 
         if ($errors !== []) {
             $this->view(self::FORM_VIEW, [
@@ -301,7 +302,8 @@ class WineAdminController extends AdminController
         }
 
         [$data, $errors] = $this->parseWineForm($wine);
-        $nutritionPost  = $this->parseNutritionPost();
+        $nutritionPost   = $this->parseNutritionPost();
+        $errors          = array_merge($errors, $this->validateNutrition($nutritionPost));
 
         if ($errors !== []) {
             $this->view(self::FORM_VIEW, [
@@ -540,6 +542,12 @@ class WineAdminController extends AdminController
         return move_uploaded_file($src, $dest);
     }
 
+    /** @var string[] Champs obligatoires si la déclaration nutritionnelle est amorcée */
+    private const NUTRITION_REQUIRED = [
+        'energy_kj', 'energy_kcal', 'fat_g', 'saturated_fat_g',
+        'carbohydrate_g', 'sugars_g', 'protein_g', 'salt_g',
+    ];
+
     /**
      * Extrait les champs nutritionnels du POST.
      *
@@ -552,6 +560,28 @@ class WineAdminController extends AdminController
             $data[$field] = trim($this->request->post($field, ''));
         }
         return $data;
+    }
+
+    /**
+     * Valide la cohérence de la déclaration nutritionnelle.
+     * Si au moins un des 8 champs est renseigné, tous les 8 sont obligatoires.
+     *
+     * @param  array<string, string> $nutrition
+     * @return array<string, string> Tableau d'erreurs (vide si valide)
+     */
+    private function validateNutrition(array $nutrition): array
+    {
+        $filled = array_filter(
+            array_intersect_key($nutrition, array_flip(self::NUTRITION_REQUIRED)),
+            fn(string $v) => $v !== ''
+        );
+
+        if ($filled === [] || count($filled) === count(self::NUTRITION_REQUIRED)) {
+            return [];
+        }
+
+        return ['nutrition' => 'Déclaration incomplète — si un champ nutritionnel est renseigné, '
+            . 'les 8 champs (énergie, lipides, glucides, protéines, sel) doivent tous être complétés.'];
     }
 
     private function generateSlug(string $name, int $vintage): string

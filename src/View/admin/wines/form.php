@@ -312,23 +312,27 @@ $maxYear = (int) date('Y');
             <h3 class="admin-section__subtitle" style="margin-top:1.5rem;">Déclaration nutritionnelle (pour 100 ml)</h3>
             <div class="admin-form__grid admin-form__grid--3">
                 <?php
+                <?php if (!empty($errors['nutrition'])) : ?>
+                    <p class="admin-field__error"><?= htmlspecialchars($errors['nutrition']) ?></p>
+                <?php endif; ?>
+                <?php
                 $nutritionInputs = [
-                    'energy_kj'       => 'Énergie (kJ)',
-                    'energy_kcal'     => 'Énergie (kcal)',
-                    'fat_g'           => 'Matières grasses (g)',
-                    'saturated_fat_g' => 'dont Acides gras saturés (g)',
-                    'carbohydrate_g'  => 'Glucides (g)',
-                    'sugars_g'        => 'dont Sucres (g)',
-                    'protein_g'       => 'Protéines (g)',
-                    'salt_g'          => 'Sel (g)',
+                    'energy_kj'       => ['label' => 'Énergie (kJ)',                    'placeholder' => 'ex : 336'],
+                    'energy_kcal'     => ['label' => 'Énergie (kcal)',                  'placeholder' => 'ex : 81'],
+                    'fat_g'           => ['label' => 'Matières grasses (g)',            'placeholder' => 'ex : 0 ou &lt; 0,2'],
+                    'saturated_fat_g' => ['label' => 'dont Acides gras saturés (g)',    'placeholder' => 'ex : 0 ou &lt; 0,2'],
+                    'carbohydrate_g'  => ['label' => 'Glucides (g)',                    'placeholder' => 'ex : 0,03'],
+                    'sugars_g'        => ['label' => 'dont Sucres (g)',                 'placeholder' => 'ex : 0,03 ou &lt; 0,2'],
+                    'protein_g'       => ['label' => 'Protéines (g)',                   'placeholder' => 'ex : &lt; 0,2'],
+                    'salt_g'          => ['label' => 'Sel (g)',                         'placeholder' => 'ex : &lt; 0,2'],
                 ];
-                foreach ($nutritionInputs as $field => $label) : ?>
+                foreach ($nutritionInputs as $field => $meta) : ?>
                     <div class="admin-field">
-                        <label class="admin-field__label" for="<?= $field ?>"><?= htmlspecialchars($label) ?></label>
+                        <label class="admin-field__label" for="<?= $field ?>"><?= htmlspecialchars($meta['label']) ?></label>
                         <input type="text" id="<?= $field ?>" name="<?= $field ?>"
-                               class="admin-field__input"
+                               class="admin-field__input<?= !empty($errors['nutrition']) ? ' admin-field__input--error' : '' ?>"
                                value="<?= htmlspecialchars((string) ($wn[$field] ?? '')) ?>"
-                               placeholder="ex : 0 ou &lt; 0,2">
+                               placeholder="<?= $meta['placeholder'] ?>">
                     </div>
                 <?php endforeach; ?>
             </div>
