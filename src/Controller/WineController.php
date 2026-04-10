@@ -460,6 +460,9 @@ class WineController extends Controller
     {
         $g = fn(string $k): string => isset($nutrition[$k]) ? $nutrition[$k] . ' g' : '';
 
+        $ingDecoded = json_decode((string) ($nutrition['ingredients'] ?? ''), true) ?? [];
+        $ingText    = (string) ($ingDecoded[$isEn ? 'en' : 'fr'] ?? ($ingDecoded['fr'] ?? ''));
+
         $energy = '';
         if (isset($nutrition['energy_kj'])) {
             $kj   = (int) $nutrition['energy_kj'];
@@ -468,6 +471,7 @@ class WineController extends Controller
         }
 
         return [
+            ($isEn ? 'Ingredients'        : 'Ingrédients')      => $ingText,
             ($isEn ? 'Energy'             : 'Énergie')          => $energy,
             ($isEn ? 'Fat'                : 'Matières grasses') => $g('fat_g'),
             ($isEn ? 'of which saturates' : 'dont saturés')     => $g('saturated_fat_g'),

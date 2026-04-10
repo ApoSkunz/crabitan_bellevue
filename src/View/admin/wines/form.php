@@ -364,12 +364,24 @@ $maxYear = (int) date('Y');
             </script>
 
             <?php if ($enableExtraInfo) : ?>
+                <?php
+                $ingDecoded = json_decode((string) ($wn['ingredients'] ?? ''), true) ?? [];
+                $ingFr = (string) ($ingDecoded['fr'] ?? ($wn['ingredients'] ?? ''));
+                $ingEn = (string) ($ingDecoded['en'] ?? '');
+                ?>
                 <div class="admin-field" style="margin-top:1.5rem;">
-                    <label class="admin-field__label" for="ingredients">Liste des ingrédients</label>
-                    <textarea id="ingredients" name="ingredients"
+                    <label class="admin-field__label" for="ingredients_fr">Liste des ingrédients — Français</label>
+                    <textarea id="ingredients_fr" name="ingredients_fr"
                               class="admin-field__textarea"
                               rows="3"
-                              placeholder="ex : Raisins, Agent stabilisant : Carboxyméthylcellulose, Sulfites"><?= htmlspecialchars((string) ($wn['ingredients'] ?? '')) ?></textarea>
+                              placeholder="ex : Raisins, Agent stabilisant : Carboxyméthylcellulose, Sulfites"><?= htmlspecialchars($ingFr) ?></textarea>
+                </div>
+                <div class="admin-field" style="margin-top:0.75rem;">
+                    <label class="admin-field__label" for="ingredients_en">Liste des ingrédients — Anglais <span style="font-weight:400;font-size:0.72rem;">(traduit automatiquement)</span></label>
+                    <textarea id="ingredients_en" name="ingredients_en"
+                              class="admin-field__textarea"
+                              style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                              rows="3" readonly><?= htmlspecialchars($ingEn) ?></textarea>
                 </div>
             <?php endif; ?>
         </div>

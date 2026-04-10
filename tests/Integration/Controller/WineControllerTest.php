@@ -1049,6 +1049,7 @@ class WineControllerTest extends IntegrationTestCase
             'sugars_g'        => '4,2',
             'protein_g'       => '0,3',
             'salt_g'          => '0,01',
+            'ingredients'     => '{"fr":"Raisins, Sulfites","en":"Grapes, Sulphites"}',
         ];
 
         $resultFr = $ref->invoke($ctrl, $nutrition, false);
@@ -1057,6 +1058,8 @@ class WineControllerTest extends IntegrationTestCase
         $this->assertStringContainsString('300 kJ', $resultFr['Énergie']);
         $this->assertStringContainsString('kcal', $resultFr['Énergie']);
         $this->assertSame('0,5 g', $resultFr['Matières grasses']);
+        $this->assertSame('Raisins, Sulfites', $resultFr['Ingrédients']);
+        $this->assertSame('Grapes, Sulphites', $resultEn['Ingredients']);
         $this->assertStringContainsString('kJ', $resultEn['Energy']);
     }
 
@@ -1071,10 +1074,17 @@ class WineControllerTest extends IntegrationTestCase
             $ref  = new \ReflectionMethod($ctrl, 'buildPdfSections');
             $l    = fn(array $arr): string => $arr['fr'] ?? '';
 
-            $nutrition = ['energy_kj' => 280, 'fat_g' => '0,4'];
+            $nutrition = [
+                'energy_kj' => 280,
+                'fat_g'     => '0,4',
+                'ingredients' => '{"fr":"Raisins, Sulfites","en":"Grapes, Sulphites"}',
+            ];
             $sections  = $ref->invoke($ctrl, $this->makePdfWine(), $nutrition, 'fr', $l);
 
             $this->assertArrayHasKey('INFORMATIONS NUTRITIONNELLES', $sections);
+            $nutFields = $sections['INFORMATIONS NUTRITIONNELLES'];
+            $this->assertArrayHasKey('Ingrédients', $nutFields);
+            $this->assertSame('Raisins, Sulfites', $nutFields['Ingrédients']);
         } finally {
             $_ENV['ENABLE_EXTRA_INFO'] = 'false';
         }

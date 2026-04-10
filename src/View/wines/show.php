@@ -212,13 +212,15 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     $nutrition,
                     array_flip(['energy_kj','fat_g','saturated_fat_g','carbohydrate_g','sugars_g','protein_g','salt_g'])
                 ));
-                $hasIngredients = $enableExtraInfo && !empty($nutrition['ingredients']);
+                $ingDecoded   = json_decode((string) ($nutrition['ingredients'] ?? ''), true) ?? [];
+                $ingText      = (string) ($ingDecoded[$lang] ?? ($ingDecoded['fr'] ?? ($nutrition['ingredients'] ?? '')));
+                $hasIngredients = $enableExtraInfo && $ingText !== '';
                 ?>
 
                 <?php if ($hasIngredients) : ?>
                     <div class="wine-detail__section">
                         <h2 class="wine-detail__section-title"><?= htmlspecialchars(__('wine.ingredients')) ?></h2>
-                        <p class="wine-detail__text"><?= htmlspecialchars($nutrition['ingredients']) ?></p>
+                        <p class="wine-detail__text"><?= htmlspecialchars($ingText) ?></p>
                     </div>
                 <?php endif; ?>
 

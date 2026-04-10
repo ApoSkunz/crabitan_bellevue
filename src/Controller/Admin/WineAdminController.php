@@ -561,7 +561,18 @@ class WineAdminController extends AdminController
     {
         $data = [];
         foreach (WineNutritionModel::ALL_FIELDS as $field) {
-            $data[$field] = trim($this->request->post($field, ''));
+            if ($field === 'ingredients') {
+                $fr = trim($this->request->post('ingredients_fr', ''));
+                $en = trim($this->request->post('ingredients_en', ''));
+                if ($fr !== '' && $en === '') {
+                    $en = $this->translator->translate($fr);
+                }
+                $data['ingredients'] = ($fr !== '' || $en !== '')
+                    ? json_encode(['fr' => $fr, 'en' => $en], JSON_UNESCAPED_UNICODE)
+                    : '';
+            } else {
+                $data[$field] = trim($this->request->post($field, ''));
+            }
         }
         return $data;
     }
