@@ -817,4 +817,29 @@ CREATE TABLE `legal_notification_logs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Historique des notifications légales envoyées — preuve RGPD Art. 5.2';
 
+-- ============================================================
+-- Table : wine_ratings
+-- Notation /5 des vins par les clients ayant commandé.
+-- Contrainte UNIQUE (account_id, wine_id) : une note par client par vin.
+-- token : lien email usage unique pour noter directement depuis l'email.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `wine_ratings` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `account_id` INT UNSIGNED NOT NULL,
+  `wine_id` INT UNSIGNED NOT NULL,
+  `order_id` INT UNSIGNED NOT NULL,
+  `rating` TINYINT UNSIGNED NOT NULL,
+  `token` VARCHAR(64) NULL DEFAULT NULL,
+  `token_used_at` DATETIME NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_account_wine` (`account_id`, `wine_id`),
+  UNIQUE KEY `uq_token` (`token`),
+  KEY `idx_wine_id` (`wine_id`),
+  CONSTRAINT `fk_wr_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_wr_wine` FOREIGN KEY (`wine_id`) REFERENCES `wines` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_wr_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 COMMIT;

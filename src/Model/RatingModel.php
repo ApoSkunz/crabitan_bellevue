@@ -1,0 +1,223 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Model;
+
+use Core\Model;
+
+/**
+ * Modèle de gestion des notations de vins.
+ */
+class RatingModel extends Model
+{
+    protected string $table = 'wine_ratings';
+
+    /**
+     * Insère ou met à jour la note d'un client pour un vin.
+     * Contrainte UNIQUE sur (account_id, wine_id) — INSERT ON DUPLICATE KEY UPDATE.
+     *
+     * @param int $accountId Identifiant du compte
+     * @param int $wineId    Identifiant du vin
+     * @param int $orderId   Identifiant de la commande
+     * @param int $rating    Note entre 1 et 5
+     * @return void
+     */
+    public function upsert(int $accountId, int $wineId, int $orderId, int $rating): void
+    {
+        $this->db->execute(
+            "INSERT INTO {$this->table} (account_id, wine_id, order_id, rating)
+             VALUES (?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+               rating    = VALUES(rating),
+               order_id  = VALUES(order_id),
+               updated_at = NOW()",
+            [$accountId, $wineId, $orderId, $rating]
+        );
+    }
+
+    /**
+     * Retourne la note moyenne d'un vin (null si moins de 2 avis).
+     *
+     * @param int $wineId Identifiant du vin
+     * @return float|null Moyenne ou null si moins de 2 avis
+     */
+    public function getAvgByWine(int $wineId): ?float
+    {
+        $row = $this->db->fetchOne(
+            "SELECT AVG(rating) AS avg, COUNT(*) AS cnt
+             FROM {$this->table}
+             WHERE wine_id = ? AND rating > 0",
+            [$wineId]
+        );
+
+        if (!$row || (int) $row['cnt'] < 2) {
+            return null;
+        }
+
+        return round((float) $row['avg'], 2);
+    }
+
+    /**
+     * Retourne le nombre total de notes pour un vin.
+     *
+     * @param int $wineId Identifiant du vin
+     * @return int
+     */
+    public function countByWine(int $wineId): int
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS cnt FROM {$this->table} WHERE wine_id = ? AND rating > 0",
+            [$wineId]
+        );
+        return (int) ($row['cnt'] ?? 0);
+    }
+
+    /**
+     * Retourne la note d'un compte pour un vin, ou null.
+     *
+     * @param int $accountId Identifiant du compte
+     * @param int $wineId    Identifiant du vin
+     * @return array<string, mixed>|null
+     */
+    public function getByAccountAndWine(int $accountId, int $wineId): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT * FROM {$this->table} WHERE account_id = ? AND wine_id = ?",
+            [$accountId, $wineId]
+        );
+        return $row ?: null;
+    }
+
+    /**
+     * Cherche un enregistrement par token email (usage unique).
+     * Retourne null si token inconnu ou déjà utilisé.
+     *
+     * @param string $token Token email
+     * @return array<string, mixed>|null
+     */
+    public function findByToken(string $token): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT * FROM {$this->table} WHERE token = ? AND token_used_at IS NULL",
+            [$token]
+        );
+        return $row ?: null;
+    }
+
+    /**
+     * Marque un token email comme utilisé.
+     *
+     * @param string $token Token email
+     * @return void
+     */
+    public function markTokenUsed(string $token): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET token_used_at = NOW() WHERE token = ?",
+            [$token]
+        );
+    }
+
+    /**
+     * Génère et stocke un token email pour (account_id, wine_id, order_id).
+     * Crée la ligne en BDD si elle n'existe pas, met à jour le token si elle existe.
+     * Retourne le token généré.
+     *
+     * @param int $accountId Identifiant du compte
+     * @param int $wineId    Identifiant du vin
+     * @param int $orderId   Identifiant de la commande
+     * @return string Token hexadécimal de 64 caractères
+     */
+    public function generateEmailToken(int $accountId, int $wineId, int $orderId): string
+    {
+        $token = bin2hex(random_bytes(32));
+
+        $this->db->execute(
+            "INSERT INTO {$this->table} (account_id, wine_id, order_id, rating, token, token_used_at)
+             VALUES (?, ?, ?, 0, ?, NULL)
+             ON DUPLICATE KEY UPDATE
+               token         = VALUES(token),
+               token_used_at = NULL,
+               updated_at    = NOW()",
+            [$accountId, $wineId, $orderId, $token]
+        );
+
+        return $token;
+    }
+
+    /**
+     * Vérifie si un compte a commandé un vin (commande paid/processing/shipped/delivered).
+     * Requête sur orders avec JSON_CONTAINS sur le champ content.
+     *
+     * @param int $accountId Identifiant du compte
+     * @param int $wineId    Identifiant du vin
+     * @return bool
+     */
+    public function hasOrdered(int $accountId, int $wineId): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT 1 FROM orders
+             WHERE user_id = ?
+               AND status IN ('paid','processing','shipped','delivered')
+               AND JSON_CONTAINS(content, JSON_OBJECT('wine_id', ?))
+             LIMIT 1",
+            [$accountId, $wineId]
+        );
+        return (bool) $row;
+    }
+
+    /**
+     * Retourne les notes moyennes pour un ensemble de wine_ids.
+     * Retourne array<int, array{avg: float|null, count: int}> indexé par wine_id.
+     * Inclut seulement les vins ayant >= 2 avis pour avg.
+     *
+     * @param int[] $wineIds Liste d'identifiants de vins
+     * @return array<int, array{avg: float|null, count: int}>
+     */
+    public function getAvgBulk(array $wineIds): array
+    {
+        if (empty($wineIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($wineIds), '?'));
+        $rows = $this->db->fetchAll(
+            "SELECT wine_id, AVG(rating) AS avg, COUNT(*) AS cnt
+             FROM {$this->table}
+             WHERE wine_id IN ({$placeholders}) AND rating > 0
+             GROUP BY wine_id",
+            $wineIds
+        );
+
+        $result = [];
+        foreach ($rows as $row) {
+            $cnt = (int) $row['cnt'];
+            $result[(int) $row['wine_id']] = [
+                'avg'   => $cnt >= 2 ? round((float) $row['avg'], 2) : null,
+                'count' => $cnt,
+            ];
+        }
+        return $result;
+    }
+
+    /**
+     * Top N vins par note moyenne (>= 2 avis minimum).
+     *
+     * @param int $limit Nombre maximum de résultats
+     * @return array<int, array<string, mixed>>
+     */
+    public function getTopRated(int $limit = 10): array
+    {
+        return $this->db->fetchAll(
+            "SELECT wine_id, AVG(rating) AS avg_rating, COUNT(*) AS rating_count
+             FROM {$this->table}
+             WHERE rating > 0
+             GROUP BY wine_id
+             HAVING COUNT(*) >= 2
+             ORDER BY avg_rating DESC, rating_count DESC
+             LIMIT ?",
+            [$limit]
+        );
+    }
+}
