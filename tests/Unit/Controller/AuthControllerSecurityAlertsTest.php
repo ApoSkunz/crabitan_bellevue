@@ -28,7 +28,7 @@ use Service\SecurityAlertService;
  *   - resendActivation L828-835 : catch Throwable + dev log dans sendEmailVerification
  *   - handleUntrustedDevice L1059-1060 : catch Throwable dans sendNewDeviceAlert
  */
-class AuthControllerMissingBranchesTest extends TestCase
+class AuthControllerSecurityAlertsTest extends TestCase
 {
     private \ReflectionProperty $instanceProp;
 
