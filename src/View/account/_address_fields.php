@@ -114,7 +114,7 @@ $countries = [
     <p class="form-hint"><?= __('account.address_phone_hint') ?></p>
 </div>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {
     var zipInput     = document.getElementById('addr-zip');
     var cityInput    = document.getElementById('addr-city');

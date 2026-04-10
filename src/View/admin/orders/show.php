@@ -307,7 +307,7 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
     </div>
 </div>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {
     var form    = document.getElementById('js-status-form');
     var select  = document.getElementById('js-status-select');

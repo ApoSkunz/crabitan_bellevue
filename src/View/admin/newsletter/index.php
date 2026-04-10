@@ -311,7 +311,7 @@ $cssDisabled = ' disabled';
     <?php endif; ?>
 </div>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 const NL_SEGMENT_LABELS = {
     'tous':          'Tous les abonnés',
     'particuliers':  'Particuliers',
