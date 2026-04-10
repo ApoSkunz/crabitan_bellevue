@@ -72,4 +72,29 @@ class Response
     {
         header("$name: $value");
     }
+
+    /**
+     * Force la redirection HTTPS en production.
+     *
+     * Envoie un header Location 301 vers l'équivalent HTTPS de l'URL courante si :
+     * - l'environnement courant est 'production'
+     * - La requête n'est pas déjà sur HTTPS ($_SERVER['HTTPS'] !== 'on')
+     *
+     * Retourne true si une redirection a été émise (l'appelant doit alors exit).
+     * Retourne false sans effet en environnement local/dev.
+     *
+     * @param string|null $env Surcharge de l'environnement (tests uniquement — null = lire APP_ENV)
+     * @return bool true si redirection émise, false sinon
+     */
+    public static function forceHttps(?string $env = null): bool
+    {
+        $appEnv = $env ?? (defined('APP_ENV') ? APP_ENV : 'development');
+        if ($appEnv === 'production' && ($_SERVER['HTTPS'] ?? 'off') !== 'on') {
+            $host = $_SERVER['HTTP_HOST'] ?? '';
+            $uri  = $_SERVER['REQUEST_URI'] ?? '/';
+            header('Location: https://' . $host . $uri, true, 301);
+            return true;
+        }
+        return false;
+    }
 }

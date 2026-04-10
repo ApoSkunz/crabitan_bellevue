@@ -10,6 +10,11 @@ require_once ROOT_PATH . '/vendor/autoload.php';
 require_once ROOT_PATH . '/src/helpers.php';
 require_once ROOT_PATH . '/config/config.php';
 
+// Force HTTPS en production avant tout traitement (us-https-tls-ionos / us-hsts)
+if (\Core\Response::forceHttps()) {
+    exit;
+}
+
 use Core\Router;
 use Core\Request;
 

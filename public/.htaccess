@@ -2,6 +2,10 @@ Options -Indexes
 
 RewriteEngine On
 
+# ---- HTTPS redirect (production) — géré côté PHP (APP_ENV=production) ----
+# La redirection 301 http→https est effectuée dans public/index.php via Response::forceHttps()
+# afin d'être conditionnée à APP_ENV sans modifier ce fichier au déploiement.
+
 # ---- Mode maintenance (décommenter les 4 lignes ci-dessous pour activer) ----
 # RewriteCond %{REQUEST_URI} !^/maintenance\.php$
 # RewriteCond %{REQUEST_URI} !^/assets/
@@ -14,8 +18,11 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [QSA,L]
 
-# Sécurité : headers HTTP
+# ---- Headers de sécurité HTTP ----
 Header always set X-Frame-Options "SAMEORIGIN"
 Header always set X-Content-Type-Options "nosniff"
-Header always set X-XSS-Protection "1; mode=block"
 Header always set Referrer-Policy "strict-origin-when-cross-origin"
+Header always set X-Permitted-Cross-Domain-Policies "none"
+
+# HSTS — uniquement sur HTTPS (env=HTTPS non défini sur HTTP → header absent en local)
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
