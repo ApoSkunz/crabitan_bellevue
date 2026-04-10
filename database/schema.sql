@@ -46,6 +46,7 @@ DROP TABLE IF EXISTS `addresses`;
 DROP TABLE IF EXISTS `account_companies`;
 DROP TABLE IF EXISTS `account_individuals`;
 DROP TABLE IF EXISTS `legal_notification_logs`;
+DROP TABLE IF EXISTS `legal_document_history`;
 DROP TABLE IF EXISTS `legal_documents`;
 DROP TABLE IF EXISTS `accounts`;
 
@@ -788,5 +789,27 @@ CREATE TABLE `legal_notification_logs` (
     FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Historique des notifications légales envoyées — preuve RGPD Art. 5.2';
+
+-- ============================================================
+-- Table : legal_document_history
+-- Historique de toutes les versions successives des documents légaux
+-- ============================================================
+CREATE TABLE `legal_document_history` (
+  `id`                  INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+  `legal_document_id`   TINYINT UNSIGNED NOT NULL,
+  `version`             VARCHAR(10)      NOT NULL,
+  `updated_at`          DATE             NOT NULL
+    COMMENT 'Date effective de la mise à jour du document',
+  `updated_by`          INT              NULL     DEFAULT NULL
+    COMMENT 'FK accounts.id — admin ayant effectué la MàJ',
+  `created_at`          DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_legal_history_doc` (`legal_document_id`),
+  CONSTRAINT `fk_legal_history_doc`
+    FOREIGN KEY (`legal_document_id`) REFERENCES `legal_documents` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_legal_history_admin`
+    FOREIGN KEY (`updated_by`) REFERENCES `accounts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Historique des versions successives des documents légaux';
 
 COMMIT;
