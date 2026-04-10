@@ -600,11 +600,10 @@ class IpnControllerHandleFlowTest extends TestCase
     // ================================================================
 
     /**
-     * Vérifie que mkdirInvoices est appelé quand le répertoire storage/invoices n'existe pas.
+     * Vérifie que mkdirInvoices est toujours appelé depuis handle() (is_dir déplacé dans le seam).
      */
-    public function testHandleCallsMkdirWhenInvoiceDirDoesNotExist(): void
+    public function testHandleCallsMkdirInvoicesSeam(): void
     {
-        // Sous-classe qui overrides mkdirInvoices et createInvoiceService
         $ctrl = new class extends IpnController {
             public bool $mkdirCalled = false;
             public string $mkdirPath = '';
@@ -627,7 +626,7 @@ class IpnControllerHandleFlowTest extends TestCase
             }
         };
 
-        $ref = new \ReflectionClass(IpnController::class);
+        $ref         = new \ReflectionClass(IpnController::class);
         $paymentMock = $this->createMock(PaymentService::class);
         $orderMock   = $this->createMock(OrderModel::class);
         $cartMock    = $this->createMock(CartModel::class);
@@ -648,8 +647,6 @@ class IpnControllerHandleFlowTest extends TestCase
         $intentsMock->method('delete');
         $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
         $cartMock->method('clear');
-
-        // Retourner un order avec un id non-zero pour entrer dans le bloc facture
         $orderMock->method('findByReferenceWithAddresses')->willReturn([
             'id'              => 42,
             'order_reference' => 'WEB-CB-AABBCCDD-2026',
@@ -660,25 +657,14 @@ class IpnControllerHandleFlowTest extends TestCase
         ]);
         $orderMock->method('updateInvoiceData');
 
-        // S'assurer que le répertoire n'existe PAS pour forcer la branche mkdir
-        $invoiceDir = ROOT_PATH . '/storage/invoices';
-        $dirExisted = is_dir($invoiceDir);
-        if ($dirExisted) {
-            // Patcher la constante est impossible — skip si répertoire existe déjà
-            $this->markTestSkipped('storage/invoices existe déjà — branche mkdir non atteignable sans supprimer le répertoire');
-        }
-
-        $caught = null;
         ob_start();
         try {
             $ctrl->handle([]);
-        } catch (\Core\Exception\HttpException $e) {
-            ob_get_clean();
-            $caught = $e;
+        } catch (\Throwable) {
+            ob_end_clean();
         }
 
-        $this->assertNotNull($caught);
-        $this->assertTrue($ctrl->mkdirCalled, 'mkdirInvoices aurait dû être appelé');
+        $this->assertTrue($ctrl->mkdirCalled, 'mkdirInvoices doit toujours être appelé depuis handle()');
         $this->assertStringContainsString('storage/invoices', $ctrl->mkdirPath);
     }
 

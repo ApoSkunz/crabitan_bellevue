@@ -128,9 +128,7 @@ class IpnController
                 if ($order !== null) {
                     $invoiceNumber = sprintf('WEB-INVOICE-%s-%04d', date('Y'), (int) $order['id']);
                     $invoiceDir    = ROOT_PATH . '/storage/invoices';
-                    if (!is_dir($invoiceDir)) {
-                        $this->mkdirInvoices($invoiceDir);
-                    }
+                    $this->mkdirInvoices($invoiceDir);
                     $invoicePath = 'storage/invoices/' . $invoiceNumber . '.pdf';
                     file_put_contents(
                         ROOT_PATH . '/' . $invoicePath, // nosemgrep: php.lang.security.injection.tainted-filename.tainted-filename
@@ -216,7 +214,9 @@ class IpnController
      */
     protected function mkdirInvoices(string $dir): void
     {
-        mkdir($dir, 0755, true); // NOSONAR php:S4823 — création de répertoire applicatif contrôlé
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true); // NOSONAR php:S4823 — création de répertoire applicatif contrôlé
+        }
     }
 
     /**

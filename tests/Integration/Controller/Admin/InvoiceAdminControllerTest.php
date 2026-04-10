@@ -378,7 +378,7 @@ class InvoiceAdminControllerTest extends AdminIntegrationTestCase
         );
         self::$db->insert(
             "INSERT INTO order_invoice_files (order_id, path, invoice_number, source)
-             VALUES (?, ?, NULL, 'manual')",
+             VALUES (?, ?, NULL, 'upload')",
             [$orderId, 'storage/invoices/' . $fakeFileName]
         );
 

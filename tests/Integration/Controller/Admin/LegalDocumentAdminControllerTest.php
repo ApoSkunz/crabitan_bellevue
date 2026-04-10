@@ -346,7 +346,7 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
         // Insérer un compte éligible avec un email qui provoquera un échec SMTP
         $accountId = (int) self::$db->insert(
             "INSERT INTO accounts (email, password, role, lang, newsletter, email_verified_at)
-             VALUES ('fail@test.local', ?, 'user', 'fr', 1, NOW())",
+             VALUES ('fail@test.local', ?, 'customer', 'fr', 1, NOW())",
             [password_hash('Test123!', PASSWORD_BCRYPT)]
         );
         self::$db->insert(
