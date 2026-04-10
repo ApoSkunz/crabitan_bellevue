@@ -221,7 +221,7 @@ CREATE TABLE `wines` (
 -- Table : wine_nutrition
 -- Valeurs nutritionnelles + informations complémentaires (1:1 wines)
 -- Champs VARCHAR(20) pour supporter les valeurs "<", "traces", etc.
--- ingredients affiché uniquement si ENABLE_EXTRA_INFO=true (règl. UE 2019/787)
+-- ingredients stocké en JSON {"fr":"...","en":"..."} — affiché si ENABLE_EXTRA_INFO=true (règl. UE 2019/787)
 -- ============================================================
 CREATE TABLE `wine_nutrition` (
   `id`               INT           NOT NULL AUTO_INCREMENT,

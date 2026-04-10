@@ -552,17 +552,17 @@ UPDATE `wines` SET `alcohol_degree` = '11,5', `aging_potential` = '1 à 3 ans'  
 
 -- Sainte-Croix-du-Mont 2010 : liquoreux, sucres élevés, garde longue
 INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`, `ingredients`)
-SELECT `id`, 477, '0', '0', '16,5', '16,5', '< 0,2', '< 0,2', 'Raisins, Anhydride sulfureux'
+SELECT `id`, 477, '0', '0', '16,5', '16,5', '< 0,2', '< 0,2', '{"fr":"Raisins, Anhydride sulfureux","en":"Grapes, Sulphur dioxide"}'
 FROM `wines` WHERE `slug` = 'sainte-croix-du-mont-2010';
 
 -- Bordeaux Rouge 2016 : rouge sec, valeurs typiques
 INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`, `ingredients`)
-SELECT `id`, 336, '0', '0', '0,03', '0,03', '< 0,2', '< 0,2', 'Raisins, Sulfites'
+SELECT `id`, 336, '0', '0', '0,03', '0,03', '< 0,2', '< 0,2', '{"fr":"Raisins, Sulfites","en":"Grapes, Sulphites"}'
 FROM `wines` WHERE `slug` = 'bordeaux-rouge-2016';
 
 -- Bordeaux Blanc 2018 : blanc sec
 INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`, `ingredients`)
-SELECT `id`, 310, '0', '0', '0,5', '0,5', '< 0,2', '< 0,2', 'Raisins, Agent stabilisant : Carboxyméthylcellulose, Sulfites'
+SELECT `id`, 310, '0', '0', '0,5', '0,5', '< 0,2', '< 0,2', '{"fr":"Raisins, Agent stabilisant : Carboxyméthylcellulose, Sulfites","en":"Grapes, Stabilising agent: Carboxymethylcellulose, Sulphites"}'
 FROM `wines` WHERE `slug` = 'bordeaux-blanc-2018';
 
 -- Rosé 2017 : sans ingrédients (ENABLE_EXTRA_INFO désactivé)

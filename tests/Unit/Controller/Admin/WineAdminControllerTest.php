@@ -96,4 +96,60 @@ class WineAdminControllerTest extends TestCase
         $slug22  = $this->generateSlug->invoke($ctrl, 'Bordeaux Rouge', 2022);
         $this->assertNotSame($slug21, $slug22);
     }
+
+    // ----------------------------------------------------------------
+    // parseNutritionPost — ingrédients bilingues
+    // ----------------------------------------------------------------
+
+    /**
+     * parseNutritionPost() avec ingredients_fr + ingredients_en encode un JSON {"fr":...,"en":...}.
+     */
+    public function testParseNutritionPostEncodesIngredientsAsJson(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['ingredients_fr']   = 'Raisins, Sulfites';
+        $_POST['ingredients_en']   = 'Grapes, Sulphites';
+
+        $ctrl = new \Controller\Admin\WineAdminController(new \Core\Request());
+        $ref  = new \ReflectionMethod($ctrl, 'parseNutritionPost');
+        $data = $ref->invoke($ctrl);
+
+        $decoded = json_decode($data['ingredients'], true);
+        $this->assertSame('Raisins, Sulfites', $decoded['fr']);
+        $this->assertSame('Grapes, Sulphites', $decoded['en']);
+    }
+
+    /**
+     * parseNutritionPost() avec ingredients vides retourne une chaîne vide (pas de JSON).
+     */
+    public function testParseNutritionPostWithEmptyIngredientsReturnsEmptyString(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        unset($_POST['ingredients_fr'], $_POST['ingredients_en']);
+
+        $ctrl = new \Controller\Admin\WineAdminController(new \Core\Request());
+        $ref  = new \ReflectionMethod($ctrl, 'parseNutritionPost');
+        $data = $ref->invoke($ctrl);
+
+        $this->assertSame('', $data['ingredients']);
+    }
+
+    /**
+     * parseNutritionPost() avec seulement ingredients_fr encode le JSON et déclenche auto-translate.
+     * Le TranslationService sans clé retourne le texte FR en fallback.
+     */
+    public function testParseNutritionPostWithOnlyFrFallsBackToFrForEn(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['ingredients_fr']   = 'Raisins';
+        unset($_POST['ingredients_en']);
+
+        $ctrl = new \Controller\Admin\WineAdminController(new \Core\Request());
+        $ref  = new \ReflectionMethod($ctrl, 'parseNutritionPost');
+        $data = $ref->invoke($ctrl);
+
+        $decoded = json_decode($data['ingredients'], true);
+        $this->assertSame('Raisins', $decoded['fr']);
+        $this->assertIsString($decoded['en']); // fallback = fr ou traduction
+    }
 }
