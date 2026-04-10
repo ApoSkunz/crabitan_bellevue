@@ -24,7 +24,7 @@ use Service\PaymentService;
  *  - Erreur inattendue non-HttpException → catch global → 500 ERROR
  */
 #[AllowMockObjectsWithoutExpectations]
-class IpnControllerCoverageTest extends TestCase
+class IpnControllerHandleFlowTest extends TestCase
 {
     // ================================================================
     // Helpers
@@ -541,6 +541,131 @@ class IpnControllerCoverageTest extends TestCase
 
         $this->assertNotNull($caught);
         $this->assertSame(200, $caught->status);
+    }
+
+    // ================================================================
+    // 12. Constructeur réel — instanciation sans BDD (les modèles ne
+    //     touchent la BDD qu'à la première requête, pas dans __construct)
+    // ================================================================
+
+    /**
+     * Vérifie que le constructeur de IpnController s'exécute sans erreur
+     * quand Database::instance est un mock (aucun appel BDD requis au construct).
+     */
+    public function testConstructorInitializesAllDependencies(): void
+    {
+        $dbMock = $this->createStub(\Core\Database::class);
+        $prop   = new \ReflectionProperty(\Core\Database::class, 'instance');
+        $prop->setValue(null, $dbMock);
+
+        try {
+            $ctrl = new IpnController();
+            $this->assertInstanceOf(IpnController::class, $ctrl);
+
+            $ref = new \ReflectionClass(IpnController::class);
+            $this->assertInstanceOf(PaymentService::class, $ref->getProperty('payment')->getValue($ctrl));
+            $this->assertInstanceOf(OrderModel::class, $ref->getProperty('orders')->getValue($ctrl));
+            $this->assertInstanceOf(CartModel::class, $ref->getProperty('carts')->getValue($ctrl));
+            $this->assertInstanceOf(MailService::class, $ref->getProperty('mail')->getValue($ctrl));
+            $this->assertInstanceOf(PaymentIntentModel::class, $ref->getProperty('intents')->getValue($ctrl));
+        } finally {
+            $prop->setValue(null, null);
+        }
+    }
+
+    // ================================================================
+    // 13. mkdirInvoices() — seam de testabilité
+    // ================================================================
+
+    /**
+     * Vérifie que mkdirInvoices() crée le répertoire cible.
+     */
+    public function testMkdirInvoicesCreatesDirectory(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/ipn_mkdir_test_' . uniqid();
+        $this->assertDirectoryDoesNotExist($tmpDir);
+
+        $ref  = new \ReflectionClass(IpnController::class);
+        $ctrl = $ref->newInstanceWithoutConstructor();
+
+        $method = $ref->getMethod('mkdirInvoices');
+        $method->invoke($ctrl, $tmpDir);
+
+        $this->assertDirectoryExists($tmpDir);
+        rmdir($tmpDir);
+    }
+
+    // ================================================================
+    // 14. Paiement accepté + répertoire invoices absent → mkdir appelé
+    // ================================================================
+
+    /**
+     * Vérifie que mkdirInvoices est toujours appelé depuis handle() (is_dir déplacé dans le seam).
+     */
+    public function testHandleCallsMkdirInvoicesSeam(): void
+    {
+        $ctrl = new class extends IpnController {
+            public bool $mkdirCalled = false;
+            public string $mkdirPath = '';
+
+            protected function mkdirInvoices(string $dir): void
+            {
+                $this->mkdirCalled = true;
+                $this->mkdirPath   = $dir;
+                // Ne pas créer réellement le répertoire
+            }
+
+            protected function createInvoiceService(): \Service\InvoiceService
+            {
+                return new class extends \Service\InvoiceService {
+                    public function generate(array $order, string $invoiceNumber): string
+                    {
+                        return '%PDF-1.4 stub';
+                    }
+                };
+            }
+        };
+
+        $ref         = new \ReflectionClass(IpnController::class);
+        $paymentMock = $this->createMock(PaymentService::class);
+        $orderMock   = $this->createMock(OrderModel::class);
+        $cartMock    = $this->createMock(CartModel::class);
+        $mailMock    = $this->createMock(MailService::class);
+        $intentsMock = $this->createMock(PaymentIntentModel::class);
+
+        $ref->getProperty('payment')->setValue($ctrl, $paymentMock);
+        $ref->getProperty('orders')->setValue($ctrl, $orderMock);
+        $ref->getProperty('carts')->setValue($ctrl, $cartMock);
+        $ref->getProperty('mail')->setValue($ctrl, $mailMock);
+        $ref->getProperty('intents')->setValue($ctrl, $intentsMock);
+
+        $snapshot = $this->defaultSnapshot();
+        $paymentMock->method('verifyIpnSignature')->willReturn(true);
+        $orderMock->method('findByReferenceOnly')->willReturn(null);
+        $intentsMock->method('findByReference')->willReturn($snapshot);
+        $intentsMock->method('purgeExpired');
+        $intentsMock->method('delete');
+        $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
+        $cartMock->method('clear');
+        $orderMock->method('findByReferenceWithAddresses')->willReturn([
+            'id'              => 42,
+            'order_reference' => 'WEB-CB-AABBCCDD-2026',
+            'payment_method'  => 'card',
+            'content'         => '[]',
+            'price'           => 30.0,
+            'ordered_at'      => date('Y-m-d H:i:s'),
+        ]);
+        $orderMock->method('updateInvoiceData');
+
+        ob_start();
+        try {
+            $ctrl->handle([]);
+        } catch (\Throwable) {
+            ob_end_clean();
+        }
+
+        $this->assertTrue($ctrl->mkdirCalled, 'mkdirInvoices doit toujours être appelé depuis handle()');
+        $this->assertStringContainsString('storage/invoices', $ctrl->mkdirPath);
     }
 
     // ================================================================

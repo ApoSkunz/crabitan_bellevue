@@ -4549,4 +4549,518 @@ class AccountControllerTest extends IntegrationTestCase
         $data = json_decode($body, true);
         $this->assertTrue($data['success']);
     }
+
+    // ----------------------------------------------------------------
+    // updateLangPreference() — redirect_to valide (L2134)
+    // ----------------------------------------------------------------
+
+    /**
+     * Un redirect_to valide déclenche une redirection 302 après la mise à jour de la langue.
+     * Couvre la branche L2134 : redirect_to non-vide + matching ^/(fr|en)(/|$).
+     */
+    public function testUpdateLangPreferenceRedirectsWithValidRedirectTo(): void
+    {
+        $userId = $this->insertCustomer('langpref.redir@test.local');
+        $this->loginAs($userId);
+        $_POST = ['lang' => 'en', 'csrf_token' => self::CSRF, 'redirect_to' => '/en/mon-compte'];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/preference-langue')
+            ->updateLangPreference(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // updateProfile() — newsletter 0→1 (double opt-in) (L1140-1148)
+    // ----------------------------------------------------------------
+
+    /**
+     * Un POST updateProfile avec newsletter=1 alors que le compte n'est pas abonné
+     * déclenche l'envoi d'un email de confirmation (double opt-in) et redirige (302).
+     * L'email SMTP peut échouer (pas de serveur local) — on attrape toute exception de redirection.
+     * Couvre les lignes L1140-1148.
+     */
+    public function testUpdateProfileNewsletterOptInSendsConfirmationEmail(): void
+    {
+        $userId = $this->insertCustomer('newsletter.optin@test.local', 'individual');
+        $this->loginAs($userId);
+
+        // S'assurer que newsletter = false (valeur par défaut à l'insertion)
+        self::$db->execute("UPDATE accounts SET newsletter = 0 WHERE id = ?", [$userId]);
+
+        $_POST = [
+            'firstname'  => 'Alice',
+            'lastname'   => 'Martin',
+            'civility'   => 'F',
+            'newsletter' => '1',
+            'csrf_token' => self::CSRF,
+        ];
+
+        // L'envoi SMTP peut échouer en environnement de test — on attrape les deux cas :
+        // 302 (redirect) si l'email est envoyé, ou PHPMailer\Exception si SMTP indisponible.
+        try {
+            $this->makeController('POST', '/fr/mon-compte/profil')->updateProfile(['lang' => 'fr']);
+            $this->fail('Expected exception (HttpException 302 or PHPMailer\Exception)');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        } catch (\PHPMailer\PHPMailer\Exception $e) {
+            // SMTP non disponible en local — la branche L1143 a bien été exécutée
+            $this->assertStringContainsString('SMTP', $e->getMessage());
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // requestEmailChange() — email invalide (L1185-1186)
+    // ----------------------------------------------------------------
+
+    /**
+     * Un email invalide (format incorrect) pose un flash error et redirige.
+     * Couvre les lignes L1185-1186.
+     */
+    public function testRequestEmailChangeInvalidEmailRedirects(): void
+    {
+        $userId = $this->insertCustomer('emailchg.bademail@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'new_email'        => 'not-an-email',
+            'current_password' => 'Password123!',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/profil/changer-email')
+                ->requestEmailChange(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['profile_errors'] ?? []);
+        }
+    }
+
+    /**
+     * Un email vide pose un flash error et redirige.
+     * Couvre les lignes L1184-1186 (branche email vide).
+     */
+    public function testRequestEmailChangeEmptyEmailRedirects(): void
+    {
+        $userId = $this->insertCustomer('emailchg.empty@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'new_email'        => '',
+            'current_password' => 'Password123!',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/profil/changer-email')
+                ->requestEmailChange(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['profile_errors'] ?? []);
+        }
+    }
+
+    /**
+     * Un mot de passe incorrect lève une HttpException depuis AccountService (L1194-1196).
+     * Couvre le catch HttpException dans requestEmailChange.
+     */
+    public function testRequestEmailChangeWrongPasswordFlashesError(): void
+    {
+        $userId = $this->insertCustomer('emailchg.badpwd@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'new_email'        => 'new-valid@test.local',
+            'current_password' => 'WrongPassword!',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/profil/changer-email')
+                ->requestEmailChange(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['profile_errors'] ?? []);
+        }
+    }
+
+    /**
+     * Un changement d'email avec mot de passe correct redirige avec flash success.
+     * Couvre les lignes L1202-1204.
+     */
+    public function testRequestEmailChangeSuccessRedirectsWithFlash(): void
+    {
+        $userId = $this->insertCustomer('emailchg.ok@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'new_email'        => 'new-unique-emailchg-ok@test.local',
+            'current_password' => 'Password123!',
+            'csrf_token'       => self::CSRF,
+        ];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/profil/changer-email')
+            ->requestEmailChange(['lang' => 'fr']);
+    }
+
+    /**
+     * Un CSRF invalide redirige avec flash error (L1177-1178).
+     */
+    public function testRequestEmailChangeInvalidCsrfRedirects(): void
+    {
+        $userId = $this->insertCustomer('emailchg.csrf@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = [
+            'new_email'        => 'valid@test.local',
+            'current_password' => 'Password123!',
+            'csrf_token'       => 'bad-csrf',
+        ];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/profil/changer-email')
+                ->requestEmailChange(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['profile_errors'] ?? []);
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // confirmEmailChange() (L1225-1254)
+    // ----------------------------------------------------------------
+
+    /**
+     * Sans token, la vue est rendue avec success=false.
+     * Couvre les lignes L1225-1231.
+     */
+    public function testConfirmEmailChangeEmptyTokenRendersView(): void
+    {
+        $_GET = ['token' => ''];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/email/confirmer')
+            ->confirmEmailChange(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    /**
+     * Un token invalide rend la vue avec success=false.
+     * Couvre les lignes L1238-1244.
+     */
+    public function testConfirmEmailChangeInvalidTokenRendersErrorView(): void
+    {
+        $_GET = ['token' => 'token-invalide-qui-nexiste-pas-' . bin2hex(random_bytes(8))];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/email/confirmer')
+            ->confirmEmailChange(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    /**
+     * Un token valide confirme le changement, déconnecte et rend la vue avec success=true.
+     * Couvre les lignes L1248-1254.
+     */
+    public function testConfirmEmailChangeValidTokenRendersSuccess(): void
+    {
+        $userId   = $this->insertCustomer('emailconf.ok@test.local', 'individual');
+        $rawToken = bin2hex(random_bytes(32));
+        $hashedToken = hash('sha256', $rawToken);
+        $expiresAt   = date('Y-m-d H:i:s', time() + 3600);
+
+        self::$db->execute(
+            "UPDATE accounts SET email_change_token = ?, email_change_new_email = 'newmail-conf@test.local',
+             email_change_expires_at = ? WHERE id = ?",
+            [$hashedToken, $expiresAt, $userId]
+        );
+
+        $_GET = ['token' => $rawToken];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/email/confirmer')
+            ->confirmEmailChange(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    // ----------------------------------------------------------------
+    // revokeEmailChange() (L1271-1303)
+    // ----------------------------------------------------------------
+
+    /**
+     * Sans token, la vue est rendue avec success=false (L1275-1281).
+     */
+    public function testRevokeEmailChangeEmptyTokenRendersView(): void
+    {
+        $_GET = ['token' => ''];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/email/revoquer')
+            ->revokeEmailChange(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    /**
+     * Un token non vide mais absent de la base rend la vue avec success=false (L1287-1293).
+     */
+    public function testRevokeEmailChangeInvalidTokenRendersErrorView(): void
+    {
+        $_GET = ['token' => 'revoke-token-inexistant-' . bin2hex(random_bytes(8))];
+
+        ob_start();
+        $this->makeController('GET', '/fr/mon-compte/email/revoquer')
+            ->revokeEmailChange(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    /**
+     * Un token valide révoque la demande et rend la vue avec revoked=true (L1296-1303).
+     */
+    public function testRevokeEmailChangeValidTokenRendersRevoked(): void
+    {
+        $userId   = $this->insertCustomer('emailrev.ok@test.local', 'individual');
+        $rawToken = bin2hex(random_bytes(32));
+        $hashedToken = hash('sha256', $rawToken);
+        $expiresAt   = date('Y-m-d H:i:s', time() + 3600);
+
+        self::$db->execute(
+            "UPDATE accounts SET email_change_token = ?, email_change_new_email = 'revokeme@test.local',
+             email_change_expires_at = ? WHERE id = ?",
+            [$hashedToken, $expiresAt, $userId]
+        );
+
+        // Construire le Request avec le token directement
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/mon-compte/email/revoquer';
+        $_GET = ['token' => $rawToken];
+        $ctrl = new AccountController(new \Core\Request());
+
+        ob_start();
+        $ctrl->revokeEmailChange(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    // ----------------------------------------------------------------
+    // cancelEmailChange() (L1319-1334)
+    // ----------------------------------------------------------------
+
+    /**
+     * Un CSRF invalide pose un flash error et redirige (L1326-1328).
+     */
+    public function testCancelEmailChangeInvalidCsrfRedirects(): void
+    {
+        $userId = $this->insertCustomer('cancelmail.csrf@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => 'bad-csrf'];
+
+        try {
+            $this->makeController('POST', '/fr/mon-compte/email/annuler')
+                ->cancelEmailChange(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+            $this->assertNotEmpty($_SESSION['flash']['profile_errors'] ?? []);
+        }
+    }
+
+    /**
+     * Un CSRF valide supprime le token de changement d'email et redirige (L1331-1334).
+     */
+    public function testCancelEmailChangeSuccessRedirects(): void
+    {
+        $userId = $this->insertCustomer('cancelmail.ok@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+        $this->makeController('POST', '/fr/mon-compte/email/annuler')
+            ->cancelEmailChange(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
+    // confirmSecurityAction() — token valide avec deviceToken (L1446)
+    // ----------------------------------------------------------------
+
+    /**
+     * Un token valide avec une connexion associée ayant un device_token
+     * révoque le trusted device (L1442-1447).
+     */
+    public function testConfirmSecurityActionRevokesDeviceWhenPresent(): void
+    {
+        $userId      = $this->insertCustomer('seconf.dev@test.local', 'individual');
+        $rawToken    = bin2hex(random_bytes(32));
+        $tokenHash   = hash('sha256', $rawToken);
+        $expiresAt   = date('Y-m-d H:i:s', time() + 3600);
+        $pendingHash = password_hash('NewPwd123!', PASSWORD_BCRYPT);
+
+        // Créer une connexion avec un device_token
+        $sessionToken = 'session-tok-' . bin2hex(random_bytes(8));
+        $deviceToken  = 'device-tok-' . bin2hex(random_bytes(8));
+
+        self::$db->execute(
+            "INSERT INTO connections (user_id, token, device_token, auth_method, status, expired_at)
+             VALUES (?, ?, ?, 'password', 'active', DATE_ADD(NOW(), INTERVAL 1 HOUR))",
+            [$userId, $sessionToken, $deviceToken]
+        );
+
+        // Insérer un trusted device correspondant au device_token
+        self::$db->execute(
+            "INSERT INTO trusted_devices (user_id, device_token, device_name, confirmed_at, last_seen)
+             VALUES (?, ?, 'Test Browser', NOW(), NOW())",
+            [$userId, $deviceToken]
+        );
+
+        self::$db->execute(
+            "UPDATE accounts SET pending_password_hash = ?, pending_password_expires_at = ?,
+             pending_password_session_token = ?, security_confirm_token_hash = ?,
+             security_confirm_token_expires_at = ? WHERE id = ?",
+            [$pendingHash, $expiresAt, $sessionToken, $tokenHash, $expiresAt, $userId]
+        );
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/securite/confirmer';
+        $_GET = ['token' => $rawToken];
+        $ctrl = new AccountController(new \Core\Request());
+
+        ob_start();
+        $ctrl->confirmSecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    // ----------------------------------------------------------------
+    // denySecurityAction() — token valide (L1475-1498)
+    // ----------------------------------------------------------------
+
+    /**
+     * Sans token, la vue est rendue avec success=false (L1470-1472).
+     */
+    public function testDenySecurityActionEmptyTokenRendersView(): void
+    {
+        $_GET = ['token' => ''];
+
+        ob_start();
+        $this->makeController('GET', '/fr/securite/ce-netait-pas-moi')
+            ->denySecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    /**
+     * Un token invalide rend la vue avec success=false expired=true (L1478-1480).
+     */
+    public function testDenySecurityActionInvalidTokenRendersExpired(): void
+    {
+        $_GET = ['token' => 'deny-token-inexistant-' . bin2hex(random_bytes(8))];
+
+        ob_start();
+        $this->makeController('GET', '/fr/securite/ce-netait-pas-moi')
+            ->denySecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    /**
+     * Un token valide révoque toutes les sessions, purge le pending password
+     * et rend la vue avec success=true (L1483-1498).
+     */
+    public function testDenySecurityActionValidTokenRendersSuccess(): void
+    {
+        $userId      = $this->insertCustomer('deny.sec@test.local', 'individual');
+        $rawToken    = bin2hex(random_bytes(32));
+        $tokenHash   = hash('sha256', $rawToken);
+        $expiresAt   = date('Y-m-d H:i:s', time() + 3600);
+        $pendingHash = password_hash('NewPwd123!', PASSWORD_BCRYPT);
+
+        self::$db->execute(
+            "UPDATE accounts SET pending_password_hash = ?, pending_password_expires_at = ?,
+             security_confirm_token_hash = ?, security_confirm_token_expires_at = ?
+             WHERE id = ?",
+            [$pendingHash, $expiresAt, $tokenHash, $expiresAt, $userId]
+        );
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/securite/ce-netait-pas-moi';
+        $_GET = ['token' => $rawToken];
+        $ctrl = new AccountController(new \Core\Request());
+
+        ob_start();
+        $ctrl->denySecurityAction(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
+
+    // ----------------------------------------------------------------
+    // unsubscribe() — avec campaignId > 0 (L1563-1564)
+    // ----------------------------------------------------------------
+
+    /**
+     * Un POST unsubscribe avec campaignId > 0 enregistre l'événement de désinscription
+     * en plus de désabonner (L1563-1564).
+     */
+    public function testUnsubscribeWithCampaignIdRecordsTracking(): void
+    {
+        $userId     = $this->insertCustomer('unsub.cid@test.local', 'individual');
+        $unsubToken = 'cid-unsub-' . bin2hex(random_bytes(8));
+
+        self::$db->execute(
+            "UPDATE accounts SET newsletter_unsubscribe_token = ? WHERE id = ?",
+            [$unsubToken, $userId]
+        );
+
+        // Insérer une campagne pour que recordUnsubscribe ne plante pas sur FK
+        $campaignId = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, title, body, sent_at)
+             VALUES ('Test Subject', 'Test Campaign', '<p>body</p>', NOW())"
+        );
+
+        $_POST = [
+            'unsub_token' => $unsubToken,
+            'campaign_id' => (string) $campaignId,
+            'csrf_token'  => self::CSRF,
+        ];
+
+        ob_start();
+        $this->makeController('POST', '/fr/newsletter/desabonnement')->unsubscribe(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertIsString($output);
+        $this->assertNotEmpty($output);
+    }
 }

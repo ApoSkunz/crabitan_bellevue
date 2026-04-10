@@ -20,7 +20,7 @@ use Service\GoogleOAuthService;
  * Couvre : authorize(), callback() erreurs, linkConfirm(), linkConfirmPost(),
  *          resolveDeviceToken(), resolveLang(), issueSession() via AccountModel mock.
  */
-class GoogleOAuthControllerCoverageTest extends TestCase
+class GoogleOAuthControllerOAuthFlowTest extends TestCase
 {
     private \ReflectionProperty $dbInstanceProp;
 

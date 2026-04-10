@@ -289,8 +289,101 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // store() — CSRF invalide
+    // ----------------------------------------------------------------
+
+    public function testStoreInvalidCsrfRedirects(): void
+    {
+        $_POST['csrf_token'] = 'invalid-token';
+        $_POST['version']    = '1.2';
+        $_POST['updated_at'] = '2026-04-01';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        // makeRequest() sans makeController() pour ne pas injecter le bon CSRF
+        $ctrl = new LegalDocumentAdminController($this->makeRequest('POST', '/admin/dpo/pages-legales/cgv/modifier'));
+        $ctrl->store(['slug' => 'cgv']);
+    }
+
+    // ----------------------------------------------------------------
     // sendNotifications() — POST
     // ----------------------------------------------------------------
+
+    public function testSendNotificationsInvalidCsrfRedirects(): void
+    {
+        $_SESSION['legal_notify_pending'] = [
+            'slug'        => 'cgv',
+            'version'     => '1.2',
+            'doc_id'      => 1,
+            'doc_label'   => 'Conditions Générales de Vente',
+            'updated_at'  => '2026-04-01',
+            'change_note' => '',
+        ];
+        $_POST['csrf_token'] = 'invalid-token';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $ctrl = new LegalDocumentAdminController($this->makeRequest('POST', '/admin/dpo/pages-legales/cgv/confirmer-notification'));
+        $ctrl->sendNotifications(['slug' => 'cgv']);
+    }
+
+    public function testSendNotificationsNoPendingRedirects(): void
+    {
+        unset($_SESSION['legal_notify_pending']);
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/admin/dpo/pages-legales/cgv/confirmer-notification')
+            ->sendNotifications(['slug' => 'cgv']);
+    }
+
+    public function testSendNotificationsWithFailureRedirects(): void
+    {
+        // Insérer un compte éligible avec un email qui provoquera un échec SMTP
+        $accountId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, newsletter, email_verified_at)
+             VALUES ('fail@test.local', ?, 'customer', 'fr', 1, NOW())",
+            [password_hash('Test123!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Fail', 'User', 'M')",
+            [$accountId]
+        );
+
+        // S'assurer que cgv a requires_notification = 1
+        self::$db->execute(
+            "UPDATE legal_documents SET requires_notification = 1 WHERE slug = 'cgv'"
+        );
+
+        $_SESSION['legal_notify_pending'] = [
+            'slug'        => 'cgv',
+            'version'     => '1.2',
+            'doc_id'      => 1,
+            'doc_label'   => 'Conditions Générales de Vente',
+            'updated_at'  => '2026-04-01',
+            'change_note' => '',
+        ];
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        // MailService échoue (pas de serveur SMTP en test) → catch déclenché → failure > 0
+        // Le contrôleur doit quand même rediriger en 302
+        $caught = null;
+        try {
+            $this->makeController('POST', '/admin/dpo/pages-legales/cgv/confirmer-notification')
+                ->sendNotifications(['slug' => 'cgv']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayNotHasKey('legal_notify_pending', $_SESSION);
+    }
 
     public function testSendNotificationsRedirectsAndClearsPending(): void
     {

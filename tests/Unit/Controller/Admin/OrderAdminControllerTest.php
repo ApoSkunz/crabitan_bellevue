@@ -494,6 +494,172 @@ class OrderAdminControllerTest extends TestCase
     }
 
     // ================================================================
+    // newPaymentService() — seam retourne PaymentService (L48)
+    // ================================================================
+
+    /**
+     * newPaymentService() retourne une instance de PaymentService (couvre L48).
+     */
+    public function testNewPaymentServiceReturnsPaymentService(): void
+    {
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod(OrderAdminController::class, 'newPaymentService');
+        $result = $method->invoke($ctrl);
+        $this->assertInstanceOf(PaymentService::class, $result);
+    }
+
+    // ================================================================
+    // moveUploadedFile() — seam appelle move_uploaded_file (L60)
+    // ================================================================
+
+    /**
+     * moveUploadedFile() retourne false hors contexte HTTP (move_uploaded_file échoue en CLI).
+     * Couvre L60 en invoquant le corps de la méthode.
+     */
+    public function testMoveUploadedFileReturnsFalseInCli(): void
+    {
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod(OrderAdminController::class, 'moveUploadedFile');
+        // En CLI, move_uploaded_file retourne false — la méthode doit retourner false
+        $result = $method->invoke($ctrl, '/tmp/nonexistent_src', '/tmp/nonexistent_dest');
+        $this->assertFalse($result);
+    }
+
+    // ================================================================
+    // updateStatus — génération facture + mail (L227, L254, L259, L260)
+    // ================================================================
+
+    /**
+     * updateStatus() génère la facture et envoie l'email quand fullOrder est non-null
+     * et path_invoice est vide. Couvre L227 (mkdir), L244-253 (mail), L254-257 (catch mail).
+     */
+    public function testUpdateStatusGeneratesInvoiceAndSendsMail(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['status' => 'processing'];
+        $ctrl  = $this->makeController();
+
+        $order = $this->sampleOrder('pending');
+        // path_invoice null → génération déclenchée
+
+        $fullOrder = $this->sampleOrder('pending');
+        $fullOrder['bill_civility']   = 'M';
+        $fullOrder['bill_firstname']  = 'Jean';
+        $fullOrder['bill_lastname']   = 'Dupont';
+        $fullOrder['bill_street']     = '1 rue de la Paix';
+        $fullOrder['bill_city']       = 'Paris';
+        $fullOrder['bill_zip']        = '75001';
+        $fullOrder['bill_country']    = 'France';
+        $fullOrder['ship_civility']   = 'M';
+        $fullOrder['ship_firstname']  = 'Jean';
+        $fullOrder['ship_lastname']   = 'Dupont';
+        $fullOrder['ship_street']     = '1 rue de la Paix';
+        $fullOrder['ship_city']       = 'Paris';
+        $fullOrder['ship_zip']        = '75001';
+        $fullOrder['ship_country']    = 'France';
+
+        $mock = $this->createMock(OrderModel::class);
+        $mock->method('findByIdForAdmin')->willReturn($order);
+        $mock->method('updateStatus');
+        $mock->method('findByReferenceWithAddresses')->willReturn($fullOrder);
+        $mock->method('updateInvoiceData');
+        $mock->method('addInvoiceFile');
+        $this->injectOrdersMock($ctrl, $mock);
+
+        // MailService stub : sendOrderStatusEmail + sendInvoiceToClient ne bloquent pas
+        $mailMock = $this->createStub(MailService::class);
+        $ctrl->mailMock = $mailMock;
+
+        $caught = null;
+        try {
+            $ctrl->updateStatus(['id' => '42']);
+        } catch (\HttpException $e) {
+            $caught = $e;
+        } catch (\Core\Exception\HttpException $e) {
+            $caught = $e;
+        }
+
+        // Le test ne doit pas lever de 500 — une 302 est attendue
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
+
+    /**
+     * updateStatus() absorbe l'exception quand l'envoi de l'email de facture échoue.
+     * Couvre la branche L254-257 (catch \Throwable $mailErr).
+     */
+    public function testUpdateStatusAbsorbsInvoiceMailException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['status' => 'processing'];
+        $ctrl  = $this->makeController();
+
+        $order = $this->sampleOrder('pending');
+
+        $fullOrder            = $this->sampleOrder('pending');
+        $fullOrder['bill_city']   = 'Paris';
+        $fullOrder['ship_city']   = 'Paris';
+
+        $mock = $this->createMock(OrderModel::class);
+        $mock->method('findByIdForAdmin')->willReturn($order);
+        $mock->method('updateStatus');
+        $mock->method('findByReferenceWithAddresses')->willReturn($fullOrder);
+        $mock->method('updateInvoiceData');
+        $mock->method('addInvoiceFile');
+        $this->injectOrdersMock($ctrl, $mock);
+
+        // MailService qui lève une exception sur sendInvoiceToClient → absorbée
+        $throwingMail = $this->createMock(MailService::class);
+        $throwingMail->method('sendInvoiceToClient')
+            ->willThrowException(new \RuntimeException('SMTP invoice error'));
+        $ctrl->mailMock = $throwingMail;
+
+        $caught = null;
+        try {
+            $ctrl->updateStatus(['id' => '42']);
+        } catch (\Core\Exception\HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
+
+    /**
+     * updateStatus() absorbe l'exception générale de génération de facture.
+     * Couvre la branche L259-261 (catch \Throwable $invoiceError).
+     */
+    public function testUpdateStatusAbsorbsInvoiceGenerationException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['status' => 'processing'];
+        $ctrl  = $this->makeController();
+
+        $order = $this->sampleOrder('pending');
+
+        $mock = $this->createMock(OrderModel::class);
+        $mock->method('findByIdForAdmin')->willReturn($order);
+        $mock->method('updateStatus');
+        // findByReferenceWithAddresses lève une exception → capturée par le catch externe
+        $mock->method('findByReferenceWithAddresses')
+            ->willThrowException(new \RuntimeException('DB error on invoice'));
+        $this->injectOrdersMock($ctrl, $mock);
+
+        $mailMock = $this->createStub(MailService::class);
+        $ctrl->mailMock = $mailMock;
+
+        $caught = null;
+        try {
+            $ctrl->updateStatus(['id' => '42']);
+        } catch (\Core\Exception\HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
+
+    // ================================================================
     // uploadInvoice — CSRF invalide → redirect
     // ================================================================
 

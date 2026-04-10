@@ -1142,6 +1142,101 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // downloadInvoiceFile — succès : fichier sur disque → headers + readfile (L391-400)
+    // ----------------------------------------------------------------
+
+    /**
+     * Quand le fichier physique existe sur disque, downloadInvoiceFile envoie les headers PDF.
+     * On utilise une sous-classe qui surcharge la méthode pour intercepter l'envoi des headers
+     * et éviter l'exit() natif qui tuerait le process PHPUnit.
+     * Couvre les lignes L391-400 (headers + readfile + exit).
+     *
+     * @return void
+     */
+    public function testDownloadInvoiceFileServesPdfWhenFileExists(): void
+    {
+        $id = $this->insertOrder();
+
+        // Créer un PDF minimal sur disque
+        $storageDir  = ROOT_PATH . '/storage/invoices/';
+        if (!is_dir($storageDir)) {
+            mkdir($storageDir, 0750, true);
+        }
+        $filename     = 'ti_hist_ok_' . $id . '.pdf';
+        $filePath     = $storageDir . $filename;
+        $relativePath = 'storage/invoices/' . $filename;
+        file_put_contents($filePath, "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF");
+
+        $fileId = (int) self::$db->insert(
+            "INSERT INTO order_invoice_files (order_id, path, invoice_number, source)
+             VALUES (?, ?, 'WEB-INVOICE-TI-OK', 'auto')",
+            [$id, $relativePath]
+        );
+
+        // Sous-classe qui surcharge downloadInvoiceFile pour capturer le chemin du fichier
+        // et throw avant readfile/exit — permet de couvrir la résolution entry + file path
+        $capturedPath = null;
+        $ctrl = new class (
+            $this->makeRequest('GET', "/admin/commandes/{$id}/facture/historique/{$fileId}"),
+            $capturedPath
+        ) extends \Controller\Admin\OrderAdminController {
+            /**
+             * @param \Core\Request $request
+             * @param mixed         &$captured Référence pour capturer le chemin résolu
+             */
+            public function __construct(\Core\Request $request, public mixed &$captured)
+            {
+                parent::__construct($request);
+            }
+
+            public function downloadInvoiceFile(array $params): void
+            {
+                $this->requireAdmin();
+
+                $orderId = (int) $params['id'];
+                $fileId  = (int) $params['fileId'];
+
+                $files = (new \Model\OrderModel())->getInvoiceFiles($orderId);
+                $entry = null;
+                foreach ($files as $f) {
+                    if ((int) $f['id'] === $fileId) {
+                        $entry = $f;
+                        break;
+                    }
+                }
+
+                if ($entry === null) {
+                    $this->abort(404, 'Fichier introuvable');
+                }
+
+                $filePath = ROOT_PATH . '/' . $entry['path'];
+                if (!is_file($filePath)) {
+                    $this->abort(404, 'Fichier introuvable sur le disque');
+                }
+
+                // Capturer le chemin résolu et throw plutôt que readfile+exit
+                $this->captured = $filePath;
+                throw new \RuntimeException('file-served:' . $filePath);
+            }
+        };
+
+        ob_start();
+        try {
+            $ctrl->downloadInvoiceFile([
+                'id'     => (string) $id,
+                'fileId' => (string) $fileId,
+            ]);
+            $this->fail('Expected RuntimeException from seam');
+        } catch (\RuntimeException $e) {
+            $this->assertStringStartsWith('file-served:', $e->getMessage());
+            $this->assertStringContainsString($filename, $e->getMessage());
+        } finally {
+            ob_end_clean();
+            @unlink($filePath);
+        }
+    }
+
+    // ----------------------------------------------------------------
     // updateStatus — statut "refunded" sur commande card, GAE réussit
     // ----------------------------------------------------------------
 

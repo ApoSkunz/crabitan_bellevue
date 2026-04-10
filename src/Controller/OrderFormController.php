@@ -16,6 +16,12 @@ class OrderFormController extends Controller
     // GET /bons-de-commande/{id}/telecharger  (accès public)
     // ----------------------------------------------------------------
 
+    /**
+     * Télécharge le bon de commande PDF identifié par $params['id'].
+     *
+     * @param array<string, string> $params Paramètres de route (id requis)
+     * @return void
+     */
     public function download(array $params): void
     {
         $id   = (int) ($params['id'] ?? 0);
@@ -38,6 +44,16 @@ class OrderFormController extends Controller
         header('Content-Length: ' . filesize($path));
         header('Cache-Control: public, max-age=86400');
         readfile($path);
-        exit;
+        $this->doExit();
+    }
+
+    /**
+     * Termine l'exécution du script (seam de testabilité).
+     *
+     * @return never
+     */
+    protected function doExit(): never
+    {
+        exit; // NOSONAR php:S1147 — seam de testabilité, override dans les tests
     }
 }

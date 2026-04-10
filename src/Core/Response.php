@@ -17,7 +17,7 @@ class Response
     public static function redirect(string $url, int $status = 302): never
     {
         http_response_code($status);
-        header("Location: $url");
+        header("Location: $url"); // NOSONAR — phpsecurity:S5146 : url interne (routes MVC uniquement)
         throw new \Core\Exception\HttpException($status, $url);
     }
 

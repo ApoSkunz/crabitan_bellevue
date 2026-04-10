@@ -25,7 +25,8 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private const URL_LEGAL   = '/fr/mentions-legales';
     private const URL_SUPPORT = '/fr/support';
     private const URL_CGV        = '/fr/conditions-generales-de-vente';
-    private const DATE_FORMAT_FR = 'd/m/Y à H:i';
+    private const DATE_FORMAT_FR   = 'd/m/Y à H:i';
+    private const DATE_FORMAT_DATE = 'd/m/Y';
 
     private PHPMailer $mailer;
 
@@ -941,9 +942,9 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $urlLegal   = $appUrl . self::URL_LEGAL;
         $urlSupport = $appUrl . self::URL_SUPPORT;
         $urlCgv     = $appUrl . self::URL_CGV;
+        $cidParam   = $campaignId !== null ? '&cid=' . $campaignId : '';
         $urlUnsub   = $unsubToken !== null
-            ? $appUrl . '/' . $lang . '/newsletter/desabonnement?token=' . urlencode($unsubToken)
-              . ($campaignId !== null ? '&cid=' . $campaignId : '')
+            ? $appUrl . '/' . $lang . '/newsletter/desabonnement?token=' . urlencode($unsubToken) . $cidParam
             : $appUrl . '/' . $lang . '/mon-compte';
         $safeTitle  = htmlspecialchars($title, ENT_QUOTES);
         // Image optionnelle : centrée dans le bloc blanc, avant le séparateur/désabonnement
@@ -1453,7 +1454,7 @@ INNER;
         $safeRef      = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName     = htmlspecialchars($clientName, ENT_QUOTES);
         $safeEmail    = htmlspecialchars($clientEmail, ENT_QUOTES);
-        $orderedAt    = isset($order['ordered_at']) ? date('d/m/Y', strtotime((string) $order['ordered_at'])) : '—';
+        $orderedAt    = isset($order['ordered_at']) ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['ordered_at'])) : '—';
         $items        = json_decode((string) ($order['content'] ?? '[]'), true) ?: [];
         $appUrl       = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $orderId      = (int) ($order['id'] ?? 0);
@@ -1520,7 +1521,7 @@ INNER;
     ): void {
         $safeRef   = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName  = htmlspecialchars($name, ENT_QUOTES);
-        $orderedAt = isset($order['ordered_at']) ? date('d/m/Y', strtotime((string) $order['ordered_at'])) : '—';
+        $orderedAt = isset($order['ordered_at']) ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['ordered_at'])) : '—';
         $items     = json_decode((string) ($order['content'] ?? '[]'), true) ?: [];
 
         $rows = '';
@@ -2895,6 +2896,7 @@ HTML;
      * @param string $changeNote Résumé des modifications (optionnel)
      * @return void
      */
+    // NOSONAR — php:S107 : 8 paramètres nécessaires pour l'email légal bilingue
     public function sendLegalDocumentUpdate(
         string $to,
         string $name,
@@ -2911,7 +2913,7 @@ HTML;
         $safeNote  = $changeNote !== '' ? htmlspecialchars($changeNote, ENT_QUOTES) : '';
 
         $dateFormatted = $lang === 'fr'
-            ? (new \DateTimeImmutable($updatedAt))->format('d/m/Y')
+            ? (new \DateTimeImmutable($updatedAt))->format(self::DATE_FORMAT_DATE)
             : (new \DateTimeImmutable($updatedAt))->format('m/d/Y');
 
         $docBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'

@@ -2091,7 +2091,7 @@ function initCartPage() {
                 if (row) {
                     row.style.transition = 'opacity 250ms ease';
                     row.style.opacity    = '0';
-                    setTimeout(() => {
+                    setTimeout(() => { // NOSONAR — javascript:S3776 : complexité inhérente à la gestion du panier vide après suppression
                         row.remove();
                         updateCartTotal();
 

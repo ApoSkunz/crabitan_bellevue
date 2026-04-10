@@ -350,6 +350,116 @@ class InvoiceAdminControllerTest extends AdminIntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // export() — is_file true + invoice_number null (lignes 129-132)
+    // ----------------------------------------------------------------
+
+    /**
+     * Export quand le PDF existe sur le disque mais invoice_number est NULL.
+     * Couvre la branche is_file($absPath) === true + basename($row['path']) (ligne 129-132).
+     */
+    public function testExportAddsPdfByBasenameWhenInvoiceNumberIsNull(): void
+    {
+        // Créer un vrai fichier temporaire dans storage/invoices/
+        $fakeFileName = 'ti-test-null-inv-' . uniqid() . '.pdf';
+        $fakePath     = ROOT_PATH . '/storage/invoices/' . $fakeFileName;
+        file_put_contents($fakePath, '%PDF-1.4 fake');
+
+        $snapshotId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots
+             (civility, firstname, lastname, street, city, zip, country, phone)
+             VALUES ('M', 'Jean', 'Test', '1 rue TI', 'Paris', '75001', 'France', '0600000000')"
+        );
+        $orderId = (int) self::$db->insert(
+            "INSERT INTO orders
+             (user_id, order_reference, content, price, payment_method, id_billing_snapshot,
+              status, ordered_at, invoice_number, path_invoice)
+             VALUES (?, ?, '[]', 80.00, 'card', ?, 'paid', '2026-04-01 09:00:00', NULL, NULL)",
+            [$this->adminId, 'TI-NULLINV-' . uniqid(), $snapshotId]
+        );
+        self::$db->insert(
+            "INSERT INTO order_invoice_files (order_id, path, invoice_number, source)
+             VALUES (?, ?, NULL, 'upload')",
+            [$orderId, 'storage/invoices/' . $fakeFileName]
+        );
+
+        $_GET['year'] = '2026';
+
+        $controller = new class ($this->makeRequest('GET', '/admin/factures/export')) extends InvoiceAdminController {
+            public ?string $capturedTmpPath = null;
+            protected function sendZipResponse(string $tmpPath, string $fileName): never
+            {
+                $this->capturedTmpPath = $tmpPath;
+                throw new \Core\Exception\HttpException(200);
+            }
+        };
+
+        try {
+            $controller->export([]);
+        } catch (HttpException $e) {
+            $this->assertSame(200, $e->getCode());
+        }
+
+        @unlink($fakePath);
+
+        $this->assertNotNull($controller->capturedTmpPath);
+
+        // Le ZIP doit contenir le PDF ajouté via basename() (invoice_number NULL)
+        if ($controller->capturedTmpPath !== null && is_file($controller->capturedTmpPath)) {
+            $zip = new \ZipArchive();
+            $zip->open($controller->capturedTmpPath);
+            $hasPdf = false;
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                if (str_ends_with((string) $zip->getNameIndex($i), '.pdf')) {
+                    $hasPdf = true;
+                    break;
+                }
+            }
+            $zip->close();
+            @unlink($controller->capturedTmpPath);
+            $this->assertTrue($hasPdf, 'Le ZIP doit contenir le PDF ajouté via basename()');
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // sendZipResponse() — lignes 174-180
+    // ----------------------------------------------------------------
+
+    /**
+     * sendZipResponse() envoie les headers, lit le fichier et lève HttpException(200).
+     * Couvre les lignes 174-180 via appel direct sur l'instance réelle (non surchargée).
+     */
+    public function testSendZipResponseSendsHeadersAndThrows(): void
+    {
+        // Créer un vrai fichier ZIP temporaire
+        $tmpZip = (string) tempnam(sys_get_temp_dir(), 'crab_ti_zip_');
+        $zip    = new \ZipArchive();
+        $zip->open($tmpZip, \ZipArchive::OVERWRITE);
+        $zip->addFromString('test.txt', 'hello');
+        $zip->close();
+
+        $controller = new InvoiceAdminController($this->makeRequest('GET', '/admin/factures/export'));
+
+        // Utiliser la réflexion pour appeler la méthode protected
+        $ref    = new \ReflectionMethod(InvoiceAdminController::class, 'sendZipResponse');
+
+        $threw  = false;
+        $code   = null;
+        ob_start();
+        try {
+            $ref->invoke($controller, $tmpZip, 'test-factures.zip');
+        } catch (HttpException $e) {
+            $threw = true;
+            $code  = $e->getCode();
+        }
+        ob_end_clean();
+
+        @unlink($tmpZip);
+
+        $this->assertTrue($threw, 'sendZipResponse() doit lever HttpException');
+        $this->assertSame(200, $code);
+    }
+
+    // ----------------------------------------------------------------
     // Critère 7 — aucune suppression physique des données de facturation
     // ----------------------------------------------------------------
 

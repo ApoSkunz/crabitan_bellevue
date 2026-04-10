@@ -156,4 +156,114 @@ class OrderFormControllerTest extends TestCase
             ob_end_clean();
         }
     }
+
+    // ----------------------------------------------------------------
+    // download() — happy path : fichier existant avec label
+    // ----------------------------------------------------------------
+
+    /**
+     * download() envoie les headers PDF et le contenu quand le fichier existe (label défini).
+     */
+    public function testDownloadSendsFileWithLabel(): void
+    {
+        // Créer un fichier temporaire dans le répertoire de stockage
+        $storageDir = ROOT_PATH . '/storage/order_forms';
+        if (!is_dir($storageDir)) {
+            mkdir($storageDir, 0755, true);
+        }
+        $tmpName = 'test_order_form_label_' . uniqid() . '.pdf';
+        $tmpPath = $storageDir . '/' . $tmpName;
+        file_put_contents($tmpPath, '%PDF-1.4 fake');
+
+        $this->instanceProp->setValue(null, null);
+        $dbMock = $this->createStub(Database::class);
+        $dbMock->method('fetchOne')->willReturn([
+            'id'       => 10,
+            'year'     => 2025,
+            'label'    => 'Printemps',
+            'filename' => $tmpName,
+        ]);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        // Sous-classe anonyme qui overrides doExit() pour éviter exit
+        $controller = new class (new Request()) extends OrderFormController {
+            public bool $exitCalled = false;
+
+            protected function doExit(): never
+            {
+                $this->exitCalled = true;
+                throw new \RuntimeException('exit_intercepted');
+            }
+        };
+
+        ob_start();
+        $caught = null;
+        try {
+            $controller->download(['id' => '10']);
+        } catch (\RuntimeException $e) {
+            $caught = $e;
+        } finally {
+            $output = ob_get_clean();
+            @unlink($tmpPath);
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame('exit_intercepted', $caught->getMessage());
+        $this->assertTrue($controller->exitCalled);
+        $this->assertStringContainsString('%PDF', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // download() — happy path : fichier existant sans label (null)
+    // ----------------------------------------------------------------
+
+    /**
+     * download() envoie les headers PDF quand le fichier existe et label est null.
+     */
+    public function testDownloadSendsFileWithNullLabel(): void
+    {
+        $storageDir = ROOT_PATH . '/storage/order_forms';
+        if (!is_dir($storageDir)) {
+            mkdir($storageDir, 0755, true);
+        }
+        $tmpName = 'test_order_form_nolabel_' . uniqid() . '.pdf';
+        $tmpPath = $storageDir . '/' . $tmpName;
+        file_put_contents($tmpPath, '%PDF-1.4 nolabel');
+
+        $this->instanceProp->setValue(null, null);
+        $dbMock = $this->createStub(Database::class);
+        $dbMock->method('fetchOne')->willReturn([
+            'id'       => 11,
+            'year'     => 2024,
+            'label'    => null,
+            'filename' => $tmpName,
+        ]);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        $controller = new class (new Request()) extends OrderFormController {
+            public bool $exitCalled = false;
+
+            protected function doExit(): never
+            {
+                $this->exitCalled = true;
+                throw new \RuntimeException('exit_intercepted');
+            }
+        };
+
+        ob_start();
+        $caught = null;
+        try {
+            $controller->download(['id' => '11']);
+        } catch (\RuntimeException $e) {
+            $caught = $e;
+        } finally {
+            $output = ob_get_clean();
+            @unlink($tmpPath);
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame('exit_intercepted', $caught->getMessage());
+        $this->assertTrue($controller->exitCalled);
+        $this->assertStringContainsString('%PDF', $output);
+    }
 }

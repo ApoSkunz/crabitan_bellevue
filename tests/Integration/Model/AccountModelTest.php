@@ -1166,4 +1166,196 @@ class AccountModelTest extends IntegrationTestCase
 
         $this->assertSame($total, $byUnk);
     }
+
+    // ----------------------------------------------------------------
+    // createFromGoogle — rollback sur doublon email (lignes 141-143)
+    // ----------------------------------------------------------------
+
+    /**
+     * createFromGoogle lève une exception et effectue un rollback si l'email existe déjà.
+     * Couvre le bloc catch/rollback/throw (lignes 141-143).
+     *
+     * @return void
+     */
+    public function testCreateFromGoogleThrowsOnDuplicateEmail(): void
+    {
+        $email = 'google-dup@example.com';
+
+        // Premier insert réussit
+        $this->model->createFromGoogle($email, 'gid-unique-001', 'fr', 'Jean', 'Dupont');
+
+        // Deuxième insert sur le même email doit lever une exception
+        $thrown = null;
+        try {
+            $this->model->createFromGoogle($email, 'gid-unique-002', 'fr', 'Paul', 'Martin');
+        } catch (\Throwable $e) {
+            $thrown = $e;
+        }
+
+        // Le modèle a rollbacké la transaction interne — en relancer une pour le tearDown
+        self::$db->beginTransaction();
+
+        $this->assertNotNull($thrown, 'Une exception aurait dû être levée');
+    }
+
+    // ----------------------------------------------------------------
+    // create — rollback sur doublon email (lignes 214-216)
+    // ----------------------------------------------------------------
+
+    /**
+     * create lève une exception et effectue un rollback si l'email existe déjà.
+     * Couvre le bloc catch/rollback/throw (lignes 214-216).
+     *
+     * @return void
+     */
+    public function testCreateThrowsOnDuplicateEmail(): void
+    {
+        $email = 'create-dup@example.com';
+
+        // Premier insert réussit
+        $this->createAccount($email);
+
+        // Deuxième insert sur le même email doit lever une exception
+        $thrown = null;
+        try {
+            $this->createAccount($email);
+        } catch (\Throwable $e) {
+            $thrown = $e;
+        }
+
+        // Le modèle a rollbacké la transaction interne — en relancer une pour le tearDown
+        self::$db->beginTransaction();
+
+        $this->assertNotNull($thrown, 'Une exception aurait dû être levée');
+    }
+
+    // ----------------------------------------------------------------
+    // getAccountsDueForDeletion (lignes 575-583)
+    // ----------------------------------------------------------------
+
+    /**
+     * getAccountsDueForDeletion retourne les comptes dont scheduled_deletion_at est passé.
+     * Couvre les lignes 575-583.
+     *
+     * @return void
+     */
+    public function testGetAccountsDueForDeletionReturnsExpiredAccounts(): void
+    {
+        $id = (int) $this->createAccount('due-deletion@example.com');
+        self::$db->execute(
+            "UPDATE accounts
+             SET deleted_at = DATE_SUB(NOW(), INTERVAL 31 DAY),
+                 scheduled_deletion_at = DATE_SUB(NOW(), INTERVAL 1 SECOND)
+             WHERE id = ?",
+            [$id]
+        );
+
+        $results = $this->model->getAccountsDueForDeletion();
+
+        $this->assertIsArray($results);
+        $ids = array_column($results, 'id');
+        $this->assertContains($id, $ids);
+
+        // Vérifie la présence des colonnes attendues dans l'entrée correspondante
+        $entry = null;
+        foreach ($results as $row) {
+            if ((int) $row['id'] === $id) {
+                $entry = $row;
+                break;
+            }
+        }
+        $this->assertNotNull($entry);
+        $this->assertArrayHasKey('email', $entry);
+        $this->assertArrayHasKey('lang', $entry);
+        $this->assertArrayHasKey('name', $entry);
+    }
+
+    /**
+     * getAccountsDueForDeletion exclut les comptes dont scheduled_deletion_at est dans le futur.
+     *
+     * @return void
+     */
+    public function testGetAccountsDueForDeletionExcludesFutureAccounts(): void
+    {
+        $id = (int) $this->createAccount('future-deletion@example.com');
+        self::$db->execute(
+            "UPDATE accounts
+             SET deleted_at = NOW(),
+                 scheduled_deletion_at = DATE_ADD(NOW(), INTERVAL 30 DAY)
+             WHERE id = ?",
+            [$id]
+        );
+
+        $results = $this->model->getAccountsDueForDeletion();
+        $ids = array_column($results, 'id');
+        $this->assertNotContains($id, $ids);
+    }
+
+    // ----------------------------------------------------------------
+    // confirmNewsletterByToken — branche true (lignes 1118-1127)
+    // ----------------------------------------------------------------
+
+    /**
+     * confirmNewsletterByToken active l'abonnement et retourne le compte si le token est valide.
+     * Couvre les lignes 1118-1127.
+     *
+     * @return void
+     */
+    public function testConfirmNewsletterByTokenActivatesSubscription(): void
+    {
+        $id    = (int) $this->createAccount('nl-confirm@example.com');
+        $token = bin2hex(random_bytes(32));
+
+        $this->model->storeNewsletterConfirmToken($id, $token);
+
+        $result = $this->model->confirmNewsletterByToken($token);
+
+        $this->assertIsArray($result);
+        $this->assertSame($id, (int) $result['id']);
+
+        // newsletter = 1, token effacé
+        $row = self::$db->fetchOne(
+            "SELECT newsletter, newsletter_confirm_token, newsletter_confirm_expires_at
+             FROM accounts WHERE id = ?",
+            [$id]
+        );
+        $this->assertIsArray($row);
+        $this->assertSame(1, (int) $row['newsletter']);
+        $this->assertNull($row['newsletter_confirm_token']);
+        $this->assertNull($row['newsletter_confirm_expires_at']);
+    }
+
+    /**
+     * confirmNewsletterByToken retourne false si le token est expiré.
+     *
+     * @return void
+     */
+    public function testConfirmNewsletterByTokenReturnsFalseIfExpired(): void
+    {
+        $id    = (int) $this->createAccount('nl-confirm-exp@example.com');
+        $token = bin2hex(random_bytes(32));
+
+        // Token expiré manuellement
+        self::$db->execute(
+            "UPDATE accounts
+             SET newsletter_confirm_token = ?,
+                 newsletter_confirm_expires_at = DATE_SUB(NOW(), INTERVAL 1 SECOND)
+             WHERE id = ?",
+            [$token, $id]
+        );
+
+        $result = $this->model->confirmNewsletterByToken($token);
+        $this->assertFalse($result);
+    }
+
+    /**
+     * confirmNewsletterByToken retourne false si le token est inconnu.
+     *
+     * @return void
+     */
+    public function testConfirmNewsletterByTokenReturnsFalseIfUnknown(): void
+    {
+        $result = $this->model->confirmNewsletterByToken('unknown-token-xyz');
+        $this->assertFalse($result);
+    }
 }

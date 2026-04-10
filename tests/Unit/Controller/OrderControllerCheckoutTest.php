@@ -833,6 +833,169 @@ class OrderControllerCheckoutTest extends TestCase
     }
 
     // ================================================================
+    // checkout() — GET : majorité non déclarée → redirect /panier (L91-92)
+    // ================================================================
+
+    /**
+     * Quand le compte existe (account !== false) et que la majorité n'est pas déclarée,
+     * le controller pose majority_pending en session et redirige vers /panier.
+     *
+     * @return void
+     */
+    public function testCheckoutRedirectsToCartWhenMajorityNotDeclared(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],                                                      // AuthMiddleware
+            ['id' => 1, 'newsletter' => false, 'account_type' => 'individual'], // findById → account trouvé
+            false                                                              // hasDeclaredMajority → non déclaré
+        );
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->checkout(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertTrue($_SESSION['majority_pending'] ?? false);
+    }
+
+    // ================================================================
+    // requireCustomer() — role != customer → abort 404 (L673)
+    // ================================================================
+
+    /**
+     * Quand le JWT contient un rôle admin, requireCustomer() appelle Response::abort(404).
+     *
+     * @return void
+     */
+    public function testCheckoutAborts404WhenRoleIsNotCustomer(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'admin');
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturn(['id' => 1]); // AuthMiddleware
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->checkout(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(404, $caught->status);
+    }
+
+    // ================================================================
+    // resolveAddress() — adresse existante invalide (ne appartient pas à l'user) → L607-608
+    // ================================================================
+
+    /**
+     * Quand delivery_address_id > 0 mais findByIdForUser retourne null/false,
+     * resolveAddress() pose une erreur flash et redirige.
+     *
+     * @return void
+     */
+    public function testPaymentRedirectsWhenDeliveryAddressNotBelongingToUser(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+        $_SESSION['submit_token']  = 'test-submit-token';
+        $_POST = [
+            'csrf_token'          => 'valid-csrf',
+            'submit_token'        => 'test-submit-token',
+            'payment_method'      => 'virement',
+            'cgv'                 => '1',
+            'same_address'        => '1',
+            'delivery_address_id' => '99', // adresse existante (> 0)
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],                                          // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],    // hasDeclaredMajority → true
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])], // cart
+            ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false], // wine
+            false // resolveAddress findByIdForUser → invalide (n'appartient pas à l'user)
+        );
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->payment(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('delivery', $_SESSION['flash']['checkout_errors'] ?? []);
+    }
+
+    // ================================================================
+    // resolveAddress() — nouvelle adresse, create retourne 0 → L631-634
+    // ================================================================
+
+    /**
+     * Quand delivery_address_id = 0 et que AddressModel::create retourne 0
+     * (erreur d'insertion), resolveAddress() pose une erreur flash et redirige.
+     *
+     * @return void
+     */
+    public function testPaymentRedirectsWhenNewAddressCreateFails(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+        $_SESSION['submit_token']  = 'test-submit-token';
+        $_POST = [
+            'csrf_token'          => 'valid-csrf',
+            'submit_token'        => 'test-submit-token',
+            'payment_method'      => 'virement',
+            'cgv'                 => '1',
+            'same_address'        => '1',
+            'delivery_address_id' => '0', // nouvelle adresse
+            'del_firstname'       => 'Jean',
+            'del_lastname'        => 'Dupont',
+            'del_street'          => '1 Rue Test',
+            'del_city'            => 'Paris',
+            'del_zip_code'        => '75001',
+            'del_phone'           => '0612345678',
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],                                          // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],    // hasDeclaredMajority → true
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])], // cart
+            ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false]  // wine
+        );
+        // AddressModel::create → retourne '0' (lastInsertId string, cas échec)
+        $stub->method('insert')->willReturn('0');
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->payment(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('delivery', $_SESSION['flash']['checkout_errors'] ?? []);
+    }
+
+    // ================================================================
     // confirmation() — GET : clears session et rend la vue
     // ================================================================
 
