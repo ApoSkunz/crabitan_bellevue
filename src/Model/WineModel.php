@@ -341,6 +341,62 @@ class WineModel extends Model
     }
 
     /**
+     * Retourne les vins disponibles similaires (même couleur) à un vin donné, en excluant ce vin.
+     *
+     * @param  int    $wineId Identifiant du vin de référence
+     * @param  string $color  Couleur du vin de référence
+     * @param  int    $limit  Nombre maximum de résultats
+     * @return array<int, array<string, mixed>>
+     */
+    public function getSimilar(int $wineId, string $color, int $limit = 3): array
+    {
+        $validColors = ['red', 'white', 'rosé', 'sweet'];
+        if (!in_array($color, $validColors, true)) {
+            return [];
+        }
+
+        return $this->db->fetchAll(
+            "SELECT id, label_name, wine_color, vintage, price, image_path, slug, is_cuvee_speciale
+             FROM {$this->table}
+             WHERE available = 1
+               AND wine_color = ?
+               AND id != ?
+             ORDER BY RAND()
+             LIMIT ?",
+            [$color, $wineId, $limit]
+        );
+    }
+
+    /**
+     * Retourne des vins disponibles aléatoires en excluant une liste d'IDs (cross-sell panier).
+     *
+     * @param  int[]  $excludeIds Identifiants de vins à exclure
+     * @param  int    $limit      Nombre maximum de résultats
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForCartCrossSell(array $excludeIds = [], int $limit = 1): array
+    {
+        $params = [];
+        $where  = [self::COND_AVAILABLE, self::COND_IMAGE];
+
+        if ($excludeIds !== []) {
+            $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+            $where[]      = "id NOT IN ({$placeholders})";
+            $params       = array_merge($params, $excludeIds);
+        }
+
+        $params[] = $limit;
+
+        return $this->db->fetchAll(
+            'SELECT id, label_name, wine_color, vintage, price, image_path, slug, is_cuvee_speciale
+             FROM ' . $this->table
+            . ' ' . $this->buildWhereClause($where)
+            . ' ORDER BY RAND() LIMIT ?',
+            $params
+        );
+    }
+
+    /**
      * Retourne un vin aléatoire disponible avec les champs nécessaires pour une carte produit.
      *
      * @return array<string, mixed>|null

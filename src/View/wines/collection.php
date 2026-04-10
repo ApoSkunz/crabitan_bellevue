@@ -1,5 +1,6 @@
 <?php
 $isAdmin   = $isAdmin ?? false;
+$ratings   = $ratings ?? [];
 $pageTitle = __('nav.collection');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
@@ -237,6 +238,10 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                 <div class="wine-card__footer">
                                     <strong class="wine-card__price">
                                         <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
+                                        <?php $wineRating = $ratings[(int) $wine['id']] ?? null; ?>
+                                        <?php if ($wineRating !== null) : ?>
+                                            <span class="wine-card__rating"><?= number_format($wineRating, 1) ?>/5</span>
+                                        <?php endif; ?>
                                     </strong>
                                     <div class="wine-card__actions">
                                         <?php if ($wine['available'] && !$isAdmin) : ?>

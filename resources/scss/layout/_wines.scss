@@ -444,6 +444,12 @@
         color: var(--color-gold);
     }
 
+    &__rating {
+        font-size: 0.8rem;
+        color: var(--color-gold);
+        margin-left: 0.5rem;
+    }
+
     &__actions {
         display: flex;
         align-items: center;

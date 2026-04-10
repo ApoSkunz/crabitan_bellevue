@@ -45,6 +45,8 @@ $award   = json_decode($wine['award']               ?? '{}', true) ?? [];
 $extra   = json_decode($wine['extra_comment']       ?? '{}', true) ?? [];
 
 $nutrition       = $nutrition ?? [];
+$avgRating       = $avgRating   ?? null;
+$ratingCount     = $ratingCount ?? 0;
 $enableExtraInfo = filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
 $hasAlcohol      = !empty($wine['alcohol_degree']);
 $hasAging        = !empty($wine['aging_potential']);
@@ -104,6 +106,9 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     <div class="wine-detail__buy">
                         <strong class="wine-detail__price">
                             <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
+                            <?php if ($avgRating !== null && $ratingCount >= 2) : ?>
+                                <span class="wine-card__rating"><?= number_format($avgRating, 1) ?>/5 (<?= $ratingCount ?> <?= htmlspecialchars(__('wine.reviews')) ?>)</span>
+                            <?php endif; ?>
                         </strong>
                         <span class="wine-detail__stock wine-detail__stock--available">
                             <?= htmlspecialchars(__('wine.available')) ?>

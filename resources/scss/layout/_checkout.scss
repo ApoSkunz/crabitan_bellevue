@@ -8,6 +8,14 @@
     min-height: 100vh;
 }
 
+// ---- Stepper sticky ----
+
+.checkout-stepper {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
 .checkout-section {
     padding: 2.5rem 1rem 4rem;
 }

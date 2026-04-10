@@ -1,6 +1,7 @@
 <?php
 $isAdmin    = $isAdmin    ?? false;
 $activeCuvee = $activeCuvee ?? false;
+$ratings    = $ratings    ?? [];
 $pageTitle  = __('nav.wines');
 $appUrl         = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
 $metaDescription = $navLang === 'en'
@@ -182,6 +183,10 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                                 <div class="wine-card__footer">
                                     <strong class="wine-card__price">
                                         <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
+                                        <?php $wineRating = $ratings[(int) $wine['id']] ?? null; ?>
+                                        <?php if ($wineRating !== null) : ?>
+                                            <span class="wine-card__rating"><?= number_format($wineRating, 1) ?>/5</span>
+                                        <?php endif; ?>
                                     </strong>
                                     <div class="wine-card__actions">
                                         <?php if ($wine['available'] && !$isAdmin) : ?>
