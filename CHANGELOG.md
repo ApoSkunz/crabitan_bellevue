@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.61.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.61.0...v0.61.1) (2026-04-10)
+
+
+### Bug Fixes
+
+* **phpdoc:** élargir Core\Model::findAll() [@return](https://github.com/return) à array-key ([df19f03](https://github.com/ApoSkunz/crabitan_bellevue/commit/df19f03f74924fd76c817569fff209b0cbeb3813))
+
 # [0.61.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.60.1...v0.61.0) (2026-04-10)
 
 
