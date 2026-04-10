@@ -9,6 +9,7 @@ use Model\AccountModel;
 use Model\CartModel;
 use Model\NewsletterModel;
 use Model\WineModel;
+use Model\WineNutritionModel;
 use Service\AuditLogger;
 use Service\MailService;
 use Service\TranslationService;
@@ -61,6 +62,7 @@ class WineAdminController extends AdminController
     ];
 
     private WineModel $wines;
+    private WineNutritionModel $nutrition;
     private TranslationService $translator;
     private AccountModel $accounts;
     private MailService $mailer;
@@ -69,6 +71,7 @@ class WineAdminController extends AdminController
     {
         parent::__construct($request);
         $this->wines      = new WineModel();
+        $this->nutrition  = new WineNutritionModel();
         $this->translator = new TranslationService($_ENV['TRANSLATION_API_KEY'] ?? '');
         $this->accounts   = new AccountModel();
         $this->mailer     = new MailService();
@@ -115,18 +118,19 @@ class WineAdminController extends AdminController
         $adminUser = $this->requireAdmin();
 
         $this->view(self::FORM_VIEW, [
-            'adminUser'    => $adminUser,
-            'adminSection' => 'wines',
-            'pageTitle'    => self::TITLE_CREATE,
-            'breadcrumbs'  => [
+            'adminUser'     => $adminUser,
+            'adminSection'  => 'wines',
+            'pageTitle'     => self::TITLE_CREATE,
+            'breadcrumbs'   => [
                 ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                 ['label' => 'Vins', 'url' => self::ADMIN_URL],
                 ['label' => 'Ajouter'],
             ],
-            'wine'         => null,
-            'errors'       => [],
-            'csrfToken'    => $_SESSION['csrf'] ?? '',
-            'appellations' => self::APPELLATIONS,
+            'wine'          => null,
+            'wineNutrition' => [],
+            'errors'        => [],
+            'csrfToken'     => $_SESSION['csrf'] ?? '',
+            'appellations'  => self::APPELLATIONS,
         ]);
     }
 
@@ -145,44 +149,49 @@ class WineAdminController extends AdminController
 
         [$data, $errors] = $this->parseWineForm(null);
 
+        $nutritionPost = $this->parseNutritionPost();
+
         if ($errors !== []) {
             $this->view(self::FORM_VIEW, [
-                'adminUser'    => $adminUser,
-                'adminSection' => 'wines',
-                'pageTitle'    => self::TITLE_CREATE,
-                'breadcrumbs'  => [
+                'adminUser'     => $adminUser,
+                'adminSection'  => 'wines',
+                'pageTitle'     => self::TITLE_CREATE,
+                'breadcrumbs'   => [
                     ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                     ['label' => 'Vins', 'url' => self::ADMIN_URL],
                     ['label' => 'Ajouter'],
                 ],
-                'wine'         => $data,
-                'errors'       => $errors,
-                'csrfToken'    => $_SESSION['csrf'] ?? '',
-                'appellations' => self::APPELLATIONS,
+                'wine'          => $data,
+                'wineNutrition' => $nutritionPost,
+                'errors'        => $errors,
+                'csrfToken'     => $_SESSION['csrf'] ?? '',
+                'appellations'  => self::APPELLATIONS,
             ]);
             return;
         }
 
         try {
-            $this->wines->create($data);
+            $wineId = $this->wines->create($data);
+            $this->nutrition->upsert($wineId, $nutritionPost);
         } catch (\PDOException $e) {
             $isDuplicate = str_contains($e->getMessage(), '1062') || str_contains($e->getMessage(), 'uq_wines_slug');
             $errors['slug'] = $isDuplicate
                 ? "Un vin \"{$data['label_name']} {$data['vintage']}\" existe déjà. Modifiez l'appellation, le millésime ou le format."
                 : 'Erreur lors de l\'enregistrement du vin.';
             $this->view(self::FORM_VIEW, [
-                'adminUser'    => $adminUser,
-                'adminSection' => 'wines',
-                'pageTitle'    => self::TITLE_CREATE,
-                'breadcrumbs'  => [
+                'adminUser'     => $adminUser,
+                'adminSection'  => 'wines',
+                'pageTitle'     => self::TITLE_CREATE,
+                'breadcrumbs'   => [
                     ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                     ['label' => 'Vins', 'url' => self::ADMIN_URL],
                     ['label' => 'Ajouter'],
                 ],
-                'wine'         => $data,
-                'errors'       => $errors,
-                'csrfToken'    => $_SESSION['csrf'] ?? '',
-                'appellations' => self::APPELLATIONS,
+                'wine'          => $data,
+                'wineNutrition' => $nutritionPost,
+                'errors'        => $errors,
+                'csrfToken'     => $_SESSION['csrf'] ?? '',
+                'appellations'  => self::APPELLATIONS,
             ]);
             return;
         }
@@ -248,7 +257,8 @@ class WineAdminController extends AdminController
     public function edit(array $params): void
     {
         $adminUser = $this->requireAdmin();
-        $wine      = $this->wines->getById((int) $params['id']);
+        $id        = (int) $params['id'];
+        $wine      = $this->wines->getById($id);
 
         if (!$wine) {
             $this->abort(404, 'Vin introuvable');
@@ -264,6 +274,7 @@ class WineAdminController extends AdminController
                 ['label' => 'Modifier'],
             ],
             'wine'         => $wine,
+            'wineNutrition' => $this->nutrition->findByWineId($id) ?: [],
             'errors'       => [],
             'csrfToken'    => $_SESSION['csrf'] ?? '',
             'appellations' => self::APPELLATIONS,
@@ -290,27 +301,30 @@ class WineAdminController extends AdminController
         }
 
         [$data, $errors] = $this->parseWineForm($wine);
+        $nutritionPost  = $this->parseNutritionPost();
 
         if ($errors !== []) {
             $this->view(self::FORM_VIEW, [
-                'adminUser'    => $adminUser,
-                'adminSection' => 'wines',
-                'pageTitle'    => self::TITLE_EDIT_PREFIX . $wine['label_name'],
-                'breadcrumbs'  => [
+                'adminUser'     => $adminUser,
+                'adminSection'  => 'wines',
+                'pageTitle'     => self::TITLE_EDIT_PREFIX . $wine['label_name'],
+                'breadcrumbs'   => [
                     ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                     ['label' => 'Vins', 'url' => self::ADMIN_URL],
                     ['label' => 'Modifier'],
                 ],
-                'wine'         => array_merge($wine, $data),
-                'errors'       => $errors,
-                'csrfToken'    => $_SESSION['csrf'] ?? '',
-                'appellations' => self::APPELLATIONS,
+                'wine'          => array_merge($wine, $data),
+                'wineNutrition' => $nutritionPost,
+                'errors'        => $errors,
+                'csrfToken'     => $_SESSION['csrf'] ?? '',
+                'appellations'  => self::APPELLATIONS,
             ]);
             return;
         }
 
         try {
             $this->wines->update($id, $data);
+            $this->nutrition->upsert($id, $nutritionPost);
             if (!$data['available']) {
                 (new CartModel())->purgeWineFromAllCarts($id);
             }
@@ -328,18 +342,19 @@ class WineAdminController extends AdminController
                 ? "Un vin \"{$data['label_name']} {$data['vintage']}\" existe déjà avec ce slug."
                 : 'Erreur lors de la mise à jour du vin.';
             $this->view(self::FORM_VIEW, [
-                'adminUser'    => $adminUser,
-                'adminSection' => 'wines',
-                'pageTitle'    => self::TITLE_EDIT_PREFIX . $wine['label_name'],
-                'breadcrumbs'  => [
+                'adminUser'     => $adminUser,
+                'adminSection'  => 'wines',
+                'pageTitle'     => self::TITLE_EDIT_PREFIX . $wine['label_name'],
+                'breadcrumbs'   => [
                     ['label' => 'Admin', 'url' => self::ADMIN_BASE],
                     ['label' => 'Vins', 'url' => self::ADMIN_URL],
                     ['label' => 'Modifier'],
                 ],
-                'wine'         => array_merge($wine, $data),
-                'errors'       => $errors,
-                'csrfToken'    => $_SESSION['csrf'] ?? '',
-                'appellations' => self::APPELLATIONS,
+                'wine'          => array_merge($wine, $data),
+                'wineNutrition' => $nutritionPost,
+                'errors'        => $errors,
+                'csrfToken'     => $_SESSION['csrf'] ?? '',
+                'appellations'  => self::APPELLATIONS,
             ]);
             return;
         }
@@ -523,6 +538,20 @@ class WineAdminController extends AdminController
     protected function moveUploadedFile(string $src, string $dest): bool
     {
         return move_uploaded_file($src, $dest);
+    }
+
+    /**
+     * Extrait les champs nutritionnels du POST.
+     *
+     * @return array<string, string>
+     */
+    private function parseNutritionPost(): array
+    {
+        $data = [];
+        foreach (WineNutritionModel::ALL_FIELDS as $field) {
+            $data[$field] = trim($this->request->post($field, ''));
+        }
+        return $data;
     }
 
     private function generateSlug(string $name, int $vintage): string
