@@ -2,6 +2,20 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.61.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.60.1...v0.61.0) (2026-04-10)
+
+
+### Bug Fixes
+
+* **security:** JSON_HEX_TAG sur json_encode JSON-LD — prévenir XSS </script> ([28df997](https://github.com/ApoSkunz/crabitan_bellevue/commit/28df997956a0b42f8d0bc17180a895a1c32447be))
+
+
+### Features
+
+* **seo:** ajouter robots.txt — disallow admin/api, référence sitemap ([e1320ee](https://github.com/ApoSkunz/crabitan_bellevue/commit/e1320ee75b37469d473b28f23500b9c290ac388c))
+* **seo:** ajouter support meta description, OG, canonical, hreflang, JSON-LD dans head.php ([8f6656d](https://github.com/ApoSkunz/crabitan_bellevue/commit/8f6656d2da0800cfeace6349f3136b5852a83be8))
+* **seo:** injecter meta/OG/hreflang/JSON-LD dans homepage, fiche vin, catalogue ([ec44c57](https://github.com/ApoSkunz/crabitan_bellevue/commit/ec44c576f933c30d66720ed0e670c28c18eca51b))
+
 ## [0.60.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.60.0...v0.60.1) (2026-04-10)
 
 
