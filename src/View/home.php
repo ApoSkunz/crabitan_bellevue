@@ -132,7 +132,7 @@ $carouselSlides = [
         <div class="home-section__inner container">
             <div class="home-section__visual">
                 <img
-                    src="/assets/images/gallery/nos-vins.jpg"
+                    src="/assets/images/gallery/apercu-vins.jpg"
                     alt="<?= htmlspecialchars(__('home.img_wines_alt')) ?>"
                     loading="lazy"
                     width="600"

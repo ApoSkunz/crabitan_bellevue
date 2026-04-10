@@ -6,7 +6,7 @@ require_once SRC_PATH . '/View/partials/header.php';
 /** @var array<string, array<string,string>|null> $wineImages */
 $wineImages = $wineImages ?? [];
 
-$fallbackWineImg = '/assets/images/gallery/nos-vins.jpg';
+$fallbackWineImg = '/assets/images/gallery/apercu-vins.jpg';
 
 /**
  * Retourne le src d'une image de vin ou un fallback gallery.
