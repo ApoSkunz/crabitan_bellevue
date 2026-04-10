@@ -679,4 +679,85 @@ class WineModel extends Model
         );
         return $row ?: null;
     }
+
+    /**
+     * Retourne les vins similaires à un vin donné.
+     * Même couleur en priorité (prix ±30%), complète avec d'autres couleurs si besoin.
+     *
+     * @param int    $wineId Identifiant du vin de référence
+     * @param string $color  Couleur du vin de référence
+     * @param float  $price  Prix du vin de référence
+     * @param int    $limit  Nombre maximum de résultats
+     * @return array<int, array<string, mixed>>
+     */
+    public function getSimilar(int $wineId, string $color, float $price, int $limit = 3): array
+    {
+        $cols = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity';
+
+        $sameColor = $this->db->fetchAll(
+            "SELECT {$cols}
+             FROM {$this->table}
+             WHERE id != ? AND wine_color = ? AND available = 1
+             ORDER BY ABS(price - ?) ASC
+             LIMIT ?",
+            [$wineId, $color, $price, $limit]
+        );
+
+        if (count($sameColor) >= $limit) {
+            return $sameColor;
+        }
+
+        $remaining = $limit - count($sameColor);
+        $foundIds  = array_map(fn(array $r): int => (int) $r['id'], $sameColor);
+        $foundIds[] = $wineId;
+
+        $placeholders = implode(',', array_fill(0, count($foundIds), '?'));
+        $params       = array_merge($foundIds, [$remaining]);
+
+        $others = $this->db->fetchAll(
+            "SELECT {$cols}
+             FROM {$this->table}
+             WHERE wine_color != ? AND available = 1 AND id NOT IN ({$placeholders})
+             ORDER BY RAND()
+             LIMIT ?",
+            array_merge([$color], $params)
+        );
+
+        return array_merge($sameColor, $others);
+    }
+
+    /**
+     * Retourne N vins disponibles pour le cross-sell panier, en excluant les IDs donnés.
+     *
+     * @param int[] $excludeIds IDs des vins déjà dans le panier
+     * @param int   $limit      Nombre maximum de résultats
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForCartCrossSell(array $excludeIds, int $limit = 4): array
+    {
+        $cols = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity';
+
+        if ($excludeIds === []) {
+            return $this->db->fetchAll(
+                "SELECT {$cols}
+                 FROM {$this->table}
+                 WHERE available = 1
+                 ORDER BY RAND()
+                 LIMIT ?",
+                [$limit]
+            );
+        }
+
+        $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+        $params       = array_merge($excludeIds, [$limit]);
+
+        return $this->db->fetchAll(
+            "SELECT {$cols}
+             FROM {$this->table}
+             WHERE available = 1 AND id NOT IN ({$placeholders})
+             ORDER BY RAND()
+             LIMIT ?",
+            $params
+        );
+    }
 }
