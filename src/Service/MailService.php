@@ -2950,8 +2950,11 @@ HTML;
         array $items,
         string $lang
     ): void {
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
-        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $safeName   = htmlspecialchars($name, ENT_QUOTES);
+        $ratingModel = $this->newRatingModel();
+        $orderToken  = $ratingModel->generateOrderToken($orderId, $accountId);
+        $orderPageUrl = htmlspecialchars($appUrl . '/rating/order/' . $orderToken, ENT_QUOTES);
 
         if ($lang === 'fr') {
             $subject    = 'Comment s\'est passée votre dégustation ? — Château Crabitan Bellevue';
@@ -2960,8 +2963,8 @@ HTML;
             $intro      = "Nous espérons que vous avez apprécié votre commande."
                 . " Votre avis nous aide à progresser — prenez un instant pour noter vos vins :";
             $rateLabel  = 'Note :';
-            $ctaLabel   = 'Voir mes commandes';
-            $ctaUrl     = htmlspecialchars($appUrl . '/fr/mon-compte/commandes', ENT_QUOTES);
+            $ctaLabel   = 'Noter mes vins';
+            $ctaFallback = 'Vous préférez noter vin par vin ? Utilisez les liens ci-dessous :';
         } else {
             $subject    = 'How was your tasting experience? — Château Crabitan Bellevue';
             $title      = 'Your opinion matters';
@@ -2969,10 +2972,20 @@ HTML;
             $intro      = "We hope you enjoyed your order."
                 . " Your feedback helps us improve — take a moment to rate your wines:";
             $rateLabel  = 'Rate:';
-            $ctaLabel   = 'View my orders';
-            $ctaUrl     = htmlspecialchars($appUrl . '/en/my-account/orders', ENT_QUOTES);
+            $ctaLabel   = 'Rate my wines';
+            $ctaFallback = 'Prefer to rate wine by wine? Use the links below:';
         }
 
+        // CTA principal — page de notation centralisée par commande
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$orderPageUrl}\" style=\""
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . $ctaLabel
+            . '</a></td></tr></table>';
+
+        // Liens individuels par vin (fallback)
         $winesHtml = '';
         foreach ($items as $item) {
             $wineId    = (int) ($item['wine_id'] ?? 0);
@@ -2980,7 +2993,7 @@ HTML;
             $vintage   = (int) ($item['vintage'] ?? 0);
             $imagePath = (string) ($item['image_path'] ?? '');
 
-            $token = $this->newRatingModel()->generateEmailToken($accountId, $wineId, $orderId);
+            $token = $ratingModel->generateEmailToken($accountId, $wineId, $orderId);
 
             $imageHtml = '';
             if ($imagePath !== '') {
@@ -3017,23 +3030,18 @@ HTML;
                 . '</td></tr>';
         }
 
-        $itemsTable = '<table style="width:100%;border-collapse:collapse;">'
+        $fallbackSection = '<p style="margin:24px 0 8px;font-size:13px;color:#8a7a60;">'
+            . htmlspecialchars($ctaFallback, ENT_QUOTES)
+            . '</p>'
+            . '<table style="width:100%;border-collapse:collapse;">'
             . $winesHtml
             . '</table>';
-
-        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">'
-            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$ctaUrl}\" style=\""
-            . self::BTN_STYLE_PRIMARY
-            . self::BTN_STYLE_LINK
-            . $ctaLabel
-            . '</a></td></tr></table>';
 
         $message = "<p style=\"margin:0 0 24px;font-size:15px;line-height:1.7;color:#3d3425;\">"
             . $intro
             . "</p>"
-            . $itemsTable
-            . $ctaBtn;
+            . $ctaBtn
+            . $fallbackSection;
 
         $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
         $this->send($to, $name, $subject, $body);
