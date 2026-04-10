@@ -324,7 +324,7 @@ class AuthController extends Controller
                 $loginCartModel->mergeLocalCart(
                     (int) $account['id'],
                     $localItems,
-                    fn(int $wineId): int => (int) ($wineModel->getById($wineId)['quantity'] ?? 0)
+                    fn(int $wineId): int => (int) ($wineModel->getById($wineId)['production_quantity'] ?? 0)
                 );
                 // Effacer le cookie côté serveur (secure=false pour compatibilité HTTP dev)
                 setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength

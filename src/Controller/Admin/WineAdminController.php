@@ -392,14 +392,16 @@ class WineAdminController extends AdminController
         $format    = $r->post('format', 'bottle');
         $vintage   = (int) $r->post('vintage', 0);
         $price     = (float) str_replace(',', '.', $r->post('price', '0'));
-        $quantity  = (int) $r->post('quantity', 0);
+        $quantity  = (int) $r->post('production_quantity', 0);
         $available = $r->post('available', '0') === '1' ? 1 : 0;
         $certLabel = trim($r->post('certification_label', ''));
-        $area      = (float) str_replace(',', '.', $r->post('area', '0'));
-        $city      = trim($r->post('city', ''));
-        $variety   = trim($r->post('variety_of_vine', ''));
-        $age       = (int) $r->post('age_of_vineyard', 0);
-        $isCuvee   = $r->post('is_cuvee_speciale', '0') === '1' ? 1 : 0;
+        $area          = (float) str_replace(',', '.', $r->post('area', '0'));
+        $city          = trim($r->post('city', ''));
+        $variety       = trim($r->post('variety_of_vine', ''));
+        $age           = (int) $r->post('age_of_vineyard', 0);
+        $isCuvee       = $r->post('is_cuvee_speciale', '0') === '1' ? 1 : 0;
+        $alcoholDegree = trim($r->post('alcohol_degree', '')) ?: null;
+        $agingPotential = trim($r->post('aging_potential', '')) ?: null;
 
         if ($vintage < 1900 || $vintage > (int) date('Y')) {
             $errors['vintage'] = 'Millésime invalide (1900 – ' . date('Y') . ').';
@@ -408,7 +410,7 @@ class WineAdminController extends AdminController
             $errors['price'] = 'Le prix doit être d\'au moins 3 €.';
         }
         if ($quantity < 0) {
-            $errors['quantity'] = 'Quantité invalide.';
+            $errors['production_quantity'] = 'Quantité invalide.';
         }
         if (!in_array($certLabel, self::CERT_LABELS, true)) {
             $errors['certification_label'] = 'Appellation invalide. Valeurs autorisées : ' . implode(', ', self::CERT_LABELS) . '.';
@@ -468,7 +470,7 @@ class WineAdminController extends AdminController
             'format'              => $format,
             'vintage'             => $vintage,
             'price'               => $price,
-            'quantity'            => $quantity,
+            'production_quantity' => $quantity,
             'available'           => $available,
             'certification_label' => $certLabel,
             'area'                => $area,
@@ -476,6 +478,8 @@ class WineAdminController extends AdminController
             'variety_of_vine'     => $variety,
             'age_of_vineyard'     => $age,
             'is_cuvee_speciale'   => $isCuvee,
+            'alcohol_degree'      => $alcoholDegree,
+            'aging_potential'     => $agingPotential,
             'image_path'          => $imagePath,
             'slug'                => $slug,
         ], $jsonData);
@@ -544,7 +548,7 @@ class WineAdminController extends AdminController
 
     /** @var string[] Champs obligatoires si la déclaration nutritionnelle est amorcée */
     private const NUTRITION_REQUIRED = [
-        'energy_kj', 'energy_kcal', 'fat_g', 'saturated_fat_g',
+        'energy_kj', 'fat_g', 'saturated_fat_g',
         'carbohydrate_g', 'sugars_g', 'protein_g', 'salt_g',
     ];
 

@@ -438,7 +438,7 @@ class WineController extends Controller
                 ($isEn ? 'Ageing'  : 'Élevage')   => $l($barrel),
             ]),
             ($isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES') => array_filter(
-                $this->buildNutritionFields($nutrition, $isEn)
+                $this->buildNutritionFields($wine, $nutrition, $isEn)
             ),
         ];
     }
@@ -446,35 +446,33 @@ class WineController extends Controller
     /**
      * Build the nutrition key/value pairs for the PDF section.
      *
+     * @param array<string, mixed> $wine
      * @param array<string, mixed> $nutrition
      * @return array<string, string>
      */
-    private function buildNutritionFields(array $nutrition, bool $isEn): array
+    private function buildNutritionFields(array $wine, array $nutrition, bool $isEn): array
     {
         $g = fn(string $k): string => isset($nutrition[$k]) ? $nutrition[$k] . ' g' : '';
 
         $energy = '';
-        if (isset($nutrition['energy_kj']) || isset($nutrition['energy_kcal'])) {
-            $energy = trim(
-                ($nutrition['energy_kj'] ?? '') . ' kJ / ' . ($nutrition['energy_kcal'] ?? '') . ' kcal',
-                ' /'
-            );
+        if (isset($nutrition['energy_kj'])) {
+            $kj   = (int) $nutrition['energy_kj'];
+            $kcal = (int) round($kj / 4.184);
+            $energy = $kj . ' kJ / ' . $kcal . ' kcal';
         }
 
         return [
-            ($isEn ? 'Alcohol'           : 'Degré d\'alcool') =>
-                isset($nutrition['alcohol_degree'])
-                    ? $nutrition['alcohol_degree'] . ' % vol.'
-                    : '',
-            ($isEn ? 'Ageing potential'  : 'Garde') =>
-                (string) ($nutrition['aging_potential'] ?? ''),
-            ($isEn ? 'Energy'            : 'Énergie')          => $energy,
-            ($isEn ? 'Fat'               : 'Matières grasses') => $g('fat_g'),
+            ($isEn ? 'Alcohol'            : 'Degré d\'alcool') =>
+                !empty($wine['alcohol_degree']) ? $wine['alcohol_degree'] . ' % vol.' : '',
+            ($isEn ? 'Ageing potential'   : 'Garde') =>
+                (string) ($wine['aging_potential'] ?? ''),
+            ($isEn ? 'Energy'             : 'Énergie')          => $energy,
+            ($isEn ? 'Fat'                : 'Matières grasses') => $g('fat_g'),
             ($isEn ? 'of which saturates' : 'dont saturés')     => $g('saturated_fat_g'),
-            ($isEn ? 'Carbohydrate'      : 'Glucides')         => $g('carbohydrate_g'),
-            ($isEn ? 'of which sugars'   : 'dont sucres')      => $g('sugars_g'),
-            ($isEn ? 'Protein'           : 'Protéines')        => $g('protein_g'),
-            ($isEn ? 'Salt'              : 'Sel')              => $g('salt_g'),
+            ($isEn ? 'Carbohydrate'       : 'Glucides')         => $g('carbohydrate_g'),
+            ($isEn ? 'of which sugars'    : 'dont sucres')      => $g('sugars_g'),
+            ($isEn ? 'Protein'            : 'Protéines')        => $g('protein_g'),
+            ($isEn ? 'Salt'               : 'Sel')              => $g('salt_g'),
         ];
     }
 
