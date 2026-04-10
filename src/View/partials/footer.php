@@ -44,6 +44,8 @@ if ($footerToken) {
                         <?= htmlspecialchars(__('footer.privacy_policy')) ?></a>
                     <a href="/<?= htmlspecialchars($navLang) ?>/conditions-generales-de-vente">
                         <?= htmlspecialchars(__('footer.cgv')) ?></a>
+                    <a href="/<?= htmlspecialchars($navLang) ?>/credits-photos">
+                        <?= htmlspecialchars(__('footer.credits_photos')) ?></a>
                     <button id="cookie-manage" type="button" class="footer-nav-legal__cookie-btn">
                         <?= htmlspecialchars(__('cookie.manage')) ?>
                     </button>

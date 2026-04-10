@@ -217,6 +217,24 @@ class PageController extends Controller
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
      */
+    /**
+     * Affiche la page crédits photos (droits d'auteur, procédure de retrait).
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function creditsPhotos(array $params): void
+    {
+        $lang = $this->resolveLang($params);
+        $this->view('pages/credits-photos', ['lang' => $lang]);
+    }
+
+    /**
+     * Affiche la page webmaster (documentation technique, noindex).
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function webmaster(array $params): void
     {
         $lang = $this->resolveLang($params);
