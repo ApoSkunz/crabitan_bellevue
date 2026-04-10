@@ -435,7 +435,7 @@ class WineModel extends Model
 
         return $this->db->fetchAll(
             "SELECT id, label_name, wine_color, format, vintage, price,
-                    production_quantity, available, image_path, slug, is_cuvee_speciale, featured
+                    production_quantity, stock_quantity, available, image_path, slug, is_cuvee_speciale, featured
              FROM {$this->table}
              {$whereClause}
              ORDER BY featured DESC, available DESC, id DESC
