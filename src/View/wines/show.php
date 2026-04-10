@@ -15,6 +15,11 @@ $barrel  = json_decode($wine['barrel_fermentation'] ?? '{}', true) ?? [];
 $award   = json_decode($wine['award']               ?? '{}', true) ?? [];
 $extra   = json_decode($wine['extra_comment']       ?? '{}', true) ?? [];
 
+$nutrition       = $nutrition ?? [];
+$enableExtraInfo = filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+$hasAlcohol      = !empty($wine['alcohol_degree']);
+$hasAging        = !empty($wine['aging_potential']);
+
 $description  = $oeno[$navLang]    ?? ($oeno['fr']    ?? '');
 $soilText     = $soil[$navLang]    ?? ($soil['fr']    ?? '');
 $pruningText  = $pruning[$navLang] ?? ($pruning['fr'] ?? '');
@@ -145,6 +150,16 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                         <dt><?= htmlspecialchars(__('wine.appellation')) ?></dt>
                         <dd><?= htmlspecialchars($wine['city']) ?></dd>
 
+                        <?php if ($hasAlcohol) : ?>
+                            <dt><?= htmlspecialchars(__('wine.alcohol_degree')) ?></dt>
+                            <dd><?= htmlspecialchars($wine['alcohol_degree']) ?> % vol.</dd>
+                        <?php endif; ?>
+
+                        <?php if ($hasAging) : ?>
+                            <dt><?= htmlspecialchars(__('wine.aging_potential')) ?></dt>
+                            <dd><?= htmlspecialchars($wine['aging_potential']) ?></dd>
+                        <?php endif; ?>
+
                         <dt><?= htmlspecialchars(__('wine.variety')) ?></dt>
                         <dd><?= htmlspecialchars($wine['variety_of_vine']) ?></dd>
 
@@ -179,9 +194,9 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                             <dd><?= htmlspecialchars($pruningText) ?></dd>
                         <?php endif; ?>
 
-                        <?php if (!empty($wine['quantity'])) : ?>
+                        <?php if (!empty($wine['production_quantity'])) : ?>
                             <dt><?= htmlspecialchars(__('wine.quantity')) ?></dt>
-                            <dd><?= number_format((int) $wine['quantity'], 0, ',', ' ') ?> <?= htmlspecialchars(__('wine.bottles')) ?></dd>
+                            <dd><?= number_format((int) $wine['production_quantity'], 0, ',', ' ') ?> <?= htmlspecialchars(__('wine.bottles')) ?></dd>
                         <?php endif; ?>
                     </dl>
                 </div>
@@ -189,6 +204,62 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                 <?php if ($extraText !== '') : ?>
                     <div class="wine-detail__section wine-detail__section--extra">
                         <p><?= $extraText /* HTML autorisé ici (lien Andreas Larsson) */ ?></p>
+                    </div>
+                <?php endif; ?>
+
+                <?php
+                $hasNutrition   = $enableExtraInfo && (bool) array_filter(array_intersect_key(
+                    $nutrition,
+                    array_flip(['energy_kj','fat_g','saturated_fat_g','carbohydrate_g','sugars_g','protein_g','salt_g'])
+                ));
+                $hasIngredients = $enableExtraInfo && !empty($nutrition['ingredients']);
+                ?>
+
+                <?php if ($hasIngredients) : ?>
+                    <div class="wine-detail__section">
+                        <h2 class="wine-detail__section-title"><?= htmlspecialchars(__('wine.ingredients')) ?></h2>
+                        <p class="wine-detail__text"><?= htmlspecialchars($nutrition['ingredients']) ?></p>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($hasNutrition) : ?>
+                    <div class="wine-detail__section">
+                        <h2 class="wine-detail__section-title"><?= htmlspecialchars(__('wine.nutritional_declaration')) ?></h2>
+                        <table class="wine-nutrition__table" aria-label="<?= htmlspecialchars(__('wine.nutritional_declaration')) ?>">
+                            <thead>
+                                <tr>
+                                    <th scope="col"></th>
+                                    <th scope="col"><?= htmlspecialchars(__('wine.nutrition_per_100ml')) ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <?php
+                            $nutRows = [
+                                ['energy_kj',        __('wine.energy'),        false],
+                                ['fat_g',            __('wine.fat'),           false],
+                                ['saturated_fat_g',  __('wine.saturated_fat'), true],
+                                ['carbohydrate_g',   __('wine.carbohydrate'),  false],
+                                ['sugars_g',         __('wine.sugars'),        true],
+                                ['protein_g',        __('wine.protein'),       false],
+                                ['salt_g',           __('wine.salt'),          false],
+                            ];
+                            foreach ($nutRows as [$field, $label, $sub]) :
+                                $val  = $nutrition[$field]  ?? null;
+                                if ($val === null) : continue; endif;
+                                if ($field === 'energy_kj') :
+                                    $kcal    = (int) round((int) $val / 4.184);
+                                    $display = htmlspecialchars((string) $val) . ' kJ / ' . $kcal . ' kcal';
+                                else :
+                                    $display = htmlspecialchars((string) $val) . ' g';
+                                endif;
+                            ?>
+                                <tr class="<?= $sub ? 'wine-nutrition__row--sub' : '' ?>">
+                                    <th scope="row"><?= htmlspecialchars($label) ?></th>
+                                    <td><?= $display ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 <?php endif; ?>
 

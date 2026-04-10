@@ -41,6 +41,7 @@ DROP TABLE IF EXISTS `orders`;
 DROP TABLE IF EXISTS `order_address_snapshots`;
 DROP TABLE IF EXISTS `carts`;
 DROP TABLE IF EXISTS `pricing_rules`;
+DROP TABLE IF EXISTS `wine_nutrition`;
 DROP TABLE IF EXISTS `wines`;
 DROP TABLE IF EXISTS `addresses`;
 DROP TABLE IF EXISTS `account_companies`;
@@ -186,7 +187,7 @@ CREATE TABLE `wines` (
   `format`               ENUM('bottle','bib') NOT NULL DEFAULT 'bottle',
   `vintage`              INT            NOT NULL,
   `price`                DECIMAL(10,2)  NOT NULL,
-  `quantity`             INT            NOT NULL DEFAULT 0,
+  `production_quantity`  INT            NOT NULL DEFAULT 0 COMMENT 'Nombre de bouteilles produites (millésime)',
   `available`            TINYINT(1)     NOT NULL DEFAULT 1,
   `certification_label`  ENUM('AOC','IGP','STG','AOP') NOT NULL DEFAULT 'AOC',
   `area`                 DECIMAL(10,2)  NOT NULL COMMENT 'Superficie en hectares',
@@ -202,6 +203,8 @@ CREATE TABLE `wines` (
   `award`                JSON           NOT NULL COMMENT '{"fr":"...","en":"..."}',
   `extra_comment`        JSON           NOT NULL COMMENT '{"fr":"...","en":"..."}',
   `is_cuvee_speciale`    TINYINT(1)     NOT NULL DEFAULT 0,
+  `alcohol_degree`       VARCHAR(20)    DEFAULT NULL COMMENT 'ex: 12 ou 12,5 (% vol.)',
+  `aging_potential`      VARCHAR(100)   DEFAULT NULL COMMENT 'ex: 5 à 10 ans',
   `image_path`           VARCHAR(255)   NOT NULL,
   `slug`                 VARCHAR(255)   NOT NULL COMMENT 'URL SEO ex: bordeaux-chateau-x-2019',
   `created_at`           DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -212,6 +215,29 @@ CREATE TABLE `wines` (
   INDEX `idx_wines_format` (`format`),
   INDEX `idx_wines_vintage` (`vintage`),
   INDEX `idx_wines_price` (`price`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : wine_nutrition
+-- Valeurs nutritionnelles + informations complémentaires (1:1 wines)
+-- Champs VARCHAR(20) pour supporter les valeurs "<", "traces", etc.
+-- ingredients affiché uniquement si ENABLE_EXTRA_INFO=true (règl. UE 2019/787)
+-- ============================================================
+CREATE TABLE `wine_nutrition` (
+  `id`               INT           NOT NULL AUTO_INCREMENT,
+  `wine_id`          INT           NOT NULL,
+  `energy_kj`        INT           DEFAULT NULL COMMENT 'ex: 336 (kcal calculé automatiquement ÷ 4,184)',
+  `fat_g`            VARCHAR(20)   DEFAULT NULL,
+  `saturated_fat_g`  VARCHAR(20)   DEFAULT NULL,
+  `carbohydrate_g`   VARCHAR(20)   DEFAULT NULL,
+  `sugars_g`         VARCHAR(20)   DEFAULT NULL,
+  `protein_g`        VARCHAR(20)   DEFAULT NULL,
+  `salt_g`           VARCHAR(20)   DEFAULT NULL,
+  `ingredients`      TEXT          DEFAULT NULL COMMENT 'Liste ingrédients — affiché si ENABLE_EXTRA_INFO=true',
+  `updated_at`       DATETIME      DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_wine_nutrition_wine` (`wine_id`),
+  CONSTRAINT `fk_wine_nutrition_wine` FOREIGN KEY (`wine_id`) REFERENCES `wines` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================

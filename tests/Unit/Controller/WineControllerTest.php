@@ -244,7 +244,7 @@ class WineControllerTest extends TestCase
         $l = fn(array $arr): string => $arr['fr'] ?? '';
         ob_start();
         $pdf = $buildPdf->invoke($ctrl, '', 'fr');
-        $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), '', 'fr', $l);
+        $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), [], '', 'fr', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
@@ -259,7 +259,7 @@ class WineControllerTest extends TestCase
         $l = fn(array $arr): string => $arr['en'] ?? ($arr['fr'] ?? '');
         ob_start();
         $pdf = $buildPdf->invoke($ctrl, '', 'en');
-        $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), '', 'en', $l);
+        $renderBody->invoke($ctrl, $pdf, $this->makeFakeWine(), [], '', 'en', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
@@ -276,7 +276,7 @@ class WineControllerTest extends TestCase
         $wine['award'] = '{"fr":"","en":""}';
         ob_start();
         $pdf = $buildPdf->invoke($ctrl, '', 'fr');
-        $renderBody->invoke($ctrl, $pdf, $wine, '', 'fr', $l);
+        $renderBody->invoke($ctrl, $pdf, $wine, [], '', 'fr', $l);
         ob_end_clean();
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }

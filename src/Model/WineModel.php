@@ -85,7 +85,7 @@ class WineModel extends Model
             $params[]     = $offset;
         }
 
-        $sql = "SELECT w.id, w.label_name, w.wine_color, w.format, w.vintage, w.price, w.quantity,
+        $sql = "SELECT w.id, w.label_name, w.wine_color, w.format, w.vintage, w.price, w.production_quantity,
                        w.available, w.certification_label, w.image_path, w.slug,
                        w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
                        (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
@@ -174,7 +174,7 @@ class WineModel extends Model
         }
 
         $rows = $this->db->fetchAll(
-            "SELECT w.id, w.label_name, w.wine_color, w.vintage, w.price, w.quantity,
+            "SELECT w.id, w.label_name, w.wine_color, w.vintage, w.price, w.production_quantity,
                     w.available, w.certification_label, w.image_path, w.slug,
                     w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
                     (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
@@ -277,11 +277,12 @@ class WineModel extends Model
     public function getBySlug(string $slug): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT id, label_name, wine_color, format, vintage, price, quantity,
+            "SELECT id, label_name, wine_color, format, vintage, price, production_quantity,
                     available, certification_label, area, city, variety_of_vine,
                     age_of_vineyard, oenological_comment, soil, pruning, harvest,
                     vinification, barrel_fermentation, award,
-                    extra_comment, is_cuvee_speciale, image_path, slug
+                    extra_comment, is_cuvee_speciale, image_path, slug,
+                    alcohol_degree, aging_potential
              FROM {$this->table}
              WHERE slug = ?",
             [$slug]
@@ -298,7 +299,7 @@ class WineModel extends Model
     public function getLatest(int $limit = 3): array
     {
         return $this->db->fetchAll(
-            "SELECT id, label_name, wine_color, vintage, price, quantity,
+            "SELECT id, label_name, wine_color, vintage, price, production_quantity,
                     available, image_path, slug, oenological_comment
              FROM {$this->table}
              WHERE " . self::COND_AVAILABLE . "
@@ -427,7 +428,7 @@ class WineModel extends Model
 
         return $this->db->fetchAll(
             "SELECT id, label_name, wine_color, format, vintage, price,
-                    quantity, available, image_path, slug, is_cuvee_speciale
+                    production_quantity, available, image_path, slug, is_cuvee_speciale
              FROM {$this->table}
              {$whereClause}
              ORDER BY available DESC, id DESC
@@ -469,19 +470,20 @@ class WineModel extends Model
     {
         return (int) $this->db->insert(
             "INSERT INTO {$this->table}
-             (label_name, wine_color, format, vintage, price, quantity, available,
+             (label_name, wine_color, format, vintage, price, production_quantity, available,
               certification_label, area, city, variety_of_vine, age_of_vineyard,
               oenological_comment, soil, pruning, harvest, vinification,
               barrel_fermentation, award, extra_comment,
-              is_cuvee_speciale, image_path, slug)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+              is_cuvee_speciale, image_path, slug,
+              alcohol_degree, aging_potential)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             [
                 $data['label_name'],
                 $data['wine_color'],
                 $data['format'],
                 $data['vintage'],
                 $data['price'],
-                $data['quantity'],
+                $data['production_quantity'],
                 $data['available'],
                 $data['certification_label'] ?: null,
                 $data['area'],
@@ -499,6 +501,8 @@ class WineModel extends Model
                 $data['is_cuvee_speciale'],
                 $data['image_path'],
                 $data['slug'],
+                $data['alcohol_degree'] ?? null,
+                $data['aging_potential'] ?? null,
             ]
         );
     }
@@ -511,11 +515,12 @@ class WineModel extends Model
         $this->db->execute(
             "UPDATE {$this->table}
              SET label_name = ?, wine_color = ?, format = ?, vintage = ?, price = ?,
-                 quantity = ?, available = ?, certification_label = ?,
+                 production_quantity = ?, available = ?, certification_label = ?,
                  area = ?, city = ?, variety_of_vine = ?, age_of_vineyard = ?,
                  oenological_comment = ?, soil = ?, pruning = ?, harvest = ?,
                  vinification = ?, barrel_fermentation = ?, award = ?, extra_comment = ?,
-                 is_cuvee_speciale = ?, image_path = ?, slug = ?
+                 is_cuvee_speciale = ?, image_path = ?, slug = ?,
+                 alcohol_degree = ?, aging_potential = ?
              WHERE id = ?",
             [
                 $data['label_name'],
@@ -523,7 +528,7 @@ class WineModel extends Model
                 $data['format'],
                 $data['vintage'],
                 $data['price'],
-                $data['quantity'],
+                $data['production_quantity'],
                 $data['available'],
                 $data['certification_label'] ?: null,
                 $data['area'],
@@ -541,6 +546,8 @@ class WineModel extends Model
                 $data['is_cuvee_speciale'],
                 $data['image_path'],
                 $data['slug'],
+                $data['alcohol_degree'] ?? null,
+                $data['aging_potential'] ?? null,
                 $id,
             ]
         );

@@ -175,7 +175,7 @@ class CartModel extends Model
                 continue;
             }
 
-            $qty = min((int) $item['qty'], (int) $wine['quantity']);
+            $qty = min((int) $item['qty'], (int) $wine['production_quantity']);
             if ($qty !== (int) $item['qty']) {
                 $changed = true;
             }

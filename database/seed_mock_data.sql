@@ -52,7 +52,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ============================================================
 
 INSERT INTO `wines`
-    (`label_name`, `wine_color`, `format`, `vintage`, `price`, `quantity`, `available`,
+    (`label_name`, `wine_color`, `format`, `vintage`, `price`, `production_quantity`, `available`,
      `certification_label`, `area`, `city`, `variety_of_vine`, `age_of_vineyard`,
      `oenological_comment`, `soil`, `pruning`, `harvest`, `vinification`,
      `barrel_fermentation`, `award`, `extra_comment`,
@@ -537,6 +537,38 @@ UPDATE `wines` SET `is_cuvee_speciale` = 1 WHERE `slug` IN (
 );
 
 ALTER TABLE `wines` AUTO_INCREMENT = 39;
+
+-- ============================================================
+-- WINE NUTRITION (valeurs nutritionnelles — mock représentatif)
+-- wine_id correspond aux positions INSERT (1=SCM2010, 7=BxRouge2016, 9=BxBlanc2018, 8=Rosé2017)
+-- Inclut des cas : valeurs complètes, valeurs "<", garde, degré alcool, ingrédients
+-- ============================================================
+
+-- Alcool + garde : dans la table wines (caractéristiques du vin, pas nutritionnelles)
+UPDATE `wines` SET `alcohol_degree` = '12,5', `aging_potential` = '10 à 20 ans' WHERE `slug` = 'sainte-croix-du-mont-2010';
+UPDATE `wines` SET `alcohol_degree` = '13',   `aging_potential` = '5 à 8 ans'   WHERE `slug` = 'bordeaux-rouge-2016';
+UPDATE `wines` SET `alcohol_degree` = '12',   `aging_potential` = '2 à 5 ans'   WHERE `slug` = 'bordeaux-blanc-2018';
+UPDATE `wines` SET `alcohol_degree` = '11,5', `aging_potential` = '1 à 3 ans'   WHERE `slug` = 'vin-pays-atlantique-rose-2017';
+
+-- Sainte-Croix-du-Mont 2010 : liquoreux, sucres élevés, garde longue
+INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`, `ingredients`)
+SELECT `id`, 477, '0', '0', '16,5', '16,5', '< 0,2', '< 0,2', 'Raisins, Anhydride sulfureux'
+FROM `wines` WHERE `slug` = 'sainte-croix-du-mont-2010';
+
+-- Bordeaux Rouge 2016 : rouge sec, valeurs typiques
+INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`, `ingredients`)
+SELECT `id`, 336, '0', '0', '0,03', '0,03', '< 0,2', '< 0,2', 'Raisins, Sulfites'
+FROM `wines` WHERE `slug` = 'bordeaux-rouge-2016';
+
+-- Bordeaux Blanc 2018 : blanc sec
+INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`, `ingredients`)
+SELECT `id`, 310, '0', '0', '0,5', '0,5', '< 0,2', '< 0,2', 'Raisins, Agent stabilisant : Carboxyméthylcellulose, Sulfites'
+FROM `wines` WHERE `slug` = 'bordeaux-blanc-2018';
+
+-- Rosé 2017 : sans ingrédients (ENABLE_EXTRA_INFO désactivé)
+INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`)
+SELECT `id`, 295, '0', '0', '1,2', '1,2', '< 0,2', '< 0,2'
+FROM `wines` WHERE `slug` = 'vin-pays-atlantique-rose-2017';
 
 -- ============================================================
 -- PRICING RULES (tarifs livraison — données production)

@@ -88,10 +88,10 @@ class CartApiControllerTest extends TestCase
 
         $dbMock = $this->setDbMock();
         $dbMock->method('fetchOne')->willReturn([
-            'label_name' => 'Bordeaux',
-            'price'      => '12.50',
-            'quantity'   => 10,
-            'image_path' => 'bordeaux.jpg',
+            'label_name'          => 'Bordeaux',
+            'price'               => '12.50',
+            'production_quantity' => 10,
+            'image_path'          => 'bordeaux.jpg',
         ]);
 
         $output = '';
@@ -276,7 +276,7 @@ class CartApiControllerTest extends TestCase
 
         $dbMock = $this->setDbMock();
         $dbMock->method('fetchOne')->willReturn([
-            'id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'quantity' => 0, 'image_path' => '',
+            'id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'production_quantity' => 0, 'image_path' => '',
         ]);
 
         $this->expectException(HttpException::class);
@@ -302,7 +302,7 @@ class CartApiControllerTest extends TestCase
         $dbMock = $this->setDbMock();
         // fetchOne : 1er appel WineModel::getById, 2e appel CartModel::findByUserId
         $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'quantity' => 5, 'image_path' => ''],
+            ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'production_quantity' => 5, 'image_path' => ''],
             false
         );
         $dbMock->method('execute')->willReturn(1);
@@ -329,7 +329,7 @@ class CartApiControllerTest extends TestCase
 
         $dbMock = $this->setDbMock();
         $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'quantity' => 10, 'image_path' => ''],
+            ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'production_quantity' => 10, 'image_path' => ''],
             ['id' => 1, 'user_id' => 1, 'content' => '[{"wine_id":1,"qty":3}]', 'total_quantity' => 3]
         );
         $dbMock->method('execute')->willReturn(1);
@@ -355,7 +355,7 @@ class CartApiControllerTest extends TestCase
 
         $dbMock = $this->setDbMock();
         $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'quantity' => 3, 'image_path' => ''],
+            ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'production_quantity' => 3, 'image_path' => ''],
             false
         );
         $dbMock->method('execute')->willReturn(1);
@@ -465,7 +465,7 @@ class CartApiControllerTest extends TestCase
         // fetchOne : 1er appel CartModel::findByUserId, 2e appel WineModel::getById
         $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(
             ['id' => 1, 'user_id' => 1, 'content' => '[{"wine_id":1,"qty":3}]', 'total_quantity' => 3],
-            ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'quantity' => 10, 'image_path' => '']
+            ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'production_quantity' => 10, 'image_path' => '']
         );
         $dbMock->method('execute')->willReturn(1);
 

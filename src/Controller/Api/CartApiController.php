@@ -125,7 +125,7 @@ class CartApiController extends Controller
         }
 
         $wine  = $this->wineModel->getById($wineId);
-        $stock = $wine !== null ? (int) ($wine['quantity'] ?? 0) : 0;
+        $stock = $wine !== null ? (int) ($wine['production_quantity'] ?? 0) : 0;
 
         if ($wine === null || $stock <= 0) {
             $this->json(['success' => false, 'message' => 'Vin indisponible'], 422);
@@ -184,7 +184,7 @@ class CartApiController extends Controller
             ));
         } else {
             $wine  = $this->wineModel->getById($wineId);
-            $stock = $wine !== null ? (int) ($wine['quantity'] ?? 0) : 0;
+            $stock = $wine !== null ? (int) ($wine['production_quantity'] ?? 0) : 0;
 
             $items = $this->upsertItem($items, $wineId, $quantity, $stock, true);
         }

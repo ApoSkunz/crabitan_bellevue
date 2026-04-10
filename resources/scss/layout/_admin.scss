@@ -669,6 +669,27 @@
     min-height: 80px;
 }
 
+.admin-field__hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    color: #8a7a60;
+    font-style: italic;
+    min-height: 1.1em;
+}
+
+.admin-field__input--readonly {
+    background: rgba(0, 0, 0, 0.04);
+    color: #8a7a60;
+    border-color: rgba(8, 8, 8, 0.08);
+    cursor: not-allowed;
+
+    &:focus {
+        border-color: rgba(8, 8, 8, 0.08);
+        box-shadow: none;
+    }
+}
+
 .admin-field__check {
     display: flex;
     align-items: center;

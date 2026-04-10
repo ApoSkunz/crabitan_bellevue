@@ -63,7 +63,7 @@ $maxYear = (int) date('Y');
 <div class="admin-card">
     <div class="admin-card__body">
     <form method="POST" action="<?= htmlspecialchars($action) ?>"
-          class="admin-form" enctype="multipart/form-data">
+          class="admin-form" enctype="multipart/form-data" novalidate>
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
         <!-- ---- Appellation + couleur auto ---- -->
@@ -126,12 +126,12 @@ $maxYear = (int) date('Y');
             </div>
 
             <div class="admin-field">
-                <label class="admin-field__label" for="quantity">Quantité produite (bt) *</label>
-                <input type="number" id="quantity" name="quantity" required min="0"
-                       class="admin-field__input<?= hasError($errors, 'quantity') ? $errClass : '' ?>"
-                       value="<?= fieldVal($wine, 'quantity', '0') ?>">
-                <?php if (hasError($errors, 'quantity')) : ?>
-                    <span class="admin-field__error"><?= htmlspecialchars($errors['quantity']) ?></span>
+                <label class="admin-field__label" for="production_quantity">Quantité produite (bt) *</label>
+                <input type="number" id="production_quantity" name="production_quantity" required min="0"
+                       class="admin-field__input<?= hasError($errors, 'production_quantity') ? $errClass : '' ?>"
+                       value="<?= fieldVal($wine, 'production_quantity', '0') ?>">
+                <?php if (hasError($errors, 'production_quantity')) : ?>
+                    <span class="admin-field__error"><?= htmlspecialchars($errors['production_quantity']) ?></span>
                 <?php endif; ?>
             </div>
 
@@ -203,6 +203,26 @@ $maxYear = (int) date('Y');
                     <input type="checkbox" id="is_cuvee_speciale" name="is_cuvee_speciale" value="1"
                            <?= ($wine['is_cuvee_speciale'] ?? 0) ? 'checked' : '' ?>>
                     <label for="is_cuvee_speciale">Cuvée spéciale</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---- Degré alcool + Garde ---- -->
+        <div class="admin-form__section">
+            <div class="admin-form__grid admin-form__grid--3">
+                <div class="admin-field">
+                    <label class="admin-field__label" for="alcohol_degree">Degré d'alcool (% vol.)</label>
+                    <input type="text" id="alcohol_degree" name="alcohol_degree"
+                           class="admin-field__input"
+                           value="<?= htmlspecialchars((string) ($wine['alcohol_degree'] ?? '')) ?>"
+                           placeholder="ex : 12 ou 12,5">
+                </div>
+                <div class="admin-field">
+                    <label class="admin-field__label" for="aging_potential">Garde</label>
+                    <input type="text" id="aging_potential" name="aging_potential"
+                           class="admin-field__input"
+                           value="<?= htmlspecialchars((string) ($wine['aging_potential'] ?? '')) ?>"
+                           placeholder="ex : 5 à 10 ans">
                 </div>
             </div>
         </div>
@@ -279,6 +299,81 @@ $maxYear = (int) date('Y');
             <?php endforeach; ?>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════
+             Section : Informations complémentaires
+        ══════════════════════════════════════════════════════ -->
+        <?php
+        $wn = $wineNutrition ?? [];
+        $enableExtraInfo = filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+        ?>
+        <div class="admin-section">
+            <h2 class="admin-section__title">Informations complémentaires</h2>
+            <p class="admin-section__hint" style="font-size:0.8rem;color:#8a7a60;margin-bottom:1rem;">
+                Tous les champs sont facultatifs. Valeurs acceptées : <code>0</code>, <code>0,03</code>, <code>&lt; 0,2</code>, <code>traces</code>…
+            </p>
+
+            <h3 class="admin-section__subtitle">Déclaration nutritionnelle (pour 100 ml)</h3>
+            <?php if (!empty($errors['nutrition'])) : ?>
+                <p class="admin-field__error"><?= htmlspecialchars($errors['nutrition']) ?></p>
+            <?php endif; ?>
+            <div class="admin-form__grid admin-form__grid--3">
+                <!-- Énergie kJ (saisie) + kcal affiché dynamiquement sous le champ -->
+                <div class="admin-field">
+                    <label class="admin-field__label" for="energy_kj">Énergie (kJ)</label>
+                    <input type="number" id="energy_kj" name="energy_kj" min="0"
+                           class="admin-field__input<?= !empty($errors['nutrition']) ? ' admin-field__input--error' : '' ?>"
+                           value="<?= htmlspecialchars((string) ($wn['energy_kj'] ?? '')) ?>"
+                           placeholder="ex : 336">
+                    <?php $kcalDisplay = !empty($wn['energy_kj']) ? (string) (int) round((int) $wn['energy_kj'] / 4.184) . ' kcal' : ''; ?>
+                    <input type="text" id="energy_kcal_hint" readonly
+                           class="admin-field__input"
+                           style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;margin-top:0.4rem;"
+                           value="<?= htmlspecialchars($kcalDisplay) ?>"
+                           placeholder="kcal calculé automatiquement">
+                </div>
+                <?php
+                $nutritionInputs = [
+                    'fat_g'           => ['label' => 'Matières grasses (g)',         'placeholder' => 'ex : 0 ou &lt; 0,2'],
+                    'saturated_fat_g' => ['label' => 'dont Acides gras saturés (g)', 'placeholder' => 'ex : 0 ou &lt; 0,2'],
+                    'carbohydrate_g'  => ['label' => 'Glucides (g)',                 'placeholder' => 'ex : 0,03'],
+                    'sugars_g'        => ['label' => 'dont Sucres (g)',              'placeholder' => 'ex : 0,03 ou &lt; 0,2'],
+                    'protein_g'       => ['label' => 'Protéines (g)',                'placeholder' => 'ex : &lt; 0,2'],
+                    'salt_g'          => ['label' => 'Sel (g)',                      'placeholder' => 'ex : &lt; 0,2'],
+                ];
+                foreach ($nutritionInputs as $field => $meta) : ?>
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="<?= $field ?>"><?= htmlspecialchars($meta['label']) ?></label>
+                        <input type="text" id="<?= $field ?>" name="<?= $field ?>"
+                               class="admin-field__input<?= !empty($errors['nutrition']) ? ' admin-field__input--error' : '' ?>"
+                               value="<?= htmlspecialchars((string) ($wn[$field] ?? '')) ?>"
+                               placeholder="<?= $meta['placeholder'] ?>">
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <script>
+            (function () {
+                const kj   = document.getElementById('energy_kj');
+                const hint = document.getElementById('energy_kcal_hint');
+                if (!kj || !hint) return;
+                kj.addEventListener('input', function () {
+                    const raw = this.value;
+                    const v   = parseFloat(raw);
+                    hint.value = (raw !== '' && !isNaN(v) && v > 0) ? Math.round(v / 4.184) + ' kcal' : '';
+                });
+            }());
+            </script>
+
+            <?php if ($enableExtraInfo) : ?>
+                <div class="admin-field" style="margin-top:1.5rem;">
+                    <label class="admin-field__label" for="ingredients">Liste des ingrédients</label>
+                    <textarea id="ingredients" name="ingredients"
+                              class="admin-field__textarea"
+                              rows="3"
+                              placeholder="ex : Raisins, Agent stabilisant : Carboxyméthylcellulose, Sulfites"><?= htmlspecialchars((string) ($wn['ingredients'] ?? '')) ?></textarea>
+                </div>
+            <?php endif; ?>
+        </div>
+
         <div class="admin-form__actions">
             <button type="submit" class="admin-btn admin-btn--primary">
                 <?= $isEdit ? 'Enregistrer les modifications' : 'Créer le vin' ?>
@@ -333,6 +428,61 @@ function previewImage(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
+
+// ── Validation client ────────────────────────────────────────────────────
+(function () {
+    const form = document.querySelector('.admin-form');
+    if (!form) return;
+
+    const NUTRITION_FIELDS = ['energy_kj','fat_g','saturated_fat_g','carbohydrate_g','sugars_g','protein_g','salt_g'];
+
+    function checkNutrition() {
+        const els    = NUTRITION_FIELDS.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+        const filled = els.filter(function (el) { return el.value.trim() !== ''; });
+        if (filled.length > 0 && filled.length < els.length) {
+            els.forEach(function (el) { if (el.value.trim() === '') { el.classList.add('is-error'); } });
+            return false;
+        }
+        els.forEach(function (el) { el.classList.remove('is-error'); });
+        return true;
+    }
+
+    // Feedback live sur les champs nutrition
+    NUTRITION_FIELDS.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) { el.addEventListener('input', checkNutrition); }
+    });
+
+    form.addEventListener('submit', function (e) {
+        const required = form.querySelectorAll('[required]');
+        let firstInvalid = null;
+        let hasErrors    = false;
+
+        required.forEach(function (el) {
+            if (el.value.trim() === '') {
+                el.classList.add('is-error');
+                hasErrors = true;
+                if (!firstInvalid) { firstInvalid = el; }
+            }
+        });
+
+        if (!checkNutrition()) {
+            hasErrors = true;
+            if (!firstInvalid) {
+                firstInvalid = document.getElementById('energy_kj');
+            }
+        }
+
+        if (hasErrors) {
+            e.preventDefault();
+            if (firstInvalid) { firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        }
+    });
+
+    // Effacer le rouge au fur et à mesure que l'utilisateur remplit le champ
+    form.addEventListener('input',  function (e) { if (e.target.value.trim() !== '') { e.target.classList.remove('is-error'); } });
+    form.addEventListener('change', function (e) { if (e.target.value         !== '') { e.target.classList.remove('is-error'); } });
+}());
 
 </script>
 
