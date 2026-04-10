@@ -144,12 +144,6 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.contact')) ?></span>
             </a>
 
-            <a href="/<?= htmlspecialchars($navLang) ?>/inscription" class="sitemap-card">
-                <img src="/assets/images/gallery/vendanges-1956.jpg"
-                     alt="<?= htmlspecialchars(__('nav.register')) ?>" loading="lazy">
-                <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.register')) ?></span>
-            </a>
-
             <a href="/<?= htmlspecialchars($navLang) ?>/actualites" class="sitemap-card">
                 <img src="/assets/images/gallery/domaine-noir-blanc.jpg"
                      alt="<?= htmlspecialchars(__('nav.news')) ?>" loading="lazy">
@@ -168,7 +162,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
         <div class="sitemap-grid sitemap-grid--4">
 
             <a href="/<?= htmlspecialchars($navLang) ?>/jeux" class="sitemap-card">
-                <img src="/assets/images/gallery/apercu-vins.jpg"
+                <img src="/assets/images/gallery/vendanges-1956.jpg"
                      alt="<?= htmlspecialchars(__('jeux.title')) ?>" loading="lazy">
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('jeux.title')) ?></span>
             </a>
