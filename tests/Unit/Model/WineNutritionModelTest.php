@@ -79,7 +79,7 @@ class WineNutritionModelTest extends TestCase
             ->expects($this->once())
             ->method('execute');
 
-        $this->model->upsert(1, ['energy_kj' => '336', 'energy_kcal' => '81']);
+        $this->model->upsert(1, ['energy_kj' => '336']);
     }
 
     /**
@@ -92,10 +92,9 @@ class WineNutritionModelTest extends TestCase
             ->method('execute');
 
         $this->model->upsert(1, [
-            'energy_kj' => '', 'energy_kcal' => '', 'fat_g' => '',
+            'energy_kj' => '', 'fat_g' => '',
             'saturated_fat_g' => '', 'carbohydrate_g' => '', 'sugars_g' => '',
-            'protein_g' => '', 'salt_g' => '', 'alcohol_degree' => '',
-            'aging_potential' => '', 'ingredients' => '',
+            'protein_g' => '', 'salt_g' => '', 'ingredients' => '',
         ]);
     }
 
