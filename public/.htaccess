@@ -24,10 +24,11 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [QSA,L]
 
 # ---- Headers de sécurité HTTP ----
-Header always set X-Frame-Options "SAMEORIGIN"
+Header always set X-Frame-Options "DENY"
 Header always set X-Content-Type-Options "nosniff"
 Header always set Referrer-Policy "strict-origin-when-cross-origin"
 Header always set X-Permitted-Cross-Domain-Policies "none"
+Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 
 # HSTS — uniquement sur HTTPS (env=HTTPS non défini sur HTTP → header absent en local)
 Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS

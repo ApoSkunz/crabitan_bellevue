@@ -195,7 +195,7 @@ if (!function_exists('rgpdUrl')) {
     <?php endif; ?>
 <?php endif; ?>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 document.addEventListener('click', function (e) {
     document.querySelectorAll('.rgpd-actions-details[open]').forEach(function (d) {
         if (!d.contains(e.target)) { d.removeAttribute('open'); }

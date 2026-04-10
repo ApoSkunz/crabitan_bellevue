@@ -45,10 +45,13 @@ class AgeGateController extends Controller
         $remember = !empty($_POST['remember']);
         $redirect = $_POST['redirect'] ?? '/' . DEFAULT_LANG;
 
-        // Mineur ou choix absent → redirection vers l'URL de sortie (referer externe ou Google)
+        // Mineur ou choix absent → page intermédiaire meta-refresh vers l'URL de sortie.
+        // Un 302 direct depuis une réponse de formulaire serait bloqué par la CSP form-action
+        // (Chromium étend form-action aux redirects post-form, même vers des domaines tiers légitimes).
         if ($legalAge !== '1') {
-            $exitUrl = $_POST['exit_url'] ?? '';
-            Response::redirect($this->sanitizeExitUrl($exitUrl));
+            $exitUrl = $this->sanitizeExitUrl($_POST['exit_url'] ?? '');
+            $this->view('age-gate-exit', ['exitUrl' => $exitUrl]);
+            return;
         }
 
         $this->logAgeVerification();

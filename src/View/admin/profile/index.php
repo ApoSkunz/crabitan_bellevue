@@ -247,7 +247,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
 .admin-field__eye:hover { color: #1a1208; }
 </style>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 function togglePwd(inputId, btn) {
     const input = document.getElementById(inputId);
     const isHidden = input.type === 'password';

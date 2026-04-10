@@ -152,8 +152,8 @@ test.describe('Age Gate — comportements', () => {
         await resetState(context, page);
         await page.locator('#cookie-refuse').click();
 
-        // Bouton QUITTER → soumet legal_age=0, le serveur redirige vers Google
-        // On attend la navigation externe (timeout 5s)
+        // Le serveur répond avec une page meta-refresh (pas un 302 direct) pour contourner
+        // la restriction CSP form-action qui bloquait la redirection cross-origin en Chromium.
         await Promise.all([
             page.waitForURL(/google\.com/, { timeout: 5000 }),
             page.locator('.age-overlay__btn-exit--outline').click(),

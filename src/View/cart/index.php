@@ -405,7 +405,7 @@ $pricingRules     = $pricingRules     ?? [];
 
     </section>
 
-    <script>
+    <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
     window.__pricingRules = <?= json_encode(array_map(function (array $r): array {
         return [
             'min_quantity'   => (int)   $r['min_quantity'],

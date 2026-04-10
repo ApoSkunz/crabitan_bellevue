@@ -464,7 +464,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
 <style>
 </style>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {
     'use strict';
 
@@ -543,6 +543,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
 
     function toggleNewBill() {
         if (!newBillForm) { return; }
+        if (billingRadios.length === 0) { return; } // pas d'adresse → formulaire toujours visible
         var newSelected = document.querySelector('.js-billing-radio[value="0"]:checked');
         newBillForm.hidden = !newSelected;
     }
@@ -561,6 +562,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
 
     function toggleNewDel() {
         if (!newDelForm) { return; }
+        if (deliveryRadios.length === 0) { return; } // pas d'adresse → formulaire toujours visible
         var newSelected = document.querySelector('.js-delivery-radio[value="0"]:checked');
         newDelForm.hidden = !newSelected;
     }
