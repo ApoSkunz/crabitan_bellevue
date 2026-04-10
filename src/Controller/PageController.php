@@ -218,15 +218,15 @@ class PageController extends Controller
      * @return void
      */
     /**
-     * Affiche la page crédits photos (droits d'auteur, procédure de retrait).
+     * Affiche la page crédits médias (photos, vidéos, droits d'auteur, procédure de retrait).
      *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
      */
-    public function creditsPhotos(array $params): void
+    public function creditsMedias(array $params): void
     {
         $lang = $this->resolveLang($params);
-        $this->view('pages/credits-photos', ['lang' => $lang]);
+        $this->view('pages/credits-medias', ['lang' => $lang]);
     }
 
     /**

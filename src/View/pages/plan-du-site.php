@@ -197,10 +197,10 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.cgv')) ?></span>
             </a>
 
-            <a href="/<?= htmlspecialchars($navLang) ?>/credits-photos" class="sitemap-card">
+            <a href="/<?= htmlspecialchars($navLang) ?>/credits-medias" class="sitemap-card">
                 <img src="/assets/images/gallery/vignoble-tournesols.jpg"
-                     alt="<?= htmlspecialchars(__('footer.credits_photos')) ?>" loading="lazy">
-                <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.credits_photos')) ?></span>
+                     alt="<?= htmlspecialchars(__('footer.credits_medias')) ?>" loading="lazy">
+                <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.credits_medias')) ?></span>
             </a>
 
         </div>

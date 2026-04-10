@@ -93,7 +93,7 @@ $router->get('/{lang}/plan-du-site', 'PageController@planDuSite');
 $router->get('/sitemap.xml', 'PageController@sitemapXml');
 $router->get('/{lang}/support', 'PageController@support');
 $router->get('/{lang}/jeux', 'PageController@jeux');
-$router->get('/{lang}/credits-photos', 'PageController@creditsPhotos');
+$router->get('/{lang}/credits-medias', 'PageController@creditsMedias');
 $router->get('/{lang}/webmaster', 'PageController@webmaster');
 
 // Catalogue vins

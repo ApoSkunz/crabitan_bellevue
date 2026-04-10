@@ -1,5 +1,5 @@
 <?php
-$pageTitle = __('footer.credits_photos');
+$pageTitle = __('footer.credits_medias');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
@@ -9,7 +9,7 @@ $isEn = isset($lang) && $lang === 'en';
 <main class="page-legal" id="main-content">
     <div class="page-hero page-hero--dark">
         <div class="container">
-            <h1 class="home-section__title"><?= htmlspecialchars(__('footer.credits_photos')) ?></h1>
+            <h1 class="home-section__title"><?= htmlspecialchars(__('footer.credits_medias')) ?></h1>
             <div class="home-section__divider home-section__divider--center"></div>
         </div>
     </div>
@@ -38,10 +38,22 @@ $isEn = isset($lang) && $lang === 'en';
             All rights reserved.
         </p>
 
+        <h2>Video credits</h2>
+        <p>
+            All videos published on this website are the exclusive property of
+            <strong>Château Crabitan Bellevue</strong>.
+            They may not be reproduced, distributed, modified or used in any way without the
+            prior written consent of the rights holder.
+        </p>
+        <p>
+            © Château Crabitan Bellevue.<br>
+            All rights reserved.
+        </p>
+
         <h2>Removal request (DMCA / Copyright)</h2>
         <p>
             If you believe that content published on this site infringes your intellectual property rights,
-            please contact us at the following address with the following information:
+            please contact us with the following information:
         </p>
         <ul>
             <li>Your full name and contact details</li>
@@ -53,9 +65,7 @@ $isEn = isset($lang) && $lang === 'en';
             <strong>Contact :</strong>
             <a href="/<?= htmlspecialchars($lang) ?>/contact"><?= htmlspecialchars(__('nav.contact')) ?></a>
         </p>
-        <p>
-            We undertake to process any legitimate request within 72 hours.
-        </p>
+        <p>We undertake to process any legitimate request within 72 hours.</p>
 
         <?php else: ?>
 
@@ -79,11 +89,22 @@ $isEn = isset($lang) && $lang === 'en';
             Tous droits réservés.
         </p>
 
+        <h2>Crédits vidéo</h2>
+        <p>
+            Toutes les vidéos publiées sur ce site sont la propriété exclusive de
+            <strong>Château Crabitan Bellevue</strong>.
+            Elles ne peuvent être reproduites, distribuées, modifiées ou utilisées de quelque manière
+            que ce soit sans l'accord écrit préalable du titulaire des droits.
+        </p>
+        <p>
+            © Château Crabitan Bellevue.<br>
+            Tous droits réservés.
+        </p>
+
         <h2>Demande de retrait (droit d'auteur)</h2>
         <p>
             Si vous estimez qu'un contenu publié sur ce site porte atteinte à vos droits de propriété
-            intellectuelle, contactez-nous à l'adresse suivante en nous communiquant les éléments
-            suivants :
+            intellectuelle, contactez-nous en nous communiquant les éléments suivants :
         </p>
         <ul>
             <li>Vos coordonnées complètes</li>
@@ -95,9 +116,7 @@ $isEn = isset($lang) && $lang === 'en';
             <strong>Contact :</strong>
             <a href="/<?= htmlspecialchars($lang) ?>/contact"><?= htmlspecialchars(__('nav.contact')) ?></a>
         </p>
-        <p>
-            Nous nous engageons à traiter toute demande légitime dans un délai de 72 heures.
-        </p>
+        <p>Nous nous engageons à traiter toute demande légitime dans un délai de 72 heures.</p>
 
         <?php endif; ?>
 
