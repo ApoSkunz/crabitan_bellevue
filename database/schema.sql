@@ -274,8 +274,9 @@ CREATE TABLE `carts` (
   `user_id`          INT            NOT NULL,
   `content`          JSON           NOT NULL COMMENT 'Articles du panier [{wine_id, qty}] — détails récupérés à la demande',
   `total_quantity`   INT            NOT NULL DEFAULT 0,
-  `created_at`       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at`       DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `created_at`        DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`        DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `reminder_sent_at`  DATETIME       DEFAULT NULL COMMENT 'Date d\'envoi de la relance email panier abandonné (unique)',
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_carts_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
   UNIQUE KEY `uq_carts_user` (`user_id`) COMMENT 'Un seul panier actif par utilisateur'

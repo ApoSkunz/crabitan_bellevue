@@ -1073,3 +1073,23 @@ INSERT INTO `newsletter_clicks` (`newsletter_id`, `link_id`, `subscriber_id`, `c
 ALTER TABLE `newsletter_clicks` AUTO_INCREMENT = 3;
 
 -- legal_documents : données initiales incluses dans schema.sql (INSERT au schéma)
+
+-- ============================================================
+-- wine_ratings : notes fictives pour tester le tri par notation
+-- Vins notés par plusieurs comptes (min 2 pour être publiques)
+-- wine_id 30 (Bordeaux Rouge 2020) : 5+4+5 = avg 4.67
+-- wine_id 35 (Bordeaux Blanc 2024) : 4+3 = avg 3.5
+-- wine_id 16 (Sainte-Croix-du-Mont 2015) : 5+5+4 = avg 4.67
+-- wine_id 21 (Sainte-Croix-du-Mont 2016) : 3+3 = avg 3.0
+-- ============================================================
+INSERT INTO `wine_ratings` (`account_id`, `wine_id`, `order_id`, `rating`, `created_at`) VALUES
+(3, 30, 2, 5, '2026-02-10 12:00:00'),
+(5, 30, 2, 4, '2026-02-11 09:00:00'),
+(6, 30, 2, 5, '2026-02-12 14:00:00'),
+(3, 35, 3, 4, '2026-02-15 10:00:00'),
+(5, 35, 3, 3, '2026-02-16 11:00:00'),
+(3, 16, 1, 5, '2026-02-20 09:00:00'),
+(5, 16, 1, 5, '2026-02-21 10:00:00'),
+(6, 16, 1, 4, '2026-02-22 11:00:00'),
+(3, 21, 3, 3, '2026-02-25 09:00:00'),
+(5, 21, 3, 3, '2026-02-26 10:00:00');
