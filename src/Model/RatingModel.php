@@ -209,6 +209,53 @@ class RatingModel extends Model
     }
 
     /**
+     * Génère un token unique pour une commande (identifie la commande dans l'email).
+     * Stocké dans la table order_rating_tokens.
+     * Si un token existe déjà pour ce (order_id, account_id), le retourne tel quel.
+     *
+     * @param int $orderId   Identifiant de la commande
+     * @param int $accountId Identifiant du compte
+     * @return string Token hexadécimal de 64 caractères
+     */
+    public function generateOrderToken(int $orderId, int $accountId): string
+    {
+        $existing = $this->db->fetchOne(
+            "SELECT token FROM order_rating_tokens WHERE order_id = ? AND account_id = ?",
+            [$orderId, $accountId]
+        );
+
+        if ($existing !== false && isset($existing['token'])) {
+            return (string) $existing['token'];
+        }
+
+        $token = bin2hex(random_bytes(32));
+
+        $this->db->execute(
+            "INSERT INTO order_rating_tokens (order_id, account_id, token)
+             VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE token = token",
+            [$orderId, $accountId, $token]
+        );
+
+        return $token;
+    }
+
+    /**
+     * Résout un order token — retourne [order_id, account_id] ou null si invalide.
+     *
+     * @param string $token Token de commande
+     * @return array<string, mixed>|null
+     */
+    public function resolveOrderToken(string $token): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT order_id, account_id FROM order_rating_tokens WHERE token = ?",
+            [$token]
+        );
+        return $row ?: null;
+    }
+
+    /**
      * Top N vins par note moyenne (>= 2 avis minimum).
      *
      * @param int $limit Nombre maximum de résultats

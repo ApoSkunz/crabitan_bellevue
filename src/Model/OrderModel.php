@@ -1108,6 +1108,40 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     // ----------------------------------------------------------------
 
     /**
+     * Retourne les commandes livrées il y a 7 jours (fenêtre 168h–192h)
+     * dont l'email de notation n'a pas encore été envoyé.
+     *
+     * Nécessite la colonne rating_email_sent_at sur la table orders.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getDeliveredForRatingEmail(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT id, user_id, content, price
+               FROM {$this->table}
+              WHERE status = 'delivered'
+                AND rating_email_sent_at IS NULL
+                AND delivered_at <= NOW() - INTERVAL 168 HOUR
+                AND delivered_at >  NOW() - INTERVAL 192 HOUR"
+        );
+    }
+
+    /**
+     * Marque une commande comme ayant reçu l'email de notation.
+     *
+     * @param int $orderId Identifiant de la commande
+     * @return void
+     */
+    public function markRatingEmailSent(int $orderId): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET rating_email_sent_at = NOW() WHERE id = ?",
+            [$orderId]
+        );
+    }
+
+    /**
      * Retourne la valeur moyenne des commandes sur N derniers jours (statuts actifs).
      *
      * @param int $days Nombre de jours à considérer

@@ -227,6 +227,95 @@ class CartModel extends Model
     }
 
     /**
+     * Retourne les données enrichies des paniers abandonnés prêts pour l'envoi email.
+     *
+     * Effectue un JOIN carts → accounts, puis enrichit les items via un JOIN sur wines.
+     * Chaque élément contient : cart_id, email, firstname, lang, items (enrichis), cart_url.
+     *
+     * @param int $hoursMin Borne inférieure en heures (incluse)
+     * @param int $hoursMax Borne supérieure en heures (exclue)
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAbandonedForEmail(int $hoursMin = 72, int $hoursMax = 96): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT c.id AS cart_id, c.content, c.user_id,
+                    a.email, a.firstname, a.company_name, a.lang
+               FROM {$this->table} c
+               JOIN accounts a ON a.id = c.user_id
+              WHERE c.user_id IS NOT NULL
+                AND c.total_quantity > 0
+                AND c.reminder_sent_at IS NULL
+                AND c.updated_at <= NOW() - INTERVAL ? HOUR
+                AND c.updated_at >  NOW() - INTERVAL ? HOUR",
+            [$hoursMin, $hoursMax]
+        );
+
+        $result = [];
+        foreach ($rows as $row) {
+            $rawItems = json_decode((string) ($row['content'] ?? '[]'), true);
+            if (!is_array($rawItems) || empty($rawItems)) {
+                continue;
+            }
+
+            $wineIds = array_filter(array_map(
+                fn(array $item): int => (int) ($item['wine_id'] ?? 0),
+                $rawItems
+            ), fn(int $id): bool => $id > 0);
+
+            if (empty($wineIds)) {
+                continue;
+            }
+
+            $placeholders = implode(',', array_fill(0, count($wineIds), '?'));
+            $wines = $this->db->fetchAll(
+                "SELECT id, label_name, vintage, image_path, price
+                   FROM wines
+                  WHERE id IN ({$placeholders})",
+                array_values($wineIds)
+            );
+
+            $wineMap = [];
+            foreach ($wines as $wine) {
+                $wineMap[(int) $wine['id']] = $wine;
+            }
+
+            $enrichedItems = [];
+            foreach ($rawItems as $item) {
+                $wineId = (int) ($item['wine_id'] ?? 0);
+                if (!isset($wineMap[$wineId])) {
+                    continue;
+                }
+                $wine = $wineMap[$wineId];
+                $enrichedItems[] = [
+                    'label_name' => (string) ($wine['label_name'] ?? ''),
+                    'vintage'    => (int) ($wine['vintage'] ?? 0),
+                    'image_path' => (string) ($wine['image_path'] ?? ''),
+                    'price'      => (float) ($wine['price'] ?? 0.0),
+                    'qty'        => (int) ($item['qty'] ?? 0),
+                ];
+            }
+
+            if (empty($enrichedItems)) {
+                continue;
+            }
+
+            $lang = in_array((string) ($row['lang'] ?? ''), ['fr', 'en'], true)
+                ? (string) $row['lang'] : 'fr';
+
+            $result[] = [
+                'cart_id'   => (int) $row['cart_id'],
+                'email'     => (string) ($row['email'] ?? ''),
+                'firstname' => (string) ($row['firstname'] ?? $row['company_name'] ?? 'Client'),
+                'lang'      => $lang,
+                'items'     => $enrichedItems,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
      * Retire un vin spécifique de tous les paniers (ex. vin rendu indisponible par l'admin).
      *
      * @param int $wineId Identifiant du vin à retirer
