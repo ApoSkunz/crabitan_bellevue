@@ -1187,6 +1187,290 @@ class AuthControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // login() — admin failed login (admin security alert branch)
+    // ----------------------------------------------------------------
+
+    /**
+     * Login admin avec mauvais mot de passe.
+     * Couvre les lignes 188-210 : branche admin (shouldAlertOnFailedLogins, recordAutoBlockFailure).
+     */
+    public function testLoginAdminWithWrongPasswordTriggersAdminSecurityBranch(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES ('admin-fail@example.com', ?, 'admin', 'fr', NOW())",
+            [password_hash('CorrectAdminPass1!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Admin', 'User', 'M')",
+            [$id]
+        );
+
+        $_SESSION['_rl'] = [];
+        $_SESSION['_rl_ttl'] = [];
+        $_SERVER['REMOTE_ADDR'] = '127.8.8.8';
+
+        $_POST = [
+            'email'      => 'admin-fail@example.com',
+            'password'   => 'WrongPass99!',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // L'admin existe toujours en BDD — le code admin-branch a été exécuté
+        $account = self::$db->fetchOne(
+            "SELECT id FROM accounts WHERE email = ?",
+            ['admin-fail@example.com']
+        );
+        $this->assertNotFalse($account);
+    }
+
+    /**
+     * Login admin auto-blocage : 5 échecs cumulés → blockAccount + email d'alerte.
+     * Couvre les lignes 196-210 : shouldAutoBlock true → blockAccount.
+     */
+    public function testLoginAdminAutoBlockAfterFiveFailures(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES ('admin-autoblock@example.com', ?, 'admin', 'fr', NOW())",
+            [password_hash('SecureAdmin7!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Block', 'Admin', 'M')",
+            [$id]
+        );
+
+        $_SERVER['REMOTE_ADDR'] = '127.7.7.7';
+        $_SESSION['_rl'] = [];
+        $_SESSION['_rl_ttl'] = [];
+
+        // Simuler 5 échecs cumulatifs déjà enregistrés → shouldAutoBlock retourne true au prochain appel
+        $cumulKey = 'rl:admin_fail_cumul:' . $id . ':count';
+        $_SESSION['_rl'][$cumulKey] = 5; // AUTO_BLOCK_THRESHOLD = 5
+        $_SESSION['_rl_ttl'][$cumulKey] = time() + 3600;
+
+        $_POST = [
+            'email'      => 'admin-autoblock@example.com',
+            'password'   => 'WrongPass!',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // Compte bloqué après auto-blocage
+        $account = self::$db->fetchOne(
+            "SELECT is_blocked FROM accounts WHERE id = ?",
+            [$id]
+        );
+        $this->assertSame(1, (int) $account['is_blocked']);
+    }
+
+    // ----------------------------------------------------------------
+    // login() — account lockout (BT2 : 3 échecs → email lockout + redirect)
+    // ----------------------------------------------------------------
+
+    /**
+     * Après 3 échecs de connexion consécutifs, le compte est verrouillé 30 min.
+     * Couvre les lignes 214-230 : sendAccountLocked + redirect.
+     */
+    public function testLoginAccountLockoutAfterThreeFailures(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES ('lockout@example.com', ?, 'customer', 'fr', NOW())",
+            [password_hash('CorrectPass1!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Lock', 'User', 'M')",
+            [$id]
+        );
+
+        $_SERVER['REMOTE_ADDR'] = '127.6.6.6';
+        $_SESSION['_rl'] = [];
+        $_SESSION['_rl_ttl'] = [];
+
+        // Pré-saturer le compteur account_lockout : MAX_ACCOUNT_FAILURES = 3
+        $rlKey = 'rl:account_lockout:' . $id . ':count';
+        $_SESSION['_rl'][$rlKey] = 3;
+        $_SESSION['_rl_ttl'][$rlKey] = time() + 1800;
+
+        $_POST = [
+            'email'      => 'lockout@example.com',
+            'password'   => 'WrongPass!',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // login() — cart cookie merge (cb-cart)
+    // ----------------------------------------------------------------
+
+    /**
+     * Login réussi avec un cookie cb-cart non vide.
+     * Couvre les lignes 319-330 : mergeLocalCart + effacement cookie cb-cart.
+     */
+    public function testLoginMergesCartCookieOnSuccess(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES ('cart-merge@example.com', ?, 'customer', 'fr', NOW())",
+            [password_hash('CartPass1!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Cart', 'User', 'M')",
+            [$id]
+        );
+
+        // Insérer un vin réel pour le panier (colonnes JSON requises)
+        self::$db->insert(
+            "INSERT INTO wines
+                (label_name, wine_color, format, vintage, price, quantity, available,
+                 area, city, variety_of_vine, age_of_vineyard,
+                 oenological_comment, soil, pruning, harvest, vinification,
+                 barrel_fermentation, award, extra_comment, image_path, slug)
+             VALUES ('Cart Wine', 'sweet', 'bottle', 2021, 20.00, 50, 1,
+                     7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
+                     '{\"fr\":\"Desc\",\"en\":\"Desc\"}',
+                     '{\"fr\":\"Argile\",\"en\":\"Clay\"}',
+                     '{\"fr\":\"Guyot\",\"en\":\"Guyot\"}',
+                     '{\"fr\":\"Manuelle\",\"en\":\"Manual\"}',
+                     '{\"fr\":\"Inox\",\"en\":\"Stainless\"}',
+                     '{\"fr\":\"\",\"en\":\"\"}',
+                     '{\"fr\":\"\",\"en\":\"\"}',
+                     '{\"fr\":\"\",\"en\":\"\"}',
+                     'CartWine_2021.png', 'cart-wine-2021')"
+        );
+        $wineRow = self::$db->fetchOne(
+            "SELECT id FROM wines WHERE slug = ?",
+            ['cart-wine-2021']
+        );
+
+        // Cookie cb-cart avec un item
+        $_COOKIE['cb-cart'] = json_encode([['id' => (int) $wineRow['id'], 'quantity' => 2]]);
+
+        $_POST = [
+            'email'      => 'cart-merge@example.com',
+            'password'   => 'CartPass1!',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // Le panier BDD doit contenir le vin fusionné
+        $cart = self::$db->fetchOne(
+            "SELECT id FROM carts WHERE user_id = ?",
+            [$id]
+        );
+        $this->assertNotFalse($cart);
+    }
+
+    // ----------------------------------------------------------------
+    // verifyEmail() — newsletter_optin_pending (double opt-in)
+    // ----------------------------------------------------------------
+
+    /**
+     * verifyEmail() avec newsletter_optin_pending = 1.
+     * Couvre la ligne 573 : activateNewsletterFromPending.
+     */
+    public function testVerifyEmailActivatesNewsletterFromPending(): void
+    {
+        $token = bin2hex(random_bytes(16));
+        $accountId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verification_token, newsletter_optin_pending)
+             VALUES ('newsletter-pending@example.com', 'hash', 'customer', 'fr', ?, 1)",
+            [$token]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'News', 'User', 'M')",
+            [$accountId]
+        );
+
+        ob_start();
+        try {
+            $this->makeController('GET', '/fr/verification/' . $token)
+                ->verifyEmail(['lang' => 'fr', 'token' => $token]);
+        } finally {
+            ob_end_clean();
+        }
+
+        $account = self::$db->fetchOne(
+            "SELECT newsletter, email_verified_at FROM accounts WHERE id = ?",
+            [$accountId]
+        );
+        $this->assertNotNull($account['email_verified_at']);
+        $this->assertSame(1, (int) $account['newsletter'], 'newsletter_optin_pending=1 doit activer newsletter');
+    }
+
+    // ----------------------------------------------------------------
+    // forgot() — compte Google (password = NULL)
+    // ----------------------------------------------------------------
+
+    /**
+     * forgot() avec un compte dont password = NULL (compte Google-only).
+     * Couvre la ligne 660 : sendGoogleAccountInfo plutôt que sendPasswordReset.
+     */
+    public function testForgotSendsGoogleAccountInfoForGoogleOnlyAccount(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES ('google-only@example.com', NULL, 'customer', 'fr', NOW())"
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Google', 'User', 'M')",
+            [$id]
+        );
+
+        $_POST = [
+            'email'      => 'google-only@example.com',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->forgot(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // Aucun token de reset ne doit avoir été créé (compte Google-only)
+        $reset = self::$db->fetchOne(
+            "SELECT * FROM password_reset WHERE user_id = ?",
+            [$id]
+        );
+        $this->assertFalse($reset);
+    }
+
+    // ----------------------------------------------------------------
     // sessionExpired() GET
     // ----------------------------------------------------------------
 

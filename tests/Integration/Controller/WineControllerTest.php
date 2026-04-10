@@ -935,4 +935,40 @@ class WineControllerTest extends IntegrationTestCase
 
         $this->assertStringContainsString('<main', $output);
     }
+
+    // ----------------------------------------------------------------
+    // technicalSheet() — rate limit
+    // ----------------------------------------------------------------
+
+    /**
+     * technicalSheet() avec rate limit dépassé → 429 HttpException.
+     * Couvre checkPdfRateLimit() : branche !checkLimit → abortWithData(429).
+     * Lignes MISS 172-173 de technicalSheet + 141-148 de checkPdfRateLimit.
+     */
+    public function testTechnicalSheetRateLimitExceededAborts429(): void
+    {
+        $this->insertWine('test-pdf-ratelimit', 'sweet');
+
+        $_SERVER['REMOTE_ADDR'] = '127.9.9.9';
+        $slug    = 'test-pdf-ratelimit';
+        $ip      = '127.9.9.9';
+        $rlKey   = 'rl:pdf_wine:' . $ip . ':' . $slug;
+
+        // Saturer le rate limit en session directement (APCu non dispo en TI)
+        $_SESSION['_rl'][$rlKey . ':count'] = 10; // PDF_RATE_MAX = 10 → atteint
+        $_SESSION['_rl_ttl'][$rlKey . ':count'] = time() + 3600;
+        // Poser le lockout until dans le futur
+        $_SESSION['_rl'][$rlKey . ':until'] = time() + 3600;
+        $_SESSION['_rl_ttl'][$rlKey . ':until'] = time() + 3600;
+
+        ob_start();
+        try {
+            $this->makeController('/fr/vins/' . $slug . '/fiche-technique')
+                ->technicalSheet(['lang' => 'fr', 'slug' => $slug]);
+            $this->fail('Expected HttpException 429');
+        } catch (\Core\Exception\HttpException $e) {
+            ob_end_clean();
+            $this->assertSame(429, $e->status);
+        }
+    }
 }
