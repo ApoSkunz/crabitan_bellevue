@@ -1,114 +1,75 @@
-#!/usr/bin/env php
 <?php
 
 /**
  * Cron — Relance panier abandonné J+3.
  *
  * Envoie un email de relance aux utilisateurs dont le panier n'a pas été
- * commandé depuis 72 à 96 heures (fenêtre J+3).
+ * commandé depuis 72 à 96 heures (fenêtre J+3). Une seule relance par panier.
  *
- * Usage : php bin/send-abandoned-cart.php
- * Planification recommandée : 0 9 * * * (tous les jours à 9h)
+ * À planifier via cron (ex: tous les jours à 9h) :
+ *   0 9 * * * php /var/www/crabitan_bellevue/bin/send-abandoned-cart.php >> /var/log/crabitan/cron.log 2>&1
+ *
+ * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */
 
 declare(strict_types=1);
 
-define('ROOT_PATH', dirname(__DIR__));
-define('SRC_PATH', ROOT_PATH . '/src');
-define('LANG_PATH', ROOT_PATH . '/lang');
+require_once __DIR__ . '/cron-bootstrap.php';
 
-require_once ROOT_PATH . '/vendor/autoload.php';
-require_once ROOT_PATH . '/src/helpers.php';
-require_once ROOT_PATH . '/config/config.php';
+$runner = new \Core\CronRunner('send-abandoned-cart');
+exit($runner->run(function (callable $log): void {
+    $cartModel    = new \Model\CartModel();
+    $accountModel = new \Model\AccountModel();
+    $wineModel    = new \Model\WineModel();
+    $mailer       = new \Service\MailService();
+    $appUrl       = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
 
-use Model\AccountModel;
-use Model\CartModel;
-use Model\WineModel;
-use Service\MailService;
+    $abandoned = $cartModel->getAbandoned(72, 96);
+    $log('Paniers abandonnés éligibles : ' . count($abandoned));
 
-$cartModel    = new CartModel();
-$accountModel = new AccountModel();
-$wineModel    = new WineModel();
-$mailService  = new MailService();
-
-$appUrl  = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
-
-/**
- * Récupère les paniers abandonnés dans la fenêtre J+3 (72h–96h).
- *
- * @var array<int, array<string, mixed>> $abandoned
- */
-$abandoned = $cartModel->getAbandoned(72, 96);
-
-$sent   = 0;
-$errors = 0;
-
-foreach ($abandoned as $cart) {
-    $userId = (int) ($cart['user_id'] ?? 0);
-    if ($userId <= 0) {
-        continue;
-    }
-
-    $account = $accountModel->findById($userId);
-    if ($account === false) {
-        error_log("[send-abandoned-cart] Compte introuvable pour user_id={$userId}");
-        $errors++;
-        continue;
-    }
-
-    $email = (string) ($account['email'] ?? '');
-    if ($email === '') {
-        error_log("[send-abandoned-cart] Email vide pour user_id={$userId}");
-        $errors++;
-        continue;
-    }
-
-    $firstname = (string) ($account['firstname'] ?? $account['company_name'] ?? 'Client');
-    $lang      = in_array((string) ($account['lang'] ?? ''), ['fr', 'en'], true)
-        ? (string) $account['lang']
-        : 'fr';
-
-    // Enrichir les items du panier avec les données produit (nom, image, prix)
-    $rawItems    = $cartModel->getContent($cart);
-    $enrichedItems = [];
-
-    foreach ($rawItems as $item) {
-        $wineId = (int) ($item['wine_id'] ?? 0);
-        if ($wineId <= 0) {
+    foreach ($abandoned as $cart) {
+        $userId  = (int) ($cart['user_id'] ?? 0);
+        $account = $accountModel->findById($userId);
+        if (!$account) {
+            $log("[SKIP] user_id={$userId} introuvable");
             continue;
         }
 
-        $wine = $wineModel->findById($wineId);
-        if ($wine === false) {
+        $email    = (string) ($account['email'] ?? '');
+        $firstname = (string) ($account['firstname'] ?? $account['company_name'] ?? 'Client');
+        $lang     = in_array((string) ($account['lang'] ?? ''), ['fr', 'en'], true)
+            ? (string) $account['lang'] : 'fr';
+
+        $rawItems      = $cartModel->getContent($cart);
+        $enrichedItems = [];
+        foreach ($rawItems as $item) {
+            $wineId = (int) ($item['wine_id'] ?? 0);
+            $wine   = $wineId > 0 ? $wineModel->findById($wineId) : false;
+            if (!$wine) {
+                continue;
+            }
+            $enrichedItems[] = [
+                'label_name' => (string) ($wine['label_name'] ?? ''),
+                'vintage'    => (int) ($wine['vintage'] ?? 0),
+                'image_path' => (string) ($wine['image_path'] ?? ''),
+                'price'      => (float) ($wine['price'] ?? 0.0),
+                'qty'        => (int) ($item['qty'] ?? 0),
+            ];
+        }
+
+        if (empty($enrichedItems)) {
+            $log("[SKIP] user_id={$userId} — panier vide après enrichissement");
             continue;
         }
 
-        $enrichedItems[] = [
-            'label_name' => (string) ($wine['label_name'] ?? ''),
-            'vintage'    => (int) ($wine['vintage'] ?? 0),
-            'image_path' => (string) ($wine['image_path'] ?? ''),
-            'price'      => (float) ($wine['price'] ?? 0.0),
-            'qty'        => (int) ($item['qty'] ?? 0),
-        ];
+        $cartUrl = $lang === 'fr' ? $appUrl . '/fr/panier' : $appUrl . '/en/cart';
+
+        try {
+            $mailer->sendAbandonedCart($email, $firstname, $enrichedItems, $lang, $cartUrl);
+            $cartModel->markReminderSent((int) $cart['id']);
+            $log("[OK] Relance envoyée à {$email} (user_id={$userId})");
+        } catch (\Throwable $e) {
+            $log("[ERR] {$email} : " . $e->getMessage());
+        }
     }
-
-    if (empty($enrichedItems)) {
-        continue;
-    }
-
-    $cartUrl = $lang === 'fr'
-        ? $appUrl . '/fr/panier'
-        : $appUrl . '/en/cart';
-
-    try {
-        $mailService->sendAbandonedCart($email, $firstname, $enrichedItems, $lang, $cartUrl);
-        $cartModel->markReminderSent((int) $cart['id']);
-        $sent++;
-        echo "[send-abandoned-cart] Email relance envoyé à {$email} (user_id={$userId})\n";
-    } catch (\Throwable $e) {
-        error_log("[send-abandoned-cart] Erreur envoi à {$email}: " . $e->getMessage());
-        $errors++;
-    }
-}
-
-echo "[send-abandoned-cart] Terminé — {$sent} email(s) envoyé(s), {$errors} erreur(s).\n";
+}));
