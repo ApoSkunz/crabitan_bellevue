@@ -62,6 +62,27 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $this->mailer->setFrom($fromAddress, $_ENV['MAIL_FROM_NAME'] ?? 'Crabitan Bellevue');
     }
 
+    /**
+     * Envoie un email de bienvenue après la validation de l'email.
+     *
+     * @param string $to   Email du destinataire
+     * @param string $name Prénom du destinataire
+     * @param string $lang Langue ('fr' ou 'en')
+     * @return void
+     */
+    public function sendWelcome(string $to, string $name, string $lang): void
+    {
+        $subject = $lang === 'fr'
+            ? 'Bienvenue au Château Crabitan Bellevue !'
+            : 'Welcome to Château Crabitan Bellevue!';
+
+        $body = $lang === 'fr'
+            ? $this->welcomeBodyFr($name)
+            : $this->welcomeBodyEn($name);
+
+        $this->send($to, $name, $subject, $body);
+    }
+
     public function sendEmailVerification(string $to, string $name, string $verifyUrl, string $lang): void
     {
         $subject = $lang === 'fr'
@@ -1276,12 +1297,16 @@ INNER;
      * Envoie un email transactionnel au client lors d'un changement de statut de commande.
      * N'envoie rien si le statut n'est pas dans la liste des déclencheurs.
      *
-     * @param string $toEmail   Adresse email du client
-     * @param string $toName    Prénom ou nom complet du client
-     * @param string $orderRef  Référence de la commande (ex. CB-2026-001)
-     * @param string $newStatus Nouveau statut de la commande
-     * @param string $lang      Langue du client ('fr' ou 'en')
-     * @param string $appUrl    URL de base de l'application
+     * @param string  $toEmail         Adresse email du client
+     * @param string  $toName          Prénom ou nom complet du client
+     * @param string  $orderRef        Référence de la commande (ex. CB-2026-001)
+     * @param string  $newStatus       Nouveau statut de la commande
+     * @param string  $lang            Langue du client ('fr' ou 'en')
+     * @param string  $appUrl          URL de base de l'application
+     * @param array   $items           Articles commandés (optionnel)
+     * @param array   $deliveryAddress Adresse de livraison (optionnel)
+     * @param string  $trackingUrl     Lien de suivi transporteur (optionnel, affiché si shipped)
+     * @param int     $orderId         Identifiant de la commande pour le CTA (optionnel)
      * @return void
      */
     public function sendOrderStatusEmail(
@@ -1290,7 +1315,11 @@ INNER;
         string $orderRef,
         string $newStatus,
         string $lang,
-        string $appUrl
+        string $appUrl,
+        array $items = [],
+        array $deliveryAddress = [],
+        string $trackingUrl = '',
+        int $orderId = 0
     ): void {
         $triggerStatuses = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
         if (!in_array($newStatus, $triggerStatuses, true)) {
@@ -1306,14 +1335,22 @@ INNER;
                 $newStatus,
                 $safeRef,
                 $safeName,
-                $safeUrl
+                $safeUrl,
+                $items,
+                $deliveryAddress,
+                $trackingUrl,
+                $orderId
             );
         } else {
             [$subject, $title, $greeting, $message] = $this->buildOrderStatusContentEn(
                 $newStatus,
                 $safeRef,
                 $safeName,
-                $safeUrl
+                $safeUrl,
+                $items,
+                $deliveryAddress,
+                $trackingUrl,
+                $orderId
             );
         }
 
@@ -1341,17 +1378,25 @@ INNER;
     /**
      * Construit le contenu de l'email de statut commande en français.
      *
-     * @param  string $status   Statut déclencheur
-     * @param  string $safeRef  Référence commande échappée
-     * @param  string $safeName Nom du client échappé
-     * @param  string $appUrl   URL de base
+     * @param  string $status          Statut déclencheur
+     * @param  string $safeRef         Référence commande échappée
+     * @param  string $safeName        Nom du client échappé
+     * @param  string $appUrl          URL de base
+     * @param  array  $items           Articles commandés (optionnel)
+     * @param  array  $deliveryAddress Adresse de livraison (optionnel)
+     * @param  string $trackingUrl     Lien de suivi (affiché si shipped et non vide)
+     * @param  int    $orderId         ID de la commande pour le CTA direct
      * @return array{string, string, string, string}  [subject, title, greeting, message]
      */
     private function buildOrderStatusContentFr(
         string $status,
         string $safeRef,
         string $safeName,
-        string $appUrl
+        string $appUrl,
+        array $items = [],
+        array $deliveryAddress = [],
+        string $trackingUrl = '',
+        int $orderId = 0
     ): array {
         $subjects = [
             'processing' => "Votre commande est en préparation — {$safeRef}",
@@ -1382,31 +1427,89 @@ INNER;
                 . " Le crédit sera visible sur votre compte bancaire dans un délai de 3 à 5 jours ouvrés.",
         ];
 
-        $orderLinkBlock = "<br><br><a href=\"{$appUrl}/fr/mon-compte/commandes\" style=\"color:#c9a84c;\">"
-            . "Voir mes commandes</a>";
+        $extraBlocks = '';
+
+        // Récapitulatif des articles
+        if (!empty($items)) {
+            $total = array_sum(array_map(
+                fn(array $i) => (float) ($i['price'] ?? 0.0) * (int) ($i['qty'] ?? 0),
+                $items
+            ));
+            $extraBlocks .= '<br><br>' . $this->buildOrderItemsTable(
+                $items,
+                $total,
+                'Produit',
+                'Qté',
+                'Prix unit.',
+                'Sous-total',
+                'Total'
+            );
+        }
+
+        // Adresse de livraison
+        if (!empty($deliveryAddress)) {
+            $addr = $this->buildDeliveryAddressBlockFr($deliveryAddress);
+            if ($addr !== '') {
+                $extraBlocks .= '<br><br>' . $addr;
+            }
+        }
+
+        // Lien de suivi (shipped uniquement)
+        if ($status === 'shipped' && $trackingUrl !== '') {
+            $safeTracking  = htmlspecialchars($trackingUrl, ENT_QUOTES);
+            $extraBlocks  .= '<br><br>'
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$safeTracking}\" style=\"display:inline-block;padding:12px 28px;"
+                . 'font-family:Georgia,serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;'
+                . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+                . 'Suivre ma livraison</a>'
+                . '</td></tr></table>';
+        }
+
+        // CTA "Voir ma commande"
+        $orderPath = $orderId > 0
+            ? "/fr/mon-compte/commandes/{$orderId}"
+            : '/fr/mon-compte/commandes';
+        $extraBlocks .= '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;">'
+            . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
+            . "<a href=\"{$appUrl}{$orderPath}\" style=\"display:inline-block;padding:10px 24px;"
+            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;'
+            . 'color:#c9a84c;text-decoration:none;font-weight:bold;">'
+            . 'Voir ma commande</a>'
+            . '</td></tr></table>';
 
         return [
             $subjects[$status],
             $titles[$status],
             "Bonjour {$safeName},",
-            $messages[$status] . $orderLinkBlock,
+            $messages[$status] . $extraBlocks,
         ];
     }
 
     /**
      * Construit le contenu de l'email de statut commande en anglais.
      *
-     * @param  string $status   Statut déclencheur
-     * @param  string $safeRef  Référence commande échappée
-     * @param  string $safeName Nom du client échappé
-     * @param  string $appUrl   URL de base
+     * @param  string $status          Statut déclencheur
+     * @param  string $safeRef         Référence commande échappée
+     * @param  string $safeName        Nom du client échappé
+     * @param  string $appUrl          URL de base
+     * @param  array  $items           Articles commandés (optionnel)
+     * @param  array  $deliveryAddress Adresse de livraison (optionnel)
+     * @param  string $trackingUrl     Lien de suivi (affiché si shipped et non vide)
+     * @param  int    $orderId         ID de la commande pour le CTA direct
      * @return array{string, string, string, string}  [subject, title, greeting, message]
      */
     private function buildOrderStatusContentEn(
         string $status,
         string $safeRef,
         string $safeName,
-        string $appUrl
+        string $appUrl,
+        array $items = [],
+        array $deliveryAddress = [],
+        string $trackingUrl = '',
+        int $orderId = 0
     ): array {
         $subjects = [
             'processing' => "Your order is being prepared — {$safeRef}",
@@ -1437,14 +1540,64 @@ INNER;
                 . " The credit should appear on your bank account within 3 to 5 working days.",
         ];
 
-        $orderLinkBlock = "<br><br><a href=\"{$appUrl}/en/my-account/orders\" style=\"color:#c9a84c;\">"
-            . "View my orders</a>";
+        $extraBlocks = '';
+
+        // Items summary
+        if (!empty($items)) {
+            $total = array_sum(array_map(
+                fn(array $i) => (float) ($i['price'] ?? 0.0) * (int) ($i['qty'] ?? 0),
+                $items
+            ));
+            $extraBlocks .= '<br><br>' . $this->buildOrderItemsTable(
+                $items,
+                $total,
+                'Product',
+                'Qty',
+                'Unit price',
+                'Subtotal',
+                'Total'
+            );
+        }
+
+        // Delivery address
+        if (!empty($deliveryAddress)) {
+            $addr = $this->buildDeliveryAddressBlockEn($deliveryAddress);
+            if ($addr !== '') {
+                $extraBlocks .= '<br><br>' . $addr;
+            }
+        }
+
+        // Tracking link (shipped only)
+        if ($status === 'shipped' && $trackingUrl !== '') {
+            $safeTracking  = htmlspecialchars($trackingUrl, ENT_QUOTES);
+            $extraBlocks  .= '<br><br>'
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$safeTracking}\" style=\"display:inline-block;padding:12px 28px;"
+                . 'font-family:Georgia,serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;'
+                . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+                . 'Track my delivery</a>'
+                . '</td></tr></table>';
+        }
+
+        // CTA "View my order"
+        $orderPath = $orderId > 0
+            ? "/en/my-account/orders/{$orderId}"
+            : '/en/my-account/orders';
+        $extraBlocks .= '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;">'
+            . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
+            . "<a href=\"{$appUrl}{$orderPath}\" style=\"display:inline-block;padding:10px 24px;"
+            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;'
+            . 'color:#c9a84c;text-decoration:none;font-weight:bold;">'
+            . 'View my order</a>'
+            . '</td></tr></table>';
 
         return [
             $subjects[$status],
             $titles[$status],
             "Hello {$safeName},",
-            $messages[$status] . $orderLinkBlock,
+            $messages[$status] . $extraBlocks,
         ];
     }
 
@@ -2343,6 +2496,158 @@ INNER;
 INNER;
 
         return $this->emailWrap($title, $inner);
+    }
+
+    private function welcomeBodyFr(string $name): string
+    {
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $catalogUrl  = htmlspecialchars("{$appUrl}/fr/vins", ENT_QUOTES);
+        $newsletterUrl = htmlspecialchars("{$appUrl}/fr", ENT_QUOTES);
+
+        $message = "Votre adresse email est confirmée — bienvenue dans la famille du Château Crabitan Bellevue !"
+            . '<br><br>'
+            . 'Niché au cœur de l\'appellation <strong>Sainte-Croix-du-Mont</strong>, notre château familial'
+            . ' perpétue depuis des générations l\'art des vins de Bordeaux liquoreux et secs.'
+            . ' Chaque bouteille est l\'expression d\'un terroir d\'exception et d\'un savoir-faire artisanal.'
+            . '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+            . '<tr>'
+            . '<td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$catalogUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
+            . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+            . 'Découvrir notre catalogue</a>'
+            . '</td>'
+            . '</tr>'
+            . '</table>'
+            . '<br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;">'
+            . '<tr>'
+            . '<td style="border:1px solid #c9a84c;border-radius:2px;">'
+            . "<a href=\"{$newsletterUrl}#newsletter\" style=\"display:inline-block;padding:10px 24px;"
+            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;'
+            . 'color:#c9a84c;text-decoration:none;font-weight:bold;">'
+            . 'S\'abonner à la newsletter</a>'
+            . '</td>'
+            . '</tr>'
+            . '</table>'
+            . '<br><br>'
+            . '<em>L\'équipe du Château Crabitan Bellevue</em>';
+
+        return $this->emailSimpleLayout(
+            'Bienvenue',
+            "Bonjour {$safeName},",
+            $message,
+            'fr'
+        );
+    }
+
+    private function welcomeBodyEn(string $name): string
+    {
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $catalogUrl   = htmlspecialchars("{$appUrl}/en/wines", ENT_QUOTES);
+        $newsletterUrl = htmlspecialchars("{$appUrl}/en", ENT_QUOTES);
+
+        $message = 'Your email address has been confirmed — welcome to the Château Crabitan Bellevue family!'
+            . '<br><br>'
+            . 'Nestled in the heart of the <strong>Sainte-Croix-du-Mont</strong> appellation,'
+            . ' our family estate has been crafting exceptional Bordeaux wines for generations.'
+            . ' Each bottle reflects the unique character of our terroir and our dedication to artisanal winemaking.'
+            . '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+            . '<tr>'
+            . '<td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$catalogUrl}\" style=\"display:inline-block;padding:14px 36px;"
+            . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
+            . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+            . 'Discover our catalogue</a>'
+            . '</td>'
+            . '</tr>'
+            . '</table>'
+            . '<br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;">'
+            . '<tr>'
+            . '<td style="border:1px solid #c9a84c;border-radius:2px;">'
+            . "<a href=\"{$newsletterUrl}#newsletter\" style=\"display:inline-block;padding:10px 24px;"
+            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;'
+            . 'color:#c9a84c;text-decoration:none;font-weight:bold;">'
+            . 'Subscribe to our newsletter</a>'
+            . '</td>'
+            . '</tr>'
+            . '</table>'
+            . '<br><br>'
+            . '<em>The Château Crabitan Bellevue team</em>';
+
+        return $this->emailSimpleLayout(
+            'Welcome',
+            "Hello {$safeName},",
+            $message,
+            'en'
+        );
+    }
+
+    /**
+     * Construit le bloc HTML d'adresse de livraison pour les emails FR.
+     *
+     * @param  array $address Tableau avec les clés : firstname, lastname, line1, line2, zip, city, country
+     * @return string HTML du bloc adresse, vide si données insuffisantes
+     */
+    private function buildDeliveryAddressBlockFr(array $address): string
+    {
+        $city = trim((string) ($address['city'] ?? ''));
+        if ($city === '') {
+            return '';
+        }
+        $name    = trim(
+            htmlspecialchars((string) ($address['firstname'] ?? ''), ENT_QUOTES)
+            . ' '
+            . htmlspecialchars((string) ($address['lastname'] ?? ''), ENT_QUOTES)
+        );
+        $line1   = htmlspecialchars((string) ($address['line1'] ?? ''), ENT_QUOTES);
+        $line2   = htmlspecialchars((string) ($address['line2'] ?? ''), ENT_QUOTES);
+        $zip     = htmlspecialchars((string) ($address['zip'] ?? ''), ENT_QUOTES);
+        $safeCity    = htmlspecialchars($city, ENT_QUOTES);
+        $country = htmlspecialchars((string) ($address['country'] ?? ''), ENT_QUOTES);
+
+        $lines = array_filter([$name, $line1, $line2, trim("{$zip} {$safeCity}"), $country]);
+        $addrHtml = implode('<br>', $lines);
+
+        return '<p style="margin:0 0 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;'
+            . 'color:#8a7a60;">Adresse de livraison</p>'
+            . '<p style="margin:0;font-size:14px;line-height:1.7;color:#3d3425;">' . $addrHtml . '</p>';
+    }
+
+    /**
+     * Construit le bloc HTML d'adresse de livraison pour les emails EN.
+     *
+     * @param  array $address Tableau avec les clés : firstname, lastname, line1, line2, zip, city, country
+     * @return string HTML du bloc adresse, vide si données insuffisantes
+     */
+    private function buildDeliveryAddressBlockEn(array $address): string
+    {
+        $city = trim((string) ($address['city'] ?? ''));
+        if ($city === '') {
+            return '';
+        }
+        $name    = trim(
+            htmlspecialchars((string) ($address['firstname'] ?? ''), ENT_QUOTES)
+            . ' '
+            . htmlspecialchars((string) ($address['lastname'] ?? ''), ENT_QUOTES)
+        );
+        $line1   = htmlspecialchars((string) ($address['line1'] ?? ''), ENT_QUOTES);
+        $line2   = htmlspecialchars((string) ($address['line2'] ?? ''), ENT_QUOTES);
+        $zip     = htmlspecialchars((string) ($address['zip'] ?? ''), ENT_QUOTES);
+        $safeCity    = htmlspecialchars($city, ENT_QUOTES);
+        $country = htmlspecialchars((string) ($address['country'] ?? ''), ENT_QUOTES);
+
+        $lines = array_filter([$name, $line1, $line2, trim("{$zip} {$safeCity}"), $country]);
+        $addrHtml = implode('<br>', $lines);
+
+        return '<p style="margin:0 0 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;'
+            . 'color:#8a7a60;">Delivery address</p>'
+            . '<p style="margin:0;font-size:14px;line-height:1.7;color:#3d3425;">' . $addrHtml . '</p>';
     }
 
     private function verificationBodyFr(string $name, string $url): string
