@@ -150,6 +150,16 @@ return [
     'wine.cuvee_speciale'  => 'Special Cuvée',
     'wine.download_sheet' => 'Download complete technical sheet',
 
+    // Wines — Rating
+    'wine.rating.title'        => 'Customer reviews',
+    'wine.rating.your_note'    => 'Your rating',
+    'wine.rating.already'      => 'Your rating:',
+    'wine.rating.reviews'      => 'reviews',
+    'wine.rating.widget_label' => 'Rate this wine',
+
+    // Wines — Cross-sell
+    'wine.similar.title'       => 'You might also like',
+
     // Wines — Collection
     'wine.collection_nav'  => 'Navigate by wine type',
     'wine.filter_avail'    => 'Availability:',
@@ -206,6 +216,7 @@ return [
     'cart.subtotal_label'       => 'Subtotal',
     'cart.total_ttc'            => 'Total incl. VAT',
     'cart.you_might_enjoy'      => 'You might enjoy',
+    'cart.cross_sell.title'     => 'You might enjoy these wines',
     'cart.tier_next'            => 'for the next tier',
     'cart.tier_first'           => 'for your delivery discount',
 

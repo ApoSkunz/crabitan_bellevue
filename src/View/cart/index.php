@@ -396,6 +396,56 @@ $pricingRules     = $pricingRules     ?? [];
         </div>
         <?php endif; ?>
 
+    <?php if (!empty($crossSellWines)) : ?>
+    <section class="cart-cross-sell container" aria-label="<?= htmlspecialchars(__('cart.cross_sell.title')) ?>">
+        <h2 class="cart-cross-sell__title"><?= htmlspecialchars(__('cart.cross_sell.title')) ?></h2>
+        <div class="cart-cross-sell__grid">
+            <?php foreach ($crossSellWines as $cw) :
+                $cwSlug    = htmlspecialchars((string) ($cw['slug']       ?? ''));
+                $cwName    = htmlspecialchars((string) ($cw['label_name'] ?? ''));
+                $cwVintage = (int) ($cw['vintage'] ?? 0);
+                $cwPrice   = (float) ($cw['price'] ?? 0.0);
+                $cwImage   = htmlspecialchars((string) ($cw['image_path'] ?? ''));
+                $cwId      = (int) ($cw['id'] ?? 0);
+            ?>
+            <div class="wine-card wine-cross-sell__card">
+                <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= $cwSlug ?>"
+                   class="wine-card__inner"
+                   aria-label="<?= $cwName ?>">
+                    <div class="wine-card__image-wrap">
+                        <img src="/assets/images/wines/<?= $cwImage ?>"
+                             alt="<?= $cwName ?>"
+                             class="wine-card__image"
+                             width="200" height="280"
+                             loading="lazy">
+                    </div>
+                    <div class="wine-card__body">
+                        <p class="wine-card__name"><?= $cwName ?></p>
+                        <?php if ($cwVintage > 0) : ?>
+                        <span class="wine-card__vintage"><?= $cwVintage ?></span>
+                        <?php endif; ?>
+                        <strong class="wine-card__price wine-cross-sell__price">
+                            <?= number_format($cwPrice, 2, ',', ' ') ?>&nbsp;€
+                        </strong>
+                    </div>
+                </a>
+                <div class="wine-card__footer">
+                    <button type="button"
+                            class="wine-card__cart js-add-to-cart"
+                            data-wine-id="<?= $cwId ?>"
+                            data-wine-name="<?= $cwName ?>"
+                            data-wine-price="<?= htmlspecialchars(number_format($cwPrice, 2, ',', ' ') . ' €') ?>"
+                            data-wine-image="/assets/images/wines/<?= $cwImage ?>"
+                            aria-label="<?= htmlspecialchars(__('wine.add_to_cart')) ?> — <?= $cwName ?>">
+                        +
+                    </button>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php endif; ?>
+
     </section>
 
     <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
