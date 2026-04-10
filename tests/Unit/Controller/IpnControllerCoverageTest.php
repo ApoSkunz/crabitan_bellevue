@@ -544,6 +544,145 @@ class IpnControllerCoverageTest extends TestCase
     }
 
     // ================================================================
+    // 12. Constructeur réel — instanciation sans BDD (les modèles ne
+    //     touchent la BDD qu'à la première requête, pas dans __construct)
+    // ================================================================
+
+    /**
+     * Vérifie que le constructeur de IpnController s'exécute sans erreur
+     * quand Database::instance est un mock (aucun appel BDD requis au construct).
+     */
+    public function testConstructorInitializesAllDependencies(): void
+    {
+        $dbMock = $this->createStub(\Core\Database::class);
+        $prop   = new \ReflectionProperty(\Core\Database::class, 'instance');
+        $prop->setValue(null, $dbMock);
+
+        try {
+            $ctrl = new IpnController();
+            $this->assertInstanceOf(IpnController::class, $ctrl);
+
+            $ref = new \ReflectionClass(IpnController::class);
+            $this->assertInstanceOf(PaymentService::class, $ref->getProperty('payment')->getValue($ctrl));
+            $this->assertInstanceOf(OrderModel::class, $ref->getProperty('orders')->getValue($ctrl));
+            $this->assertInstanceOf(CartModel::class, $ref->getProperty('carts')->getValue($ctrl));
+            $this->assertInstanceOf(MailService::class, $ref->getProperty('mail')->getValue($ctrl));
+            $this->assertInstanceOf(PaymentIntentModel::class, $ref->getProperty('intents')->getValue($ctrl));
+        } finally {
+            $prop->setValue(null, null);
+        }
+    }
+
+    // ================================================================
+    // 13. mkdirInvoices() — seam de testabilité
+    // ================================================================
+
+    /**
+     * Vérifie que mkdirInvoices() crée le répertoire cible.
+     */
+    public function testMkdirInvoicesCreatesDirectory(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/ipn_mkdir_test_' . uniqid();
+        $this->assertDirectoryDoesNotExist($tmpDir);
+
+        $ref  = new \ReflectionClass(IpnController::class);
+        $ctrl = $ref->newInstanceWithoutConstructor();
+
+        $method = $ref->getMethod('mkdirInvoices');
+        $method->invoke($ctrl, $tmpDir);
+
+        $this->assertDirectoryExists($tmpDir);
+        rmdir($tmpDir);
+    }
+
+    // ================================================================
+    // 14. Paiement accepté + répertoire invoices absent → mkdir appelé
+    // ================================================================
+
+    /**
+     * Vérifie que mkdirInvoices est appelé quand le répertoire storage/invoices n'existe pas.
+     */
+    public function testHandleCallsMkdirWhenInvoiceDirDoesNotExist(): void
+    {
+        // Sous-classe qui overrides mkdirInvoices et createInvoiceService
+        $ctrl = new class extends IpnController {
+            public bool $mkdirCalled = false;
+            public string $mkdirPath = '';
+
+            protected function mkdirInvoices(string $dir): void
+            {
+                $this->mkdirCalled = true;
+                $this->mkdirPath   = $dir;
+                // Ne pas créer réellement le répertoire
+            }
+
+            protected function createInvoiceService(): \Service\InvoiceService
+            {
+                return new class extends \Service\InvoiceService {
+                    public function generate(array $order, string $invoiceNumber): string
+                    {
+                        return '%PDF-1.4 stub';
+                    }
+                };
+            }
+        };
+
+        $ref = new \ReflectionClass(IpnController::class);
+        $paymentMock = $this->createMock(PaymentService::class);
+        $orderMock   = $this->createMock(OrderModel::class);
+        $cartMock    = $this->createMock(CartModel::class);
+        $mailMock    = $this->createMock(MailService::class);
+        $intentsMock = $this->createMock(PaymentIntentModel::class);
+
+        $ref->getProperty('payment')->setValue($ctrl, $paymentMock);
+        $ref->getProperty('orders')->setValue($ctrl, $orderMock);
+        $ref->getProperty('carts')->setValue($ctrl, $cartMock);
+        $ref->getProperty('mail')->setValue($ctrl, $mailMock);
+        $ref->getProperty('intents')->setValue($ctrl, $intentsMock);
+
+        $snapshot = $this->defaultSnapshot();
+        $paymentMock->method('verifyIpnSignature')->willReturn(true);
+        $orderMock->method('findByReferenceOnly')->willReturn(null);
+        $intentsMock->method('findByReference')->willReturn($snapshot);
+        $intentsMock->method('purgeExpired');
+        $intentsMock->method('delete');
+        $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
+        $cartMock->method('clear');
+
+        // Retourner un order avec un id non-zero pour entrer dans le bloc facture
+        $orderMock->method('findByReferenceWithAddresses')->willReturn([
+            'id'              => 42,
+            'order_reference' => 'WEB-CB-AABBCCDD-2026',
+            'payment_method'  => 'card',
+            'content'         => '[]',
+            'price'           => 30.0,
+            'ordered_at'      => date('Y-m-d H:i:s'),
+        ]);
+        $orderMock->method('updateInvoiceData');
+
+        // S'assurer que le répertoire n'existe PAS pour forcer la branche mkdir
+        $invoiceDir = ROOT_PATH . '/storage/invoices';
+        $dirExisted = is_dir($invoiceDir);
+        if ($dirExisted) {
+            // Patcher la constante est impossible — skip si répertoire existe déjà
+            $this->markTestSkipped('storage/invoices existe déjà — branche mkdir non atteignable sans supprimer le répertoire');
+        }
+
+        $caught = null;
+        ob_start();
+        try {
+            $ctrl->handle([]);
+        } catch (\Core\Exception\HttpException $e) {
+            ob_get_clean();
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertTrue($ctrl->mkdirCalled, 'mkdirInvoices aurait dû être appelé');
+        $this->assertStringContainsString('storage/invoices', $ctrl->mkdirPath);
+    }
+
+    // ================================================================
     // 6. Paiement accepté + snapshot sans lang/client_email/client_name
     //    → valeurs par défaut utilisées (branches ?? dans les casts)
     // ================================================================
