@@ -174,12 +174,14 @@ class WineController extends Controller
 
         require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
 
+        $nutrition = (new \Model\WineNutritionModel())->findByWineId((int) $wine['id']) ?: [];
+
         $l      = fn(array $arr): string => $arr[$lang] ?? ($arr['fr'] ?? '');
         $logoPath = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo.png';
         $imgPath  = ROOT_PATH . '/public/assets/images/wines/' . ($wine['image_path'] ?? '');
 
         $pdf = $this->buildPdf($logoPath, $lang);
-        $this->renderPdfBody($pdf, $wine, $imgPath, $lang, $l);
+        $this->renderPdfBody($pdf, $wine, $nutrition, $imgPath, $lang, $l);
 
         $label    = preg_replace('/[^a-zA-Z0-9_-]/', '_', (string) ($wine['label_name'] ?? 'vin'));
         $vintage  = (string) ($wine['vintage'] ?? '');
@@ -290,13 +292,14 @@ class WineController extends Controller
      * Render the full PDF body:
      *  - Subtitle AOC/millésime + cuvée spéciale badge
      *  - Left column : bottle image (35 mm fixed bounding box)
-     *  - Right column : all sections (DÉGUSTATION → INFORMATIONS → VITICULTURE → VINIFICATION)
+     *  - Right column : all sections (DÉGUSTATION → INFORMATIONS → VITICULTURE → VINIFICATION → NUTRITION)
      * Designed to fit on a single A4 page.
      *
      * @param array<string, mixed>                    $wine
+     * @param array<string, mixed>                    $nutrition
      * @param callable(array<string, string>): string $l
      */
-    private function renderPdfBody(TCPDF $pdf, array $wine, string $imgPath, string $lang, callable $l): void
+    private function renderPdfBody(TCPDF $pdf, array $wine, array $nutrition, string $imgPath, string $lang, callable $l): void
     {
         $pdf->AddPage();
 
@@ -315,7 +318,7 @@ class WineController extends Controller
         $rightX    = $margins + $boxW + 5;
         $rightW    = $pageW - $rightX - $margins;
         $labelColW = 36;
-        $sections  = $this->buildPdfSections($wine, $lang, $l);
+        $sections  = $this->buildPdfSections($wine, $nutrition, $lang, $l);
 
         $pdf->SetXY($rightX, $layoutStartY);
         $first = true;
@@ -387,10 +390,11 @@ class WineController extends Controller
      * Build the ordered sections array for the PDF right column.
      *
      * @param array<string, mixed>                    $wine
+     * @param array<string, mixed>                    $nutrition
      * @param callable(array<string, string>): string $l
      * @return array<string, array<string, string>>
      */
-    private function buildPdfSections(array $wine, string $lang, callable $l): array // NOSONAR — php:S3776
+    private function buildPdfSections(array $wine, array $nutrition, string $lang, callable $l): array // NOSONAR — php:S3776
     {
         $isEn    = $lang === 'en';
         $oeno    = json_decode((string) ($wine['oenological_comment'] ?? '{}'), true) ?? [];
@@ -433,6 +437,44 @@ class WineController extends Controller
                 'Vinification'                    => $l($vinif),
                 ($isEn ? 'Ageing'  : 'Élevage')   => $l($barrel),
             ]),
+            ($isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES') => array_filter(
+                $this->buildNutritionFields($nutrition, $isEn)
+            ),
+        ];
+    }
+
+    /**
+     * Build the nutrition key/value pairs for the PDF section.
+     *
+     * @param array<string, mixed> $nutrition
+     * @return array<string, string>
+     */
+    private function buildNutritionFields(array $nutrition, bool $isEn): array
+    {
+        $g = fn(string $k): string => isset($nutrition[$k]) ? $nutrition[$k] . ' g' : '';
+
+        $energy = '';
+        if (isset($nutrition['energy_kj']) || isset($nutrition['energy_kcal'])) {
+            $energy = trim(
+                ($nutrition['energy_kj'] ?? '') . ' kJ / ' . ($nutrition['energy_kcal'] ?? '') . ' kcal',
+                ' /'
+            );
+        }
+
+        return [
+            ($isEn ? 'Alcohol'           : 'Degré d\'alcool') =>
+                isset($nutrition['alcohol_degree'])
+                    ? $nutrition['alcohol_degree'] . ' % vol.'
+                    : '',
+            ($isEn ? 'Ageing potential'  : 'Garde') =>
+                (string) ($nutrition['aging_potential'] ?? ''),
+            ($isEn ? 'Energy'            : 'Énergie')          => $energy,
+            ($isEn ? 'Fat'               : 'Matières grasses') => $g('fat_g'),
+            ($isEn ? 'of which saturates' : 'dont saturés')     => $g('saturated_fat_g'),
+            ($isEn ? 'Carbohydrate'      : 'Glucides')         => $g('carbohydrate_g'),
+            ($isEn ? 'of which sugars'   : 'dont sucres')      => $g('sugars_g'),
+            ($isEn ? 'Protein'           : 'Protéines')        => $g('protein_g'),
+            ($isEn ? 'Salt'              : 'Sel')              => $g('salt_g'),
         ];
     }
 
@@ -525,10 +567,13 @@ class WineController extends Controller
             }
         }
 
+        $nutrition = (new \Model\WineNutritionModel())->findByWineId((int) $wine['id']) ?: [];
+
         $this->view('wines/show', [
-            'lang'    => $lang,
-            'wine'    => $wine,
-            'isLiked' => $isLiked,
+            'lang'      => $lang,
+            'wine'      => $wine,
+            'nutrition' => $nutrition,
+            'isLiked'   => $isLiked,
         ]);
     }
 }

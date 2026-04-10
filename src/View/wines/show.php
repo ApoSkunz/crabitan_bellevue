@@ -15,6 +15,9 @@ $barrel  = json_decode($wine['barrel_fermentation'] ?? '{}', true) ?? [];
 $award   = json_decode($wine['award']               ?? '{}', true) ?? [];
 $extra   = json_decode($wine['extra_comment']       ?? '{}', true) ?? [];
 
+$nutrition        = $nutrition ?? [];
+$enableExtraInfo  = filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+
 $description  = $oeno[$navLang]    ?? ($oeno['fr']    ?? '');
 $soilText     = $soil[$navLang]    ?? ($soil['fr']    ?? '');
 $pruningText  = $pruning[$navLang] ?? ($pruning['fr'] ?? '');
@@ -189,6 +192,73 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                 <?php if ($extraText !== '') : ?>
                     <div class="wine-detail__section wine-detail__section--extra">
                         <p><?= $extraText /* HTML autorisé ici (lien Andreas Larsson) */ ?></p>
+                    </div>
+                <?php endif; ?>
+
+                <?php
+                $hasAlcohol     = !empty($nutrition['alcohol_degree']);
+                $hasAging       = !empty($nutrition['aging_potential']);
+                $hasNutrition   = array_filter(array_intersect_key(
+                    $nutrition,
+                    array_flip(['energy_kj','energy_kcal','fat_g','saturated_fat_g','carbohydrate_g','sugars_g','protein_g','salt_g'])
+                ));
+                $hasIngredients = $enableExtraInfo && !empty($nutrition['ingredients']);
+                if ($hasAlcohol || $hasAging || $hasNutrition || $hasIngredients) : ?>
+                    <div class="wine-detail__section wine-detail__section--nutrition">
+                        <?php if ($hasAlcohol) : ?>
+                            <p class="wine-detail__alcohol">
+                                <strong><?= htmlspecialchars(__('wine.alcohol_degree')) ?> :</strong>
+                                <?= htmlspecialchars($nutrition['alcohol_degree']) ?> % vol.
+                            </p>
+                        <?php endif; ?>
+
+                        <?php if ($hasAging) : ?>
+                            <p class="wine-detail__aging">
+                                <strong><?= htmlspecialchars(__('wine.aging_potential')) ?> :</strong>
+                                <?= htmlspecialchars($nutrition['aging_potential']) ?>
+                            </p>
+                        <?php endif; ?>
+
+                        <?php if ($hasIngredients) : ?>
+                            <div class="wine-nutrition__ingredients">
+                                <h3 class="wine-nutrition__title"><?= htmlspecialchars(__('wine.ingredients')) ?></h3>
+                                <p><?= htmlspecialchars($nutrition['ingredients']) ?></p>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($hasNutrition) : ?>
+                            <div class="wine-nutrition__table">
+                                <h3 class="wine-nutrition__title"><?= htmlspecialchars(__('wine.nutritional_declaration')) ?></h3>
+                                <p class="wine-nutrition__subtitle"><?= htmlspecialchars(__('wine.nutrition_per_100ml')) ?></p>
+                                <table class="wine-nutrition__grid">
+                                    <tbody>
+                                    <?php
+                                    $rows = [
+                                        ['energy_kj', 'energy_kcal', __('wine.energy'), null],
+                                        ['fat_g',             null,  __('wine.fat'),             false],
+                                        ['saturated_fat_g',   null,  __('wine.saturated_fat'),   true],
+                                        ['carbohydrate_g',    null,  __('wine.carbohydrate'),    false],
+                                        ['sugars_g',          null,  __('wine.sugars'),          true],
+                                        ['protein_g',         null,  __('wine.protein'),         false],
+                                        ['salt_g',            null,  __('wine.salt'),            false],
+                                    ];
+                                    foreach ($rows as [$field, $field2, $label, $sub]) :
+                                        $val  = $nutrition[$field]  ?? null;
+                                        $val2 = $field2 ? ($nutrition[$field2] ?? null) : null;
+                                        if ($val === null && $val2 === null) continue;
+                                        $display = $field === 'energy_kj'
+                                            ? trim(($val ?? '') . ' kJ / ' . ($val2 ?? '') . ' kcal', ' /')
+                                            : htmlspecialchars((string) $val) . ' g';
+                                    ?>
+                                        <tr class="<?= $sub ? 'wine-nutrition__row--sub' : '' ?>">
+                                            <th scope="row"><?= htmlspecialchars($label) ?></th>
+                                            <td><?= $display ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
 
