@@ -6,11 +6,17 @@ namespace Model;
 
 use Core\Model;
 
+/**
+ * Modèle de gestion des vins favoris (likes) d'un utilisateur.
+ */
 class FavoriteModel extends Model
 {
     protected string $table = 'favorites';
 
     /**
+     * Retourne les vins favoris d'un utilisateur, avec détails du vin.
+     *
+     * @param int $userId Identifiant du compte
      * @return array<int, array<string, mixed>>
      */
     public function getByUser(int $userId): array
@@ -26,6 +32,13 @@ class FavoriteModel extends Model
         );
     }
 
+    /**
+     * Indique si un vin est marqué comme favori par un utilisateur.
+     *
+     * @param int $userId Identifiant du compte
+     * @param int $wineId Identifiant du vin
+     * @return bool
+     */
     public function isLiked(int $userId, int $wineId): bool
     {
         $row = $this->db->fetchOne(
@@ -38,6 +51,10 @@ class FavoriteModel extends Model
     /**
      * Ajoute si absent, retire si présent.
      * Retourne true si ajouté, false si retiré.
+     *
+     * @param int $userId Identifiant du compte
+     * @param int $wineId Identifiant du vin
+     * @return bool true si ajouté, false si retiré
      */
     public function toggle(int $userId, int $wineId): bool
     {
@@ -56,6 +73,12 @@ class FavoriteModel extends Model
         return true;
     }
 
+    /**
+     * Retourne le nombre de vins favoris d'un utilisateur.
+     *
+     * @param int $userId Identifiant du compte
+     * @return int
+     */
     public function countForUser(int $userId): int
     {
         $row = $this->db->fetchOne(

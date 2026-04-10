@@ -76,12 +76,6 @@ class NewsletterTrackingModel extends Model
     }
 
     /**
-     * Retourne les statistiques d'ouverture et de clic pour une campagne.
-     *
-     * @param  int                $newsletterId Identifiant de la campagne
-     * @return array<string, int> opens_count, clicks_count
-     */
-    /**
      * Enregistre une désinscription liée à une campagne (INSERT IGNORE — idempotent).
      *
      * @param int $newsletterId Identifiant de la campagne
@@ -96,6 +90,12 @@ class NewsletterTrackingModel extends Model
         );
     }
 
+    /**
+     * Retourne les statistiques d'ouverture, de clic et de désinscription pour une campagne.
+     *
+     * @param  int                   $newsletterId Identifiant de la campagne
+     * @return array<string, int>    opens_count, clicks_count, unique_clicks_count, unsubscribes_count
+     */
     public function getStats(int $newsletterId): array
     {
         $row = $this->db->fetchOne(

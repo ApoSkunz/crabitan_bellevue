@@ -6,10 +6,19 @@ namespace Model;
 
 use Core\Model;
 
+/**
+ * Modèle de gestion des records de score pour les mini-jeux du site.
+ */
 class GameScoreModel extends Model
 {
     protected string $table = 'game_scores';
 
+    /**
+     * Retourne le meilleur score enregistré pour un jeu donné.
+     *
+     * @param string $game Identifiant du jeu
+     * @return int Score maximum ou 0 si aucun score existant
+     */
     public function getBestScore(string $game): int
     {
         $row = $this->db->fetchOne(

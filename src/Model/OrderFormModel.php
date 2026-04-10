@@ -6,11 +6,16 @@ namespace Model;
 
 use Core\Model;
 
+/**
+ * Modèle de gestion des bons de commande PDF (tarifs annuels).
+ */
 class OrderFormModel extends Model
 {
     protected string $table = 'order_forms';
 
     /**
+     * Retourne tous les bons de commande triés par année décroissante.
+     *
      * @return array<int, array<string, mixed>>
      */
     public function getAll(): array
@@ -20,6 +25,11 @@ class OrderFormModel extends Model
         );
     }
 
+    /**
+     * Retourne le nombre total de bons de commande.
+     *
+     * @return int
+     */
     public function countAll(): int
     {
         $row = $this->db->fetchOne("SELECT COUNT(*) AS total FROM {$this->table}");
@@ -27,6 +37,10 @@ class OrderFormModel extends Model
     }
 
     /**
+     * Retourne une page de bons de commande.
+     *
+     * @param int $page    Numéro de page (commence à 1)
+     * @param int $perPage Nombre d'éléments par page
      * @return array<int, array<string, mixed>>
      */
     public function getPaginated(int $page, int $perPage): array
@@ -39,6 +53,9 @@ class OrderFormModel extends Model
     }
 
     /**
+     * Trouve un bon de commande par son identifiant.
+     *
+     * @param int $id Identifiant du bon de commande
      * @return array<string, mixed>|false
      */
     public function findById(int $id): array|false
@@ -50,6 +67,9 @@ class OrderFormModel extends Model
     }
 
     /**
+     * Trouve un bon de commande par son identifiant, ou retourne null si absent.
+     *
+     * @param int $id Identifiant du bon de commande
      * @return array<string, mixed>|null
      */
     public function findByIdOrNull(int $id): ?array
@@ -71,6 +91,14 @@ class OrderFormModel extends Model
         return $row ?: null;
     }
 
+    /**
+     * Crée un nouveau bon de commande.
+     *
+     * @param int         $year     Millésime / année tarifaire
+     * @param string|null $label    Étiquette descriptive optionnelle
+     * @param string      $filename Nom du fichier PDF stocké
+     * @return int Identifiant du bon créé
+     */
     public function create(int $year, ?string $label, string $filename): int
     {
         return (int) $this->db->insert(
@@ -79,6 +107,12 @@ class OrderFormModel extends Model
         );
     }
 
+    /**
+     * Supprime un bon de commande par son identifiant.
+     *
+     * @param int $id Identifiant du bon de commande
+     * @return int Identifiant supprimé
+     */
     public function delete(int $id): int
     {
         $this->db->execute(

@@ -6,6 +6,10 @@ namespace Model;
 
 use Core\Model;
 
+/**
+ * Modèle de gestion des tokens de confirmation de nouvel appareil (MFA device).
+ * Utilisé pour le flux double confirmation par email avant de faire confiance à un appareil.
+ */
 class DeviceConfirmTokenModel extends Model
 {
     protected string $table = 'device_confirm_tokens';
@@ -13,6 +17,14 @@ class DeviceConfirmTokenModel extends Model
     /**
      * Crée (ou remplace) un token de confirmation pour un couple user+device.
      * Expiration : 15 minutes.
+     *
+     * @param int         $userId      Identifiant du compte
+     * @param string      $deviceToken Token de l'appareil à confirmer
+     * @param string|null $deviceName  Nom de l'appareil (optionnel)
+     * @param string      $token       Token brut de confirmation (64 hex chars)
+     * @param string      $redirectUrl URL de redirection après confirmation
+     * @param string      $lang        Langue de l'email de confirmation
+     * @return void
      */
     public function create(
         int $userId,
@@ -35,6 +47,12 @@ class DeviceConfirmTokenModel extends Model
         );
     }
 
+    /**
+     * Trouve un token de confirmation valide et non expiré.
+     *
+     * @param string $token Token brut de confirmation
+     * @return array<string, mixed>|false
+     */
     public function findByToken(string $token): array|false
     {
         return $this->db->fetchOne(
@@ -70,6 +88,12 @@ class DeviceConfirmTokenModel extends Model
         );
     }
 
+    /**
+     * Supprime un token de confirmation après usage.
+     *
+     * @param string $token Token brut à supprimer
+     * @return void
+     */
     public function deleteByToken(string $token): void
     {
         $this->db->execute(
@@ -78,6 +102,11 @@ class DeviceConfirmTokenModel extends Model
         );
     }
 
+    /**
+     * Purge les tokens de confirmation expirés.
+     *
+     * @return int Nombre de tokens supprimés
+     */
     public function purgeExpired(): int
     {
         return $this->db->execute(

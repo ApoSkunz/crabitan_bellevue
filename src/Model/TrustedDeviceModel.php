@@ -6,10 +6,20 @@ namespace Model;
 
 use Core\Model;
 
+/**
+ * Modèle de gestion des appareils de confiance (MFA trust device).
+ */
 class TrustedDeviceModel extends Model
 {
     protected string $table = 'trusted_devices';
 
+    /**
+     * Indique si un appareil est marqué comme de confiance pour un utilisateur.
+     *
+     * @param int    $userId      Identifiant du compte
+     * @param string $deviceToken Token de l'appareil
+     * @return bool
+     */
     public function isTrusted(int $userId, string $deviceToken): bool
     {
         $row = $this->db->fetchOne(
@@ -19,6 +29,14 @@ class TrustedDeviceModel extends Model
         return (bool) $row;
     }
 
+    /**
+     * Ajoute ou met à jour un appareil de confiance (upsert).
+     *
+     * @param int    $userId      Identifiant du compte
+     * @param string $deviceToken Token de l'appareil
+     * @param string $deviceName  Nom de l'appareil
+     * @return void
+     */
     public function trust(int $userId, string $deviceToken, string $deviceName): void
     {
         $this->db->insert(
@@ -29,6 +47,13 @@ class TrustedDeviceModel extends Model
         );
     }
 
+    /**
+     * Met à jour la date de dernière utilisation d'un appareil de confiance.
+     *
+     * @param int    $userId      Identifiant du compte
+     * @param string $deviceToken Token de l'appareil
+     * @return void
+     */
     public function updateLastSeen(int $userId, string $deviceToken): void
     {
         $this->db->execute(
@@ -37,6 +62,13 @@ class TrustedDeviceModel extends Model
         );
     }
 
+    /**
+     * Révoque la confiance d'un appareil pour un utilisateur.
+     *
+     * @param int    $userId      Identifiant du compte
+     * @param string $deviceToken Token de l'appareil à révoquer
+     * @return void
+     */
     public function untrust(int $userId, string $deviceToken): void
     {
         $this->db->execute(
@@ -45,6 +77,12 @@ class TrustedDeviceModel extends Model
         );
     }
 
+    /**
+     * Révoque tous les appareils de confiance d'un utilisateur.
+     *
+     * @param int $userId Identifiant du compte
+     * @return void
+     */
     public function deleteAllForUser(int $userId): void
     {
         $this->db->execute(
