@@ -1914,35 +1914,49 @@ INNER;
         $safeName    = $firstname !== '' ? htmlspecialchars($firstname, ENT_QUOTES) : $defaultName;
         $greeting    = $lang === 'fr' ? "Bonjour {$safeName}," : "Hello {$safeName},";
 
-        $ctaBlock = '';
+        // CTA catalogue
+        $catalogUrl = $lang === 'fr'
+            ? htmlspecialchars("{$appUrl}/fr/vins", ENT_QUOTES)
+            : htmlspecialchars("{$appUrl}/en/wines", ENT_QUOTES);
+        $catalogLabel = $lang === 'fr' ? 'Découvrir notre catalogue' : 'Discover our catalogue';
+        $catalogCta = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$catalogUrl}\" style=\"" . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK
+            . $catalogLabel . '</a></td></tr></table>';
+
+        // CTA newsletter conditionnel
+        $newsletterCta = '';
         if (!$isSubscribed) {
             $subscribeUrl = $lang === 'fr'
-                ? $appUrl . '/fr/newsletter/inscription-bienvenue?email=' . urlencode($email)
-                : $appUrl . '/en/newsletter/welcome-subscribe?email=' . urlencode($email);
-            $safeSubscribeUrl = htmlspecialchars($subscribeUrl, ENT_QUOTES);
-            $btnLabel         = $lang === 'fr' ? 'S\'abonner à la newsletter' : 'Subscribe to the newsletter';
-
-            $ctaBlock = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px auto 0;">'
-                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-                . "<a href=\"{$safeSubscribeUrl}\" style=\""
-                . self::BTN_STYLE_PRIMARY
-                . self::BTN_STYLE_LINK
-                . $btnLabel
-                . '</a></td></tr></table>';
+                ? htmlspecialchars("{$appUrl}/fr/newsletter/inscription-bienvenue?email=" . urlencode($email), ENT_QUOTES)
+                : htmlspecialchars("{$appUrl}/en/newsletter/welcome-subscribe?email=" . urlencode($email), ENT_QUOTES);
+            $newsletterLabel = $lang === 'fr' ? "S'abonner à la newsletter" : 'Subscribe to the newsletter';
+            $newsletterCta = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;">'
+                . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
+                . "<a href=\"{$subscribeUrl}\" style=\"display:inline-block;padding:10px 24px;"
+                . self::BTN_STYLE_SECONDARY
+                . 'text-transform:uppercase;color:#c9a84c;text-decoration:none;font-weight:bold;">'
+                . $newsletterLabel . '</a></td></tr></table>';
         }
 
         if ($lang === 'fr') {
             $subject = 'Bienvenue au Château Crabitan Bellevue';
-            $message = "Votre compte a bien été créé et votre adresse email vérifiée.<br><br>"
-                . "Vous pouvez dès maintenant accéder à votre espace client, consulter notre catalogue "
-                . "et passer commande en toute sécurité.<br><br>"
-                . $ctaBlock;
+            $message = "Votre adresse email est confirmée — bienvenue dans la famille du Château Crabitan Bellevue !<br><br>"
+                . 'Niché au cœur de l\'appellation <strong>Sainte-Croix-du-Mont</strong>, notre château familial'
+                . ' perpétue depuis des générations l\'art des vins de Bordeaux liquoreux et secs.'
+                . ' Chaque bouteille est l\'expression d\'un terroir d\'exception et d\'un savoir-faire artisanal.<br><br>'
+                . $catalogCta . '<br>'
+                . $newsletterCta
+                . '<br><em>L\'équipe du Château Crabitan Bellevue</em>';
         } else {
             $subject = 'Welcome to Château Crabitan Bellevue';
-            $message = "Your account has been created and your email address verified.<br><br>"
-                . "You can now access your customer area, browse our catalogue "
-                . "and place orders securely.<br><br>"
-                . $ctaBlock;
+            $message = 'Your email address has been confirmed — welcome to the Château Crabitan Bellevue family!<br><br>'
+                . 'Nestled in the heart of the <strong>Sainte-Croix-du-Mont</strong> appellation,'
+                . ' our family estate has been crafting exceptional Bordeaux wines for generations.'
+                . ' Each bottle reflects the unique character of our terroir and our dedication to artisanal winemaking.<br><br>'
+                . $catalogCta . '<br>'
+                . $newsletterCta
+                . '<br><em>The Château Crabitan Bellevue team</em>';
         }
 
         $body = $this->emailSimpleLayout(

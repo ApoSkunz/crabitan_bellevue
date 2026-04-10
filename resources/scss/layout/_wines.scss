@@ -444,10 +444,18 @@
         color: var(--color-gold);
     }
 
-    &__rating {
-        font-size: 0.8rem;
+    &__rating-badge {
+        position: absolute;
+        bottom: 0.5rem;
+        right: 0.5rem;
+        background: rgba(0, 0, 0, 0.65);
         color: var(--color-gold);
-        margin-left: 0.5rem;
+        font-size: 0.75rem;
+        font-family: Georgia, serif;
+        padding: 0.15rem 0.45rem;
+        border-radius: 2px;
+        pointer-events: none;
+        letter-spacing: 0.5px;
     }
 
     &__actions {
