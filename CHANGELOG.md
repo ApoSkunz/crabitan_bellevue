@@ -2,6 +2,25 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.63.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.62.0...v0.63.0) (2026-04-10)
+
+
+### Bug Fixes
+
+* **controller:** décrementer le stock dans paymentReturnOk (chemin fallback CB) ([256ea07](https://github.com/ApoSkunz/crabitan_bellevue/commit/256ea07344eebe20c3ff50cc42a044aaa77eb7e9))
+* **model:** ajouter stock_quantity dans SELECT de getForAdmin() ([379c23d](https://github.com/ApoSkunz/crabitan_bellevue/commit/379c23d9fbfcbbf270f6999debb0d8483f25e163))
+* **test:** slug unique dans insertWine/insertWineWithSlug pour éviter collision cross-suite ([0cb3661](https://github.com/ApoSkunz/crabitan_bellevue/commit/0cb3661ac5c4933c2d085e6daa11f13ca28da409))
+
+
+### Features
+
+* **admin:** ajouter champ stock_quantity dans le formulaire et la liste vins ([c4e188c](https://github.com/ApoSkunz/crabitan_bellevue/commit/c4e188c906bb5f382ba4dfc0b1a2ff9d75b0dd76))
+* **admin:** bloquer mise en avant vin indisponible + retrait featured auto ([5e6e049](https://github.com/ApoSkunz/crabitan_bellevue/commit/5e6e0497524f0a1d4a05878445815dd66e43031b))
+* **cart:** remplacer production_quantity par stock_quantity pour le contrôle de stock ([e4693ec](https://github.com/ApoSkunz/crabitan_bellevue/commit/e4693ec6d3029b2466b49db9bfdc28c74e195779))
+* **model:** ajouter stock_quantity + decrementStock() à WineModel ([f9a57fd](https://github.com/ApoSkunz/crabitan_bellevue/commit/f9a57fd51df95d760059bf8b94085f5dbf752b66))
+* **order:** afficher le millésime dans mails commande et vue admin ([9b617c4](https://github.com/ApoSkunz/crabitan_bellevue/commit/9b617c46add162af03ece6e1edb44941ad1cdc1e))
+* **view:** masquer bouton 'Mettre en avant' si vin indisponible ([ae9ce69](https://github.com/ApoSkunz/crabitan_bellevue/commit/ae9ce6938b3fd001361b8c216b490d4caa48a0fc))
+
 # [0.62.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.61.1...v0.62.0) (2026-04-10)
 
 
