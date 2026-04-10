@@ -1,5 +1,42 @@
 <?php
 $pageTitle = null; // Pas de titre dans <title> sur la home (château seul suffit)
+$appUrl          = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$metaDescription = $navLang === 'en'
+    ? 'Château Crabitan Bellevue — Sainte-Croix-du-Mont AOC wines. Discover our estate and shop online.'
+    : 'Château Crabitan Bellevue — Vins de Sainte-Croix-du-Mont AOC. Découvrez notre domaine et achetez en ligne.';
+$canonical   = $appUrl . '/' . $navLang;
+$hreflangFr  = $appUrl . '/fr';
+$hreflangEn  = $appUrl . '/en';
+$ogTitle     = 'Château Crabitan Bellevue';
+$ogDescription = $metaDescription;
+$ogUrl       = $canonical;
+$ogType      = 'website';
+$ogImage     = $appUrl . '/assets/images/carousel/vignoble-ete.jpg';
+$jsonLd      = json_encode([
+    '@context' => 'https://schema.org',
+    '@graph'   => [
+        [
+            '@type' => 'Organization',
+            'name'  => 'Château Crabitan Bellevue',
+            'url'   => $appUrl,
+            'logo'  => $appUrl . '/assets/images/logo/favicon.svg',
+        ],
+        [
+            '@type'        => 'LocalBusiness',
+            'name'         => 'Château Crabitan Bellevue',
+            '@id'          => $appUrl,
+            'url'          => $appUrl,
+            'description'  => $metaDescription,
+            'address'      => [
+                '@type'           => 'PostalAddress',
+                'streetAddress'   => '1 Château Crabitan Bellevue',
+                'addressLocality' => 'Sainte-Croix-du-Mont',
+                'postalCode'      => '33410',
+                'addressCountry'  => 'FR',
+            ],
+        ],
+    ],
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 

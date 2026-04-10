@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle ?? '') ?><?= isset($pageTitle) ? ' — ' : '' ?><?= htmlspecialchars(APP_NAME) ?></title>
     <meta name="robots" content="<?= ($noindex ?? false) ? 'noindex, nofollow' : 'index, follow' ?>">
+<?php if (!empty($metaDescription)) : ?>
+    <meta name="description" content="<?= htmlspecialchars($metaDescription) ?>">
+<?php endif; ?>
+<?php if (!empty($canonical)) : ?>
+    <link rel="canonical" href="<?= htmlspecialchars($canonical) ?>">
+<?php endif; ?>
+<?php if (!empty($hreflangFr)) : ?>
+    <link rel="alternate" hreflang="fr" href="<?= htmlspecialchars($hreflangFr) ?>">
+    <link rel="alternate" hreflang="en" href="<?= htmlspecialchars($hreflangEn ?? $hreflangFr) ?>">
+    <link rel="alternate" hreflang="x-default" href="<?= htmlspecialchars($hreflangFr) ?>">
+<?php endif; ?>
+<?php if (!empty($ogTitle)) : ?>
+    <meta property="og:site_name" content="<?= htmlspecialchars(APP_NAME) ?>">
+    <meta property="og:title" content="<?= htmlspecialchars($ogTitle) ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($ogDescription ?? ($metaDescription ?? '')) ?>">
+    <meta property="og:type" content="<?= htmlspecialchars($ogType ?? 'website') ?>">
+<?php if (!empty($ogUrl)) : ?>
+    <meta property="og:url" content="<?= htmlspecialchars($ogUrl) ?>">
+<?php endif; ?>
+<?php if (!empty($ogImage)) : ?>
+    <meta property="og:image" content="<?= htmlspecialchars($ogImage) ?>">
+<?php endif; ?>
+<?php endif; ?>
+<?php if (!empty($jsonLd)) : ?>
+    <script type="application/ld+json" nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>"><?= $jsonLd ?></script>
+<?php endif; ?>
     <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/css/main.css">
 

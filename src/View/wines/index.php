@@ -2,6 +2,17 @@
 $isAdmin    = $isAdmin    ?? false;
 $activeCuvee = $activeCuvee ?? false;
 $pageTitle  = __('nav.wines');
+$appUrl         = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$metaDescription = $navLang === 'en'
+    ? 'Discover all Château Crabitan Bellevue wines — Sainte-Croix-du-Mont AOC. Order online.'
+    : 'Découvrez tous les vins du Château Crabitan Bellevue — AOC Sainte-Croix-du-Mont. Commandez en ligne.';
+$canonical  = $appUrl . '/' . $navLang . '/vins';
+$hreflangFr = $appUrl . '/fr/vins';
+$hreflangEn = $appUrl . '/en/vins';
+$ogTitle    = __('nav.wines') . ' — Château Crabitan Bellevue';
+$ogDescription = $metaDescription;
+$ogUrl      = $canonical;
+$ogType     = 'website';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
