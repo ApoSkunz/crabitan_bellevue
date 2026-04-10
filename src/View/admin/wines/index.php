@@ -75,12 +75,13 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                     <th>Prix</th>
                     <th>Qté produite</th>
                     <th>Statut</th>
+                    <th>Mis en avant</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
             <?php if (empty($wines)) : ?>
-                <tr><td colspan="8" style="text-align:center;color:#8a7a60;padding:2rem;">Aucun vin trouvé</td></tr>
+                <tr><td colspan="9" style="text-align:center;color:#8a7a60;padding:2rem;">Aucun vin trouvé</td></tr>
             <?php else : ?>
                 <?php foreach ($wines as $wine) : ?>
                     <tr>
@@ -96,9 +97,25 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                         <td><?= number_format((float) $wine['price'], 2, ',', ' ') ?>&nbsp;€</td>
                         <td><?= number_format((int) $wine['production_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
                         <td>
-                            <span class="badge badge--<?= $wine['available'] ? 'available' : 'out' ?>">
+                            <button type="button"
+                                    class="js-toggle-available admin-btn admin-btn--sm <?= $wine['available'] ? 'admin-btn--available' : 'admin-btn--out' ?>"
+                                    data-id="<?= (int) $wine['id'] ?>"
+                                    data-available="<?= $wine['available'] ? '1' : '0' ?>"
+                                    data-csrf="<?= htmlspecialchars($_SESSION['csrf'] ?? '', ENT_QUOTES) ?>"
+                                    aria-label="<?= $wine['available'] ? 'Rendre indisponible' : 'Rendre disponible' ?>">
                                 <?= $wine['available'] ? 'Disponible' : 'Indisponible' ?>
-                            </span>
+                            </button>
+                        </td>
+                        <td style="text-align:center;">
+                            <button type="button"
+                                    class="js-featured-btn admin-btn admin-btn--sm <?= $wine['featured'] ? 'admin-btn--gold' : 'admin-btn--outline' ?>"
+                                    data-id="<?= (int) $wine['id'] ?>"
+                                    data-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage'], ENT_QUOTES) ?>"
+                                    data-featured="<?= $wine['featured'] ? '1' : '0' ?>"
+                                    data-csrf="<?= htmlspecialchars($_SESSION['csrf'] ?? '', ENT_QUOTES) ?>"
+                                    aria-label="<?= $wine['featured'] ? 'Retirer de la homepage' : 'Mettre en avant sur la homepage' ?>">
+                                <?= $wine['featured'] ? 'En avant' : 'Mettre en avant' ?>
+                            </button>
                         </td>
                         <td>
                             <div class="admin-actions">
@@ -154,5 +171,131 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
            style="display:inline-block;">Télécharger</a>
     </div>
 </div>
+
+<!-- Modal Featured -->
+<div id="admin-featured-modal" role="dialog" aria-modal="true" aria-labelledby="admin-featured-modal-title"
+     style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.6);
+            align-items:center;justify-content:center;">
+    <div style="background:var(--color-surface,#fff);border-radius:6px;padding:2rem;
+                max-width:420px;width:90%;position:relative;">
+        <button type="button" id="admin-featured-modal-close"
+                style="position:absolute;top:0.75rem;right:1rem;background:none;border:none;
+                       font-size:1.25rem;cursor:pointer;color:#6b5f50;" aria-label="Fermer">✕</button>
+        <h3 id="admin-featured-modal-title" style="margin:0 0 1rem;font-size:1rem;color:#1a1208;">
+            Remplacer le vin en avant ?
+        </h3>
+        <p id="admin-featured-modal-body" style="margin:0 0 1.5rem;font-size:0.9rem;color:#5a4e3a;"></p>
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button type="button" id="admin-featured-modal-cancel"
+                    class="admin-btn admin-btn--outline admin-btn--sm">Annuler</button>
+            <button type="button" id="admin-featured-modal-confirm"
+                    class="admin-btn admin-btn--gold admin-btn--sm">Confirmer</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    let pendingBtn = null;
+
+    function setFeaturedRequest(btn, confirmed) {
+        const id      = btn.dataset.id;
+        const csrf    = btn.dataset.csrf;
+        const action  = btn.dataset.featured === '1' ? 'unset' : 'set';
+
+        fetch('/admin/vins/' + id + '/featured', {
+            method:  'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
+            body:    'csrf=' + encodeURIComponent(csrf) + '&action=' + action,
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data.ok) return;
+            // Mettre à jour tous les boutons
+            document.querySelectorAll('.js-featured-btn').forEach(function (b) {
+                b.dataset.featured = '0';
+                b.textContent = 'Mettre en avant';
+                b.classList.remove('admin-btn--gold');
+                b.classList.add('admin-btn--outline');
+                b.title = 'Mettre en avant';
+            });
+            if (data.featured) {
+                btn.dataset.featured = '1';
+                btn.textContent = 'En avant';
+                btn.classList.add('admin-btn--gold');
+                btn.classList.remove('admin-btn--outline');
+            }
+        })
+        .catch(function () {});
+    }
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.js-featured-btn');
+        if (!btn) return;
+
+        // Retirer la mise en avant — pas de confirmation requise
+        if (btn.dataset.featured === '1') {
+            setFeaturedRequest(btn, true);
+            return;
+        }
+
+        // Vérifier s'il existe déjà un featured dans la liste
+        const currentFeatured = document.querySelector('.js-featured-btn[data-featured="1"]');
+        if (currentFeatured && currentFeatured !== btn) {
+            pendingBtn = btn;
+            const modal = document.getElementById('admin-featured-modal');
+            document.getElementById('admin-featured-modal-body').textContent =
+                '« ' + currentFeatured.dataset.label + ' » est actuellement mis en avant. '
+                + 'Le remplacer par « ' + btn.dataset.label + ' » ?';
+            modal.style.display = 'flex';
+            return;
+        }
+
+        setFeaturedRequest(btn, true);
+    });
+
+    document.getElementById('admin-featured-modal-confirm').addEventListener('click', function () {
+        document.getElementById('admin-featured-modal').style.display = 'none';
+        if (pendingBtn) setFeaturedRequest(pendingBtn, true);
+        pendingBtn = null;
+    });
+
+    function closeModal() {
+        document.getElementById('admin-featured-modal').style.display = 'none';
+        pendingBtn = null;
+    }
+
+    document.getElementById('admin-featured-modal-close').addEventListener('click', closeModal);
+    document.getElementById('admin-featured-modal-cancel').addEventListener('click', closeModal);
+    document.getElementById('admin-featured-modal').addEventListener('click', function (e) {
+        if (e.target === this) closeModal();
+    });
+
+    // Toggle disponibilité
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.js-toggle-available');
+        if (!btn) return;
+
+        const id   = btn.dataset.id;
+        const csrf = btn.dataset.csrf;
+
+        fetch('/admin/vins/' + id + '/disponibilite', {
+            method:  'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
+            body:    'csrf=' + encodeURIComponent(csrf),
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data.ok) return;
+            btn.dataset.available = data.available ? '1' : '0';
+            btn.textContent       = data.available ? 'Disponible' : 'Indisponible';
+            btn.classList.toggle('admin-btn--available', data.available);
+            btn.classList.toggle('admin-btn--out', !data.available);
+            btn.setAttribute('aria-label', data.available ? 'Rendre indisponible' : 'Rendre disponible');
+        })
+        .catch(function () {});
+    });
+}());
+</script>
 
 <?php require_once SRC_PATH . '/View/admin/_close.php'; ?>
