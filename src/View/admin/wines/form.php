@@ -324,8 +324,12 @@ $maxYear = (int) date('Y');
                            class="admin-field__input<?= !empty($errors['nutrition']) ? ' admin-field__input--error' : '' ?>"
                            value="<?= htmlspecialchars((string) ($wn['energy_kj'] ?? '')) ?>"
                            placeholder="ex : 336">
-                    <?php $kcalDisplay = !empty($wn['energy_kj']) ? (int) round((int) $wn['energy_kj'] / 4.184) : ''; ?>
-                    <span id="energy_kcal_hint" class="admin-field__hint"><?= $kcalDisplay !== '' ? '≈ ' . $kcalDisplay . ' kcal' : '' ?></span>
+                    <?php $kcalDisplay = !empty($wn['energy_kj']) ? (string) (int) round((int) $wn['energy_kj'] / 4.184) . ' kcal' : ''; ?>
+                    <input type="text" id="energy_kcal_hint" readonly
+                           class="admin-field__input"
+                           style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;margin-top:0.4rem;"
+                           value="<?= htmlspecialchars($kcalDisplay) ?>"
+                           placeholder="kcal calculé automatiquement">
                 </div>
                 <?php
                 $nutritionInputs = [
@@ -353,7 +357,7 @@ $maxYear = (int) date('Y');
                 if (!kj || !hint) return;
                 kj.addEventListener('input', function () {
                     const v = parseInt(this.value, 10);
-                    hint.textContent = (!isNaN(v) && v > 0) ? '≈ ' + Math.round(v / 4.184) + ' kcal' : '';
+                    hint.value = (!isNaN(v) && v > 0) ? Math.round(v / 4.184) + ' kcal' : '';
                 });
             }());
             </script>
