@@ -287,7 +287,13 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
             return;
         }
 
-        doSetFeatured(btn);
+        openModal(
+            'Mettre ce vin en avant ?',
+            '« ' + btn.dataset.label + ' » sera affiché en section "Vin du moment" sur la homepage.',
+            'Mettre en avant',
+            'admin-btn--gold',
+            function () { doSetFeatured(btn); }
+        );
     });
 
     // ── Toggle disponibilité ────────────────────────────────────
@@ -319,7 +325,13 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
             return;
         }
 
-        doToggleAvailable(btn);
+        openModal(
+            'Remettre ce vin en vente ?',
+            '« ' + btn.dataset.label + ' » sera de nouveau disponible dans le catalogue.',
+            'Rendre disponible',
+            'admin-btn--gold',
+            function () { doToggleAvailable(btn); }
+        );
     });
 }());
 </script>
