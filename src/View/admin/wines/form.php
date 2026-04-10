@@ -279,6 +279,71 @@ $maxYear = (int) date('Y');
             <?php endforeach; ?>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════
+             Section : Informations complémentaires
+        ══════════════════════════════════════════════════════ -->
+        <?php
+        $wn = $wineNutrition ?? [];
+        $enableExtraInfo = filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+        ?>
+        <div class="admin-section">
+            <h2 class="admin-section__title">Informations complémentaires</h2>
+            <p class="admin-section__hint" style="font-size:0.8rem;color:#8a7a60;margin-bottom:1rem;">
+                Tous les champs sont facultatifs. Valeurs acceptées : <code>0</code>, <code>0,03</code>, <code>&lt; 0,2</code>, <code>traces</code>…
+            </p>
+
+            <div class="admin-form__grid admin-form__grid--3">
+                <div class="admin-field">
+                    <label class="admin-field__label" for="alcohol_degree">Degré d'alcool (% vol.)</label>
+                    <input type="text" id="alcohol_degree" name="alcohol_degree"
+                           class="admin-field__input"
+                           value="<?= htmlspecialchars((string) ($wn['alcohol_degree'] ?? '')) ?>"
+                           placeholder="ex : 12,5 ou 12-13">
+                </div>
+                <div class="admin-field">
+                    <label class="admin-field__label" for="aging_potential">Garde</label>
+                    <input type="text" id="aging_potential" name="aging_potential"
+                           class="admin-field__input"
+                           value="<?= htmlspecialchars((string) ($wn['aging_potential'] ?? '')) ?>"
+                           placeholder="ex : 5 à 10 ans">
+                </div>
+            </div>
+
+            <h3 class="admin-section__subtitle" style="margin-top:1.5rem;">Déclaration nutritionnelle (pour 100 ml)</h3>
+            <div class="admin-form__grid admin-form__grid--3">
+                <?php
+                $nutritionInputs = [
+                    'energy_kj'       => 'Énergie (kJ)',
+                    'energy_kcal'     => 'Énergie (kcal)',
+                    'fat_g'           => 'Matières grasses (g)',
+                    'saturated_fat_g' => 'dont Acides gras saturés (g)',
+                    'carbohydrate_g'  => 'Glucides (g)',
+                    'sugars_g'        => 'dont Sucres (g)',
+                    'protein_g'       => 'Protéines (g)',
+                    'salt_g'          => 'Sel (g)',
+                ];
+                foreach ($nutritionInputs as $field => $label) : ?>
+                    <div class="admin-field">
+                        <label class="admin-field__label" for="<?= $field ?>"><?= htmlspecialchars($label) ?></label>
+                        <input type="text" id="<?= $field ?>" name="<?= $field ?>"
+                               class="admin-field__input"
+                               value="<?= htmlspecialchars((string) ($wn[$field] ?? '')) ?>"
+                               placeholder="ex : 0 ou &lt; 0,2">
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <?php if ($enableExtraInfo) : ?>
+                <div class="admin-field" style="margin-top:1.5rem;">
+                    <label class="admin-field__label" for="ingredients">Liste des ingrédients</label>
+                    <textarea id="ingredients" name="ingredients"
+                              class="admin-field__textarea"
+                              rows="3"
+                              placeholder="ex : Raisins, Agent stabilisant : Carboxyméthylcellulose, Sulfites"><?= htmlspecialchars((string) ($wn['ingredients'] ?? '')) ?></textarea>
+                </div>
+            <?php endif; ?>
+        </div>
+
         <div class="admin-form__actions">
             <button type="submit" class="admin-btn admin-btn--primary">
                 <?= $isEdit ? 'Enregistrer les modifications' : 'Créer le vin' ?>
