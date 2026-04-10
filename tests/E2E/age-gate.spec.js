@@ -152,8 +152,13 @@ test.describe('Age Gate — comportements', () => {
         await resetState(context, page);
         await page.locator('#cookie-refuse').click();
 
-        // Bouton QUITTER → soumet legal_age=0, le serveur redirige vers Google
-        // On attend la navigation externe (timeout 5s)
+        // En CI Chromium avorte la navigation externe (ERR_ABORTED) avant le chargement.
+        // On intercepte google.com pour renvoyer une réponse locale — permet de vérifier
+        // l'URL sans dépendre du réseau.
+        await page.route('https://www.google.com/**', route =>
+            route.fulfill({ status: 200, contentType: 'text/html', body: '<title>Google</title>' })
+        );
+
         await Promise.all([
             page.waitForURL(/google\.com/, { timeout: 5000 }),
             page.locator('.age-overlay__btn-exit--outline').click(),
@@ -163,6 +168,10 @@ test.describe('Age Gate — comportements', () => {
     test('cliquer Quitter → aucun cookie age_verified posé', async ({ page, context }) => {
         await resetState(context, page);
         await page.locator('#cookie-refuse').click();
+
+        await page.route('https://www.google.com/**', route =>
+            route.fulfill({ status: 200, contentType: 'text/html', body: '<title>Google</title>' })
+        );
 
         await Promise.all([
             page.waitForURL(/google\.com/, { timeout: 5000 }),
