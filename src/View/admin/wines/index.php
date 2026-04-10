@@ -193,7 +193,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
     </div>
 </div>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {
     var pendingAction = null;
 
@@ -232,9 +232,9 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
             headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
             body:    body,
         })
-        .then(function (r) { return r.json(); })
-        .then(function (data) { if (data.ok) onSuccess(data); })
-        .catch(function () {});
+        .then(function (r) { return r.clone().json().catch(function() { return r.text().then(function(t){ console.error('[admin-wines] réponse non-JSON:', t.slice(0,300)); return {}; }); }); })
+        .then(function (data) { if (data.ok) { onSuccess(data); } else { console.warn('[admin-wines] ok=false:', data); } })
+        .catch(function (e) { console.error('[admin-wines] fetch error:', e); });
     }
 
     // ── Mise en avant ──────────────────────────────────────────
