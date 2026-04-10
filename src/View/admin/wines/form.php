@@ -136,6 +136,16 @@ $maxYear = (int) date('Y');
             </div>
 
             <div class="admin-field">
+                <label class="admin-field__label" for="stock_quantity">Stock disponible (bt) *</label>
+                <input type="number" id="stock_quantity" name="stock_quantity" required min="0"
+                       class="admin-field__input<?= hasError($errors, 'stock_quantity') ? $errClass : '' ?>"
+                       value="<?= fieldVal($wine, 'stock_quantity', '0') ?>">
+                <?php if (hasError($errors, 'stock_quantity')) : ?>
+                    <span class="admin-field__error"><?= htmlspecialchars($errors['stock_quantity']) ?></span>
+                <?php endif; ?>
+            </div>
+
+            <div class="admin-field">
                 <label class="admin-field__label" for="area">Superficie (ha) *</label>
                 <input type="number" id="area" name="area" required min="0" step="0.01"
                        class="admin-field__input"

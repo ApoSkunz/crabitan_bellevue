@@ -74,6 +74,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                     <th>Millésime</th>
                     <th>Prix</th>
                     <th>Qté produite</th>
+                    <th>Stock</th>
                     <th>Statut</th>
                     <th>Mis en avant</th>
                     <th></th>
@@ -96,6 +97,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                         <td><?= (int) $wine['vintage'] ?></td>
                         <td><?= number_format((float) $wine['price'], 2, ',', ' ') ?>&nbsp;€</td>
                         <td><?= number_format((int) $wine['production_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
+                        <td><?= number_format((int) $wine['stock_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
                         <td>
                             <button type="button"
                                     class="js-toggle-available admin-btn admin-btn--sm <?= $wine['available'] ? 'admin-btn--available' : 'admin-btn--out' ?>"
