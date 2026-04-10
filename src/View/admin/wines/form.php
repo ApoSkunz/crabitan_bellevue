@@ -298,7 +298,7 @@ $maxYear = (int) date('Y');
                     <input type="text" id="alcohol_degree" name="alcohol_degree"
                            class="admin-field__input"
                            value="<?= htmlspecialchars((string) ($wn['alcohol_degree'] ?? '')) ?>"
-                           placeholder="ex : 12,5 ou 12-13">
+                           placeholder="ex : 12 ou 12,5">
                 </div>
                 <div class="admin-field">
                     <label class="admin-field__label" for="aging_potential">Garde</label>

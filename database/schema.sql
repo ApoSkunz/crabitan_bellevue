@@ -232,7 +232,7 @@ CREATE TABLE `wine_nutrition` (
   `sugars_g`         VARCHAR(20)   DEFAULT NULL,
   `protein_g`        VARCHAR(20)   DEFAULT NULL,
   `salt_g`           VARCHAR(20)   DEFAULT NULL,
-  `alcohol_degree`   VARCHAR(20)   DEFAULT NULL COMMENT 'ex: 12,5 ou 12-13',
+  `alcohol_degree`   VARCHAR(20)   DEFAULT NULL COMMENT 'ex: 12 ou 12,5',
   `aging_potential`  VARCHAR(100)  DEFAULT NULL COMMENT 'ex: 5 à 10 ans',
   `ingredients`      TEXT          DEFAULT NULL COMMENT 'Liste ingrédients — affiché si ENABLE_EXTRA_INFO=true',
   `updated_at`       DATETIME      DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
