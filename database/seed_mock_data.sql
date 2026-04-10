@@ -544,32 +544,25 @@ ALTER TABLE `wines` AUTO_INCREMENT = 39;
 -- Inclut des cas : valeurs complètes, valeurs "<", garde, degré alcool, ingrédients
 -- ============================================================
 
-INSERT INTO `wine_nutrition`
-    (`wine_id`, `energy_kj`, `energy_kcal`, `fat_g`, `saturated_fat_g`,
-     `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`,
-     `alcohol_degree`, `aging_potential`, `ingredients`)
-SELECT
-    w.`id`,
-    d.`energy_kj`, d.`energy_kcal`, d.`fat_g`, d.`saturated_fat_g`,
-    d.`carbohydrate_g`, d.`sugars_g`, d.`protein_g`, d.`salt_g`,
-    d.`alcohol_degree`, d.`aging_potential`, d.`ingredients`
-FROM (VALUES
-    -- Sainte-Croix-du-Mont 2010 : liquoreux, sucres élevés, garde longue
-    ROW('sainte-croix-du-mont-2010',        '477', '114',  '0', '0', '16,5', '16,5', '< 0,2', '< 0,2', '12,5',  '10 à 20 ans',
-        'Raisins, Anhydride sulfureux'),
-    -- Bordeaux Rouge 2016 : rouge sec, valeurs typiques
-    ROW('bordeaux-rouge-2016',              '336', '81',   '0', '0', '0,03', '0,03', '< 0,2', '< 0,2', '13',    '5 à 8 ans',
-        'Raisins, Sulfites'),
-    -- Bordeaux Blanc 2018 : blanc sec
-    ROW('bordeaux-blanc-2018',              '310', '74',   '0', '0', '0,5',  '0,5',  '< 0,2', '< 0,2', '12',    '2 à 5 ans',
-        'Raisins, Agent stabilisant : Carboxyméthylcellulose, Sulfites'),
-    -- Rosé 2017 : demi-sec, degré modéré
-    ROW('vin-de-pays-atlantique-2017',      '295', '71',   '0', '0', '1,2',  '1,2',  '< 0,2', '< 0,2', '11,5',  '1 à 3 ans',
-        NULL)
-) AS d(`slug`, `energy_kj`, `energy_kcal`, `fat_g`, `saturated_fat_g`,
-        `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`,
-        `alcohol_degree`, `aging_potential`, `ingredients`)
-JOIN `wines` w ON w.`slug` = d.`slug`;
+-- Sainte-Croix-du-Mont 2010 : liquoreux, sucres élevés, garde longue
+INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `energy_kcal`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`, `alcohol_degree`, `aging_potential`, `ingredients`)
+SELECT `id`, '477', '114', '0', '0', '16,5', '16,5', '< 0,2', '< 0,2', '12,5', '10 à 20 ans', 'Raisins, Anhydride sulfureux'
+FROM `wines` WHERE `slug` = 'sainte-croix-du-mont-2010';
+
+-- Bordeaux Rouge 2016 : rouge sec, valeurs typiques
+INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `energy_kcal`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`, `alcohol_degree`, `aging_potential`, `ingredients`)
+SELECT `id`, '336', '81', '0', '0', '0,03', '0,03', '< 0,2', '< 0,2', '13', '5 à 8 ans', 'Raisins, Sulfites'
+FROM `wines` WHERE `slug` = 'bordeaux-rouge-2016';
+
+-- Bordeaux Blanc 2018 : blanc sec
+INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `energy_kcal`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`, `alcohol_degree`, `aging_potential`, `ingredients`)
+SELECT `id`, '310', '74', '0', '0', '0,5', '0,5', '< 0,2', '< 0,2', '12', '2 à 5 ans', 'Raisins, Agent stabilisant : Carboxyméthylcellulose, Sulfites'
+FROM `wines` WHERE `slug` = 'bordeaux-blanc-2018';
+
+-- Rosé 2017 : sans ingrédients (ENABLE_EXTRA_INFO désactivé)
+INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `energy_kcal`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`, `alcohol_degree`, `aging_potential`)
+SELECT `id`, '295', '71', '0', '0', '1,2', '1,2', '< 0,2', '< 0,2', '11,5', '1 à 3 ans'
+FROM `wines` WHERE `slug` = 'vin-pays-atlantique-rose-2017';
 
 -- ============================================================
 -- PRICING RULES (tarifs livraison — données production)
