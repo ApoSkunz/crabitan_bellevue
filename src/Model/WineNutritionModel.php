@@ -16,9 +16,9 @@ class WineNutritionModel extends Model
 
     /** @var string[] Tous les champs gérés (hors wine_id / id / updated_at) */
     public const ALL_FIELDS = [
-        'energy_kj', 'energy_kcal', 'fat_g', 'saturated_fat_g',
+        'energy_kj', 'fat_g', 'saturated_fat_g',
         'carbohydrate_g', 'sugars_g', 'protein_g', 'salt_g',
-        'alcohol_degree', 'aging_potential', 'ingredients',
+        'ingredients',
     ];
 
     /**
