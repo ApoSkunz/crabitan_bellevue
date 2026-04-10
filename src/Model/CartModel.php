@@ -190,6 +190,28 @@ class CartModel extends Model
     }
 
     /**
+     * Retourne les paniers abandonnés dont la dernière mise à jour se situe entre hoursMin et hoursMax heures.
+     *
+     * Seuls les paniers non vides (total_quantity > 0) associés à un utilisateur connecté
+     * (user_id non null) sont retournés. Ce critère cible les paniers J+3 par défaut.
+     *
+     * @param int $hoursMin Borne inférieure en heures (incluse)
+     * @param int $hoursMax Borne supérieure en heures (exclue)
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAbandoned(int $hoursMin = 72, int $hoursMax = 96): array
+    {
+        return $this->db->fetchAll(
+            "SELECT * FROM {$this->table}
+             WHERE user_id IS NOT NULL
+               AND total_quantity > 0
+               AND updated_at <= NOW() - INTERVAL ? HOUR
+               AND updated_at >  NOW() - INTERVAL ? HOUR",
+            [$hoursMin, $hoursMax]
+        );
+    }
+
+    /**
      * Retire un vin spécifique de tous les paniers (ex. vin rendu indisponible par l'admin).
      *
      * @param int $wineId Identifiant du vin à retirer
