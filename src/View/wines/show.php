@@ -208,7 +208,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                 <?php endif; ?>
 
                 <?php
-                $hasNutrition   = (bool) array_filter(array_intersect_key(
+                $hasNutrition   = $enableExtraInfo && (bool) array_filter(array_intersect_key(
                     $nutrition,
                     array_flip(['energy_kj','fat_g','saturated_fat_g','carbohydrate_g','sugars_g','protein_g','salt_g'])
                 ));
