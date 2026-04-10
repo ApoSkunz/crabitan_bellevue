@@ -47,6 +47,7 @@ $router->get('/admin/dpo/dpia', 'Admin\DpoAdminController@downloadDpia');
 $router->get('/admin/dpo/pages-legales', 'Admin\LegalDocumentAdminController@index');
 $router->get('/admin/dpo/pages-legales/{slug}/modifier', 'Admin\LegalDocumentAdminController@edit');
 $router->post('/admin/dpo/pages-legales/{slug}/modifier', 'Admin\LegalDocumentAdminController@store');
+$router->get('/admin/dpo/pages-legales/{slug}/historique', 'Admin\LegalDocumentAdminController@history');
 $router->get('/admin/dpo/pages-legales/{slug}/confirmer-notification', 'Admin\LegalDocumentAdminController@confirmNotify');
 $router->post('/admin/dpo/pages-legales/{slug}/confirmer-notification', 'Admin\LegalDocumentAdminController@sendNotifications');
 $router->get('/admin/securite', 'Admin\ProfileAdminController@index');
