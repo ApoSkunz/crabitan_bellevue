@@ -552,6 +552,7 @@ CREATE TABLE `newsletter_attachments` (
 -- Table : newsletter_links
 -- Liens trackés par campagne (redirect click tracking)
 -- ============================================================
+DROP TABLE IF EXISTS `newsletter_clicks`;
 DROP TABLE IF EXISTS `newsletter_links`;
 CREATE TABLE `newsletter_links` (
   `id`            INT            NOT NULL AUTO_INCREMENT,
@@ -586,7 +587,6 @@ CREATE TABLE `newsletter_opens` (
 -- Clics trackés par lien, campagne et abonné
 -- Rétention RGPD : 13 mois maximum
 -- ============================================================
-DROP TABLE IF EXISTS `newsletter_clicks`;
 CREATE TABLE `newsletter_clicks` (
   `id`            INT            NOT NULL AUTO_INCREMENT,
   `newsletter_id` INT            NOT NULL,
