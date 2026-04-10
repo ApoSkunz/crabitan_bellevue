@@ -679,9 +679,11 @@ WHERE `newsletter_unsubscribe_token` IS NULL;
 -- id 1 (super_admin), id 2 (admin), id 3 (client principal) : déclarés → pas de modal intempestif
 -- id 5 (societe), id 6 (customer EN) : NULL → permettent de tester le flux modal en dev
 -- id 4 (non vérifié), id 7 (supprimé), id 8 (purgé) : NULL intentionnel
+-- majority_declared_ip chiffrée AES-256-GCM — valeur dépend de DB_ENCRYPT_KEY local.
+-- Mettre à NULL en seed ; le chiffrement est appliqué par AccountModel::declareMajority() à l'exécution.
 UPDATE `accounts`
 SET `majority_declared_at` = `created_at`,
-    `majority_declared_ip`  = '127.0.0.1'
+    `majority_declared_ip`  = NULL
 WHERE `id` IN (1, 2, 3);
 
 -- Soft delete du compte 7 (scheduled_deletion_at toujours dans le futur pour les tests de purge)
