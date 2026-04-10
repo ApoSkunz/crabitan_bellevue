@@ -6,6 +6,9 @@ namespace Model;
 
 use Core\Model;
 
+/**
+ * Modèle de lecture des règles tarifaires actives (paliers de livraison et remises).
+ */
 class PricingRuleModel extends Model
 {
     protected string $table = 'pricing_rules';

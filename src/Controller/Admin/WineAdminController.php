@@ -67,6 +67,11 @@ class WineAdminController extends AdminController
     private AccountModel $accounts;
     private MailService $mailer;
 
+    /**
+     * Initialise le contrôleur vins admin avec ses dépendances.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
@@ -81,6 +86,12 @@ class WineAdminController extends AdminController
     // GET /admin/vins
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche la liste paginée des vins en administration.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser  = $this->requireAdmin();
@@ -113,6 +124,12 @@ class WineAdminController extends AdminController
     // GET /admin/vins/ajouter
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche le formulaire de création d'un vin.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function create(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -138,6 +155,12 @@ class WineAdminController extends AdminController
     // POST /admin/vins/ajouter
     // ----------------------------------------------------------------
 
+    /**
+     * Traite la soumission du formulaire de création d'un vin (POST).
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function store(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -255,6 +278,12 @@ class WineAdminController extends AdminController
     // GET /admin/vins/{id}/modifier
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche le formulaire de modification d'un vin.
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function edit(array $params): void
     {
         $adminUser = $this->requireAdmin();
@@ -286,6 +315,12 @@ class WineAdminController extends AdminController
     // POST /admin/vins/{id}/modifier
     // ----------------------------------------------------------------
 
+    /**
+     * Traite la soumission du formulaire de modification d'un vin (POST).
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function update(array $params): void
     {
         $adminUser = $this->requireAdmin();

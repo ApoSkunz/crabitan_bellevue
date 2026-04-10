@@ -13,6 +13,12 @@ class NewsController extends Controller
     // GET /{lang}/actualites
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche la liste paginée des actualités.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function index(array $params): void
     {
         $lang      = $this->resolveLang($params);
@@ -37,6 +43,12 @@ class NewsController extends Controller
     // GET /{lang}/actualites/{slug}
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche le détail d'une actualité identifiée par son slug.
+     *
+     * @param array<string, string> $params Paramètres de route (lang, slug)
+     * @return void
+     */
     public function show(array $params): void
     {
         $lang = $this->resolveLang($params);

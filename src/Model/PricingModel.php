@@ -6,11 +6,16 @@ namespace Model;
 
 use Core\Model;
 
+/**
+ * Modèle d'accès et de mise à jour des règles tarifaires (admin).
+ */
 class PricingModel extends Model
 {
     protected string $table = 'pricing_rules';
 
     /**
+     * Retourne toutes les règles tarifaires, triées par format puis quantité minimum.
+     *
      * @return array<int, array<string, mixed>>
      */
     public function getAll(): array
@@ -20,6 +25,19 @@ class PricingModel extends Model
         );
     }
 
+    /**
+     * Met à jour une règle tarifaire existante.
+     *
+     * @param int         $id              Identifiant de la règle
+     * @param float       $deliveryPrice   Prix de livraison
+     * @param float       $withdrawalPrice Prix de retrait
+     * @param string      $labelFr         Libellé en français
+     * @param string      $labelEn         Libellé en anglais
+     * @param bool        $active          Règle active ou non
+     * @param int         $minQuantity     Quantité minimale
+     * @param int|null    $maxQuantity     Quantité maximale (null = illimité)
+     * @return void
+     */
     public function update( // NOSONAR — php:S107 : 8 params couvrent exactement les colonnes de la table pricing_rules
         int $id,
         float $deliveryPrice,

@@ -6,6 +6,9 @@ namespace Model;
 
 use Core\Model;
 
+/**
+ * Modèle de gestion des actualités (news) du site.
+ */
 class NewsModel extends Model
 {
     protected string $table = 'news';
@@ -27,6 +30,9 @@ class NewsModel extends Model
     }
 
     /**
+     * Retourne une actualité par son slug.
+     *
+     * @param string $slug Slug de l'actualité
      * @return array<string, mixed>|null
      */
     public function getBySlug(string $slug): ?array
@@ -41,6 +47,8 @@ class NewsModel extends Model
     }
 
     /**
+     * Retourne toutes les actualités triées par date décroissante.
+     *
      * @return array<int, array<string, mixed>>
      */
     public function getAll(): array
@@ -53,6 +61,10 @@ class NewsModel extends Model
     }
 
     /**
+     * Retourne une page d'actualités avec limite et offset.
+     *
+     * @param int $limit  Nombre d'actualités à retourner
+     * @param int $offset Décalage (pagination)
      * @return array<int, array<string, mixed>>
      */
     public function getPaginated(int $limit, int $offset): array
@@ -66,13 +78,23 @@ class NewsModel extends Model
         );
     }
 
+    /**
+     * Retourne le nombre total d'actualités.
+     *
+     * @return int
+     */
     public function countAll(): int
     {
         $row = $this->db->fetchOne("SELECT COUNT(*) AS total FROM {$this->table}");
         return (int) ($row['total'] ?? 0);
     }
 
-    /** @return array<string, mixed>|null */
+    /**
+     * Retourne l'actualité précédente (plus récente) par rapport au slug donné.
+     *
+     * @param string $slug Slug de référence
+     * @return array<string, mixed>|null
+     */
     public function getPrev(string $slug): ?array
     {
         $row = $this->db->fetchOne(
@@ -85,7 +107,12 @@ class NewsModel extends Model
         return $row ?: null;
     }
 
-    /** @return array<string, mixed>|null */
+    /**
+     * Retourne l'actualité suivante (plus ancienne) par rapport au slug donné.
+     *
+     * @param string $slug Slug de référence
+     * @return array<string, mixed>|null
+     */
     public function getNext(string $slug): ?array
     {
         $row = $this->db->fetchOne(
@@ -102,7 +129,13 @@ class NewsModel extends Model
     // Méthodes admin
     // ----------------------------------------------------------------
 
-    /** @return array<int, array<string, mixed>> */
+    /**
+     * Retourne une page d'actualités pour la vue admin.
+     *
+     * @param int $limit  Nombre d'actualités à retourner
+     * @param int $offset Décalage (pagination)
+     * @return array<int, array<string, mixed>>
+     */
     public function getForAdmin(int $limit, int $offset): array
     {
         return $this->db->fetchAll(
@@ -114,12 +147,22 @@ class NewsModel extends Model
         );
     }
 
+    /**
+     * Retourne le nombre total d'actualités (admin).
+     *
+     * @return int
+     */
     public function countForAdmin(): int
     {
         return $this->countAll();
     }
 
-    /** @return array<string, mixed>|null */
+    /**
+     * Retourne une actualité par son identifiant.
+     *
+     * @param int $id Identifiant de l'actualité
+     * @return array<string, mixed>|null
+     */
     public function getById(int $id): ?array
     {
         $row = $this->db->fetchOne(
@@ -129,7 +172,12 @@ class NewsModel extends Model
         return $row ?: null;
     }
 
-    /** @param array<string, mixed> $data */
+    /**
+     * Crée une nouvelle actualité.
+     *
+     * @param array<string, mixed> $data Données de l'actualité (title, text_content, slug…)
+     * @return int Identifiant de l'actualité créée
+     */
     public function create(array $data): int
     {
         return (int) $this->db->insert(
@@ -145,7 +193,13 @@ class NewsModel extends Model
         );
     }
 
-    /** @param array<string, mixed> $data */
+    /**
+     * Met à jour une actualité existante.
+     *
+     * @param int                  $id   Identifiant de l'actualité
+     * @param array<string, mixed> $data Nouvelles données (title, text_content, slug…)
+     * @return void
+     */
     public function update(int $id, array $data): void
     {
         $this->db->execute(

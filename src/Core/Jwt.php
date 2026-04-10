@@ -4,10 +4,19 @@ declare(strict_types=1);
 
 namespace Core;
 
+/**
+ * Utilitaire JWT HS256 : encode, décode et génère des tokens signés.
+ */
 class Jwt
 {
     private static string $algorithm = 'SHA256';
 
+    /**
+     * Encode un payload en JWT HS256 signé avec JWT_SECRET.
+     *
+     * @param array<string, mixed> $payload Données à encoder
+     * @return string Token JWT
+     */
     public static function encode(array $payload): string
     {
         $header  = self::base64url(json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
@@ -22,6 +31,14 @@ class Jwt
         return "$header.$payload.$signature";
     }
 
+    /**
+     * Décode et valide un JWT HS256.
+     *
+     * @param string $token Token JWT à décoder
+     * @return array<string, mixed> Payload décodé
+     * @throws \InvalidArgumentException Si le token est malformé
+     * @throws \Core\Exception\JwtException Si la signature est invalide ou le token expiré
+     */
     public static function decode(string $token): array
     {
         $parts = explode('.', $token);

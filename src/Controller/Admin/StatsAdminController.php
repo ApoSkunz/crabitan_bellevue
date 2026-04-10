@@ -10,6 +10,11 @@ class StatsAdminController extends AdminController
 {
     private OrderModel $orders;
 
+    /**
+     * Initialise le contrôleur statistiques avec le modèle commandes.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
@@ -20,6 +25,12 @@ class StatsAdminController extends AdminController
     // GET /admin/statistiques
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche les statistiques de chiffre d'affaires avec filtres temporels.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $this->requireAdmin();

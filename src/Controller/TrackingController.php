@@ -19,6 +19,11 @@ class TrackingController extends Controller
     private AccountModel $accounts;
     private NewsletterTrackingModel $tracking;
 
+    /**
+     * Initialise le contrôleur tracking avec les modèles nécessaires.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);

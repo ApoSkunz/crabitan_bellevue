@@ -19,6 +19,11 @@ class MfaController extends Controller
     private TrustedDeviceModel $trustedDevices;
     private DeviceConfirmTokenModel $deviceConfirmTokens;
 
+    /**
+     * Initialise le contrôleur MFA avec les modèles nécessaires.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
@@ -36,6 +41,12 @@ class MfaController extends Controller
      *   {"status":"pending"}   — token valide, pas encore confirmé
      *   {"status":"expired"}   — token expiré ou inexistant
      *   {"status":"ok","redirect":"..."} — confirmé : JWT émis, connexion créée
+     */
+    /**
+     * Sonde l'état de confirmation d'un token MFA (polling depuis la page interstitiel).
+     *
+     * @param array<string, mixed> $params Paramètres de route (non utilisés)
+     * @return void
      */
     public function poll(array $params): void // NOSONAR — $params requis par le router
     {

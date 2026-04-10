@@ -6,10 +6,26 @@ namespace Model;
 
 use Core\Model;
 
+/**
+ * Modèle de gestion des connexions utilisateur (sessions actives, devices, historique).
+ */
 class ConnectionModel extends Model
 {
     protected string $table = 'connections';
 
+    /**
+     * Enregistre une nouvelle connexion en base.
+     *
+     * @param int         $userId      Identifiant du compte
+     * @param string      $token       JWT de session
+     * @param string|null $deviceToken Token d'appareil
+     * @param string|null $ipAddress   Adresse IP
+     * @param string|null $userAgent   User-Agent
+     * @param string|null $deviceName  Nom de l'appareil
+     * @param string      $authMethod  Méthode d'authentification ('password', 'google'…)
+     * @param int         $expiry      Durée de vie en secondes
+     * @return void
+     */
     public function create( // NOSONAR — params nécessaires pour le tracking appareil, DTO prévu avec feat/account
         int $userId,
         string $token,
@@ -37,6 +53,12 @@ class ConnectionModel extends Model
         );
     }
 
+    /**
+     * Révoque une connexion par son token JWT.
+     *
+     * @param string $token JWT de session à révoquer
+     * @return void
+     */
     public function revoke(string $token): void
     {
         $this->db->execute(
@@ -46,6 +68,9 @@ class ConnectionModel extends Model
     }
 
     /**
+     * Retourne les connexions actives et non expirées d'un utilisateur.
+     *
+     * @param int $userId Identifiant du compte
      * @return array<int, array<string, mixed>>
      */
     public function getActiveForUser(int $userId): array
@@ -59,6 +84,13 @@ class ConnectionModel extends Model
         );
     }
 
+    /**
+     * Retourne le token JWT d'une connexion par son identifiant et l'utilisateur propriétaire.
+     *
+     * @param int $id     Identifiant de la connexion
+     * @param int $userId Identifiant du compte propriétaire
+     * @return string|null Token JWT ou null si introuvable
+     */
     public function getTokenById(int $id, int $userId): ?string
     {
         $row = $this->db->fetchOne(
@@ -68,6 +100,13 @@ class ConnectionModel extends Model
         return $row ? (string) $row['token'] : null;
     }
 
+    /**
+     * Retourne la dernière connexion connue pour un user+device (nom de l'appareil inclus).
+     *
+     * @param int    $userId      Identifiant du compte
+     * @param string $deviceToken Token de l'appareil
+     * @return array<string, mixed>|null
+     */
     public function getLatestByDeviceToken(int $userId, string $deviceToken): ?array
     {
         $row = $this->db->fetchOne(
@@ -95,6 +134,13 @@ class ConnectionModel extends Model
         return $row ? ($row['device_token'] ?? null) : null;
     }
 
+    /**
+     * Révoque une connexion par son identifiant, limité au compte propriétaire.
+     *
+     * @param int $id     Identifiant de la connexion
+     * @param int $userId Identifiant du compte propriétaire
+     * @return void
+     */
     public function revokeById(int $id, int $userId): void
     {
         $this->db->execute(
@@ -115,6 +161,12 @@ class ConnectionModel extends Model
         return (bool) $row;
     }
 
+    /**
+     * Indique si un utilisateur a au moins une connexion enregistrée (tout statut).
+     *
+     * @param int $userId Identifiant du compte
+     * @return bool
+     */
     public function hasAnyConnection(int $userId): bool
     {
         $row = $this->db->fetchOne(

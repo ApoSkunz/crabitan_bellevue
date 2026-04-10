@@ -21,6 +21,11 @@ class NewsAdminController extends AdminController
     private NewsModel $news;
     private TranslationService $translator;
 
+    /**
+     * Initialise le contrôleur avec le modèle news et le service de traduction.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
@@ -32,6 +37,12 @@ class NewsAdminController extends AdminController
     // GET /admin/actualites
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche la liste paginée des articles d'actualités.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -57,6 +68,12 @@ class NewsAdminController extends AdminController
     // GET /admin/actualites/ajouter
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche le formulaire de création d'un article.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function create(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -80,6 +97,12 @@ class NewsAdminController extends AdminController
     // POST /admin/actualites/ajouter
     // ----------------------------------------------------------------
 
+    /**
+     * Traite la soumission du formulaire de création d'article (POST).
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function store(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -118,6 +141,12 @@ class NewsAdminController extends AdminController
     // GET /admin/actualites/{id}/modifier
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche le formulaire de modification d'un article.
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function edit(array $params): void
     {
         $adminUser = $this->requireAdmin();
@@ -146,6 +175,12 @@ class NewsAdminController extends AdminController
     // POST /admin/actualites/{id}/modifier
     // ----------------------------------------------------------------
 
+    /**
+     * Traite la soumission du formulaire de modification d'article (POST).
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function update(array $params): void
     {
         $adminUser = $this->requireAdmin();

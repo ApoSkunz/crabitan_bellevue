@@ -10,6 +10,12 @@ use Model\WineModel;
 
 class DashboardController extends AdminController
 {
+    /**
+     * Affiche le tableau de bord admin avec les statistiques principales.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();

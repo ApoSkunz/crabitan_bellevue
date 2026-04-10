@@ -37,6 +37,11 @@ class CookieHelper
         setcookie(self::NAME, $token, $options);
     }
 
+    /**
+     * Supprime le cookie auth_token en le faisant expirer immédiatement.
+     *
+     * @return void
+     */
     public static function clear(): void
     {
         setcookie(self::NAME, '', [

@@ -12,18 +12,36 @@ use Service\MailService;
 
 class PageController extends Controller
 {
+    /**
+     * Affiche la page "Le Château".
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function chateau(array $params): void
     {
         $lang = $this->resolveLang($params);
         $this->view('pages/chateau', ['lang' => $lang]);
     }
 
+    /**
+     * Affiche la page "Savoir-faire".
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function savoirFaire(array $params): void
     {
         $lang = $this->resolveLang($params);
         $this->view('pages/savoir-faire', ['lang' => $lang]);
     }
 
+    /**
+     * Affiche le formulaire de contact.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function contact(array $params): void
     {
         $lang = $this->resolveLang($params);
@@ -34,6 +52,12 @@ class PageController extends Controller
         ]);
     }
 
+    /**
+     * Traite l'envoi du formulaire de contact (POST).
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function contactPost(array $params): void
     {
         $lang = $this->resolveLang($params);
@@ -96,6 +120,12 @@ class PageController extends Controller
         $this->view('pages/conditions-generales-vente', ['lang' => $lang, 'bare' => $bare]);
     }
 
+    /**
+     * Affiche la page des mentions légales (LCEN).
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function mentionsLegales(array $params): void
     {
         $lang = $this->resolveLang($params);
@@ -103,6 +133,12 @@ class PageController extends Controller
         $this->view('pages/mentions-legales', ['lang' => $lang, 'noindex' => true, 'bare' => $bare]);
     }
 
+    /**
+     * Affiche la page de politique de confidentialité (RGPD).
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function politiqueConfidentialite(array $params): void
     {
         $lang = $this->resolveLang($params);
@@ -110,6 +146,12 @@ class PageController extends Controller
         $this->view('pages/politique-confidentialite', ['lang' => $lang, 'noindex' => true, 'bare' => $bare]);
     }
 
+    /**
+     * Affiche le plan du site.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function planDuSite(array $params): void
     {
         $lang  = $this->resolveLang($params);
@@ -128,6 +170,12 @@ class PageController extends Controller
         ]);
     }
 
+    /**
+     * Affiche la page support.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function support(array $params): void
     {
         $lang = $this->resolveLang($params);
@@ -135,6 +183,12 @@ class PageController extends Controller
         $this->view('pages/support', ['lang' => $lang, 'bare' => $bare]);
     }
 
+    /**
+     * Affiche la page des jeux (espace détente).
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function jeux(array $params): void
     {
         $lang        = $this->resolveLang($params);
@@ -157,6 +211,12 @@ class PageController extends Controller
         ]);
     }
 
+    /**
+     * Affiche la page webmaster (documentation technique, noindex).
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function webmaster(array $params): void
     {
         $lang = $this->resolveLang($params);
@@ -245,6 +305,11 @@ class PageController extends Controller
         throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux XML (testable)
     }
 
+    /**
+     * Instancie le MailService (seam de testabilité).
+     *
+     * @return MailService
+     */
     protected function newMailService(): MailService
     {
         return new MailService();

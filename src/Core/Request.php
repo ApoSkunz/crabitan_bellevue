@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Core;
 
+/**
+ * Encapsule la requête HTTP courante (méthode, URI, corps, en-têtes).
+ * Parsée une seule fois à l'initialisation depuis les superglobales PHP.
+ */
 class Request
 {
     public readonly string $method;
@@ -13,6 +17,9 @@ class Request
     public readonly array $body;
     public readonly array $headers;
 
+    /**
+     * Initialise la requête depuis les superglobales PHP.
+     */
     public function __construct()
     {
         $this->method  = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
@@ -48,21 +55,47 @@ class Request
         return $headers;
     }
 
+    /**
+     * Retourne un paramètre de query string.
+     *
+     * @param string $key     Nom du paramètre
+     * @param mixed  $default Valeur par défaut si absent
+     * @return mixed
+     */
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->query[$key] ?? $default;
     }
 
+    /**
+     * Retourne un paramètre du corps de la requête POST.
+     *
+     * @param string $key     Nom du paramètre
+     * @param mixed  $default Valeur par défaut si absent
+     * @return mixed
+     */
     public function post(string $key, mixed $default = null): mixed
     {
         return $this->body[$key] ?? $default;
     }
 
+    /**
+     * Retourne un en-tête HTTP (insensible à la casse).
+     *
+     * @param string $key     Nom de l'en-tête (ex. 'Authorization')
+     * @param mixed  $default Valeur par défaut si absent
+     * @return mixed
+     */
     public function header(string $key, mixed $default = null): mixed
     {
         return $this->headers[strtolower($key)] ?? $default;
     }
 
+    /**
+     * Extrait le token Bearer de l'en-tête Authorization.
+     *
+     * @return string|null Token JWT ou null si absent
+     */
     public function bearerToken(): ?string
     {
         $auth = $this->header('authorization', '');
@@ -72,11 +105,21 @@ class Request
         return null;
     }
 
+    /**
+     * Indique si le Content-Type de la requête est application/json.
+     *
+     * @return bool
+     */
     public function isJson(): bool
     {
         return str_contains($this->header('content-type', ''), 'application/json');
     }
 
+    /**
+     * Indique si la requête est une requête AJAX (X-Requested-With: XMLHttpRequest).
+     *
+     * @return bool
+     */
     public function isAjax(): bool
     {
         return $this->header('x-requested-with') === 'XMLHttpRequest';

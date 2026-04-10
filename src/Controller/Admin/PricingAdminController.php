@@ -12,6 +12,11 @@ class PricingAdminController extends AdminController
 {
     private PricingModel $pricing;
 
+    /**
+     * Initialise le contrôleur avec le modèle tarifs.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
@@ -22,6 +27,12 @@ class PricingAdminController extends AdminController
     // GET /admin/tarifs
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche la page de gestion des tarifs de livraison.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -42,6 +53,12 @@ class PricingAdminController extends AdminController
     // POST /admin/tarifs
     // ----------------------------------------------------------------
 
+    /**
+     * Enregistre les modifications des règles tarifaires (POST).
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function update(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();

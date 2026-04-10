@@ -8,10 +8,17 @@ use Core\Exception\HttpException;
 use Core\Jwt;
 use Core\Response;
 
+/**
+ * Middleware invoqué sur les routes réservées aux visiteurs non authentifiés.
+ * Redirige les utilisateurs déjà connectés vers leur espace compte ou l'admin.
+ */
 class GuestMiddleware
 {
     /**
-     * Redirige vers /mon-compte si l'utilisateur est déjà connecté.
+     * Redirige vers /mon-compte (ou /admin) si l'utilisateur est déjà connecté.
+     * Ne fait rien si le token est absent, invalide ou expiré.
+     *
+     * @return void
      */
     public static function handle(): void
     {

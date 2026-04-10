@@ -7,6 +7,11 @@ namespace Model;
 use Core\Model;
 use Service\EncryptionService;
 
+/**
+ * Modèle de gestion des comptes utilisateurs.
+ * Couvre la création, l'authentification, la mise à jour du profil,
+ * la suppression programmée (RGPD) et la gestion des tokens de sécurité.
+ */
 class AccountModel extends Model // NOSONAR php:S1448 — regroupement intentionnel ; découpage prévu à l'audit génie logiciel
 {
     protected string $table = 'accounts';
@@ -31,6 +36,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
                 LEFT JOIN account_companies   ac ON ac.account_id = a.id";
     }
 
+    /**
+     * Trouve un compte actif par son adresse email.
+     *
+     * @param string $email Adresse email
+     * @return array<string, mixed>|false Compte trouvé (avec profil) ou false
+     */
     public function findByEmail(string $email): array|false
     {
         $row = $this->db->fetchOne(
@@ -40,6 +51,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         return is_array($row) ? $this->decryptRow($row) : $row;
     }
 
+    /**
+     * Trouve un compte actif par son identifiant.
+     *
+     * @param int $id Identifiant du compte
+     * @return array<string, mixed>|false Compte trouvé (avec profil) ou false
+     */
     public function findById(int $id): array|false
     {
         $row = $this->db->fetchOne(
@@ -82,6 +99,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Trouve un compte actif par son identifiant Google OAuth.
+     *
+     * @param string $googleId Identifiant Google (sub)
+     * @return array<string, mixed>|false
+     */
     public function findByGoogleId(string $googleId): array|false
     {
         return $this->db->fetchOne(
@@ -173,6 +196,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         }
     }
 
+    /**
+     * Trouve un compte actif par son identifiant Apple Sign-In.
+     *
+     * @param string $appleId Identifiant Apple (sub)
+     * @return array<string, mixed>|false
+     */
     public function findByAppleId(string $appleId): array|false
     {
         return $this->db->fetchOne(
@@ -246,6 +275,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         }
     }
 
+    /**
+     * Marque l'email d'un compte comme vérifié et invalide le token de vérification.
+     *
+     * @param int $id Identifiant du compte
+     * @return void
+     */
     public function verifyEmail(int $id): void
     {
         $this->db->execute(
@@ -277,6 +312,13 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Met à jour le mot de passe haché d'un compte.
+     *
+     * @param int    $id             Identifiant du compte
+     * @param string $hashedPassword Nouveau mot de passe haché (bcrypt)
+     * @return void
+     */
     public function updatePassword(int $id, string $hashedPassword): void
     {
         $this->db->execute(
@@ -285,6 +327,15 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Met à jour le profil d'un compte particulier.
+     *
+     * @param int    $id        Identifiant du compte
+     * @param string $civility  Civilité ('M', 'F', 'other')
+     * @param string $firstname Prénom
+     * @param string $lastname  Nom de famille
+     * @return void
+     */
     public function updateIndividualProfile(int $id, string $civility, string $firstname, string $lastname): void
     {
         $this->db->execute(
@@ -294,6 +345,14 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Met à jour le profil d'un compte entreprise.
+     *
+     * @param int         $id          Identifiant du compte
+     * @param string      $companyName Raison sociale
+     * @param string|null $siret       Numéro SIRET (optionnel)
+     * @return void
+     */
     public function updateCompanyProfile(int $id, string $companyName, ?string $siret): void
     {
         $this->db->execute(
@@ -302,6 +361,13 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Met à jour le consentement newsletter d'un compte.
+     *
+     * @param int  $id        Identifiant du compte
+     * @param bool $subscribe true pour s'abonner, false pour se désabonner
+     * @return void
+     */
     public function updateNewsletter(int $id, bool $subscribe): void
     {
         $this->db->execute(
@@ -310,6 +376,13 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Révoque toutes les sessions actives d'un compte.
+     * Utilisé lors de la suppression de compte.
+     *
+     * @param int $id Identifiant du compte
+     * @return void
+     */
     public function revokeAllSessions(int $id): void
     {
         // Utilisé lors de la suppression de compte pour révoquer toutes les sessions actives
@@ -319,6 +392,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Marque un compte comme ayant effectué sa première connexion.
+     *
+     * @param int $id Identifiant du compte
+     * @return void
+     */
     public function markAsConnected(int $id): void
     {
         $this->db->execute(
@@ -327,6 +406,13 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Met à jour la langue préférée d'un compte.
+     *
+     * @param int    $id   Identifiant du compte
+     * @param string $lang Code langue ('fr' ou 'en')
+     * @return void
+     */
     public function updateLang(int $id, string $lang): void
     {
         $this->db->execute(
@@ -335,6 +421,13 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Planifie la suppression d'un compte (soft-delete sur 30 jours).
+     * Génère un token de réactivation pour annulation éventuelle.
+     *
+     * @param int $id Identifiant du compte
+     * @return int Nombre de lignes modifiées
+     */
     public function delete(int $id): int
     {
         return $this->db->execute(
@@ -347,6 +440,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Retourne le token de réactivation d'un compte supprimé.
+     *
+     * @param int $id Identifiant du compte
+     * @return string|null Token de réactivation ou null
+     */
     public function getReactivationToken(int $id): ?string
     {
         $row = $this->db->fetchOne(
@@ -488,6 +587,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Trouve un compte en attente de suppression par son token de réactivation.
+     *
+     * @param string $token Token de réactivation
+     * @return array<string, mixed>|false Compte trouvé ou false
+     */
     public function findByReactivationToken(string $token): array|false
     {
         return $this->db->fetchOne(
@@ -559,6 +664,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Réactive un compte en annulant la suppression programmée.
+     *
+     * @param int $id Identifiant du compte
+     * @return int Nombre de lignes modifiées
+     */
     public function reactivate(int $id): int
     {
         return $this->db->execute(
@@ -571,6 +682,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Trouve un compte actif par son token de désinscription newsletter.
+     *
+     * @param string $token Token de désinscription (32 hex chars)
+     * @return array<string, mixed>|false
+     */
     public function findByUnsubscribeToken(string $token): array|false
     {
         return $this->db->fetchOne(
@@ -580,6 +697,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
+    /**
+     * Désabonne un compte de la newsletter via son token et effectue une rotation du token.
+     *
+     * @param string $token Token de désinscription courant
+     * @return bool true si un compte a été désabonné
+     */
     public function unsubscribeByToken(string $token): bool
     {
         // Désinscrit ET invalide le token (rotation) pour éviter toute réutilisation du lien
@@ -615,6 +738,8 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     /**
      * Anonymise les comptes dont la suppression programmée est échue.
      * Les données de commandes sont conservées (obligations légales comptables — 10 ans).
+     *
+     * @return int Nombre de comptes anonymisés
      */
     public function purgeScheduledDeletions(): int
     {

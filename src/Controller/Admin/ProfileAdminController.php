@@ -32,6 +32,11 @@ class ProfileAdminController extends AdminController
     private RateLimiterService $rateLimiter;
     private SecurityAlertService $securityAlert;
 
+    /**
+     * Initialise le contrôleur profil admin avec ses dépendances.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
@@ -46,6 +51,12 @@ class ProfileAdminController extends AdminController
     // GET /admin/securite
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche la page de sécurité/profil de l'admin courant.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -154,6 +165,12 @@ class ProfileAdminController extends AdminController
     // POST /admin/securite/session/{id}/revoquer
     // ----------------------------------------------------------------
 
+    /**
+     * Révoque une session active de l'admin courant (POST).
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function revokeSession(array $params): void
     {
         $adminUser = $this->requireAdmin();
@@ -178,6 +195,12 @@ class ProfileAdminController extends AdminController
     // POST /admin/securite/sessions/revoquer-toutes
     // ----------------------------------------------------------------
 
+    /**
+     * Révoque toutes les sessions actives de l'admin courant sauf la courante (POST).
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function revokeAllSessions(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -195,6 +218,12 @@ class ProfileAdminController extends AdminController
     // POST /admin/securite/appareils/retirer-confiance
     // ----------------------------------------------------------------
 
+    /**
+     * Retire la confiance d'un appareil de l'admin courant (POST).
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function untrustDevice(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser   = $this->requireAdmin();
@@ -212,6 +241,12 @@ class ProfileAdminController extends AdminController
     // POST /admin/securite/appareils/supprimer-toutes
     // ----------------------------------------------------------------
 
+    /**
+     * Retire la confiance de tous les appareils de l'admin courant (POST).
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function untrustAllDevices(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -229,6 +264,12 @@ class ProfileAdminController extends AdminController
     // POST /admin/securite/reinitialiser
     // ----------------------------------------------------------------
 
+    /**
+     * Réinitialise complètement la sécurité de l'admin (sessions + appareils de confiance) (POST).
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function resetSecurity(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();

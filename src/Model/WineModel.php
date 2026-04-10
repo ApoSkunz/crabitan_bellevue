@@ -6,6 +6,9 @@ namespace Model;
 
 use Core\Model;
 
+/**
+ * Modèle de gestion du catalogue de vins (consultation, filtrage, pagination, admin).
+ */
 class WineModel extends Model
 {
     protected string $table = 'wines';
