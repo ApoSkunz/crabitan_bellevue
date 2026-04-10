@@ -442,9 +442,15 @@ class WineController extends Controller
                 ($isEn ? 'Ageing'  : 'Élevage')   => $l($barrel),
             ]),
             ...( filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN)
-                ? [$isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES' => array_filter(
-                    $this->buildNutritionFields($nutrition, $isEn)
-                )]
+                ? array_filter([
+                    ($isEn ? 'INGREDIENTS' : 'INGRÉDIENTS') => (function () use ($nutrition, $isEn): string {
+                        $dec = json_decode((string) ($nutrition['ingredients'] ?? ''), true) ?? [];
+                        return (string) ($dec[$isEn ? 'en' : 'fr'] ?? ($dec['fr'] ?? ''));
+                    })(),
+                    ($isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES') => array_filter(
+                        $this->buildNutritionFields($nutrition, $isEn)
+                    ),
+                ])
                 : []
             ),
         ];

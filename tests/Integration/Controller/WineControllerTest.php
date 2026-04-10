@@ -1071,10 +1071,16 @@ class WineControllerTest extends IntegrationTestCase
             $ref  = new \ReflectionMethod($ctrl, 'buildPdfSections');
             $l    = fn(array $arr): string => $arr['fr'] ?? '';
 
-            $nutrition = ['energy_kj' => 280, 'fat_g' => '0,4'];
+            $nutrition = [
+                'energy_kj' => 280,
+                'fat_g'     => '0,4',
+                'ingredients' => '{"fr":"Raisins, Sulfites","en":"Grapes, Sulphites"}',
+            ];
             $sections  = $ref->invoke($ctrl, $this->makePdfWine(), $nutrition, 'fr', $l);
 
             $this->assertArrayHasKey('INFORMATIONS NUTRITIONNELLES', $sections);
+            $this->assertArrayHasKey('INGRÉDIENTS', $sections);
+            $this->assertSame('Raisins, Sulfites', $sections['INGRÉDIENTS']);
         } finally {
             $_ENV['ENABLE_EXTRA_INFO'] = 'false';
         }
