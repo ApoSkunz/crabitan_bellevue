@@ -2,6 +2,35 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.58.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.57.0...v0.58.0) (2026-04-10)
+
+
+### Bug Fixes
+
+* **db:** corriger seed wine_nutrition (syntaxe MariaDB + slug rosé) ([05a282e](https://github.com/ApoSkunz/crabitan_bellevue/commit/05a282eed3ac32fbeee2137092eb3c83e21b39e8))
+* **test:** production_quantity + signature renderPdfBody dans TU/TI ([2af1e5c](https://github.com/ApoSkunz/crabitan_bellevue/commit/2af1e5c4ed4b6f418bef51b78392070c5766788c))
+* **test:** renommer quantity → production_quantity dans les fixtures TI ([d478f1d](https://github.com/ApoSkunz/crabitan_bellevue/commit/d478f1d0154958b2b0c781e6c8ac4fb9c63ff8bf))
+* **view+db:** dégré alcool valeur unique (12 ou 12,5, pas de range) ([65dfb58](https://github.com/ApoSkunz/crabitan_bellevue/commit/65dfb58dd4eb17e0281886e5b860ba608e43787b))
+* **view+pdf:** masquer nutrition + ingrédients si ENABLE_EXTRA_INFO=false ([a149a08](https://github.com/ApoSkunz/crabitan_bellevue/commit/a149a086d3c7068fc170a771e3cf0fb6757a1db5))
+* **view+pdf:** validation form tous champs requis + kcal clear + alcool/garde dans INFORMATIONS ([08c8974](https://github.com/ApoSkunz/crabitan_bellevue/commit/08c897418f2dd261d23768438597d7e4cb270960))
+* **view:** surligner champs nutrition vides si déclaration incomplète (live + submit) ([b61b631](https://github.com/ApoSkunz/crabitan_bellevue/commit/b61b631bd5089ea6694aaee459bed066b76b3eb5))
+
+
+### Features
+
+* **controller+view:** afficher nutrition sur fiche publique et PDF ([cff4cca](https://github.com/ApoSkunz/crabitan_bellevue/commit/cff4ccaf2a3746fe73bee2fe935a069086c6a554))
+* **controller:** injecter WineNutritionModel dans WineAdminController ([732c633](https://github.com/ApoSkunz/crabitan_bellevue/commit/732c633d5b0f1ddb307cfb2c24ccc1af184d7d95))
+* **controller:** production_quantity + kcal auto-calculé + buildNutritionFields depuis wine ([a1f4277](https://github.com/ApoSkunz/crabitan_bellevue/commit/a1f4277fcdd7bd10738a67c714f365822ddc8435))
+* **i18n:** ajouter clés nutrition FR/EN ([5574d92](https://github.com/ApoSkunz/crabitan_bellevue/commit/5574d925f0d2f835a0ce2dc7709b49e66f50107c))
+* **model:** créer WineNutritionModel (upsert + findByWineId) ([497fe52](https://github.com/ApoSkunz/crabitan_bellevue/commit/497fe52f386ecf137cb991651c9f42ed81fbb53d))
+* **model:** production_quantity rename + energy_kcal supprimé + getBySlug inclut alcohol/garde ([f56769d](https://github.com/ApoSkunz/crabitan_bellevue/commit/f56769d907c9828b721e36ece64da735c302ce3e))
+* **scss:** champ kcal grisé readonly (.admin-field__input--readonly) ([c6b6701](https://github.com/ApoSkunz/crabitan_bellevue/commit/c6b67011e0d925e6c11158b6c531820008ed353c))
+* **validation:** déclaration nutritionnelle complète ou absente ([4224741](https://github.com/ApoSkunz/crabitan_bellevue/commit/42247414de9a40f32a826c3b95995826e854f22b))
+* **view:** kcal affiché dynamiquement sous le champ kJ (hint inline) ([5c74e20](https://github.com/ApoSkunz/crabitan_bellevue/commit/5c74e2091011bf423a06810066be2c1bf75b29e8))
+* **view:** kcal mimétisme slug — input readonly grisé mis à jour en live ([d9c25ad](https://github.com/ApoSkunz/crabitan_bellevue/commit/d9c25ad0698db494f8b87e3abf92523e0be5a907))
+* **view:** section informations complémentaires dans formulaire admin vin ([6078873](https://github.com/ApoSkunz/crabitan_bellevue/commit/6078873a9a4a5c1fc9edeca5dcae72e14cc13165))
+* **view:** tableau nutrition HTML + production_quantity + kcal readonly admin ([5c25a53](https://github.com/ApoSkunz/crabitan_bellevue/commit/5c25a53bd04bf44b9f877164fc3e984864a50099))
+
 # [0.57.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.56.0...v0.57.0) (2026-04-10)
 
 
