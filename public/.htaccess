@@ -6,12 +6,15 @@ RewriteEngine On
 # La redirection 301 http→https est effectuée dans public/index.php via Response::forceHttps()
 # afin d'être conditionnée à APP_ENV sans modifier ce fichier au déploiement.
 
-# ---- Mode maintenance (décommenter les 4 lignes ci-dessous pour activer) ----
+# ---- Mode maintenance -------------------------------------------------------
+# Pour activer : décommenter les 5 lignes RewriteCond/Rule ci-dessous.
+# Remplacer l'IP par la tienne (vérifier sur https://ifconfig.me avant d'activer).
+# ---- Activer maintenance (décommenter) ----
 # RewriteCond %{REQUEST_URI} !^/maintenance\.php$
 # RewriteCond %{REQUEST_URI} !^/assets/
-# RewriteCond %{REMOTE_ADDR} !^YOUR\.IP\.HERE$
+# RewriteCond %{REMOTE_ADDR} !^203\.0\.113\.42$
 # RewriteRule ^(.*)$ /maintenance.php [R=302,L]
-# ---- /Mode maintenance ----
+# ---- /Mode maintenance -------------------------------------------------------
 
 # Redirige tout vers index.php sauf fichiers/dossiers existants
 RewriteCond %{REQUEST_FILENAME} !-f
