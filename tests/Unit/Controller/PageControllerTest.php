@@ -194,6 +194,24 @@ class PageControllerTest extends TestCase
         $this->assertSame('fr', defined('CURRENT_LANG') ? CURRENT_LANG : 'undefined');
     }
 
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCreditsMediasResolvesLang(): void
+    {
+        $this->bootstrapApp();
+        $this->callAction('creditsMedias', 'fr');
+        $this->assertSame('fr', defined('CURRENT_LANG') ? CURRENT_LANG : 'undefined');
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCreditsMediasResolvesLangEn(): void
+    {
+        $this->bootstrapApp();
+        $this->callAction('creditsMedias', 'en');
+        $this->assertSame('en', defined('CURRENT_LANG') ? CURRENT_LANG : 'undefined');
+    }
+
     // ── contactPost() ────────────────────────────────────────────────────────
 
     /**

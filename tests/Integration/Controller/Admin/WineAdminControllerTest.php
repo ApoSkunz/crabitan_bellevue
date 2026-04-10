@@ -1343,6 +1343,117 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
 
         $this->assertStringContainsString('Déclaration incomplète', $output);
     }
+
+    // ----------------------------------------------------------------
+    // toggleAvailable
+    // ----------------------------------------------------------------
+
+    public function testToggleAvailableCsrfInvalidReturns403(): void
+    {
+        $_POST['csrf_token'] = 'bad';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(403);
+
+        $this->makeController('POST')->toggleAvailable(['id' => '999']);
+    }
+
+    public function testToggleAvailableNotFoundReturns404(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(404);
+
+        $this->makeController('POST')->toggleAvailable(['id' => '999999']);
+    }
+
+    public function testToggleAvailableTogglesWineAndReturnsJson(): void
+    {
+        $id = $this->insertWine(); // available = 1
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(200);
+
+        $this->makeController('POST')->toggleAvailable(['id' => (string) $id]);
+    }
+
+    public function testToggleAvailableFromUnavailableToAvailableReturnsJson(): void
+    {
+        $id = $this->insertWine();
+        self::$db->execute('UPDATE wines SET available = 0 WHERE id = ?', [$id]);
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(200);
+
+        $this->makeController('POST')->toggleAvailable(['id' => (string) $id]);
+    }
+
+    // ----------------------------------------------------------------
+    // setFeatured
+    // ----------------------------------------------------------------
+
+    public function testSetFeaturedCsrfInvalidReturns403(): void
+    {
+        $_POST['csrf_token'] = 'bad';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(403);
+
+        $this->makeController('POST')->setFeatured(['id' => '999']);
+    }
+
+    public function testSetFeaturedNotFoundReturns404(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['action']     = 'set';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(404);
+
+        $this->makeController('POST')->setFeatured(['id' => '999999']);
+    }
+
+    public function testSetFeaturedActionSetReturnsJson(): void
+    {
+        $id = $this->insertWine();
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['action']     = 'set';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(200);
+
+        $this->makeController('POST')->setFeatured(['id' => (string) $id]);
+    }
+
+    public function testSetFeaturedActionUnsetReturnsJson(): void
+    {
+        $id = $this->insertWine();
+        self::$db->execute('UPDATE wines SET featured = 1 WHERE id = ?', [$id]);
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['action']     = 'unset';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(200);
+
+        $this->makeController('POST')->setFeatured(['id' => (string) $id]);
+    }
+
+    public function testSetFeaturedReplacesExistingFeaturedWine(): void
+    {
+        $id1 = $this->insertWine();
+        $id2 = $this->insertWineWithSlug('vin-ti-featured-replace');
+        self::$db->execute('UPDATE wines SET featured = 1 WHERE id = ?', [$id1]);
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['action']     = 'set';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(200);
+
+        $this->makeController('POST')->setFeatured(['id' => (string) $id2]);
+    }
 }
 
 /**
