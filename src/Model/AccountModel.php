@@ -1449,4 +1449,36 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             [$id]
         );
     }
+
+    // ----------------------------------------------------------------
+    // Marketing
+    // ----------------------------------------------------------------
+
+    /**
+     * Retourne la segmentation des comptes actifs : pro/particulier, fr/en, total.
+     *
+     * @return array{pro: int, particulier: int, fr: int, en: int, total: int}
+     */
+    public function getSegmentation(): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT
+                SUM(CASE WHEN ac.account_id IS NOT NULL THEN 1 ELSE 0 END) AS pro,
+                SUM(CASE WHEN ac.account_id IS NULL     THEN 1 ELSE 0 END) AS particulier,
+                SUM(CASE WHEN a.lang = 'fr'             THEN 1 ELSE 0 END) AS fr,
+                SUM(CASE WHEN a.lang = 'en'             THEN 1 ELSE 0 END) AS en,
+                COUNT(*) AS total
+             FROM {$this->table} a
+             LEFT JOIN account_companies ac ON ac.account_id = a.id
+             WHERE a.deleted_at IS NULL"
+        );
+        $row = $rows[0] ?? [];
+        return [
+            'pro'         => (int) ($row['pro']         ?? 0),
+            'particulier' => (int) ($row['particulier'] ?? 0),
+            'fr'          => (int) ($row['fr']          ?? 0),
+            'en'          => (int) ($row['en']          ?? 0),
+            'total'       => (int) ($row['total']       ?? 0),
+        ];
+    }
 }
