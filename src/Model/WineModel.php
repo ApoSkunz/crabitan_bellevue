@@ -595,7 +595,7 @@ class WineModel extends Model
      */
     public function getFeatured(): ?array
     {
-        $cols = 'id, label_name, wine_color, vintage, price, image_path, slug, is_cuvee_speciale, featured, available';
+        $cols = 'id, label_name, certification_label, wine_color, vintage, price, image_path, slug, is_cuvee_speciale, featured, available';
 
         // 1. Vin explicitement mis en avant et disponible
         $row = $this->db->fetchOne(
