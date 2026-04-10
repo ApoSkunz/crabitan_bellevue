@@ -679,10 +679,11 @@ WHERE `newsletter_unsubscribe_token` IS NULL;
 -- id 1 (super_admin), id 2 (admin), id 3 (client principal) : déclarés → pas de modal intempestif
 -- id 5 (societe), id 6 (customer EN) : NULL → permettent de tester le flux modal en dev
 -- id 4 (non vérifié), id 7 (supprimé), id 8 (purgé) : NULL intentionnel
-UPDATE `accounts`
-SET `majority_declared_at` = `created_at`,
-    `majority_declared_ip`  = '127.0.0.1'
-WHERE `id` IN (1, 2, 3);
+-- majority_declared_ip chiffrée AES-256-GCM (clé dev : DB_ENCRYPT_KEY=change-this-to-a-long-random-secret-32-chars-min)
+-- Valeurs pré-calculées via php -r "echo EncryptionService::fromEnv()->encrypt('127.0.0.1');"
+UPDATE `accounts` SET `majority_declared_at` = `created_at`, `majority_declared_ip` = 'x5vjr67kGPu683uNYPPCefltiOpaaWMWc4uDOrwTNtMK9M5CFQ==' WHERE `id` = 1;
+UPDATE `accounts` SET `majority_declared_at` = `created_at`, `majority_declared_ip` = 'G7qW1b7gGYFTmCNa3XlmoaLSiBPzwrMfdalZ3litfIVROefa9g==' WHERE `id` = 2;
+UPDATE `accounts` SET `majority_declared_at` = `created_at`, `majority_declared_ip` = 'gw+z/b5nAqSUndB7tRa/Jn9eESrs7icSVN/vPA4baot3S4lEjTtA5w==' WHERE `id` = 3;
 
 -- Soft delete du compte 7 (scheduled_deletion_at toujours dans le futur pour les tests de purge)
 UPDATE `accounts`

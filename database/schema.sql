@@ -73,13 +73,13 @@ CREATE TABLE `accounts` (
   `email_verification_token_expires_at` DATETIME  DEFAULT NULL COMMENT 'TTL 24h — expiration du token de vérification email',
   `email_verified_at`            DATETIME       DEFAULT NULL,
   `email_change_token`           VARCHAR(64)    DEFAULT NULL COMMENT 'SHA-256 du token de changement email',
-  `email_change_new_email`       VARCHAR(255)   DEFAULT NULL COMMENT 'Nouvelle adresse en attente de confirmation',
+  `email_change_new_email`       TEXT           DEFAULT NULL COMMENT 'Nouvelle adresse en attente de confirmation — chiffrée AES-256-GCM (RGPD Art. 32)',
   `email_change_expires_at`      DATETIME       DEFAULT NULL COMMENT 'TTL 24h du token de changement email',
   `email_change_used_at`         DATETIME       DEFAULT NULL COMMENT 'Horodatage usage unique',
   `google_id`                    VARCHAR(255)   DEFAULT NULL COMMENT 'Google OAuth ID',
   `apple_id`                     VARCHAR(255)   DEFAULT NULL COMMENT 'Apple Sign In ID',
   `majority_declared_at`         DATETIME       DEFAULT NULL COMMENT 'Horodatage déclaration majorité (Art. L3342-1 CSP)',
-  `majority_declared_ip`         VARCHAR(45)    DEFAULT NULL COMMENT 'IP lors de la déclaration majorité (preuve RGPD Art. 7)',
+  `majority_declared_ip`         TEXT           DEFAULT NULL COMMENT 'IP lors de la déclaration majorité (preuve RGPD Art. 7) — chiffrée AES-256-GCM (RGPD Art. 32)',
   `deleted_at`                   DATETIME       DEFAULT NULL COMMENT 'Soft delete',
   `scheduled_deletion_at`        DATETIME       DEFAULT NULL COMMENT 'Date de purge effective (J+30 après deleted_at)',
   `reactivation_token`           VARCHAR(64)    DEFAULT NULL COMMENT 'Token annulation suppression compte (valide 30 jours)',
@@ -552,6 +552,7 @@ CREATE TABLE `newsletter_attachments` (
 -- Table : newsletter_links
 -- Liens trackés par campagne (redirect click tracking)
 -- ============================================================
+DROP TABLE IF EXISTS `newsletter_clicks`;
 DROP TABLE IF EXISTS `newsletter_links`;
 CREATE TABLE `newsletter_links` (
   `id`            INT            NOT NULL AUTO_INCREMENT,
@@ -586,7 +587,6 @@ CREATE TABLE `newsletter_opens` (
 -- Clics trackés par lien, campagne et abonné
 -- Rétention RGPD : 13 mois maximum
 -- ============================================================
-DROP TABLE IF EXISTS `newsletter_clicks`;
 CREATE TABLE `newsletter_clicks` (
   `id`            INT            NOT NULL AUTO_INCREMENT,
   `newsletter_id` INT            NOT NULL,

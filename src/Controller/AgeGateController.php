@@ -57,7 +57,7 @@ class AgeGateController extends Controller
             'path'     => '/',
             'secure'   => isset($_SERVER['HTTPS']),
             'httponly' => true,
-            'samesite' => 'Strict',
+            'samesite' => 'Lax', // Lax requis : SameSite=Strict bloque le cookie lors des retours OAuth (cross-site navigation)
         ];
 
         setcookie(self::COOKIE_NAME, '1', array_merge($cookieBase, [

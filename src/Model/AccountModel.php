@@ -5,10 +5,21 @@ declare(strict_types=1);
 namespace Model;
 
 use Core\Model;
+use Service\EncryptionService;
 
 class AccountModel extends Model // NOSONAR php:S1448 — regroupement intentionnel ; découpage prévu à l'audit génie logiciel
 {
     protected string $table = 'accounts';
+    private EncryptionService $encryption;
+
+    /**
+     * @param EncryptionService|null $encryption Service de chiffrement (null = construit depuis l'environnement)
+     */
+    public function __construct(?EncryptionService $encryption = null)
+    {
+        parent::__construct();
+        $this->encryption = $encryption ?? EncryptionService::fromEnv();
+    }
 
     private function withProfile(): string
     {
@@ -22,18 +33,36 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
 
     public function findByEmail(string $email): array|false
     {
-        return $this->db->fetchOne(
+        $row = $this->db->fetchOne(
             $this->withProfile() . " WHERE a.email = ? AND a.deleted_at IS NULL",
             [$email]
         );
+        return is_array($row) ? $this->decryptRow($row) : $row;
     }
 
     public function findById(int $id): array|false
     {
-        return $this->db->fetchOne(
+        $row = $this->db->fetchOne(
             $this->withProfile() . " WHERE a.id = ? AND a.deleted_at IS NULL",
             [$id]
         );
+        return is_array($row) ? $this->decryptRow($row) : $row;
+    }
+
+    /**
+     * Déchiffre les colonnes sensibles d'un compte retourné par la BDD.
+     *
+     * @param array<string, mixed> $row Ligne brute issue d'un SELECT
+     * @return array<string, mixed> Ligne avec colonnes déchiffrées
+     */
+    private function decryptRow(array $row): array
+    {
+        if (isset($row['email_change_new_email']) && is_string($row['email_change_new_email'])) {
+            $row['email_change_new_email'] = $this->encryption->decrypt($row['email_change_new_email'])
+                ?? $row['email_change_new_email'];
+        }
+
+        return $row;
     }
 
     /**
@@ -799,7 +828,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
                  email_change_expires_at = ?,
                  email_change_used_at   = NULL
              WHERE id = ?",
-            [$hashedToken, $newEmail, $expiresAt, $userId]
+            [$hashedToken, $this->encryption->encrypt($newEmail), $expiresAt, $userId]
         );
     }
 
@@ -811,12 +840,19 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      */
     public function findByEmailChangeToken(string $hashedToken): array|false
     {
-        return $this->db->fetchOne(
+        $row = $this->db->fetchOne(
             "SELECT id, email, email_change_new_email, email_change_expires_at, email_change_used_at, lang
              FROM {$this->table}
              WHERE email_change_token = ? AND deleted_at IS NULL",
             [$hashedToken]
         );
+
+        if (is_array($row) && isset($row['email_change_new_email']) && is_string($row['email_change_new_email'])) {
+            $row['email_change_new_email'] = $this->encryption->decrypt($row['email_change_new_email'])
+                ?? $row['email_change_new_email'];
+        }
+
+        return $row;
     }
 
     /**
@@ -1208,7 +1244,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     {
         $this->db->execute(
             "UPDATE {$this->table} SET majority_declared_at = NOW(), majority_declared_ip = ? WHERE id = ?",
-            [$ip, $id]
+            [$this->encryption->encrypt($ip), $id]
         );
     }
 
