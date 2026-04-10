@@ -177,17 +177,16 @@
         letter-spacing: 0.25em;
         text-transform: uppercase;
         color: var(--color-gold);
-        border: 1px solid var(--color-gold);
-        padding: 0.25em 0.75em;
         margin-bottom: 0.25rem;
     }
 
     &__name {
         font-family: var(--font-serif);
-        font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+        font-size: clamp(1rem, 2vw, 1.4rem);
         font-weight: 400;
-        color: var(--color-text);
-        letter-spacing: 0.08em;
+        color: var(--color-gold);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
         margin: 0;
     }
 
@@ -207,24 +206,6 @@
 
     &__cart-form {
         margin: 0;
-
-        button[type='submit'] {
-            font-family: var(--font-sans);
-            font-size: clamp(0.7rem, 1.2vw, 0.82rem);
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            padding: 0.75rem 1.75rem;
-            background: transparent;
-            border: 1px solid rgba(201, 168, 76, 0.5);
-            color: var(--color-gold);
-            cursor: pointer;
-            transition: all 250ms ease;
-
-            &:hover {
-                background: rgba(201, 168, 76, 0.1);
-                border-color: var(--color-gold);
-            }
-        }
     }
 }
 
