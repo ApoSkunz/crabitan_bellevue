@@ -2,6 +2,16 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.64.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.63.1...v0.64.0) (2026-04-10)
+
+
+### Features
+
+* **controller:** ajouter actions galerie et accessibilite dans PageController ([38603f7](https://github.com/ApoSkunz/crabitan_bellevue/commit/38603f76b9701649bcacfe62239150a0ecb96529))
+* **i18n:** clés gallery.* et accessibility.* + footer.galerie/accessibilite (fr/en) ([fb5c97b](https://github.com/ApoSkunz/crabitan_bellevue/commit/fb5c97bde533f93512daaa6226cbff94e751856d))
+* **scss:** styles galerie (grille, toolbar toggle, mode linéaire) + HVE et up2pay agrandis ([4922ecc](https://github.com/ApoSkunz/crabitan_bellevue/commit/4922ecc4eb02e0911d2af2450368844f5e6eea1d))
+* **view:** pages galerie et accessibilite + footer + plan du site ([755a8a7](https://github.com/ApoSkunz/crabitan_bellevue/commit/755a8a75e6c07e0ad7d6c6c5ba49469eb0ab6c11))
+
 ## [0.63.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.63.0...v0.63.1) (2026-04-10)
 
 
