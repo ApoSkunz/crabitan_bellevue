@@ -2,6 +2,20 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.55.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.54.2...v0.55.0) (2026-04-10)
+
+
+### Bug Fixes
+
+* **security:** activer CURLOPT_SSL_VERIFYHOST=2 sur tous les appels cURL CA — us-securisation-transport-api-ca ([6964d73](https://github.com/ApoSkunz/crabitan_bellevue/commit/6964d739220fc5d6e8a216c70d28af4b81755ed1))
+
+
+### Features
+
+* **cron:** CronRunner — lock, logs fichier, rotation 30j, exit code (us-infrastructure-cron) ([df298cf](https://github.com/ApoSkunz/crabitan_bellevue/commit/df298cf70f77f6136cbf7cfc7946305b8608293b))
+* **cron:** purge des tokens expirés — us-nettoyage-tokens-expires ([bbb369a](https://github.com/ApoSkunz/crabitan_bellevue/commit/bbb369ab9a4f013acfd767e2a7f32467a45e2edc))
+* **infra:** forcer HTTPS + HSTS en production (us-https-tls-ionos / us-hsts) ([359ac0b](https://github.com/ApoSkunz/crabitan_bellevue/commit/359ac0b6eac91db141506f9290b1fec681771848))
+
 ## [0.54.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.54.1...v0.54.2) (2026-04-10)
 
 
