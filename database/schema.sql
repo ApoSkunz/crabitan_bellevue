@@ -188,6 +188,7 @@ CREATE TABLE `wines` (
   `vintage`              INT            NOT NULL,
   `price`                DECIMAL(10,2)  NOT NULL,
   `production_quantity`  INT            NOT NULL DEFAULT 0 COMMENT 'Nombre de bouteilles produites (millésime)',
+  `stock_quantity`       INT            NOT NULL DEFAULT 0 COMMENT 'Stock disponible à la vente (décrémenté à chaque commande confirmée)',
   `available`            TINYINT(1)     NOT NULL DEFAULT 1,
   `certification_label`  ENUM('AOC','IGP','STG','AOP') NOT NULL DEFAULT 'AOC',
   `area`                 DECIMAL(10,2)  NOT NULL COMMENT 'Superficie en hectares',
