@@ -536,6 +536,9 @@ VALUES
 
 ALTER TABLE `wines` AUTO_INCREMENT = 39;
 
+-- Initialiser le stock disponible = quantité produite (données mock)
+UPDATE `wines` SET `stock_quantity` = `production_quantity`;
+
 -- ============================================================
 -- WINE NUTRITION (valeurs nutritionnelles — mock représentatif)
 -- wine_id correspond aux positions INSERT (1=SCM2010, 7=BxRouge2016, 9=BxBlanc2018, 8=Rosé2017)
