@@ -306,6 +306,105 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
             </div>
         </div>
     </section>
+
+    <?php
+    $accountId = $accountId ?? 0;
+    $userId    = $accountId > 0 ? $accountId : null;
+    ?>
+
+    <?php if ($avgRating !== null || $accountId > 0) : ?>
+    <section class="wine-rating container" aria-label="<?= htmlspecialchars(__('wine.rating.title')) ?>">
+
+        <?php if ($avgRating !== null) : ?>
+        <div class="wine-rating__avg">
+            <?php
+            $fullStars  = (int) round($avgRating);
+            for ($s = 1; $s <= 5; $s++) :
+            ?>
+            <span class="wine-rating__star-display<?= $s <= $fullStars ? ' wine-rating__star-display--filled' : '' ?>" aria-hidden="true">★</span>
+            <?php endfor; ?>
+            <span class="wine-rating__score"><?= number_format($avgRating, 1) ?>/5</span>
+            <span class="wine-rating__count">(<?= $ratingCount ?> <?= htmlspecialchars(__('wine.rating.reviews')) ?>)</span>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($userId !== null && $accountRating === null) : ?>
+        <form class="wine-rating__form js-rating-form"
+              action="/<?= htmlspecialchars($navLang) ?>/rating/vin/<?= (int) $wine['id'] ?>"
+              method="POST">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf ?? '') ?>">
+            <p class="wine-rating__widget-label"><?= htmlspecialchars(__('wine.rating.widget_label')) ?></p>
+            <div class="wine-rating__stars" role="group" aria-label="<?= htmlspecialchars(__('wine.rating.your_note')) ?>">
+                <?php for ($i = 1; $i <= 5; $i++) : ?>
+                <button type="submit" name="note" value="<?= $i ?>" class="wine-rating__star js-star"
+                        aria-label="<?= $i ?> <?= $i > 1 ? 'étoiles' : 'étoile' ?>">★</button>
+                <?php endfor; ?>
+            </div>
+        </form>
+        <?php elseif ($userId !== null && $accountRating !== null) : ?>
+        <p class="wine-rating__already">
+            <?= htmlspecialchars(__('wine.rating.already')) ?>
+            <?= (int) ($accountRating['rating'] ?? 0) ?>/5 ★
+        </p>
+        <?php endif; ?>
+
+    </section>
+    <?php endif; ?>
+
+    <?php if (!empty($similarWines)) : ?>
+    <section class="wine-cross-sell" aria-label="<?= htmlspecialchars(__('wine.similar.title')) ?>">
+        <div class="container">
+            <h2 class="wine-cross-sell__title"><?= htmlspecialchars(__('wine.similar.title')) ?></h2>
+            <div class="wine-cross-sell__grid">
+                <?php foreach ($similarWines as $sw) :
+                    $swSlug    = htmlspecialchars((string) ($sw['slug']       ?? ''));
+                    $swName    = htmlspecialchars((string) ($sw['label_name'] ?? ''));
+                    $swVintage = (int) ($sw['vintage'] ?? 0);
+                    $swPrice   = (float) ($sw['price'] ?? 0.0);
+                    $swImage   = htmlspecialchars((string) ($sw['image_path'] ?? ''));
+                    $swId      = (int) ($sw['id'] ?? 0);
+                ?>
+                <div class="wine-card wine-cross-sell__card">
+                    <a href="/<?= htmlspecialchars($navLang) ?>/vins/<?= $swSlug ?>"
+                       class="wine-card__inner"
+                       aria-label="<?= $swName ?>">
+                        <div class="wine-card__image-wrap">
+                            <img src="/assets/images/wines/<?= $swImage ?>"
+                                 alt="<?= $swName ?>"
+                                 class="wine-card__image"
+                                 width="200" height="280"
+                                 loading="lazy">
+                        </div>
+                        <div class="wine-card__body">
+                            <p class="wine-card__name"><?= $swName ?></p>
+                            <?php if ($swVintage > 0) : ?>
+                            <span class="wine-card__vintage"><?= $swVintage ?></span>
+                            <?php endif; ?>
+                            <strong class="wine-card__price wine-cross-sell__price">
+                                <?= number_format($swPrice, 2, ',', ' ') ?>&nbsp;€
+                            </strong>
+                        </div>
+                    </a>
+                    <?php if (!$isAdmin) : ?>
+                    <div class="wine-card__footer">
+                        <button type="button"
+                                class="wine-card__cart js-add-to-cart"
+                                data-wine-id="<?= $swId ?>"
+                                data-wine-name="<?= $swName ?>"
+                                data-wine-price="<?= htmlspecialchars(number_format($swPrice, 2, ',', ' ') . ' €') ?>"
+                                data-wine-image="/assets/images/wines/<?= $swImage ?>"
+                                aria-label="<?= htmlspecialchars(__('wine.add_to_cart')) ?> — <?= $swName ?>">
+                            +
+                        </button>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
+
 </main>
 
 <!-- Zoom overlay -->
