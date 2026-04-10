@@ -1167,7 +1167,7 @@ INNER;
         $paymentLabels = [
             'card'     => 'Carte bancaire',
             'virement' => 'Virement bancaire',
-            'cheque'   => 'Chèque',
+            'cheque'   => self::PAYMENT_LABEL_CHEQUE,
         ];
         $paymentLabel  = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
 
@@ -1531,7 +1531,7 @@ INNER;
         $paymentLabels = [
             'card'     => 'CB',
             'virement' => 'Virement',
-            'cheque'   => 'Chèque',
+            'cheque'   => self::PAYMENT_LABEL_CHEQUE,
         ];
 
         $rows = '';
