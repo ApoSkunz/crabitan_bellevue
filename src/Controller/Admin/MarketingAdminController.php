@@ -13,8 +13,8 @@ use Model\OrderModel;
  */
 class MarketingAdminController extends AdminController
 {
-    private OrderModel      $orders;
-    private AccountModel    $accounts;
+    private OrderModel $orders;
+    private AccountModel $accounts;
     private NewsletterModel $newsletter;
 
     /**
@@ -46,7 +46,6 @@ class MarketingAdminController extends AdminController
 
         $topRated = [];
         try {
-            // @phpstan-ignore-next-line
             $topRated = (new \Model\RatingModel())->getTopRated(10);
         } catch (\Throwable) {
         }

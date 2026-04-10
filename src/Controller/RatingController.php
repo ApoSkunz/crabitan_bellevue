@@ -35,7 +35,6 @@ class RatingController extends Controller
             return;
         }
 
-        // @phpstan-ignore-next-line
         $ratingModel = new \Model\RatingModel();
         $row = $ratingModel->findByToken($params['token'] ?? '');
 
@@ -48,9 +47,7 @@ class RatingController extends Controller
         $wineId    = (int) $row['wine_id'];
         $orderId   = (int) $row['order_id'];
 
-        // @phpstan-ignore-next-line
         $ratingModel->upsert($accountId, $wineId, $orderId, $note);
-        // @phpstan-ignore-next-line
         $ratingModel->markTokenUsed($params['token']);
 
         $this->view('rating/confirm', ['note' => $note, 'lang' => $lang]);
@@ -83,18 +80,14 @@ class RatingController extends Controller
             $this->json(['success' => false, 'message' => 'Note invalide (1-5)'], 422);
         }
 
-        // @phpstan-ignore-next-line
         $ratingModel = new \Model\RatingModel();
 
-        // @phpstan-ignore-next-line
         if (!$ratingModel->hasOrdered($userId, $wineId)) {
             $this->json(['success' => false, 'message' => 'Achat requis'], 403);
         }
 
-        // @phpstan-ignore-next-line
         $ratingModel->upsert($userId, $wineId, 0, $note);
 
-        // @phpstan-ignore-next-line
         $existing = $ratingModel->getByAccountAndWine($userId, $wineId);
         $avg      = $existing !== null ? ($existing['avg'] ?? null) : null;
         $count    = $existing !== null ? (int) ($existing['count'] ?? 0) : 0;

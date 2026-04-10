@@ -13,7 +13,7 @@ use Service\MailService;
  * Tests unitaires pour MailService::sendPostPurchase() et sendAbandonedCart().
  *
  * PHPMailer est remplacé par un stub pour éviter tout envoi SMTP réel.
- * RatingModel (agent parallèle) est ignoré via @phpstan-ignore dans le code source.
+ * RatingModel est stubbé via seam newRatingModel() pour isoler MailService de la BDD.
  */
 class MailServicePostPurchaseTest extends TestCase
 {
@@ -131,18 +131,36 @@ class MailServicePostPurchaseTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
+     * Crée une instance de MailService avec RatingModel stubbé via seam.
+     *
+     * @return MailService
+     */
+    private function makeServiceWithRatingStub(): MailService
+    {
+        $ratingStub = $this->createStub(\Model\RatingModel::class);
+        $ratingStub->method('generateEmailToken')->willReturn(str_pad('', 64, 'a'));
+
+        $service = new class ($ratingStub) extends MailService {
+            public function __construct(private \Model\RatingModel $ratingMock)
+            {
+                parent::__construct();
+            }
+            protected function newRatingModel(): \Model\RatingModel
+            {
+                return $this->ratingMock;
+            }
+        };
+
+        return $service;
+    }
+
+    /**
      * Vérifie que sendPostPurchase ne lève pas d'exception en français.
-     * RatingModel est stubbé via mock pour isoler MailService.
+     * RatingModel est stubbé via seam newRatingModel().
      */
     public function testSendPostPurchaseFrDoesNotThrow(): void
     {
-        // Stub RatingModel pour éviter la dépendance à la BDD
-        if (!class_exists(\Model\RatingModel::class)) {
-            // @phpstan-ignore-next-line
-            eval('namespace Model; class RatingModel { public function generateEmailToken(int $a, int $b, int $c): string { return str_pad("", 64, "a"); } }'); // NOSONAR — stub test uniquement
-        }
-
-        $service = new MailService();
+        $service = $this->makeServiceWithRatingStub();
         $this->injectMockMailer($service);
 
         $items = [
@@ -168,16 +186,11 @@ class MailServicePostPurchaseTest extends TestCase
 
     /**
      * Vérifie que sendPostPurchase ne lève pas d'exception en anglais.
+     * RatingModel est stubbé via seam newRatingModel().
      */
     public function testSendPostPurchaseEnDoesNotThrow(): void
     {
-        // RatingModel déjà chargé via le test FR si exécuté après
-        if (!class_exists(\Model\RatingModel::class)) {
-            // @phpstan-ignore-next-line
-            eval('namespace Model; class RatingModel { public function generateEmailToken(int $a, int $b, int $c): string { return str_pad("", 64, "a"); } }'); // NOSONAR — stub test uniquement
-        }
-
-        $service = new MailService();
+        $service = $this->makeServiceWithRatingStub();
         $this->injectMockMailer($service);
 
         $items = [

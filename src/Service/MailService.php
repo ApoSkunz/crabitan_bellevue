@@ -2823,6 +2823,11 @@ INNER;
         return new \Model\OrderFormModel();
     }
 
+    protected function newRatingModel(): \Model\RatingModel
+    {
+        return new \Model\RatingModel();
+    }
+
     private function emailWrap(string $title, string $innerContent): string
     {
         return <<<HTML
@@ -2975,8 +2980,7 @@ HTML;
             $vintage   = (int) ($item['vintage'] ?? 0);
             $imagePath = (string) ($item['image_path'] ?? '');
 
-            // @phpstan-ignore-next-line (RatingModel créé par agent parallèle)
-            $token = (new \Model\RatingModel())->generateEmailToken($accountId, $wineId, $orderId);
+            $token = $this->newRatingModel()->generateEmailToken($accountId, $wineId, $orderId);
 
             $imageHtml = '';
             if ($imagePath !== '') {

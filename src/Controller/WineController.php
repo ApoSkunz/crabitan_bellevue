@@ -600,14 +600,10 @@ class WineController extends Controller
         $ratingCount   = 0;
         $accountRating = null;
         try {
-            // @phpstan-ignore-next-line
             $ratingModel   = new \Model\RatingModel();
-            // @phpstan-ignore-next-line
             $avgRating     = $ratingModel->getAvgByWine((int) $wine['id']);
-            // @phpstan-ignore-next-line
             $ratingCount   = $ratingModel->countByWine((int) $wine['id']);
             if ($token !== null && $userId !== null) {
-                // @phpstan-ignore-next-line
                 $accountRating = $ratingModel->getByAccountAndWine($userId, (int) $wine['id']);
             }
         } catch (\Throwable) {

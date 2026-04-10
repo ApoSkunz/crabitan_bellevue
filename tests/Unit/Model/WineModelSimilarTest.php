@@ -36,8 +36,9 @@ class WineModelSimilarTest extends TestCase
 
     public function testGetSimilarReturnsEmptyArrayWhenNoWines(): void
     {
+        // getSimilar fait 2 requêtes quand la 1re (même couleur) retourne moins que $limit
         $this->dbMock
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('fetchAll')
             ->willReturn([]);
 
