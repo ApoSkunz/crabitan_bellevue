@@ -21,20 +21,22 @@ $steps = [
 <nav class="checkout-stepper" aria-label="<?= htmlspecialchars(__('stepper.aria_label') ?: 'Étapes de la commande') ?>">
     <ol class="checkout-stepper__list">
         <?php foreach ($steps as $stepNum => $stepLabel) :
-            if ($stepNum < $checkoutStep) {
-                $modifier   = 'checkout-stepper__step--done';
+            $isDone   = $stepNum < $checkoutStep || ($stepNum === $checkoutStep && $checkoutStep === count($steps));
+            $isActive = $stepNum === $checkoutStep && !$isDone;
+            if ($isDone) {
+                $modifier    = 'checkout-stepper__step--done';
                 $ariaCurrent = '';
-            } elseif ($stepNum === $checkoutStep) {
-                $modifier   = 'checkout-stepper__step--active';
+            } elseif ($isActive) {
+                $modifier    = 'checkout-stepper__step--active';
                 $ariaCurrent = ' aria-current="step"';
             } else {
-                $modifier   = 'checkout-stepper__step--pending';
+                $modifier    = 'checkout-stepper__step--pending';
                 $ariaCurrent = '';
             }
         ?>
         <li class="checkout-stepper__step <?= $modifier ?>"<?= $ariaCurrent ?>>
             <span class="checkout-stepper__icon" aria-hidden="true">
-                <?= ($stepNum < $checkoutStep) ? '✓' : $stepNum ?>
+                <?= $isDone ? '✓' : $stepNum ?>
             </span>
             <span class="checkout-stepper__label"><?= htmlspecialchars($stepLabel) ?></span>
         </li>

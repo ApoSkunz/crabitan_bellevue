@@ -76,6 +76,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                             <?php
                             $sortOptions = [
                                 'default'      => __('wine.sort.default'),
+                                'rating_desc'  => __('wine.sort.rating_desc'),
                                 'likes_desc'   => __('wine.sort.likes_desc'),
                                 'price_asc'    => __('wine.sort.price_asc'),
                                 'price_desc'   => __('wine.sort.price_desc'),

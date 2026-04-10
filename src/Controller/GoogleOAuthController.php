@@ -12,6 +12,7 @@ use Core\Response;
 use Model\AccountModel;
 use Model\ConnectionModel;
 use Service\GoogleOAuthService;
+use Service\MailService;
 
 /**
  * Gère le flux OAuth2 Google : redirection vers Google et traitement du callback.
@@ -174,6 +175,7 @@ class GoogleOAuthController extends Controller
         }
 
         // Cas 3 — email inconnu → création de compte
+        $isNewAccount = false;
         if (!$account) {
             $accountId = $this->accounts->createFromGoogle(
                 $email,
@@ -182,7 +184,16 @@ class GoogleOAuthController extends Controller
                 $userInfo['given_name'] ?? '',
                 $userInfo['family_name'] ?? ''
             );
-            $account = $this->accounts->findById($accountId);
+            $account      = $this->accounts->findById($accountId);
+            $isNewAccount = true;
+        }
+
+        if ($isNewAccount && $account) {
+            try {
+                (new MailService())->sendWelcome($email, (string) ($account['firstname'] ?? ''), $lang);
+            } catch (\Throwable) {
+                // Email de bienvenue non bloquant
+            }
         }
 
         if (!$account) {

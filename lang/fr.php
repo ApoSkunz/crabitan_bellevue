@@ -117,6 +117,7 @@ return [
     'wine.sort.vintage_asc'  => 'Millésime croissant',
     'wine.sort.vintage_desc' => 'Millésime décroissant',
     'wine.sort.likes_desc'   => 'Les plus aimés',
+    'wine.sort.rating_desc'  => 'Mieux notés',
 
     // Vins — Fiche produit
     'wine.zoom'          => 'Agrandir la photo',

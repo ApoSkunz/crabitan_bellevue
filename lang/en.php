@@ -117,6 +117,7 @@ return [
     'wine.sort.vintage_asc'  => 'Vintage ascending',
     'wine.sort.vintage_desc' => 'Vintage descending',
     'wine.sort.likes_desc'   => 'Most liked',
+    'wine.sort.rating_desc'  => 'Top rated',
 
     // Wines — Product sheet
     'wine.zoom'          => 'Enlarge photo',
