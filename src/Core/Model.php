@@ -40,7 +40,7 @@ abstract class Model
      *
      * @param string       $where  Clause WHERE sans le mot-clé (ex. 'active = 1')
      * @param array<mixed> $params Paramètres de la clause WHERE
-     * @return array<int, array<string, mixed>>
+     * @return array<array-key, array<string, mixed>>
      */
     public function findAll(string $where = '', array $params = []): array
     {
