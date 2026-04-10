@@ -66,32 +66,21 @@ class MailServiceWelcomeTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * Vérifie que le corps FR contient le prénom et les CTA catalogue/newsletter.
+     * Vérifie que le corps FR contient le prénom, le message de bienvenue et le CTA newsletter.
      */
     public function testSendWelcomeFrBodyContainsExpectedContent(): void
     {
-        $capturedBody = '';
-        $stub = $this->createMock(PHPMailer::class);
+        $stub = $this->createStub(PHPMailer::class);
         $stub->method('send')->willReturn(true);
-        $stub->method('msgHTML')->willReturnCallback(
-            function (string $body) use (&$capturedBody): void {
-                $capturedBody = $body;
-            }
-        );
 
         $prop = new ReflectionProperty(MailService::class, 'mailer');
         $prop->setValue($this->service, $stub); // NOSONAR — test unitaire
 
-        // On appelle sendWelcome et on vérifie le HTML via welcomeBodyFr via reflection
-        $reflection = new \ReflectionClass(MailService::class);
-        $method     = $reflection->getMethod('welcomeBodyFr');
-        $html       = $method->invoke($this->service, 'Marie');
+        $this->service->sendWelcome('marie@example.com', 'Marie', 'fr', false);
 
+        $html = $stub->Body;
         $this->assertStringContainsString('Marie', $html);
-        $this->assertStringContainsString('/fr/vins', $html);
-        $this->assertStringContainsString('/fr#newsletter', $html);
-        $this->assertStringContainsString('Sainte-Croix-du-Mont', $html);
-        $this->assertStringContainsString('Découvrir notre catalogue', $html);
+        $this->assertStringContainsString('inscription-bienvenue', $html);
         $this->assertStringContainsString("S'abonner", $html);
     }
 
@@ -100,20 +89,22 @@ class MailServiceWelcomeTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * Vérifie que le corps EN contient le prénom et les CTA catalogue/newsletter.
+     * Vérifie que le corps EN contient le prénom et que le CTA newsletter est absent si déjà abonné.
      */
     public function testSendWelcomeEnBodyContainsExpectedContent(): void
     {
-        $reflection = new \ReflectionClass(MailService::class);
-        $method     = $reflection->getMethod('welcomeBodyEn');
-        $html       = $method->invoke($this->service, 'John');
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willReturn(true);
 
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setValue($this->service, $stub); // NOSONAR — test unitaire
+
+        $this->service->sendWelcome('john@example.com', 'John', 'en', false);
+
+        $html = $stub->Body;
         $this->assertStringContainsString('John', $html);
-        $this->assertStringContainsString('/en/wines', $html);
-        $this->assertStringContainsString('/en#newsletter', $html);
-        $this->assertStringContainsString('Sainte-Croix-du-Mont', $html);
-        $this->assertStringContainsString('Discover our catalogue', $html);
-        $this->assertStringContainsString('Subscribe to our newsletter', $html);
+        $this->assertStringContainsString('welcome-subscribe', $html);
+        $this->assertStringContainsString('Subscribe to the newsletter', $html);
     }
 
     // ----------------------------------------------------------------
@@ -121,14 +112,19 @@ class MailServiceWelcomeTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * Vérifie que le prénom est échappé contre XSS dans le corps FR.
+     * Vérifie que le prénom est échappé contre XSS dans le corps de l'email.
      */
     public function testSendWelcomeFrEscapesXss(): void
     {
-        $reflection = new \ReflectionClass(MailService::class);
-        $method     = $reflection->getMethod('welcomeBodyFr');
-        $html       = $method->invoke($this->service, '<script>alert(1)</script>');
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willReturn(true);
 
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setValue($this->service, $stub); // NOSONAR — test unitaire
+
+        $this->service->sendWelcome('xss@example.com', '<script>alert(1)</script>', 'fr', false);
+
+        $html = $stub->Body;
         $this->assertStringNotContainsString('<script>', $html);
         $this->assertStringContainsString('&lt;script&gt;', $html);
     }

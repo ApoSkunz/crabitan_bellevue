@@ -218,7 +218,7 @@ class MailServicePostPurchaseTest extends TestCase
      */
     public function testSendPostPurchaseEmptyItemsDoesNotThrow(): void
     {
-        $service = new MailService();
+        $service = $this->makeServiceWithRatingStub();
         $this->injectMockMailer($service);
 
         $service->sendPostPurchase(

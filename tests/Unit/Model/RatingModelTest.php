@@ -321,10 +321,8 @@ class RatingModelTest extends TestCase
 
         $this->assertArrayHasKey(1, $result);
         $this->assertArrayHasKey(2, $result);
-        $this->assertSame(4.5, $result[1]['avg']);
-        $this->assertSame(3, $result[1]['count']);
-        $this->assertNull($result[2]['avg']); // < 2 avis
-        $this->assertSame(1, $result[2]['count']);
+        $this->assertSame(4.5, $result[1]); // >= 2 avis → float
+        $this->assertNull($result[2]);       // < 2 avis → null
     }
 
     // ----------------------------------------------------------------
