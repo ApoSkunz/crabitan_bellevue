@@ -743,7 +743,7 @@ class WineControllerTest extends IntegrationTestCase
         $l         = fn(array $arr): string => $arr['fr'] ?? '';
 
         $pdf = $buildRef->invoke($ctrl, '', 'fr');
-        $renderRef->invoke($ctrl, $pdf, $this->makePdfWine(['award' => '{"fr":"","en":""}']), '', 'fr', $l);
+        $renderRef->invoke($ctrl, $pdf, $this->makePdfWine(['award' => '{"fr":"","en":""}']), [], '', 'fr', $l);
 
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
@@ -789,7 +789,7 @@ class WineControllerTest extends IntegrationTestCase
         $l         = fn(array $arr): string => $arr['en'] ?? '';
 
         $pdf = $buildRef->invoke($ctrl, '', 'en');
-        $renderRef->invoke($ctrl, $pdf, $this->makePdfWine(['area' => null, 'age_of_vineyard' => null]), $srcPng, 'en', $l);
+        $renderRef->invoke($ctrl, $pdf, $this->makePdfWine(['area' => null, 'age_of_vineyard' => null]), [], $srcPng, 'en', $l);
 
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
@@ -849,7 +849,7 @@ class WineControllerTest extends IntegrationTestCase
         $l         = fn(array $arr): string => $arr['fr'] ?? '';
 
         $pdf = $buildRef->invoke($ctrl, '', 'fr');
-        $renderRef->invoke($ctrl, $pdf, $this->makePdfWine(), '', 'fr', $l);
+        $renderRef->invoke($ctrl, $pdf, $this->makePdfWine(), [], '', 'fr', $l);
 
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
@@ -884,7 +884,7 @@ class WineControllerTest extends IntegrationTestCase
         ]);
 
         $pdf = $buildRef->invoke($ctrl, '', 'fr');
-        $renderRef->invoke($ctrl, $pdf, $wine, '', 'fr', $l);
+        $renderRef->invoke($ctrl, $pdf, $wine, [], '', 'fr', $l);
 
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }

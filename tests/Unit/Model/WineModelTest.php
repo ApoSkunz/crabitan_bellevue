@@ -685,7 +685,7 @@ class WineModelTest extends TestCase
 
         $data = [
             'label_name' => 'Bordeaux Rouge', 'wine_color' => 'red', 'format' => 'bottle',
-            'vintage' => 2022, 'price' => 15.0, 'quantity' => 500, 'available' => 1,
+            'vintage' => 2022, 'price' => 15.0, 'production_quantity' => 500, 'available' => 1,
             'certification_label' => 'AOC', 'area' => 1.5, 'city' => 'Bellevue',
             'variety_of_vine' => 'Merlot', 'age_of_vineyard' => 20,
             'oenological_comment' => '{}', 'soil' => '{}', 'pruning' => '{}',
@@ -933,7 +933,7 @@ class WineModelTest extends TestCase
 
         $data = [
             'label_name' => 'Bordeaux Rouge', 'wine_color' => 'red', 'format' => 'bottle',
-            'vintage' => 2022, 'price' => 16.0, 'quantity' => 500, 'available' => 1,
+            'vintage' => 2022, 'price' => 16.0, 'production_quantity' => 500, 'available' => 1,
             'certification_label' => 'AOC', 'area' => 1.5, 'city' => 'Bellevue',
             'variety_of_vine' => 'Merlot', 'age_of_vineyard' => 20,
             'oenological_comment' => '{}', 'soil' => '{}', 'pruning' => '{}',
