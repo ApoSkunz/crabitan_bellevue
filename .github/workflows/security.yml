@@ -35,8 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     continue-on-error: true
-    # Blue Team: version épinglée via EXAKAT_VERSION. SHA256 optionnel via secret EXAKAT_PHAR_SHA256.
-    # Si exakat.io est indisponible, le job est ignoré proprement (warning, pas d'erreur).
+    # Blue Team: image exakat/exakat-ga (dédiée CI, pas de phar ni version numérotée requise).
 
     steps:
       - name: Checkout
@@ -44,47 +43,21 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Setup PHP 8.4
-        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
-        with:
-          php-version: '8.4'
-          extensions: tokenizer, mbstring, json
-          coverage: none
-
-      - name: Download & run Exakat
-        env:
-          EXAKAT_VERSION: '2.6.9'
-          EXAKAT_SHA256: ${{ secrets.EXAKAT_PHAR_SHA256 }}
+      - name: Run Exakat SAST (exakat-ga)
         run: |
-          PHAR_OK=0
+          docker run --rm \
+            -v "${{ github.workspace }}:/github/workspace" \
+            exakat/exakat-ga:latest \
+            > exakat-report.txt 2>&1 || true
+          cat exakat-report.txt
 
-          # Tentative 1 : GitHub Releases (version épinglée)
-          if curl -fsSL \
-            "https://github.com/exakat/exakat/releases/download/${EXAKAT_VERSION}/exakat.phar" \
-            -o exakat.phar 2>/dev/null; then
-            PHAR_OK=1
-          # Tentative 2 : exakat.io latest (fallback si GitHub Release absente)
-          elif curl -fsSL "https://www.exakat.io/versions/exakat.phar" \
-            -o exakat.phar 2>/dev/null; then
-            echo "::warning::GitHub Release ${EXAKAT_VERSION} introuvable — fallback latest"
-            PHAR_OK=1
-          else
-            echo "::warning::Exakat indisponible (GitHub + exakat.io) — analyse ignorée"
-          fi
-
-          if [ "$PHAR_OK" -eq 1 ]; then
-            if [ -n "${EXAKAT_SHA256}" ]; then
-              echo "${EXAKAT_SHA256}  exakat.phar" | sha256sum -c - \
-                || { echo "::error::Checksum exakat.phar invalide — abort"; exit 1; }
-            else
-              echo "::warning::EXAKAT_PHAR_SHA256 non défini — vérification SHA256 ignorée"
-            fi
-            php exakat.phar doctor
-            php exakat.phar ci-checks \
-              -p . \
-              --ignore-dirs vendor,node_modules,coverage,public/assets \
-              -r Text
-          fi
+      - name: Upload Exakat report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: exakat-report
+          path: exakat-report.txt
+          retention-days: 7
 
   codeql:
     name: CodeQL Analysis
