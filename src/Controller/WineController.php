@@ -442,15 +442,9 @@ class WineController extends Controller
                 ($isEn ? 'Ageing'  : 'Élevage')   => $l($barrel),
             ]),
             ...( filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN)
-                ? array_filter([
-                    ($isEn ? 'INGREDIENTS' : 'INGRÉDIENTS') => (function () use ($nutrition, $isEn): string {
-                        $dec = json_decode((string) ($nutrition['ingredients'] ?? ''), true) ?? [];
-                        return (string) ($dec[$isEn ? 'en' : 'fr'] ?? ($dec['fr'] ?? ''));
-                    })(),
-                    ($isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES') => array_filter(
-                        $this->buildNutritionFields($nutrition, $isEn)
-                    ),
-                ])
+                ? [$isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES' => array_filter(
+                    $this->buildNutritionFields($nutrition, $isEn)
+                )]
                 : []
             ),
         ];
@@ -466,6 +460,9 @@ class WineController extends Controller
     {
         $g = fn(string $k): string => isset($nutrition[$k]) ? $nutrition[$k] . ' g' : '';
 
+        $ingDecoded = json_decode((string) ($nutrition['ingredients'] ?? ''), true) ?? [];
+        $ingText    = (string) ($ingDecoded[$isEn ? 'en' : 'fr'] ?? ($ingDecoded['fr'] ?? ''));
+
         $energy = '';
         if (isset($nutrition['energy_kj'])) {
             $kj   = (int) $nutrition['energy_kj'];
@@ -474,6 +471,7 @@ class WineController extends Controller
         }
 
         return [
+            ($isEn ? 'Ingredients'        : 'Ingrédients')      => $ingText,
             ($isEn ? 'Energy'             : 'Énergie')          => $energy,
             ($isEn ? 'Fat'                : 'Matières grasses') => $g('fat_g'),
             ($isEn ? 'of which saturates' : 'dont saturés')     => $g('saturated_fat_g'),
