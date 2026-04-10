@@ -2,6 +2,23 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.57.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.56.0...v0.57.0) (2026-04-10)
+
+
+### Bug Fixes
+
+* **age-gate:** remplacer 302 direct par meta-refresh pour contourner CSP form-action ([7e29f69](https://github.com/ApoSkunz/crabitan_bellevue/commit/7e29f699e2f68a9db2d1cb5ff23aca958ca3a528))
+* **checkout:** afficher le formulaire nouvelle adresse quand aucune adresse enregistrée ([23a1df3](https://github.com/ApoSkunz/crabitan_bellevue/commit/23a1df36b842424d2990c03cb61f0b51a123b209))
+* **e2e:** mocker google.com dans age-gate pour éviter ERR_ABORTED en CI ([e53e7d4](https://github.com/ApoSkunz/crabitan_bellevue/commit/e53e7d4c9934c088066372a8948d65cdc914ce54))
+* **sonar:** NOSONAR meta-refresh + TU SecurityHeaderMiddleware (coverage 0→100%) ([37ba917](https://github.com/ApoSkunz/crabitan_bellevue/commit/37ba9175f76f7fb22fec8c29c8082e5d2dcdf08c))
+* **test:** adapter AgeGateControllerTest au meta-refresh + corriger assertTrue(true) ([cf10dec](https://github.com/ApoSkunz/crabitan_bellevue/commit/cf10dec19ac1ffc6fc4bef6c9146a855c8bfe6aa))
+
+
+### Features
+
+* **security:** ajouter SecurityHeaderMiddleware avec CSP nonce par requête ([5b7e784](https://github.com/ApoSkunz/crabitan_bellevue/commit/5b7e78464851b48e4a97d99c0dd8ba396cc37087))
+* **view:** ajouter nonce CSP sur tous les <script> inline (20 vues) ([d0d3b96](https://github.com/ApoSkunz/crabitan_bellevue/commit/d0d3b9689ba8a0064edc08ad6365ca6dea389f7b))
+
 # [0.56.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.55.0...v0.56.0) (2026-04-10)
 
 
