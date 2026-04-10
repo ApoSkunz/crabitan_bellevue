@@ -26,7 +26,7 @@ $labelRequires = [1 => 'Oui', 0 => 'Non'];
                         <th style="padding:0.5rem 0.75rem;">Version</th>
                         <th style="padding:0.5rem 0.75rem;">Mise à jour</th>
                         <th style="padding:0.5rem 0.75rem;">Notification</th>
-                        <th style="padding:0.5rem 0;">Actions</th>
+                        <th style="padding:0.5rem 0;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -49,14 +49,10 @@ $labelRequires = [1 => 'Oui', 0 => 'Non'];
                                 <span style="color:#9a8f80;">Non</span>
                             <?php endif; ?>
                         </td>
-                        <td style="padding:0.5rem 0;white-space:nowrap;">
+                        <td style="padding:0.5rem 0;">
                             <a href="/admin/dpo/pages-legales/<?= rawurlencode($slug) ?>/modifier"
-                               style="font-size:0.85rem;color:#8a6a2e;text-decoration:underline;margin-right:0.75rem;">
+                               style="font-size:0.85rem;color:#8a6a2e;text-decoration:underline;">
                                 Modifier
-                            </a>
-                            <a href="/admin/dpo/pages-legales/<?= rawurlencode($slug) ?>/historique"
-                               style="font-size:0.85rem;color:#6b5f50;text-decoration:underline;">
-                                Historique
                             </a>
                         </td>
                     </tr>

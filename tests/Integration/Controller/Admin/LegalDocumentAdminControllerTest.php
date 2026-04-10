@@ -319,48 +319,4 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
         $this->assertSame(302, $caught->status);
     }
 
-    // ----------------------------------------------------------------
-    // history() — GET
-    // ----------------------------------------------------------------
-
-    public function testHistoryRendersForKnownSlug(): void
-    {
-        ob_start();
-        $this->makeController('GET', '/admin/dpo/pages-legales/cgv/historique')
-            ->history(['slug' => 'cgv']);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('Historique', $output);
-    }
-
-    public function testHistoryAborts404ForUnknownSlug(): void
-    {
-        $caught = null;
-        try {
-            $this->makeController('GET', '/admin/dpo/pages-legales/inexistant/historique')
-                ->history(['slug' => 'inexistant']);
-        } catch (HttpException $e) {
-            $caught = $e;
-        }
-
-        $this->assertNotNull($caught);
-        $this->assertSame(404, $caught->status);
-    }
-
-    public function testHistoryDeniedForSimpleAdmin(): void
-    {
-        $token = Jwt::generate($this->adminId, 'admin');
-        $_COOKIE['auth_token'] = $token;
-        $this->insertConnection($this->adminId, $token);
-
-        $caught = null;
-        try {
-            $this->makeController('GET', '/admin/dpo/pages-legales/cgv/historique')
-                ->history(['slug' => 'cgv']);
-        } catch (HttpException $e) {
-            $caught = $e;
-        }
-
-        $this->assertNotNull($caught);
-    }
 }

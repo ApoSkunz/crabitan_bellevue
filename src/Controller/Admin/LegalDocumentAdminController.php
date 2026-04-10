@@ -161,7 +161,6 @@ class LegalDocumentAdminController extends AdminController
         }
 
         $this->model->update($slug, $version, $updatedAt, (int) $adminUser['id']);
-        $this->model->logHistory((int) $document['id'], $version, $updatedAt, (int) $adminUser['id']);
 
         AuditLogger::log(
             (int) $adminUser['id'],
@@ -189,39 +188,6 @@ class LegalDocumentAdminController extends AdminController
 
         $this->flash('success', htmlspecialchars($document['label']) . ' mis à jour en v' . $version . '.');
         Response::redirect(self::ADMIN_URL);
-    }
-
-    // ----------------------------------------------------------------
-    // GET /admin/dpo/pages-legales/{slug}/historique
-    // ----------------------------------------------------------------
-
-    /**
-     * Affiche l'historique des versions successives d'un document légal.
-     *
-     * @param array<string, string> $params Paramètres de route (slug)
-     */
-    public function history(array $params): void
-    {
-        $adminUser = $this->requireSuperAdmin();
-        $document  = $this->model->findBySlug($params['slug'] ?? '');
-
-        if ($document === null) {
-            $this->abort(404, 'Document introuvable');
-        }
-
-        $this->view('admin/dpo/pages-legales/history', [
-            'adminUser'    => $adminUser,
-            'adminSection' => 'dpo',
-            'pageTitle'    => 'Historique — ' . htmlspecialchars($document['label']),
-            'breadcrumbs'  => [
-                ['label' => 'Admin', 'url' => '/admin'],
-                ['label' => 'DPO', 'url' => '/admin/dpo'],
-                ['label' => 'Documents légaux', 'url' => self::ADMIN_URL],
-                ['label' => htmlspecialchars($document['label'])],
-            ],
-            'document' => $document,
-            'history'  => $this->model->findHistoryByDocumentId((int) $document['id']),
-        ]);
     }
 
     // ----------------------------------------------------------------

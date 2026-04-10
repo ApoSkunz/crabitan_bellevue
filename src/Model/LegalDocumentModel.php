@@ -147,41 +147,4 @@ class LegalDocumentModel extends Model
         );
     }
 
-    /**
-     * Insère une entrée dans legal_document_history à chaque mise à jour de version.
-     *
-     * @param int    $docId     Identifiant du document légal
-     * @param string $version   Numéro de version archivé
-     * @param string $updatedAt Date effective de la mise à jour (format Y-m-d)
-     * @param int    $adminId   Identifiant de l'admin ayant effectué la MàJ
-     * @return void
-     */
-    public function logHistory(int $docId, string $version, string $updatedAt, int $adminId): void
-    {
-        $this->db->execute(
-            "INSERT INTO legal_document_history (legal_document_id, version, updated_at, updated_by)
-             VALUES (?, ?, ?, ?)",
-            [$docId, $version, $updatedAt, $adminId]
-        );
-    }
-
-    /**
-     * Retourne l'historique des versions d'un document, du plus récent au plus ancien.
-     *
-     * @param int $docId Identifiant du document légal
-     * @return array<int, array<string, mixed>>
-     */
-    public function findHistoryByDocumentId(int $docId): array
-    {
-        return $this->db->fetchAll(
-            "SELECT h.version, h.updated_at, h.created_at,
-                    COALESCE(TRIM(CONCAT(ai.firstname, ' ', ai.lastname)), a.email) AS updated_by_name
-             FROM legal_document_history h
-             LEFT JOIN accounts a  ON a.id  = h.updated_by
-             LEFT JOIN account_individuals ai ON ai.account_id = h.updated_by
-             WHERE h.legal_document_id = ?
-             ORDER BY h.created_at DESC",
-            [$docId]
-        );
-    }
 }
