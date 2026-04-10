@@ -285,8 +285,9 @@ return [
     'home.savoir_cta'   => 'En savoir plus',
 
     // Homepage — Section Vidéo
-    'home.video_tag'   => 'Le domaine',
-    'home.video_title' => 'Le Château en vidéo',
+    'home.video_tag'            => 'Le domaine',
+    'home.video_title'          => 'Le Château en vidéo',
+    'home.video_captions_label' => 'Sous-titres indisponibles (vidéo sans paroles)',
 
     // Homepage — Section Actualités
     'home.news_tag'   => 'À la une',
