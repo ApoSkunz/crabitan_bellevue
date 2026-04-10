@@ -35,8 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     continue-on-error: true
-    # Blue Team: version épinglée via EXAKAT_VERSION. SHA256 optionnel via secret EXAKAT_PHAR_SHA256.
-    # Si exakat.io est indisponible, le job est ignoré proprement (warning, pas d'erreur).
+    # Blue Team: image exakat/exakat-ga (dédiée CI, pas de phar ni version numérotée requise).
 
     steps:
       - name: Checkout
@@ -44,22 +43,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Setup PHP 8.4
-        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
-        with:
-          php-version: '8.4'
-          extensions: tokenizer, mbstring, json
-          coverage: none
-
-      - name: Run Exakat SAST (Docker)
+      - name: Run Exakat SAST (exakat-ga)
         run: |
           docker run --rm \
-            -v "${{ github.workspace }}:/var/www/exakat" \
-            exakat/exakat:2.6.9 \
-            ci-checks \
-              -p /var/www/exakat \
-              --ignore-dirs vendor,node_modules,coverage,public/assets \
-              -r Text \
+            -v "${{ github.workspace }}:/github/workspace" \
+            exakat/exakat-ga:latest \
             > exakat-report.txt 2>&1 || true
           cat exakat-report.txt
 
