@@ -39,10 +39,8 @@ class SecurityHeaderMiddleware
             "object-src 'none'",
         ]);
 
+        // X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+        // et HSTS sont gérés statiquement dans public/.htaccess
         header("Content-Security-Policy: {$csp}");
-        header('X-Frame-Options: DENY');
-        header('X-Content-Type-Options: nosniff');
-        header('Referrer-Policy: strict-origin-when-cross-origin');
-        header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
     }
 }
