@@ -869,6 +869,12 @@ return [
     'checkout.view_orders'            => 'Voir mes commandes',
     'checkout.continue_shopping'      => 'Continuer mes achats',
 
+    // Stepper tunnel de commande
+    'stepper.cart'         => 'Panier',
+    'stepper.delivery'     => 'Livraison & paiement',
+    'stepper.confirmation' => 'Confirmation',
+    'stepper.aria_label'   => 'Étapes de la commande',
+
     // Paiement CA e-Transactions
     'payment.redirect_title'   => 'Redirection vers le paiement sécurisé',
     'payment.redirect_message' => 'Redirection vers notre plateforme de paiement sécurisée…',
