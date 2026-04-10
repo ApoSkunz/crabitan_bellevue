@@ -327,6 +327,7 @@ CREATE TABLE `orders` (
   `path_invoice`         VARCHAR(255)   DEFAULT NULL,
   `ordered_at`           DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `delivered_at`         DATETIME       DEFAULT NULL COMMENT 'Date de livraison confirmée ; base du délai de rétractation (15 j)',
+  `rating_email_sent_at` DATETIME       DEFAULT NULL COMMENT 'Date d\'envoi de l\'email de notation J+7 post-livraison',
   `updated_at`           DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_orders_reference` (`order_reference`),
@@ -841,6 +842,24 @@ CREATE TABLE IF NOT EXISTS `wine_ratings` (
   CONSTRAINT `fk_wr_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_wr_wine` FOREIGN KEY (`wine_id`) REFERENCES `wines` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_wr_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : order_rating_tokens
+-- Token unique par commande pour la page de notation centralisée.
+-- Permet d'afficher tous les vins d'une commande sur une seule page.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `order_rating_tokens` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `order_id` INT NOT NULL,
+  `account_id` INT NOT NULL,
+  `token` VARCHAR(64) NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_order_token` (`token`),
+  UNIQUE KEY `uq_order_account` (`order_id`, `account_id`),
+  CONSTRAINT `fk_ort_order` FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ort_account` FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 COMMIT;
