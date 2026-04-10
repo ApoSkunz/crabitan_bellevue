@@ -2,6 +2,14 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.60.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.59.0...v0.60.0) (2026-04-10)
+
+
+### Features
+
+* **i18n:** ajouter clés manquantes FR/EN pour traduction intégrale ([04d4315](https://github.com/ApoSkunz/crabitan_bellevue/commit/04d4315060217c4cf76618ef7d1f5c956d5e03b2))
+* **view:** remplacer tous les textes FR codés en dur par __() dans les vues publiques ([a10b098](https://github.com/ApoSkunz/crabitan_bellevue/commit/a10b09849e95416d06ebe0c082ebd27e21358980))
+
 # [0.59.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.58.0...v0.59.0) (2026-04-10)
 
 
