@@ -8,6 +8,7 @@ use Controller\AccountController;
 use Core\Exception\HttpException;
 use Core\Jwt;
 use Core\Request;
+use Service\EncryptionService;
 use Tests\Integration\IntegrationTestCase;
 
 /**
@@ -192,7 +193,8 @@ class AccountEmailChangeTest extends IntegrationTestCase
             [$userId]
         );
         $this->assertNotNull($row['email_change_token'], 'Le token doit être stocké en BDD');
-        $this->assertSame(self::NEW_EMAIL, $row['email_change_new_email']);
+        $enc = EncryptionService::fromEnv();
+        $this->assertSame(self::NEW_EMAIL, $enc->decrypt($row['email_change_new_email']) ?? $row['email_change_new_email']);
         $this->assertGreaterThan(
             date('Y-m-d H:i:s'),
             $row['email_change_expires_at'],
@@ -418,6 +420,8 @@ class AccountEmailChangeTest extends IntegrationTestCase
         );
         $this->assertIsArray($row);
         $this->assertNull($row['email_change_token'], 'Aucun token ne doit être stocké si l\'email est déjà pris');
-        $this->assertSame(self::NEW_EMAIL, $row['email_change_new_email'], 'La nouvelle adresse doit être enregistrée pour afficher le bloc pending');
+        $enc2        = EncryptionService::fromEnv();
+        $decodedNew  = $enc2->decrypt($row['email_change_new_email']) ?? $row['email_change_new_email'];
+        $this->assertSame(self::NEW_EMAIL, $decodedNew, 'La nouvelle adresse doit être enregistrée pour afficher le bloc pending');
     }
 }
