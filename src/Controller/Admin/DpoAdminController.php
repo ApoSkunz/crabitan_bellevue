@@ -20,8 +20,6 @@ class DpoAdminController extends AdminController
         return $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
     }
     private const DATE_FORMAT = 'd/m/Y';
-    // Chemin de la configuration légale
-    private const LEGAL_CONFIG = '/config/legal.php';
     // Offset révision annuelle (S1192)
     private const NEXT_YEAR = '+1 year';
     // Labels répétés dans les tableaux RGPD (S1192)
@@ -35,19 +33,18 @@ class DpoAdminController extends AdminController
     private const ROW_PROPORTION    = 'Proportionnalité';
     private const ROW_OPPOSITION    = "Droit d'opposition";
 
-    /** @var array<string, array<string, string>>|null Cache de la configuration légale */
+    /** @var array<string, array<string, mixed>>|null Cache de la configuration légale */
     private ?array $legalConfigCache = null;
 
     /**
-     * Charge et met en cache la configuration légale depuis config/legal.php.
-     * Évite les inclusions multiples du même fichier (S2003).
+     * Charge et met en cache la configuration légale depuis la BDD.
      *
-     * @return array<string, array<string, string>>
+     * @return array<string, array<string, mixed>>
      */
     private function legalConfig(): array
     {
         if ($this->legalConfigCache === null) {
-            $this->legalConfigCache = require ROOT_PATH . self::LEGAL_CONFIG; // NOSONAR php:S2003
+            $this->legalConfigCache = (new \Model\LegalDocumentModel())->findAll();
         }
         return $this->legalConfigCache;
     }

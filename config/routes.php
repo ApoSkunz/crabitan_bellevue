@@ -44,6 +44,11 @@ $router->get('/admin/dpo/sous-traitants', 'Admin\DpoAdminController@downloadSous
 $router->get('/admin/dpo/procedure-violation', 'Admin\DpoAdminController@downloadProcedure');
 $router->get('/admin/dpo/matrice-habilitations', 'Admin\DpoAdminController@downloadMatrice');
 $router->get('/admin/dpo/dpia', 'Admin\DpoAdminController@downloadDpia');
+$router->get('/admin/dpo/pages-legales', 'Admin\LegalDocumentAdminController@index');
+$router->get('/admin/dpo/pages-legales/{slug}/modifier', 'Admin\LegalDocumentAdminController@edit');
+$router->post('/admin/dpo/pages-legales/{slug}/modifier', 'Admin\LegalDocumentAdminController@store');
+$router->get('/admin/dpo/pages-legales/{slug}/confirmer-notification', 'Admin\LegalDocumentAdminController@confirmNotify');
+$router->post('/admin/dpo/pages-legales/{slug}/confirmer-notification', 'Admin\LegalDocumentAdminController@sendNotifications');
 $router->get('/admin/securite', 'Admin\ProfileAdminController@index');
 $router->post('/admin/securite/mot-de-passe', 'Admin\ProfileAdminController@changePassword');
 $router->post('/admin/securite/session/{id}/revoquer', 'Admin\ProfileAdminController@revokeSession');

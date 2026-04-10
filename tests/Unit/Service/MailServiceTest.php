@@ -2026,4 +2026,64 @@ class MailServiceTest extends TestCase
 
         $this->assertStringNotContainsString('<script>', $mailer->Body);
     }
+
+    // ----------------------------------------------------------------
+    // sendLegalDocumentUpdate — FR
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testSendLegalDocumentUpdateFr(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendLegalDocumentUpdate(
+            'user@test.com',
+            'Jean Dupont',
+            'fr',
+            'Conditions Générales de Vente',
+            'https://crabitanbellevue.fr/fr/conditions-generales-de-vente',
+            '1.2',
+            '2026-05-01',
+            'Ajout clause cookies.'
+        );
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('[Mise à jour]', $mailer->Subject);
+        $this->assertStringContainsString('1.2', $mailer->Subject);
+        $this->assertStringContainsString('Jean Dupont', $mailer->Body);
+        $this->assertStringContainsString('01/05/2026', $mailer->Body);
+        $this->assertStringContainsString('Ajout clause cookies', $mailer->Body);
+        $this->assertStringContainsString('Consulter le document', $mailer->Body);
+    }
+
+    // ----------------------------------------------------------------
+    // sendLegalDocumentUpdate — EN
+    // ----------------------------------------------------------------
+
+    #[BackupGlobals(true)]
+    public function testSendLegalDocumentUpdateEn(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendLegalDocumentUpdate(
+            'user@test.com',
+            'John Smith',
+            'en',
+            'Terms and Conditions',
+            'https://crabitanbellevue.fr/en/conditions-generales-de-vente',
+            '1.2',
+            '2026-05-01',
+            ''
+        );
+
+        $prop   = new ReflectionProperty(MailService::class, 'mailer');
+        $mailer = $prop->getValue($this->service);
+
+        $this->assertStringContainsString('[Update]', $mailer->Subject);
+        $this->assertStringContainsString('John Smith', $mailer->Body);
+        $this->assertStringContainsString('View document', $mailer->Body);
+        $this->assertStringNotContainsString('Summary of changes', $mailer->Body);
+    }
 }

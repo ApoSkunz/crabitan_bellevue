@@ -1000,3 +1000,5 @@ INSERT INTO `newsletter_clicks` (`newsletter_id`, `link_id`, `subscriber_id`, `c
 (1, 2, 5, '2026-03-01 14:05:00');
 
 ALTER TABLE `newsletter_clicks` AUTO_INCREMENT = 3;
+
+-- legal_documents : données initiales incluses dans schema.sql (INSERT au schéma)
