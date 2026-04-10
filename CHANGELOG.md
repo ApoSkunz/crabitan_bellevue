@@ -2,6 +2,39 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.62.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.61.1...v0.62.0) (2026-04-10)
+
+
+### Bug Fixes
+
+* **admin:** corriger pendingAction nullifié avant exécution dans la modale de confirmation ([07e0142](https://github.com/ApoSkunz/crabitan_bellevue/commit/07e0142341392e6a10b17f953e40fa592fdbccad))
+* **admin:** initialiser csrf en session admin, nonce CSP sur script inline vins ([6b0ab35](https://github.com/ApoSkunz/crabitan_bellevue/commit/6b0ab35764347863adc719ce955dfec979c2b27d))
+* **cart:** masquer recommandation vin si panier invité non vide ([ed7e05d](https://github.com/ApoSkunz/crabitan_bellevue/commit/ed7e05dbf2320e04ecff5a4ac14ede25d1ccc3a6))
+* **csp:** autoriser frame-src google.com pour la carte Maps homepage ([0c194ba](https://github.com/ApoSkunz/crabitan_bellevue/commit/0c194bac20d9176278dba53dbe550ab2f8534230))
+* **sitemap:** harmoniser pages annexes — grille 3 cols + retirer --fit ([f8d9042](https://github.com/ApoSkunz/crabitan_bellevue/commit/f8d904296d9997714a8b27505ff90ba0d30b94d9))
+* **sonar:** appliquer PAYMENT_LABEL_CHEQUE aux 2 occurrences restantes dans MailService ([9eddaee](https://github.com/ApoSkunz/crabitan_bellevue/commit/9eddaee98b2bcaabe41624f8eba3b7536bb7185c))
+* **sonar:** constante PAYMENT_LABEL_CHEQUE_FR dans MailService, NOSONAR S1448 WineModel ([17a93c4](https://github.com/ApoSkunz/crabitan_bellevue/commit/17a93c42bf59ef47b9a93ed9259b9d442664b1f0))
+* **test:** corriger ligne trop longue OrderModelTest PHPCS ([24c4f2e](https://github.com/ApoSkunz/crabitan_bellevue/commit/24c4f2ee4c362398c305767d71a17b81d8c30120))
+* **view:** vin du moment + admin tableau vins — visuel, CSRF, modals ([0260a08](https://github.com/ApoSkunz/crabitan_bellevue/commit/0260a082abac7f14c23b712f90c95d1e1bed29a6))
+
+
+### Features
+
+* **admin:** modale de confirmation sur toutes les actions vins (mettre en avant, rendre disponible) ([8b8cf92](https://github.com/ApoSkunz/crabitan_bellevue/commit/8b8cf929dea2de6651b065a8543d31328b2b8ce7))
+* **controller:** HomeController — passer featuredWine à la homepage ([3a77020](https://github.com/ApoSkunz/crabitan_bellevue/commit/3a7702002aa8da26fbdf4ff17f506c28cdf41882))
+* **controller:** WineAdminController — setFeatured + toggleAvailable (AJAX) ([dd05d38](https://github.com/ApoSkunz/crabitan_bellevue/commit/dd05d3874ebbdcde6ef743a566d9df1a6b0f3786))
+* **cron:** alerte hebdo commandes bloquées > 7 jours ([e9d9509](https://github.com/ApoSkunz/crabitan_bellevue/commit/e9d9509e152e176f69b7ca854cecd4b14a8c2d9a))
+* **i18n:** clés home.featured_* pour section vin du moment ([71c9447](https://github.com/ApoSkunz/crabitan_bellevue/commit/71c94479ae362133531d8aeb0214913a7c3f8adb))
+* **model:** ajouter certification_label dans getFeatured ([af715df](https://github.com/ApoSkunz/crabitan_bellevue/commit/af715df0ba0cc7fb9d9828ba4835d293a51681f8))
+* **model:** WineModel — getFeatured, setFeatured, toggleAvailable ([a548c9a](https://github.com/ApoSkunz/crabitan_bellevue/commit/a548c9ac4344008d6123df7e64128fdc85facdd5))
+* **page:** crédits photos — route, vue bilingue, lien footer ([73a483a](https://github.com/ApoSkunz/crabitan_bellevue/commit/73a483a8956d90b92f3faac612ec68bc73d4a6c0))
+* **scss:** supprimer border/padding badge, homogénéiser bouton panier avec btn--gold ([e715aaf](https://github.com/ApoSkunz/crabitan_bellevue/commit/e715aaf0a1b97c76e8392f8de76d6f787ef00506))
+* **sitemap:** ajouter carte crédits-photos dans Autres pages ([c9b8209](https://github.com/ApoSkunz/crabitan_bellevue/commit/c9b820942f07110b3b83a9dc547c8649ec3fd786))
+* **sitemap:** retirer carte inscription, réaffecter image à jeux ([e303670](https://github.com/ApoSkunz/crabitan_bellevue/commit/e3036702c82477f22ff0ffac878978040a28725d))
+* **view:** section vin du moment en premier, bouton panier js-add-to-cart, format AOC — appellation ([a279085](https://github.com/ApoSkunz/crabitan_bellevue/commit/a2790851e97c2b749a104ed8d85bbe96dd0a4000))
+* **view:** vin du moment homepage + gestion admin tableau des vins ([2145321](https://github.com/ApoSkunz/crabitan_bellevue/commit/214532107e623608883b7071d658f4884f714e49))
+* **weather:** déplacer crédit WeatherAPI vers mentions légales ([eea6eb0](https://github.com/ApoSkunz/crabitan_bellevue/commit/eea6eb0140787acbd55eb6b802c6fbb03826f16e))
+
 ## [0.61.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.61.0...v0.61.1) (2026-04-10)
 
 
