@@ -94,7 +94,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                         <td><?= htmlspecialchars($colorLabels[$wine['wine_color']] ?? $wine['wine_color']) ?></td>
                         <td><?= (int) $wine['vintage'] ?></td>
                         <td><?= number_format((float) $wine['price'], 2, ',', ' ') ?>&nbsp;€</td>
-                        <td><?= number_format((int) $wine['quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
+                        <td><?= number_format((int) $wine['production_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
                         <td>
                             <span class="badge badge--<?= $wine['available'] ? 'available' : 'out' ?>">
                                 <?= $wine['available'] ? 'Disponible' : 'Indisponible' ?>

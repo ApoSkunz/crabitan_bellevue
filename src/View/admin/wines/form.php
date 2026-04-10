@@ -126,12 +126,12 @@ $maxYear = (int) date('Y');
             </div>
 
             <div class="admin-field">
-                <label class="admin-field__label" for="quantity">Quantité produite (bt) *</label>
-                <input type="number" id="quantity" name="quantity" required min="0"
-                       class="admin-field__input<?= hasError($errors, 'quantity') ? $errClass : '' ?>"
-                       value="<?= fieldVal($wine, 'quantity', '0') ?>">
-                <?php if (hasError($errors, 'quantity')) : ?>
-                    <span class="admin-field__error"><?= htmlspecialchars($errors['quantity']) ?></span>
+                <label class="admin-field__label" for="production_quantity">Quantité produite (bt) *</label>
+                <input type="number" id="production_quantity" name="production_quantity" required min="0"
+                       class="admin-field__input<?= hasError($errors, 'production_quantity') ? $errClass : '' ?>"
+                       value="<?= fieldVal($wine, 'production_quantity', '0') ?>">
+                <?php if (hasError($errors, 'production_quantity')) : ?>
+                    <span class="admin-field__error"><?= htmlspecialchars($errors['production_quantity']) ?></span>
                 <?php endif; ?>
             </div>
 
@@ -203,6 +203,26 @@ $maxYear = (int) date('Y');
                     <input type="checkbox" id="is_cuvee_speciale" name="is_cuvee_speciale" value="1"
                            <?= ($wine['is_cuvee_speciale'] ?? 0) ? 'checked' : '' ?>>
                     <label for="is_cuvee_speciale">Cuvée spéciale</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---- Degré alcool + Garde ---- -->
+        <div class="admin-form__section">
+            <div class="admin-form__grid admin-form__grid--3">
+                <div class="admin-field">
+                    <label class="admin-field__label" for="alcohol_degree">Degré d'alcool (% vol.)</label>
+                    <input type="text" id="alcohol_degree" name="alcohol_degree"
+                           class="admin-field__input"
+                           value="<?= htmlspecialchars((string) ($wine['alcohol_degree'] ?? '')) ?>"
+                           placeholder="ex : 12 ou 12,5">
+                </div>
+                <div class="admin-field">
+                    <label class="admin-field__label" for="aging_potential">Garde</label>
+                    <input type="text" id="aging_potential" name="aging_potential"
+                           class="admin-field__input"
+                           value="<?= htmlspecialchars((string) ($wine['aging_potential'] ?? '')) ?>"
+                           placeholder="ex : 5 à 10 ans">
                 </div>
             </div>
         </div>
@@ -292,39 +312,35 @@ $maxYear = (int) date('Y');
                 Tous les champs sont facultatifs. Valeurs acceptées : <code>0</code>, <code>0,03</code>, <code>&lt; 0,2</code>, <code>traces</code>…
             </p>
 
+            <h3 class="admin-section__subtitle">Déclaration nutritionnelle (pour 100 ml)</h3>
+            <?php if (!empty($errors['nutrition'])) : ?>
+                <p class="admin-field__error"><?= htmlspecialchars($errors['nutrition']) ?></p>
+            <?php endif; ?>
             <div class="admin-form__grid admin-form__grid--3">
+                <!-- Énergie kJ (saisie) + kcal (calculé automatiquement) -->
                 <div class="admin-field">
-                    <label class="admin-field__label" for="alcohol_degree">Degré d'alcool (% vol.)</label>
-                    <input type="text" id="alcohol_degree" name="alcohol_degree"
-                           class="admin-field__input"
-                           value="<?= htmlspecialchars((string) ($wn['alcohol_degree'] ?? '')) ?>"
-                           placeholder="ex : 12 ou 12,5">
+                    <label class="admin-field__label" for="energy_kj">Énergie (kJ)</label>
+                    <input type="number" id="energy_kj" name="energy_kj" min="0"
+                           class="admin-field__input<?= !empty($errors['nutrition']) ? ' admin-field__input--error' : '' ?>"
+                           value="<?= htmlspecialchars((string) ($wn['energy_kj'] ?? '')) ?>"
+                           placeholder="ex : 336">
                 </div>
                 <div class="admin-field">
-                    <label class="admin-field__label" for="aging_potential">Garde</label>
-                    <input type="text" id="aging_potential" name="aging_potential"
-                           class="admin-field__input"
-                           value="<?= htmlspecialchars((string) ($wn['aging_potential'] ?? '')) ?>"
-                           placeholder="ex : 5 à 10 ans">
+                    <label class="admin-field__label" for="energy_kcal_display">Énergie (kcal) — calculé</label>
+                    <?php $kcalDisplay = !empty($wn['energy_kj']) ? (string) (int) round((int) $wn['energy_kj'] / 4.184) : ''; ?>
+                    <input type="text" id="energy_kcal_display" readonly
+                           class="admin-field__input admin-field__input--readonly"
+                           value="<?= htmlspecialchars($kcalDisplay) ?>"
+                           placeholder="calculé depuis kJ">
                 </div>
-            </div>
-
-            <h3 class="admin-section__subtitle" style="margin-top:1.5rem;">Déclaration nutritionnelle (pour 100 ml)</h3>
-            <div class="admin-form__grid admin-form__grid--3">
-                <?php
-                <?php if (!empty($errors['nutrition'])) : ?>
-                    <p class="admin-field__error"><?= htmlspecialchars($errors['nutrition']) ?></p>
-                <?php endif; ?>
                 <?php
                 $nutritionInputs = [
-                    'energy_kj'       => ['label' => 'Énergie (kJ)',                    'placeholder' => 'ex : 336'],
-                    'energy_kcal'     => ['label' => 'Énergie (kcal)',                  'placeholder' => 'ex : 81'],
-                    'fat_g'           => ['label' => 'Matières grasses (g)',            'placeholder' => 'ex : 0 ou &lt; 0,2'],
-                    'saturated_fat_g' => ['label' => 'dont Acides gras saturés (g)',    'placeholder' => 'ex : 0 ou &lt; 0,2'],
-                    'carbohydrate_g'  => ['label' => 'Glucides (g)',                    'placeholder' => 'ex : 0,03'],
-                    'sugars_g'        => ['label' => 'dont Sucres (g)',                 'placeholder' => 'ex : 0,03 ou &lt; 0,2'],
-                    'protein_g'       => ['label' => 'Protéines (g)',                   'placeholder' => 'ex : &lt; 0,2'],
-                    'salt_g'          => ['label' => 'Sel (g)',                         'placeholder' => 'ex : &lt; 0,2'],
+                    'fat_g'           => ['label' => 'Matières grasses (g)',         'placeholder' => 'ex : 0 ou &lt; 0,2'],
+                    'saturated_fat_g' => ['label' => 'dont Acides gras saturés (g)', 'placeholder' => 'ex : 0 ou &lt; 0,2'],
+                    'carbohydrate_g'  => ['label' => 'Glucides (g)',                 'placeholder' => 'ex : 0,03'],
+                    'sugars_g'        => ['label' => 'dont Sucres (g)',              'placeholder' => 'ex : 0,03 ou &lt; 0,2'],
+                    'protein_g'       => ['label' => 'Protéines (g)',                'placeholder' => 'ex : &lt; 0,2'],
+                    'salt_g'          => ['label' => 'Sel (g)',                      'placeholder' => 'ex : &lt; 0,2'],
                 ];
                 foreach ($nutritionInputs as $field => $meta) : ?>
                     <div class="admin-field">
@@ -336,6 +352,17 @@ $maxYear = (int) date('Y');
                     </div>
                 <?php endforeach; ?>
             </div>
+            <script>
+            (function () {
+                const kj   = document.getElementById('energy_kj');
+                const kcal = document.getElementById('energy_kcal_display');
+                if (!kj || !kcal) return;
+                kj.addEventListener('input', function () {
+                    const v = parseInt(this.value, 10);
+                    kcal.value = isNaN(v) || v === 0 ? '' : Math.round(v / 4.184);
+                });
+            }());
+            </script>
 
             <?php if ($enableExtraInfo) : ?>
                 <div class="admin-field" style="margin-top:1.5rem;">
