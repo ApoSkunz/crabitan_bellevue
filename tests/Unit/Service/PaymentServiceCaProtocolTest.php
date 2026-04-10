@@ -24,7 +24,7 @@ use Service\PaymentService;
  *  - buildPbxFields() → langue inconnue → PBX_LANGUE = 'FRA'
  *  - formatBillingField() → preg_replace retourne null (fallback sur $upper)
  */
-class PaymentServiceCoverageTest extends TestCase
+class PaymentServiceCaProtocolTest extends TestCase
 {
     /** @var array<string, string> */
     private array $defaultEnv = [];

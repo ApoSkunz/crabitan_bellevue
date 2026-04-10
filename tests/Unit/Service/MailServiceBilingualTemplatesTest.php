@@ -22,7 +22,7 @@ use Service\MailService;
  * - sendAdminPasswordChangeAlert EN, targetName null et non-null (lignes 2045-2084)
  * - sendLegalDocumentUpdate EN + changeNote non vide (lignes 2944-2963)
  */
-class MailServiceCoverageTest extends TestCase
+class MailServiceBilingualTemplatesTest extends TestCase
 {
     /**
      * Injecte un PHPMailer stub dont send() ne lève pas d'exception.

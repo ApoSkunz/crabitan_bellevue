@@ -24,7 +24,7 @@ use Service\PaymentService;
  *  - Erreur inattendue non-HttpException → catch global → 500 ERROR
  */
 #[AllowMockObjectsWithoutExpectations]
-class IpnControllerCoverageTest extends TestCase
+class IpnControllerHandleFlowTest extends TestCase
 {
     // ================================================================
     // Helpers
