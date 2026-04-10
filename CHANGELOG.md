@@ -2,6 +2,14 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.54.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.54.0...v0.54.1) (2026-04-10)
+
+
+### Bug Fixes
+
+* **sonar:** résoudre tous les code smells + security hotspot sprint-5b ([64f3c47](https://github.com/ApoSkunz/crabitan_bellevue/commit/64f3c473ae68b155bbc39787cecf6d024a18bddc))
+* **test:** corriger 3 échecs CI TI/TU ([f5fc1bc](https://github.com/ApoSkunz/crabitan_bellevue/commit/f5fc1bc97b68938bc39b35807e459a7f67909907))
+
 # [0.54.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.53.0...v0.54.0) (2026-04-10)
 
 
