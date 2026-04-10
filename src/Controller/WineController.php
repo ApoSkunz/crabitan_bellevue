@@ -390,6 +390,7 @@ class WineController extends Controller
      * @param callable(array<string, string>): string $l
      * @return array<string, array<string, string>>
      */
+    // NOSONAR — php:S3776 : complexité inhérente à la construction des sections PDF multilingues
     private function buildPdfSections(array $wine, string $lang, callable $l): array
     {
         $isEn    = $lang === 'en';

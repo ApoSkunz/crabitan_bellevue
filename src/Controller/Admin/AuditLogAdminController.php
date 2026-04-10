@@ -94,7 +94,18 @@ class AuditLogAdminController extends AdminController
         header('Expires: 0');
 
         echo $csv;
-        exit;
+        $this->doExit();
+    }
+
+    /**
+     * Termine le processus courant.
+     * Méthode protégée pour permettre l'override dans les tests.
+     *
+     * @return never
+     */
+    protected function doExit(): never
+    {
+        exit; // NOSONAR — php:S1763 : sortie volontaire après envoi CSV (réponse HTTP complète)
     }
 
     // ----------------------------------------------------------------

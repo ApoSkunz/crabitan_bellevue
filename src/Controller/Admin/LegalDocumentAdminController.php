@@ -15,8 +15,12 @@ use Service\MailService;
  */
 class LegalDocumentAdminController extends AdminController
 {
-    private const ADMIN_URL     = '/admin/dpo/pages-legales';
-    private const VERSION_REGEX = '/^\d+\.\d+(\.\d+)?$/';
+    private const ADMIN_URL            = '/admin/dpo/pages-legales';
+    private const VERSION_REGEX        = '/^\d+\.\d+(\.\d+)?$/';
+    private const EDIT_SUFFIX          = '/modifier';
+    private const BREADCRUMB_ADMIN_URL = '/admin';
+    private const BREADCRUMB_DPO_URL   = '/admin/dpo';
+    private const LABEL_DOCUMENTS      = 'Documents légaux';
 
     /**
      * Correspondance slug → chemin public (sans la langue).
@@ -60,9 +64,9 @@ class LegalDocumentAdminController extends AdminController
             'adminSection' => 'dpo',
             'pageTitle'    => 'Documents légaux — Versioning',
             'breadcrumbs'  => [
-                ['label' => 'Admin', 'url' => '/admin'],
-                ['label' => 'DPO', 'url' => '/admin/dpo'],
-                ['label' => 'Documents légaux'],
+                ['label' => 'Admin', 'url' => self::BREADCRUMB_ADMIN_URL],
+                ['label' => 'DPO', 'url' => self::BREADCRUMB_DPO_URL],
+                ['label' => self::LABEL_DOCUMENTS],
             ],
             'documents'  => $this->model->findAll(),
             'flash'      => $this->getFlash('success'),
@@ -93,9 +97,9 @@ class LegalDocumentAdminController extends AdminController
             'adminSection' => 'dpo',
             'pageTitle'    => 'Modifier — ' . htmlspecialchars($document['label']),
             'breadcrumbs'  => [
-                ['label' => 'Admin', 'url' => '/admin'],
-                ['label' => 'DPO', 'url' => '/admin/dpo'],
-                ['label' => 'Documents légaux', 'url' => self::ADMIN_URL],
+                ['label' => 'Admin', 'url' => self::BREADCRUMB_ADMIN_URL],
+                ['label' => 'DPO', 'url' => self::BREADCRUMB_DPO_URL],
+                ['label' => self::LABEL_DOCUMENTS, 'url' => self::ADMIN_URL],
                 ['label' => htmlspecialchars($document['label'])],
             ],
             'document'   => $document,
@@ -137,13 +141,13 @@ class LegalDocumentAdminController extends AdminController
 
         if (!preg_match(self::VERSION_REGEX, $version)) {
             $this->flash('error', 'Format de version invalide (attendu : X.Y ou X.Y.Z, ex. 1.2 ou 1.2.3).');
-            Response::redirect(self::ADMIN_URL . '/' . rawurlencode($slug) . '/modifier');
+            Response::redirect(self::ADMIN_URL . '/' . rawurlencode($slug) . self::EDIT_SUFFIX);
         }
 
         $dateParsed = \DateTimeImmutable::createFromFormat('Y-m-d', $updatedAt);
         if ($dateParsed === false || $dateParsed->format('Y-m-d') !== $updatedAt) {
             $this->flash('error', 'Date invalide.');
-            Response::redirect(self::ADMIN_URL . '/' . rawurlencode($slug) . '/modifier');
+            Response::redirect(self::ADMIN_URL . '/' . rawurlencode($slug) . self::EDIT_SUFFIX);
         }
 
         /** @var \DateTimeImmutable $dateParsed */
@@ -151,13 +155,13 @@ class LegalDocumentAdminController extends AdminController
 
         if ($date > new \DateTimeImmutable('today')) {
             $this->flash('error', 'La date de mise à jour ne peut pas être dans le futur.');
-            Response::redirect(self::ADMIN_URL . '/' . rawurlencode($slug) . '/modifier');
+            Response::redirect(self::ADMIN_URL . '/' . rawurlencode($slug) . self::EDIT_SUFFIX);
         }
 
         $currentDate = \DateTimeImmutable::createFromFormat('Y-m-d', $document['updated_at']);
         if ($currentDate !== false && $date < $currentDate->setTime(0, 0, 0)) {
             $this->flash('error', 'La date ne peut pas être antérieure à la version courante (' . $document['updated_at'] . ').');
-            Response::redirect(self::ADMIN_URL . '/' . rawurlencode($slug) . '/modifier');
+            Response::redirect(self::ADMIN_URL . '/' . rawurlencode($slug) . self::EDIT_SUFFIX);
         }
 
         $this->model->update($slug, $version, $updatedAt, (int) $adminUser['id']);
@@ -216,9 +220,9 @@ class LegalDocumentAdminController extends AdminController
             'adminSection' => 'dpo',
             'pageTitle'    => 'Confirmer la notification — ' . htmlspecialchars($pending['doc_label']),
             'breadcrumbs'  => [
-                ['label' => 'Admin', 'url' => '/admin'],
-                ['label' => 'DPO', 'url' => '/admin/dpo'],
-                ['label' => 'Documents légaux', 'url' => self::ADMIN_URL],
+                ['label' => 'Admin', 'url' => self::BREADCRUMB_ADMIN_URL],
+                ['label' => 'DPO', 'url' => self::BREADCRUMB_DPO_URL],
+                ['label' => self::LABEL_DOCUMENTS, 'url' => self::ADMIN_URL],
                 ['label' => 'Confirmer notification'],
             ],
             'pending'    => $pending,

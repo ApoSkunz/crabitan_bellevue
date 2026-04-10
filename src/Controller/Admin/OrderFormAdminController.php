@@ -101,7 +101,7 @@ class OrderFormAdminController extends AdminController
         $filename   = $year . '_prices' . $labelSlug . '_' . bin2hex(random_bytes(4)) . '.pdf';
         $dest       = $this->storageDir . '/' . $filename;
 
-        if (!move_uploaded_file($file['tmp_name'], $dest)) {
+        if (!$this->moveUploadedFile($file['tmp_name'], $dest)) {
             $this->flash('error', 'Erreur lors de la sauvegarde du fichier.');
             Response::redirect(self::ADMIN_URL);
         }
@@ -170,6 +170,29 @@ class OrderFormAdminController extends AdminController
         header('Content-Length: ' . filesize($path));
         header('Cache-Control: private, no-cache');
         readfile($path);
-        exit;
+        $this->doExit();
+    }
+
+    /**
+     * Déplace le fichier uploadé vers la destination (seam de testabilité).
+     *
+     * @param string $src  Chemin temporaire du fichier uploadé
+     * @param string $dest Chemin de destination
+     * @return bool
+     */
+    protected function moveUploadedFile(string $src, string $dest): bool
+    {
+        return move_uploaded_file($src, $dest);
+    }
+
+    /**
+     * Termine le processus courant.
+     * Méthode protégée pour permettre l'override dans les tests.
+     *
+     * @return never
+     */
+    protected function doExit(): never
+    {
+        exit; // NOSONAR — php:S1763 : sortie volontaire après envoi PDF (réponse HTTP complète)
     }
 }

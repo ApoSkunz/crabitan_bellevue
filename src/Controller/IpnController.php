@@ -129,12 +129,12 @@ class IpnController
                     $invoiceNumber = sprintf('WEB-INVOICE-%s-%04d', date('Y'), (int) $order['id']);
                     $invoiceDir    = ROOT_PATH . '/storage/invoices';
                     if (!is_dir($invoiceDir)) {
-                        mkdir($invoiceDir, 0755, true);
+                        $this->mkdirInvoices($invoiceDir);
                     }
                     $invoicePath = 'storage/invoices/' . $invoiceNumber . '.pdf';
                     file_put_contents(
                         ROOT_PATH . '/' . $invoicePath, // nosemgrep: php.lang.security.injection.tainted-filename.tainted-filename
-                        (new InvoiceService())->generate($order, $invoiceNumber)
+                        $this->createInvoiceService()->generate($order, $invoiceNumber)
                     );
                     $this->orders->updateInvoiceData((int) $order['id'], $invoiceNumber, $invoicePath);
 
@@ -206,5 +206,26 @@ class IpnController
             echo 'ERROR';
             throw new HttpException(500);
         }
+    }
+
+    /**
+     * Crée le répertoire de stockage des factures (seam de testabilité).
+     *
+     * @param string $dir Chemin absolu du répertoire à créer
+     * @return void
+     */
+    protected function mkdirInvoices(string $dir): void
+    {
+        mkdir($dir, 0755, true); // NOSONAR php:S4823 — création de répertoire applicatif contrôlé
+    }
+
+    /**
+     * Instancie InvoiceService (seam de testabilité).
+     *
+     * @return InvoiceService
+     */
+    protected function createInvoiceService(): InvoiceService
+    {
+        return new InvoiceService();
     }
 }
