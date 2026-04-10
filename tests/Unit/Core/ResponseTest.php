@@ -86,54 +86,6 @@ class ResponseTest extends TestCase
         $this->assertTrue(true);
     }
 
-    /**
-     * forceHttps() ne redirige pas en environnement development.
-     */
-    public function testForceHttpsDoesNothingInDevEnv(): void
-    {
-        $_SERVER['HTTPS']       = 'off';
-        $_SERVER['HTTP_HOST']   = 'crabitan.local';
-        $_SERVER['REQUEST_URI'] = '/fr';
-
-        $this->assertFalse(Response::forceHttps('development'));
-    }
-
-    /**
-     * forceHttps() ne redirige pas en production quand HTTPS est déjà actif.
-     */
-    public function testForceHttpsDoesNothingWhenAlreadyHttps(): void
-    {
-        $_SERVER['HTTPS']       = 'on';
-        $_SERVER['HTTP_HOST']   = 'crabitan.fr';
-        $_SERVER['REQUEST_URI'] = '/fr';
-
-        $this->assertFalse(Response::forceHttps('production'));
-    }
-
-    /**
-     * forceHttps() retourne true en production sans HTTPS.
-     */
-    public function testForceHttpsRedirectsInProductionWithoutHttps(): void
-    {
-        $_SERVER['HTTPS']       = 'off';
-        $_SERVER['HTTP_HOST']   = 'crabitan.fr';
-        $_SERVER['REQUEST_URI'] = '/fr/vins';
-
-        $this->assertTrue(Response::forceHttps('production'));
-    }
-
-    /**
-     * forceHttps() sans argument utilise APP_ENV (défini à 'testing' par le bootstrap → pas de redirect).
-     */
-    public function testForceHttpsUsesAppEnvConstantByDefault(): void
-    {
-        $_SERVER['HTTPS']       = 'off';
-        $_SERVER['HTTP_HOST']   = 'crabitan.local';
-        $_SERVER['REQUEST_URI'] = '/fr';
-
-        // APP_ENV = 'testing' en bootstrap → pas de redirection
-        $this->assertFalse(Response::forceHttps());
-    }
 
     /**
      * Vérifie que view() utilise $data['navLang'] quand il est déjà fourni

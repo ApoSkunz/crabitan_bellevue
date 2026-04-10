@@ -6,7 +6,6 @@ RewriteEngine On
 # RewriteCond %{HTTP_HOST} ^(www\.)?crabitanbellevue\.fr$ [NC]
 # RewriteCond %{HTTPS} off
 # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
-# Fallback PHP : Response::forceHttps() dans index.php (APP_ENV=production)
 # -----------------------------------------------------------------------------
 
 # ---- Mode maintenance -------------------------------------------------------
