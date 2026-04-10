@@ -2,6 +2,35 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.54.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.53.0...v0.54.0) (2026-04-10)
+
+
+### Bug Fixes
+
+* **controller,view:** validation date future + format version x.y.z + conjugaison vont ([8c8c905](https://github.com/ApoSkunz/crabitan_bellevue/commit/8c8c905248682e2ca80b117b7ee48110231a0b75))
+* **cs:** closing brace after body — phpcbf PSR2 ([8fa2d77](https://github.com/ApoSkunz/crabitan_bellevue/commit/8fa2d77b84078163a121ea91b2cd7866cf05b76b))
+* **seed:** INSERT IGNORE legal_documents — évite doublon slug si seed relancé ([ddbdae6](https://github.com/ApoSkunz/crabitan_bellevue/commit/ddbdae699b258c0723d15ea20ec875f1c44adc2b))
+* **seed:** retirer legal_documents du seed — déjà inséré par schema.sql ([d4e0108](https://github.com/ApoSkunz/crabitan_bellevue/commit/d4e0108fe496ebca4fe4a1f1554833e9a705334e))
+* **service:** accord français email légal — "notre" → "le document" ([44e5a3a](https://github.com/ApoSkunz/crabitan_bellevue/commit/44e5a3adfdfaccc78f62c60d7084c2c58142742b))
+
+
+### Features
+
+* **controller:** DpoAdminController + OrderController — legalConfig depuis BDD ([7bf4675](https://github.com/ApoSkunz/crabitan_bellevue/commit/7bf467513c4f0c0d6e017a95a769062d82feb095))
+* **controller:** LegalDocumentAdminController — history action, logHistory on store, date normalization setTime(0,0,0), date >= current version validation ([b301f48](https://github.com/ApoSkunz/crabitan_bellevue/commit/b301f48b8064783d0560998ab84ec6433d3d58bc))
+* **controller:** LegalDocumentAdminController — versioning + notification batch ([fd90e8e](https://github.com/ApoSkunz/crabitan_bellevue/commit/fd90e8e130600c4344197bc0a6c0b20cb3c68eca))
+* **model:** LegalDocumentModel — versioning + notification batch ([b592510](https://github.com/ApoSkunz/crabitan_bellevue/commit/b59251054f8f7d00c6f80d80a7e738195502bde5))
+* **routes:** pages-légales + confirmer-notification ([54c350d](https://github.com/ApoSkunz/crabitan_bellevue/commit/54c350de18ecf598ea458b0c448f6c558341d036))
+* **service:** MailService — sendLegalDocumentUpdate FR/EN ([2ba3e2d](https://github.com/ApoSkunz/crabitan_bellevue/commit/2ba3e2d5f351bed40c8cdfd63e0afd061d456181))
+* **view,routes:** pages-légales historique — route GET, vue history, lien Historique dans index ([642d11b](https://github.com/ApoSkunz/crabitan_bellevue/commit/642d11bcc5b264fe382e85e50d255cf789780b96))
+* **view:** DPO index — masquer Pages légales + Demandes RGPD pour admin simple ([d739d53](https://github.com/ApoSkunz/crabitan_bellevue/commit/d739d5325b244e8e8e9519e9bead3a4b71584190))
+* **view:** pages-légales admin — liste, édition, confirmation notification ([c8a6c7c](https://github.com/ApoSkunz/crabitan_bellevue/commit/c8a6c7ca9988041a63492d3671b50748246973dd))
+
+
+### Reverts
+
+* **feature:** drop legal_document_history — redondant avec admin_logs + legal_notification_logs ([6e33e05](https://github.com/ApoSkunz/crabitan_bellevue/commit/6e33e05d3961e70d6a0dbca6390726b00a4870a1))
+
 # [0.53.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.52.0...v0.53.0) (2026-04-09)
 
 
