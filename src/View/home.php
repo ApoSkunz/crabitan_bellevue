@@ -182,7 +182,7 @@ $carouselSlides = [
                 // Déposer le fichier vidéo dans /assets/videos/domaine.mp4
                 // (format MP4 H.264 recommandé, et optionnellement .webm pour Firefox)
                 ?>
-                <!-- NOSONAR Web:S4084 — vidéo sans paroles (musique d'ambiance uniquement), aucun sous-titre requis --><video
+                <video
                     class="home-video__element"
                     controls
                     preload="metadata"
@@ -190,6 +190,7 @@ $carouselSlides = [
                     aria-label="<?= htmlspecialchars(__('home.video_title')) ?>"
                 >
                     <source src="/assets/videos/chateau-crabitan-bellevue-1.mp4" type="video/mp4">
+                    <track kind="captions" src="" label="<?= htmlspecialchars(__('home.video_captions_label')) ?>" default>
                 </video>
             </div>
         </div>

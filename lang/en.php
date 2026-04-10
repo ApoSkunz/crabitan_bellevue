@@ -283,8 +283,9 @@ return [
     'home.savoir_cta'   => 'Learn more',
 
     // Homepage — Video section
-    'home.video_tag'   => 'The estate',
-    'home.video_title' => 'The Estate on Video',
+    'home.video_tag'            => 'The estate',
+    'home.video_title'          => 'The Estate on Video',
+    'home.video_captions_label' => 'Captions not available (ambient music only)',
 
     // Homepage — News section
     'home.news_tag'   => 'Latest news',

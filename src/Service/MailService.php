@@ -2896,8 +2896,7 @@ HTML;
      * @param string $changeNote Résumé des modifications (optionnel)
      * @return void
      */
-    // NOSONAR — php:S107 : 8 paramètres nécessaires pour l'email légal bilingue
-    public function sendLegalDocumentUpdate(
+    public function sendLegalDocumentUpdate( // NOSONAR — php:S107 : 8 paramètres nécessaires pour l'email légal bilingue
         string $to,
         string $name,
         string $lang,

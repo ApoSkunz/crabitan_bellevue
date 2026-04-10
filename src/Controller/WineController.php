@@ -390,8 +390,7 @@ class WineController extends Controller
      * @param callable(array<string, string>): string $l
      * @return array<string, array<string, string>>
      */
-    // NOSONAR — php:S3776 : complexité inhérente à la construction des sections PDF multilingues
-    private function buildPdfSections(array $wine, string $lang, callable $l): array
+    private function buildPdfSections(array $wine, string $lang, callable $l): array // NOSONAR — php:S3776
     {
         $isEn    = $lang === 'en';
         $oeno    = json_decode((string) ($wine['oenological_comment'] ?? '{}'), true) ?? [];

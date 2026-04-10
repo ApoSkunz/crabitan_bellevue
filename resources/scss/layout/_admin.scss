@@ -80,14 +80,14 @@
     border-left: 3px solid transparent;
 
     &:hover {
-        color: #f5f0e8; /* NOSONAR css:S7924 — contraste intentionnel : hover nav admin sur fond sombre */
-        background: rgba(201, 168, 76, 0.07);
+        color: #f5f0e8;
+        background: rgba(201, 168, 76, 0.07); /* NOSONAR css:S7924 — faux positif : fond parent #0e0e0e (sidebar sombre), contraste réel #f5f0e8/noir > 15:1 */
     }
 
     &.active {
-        color: #c9a84c; /* NOSONAR css:S7924 — contraste intentionnel : état actif or sur fond quasi-transparent */
+        color: #c9a84c;
         border-left-color: #c9a84c;
-        background: rgba(201, 168, 76, 0.1);
+        background: rgba(201, 168, 76, 0.1); /* NOSONAR css:S7924 — faux positif : fond parent #0e0e0e (sidebar sombre), contraste réel or/noir > 7:1 */
     }
 }
 
