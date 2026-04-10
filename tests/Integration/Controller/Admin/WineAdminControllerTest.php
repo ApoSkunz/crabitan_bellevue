@@ -1305,6 +1305,44 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         // L'abonné company est désormais inclus → newsletter envoyée
         $this->assertStringContainsStringIgnoringCase('newsletter', $flash);
     }
+
+    // ----------------------------------------------------------------
+    // Nutrition — déclaration incomplète
+    // ----------------------------------------------------------------
+
+    /**
+     * store() avec seulement energy_kj renseigné → erreur "Déclaration incomplète".
+     * Couvre la branche validateNutrition() : filled non vide ET count < NUTRITION_REQUIRED.
+     */
+    public function testStoreWithPartialNutritionReturnsIncompleteError(): void
+    {
+        $_POST['csrf_token']          = self::CSRF_TOKEN;
+        $_POST['appellation']         = 'Bordeaux Blanc';
+        $_POST['format']              = 'bottle';
+        $_POST['vintage']             = '2023';
+        $_POST['price']               = '12.00';
+        $_POST['production_quantity'] = '80';
+        $_POST['area']                = '1.50';
+        $_POST['city']                = 'Bordeaux';
+        $_POST['variety_of_vine']     = 'Sauvignon';
+        $_POST['age_of_vineyard']     = '10';
+        $_POST['certification_label'] = 'AOC';
+        $_POST['available']           = '1';
+        $_POST['is_cuvee_speciale']   = '0';
+        foreach (['oenological_comment', 'soil', 'pruning', 'harvest', 'vinification', 'barrel_fermentation'] as $f) {
+            $_POST["{$f}_fr"] = "Valeur FR {$f}";
+            $_POST["{$f}_en"] = "EN value {$f}";
+        }
+        // Seulement energy_kj renseigné — les autres champs nutrition absents → incomplète
+        $_POST['energy_kj'] = '280';
+        $_FILES = [];
+
+        ob_start();
+        $this->makeController('POST')->store([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Déclaration incomplète', $output);
+    }
 }
 
 /**

@@ -937,6 +937,150 @@ class WineControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // PDF — branches non couvertes
+    // ----------------------------------------------------------------
+
+    /**
+     * buildPdf() + Output('S') avec lang='en' couvre la branche Loi Evin EN dans Footer().
+     */
+    public function testBuildPdfWithEnglishLangOutputCoversFooterEvinEN(): void
+    {
+        if (!class_exists('TCPDF')) {
+            require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
+        }
+
+        $ctrl      = $this->makeController();
+        $buildRef  = new \ReflectionMethod($ctrl, 'buildPdf');
+        $pdf       = $buildRef->invoke($ctrl, '', 'en');
+        $pdfString = $pdf->Output('test_en.pdf', 'S');
+
+        $this->assertStringStartsWith('%PDF', $pdfString);
+    }
+
+    /**
+     * renderPdfBody() avec is_cuvee_speciale=1 couvre la branche subtitle Cuvée Spéciale.
+     */
+    public function testRenderPdfBodyWithCuveeSpecialeCoversSubtitleBranch(): void
+    {
+        if (!class_exists('TCPDF')) {
+            require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
+        }
+
+        $ctrl      = $this->makeController();
+        $buildRef  = new \ReflectionMethod($ctrl, 'buildPdf');
+        $renderRef = new \ReflectionMethod($ctrl, 'renderPdfBody');
+        $l         = fn(array $arr): string => $arr['fr'] ?? '';
+
+        $pdf = $buildRef->invoke($ctrl, '', 'fr');
+        $renderRef->invoke($ctrl, $pdf, $this->makePdfWine(['is_cuvee_speciale' => 1]), [], '', 'fr', $l);
+
+        $this->assertInstanceOf(\TCPDF::class, $pdf);
+    }
+
+    /**
+     * renderPdfBottleImage() avec un fichier non-image couvre la branche getimagesize=false.
+     */
+    public function testRenderPdfBottleImageWithNonImageFileReturnsEarly(): void
+    {
+        if (!class_exists('TCPDF')) {
+            require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
+        }
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'test_') . '.png';
+        file_put_contents($tmpFile, 'not-an-image');
+
+        try {
+            $ctrl   = $this->makeController();
+            $ref    = new \ReflectionMethod($ctrl, 'renderPdfBottleImage');
+            $pdf    = (new \ReflectionMethod($ctrl, 'buildPdf'))->invoke($ctrl, '', 'fr');
+
+            $ref->invoke($ctrl, $pdf, $tmpFile, 15.0, 35.0, 95.0, 20.0);
+
+            $this->assertInstanceOf(\TCPDF::class, $pdf);
+        } finally {
+            @unlink($tmpFile);
+        }
+    }
+
+    /**
+     * renderPdfBottleImage() avec image ratio > boxH/boxW couvre la branche iH > boxH.
+     */
+    public function testRenderPdfBottleImageWithTallImageCoversTallBranch(): void
+    {
+        if (!class_exists('TCPDF')) {
+            require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
+        }
+        if (!function_exists('imagepng')) {
+            $this->markTestSkipped('Extension GD non disponible.');
+        }
+
+        // 10×30 px → ratio 3.0 > boxH/boxW (95/35 ≈ 2.71) → déclenche iH > boxH
+        $tmpFile = tempnam(sys_get_temp_dir(), 'tall_') . '.png';
+        $img = imagecreatetruecolor(10, 30);
+        imagepng($img, $tmpFile);
+        imagedestroy($img);
+
+        try {
+            $ctrl = $this->makeController();
+            $ref  = new \ReflectionMethod($ctrl, 'renderPdfBottleImage');
+            $pdf  = (new \ReflectionMethod($ctrl, 'buildPdf'))->invoke($ctrl, '', 'fr');
+
+            $ref->invoke($ctrl, $pdf, $tmpFile, 15.0, 35.0, 95.0, 20.0);
+
+            $this->assertInstanceOf(\TCPDF::class, $pdf);
+        } finally {
+            @unlink($tmpFile);
+        }
+    }
+
+    /**
+     * buildNutritionFields() avec données complètes couvre calcul énergie + champs g.
+     */
+    public function testBuildNutritionFieldsWithFullDataReturnsLabels(): void
+    {
+        $ctrl = $this->makeController();
+        $ref  = new \ReflectionMethod($ctrl, 'buildNutritionFields');
+
+        $nutrition = [
+            'energy_kj'       => 300,
+            'fat_g'           => '0,5',
+            'saturated_fat_g' => '0,1',
+            'carbohydrate_g'  => '5,0',
+            'sugars_g'        => '4,2',
+            'protein_g'       => '0,3',
+            'salt_g'          => '0,01',
+        ];
+
+        $resultFr = $ref->invoke($ctrl, $nutrition, false);
+        $resultEn = $ref->invoke($ctrl, $nutrition, true);
+
+        $this->assertStringContainsString('300 kJ', $resultFr['Énergie']);
+        $this->assertStringContainsString('kcal', $resultFr['Énergie']);
+        $this->assertSame('0,5 g', $resultFr['Matières grasses']);
+        $this->assertStringContainsString('kJ', $resultEn['Energy']);
+    }
+
+    /**
+     * buildPdfSections() avec ENABLE_EXTRA_INFO=true couvre le bloc nutritionnel dans les sections.
+     */
+    public function testBuildPdfSectionsWithExtraInfoEnabledIncludesNutritionSection(): void
+    {
+        $_ENV['ENABLE_EXTRA_INFO'] = 'true';
+        try {
+            $ctrl = $this->makeController();
+            $ref  = new \ReflectionMethod($ctrl, 'buildPdfSections');
+            $l    = fn(array $arr): string => $arr['fr'] ?? '';
+
+            $nutrition = ['energy_kj' => 280, 'fat_g' => '0,4'];
+            $sections  = $ref->invoke($ctrl, $this->makePdfWine(), $nutrition, 'fr', $l);
+
+            $this->assertArrayHasKey('INFORMATIONS NUTRITIONNELLES', $sections);
+        } finally {
+            $_ENV['ENABLE_EXTRA_INFO'] = 'false';
+        }
+    }
+
+    // ----------------------------------------------------------------
     // technicalSheet() — rate limit
     // ----------------------------------------------------------------
 

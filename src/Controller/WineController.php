@@ -442,8 +442,8 @@ class WineController extends Controller
                 ($isEn ? 'Ageing'  : 'Élevage')   => $l($barrel),
             ]),
             ...( filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN)
-                ? [($isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES') => array_filter(
-                    $this->buildNutritionFields($wine, $nutrition, $isEn)
+                ? [$isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES' => array_filter(
+                    $this->buildNutritionFields($nutrition, $isEn)
                 )]
                 : []
             ),
@@ -453,11 +453,10 @@ class WineController extends Controller
     /**
      * Build the nutrition key/value pairs for the PDF section.
      *
-     * @param array<string, mixed> $wine
      * @param array<string, mixed> $nutrition
      * @return array<string, string>
      */
-    private function buildNutritionFields(array $wine, array $nutrition, bool $isEn): array
+    private function buildNutritionFields(array $nutrition, bool $isEn): array
     {
         $g = fn(string $k): string => isset($nutrition[$k]) ? $nutrition[$k] . ' g' : '';
 
