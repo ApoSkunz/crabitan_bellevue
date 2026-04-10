@@ -63,7 +63,7 @@ $maxYear = (int) date('Y');
 <div class="admin-card">
     <div class="admin-card__body">
     <form method="POST" action="<?= htmlspecialchars($action) ?>"
-          class="admin-form" enctype="multipart/form-data">
+          class="admin-form" enctype="multipart/form-data" novalidate>
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
         <!-- ---- Appellation + couleur auto ---- -->
@@ -356,8 +356,9 @@ $maxYear = (int) date('Y');
                 const hint = document.getElementById('energy_kcal_hint');
                 if (!kj || !hint) return;
                 kj.addEventListener('input', function () {
-                    const v = parseInt(this.value, 10);
-                    hint.value = (!isNaN(v) && v > 0) ? Math.round(v / 4.184) + ' kcal' : '';
+                    const raw = this.value;
+                    const v   = parseFloat(raw);
+                    hint.value = (raw !== '' && !isNaN(v) && v > 0) ? Math.round(v / 4.184) + ' kcal' : '';
                 });
             }());
             </script>
@@ -427,6 +428,38 @@ function previewImage(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
+
+// ── Validation client : surligner tous les champs requis vides ──────────
+(function () {
+    const form = document.querySelector('.admin-form');
+    if (!form) return;
+
+    form.addEventListener('submit', function (e) {
+        const required = form.querySelectorAll('[required]');
+        let firstInvalid = null;
+        let hasErrors    = false;
+
+        required.forEach(function (el) {
+            const empty = el.value.trim() === '';
+            if (empty) {
+                el.classList.add('is-error');
+                hasErrors = true;
+                if (!firstInvalid) { firstInvalid = el; }
+            }
+        });
+
+        if (hasErrors) {
+            e.preventDefault();
+            if (firstInvalid) {
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+
+    // Effacer le rouge au fur et à mesure que l'utilisateur remplit le champ
+    form.addEventListener('input',  function (e) { if (e.target.value.trim() !== '') { e.target.classList.remove('is-error'); } });
+    form.addEventListener('change', function (e) { if (e.target.value         !== '') { e.target.classList.remove('is-error'); } });
+}());
 
 </script>
 

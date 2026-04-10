@@ -421,8 +421,12 @@ class WineController extends Controller
                 ($isEn ? 'Award'         : 'Récompense')  => $l($award),
             ]),
             ($isEn ? 'INFORMATION' : 'INFORMATIONS') => array_filter([
-                ($isEn ? 'Colour'  : 'Couleur')   => $colorStr,
-                ($isEn ? 'Vintage' : 'Millésime') => (string) ($wine['vintage'] ?? ''),
+                ($isEn ? 'Colour'          : 'Couleur')          => $colorStr,
+                ($isEn ? 'Vintage'         : 'Millésime')        => (string) ($wine['vintage'] ?? ''),
+                ($isEn ? 'Alcohol'         : 'Degré d\'alcool')  =>
+                    !empty($wine['alcohol_degree']) ? $wine['alcohol_degree'] . ' % vol.' : '',
+                ($isEn ? 'Ageing potential' : 'Garde')           =>
+                    (string) ($wine['aging_potential'] ?? ''),
             ]),
             'VITICULTURE' => array_filter([
                 ($isEn ? 'Soil'         : 'Terroir')        => $l($soil),
@@ -462,10 +466,6 @@ class WineController extends Controller
         }
 
         return [
-            ($isEn ? 'Alcohol'            : 'Degré d\'alcool') =>
-                !empty($wine['alcohol_degree']) ? $wine['alcohol_degree'] . ' % vol.' : '',
-            ($isEn ? 'Ageing potential'   : 'Garde') =>
-                (string) ($wine['aging_potential'] ?? ''),
             ($isEn ? 'Energy'             : 'Énergie')          => $energy,
             ($isEn ? 'Fat'                : 'Matières grasses') => $g('fat_g'),
             ($isEn ? 'of which saturates' : 'dont saturés')     => $g('saturated_fat_g'),
