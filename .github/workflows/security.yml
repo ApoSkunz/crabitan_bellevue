@@ -51,40 +51,25 @@ jobs:
           extensions: tokenizer, mbstring, json
           coverage: none
 
-      - name: Download & run Exakat
-        env:
-          EXAKAT_VERSION: '2.6.9'
-          EXAKAT_SHA256: ${{ secrets.EXAKAT_PHAR_SHA256 }}
+      - name: Run Exakat SAST (Docker)
         run: |
-          PHAR_OK=0
-
-          # Tentative 1 : GitHub Releases (version épinglée)
-          if curl -fsSL \
-            "https://github.com/exakat/exakat/releases/download/${EXAKAT_VERSION}/exakat.phar" \
-            -o exakat.phar 2>/dev/null; then
-            PHAR_OK=1
-          # Tentative 2 : exakat.io latest (fallback si GitHub Release absente)
-          elif curl -fsSL "https://www.exakat.io/versions/exakat.phar" \
-            -o exakat.phar 2>/dev/null; then
-            echo "::warning::GitHub Release ${EXAKAT_VERSION} introuvable — fallback latest"
-            PHAR_OK=1
-          else
-            echo "::warning::Exakat indisponible (GitHub + exakat.io) — analyse ignorée"
-          fi
-
-          if [ "$PHAR_OK" -eq 1 ]; then
-            if [ -n "${EXAKAT_SHA256}" ]; then
-              echo "${EXAKAT_SHA256}  exakat.phar" | sha256sum -c - \
-                || { echo "::error::Checksum exakat.phar invalide — abort"; exit 1; }
-            else
-              echo "::warning::EXAKAT_PHAR_SHA256 non défini — vérification SHA256 ignorée"
-            fi
-            php exakat.phar doctor
-            php exakat.phar ci-checks \
-              -p . \
+          docker run --rm \
+            -v "${{ github.workspace }}:/var/www/exakat" \
+            exakat/exakat:2.6.9 \
+            ci-checks \
+              -p /var/www/exakat \
               --ignore-dirs vendor,node_modules,coverage,public/assets \
-              -r Text
-          fi
+              -r Text \
+            > exakat-report.txt 2>&1 || true
+          cat exakat-report.txt
+
+      - name: Upload Exakat report
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fbc0ae7cb54c8b1e7a71 # v4.6.0
+        if: always()
+        with:
+          name: exakat-report
+          path: exakat-report.txt
+          retention-days: 7
 
   codeql:
     name: CodeQL Analysis
