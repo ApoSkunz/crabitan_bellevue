@@ -2,6 +2,15 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.54.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.54.1...v0.54.2) (2026-04-10)
+
+
+### Bug Fixes
+
+* **scss:** corriger contrastes WCAG AA et positions NOSONAR css:S7924 ([e4282aa](https://github.com/ApoSkunz/crabitan_bellevue/commit/e4282aaa47357d7f2b9bdae80e9739a7f2e8880c)), closes [#16a34a](https://github.com/ApoSkunz/crabitan_bellevue/issues/16a34a) [#166534](https://github.com/ApoSkunz/crabitan_bellevue/issues/166534) [#e53935](https://github.com/ApoSkunz/crabitan_bellevue/issues/e53935) [#b71c1c](https://github.com/ApoSkunz/crabitan_bellevue/issues/b71c1c)
+* **sonar:** déplacer NOSONAR PHP sur les lignes flaggées (S3776, S107) ([3168a43](https://github.com/ApoSkunz/crabitan_bellevue/commit/3168a435ecc3bb3c8cfb59c633123a1213332655))
+* **view:** ajouter <track> à la vidéo home — corrige Web:S4084 ([13ed1f8](https://github.com/ApoSkunz/crabitan_bellevue/commit/13ed1f84b80b7708f9fd9deec02978d1ad0b3c2c))
+
 ## [0.54.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.54.0...v0.54.1) (2026-04-10)
 
 
