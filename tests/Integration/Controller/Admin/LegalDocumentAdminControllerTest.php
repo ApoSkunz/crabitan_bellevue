@@ -23,6 +23,11 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
         $token = Jwt::generate($this->superAdminId, 'super_admin');
         $_COOKIE['auth_token'] = $token;
         $this->insertConnection($this->superAdminId, $token);
+
+        // Remettre cgv à un état connu pour éviter les dépendances entre tests
+        self::$db->execute(
+            "UPDATE legal_documents SET version = '1.0', updated_at = '2026-01-01', updated_by = NULL WHERE slug = 'cgv'"
+        );
     }
 
     private function makeController(string $method = 'GET', string $uri = '/admin/dpo/pages-legales'): LegalDocumentAdminController
@@ -153,6 +158,19 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
             ->store(['slug' => 'cgv']);
     }
 
+    public function testStorePastDateBeforeCurrentVersionFlashesError(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['version']    = '1.2';
+        $_POST['updated_at'] = '2000-01-01';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST', '/admin/dpo/pages-legales/cgv/modifier')
+            ->store(['slug' => 'cgv']);
+    }
+
     public function testStoreThreePartVersionAccepted(): void
     {
         $_POST['csrf_token'] = self::CSRF_TOKEN;
@@ -204,7 +222,7 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
     {
         $_POST['csrf_token']        = self::CSRF_TOKEN;
         $_POST['version']           = '1.2';
-        $_POST['updated_at']        = '2026-04-01';
+        $_POST['updated_at']        = date('Y-m-d');
         $_POST['send_notification'] = '1';
 
         $this->expectException(HttpException::class);
@@ -218,7 +236,7 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
     {
         $_POST['csrf_token']        = self::CSRF_TOKEN;
         $_POST['version']           = '1.2';
-        $_POST['updated_at']        = '2026-04-01';
+        $_POST['updated_at']        = date('Y-m-d');
         $_POST['send_notification'] = '1';
         $_POST['change_note']       = 'Résumé test.';
 
@@ -299,5 +317,50 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
         // Redirige vers la liste
         $this->assertNotNull($caught);
         $this->assertSame(302, $caught->status);
+    }
+
+    // ----------------------------------------------------------------
+    // history() — GET
+    // ----------------------------------------------------------------
+
+    public function testHistoryRendersForKnownSlug(): void
+    {
+        ob_start();
+        $this->makeController('GET', '/admin/dpo/pages-legales/cgv/historique')
+            ->history(['slug' => 'cgv']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Historique', $output);
+    }
+
+    public function testHistoryAborts404ForUnknownSlug(): void
+    {
+        $caught = null;
+        try {
+            $this->makeController('GET', '/admin/dpo/pages-legales/inexistant/historique')
+                ->history(['slug' => 'inexistant']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(404, $caught->status);
+    }
+
+    public function testHistoryDeniedForSimpleAdmin(): void
+    {
+        $token = Jwt::generate($this->adminId, 'admin');
+        $_COOKIE['auth_token'] = $token;
+        $this->insertConnection($this->adminId, $token);
+
+        $caught = null;
+        try {
+            $this->makeController('GET', '/admin/dpo/pages-legales/cgv/historique')
+                ->history(['slug' => 'cgv']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
     }
 }

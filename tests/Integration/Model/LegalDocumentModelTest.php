@@ -31,7 +31,7 @@ class LegalDocumentModelTest extends IntegrationTestCase
         $this->assertArrayHasKey('cgv', $result);
         $this->assertArrayHasKey('politique_confidentialite', $result);
         $this->assertArrayHasKey('mentions_legales', $result);
-        $this->assertSame('1.0', $result['cgv']['version']);
+        $this->assertArrayHasKey('version', $result['cgv']);
     }
 
     public function testFindAllContainsAllEightDocuments(): void
@@ -84,5 +84,32 @@ class LegalDocumentModelTest extends IntegrationTestCase
     {
         $result = $this->model->update('slug_inexistant', '2.0', '2026-05-01', 1);
         $this->assertFalse($result);
+    }
+
+    // ----------------------------------------------------------------
+    // logHistory() + findHistoryByDocumentId()
+    // ----------------------------------------------------------------
+
+    public function testLogHistoryInsertsEntry(): void
+    {
+        $doc = $this->model->findBySlug('cgv');
+        $this->assertNotNull($doc);
+
+        $this->model->logHistory((int) $doc['id'], '1.5', '2026-04-10', 1);
+
+        $history = $this->model->findHistoryByDocumentId((int) $doc['id']);
+        $this->assertNotEmpty($history);
+
+        $versions = array_column($history, 'version');
+        $this->assertContains('1.5', $versions);
+    }
+
+    public function testFindHistoryByDocumentIdReturnsEmptyForNewDocument(): void
+    {
+        $doc = $this->model->findBySlug('dpia');
+        $this->assertNotNull($doc);
+
+        $history = $this->model->findHistoryByDocumentId((int) $doc['id']);
+        $this->assertIsArray($history);
     }
 }

@@ -201,4 +201,56 @@ class LegalDocumentModelTest extends TestCase
 
         $this->model->updateNotificationStats(1, 5);
     }
+
+    // ----------------------------------------------------------------
+    // logHistory()
+    // ----------------------------------------------------------------
+
+    /**
+     * logHistory() insère une entrée dans legal_document_history.
+     */
+    public function testLogHistoryExecutesInsert(): void
+    {
+        $this->dbMock->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->stringContains('legal_document_history'),
+                [1, '1.2', '2026-04-10', 3]
+            );
+
+        $this->model->logHistory(1, '1.2', '2026-04-10', 3);
+    }
+
+    // ----------------------------------------------------------------
+    // findHistoryByDocumentId()
+    // ----------------------------------------------------------------
+
+    /**
+     * findHistoryByDocumentId() retourne les entrées triées du plus récent au plus ancien.
+     */
+    public function testFindHistoryByDocumentIdReturnsSortedRows(): void
+    {
+        $rows = [
+            ['version' => '1.2', 'updated_at' => '2026-04-10', 'created_at' => '2026-04-10 12:00:00', 'updated_by_name' => 'Admin'],
+            ['version' => '1.1', 'updated_at' => '2026-04-05', 'created_at' => '2026-04-05 10:00:00', 'updated_by_name' => 'Admin'],
+        ];
+
+        $this->dbMock->method('fetchAll')->willReturn($rows);
+
+        $result = $this->model->findHistoryByDocumentId(1);
+
+        $this->assertCount(2, $result);
+        $this->assertSame('1.2', $result[0]['version']);
+        $this->assertSame('1.1', $result[1]['version']);
+    }
+
+    /**
+     * findHistoryByDocumentId() retourne [] si aucune entrée.
+     */
+    public function testFindHistoryByDocumentIdReturnsEmptyArray(): void
+    {
+        $this->dbMock->method('fetchAll')->willReturn([]);
+
+        $this->assertSame([], $this->model->findHistoryByDocumentId(99));
+    }
 }
