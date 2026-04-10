@@ -2922,6 +2922,221 @@ HTML;
 HTML;
     }
 
+    /**
+     * Envoie l'email post-achat J+7 avec boutons de notation par article.
+     *
+     * Pour chaque article commandé, génère 5 liens de notation (notes 1 à 5)
+     * via RatingModel::generateEmailToken(). Le token est unique par triplet
+     * (account_id, wine_id, order_id) ; seule la note varie dans l'URL.
+     *
+     * @param string $to        Email client
+     * @param string $name      Prénom client
+     * @param int    $accountId ID compte
+     * @param int    $orderId   ID commande
+     * @param array<int, array<string, mixed>> $items Articles commandés (wine_id, label_name, vintage, image_path)
+     * @param string $lang      Langue
+     * @return void
+     */
+    public function sendPostPurchase(
+        string $to,
+        string $name,
+        int $accountId,
+        int $orderId,
+        array $items,
+        string $lang
+    ): void {
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject    = 'Comment s\'est passée votre dégustation ? — Château Crabitan Bellevue';
+            $title      = 'Votre avis compte';
+            $greeting   = "Bonjour {$safeName},";
+            $intro      = "Nous espérons que vous avez apprécié votre commande."
+                . " Votre avis nous aide à progresser — prenez un instant pour noter vos vins :";
+            $rateLabel  = 'Note :';
+            $ctaLabel   = 'Voir mes commandes';
+            $ctaUrl     = htmlspecialchars($appUrl . '/fr/mon-compte/commandes', ENT_QUOTES);
+        } else {
+            $subject    = 'How was your tasting experience? — Château Crabitan Bellevue';
+            $title      = 'Your opinion matters';
+            $greeting   = "Hello {$safeName},";
+            $intro      = "We hope you enjoyed your order."
+                . " Your feedback helps us improve — take a moment to rate your wines:";
+            $rateLabel  = 'Rate:';
+            $ctaLabel   = 'View my orders';
+            $ctaUrl     = htmlspecialchars($appUrl . '/en/my-account/orders', ENT_QUOTES);
+        }
+
+        $winesHtml = '';
+        foreach ($items as $item) {
+            $wineId    = (int) ($item['wine_id'] ?? 0);
+            $label     = htmlspecialchars((string) ($item['label_name'] ?? ''), ENT_QUOTES);
+            $vintage   = (int) ($item['vintage'] ?? 0);
+            $imagePath = (string) ($item['image_path'] ?? '');
+
+            // @phpstan-ignore-next-line (RatingModel créé par agent parallèle)
+            $token = (new \Model\RatingModel())->generateEmailToken($accountId, $wineId, $orderId);
+
+            $imageHtml = '';
+            if ($imagePath !== '') {
+                $safeImg   = htmlspecialchars($appUrl . '/assets/images/wines/' . $imagePath, ENT_QUOTES);
+                $imageHtml = "<img src=\"{$safeImg}\" alt=\"{$label}\" width=\"80\""
+                    . " style=\"display:block;width:80px;height:auto;border:0;border-radius:3px;"
+                    . "margin-bottom:8px;\">";
+            }
+
+            $starsHtml = '';
+            for ($i = 1; $i <= 5; $i++) {
+                $ratingUrl = htmlspecialchars(
+                    $appUrl . '/rating/commande/' . $token . '/' . $i,
+                    ENT_QUOTES
+                );
+                $starsHtml .= "<a href=\"{$ratingUrl}\""
+                    . " style=\"display:inline-block;padding:8px 12px;margin:0 3px;"
+                    . "background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;"
+                    . "font-family:Georgia,serif;font-size:14px;font-weight:bold;"
+                    . "color:#1a1208;text-decoration:none;\">&#9733; {$i}</a>";
+            }
+
+            $vintageHtml = $vintage > 0
+                ? " <span style=\"font-size:12px;color:#8a7a60;\">{$vintage}</span>"
+                : '';
+
+            $winesHtml .= '<tr><td style="padding:16px 0;border-bottom:1px solid #ede8df;">'
+                . $imageHtml
+                . "<p style=\"margin:0 0 8px;font-family:Georgia,serif;font-size:16px;color:#1a1208;\">"
+                . "{$label}{$vintageHtml}</p>"
+                . "<p style=\"margin:0 0 8px;font-size:12px;letter-spacing:1px;"
+                . "text-transform:uppercase;color:#8a7a60;\">{$rateLabel}</p>"
+                . "<p style=\"margin:0;\">{$starsHtml}</p>"
+                . '</td></tr>';
+        }
+
+        $itemsTable = '<table style="width:100%;border-collapse:collapse;">'
+            . $winesHtml
+            . '</table>';
+
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$ctaUrl}\" style=\""
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . $ctaLabel
+            . '</a></td></tr></table>';
+
+        $message = "<p style=\"margin:0 0 24px;font-size:15px;line-height:1.7;color:#3d3425;\">"
+            . $intro
+            . "</p>"
+            . $itemsTable
+            . $ctaBtn;
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Envoie l'email de relance panier abandonné.
+     *
+     * Rappelle au client les articles laissés dans son panier avec un CTA
+     * de retour vers la boutique.
+     *
+     * @param string $to       Email client
+     * @param string $name     Prénom client
+     * @param array<int, array<string, mixed>> $items Articles du panier (label_name, vintage, image_path, price, qty)
+     * @param string $lang     Langue
+     * @param string $cartUrl  URL de retour vers le panier
+     * @return void
+     */
+    public function sendAbandonedCart(
+        string $to,
+        string $name,
+        array $items,
+        string $lang,
+        string $cartUrl
+    ): void {
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $safeCart = htmlspecialchars($cartUrl, ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject    = 'Votre panier vous attend — Château Crabitan Bellevue';
+            $title      = 'Votre panier';
+            $greeting   = "Bonjour {$safeName},";
+            $intro      = "Vous avez laissé des articles dans votre panier."
+                . " Ils vous attendent toujours — finalisez votre commande avant qu'ils ne soient plus disponibles.";
+            $ctaLabel   = 'Reprendre ma commande';
+            $colQty     = 'Qté';
+            $colPrice   = 'Prix unitaire';
+        } else {
+            $subject    = 'Your cart is waiting for you — Château Crabitan Bellevue';
+            $title      = 'Your cart';
+            $greeting   = "Hello {$safeName},";
+            $intro      = "You left some items in your cart."
+                . " They are still waiting for you — complete your order before they sell out.";
+            $ctaLabel   = 'Resume my order';
+            $colQty     = 'Qty';
+            $colPrice   = 'Unit price';
+        }
+
+        $rows = '';
+        foreach ($items as $item) {
+            $label     = htmlspecialchars((string) ($item['label_name'] ?? ''), ENT_QUOTES);
+            $vintage   = (int) ($item['vintage'] ?? 0);
+            $imagePath = (string) ($item['image_path'] ?? '');
+            $price     = number_format((float) ($item['price'] ?? 0.0), 2, ',', ' ');
+            $qty       = (int) ($item['qty'] ?? 0);
+
+            $imageHtml = '';
+            if ($imagePath !== '') {
+                $safeImg   = htmlspecialchars($appUrl . '/assets/images/wines/' . $imagePath, ENT_QUOTES);
+                $imageHtml = "<img src=\"{$safeImg}\" alt=\"{$label}\" width=\"60\""
+                    . " style=\"display:block;width:60px;height:auto;border:0;border-radius:3px;\">";
+            }
+
+            $vintageHtml = $vintage > 0
+                ? " <span style=\"font-size:12px;color:#8a7a60;\">{$vintage}</span>"
+                : '';
+
+            $tdStyle = 'padding:10px 8px;border-bottom:1px solid #ede8df;font-size:13px;color:#3d3425;';
+            $rows   .= '<tr>'
+                . "<td style=\"{$tdStyle}\">{$imageHtml}"
+                . "<span style=\"font-family:Georgia,serif;font-size:14px;color:#1a1208;\">"
+                . "{$label}{$vintageHtml}</span></td>"
+                . "<td style=\"{$tdStyle}text-align:center;\">{$qty}</td>"
+                . "<td style=\"{$tdStyle}text-align:right;\">{$price}&nbsp;€</td>"
+                . '</tr>';
+        }
+
+        $thStyle = 'padding:8px;background:#f7f3ec;font-size:11px;'
+            . 'color:#8a7a60;letter-spacing:1px;text-transform:uppercase;text-align:left;';
+        $tableHtml = '<table style="width:100%;border-collapse:collapse;margin:16px 0 24px;">'
+            . '<tr>'
+            . "<th style=\"{$thStyle}\">Vin</th>"
+            . "<th style=\"{$thStyle}text-align:center;\">{$colQty}</th>"
+            . "<th style=\"{$thStyle}text-align:right;\">{$colPrice}</th>"
+            . '</tr>'
+            . $rows
+            . '</table>';
+
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$safeCart}\" style=\""
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . $ctaLabel
+            . '</a></td></tr></table>';
+
+        $message = "<p style=\"margin:0 0 16px;font-size:15px;line-height:1.7;color:#3d3425;\">"
+            . $intro
+            . "</p>"
+            . $tableHtml
+            . $ctaBtn;
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
+        $this->send($to, $name, $subject, $body);
+    }
+
     private function emailHeaderHtml(string $appUrl, string $logoUrl): string
     {
         return <<<HTML
