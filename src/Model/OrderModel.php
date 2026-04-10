@@ -1102,4 +1102,26 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
             [$days]
         );
     }
+
+    // ----------------------------------------------------------------
+    // Marketing
+    // ----------------------------------------------------------------
+
+    /**
+     * Retourne la valeur moyenne des commandes sur N derniers jours (statuts actifs).
+     *
+     * @param int $days Nombre de jours à considérer
+     * @return float Valeur moyenne arrondie à 2 décimales
+     */
+    public function getAvgOrderValue(int $days = 30): float
+    {
+        $row = $this->db->fetchOne(
+            "SELECT AVG(price) AS avg_val
+               FROM {$this->table}
+              WHERE status IN ('paid', 'processing', 'shipped', 'delivered')
+                AND ordered_at >= DATE_SUB(NOW(), INTERVAL ? DAY)",
+            [$days]
+        );
+        return round((float) ($row['avg_val'] ?? 0.0), 2);
+    }
 }
