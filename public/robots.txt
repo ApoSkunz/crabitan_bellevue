@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /mon-compte/
+Disallow: /api/
+Allow: /
+
+Sitemap: https://www.crabitanbellevue.fr/sitemap.xml
