@@ -12,15 +12,11 @@
 
 declare(strict_types=1);
 
-define('ROOT_PATH', dirname(__DIR__));
-define('SRC_PATH', ROOT_PATH . '/src');
-define('LANG_PATH', ROOT_PATH . '/lang');
+require_once __DIR__ . '/cron-bootstrap.php';
 
-require_once ROOT_PATH . '/vendor/autoload.php';
-require_once ROOT_PATH . '/src/helpers.php';
-require_once ROOT_PATH . '/config/config.php';
-
-$model   = new \Model\NewsletterTrackingModel();
-$deleted = $model->purgeOlderThan13Months();
-
-echo date('Y-m-d H:i:s') . ' — ' . $deleted . ' enregistrement(s) de tracking newsletter purgé(s)' . PHP_EOL;
+$runner = new \Core\CronRunner('purge_newsletter_tracking');
+exit($runner->run(function (callable $log): void {
+    $model   = new \Model\NewsletterTrackingModel();
+    $deleted = $model->purgeOlderThan13Months();
+    $log("{$deleted} enregistrement(s) de tracking purgé(s)");
+}));

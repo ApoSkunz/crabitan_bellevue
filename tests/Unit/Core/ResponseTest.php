@@ -86,6 +86,7 @@ class ResponseTest extends TestCase
         $this->assertTrue(true);
     }
 
+
     /**
      * Vérifie que view() utilise $data['navLang'] quand il est déjà fourni
      * (branche `if (!isset($data['navLang']))` est sautée — la valeur n'est pas écrasée).

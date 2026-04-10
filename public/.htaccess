@@ -2,20 +2,32 @@ Options -Indexes
 
 RewriteEngine On
 
-# ---- Mode maintenance (décommenter les 4 lignes ci-dessous pour activer) ----
+# ---- HTTPS redirect (décommenter en production) -----------------------------
+# RewriteCond %{HTTP_HOST} ^(www\.)?crabitanbellevue\.fr$ [NC]
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+# -----------------------------------------------------------------------------
+
+# ---- Mode maintenance -------------------------------------------------------
+# Pour activer : décommenter les 5 lignes RewriteCond/Rule ci-dessous.
+# Remplacer l'IP par la tienne (vérifier sur https://ifconfig.me avant d'activer).
+# ---- Activer maintenance (décommenter) ----
 # RewriteCond %{REQUEST_URI} !^/maintenance\.php$
 # RewriteCond %{REQUEST_URI} !^/assets/
-# RewriteCond %{REMOTE_ADDR} !^YOUR\.IP\.HERE$
+# RewriteCond %{REMOTE_ADDR} !^203\.0\.113\.42$
 # RewriteRule ^(.*)$ /maintenance.php [R=302,L]
-# ---- /Mode maintenance ----
+# ---- /Mode maintenance -------------------------------------------------------
 
 # Redirige tout vers index.php sauf fichiers/dossiers existants
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [QSA,L]
 
-# Sécurité : headers HTTP
+# ---- Headers de sécurité HTTP ----
 Header always set X-Frame-Options "SAMEORIGIN"
 Header always set X-Content-Type-Options "nosniff"
-Header always set X-XSS-Protection "1; mode=block"
 Header always set Referrer-Policy "strict-origin-when-cross-origin"
+Header always set X-Permitted-Cross-Domain-Policies "none"
+
+# HSTS — uniquement sur HTTPS (env=HTTPS non défini sur HTTP → header absent en local)
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS

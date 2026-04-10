@@ -37,6 +37,12 @@ Thumbs.db
 # Specs & backlog locaux (non versionnés)
 /BACKLOG/
 
+# Docs privées locales (non versionnées)
+/private-docs/
+
+# Scripts utilitaires privés (non versionnés)
+/private-scripts/
+
 # Base de données — seeds et scripts locaux uniquement (schema + seed_mock_data versionnés)
 /database/migrate_*.sql
 /database/migrations/

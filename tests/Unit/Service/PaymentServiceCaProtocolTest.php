@@ -762,4 +762,42 @@ class PaymentServiceCaProtocolTest extends TestCase
 
         $this->assertFalse($result);
     }
+
+    // -------------------------------------------------------------------------
+    // Tests sécurité transport — CURLOPT_SSL_VERIFYPEER / CURLOPT_SSL_VERIFYHOST
+    // -------------------------------------------------------------------------
+
+    /**
+     * Vérifie que curlPost() et isServerAvailable() activent CURLOPT_SSL_VERIFYPEER = true.
+     *
+     * Inspecte le source de PaymentService pour confirmer que l'option n'est jamais
+     * désactivée (false) et qu'elle est explicitement activée (true) dans les deux méthodes cURL.
+     */
+    public function testSslVerifyPeerIsNeverDisabledInSource(): void
+    {
+        $source = (string) file_get_contents(
+            (new ReflectionClass(PaymentService::class))->getFileName()
+        );
+
+        // CURLOPT_SSL_VERIFYPEER doit apparaître avec true (jamais avec false)
+        $this->assertStringContainsString('CURLOPT_SSL_VERIFYPEER, true', $source);
+        $this->assertStringNotContainsString('CURLOPT_SSL_VERIFYPEER, false', $source);
+    }
+
+    /**
+     * Vérifie que curlPost() et isServerAvailable() activent CURLOPT_SSL_VERIFYHOST = 2.
+     *
+     * La valeur 2 impose la vérification du hostname du certificat distant (valeur ANSSI-recommandée).
+     * La valeur 0 (désactivée) ou 1 (dépréciée) ne doit pas apparaître.
+     */
+    public function testSslVerifyHostIsSetTo2InSource(): void
+    {
+        $source = (string) file_get_contents(
+            (new ReflectionClass(PaymentService::class))->getFileName()
+        );
+
+        $this->assertStringContainsString('CURLOPT_SSL_VERIFYHOST, 2', $source);
+        $this->assertStringNotContainsString('CURLOPT_SSL_VERIFYHOST, 0', $source);
+        $this->assertStringNotContainsString('CURLOPT_SSL_VERIFYHOST, 1', $source);
+    }
 }

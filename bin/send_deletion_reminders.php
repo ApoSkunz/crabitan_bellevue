@@ -15,48 +15,38 @@
 
 declare(strict_types=1);
 
-define('ROOT_PATH', dirname(__DIR__));
-define('SRC_PATH', ROOT_PATH . '/src');
-define('LANG_PATH', ROOT_PATH . '/lang');
+require_once __DIR__ . '/cron-bootstrap.php';
 
-require_once ROOT_PATH . '/vendor/autoload.php';
-require_once ROOT_PATH . '/src/helpers.php';
-require_once ROOT_PATH . '/config/config.php';
+$runner = new \Core\CronRunner('send_deletion_reminders');
+exit($runner->run(function (callable $log): void {
+    $model  = new \Model\AccountModel();
+    $mailer = new \Service\MailService();
+    $sent   = 0;
 
-$accountModel = new \Model\AccountModel();
-$mailer       = new \Service\MailService();
-$now          = date('Y-m-d H:i:s');
-$sent         = 0;
-$errors       = 0;
+    foreach ([7, 1] as $days) {
+        $accounts = $model->getAccountsPendingDeletionReminder($days);
 
-foreach ([7, 1] as $days) {
-    $accounts = $accountModel->getAccountsPendingDeletionReminder($days);
+        foreach ($accounts as $account) {
+            $name = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
+                ?: $account['email'];
 
-    foreach ($accounts as $account) {
-        try {
-            $name = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
-            if ($name === '') {
-                $name = $account['email'];
+            try {
+                $mailer->sendDeletionReminder(
+                    $account['email'],
+                    $name,
+                    $account['lang'] ?? 'fr',
+                    $days,
+                    $account['scheduled_deletion_at'],
+                    $account['reactivation_token'] ?? ''
+                );
+                $model->markDeletionReminderSent((int) $account['id'], $days);
+                $sent++;
+                $log("[J-{$days}] Rappel envoyé à {$account['email']} (id={$account['id']})");
+            } catch (\Throwable $e) {
+                $log("[J-{$days}] ERREUR id={$account['id']} : " . $e->getMessage());
             }
-
-            $mailer->sendDeletionReminder(
-                $account['email'],
-                $name,
-                $account['lang'] ?? 'fr',
-                $days,
-                $account['scheduled_deletion_at'],
-                $account['reactivation_token'] ?? ''
-            );
-
-            $accountModel->markDeletionReminderSent((int) $account['id'], $days);
-            $sent++;
-
-            echo $now . " — [J-{$days}] Rappel envoyé à {$account['email']} (id={$account['id']})" . PHP_EOL;
-        } catch (\Throwable $e) {
-            $errors++;
-            echo $now . " — [J-{$days}] ERREUR compte id={$account['id']} : " . $e->getMessage() . PHP_EOL;
         }
     }
-}
 
-echo $now . " — Terminé : {$sent} rappel(s) envoyé(s), {$errors} erreur(s)" . PHP_EOL;
+    $log("{$sent} rappel(s) envoyé(s)");
+}));
