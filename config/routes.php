@@ -74,6 +74,10 @@ $router->get('/admin/rgpd/demandes/{id}/export-portabilite', 'Admin\RgpdAdminCon
 // Routes publiques
 // ============================================================
 
+// Rating (email token + espace client)
+$router->get('/rating/commande/{token}/{note}', 'RatingController@rateViaEmail');
+$router->post('/{lang}/rating/vin/{wineId}', 'RatingController@rateViaAccount');
+
 // Age gate
 $router->get('/age-gate', 'AgeGateController@show');
 $router->post('/age-gate', 'AgeGateController@confirm');
