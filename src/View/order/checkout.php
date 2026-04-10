@@ -112,6 +112,8 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
 };
 ?>
 
+<?php $checkoutStep = 2; require_once SRC_PATH . '/View/partials/checkout-stepper.php'; ?>
+
 <main class="page-checkout" id="main-content">
     <div class="page-hero page-hero--dark">
         <div class="container">

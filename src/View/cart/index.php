@@ -25,6 +25,8 @@ $deliveryDiscount = $deliveryDiscount ?? 0.0;
 $pricingRules     = $pricingRules     ?? [];
 ?>
 
+<?php $checkoutStep = 1; require_once SRC_PATH . '/View/partials/checkout-stepper.php'; ?>
+
 <main class="page-cart" id="main-content">
     <div class="page-hero page-hero--dark">
         <div class="container">

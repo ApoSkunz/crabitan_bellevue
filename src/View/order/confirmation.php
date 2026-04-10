@@ -20,6 +20,8 @@ $isDeferred      = in_array($paymentMethod, ['virement', 'cheque'], true);
 $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
 ?>
 
+<?php $checkoutStep = 3; require_once SRC_PATH . '/View/partials/checkout-stepper.php'; ?>
+
 <main class="page-confirmation" id="main-content">
     <div class="page-hero page-hero--dark">
         <div class="container">

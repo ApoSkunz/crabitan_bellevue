@@ -867,6 +867,12 @@ return [
     'checkout.view_orders'            => 'View my orders',
     'checkout.continue_shopping'      => 'Continue shopping',
 
+    // Checkout stepper
+    'stepper.cart'         => 'Cart',
+    'stepper.delivery'     => 'Delivery & payment',
+    'stepper.confirmation' => 'Confirmation',
+    'stepper.aria_label'   => 'Order steps',
+
     // CA e-Transactions payment
     'payment.redirect_title'   => 'Redirecting to secure payment',
     'payment.redirect_message' => 'Redirecting to our secure payment platform…',
