@@ -130,7 +130,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
         <h2 class="sitemap-cards-section__title">
             <?= htmlspecialchars(strtoupper(__('sitemap.section_annex'))) ?>
         </h2>
-        <div class="sitemap-grid sitemap-grid--4">
+        <div class="sitemap-grid sitemap-grid--3">
 
             <a href="/<?= htmlspecialchars($navLang) ?>" class="sitemap-card">
                 <img src="/assets/images/gallery/domaine-ancien.jpg"
@@ -167,7 +167,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('jeux.title')) ?></span>
             </a>
 
-            <a href="/<?= htmlspecialchars($navLang) ?>/support" class="sitemap-card sitemap-card--fit">
+            <a href="/<?= htmlspecialchars($navLang) ?>/support" class="sitemap-card">
                 <img src="/assets/images/gallery/etiquette-1933.jpg"
                      alt="<?= htmlspecialchars(__('support.title')) ?>" loading="lazy">
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('support.title')) ?></span>
