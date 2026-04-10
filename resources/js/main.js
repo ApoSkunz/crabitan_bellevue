@@ -1769,6 +1769,10 @@ function initCartPage() {
                 });
 
                 guestContainer.replaceChildren(ul);
+
+                // Masquer la recommandation "vous pourrez apprécier" si le panier n'est pas vide
+                const rec = document.getElementById('cart-guest-recommendation');
+                if (rec) rec.hidden = true;
             })
             .catch(() => {
                 guestContainer.querySelector('.cart-guest__loading').textContent =
