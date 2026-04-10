@@ -8,12 +8,9 @@
     min-height: 100vh;
 }
 
-// ---- Stepper sticky ----
+// ---- Stepper (pas de sticky — hauteur nav variable) ----
 
 .checkout-stepper {
-    position: sticky;
-    top: 0;
-    z-index: 100;
 }
 
 .checkout-section {

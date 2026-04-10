@@ -447,7 +447,7 @@ $featuredWine     = $featuredWine     ?? null;
                 $cwImage   = htmlspecialchars((string) ($cw['image_path'] ?? ''));
                 $cwId      = (int) ($cw['id'] ?? 0);
             ?>
-            <div class="wine-card wine-cross-sell__card">
+            <article class="wine-card wine-cross-sell__card">
                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= $cwSlug ?>"
                    class="wine-card__inner"
                    aria-label="<?= $cwName ?>">
@@ -458,28 +458,30 @@ $featuredWine     = $featuredWine     ?? null;
                              width="200" height="280"
                              loading="lazy">
                     </div>
-                    <div class="wine-card__body">
-                        <p class="wine-card__name"><?= $cwName ?></p>
+                </a>
+                <div class="wine-card__body">
+                    <h3 class="wine-card__name">
+                        <?= $cwName ?>
                         <?php if ($cwVintage > 0) : ?>
                         <span class="wine-card__vintage"><?= $cwVintage ?></span>
                         <?php endif; ?>
-                        <strong class="wine-card__price wine-cross-sell__price">
+                    </h3>
+                    <div class="wine-card__footer">
+                        <strong class="wine-card__price">
                             <?= number_format($cwPrice, 2, ',', ' ') ?>&nbsp;€
                         </strong>
+                        <button type="button"
+                                class="wine-card__cart js-add-to-cart"
+                                data-wine-id="<?= $cwId ?>"
+                                data-wine-name="<?= $cwName ?>"
+                                data-wine-price="<?= htmlspecialchars(number_format($cwPrice, 2, ',', ' ') . ' €') ?>"
+                                data-wine-image="/assets/images/wines/<?= $cwImage ?>"
+                                aria-label="<?= htmlspecialchars(__('wine.add_to_cart')) ?> — <?= $cwName ?>">
+                            &#128722;
+                        </button>
                     </div>
-                </a>
-                <div class="wine-card__footer">
-                    <button type="button"
-                            class="wine-card__cart js-add-to-cart"
-                            data-wine-id="<?= $cwId ?>"
-                            data-wine-name="<?= $cwName ?>"
-                            data-wine-price="<?= htmlspecialchars(number_format($cwPrice, 2, ',', ' ') . ' €') ?>"
-                            data-wine-image="/assets/images/wines/<?= $cwImage ?>"
-                            aria-label="<?= htmlspecialchars(__('wine.add_to_cart')) ?> — <?= $cwName ?>">
-                        +
-                    </button>
                 </div>
-            </div>
+            </article>
             <?php endforeach; ?>
         </div>
     </section>
