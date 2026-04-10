@@ -2,6 +2,20 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.59.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.58.0...v0.59.0) (2026-04-10)
+
+
+### Bug Fixes
+
+* **pdf:** ingrédients comme champ dans section nutrition (corrige 500) ([64fb0cf](https://github.com/ApoSkunz/crabitan_bellevue/commit/64fb0cfdebb1d50f8fecdcea7f78e69292b7d3a9))
+* **view:** ingredients_en readonly grisé comme les autres champs EN ([6574bf4](https://github.com/ApoSkunz/crabitan_bellevue/commit/6574bf409acf8da07bebca8f3e979d7e2f30950d))
+
+
+### Features
+
+* **i18n:** ingrédients vin bilingues fr/en (JSON + auto-translate DeepL) ([aa58bca](https://github.com/ApoSkunz/crabitan_bellevue/commit/aa58bcaf5f0bc2a1edf12df67dec944aa13752b3))
+* **pdf:** ingrédients bilingues dans fiche technique (au-dessus nutrition) ([cf177df](https://github.com/ApoSkunz/crabitan_bellevue/commit/cf177df3ee9676169f979cf0d02681b998ddf38f))
+
 # [0.58.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.57.0...v0.58.0) (2026-04-10)
 
 
