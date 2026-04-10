@@ -54,6 +54,11 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     private RateLimiterService $rateLimiter;
     private RgpdExportLogModel $rgpdExportLogs;
 
+    /**
+     * Initialise le contrôleur et ses dépendances (modèles, services).
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
@@ -93,6 +98,12 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     // GET /{lang}/mon-compte
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche le tableau de bord du compte utilisateur.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function index(array $params): void
     {
         $payload   = $this->requireCustomer();
@@ -120,6 +131,12 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     // GET /{lang}/mon-compte/commandes
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche l'historique des commandes de l'utilisateur avec filtres et pagination.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function orders(array $params): void
     {
         $payload = $this->requireCustomer();
@@ -175,6 +192,12 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     // GET /{lang}/mon-compte/commandes/{id}
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche le détail d'une commande de l'utilisateur.
+     *
+     * @param array<string, string> $params Paramètres de route (lang, id)
+     * @return void
+     */
     public function orderDetail(array $params): void
     {
         $payload = $this->requireCustomer();

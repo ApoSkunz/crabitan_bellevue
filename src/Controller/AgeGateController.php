@@ -13,6 +13,11 @@ class AgeGateController extends Controller
     private const COOKIE_REMEMBER = 'age_remember';
     private const COOKIE_TTL      = 397 * 24 * 3600; // 13 mois — durée max CNIL/RGPD
 
+    /**
+     * Affiche la page de contrôle d'âge (age gate).
+     *
+     * @return void
+     */
     public function show(): void
     {
         // Déjà vérifié → retour au site, pas de retour possible sur l'age gate
@@ -39,6 +44,11 @@ class AgeGateController extends Controller
         ]);
     }
 
+    /**
+     * Traite le formulaire de confirmation d'âge (POST).
+     *
+     * @return void
+     */
     public function confirm(): void
     {
         $legalAge = $_POST['legal_age'] ?? '';

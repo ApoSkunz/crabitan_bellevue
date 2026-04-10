@@ -17,6 +17,12 @@ class AccountAdminController extends AdminController
     // GET /admin/comptes
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche la liste paginée des comptes clients.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser  = $this->requireAdmin();
@@ -53,6 +59,12 @@ class AccountAdminController extends AdminController
     // POST /admin/comptes/{id}/verifier  (super_admin uniquement)
     // ----------------------------------------------------------------
 
+    /**
+     * Force la vérification email d'un compte (super_admin uniquement).
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function verify(array $params): void
     {
         $adminUser = $this->requireSuperAdmin();

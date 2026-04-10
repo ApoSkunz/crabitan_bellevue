@@ -27,6 +27,11 @@ class NewsletterAdminController extends AdminController
     private AccountModel $accounts;
     private NewsletterModel $newsletters;
 
+    /**
+     * Initialise le contrôleur avec les modèles nécessaires à la gestion newsletter.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
@@ -38,6 +43,12 @@ class NewsletterAdminController extends AdminController
     // GET /admin/newsletter
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche la liste des abonnés et l'historique des campagnes.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser   = $this->requireAdmin();
@@ -144,6 +155,12 @@ class NewsletterAdminController extends AdminController
     // POST /admin/newsletter/envoyer
     // ----------------------------------------------------------------
 
+    /**
+     * Traite l'envoi d'une campagne newsletter (POST).
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function send(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();

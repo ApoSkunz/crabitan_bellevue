@@ -22,6 +22,11 @@ class OrderAdminController extends AdminController
 
     private OrderModel $orders;
 
+    /**
+     * Initialise le contrôleur avec le modèle commandes.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
@@ -64,6 +69,12 @@ class OrderAdminController extends AdminController
     // GET /admin/commandes
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche la liste paginée des commandes avec filtres.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -102,6 +113,12 @@ class OrderAdminController extends AdminController
     // GET /admin/commandes/{id}
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche le détail d'une commande admin.
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function show(array $params): void
     {
         $adminUser = $this->requireAdmin();
@@ -132,6 +149,12 @@ class OrderAdminController extends AdminController
     // POST /admin/commandes/{id}/statut
     // ----------------------------------------------------------------
 
+    /**
+     * Met à jour le statut d'une commande (POST).
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function updateStatus(array $params): void // NOSONAR — php:S3776 : complexité flux changement statut admin (GAE, emails, CSRF, guards)
     {
         $adminUser = $this->requireAdmin();
@@ -269,6 +292,12 @@ class OrderAdminController extends AdminController
     // POST /admin/commandes/{id}/facture
     // ----------------------------------------------------------------
 
+    /**
+     * Téléverse une facture PDF pour une commande (POST).
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function uploadInvoice(array $params): void
     {
         $this->requireAdmin();
@@ -330,6 +359,12 @@ class OrderAdminController extends AdminController
     // GET /admin/commandes/{id}/facture/telecharger
     // ----------------------------------------------------------------
 
+    /**
+     * Génère et retourne la facture PDF d'une commande.
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function downloadInvoice(array $params): void
     {
         $this->requireAdmin();

@@ -13,6 +13,11 @@ class OrderFormAdminController extends AdminController
 
     private OrderFormModel $forms;
 
+    /**
+     * Initialise le contrôleur avec le modèle bons de commande.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
@@ -28,6 +33,12 @@ class OrderFormAdminController extends AdminController
     private const DEFAULT_PER_PAGE  = 10;
     private const ALLOWED_PER_PAGES = [10, 25, 50];
 
+    /**
+     * Affiche la liste paginée des bons de commande.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $adminUser = $this->requireAdmin();
@@ -63,6 +74,12 @@ class OrderFormAdminController extends AdminController
     // POST /admin/bons-de-commande/ajouter
     // ----------------------------------------------------------------
 
+    /**
+     * Traite l'upload d'un bon de commande PDF (POST).
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function upload(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         $this->requireAdmin();
@@ -115,6 +132,12 @@ class OrderFormAdminController extends AdminController
     // POST /admin/bons-de-commande/{id}/supprimer
     // ----------------------------------------------------------------
 
+    /**
+     * Supprime un bon de commande (POST).
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function delete(array $params): void
     {
         $this->requireAdmin();
@@ -146,6 +169,12 @@ class OrderFormAdminController extends AdminController
     // GET /admin/bons-de-commande/{id}/telecharger
     // ----------------------------------------------------------------
 
+    /**
+     * Retourne le PDF d'un bon de commande en téléchargement.
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
     public function download(array $params): void
     {
         $this->requireAdmin();

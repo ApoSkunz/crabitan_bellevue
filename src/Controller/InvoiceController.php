@@ -13,6 +13,11 @@ class InvoiceController extends Controller
 {
     private OrderModel $orders;
 
+    /**
+     * Initialise le contrôleur factures avec le modèle commandes.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);

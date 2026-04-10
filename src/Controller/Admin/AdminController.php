@@ -51,17 +51,35 @@ abstract class AdminController extends Controller
         return $adminUser;
     }
 
+    /**
+     * Vérifie le token CSRF de la requête POST courante.
+     *
+     * @return bool True si le token est valide
+     */
     protected function verifyCsrf(): bool
     {
         $token = $this->request->post('csrf_token', '');
         return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
     }
 
+    /**
+     * Stocke un message flash en session admin.
+     *
+     * @param string $key     Clé du message (ex. 'success', 'error')
+     * @param string $message Contenu du message
+     * @return void
+     */
     protected function flash(string $key, string $message): void
     {
         $_SESSION['admin_flash'][$key] = $message;
     }
 
+    /**
+     * Lit et supprime un message flash de la session admin.
+     *
+     * @param string $key Clé du message
+     * @return string|null Message ou null si absent
+     */
     protected function getFlash(string $key): ?string
     {
         $msg = $_SESSION['admin_flash'][$key] ?? null;

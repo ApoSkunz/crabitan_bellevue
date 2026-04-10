@@ -42,6 +42,12 @@ class WineController extends Controller
         }
     }
 
+    /**
+     * Affiche la liste des vins disponibles avec filtres et pagination.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function index(array $params): void
     {
         $lang  = $this->resolveLang($params);
@@ -79,6 +85,12 @@ class WineController extends Controller
     // GET /{lang}/vins/collection
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche la collection complète des vins groupés par couleur.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
     public function collection(array $params): void
     {
         $lang  = $this->resolveLang($params);
@@ -547,6 +559,12 @@ class WineController extends Controller
     // GET /{lang}/vins/{slug}
     // ----------------------------------------------------------------
 
+    /**
+     * Affiche la fiche détaillée d'un vin identifié par son slug.
+     *
+     * @param array<string, string> $params Paramètres de route (lang, slug)
+     * @return void
+     */
     public function show(array $params): void
     {
         $lang  = $this->resolveLang($params);

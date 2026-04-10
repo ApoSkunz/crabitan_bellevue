@@ -14,6 +14,12 @@ class FavoriteApiController extends Controller
     // POST /api/favorites/toggle
     // ----------------------------------------------------------------
 
+    /**
+     * Bascule le statut favori (like/unlike) d'un vin pour l'utilisateur courant.
+     *
+     * @param array<string, mixed> $params Paramètres de route (non utilisés)
+     * @return void
+     */
     public function toggle(array $params): void // NOSONAR — $params requis par le router
     {
         $payload = AuthMiddleware::handle();
