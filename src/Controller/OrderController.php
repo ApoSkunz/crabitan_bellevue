@@ -314,9 +314,16 @@ class OrderController extends Controller
             $cgvVersion
         );
 
-        // Vider le panier
+        // Vider le panier + décrémenter le stock
         $this->carts->clear($userId);
         setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'samesite' => 'Lax']);
+        foreach ($items as $item) {
+            $wineId = (int) ($item['wine_id'] ?? 0);
+            $qty    = (int) ($item['qty']     ?? 0);
+            if ($wineId > 0 && $qty > 0) {
+                $this->wines->decrementStock($wineId, $qty);
+            }
+        }
         if ($clientEmail !== '') {
             $this->dispatchOrderEmails(
                 $clientEmail,
