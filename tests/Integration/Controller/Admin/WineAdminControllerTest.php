@@ -27,7 +27,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
               barrel_fermentation, award, extra_comment, image_path, slug)
              VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             [
-                'Vin Doublon', 'red', 'bottle', 2018, 15.00, 10, 0,
+                'Vin Doublon', 'red', 'bottle', 2018, 15.00, 10, 1,
                 '1.00', 'Bordeaux', 'Merlot 100%', 15,
                 json_encode(['fr' => 'Desc doublon', 'en' => 'Duplicate desc']),
                 json_encode(['fr' => 'Argile', 'en' => 'Clay']),
