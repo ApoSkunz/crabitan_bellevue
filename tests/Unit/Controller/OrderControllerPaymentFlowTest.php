@@ -1308,4 +1308,76 @@ class OrderControllerPaymentFlowTest extends TestCase
 
         (new OrderController(new Request()))->paymentReturnOk(['lang' => 'fr']);
     }
+
+    // ================================================================
+    // paymentReturnOk() — decrementStock appelé dans le chemin fallback
+    // ================================================================
+
+    /**
+     * Vérifie que decrementStock (execute GREATEST) est appelé après la création
+     * de commande dans le chemin fallback de paymentReturnOk.
+     *
+     * @return void
+     */
+    public function testPaymentReturnOkDecrementsStockAfterOrderCreation(): void
+    {
+        if ($this->privateKey === false || $this->tmpPubkeyPath === '') {
+            $this->markTestSkipped('Génération de clé RSA non disponible dans cet environnement.');
+        }
+
+        $_ENV['CA_PUBKEY_PATH'] = $this->tmpPubkeyPath;
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement-ca/ok';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+
+        $dataQs   = 'Ref=WEB-CB-STOCK-DEC&Erreur=00000&Appel=9999&Trans=8888';
+        $_SERVER['QUERY_STRING'] = $this->buildSignedQueryString($dataQs);
+        $_GET = ['Ref' => 'WEB-CB-STOCK-DEC', 'Erreur' => '00000', 'Appel' => '9999', 'Trans' => '8888'];
+
+        $snapshot    = $this->defaultSnapshot(1, 'WEB-CB-STOCK-DEC');
+        $snapshotRow = ['snapshot' => json_encode($snapshot)];
+
+        $executedSqls = [];
+        $mock = $this->createMock(Database::class);
+        $this->instanceProp->setValue(null, $mock);
+        $mock->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],
+            false,
+            $snapshotRow,
+            false,
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false,
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false,
+            ['id' => 684, 'order_reference' => 'WEB-CB-STOCK-DEC', 'payment_method' => 'card',
+             'content' => json_encode($snapshot['items']), 'price' => 120.0,
+             'shipping_discount' => 0.0, 'ordered_at' => date('Y-m-d H:i:s')],
+            ['order_reference' => 'WEB-CB-STOCK-DEC', 'payment_method' => 'card',
+             'content' => json_encode($snapshot['items'])],
+        );
+        $mock->method('execute')->willReturnCallback(
+            function (string $sql, array $params = []) use (&$executedSqls): int {
+                $executedSqls[] = $sql;
+                return 1;
+            }
+        );
+
+        try {
+            (new OrderController(new Request()))->paymentReturnOk(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            // redirect attendu
+        }
+
+        $hasDecrement = false;
+        foreach ($executedSqls as $sql) {
+            if (stripos($sql, 'GREATEST') !== false) {
+                $hasDecrement = true;
+                break;
+            }
+        }
+        $this->assertTrue($hasDecrement, 'decrementStock (GREATEST) doit être appelé dans paymentReturnOk');
+    }
 }

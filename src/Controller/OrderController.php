@@ -412,6 +412,14 @@ class OrderController extends Controller
                     (new \Model\PaymentIntentModel())->delete($ref);
                     (new \Model\CartModel())->clear($userId);
 
+                    foreach ((array) $snapshot['items'] as $item) {
+                        $wineId = (int) ($item['wine_id'] ?? 0);
+                        $qty    = (int) ($item['qty']     ?? 0);
+                        if ($wineId > 0 && $qty > 0) {
+                            $this->wines->decrementStock($wineId, $qty);
+                        }
+                    }
+
                     $this->generateAndStoreInvoice($ref);
                     try {
                         $discount = (float) ($snapshot['delivery_discount'] ?? 0.0);
