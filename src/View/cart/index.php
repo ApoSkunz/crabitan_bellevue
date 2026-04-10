@@ -312,26 +312,6 @@ $featuredWine     = $featuredWine     ?? null;
             </aside>
         </div>
 
-        <?php if (!empty($crossSellWines)) : ?>
-        <!-- Cross-sell panier non vide -->
-        <div class="cart-cross-sell">
-            <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
-            <div class="cart-cross-sell__list">
-                <?php foreach ($crossSellWines as $csWine) : ?>
-                <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($csWine['slug'] ?? '')) ?>"
-                   class="cart-empty-wine__card">
-                    <?php $csImage = '/assets/images/wines/' . htmlspecialchars((string)($csWine['image_path'] ?? '')); ?>
-                    <img src="<?= $csImage ?>"
-                         alt="<?= htmlspecialchars((string)($csWine['label_name'] ?? '')) ?>"
-                         class="cart-empty-wine__img"
-                         width="120" height="160" loading="lazy">
-                    <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($csWine['label_name'] ?? '')) ?></span>
-                    <span class="cart-empty-wine__price"><?= number_format((float)($csWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
-                </a>
-                <?php endforeach; ?>
-            </div>
-        </div>
-        <?php endif; ?>
 
         <?php elseif ($isAuth && empty($cartItems)) : ?>
         <!-- ======================================================
@@ -446,6 +426,7 @@ $featuredWine     = $featuredWine     ?? null;
                 $cwPrice   = (float) ($cw['price'] ?? 0.0);
                 $cwImage   = htmlspecialchars((string) ($cw['image_path'] ?? ''));
                 $cwId      = (int) ($cw['id'] ?? 0);
+                $cwCuvee   = !empty($cw['is_cuvee_speciale']);
             ?>
             <article class="wine-card wine-cross-sell__card">
                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= $cwSlug ?>"
@@ -466,6 +447,9 @@ $featuredWine     = $featuredWine     ?? null;
                         <span class="wine-card__vintage"><?= $cwVintage ?></span>
                         <?php endif; ?>
                     </h3>
+                    <?php if ($cwCuvee) : ?>
+                    <p class="wine-card__extra"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></p>
+                    <?php endif; ?>
                     <div class="wine-card__footer">
                         <strong class="wine-card__price">
                             <?= number_format($cwPrice, 2, ',', ' ') ?>&nbsp;€
@@ -476,6 +460,7 @@ $featuredWine     = $featuredWine     ?? null;
                                 data-wine-name="<?= $cwName ?>"
                                 data-wine-price="<?= htmlspecialchars(number_format($cwPrice, 2, ',', ' ') . ' €') ?>"
                                 data-wine-image="/assets/images/wines/<?= $cwImage ?>"
+                                data-wine-cuvee="<?= $cwCuvee ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                                 aria-label="<?= htmlspecialchars(__('wine.add_to_cart')) ?> — <?= $cwName ?>">
                             &#128722;
                         </button>
