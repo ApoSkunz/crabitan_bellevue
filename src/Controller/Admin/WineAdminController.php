@@ -429,6 +429,7 @@ class WineAdminController extends AdminController
 
         if (!$newAvailable) {
             (new CartModel())->purgeWineFromAllCarts($id);
+            $this->wines->unsetFeatured($id);
         }
 
         $this->json(['ok' => true, 'available' => $newAvailable]);
@@ -465,6 +466,11 @@ class WineAdminController extends AdminController
         if ($action === 'unset') {
             $this->wines->unsetFeatured($id);
             $this->json(['ok' => true, 'featured' => false, 'replaced' => null]);
+        }
+
+        // Impossible de mettre en avant un vin indisponible
+        if (!(bool) $wine['available']) {
+            $this->json(['ok' => false, 'error' => 'unavailable'], 422);
         }
 
         // Vérifier s'il existe déjà un vin featured différent

@@ -245,7 +245,20 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
         var id     = btn.dataset.id;
         var csrf   = btn.dataset.csrf;
         var action = btn.dataset.featured === '1' ? 'unset' : 'set';
-        ajaxPost('/admin/vins/' + id + '/featured', csrf, 'action=' + action, function (data) {
+        var body = 'csrf_token=' + encodeURIComponent(csrf) + '&action=' + action;
+        fetch('/admin/vins/' + id + '/featured', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
+            body: body,
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data.ok) {
+                if (data.error === 'unavailable') {
+                    alert('Ce vin est indisponible — il ne peut pas être mis en avant.');
+                }
+                return;
+            }
             document.querySelectorAll('.js-featured-btn').forEach(function (b) {
                 b.dataset.featured = '0';
                 b.textContent = 'Mettre en avant';
@@ -258,7 +271,8 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                 btn.classList.add('admin-btn--gold');
                 btn.classList.remove('admin-btn--outline');
             }
-        });
+        })
+        .catch(function (e) { console.error('[admin-wines] featured error:', e); });
     }
 
     document.addEventListener('click', function (e) {
@@ -308,6 +322,19 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
             btn.classList.toggle('admin-btn--available', data.available);
             btn.classList.toggle('admin-btn--out', !data.available);
             btn.setAttribute('aria-label', data.available ? 'Rendre indisponible' : 'Rendre disponible');
+            // Si le vin devient indisponible, retirer son statut "en avant"
+            if (!data.available) {
+                var row = btn.closest('tr');
+                if (row) {
+                    var featuredBtn = row.querySelector('.js-featured-btn');
+                    if (featuredBtn) {
+                        featuredBtn.dataset.featured = '0';
+                        featuredBtn.textContent = 'Mettre en avant';
+                        featuredBtn.classList.remove('admin-btn--gold');
+                        featuredBtn.classList.add('admin-btn--outline');
+                    }
+                }
+            }
         });
     }
 
