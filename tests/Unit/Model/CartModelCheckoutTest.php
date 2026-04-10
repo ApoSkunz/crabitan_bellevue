@@ -58,7 +58,7 @@ class CartModelCheckoutTest extends TestCase
 
         $removed = $this->model->removeUnavailableItems(
             1,
-            fn(int $id): ?array => ['available' => 1, 'production_quantity' => 10]
+            fn(int $id): ?array => ['available' => 1, 'stock_quantity' => 10]
         );
 
         $this->assertSame([], $removed);
@@ -73,7 +73,7 @@ class CartModelCheckoutTest extends TestCase
 
         $removed = $this->model->removeUnavailableItems(
             1,
-            fn(int $id): ?array => ['available' => 0, 'production_quantity' => 10]
+            fn(int $id): ?array => ['available' => 0, 'stock_quantity' => 10]
         );
 
         $this->assertCount(1, $removed);
@@ -87,10 +87,10 @@ class CartModelCheckoutTest extends TestCase
             'content' => json_encode([['wine_id' => 7, 'qty' => 1]]),
         ]);
 
-        // production_quantity = 0 signifie production totale nulle, pas rupture de stock — le vin reste
+        // stock_quantity = 0 : la quantité est plafonnée à 0 mais l'item reste dans $kept (non retiré)
         $removed = $this->model->removeUnavailableItems(
             1,
-            fn(int $id): ?array => ['available' => 1, 'production_quantity' => 0]
+            fn(int $id): ?array => ['available' => 1, 'stock_quantity' => 0]
         );
 
         $this->assertSame([], $removed);
@@ -125,7 +125,7 @@ class CartModelCheckoutTest extends TestCase
 
         $removed = $this->model->removeUnavailableItems(
             1,
-            fn(int $id): ?array => ['available' => 1, 'production_quantity' => 3]
+            fn(int $id): ?array => ['available' => 1, 'stock_quantity' => 3]
         );
 
         $this->assertSame([], $removed);
