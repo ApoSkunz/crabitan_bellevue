@@ -37,7 +37,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
                 json_encode(['fr' => '12 mois', 'en' => '12 months']),
                 json_encode(['fr' => '', 'en' => '']),
                 json_encode(['fr' => '', 'en' => '']),
-                'Wine_Vin_Doublon_2018.png', $slug,
+                'Wine_Vin_Doublon_2018.png', $slug . '-' . uniqid(),
             ]
         );
     }
@@ -90,7 +90,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
                 json_encode(['fr' => '12 mois', 'en' => '12 months']),
                 json_encode(['fr' => '', 'en' => '']),
                 json_encode(['fr' => '', 'en' => '']),
-                'Wine_Vin_TI_2022.png', 'vin-ti-2022',
+                'Wine_Vin_TI_2022.png', 'vin-ti-' . uniqid(),
             ]
         );
     }
