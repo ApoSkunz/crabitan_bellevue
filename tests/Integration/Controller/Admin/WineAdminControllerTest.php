@@ -21,7 +21,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
     {
         return (int) self::$db->insert(
             "INSERT INTO wines
-             (label_name, wine_color, format, vintage, price, quantity, available,
+             (label_name, wine_color, format, vintage, price, production_quantity, available,
               area, city, variety_of_vine, age_of_vineyard,
               oenological_comment, soil, pruning, harvest, vinification,
               barrel_fermentation, award, extra_comment, image_path, slug)
@@ -74,7 +74,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
     {
         return (int) self::$db->insert(
             "INSERT INTO wines
-             (label_name, wine_color, format, vintage, price, quantity, available,
+             (label_name, wine_color, format, vintage, price, production_quantity, available,
               area, city, variety_of_vine, age_of_vineyard,
               oenological_comment, soil, pruning, harvest, vinification,
               barrel_fermentation, award, extra_comment, image_path, slug)
@@ -285,7 +285,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '18.50';
-        $_POST['quantity']            = '60';
+        $_POST['production_quantity']            = '60';
         $_POST['area']                = '0.50';
         $_POST['city']                = 'Saint-Émilion';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -317,7 +317,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2021';
         $_POST['price']               = '25.00';
-        $_POST['quantity']            = '30';
+        $_POST['production_quantity']            = '30';
         $_POST['area']                = '1.00';
         $_POST['city']                = 'Bordeaux';
         $_POST['variety_of_vine']     = 'Cabernet Sauvignon';
@@ -348,7 +348,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2020';
         $_POST['price']               = '15.00';
-        $_POST['quantity']            = '100';
+        $_POST['production_quantity']            = '100';
         $_POST['area']                = '2.00';
         $_POST['city']                = 'Bordeaux';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -382,7 +382,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2019';
         $_POST['price']               = '12.00';
-        $_POST['quantity']            = '50';
+        $_POST['production_quantity']            = '50';
         $_POST['area']                = '0.75';
         $_POST['city']                = 'Blaye';
         $_POST['variety_of_vine']     = 'Sauvignon';
@@ -458,7 +458,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['appellation']         = 'Bordeaux Rouge';
         $_POST['vintage']             = '1800';
         $_POST['price']               = '10.00';
-        $_POST['quantity']            = '20';
+        $_POST['production_quantity']            = '20';
         $_POST['certification_label'] = 'AOC';
         $_FILES = [];
 
@@ -479,7 +479,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['appellation']         = 'Bordeaux Rouge';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '-5.00';
-        $_POST['quantity']            = '10';
+        $_POST['production_quantity']            = '10';
         $_POST['certification_label'] = 'AOC';
         $_FILES = [];
 
@@ -500,7 +500,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['appellation']         = 'Bordeaux Rouge';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '10.00';
-        $_POST['quantity']            = '-1';
+        $_POST['production_quantity']            = '-1';
         $_POST['certification_label'] = 'AOC';
         $_FILES = [];
 
@@ -521,7 +521,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['appellation']         = 'Bordeaux Rouge';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '15.00';
-        $_POST['quantity']            = '10';
+        $_POST['production_quantity']            = '10';
         $_POST['certification_label'] = 'AOC';
         // Champs JSON requis intentionnellement absents (vides)
         foreach (['oenological_comment', 'soil', 'pruning', 'harvest', 'vinification', 'barrel_fermentation'] as $f) {
@@ -547,7 +547,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['appellation']         = 'Bordeaux Rouge';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '15.00';
-        $_POST['quantity']            = '10';
+        $_POST['production_quantity']            = '10';
         $_POST['certification_label'] = 'AOC';
         foreach (['oenological_comment', 'soil', 'pruning', 'harvest', 'vinification', 'barrel_fermentation'] as $f) {
             $_POST["{$f}_fr"] = "Texte FR {$f}";
@@ -580,7 +580,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bib';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '18,50'; // virgule comme séparateur décimal
-        $_POST['quantity']            = '60';
+        $_POST['production_quantity']            = '60';
         $_POST['area']                = '0,50';
         $_POST['city']                = 'Saint-Émilion';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -630,7 +630,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2021';
         $_POST['price']               = '20.00';
-        $_POST['quantity']            = '50';
+        $_POST['production_quantity']            = '50';
         $_POST['area']                = '1.00';
         $_POST['city']                = 'Bordeaux';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -701,7 +701,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '1975'; // millésime de test spécifique non présent en base
         $_POST['price']               = '18.00';
-        $_POST['quantity']            = '30';
+        $_POST['production_quantity']            = '30';
         $_POST['area']                = '0.80';
         $_POST['city']                = 'Bordeaux';
         $_POST['variety_of_vine']     = 'Sauvignon Blanc';
@@ -780,7 +780,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2099';
         $_POST['price']               = '15.00';
-        $_POST['quantity']            = '10';
+        $_POST['production_quantity']            = '10';
         $_POST['area']                = '1.00';
         $_POST['city']                = 'Bordeaux';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -844,7 +844,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '20.00';
-        $_POST['quantity']            = '40';
+        $_POST['production_quantity']            = '40';
         $_POST['area']                = '1.00';
         $_POST['city']                = 'Bordeaux';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -890,7 +890,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '15.00';
-        $_POST['quantity']            = '10';
+        $_POST['production_quantity']            = '10';
         $_POST['area']                = '1.00';
         $_POST['city']                = 'Bordeaux';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -956,7 +956,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '20.00';
-        $_POST['quantity']            = '40';
+        $_POST['production_quantity']            = '40';
         $_POST['area']                = '1.00';
         $_POST['city']                = 'Bordeaux';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -1001,7 +1001,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '15.00';
-        $_POST['quantity']            = '10';
+        $_POST['production_quantity']            = '10';
         $_POST['area']                = '1.00';
         $_POST['city']                = 'Bordeaux';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -1052,7 +1052,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '15.00';
-        $_POST['quantity']            = '10';
+        $_POST['production_quantity']            = '10';
         $_POST['area']                = '1.00';
         $_POST['city']                = 'Bordeaux';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -1115,7 +1115,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '2022';
         $_POST['price']               = '18.50';
-        $_POST['quantity']            = '60';
+        $_POST['production_quantity']            = '60';
         $_POST['area']                = '0.50';
         $_POST['city']                = 'Saint-Émilion';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -1187,7 +1187,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '1990';
         $_POST['price']               = '35.00';
-        $_POST['quantity']            = '20';
+        $_POST['production_quantity']            = '20';
         $_POST['area']                = '0.30';
         $_POST['city']                = 'Pomerol';
         $_POST['variety_of_vine']     = 'Merlot 100%';
@@ -1263,7 +1263,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['format']              = 'bottle';
         $_POST['vintage']             = '1985';
         $_POST['price']               = '25.00';
-        $_POST['quantity']            = '30';
+        $_POST['production_quantity']            = '30';
         $_POST['city']                = 'Pomerol';
         $_POST['area']                = '0.5';
         $_POST['variety_of_vine']     = 'Cabernet Sauvignon';

@@ -42,7 +42,7 @@ class WineControllerTest extends IntegrationTestCase
     {
         self::$db->insert(
             "INSERT INTO wines
-                (label_name, wine_color, format, vintage, price, quantity, available,
+                (label_name, wine_color, format, vintage, price, production_quantity, available,
                  area, city, variety_of_vine, age_of_vineyard,
                  oenological_comment, soil, pruning, harvest, vinification,
                  barrel_fermentation, award, extra_comment, image_path, slug)
