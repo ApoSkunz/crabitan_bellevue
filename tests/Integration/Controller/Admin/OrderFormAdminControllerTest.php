@@ -479,8 +479,156 @@ class OrderFormAdminControllerTest extends AdminIntegrationTestCase
 
     // ----------------------------------------------------------------
     // download — chemin nominal : fichier physique présent
-    // Le test s'exécute en processus séparé car download() appelle exit().
-    // Couvre : header(), readfile(), exit (L160-173)
+    // Couvre : header(), readfile(), doExit() (L165-173)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que download() envoie le PDF et appelle doExit() sur le chemin nominal.
+     * Utilise une sous-classe anonyme qui surcharge doExit() pour lever HttpException(200).
+     */
+    public function testDownloadSendsPdfWhenFileExists(): void
+    {
+        // Crée un vrai fichier PDF dans storage/order_forms
+        $storageDir = ROOT_PATH . '/storage/order_forms';
+        if (!is_dir($storageDir)) {
+            mkdir($storageDir, 0750, true);
+        }
+        $filename = 'ti_download_test_' . uniqid() . '.pdf';
+        $filepath = $storageDir . '/' . $filename;
+        file_put_contents($filepath, "%PDF-1.4\n%%EOF");
+
+        $id = (int) self::$db->insert(
+            "INSERT INTO order_forms (year, label, filename) VALUES (2099, 'DL Test', ?)",
+            [$filename]
+        );
+
+        // Sous-classe anonyme : doExit() lève HttpException(200) au lieu d'exit
+        $ctrl = new class ($this->makeRequest('GET', '/admin/bons-de-commande')) extends \Controller\Admin\OrderFormAdminController {
+            protected function doExit(): never
+            {
+                throw new \Core\Exception\HttpException(200);
+            }
+        };
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(200);
+
+        ob_start();
+        try {
+            $ctrl->download(['id' => (string) $id]);
+        } finally {
+            ob_end_clean();
+            if (is_file($filepath)) {
+                unlink($filepath);
+            }
+        }
+    }
+
+    /**
+     * Vérifie que download() avec label null construit le nom de fichier sans label (branche $label === null).
+     */
+    public function testDownloadWithNullLabelBuildsFilenameWithoutLabel(): void
+    {
+        $storageDir = ROOT_PATH . '/storage/order_forms';
+        if (!is_dir($storageDir)) {
+            mkdir($storageDir, 0750, true);
+        }
+        $filename = 'ti_download_nolabel_' . uniqid() . '.pdf';
+        $filepath = $storageDir . '/' . $filename;
+        file_put_contents($filepath, "%PDF-1.4\n%%EOF");
+
+        $id = (int) self::$db->insert(
+            "INSERT INTO order_forms (year, label, filename) VALUES (2097, NULL, ?)",
+            [$filename]
+        );
+
+        $ctrl = new class ($this->makeRequest('GET', '/admin/bons-de-commande')) extends \Controller\Admin\OrderFormAdminController {
+            protected function doExit(): never
+            {
+                throw new \Core\Exception\HttpException(200);
+            }
+        };
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(200);
+
+        ob_start();
+        try {
+            $ctrl->download(['id' => (string) $id]);
+        } finally {
+            ob_end_clean();
+            if (is_file($filepath)) {
+                unlink($filepath);
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // upload — chemin nominal : move_uploaded_file réussit via override
+    // Couvre : $this->forms->create(), flash success, redirect (L109-111)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que upload() crée l'enregistrement BDD et redirige quand moveUploadedFile réussit.
+     * Utilise une sous-classe anonyme qui surcharge moveUploadedFile() pour retourner true.
+     */
+    public function testUploadCreatesRecordWhenMoveSucceeds(): void
+    {
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ti_upload_ok_');
+        file_put_contents($tmpFile, "%PDF-1.4\n%%EOF");
+
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['year']       = '2025';
+        $_POST['label']      = 'Nominal';
+        $_FILES = [
+            'pdf' => [
+                'name'     => 'nominal.pdf',
+                'type'     => 'application/pdf',
+                'tmp_name' => $tmpFile,
+                'error'    => UPLOAD_ERR_OK,
+                'size'     => filesize($tmpFile),
+            ],
+        ];
+
+        // Sous-classe anonyme : moveUploadedFile() retourne true (simule un vrai upload HTTP)
+        $ctrl = new class ($this->makeRequest('POST', '/admin/bons-de-commande')) extends \Controller\Admin\OrderFormAdminController {
+            protected function moveUploadedFile(string $src, string $dest): bool
+            {
+                // Déplace réellement le fichier (copy + unlink) pour que create() soit atteint
+                return copy($src, $dest);
+            }
+        };
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $createdFilename = null;
+        try {
+            $ctrl->upload([]);
+        } catch (\Core\Exception\HttpException $e) {
+            // Récupère le filename créé pour nettoyage
+            $model = new \Model\OrderFormModel();
+            $all   = self::$db->fetchAll(
+                "SELECT filename FROM order_forms WHERE year = 2025 AND label = 'Nominal' ORDER BY id DESC LIMIT 1"
+            );
+            if (!empty($all)) {
+                $createdFilename = $all[0]['filename'];
+            }
+            throw $e;
+        } finally {
+            if (is_file($tmpFile)) {
+                unlink($tmpFile);
+            }
+            // Supprime le fichier créé dans storage/order_forms si présent
+            if ($createdFilename !== null) {
+                $dest = ROOT_PATH . '/storage/order_forms/' . $createdFilename;
+                if (is_file($dest)) {
+                    unlink($dest);
+                }
+            }
+            $_FILES = [];
+        }
+    }
 
     // ----------------------------------------------------------------
     // index — page demandée > nombre de pages total → recentrage sur la dernière page

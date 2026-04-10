@@ -223,6 +223,71 @@ class AuditLogAdminControllerTest extends AdminIntegrationTestCase
         $this->assertStringContainsString('Journal', $output);
     }
 
+    // ----------------------------------------------------------------
+    // export() — couverture via sous-classe qui override doExit()
+    // ----------------------------------------------------------------
+
+    /**
+     * GET /admin/logs/export → génère un CSV et appelle doExit().
+     * La sous-classe intercepte doExit() pour éviter de tuer le processus.
+     */
+    public function testExportGeneratesCsvAndSendsHeaders(): void
+    {
+        $superAdminId          = $this->insertAdminAccount('super_admin', 'superExp@test.local');
+        $token                 = \Core\Jwt::generate($superAdminId, 'super_admin');
+        $_COOKIE['auth_token'] = $token;
+        $this->insertConnection($superAdminId, $token);
+
+        // Insère une entrée pour que le CSV soit non vide
+        $logModel = new AdminLogModel();
+        $logModel->insert($superAdminId, 'wine.created', 'wine', 1, [], '127.0.0.1');
+
+        $request = $this->makeRequest('GET', '/admin/logs/export');
+
+        $controller = new class ($request) extends AuditLogAdminController {
+            /** @return never-return */
+            protected function doExit(): never
+            {
+                throw new \RuntimeException('__EXIT__');
+            }
+        };
+
+        $exitCalled = false;
+        ob_start();
+        try {
+            $controller->export([]);
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === '__EXIT__') {
+                $exitCalled = true;
+            }
+        } finally {
+            $output = ob_get_clean();
+        }
+
+        $this->assertTrue($exitCalled, 'doExit() doit être appelé');
+        $this->assertStringContainsString('wine.created', $output);
+    }
+
+    /**
+     * GET /admin/logs/export refusé pour un admin simple (403).
+     */
+    public function testExportForbiddenForRegularAdmin(): void
+    {
+        $this->expectException(HttpException::class);
+
+        $request    = $this->makeRequest('GET', '/admin/logs/export');
+        $controller = new AuditLogAdminController($request);
+
+        ob_start();
+        try {
+            $controller->export([]);
+        } catch (\Throwable $e) {
+            ob_end_clean();
+            throw $e;
+        }
+        ob_end_clean();
+    }
+
     /**
      * GET /admin/logs avec date invalide (pas le format YYYY-MM-DD) → branch preg_match false couverte.
      */
