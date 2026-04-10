@@ -203,6 +203,18 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.credits_medias')) ?></span>
             </a>
 
+            <a href="/<?= htmlspecialchars($navLang) ?>/galerie" class="sitemap-card">
+                <img src="/assets/images/gallery/chai-barriques.jpg"
+                     alt="<?= htmlspecialchars(__('gallery.title')) ?>" loading="lazy">
+                <span class="sitemap-card__label"><?= htmlspecialchars(__('gallery.title')) ?></span>
+            </a>
+
+            <a href="/<?= htmlspecialchars($navLang) ?>/accessibilite" class="sitemap-card">
+                <img src="/assets/images/gallery/domaine-ancien.jpg"
+                     alt="<?= htmlspecialchars(__('accessibility.title')) ?>" loading="lazy">
+                <span class="sitemap-card__label"><?= htmlspecialchars(__('accessibility.title')) ?></span>
+            </a>
+
         </div>
     </section>
 

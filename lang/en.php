@@ -271,6 +271,8 @@ return [
     'footer.carbon'          => 'Carbon Badge',
     'footer.alcohol_warning' => 'Alcohol abuse is dangerous for your health. To be consumed in moderation. The sale of alcohol is prohibited to persons under 18 years of age.',
     'footer.credits_medias'  => 'Media credits',
+    'footer.galerie'         => 'Gallery',
+    'footer.accessibilite'   => 'Accessibility',
     'footer.made_by'         => 'Made by',
     'footer.webmaster'       => 'Alexandre Solane',
 
@@ -481,6 +483,17 @@ return [
     'sitemap.wine_white'       => 'Discover the lightness of our White wines',
     'sitemap.wine_rose'        => 'Discover the freshness of our Rosé wines',
     'sitemap.wine_collection'  => 'Dive into the heart of our collection',
+
+    // Photo gallery
+    'gallery.title'          => 'Photo gallery',
+    'gallery.intro'          => 'Discover the château, the vineyards and the life of the estate through images',
+    'gallery.enlarge'        => 'Enlarge',
+    'gallery.close'          => 'Close',
+    'gallery.lightbox_label' => 'Photo viewer',
+
+    // Accessibility
+    'accessibility.title'    => 'Accessibility',
+    'accessibility.intro'    => 'RGAA v4 compliance statement',
 
     // Webmaster
     'webmaster.bio'           => 'Website designed and developed by Alexandre Solane, full-stack web developer.',
