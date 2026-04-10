@@ -12,6 +12,8 @@ $router->get('/admin/vins/ajouter', 'Admin\WineAdminController@create');
 $router->post('/admin/vins/ajouter', 'Admin\WineAdminController@store');
 $router->get('/admin/vins/{id}/modifier', 'Admin\WineAdminController@edit');
 $router->post('/admin/vins/{id}/modifier', 'Admin\WineAdminController@update');
+$router->post('/admin/vins/{id}/featured', 'Admin\WineAdminController@setFeatured');
+$router->post('/admin/vins/{id}/disponibilite', 'Admin\WineAdminController@toggleAvailable');
 $router->get('/admin/commandes', 'Admin\OrderAdminController@index');
 $router->get('/admin/commandes/{id}', 'Admin\OrderAdminController@show');
 $router->post('/admin/commandes/{id}/statut', 'Admin\OrderAdminController@updateStatus');

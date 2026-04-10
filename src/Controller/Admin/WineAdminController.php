@@ -401,6 +401,92 @@ class WineAdminController extends AdminController
     }
 
     // ----------------------------------------------------------------
+    // POST /admin/vins/{id}/disponibilite
+    // ----------------------------------------------------------------
+
+    /**
+     * Bascule la disponibilité d'un vin (available 0↔1).
+     * Répond en JSON : {"ok":true,"available":true|false}
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
+    public function toggleAvailable(array $params): void
+    {
+        $this->requireAdmin();
+        $id = (int) $params['id'];
+
+        if (!$this->verifyCsrf()) {
+            $this->json(['ok' => false, 'error' => 'csrf'], 403);
+        }
+
+        $wine = $this->wines->getById($id);
+        if (!$wine) {
+            $this->json(['ok' => false, 'error' => 'not_found'], 404);
+        }
+
+        $newAvailable = $this->wines->toggleAvailable($id);
+
+        if (!$newAvailable) {
+            (new CartModel())->purgeWineFromAllCarts($id);
+        }
+
+        $this->json(['ok' => true, 'available' => $newAvailable]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /admin/vins/{id}/featured
+    // ----------------------------------------------------------------
+
+    /**
+     * Définit (ou retire) le vin comme "mis en avant" sur la homepage.
+     * Répond en JSON : {"ok":true,"featured":true|false,"replaced":{"id":X,"label":"..."}}
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
+    public function setFeatured(array $params): void
+    {
+        $this->requireAdmin();
+        $id = (int) $params['id'];
+
+        if (!$this->verifyCsrf()) {
+            $this->json(['ok' => false, 'error' => 'csrf'], 403);
+        }
+
+        $wine = $this->wines->getById($id);
+        if (!$wine) {
+            $this->json(['ok' => false, 'error' => 'not_found'], 404);
+        }
+
+        $action   = $this->request->post('action', 'set'); // 'set' | 'unset'
+        $replaced = null;
+
+        if ($action === 'unset') {
+            $this->wines->unsetFeatured($id);
+            $this->json(['ok' => true, 'featured' => false, 'replaced' => null]);
+        }
+
+        // Vérifier s'il existe déjà un vin featured différent
+        $current = $this->wines->getCurrentFeatured();
+        if ($current !== null && (int) $current['id'] !== $id) {
+            $replaced = [
+                'id'    => (int) $current['id'],
+                'label' => $current['label_name'] . ' ' . $current['vintage'],
+            ];
+        }
+
+        $this->wines->setFeatured($id);
+
+        $this->json([
+            'ok'       => true,
+            'featured' => true,
+            'replaced' => $replaced,
+            'wine'     => ['id' => $id, 'label' => $wine['label_name'] . ' ' . $wine['vintage']],
+        ]);
+    }
+
+    // ----------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------
 
