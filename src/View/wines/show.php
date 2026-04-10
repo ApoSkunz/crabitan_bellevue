@@ -2,6 +2,35 @@
 $isAdmin   = $isAdmin ?? false;
 $wineName  = ($wine['label_name'] ?? '') . ' ' . ($wine['vintage'] ?? '');
 $pageTitle = $wineName;
+$appUrl        = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$_oeno         = json_decode($wine['oenological_comment'] ?? '{}', true) ?? [];
+$_oenoText     = (string) ($_oeno[$navLang] ?? ($_oeno['fr'] ?? ''));
+$metaDescription = mb_substr(strip_tags($_oenoText), 0, 155);
+$canonical     = $appUrl . '/' . $navLang . '/vins/' . ($wine['slug'] ?? '');
+$hreflangFr    = $appUrl . '/fr/vins/' . ($wine['slug'] ?? '');
+$hreflangEn    = $appUrl . '/en/vins/' . ($wine['slug'] ?? '');
+$ogTitle       = $wineName . ' — Château Crabitan Bellevue';
+$ogDescription = $metaDescription;
+$ogImage       = $appUrl . '/assets/images/wines/' . ($wine['image_path'] ?? '');
+$ogUrl         = $canonical;
+$ogType        = 'product';
+$jsonLd        = json_encode([
+    '@context' => 'https://schema.org',
+    '@type'    => 'Product',
+    'name'     => $wineName,
+    'image'    => $ogImage,
+    'description' => $metaDescription,
+    'brand'    => ['@type' => 'Brand', 'name' => 'Château Crabitan Bellevue'],
+    'offers'   => [
+        '@type'         => 'Offer',
+        'price'         => number_format((float) ($wine['price'] ?? 0), 2, '.', ''),
+        'priceCurrency' => 'EUR',
+        'availability'  => !empty($wine['available'])
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock',
+        'url'           => $canonical,
+    ],
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
