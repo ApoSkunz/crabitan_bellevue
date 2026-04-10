@@ -970,4 +970,153 @@ class WineModelTest extends TestCase
         $this->assertCount(2, $result);
         $this->assertSame('bordeaux-rouge-2020', $result[0]['slug']);
     }
+
+    // ----------------------------------------------------------------
+    // getFeatured / setFeatured / unsetFeatured / getCurrentFeatured
+    // ----------------------------------------------------------------
+
+    public function testGetFeaturedReturnsFeaturedWineWhenAvailable(): void
+    {
+        $wine = ['id' => 3, 'label_name' => 'Crabitan Or', 'vintage' => 2020, 'featured' => 1, 'available' => 1];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with($this->stringContains('featured = 1 AND available = 1'))
+            ->willReturn($wine);
+
+        $result = $this->model->getFeatured();
+
+        $this->assertSame($wine, $result);
+    }
+
+    public function testGetFeaturedFallsBackToCuveeSpeciale(): void
+    {
+        $cuvee = ['id' => 2, 'label_name' => 'Cuvée X', 'vintage' => 2019, 'is_cuvee_speciale' => 1, 'featured' => 0];
+
+        $this->dbMock
+            ->expects($this->exactly(2))
+            ->method('fetchOne')
+            ->willReturnOnConsecutiveCalls(false, $cuvee);
+
+        $result = $this->model->getFeatured();
+
+        $this->assertSame($cuvee, $result);
+    }
+
+    public function testGetFeaturedFallsBackToLatestAvailable(): void
+    {
+        $latest = ['id' => 1, 'label_name' => 'Bordeaux', 'vintage' => 2018, 'featured' => 0];
+
+        $this->dbMock
+            ->expects($this->exactly(3))
+            ->method('fetchOne')
+            ->willReturnOnConsecutiveCalls(false, false, $latest);
+
+        $result = $this->model->getFeatured();
+
+        $this->assertSame($latest, $result);
+    }
+
+    public function testGetFeaturedReturnsNullWhenNoWines(): void
+    {
+        $this->dbMock
+            ->expects($this->exactly(3))
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $result = $this->model->getFeatured();
+
+        $this->assertNull($result);
+    }
+
+    public function testSetFeaturedResetsAllThenSetsOne(): void
+    {
+        $calls = [];
+        $this->dbMock
+            ->expects($this->exactly(2))
+            ->method('execute')
+            ->willReturnCallback(function (string $sql, array $params = []) use (&$calls): int {
+                $calls[] = ['sql' => $sql, 'params' => $params];
+                return 1;
+            });
+
+        $this->model->setFeatured(5);
+
+        $this->assertCount(2, $calls);
+        $this->assertStringContainsString('featured = 0', $calls[0]['sql']);
+        $this->assertStringContainsString('featured = 1', $calls[1]['sql']);
+        $this->assertSame([5], $calls[1]['params']);
+    }
+
+    public function testUnsetFeaturedSetsZeroForId(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute')
+            ->with($this->stringContains('featured = 0 WHERE id = ?'), $this->equalTo([3]));
+
+        $this->model->unsetFeatured(3);
+    }
+
+    public function testGetCurrentFeaturedReturnsWine(): void
+    {
+        $wine = ['id' => 4, 'label_name' => 'Or', 'vintage' => 2021];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with($this->stringContains('featured = 1'))
+            ->willReturn($wine);
+
+        $result = $this->model->getCurrentFeatured();
+
+        $this->assertSame($wine, $result);
+    }
+
+    public function testGetCurrentFeaturedReturnsNullWhenNone(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $result = $this->model->getCurrentFeatured();
+
+        $this->assertNull($result);
+    }
+
+    // ----------------------------------------------------------------
+    // toggleAvailable
+    // ----------------------------------------------------------------
+
+    public function testToggleAvailableReturnsNewValue(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute')
+            ->with($this->stringContains('available = 1 - available'), $this->equalTo([7]));
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(['available' => 1]);
+
+        $result = $this->model->toggleAvailable(7);
+
+        $this->assertTrue($result);
+    }
+
+    public function testToggleAvailableReturnsFalseWhenOut(): void
+    {
+        $this->dbMock->method('execute');
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(['available' => 0]);
+
+        $result = $this->model->toggleAvailable(2);
+
+        $this->assertFalse($result);
+    }
 }

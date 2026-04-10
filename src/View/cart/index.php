@@ -375,7 +375,7 @@ $pricingRules     = $pricingRules     ?? [];
             </button>
         </div>
         <?php if (isset($randomWine) && $randomWine !== null) : ?>
-        <div class="cart-empty-wine">
+        <div id="cart-guest-recommendation" class="cart-empty-wine">
             <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
             <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
                class="cart-empty-wine__card">

@@ -270,6 +270,7 @@ return [
     'footer.sitemap'         => 'Plan du site',
     'footer.carbon'          => 'Site Carbone',
     'footer.alcohol_warning' => "L'abus d'alcool est dangereux pour la santé. À consommer avec modération. La vente d'alcool est interdite aux mineurs de moins de 18 ans.",
+    'footer.credits_medias'  => 'Crédits médias',
     'footer.made_by'         => 'Réalisé par',
     'footer.webmaster'       => 'Alexandre Solane',
 
@@ -313,6 +314,14 @@ return [
     'home.savoir_text'  => 'De la vigne au chai, chaque étape est maîtrisée avec rigueur et passion.'
         . ' Un élevage soigné en fûts de chêne pour des vins complexes, équilibrés et élégants.',
     'home.savoir_cta'   => 'En savoir plus',
+
+    // Homepage — Vin du moment
+    'home.featured_tag'      => 'Sélection',
+    'home.featured_title'    => 'Le Vin du Moment',
+    'home.featured_cta'      => 'Découvrir',
+    'home.featured_cart_cta' => 'Ajouter au panier',
+    'home.featured_badge'    => 'Cuvée Spéciale',
+    'home.featured_vintage'  => 'Millésime',
 
     // Homepage — Section Vidéo
     'home.video_tag'            => 'Le domaine',

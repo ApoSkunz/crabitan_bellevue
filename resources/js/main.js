@@ -1194,9 +1194,7 @@ async function initWeatherWidget() {
         line2.className = 'carousel__weather-bottom';
         line2.textContent = `${data.tmin}\u00b0 \u2192 ${data.tmax}\u00b0 \u00b7 ${data.wind}\u00a0km/h`;
 
-        const credit = widget.querySelector('.carousel__weather-credit');
         widget.replaceChildren(line1, line2);
-        if (credit) widget.append(credit);
         widget.removeAttribute('hidden');
     } catch {
         // Silencieux — le widget reste masqué si l'API est inaccessible
@@ -1771,6 +1769,10 @@ function initCartPage() {
                 });
 
                 guestContainer.replaceChildren(ul);
+
+                // Masquer la recommandation "vous pourrez apprécier" si le panier n'est pas vide
+                const rec = document.getElementById('cart-guest-recommendation');
+                if (rec) rec.hidden = true;
             })
             .catch(() => {
                 guestContainer.querySelector('.cart-guest__loading').textContent =

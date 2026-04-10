@@ -9,6 +9,7 @@ use Core\Model;
 /**
  * Modèle de gestion du catalogue de vins (consultation, filtrage, pagination, admin).
  */
+// NOSONAR — php:S1448 : 24 méthodes cohérentes au domaine vin — découpage artificiel sans valeur
 class WineModel extends Model
 {
     protected string $table = 'wines';
@@ -431,10 +432,10 @@ class WineModel extends Model
 
         return $this->db->fetchAll(
             "SELECT id, label_name, wine_color, format, vintage, price,
-                    production_quantity, available, image_path, slug, is_cuvee_speciale
+                    production_quantity, available, image_path, slug, is_cuvee_speciale, featured
              FROM {$this->table}
              {$whereClause}
-             ORDER BY available DESC, id DESC
+             ORDER BY featured DESC, available DESC, id DESC
              LIMIT ? OFFSET ?",
             $params
         );
@@ -557,6 +558,25 @@ class WineModel extends Model
     }
 
     /**
+     * Bascule la disponibilité d'un vin (available 0↔1).
+     *
+     * @param int $id Identifiant du vin
+     * @return bool Nouvelle valeur de available
+     */
+    public function toggleAvailable(int $id): bool
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET available = 1 - available WHERE id = ?",
+            [$id]
+        );
+        $row = $this->db->fetchOne(
+            "SELECT available FROM {$this->table} WHERE id = ?",
+            [$id]
+        );
+        return (bool) ($row['available'] ?? false);
+    }
+
+    /**
      * Retourne tous les slugs des vins disponibles (pour sitemap.xml).
      *
      * @return array<int, array{slug: string}>
@@ -566,5 +586,75 @@ class WineModel extends Model
         return $this->db->fetchAll(
             "SELECT slug FROM {$this->table} WHERE available = 1 ORDER BY slug"
         );
+    }
+
+    /**
+     * Retourne le vin mis en avant pour la homepage (featured=1 disponible),
+     * avec fallback sur cuvée spéciale disponible, puis vin disponible le plus récent.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getFeatured(): ?array
+    {
+        $cols = 'id, label_name, certification_label, wine_color, vintage, price, image_path, slug, is_cuvee_speciale, featured, available';
+
+        // 1. Vin explicitement mis en avant et disponible
+        $row = $this->db->fetchOne(
+            "SELECT {$cols} FROM {$this->table} WHERE featured = 1 AND available = 1 LIMIT 1"
+        );
+        if ($row) {
+            return $row;
+        }
+
+        // 2. Fallback : cuvée spéciale disponible
+        $row = $this->db->fetchOne(
+            "SELECT {$cols} FROM {$this->table} WHERE is_cuvee_speciale = 1 AND available = 1 ORDER BY vintage DESC LIMIT 1"
+        );
+        if ($row) {
+            return $row;
+        }
+
+        // 3. Fallback : vin disponible le plus récent
+        $row = $this->db->fetchOne(
+            "SELECT {$cols} FROM {$this->table} WHERE available = 1 ORDER BY id DESC LIMIT 1"
+        );
+        return $row ?: null;
+    }
+
+    /**
+     * Définit un vin comme mis en avant (un seul à la fois).
+     * Remet tous les autres à featured=0 avant de mettre le vin cible à 1.
+     *
+     * @param int $id Identifiant du vin à mettre en avant
+     * @return void
+     */
+    public function setFeatured(int $id): void
+    {
+        $this->db->execute("UPDATE {$this->table} SET featured = 0");
+        $this->db->execute("UPDATE {$this->table} SET featured = 1 WHERE id = ?", [$id]);
+    }
+
+    /**
+     * Retire la mise en avant du vin (featured=0).
+     *
+     * @param int $id Identifiant du vin
+     * @return void
+     */
+    public function unsetFeatured(int $id): void
+    {
+        $this->db->execute("UPDATE {$this->table} SET featured = 0 WHERE id = ?", [$id]);
+    }
+
+    /**
+     * Retourne le vin actuellement featured=1, ou null.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getCurrentFeatured(): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT id, label_name, vintage FROM {$this->table} WHERE featured = 1 LIMIT 1"
+        );
+        return $row ?: null;
     }
 }

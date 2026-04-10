@@ -200,4 +200,57 @@ class OrderModelTest extends TestCase
 
         $this->assertSame(0, $this->model->pseudonymizeExpired());
     }
+
+    // ----------------------------------------------------------------
+    // getStaleOrders()
+    // ----------------------------------------------------------------
+
+    /**
+     * getStaleOrders() appelle fetchAll avec une requête excluant les états finaux.
+     */
+    public function testGetStaleOrdersCallsFetchAllWithCorrectQuery(): void
+    {
+        $expected = [
+            [
+                'id' => 1, 'order_reference' => 'CB-2026-001', 'status' => 'pending',
+                'price' => 45.0, 'payment_method' => 'cheque',
+                'ordered_at' => '2026-03-01', 'updated_at' => '2026-03-01',
+            ],
+        ];
+
+        $this->dbMock->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains("status NOT IN ('delivered', 'cancelled', 'refunded')"),
+                [7]
+            )
+            ->willReturn($expected);
+
+        $result = $this->model->getStaleOrders(7);
+
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * getStaleOrders() retourne un tableau vide si aucune commande ne stagne.
+     */
+    public function testGetStaleOrdersReturnsEmptyArrayWhenNone(): void
+    {
+        $this->dbMock->method('fetchAll')->willReturn([]);
+
+        $this->assertSame([], $this->model->getStaleOrders());
+    }
+
+    /**
+     * getStaleOrders() transmet le seuil de jours personnalisé au paramètre.
+     */
+    public function testGetStaleOrdersUsesCustomDaysThreshold(): void
+    {
+        $this->dbMock->expects($this->once())
+            ->method('fetchAll')
+            ->with($this->anything(), [14])
+            ->willReturn([]);
+
+        $this->model->getStaleOrders(14);
+    }
 }

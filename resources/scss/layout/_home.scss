@@ -151,6 +151,65 @@
 }
 
 // ============================================================
+// Section Vin du moment
+// ============================================================
+
+.home-section--featured {
+    .home-section__visual {
+        img {
+            height: 480px;
+            object-fit: contain;
+            object-position: center;
+            background: transparent;
+
+            @include m.bp('lg') {
+                height: 560px;
+            }
+        }
+    }
+}
+
+.home-featured {
+    &__badge {
+        display: inline-block;
+        font-family: var(--font-serif);
+        font-size: 0.68rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--color-gold);
+        margin-bottom: 0.25rem;
+    }
+
+    &__name {
+        font-family: var(--font-serif);
+        font-size: clamp(1rem, 2vw, 1.4rem);
+        font-weight: 400;
+        color: var(--color-gold);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin: 0;
+    }
+
+    &__meta {
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+        letter-spacing: 0.05em;
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+
+    &__cart-form {
+        margin: 0;
+    }
+}
+
+// ============================================================
 // Section Vidéo — lecteur natif élégant
 // ============================================================
 

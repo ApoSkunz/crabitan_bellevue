@@ -1,12 +1,11 @@
 version: 2
 updates:
-  # Dependabot désactivé (open-pull-requests-limit: 0) — trop de PRs en parallèle sur un projet solo.
-  # Réactiver en remettant open-pull-requests-limit: 5 quand une revue régulière des dépendances est planifiée.
+  # Dependabot actif — limite 5 PRs simultanées par écosystème (GitHub Actions, Composer, npm).
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 0
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "ci"
@@ -15,7 +14,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 0
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "php"
@@ -24,7 +23,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 0
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "js"

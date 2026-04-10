@@ -45,6 +45,11 @@ $navItems = [
 
 $adminInitial = strtoupper(substr($adminUser['name'] ?? 'A', 0, 1));
 $adminRole    = $adminUser['role'] ?? 'admin';
+
+// Génère le token CSRF si absent (session admin sans passage par le frontend)
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
