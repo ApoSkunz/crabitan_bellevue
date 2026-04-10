@@ -27,7 +27,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
               barrel_fermentation, award, extra_comment, image_path, slug)
              VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             [
-                'Vin Doublon', 'red', 'bottle', 2018, 15.00, 10, 0,
+                'Vin Doublon', 'red', 'bottle', 2018, 15.00, 10, 1,
                 '1.00', 'Bordeaux', 'Merlot 100%', 15,
                 json_encode(['fr' => 'Desc doublon', 'en' => 'Duplicate desc']),
                 json_encode(['fr' => 'Argile', 'en' => 'Clay']),
@@ -37,7 +37,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
                 json_encode(['fr' => '12 mois', 'en' => '12 months']),
                 json_encode(['fr' => '', 'en' => '']),
                 json_encode(['fr' => '', 'en' => '']),
-                'Wine_Vin_Doublon_2018.png', $slug,
+                'Wine_Vin_Doublon_2018.png', $slug . '-' . uniqid(),
             ]
         );
     }
@@ -90,7 +90,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
                 json_encode(['fr' => '12 mois', 'en' => '12 months']),
                 json_encode(['fr' => '', 'en' => '']),
                 json_encode(['fr' => '', 'en' => '']),
-                'Wine_Vin_TI_2022.png', 'vin-ti-2022',
+                'Wine_Vin_TI_2022.png', 'vin-ti-' . uniqid(),
             ]
         );
     }
@@ -1453,6 +1453,42 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $this->expectExceptionCode(200);
 
         $this->makeController('POST')->setFeatured(['id' => (string) $id2]);
+    }
+
+    /**
+     * Mettre en avant un vin indisponible → 422.
+     */
+    public function testSetFeaturedUnavailableWineReturns422(): void
+    {
+        $id = $this->insertWine();
+        self::$db->execute('UPDATE wines SET available = 0 WHERE id = ?', [$id]);
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+        $_POST['action']     = 'set';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(422);
+
+        $this->makeController('POST')->setFeatured(['id' => (string) $id]);
+    }
+
+    /**
+     * Rendre un vin indisponible doit retirer son statut featured.
+     */
+    public function testToggleAvailableUnsetsFeaturedWhenBecomingUnavailable(): void
+    {
+        $id = $this->insertWine(); // available = 1
+        self::$db->execute('UPDATE wines SET featured = 1 WHERE id = ?', [$id]);
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        try {
+            $this->makeController('POST')->toggleAvailable(['id' => (string) $id]);
+        } catch (HttpException $e) {
+            $this->assertSame(200, $e->status);
+        }
+
+        $row = self::$db->fetchOne('SELECT featured, available FROM wines WHERE id = ?', [$id]);
+        $this->assertSame(0, (int) $row['available']);
+        $this->assertSame(0, (int) $row['featured'], 'featured doit être retiré quand le vin devient indisponible');
     }
 }
 

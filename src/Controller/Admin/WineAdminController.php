@@ -429,6 +429,7 @@ class WineAdminController extends AdminController
 
         if (!$newAvailable) {
             (new CartModel())->purgeWineFromAllCarts($id);
+            $this->wines->unsetFeatured($id);
         }
 
         $this->json(['ok' => true, 'available' => $newAvailable]);
@@ -465,6 +466,11 @@ class WineAdminController extends AdminController
         if ($action === 'unset') {
             $this->wines->unsetFeatured($id);
             $this->json(['ok' => true, 'featured' => false, 'replaced' => null]);
+        }
+
+        // Impossible de mettre en avant un vin indisponible
+        if (!(bool) $wine['available']) {
+            $this->json(['ok' => false, 'error' => 'unavailable'], 422);
         }
 
         // Vérifier s'il existe déjà un vin featured différent
@@ -513,7 +519,8 @@ class WineAdminController extends AdminController
         $format    = $r->post('format', 'bottle');
         $vintage   = (int) $r->post('vintage', 0);
         $price     = (float) str_replace(',', '.', $r->post('price', '0'));
-        $quantity  = (int) $r->post('production_quantity', 0);
+        $quantity      = (int) $r->post('production_quantity', 0);
+        $stockQuantity = (int) $r->post('stock_quantity', 0);
         $available = $r->post('available', '0') === '1' ? 1 : 0;
         $certLabel = trim($r->post('certification_label', ''));
         $area          = (float) str_replace(',', '.', $r->post('area', '0'));
@@ -532,6 +539,9 @@ class WineAdminController extends AdminController
         }
         if ($quantity < 0) {
             $errors['production_quantity'] = 'Quantité invalide.';
+        }
+        if ($stockQuantity < 0) {
+            $errors['stock_quantity'] = 'Stock invalide.';
         }
         if (!in_array($certLabel, self::CERT_LABELS, true)) {
             $errors['certification_label'] = 'Appellation invalide. Valeurs autorisées : ' . implode(', ', self::CERT_LABELS) . '.';
@@ -592,6 +602,7 @@ class WineAdminController extends AdminController
             'vintage'             => $vintage,
             'price'               => $price,
             'production_quantity' => $quantity,
+            'stock_quantity'      => $stockQuantity,
             'available'           => $available,
             'certification_label' => $certLabel,
             'area'                => $area,

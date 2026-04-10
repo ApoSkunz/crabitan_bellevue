@@ -8,6 +8,7 @@ use Core\Exception\HttpException;
 use Model\CartModel;
 use Model\OrderModel;
 use Model\PaymentIntentModel;
+use Model\WineModel;
 use Service\InvoiceService;
 use Service\MailService;
 use Service\PaymentService;
@@ -25,6 +26,7 @@ class IpnController
     private CartModel $carts;
     private MailService $mail;
     private PaymentIntentModel $intents;
+    private WineModel $wines;
 
     /**
      * Initialise les dépendances du contrôleur IPN.
@@ -36,6 +38,7 @@ class IpnController
         $this->carts   = new CartModel();
         $this->mail    = new MailService();
         $this->intents = new PaymentIntentModel();
+        $this->wines   = new WineModel();
     }
 
     /**
@@ -121,6 +124,15 @@ class IpnController
 
             $this->intents->delete($ref);
             $this->carts->clear((int) $snapshot['user_id']);
+
+            // Décrémenter le stock pour chaque article commandé
+            foreach ((array) $snapshot['items'] as $item) {
+                $wineId = (int) ($item['wine_id'] ?? 0);
+                $qty    = (int) ($item['qty']     ?? 0);
+                if ($wineId > 0 && $qty > 0) {
+                    $this->wines->decrementStock($wineId, $qty);
+                }
+            }
 
             // Génération de la facture PDF — non bloquante
             try {

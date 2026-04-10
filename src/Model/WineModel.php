@@ -89,7 +89,8 @@ class WineModel extends Model
             $params[]     = $offset;
         }
 
-        $sql = "SELECT w.id, w.label_name, w.wine_color, w.format, w.vintage, w.price, w.production_quantity,
+        $sql = "SELECT w.id, w.label_name, w.wine_color, w.format, w.vintage, w.price,
+                       w.production_quantity, w.stock_quantity,
                        w.available, w.certification_label, w.image_path, w.slug,
                        w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
                        (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
@@ -178,7 +179,8 @@ class WineModel extends Model
         }
 
         $rows = $this->db->fetchAll(
-            "SELECT w.id, w.label_name, w.wine_color, w.vintage, w.price, w.production_quantity,
+            "SELECT w.id, w.label_name, w.wine_color, w.vintage, w.price,
+                    w.production_quantity, w.stock_quantity,
                     w.available, w.certification_label, w.image_path, w.slug,
                     w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
                     (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
@@ -281,7 +283,8 @@ class WineModel extends Model
     public function getBySlug(string $slug): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT id, label_name, wine_color, format, vintage, price, production_quantity,
+            "SELECT id, label_name, wine_color, format, vintage, price,
+                    production_quantity, stock_quantity,
                     available, certification_label, area, city, variety_of_vine,
                     age_of_vineyard, oenological_comment, soil, pruning, harvest,
                     vinification, barrel_fermentation, award,
@@ -303,7 +306,7 @@ class WineModel extends Model
     public function getLatest(int $limit = 3): array
     {
         return $this->db->fetchAll(
-            "SELECT id, label_name, wine_color, vintage, price, production_quantity,
+            "SELECT id, label_name, wine_color, vintage, price, production_quantity, stock_quantity,
                     available, image_path, slug, oenological_comment
              FROM {$this->table}
              WHERE " . self::COND_AVAILABLE . "
@@ -432,7 +435,7 @@ class WineModel extends Model
 
         return $this->db->fetchAll(
             "SELECT id, label_name, wine_color, format, vintage, price,
-                    production_quantity, available, image_path, slug, is_cuvee_speciale, featured
+                    production_quantity, stock_quantity, available, image_path, slug, is_cuvee_speciale, featured
              FROM {$this->table}
              {$whereClause}
              ORDER BY featured DESC, available DESC, id DESC
@@ -474,13 +477,13 @@ class WineModel extends Model
     {
         return (int) $this->db->insert(
             "INSERT INTO {$this->table}
-             (label_name, wine_color, format, vintage, price, production_quantity, available,
+             (label_name, wine_color, format, vintage, price, production_quantity, stock_quantity, available,
               certification_label, area, city, variety_of_vine, age_of_vineyard,
               oenological_comment, soil, pruning, harvest, vinification,
               barrel_fermentation, award, extra_comment,
               is_cuvee_speciale, image_path, slug,
               alcohol_degree, aging_potential)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             [
                 $data['label_name'],
                 $data['wine_color'],
@@ -488,6 +491,7 @@ class WineModel extends Model
                 $data['vintage'],
                 $data['price'],
                 $data['production_quantity'],
+                $data['stock_quantity'] ?? 0,
                 $data['available'],
                 $data['certification_label'] ?: null,
                 $data['area'],
@@ -519,7 +523,7 @@ class WineModel extends Model
         $this->db->execute(
             "UPDATE {$this->table}
              SET label_name = ?, wine_color = ?, format = ?, vintage = ?, price = ?,
-                 production_quantity = ?, available = ?, certification_label = ?,
+                 production_quantity = ?, stock_quantity = ?, available = ?, certification_label = ?,
                  area = ?, city = ?, variety_of_vine = ?, age_of_vineyard = ?,
                  oenological_comment = ?, soil = ?, pruning = ?, harvest = ?,
                  vinification = ?, barrel_fermentation = ?, award = ?, extra_comment = ?,
@@ -533,6 +537,7 @@ class WineModel extends Model
                 $data['vintage'],
                 $data['price'],
                 $data['production_quantity'],
+                $data['stock_quantity'] ?? 0,
                 $data['available'],
                 $data['certification_label'] ?: null,
                 $data['area'],
@@ -554,6 +559,23 @@ class WineModel extends Model
                 $data['aging_potential'] ?? null,
                 $id,
             ]
+        );
+    }
+
+    /**
+     * Décrémente le stock d'un vin d'une quantité donnée (min 0).
+     *
+     * @param int $id  Identifiant du vin
+     * @param int $qty Quantité vendue
+     * @return void
+     */
+    public function decrementStock(int $id, int $qty): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+             SET stock_quantity = GREATEST(0, stock_quantity - ?)
+             WHERE id = ?",
+            [$qty, $id]
         );
     }
 

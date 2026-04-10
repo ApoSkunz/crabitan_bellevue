@@ -74,6 +74,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                     <th>Millésime</th>
                     <th>Prix</th>
                     <th>Qté produite</th>
+                    <th>Stock</th>
                     <th>Statut</th>
                     <th>Mis en avant</th>
                     <th></th>
@@ -96,6 +97,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                         <td><?= (int) $wine['vintage'] ?></td>
                         <td><?= number_format((float) $wine['price'], 2, ',', ' ') ?>&nbsp;€</td>
                         <td><?= number_format((int) $wine['production_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
+                        <td><?= number_format((int) $wine['stock_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
                         <td>
                             <button type="button"
                                     class="js-toggle-available admin-btn admin-btn--sm <?= $wine['available'] ? 'admin-btn--available' : 'admin-btn--out' ?>"
@@ -108,6 +110,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                             </button>
                         </td>
                         <td style="text-align:center;">
+                            <?php if ($wine['available']) : ?>
                             <button type="button"
                                     class="js-featured-btn admin-btn admin-btn--sm <?= $wine['featured'] ? 'admin-btn--gold' : 'admin-btn--outline' ?>"
                                     data-id="<?= (int) $wine['id'] ?>"
@@ -117,6 +120,9 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                                     aria-label="<?= $wine['featured'] ? 'Retirer de la homepage' : 'Mettre en avant sur la homepage' ?>">
                                 <?= $wine['featured'] ? 'En avant' : 'Mettre en avant' ?>
                             </button>
+                            <?php else : ?>
+                            <span style="color:#8a7a60;font-size:0.8rem;">—</span>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <div class="admin-actions">
@@ -243,7 +249,20 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
         var id     = btn.dataset.id;
         var csrf   = btn.dataset.csrf;
         var action = btn.dataset.featured === '1' ? 'unset' : 'set';
-        ajaxPost('/admin/vins/' + id + '/featured', csrf, 'action=' + action, function (data) {
+        var body = 'csrf_token=' + encodeURIComponent(csrf) + '&action=' + action;
+        fetch('/admin/vins/' + id + '/featured', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
+            body: body,
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data.ok) {
+                if (data.error === 'unavailable') {
+                    alert('Ce vin est indisponible — il ne peut pas être mis en avant.');
+                }
+                return;
+            }
             document.querySelectorAll('.js-featured-btn').forEach(function (b) {
                 b.dataset.featured = '0';
                 b.textContent = 'Mettre en avant';
@@ -256,7 +275,8 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                 btn.classList.add('admin-btn--gold');
                 btn.classList.remove('admin-btn--outline');
             }
-        });
+        })
+        .catch(function (e) { console.error('[admin-wines] featured error:', e); });
     }
 
     document.addEventListener('click', function (e) {
@@ -306,6 +326,29 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
             btn.classList.toggle('admin-btn--available', data.available);
             btn.classList.toggle('admin-btn--out', !data.available);
             btn.setAttribute('aria-label', data.available ? 'Rendre indisponible' : 'Rendre disponible');
+            // Si le vin devient indisponible, masquer le bouton "Mettre en avant"
+            var row = btn.closest('tr');
+            if (row) {
+                var featuredCell = row.querySelector('td:nth-child(9)');
+                if (featuredCell) {
+                    if (!data.available) {
+                        featuredCell.innerHTML = '<span style="color:#8a7a60;font-size:0.8rem;">—</span>';
+                    } else {
+                        var csrf = btn.dataset.csrf;
+                        var id   = btn.dataset.id;
+                        var label = btn.dataset.label;
+                        featuredCell.innerHTML =
+                            '<button type="button"' +
+                            ' class="js-featured-btn admin-btn admin-btn--sm admin-btn--outline"' +
+                            ' data-id="' + id + '"' +
+                            ' data-label="' + label.replace(/"/g, '&quot;') + '"' +
+                            ' data-featured="0"' +
+                            ' data-csrf="' + csrf.replace(/"/g, '&quot;') + '"' +
+                            ' aria-label="Mettre en avant sur la homepage">' +
+                            'Mettre en avant</button>';
+                    }
+                }
+            }
         });
     }
 

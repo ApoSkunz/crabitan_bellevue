@@ -9,6 +9,7 @@ use Core\Exception\HttpException;
 use Model\CartModel;
 use Model\OrderModel;
 use Model\PaymentIntentModel;
+use Model\WineModel;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Service\MailService;
@@ -59,7 +60,8 @@ class IpnControllerHandleFlowTest extends TestCase
         \PHPUnit\Framework\MockObject\MockObject $orderMock,
         \PHPUnit\Framework\MockObject\MockObject $cartMock,
         \PHPUnit\Framework\MockObject\MockObject $mailMock,
-        \PHPUnit\Framework\MockObject\MockObject $intentsMock
+        \PHPUnit\Framework\MockObject\MockObject $intentsMock,
+        ?\PHPUnit\Framework\MockObject\MockObject $winesMock = null
     ): IpnController {
         $ref  = new \ReflectionClass(IpnController::class);
         $ctrl = $ref->newInstanceWithoutConstructor();
@@ -69,6 +71,7 @@ class IpnControllerHandleFlowTest extends TestCase
         $ref->getProperty('carts')->setValue($ctrl, $cartMock);
         $ref->getProperty('mail')->setValue($ctrl, $mailMock);
         $ref->getProperty('intents')->setValue($ctrl, $intentsMock);
+        $ref->getProperty('wines')->setValue($ctrl, $winesMock ?? $this->createStub(WineModel::class));
 
         return $ctrl;
     }

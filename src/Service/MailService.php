@@ -1228,6 +1228,10 @@ INNER;
         $rows = '';
         foreach ($items as $item) {
             $name    = htmlspecialchars((string) ($item['name'] ?? $item['label_name'] ?? ''), ENT_QUOTES);
+            $vintage = (int) ($item['vintage'] ?? 0);
+            $vintageHtml = $vintage > 0
+                ? ' <span style="font-size:12px;color:#8a7a60;">' . $vintage . '</span>'
+                : '';
             $isCuvee = (bool) ($item['is_cuvee_speciale'] ?? false);
             $cuveeStyle = 'font-size:11px;letter-spacing:1.5px;'
                 . 'text-transform:uppercase;color:#c9a84c;font-family:Georgia,serif;';
@@ -1237,7 +1241,7 @@ INNER;
             $subtotal = number_format($qty * $price, 2, ',', ' ');
             $unitFmt  = number_format($price, 2, ',', ' ');
             $rows .= "<tr>"
-                . "<td style=\"{$tdStyle}\">{$name}{$cuveeHtml}</td>"
+                . "<td style=\"{$tdStyle}\">{$name}{$vintageHtml}{$cuveeHtml}</td>"
                 . "<td style=\"{$tdStyle}\">{$qty}</td>"
                 . "<td style=\"{$tdStyle}\">{$unitFmt} €</td>"
                 . "<td style=\"{$tdStyle}\">{$subtotal} €</td>"

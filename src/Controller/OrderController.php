@@ -314,9 +314,16 @@ class OrderController extends Controller
             $cgvVersion
         );
 
-        // Vider le panier
+        // Vider le panier + décrémenter le stock
         $this->carts->clear($userId);
         setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'samesite' => 'Lax']);
+        foreach ($items as $item) {
+            $wineId = (int) ($item['wine_id'] ?? 0);
+            $qty    = (int) ($item['qty']     ?? 0);
+            if ($wineId > 0 && $qty > 0) {
+                $this->wines->decrementStock($wineId, $qty);
+            }
+        }
         if ($clientEmail !== '') {
             $this->dispatchOrderEmails(
                 $clientEmail,
@@ -404,6 +411,14 @@ class OrderController extends Controller
 
                     (new \Model\PaymentIntentModel())->delete($ref);
                     (new \Model\CartModel())->clear($userId);
+
+                    foreach ((array) $snapshot['items'] as $item) {
+                        $wineId = (int) ($item['wine_id'] ?? 0);
+                        $qty    = (int) ($item['qty']     ?? 0);
+                        if ($wineId > 0 && $qty > 0) {
+                            $this->wines->decrementStock($wineId, $qty);
+                        }
+                    }
 
                     $this->generateAndStoreInvoice($ref);
                     try {
@@ -655,6 +670,7 @@ class OrderController extends Controller
             $item['name']             = $existingName !== '' ? $existingName : $fallbackName;
             $item['label_name']       = $item['name'];
             $item['is_cuvee_speciale'] = $wine ? (bool) ($wine['is_cuvee_speciale'] ?? false) : false;
+            $item['vintage']           = $wine ? (int) $wine['vintage'] : 0;
             $result[] = $item;
         }
         return $result;
