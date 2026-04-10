@@ -202,6 +202,9 @@ $featuredWine     = $featuredWine     ?? null;
                             </td>
                             <td class="cart-table__col-product cart-table__name">
                                 <?= htmlspecialchars($name) ?>
+                                <?php if ((int) ($item['vintage'] ?? 0) > 0) : ?>
+                                    <span class="cart-table__vintage"><?= (int) $item['vintage'] ?></span>
+                                <?php endif; ?>
                                 <?php if (!empty($item['is_cuvee_speciale'])) : ?>
                                     <span class="cart-table__cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span>
                                 <?php endif; ?>

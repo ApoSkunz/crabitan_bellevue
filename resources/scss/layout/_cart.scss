@@ -804,6 +804,13 @@
 // Badge Cuvée Spéciale dans le tableau panier
 // ----------------------------------------------------------------
 
+.cart-table__vintage {
+    display: inline-block;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-left: 0.4rem;
+}
+
 .cart-table__cuvee {
     display: block;
     font-size: 0.68rem;
