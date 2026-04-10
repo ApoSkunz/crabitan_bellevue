@@ -906,9 +906,48 @@ VALUES
 -- Newsletter inactif (id 13) — commande delivered il y a 8 mois → segment 'inactifs'
 (16, 13, 'CBV-2025-000016',
  '[{"wine_id":1,"label_name":"Sainte-Croix-du-Mont","vintage":2019,"wine_color":"sweet","format":"bottle","qty":6,"price":10.00,"subtotal":60.00}]',
- 60.00, 'card', 0.00, 1, 1, 'delivered', DATE_SUB(NOW(), INTERVAL 8 MONTH), DATE_SUB(NOW(), INTERVAL 7 MONTH));
+ 60.00, 'card', 0.00, 1, 1, 'delivered', DATE_SUB(NOW(), INTERVAL 8 MONTH), DATE_SUB(NOW(), INTERVAL 7 MONTH)),
 
-ALTER TABLE `orders` AUTO_INCREMENT = 17;
+-- ── Commandes bloquées (test alerte cron) ─────────────────────────────────
+-- pending + chèque — chèque jamais reçu (20 jours sans mouvement)
+(17, 5, 'CBV-2026-000017',
+ '[{"wine_id":16,"label_name":"Sainte-Croix-du-Mont","vintage":2020,"wine_color":"sweet","format":"bottle","qty":24,"price":11.50,"subtotal":276.00}]',
+ 276.00, 'cheque', 0.00, 3, 4, 'pending', DATE_SUB(NOW(), INTERVAL 22 DAY), NULL),
+
+-- paid + virement — virement reçu mais préparation bloquée (15 jours)
+(18, 3, 'CBV-2026-000018',
+ '[{"wine_id":30,"label_name":"Bordeaux Rouge","vintage":2021,"wine_color":"red","format":"bottle","qty":12,"price":7.70,"subtotal":92.40},{"wine_id":35,"label_name":"Bordeaux Blanc","vintage":2024,"wine_color":"white","format":"bottle","qty":6,"price":7.70,"subtotal":46.20}]',
+ 138.60, 'virement', 15.00, 1, 2, 'paid', DATE_SUB(NOW(), INTERVAL 18 DAY), NULL),
+
+-- processing + virement — en préparation depuis 12 jours (colis non expédié)
+(19, 5, 'CBV-2026-000019',
+ '[{"wine_id":21,"label_name":"Sainte-Croix-du-Mont","vintage":2018,"wine_color":"sweet","format":"bottle","qty":6,"price":11.00,"subtotal":66.00}]',
+ 66.00, 'virement', 0.00, 3, 4, 'processing', DATE_SUB(NOW(), INTERVAL 15 DAY), NULL),
+
+-- shipped — colis bloqué en transit depuis 14 jours
+(20, 3, 'CBV-2026-000020',
+ '[{"wine_id":7,"label_name":"Bordeaux Rouge","vintage":2016,"wine_color":"red","format":"bottle","qty":6,"price":5.90,"subtotal":35.40}]',
+ 35.40, 'card', 0.00, 1, 2, 'shipped', DATE_SUB(NOW(), INTERVAL 16 DAY), NULL),
+
+-- return_requested — retour demandé non traité depuis 9 jours
+(21, 5, 'CBV-2026-000021',
+ '[{"wine_id":9,"label_name":"Bordeaux Blanc","vintage":2018,"wine_color":"white","format":"bottle","qty":3,"price":6.10,"subtotal":18.30}]',
+ 18.30, 'card', 0.00, 3, 4, 'return_requested', DATE_SUB(NOW(), INTERVAL 30 DAY), DATE_SUB(NOW(), INTERVAL 31 DAY)),
+
+-- refund_refused — remboursement refusé en litige depuis 11 jours
+(22, 3, 'CBV-2026-000022',
+ '[{"wine_id":10,"label_name":"Bordeaux Rouge","vintage":2017,"wine_color":"red","format":"bottle","qty":6,"price":6.00,"subtotal":36.00}]',
+ 36.00, 'card', 0.00, 1, 2, 'refund_refused', DATE_SUB(NOW(), INTERVAL 13 DAY), DATE_SUB(NOW(), INTERVAL 40 DAY));
+
+ALTER TABLE `orders` AUTO_INCREMENT = 23;
+
+-- Forcer updated_at anciens sur les commandes bloquées de test
+UPDATE `orders` SET `updated_at` = DATE_SUB(NOW(), INTERVAL 20 DAY) WHERE `id` = 17;
+UPDATE `orders` SET `updated_at` = DATE_SUB(NOW(), INTERVAL 15 DAY) WHERE `id` = 18;
+UPDATE `orders` SET `updated_at` = DATE_SUB(NOW(), INTERVAL 12 DAY) WHERE `id` = 19;
+UPDATE `orders` SET `updated_at` = DATE_SUB(NOW(), INTERVAL 14 DAY) WHERE `id` = 20;
+UPDATE `orders` SET `updated_at` = DATE_SUB(NOW(), INTERVAL 9  DAY) WHERE `id` = 21;
+UPDATE `orders` SET `updated_at` = DATE_SUB(NOW(), INTERVAL 11 DAY) WHERE `id` = 22;
 
 -- ============================================================
 -- CARTS (paniers actifs)
