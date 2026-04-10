@@ -52,17 +52,17 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
             <div class="confirmation-payment-method">
                 <?php
                 $paymentLabels = [
-                    'card'     => $isEn ? 'Credit card' : 'Carte bancaire',
-                    'virement' => $isEn ? 'Bank transfer' : 'Virement bancaire',
-                    'cheque'   => $isEn ? 'Cheque' : 'Chèque',
+                    'card'     => __('checkout.payment_card'),
+                    'virement' => __('checkout.payment_virement'),
+                    'cheque'   => __('checkout.payment_cheque'),
                 ];
                 $paymentLabel = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod);
                 ?>
                 <p class="confirmation-payment-method__label">
-                    <strong><?= htmlspecialchars($isEn ? 'Payment method' : 'Mode de paiement') ?></strong> :
+                    <strong><?= htmlspecialchars(__('checkout.payment_method')) ?></strong> :
                     <?= htmlspecialchars($paymentLabel) ?>
                     <?php if ($paymentMethod === 'card') : ?>
-                    — <em><?= htmlspecialchars($isEn ? 'Payment being processed' : 'Paiement en cours de traitement') ?></em>
+                    — <em><?= htmlspecialchars(__('checkout.payment_processing')) ?></em>
                     <?php endif; ?>
                 </p>
             </div>
@@ -149,7 +149,7 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
                     <li class="confirmation-items__item">
                         <span>
                             <?= htmlspecialchars($name) ?>
-                            <?php if ($isCuvee) : ?><span class="checkout-summary__item-cuvee"><?= htmlspecialchars($isEn ? 'Special' : 'Cuvée Spéciale') ?></span><?php endif; ?>
+                            <?php if ($isCuvee) : ?><span class="checkout-summary__item-cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span><?php endif; ?>
                             × <?= $qty ?>
                         </span>
                         <span><?= number_format($price * $qty, 2, ',', ' ') ?>&nbsp;€</span>
@@ -163,7 +163,7 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
                 </div>
                 <?php endif; ?>
                 <div class="confirmation-items__total">
-                    <strong><?= htmlspecialchars($isEn ? 'Total incl. VAT' : 'Total TTC') ?></strong>
+                    <strong><?= htmlspecialchars(__('cart.total_ttc')) ?></strong>
                     <strong><?= number_format($total, 2, ',', ' ') ?>&nbsp;€</strong>
                 </div>
             </div>
@@ -178,9 +178,9 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
                 </a>
             </div>
             <p class="confirmation-card__redirect" id="js-redirect-notice">
-                <?= htmlspecialchars($isEn ? 'Redirecting to your orders in ' : 'Redirection vers vos commandes dans ') ?>
+                <?= htmlspecialchars(__('checkout.redirect_prefix')) ?>
                 <strong id="js-countdown">15</strong>
-                <?= htmlspecialchars($isEn ? ' seconds.' : ' secondes.') ?>
+                <?= htmlspecialchars(__('checkout.redirect_suffix')) ?>
             </p>
         </div>
 

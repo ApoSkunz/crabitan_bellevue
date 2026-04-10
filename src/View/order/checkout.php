@@ -402,7 +402,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                             <li class="checkout-summary__item">
                                 <span class="checkout-summary__item-name">
                                     <?= htmlspecialchars($name) ?>
-                                    <?php if ($isCuvee) : ?><span class="checkout-summary__item-cuvee"><?= htmlspecialchars($isEn ? 'Special' : 'Cuvée Spéciale') ?></span><?php endif; ?>
+                                    <?php if ($isCuvee) : ?><span class="checkout-summary__item-cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span><?php endif; ?>
                                     <span class="checkout-summary__item-qty">× <?= $qty ?></span>
                                     <span class="checkout-summary__item-unit"><?= number_format($price, 2, ',', ' ') ?>&nbsp;€/btl</span>
                                 </span>
@@ -415,7 +415,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
 
                         <div class="checkout-summary__totals">
                             <div class="checkout-summary__row">
-                                <span><?= htmlspecialchars($isEn ? 'Subtotal' : 'Sous-total') ?></span>
+                                <span><?= htmlspecialchars(__('cart.subtotal_label')) ?></span>
                                 <span><?= number_format($subtotal, 2, ',', ' ') ?>&nbsp;€</span>
                             </div>
                             <?php if ($deliveryDiscount > 0.0) : ?>
@@ -425,7 +425,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                             </div>
                             <?php endif; ?>
                             <div class="checkout-summary__row checkout-summary__row--total">
-                                <strong><?= htmlspecialchars($isEn ? 'Total incl. VAT' : 'Total TTC') ?></strong>
+                                <strong><?= htmlspecialchars(__('cart.total_ttc')) ?></strong>
                                 <strong><?= number_format($total, 2, ',', ' ') ?>&nbsp;€</strong>
                             </div>
                         </div>

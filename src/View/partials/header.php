@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.innerHTML =
             '<span style="display:inline-block;width:.85em;height:.85em;border:2px solid currentColor;'
             + 'border-top-color:transparent;border-radius:50%;animation:cb-spin .6s linear infinite;'
-            + 'vertical-align:middle;margin-right:.4em;"></span>Connexion en cours\u2026';
+            + 'vertical-align:middle;margin-right:.4em;"></span>' + <?= json_encode(htmlspecialchars(__('auth.signing_in'))) ?>;
     });
 });
 </script>
