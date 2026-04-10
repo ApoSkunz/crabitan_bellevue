@@ -824,10 +824,10 @@ CREATE TABLE `legal_notification_logs` (
 -- token : lien email usage unique pour noter directement depuis l'email.
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `wine_ratings` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `account_id` INT UNSIGNED NOT NULL,
-  `wine_id` INT UNSIGNED NOT NULL,
-  `order_id` INT UNSIGNED NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `account_id` INT NOT NULL,
+  `wine_id` INT NOT NULL,
+  `order_id` INT NOT NULL,
   `rating` TINYINT UNSIGNED NOT NULL,
   `token` VARCHAR(64) NULL DEFAULT NULL,
   `token_used_at` DATETIME NULL DEFAULT NULL,
