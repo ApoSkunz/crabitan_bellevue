@@ -211,7 +211,11 @@ class OrderModelTest extends TestCase
     public function testGetStaleOrdersCallsFetchAllWithCorrectQuery(): void
     {
         $expected = [
-            ['id' => 1, 'order_reference' => 'CB-2026-001', 'status' => 'pending', 'price' => 45.0, 'payment_method' => 'cheque', 'ordered_at' => '2026-03-01', 'updated_at' => '2026-03-01'],
+            [
+                'id' => 1, 'order_reference' => 'CB-2026-001', 'status' => 'pending',
+                'price' => 45.0, 'payment_method' => 'cheque',
+                'ordered_at' => '2026-03-01', 'updated_at' => '2026-03-01',
+            ],
         ];
 
         $this->dbMock->expects($this->once())
