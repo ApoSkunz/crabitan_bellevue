@@ -324,7 +324,15 @@ class AuthController extends Controller
                 $loginCartModel->mergeLocalCart(
                     (int) $account['id'],
                     $localItems,
-                    fn(int $wineId): int => (int) ($wineModel->getById($wineId)['production_quantity'] ?? 0)
+                    static function (int $wineId) use ($wineModel): int {
+                        $wine = $wineModel->getById($wineId);
+                        if ($wine === null || !(bool) $wine['available']) {
+                            return 0; // vin indisponible — item supprimé
+                        }
+                        $stock = (int) ($wine['stock_quantity'] ?? 0);
+                        // Fallback 600 si stock non encore configuré (default 0)
+                        return $stock > 0 ? $stock : 600;
+                    }
                 );
                 // Effacer le cookie côté serveur (secure=false pour compatibilité HTTP dev)
                 setcookie('cb-cart', '', ['expires' => time() - 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength

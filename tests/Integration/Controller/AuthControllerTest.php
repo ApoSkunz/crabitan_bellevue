@@ -1369,7 +1369,7 @@ class AuthControllerTest extends IntegrationTestCase
         );
 
         // Cookie cb-cart avec un item
-        $_COOKIE['cb-cart'] = json_encode([['id' => (int) $wineRow['id'], 'quantity' => 2]]);
+        $_COOKIE['cb-cart'] = json_encode([['id' => (int) $wineRow['id'], 'qty' => 2]]);
 
         $_POST = [
             'email'      => 'cart-merge@example.com',
@@ -1494,5 +1494,178 @@ class AuthControllerTest extends IntegrationTestCase
         $this->assertSame(302, http_response_code());
         $this->assertArrayHasKey('info', $_SESSION['flash'] ?? []);
         $this->assertNotEmpty($_SESSION['flash']['info']);
+    }
+
+    // ----------------------------------------------------------------
+    // login() — cart merge : correction fusion panier (us-fix-fusion-panier-connexion)
+    // ----------------------------------------------------------------
+
+    /**
+     * Fusion panier : vin avec stock_quantity=0 (legacy) → items transférés grâce au fallback 600.
+     */
+    public function testLoginMergesCartWhenStockQuantityIsZeroLegacy(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES ('merge-legacy@example.com', ?, 'customer', 'fr', NOW())",
+            [password_hash('CartLegacy1!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Merge', 'Legacy', 'M')",
+            [$id]
+        );
+
+        // Vin avec stock_quantity = 0 (valeur par défaut — n'a pas encore été configuré)
+        self::$db->insert(
+            "INSERT INTO wines
+             (label_name, wine_color, format, vintage, price, production_quantity, stock_quantity, available,
+              area, city, variety_of_vine, age_of_vineyard,
+              oenological_comment, soil, pruning, harvest, vinification,
+              barrel_fermentation, award, extra_comment, image_path, slug)
+             VALUES ('Legacy Wine', 'red', 'bottle', 2020, 18.00, 300, 0, 1,
+                     5.00, 'Bordeaux', 'Merlot', 25,
+                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
+                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
+                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
+                     '{\"fr\":\"\",\"en\":\"\"}', '{\"fr\":\"\",\"en\":\"\"}',
+                     'legacy_wine.png', 'legacy-wine-2020-merge-fix')"
+        );
+        $wineRow = self::$db->fetchOne(
+            'SELECT id FROM wines WHERE slug = ?',
+            ['legacy-wine-2020-merge-fix']
+        );
+
+        $_COOKIE['cb-cart'] = json_encode([['id' => (int) $wineRow['id'], 'qty' => 3]]);
+
+        $_POST = [
+            'email'      => 'merge-legacy@example.com',
+            'password'   => 'CartLegacy1!',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // Le panier BDD doit avoir été créé — items transférés malgré stock_quantity = 0
+        $cart = self::$db->fetchOne('SELECT id FROM carts WHERE user_id = ?', [$id]);
+        $this->assertNotFalse($cart, 'Le panier doit être créé même si stock_quantity = 0 (fallback 600)');
+    }
+
+    /**
+     * Fusion panier : vin avec stock_quantity > 0 → quantité plafonnée si supérieure au stock.
+     */
+    public function testLoginMergesCartCapsQtyAtStockQuantity(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES ('merge-stock@example.com', ?, 'customer', 'fr', NOW())",
+            [password_hash('CartStock1!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Merge', 'Stock', 'M')",
+            [$id]
+        );
+
+        // Vin avec stock_quantity = 2 (moins que la qty demandée = 5)
+        self::$db->insert(
+            "INSERT INTO wines
+             (label_name, wine_color, format, vintage, price, production_quantity, stock_quantity, available,
+              area, city, variety_of_vine, age_of_vineyard,
+              oenological_comment, soil, pruning, harvest, vinification,
+              barrel_fermentation, award, extra_comment, image_path, slug)
+             VALUES ('Stock Wine', 'white', 'bottle', 2019, 22.00, 200, 2, 1,
+                     3.00, 'Bordeaux', 'Sauvignon', 15,
+                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
+                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
+                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
+                     '{\"fr\":\"\",\"en\":\"\"}', '{\"fr\":\"\",\"en\":\"\"}',
+                     'stock_wine.png', 'stock-wine-2019-merge-fix')"
+        );
+        $wineRow = self::$db->fetchOne(
+            'SELECT id FROM wines WHERE slug = ?',
+            ['stock-wine-2019-merge-fix']
+        );
+
+        $_COOKIE['cb-cart'] = json_encode([['id' => (int) $wineRow['id'], 'qty' => 5]]);
+
+        $_POST = [
+            'email'      => 'merge-stock@example.com',
+            'password'   => 'CartStock1!',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // Le panier BDD doit exister avec qty plafonnée à 2 (stock réel)
+        $cart = self::$db->fetchOne('SELECT content FROM carts WHERE user_id = ?', [$id]);
+        $this->assertNotFalse($cart);
+        $content = json_decode((string) $cart['content'], true);
+        $this->assertNotEmpty($content);
+        $this->assertSame(2, (int) $content[0]['qty'], 'La quantité doit être plafonnée au stock (2)');
+    }
+
+    /**
+     * Fusion panier : vin unavailable → item supprimé du panier fusionné.
+     */
+    public function testLoginMergesCartDropsUnavailableWine(): void
+    {
+        $id = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES ('merge-unavail@example.com', ?, 'customer', 'fr', NOW())",
+            [password_hash('CartUnavail1!', PASSWORD_BCRYPT)]
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Merge', 'Unavail', 'M')",
+            [$id]
+        );
+
+        // Vin indisponible (available = 0)
+        self::$db->insert(
+            "INSERT INTO wines
+             (label_name, wine_color, format, vintage, price, production_quantity, stock_quantity, available,
+              area, city, variety_of_vine, age_of_vineyard,
+              oenological_comment, soil, pruning, harvest, vinification,
+              barrel_fermentation, award, extra_comment, image_path, slug)
+             VALUES ('Out Wine', 'rosé', 'bottle', 2018, 25.00, 100, 10, 0,
+                     4.00, 'Bordeaux', 'Grenache', 18,
+                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
+                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
+                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
+                     '{\"fr\":\"\",\"en\":\"\"}', '{\"fr\":\"\",\"en\":\"\"}',
+                     'out_wine.png', 'out-wine-2018-merge-fix')"
+        );
+        $wineRow = self::$db->fetchOne(
+            'SELECT id FROM wines WHERE slug = ?',
+            ['out-wine-2018-merge-fix']
+        );
+
+        $_COOKIE['cb-cart'] = json_encode([['id' => (int) $wineRow['id'], 'qty' => 2]]);
+
+        $_POST = [
+            'email'      => 'merge-unavail@example.com',
+            'password'   => 'CartUnavail1!',
+            'csrf_token' => self::CSRF,
+        ];
+
+        try {
+            $this->makeController()->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $this->assertSame(302, $e->status);
+        }
+
+        // Le panier BDD est créé mais avec contenu vide — le vin indisponible est filtré
+        $cart = self::$db->fetchOne('SELECT content, total_quantity FROM carts WHERE user_id = ?', [$id]);
+        $this->assertNotFalse($cart, 'Un enregistrement panier est créé même sans item valide');
+        $this->assertSame(0, (int) $cart['total_quantity'], 'Le vin indisponible doit être filtré → total_quantity = 0');
     }
 }
