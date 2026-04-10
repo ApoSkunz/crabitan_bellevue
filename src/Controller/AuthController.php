@@ -577,18 +577,6 @@ class AuthController extends Controller
         $accountId = (int) $account['id'];
         $this->accounts->verifyEmail($accountId);
 
-        // Email de bienvenue
-        try {
-            $mail = new \Service\MailService();
-            $mail->sendWelcome(
-                (string) ($account['email'] ?? ''),
-                (string) ($account['firstname'] ?? ''),
-                $lang
-            );
-        } catch (\Exception) {
-            // Silencieux — l'email de bienvenue ne doit pas bloquer la vérification
-        }
-
         if (!empty($account['newsletter_optin_pending'])) {
             $this->accounts->activateNewsletterFromPending($accountId);
         }

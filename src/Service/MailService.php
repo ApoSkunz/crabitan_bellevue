@@ -62,27 +62,6 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $this->mailer->setFrom($fromAddress, $_ENV['MAIL_FROM_NAME'] ?? 'Crabitan Bellevue');
     }
 
-    /**
-     * Envoie un email de bienvenue après la validation de l'email.
-     *
-     * @param string $to   Email du destinataire
-     * @param string $name Prénom du destinataire
-     * @param string $lang Langue ('fr' ou 'en')
-     * @return void
-     */
-    public function sendWelcome(string $to, string $name, string $lang): void
-    {
-        $subject = $lang === 'fr'
-            ? 'Bienvenue au Château Crabitan Bellevue !'
-            : 'Welcome to Château Crabitan Bellevue!';
-
-        $body = $lang === 'fr'
-            ? $this->welcomeBodyFr($name)
-            : $this->welcomeBodyEn($name);
-
-        $this->send($to, $name, $subject, $body);
-    }
-
     public function sendEmailVerification(string $to, string $name, string $verifyUrl, string $lang): void
     {
         $subject = $lang === 'fr'
@@ -2556,96 +2535,6 @@ INNER;
 INNER;
 
         return $this->emailWrap($title, $inner);
-    }
-
-    private function welcomeBodyFr(string $name): string
-    {
-        $safeName = htmlspecialchars($name, ENT_QUOTES);
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
-        $catalogUrl  = htmlspecialchars("{$appUrl}/fr/vins", ENT_QUOTES);
-        $newsletterUrl = htmlspecialchars("{$appUrl}/fr", ENT_QUOTES);
-
-        $message = "Votre adresse email est confirmée — bienvenue dans la famille du Château Crabitan Bellevue !"
-            . '<br><br>'
-            . 'Niché au cœur de l\'appellation <strong>Sainte-Croix-du-Mont</strong>, notre château familial'
-            . ' perpétue depuis des générations l\'art des vins de Bordeaux liquoreux et secs.'
-            . ' Chaque bouteille est l\'expression d\'un terroir d\'exception et d\'un savoir-faire artisanal.'
-            . '<br><br>'
-            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
-            . '<tr>'
-            . '<td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$catalogUrl}\" style=\"display:inline-block;padding:14px 36px;"
-            . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
-            . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
-            . 'Découvrir notre catalogue</a>'
-            . '</td>'
-            . '</tr>'
-            . '</table>'
-            . '<br>'
-            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;">'
-            . '<tr>'
-            . '<td style="border:1px solid #c9a84c;border-radius:2px;">'
-            . "<a href=\"{$newsletterUrl}#newsletter\" style=\"display:inline-block;padding:10px 24px;"
-            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;'
-            . 'color:#c9a84c;text-decoration:none;font-weight:bold;">'
-            . 'S\'abonner à la newsletter</a>'
-            . '</td>'
-            . '</tr>'
-            . '</table>'
-            . '<br><br>'
-            . '<em>L\'équipe du Château Crabitan Bellevue</em>';
-
-        return $this->emailSimpleLayout(
-            'Bienvenue',
-            "Bonjour {$safeName},",
-            $message,
-            'fr'
-        );
-    }
-
-    private function welcomeBodyEn(string $name): string
-    {
-        $safeName = htmlspecialchars($name, ENT_QUOTES);
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
-        $catalogUrl   = htmlspecialchars("{$appUrl}/en/wines", ENT_QUOTES);
-        $newsletterUrl = htmlspecialchars("{$appUrl}/en", ENT_QUOTES);
-
-        $message = 'Your email address has been confirmed — welcome to the Château Crabitan Bellevue family!'
-            . '<br><br>'
-            . 'Nestled in the heart of the <strong>Sainte-Croix-du-Mont</strong> appellation,'
-            . ' our family estate has been crafting exceptional Bordeaux wines for generations.'
-            . ' Each bottle reflects the unique character of our terroir and our dedication to artisanal winemaking.'
-            . '<br><br>'
-            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
-            . '<tr>'
-            . '<td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
-            . "<a href=\"{$catalogUrl}\" style=\"display:inline-block;padding:14px 36px;"
-            . 'font-family:Georgia,serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;'
-            . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
-            . 'Discover our catalogue</a>'
-            . '</td>'
-            . '</tr>'
-            . '</table>'
-            . '<br>'
-            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;">'
-            . '<tr>'
-            . '<td style="border:1px solid #c9a84c;border-radius:2px;">'
-            . "<a href=\"{$newsletterUrl}#newsletter\" style=\"display:inline-block;padding:10px 24px;"
-            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;'
-            . 'color:#c9a84c;text-decoration:none;font-weight:bold;">'
-            . 'Subscribe to our newsletter</a>'
-            . '</td>'
-            . '</tr>'
-            . '</table>'
-            . '<br><br>'
-            . '<em>The Château Crabitan Bellevue team</em>';
-
-        return $this->emailSimpleLayout(
-            'Welcome',
-            "Hello {$safeName},",
-            $message,
-            'en'
-        );
     }
 
     /**

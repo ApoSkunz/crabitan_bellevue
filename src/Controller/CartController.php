@@ -261,7 +261,8 @@ class CartController extends Controller
             $wineId     = (int) ($firstItem['wine_id'] ?? 0);
             $wine       = $wineModel->getById($wineId);
             $color      = (string) ($wine['wine_color'] ?? '');
-            $crossSellWines = $wineModel->getSimilar($wineId, $color, 3);
+            $price      = (float) ($wine['price'] ?? 0.0);
+            $crossSellWines = $wineModel->getSimilar($wineId, $color, $price, 3);
         } else {
             // 2+ vins — 1 vin aléatoire hors panier
             $excludeIds     = array_map('intval', $uniqueWineIds);

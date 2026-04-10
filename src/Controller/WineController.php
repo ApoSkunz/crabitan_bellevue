@@ -616,17 +616,7 @@ class WineController extends Controller
             }
         }
 
-        $nutrition   = (new \Model\WineNutritionModel())->findByWineId((int) $wine['id']) ?: [];
-        $avgRating   = null;
-        $ratingCount = 0;
-        try {
-            $ratingData  = (new RatingModel())->getAvg((int) $wine['id']);
-            $avgRating   = $ratingData !== null ? $ratingData['avg']   : null;
-            $ratingCount = $ratingData !== null ? $ratingData['count'] : 0;
-        } catch (\Throwable) {
-            // Table absente ou erreur BDD — on ignore silencieusement
-        }
-
+        $nutrition     = (new \Model\WineNutritionModel())->findByWineId((int) $wine['id']) ?: [];
         $similarWines  = $model->getSimilar((int) $wine['id'], (string) $wine['wine_color'], (float) $wine['price']);
 
         $avgRating     = null;

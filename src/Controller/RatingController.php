@@ -88,7 +88,7 @@ class RatingController extends Controller
             [$orderId, $accountId]
         );
 
-        if ($orderRow === false || $orderRow === null) {
+        if ($orderRow === false) {
             $this->view('rating/error', ['lang' => $lang, 'reason' => 'invalid_token']);
             return;
         }

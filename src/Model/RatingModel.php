@@ -275,43 +275,4 @@ class RatingModel extends Model
         );
     }
 
-    /**
-     * Génère un token de commande pour la page de notation globale.
-     * Stocké dans order_rating_tokens.
-     *
-     * @param int $orderId   Identifiant de la commande
-     * @param int $accountId Identifiant du compte
-     * @return string Token hexadécimal de 64 caractères
-     */
-    public function generateOrderToken(int $orderId, int $accountId): string
-    {
-        $token = bin2hex(random_bytes(32));
-
-        $this->db->execute(
-            "INSERT INTO order_rating_tokens (order_id, account_id, token)
-             VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE
-               token      = VALUES(token),
-               used_at    = NULL,
-               created_at = NOW()",
-            [$orderId, $accountId, $token]
-        );
-
-        return $token;
-    }
-
-    /**
-     * Résout un token de commande — retourne les données ou null si invalide/utilisé.
-     *
-     * @param string $token Token de la page de notation
-     * @return array<string, mixed>|null
-     */
-    public function resolveOrderToken(string $token): ?array
-    {
-        $row = $this->db->fetchOne(
-            "SELECT * FROM order_rating_tokens WHERE token = ? AND used_at IS NULL",
-            [$token]
-        );
-        return $row ?: null;
-    }
 }
