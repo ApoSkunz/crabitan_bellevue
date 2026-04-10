@@ -203,6 +203,7 @@ CREATE TABLE `wines` (
   `award`                JSON           NOT NULL COMMENT '{"fr":"...","en":"..."}',
   `extra_comment`        JSON           NOT NULL COMMENT '{"fr":"...","en":"..."}',
   `is_cuvee_speciale`    TINYINT(1)     NOT NULL DEFAULT 0,
+  `featured`             TINYINT(1)     NOT NULL DEFAULT 0 COMMENT 'Vin du moment affiché sur la homepage (un seul à la fois)',
   `alcohol_degree`       VARCHAR(20)    DEFAULT NULL COMMENT 'ex: 12 ou 12,5 (% vol.)',
   `aging_potential`      VARCHAR(100)   DEFAULT NULL COMMENT 'ex: 5 à 10 ans',
   `image_path`           VARCHAR(255)   NOT NULL,
