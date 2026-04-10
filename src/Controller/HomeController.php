@@ -6,6 +6,7 @@ namespace Controller;
 
 use Core\Controller;
 use Model\NewsModel;
+use Model\WineModel;
 
 class HomeController extends Controller
 {
@@ -23,9 +24,11 @@ class HomeController extends Controller
     {
         $lang = $this->resolveLang($params);
 
-        $newsModel = new NewsModel();
-        $news      = $newsModel->getLatest(3);
+        $newsModel    = new NewsModel();
+        $news         = $newsModel->getLatest(3);
+        $wineModel    = new WineModel();
+        $featuredWine = $wineModel->getFeatured();
 
-        $this->view('home', ['lang' => $lang, 'news' => $news]);
+        $this->view('home', ['lang' => $lang, 'news' => $news, 'featuredWine' => $featuredWine]);
     }
 }
