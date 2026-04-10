@@ -315,6 +315,14 @@ return [
         . ' Un élevage soigné en fûts de chêne pour des vins complexes, équilibrés et élégants.',
     'home.savoir_cta'   => 'En savoir plus',
 
+    // Homepage — Vin du moment
+    'home.featured_tag'      => 'Sélection',
+    'home.featured_title'    => 'Le Vin du Moment',
+    'home.featured_cta'      => 'Découvrir',
+    'home.featured_cart_cta' => 'Ajouter au panier',
+    'home.featured_badge'    => 'Cuvée Spéciale',
+    'home.featured_vintage'  => 'Millésime',
+
     // Homepage — Section Vidéo
     'home.video_tag'            => 'Le domaine',
     'home.video_title'          => 'Le Château en vidéo',

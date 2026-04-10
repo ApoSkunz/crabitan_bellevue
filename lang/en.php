@@ -313,6 +313,14 @@ return [
         . ' Careful ageing in oak barrels for complex, balanced and elegant wines.',
     'home.savoir_cta'   => 'Learn more',
 
+    // Homepage — Featured wine
+    'home.featured_tag'      => 'Selection',
+    'home.featured_title'    => 'Wine of the Moment',
+    'home.featured_cta'      => 'Discover',
+    'home.featured_cart_cta' => 'Add to cart',
+    'home.featured_badge'    => 'Special Cuvée',
+    'home.featured_vintage'  => 'Vintage',
+
     // Homepage — Video section
     'home.video_tag'            => 'The estate',
     'home.video_title'          => 'The Estate on Video',
