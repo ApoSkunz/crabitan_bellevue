@@ -4,19 +4,42 @@ declare(strict_types=1);
 
 namespace Core;
 
+/**
+ * Routeur HTTP du framework MVC.
+ * Enregistre les routes GET/POST et les dispatche vers les contrôleurs.
+ */
 class Router
 {
     private array $routes = [];
 
+    /**
+     * Initialise le routeur avec la requête courante.
+     *
+     * @param Request $request Requête HTTP courante
+     */
     public function __construct(private Request $request)
     {
     }
 
+    /**
+     * Enregistre une route GET.
+     *
+     * @param string $path   Chemin de la route (ex. '/fr/vins/{slug}')
+     * @param string $action Action au format 'Controller@method'
+     * @return void
+     */
     public function get(string $path, string $action): void
     {
         $this->addRoute('GET', $path, $action);
     }
 
+    /**
+     * Enregistre une route POST.
+     *
+     * @param string $path   Chemin de la route (ex. '/api/login')
+     * @param string $action Action au format 'Controller@method'
+     * @return void
+     */
     public function post(string $path, string $action): void
     {
         $this->addRoute('POST', $path, $action);
@@ -38,6 +61,12 @@ class Router
         return '#^' . $pattern . '$#';
     }
 
+    /**
+     * Dispatche la requête courante vers le contrôleur correspondant.
+     * Appelle Response::abort(404) si aucune route ne correspond.
+     *
+     * @return void
+     */
     public function dispatch(): void
     {
         $method = $this->request->method;

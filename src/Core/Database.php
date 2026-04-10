@@ -7,6 +7,10 @@ namespace Core;
 use PDO;
 use PDOException;
 
+/**
+ * Singleton d'accès à la base de données MySQL via PDO.
+ * Gère les transactions imbriquées par compteur de profondeur.
+ */
 class Database
 {
     private static ?Database $instance = null;
@@ -32,6 +36,11 @@ class Database
         $this->pdo->exec("SET time_zone = '+00:00'");
     }
 
+    /**
+     * Retourne l'instance singleton de la base de données.
+     *
+     * @return self
+     */
     public static function getInstance(): self
     {
         if (self::$instance === null) {
@@ -40,6 +49,13 @@ class Database
         return self::$instance;
     }
 
+    /**
+     * Exécute une requête SQL préparée et retourne le statement.
+     *
+     * @param string       $sql    Requête SQL avec placeholders
+     * @param array<mixed> $params Valeurs des paramètres
+     * @return \PDOStatement
+     */
     public function query(string $sql, array $params = []): \PDOStatement
     {
         $stmt = $this->pdo->prepare($sql);
@@ -47,27 +63,60 @@ class Database
         return $stmt;
     }
 
+    /**
+     * Retourne la première ligne d'une requête SELECT, ou false si aucun résultat.
+     *
+     * @param string       $sql    Requête SQL
+     * @param array<mixed> $params Valeurs des paramètres
+     * @return array<string, mixed>|false
+     */
     public function fetchOne(string $sql, array $params = []): array|false
     {
         return $this->query($sql, $params)->fetch();
     }
 
+    /**
+     * Retourne toutes les lignes d'une requête SELECT.
+     *
+     * @param string       $sql    Requête SQL
+     * @param array<mixed> $params Valeurs des paramètres
+     * @return array<int, array<string, mixed>>
+     */
     public function fetchAll(string $sql, array $params = []): array
     {
         return $this->query($sql, $params)->fetchAll();
     }
 
+    /**
+     * Exécute un INSERT et retourne l'identifiant de la ligne insérée.
+     *
+     * @param string       $sql    Requête INSERT
+     * @param array<mixed> $params Valeurs des paramètres
+     * @return string Dernier ID inséré (lastInsertId)
+     */
     public function insert(string $sql, array $params = []): string
     {
         $this->query($sql, $params);
         return $this->pdo->lastInsertId();
     }
 
+    /**
+     * Exécute une requête UPDATE/DELETE et retourne le nombre de lignes affectées.
+     *
+     * @param string       $sql    Requête SQL
+     * @param array<mixed> $params Valeurs des paramètres
+     * @return int Nombre de lignes affectées
+     */
     public function execute(string $sql, array $params = []): int
     {
         return $this->query($sql, $params)->rowCount();
     }
 
+    /**
+     * Démarre une transaction (ou incrémente le compteur d'imbrication).
+     *
+     * @return void
+     */
     public function beginTransaction(): void
     {
         if ($this->transactionDepth === 0) {
@@ -76,6 +125,11 @@ class Database
         $this->transactionDepth++;
     }
 
+    /**
+     * Valide la transaction courante (ou décrémente le compteur d'imbrication).
+     *
+     * @return void
+     */
     public function commit(): void
     {
         $this->transactionDepth--;
@@ -84,6 +138,11 @@ class Database
         }
     }
 
+    /**
+     * Annule la transaction courante et réinitialise le compteur d'imbrication.
+     *
+     * @return void
+     */
     public function rollback(): void
     {
         $this->transactionDepth = 0;
