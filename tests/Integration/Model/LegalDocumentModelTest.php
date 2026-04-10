@@ -85,5 +85,4 @@ class LegalDocumentModelTest extends IntegrationTestCase
         $result = $this->model->update('slug_inexistant', '2.0', '2026-05-01', 1);
         $this->assertFalse($result);
     }
-
 }

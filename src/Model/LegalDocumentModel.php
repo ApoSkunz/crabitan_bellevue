@@ -146,5 +146,4 @@ class LegalDocumentModel extends Model
             [$count, $docId]
         );
     }
-
 }

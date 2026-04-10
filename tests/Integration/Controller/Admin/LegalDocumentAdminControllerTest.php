@@ -318,5 +318,4 @@ class LegalDocumentAdminControllerTest extends AdminIntegrationTestCase
         $this->assertNotNull($caught);
         $this->assertSame(302, $caught->status);
     }
-
 }

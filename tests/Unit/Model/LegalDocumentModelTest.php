@@ -201,5 +201,4 @@ class LegalDocumentModelTest extends TestCase
 
         $this->model->updateNotificationStats(1, 5);
     }
-
 }
