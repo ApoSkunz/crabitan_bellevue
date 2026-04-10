@@ -33,18 +33,36 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
 
     public function findByEmail(string $email): array|false
     {
-        return $this->db->fetchOne(
+        $row = $this->db->fetchOne(
             $this->withProfile() . " WHERE a.email = ? AND a.deleted_at IS NULL",
             [$email]
         );
+        return is_array($row) ? $this->decryptRow($row) : $row;
     }
 
     public function findById(int $id): array|false
     {
-        return $this->db->fetchOne(
+        $row = $this->db->fetchOne(
             $this->withProfile() . " WHERE a.id = ? AND a.deleted_at IS NULL",
             [$id]
         );
+        return is_array($row) ? $this->decryptRow($row) : $row;
+    }
+
+    /**
+     * Déchiffre les colonnes sensibles d'un compte retourné par la BDD.
+     *
+     * @param array<string, mixed> $row Ligne brute issue d'un SELECT
+     * @return array<string, mixed> Ligne avec colonnes déchiffrées
+     */
+    private function decryptRow(array $row): array
+    {
+        if (isset($row['email_change_new_email']) && is_string($row['email_change_new_email'])) {
+            $row['email_change_new_email'] = $this->encryption->decrypt($row['email_change_new_email'])
+                ?? $row['email_change_new_email'];
+        }
+
+        return $row;
     }
 
     /**
