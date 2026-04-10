@@ -66,6 +66,8 @@ class AgeGateControllerTest extends TestCase
         $_COOKIE = [];
         $_GET    = [];
 
+        $this->expectNotToPerformAssertions();
+
         ob_start();
         try {
             $this->makeController()->show();
@@ -74,8 +76,6 @@ class AgeGateControllerTest extends TestCase
             $this->markTestSkipped('Rendu de vue non disponible en CLI : ' . $e->getMessage());
         }
         ob_get_clean();
-
-        $this->assertTrue(true);
     }
 
     // ── confirm() ──────────────────────────────────────────────────────────
@@ -89,20 +89,14 @@ class AgeGateControllerTest extends TestCase
         $_COOKIE            = [];
         $_SERVER['HTTP_HOST'] = 'crabitan.local';
 
-        $caught = null;
         ob_start();
-        try {
-            $this->makeController()->confirm();
-        } catch (HttpException $e) {
-            $caught = $e;
-        }
-        ob_end_clean();
+        $this->makeController()->confirm();
+        $output = ob_get_clean();
 
-        $this->assertNotNull($caught, 'confirm() doit lancer HttpException pour un mineur');
         $this->assertStringContainsString(
             'google.com',
-            $caught->location ?? '',
-            'Sans exit_url valide, confirm() doit rediriger vers Google'
+            $output,
+            'Sans exit_url valide, confirm() doit afficher une page meta-refresh vers Google'
         );
     }
 
@@ -115,18 +109,11 @@ class AgeGateControllerTest extends TestCase
         $_COOKIE            = [];
         $_SERVER['HTTP_HOST'] = 'crabitan.local';
 
-        $caught = null;
         ob_start();
-        try {
-            $this->makeController()->confirm();
-        } catch (HttpException $e) {
-            $caught = $e;
-        }
-        ob_end_clean();
+        $this->makeController()->confirm();
+        $output = ob_get_clean();
 
-        $this->assertNotNull($caught);
-        $this->assertSame(302, $caught->status);
-        $this->assertStringContainsString('example.com', $caught->location ?? '');
+        $this->assertStringContainsString('example.com', $output);
     }
 
     #[RunInSeparateProcess]
@@ -139,17 +126,11 @@ class AgeGateControllerTest extends TestCase
         $_COOKIE            = [];
         $_SERVER['HTTP_HOST'] = 'crabitan.local';
 
-        $caught = null;
         ob_start();
-        try {
-            $this->makeController()->confirm();
-        } catch (HttpException $e) {
-            $caught = $e;
-        }
-        ob_end_clean();
+        $this->makeController()->confirm();
+        $output = ob_get_clean();
 
-        $this->assertNotNull($caught);
-        $this->assertStringContainsString('google.com', $caught->location ?? '');
+        $this->assertStringContainsString('google.com', $output);
     }
 
     #[RunInSeparateProcess]
@@ -161,17 +142,11 @@ class AgeGateControllerTest extends TestCase
         $_COOKIE            = [];
         $_SERVER['HTTP_HOST'] = 'crabitan.local';
 
-        $caught = null;
         ob_start();
-        try {
-            $this->makeController()->confirm();
-        } catch (HttpException $e) {
-            $caught = $e;
-        }
-        ob_end_clean();
+        $this->makeController()->confirm();
+        $output = ob_get_clean();
 
-        $this->assertNotNull($caught);
-        $this->assertStringContainsString('google.com', $caught->location ?? '');
+        $this->assertStringContainsString('google.com', $output);
     }
 
     #[RunInSeparateProcess]
@@ -263,6 +238,8 @@ class AgeGateControllerTest extends TestCase
         $_COOKIE = [];
         $_GET    = ['lang' => 'en'];
 
+        $this->expectNotToPerformAssertions();
+
         ob_start();
         try {
             $this->makeController()->show();
@@ -271,8 +248,6 @@ class AgeGateControllerTest extends TestCase
             $this->markTestSkipped('Rendu de vue non disponible en CLI : ' . $e->getMessage());
         }
         ob_get_clean();
-
-        $this->assertTrue(true);
     }
 
     /**
