@@ -25,8 +25,9 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private const URL_LEGAL   = '/fr/mentions-legales';
     private const URL_SUPPORT = '/fr/support';
     private const URL_CGV        = '/fr/conditions-generales-de-vente';
-    private const DATE_FORMAT_FR   = 'd/m/Y à H:i';
-    private const DATE_FORMAT_DATE = 'd/m/Y';
+    private const DATE_FORMAT_FR        = 'd/m/Y à H:i';
+    private const DATE_FORMAT_DATE      = 'd/m/Y';
+    private const PAYMENT_LABEL_CHEQUE  = 'Chèque';
 
     private PHPMailer $mailer;
 
@@ -1089,7 +1090,7 @@ INNER;
             $paymentLabels  = [
                 'card'     => 'Carte bancaire',
                 'virement' => 'Virement bancaire',
-                'cheque'   => 'Chèque',
+                'cheque'   => self::PAYMENT_LABEL_CHEQUE,
             ];
             $withdrawalNote = '<br><em style="font-size:12px;color:#8a7a60;">Conformément à l\'art. L221-18 du Code de la consommation, vous disposez de 14 jours pour exercer votre droit de rétractation à compter de la réception.</em>'; // phpcs:ignore Generic.Files.LineLength
             $deferredNote   = in_array($paymentMethod, ['virement', 'cheque'], true)
