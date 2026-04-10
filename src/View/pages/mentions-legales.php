@@ -47,15 +47,20 @@ require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : r
         <p>La protection de vos données personnelles est notre priorité. Nous n&#8217;utilisons que les données strictement nécessaires (principe de minimisation, art. 5-1-c du RGPD). Les paiements par carte bancaire sont traités par un prestataire certifié PCI-DSS&nbsp;; vos coordonnées bancaires ne sont jamais stockées sur nos serveurs. Un registre des activités de traitement est tenu à jour conformément à l&#8217;Art.&nbsp;30 du RGPD et peut être mis à la disposition de la CNIL sur demande.</p>
         <p>Pour connaître en détail les données collectées, leurs finalités, les sous-traitants impliqués, les durées de conservation et exercer vos droits (accès, rectification, effacement, portabilité, opposition), consultez notre <a href="/<?= htmlspecialchars($navLang) ?>/politique-de-confidentialite"><?= htmlspecialchars(__('footer.privacy_policy')) ?></a>.</p>
 
-        <h2>IV. Responsabilités</h2>
+        <h2>IV. Services tiers</h2>
 
-        <h3>1. Limitation de la responsabilité</h3>
+        <h3>1. Données météorologiques</h3>
+        <p>Les données météorologiques affichées sur ce site sont fournies par <a href="https://www.weatherapi.com/" target="_blank" rel="noopener noreferrer">WeatherAPI.com</a>. Ces données sont transmises via un proxy serveur&nbsp;; aucune donnée personnelle du visiteur n&#8217;est communiquée à ce service.</p>
+
+        <h2>V. Responsabilités</h2>
+
+        <h3>1. Limitation de responsabilité</h3>
         <p>La Société Civile GFA Bernard Solane et Fils s&#8217;engage à mettre tout en œuvre pour que les informations publiées sur ce site soient correctes et à jour. Elle décline toutefois toute responsabilité pour toute interruption du service, inexactitude ou omission portant sur les informations disponibles, ou pour tout dommage résultant d&#8217;une intrusion frauduleuse d&#8217;un tiers.</p>
 
         <h3>2. Liens externes</h3>
         <p>Ce site peut comporter des liens vers d&#8217;autres sites internet que nous ne maîtrisons pas. La Société Civile GFA Bernard Solane et Fils ne peut pas être tenue responsable de leur contenu ou des modifications qui leur sont apportées.</p>
 
-        <h2>V. Généralités</h2>
+        <h2>VI. Généralités</h2>
 
         <h3>1. Loi applicable</h3>
         <p>Les présentes mentions légales sont établies en conformité avec le droit français, notamment la loi n°2004-575 du 21 juin 2004 pour la confiance dans l&#8217;économie numérique et le RGPD (Règlement UE 2016/679).</p>
