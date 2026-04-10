@@ -1508,6 +1508,76 @@ INNER;
     }
 
     /**
+     * Envoie au propriétaire la liste des commandes sans mouvement depuis plus de $days jours.
+     *
+     * @param array<int, array<string, mixed>> $orders Commandes retournées par OrderModel::getStaleOrders()
+     * @param int                              $days   Seuil de stagnation utilisé (pour le sujet du mail)
+     * @return void
+     */
+    public function sendPendingOrdersAlert(array $orders, int $days = 7): void
+    {
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $count      = count($orders);
+        $statusLabels = [
+            'pending'         => 'En attente',
+            'paid'            => 'Payée',
+            'processing'      => 'En préparation',
+            'shipped'         => 'Expédiée',
+            'return_requested' => 'Retour demandé',
+            'refund_refused'  => 'Remboursement refusé',
+        ];
+        $paymentLabels = [
+            'card'     => 'CB',
+            'virement' => 'Virement',
+            'cheque'   => 'Chèque',
+        ];
+
+        $rows = '';
+        foreach ($orders as $order) {
+            $ref       = htmlspecialchars($order['order_reference'] ?? '—', ENT_QUOTES);
+            $status    = htmlspecialchars($statusLabels[$order['status'] ?? ''] ?? ($order['status'] ?? '—'), ENT_QUOTES);
+            $price     = number_format((float) ($order['price'] ?? 0), 2, ',', ' ');
+            $payment   = htmlspecialchars($paymentLabels[$order['payment_method'] ?? ''] ?? ($order['payment_method'] ?? '—'), ENT_QUOTES);
+            $updatedAt = isset($order['updated_at']) ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['updated_at'])) : '—';
+            $orderId   = (int) ($order['id'] ?? 0);
+            $link      = $orderId > 0
+                ? "<a href=\"{$appUrl}/admin/commandes/{$orderId}\" style=\"color:#c9a84c;\">{$ref}</a>"
+                : $ref;
+
+            $rows .= "<tr style=\"border-bottom:1px solid #ede8df;\">"
+                . "<td style=\"padding:4px 8px;font-size:13px;color:#3d3425;\">{$link}</td>"
+                . "<td style=\"padding:4px 8px;font-size:13px;color:#3d3425;\">{$status}</td>"
+                . "<td style=\"padding:4px 8px;text-align:right;font-size:13px;color:#3d3425;\">{$price}&nbsp;€</td>"
+                . "<td style=\"padding:4px 8px;font-size:13px;color:#3d3425;\">{$payment}</td>"
+                . "<td style=\"padding:4px 8px;font-size:13px;color:#3d3425;\">{$updatedAt}</td>"
+                . "</tr>";
+        }
+
+        $tableHtml = "<table style=\"width:100%;border-collapse:collapse;margin-top:12px;\">"
+            . "<thead><tr style=\"background:#f5f0e8;\">"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Référence</th>"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Statut</th>"
+            . "<th style=\"padding:6px 8px;text-align:right;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Montant</th>"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Paiement</th>"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Dernière MAJ</th>"
+            . "</tr></thead><tbody>{$rows}</tbody></table>";
+
+        $message = "{$count} commande(s) sans mouvement depuis plus de {$days} jours :<br><br>"
+            . $tableHtml
+            . "<br><br><a href=\"{$appUrl}/admin/commandes\" style=\"color:#c9a84c;\">Accéder à la liste des commandes</a>";
+
+        $body = $this->emailSimpleLayout(
+            'Commandes bloquées',
+            "Alerte — commandes bloquées ({$count})",
+            $message,
+            'fr'
+        );
+
+        $this->send($ownerEmail, APP_NAME, "Commandes bloquées — {$count} sans mouvement depuis {$days}j", $body);
+    }
+
+    /**
      * Confirme la demande de retour au client avec la fiche de retour en pièce jointe.
      *
      * @param array<string, mixed> $order

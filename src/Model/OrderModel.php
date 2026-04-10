@@ -1083,4 +1083,23 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                )"
         );
     }
+
+    /**
+     * Retourne les commandes sans mouvement depuis plus de $days jours,
+     * hors états finaux (delivered, cancelled, refunded).
+     *
+     * @param int $days Nombre de jours d'inactivité (défaut : 7)
+     * @return array<int, array<string, mixed>>
+     */
+    public function getStaleOrders(int $days = 7): array
+    {
+        return $this->db->fetchAll(
+            "SELECT id, order_reference, status, price, payment_method, ordered_at, updated_at
+               FROM {$this->table}
+              WHERE status NOT IN ('delivered', 'cancelled', 'refunded')
+                AND updated_at < DATE_SUB(NOW(), INTERVAL ? DAY)
+              ORDER BY updated_at ASC",
+            [$days]
+        );
+    }
 }
