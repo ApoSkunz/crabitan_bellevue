@@ -2,6 +2,15 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.60.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.60.0...v0.60.1) (2026-04-10)
+
+
+### Bug Fixes
+
+* **ci:** corriger SHA actions/upload-artifact — v4.6.2 (ea165f8) ([9ed5fe6](https://github.com/ApoSkunz/crabitan_bellevue/commit/9ed5fe64c5eb13b75be66e733ad8ff4c8e4e0c61))
+* **ci:** remplacer téléchargement phar Exakat par image Docker 2.6.9 ([e11589c](https://github.com/ApoSkunz/crabitan_bellevue/commit/e11589c01a97026fb99daa362ebc7775612590a7))
+* **ci:** switcher vers exakat/exakat-ga:latest — image dédiée CI ([f66ba50](https://github.com/ApoSkunz/crabitan_bellevue/commit/f66ba507bb1c05f89e55c612bd2855c9605b7a76))
+
 # [0.60.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.59.0...v0.60.0) (2026-04-10)
 
 
