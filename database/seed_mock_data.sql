@@ -1005,7 +1005,7 @@ ALTER TABLE `newsletter_clicks` AUTO_INCREMENT = 3;
 -- LEGAL DOCUMENTS (version et date des pages légales)
 -- ============================================================
 
-INSERT INTO `legal_documents` (`slug`, `label`, `version`, `updated_at`, `requires_notification`) VALUES
+INSERT IGNORE INTO `legal_documents` (`slug`, `label`, `version`, `updated_at`, `requires_notification`) VALUES
 ('cgv',                       'Conditions Générales de Vente',              '1.0', '2026-04-04', 1),
 ('politique_confidentialite', 'Politique de confidentialité',               '1.0', '2026-04-07', 1),
 ('mentions_legales',          'Mentions légales',                           '1.0', '2026-04-07', 0),
