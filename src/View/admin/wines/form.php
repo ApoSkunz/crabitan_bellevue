@@ -429,10 +429,29 @@ function previewImage(input) {
     }
 }
 
-// ── Validation client : surligner tous les champs requis vides ──────────
+// ── Validation client ────────────────────────────────────────────────────
 (function () {
     const form = document.querySelector('.admin-form');
     if (!form) return;
+
+    const NUTRITION_FIELDS = ['energy_kj','fat_g','saturated_fat_g','carbohydrate_g','sugars_g','protein_g','salt_g'];
+
+    function checkNutrition() {
+        const els    = NUTRITION_FIELDS.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+        const filled = els.filter(function (el) { return el.value.trim() !== ''; });
+        if (filled.length > 0 && filled.length < els.length) {
+            els.forEach(function (el) { if (el.value.trim() === '') { el.classList.add('is-error'); } });
+            return false;
+        }
+        els.forEach(function (el) { el.classList.remove('is-error'); });
+        return true;
+    }
+
+    // Feedback live sur les champs nutrition
+    NUTRITION_FIELDS.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) { el.addEventListener('input', checkNutrition); }
+    });
 
     form.addEventListener('submit', function (e) {
         const required = form.querySelectorAll('[required]');
@@ -440,19 +459,23 @@ function previewImage(input) {
         let hasErrors    = false;
 
         required.forEach(function (el) {
-            const empty = el.value.trim() === '';
-            if (empty) {
+            if (el.value.trim() === '') {
                 el.classList.add('is-error');
                 hasErrors = true;
                 if (!firstInvalid) { firstInvalid = el; }
             }
         });
 
+        if (!checkNutrition()) {
+            hasErrors = true;
+            if (!firstInvalid) {
+                firstInvalid = document.getElementById('energy_kj');
+            }
+        }
+
         if (hasErrors) {
             e.preventDefault();
-            if (firstInvalid) {
-                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            if (firstInvalid) { firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
         }
     });
 
