@@ -380,8 +380,8 @@ $maxYear = (int) date('Y');
                     <label class="admin-field__label" for="ingredients_en">Liste des ingrédients — Anglais <span style="font-weight:400;font-size:0.72rem;">(traduit automatiquement)</span></label>
                     <textarea id="ingredients_en" name="ingredients_en"
                               class="admin-field__textarea"
-                              rows="3"
-                              placeholder="e.g. Grapes, Stabilising agent: Carboxymethylcellulose, Sulphites"><?= htmlspecialchars($ingEn) ?></textarea>
+                              style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                              rows="3" readonly><?= htmlspecialchars($ingEn) ?></textarea>
                 </div>
             <?php endif; ?>
         </div>
