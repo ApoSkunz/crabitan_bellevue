@@ -100,6 +100,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                             <button type="button"
                                     class="js-toggle-available admin-btn admin-btn--sm <?= $wine['available'] ? 'admin-btn--available' : 'admin-btn--out' ?>"
                                     data-id="<?= (int) $wine['id'] ?>"
+                                    data-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage'], ENT_QUOTES) ?>"
                                     data-available="<?= $wine['available'] ? '1' : '0' ?>"
                                     data-csrf="<?= htmlspecialchars($_SESSION['csrf'] ?? '', ENT_QUOTES) ?>"
                                     aria-label="<?= $wine['available'] ? 'Rendre indisponible' : 'Rendre disponible' ?>">
@@ -172,23 +173,21 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
     </div>
 </div>
 
-<!-- Modal Featured -->
-<div id="admin-featured-modal" role="dialog" aria-modal="true" aria-labelledby="admin-featured-modal-title"
+<!-- Modal générique confirmation -->
+<div id="admin-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="admin-confirm-modal-title"
      style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.6);
             align-items:center;justify-content:center;">
     <div style="background:var(--color-surface,#fff);border-radius:6px;padding:2rem;
-                max-width:420px;width:90%;position:relative;">
-        <button type="button" id="admin-featured-modal-close"
+                max-width:440px;width:90%;position:relative;">
+        <button type="button" id="admin-confirm-modal-close"
                 style="position:absolute;top:0.75rem;right:1rem;background:none;border:none;
                        font-size:1.25rem;cursor:pointer;color:#6b5f50;" aria-label="Fermer">✕</button>
-        <h3 id="admin-featured-modal-title" style="margin:0 0 1rem;font-size:1rem;color:#1a1208;">
-            Remplacer le vin en avant ?
-        </h3>
-        <p id="admin-featured-modal-body" style="margin:0 0 1.5rem;font-size:0.9rem;color:#5a4e3a;"></p>
+        <h3 id="admin-confirm-modal-title" style="margin:0 0 1rem;font-size:1rem;color:#1a1208;"></h3>
+        <p id="admin-confirm-modal-body" style="margin:0 0 1.5rem;font-size:0.9rem;color:#5a4e3a;"></p>
         <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
-            <button type="button" id="admin-featured-modal-cancel"
+            <button type="button" id="admin-confirm-modal-cancel"
                     class="admin-btn admin-btn--outline admin-btn--sm">Annuler</button>
-            <button type="button" id="admin-featured-modal-confirm"
+            <button type="button" id="admin-confirm-modal-confirm"
                     class="admin-btn admin-btn--gold admin-btn--sm">Confirmer</button>
         </div>
     </div>
@@ -196,28 +195,59 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
 
 <script>
 (function () {
-    let pendingBtn = null;
+    var pendingAction = null;
 
-    function setFeaturedRequest(btn, confirmed) {
-        const id      = btn.dataset.id;
-        const csrf    = btn.dataset.csrf;
-        const action  = btn.dataset.featured === '1' ? 'unset' : 'set';
+    // ── Helpers modal ──────────────────────────────────────────
+    function openModal(title, body, btnLabel, btnClass, onConfirm) {
+        document.getElementById('admin-confirm-modal-title').textContent = title;
+        document.getElementById('admin-confirm-modal-body').textContent  = body;
+        var confirmBtn = document.getElementById('admin-confirm-modal-confirm');
+        confirmBtn.textContent = btnLabel;
+        confirmBtn.className   = 'admin-btn admin-btn--sm ' + btnClass;
+        pendingAction = onConfirm;
+        document.getElementById('admin-confirm-modal').style.display = 'flex';
+    }
 
-        fetch('/admin/vins/' + id + '/featured', {
+    function closeModal() {
+        document.getElementById('admin-confirm-modal').style.display = 'none';
+        pendingAction = null;
+    }
+
+    document.getElementById('admin-confirm-modal-confirm').addEventListener('click', function () {
+        closeModal();
+        if (pendingAction) pendingAction();
+    });
+    document.getElementById('admin-confirm-modal-cancel').addEventListener('click', closeModal);
+    document.getElementById('admin-confirm-modal-close').addEventListener('click', closeModal);
+    document.getElementById('admin-confirm-modal').addEventListener('click', function (e) {
+        if (e.target === this) closeModal();
+    });
+
+    // ── AJAX helper ────────────────────────────────────────────
+    function ajaxPost(url, csrf, extraParams, onSuccess) {
+        var body = 'csrf_token=' + encodeURIComponent(csrf);
+        if (extraParams) body += '&' + extraParams;
+        fetch(url, {
             method:  'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
-            body:    'csrf=' + encodeURIComponent(csrf) + '&action=' + action,
+            body:    body,
         })
         .then(function (r) { return r.json(); })
-        .then(function (data) {
-            if (!data.ok) return;
-            // Mettre à jour tous les boutons
+        .then(function (data) { if (data.ok) onSuccess(data); })
+        .catch(function () {});
+    }
+
+    // ── Mise en avant ──────────────────────────────────────────
+    function doSetFeatured(btn) {
+        var id     = btn.dataset.id;
+        var csrf   = btn.dataset.csrf;
+        var action = btn.dataset.featured === '1' ? 'unset' : 'set';
+        ajaxPost('/admin/vins/' + id + '/featured', csrf, 'action=' + action, function (data) {
             document.querySelectorAll('.js-featured-btn').forEach(function (b) {
                 b.dataset.featured = '0';
                 b.textContent = 'Mettre en avant';
                 b.classList.remove('admin-btn--gold');
                 b.classList.add('admin-btn--outline');
-                b.title = 'Mettre en avant';
             });
             if (data.featured) {
                 btn.dataset.featured = '1';
@@ -225,75 +255,70 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                 btn.classList.add('admin-btn--gold');
                 btn.classList.remove('admin-btn--outline');
             }
-        })
-        .catch(function () {});
+        });
     }
 
     document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.js-featured-btn');
+        var btn = e.target.closest('.js-featured-btn');
         if (!btn) return;
 
-        // Retirer la mise en avant — pas de confirmation requise
         if (btn.dataset.featured === '1') {
-            setFeaturedRequest(btn, true);
+            // Retirer — confirmation
+            openModal(
+                'Retirer ce vin de la homepage ?',
+                '« ' + btn.dataset.label + ' » ne sera plus mis en avant. Le bloc homepage affichera le fallback automatique.',
+                'Retirer',
+                'admin-btn--outline',
+                function () { doSetFeatured(btn); }
+            );
             return;
         }
 
-        // Vérifier s'il existe déjà un featured dans la liste
-        const currentFeatured = document.querySelector('.js-featured-btn[data-featured="1"]');
-        if (currentFeatured && currentFeatured !== btn) {
-            pendingBtn = btn;
-            const modal = document.getElementById('admin-featured-modal');
-            document.getElementById('admin-featured-modal-body').textContent =
-                '« ' + currentFeatured.dataset.label + ' » est actuellement mis en avant. '
-                + 'Le remplacer par « ' + btn.dataset.label + ' » ?';
-            modal.style.display = 'flex';
+        var currentFeatured = document.querySelector('.js-featured-btn[data-featured="1"]');
+        if (currentFeatured) {
+            openModal(
+                'Remplacer le vin en avant ?',
+                '« ' + currentFeatured.dataset.label + ' » est actuellement mis en avant. Le remplacer par « ' + btn.dataset.label + ' » ?',
+                'Remplacer',
+                'admin-btn--gold',
+                function () { doSetFeatured(btn); }
+            );
             return;
         }
 
-        setFeaturedRequest(btn, true);
+        doSetFeatured(btn);
     });
 
-    document.getElementById('admin-featured-modal-confirm').addEventListener('click', function () {
-        document.getElementById('admin-featured-modal').style.display = 'none';
-        if (pendingBtn) setFeaturedRequest(pendingBtn, true);
-        pendingBtn = null;
-    });
-
-    function closeModal() {
-        document.getElementById('admin-featured-modal').style.display = 'none';
-        pendingBtn = null;
-    }
-
-    document.getElementById('admin-featured-modal-close').addEventListener('click', closeModal);
-    document.getElementById('admin-featured-modal-cancel').addEventListener('click', closeModal);
-    document.getElementById('admin-featured-modal').addEventListener('click', function (e) {
-        if (e.target === this) closeModal();
-    });
-
-    // Toggle disponibilité
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.js-toggle-available');
-        if (!btn) return;
-
-        const id   = btn.dataset.id;
-        const csrf = btn.dataset.csrf;
-
-        fetch('/admin/vins/' + id + '/disponibilite', {
-            method:  'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
-            body:    'csrf=' + encodeURIComponent(csrf),
-        })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-            if (!data.ok) return;
+    // ── Toggle disponibilité ────────────────────────────────────
+    function doToggleAvailable(btn) {
+        var id   = btn.dataset.id;
+        var csrf = btn.dataset.csrf;
+        ajaxPost('/admin/vins/' + id + '/disponibilite', csrf, null, function (data) {
             btn.dataset.available = data.available ? '1' : '0';
             btn.textContent       = data.available ? 'Disponible' : 'Indisponible';
             btn.classList.toggle('admin-btn--available', data.available);
             btn.classList.toggle('admin-btn--out', !data.available);
             btn.setAttribute('aria-label', data.available ? 'Rendre indisponible' : 'Rendre disponible');
-        })
-        .catch(function () {});
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.js-toggle-available');
+        if (!btn) return;
+
+        if (btn.dataset.available === '1') {
+            // Rendre indisponible — confirmation en rouge
+            openModal(
+                'Rendre ce vin indisponible ?',
+                '« ' + btn.dataset.label + ' » sera retiré du catalogue et supprimé des paniers en cours.',
+                'Rendre indisponible',
+                'admin-btn--danger',
+                function () { doToggleAvailable(btn); }
+            );
+            return;
+        }
+
+        doToggleAvailable(btn);
     });
 }());
 </script>

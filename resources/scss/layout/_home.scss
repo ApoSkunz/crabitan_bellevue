@@ -151,6 +151,84 @@
 }
 
 // ============================================================
+// Section Vin du moment
+// ============================================================
+
+.home-section--featured {
+    .home-section__visual {
+        img {
+            height: 480px;
+            object-fit: contain;
+            object-position: center;
+            background: transparent;
+
+            @include m.bp('lg') {
+                height: 560px;
+            }
+        }
+    }
+}
+
+.home-featured {
+    &__badge {
+        display: inline-block;
+        font-family: var(--font-serif);
+        font-size: 0.68rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--color-gold);
+        border: 1px solid var(--color-gold);
+        padding: 0.25em 0.75em;
+        margin-bottom: 0.25rem;
+    }
+
+    &__name {
+        font-family: var(--font-serif);
+        font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+        font-weight: 400;
+        color: var(--color-text);
+        letter-spacing: 0.08em;
+        margin: 0;
+    }
+
+    &__meta {
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+        letter-spacing: 0.05em;
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+
+    &__cart-form {
+        margin: 0;
+
+        button[type='submit'] {
+            font-family: var(--font-sans);
+            font-size: clamp(0.7rem, 1.2vw, 0.82rem);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 0.75rem 1.75rem;
+            background: transparent;
+            border: 1px solid rgba(201, 168, 76, 0.5);
+            color: var(--color-gold);
+            cursor: pointer;
+            transition: all 250ms ease;
+
+            &:hover {
+                background: rgba(201, 168, 76, 0.1);
+                border-color: var(--color-gold);
+            }
+        }
+    }
+}
+
+// ============================================================
 // Section Vidéo — lecteur natif élégant
 // ============================================================
 
