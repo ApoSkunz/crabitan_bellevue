@@ -317,21 +317,15 @@ $maxYear = (int) date('Y');
                 <p class="admin-field__error"><?= htmlspecialchars($errors['nutrition']) ?></p>
             <?php endif; ?>
             <div class="admin-form__grid admin-form__grid--3">
-                <!-- Énergie kJ (saisie) + kcal (calculé automatiquement) -->
+                <!-- Énergie kJ (saisie) + kcal affiché dynamiquement sous le champ -->
                 <div class="admin-field">
                     <label class="admin-field__label" for="energy_kj">Énergie (kJ)</label>
                     <input type="number" id="energy_kj" name="energy_kj" min="0"
                            class="admin-field__input<?= !empty($errors['nutrition']) ? ' admin-field__input--error' : '' ?>"
                            value="<?= htmlspecialchars((string) ($wn['energy_kj'] ?? '')) ?>"
                            placeholder="ex : 336">
-                </div>
-                <div class="admin-field">
-                    <label class="admin-field__label" for="energy_kcal_display">Énergie (kcal) — calculé</label>
-                    <?php $kcalDisplay = !empty($wn['energy_kj']) ? (string) (int) round((int) $wn['energy_kj'] / 4.184) : ''; ?>
-                    <input type="text" id="energy_kcal_display" readonly
-                           class="admin-field__input admin-field__input--readonly"
-                           value="<?= htmlspecialchars($kcalDisplay) ?>"
-                           placeholder="calculé depuis kJ">
+                    <?php $kcalDisplay = !empty($wn['energy_kj']) ? (int) round((int) $wn['energy_kj'] / 4.184) : ''; ?>
+                    <span id="energy_kcal_hint" class="admin-field__hint"><?= $kcalDisplay !== '' ? '≈ ' . $kcalDisplay . ' kcal' : '' ?></span>
                 </div>
                 <?php
                 $nutritionInputs = [
@@ -355,11 +349,11 @@ $maxYear = (int) date('Y');
             <script>
             (function () {
                 const kj   = document.getElementById('energy_kj');
-                const kcal = document.getElementById('energy_kcal_display');
-                if (!kj || !kcal) return;
+                const hint = document.getElementById('energy_kcal_hint');
+                if (!kj || !hint) return;
                 kj.addEventListener('input', function () {
                     const v = parseInt(this.value, 10);
-                    kcal.value = isNaN(v) || v === 0 ? '' : Math.round(v / 4.184);
+                    hint.textContent = (!isNaN(v) && v > 0) ? '≈ ' + Math.round(v / 4.184) + ' kcal' : '';
                 });
             }());
             </script>
