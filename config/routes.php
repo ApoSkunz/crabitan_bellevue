@@ -195,6 +195,10 @@ $router->post('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribe
 $router->get('/{lang}/newsletter/confirmation', 'NewsletterController@confirmSubscription');
 $router->post('/{lang}/newsletter/inscription', 'NewsletterController@subscribe');
 
+// Newsletter — abonnement depuis email de bienvenue (one-click)
+$router->get('/fr/newsletter/inscription-bienvenue', 'NewsletterController@subscribeFromWelcome');
+$router->get('/en/newsletter/welcome-subscribe', 'NewsletterController@subscribeFromWelcome');
+
 // Déclaration de majorité (Art. L3342-1 CSP)
 $router->post('/{lang}/declaration-majorite', 'MajorityController@declare');
 

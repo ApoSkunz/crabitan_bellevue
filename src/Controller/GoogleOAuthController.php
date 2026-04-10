@@ -188,17 +188,24 @@ class GoogleOAuthController extends Controller
             $isNewAccount = true;
         }
 
-        if ($isNewAccount && $account) {
-            try {
-                (new MailService())->sendWelcome($email, (string) ($account['firstname'] ?? ''), $lang);
-            } catch (\Throwable) {
-                // Email de bienvenue non bloquant
-            }
-        }
-
         if (!$account) {
             $this->flash('modal_error', __('auth.google_error'));
             Response::redirect($loginUrl);
+        }
+
+        if ($isNewAccount) {
+            try {
+                $firstname    = $account['firstname'] ?? $userInfo['given_name'] ?? '';
+                $isSubscribed = (int) ($account['newsletter'] ?? 0) === 1;
+                (new \Service\MailService())->sendWelcome(
+                    $account['email'],
+                    $firstname,
+                    $lang,
+                    $isSubscribed
+                );
+            } catch (\Throwable $e) {
+                error_log('sendWelcome error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+            }
         }
 
         $this->issueSession($account, $lang);

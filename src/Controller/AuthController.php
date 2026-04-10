@@ -597,6 +597,20 @@ class AuthController extends Controller
             $_SESSION['majority_pending'] = true;
         }
 
+        try {
+            $firstname    = $account['firstname'] ?? '';
+            $isSubscribed = (int) ($account['newsletter'] ?? 0) === 1
+                         || !empty($account['newsletter_optin_pending']);
+            (new MailService())->sendWelcome(
+                $account['email'],
+                $firstname,
+                $lang,
+                $isSubscribed
+            );
+        } catch (\Throwable $e) {
+            error_log('sendWelcome error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+        }
+
         $this->view('auth/verify', [
             'lang'    => $lang,
             'success' => true,

@@ -1917,6 +1917,66 @@ INNER;
     }
 
     /**
+     * Envoie l'email de bienvenue post-inscription (vérification d'email).
+     *
+     * Si $isSubscribed vaut false, un bouton CTA "S'abonner à la newsletter" est ajouté
+     * afin d'inviter l'utilisateur à rejoindre la newsletter en un clic.
+     *
+     * @param string $email        Adresse email du destinataire
+     * @param string $firstname    Prénom de l'utilisateur (peut être vide)
+     * @param string $lang         Langue ('fr' ou 'en')
+     * @param bool   $isSubscribed True si l'utilisateur est déjà abonné à la newsletter
+     * @return void
+     */
+    public function sendWelcome(string $email, string $firstname, string $lang, bool $isSubscribed = false): void
+    {
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $safeName    = $firstname !== '' ? htmlspecialchars($firstname, ENT_QUOTES) : $defaultName;
+        $greeting    = $lang === 'fr' ? "Bonjour {$safeName}," : "Hello {$safeName},";
+
+        $ctaBlock = '';
+        if (!$isSubscribed) {
+            $subscribeUrl = $lang === 'fr'
+                ? $appUrl . '/fr/newsletter/inscription-bienvenue?email=' . urlencode($email)
+                : $appUrl . '/en/newsletter/welcome-subscribe?email=' . urlencode($email);
+            $safeSubscribeUrl = htmlspecialchars($subscribeUrl, ENT_QUOTES);
+            $btnLabel         = $lang === 'fr' ? 'S\'abonner à la newsletter' : 'Subscribe to the newsletter';
+
+            $ctaBlock = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px auto 0;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$safeSubscribeUrl}\" style=\""
+                . self::BTN_STYLE_PRIMARY
+                . self::BTN_STYLE_LINK
+                . $btnLabel
+                . '</a></td></tr></table>';
+        }
+
+        if ($lang === 'fr') {
+            $subject = 'Bienvenue au Château Crabitan Bellevue';
+            $message = "Votre compte a bien été créé et votre adresse email vérifiée.<br><br>"
+                . "Vous pouvez dès maintenant accéder à votre espace client, consulter notre catalogue "
+                . "et passer commande en toute sécurité.<br><br>"
+                . $ctaBlock;
+        } else {
+            $subject = 'Welcome to Château Crabitan Bellevue';
+            $message = "Your account has been created and your email address verified.<br><br>"
+                . "You can now access your customer area, browse our catalogue "
+                . "and place orders securely.<br><br>"
+                . $ctaBlock;
+        }
+
+        $body = $this->emailSimpleLayout(
+            $lang === 'fr' ? 'Bienvenue' : 'Welcome',
+            $greeting,
+            $message,
+            $lang
+        );
+
+        $this->send($email, $firstname, $subject, $body);
+    }
+
+    /**
      * Envoie un email de bienvenue après inscription newsletter via le tunnel de commande.
      *
      * Contrairement au double opt-in (inscription indépendante), l'abonnement via checkout

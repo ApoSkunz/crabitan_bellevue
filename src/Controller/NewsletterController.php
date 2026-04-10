@@ -17,6 +17,8 @@ use Service\NewsletterService;
  * Routes :
  *   GET /{lang}/newsletter/confirmation?token=...  → confirmSubscription()
  *   POST /{lang}/newsletter/inscription            → subscribe()
+ *   GET /fr/newsletter/inscription-bienvenue       → subscribeFromWelcome()
+ *   GET /en/newsletter/welcome-subscribe           → subscribeFromWelcome()
  */
 class NewsletterController extends Controller
 {
@@ -80,6 +82,81 @@ class NewsletterController extends Controller
                 'lang'    => $lang,
                 'success' => false,
                 'reason'  => $e->getMessage(), // 'invalid' ou 'expired'
+            ]);
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // GET /fr/newsletter/inscription-bienvenue
+    // GET /en/newsletter/welcome-subscribe
+    // ----------------------------------------------------------------
+
+    /**
+     * Inscrit un utilisateur à la newsletter depuis le CTA de l'email de bienvenue.
+     *
+     * Récupère l'email depuis $_GET['email'], valide le format,
+     * puis déclenche le double opt-in standard ou affiche un message
+     * si l'abonné est déjà confirmé.
+     *
+     * @param array<string, string> $params Paramètres de route
+     * @return void
+     */
+    public function subscribeFromWelcome(array $params): void
+    {
+        // Détecte la langue depuis l'URL courante (/fr/... ou /en/...)
+        $uri  = $_SERVER['REQUEST_URI'] ?? '/';
+        $lang = str_starts_with($uri, '/en/') ? 'en' : 'fr';
+
+        $email = strtolower(trim($_GET['email'] ?? ''));
+
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->view('newsletter/confirmation', [
+                'lang'    => $lang,
+                'success' => false,
+                'reason'  => 'invalid',
+            ]);
+            return;
+        }
+
+        // Vérifie si déjà confirmé
+        $model      = new \Model\NewsletterSubscriptionModel();
+        $subscriber = $model->findByEmail($email);
+
+        if ($subscriber && (int) $subscriber['newsletter_confirmed'] === 1) {
+            $this->view('newsletter/confirmation', [
+                'lang'    => $lang,
+                'success' => true,
+                'reason'  => null,
+            ]);
+            return;
+        }
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        try {
+            $this->newsletterService->subscribe($email, $lang, $ip);
+
+            $this->view('newsletter/confirmation', [
+                'lang'    => $lang,
+                'success' => true,
+                'reason'  => null,
+            ]);
+        } catch (\Core\Exception\HttpException $e) {
+            throw $e;
+        } catch (\Core\Exception\NewsletterException $e) {
+            if ($e->getMessage() === 'already_confirmed') {
+                $this->view('newsletter/confirmation', [
+                    'lang'    => $lang,
+                    'success' => true,
+                    'reason'  => null,
+                ]);
+                return;
+            }
+
+            $this->view('newsletter/confirmation', [
+                'lang'    => $lang,
+                'success' => false,
+                'reason'  => 'invalid',
             ]);
         }
     }
