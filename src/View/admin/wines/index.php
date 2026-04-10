@@ -214,8 +214,9 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
     }
 
     document.getElementById('admin-confirm-modal-confirm').addEventListener('click', function () {
+        var action = pendingAction;
         closeModal();
-        if (pendingAction) pendingAction();
+        if (action) action();
     });
     document.getElementById('admin-confirm-modal-cancel').addEventListener('click', closeModal);
     document.getElementById('admin-confirm-modal-close').addEventListener('click', closeModal);
