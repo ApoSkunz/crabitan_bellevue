@@ -1,9 +1,15 @@
 <?php
 
 /**
- * Purge des sessions révoquées ou expirées (table `connections`).
- * Cron : tous les jours à 03h00
- *   0 3 * * * php /var/www/crabitan_bellevue/bin/purge_connections.php
+ * Script de purge des sessions — suppression des connexions révoquées ou expirées.
+ *
+ * Supprime les lignes de la table `connections` dont le statut est 'revoked'
+ * ou dont la date d'expiration est dépassée — évite la croissance infinie de la table.
+ *
+ * À planifier via cron (ex: tous les jours à 03h00) :
+ *   0 3 * * * php /var/www/crabitan_bellevue/bin/purge_connections.php >> /var/log/crabitan/purge.log 2>&1
+ *
+ * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */
 
 declare(strict_types=1);

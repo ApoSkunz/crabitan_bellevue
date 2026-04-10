@@ -1,10 +1,15 @@
 <?php
 
 /**
- * Purge RGPD — anonymisation des comptes supprimés après 30 jours.
- * Les données de commandes sont conservées (obligations légales — 10 ans).
- * Cron : tous les jours à 02h00
- *   0 2 * * * php /var/www/crabitan_bellevue/bin/purge_accounts.php
+ * Script de purge RGPD — anonymisation des comptes supprimés après 30 jours.
+ *
+ * Les données de commandes sont conservées (obligations légales comptables — 10 ans).
+ * Seules les données personnelles identifiantes sont anonymisées.
+ *
+ * À planifier via cron (ex: tous les jours à 02h00) :
+ *   0 2 * * * php /var/www/crabitan_bellevue/bin/purge_accounts.php >> /var/log/crabitan/purge.log 2>&1
+ *
+ * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */
 
 declare(strict_types=1);

@@ -1,9 +1,13 @@
 <?php
 
 /**
- * Purge du tracking newsletter — données d'ouverture/clic > 13 mois (RGPD Art. 5-1-e).
- * Cron : 1er de chaque mois à 04h00
- *   0 4 1 * * php /var/www/crabitan_bellevue/bin/purge_newsletter_tracking.php
+ * Script de purge du tracking newsletter — suppression des données d'ouverture et de clic
+ * antérieures à 13 mois (conformité RGPD Art. 5-1-e, intérêt légitime).
+ *
+ * À planifier via cron (ex: le 1er de chaque mois à 04h00) :
+ *   0 4 1 * * php /var/www/crabitan_bellevue/bin/purge_newsletter_tracking.php >> /var/log/crabitan/purge.log 2>&1
+ *
+ * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */
 
 declare(strict_types=1);

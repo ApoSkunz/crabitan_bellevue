@@ -1,11 +1,18 @@
 <?php
 
 /**
- * Purge RGPD — comptes inactifs (Art. 5 §1e minimisation des données).
- * Phase 1 : avertissement email après RGPD_INACTIVITY_MONTHS (défaut 36) mois d'inactivité.
- * Phase 2 : soft-delete des comptes avertis depuis > 30 jours sans reconnexion.
- * Cron : tous les jours à 02h00
- *   0 2 * * * php /var/www/crabitan_bellevue/bin/purge_inactive_accounts.php
+ * Script RGPD — purge des comptes inactifs (Art. 5 §1e — minimisation des données).
+ *
+ * Deux phases :
+ *   Phase 1 — Avertissement : envoie un email aux comptes inactifs depuis RGPD_INACTIVITY_MONTHS
+ *             (défaut 36 mois) et non encore avertis.
+ *   Phase 2 — Soft-delete  : soft-delete les comptes avertis il y a plus de 30 jours
+ *             et n'ayant pas reconnecté.
+ *
+ * À planifier via cron (ex: tous les jours à 02h00) :
+ *   0 2 * * * php /var/www/crabitan_bellevue/bin/purge_inactive_accounts.php >> /var/log/crabitan/purge_inactive.log 2>&1
+ *
+ * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */
 
 declare(strict_types=1);

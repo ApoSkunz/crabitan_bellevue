@@ -1,9 +1,15 @@
 <?php
 
 /**
- * Pseudonymisation des commandes > 10 ans (Art. L123-22 Code de commerce + RGPD Art. 5).
- * Cron : tous les jours à 02h00
- *   0 2 * * * php /var/www/crabitan_bellevue/bin/pseudonymize-orders.php
+ * Cron de pseudonymisation des commandes de plus de 10 ans.
+ *
+ * Respecte l'Art. L123-22 Code de commerce (archivage 10 ans) et le RGPD Art. 5
+ * (minimisation des données personnelles au-delà de la durée de conservation).
+ *
+ * À planifier via cron (ex: tous les jours à 02h00) :
+ *   0 2 * * * php /var/www/crabitan_bellevue/bin/pseudonymize-orders.php >> /var/log/crabitan/pseudonymize.log 2>&1
+ *
+ * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */
 
 declare(strict_types=1);

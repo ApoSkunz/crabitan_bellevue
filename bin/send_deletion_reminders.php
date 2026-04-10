@@ -1,9 +1,16 @@
 <?php
 
 /**
- * Rappels J-7 / J-1 avant anonymisation définitive du compte.
- * Cron : tous les jours à 09h00
- *   0 9 * * * php /var/www/crabitan_bellevue/bin/send_deletion_reminders.php
+ * Script de rappels avant suppression définitive du compte.
+ *
+ * Envoie un email J-7 puis J-1 aux clients dont le compte est en attente
+ * d'anonymisation RGPD. Prévient les doublons via les colonnes
+ * deletion_reminder_7d_sent_at / deletion_reminder_1d_sent_at.
+ *
+ * À planifier via cron (ex: tous les jours à 09h00) :
+ *   0 9 * * * php /var/www/crabitan_bellevue/bin/send_deletion_reminders.php >> /var/log/crabitan/reminders.log 2>&1
+ *
+ * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */
 
 declare(strict_types=1);
