@@ -78,6 +78,7 @@ class WineController extends Controller
             'page'           => $page,
             'totalPages'     => $totalPages,
             'total'          => $total,
+            'sort'           => $sort,
         ]);
     }
 
@@ -126,6 +127,7 @@ class WineController extends Controller
             'page'          => $page,
             'totalPages'    => $totalPages,
             'colorPages'    => $colorPages,
+            'sort'          => $sort,
         ]);
     }
 
@@ -578,6 +580,7 @@ class WineController extends Controller
         }
 
         $isLiked = false;
+        $userId  = null;
         $token   = $_COOKIE['auth_token'] ?? null;
         if ($token !== null) {
             try {
@@ -591,11 +594,35 @@ class WineController extends Controller
 
         $nutrition = (new \Model\WineNutritionModel())->findByWineId((int) $wine['id']) ?: [];
 
+        $similarWines  = $model->getSimilar((int) $wine['id'], (string) $wine['wine_color'], (float) $wine['price']);
+
+        $avgRating     = null;
+        $ratingCount   = 0;
+        $accountRating = null;
+        try {
+            // @phpstan-ignore-next-line
+            $ratingModel   = new \Model\RatingModel();
+            // @phpstan-ignore-next-line
+            $avgRating     = $ratingModel->getAvgByWine((int) $wine['id']);
+            // @phpstan-ignore-next-line
+            $ratingCount   = $ratingModel->countByWine((int) $wine['id']);
+            if ($token !== null && $userId !== null) {
+                // @phpstan-ignore-next-line
+                $accountRating = $ratingModel->getByAccountAndWine($userId, (int) $wine['id']);
+            }
+        } catch (\Throwable) {
+            // RatingModel pas encore disponible
+        }
+
         $this->view('wines/show', [
-            'lang'      => $lang,
-            'wine'      => $wine,
-            'nutrition' => $nutrition,
-            'isLiked'   => $isLiked,
+            'lang'          => $lang,
+            'wine'          => $wine,
+            'nutrition'     => $nutrition,
+            'isLiked'       => $isLiked,
+            'similarWines'  => $similarWines,
+            'avgRating'     => $avgRating,
+            'ratingCount'   => $ratingCount,
+            'accountRating' => $accountRating,
         ]);
     }
 }
