@@ -102,6 +102,7 @@ foreach ($abandoned as $cart) {
 
     try {
         $mailService->sendAbandonedCart($email, $firstname, $enrichedItems, $lang, $cartUrl);
+        $cartModel->markReminderSent((int) $cart['id']);
         $sent++;
         echo "[send-abandoned-cart] Email relance envoyé à {$email} (user_id={$userId})\n";
     } catch (\Throwable $e) {

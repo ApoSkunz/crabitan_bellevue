@@ -47,7 +47,7 @@ class WineModel extends Model
      * Retourne les vins disponibles avec filtres, tri et pagination optionnels.
      *
      * @param string|null $color         Couleur (red|white|rosé|sweet)
-     * @param string      $sort          Tri : 'default'|'likes_desc'|'price_asc'|'price_desc'|'vintage_asc'|'vintage_desc'
+     * @param string      $sort          Tri : 'default'|'likes_desc'|'price_asc'|'price_desc'|'vintage_asc'|'vintage_desc'|'rating_desc'
      * @param int         $limit         Nombre de résultats (0 = pas de limite)
      * @param int         $offset        Décalage pour la pagination
      * @param bool|null   $cuveSpeciale  true = cuvée spéciale uniquement, null = tous
@@ -73,12 +73,19 @@ class WineModel extends Model
 
         $this->applyCuveeFilter($where, $cuveSpeciale);
 
+        $useRatingJoin = $sort === 'rating_desc';
+        $ratingJoin    = $useRatingJoin
+            ? "LEFT JOIN (SELECT wine_id, AVG(rating) AS avg_rating FROM wine_ratings
+                         GROUP BY wine_id HAVING COUNT(*) >= 2) wr ON w.id = wr.wine_id"
+            : '';
+
         $orderBy = match ($sort) {
             'likes_desc'   => 'likes_count DESC, vintage DESC',
             'price_asc'    => 'price ASC, vintage DESC',
             'price_desc'   => 'price DESC, vintage DESC',
             'vintage_asc'  => 'vintage ASC',
             'vintage_desc' => 'vintage DESC',
+            'rating_desc'  => 'COALESCE(wr.avg_rating, 0) DESC, vintage DESC',
             default        => self::ORDER_DEFAULT,
         };
 
@@ -95,6 +102,7 @@ class WineModel extends Model
                        w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
                        (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
                 FROM {$this->table} w
+                {$ratingJoin}
                 " . $this->buildWhereClause($where) . "
                 ORDER BY {$orderBy}{$limitClause}";
 
@@ -132,7 +140,7 @@ class WineModel extends Model
      * Inclut tous les vins (disponibles ET indisponibles).
      *
      * @param string|null $color   Filtre couleur optionnel
-     * @param string      $sort    Tri : 'default'|'likes_desc'|'vintage_asc'|'vintage_desc'
+     * @param string      $sort    Tri : 'default'|'likes_desc'|'vintage_asc'|'vintage_desc'|'rating_desc'
      * @param string|null $avail   Filtre dispo : null = tous | 'available' | 'out'
      * @param int         $perPage Limite totale (0 = pas de limite)
      * @param int         $offset  Décalage pour la pagination
@@ -163,10 +171,17 @@ class WineModel extends Model
 
         $this->applyCuveeFilter($where, $cuveSpeciale);
 
+        $useRatingJoin2 = $sort === 'rating_desc';
+        $ratingJoin2    = $useRatingJoin2
+            ? "LEFT JOIN (SELECT wine_id, AVG(rating) AS avg_rating FROM wine_ratings
+                         GROUP BY wine_id HAVING COUNT(*) >= 2) wr ON w.id = wr.wine_id"
+            : '';
+
         $orderBy = match ($sort) {
             'likes_desc'   => 'wine_color DESC, likes_count DESC, vintage DESC',
             'vintage_asc'  => 'wine_color DESC, vintage ASC',
             'vintage_desc' => 'wine_color DESC, vintage DESC',
+            'rating_desc'  => 'COALESCE(wr.avg_rating, 0) DESC, wine_color DESC, vintage DESC',
             default        => self::ORDER_DEFAULT,
         };
 
@@ -185,6 +200,7 @@ class WineModel extends Model
                     w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
                     (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
              FROM {$this->table} w
+             {$ratingJoin2}
              {$whereClause}
              ORDER BY {$orderBy}{$limitClause}",
             $params

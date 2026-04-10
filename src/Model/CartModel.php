@@ -205,9 +205,24 @@ class CartModel extends Model
             "SELECT * FROM {$this->table}
              WHERE user_id IS NOT NULL
                AND total_quantity > 0
+               AND reminder_sent_at IS NULL
                AND updated_at <= NOW() - INTERVAL ? HOUR
                AND updated_at >  NOW() - INTERVAL ? HOUR",
             [$hoursMin, $hoursMax]
+        );
+    }
+
+    /**
+     * Marque un panier comme ayant reçu la relance email.
+     *
+     * @param int $cartId Identifiant du panier
+     * @return void
+     */
+    public function markReminderSent(int $cartId): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET reminder_sent_at = NOW() WHERE id = ?",
+            [$cartId]
         );
     }
 
