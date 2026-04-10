@@ -76,6 +76,9 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                             <tr>
                                 <td>
                                     <?= htmlspecialchars($item['label_name'] ?? $item['name'] ?? '—') ?>
+                                    <?php if (!empty($item['vintage'])) : ?>
+                                        <span style="font-size:0.8rem;color:#8a7a60;margin-left:0.25rem;"><?= (int) $item['vintage'] ?></span>
+                                    <?php endif; ?>
                                     <?php if (!empty($item['is_cuvee_speciale'])) : ?>
                                         <br><span style="font-size:0.72rem;letter-spacing:1.5px;text-transform:uppercase;color:#c9a84c;font-family:Georgia,serif;">Cuvée Spéciale</span>
                                     <?php endif; ?>
