@@ -14,7 +14,7 @@ require_once __DIR__ . '/../partials/header.php';
                 <span class="auth-status__icon" aria-hidden="true">✓</span>
             </div>
             <h1><?= __('newsletter.unsubscribe_title') ?></h1>
-            <p>Vous avez bien été désabonné(e) de la newsletter du Château Crabitan Bellevue.</p>
+            <p><?= htmlspecialchars(__('newsletter.unsubscribed')) ?></p>
             <a class="btn btn--ghost btn--sm" href="/<?= htmlspecialchars($lang) ?>">
                 <?= __('nav.home') ?>
             </a>
@@ -23,7 +23,7 @@ require_once __DIR__ . '/../partials/header.php';
                 <span class="auth-status__icon" aria-hidden="true">✉</span>
             </div>
             <h1><?= __('newsletter.unsubscribe_title') ?></h1>
-            <p style="margin-bottom:1.5rem;">Confirmez-vous votre désabonnement de la newsletter du Château Crabitan Bellevue ?</p>
+            <p style="margin-bottom:1.5rem;"><?= htmlspecialchars(__('newsletter.unsubscribe_confirm')) ?></p>
             <form method="POST"
                   action="/<?= htmlspecialchars($lang) ?>/newsletter/desabonnement">
                 <input type="hidden" name="unsub_token"  value="<?= htmlspecialchars($unsubToken ?? '') ?>">
@@ -32,12 +32,12 @@ require_once __DIR__ . '/../partials/header.php';
                 <?php endif; ?>
                 <button type="submit" class="btn btn--primary btn--sm"
                         style="display:block;width:100%;text-align:center;margin-bottom:0.75rem;">
-                    Confirmer le désabonnement
+                    <?= htmlspecialchars(__('newsletter.unsubscribe_button')) ?>
                 </button>
             </form>
             <a class="btn btn--ghost btn--sm" href="/<?= htmlspecialchars($lang) ?>"
                style="display:block;text-align:center;">
-                Annuler
+                <?= htmlspecialchars(__('btn.cancel')) ?>
             </a>
         <?php else : ?>
             <div class="auth-status auth-status--error" aria-live="polite">

@@ -83,7 +83,7 @@ $pricingRules     = $pricingRules     ?? [];
         <div class="cart-delivery-section">
             <details class="cart-delivery-accordion">
                 <summary class="cart-delivery-accordion__trigger">
-                    <?= htmlspecialchars($isEn ? 'Delivery discounts' : 'Remises livraison') ?>
+                    <?= htmlspecialchars(__('cart.delivery_discounts')) ?>
                     <span class="cart-delivery-accordion__arrow" aria-hidden="true">▾</span>
                 </summary>
                 <ul class="cart-delivery-accordion__list">
@@ -126,29 +126,23 @@ $pricingRules     = $pricingRules     ?? [];
             <div class="cart-progress-bar"
                  id="cart-progress-bar"
                  <?= $progressHidden ? 'hidden' : '' ?>>
-                <?php
-                if ($isEn) {
-                    $tierLabel = $hasDiscount ? 'for the next tier' : 'for your delivery discount';
-                } else {
-                    $tierLabel = $hasDiscount ? 'pour le palier suivant' : 'pour votre remise livraison';
-                }
-                ?>
+                <?php $tierLabel = $hasDiscount ? __('cart.tier_next') : __('cart.tier_first'); ?>
                 <p class="cart-progress-bar__label">
 
                     <!-- État normal : progression vers le palier suivant -->
                     <span id="cart-progress-normal" <?= $isMaxTier ? 'hidden' : '' ?>>
                         <span id="cart-progress-discount" <?= ($hasDiscount && !$isMaxTier) ? '' : 'hidden' ?>>
-                            <?= $isEn ? 'Delivery discount' : 'Remise livraison' ?> : <strong id="cart-progress-discount-value">−&nbsp;<?= number_format($deliveryDiscount, 2, ',', ' ') ?>&nbsp;€</strong><span aria-hidden="true"> · </span>
-                        </span><?= $isEn ? 'Only' : 'Plus que' ?>
+                            <?= htmlspecialchars(__('cart.delivery_discount_label')) ?> : <strong id="cart-progress-discount-value">−&nbsp;<?= number_format($deliveryDiscount, 2, ',', ' ') ?>&nbsp;€</strong><span aria-hidden="true"> · </span>
+                        </span><?= htmlspecialchars(__('cart.progress_only')) ?>
                         <strong id="cart-progress-remaining-cases"><?= $progressRemainCases ?></strong>
-                        <?= $isEn ? 'case(s) of 12' : 'caisse(s) de 12' ?>
-                        (<span id="cart-progress-remaining"><?= $progressRemain ?></span>&nbsp;<?= $isEn ? 'bottles' : 'bouteilles' ?>)
+                        <?= htmlspecialchars(__('cart.progress_cases')) ?>
+                        (<span id="cart-progress-remaining"><?= $progressRemain ?></span>&nbsp;<?= htmlspecialchars(__('cart.progress_bottles')) ?>)
                         <span id="cart-progress-tier-label"><?= $tierLabel ?></span>
                     </span>
 
                     <!-- État palier max : remise maximale confirmée -->
                     <span id="cart-progress-max" <?= $isMaxTier ? '' : 'hidden' ?>>
-                        <?= $isEn ? 'Maximum delivery discount tier reached' : 'Palier remise livraison maximum atteint' ?> : <strong id="cart-progress-max-value">−&nbsp;<?= number_format($deliveryDiscount, 2, ',', ' ') ?>&nbsp;€</strong>
+                        <?= htmlspecialchars(__('cart.progress_max_tier')) ?> : <strong id="cart-progress-max-value">−&nbsp;<?= number_format($deliveryDiscount, 2, ',', ' ') ?>&nbsp;€</strong>
                     </span>
 
                 </p>
@@ -157,7 +151,7 @@ $pricingRules     = $pricingRules     ?? [];
                      aria-valuemin="0"
                      aria-valuemax="<?= (int) ($nextTier['min_quantity'] ?? $totalQty) ?>"
                      aria-valuenow="<?= $totalQty ?>"
-                     aria-label="<?= htmlspecialchars($isEn ? 'Delivery discount progress' : 'Progression remise livraison') ?>">
+                     aria-label="<?= htmlspecialchars(__('cart.progress_aria')) ?>">
                     <div class="cart-progress-bar__fill"
                          id="cart-progress-fill"
                          style="width:<?= $progressPct ?>%"></div>
@@ -172,9 +166,9 @@ $pricingRules     = $pricingRules     ?? [];
                     <thead>
                         <tr>
                             <th scope="col" class="cart-table__col-image" aria-label="Image"></th>
-                            <th scope="col" class="cart-table__col-product">Produit</th>
+                            <th scope="col" class="cart-table__col-product"><?= htmlspecialchars(__('cart.product')) ?></th>
                             <th scope="col" class="cart-table__col-qty"><?= htmlspecialchars(__('cart.qty')) ?></th>
-                            <th scope="col" class="cart-table__col-price">Prix unitaire</th>
+                            <th scope="col" class="cart-table__col-price"><?= htmlspecialchars(__('cart.unit_price')) ?></th>
                             <th scope="col" class="cart-table__col-subtotal"><?= htmlspecialchars(__('cart.item_total')) ?></th>
                             <th scope="col" class="cart-table__col-action" aria-label="Actions"></th>
                         </tr>
@@ -205,7 +199,7 @@ $pricingRules     = $pricingRules     ?? [];
                             <td class="cart-table__col-product cart-table__name">
                                 <?= htmlspecialchars($name) ?>
                                 <?php if (!empty($item['is_cuvee_speciale'])) : ?>
-                                    <span class="cart-table__cuvee"><?= htmlspecialchars($isEn ? 'Special Cuvée' : 'Cuvée Spéciale') ?></span>
+                                    <span class="cart-table__cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span>
                                 <?php endif; ?>
                             </td>
                             <td class="cart-table__col-qty">
@@ -216,7 +210,7 @@ $pricingRules     = $pricingRules     ?? [];
                                     <button type="button"
                                             class="cart-qty-btn cart-qty-btn--minus js-qty-minus"
                                             data-wine-id="<?= $wineId ?>"
-                                            aria-label="<?= htmlspecialchars($isEn ? 'Decrease quantity' : 'Diminuer la quantité') ?>">−</button>
+                                            aria-label="<?= htmlspecialchars(__('cart.qty_decrease')) ?>">−</button>
                                     <input type="number"
                                            class="js-cart-qty cart-qty-input"
                                            id="qty-<?= $wineId ?>"
@@ -227,10 +221,10 @@ $pricingRules     = $pricingRules     ?? [];
                                     <button type="button"
                                             class="cart-qty-btn cart-qty-btn--plus js-qty-plus"
                                             data-wine-id="<?= $wineId ?>"
-                                            aria-label="<?= htmlspecialchars($isEn ? 'Increase quantity' : 'Augmenter la quantité') ?>">+</button>
+                                            aria-label="<?= htmlspecialchars(__('cart.qty_increase')) ?>">+</button>
                                 </div>
                             </td>
-                            <td class="cart-table__col-price cart-table__unit-price" data-label="Prix unitaire">
+                            <td class="cart-table__col-price cart-table__unit-price" data-label="<?= htmlspecialchars(__('cart.unit_price')) ?>">
                                 <?= number_format($price, 2, ',', ' ') ?>&nbsp;€
                             </td>
                             <td class="cart-table__col-subtotal cart-table__subtotal js-cart-subtotal" data-label="<?= htmlspecialchars(__('cart.item_total')) ?>">
@@ -246,7 +240,7 @@ $pricingRules     = $pricingRules     ?? [];
                                     <svg class="btn-retirer__icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
                                     </svg>
-                                    <span class="btn-retirer__text"><?= htmlspecialchars($isEn ? 'Remove' : 'Retirer') ?></span>
+                                    <span class="btn-retirer__text"><?= htmlspecialchars(__('cart.remove')) ?></span>
                                 </button>
                             </td>
                         </tr>
@@ -259,13 +253,12 @@ $pricingRules     = $pricingRules     ?? [];
 
                 <?php /* Sous-total + remise + total */ ?>
                 <?php
-                $suffix     = $totalQty > 1 ? 's' : '';
-                $bottleLabel = $isEn ? 'bottle' . $suffix : 'bouteille' . $suffix;
+                $bottleLabel = $totalQty > 1 ? __('cart.progress_bottles') : __('cart.progress_bottle');
                 ?>
                 <div class="cart-summary__row cart-summary__subtotal-row">
                     <span class="cart-summary__row-label">
-                        <?= $isEn ? 'Subtotal' : 'Sous-total' ?>
-                        (<span id="cart-article-count"><?= $totalQty ?></span>&nbsp;<?= $bottleLabel ?>)
+                        <?= htmlspecialchars(__('cart.subtotal_label')) ?>
+                        (<span id="cart-article-count"><?= $totalQty ?></span>&nbsp;<?= htmlspecialchars($bottleLabel) ?>)
                     </span>
                     <span class="cart-summary__row-value js-cart-subtotal-display"
                           id="cart-subtotal"
@@ -295,7 +288,7 @@ $pricingRules     = $pricingRules     ?? [];
                 <?php endif; ?>
 
                 <div class="cart-summary__row cart-summary__final-row">
-                    <p class="cart-summary__label"><?= htmlspecialchars($isEn ? 'Total incl. VAT' : 'Total TTC') ?></p>
+                    <p class="cart-summary__label"><?= htmlspecialchars(__('cart.total_ttc')) ?></p>
                     <p class="cart-summary__total" id="cart-total">
                         <?php
                         $finalTotal = $subtotal - $deliveryDiscount;
@@ -324,7 +317,7 @@ $pricingRules     = $pricingRules     ?? [];
             <p class="cart-empty"><?= htmlspecialchars(__('cart.empty')) ?></p>
             <?php if ($randomWine !== null) : ?>
             <div class="cart-empty-wine">
-                <p class="cart-empty-wine__label"><?= htmlspecialchars($isEn ? 'You might enjoy' : 'Vous pourriez apprécier') ?></p>
+                <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
                    class="cart-empty-wine__card">
                     <?php $wineImage = '/assets/images/wines/' . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
@@ -356,7 +349,7 @@ $pricingRules     = $pricingRules     ?? [];
         <div class="cart-guest-delivery">
             <details class="cart-delivery-accordion">
                 <summary class="cart-delivery-accordion__trigger">
-                    <?= htmlspecialchars($isEn ? 'Delivery discounts' : 'Remises livraison') ?>
+                    <?= htmlspecialchars(__('cart.delivery_discounts')) ?>
                     <span class="cart-delivery-accordion__arrow" aria-hidden="true">▾</span>
                 </summary>
                 <ul class="cart-delivery-accordion__list">
@@ -383,7 +376,7 @@ $pricingRules     = $pricingRules     ?? [];
         </div>
         <?php if (isset($randomWine) && $randomWine !== null) : ?>
         <div class="cart-empty-wine">
-            <p class="cart-empty-wine__label"><?= htmlspecialchars($isEn ? 'You might enjoy' : 'Vous pourriez apprécier') ?></p>
+            <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
             <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
                class="cart-empty-wine__card">
                 <?php $wineImage = '/assets/images/wines/' . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
