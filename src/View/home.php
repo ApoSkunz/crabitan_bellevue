@@ -124,6 +124,66 @@ $carouselSlides = [
     </section>
 
     <!-- ============================================================ -->
+    <!-- SECTION VIN DU MOMENT                                       -->
+    <!-- ============================================================ -->
+    <?php if (!empty($featuredWine)) : ?>
+    <section class="home-section home-section--featured home-section--dark" id="vin-du-moment">
+        <div class="home-section__inner container">
+            <div class="home-section__visual">
+                <img
+                    src="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
+                    alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"
+                    loading="lazy"
+                    width="400"
+                    height="600"
+                >
+            </div>
+            <div class="home-section__content">
+                <span class="home-section__tag"><?= htmlspecialchars(__('home.featured_tag')) ?></span>
+                <h2 class="home-section__title"><?= htmlspecialchars(__('home.featured_title')) ?></h2>
+                <div class="home-section__divider"></div>
+                <?php if ($featuredWine['is_cuvee_speciale']) : ?>
+                    <span class="home-featured__badge"><?= htmlspecialchars(__('home.featured_badge')) ?></span>
+                <?php endif; ?>
+                <p class="home-featured__name">
+                    <?php
+                        $certLine = !empty($featuredWine['certification_label'])
+                            ? htmlspecialchars($featuredWine['certification_label']) . ' — ' . htmlspecialchars($featuredWine['label_name'])
+                            : htmlspecialchars($featuredWine['label_name']);
+                    ?>
+                    <?= $certLine ?>
+                </p>
+                <p class="home-featured__meta">
+                    <?= htmlspecialchars(__('home.featured_vintage')) ?> <?= (int) $featuredWine['vintage'] ?>
+                    &nbsp;&mdash;&nbsp;
+                    <?= number_format((float) $featuredWine['price'], 2, ',', '&nbsp;') ?>&nbsp;€
+                </p>
+                <div class="home-featured__actions">
+                    <a href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($featuredWine['slug']) ?>"
+                       class="btn btn--gold">
+                        <?= htmlspecialchars(__('home.featured_cta')) ?>
+                    </a>
+                    <?php if ($featuredWine['available']) : ?>
+                    <button
+                        type="button"
+                        class="btn btn--gold js-add-to-cart"
+                        data-wine-id="<?= (int) $featuredWine['id'] ?>"
+                        data-wine-name="<?= htmlspecialchars($featuredWine['label_name'] . ' ' . $featuredWine['vintage']) ?>"
+                        data-wine-price="<?= htmlspecialchars(number_format((float) $featuredWine['price'], 2, ',', ' ') . ' €') ?>"
+                        data-wine-image="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
+                        data-wine-cuvee="<?= !empty($featuredWine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5h2l1.5 7.5h7l1.5-5H4.5"/><circle cx="6.5" cy="12.5" r="1" fill="currentColor" stroke="none"/><circle cx="11.5" cy="12.5" r="1" fill="currentColor" stroke="none"/></svg>
+                        <?= htmlspecialchars(__('home.featured_cart_cta')) ?>
+                    </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <!-- ============================================================ -->
     <!-- SECTION MILLÉSIME — Nos vins                                 -->
     <!-- ============================================================ -->
     <section class="home-section home-section--wines" id="nos-vins">
@@ -200,55 +260,6 @@ $carouselSlides = [
             </div>
         </div>
     </section>
-
-    <!-- ============================================================ -->
-    <!-- SECTION VIN DU MOMENT                                       -->
-    <!-- ============================================================ -->
-    <?php if (!empty($featuredWine)) : ?>
-    <section class="home-section home-section--featured home-section--dark" id="vin-du-moment">
-        <div class="home-section__inner container">
-            <div class="home-section__visual">
-                <img
-                    src="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
-                    alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"
-                    loading="lazy"
-                    width="400"
-                    height="600"
-                >
-            </div>
-            <div class="home-section__content">
-                <span class="home-section__tag"><?= htmlspecialchars(__('home.featured_tag')) ?></span>
-                <h2 class="home-section__title"><?= htmlspecialchars(__('home.featured_title')) ?></h2>
-                <div class="home-section__divider"></div>
-                <?php if ($featuredWine['is_cuvee_speciale']) : ?>
-                    <span class="home-featured__badge"><?= htmlspecialchars(__('home.featured_badge')) ?></span>
-                <?php endif; ?>
-                <p class="home-featured__name"><?= htmlspecialchars($featuredWine['label_name']) ?></p>
-                <p class="home-featured__meta">
-                    <?= htmlspecialchars(__('home.featured_vintage')) ?> <?= (int) $featuredWine['vintage'] ?>
-                    &nbsp;&mdash;&nbsp;
-                    <?= number_format((float) $featuredWine['price'], 2, ',', '&nbsp;') ?>&nbsp;€
-                </p>
-                <div class="home-featured__actions">
-                    <a href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($featuredWine['slug']) ?>"
-                       class="btn btn--gold">
-                        <?= htmlspecialchars(__('home.featured_cta')) ?>
-                    </a>
-                    <?php if ($featuredWine['available']) : ?>
-                    <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/panier/ajouter" class="home-featured__cart-form">
-                        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                        <input type="hidden" name="wine_id" value="<?= (int) $featuredWine['id'] ?>">
-                        <input type="hidden" name="quantity" value="1">
-                        <button type="submit" class="btn btn--outline">
-                            <?= htmlspecialchars(__('home.featured_cart_cta')) ?>
-                        </button>
-                    </form>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </section>
-    <?php endif; ?>
 
     <!-- ============================================================ -->
     <!-- SECTION VIDÉO — Le propriétaire                             -->
