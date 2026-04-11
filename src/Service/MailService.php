@@ -28,6 +28,9 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private const DATE_FORMAT_FR        = 'd/m/Y à H:i';
     private const DATE_FORMAT_DATE      = 'd/m/Y';
     private const PAYMENT_LABEL_CHEQUE  = 'Chèque';
+    private const WINE_IMAGE_PATH       = '/assets/images/wines/';
+    private const COL_UNIT_EN           = 'Unit price';
+    private const COL_UNIT_FR           = 'Prix unitaire';
 
     private PHPMailer $mailer;
 
@@ -266,7 +269,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
         $imageHtml = '';
         if ($imagePath !== '') {
-            $safeImg   = htmlspecialchars($appUrl . '/assets/images/wines/' . $imagePath, ENT_QUOTES);
+            $safeImg   = htmlspecialchars($appUrl . self::WINE_IMAGE_PATH . $imagePath, ENT_QUOTES);
             $imageHtml = "<img src=\"{$safeImg}\" alt=\"{$labelName} {$vintage}\""
                 . " width=\"192\" style=\"display:block;width:192px;max-width:100%;"
                 . "height:auto;margin:24px auto 16px;border:0;border-radius:4px;\">";
@@ -353,7 +356,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
                   . '<a href="' . $safeReactUrl . self::BTN_ANCHOR_STYLE_ATTR
                   . self::BTN_STYLE_PRIMARY
-                  . 'color:#1a1208;text-decoration:none;font-weight:bold;">Annuler la suppression</a>'
+                  . self::BTN_STYLE_LINK . 'Annuler la suppression</a>'
                   . '</td></tr></table>'
                 : '';
             $body = $this->emailSimpleLayout(
@@ -376,7 +379,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
                   . '<a href="' . $safeReactUrl . self::BTN_ANCHOR_STYLE_ATTR
                   . self::BTN_STYLE_PRIMARY
-                  . 'color:#1a1208;text-decoration:none;font-weight:bold;">Cancel deletion</a>'
+                  . self::BTN_STYLE_LINK . 'Cancel deletion</a>'
                   . '</td></tr></table>'
                 : '';
             $body = $this->emailSimpleLayout(
@@ -1044,7 +1047,7 @@ INNER;
             $greeting       = "Hello {$safeName},";
             $colName        = 'Product';
             $colQty         = 'Qty';
-            $colUnit        = 'Unit price';
+            $colUnit        = self::COL_UNIT_EN;
             $colSub         = 'Subtotal';
             $labelTotal     = 'Total incl. tax';
             $labelDiscount  = 'Delivery discount';
@@ -1079,7 +1082,7 @@ INNER;
             $greeting       = "Bonjour {$safeName},";
             $colName        = 'Produit';
             $colQty         = 'Qté';
-            $colUnit        = 'Prix unitaire';
+            $colUnit        = self::COL_UNIT_FR;
             $colSub         = 'Sous-total';
             $labelTotal     = 'Total TTC';
             $labelDiscount  = 'Remise livraison';
@@ -1176,7 +1179,7 @@ INNER;
             $total,
             'Produit',
             'Qté',
-            'Prix unitaire',
+            self::COL_UNIT_FR,
             'Sous-total',
             'Total TTC',
             $shippingDiscount,
@@ -1288,7 +1291,7 @@ INNER;
      * @param int     $orderId         Identifiant de la commande pour le CTA (optionnel)
      * @return void
      */
-    public function sendOrderStatusEmail(
+    public function sendOrderStatusEmail( // NOSONAR — php:S107 : 10 paramètres requis (statuts multiples, i18n, tracking, items)
         string $toEmail,
         string $toName,
         string $orderRef,
@@ -1367,7 +1370,7 @@ INNER;
      * @param  int    $orderId         ID de la commande pour le CTA direct
      * @return array{string, string, string, string}  [subject, title, greeting, message]
      */
-    private function buildOrderStatusContentFr(
+    private function buildOrderStatusContentFr( // NOSONAR — php:S107 : 8 paramètres requis (statuts FR + items + adresse + tracking)
         string $status,
         string $safeRef,
         string $safeName,
@@ -1441,7 +1444,7 @@ INNER;
                 . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
                 . "<a href=\"{$safeTracking}\" style=\"display:inline-block;padding:12px 28px;"
                 . 'font-family:Georgia,serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;'
-                . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+                . self::BTN_STYLE_LINK
                 . 'Suivre ma livraison</a>'
                 . '</td></tr></table>';
         }
@@ -1480,7 +1483,7 @@ INNER;
      * @param  int    $orderId         ID de la commande pour le CTA direct
      * @return array{string, string, string, string}  [subject, title, greeting, message]
      */
-    private function buildOrderStatusContentEn(
+    private function buildOrderStatusContentEn( // NOSONAR — php:S107 : 8 paramètres requis (statuts EN + items + adresse + tracking)
         string $status,
         string $safeRef,
         string $safeName,
@@ -1532,7 +1535,7 @@ INNER;
                 $total,
                 'Product',
                 'Qty',
-                'Unit price',
+                self::COL_UNIT_EN,
                 'Subtotal',
                 'Total'
             );
@@ -1554,7 +1557,7 @@ INNER;
                 . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
                 . "<a href=\"{$safeTracking}\" style=\"display:inline-block;padding:12px 28px;"
                 . 'font-family:Georgia,serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;'
-                . 'color:#1a1208;text-decoration:none;font-weight:bold;">'
+                . self::BTN_STYLE_LINK
                 . 'Track my delivery</a>'
                 . '</td></tr></table>';
         }
@@ -2960,7 +2963,7 @@ HTML;
 
             $imageHtml = '';
             if ($imagePath !== '') {
-                $safeImg   = htmlspecialchars($appUrl . '/assets/images/wines/' . $imagePath, ENT_QUOTES);
+                $safeImg   = htmlspecialchars($appUrl . self::WINE_IMAGE_PATH . $imagePath, ENT_QUOTES);
                 $imageHtml = "<img src=\"{$safeImg}\" alt=\"{$label}\" width=\"80\""
                     . " style=\"display:block;width:80px;height:auto;border:0;border-radius:3px;"
                     . "margin-bottom:8px;\">";
@@ -3042,7 +3045,7 @@ HTML;
                 . " Ils vous attendent toujours — finalisez votre commande avant qu'ils ne soient plus disponibles.";
             $ctaLabel   = 'Reprendre ma commande';
             $colQty     = 'Qté';
-            $colPrice   = 'Prix unitaire';
+            $colPrice   = self::COL_UNIT_FR;
         } else {
             $subject    = 'Your cart is waiting for you — Château Crabitan Bellevue';
             $title      = 'Your cart';
@@ -3051,7 +3054,7 @@ HTML;
                 . " They are still waiting for you — complete your order before they sell out.";
             $ctaLabel   = 'Resume my order';
             $colQty     = 'Qty';
-            $colPrice   = 'Unit price';
+            $colPrice   = self::COL_UNIT_EN;
         }
 
         $rows = '';
@@ -3064,7 +3067,7 @@ HTML;
 
             $imageHtml = '';
             if ($imagePath !== '') {
-                $safeImg   = htmlspecialchars($appUrl . '/assets/images/wines/' . $imagePath, ENT_QUOTES);
+                $safeImg   = htmlspecialchars($appUrl . self::WINE_IMAGE_PATH . $imagePath, ENT_QUOTES);
                 $imageHtml = "<img src=\"{$safeImg}\" alt=\"{$label}\" width=\"60\""
                     . " style=\"display:block;width:60px;height:auto;border:0;border-radius:3px;\">";
             }

@@ -13,6 +13,9 @@ use Middleware\AuthMiddleware;
  */
 class RatingController extends Controller
 {
+    /** Vue d'erreur rating (évite la duplication — SonarCloud php:S1192). */
+    private const ERROR_VIEW = 'rating/error';
+
     // ----------------------------------------------------------------
     // GET /rating/commande/{token}/{note}
     // ----------------------------------------------------------------
@@ -32,7 +35,7 @@ class RatingController extends Controller
         $note = (int) ($params['note'] ?? 0);
 
         if ($note < 1 || $note > 5) {
-            $this->view('rating/error', ['lang' => $lang, 'reason' => 'invalid_note']);
+            $this->view(self::ERROR_VIEW, ['lang' => $lang, 'reason' => 'invalid_note']);
             return;
         }
 
@@ -40,7 +43,7 @@ class RatingController extends Controller
         $row = $ratingModel->findByToken($params['token'] ?? '');
 
         if ($row === null) {
-            $this->view('rating/error', ['lang' => $lang, 'reason' => 'invalid_token']);
+            $this->view(self::ERROR_VIEW, ['lang' => $lang, 'reason' => 'invalid_token']);
             return;
         }
 
@@ -76,7 +79,7 @@ class RatingController extends Controller
         $resolved    = $ratingModel->resolveOrderToken($orderToken);
 
         if ($resolved === null) {
-            $this->view('rating/error', ['lang' => $lang, 'reason' => 'invalid_token']);
+            $this->view(self::ERROR_VIEW, ['lang' => $lang, 'reason' => 'invalid_token']);
             return;
         }
 
@@ -89,7 +92,7 @@ class RatingController extends Controller
         );
 
         if ($orderRow === false) {
-            $this->view('rating/error', ['lang' => $lang, 'reason' => 'invalid_token']);
+            $this->view(self::ERROR_VIEW, ['lang' => $lang, 'reason' => 'invalid_token']);
             return;
         }
 

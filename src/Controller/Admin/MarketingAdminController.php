@@ -47,7 +47,7 @@ class MarketingAdminController extends AdminController
         $topRated = [];
         try {
             $topRated = (new \Model\RatingModel())->getTopRated(10);
-        } catch (\Throwable) {
+        } catch (\Throwable) { // NOSONAR — php:S108 : table wine_ratings peut ne pas exister en migration partielle
         }
 
         $this->view('admin/marketing/index', [

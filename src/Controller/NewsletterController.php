@@ -98,10 +98,10 @@ class NewsletterController extends Controller
      * puis déclenche le double opt-in standard ou affiche un message
      * si l'abonné est déjà confirmé.
      *
-     * @param array<string, string> $params Paramètres de route
+     * @param array<string, string> $_params Paramètres de route (non utilisés — langue détectée depuis l'URI)
      * @return void
      */
-    public function subscribeFromWelcome(array $params): void
+    public function subscribeFromWelcome(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
         // Détecte la langue depuis l'URL courante (/fr/... ou /en/...)
         $uri  = $_SERVER['REQUEST_URI'] ?? '/';
@@ -110,7 +110,7 @@ class NewsletterController extends Controller
         $email = strtolower(trim($_GET['email'] ?? ''));
 
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->view('newsletter/confirmation', [
+            $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
                 'success' => false,
                 'reason'  => 'invalid',
@@ -123,7 +123,7 @@ class NewsletterController extends Controller
         $subscriber = $model->findByEmail($email);
 
         if ($subscriber && (int) $subscriber['newsletter_confirmed'] === 1) {
-            $this->view('newsletter/confirmation', [
+            $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
                 'success' => true,
                 'reason'  => null,
@@ -136,7 +136,7 @@ class NewsletterController extends Controller
         try {
             $this->newsletterService->subscribe($email, $lang, $ip);
 
-            $this->view('newsletter/confirmation', [
+            $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
                 'success' => true,
                 'reason'  => null,
@@ -145,7 +145,7 @@ class NewsletterController extends Controller
             throw $e;
         } catch (\Core\Exception\NewsletterException $e) {
             if ($e->getMessage() === 'already_confirmed') {
-                $this->view('newsletter/confirmation', [
+                $this->view(self::CONFIRM_VIEW, [
                     'lang'    => $lang,
                     'success' => true,
                     'reason'  => null,
@@ -153,7 +153,7 @@ class NewsletterController extends Controller
                 return;
             }
 
-            $this->view('newsletter/confirmation', [
+            $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
                 'success' => false,
                 'reason'  => 'invalid',

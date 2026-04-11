@@ -27,7 +27,7 @@ $crossSellWines   = $crossSellWines   ?? [];
 $featuredWine     = $featuredWine     ?? null;
 ?>
 
-<?php $checkoutStep = 1; require SRC_PATH . '/View/partials/checkout-stepper.php'; ?>
+<?php $checkoutStep = 1; require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S2003 : require intentionnel, le partiel est chargé plusieurs fois (vues + tests isolation) ?>
 
 <main class="page-cart" id="main-content">
     <div class="page-hero page-hero--dark">

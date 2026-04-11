@@ -324,10 +324,9 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
         <div class="wine-rating__avg">
             <?php
             $fullStars  = (int) round($avgRating);
-            for ($s = 1; $s <= 5; $s++) :
-            ?>
+            for ($s = 1; $s <= 5; $s++) { ?>
             <span class="wine-rating__star-display<?= $s <= $fullStars ? ' wine-rating__star-display--filled' : '' ?>" aria-hidden="true">★</span>
-            <?php endfor; ?>
+            <?php } ?>
             <span class="wine-rating__score"><?= number_format($avgRating, 1) ?>/5</span>
             <span class="wine-rating__count">(<?= $ratingCount ?> <?= htmlspecialchars(__('wine.rating.reviews')) ?>)</span>
         </div>

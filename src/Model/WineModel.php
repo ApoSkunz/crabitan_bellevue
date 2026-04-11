@@ -706,9 +706,12 @@ class WineModel extends Model
      * @param int    $limit  Nombre maximum de résultats
      * @return array<int, array<string, mixed>>
      */
+    /** Colonnes minimales pour les vues carte vin (cross-sell, similar, cart). */
+    private const CARD_COLS = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity, is_cuvee_speciale';
+
     public function getSimilar(int $wineId, string $color, float $price, int $limit = 3): array
     {
-        $cols = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity, is_cuvee_speciale';
+        $cols = self::CARD_COLS;
 
         $sameColor = $this->db->fetchAll(
             "SELECT {$cols}
@@ -751,7 +754,7 @@ class WineModel extends Model
      */
     public function getForCartCrossSell(array $excludeIds, int $limit = 4): array
     {
-        $cols = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity, is_cuvee_speciale';
+        $cols = self::CARD_COLS;
 
         if ($excludeIds === []) {
             return $this->db->fetchAll(
@@ -787,7 +790,7 @@ class WineModel extends Model
      */
     public function getCuveeSpecialeByColor(string $color, array $excludeIds = []): ?array
     {
-        $cols = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity, is_cuvee_speciale';
+        $cols = self::CARD_COLS;
 
         if ($excludeIds === []) {
             $row = $this->db->fetchOne(

@@ -240,9 +240,13 @@ class CartModel extends Model
     {
         $rows = $this->db->fetchAll(
             "SELECT c.id AS cart_id, c.content, c.user_id,
-                    a.email, a.firstname, a.company_name, a.lang
+                    a.email, a.lang,
+                    COALESCE(ai.firstname, '') AS firstname,
+                    COALESCE(ac.company_name, '') AS company_name
                FROM {$this->table} c
                JOIN accounts a ON a.id = c.user_id
+               LEFT JOIN account_individuals ai ON ai.account_id = a.id
+               LEFT JOIN account_companies   ac ON ac.account_id = a.id
               WHERE c.user_id IS NOT NULL
                 AND c.total_quantity > 0
                 AND c.reminder_sent_at IS NULL
@@ -258,44 +262,7 @@ class CartModel extends Model
                 continue;
             }
 
-            $wineIds = array_filter(array_map(
-                fn(array $item): int => (int) ($item['wine_id'] ?? 0),
-                $rawItems
-            ), fn(int $id): bool => $id > 0);
-
-            if (empty($wineIds)) {
-                continue;
-            }
-
-            $placeholders = implode(',', array_fill(0, count($wineIds), '?'));
-            $wines = $this->db->fetchAll(
-                "SELECT id, label_name, vintage, image_path, price
-                   FROM wines
-                  WHERE id IN ({$placeholders})",
-                array_values($wineIds)
-            );
-
-            $wineMap = [];
-            foreach ($wines as $wine) {
-                $wineMap[(int) $wine['id']] = $wine;
-            }
-
-            $enrichedItems = [];
-            foreach ($rawItems as $item) {
-                $wineId = (int) ($item['wine_id'] ?? 0);
-                if (!isset($wineMap[$wineId])) {
-                    continue;
-                }
-                $wine = $wineMap[$wineId];
-                $enrichedItems[] = [
-                    'wine_id'    => $wineId,
-                    'label_name' => (string) ($wine['label_name'] ?? ''),
-                    'vintage'    => (int) ($wine['vintage'] ?? 0),
-                    'image_path' => (string) ($wine['image_path'] ?? ''),
-                    'price'      => (float) ($wine['price'] ?? 0.0),
-                    'qty'        => (int) ($item['qty'] ?? 0),
-                ];
-            }
+            $enrichedItems = $this->enrichCartItems($rawItems);
 
             if (empty($enrichedItems)) {
                 continue;
@@ -314,6 +281,56 @@ class CartModel extends Model
         }
 
         return $result;
+    }
+
+    /**
+     * Enrichit les items bruts d'un panier avec les données wines (label, prix, image).
+     *
+     * @param array<int, array<string, mixed>> $rawItems Items bruts [{wine_id, qty}]
+     * @return array<int, array<string, mixed>>
+     */
+    private function enrichCartItems(array $rawItems): array
+    {
+        $wineIds = array_filter(array_map(
+            fn(array $item): int => (int) ($item['wine_id'] ?? 0),
+            $rawItems
+        ), fn(int $id): bool => $id > 0);
+
+        if (empty($wineIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($wineIds), '?'));
+        $wines = $this->db->fetchAll(
+            "SELECT id, label_name, vintage, image_path, price
+               FROM wines
+              WHERE id IN ({$placeholders})",
+            array_values($wineIds)
+        );
+
+        $wineMap = [];
+        foreach ($wines as $wine) {
+            $wineMap[(int) $wine['id']] = $wine;
+        }
+
+        $enriched = [];
+        foreach ($rawItems as $item) {
+            $wineId = (int) ($item['wine_id'] ?? 0);
+            if (!isset($wineMap[$wineId])) {
+                continue;
+            }
+            $wine      = $wineMap[$wineId];
+            $enriched[] = [
+                'wine_id'    => $wineId,
+                'label_name' => (string) ($wine['label_name'] ?? ''),
+                'vintage'    => (int) ($wine['vintage'] ?? 0),
+                'image_path' => (string) ($wine['image_path'] ?? ''),
+                'price'      => (float) ($wine['price'] ?? 0.0),
+                'qty'        => (int) ($item['qty'] ?? 0),
+            ];
+        }
+
+        return $enriched;
     }
 
     /**
