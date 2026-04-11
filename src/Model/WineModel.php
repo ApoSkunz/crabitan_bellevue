@@ -438,7 +438,7 @@ class WineModel extends Model
                     production_quantity, stock_quantity, available, image_path, slug, is_cuvee_speciale, featured
              FROM {$this->table}
              {$whereClause}
-             ORDER BY featured DESC, available DESC, id DESC
+             ORDER BY available DESC, featured DESC, id DESC
              LIMIT ? OFFSET ?",
             $params
         );
