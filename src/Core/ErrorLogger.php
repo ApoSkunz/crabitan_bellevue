@@ -5,15 +5,20 @@ declare(strict_types=1);
 namespace Core;
 
 /**
- * Gestionnaire de logs d'erreurs PHP côté serveur.
+ * Gestionnaire de logs applicatifs (PHP backend).
  *
  * Capture toutes les erreurs PHP et exceptions non catchées,
- * les écrit au format JSON dans storage/logs/php-error-YYYY-MM-DD.log
+ * les écrit au format JSON dans storage/logs/app-YYYY-MM-DD.log
  * avec une rétention de 30 jours.
+ *
+ * Toutes les sources (PHP, JS, scraping, cron) écrivent dans le même fichier
+ * et se distinguent par le champ `channel`.
  */
 class ErrorLogger
 {
     private const LOG_DIR_NAME    = 'storage/logs';
+    private const LOG_PREFIX      = 'app';
+    private const DATETIME_FORMAT = 'Y-m-d H:i:s';
     private const RETENTION_DAYS  = 30;
     private const TRACE_MAX_LEN   = 500;
 
@@ -42,7 +47,7 @@ class ErrorLogger
         $level = self::errorLevelName($errno);
 
         self::write([
-            'timestamp' => date('Y-m-d H:i:s'),
+            'timestamp' => date(self::DATETIME_FORMAT),
             'level'     => $level,
             'message'   => $errstr,
             'file'      => $errfile,
@@ -67,7 +72,7 @@ class ErrorLogger
         $trace = substr($e->getTraceAsString(), 0, self::TRACE_MAX_LEN);
 
         self::write([
-            'timestamp' => date('Y-m-d H:i:s'),
+            'timestamp' => date(self::DATETIME_FORMAT),
             'level'     => 'EXCEPTION',
             'message'   => get_class($e) . ': ' . $e->getMessage(),
             'file'      => $e->getFile(),
@@ -91,7 +96,7 @@ class ErrorLogger
     public static function info(string $message): void
     {
         self::write([
-            'timestamp' => date('Y-m-d H:i:s'),
+            'timestamp' => date(self::DATETIME_FORMAT),
             'level'     => 'INFO',
             'message'   => $message,
             'file'      => '',
@@ -117,7 +122,7 @@ class ErrorLogger
         $prefix = $context !== '' ? $context . ' ' : '';
 
         self::write([
-            'timestamp' => date('Y-m-d H:i:s'),
+            'timestamp' => date(self::DATETIME_FORMAT),
             'level'     => 'WARNING',
             'message'   => $prefix . get_class($e) . ': ' . $e->getMessage(),
             'file'      => $e->getFile(),
@@ -129,7 +134,10 @@ class ErrorLogger
     }
 
     /**
-     * Écrit une entrée JSON dans le fichier de log du jour.
+     * Écrit une entrée JSON dans le fichier de log du jour (app-YYYY-MM-DD.log).
+     *
+     * Le champ `channel` identifie la source de l'entrée (php, js, scraping, cron…).
+     * S'il est absent, 'php' est utilisé par défaut.
      *
      * @param array<string, mixed> $entry
      * @return void
@@ -142,13 +150,15 @@ class ErrorLogger
             mkdir($logDir, 0755, true);
         }
 
-        $filename = $logDir . '/php-error-' . date('Y-m-d') . '.log';
+        $entry['channel'] ??= 'php';
+
+        $filename = $logDir . '/' . self::LOG_PREFIX . '-' . date('Y-m-d') . '.log';
 
         $file    = isset($entry['file']) && $entry['file'] !== '' ? basename((string) $entry['file']) : '';
         $lineNo  = isset($entry['line']) && $entry['line'] !== 0 ? ':' . $entry['line'] : '';
         $where   = $file !== '' ? " ({$file}{$lineNo})" : '';
         $message = str_replace(["\n", "\r"], ' ', (string) ($entry['message'] ?? ''));
-        $human   = '[' . ($entry['timestamp'] ?? date('Y-m-d H:i:s')) . '] '
+        $human   = '[' . ($entry['timestamp'] ?? date(self::DATETIME_FORMAT)) . '] '
             . ($entry['level'] ?? 'LOG') . ' — '
             . $message . $where . "\n";
 
@@ -160,7 +170,7 @@ class ErrorLogger
     }
 
     /**
-     * Supprime les fichiers php-error-*.log âgés de plus de 30 jours.
+     * Supprime les fichiers app-*.log âgés de plus de 30 jours.
      *
      * @param string $logDir Chemin du répertoire de logs
      * @return void
@@ -169,7 +179,7 @@ class ErrorLogger
     {
         $cutoff = time() - (self::RETENTION_DAYS * 86400);
 
-        foreach (glob($logDir . '/php-error-*.log') ?: [] as $file) {
+        foreach (glob($logDir . '/' . self::LOG_PREFIX . '-*.log') ?: [] as $file) {
             if (filemtime($file) < $cutoff) {
                 unlink($file);
             }
