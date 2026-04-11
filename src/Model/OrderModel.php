@@ -1158,4 +1158,53 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         );
         return round((float) ($row['avg_val'] ?? 0.0), 2);
     }
+
+    /**
+     * Retourne le taux de conversion et les compteurs bruts sur N jours.
+     *
+     * Formule : commandes / (commandes + paniers abandonnés).
+     * Les paniers convertis étant vidés, le dénominateur = commandes + paniers encore actifs.
+     *
+     * @param int $days Période en jours (défaut 30)
+     * @return array{rate: float, orders: int, carts: int}
+     */
+    public function getConversionStats(int $days = 30): array
+    {
+        $ordersRow = $this->db->fetchOne(
+            "SELECT COUNT(*) AS cnt
+               FROM {$this->table}
+              WHERE status IN ('paid', 'processing', 'shipped', 'delivered')
+                AND ordered_at >= DATE_SUB(NOW(), INTERVAL ? DAY)",
+            [$days]
+        );
+
+        $cartsRow = $this->db->fetchOne(
+            "SELECT COUNT(*) AS cnt
+               FROM carts
+              WHERE total_quantity > 0
+                AND created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)",
+            [$days]
+        );
+
+        $orders = (int) ($ordersRow['cnt'] ?? 0);
+        $carts  = (int) ($cartsRow['cnt'] ?? 0);
+        $total  = $orders + $carts;
+
+        return [
+            'rate'   => $total > 0 ? round($orders / $total, 4) : 0.0,
+            'orders' => $orders,
+            'carts'  => $carts,
+        ];
+    }
+
+    /**
+     * Retourne le taux de conversion : commandes payées / (commandes + paniers abandonnés) sur N jours.
+     *
+     * @param int $days Période en jours (défaut 30)
+     * @return float Ratio entre 0 et 1 (ex : 0.45 = 45%), arrondi à 4 décimales
+     */
+    public function getConversionRate(int $days = 30): float
+    {
+        return $this->getConversionStats($days)['rate'];
+    }
 }

@@ -215,6 +215,76 @@ class PageControllerTest extends TestCase
     // ── contactPost() ────────────────────────────────────────────────────────
 
     /**
+     * Honeypot rempli → rejet silencieux (200 succès, pas d'envoi réel).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testContactPostHoneypotFilledReturnsSilentSuccess(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SESSION['csrf'] = 'tok';
+        $_POST = [
+            'csrf_token' => 'tok',
+            'firstname'  => 'Bot',
+            'lastname'   => 'Scraper',
+            'email'      => 'bot@evil.com',
+            'subject'    => 'general',
+            'message'    => 'Je suis un bot',
+            'rgpd'       => '1',
+            'website'    => 'http://evil-bot.com',  // honeypot rempli
+        ];
+
+        $caught = null;
+        ob_start();
+        try {
+            $this->makeController()->contactPost(['lang' => 'fr']);
+        } catch (\Core\Exception\HttpException $e) {
+            $caught = $e;
+        }
+        ob_end_clean();
+
+        // Rejet silencieux : réponse 200 comme si le message avait été envoyé
+        $this->assertNotNull($caught, 'contactPost() doit retourner une réponse JSON même avec honeypot');
+        $this->assertSame(200, $caught->status);
+    }
+
+    /**
+     * Honeypot vide → traitement normal (pas de rejet prématuré).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testContactPostHoneypotEmptyAllowsNormalFlow(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SESSION['csrf'] = 'tok';
+        $_POST = [
+            'csrf_token' => 'tok',
+            'firstname'  => '',  // manquant → 422 pour valider que le flux normal continue
+            'lastname'   => 'Test',
+            'email'      => 'test@example.com',
+            'subject'    => 'general',
+            'message'    => 'Hello',
+            'rgpd'       => '1',
+            'website'    => '',  // honeypot vide = humain
+        ];
+
+        $caught = null;
+        ob_start();
+        try {
+            $this->makeController()->contactPost(['lang' => 'fr']);
+        } catch (\Core\Exception\HttpException $e) {
+            $caught = $e;
+        }
+        ob_end_clean();
+
+        // Doit atteindre la validation des champs (422), pas le rejet honeypot (200)
+        $this->assertNotNull($caught);
+        $this->assertSame(422, $caught->status);
+    }
+
+    /**
      * Sans token CSRF en session → 400.
      */
     #[RunInSeparateProcess]

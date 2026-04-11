@@ -27,6 +27,8 @@ require_once SRC_PATH . '/View/partials/header.php';
                   data-msg-fields="<?= htmlspecialchars(__('contact.error_fields')) ?>"
                   data-msg-error="<?= htmlspecialchars(__('contact.error_smtp')) ?>">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf ?? '') ?>">
+                <!-- Honeypot anti-bot : invisible pour les humains, piège pour les bots -->
+                <input type="text" name="website" value="" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true">
 
                 <fieldset class="contact-form__fieldset" tabindex="-1">
                     <legend class="contact-form__legend"><?= htmlspecialchars(__('form.gender')) ?></legend>

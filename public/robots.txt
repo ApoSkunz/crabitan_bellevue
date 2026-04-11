@@ -4,4 +4,14 @@ Disallow: /mon-compte/
 Disallow: /api/
 Allow: /
 
+# Scrapers agressifs non-respectueux (hors moteurs légitimes)
+User-agent: Bytespider
+Disallow: /
+
+User-agent: omgili
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
 Sitemap: https://www.crabitanbellevue.fr/sitemap.xml

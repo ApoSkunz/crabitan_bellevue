@@ -66,6 +66,13 @@ class PageController extends Controller
             $this->json(['success' => false, 'message' => __('error.csrf')], 400);
         }
 
+        // Honeypot anti-bot : champ caché dans le formulaire — doit rester vide
+        $honeypot = $this->request->post('website', '');
+        if ($honeypot !== '') {
+            // Rejet silencieux : réponse succès pour ne pas informer le bot
+            $this->json(['success' => true, 'message' => __('contact.success')]);
+        }
+
         $firstname = trim($this->request->post('firstname', ''));
         $lastname  = trim($this->request->post('lastname', ''));
         $email     = strtolower(trim($this->request->post('email', '')));

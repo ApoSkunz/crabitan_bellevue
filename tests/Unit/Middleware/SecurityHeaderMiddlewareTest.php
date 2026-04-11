@@ -45,4 +45,42 @@ class SecurityHeaderMiddlewareTest extends TestCase
 
         $this->assertSame($first, $second, 'Un second appel ne doit pas modifier CSP_NONCE');
     }
+
+    // ── isWinePath() ─────────────────────────────────────────────────────────
+
+    /**
+     * Les URIs catalogue vins doivent retourner true.
+     */
+    public function testIsWinePathReturnsTrueForFrVins(): void
+    {
+        $this->assertTrue(SecurityHeaderMiddleware::isWinePath('/fr/vins'));
+        $this->assertTrue(SecurityHeaderMiddleware::isWinePath('/fr/vins/'));
+        $this->assertTrue(SecurityHeaderMiddleware::isWinePath('/fr/vins/collection'));
+        $this->assertTrue(SecurityHeaderMiddleware::isWinePath('/fr/vins/sainte-croix-du-mont-2020'));
+        $this->assertTrue(SecurityHeaderMiddleware::isWinePath('/en/wines'));
+        $this->assertTrue(SecurityHeaderMiddleware::isWinePath('/en/wines/'));
+        $this->assertTrue(SecurityHeaderMiddleware::isWinePath('/en/wines/some-wine-slug'));
+    }
+
+    /**
+     * Les URIs hors catalogue vins doivent retourner false.
+     */
+    public function testIsWinePathReturnsFalseForNonWinePaths(): void
+    {
+        $this->assertFalse(SecurityHeaderMiddleware::isWinePath('/'));
+        $this->assertFalse(SecurityHeaderMiddleware::isWinePath('/fr/contact'));
+        $this->assertFalse(SecurityHeaderMiddleware::isWinePath('/fr/le-chateau'));
+        $this->assertFalse(SecurityHeaderMiddleware::isWinePath('/admin/vins'));
+        $this->assertFalse(SecurityHeaderMiddleware::isWinePath('/fr/actualites'));
+        $this->assertFalse(SecurityHeaderMiddleware::isWinePath('/fr/vinsnot'));
+    }
+
+    /**
+     * isWinePath ignore les query strings.
+     */
+    public function testIsWinePathIgnoresQueryString(): void
+    {
+        $this->assertTrue(SecurityHeaderMiddleware::isWinePath('/fr/vins?color=red&page=2'));
+        $this->assertFalse(SecurityHeaderMiddleware::isWinePath('/fr/contact?ref=vins'));
+    }
 }

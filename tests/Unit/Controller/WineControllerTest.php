@@ -281,6 +281,58 @@ class WineControllerTest extends TestCase
         $this->assertInstanceOf(\TCPDF::class, $pdf);
     }
 
+    // ── checkCatalogueRateLimit() ───────────────────────────────────────────
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCheckCatalogueRateLimitAllowsFirstRequest(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.1';
+
+        $ctrl   = $this->makeController('/fr/vins');
+        $method = new \ReflectionMethod(\Controller\WineController::class, 'checkCatalogueRateLimit');
+
+        // Première requête — doit passer sans exception
+        $method->invoke($ctrl);
+        $this->assertTrue(true);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCheckCatalogueRateLimitBlocks429AfterLimit(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REMOTE_ADDR'] = '10.9.9.1';
+
+        $ctrl   = $this->makeController('/fr/vins');
+        $method = new \ReflectionMethod(\Controller\WineController::class, 'checkCatalogueRateLimit');
+
+        // Épuiser la limite (CATALOGUE_RATE_MAX = 60)
+        for ($i = 0; $i < 60; $i++) {
+            $method->invoke($ctrl);
+        }
+
+        // La 61ème doit déclencher un HttpException(429)
+        $this->expectException(\Core\Exception\HttpException::class);
+        $method->invoke($ctrl);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testLogScrapingAlertWritesToTempDirWhenNoStorage(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.99';
+
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod(\Controller\WineController::class, 'logScrapingAlert');
+
+        // Ne doit pas lever d'exception même si storage/logs n'existe pas
+        $method->invoke($ctrl, '10.0.0.99', 501);
+        $this->assertTrue(true);
+    }
+
     // ── checkPdfRateLimit() ─────────────────────────────────────────────────
 
     #[RunInSeparateProcess]
