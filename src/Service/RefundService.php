@@ -112,8 +112,35 @@ class RefundService
         );
 
         $this->sendRefundInitiatedEmail($order, 'refund_pending');
+        $this->notifyOwnerRefundPending($order);
 
         return 'refund_pending';
+    }
+
+    /**
+     * Notifie le propriétaire qu'une demande de remboursement manuel a été soumise.
+     *
+     * Non bloquant : les erreurs SMTP sont loggées sans lever d'exception.
+     *
+     * @param array<string, mixed> $order Données de la commande
+     * @return void
+     */
+    private function notifyOwnerRefundPending(array $order): void
+    {
+        $clientEmail = (string) ($order['email'] ?? '');
+        if ($clientEmail === '' || str_ends_with($clientEmail, '@purged.invalid')) {
+            return;
+        }
+
+        $firstname  = (string) ($order['firstname'] ?? '');
+        $lastname   = (string) ($order['lastname']  ?? '');
+        $clientName = trim($firstname . ' ' . $lastname) ?: $clientEmail;
+
+        try {
+            $this->mailer->sendRefundRequestedToOwner($order, $clientName, $clientEmail);
+        } catch (\Throwable $e) {
+            error_log('[RefundService] SMTP owner error: ' . $e->getMessage()); // NOSONAR — php:S4792
+        }
     }
 
     /**

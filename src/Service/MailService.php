@@ -1648,6 +1648,47 @@ INNER;
     }
 
     /**
+     * Notifie le propriétaire qu'une demande de remboursement manuel a été soumise (CA_ENABLE_GAE=false).
+     *
+     * @param array<string, mixed> $order       Données de la commande
+     * @param string               $clientName  Nom du client
+     * @param string               $clientEmail Email du client
+     * @return void
+     */
+    public function sendRefundRequestedToOwner(array $order, string $clientName, string $clientEmail): void
+    {
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
+        $safeRef    = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
+        $safeName   = htmlspecialchars($clientName, ENT_QUOTES);
+        $safeEmail  = htmlspecialchars($clientEmail, ENT_QUOTES);
+        $amount     = number_format((float) ($order['price'] ?? 0), 2, ',', ' ');
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $orderId    = (int) ($order['id'] ?? 0);
+        $orderLink  = $orderId > 0
+            ? htmlspecialchars($appUrl . '/admin/commandes/' . $orderId, ENT_QUOTES)
+            : '';
+
+        $orderLinkBlock = $orderLink !== ''
+            ? "<br><br><a href=\"{$orderLink}\" style=\"color:#c9a84c;\">Voir la commande dans l'administration</a>"
+            : '';
+
+        $message = "Une demande de remboursement manuel a été soumise pour la commande <strong>{$safeRef}</strong>.<br><br>"
+            . "<strong>Client :</strong> {$safeName} (<a href=\"mailto:{$safeEmail}\">{$safeEmail}</a>)<br>"
+            . "<strong>Montant :</strong> {$amount}&nbsp;€<br>"
+            . "<strong>Action requise :</strong> Traiter le remboursement dans Vision Air, puis confirmer dans l'administration."
+            . $orderLinkBlock;
+
+        $body = $this->emailSimpleLayout(
+            'Remboursement à traiter',
+            'Nouvelle demande de remboursement',
+            $message,
+            'fr'
+        );
+
+        $this->send($ownerEmail, APP_NAME, "Remboursement client — commande {$safeRef}", $body, null, $clientEmail);
+    }
+
+    /**
      * Envoie au propriétaire la liste des commandes sans mouvement depuis plus de $days jours.
      *
      * @param array<int, array<string, mixed>> $orders Commandes retournées par OrderModel::getStaleOrders()
