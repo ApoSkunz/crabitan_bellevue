@@ -411,7 +411,9 @@ class OrderControllerPaymentFlowTest extends TestCase
             ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
              'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
             false,          // 8. dedup lookup delivery → pas trouvé
-            [               // 9. OrderModel::findByReferenceWithAddresses → génération facture
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'wine', 'vintage' => 2020], // 9. postOrderStockActions → getById
+            [               // 10. OrderModel::findByReferenceWithAddresses → génération facture
                 'id'               => 684,
                 'order_reference'  => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'   => 'card',
@@ -420,7 +422,7 @@ class OrderControllerPaymentFlowTest extends TestCase
                 'shipping_discount' => 0.0,
                 'ordered_at'       => date('Y-m-d H:i:s'),
             ],
-            [               // 10. OrderModel::findByReference après création (line 420)
+            [               // 11. OrderModel::findByReference après création (line 420)
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
                 'content'         => json_encode($snapshot['items']),
@@ -548,8 +550,10 @@ class OrderControllerPaymentFlowTest extends TestCase
             ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
              'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
             false,          // 8. dedup lookup delivery → pas trouvé
-            false,          // 9. findByReferenceWithAddresses → false (null-guard : facture skippée)
-            [               // 10. findByReference après création (line 420)
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'wine', 'vintage' => 2020], // 9. postOrderStockActions → getById
+            false,          // 10. findByReferenceWithAddresses → false (null-guard : facture skippée)
+            [               // 11. findByReference après création (line 420)
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
                 'content'         => json_encode($snapshot['items']),
@@ -611,7 +615,9 @@ class OrderControllerPaymentFlowTest extends TestCase
             ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
              'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
             false,          // 8. dedup lookup delivery → pas trouvé
-            [               // 9. findByReferenceWithAddresses → ordre avec email
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'wine', 'vintage' => 2020], // 9. postOrderStockActions → getById
+            [               // 10. findByReferenceWithAddresses → ordre avec email
                 'id'               => 684,
                 'order_reference'  => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'   => 'card',
@@ -624,7 +630,7 @@ class OrderControllerPaymentFlowTest extends TestCase
                 'lastname'         => 'Dupont',
                 'lang'             => 'fr',
             ],
-            [               // 10. findByReference après création (line 420)
+            [               // 11. findByReference après création (line 420)
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
                 'content'         => json_encode($snapshot['items']),
@@ -1235,6 +1241,8 @@ class OrderControllerPaymentFlowTest extends TestCase
             ['id' => 10, 'civility' => 'Mme', 'firstname' => 'Marie', 'lastname' => 'Curie',
              'street' => '1 Quai Test', 'city' => 'Paris', 'zip_code' => '75005', 'country' => 'France', 'phone' => ''],
             false, // dedup delivery
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'wine', 'vintage' => 2020], // postOrderStockActions → getById
         );
 
         $caught = null;
@@ -1352,6 +1360,8 @@ class OrderControllerPaymentFlowTest extends TestCase
             ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
              'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
             false,
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'wine', 'vintage' => 2020], // postOrderStockActions → getById
             ['id' => 684, 'order_reference' => 'WEB-CB-STOCK-DEC', 'payment_method' => 'card',
              'content' => json_encode($snapshot['items']), 'price' => 120.0,
              'shipping_discount' => 0.0, 'ordered_at' => date('Y-m-d H:i:s')],
