@@ -2,6 +2,14 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.67.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.67.0...v0.67.1) (2026-04-11)
+
+
+### Bug Fixes
+
+* **order:** corriger CANCEL_WINDOW_DAYS 15→14 (conformité art. L221-18) ([b5c307f](https://github.com/ApoSkunz/crabitan_bellevue/commit/b5c307f3fa24de907a8c668e6596b18cbff73d48))
+* **test:** aligner OrderModelTest sur CANCEL_WINDOW_DAYS=14 (L221-18 : 14j, pas 15j) ([ab57696](https://github.com/ApoSkunz/crabitan_bellevue/commit/ab57696183ef0018258de3bdb675ef3ddfb42ce2))
+
 # [0.67.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.66.0...v0.67.0) (2026-04-11)
 
 
