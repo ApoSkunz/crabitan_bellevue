@@ -339,6 +339,67 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         Response::redirect($back);
     }
 
+    // ----------------------------------------------------------------
+    // POST /{lang}/mon-compte/commandes/{id}/remboursement
+    // ----------------------------------------------------------------
+
+    /**
+     * Initie une demande de remboursement depuis l'espace-compte client.
+     *
+     * Délègue à RefundService qui applique la logique GAE/Vision Air
+     * selon CA_ENABLE_GAE et envoie l'email de confirmation au client.
+     *
+     * @param array<string, string> $params Paramètres de route (lang, id)
+     * @return void
+     */
+    public function requestRefund(array $params): void
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
+        $id      = (int) ($params['id'] ?? 0);
+        $back    = "/{$lang}/mon-compte/commandes/{$id}";
+
+        $this->requireIndividual($userId, $lang);
+
+        if (!$this->verifyCsrf()) {
+            $_SESSION['flash']['order_error'] = __('error.csrf');
+            Response::redirect($back);
+        }
+
+        $order = $this->orders->findDetailForUser($id, $userId);
+        if (!$order) {
+            $this->abort(404, 'Commande introuvable');
+        }
+
+        // Seuls les statuts éligibles peuvent demander un remboursement
+        $refundableStatuses = ['paid', 'processing'];
+        if (!in_array($order['status'], $refundableStatuses, true)) {
+            $_SESSION['flash']['order_error'] = __('account.order_refund_not_eligible');
+            Response::redirect($back);
+        }
+
+        try {
+            $this->newRefundService()->refund($id);
+            $_SESSION['flash']['order_success'] = __('account.order_refund_initiated');
+        } catch (\Throwable $e) {
+            error_log('[AccountController] requestRefund failed: ' . $e->getMessage()); // NOSONAR — php:S4792
+            $_SESSION['flash']['order_error'] = __('account.order_refund_failed');
+        }
+
+        Response::redirect($back);
+    }
+
+    /**
+     * Instancie le RefundService (seam de testabilité).
+     *
+     * @return \Service\RefundService
+     */
+    protected function newRefundService(): \Service\RefundService
+    {
+        return new \Service\RefundService();
+    }
+
     /**
      * Envoie les emails de notification de retour au propriétaire et au client.
      *
