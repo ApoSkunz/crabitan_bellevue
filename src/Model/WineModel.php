@@ -610,6 +610,37 @@ class WineModel extends Model
     }
 
     /**
+     * Réinitialise la date de notification stock bas (permet une nouvelle alerte).
+     *
+     * À appeler quand le stock remonte au-dessus du seuil, afin que la prochaine
+     * descente sous le seuil déclenche à nouveau une notification.
+     *
+     * @param int $id Identifiant du vin
+     * @return void
+     */
+    public function resetLowStockNotified(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET low_stock_notified_at = NULL WHERE id = ?",
+            [$id]
+        );
+    }
+
+    /**
+     * Marque un vin comme indisponible (available = 0).
+     *
+     * @param int $id Identifiant du vin
+     * @return void
+     */
+    public function setUnavailable(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET available = 0 WHERE id = ?",
+            [$id]
+        );
+    }
+
+    /**
      * Retourne les utilisateurs (email, prénom, lang) ayant le vin dans leur panier BDD.
      *
      * @param int $wineId Identifiant du vin

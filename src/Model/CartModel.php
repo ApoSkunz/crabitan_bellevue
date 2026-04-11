@@ -370,4 +370,41 @@ class CartModel extends Model
             }
         }
     }
+
+    /**
+     * Plafonne la quantité d'un vin dans tous les paniers BDD au nouveau stock disponible.
+     *
+     * Appelé après une décrémentation de stock (commande passée) pour éviter
+     * que des paniers contiennent plus de bouteilles que le stock restant.
+     *
+     * @param int $wineId   Identifiant du vin
+     * @param int $maxQty   Nouvelle quantité maximale autorisée
+     * @return void
+     */
+    public function capWineQtyAcrossAllCarts(int $wineId, int $maxQty): void
+    {
+        if ($maxQty <= 0) {
+            $this->purgeWineFromAllCarts($wineId);
+            return;
+        }
+
+        $rows = $this->db->fetchAll(
+            "SELECT id, user_id, content FROM {$this->table} WHERE total_quantity > 0"
+        );
+
+        foreach ($rows as $row) {
+            $items    = $this->getContent($row);
+            $modified = false;
+            foreach ($items as &$item) {
+                if ((int) ($item['wine_id'] ?? 0) === $wineId && (int) ($item['qty'] ?? 0) > $maxQty) {
+                    $item['qty'] = $maxQty;
+                    $modified    = true;
+                }
+            }
+            unset($item);
+            if ($modified) {
+                $this->save((int) $row['user_id'], $items);
+            }
+        }
+    }
 }
