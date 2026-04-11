@@ -277,12 +277,14 @@ class RatingControllerTest extends IntegrationTestCase
 
         $token = bin2hex(random_bytes(16));
 
-        // Insérer directement la ligne wine_ratings avec le token
+        // FK désactivées : wine_id=1 et order_id=1 peuvent ne pas exister en CI
+        self::$db->execute("SET FOREIGN_KEY_CHECKS=0");
         self::$db->execute(
             "INSERT INTO wine_ratings (account_id, wine_id, order_id, rating, token, token_used_at)
              VALUES (?, 1, 1, 0, ?, NULL)",
             [$userId, $token]
         );
+        self::$db->execute("SET FOREIGN_KEY_CHECKS=1");
 
         $ctrl = $this->makeController('GET', "/rating/commande/{$token}/4");
 
@@ -341,17 +343,41 @@ class RatingControllerTest extends IntegrationTestCase
     // rateViaAccount — CSRF + validation note (avec auth valide)
     // ----------------------------------------------------------------
 
+    // ----------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------
+
+    /**
+     * Crée un compte + une connection active, retourne [userId, token].
+     *
+     * @return array{0: int, 1: string}
+     */
+    private function createAuthenticatedUser(string $email): array
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, lang, newsletter)
+             VALUES (?, 'h', 'fr', 0)",
+            [$email]
+        );
+
+        $token = \Core\Jwt::generate($userId, 'customer', 3600);
+
+        self::$db->execute(
+            "INSERT INTO connections (user_id, token, status, expired_at)
+             VALUES (?, ?, 'active', DATE_ADD(NOW(), INTERVAL 1 HOUR))",
+            [$userId, $token]
+        );
+
+        return [$userId, $token];
+    }
+
     /**
      * JWT valide mais CSRF absent/mismatch → 403.
      */
     public function testRateViaAccountWithCsrfMismatchReturns403(): void
     {
-        $userId = (int) self::$db->insert(
-            "INSERT INTO accounts (email, password, lang, newsletter)
-             VALUES ('rva-csrf@example.com', 'h', 'fr', 0)"
-        );
+        [, $token] = $this->createAuthenticatedUser('rva-csrf@example.com');
 
-        $token = \Core\Jwt::generate($userId, 'customer', 3600);
         $_COOKIE  = ['auth_token' => $token];
         $_SESSION = ['csrf' => 'correct-csrf'];
         $_POST    = ['csrf_token' => 'wrong-csrf', 'note' => '4'];
@@ -374,12 +400,8 @@ class RatingControllerTest extends IntegrationTestCase
      */
     public function testRateViaAccountWithInvalidNoteReturns422(): void
     {
-        $userId = (int) self::$db->insert(
-            "INSERT INTO accounts (email, password, lang, newsletter)
-             VALUES ('rva-note@example.com', 'h', 'fr', 0)"
-        );
+        [, $token] = $this->createAuthenticatedUser('rva-note@example.com');
 
-        $token = \Core\Jwt::generate($userId, 'customer', 3600);
         $_COOKIE  = ['auth_token' => $token];
         $_SESSION = ['csrf' => self::CSRF];
         $_POST    = ['csrf_token' => self::CSRF, 'note' => '0'];
@@ -402,12 +424,8 @@ class RatingControllerTest extends IntegrationTestCase
      */
     public function testRateViaAccountWithValidNoteButNoOrderReturns403(): void
     {
-        $userId = (int) self::$db->insert(
-            "INSERT INTO accounts (email, password, lang, newsletter)
-             VALUES ('rva-noorder@example.com', 'h', 'fr', 0)"
-        );
+        [, $token] = $this->createAuthenticatedUser('rva-noorder@example.com');
 
-        $token = \Core\Jwt::generate($userId, 'customer', 3600);
         $_COOKIE  = ['auth_token' => $token];
         $_SESSION = ['csrf' => self::CSRF];
         $_POST    = ['csrf_token' => self::CSRF, 'note' => '4'];
