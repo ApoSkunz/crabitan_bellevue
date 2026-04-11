@@ -1,5 +1,6 @@
 import '../scss/main.scss';
 import { initCarbonBadge } from './carbon-badge.js';
+import { initLazyLoad } from './lazy-load.js';
 
 // ============================================================
 // Thème jour / nuit
@@ -2201,6 +2202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAnchorScroll();
     initFaqAccordion();
     initCarbonBadge();
+    initLazyLoad();
     initCartPage();
     initFlashAutofocus();
     initLangPreference();
