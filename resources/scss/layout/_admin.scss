@@ -787,6 +787,11 @@
         font-family: var(--font-sans);
         font-size: 0.875rem;
         color: #1a1208;
+        min-width: 0; // empêche le débordement de la colonne grid
+
+        .badge {
+            white-space: normal; // long statuts (refund_pending, return_requested) wrappent
+        }
     }
 }
 
