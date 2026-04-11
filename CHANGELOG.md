@@ -2,6 +2,19 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.73.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.72.0...v0.73.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **lint:** error-reporter.js — catch sans variable (ES2019, no-unused-vars) ([02c38be](https://github.com/ApoSkunz/crabitan_bellevue/commit/02c38be37cb95ff1ae5252b4aab3d1219cb6f939))
+
+
+### Features
+
+* **api:** us-logs-erreurs-js — error-reporter.js + LogApiController POST /api/log/client-error + rate limit 10/min + rotation 30j ([021a9e8](https://github.com/ApoSkunz/crabitan_bellevue/commit/021a9e898fd77a4638d8c43177be8e6b4666c8a6))
+* **js:** error-reporter — logs envoyés en dev ET prod (console.error conservé en debug) ([75867f1](https://github.com/ApoSkunz/crabitan_bellevue/commit/75867f16e429f80e0ed9893eadd4401af28e30a1))
+
 # [0.72.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.71.0...v0.72.0) (2026-04-11)
 
 
