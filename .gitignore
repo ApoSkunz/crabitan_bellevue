@@ -61,6 +61,9 @@ logs/
 # Vite — artefacts de build non versionnés
 /public/assets/js/browser.js
 
+# Infection PHP — rapports de mutation testing
+/build/
+
 # Scripts utilitaires locaux
 /coverage-check.php
 /coverage/

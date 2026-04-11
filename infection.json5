@@ -1,0 +1,30 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "src/Model",
+            "src/Service"
+        ],
+        "excludes": [
+            // Views are not business logic
+        ]
+    },
+    "timeout": 10,
+    "logs": {
+        "text": "build/infection/infection-log.txt",
+        "html": "build/infection/infection-report.html",
+        "summary": "build/infection/infection-summary.log",
+        "perMutator": "build/infection/infection-per-mutator.md"
+    },
+    "mutators": {
+        "@default": true
+    },
+    "testFramework": "phpunit",
+    "testFrameworkOptions": "--testsuite Unit",
+    "phpUnit": {
+        "configDir": "."
+    },
+    "minMsi": 60,
+    "minCoveredMsi": 70,
+    "threads": 4
+}
