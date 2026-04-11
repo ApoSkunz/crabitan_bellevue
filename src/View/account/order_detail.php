@@ -25,9 +25,10 @@ $timeline      = $isReturnFlow
     ? ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', $returnEndStep]
     : ['pending', 'paid', 'processing', 'shipped', 'delivered'];
 $currentIdx  = array_search($order['status'], $timeline, true);
+$gaeEnabled           = filter_var($_ENV['CA_ENABLE_GAE'] ?? false, FILTER_VALIDATE_BOOLEAN);
 $cancellable          = $order['status'] === 'pending' && ($order['payment_method'] ?? '') !== 'card';
 $cancellablePendingCb = $order['status'] === 'pending' && ($order['payment_method'] ?? '') === 'card';
-$cancellableRefund    = $order['status'] === 'paid'    && ($order['payment_method'] ?? '') === 'card';
+$cancellableRefund    = $order['status'] === 'paid'    && ($order['payment_method'] ?? '') === 'card' && $gaeEnabled;
 /** @var bool $cancellableReturn */
 /** @var string|null $returnDeadline */
 $paymentMap  = [
@@ -243,7 +244,7 @@ $paymentMap  = [
                         <?= __('account.order_refund_pending_notice') ?>
                     </p>
                 </section>
-            <?php elseif (in_array($order['status'], ['processing', 'paid'], true) && ($order['payment_method'] ?? '') !== 'card') : ?>
+            <?php elseif (in_array($order['status'], ['processing', 'paid'], true) && (($order['payment_method'] ?? '') !== 'card' || !$gaeEnabled)) : ?>
                 <section class="account-section account-section--danger">
                     <h2 class="account-section__title"><?= __('account.order_refund_btn') ?></h2>
                     <p><?= __('account.order_refund_confirm') ?></p>
