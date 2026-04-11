@@ -44,4 +44,18 @@ class SecurityHeaderMiddleware
         // et HSTS sont gérés statiquement dans public/.htaccess
         header("Content-Security-Policy: {$csp}");
     }
+
+    /**
+     * Indique si l'URI correspond à une page catalogue vins (fr/vins ou en/wines).
+     *
+     * Utilisé pour appliquer des en-têtes spécifiques (ex. X-Robots-Tag).
+     *
+     * @param string $uri URI de la requête (path + éventuel query string)
+     * @return bool
+     */
+    public static function isWinePath(string $uri): bool
+    {
+        $path = strtok($uri, '?') ?: $uri;
+        return (bool) preg_match('#^/(fr/vins|en/wines)(/|$)#', $path);
+    }
 }

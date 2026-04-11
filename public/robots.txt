@@ -4,4 +4,29 @@ Disallow: /mon-compte/
 Disallow: /api/
 Allow: /
 
+# Agents IA — scraping du catalogue interdit
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: omgili
+Disallow: /
+
 Sitemap: https://www.crabitanbellevue.fr/sitemap.xml

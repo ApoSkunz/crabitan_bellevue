@@ -22,6 +22,68 @@ class WineController extends Controller
     private const VALID_PER_PAGE = [10, 25, 50, 100];
     private const DEFAULT_PER_PAGE = 25;
 
+    /** Catalogue anti-scraping : max requêtes par fenêtre par IP */
+    private const CATALOGUE_RATE_MAX    = 60;
+    /** Fenêtre de rate limiting en secondes */
+    private const CATALOGUE_RATE_WINDOW = 60;
+    /** Seuil de monitoring : log si dépassé (req/fenêtre/IP) */
+    private const CATALOGUE_MONITOR_MAX = 500;
+
+    /**
+     * Applique le rate limiting anti-scraping sur les pages catalogue.
+     *
+     * - Bloque (429) si > 60 req/min depuis la même IP.
+     * - Logue dans storage/logs/scraping-YYYY-MM-DD.log si > 500 req/min.
+     *
+     * @return void
+     */
+    private function checkCatalogueRateLimit(): void
+    {
+        $ip      = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $limiter = new RateLimiterService();
+        $key     = 'catalogue:' . $ip;
+
+        // Monitoring : compter indépendamment pour la détection > 500 req/min
+        $monitorKey = 'catalogue_monitor:' . $ip;
+        $count      = (int) $limiter->recall($monitorKey, 0);
+        $count++;
+        $limiter->remember($monitorKey, $count, self::CATALOGUE_RATE_WINDOW);
+
+        if ($count > self::CATALOGUE_MONITOR_MAX) {
+            $this->logScrapingAlert($ip, $count);
+        }
+
+        if (!$limiter->checkLimit($key, self::CATALOGUE_RATE_MAX, self::CATALOGUE_RATE_WINDOW)) {
+            $retryAfter = $limiter->getRetryAfter($key);
+            Response::setHeader('Retry-After', (string) $retryAfter);
+            Response::setHeader('X-RateLimit-Limit', (string) self::CATALOGUE_RATE_MAX);
+            Response::abort(429);
+        }
+
+        $limiter->recordAttempt($key, self::CATALOGUE_RATE_WINDOW);
+    }
+
+    /**
+     * Écrit une alerte de scraping dans storage/logs/scraping-YYYY-MM-DD.log.
+     *
+     * @param string $ip    Adresse IP source
+     * @param int    $count Nombre de requêtes détectées dans la fenêtre
+     * @return void
+     */
+    private function logScrapingAlert(string $ip, int $count): void
+    {
+        $logDir  = defined('ROOT_PATH') ? ROOT_PATH . '/storage/logs' : sys_get_temp_dir();
+        $logFile = $logDir . '/scraping-' . date('Y-m-d') . '.log';
+        $line    = '[' . date('Y-m-d H:i:s') . '] SCRAPING_ALERT ip=' . $ip
+            . ' count=' . $count . ' limit=' . self::CATALOGUE_MONITOR_MAX . PHP_EOL;
+
+        if (is_dir($logDir) && is_writable($logDir)) {
+            file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
+        } else {
+            error_log('[anti-scraping] ' . trim($line));
+        }
+    }
+
     /**
      * Retourne les IDs de vins likés par l'utilisateur courant (tableau indexé pour lookup O(1)).
      * Retourne [] si non connecté ou token invalide.
@@ -51,6 +113,7 @@ class WineController extends Controller
      */
     public function index(array $params): void
     {
+        $this->checkCatalogueRateLimit();
         $lang  = $this->resolveLang($params);
         $model = new WineModel();
 
@@ -106,6 +169,7 @@ class WineController extends Controller
      */
     public function collection(array $params): void
     {
+        $this->checkCatalogueRateLimit();
         $lang  = $this->resolveLang($params);
         $model = new WineModel();
 
@@ -593,6 +657,7 @@ class WineController extends Controller
      */
     public function show(array $params): void
     {
+        $this->checkCatalogueRateLimit();
         $lang  = $this->resolveLang($params);
         $slug  = $params['slug'] ?? '';
         $model = new WineModel();
