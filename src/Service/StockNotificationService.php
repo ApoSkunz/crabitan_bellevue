@@ -61,18 +61,27 @@ class StockNotificationService
         $limit    = $this->getStockAlertLimit();
         $oldStock = (int) ($wine['stock_quantity'] ?? 0);
         $notified = $wine['low_stock_notified_at'] ?? null;
+        $wineId   = (int) ($wine['id'] ?? 0);
+
+        error_log("[StockNotif] wine_id={$wineId} oldStock={$oldStock} newStock={$newStock} limit={$limit} notified=" . ($notified ?? 'NULL'));
 
         // Seuil non franchi ou déjà notifié
         if ($oldStock <= $limit || $newStock > $limit || $notified !== null) {
+            $skipReason = "oldStock<={$limit}=" . ($oldStock <= $limit ? 'true' : 'false')
+                . " newStock>{$limit}=" . ($newStock > $limit ? 'true' : 'false')
+                . " notified=" . ($notified !== null ? 'set' : 'null');
+            error_log("[StockNotif] SKIP — condition not met ({$skipReason})");
             return false;
         }
 
-        $wineId = (int) ($wine['id'] ?? 0);
         $appUrl = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
 
         // Notifier uniquement les clients ayant ce vin dans leur panier BDD
         $cartUsers = $this->wineModel->getCartUsersWithWine($wineId);
+        error_log("[StockNotif] cartUsers count=" . count($cartUsers));
+
         foreach ($cartUsers as $user) {
+            error_log("[StockNotif] sending to " . ($user['email'] ?? 'N/A'));
             $this->sendLowStockAlert(
                 (string) ($user['email'] ?? ''),
                 (string) ($user['first_name'] ?? ''),
@@ -85,6 +94,7 @@ class StockNotificationService
 
         // Marquer la notification comme envoyée
         $this->wineModel->setLowStockNotifiedAt($wineId);
+        error_log("[StockNotif] done — low_stock_notified_at set for wine_id={$wineId}");
 
         return true;
     }
