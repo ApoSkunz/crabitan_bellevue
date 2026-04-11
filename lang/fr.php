@@ -283,6 +283,8 @@ return [
     'footer.carbon'          => 'Site Carbone',
     'footer.alcohol_warning' => "L'abus d'alcool est dangereux pour la santé. À consommer avec modération. La vente d'alcool est interdite aux mineurs de moins de 18 ans.",
     'footer.credits_medias'  => 'Crédits médias',
+    'footer.galerie'         => 'Galerie',
+    'footer.accessibilite'   => 'Accessibilité',
     'footer.made_by'         => 'Réalisé par',
     'footer.webmaster'       => 'Alexandre Solane',
 
@@ -495,6 +497,17 @@ return [
     'sitemap.wine_white'       => 'Découvrez la légèreté de nos vins Blancs',
     'sitemap.wine_rose'        => 'Découvrez la fraîcheur de nos vins Rosés',
     'sitemap.wine_collection'  => 'Plongez au cœur de notre collection',
+
+    // Galerie photos
+    'gallery.title'          => 'Galerie photos',
+    'gallery.intro'          => 'Découvrez le château, les vignes et la vie du domaine en images',
+    'gallery.enlarge'        => 'Agrandir',
+    'gallery.close'          => 'Fermer',
+    'gallery.lightbox_label' => 'Visionneuse de photos',
+
+    // Accessibilité
+    'accessibility.title'    => 'Accessibilité',
+    'accessibility.intro'    => 'Déclaration de conformité au RGAA v4',
 
     // Webmaster
     'webmaster.bio'           => 'Site conçu et développé par Alexandre Solane, développeur web full-stack.',

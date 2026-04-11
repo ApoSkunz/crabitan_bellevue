@@ -11,8 +11,8 @@ use Tests\Integration\IntegrationTestCase;
 
 /**
  * Tests d'intégration pour PageController.
- * Couvre les 6 pages statiques : château, savoir-faire, contact,
- * mentions légales, plan du site, webmaster.
+ * Couvre les pages statiques : château, savoir-faire, contact,
+ * mentions légales, plan du site, webmaster, galerie, accessibilité.
  */
 class PageControllerTest extends IntegrationTestCase
 {
@@ -388,6 +388,54 @@ class PageControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // galerie
+    // ----------------------------------------------------------------
+
+    public function testGalerieRendersView(): void
+    {
+        ob_start();
+        $this->makeController('/fr/galerie')->galerie(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<main', $output);
+        $this->assertStringContainsString('gallery', $output);
+    }
+
+    public function testGalerieEnRendersView(): void
+    {
+        ob_start();
+        $this->makeController('/en/galerie')->galerie(['lang' => 'en']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<main', $output);
+        $this->assertStringContainsString('gallery', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // accessibilite
+    // ----------------------------------------------------------------
+
+    public function testAccessibiliteRendersView(): void
+    {
+        ob_start();
+        $this->makeController('/fr/accessibilite')->accessibilite(['lang' => 'fr']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<main', $output);
+        $this->assertStringContainsString('RGAA', $output);
+    }
+
+    public function testAccessibiliteEnRendersView(): void
+    {
+        ob_start();
+        $this->makeController('/en/accessibilite')->accessibilite(['lang' => 'en']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<main', $output);
+        $this->assertStringContainsString('RGAA', $output);
+    }
+
+    // ----------------------------------------------------------------
     // sitemapXml
     // ----------------------------------------------------------------
 
@@ -421,6 +469,7 @@ class PageControllerTest extends IntegrationTestCase
         $this->assertStringContainsString('/fr/vins', $output);
         $this->assertStringContainsString('/fr/actualites', $output);
         $this->assertStringContainsString('/fr/contact', $output);
+        $this->assertStringContainsString('/fr/galerie', $output);
     }
 
     public function testSitemapXmlContainsWineAndNewsSlugs(): void

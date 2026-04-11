@@ -36,6 +36,8 @@ if ($footerToken) {
                     <a href="/<?= htmlspecialchars($navLang) ?>/support"><?= htmlspecialchars(__('nav.support')) ?></a>
                     <a href="/<?= htmlspecialchars($navLang) ?>/plan-du-site">
                         <?= htmlspecialchars(__('footer.sitemap')) ?></a>
+                    <a href="/<?= htmlspecialchars($navLang) ?>/galerie">
+                        <?= htmlspecialchars(__('footer.galerie')) ?></a>
                 </nav>
                 <nav class="footer-nav-legal" aria-label="Liens légaux et gestion des données">
                     <a href="/<?= htmlspecialchars($navLang) ?>/mentions-legales">
@@ -46,6 +48,8 @@ if ($footerToken) {
                         <?= htmlspecialchars(__('footer.cgv')) ?></a>
                     <a href="/<?= htmlspecialchars($navLang) ?>/credits-medias">
                         <?= htmlspecialchars(__('footer.credits_medias')) ?></a>
+                    <a href="/<?= htmlspecialchars($navLang) ?>/accessibilite">
+                        <?= htmlspecialchars(__('footer.accessibilite')) ?></a>
                     <button id="cookie-manage" type="button" class="footer-nav-legal__cookie-btn">
                         <?= htmlspecialchars(__('cookie.manage')) ?>
                     </button>

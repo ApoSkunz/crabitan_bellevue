@@ -230,6 +230,38 @@ class PageController extends Controller
     }
 
     /**
+     * Affiche la galerie photos du domaine.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function galerie(array $params): void
+    {
+        $lang    = $this->resolveLang($params);
+        $dir     = ROOT_PATH . '/public/assets/images/gallery/';
+        $files   = glob($dir . '*.{jpg,jpeg,png,webp}', GLOB_BRACE) ?: [];
+        $photos  = [];
+        foreach ($files as $file) {
+            $filename = basename($file);
+            $alt      = ucfirst(str_replace(['-', '_'], ' ', pathinfo($filename, PATHINFO_FILENAME)));
+            $photos[] = ['src' => '/assets/images/gallery/' . $filename, 'alt' => $alt];
+        }
+        $this->view('pages/galerie', ['lang' => $lang, 'photos' => $photos]);
+    }
+
+    /**
+     * Affiche la déclaration d'accessibilité (RGAA v4).
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function accessibilite(array $params): void
+    {
+        $lang = $this->resolveLang($params);
+        $this->view('pages/accessibilite', ['lang' => $lang]);
+    }
+
+    /**
      * Affiche la page webmaster (documentation technique, noindex).
      *
      * @param array<string, string> $params Paramètres de route (lang)
@@ -264,6 +296,7 @@ class PageController extends Controller
             '/savoir-faire'                 => '0.7',
             '/contact'                      => '0.6',
             '/conditions-generales-de-vente' => '0.4',
+            '/galerie'                      => '0.5',
         ];
 
         $wineModel = new WineModel();
