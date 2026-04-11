@@ -6,7 +6,6 @@ $pageTitle = $lang === 'fr' ? 'Merci pour votre avis !' : 'Thank you for your re
 $stars     = str_repeat('★', $note) . str_repeat('☆', 5 - $note);
 ?>
 <?php require_once SRC_PATH . '/View/partials/head.php'; ?>
-<body>
 <?php require_once SRC_PATH . '/View/partials/header.php'; ?>
 
 <main class="rating-confirm">
@@ -29,5 +28,3 @@ $stars     = str_repeat('★', $note) . str_repeat('☆', 5 - $note);
 </main>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
-</body>
-</html>

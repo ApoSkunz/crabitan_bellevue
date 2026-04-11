@@ -78,6 +78,7 @@ $router->get('/admin/rgpd/demandes/{id}/export-portabilite', 'Admin\RgpdAdminCon
 // Rating (email token + espace client)
 $router->get('/rating/commande/{token}/{note}', 'RatingController@rateViaEmail');
 $router->get('/rating/order/{orderToken}', 'RatingController@rateOrder');
+$router->post('/api/rating/commande', 'RatingController@rateViaTokenApi');
 $router->post('/{lang}/rating/vin/{wineId}', 'RatingController@rateViaAccount');
 
 // Age gate

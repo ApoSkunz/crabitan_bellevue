@@ -10,141 +10,185 @@
  * @var string $pageTitle  Titre de la page
  */
 
-$appUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
+$pageTitle = $pageTitle ?? ($lang === 'fr'
+    ? "Notez vos vins — Commande #{$orderId}"
+    : "Rate your wines — Order #{$orderId}");
+require_once SRC_PATH . '/View/partials/head.php';
+require_once SRC_PATH . '/View/partials/header.php';
+
+$isFr       = ($lang !== 'en');
+$totalWines = count($wines);
+$alreadyRated = array_filter($wines, fn(array $w): bool => (int) ($w['current_note'] ?? 0) > 0);
+$allDone    = $totalWines > 0 && count($alreadyRated) === $totalWines;
 ?>
-<?php require_once SRC_PATH . '/View/partials/head.php'; ?>
 
-<main class="rating-order" style="max-width:680px;margin:48px auto;padding:0 24px;">
-
-    <h1 style="font-family:Georgia,serif;font-size:22px;color:var(--color-gold);margin:0 0 8px;">
-        <?= $lang === 'fr'
-            ? 'Notez vos vins — Commande #' . htmlspecialchars((string) $orderId, ENT_QUOTES)
-            : 'Rate your wines — Order #' . htmlspecialchars((string) $orderId, ENT_QUOTES) ?>
-    </h1>
-
-    <p style="font-size:14px;color:var(--color-text-muted);margin:0 0 32px;">
-        <?= $lang === 'fr'
-            ? 'Cliquez sur une étoile pour noter chaque vin. Votre avis est enregistré immédiatement.'
-            : 'Click a star to rate each wine. Your review is saved immediately.' ?>
-    </p>
-
-    <?php if ($noted) : ?>
-    <div role="alert" style="background:rgba(232,200,106,0.12);border:1px solid var(--color-gold);
-         border-radius:4px;padding:12px 16px;margin-bottom:24px;
-         font-size:14px;color:var(--color-gold);">
-        <?= $lang === 'fr' ? 'Votre note a bien été enregistrée.' : 'Your rating has been saved.' ?>
+<main class="page-rating" id="main-content">
+    <div class="page-hero page-hero--dark">
+        <div class="container">
+            <span class="home-section__tag">
+                <?= $isFr ? 'Commande' : 'Order' ?>
+                #<?= htmlspecialchars((string) $orderId, ENT_QUOTES) ?>
+            </span>
+            <h1 class="home-section__title">
+                <?= $isFr ? 'Notez vos vins' : 'Rate your wines' ?>
+            </h1>
+            <div class="home-section__divider home-section__divider--center"></div>
+        </div>
     </div>
-    <?php endif; ?>
 
-    <?php if (empty($wines)) : ?>
-    <p style="color:var(--color-text-muted);">
-        <?= $lang === 'fr' ? 'Aucun vin trouvé pour cette commande.' : 'No wines found for this order.' ?>
-    </p>
-    <?php else : ?>
+    <div class="container">
 
-    <div class="rating-order__list">
-        <?php foreach ($wines as $wine) : ?>
-        <?php
-            $wineId      = (int) ($wine['wine_id'] ?? 0);
-            $label       = htmlspecialchars((string) ($wine['label_name'] ?? ''), ENT_QUOTES);
-            $vintage     = (int) ($wine['vintage'] ?? 0);
-            $imagePath   = (string) ($wine['image_path'] ?? '');
-            $token       = htmlspecialchars((string) ($wine['token'] ?? ''), ENT_QUOTES);
-            $currentNote = (int) ($wine['current_note'] ?? 0);
-        ?>
-        <div class="rating-order__item" style="
-            border-bottom:1px solid rgba(232,200,106,0.15);
-            padding:24px 0;
-            display:flex;
-            gap:20px;
-            align-items:flex-start;">
+        <p class="rating-order__intro">
+            <?= $isFr
+                ? 'Cliquez sur une étoile pour noter chaque vin. Votre avis est enregistré immédiatement.'
+                : 'Click a star to rate each wine. Your review is saved immediately.' ?>
+        </p>
 
-            <?php if ($imagePath !== '') : ?>
-            <img
-                src="<?= htmlspecialchars($appUrl . '/assets/images/wines/' . $imagePath, ENT_QUOTES) ?>"
-                alt="<?= $label ?>"
-                width="64"
-                height="auto"
-                loading="lazy"
-                style="width:64px;height:auto;border-radius:3px;flex-shrink:0;">
-            <?php endif; ?>
+        <!-- Bandeau succès (masqué jusqu'à complétion) -->
+        <div id="rating-success-banner"
+             class="rating-order__alert"
+             role="alert"
+             <?= $allDone ? '' : 'hidden' ?>>
+            <?= $isFr
+                ? '&#10003;&nbsp; Merci&nbsp;! Toutes vos notes ont été enregistrées.'
+                : '&#10003;&nbsp; Thank you! All your ratings have been saved.' ?>
+        </div>
 
-            <div style="flex:1;min-width:0;">
-                <p style="margin:0 0 4px;font-family:Georgia,serif;font-size:16px;color:var(--color-text);">
-                    <?= $label ?>
-                    <?php if ($vintage > 0) : ?>
-                    <span style="font-size:13px;color:var(--color-text-muted);margin-left:6px;">
-                        <?= htmlspecialchars((string) $vintage, ENT_QUOTES) ?>
-                    </span>
-                    <?php endif; ?>
-                </p>
+        <?php if (empty($wines)) : ?>
+        <p class="rating-order__empty">
+            <?= $isFr ? 'Aucun vin trouvé pour cette commande.' : 'No wines found for this order.' ?>
+        </p>
+        <?php else : ?>
 
-                <div
-                    class="rating-order__stars"
-                    role="group"
-                    aria-label="<?= $lang === 'fr'
-                        ? 'Notez ' . $label
-                        : 'Rate ' . $label ?>">
+        <div class="rating-order__list" id="rating-list"
+             data-total="<?= $totalWines ?>"
+             data-rated="<?= count($alreadyRated) ?>">
+            <?php foreach ($wines as $wine) :
+                $wineId      = (int) ($wine['wine_id'] ?? 0);
+                $label       = htmlspecialchars((string) ($wine['label_name'] ?? ''), ENT_QUOTES);
+                $vintage     = (int) ($wine['vintage'] ?? 0);
+                $imagePath   = (string) ($wine['image_path'] ?? '');
+                $token       = htmlspecialchars((string) ($wine['token'] ?? ''), ENT_QUOTES);
+                $currentNote = (int) ($wine['current_note'] ?? 0);
+            ?>
+            <div class="rating-order__item" data-wine-id="<?= $wineId ?>" data-token="<?= $token ?>">
 
-                    <?php for ($i = 1; $i <= 5; $i++) : ?>
-                    <?php
-                        $ratingUrl = htmlspecialchars(
-                            '/rating/commande/' . $wine['token'] . '/' . $i,
-                            ENT_QUOTES
-                        );
-                        $isActive  = ($i <= $currentNote);
-                        $bgActive  = 'background:linear-gradient(135deg,#e8c86a,#c9a84c);color:#1a1208;';
-                        $bgIdle    = 'background:rgba(232,200,106,0.08);color:var(--color-gold);'
-                            . 'border:1px solid rgba(232,200,106,0.25);';
-                    ?>
-                    <a
-                        href="<?= $ratingUrl ?>?ref=order&orderToken=<?= htmlspecialchars($orderToken, ENT_QUOTES) ?>"
-                        aria-label="<?= htmlspecialchars((string) $i, ENT_QUOTES) ?>/5"
-                        aria-current="<?= $isActive ? 'true' : 'false' ?>"
-                        style="
-                            display:inline-flex;
-                            align-items:center;
-                            justify-content:center;
-                            width:40px;height:40px;
-                            margin:0 3px 0 0;
-                            border-radius:3px;
-                            font-family:Georgia,serif;
-                            font-size:16px;
-                            font-weight:bold;
-                            text-decoration:none;
-                            transition:opacity .15s;
-                            <?= $isActive ? $bgActive : $bgIdle ?>">
-                        &#9733;<?= $i ?>
-                    </a>
-                    <?php endfor; ?>
-
-                </div>
-
-                <?php if ($currentNote > 0) : ?>
-                <p style="margin:8px 0 0;font-size:12px;color:var(--color-text-muted);">
-                    <?= $lang === 'fr'
-                        ? 'Votre note actuelle : ' . htmlspecialchars((string) $currentNote, ENT_QUOTES) . '/5'
-                        : 'Your current rating: ' . htmlspecialchars((string) $currentNote, ENT_QUOTES) . '/5' ?>
-                </p>
+                <?php if ($imagePath !== '') : ?>
+                <img
+                    src="/assets/images/wines/<?= htmlspecialchars($imagePath, ENT_QUOTES) ?>"
+                    alt="<?= $label ?>"
+                    class="rating-order__img"
+                    width="64"
+                    height="auto"
+                    loading="lazy">
                 <?php endif; ?>
 
+                <div class="rating-order__info">
+                    <p class="rating-order__wine-name">
+                        <?= $label ?>
+                        <?php if ($vintage > 0) : ?>
+                        <span class="rating-order__vintage"><?= htmlspecialchars((string) $vintage, ENT_QUOTES) ?></span>
+                        <?php endif; ?>
+                    </p>
+
+                    <div class="rating-order__stars"
+                         role="group"
+                         aria-label="<?= $isFr ? 'Notez ' . $label : 'Rate ' . $label ?>">
+                        <?php for ($i = 1; $i <= 5; $i++) : ?>
+                        <button
+                            type="button"
+                            class="rating-order__star<?= ($i <= $currentNote) ? ' rating-order__star--active' : '' ?>"
+                            data-note="<?= $i ?>"
+                            aria-label="<?= htmlspecialchars((string) $i, ENT_QUOTES) ?>/5"
+                            aria-pressed="<?= ($i <= $currentNote) ? 'true' : 'false' ?>">
+                            &#9733;<?= $i ?>
+                        </button>
+                        <?php endfor; ?>
+                    </div>
+
+                    <p class="rating-order__current" <?= $currentNote > 0 ? '' : 'hidden' ?>>
+                        <?php if ($currentNote > 0) : ?>
+                        <?= $isFr
+                            ? '&#10003;&nbsp; Noté ' . htmlspecialchars((string) $currentNote, ENT_QUOTES) . '/5'
+                            : '&#10003;&nbsp; Rated ' . htmlspecialchars((string) $currentNote, ENT_QUOTES) . '/5' ?>
+                        <?php endif; ?>
+                    </p>
+                </div>
             </div>
+            <?php endforeach; ?>
         </div>
-        <?php endforeach; ?>
-    </div>
 
-    <?php endif; ?>
+        <?php endif; ?>
 
-    <p style="margin-top:40px;text-align:center;">
-        <a
-            href="/<?= htmlspecialchars($lang, ENT_QUOTES) ?>/mon-compte/commandes"
-            style="font-size:13px;color:var(--color-text-muted);text-decoration:underline;">
-            <?= $lang === 'fr' ? 'Voir mes commandes' : 'View my orders' ?>
+        <a href="/<?= htmlspecialchars($lang, ENT_QUOTES) ?>/mon-compte/commandes" class="rating-order__back">
+            <?= $isFr ? 'Voir mes commandes' : 'View my orders' ?>
         </a>
-    </p>
 
+    </div>
 </main>
 
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '', ENT_QUOTES) ?>">
+(function () {
+    const isFr   = <?= $isFr ? 'true' : 'false' ?>;
+    const list   = document.getElementById('rating-list');
+    const banner = document.getElementById('rating-success-banner');
+    if (!list) return;
+
+    let rated = parseInt(list.dataset.rated, 10) || 0;
+    const total = parseInt(list.dataset.total, 10) || 0;
+
+    list.addEventListener('click', function (e) {
+        const btn = e.target.closest('.rating-order__star');
+        if (!btn) return;
+
+        const item  = btn.closest('.rating-order__item');
+        const token = item ? item.dataset.token : '';
+        const note  = parseInt(btn.dataset.note, 10);
+        if (!token || !note) return;
+
+        // Optimistic UI — active immédiatement
+        const stars = item.querySelectorAll('.rating-order__star');
+        const wasRated = Array.from(stars).some((s) => s.getAttribute('aria-pressed') === 'true');
+
+        stars.forEach((s, idx) => {
+            const active = idx < note;
+            s.classList.toggle('rating-order__star--active', active);
+            s.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+
+        // Mise à jour du label note
+        const label = item.querySelector('.rating-order__current');
+        if (label) {
+            label.hidden = false;
+            label.innerHTML = isFr
+                ? '\u2713\u00a0 Not\u00e9 ' + note + '/5'
+                : '\u2713\u00a0 Rated ' + note + '/5';
+        }
+
+        if (!wasRated) { rated++; }
+
+        // Vérif complétion
+        if (rated >= total && banner) {
+            banner.hidden = false;
+            banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Envoi AJAX
+        fetch('/api/rating/commande', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ token, note }),
+        }).catch(function () {
+            // Rollback visuel si erreur réseau
+            stars.forEach(function (s) {
+                s.classList.remove('rating-order__star--active');
+                s.setAttribute('aria-pressed', 'false');
+            });
+            if (label) { label.hidden = true; }
+            if (!wasRated) { rated--; }
+        });
+    });
+}());
+</script>
+
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
-</body>
-</html>

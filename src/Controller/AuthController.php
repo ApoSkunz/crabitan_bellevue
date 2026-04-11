@@ -344,9 +344,11 @@ class AuthController extends Controller
         $loginCount  = $loginCart !== false ? (int) ($loginCart['total_quantity'] ?? 0) : 0;
         setcookie('cb-cart-count', (string) $loginCount, ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
 
-        // Déclaration de majorité — positionner le flag si le compte n'a pas encore déclaré
+        // Déclaration de majorité — sync session avec l'état BDD
         if (!$this->accounts->hasDeclaredMajority((int) $account['id'])) {
             $_SESSION['majority_pending'] = true;
+        } else {
+            unset($_SESSION['majority_pending']);
         }
 
         // _intended — URL mémorisée par AuthMiddleware lors d'un accès à une page protégée sans auth.

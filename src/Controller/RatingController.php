@@ -135,6 +135,40 @@ class RatingController extends Controller
     }
 
     // ----------------------------------------------------------------
+    // POST /api/rating/commande  (AJAX depuis la page /rating/order)
+    // ----------------------------------------------------------------
+
+    /**
+     * Enregistre la note d'un vin via token email (appel AJAX).
+     * Accepte : {token: string, note: int (1-5)}.
+     * Retourne : {success: bool, note: int}.
+     *
+     * @param array<string, string> $params Paramètres de route (inutilisés)
+     * @return void
+     */
+    public function rateViaTokenApi(array $params): void // NOSONAR — $params requis par le router
+    {
+        $body  = json_decode((string) file_get_contents('php://input'), true) ?? [];
+        $token = (string) ($body['token'] ?? '');
+        $note  = (int) ($body['note']  ?? 0);
+
+        if ($token === '' || $note < 1 || $note > 5) {
+            $this->json(['success' => false, 'message' => 'Paramètres invalides'], 422);
+        }
+
+        $ratingModel = new \Model\RatingModel();
+        $row = $ratingModel->findByToken($token);
+
+        if ($row === null) {
+            $this->json(['success' => false, 'message' => 'Token invalide'], 404);
+        }
+
+        $ratingModel->upsert((int) $row['account_id'], (int) $row['wine_id'], (int) $row['order_id'], $note);
+
+        $this->json(['success' => true, 'note' => $note]);
+    }
+
+    // ----------------------------------------------------------------
     // POST /{lang}/rating/vin/{wineId}
     // ----------------------------------------------------------------
 

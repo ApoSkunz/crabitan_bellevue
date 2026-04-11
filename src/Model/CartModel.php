@@ -288,6 +288,7 @@ class CartModel extends Model
                 }
                 $wine = $wineMap[$wineId];
                 $enrichedItems[] = [
+                    'wine_id'    => $wineId,
                     'label_name' => (string) ($wine['label_name'] ?? ''),
                     'vintage'    => (int) ($wine['vintage'] ?? 0),
                     'image_path' => (string) ($wine['image_path'] ?? ''),

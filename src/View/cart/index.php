@@ -397,7 +397,7 @@ $featuredWine     = $featuredWine     ?? null;
             </button>
         </div>
         <?php if (isset($randomWine) && $randomWine !== null) : ?>
-        <div id="cart-guest-recommendation" class="cart-empty-wine">
+        <div id="cart-guest-recommendation" class="cart-empty-wine" hidden>
             <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
             <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
                class="cart-empty-wine__card">
@@ -411,7 +411,7 @@ $featuredWine     = $featuredWine     ?? null;
             </a>
         </div>
         <?php endif; ?>
-        <div class="cart-guest-cta">
+        <div id="cart-guest-browse-cta" class="cart-guest-cta" hidden>
             <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--gold">
                 <?= htmlspecialchars(__('cart.browse')) ?>
             </a>

@@ -19,7 +19,6 @@ if ($lang === 'fr') {
 }
 ?>
 <?php require_once SRC_PATH . '/View/partials/head.php'; ?>
-<body>
 <?php require_once SRC_PATH . '/View/partials/header.php'; ?>
 
 <main class="rating-error">
@@ -33,5 +32,3 @@ if ($lang === 'fr') {
 </main>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
-</body>
-</html>

@@ -708,7 +708,7 @@ class WineModel extends Model
      */
     public function getSimilar(int $wineId, string $color, float $price, int $limit = 3): array
     {
-        $cols = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity';
+        $cols = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity, is_cuvee_speciale';
 
         $sameColor = $this->db->fetchAll(
             "SELECT {$cols}
@@ -751,7 +751,7 @@ class WineModel extends Model
      */
     public function getForCartCrossSell(array $excludeIds, int $limit = 4): array
     {
-        $cols = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity';
+        $cols = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity, is_cuvee_speciale';
 
         if ($excludeIds === []) {
             return $this->db->fetchAll(
@@ -775,5 +775,40 @@ class WineModel extends Model
              LIMIT ?",
             $params
         );
+    }
+
+    /**
+     * Retourne une cuvée spéciale disponible pour une couleur donnée, en excluant les IDs précisés.
+     * Utilisée pour garantir au moins une cuvée spéciale dans le cross-sell panier.
+     *
+     * @param string $color      Couleur souhaitée
+     * @param int[]  $excludeIds IDs à exclure
+     * @return array<string, mixed>|null
+     */
+    public function getCuveeSpecialeByColor(string $color, array $excludeIds = []): ?array
+    {
+        $cols = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity, is_cuvee_speciale';
+
+        if ($excludeIds === []) {
+            $row = $this->db->fetchOne(
+                "SELECT {$cols} FROM {$this->table}
+                 WHERE available = 1 AND is_cuvee_speciale = 1 AND wine_color = ?
+                 ORDER BY RAND() LIMIT 1",
+                [$color]
+            );
+            return $row ?: null;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+        $params       = array_merge([$color], $excludeIds);
+
+        $row = $this->db->fetchOne(
+            "SELECT {$cols} FROM {$this->table}
+             WHERE available = 1 AND is_cuvee_speciale = 1 AND wine_color = ?
+               AND id NOT IN ({$placeholders})
+             ORDER BY RAND() LIMIT 1",
+            $params
+        );
+        return $row ?: null;
     }
 }

@@ -332,6 +332,8 @@ class GoogleOAuthController extends Controller
 
         if (!$this->accounts->hasDeclaredMajority((int) $account['id'])) {
             $_SESSION['majority_pending'] = true;
+        } else {
+            unset($_SESSION['majority_pending']);
         }
 
         // _intended prioritaire sur oauth_return_path (navigation directe vers page protégée)

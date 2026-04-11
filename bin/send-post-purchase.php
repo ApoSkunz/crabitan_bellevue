@@ -37,8 +37,8 @@ exit($runner->run(function (callable $log): void {
             $mailer->sendPostPurchase(
                 $account['email'],
                 $account['firstname'] ?? 'Client',
+                (int) $order['user_id'],
                 (int) $order['id'],
-                (float) $order['price'],
                 $items,
                 $lang
             );
