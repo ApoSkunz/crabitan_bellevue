@@ -152,6 +152,37 @@ class StockNotificationServiceTest extends TestCase
         $this->assertSame(42, $this->wineModel->notifiedWineId);
     }
 
+    public function testNotifiesInEnglishWhenUserLangIsEn(): void
+    {
+        // Couvre la branche else (lang = 'en') de sendLowStockAlert
+        $wine = $this->makeWine(oldStock: 500, notifiedAt: null);
+        $this->wineModel->cartUsers = [
+            ['email' => 'client@example.com', 'first_name' => 'Alice', 'lang' => 'en', 'newsletter_unsubscribe_token' => 'tok-en'],
+        ];
+
+        $result = $this->service->notifyIfThresholdCrossed($wine, 100);
+
+        $this->assertTrue($result);
+        $this->assertSame(1, $this->mailService->sendCount);
+        $this->assertSame(42, $this->wineModel->notifiedWineId);
+    }
+
+    public function testSkipsEmailWhenAddressIsEmpty(): void
+    {
+        // Couvre le return anticipé de sendLowStockAlert quand toEmail = ''
+        $wine = $this->makeWine(oldStock: 500, notifiedAt: null);
+        $this->wineModel->cartUsers = [
+            ['email' => '', 'first_name' => 'Ghost', 'lang' => 'fr', 'newsletter_unsubscribe_token' => ''],
+        ];
+
+        $result = $this->service->notifyIfThresholdCrossed($wine, 100);
+
+        $this->assertTrue($result);
+        $this->assertSame(0, $this->mailService->sendCount);
+        // low_stock_notified_at toujours positionné même sans email
+        $this->assertSame(42, $this->wineModel->notifiedWineId);
+    }
+
     // ----------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------
