@@ -893,3 +893,51 @@
         }
     }
 }
+
+// ============================================================
+// Lazy load — reveal des cartes + spinner de chargement infini
+// ============================================================
+
+// Cartes masquées avant révélation (Intersection Observer)
+.js-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 350ms ease, transform 350ms ease;
+
+    &.is-revealed {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+// Sentinelle (invisible, juste pour l'observation)
+.lazy-load-sentinel {
+    height: 1px;
+    visibility: hidden;
+}
+
+// Spinner de chargement de la page suivante
+.lazy-load-spinner {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0;
+
+    &.is-visible {
+        display: flex;
+    }
+
+    &__ring {
+        display: block;
+        width: 2rem;
+        height: 2rem;
+        border: 3px solid var(--color-border);
+        border-top-color: var(--color-gold);
+        border-radius: 50%;
+        animation: lazy-spin 0.7s linear infinite;
+    }
+}
+
+@keyframes lazy-spin {
+    to { transform: rotate(360deg); }
+}
