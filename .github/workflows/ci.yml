@@ -254,6 +254,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [tests, e2e]
     timeout-minutes: 15
+    if: github.actor != 'dependabot[bot]'
 
     steps:
       - name: Checkout
