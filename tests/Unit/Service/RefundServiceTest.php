@@ -175,4 +175,58 @@ class RefundServiceTest extends TestCase
 
         $this->assertSame('refund_pending', $result);
     }
+
+    // ----------------------------------------------------------------
+    // Couverture des catch \Throwable dans sendRefundInitiatedEmail
+    // et notifyOwnerRefundPending
+    // ----------------------------------------------------------------
+
+    /**
+     * Si sendRefundPendingEmail lève une exception, elle est avalée.
+     *
+     * Couvre le catch \Throwable dans sendRefundInitiatedEmail (ligne ~178).
+     */
+    public function testRefundPendingSmtpErrorInSendRefundInitiatedEmailIsSwallowed(): void
+    {
+        $_ENV['CA_ENABLE_GAE'] = 'false';
+        $_ENV['APP_URL']       = 'https://crabitanbellevue.fr';
+
+        $this->ordersMock->method('findByIdForAdmin')->willReturn($this->fakeOrder);
+        $this->ordersMock->method('updateStatus');
+
+        $this->mailerMock->method('sendRefundPendingEmail')
+            ->willThrowException(new \RuntimeException('SMTP error'));
+
+        // notifyOwnerRefundPending s'exécute après — ne pas lever non plus
+        $this->mailerMock->method('sendRefundRequestedToOwner');
+
+        $service = new RefundService($this->ordersMock, $this->gaeMock, $this->mailerMock);
+        $result  = $service->refund(42);
+
+        $this->assertSame('refund_pending', $result);
+    }
+
+    /**
+     * Si sendRefundRequestedToOwner lève une exception, elle est avalée.
+     *
+     * Couvre le catch \Throwable dans notifyOwnerRefundPending (ligne ~142).
+     */
+    public function testRefundPendingSmtpErrorInNotifyOwnerIsSwallowed(): void
+    {
+        $_ENV['CA_ENABLE_GAE'] = 'false';
+        $_ENV['APP_URL']       = 'https://crabitanbellevue.fr';
+
+        $this->ordersMock->method('findByIdForAdmin')->willReturn($this->fakeOrder);
+        $this->ordersMock->method('updateStatus');
+
+        $this->mailerMock->method('sendRefundPendingEmail');
+
+        $this->mailerMock->method('sendRefundRequestedToOwner')
+            ->willThrowException(new \RuntimeException('SMTP owner error'));
+
+        $service = new RefundService($this->ordersMock, $this->gaeMock, $this->mailerMock);
+        $result  = $service->refund(42);
+
+        $this->assertSame('refund_pending', $result);
+    }
 }

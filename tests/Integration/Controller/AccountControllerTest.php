@@ -5222,4 +5222,47 @@ class AccountControllerTest extends IntegrationTestCase
             unset($_ENV['CA_ENABLE_GAE']);
         }
     }
+
+    /**
+     * Token CSRF manquant : flash order_error posé, redirection 302.
+     */
+    public function testRequestRefundCsrfFailureFlashesError(): void
+    {
+        $userId    = $this->insertCustomer('req.refund.csrf@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'paid');
+        $this->loginAs($userId);
+
+        $_POST = []; // pas de csrf_token
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $this->makeController('POST', "/fr/mon-compte/commandes/{$orderId}/remboursement")
+                ->requestRefund(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (\Core\Exception\HttpException $e) {
+            $this->assertNotEmpty($_SESSION['flash']['order_error'] ?? null);
+            throw $e;
+        }
+    }
+
+    /**
+     * Commande introuvable pour cet utilisateur : abort 404.
+     */
+    public function testRequestRefundOrderNotFoundAborts404(): void
+    {
+        $userId = $this->insertCustomer('req.refund.notfound@test.local', 'individual');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $nonExistentId = 999999;
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(404);
+
+        $this->makeController('POST', "/fr/mon-compte/commandes/{$nonExistentId}/remboursement")
+            ->requestRefund(['lang' => 'fr', 'id' => (string) $nonExistentId]);
+    }
 }
