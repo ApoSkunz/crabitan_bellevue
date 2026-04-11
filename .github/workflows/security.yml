@@ -122,19 +122,16 @@ jobs:
 
       - name: Install & run Legitify CLI
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LEGITIFY_VERSION: '1.0.2'
         run: |
-          OS=linux
-          ARCH=amd64
-          ARCHIVE="legitify_${LEGITIFY_VERSION}_${OS}_${ARCH}.tar.gz"
           curl -fsSL \
-            "https://github.com/Legit-Labs/legitify/releases/download/v${LEGITIFY_VERSION}/${ARCHIVE}" \
+            "https://legitify.legitsecurity.com/${LEGITIFY_VERSION}/linux/amd64.tar.gz" \
             -o legitify.tar.gz
-          tar -xzf legitify.tar.gz legitify
+          tar -xzf legitify.tar.gz
           chmod +x legitify
           ./legitify analyze \
-            --target repository \
-            --output-format table \
+            --repo "$GITHUB_REPOSITORY" \
+            --output-format human-readable \
             || true  # non-bloquant : résultats informatifs uniquement
 
