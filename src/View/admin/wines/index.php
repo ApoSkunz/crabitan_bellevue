@@ -68,12 +68,12 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th class="col-hide-tablet">ID</th>
                     <th>Appellation</th>
                     <th>Couleur</th>
                     <th>Millésime</th>
                     <th>Prix</th>
-                    <th>Qté produite</th>
+                    <th class="col-hide-tablet">Qté produite</th>
                     <th>Stock</th>
                     <th>Statut</th>
                     <th>Mis en avant</th>
@@ -86,7 +86,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
             <?php else : ?>
                 <?php foreach ($wines as $wine) : ?>
                     <tr>
-                        <td style="color:#8a7a60;"><?= (int) $wine['id'] ?></td>
+                        <td class="col-hide-tablet" style="color:#8a7a60;"><?= (int) $wine['id'] ?></td>
                         <td>
                             <strong><?= htmlspecialchars($wine['label_name']) ?></strong>
                             <?php if ($wine['is_cuvee_speciale']) : ?>
@@ -96,7 +96,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                         <td><?= htmlspecialchars($colorLabels[$wine['wine_color']] ?? $wine['wine_color']) ?></td>
                         <td><?= (int) $wine['vintage'] ?></td>
                         <td><?= number_format((float) $wine['price'], 2, ',', ' ') ?>&nbsp;€</td>
-                        <td><?= number_format((int) $wine['production_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
+                        <td class="col-hide-tablet"><?= number_format((int) $wine['production_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
                         <td <?= (int) $wine['stock_quantity'] === 0 ? 'style="color:#c0392b;font-weight:600;"' : '' ?>>
                             <?= number_format((int) $wine['stock_quantity'], 0, ',', ' ') ?>&nbsp;bt
                         </td>

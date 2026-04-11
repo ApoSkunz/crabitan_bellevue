@@ -76,14 +76,14 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th class="col-hide-tablet">ID</th>
                     <th>Email</th>
                     <th>Nom / Société</th>
-                    <th>Type</th>
+                    <th class="col-hide-tablet">Type</th>
                     <th>Rôle</th>
-                    <th>Langue</th>
-                    <th>Vérifié</th>
-                    <th>Connecté</th>
+                    <th class="col-hide-tablet">Langue</th>
+                    <th class="col-hide-tablet">Vérifié</th>
+                    <th class="col-hide-tablet">Connecté</th>
                     <th>Inscrit le</th>
                     <?php if ($isSuperAdmin) : ?>
                         <th></th>
@@ -110,10 +110,10 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                     $verified = !empty($account['email_verified_at']);
     ?>
                     <tr>
-                        <td style="color:#8a7a60;"><?= (int) $account['id'] ?></td>
+                        <td class="col-hide-tablet" style="color:#8a7a60;"><?= (int) $account['id'] ?></td>
                         <td><?= htmlspecialchars($account['email']) ?></td>
                         <td><?= htmlspecialchars($displayName) ?></td>
-                        <td style="font-size:0.8rem;">
+                        <td class="col-hide-tablet" style="font-size:0.8rem;">
                             <?= $account['account_type'] === 'company' ? 'Société' : 'Particulier' ?>
                         </td>
                         <td>
@@ -121,17 +121,17 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                                 <?= htmlspecialchars($roleLabels[$account['role']] ?? $account['role']) ?>
                             </span>
                         </td>
-                        <td style="text-transform:uppercase;font-size:0.8rem;">
+                        <td class="col-hide-tablet" style="text-transform:uppercase;font-size:0.8rem;">
                             <?= htmlspecialchars($account['lang']) ?>
                         </td>
-                        <td>
+                        <td class="col-hide-tablet">
                             <?php if ($verified) : ?>
                                 <span style="color:#15803d;font-size:0.8rem;">✓</span>
                             <?php else : ?>
                                 <span style="color:#b91c1c;font-size:0.8rem;">✗</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td class="col-hide-tablet">
                             <?php if (!empty($account['has_connected'])) : ?>
                                 <span style="color:#15803d;font-size:0.8rem;">✓</span>
                             <?php else : ?>

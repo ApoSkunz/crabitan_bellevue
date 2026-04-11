@@ -110,7 +110,7 @@ function buildPaginationUrl(
                     <th>Référence</th>
                     <th>Client</th>
                     <th>Statut</th>
-                    <th>Paiement</th>
+                    <th class="col-hide-tablet">Paiement</th>
                     <th>Montant</th>
                     <th>Date</th>
                     <th></th>
@@ -132,7 +132,7 @@ function buildPaginationUrl(
                             <?php endif; ?>
                         </td>
                         <td><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span></td>
-                        <td style="font-size:0.8rem;"><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></td>
+                        <td class="col-hide-tablet" style="font-size:0.8rem;"><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></td>
                         <td><?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€</td>
                         <td style="white-space:nowrap;font-size:0.82rem;"><?= date('d/m/Y H:i', strtotime($order['ordered_at'])) ?></td>
                         <td><a href="/admin/commandes/<?= (int) $order['id'] ?>" class="admin-btn admin-btn--outline admin-btn--sm">Voir</a></td>
