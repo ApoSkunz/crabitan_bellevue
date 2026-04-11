@@ -332,7 +332,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 try {
                     $this->sendReturnEmails($id, $userId, $lang);
                 } catch (\Exception $e) {
-                    \Core\ErrorLogger::handleException($e);
+                    \Core\ErrorLogger::warning($e);
                 }
             } else {
                 $_SESSION['flash']['order_error'] = __('account.order_cancel_failed');
@@ -388,7 +388,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $this->newRefundService()->refund($id);
             $_SESSION['flash']['order_success'] = __('account.order_refund_initiated');
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
             $_SESSION['flash']['order_error'] = __('account.order_refund_failed');
         }
 
@@ -954,7 +954,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                     $rawToken
                 );
             } catch (\Throwable $e) {
-                \Core\ErrorLogger::handleException($e);
+                \Core\ErrorLogger::warning($e);
             }
         }
 
@@ -1287,7 +1287,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $_SESSION['flash']['profile_errors'] = ['email' => $e->getMessage()];
             Response::redirect($back);
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
             $_SESSION['flash']['profile_errors'] = ['email' => __('error.generic')];
             Response::redirect($back);
         }
@@ -1484,7 +1484,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 $reactivationToken
             );
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
         }
 
         // Supprimer le cookie
@@ -1585,7 +1585,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 (string) $account['lang']
             );
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
         }
 
         $this->view(self::VIEW_SECURITY_DENY, ['lang' => $lang, 'success' => true, 'expired' => false]);
@@ -1744,7 +1744,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $this->rgpdExportLogs->log($email, \Service\AuditLogger::getIp(), $filename, $userId);
             $_SESSION['flash']['export_sent'] = self::maskEmail($email);
         } catch (\Exception $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
             $_SESSION['flash']['export_error'] = __('account.export_error');
         }
 

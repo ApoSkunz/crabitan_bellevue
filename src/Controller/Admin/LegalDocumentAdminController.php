@@ -290,7 +290,7 @@ class LegalDocumentAdminController extends AdminController
                 $this->model->logNotification($docId, $version, (int) $account['id']);
                 $success++;
             } catch (\Exception $e) {
-                \Core\ErrorLogger::handleException($e);
+                \Core\ErrorLogger::warning($e);
                 $failure++;
             }
         }

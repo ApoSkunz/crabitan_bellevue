@@ -205,7 +205,7 @@ class AuthController extends Controller
                             'Système (blocage automatique)'
                         );
                     } catch (\Throwable $e) {
-                        \Core\ErrorLogger::handleException($e);
+                        \Core\ErrorLogger::warning($e);
                     }
                 }
             }
@@ -223,7 +223,7 @@ class AuthController extends Controller
                         $mail = new MailService();
                         $mail->sendAccountLocked($account['email'], $displayName, $lang, $resetUrl);
                     } catch (\Throwable $e) {
-                        \Core\ErrorLogger::handleException($e);
+                        \Core\ErrorLogger::warning($e);
                     }
                     $this->flash('modal_error', sprintf(__('auth.account_locked'), max(1, $wait)));
                     Response::redirect($safeBack);
@@ -250,7 +250,7 @@ class AuthController extends Controller
                     $mail = new MailService();
                     $mail->sendEmailVerification($account['email'], $displayName, $verifyUrl, $lang);
                 } catch (\Throwable $e) {
-                    \Core\ErrorLogger::handleException($e);
+                    \Core\ErrorLogger::warning($e);
                 }
             }
             $this->flash('modal_error', __('auth.invalid_credentials'));
@@ -504,7 +504,7 @@ class AuthController extends Controller
                 $mail = new MailService();
                 $mail->sendEmailAlreadyExists($email, $displayName, $lang, $loginUrl, $resetUrl);
             } catch (\Throwable $e) {
-                \Core\ErrorLogger::handleException($e);
+                \Core\ErrorLogger::warning($e);
             }
             // Normalisation du temps de réponse (anti timing oracle R14/R15) :
             // le chemin nominal exécute password_hash() en ligne ~403 ; on le simule ici
@@ -545,7 +545,7 @@ class AuthController extends Controller
             $mail = new MailService();
             $mail->sendEmailVerification($email, $displayName, $verifyUrl, $lang);
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
         }
 
         $this->flash('register_success', '1');
@@ -604,7 +604,7 @@ class AuthController extends Controller
                 $isSubscribed
             );
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
         }
 
         $this->view('auth/verify', [
@@ -695,7 +695,7 @@ class AuthController extends Controller
                     $mail->sendPasswordReset($account['email'], $displayName, $resetUrl, $lang);
                 }
             } catch (\Throwable $e) {
-                \Core\ErrorLogger::handleException($e);
+                \Core\ErrorLogger::warning($e);
             }
         } else {
             // Normalisation du temps de réponse (anti timing oracle R14/R15) :
@@ -856,7 +856,7 @@ class AuthController extends Controller
             try {
                 (new MailService())->sendEmailVerification($account['email'], $displayName, $verifyUrl, $lang);
             } catch (\Throwable $e) {
-                \Core\ErrorLogger::handleException($e);
+                \Core\ErrorLogger::warning($e);
             }
             $this->rateLimiter->recordAttempt($userKey, self::WINDOW_LOGIN);
         }
@@ -1080,7 +1080,7 @@ class AuthController extends Controller
                 $confirmToken
             );
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
         }
 
         $_SESSION['pending_device'] = [

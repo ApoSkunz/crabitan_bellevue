@@ -283,7 +283,7 @@ class NewsletterAdminController extends AdminController
                 $mailer->sendNewsletter($sub['email'], $name ?: 'Abonné', $subjectSend, $htmlBody, $pdfPath, $pdfName, $token);
                 $sent++;
             } catch (\Throwable $e) {
-                \Core\ErrorLogger::handleException($e);
+                \Core\ErrorLogger::warning($e);
                 $failed++;
             }
         }

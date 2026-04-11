@@ -202,7 +202,7 @@ class OrderAdminController extends AdminController
                         $id
                     );
                 } catch (\Throwable $mailErr) {
-                    \Core\ErrorLogger::handleException($mailErr);
+                    \Core\ErrorLogger::warning($mailErr);
                 }
                 $this->orders->updateStatus($id, 'return_requested');
                 AuditLogger::log(
@@ -249,7 +249,7 @@ class OrderAdminController extends AdminController
                         $appUrl
                     );
                 } catch (\Throwable $e) {
-                    \Core\ErrorLogger::handleException($e);
+                    \Core\ErrorLogger::warning($e);
                 }
             }
         }
@@ -292,11 +292,11 @@ class OrderAdminController extends AdminController
                             );
                         }
                     } catch (\Throwable $mailErr) {
-                        \Core\ErrorLogger::handleException($mailErr);
+                        \Core\ErrorLogger::warning($mailErr);
                     }
                 }
             } catch (\Throwable $invoiceError) {
-                \Core\ErrorLogger::handleException($invoiceError);
+                \Core\ErrorLogger::warning($invoiceError);
             }
         }
 

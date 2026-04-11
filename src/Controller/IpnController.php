@@ -220,7 +220,7 @@ class IpnController
         } catch (HttpException $e) {
             throw $e;
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
             http_response_code(500);
             echo 'ERROR';
             throw new HttpException(500);

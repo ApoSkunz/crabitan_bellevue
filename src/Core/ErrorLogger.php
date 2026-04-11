@@ -79,6 +79,30 @@ class ErrorLogger
     }
 
     /**
+     * Journalise un événement opérationnel avec le niveau INFO.
+     *
+     * À utiliser pour les traces d'audit non critiques (ex: vérification d'âge,
+     * actions utilisateur significatives) qui doivent apparaître dans le log
+     * backend sans être traitées comme des erreurs.
+     *
+     * @param string $message Message descriptif de l'événement
+     * @return void
+     */
+    public static function info(string $message): void
+    {
+        self::write([
+            'timestamp' => date('Y-m-d H:i:s'),
+            'level'     => 'INFO',
+            'message'   => $message,
+            'file'      => '',
+            'line'      => 0,
+            'trace'     => '',
+            'url'       => $_SERVER['REQUEST_URI'] ?? '',
+            'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+        ]);
+    }
+
+    /**
      * Journalise une exception catchée et gérée avec le niveau WARNING.
      *
      * À utiliser dans les catch non bloquants (SMTP, services secondaires…)

@@ -102,7 +102,7 @@ class AdminGestionAdminsController extends AdminController
                 (string) $blockerName
             );
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
         }
 
         $this->flash('success', sprintf('Le compte %s a été bloqué.', $target['email']));
@@ -152,7 +152,7 @@ class AdminGestionAdminsController extends AdminController
                 (string) $unblockerName
             );
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
         }
 
         $this->flash('success', sprintf('Le compte %s a été débloqué.', $target['email']));

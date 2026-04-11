@@ -317,7 +317,7 @@ class RgpdAdminController extends AdminController
             $mailService = new MailService();
             $mailService->sendRgpdExport($email, $name, $content, $filename, 'fr');
         } catch (\Exception $e) {
-            \Core\ErrorLogger::handleException($e);
+            \Core\ErrorLogger::warning($e);
         }
     }
 }
