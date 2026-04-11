@@ -654,7 +654,7 @@ class WineModel extends Model
         $pattern2 = '%"wine_id":' . $wineId . '}%';
         return $this->db->fetchAll(
             "SELECT a.id, a.email, a.lang,
-                    COALESCE(ai.first_name, a.email) AS first_name,
+                    COALESCE(ai.firstname, a.email) AS first_name,
                     a.newsletter_unsubscribe_token
              FROM carts c
              JOIN accounts a ON a.id = c.user_id
