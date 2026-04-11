@@ -1021,12 +1021,14 @@ class AccountControllerTest extends IntegrationTestCase
     }
 
     /**
-     * Commande 'processing' → le message droit de rétractation après livraison est affiché.
+     * Commande 'processing' par carte avec CA_ENABLE_GAE=false → bouton remboursement affiché.
+     * (CA_ENABLE_GAE=false : la voie de remboursement passe par /remboursement, pas /annuler)
      *
      * @return void
      */
-    public function testOrderDetailProcessingShowsReturnAfterDeliveryMessage(): void
+    public function testOrderDetailProcessingCardGaeDisabledShowsRefundButton(): void
     {
+        unset($_ENV['CA_ENABLE_GAE']); // GAE désactivé par défaut
         $userId    = $this->insertCustomer('odtl.proc@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
         $orderId   = $this->insertOrder($userId, $addressId, 'processing');
@@ -1037,7 +1039,7 @@ class AccountControllerTest extends IntegrationTestCase
             ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('account.order_return_after_delivery', $output);
+        $this->assertStringContainsString('account.order_refund_btn', $output);
     }
 
     // ----------------------------------------------------------------
