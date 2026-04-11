@@ -2195,6 +2195,49 @@ INNER;
         $this->send($toEmail, $toName, $subject, $body, $pdfPath, null, $filename);
     }
 
+    /**
+     * Notifie le client que son remboursement a été initié (statut refund_pending).
+     *
+     * Envoyée lorsque CA_ENABLE_GAE=false — le remboursement sera traité manuellement.
+     *
+     * @param string $toEmail  Adresse email du client
+     * @param string $toName   Nom affiché du client
+     * @param string $orderRef Référence de la commande
+     * @param string $lang     Langue du client (fr|en)
+     * @param string $appUrl   URL de base de l'application
+     * @return void
+     */
+    public function sendRefundPendingEmail(
+        string $toEmail,
+        string $toName,
+        string $orderRef,
+        string $lang,
+        string $appUrl
+    ): void {
+        $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeName = htmlspecialchars($toName, ENT_QUOTES);
+        $safeUrl  = rtrim($appUrl, '/');
+
+        if ($lang === 'fr') {
+            $subject  = "Votre remboursement a été initié — {$safeRef}";
+            $title    = 'Remboursement en cours';
+            $greeting = "Bonjour {$safeName},";
+            $message  = "Votre demande de remboursement pour la commande <strong>{$safeRef}</strong> "
+                . "a bien été prise en compte. Le remboursement sera traité dans les meilleurs délais.<br><br>"
+                . "<a href=\"{$safeUrl}/fr/mon-compte/commandes\" style=\"color:#c9a84c;\">Voir mes commandes</a>";
+        } else {
+            $subject  = "Your refund has been initiated — {$safeRef}";
+            $title    = 'Refund in progress';
+            $greeting = "Hello {$safeName},";
+            $message  = "Your refund request for order <strong>{$safeRef}</strong> has been received. "
+                . "The refund will be processed as soon as possible.<br><br>"
+                . "<a href=\"{$safeUrl}/en/my-account/orders\" style=\"color:#c9a84c;\">View my orders</a>";
+        }
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
+        $this->send($toEmail, $toName, $subject, $body);
+    }
+
     public function sendIpnSignatureAlert(string $to, string $date, string $ip): void
     {
         $safeDate = htmlspecialchars($date, ENT_QUOTES);
