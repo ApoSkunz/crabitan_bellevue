@@ -714,6 +714,12 @@ return [
     'account.order_return_slip_btn'            => 'Télécharger la fiche de retour',
     'account.order_return_in_progress_title'   => 'Retour en cours',
     'account.order_return_in_progress'         => 'Votre demande de retour est enregistrée. Si vous avez besoin d\'aide, vous pouvez contacter notre support.',
+    'account.order_refund_initiated'           => 'Votre demande de remboursement a été prise en compte. Vous recevrez un email de confirmation.',
+    'account.order_refund_not_eligible'        => 'Cette commande n\'est pas éligible au remboursement.',
+    'account.order_refund_failed'              => 'Le remboursement n\'a pas pu être initié. Veuillez contacter notre support.',
+    'account.order_refund_btn'                 => 'Demander un remboursement',
+    'account.order_refund_confirm'             => 'Êtes-vous sûr de vouloir demander un remboursement pour cette commande ? Cette action est définitive.',
+    'account.order_refund_pending_notice'      => 'Votre remboursement est en cours de traitement.',
 
     // Adresses — CRUD
     'account.address_add'        => 'Ajouter une adresse',
@@ -819,6 +825,7 @@ return [
     'order.status.delivered'        => 'Livrée',
     'order.status.cancelled'        => 'Annulée',
     'order.status.refunded'         => 'Remboursée',
+    'order.status.refund_pending'   => 'Remboursement en attente',
     'order.status.return_requested' => 'Retour en cours',
     'order.status.refund_refused'   => 'Remboursement refusé',
 

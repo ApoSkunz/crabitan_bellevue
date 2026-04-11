@@ -712,6 +712,12 @@ return [
     'account.order_return_slip_btn'            => 'Download return slip',
     'account.order_return_in_progress_title'   => 'Return in progress',
     'account.order_return_in_progress'         => 'Your return request has been registered. If you need assistance, you can contact our support.',
+    'account.order_refund_initiated'           => 'Your refund request has been received. You will receive a confirmation email.',
+    'account.order_refund_not_eligible'        => 'This order is not eligible for a refund.',
+    'account.order_refund_failed'              => 'The refund could not be initiated. Please contact our support.',
+    'account.order_refund_btn'                 => 'Request a refund',
+    'account.order_refund_confirm'             => 'Are you sure you want to request a refund for this order? This action is final.',
+    'account.order_refund_pending_notice'      => 'Your refund is being processed.',
 
     // Addresses — CRUD
     'account.address_add'        => 'Add an address',
@@ -817,6 +823,7 @@ return [
     'order.status.delivered'        => 'Delivered',
     'order.status.cancelled'        => 'Cancelled',
     'order.status.refunded'         => 'Refunded',
+    'order.status.refund_pending'   => 'Refund pending',
     'order.status.return_requested' => 'Return in progress',
     'order.status.refund_refused'   => 'Refund refused',
 

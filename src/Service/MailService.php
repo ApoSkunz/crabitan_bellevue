@@ -1648,6 +1648,47 @@ INNER;
     }
 
     /**
+     * Notifie le propriétaire qu'une demande de remboursement manuel a été soumise (CA_ENABLE_GAE=false).
+     *
+     * @param array<string, mixed> $order       Données de la commande
+     * @param string               $clientName  Nom du client
+     * @param string               $clientEmail Email du client
+     * @return void
+     */
+    public function sendRefundRequestedToOwner(array $order, string $clientName, string $clientEmail): void
+    {
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
+        $safeRef    = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
+        $safeName   = htmlspecialchars($clientName, ENT_QUOTES);
+        $safeEmail  = htmlspecialchars($clientEmail, ENT_QUOTES);
+        $amount     = number_format((float) ($order['price'] ?? 0), 2, ',', ' ');
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $orderId    = (int) ($order['id'] ?? 0);
+        $orderLink  = $orderId > 0
+            ? htmlspecialchars($appUrl . '/admin/commandes/' . $orderId, ENT_QUOTES)
+            : '';
+
+        $orderLinkBlock = $orderLink !== ''
+            ? "<br><br><a href=\"{$orderLink}\" style=\"color:#c9a84c;\">Voir la commande dans l'administration</a>"
+            : '';
+
+        $message = "Une demande de remboursement manuel a été soumise pour la commande <strong>{$safeRef}</strong>.<br><br>"
+            . "<strong>Client :</strong> {$safeName} (<a href=\"mailto:{$safeEmail}\">{$safeEmail}</a>)<br>"
+            . "<strong>Montant :</strong> {$amount}&nbsp;€<br>"
+            . "<strong>Action requise :</strong> Traiter le remboursement dans Vision Air, puis confirmer dans l'administration."
+            . $orderLinkBlock;
+
+        $body = $this->emailSimpleLayout(
+            'Remboursement à traiter',
+            'Nouvelle demande de remboursement',
+            $message,
+            'fr'
+        );
+
+        $this->send($ownerEmail, APP_NAME, "Remboursement client — commande {$safeRef}", $body, null, $clientEmail);
+    }
+
+    /**
      * Envoie au propriétaire la liste des commandes sans mouvement depuis plus de $days jours.
      *
      * @param array<int, array<string, mixed>> $orders Commandes retournées par OrderModel::getStaleOrders()
@@ -2193,6 +2234,49 @@ INNER;
         $filename = $invoiceNumber . '.pdf';
 
         $this->send($toEmail, $toName, $subject, $body, $pdfPath, null, $filename);
+    }
+
+    /**
+     * Notifie le client que son remboursement a été initié (statut refund_pending).
+     *
+     * Envoyée lorsque CA_ENABLE_GAE=false — le remboursement sera traité manuellement.
+     *
+     * @param string $toEmail  Adresse email du client
+     * @param string $toName   Nom affiché du client
+     * @param string $orderRef Référence de la commande
+     * @param string $lang     Langue du client (fr|en)
+     * @param string $appUrl   URL de base de l'application
+     * @return void
+     */
+    public function sendRefundPendingEmail(
+        string $toEmail,
+        string $toName,
+        string $orderRef,
+        string $lang,
+        string $appUrl
+    ): void {
+        $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeName = htmlspecialchars($toName, ENT_QUOTES);
+        $safeUrl  = rtrim($appUrl, '/');
+
+        if ($lang === 'fr') {
+            $subject  = "Votre remboursement a été initié — {$safeRef}";
+            $title    = 'Remboursement en cours';
+            $greeting = "Bonjour {$safeName},";
+            $message  = "Votre demande de remboursement pour la commande <strong>{$safeRef}</strong> "
+                . "a bien été prise en compte. Le remboursement sera traité dans les meilleurs délais.<br><br>"
+                . "<a href=\"{$safeUrl}/fr/mon-compte/commandes\" style=\"color:#c9a84c;\">Voir mes commandes</a>";
+        } else {
+            $subject  = "Your refund has been initiated — {$safeRef}";
+            $title    = 'Refund in progress';
+            $greeting = "Hello {$safeName},";
+            $message  = "Your refund request for order <strong>{$safeRef}</strong> has been received. "
+                . "The refund will be processed as soon as possible.<br><br>"
+                . "<a href=\"{$safeUrl}/en/my-account/orders\" style=\"color:#c9a84c;\">View my orders</a>";
+        }
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
+        $this->send($toEmail, $toName, $subject, $body);
     }
 
     public function sendIpnSignatureAlert(string $to, string $date, string $ip): void
