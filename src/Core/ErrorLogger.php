@@ -143,9 +143,17 @@ class ErrorLogger
         }
 
         $filename = $logDir . '/php-error-' . date('Y-m-d') . '.log';
-        $line     = json_encode($entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
 
-        file_put_contents($filename, $line, FILE_APPEND | LOCK_EX);
+        $file    = isset($entry['file']) && $entry['file'] !== '' ? basename((string) $entry['file']) : '';
+        $lineNo  = isset($entry['line']) && $entry['line'] !== 0 ? ':' . $entry['line'] : '';
+        $where   = $file !== '' ? " ({$file}{$lineNo})" : '';
+        $human   = '[' . ($entry['timestamp'] ?? date('Y-m-d H:i:s')) . '] '
+            . ($entry['level'] ?? 'LOG') . ' — '
+            . ($entry['message'] ?? '') . $where . "\n";
+
+        $json    = json_encode($entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+
+        file_put_contents($filename, $human . $json, FILE_APPEND | LOCK_EX);
 
         self::purgeOldLogs($logDir);
     }
