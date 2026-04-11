@@ -198,7 +198,8 @@ class OrderAdminController extends AdminController
                 try {
                     $this->newMailService()->sendRefundGaeKoToOwner(
                         $ref,
-                        (float) ($order['price'] ?? 0)
+                        (float) ($order['price'] ?? 0),
+                        $id
                     );
                 } catch (\Throwable $mailErr) {
                     // phpcs:ignore Generic.Files.LineLength

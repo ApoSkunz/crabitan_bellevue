@@ -14,7 +14,6 @@ use Model\ConnectionModel;
 use Model\FavoriteModel;
 use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
-use Model\OrderAddressSnapshotModel;
 use Model\OrderModel;
 use Model\RgpdExportLogModel;
 use Service\AccountService;
@@ -49,7 +48,6 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     private OrderModel $orders;
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
-    private OrderAddressSnapshotModel $orderAddressSnapshots;
     private DeviceConfirmTokenModel $deviceConfirmTokens;
     private RateLimiterService $rateLimiter;
     private RgpdExportLogModel $rgpdExportLogs;
@@ -68,7 +66,6 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $this->orders              = new OrderModel();
         $this->connections         = new ConnectionModel();
         $this->trustedDevices          = new TrustedDeviceModel();
-        $this->orderAddressSnapshots   = new OrderAddressSnapshotModel();
         $this->deviceConfirmTokens     = new DeviceConfirmTokenModel();
         $this->rateLimiter         = new RateLimiterService();
         $this->rgpdExportLogs      = new RgpdExportLogModel();
@@ -342,6 +339,67 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         Response::redirect($back);
     }
 
+    // ----------------------------------------------------------------
+    // POST /{lang}/mon-compte/commandes/{id}/remboursement
+    // ----------------------------------------------------------------
+
+    /**
+     * Initie une demande de remboursement depuis l'espace-compte client.
+     *
+     * Délègue à RefundService qui applique la logique GAE/Vision Air
+     * selon CA_ENABLE_GAE et envoie l'email de confirmation au client.
+     *
+     * @param array<string, string> $params Paramètres de route (lang, id)
+     * @return void
+     */
+    public function requestRefund(array $params): void
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
+        $id      = (int) ($params['id'] ?? 0);
+        $back    = "/{$lang}/mon-compte/commandes/{$id}";
+
+        $this->requireIndividual($userId, $lang);
+
+        if (!$this->verifyCsrf()) {
+            $_SESSION['flash']['order_error'] = __('error.csrf');
+            Response::redirect($back);
+        }
+
+        $order = $this->orders->findDetailForUser($id, $userId);
+        if (!$order) {
+            $this->abort(404, 'Commande introuvable');
+        }
+
+        // Seuls les statuts éligibles peuvent demander un remboursement
+        $refundableStatuses = ['paid', 'processing'];
+        if (!in_array($order['status'], $refundableStatuses, true)) {
+            $_SESSION['flash']['order_error'] = __('account.order_refund_not_eligible');
+            Response::redirect($back);
+        }
+
+        try {
+            $this->newRefundService()->refund($id);
+            $_SESSION['flash']['order_success'] = __('account.order_refund_initiated');
+        } catch (\Throwable $e) {
+            error_log('[AccountController] requestRefund failed: ' . $e->getMessage()); // NOSONAR — php:S4792
+            $_SESSION['flash']['order_error'] = __('account.order_refund_failed');
+        }
+
+        Response::redirect($back);
+    }
+
+    /**
+     * Instancie le RefundService (seam de testabilité).
+     *
+     * @return \Service\RefundService
+     */
+    protected function newRefundService(): \Service\RefundService
+    {
+        return new \Service\RefundService();
+    }
+
     /**
      * Envoie les emails de notification de retour au propriétaire et au client.
      *
@@ -471,11 +529,16 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
         $rows = '';
         foreach ($items as $item) {
-            $label  = htmlspecialchars($item['label_name'] ?? '—');
-            $format = htmlspecialchars($item['format'] ?? '—');
-            $qty    = (int) ($item['qty'] ?? 0);
-            $price  = number_format((float) ($item['price'] ?? 0), 2, ',', ' ');
-            $rows  .= "<tr><td>{$label}</td><td>{$format}</td>"
+            $label       = htmlspecialchars($item['label_name'] ?? '—');
+            $qty         = (int) ($item['qty'] ?? 0);
+            $price       = number_format((float) ($item['price'] ?? 0), 2, ',', ' ');
+            $vintage     = (int) ($item['vintage'] ?? 0);
+            $vintageCell = $vintage > 0 ? (string) $vintage : '';
+            if (!empty($item['is_cuvee_speciale'])) {
+                $label .= '<br><span style="font-size:8pt;color:#c1a14b;font-style:italic;">Cuvée Spéciale</span>';
+            }
+            $rows .= "<tr><td>{$label}</td>"
+                . "<td style=\"text-align:center;\">{$vintageCell}</td>"
                 . "<td style=\"text-align:center;\">{$qty}</td>"
                 . "<td style=\"text-align:right;\">{$price}&nbsp;€</td></tr>";
         }
@@ -515,7 +578,8 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
         <h2>Articles retournés</h2>
         <table>
-            <tr><th>Vin</th><th>Format</th>'
+            <tr><th>Vin</th>'
+            . '<th style="text-align:center;">Millésime</th>'
             . '<th style="text-align:center;">Qté</th><th style="text-align:right;">Prix unit.</th></tr>
             ' . $rows . '
         </table>
@@ -1711,101 +1775,14 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
      * Assemble le tableau de données export RGPD (Art. 20) pour un utilisateur.
      *
      * Seam protégé pour permettre les tests d'intégration sans passer par exit().
+     * Délègue à RgpdExportService pour mutualiser avec l'export admin.
      *
      * @param int $userId Identifiant du compte
      * @return array<string, mixed>
      */
     protected function buildExportData(int $userId): array
     {
-        $account        = $this->accounts->findById($userId);
-        $addresses      = $this->addresses->getByUser($userId);
-        $favorites      = $this->favorites->getByUser($userId);
-        $orders         = $this->orders->getForUser($userId, 1, 9999);
-        $trustedDevices  = $this->trustedDevices->getForExport($userId);
-        $sessions        = $this->connections->getActiveForUser($userId);
-        $recentLogs      = $this->connections->getRecentForUser($userId);
-        $consentData     = $this->accounts->getConsentData($userId);
-        $addressSnapshots = $this->orderAddressSnapshots->getForUserExport($userId);
-
-        return [
-            'exported_at' => date('c'),
-            'account'     => [
-                'Email'          => $account['email']        ?? null,
-                'Type de compte' => $account['account_type'] ?? null,
-                'Langue'         => $account['lang']         ?? null,
-                'Date de création' => $account['created_at'] ?? null,
-                ...(($account['account_type'] ?? '') === 'company'
-                    ? ['Raison sociale' => $account['company_name'] ?? null]
-                    : [
-                        'Civilité' => $account['civility']  ?? null,
-                        'Prénom'   => $account['firstname'] ?? null,
-                        'Nom'      => $account['lastname']  ?? null,
-                    ]
-                ),
-                'Newsletter' => ($account['newsletter'] ?? 0) ? 'Oui' : 'Non',
-            ],
-            'addresses' => array_map(fn($a) => [
-                'type'      => $a['type'],
-                'civility'  => $a['civility'],
-                'firstname' => $a['firstname'],
-                'lastname'  => $a['lastname'],
-                'street'    => $a['street'],
-                'city'      => $a['city'],
-                'zip_code'  => $a['zip_code'],
-                'country'   => $a['country'],
-                'phone'     => $a['phone'],
-            ], $addresses),
-            'orders' => array_map(fn($o) => [
-                'reference'  => $o['order_reference'],
-                'status'     => $o['status'],
-                'price'      => $o['price'],
-                'ordered_at' => $o['ordered_at'],
-            ], $orders),
-            'favorites' => array_map(fn($f) => [
-                'name'    => $f['name'],
-                'vintage' => $f['vintage'],
-            ], $favorites),
-            'trusted_devices' => array_map(fn($d) => [
-                'device_name'  => $d['device_name'],
-                'confirmed_at' => $d['confirmed_at'],
-                'last_seen'    => $d['last_seen'],
-                'user_agent'   => $d['user_agent'],
-            ], $trustedDevices),
-            'active_sessions' => array_map(fn($s) => [
-                'device_name' => $s['device_name'],
-                'ip_address'  => $s['ip_address'],
-                'created_at'  => $s['created_at'],
-                'expired_at'  => $s['expired_at'],
-            ], $sessions),
-            'connection_logs' => array_map(fn($l) => [
-                'device_name' => $l['device_name'],
-                'ip_address'  => $l['ip_address'],
-                'user_agent'  => $l['user_agent'],
-                'auth_method' => $l['auth_method'],
-                'status'      => $l['status'],
-                'created_at'  => $l['created_at'],
-            ], $recentLogs),
-            'consentements' => [
-                'newsletter' => [
-                    'abonne'           => $consentData['newsletter']['abonne'] ? 'Oui' : 'Non',
-                    'email_verifie_le' => $consentData['newsletter']['email_verifie_le'],
-                ],
-                'cgv_versions_acceptees' => $consentData['cgv_versions'],
-            ],
-            'adresses_commandes' => array_map(fn($s) => [
-                'order_reference' => $s['order_reference'],
-                'address_type'    => $s['address_type'],
-                'civility'        => $s['civility'],
-                'firstname'       => $s['firstname'],
-                'lastname'        => $s['lastname'],
-                'street'          => $s['street'],
-                'city'            => $s['city'],
-                'zip'             => $s['zip'],
-                'country'         => $s['country'],
-                'phone'           => $s['phone'],
-                'ordered_at'      => $s['ordered_at'],
-            ], $addressSnapshots),
-        ];
+        return (new \Service\RgpdExportService())->buildForAccount($userId);
     }
 
     protected function buildExportContent(array $export, string $date, string $basename): array

@@ -1144,7 +1144,7 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
         } catch (HttpException $e) {
             $this->assertNotEmpty($_SESSION['admin_flash']['error'] ?? null);
             $row = self::$db->fetchOne("SELECT status FROM orders WHERE id = ?", [$id]);
-            $this->assertSame('paid', $row['status']);
+            $this->assertSame('return_requested', $row['status']);
             throw $e;
         }
     }

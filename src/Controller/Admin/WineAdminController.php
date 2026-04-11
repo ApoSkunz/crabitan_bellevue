@@ -12,6 +12,7 @@ use Model\WineModel;
 use Model\WineNutritionModel;
 use Service\AuditLogger;
 use Service\MailService;
+use Service\StockNotificationService;
 use Service\TranslationService;
 
 class WineAdminController extends AdminController
@@ -340,6 +341,11 @@ class WineAdminController extends AdminController
         $nutritionPost   = $this->parseNutritionPost();
         $errors          = array_merge($errors, $this->validateNutrition($nutritionPost));
 
+        // Stock à 0 → indisponible automatiquement
+        if ((int) ($data['stock_quantity'] ?? 0) === 0) {
+            $data['available'] = 0;
+        }
+
         if ($errors !== []) {
             $this->view(self::FORM_VIEW, [
                 'adminUser'     => $adminUser,
@@ -360,10 +366,22 @@ class WineAdminController extends AdminController
         }
 
         try {
+            $newStock  = (int) ($data['stock_quantity'] ?? 0);
+            $threshold = (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300);
             $this->wines->update($id, $data);
             $this->nutrition->upsert($id, $nutritionPost);
+            // Stock remonte au-dessus du seuil → réarmer la notification pour la prochaine descente
+            if ($newStock > $threshold) {
+                $this->wines->resetLowStockNotified($id);
+            }
+            try {
+                (new StockNotificationService())->notifyIfThresholdCrossed($wine, $newStock);
+            } catch (\Throwable) {
+                // Non bloquant — l'échec de la notification ne doit pas empêcher la sauvegarde
+            }
             if (!$data['available']) {
                 (new CartModel())->purgeWineFromAllCarts($id);
+                $this->wines->unsetFeatured($id);
             }
             AuditLogger::log(
                 $adminUser['id'],

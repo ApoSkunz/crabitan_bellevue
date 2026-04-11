@@ -87,6 +87,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                         class="wine-detail__image js-wine-zoom"
                         width="400"
                         height="560"
+                        loading="lazy"
                         title="<?= htmlspecialchars(__('wine.zoom')) ?>"
                     >
                     <span class="wine-detail__zoom-hint" aria-hidden="true">&#128269;</span>
@@ -110,9 +111,15 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                                 <span class="wine-card__rating"><?= number_format($avgRating, 1) ?>/5 (<?= $ratingCount ?> <?= htmlspecialchars(__('wine.reviews')) ?>)</span>
                             <?php endif; ?>
                         </strong>
+                        <?php if ((int) ($wine['stock_quantity'] ?? 0) <= (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300)) : ?>
+                            <span class="wine-detail__stock wine-detail__stock--low-stock">
+                                <?= htmlspecialchars(__('wine.low_stock')) ?>
+                            </span>
+                        <?php else : ?>
                         <span class="wine-detail__stock wine-detail__stock--available">
                             <?= htmlspecialchars(__('wine.available')) ?>
                         </span>
+                        <?php endif; ?>
                         <?php if (!$isAdmin) : ?>
                         <div class="wine-detail__actions">
                             <button

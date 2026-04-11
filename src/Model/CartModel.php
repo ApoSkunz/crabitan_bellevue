@@ -335,6 +335,19 @@ class CartModel extends Model
     }
 
     /**
+     * Retire un vin spécifique de tous les paniers BDD (ex. vin rendu indisponible par l'admin).
+     *
+     * Alias de purgeWineFromAllCarts — conserve les deux noms pour compatibilité.
+     *
+     * @param int $wineId Identifiant du vin à retirer
+     * @return void
+     */
+    public function removeWineFromAllCarts(int $wineId): void
+    {
+        $this->purgeWineFromAllCarts($wineId);
+    }
+
+    /**
      * Retire un vin spécifique de tous les paniers (ex. vin rendu indisponible par l'admin).
      *
      * @param int $wineId Identifiant du vin à retirer
@@ -354,6 +367,43 @@ class CartModel extends Model
 
             if (count($filtered) !== count($items)) {
                 $this->save((int) $row['user_id'], $filtered);
+            }
+        }
+    }
+
+    /**
+     * Plafonne la quantité d'un vin dans tous les paniers BDD au nouveau stock disponible.
+     *
+     * Appelé après une décrémentation de stock (commande passée) pour éviter
+     * que des paniers contiennent plus de bouteilles que le stock restant.
+     *
+     * @param int $wineId   Identifiant du vin
+     * @param int $maxQty   Nouvelle quantité maximale autorisée
+     * @return void
+     */
+    public function capWineQtyAcrossAllCarts(int $wineId, int $maxQty): void
+    {
+        if ($maxQty <= 0) {
+            $this->purgeWineFromAllCarts($wineId);
+            return;
+        }
+
+        $rows = $this->db->fetchAll(
+            "SELECT id, user_id, content FROM {$this->table} WHERE total_quantity > 0"
+        );
+
+        foreach ($rows as $row) {
+            $items    = $this->getContent($row);
+            $modified = false;
+            foreach ($items as &$item) {
+                if ((int) ($item['wine_id'] ?? 0) === $wineId && (int) ($item['qty'] ?? 0) > $maxQty) {
+                    $item['qty'] = $maxQty;
+                    $modified    = true;
+                }
+            }
+            unset($item);
+            if ($modified) {
+                $this->save((int) $row['user_id'], $items);
             }
         }
     }
