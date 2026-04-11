@@ -530,15 +530,15 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $rows = '';
         foreach ($items as $item) {
             $label       = htmlspecialchars($item['label_name'] ?? '—');
-            $format      = htmlspecialchars($item['format'] ?? '—');
             $qty         = (int) ($item['qty'] ?? 0);
             $price       = number_format((float) ($item['price'] ?? 0), 2, ',', ' ');
             $vintage     = (int) ($item['vintage'] ?? 0);
             $vintageCell = $vintage > 0 ? (string) $vintage : '';
-            $cuvee       = !empty($item['is_cuvee_speciale']) ? '&#9733; Cuvée Spéciale' : '';
-            $rows       .= "<tr><td>{$label}</td><td>{$format}</td>"
+            if (!empty($item['is_cuvee_speciale'])) {
+                $label .= '<br><span style="font-size:8pt;color:#c1a14b;font-style:italic;">Cuvée Spéciale</span>';
+            }
+            $rows .= "<tr><td>{$label}</td>"
                 . "<td style=\"text-align:center;\">{$vintageCell}</td>"
-                . "<td style=\"text-align:center;\">{$cuvee}</td>"
                 . "<td style=\"text-align:center;\">{$qty}</td>"
                 . "<td style=\"text-align:right;\">{$price}&nbsp;€</td></tr>";
         }
@@ -578,9 +578,8 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
         <h2>Articles retournés</h2>
         <table>
-            <tr><th>Vin</th><th>Format</th>'
+            <tr><th>Vin</th>'
             . '<th style="text-align:center;">Millésime</th>'
-            . '<th style="text-align:center;">Cuvée Spéciale</th>'
             . '<th style="text-align:center;">Qté</th><th style="text-align:right;">Prix unit.</th></tr>
             ' . $rows . '
         </table>
