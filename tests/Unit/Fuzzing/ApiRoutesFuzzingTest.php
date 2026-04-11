@@ -8,6 +8,7 @@ use Core\Database;
 use Core\Exception\HttpException;
 use Core\Jwt;
 use Core\Request;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -121,6 +122,7 @@ class ApiRoutesFuzzingTest extends TestCase
     /**
      * @dataProvider cartAddFuzzProvider
      */
+    #[DataProvider('cartAddFuzzProvider')]
     public function testCartAddWithInvalidPayloads(string $label, mixed $wineId, mixed $quantity): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -257,6 +259,7 @@ class ApiRoutesFuzzingTest extends TestCase
     /**
      * @dataProvider cartRemoveFuzzProvider
      */
+    #[DataProvider('cartRemoveFuzzProvider')]
     public function testCartRemoveWithInvalidPayloads(string $label, mixed $wineId): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -292,6 +295,7 @@ class ApiRoutesFuzzingTest extends TestCase
     /**
      * @dataProvider ageGateFuzzProvider
      */
+    #[DataProvider('ageGateFuzzProvider')]
     public function testAgeGateWithInvalidPayloads(string $label, mixed $born): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -356,6 +360,7 @@ class ApiRoutesFuzzingTest extends TestCase
     /**
      * @dataProvider adminPostFuzzProvider
      */
+    #[DataProvider('adminPostFuzzProvider')]
     public function testAdminPostEndpointsWithoutCsrf(string $label, string $controller, string $method, array $params): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
