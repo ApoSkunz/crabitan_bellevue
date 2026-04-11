@@ -41,6 +41,7 @@ class MarketingAdminController extends AdminController
         $adminUser = $this->requireAdmin();
 
         $avgOrder        = $this->orders->getAvgOrderValue(30);
+        $conversionRate  = $this->orders->getConversionRate(30);
         $segmentation    = $this->accounts->getSegmentation();
         $newsletterStats = $this->newsletter->getStats();
 
@@ -59,6 +60,7 @@ class MarketingAdminController extends AdminController
                 ['label' => 'Marketing'],
             ],
             'avgOrder'        => $avgOrder,
+            'conversionRate'  => $conversionRate,
             'segmentation'    => $segmentation,
             'newsletterStats' => $newsletterStats,
             'topRated'        => $topRated,

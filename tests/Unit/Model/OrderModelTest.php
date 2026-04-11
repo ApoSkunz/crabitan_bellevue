@@ -253,4 +253,36 @@ class OrderModelTest extends TestCase
 
         $this->model->getStaleOrders(14);
     }
+
+    // ----------------------------------------------------------------
+    // getConversionRate()
+    // ----------------------------------------------------------------
+
+    /**
+     * Retourne 0.0 quand aucun panier actif (dénominateur = 0).
+     */
+    public function testGetConversionRateReturnsZeroWhenNoOrders(): void
+    {
+        $this->dbMock->method('fetchOne')
+            ->willReturnOnConsecutiveCalls(
+                ['cnt' => 0],
+                ['cnt' => 0]
+            );
+
+        $this->assertSame(0.0, $this->model->getConversionRate(30));
+    }
+
+    /**
+     * Calcule correctement le ratio : 5 commandes / 10 paniers = 0.5.
+     */
+    public function testGetConversionRateCalculatesCorrectRatio(): void
+    {
+        $this->dbMock->method('fetchOne')
+            ->willReturnOnConsecutiveCalls(
+                ['cnt' => 5],
+                ['cnt' => 10]
+            );
+
+        $this->assertSame(0.5, $this->model->getConversionRate(30));
+    }
 }
