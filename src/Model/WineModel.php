@@ -648,15 +648,20 @@ class WineModel extends Model
      */
     public function getCartUsersWithWine(int $wineId): array
     {
+        // JSON_OBJECT('wine_id', ?) lie le paramètre en string sur MariaDB/PDO —
+        // on utilise LIKE avec deux patterns pour éviter les faux positifs (ex. id=2 vs id=21).
+        $pattern1 = '%"wine_id":' . $wineId . ',%';
+        $pattern2 = '%"wine_id":' . $wineId . '}%';
         return $this->db->fetchAll(
             "SELECT a.id, a.email, a.lang,
-                    COALESCE(ai.first_name, a.email) AS first_name
+                    COALESCE(ai.first_name, a.email) AS first_name,
+                    a.newsletter_unsubscribe_token
              FROM carts c
              JOIN accounts a ON a.id = c.user_id
              LEFT JOIN account_individuals ai ON ai.account_id = a.id
              WHERE a.deleted_at IS NULL
-               AND JSON_CONTAINS(c.content, JSON_OBJECT('wine_id', ?), '$')",
-            [$wineId]
+               AND (c.content LIKE ? OR c.content LIKE ?)",
+            [$pattern1, $pattern2]
         );
     }
 

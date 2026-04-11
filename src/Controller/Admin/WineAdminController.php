@@ -376,8 +376,8 @@ class WineAdminController extends AdminController
             }
             try {
                 (new StockNotificationService())->notifyIfThresholdCrossed($wine, $newStock);
-            } catch (\Throwable) {
-                // Non bloquant — l'échec de la notification ne doit pas empêcher la sauvegarde
+            } catch (\Throwable $e) {
+                error_log("[StockNotif] EXCEPTION " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
             }
             if (!$data['available']) {
                 (new CartModel())->purgeWineFromAllCarts($id);
