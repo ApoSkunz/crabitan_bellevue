@@ -178,7 +178,7 @@ class StockNotificationServiceTest extends TestCase
 /**
  * Stub WineModel pour les tests de StockNotificationService.
  */
-class StubWineModelForStock extends \Model\WineModel
+class StubWineModelForStock extends \Model\WineModel // phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
 {
     /** @var array<int, array<string, mixed>> */
     public array $cartUsers = [];
@@ -213,7 +213,7 @@ class StubWineModelForStock extends \Model\WineModel
 /**
  * Stub MailService pour les tests de StockNotificationService.
  */
-class StubMailServiceForStock extends \Service\MailService
+class StubMailServiceForStock extends \Service\MailService // phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
 {
     public int $sendCount = 0;
     public bool $throwOnSend = false;
