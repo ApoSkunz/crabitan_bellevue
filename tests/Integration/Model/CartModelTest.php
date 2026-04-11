@@ -478,7 +478,7 @@ class CartModelTest extends IntegrationTestCase
               production_quantity, stock_quantity, available, certification_label,
               area, city, variety_of_vine, age_of_vineyard,
               oenological_comment, soil, pruning, harvest, vinification,
-              barrel_fermentation, image_path, slug, is_cuvee_speciale, likes_count)
+              barrel_fermentation, image_path, slug, is_cuvee_speciale)
              VALUES ('Vin Test TI', 'red', 'bottle', 2021, 12.00,
               1000, 50, 1, 'AOC',
               5.00, 'Test City', 'Merlot', 20,
@@ -488,7 +488,7 @@ class CartModelTest extends IntegrationTestCase
               '{\"fr\":\"nc\",\"en\":\"nc\"}',
               '{\"fr\":\"nc\",\"en\":\"nc\"}',
               '{\"fr\":\"nc\",\"en\":\"nc\"}',
-              'test.jpg', 'vin-test-ti', 0, 0)"
+              'test.jpg', 'vin-test-ti', 0)"
         );
 
         $past = date('Y-m-d H:i:s', strtotime('-80 hours'));
