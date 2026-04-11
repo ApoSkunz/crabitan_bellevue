@@ -319,7 +319,7 @@ CREATE TABLE `orders` (
   `shipping_discount`    DECIMAL(10,2)  NOT NULL DEFAULT 0.00 COMMENT 'Remise livraison snapshot au moment de la commande',
   `id_billing_snapshot`  INT            NOT NULL COMMENT 'Snapshot adresse facturation — dissocié du compte',
   `id_delivery_snapshot` INT            DEFAULT NULL COMMENT 'Snapshot adresse livraison — dissocié du compte',
-  `status`               ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested','refund_refused') NOT NULL DEFAULT 'pending',
+  `status`               ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested','refund_refused','refund_pending') NOT NULL DEFAULT 'pending',
   `cgv_version`          VARCHAR(20)    NOT NULL DEFAULT '1.0' COMMENT 'Version des CGV acceptées au moment de la commande',
   `ca_numappel`          VARCHAR(11)    DEFAULT NULL COMMENT 'NUMAPPEL CA e-Transactions (lettre T PBX_RETOUR) — requis pour remboursement GAE',
   `ca_numtrans`          VARCHAR(11)    DEFAULT NULL COMMENT 'NUMTRANS CA e-Transactions (lettre S PBX_RETOUR) — requis pour remboursement GAE',
