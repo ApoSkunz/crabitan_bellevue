@@ -217,6 +217,14 @@ $removedCount     = (int) ($removedCount ?? 0);
                                 <?php if (!empty($item['is_cuvee_speciale'])) : ?>
                                     <span class="cart-table__cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span>
                                 <?php endif; ?>
+                                <?php
+                                $stockLimit = (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300);
+                                if ($stock > 0 && $stock <= $stockLimit) :
+                                ?>
+                                    <span class="cart-table__stock-notice">
+                                        <?= $stock ?> <?= htmlspecialchars(__('wine.low_stock_qty')) ?>
+                                    </span>
+                                <?php endif; ?>
                             </td>
                             <td class="cart-table__col-qty">
                                 <label for="qty-<?= $wineId ?>" class="sr-only">

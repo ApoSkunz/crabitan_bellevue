@@ -51,6 +51,8 @@ if ($resetOpen) {
 
 $isCompany    = false;
 $isSuperAdmin = false;
+/** @var array<int, int> $headerCartMap */
+$headerCartMap = [];
 
 if ($token) {
     try {
@@ -63,6 +65,16 @@ if ($token) {
             $headerUserId      = (int) ($jwtPayload['sub'] ?? 0);
             $headerAccountData = (new \Model\AccountModel())->findById($headerUserId);
             $isCompany         = $headerAccountData && ($headerAccountData['account_type'] ?? '') === 'company';
+            // Carte panier pour calcul max modal (stock - qty déjà au panier)
+            $headerCartRow = (new \Model\CartModel())->findByUserId($headerUserId);
+            if ($headerCartRow !== false) {
+                foreach ((new \Model\CartModel())->getContent($headerCartRow) as $headerCartItem) {
+                    $hwid = (int) ($headerCartItem['wine_id'] ?? 0);
+                    if ($hwid > 0) {
+                        $headerCartMap[$hwid] = (int) ($headerCartItem['qty'] ?? 0);
+                    }
+                }
+            }
         }
     } catch (\Throwable) {
         // Token invalide ou expiré : l'utilisateur est traité comme non connecté
@@ -241,6 +253,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
 
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 window.__userLogged       = <?= $isLogged ? 'true' : 'false' ?>;
+window.__cartMap          = <?= json_encode($headerCartMap, JSON_UNESCAPED_UNICODE) ?>;
 window.__navLang          = '<?= htmlspecialchars($navLang) ?>';
 window.__csrf             = '<?= htmlspecialchars($modalCsrf) ?>';
 window.__authModalError   = <?= $modalError ? 'true' : 'false' ?>;
@@ -342,6 +355,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <input type="number" id="cart-modal-qty" name="qty" min="1" max="96" value="1" class="cart-modal__qty-input">
                             <button type="button" id="cart-qty-plus" class="cart-modal__qty-btn" aria-label="+">&#43;</button>
                         </div>
+                        <p id="cart-modal-stock-info" class="cart-modal__stock-info" hidden></p>
                     </div>
                 </div>
             </div>
