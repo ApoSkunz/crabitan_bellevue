@@ -132,6 +132,5 @@ jobs:
           chmod +x legitify
           ./legitify analyze \
             --repo "$GITHUB_REPOSITORY" \
-            --output-format human-readable \
             || true  # non-bloquant : résultats informatifs uniquement
 
