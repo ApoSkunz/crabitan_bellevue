@@ -96,6 +96,29 @@ class NewsletterModel extends Model
     }
 
     /**
+     * Retourne les stats d'abonnés newsletter : actifs / désabonnés / total.
+     *
+     * @return array{active: int, unsubscribed: int, total: int}
+     */
+    public function getStats(): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT
+                SUM(CASE WHEN newsletter = 1 THEN 1 ELSE 0 END) AS active,
+                SUM(CASE WHEN newsletter = 0 THEN 1 ELSE 0 END) AS unsubscribed,
+                COUNT(*) AS total
+             FROM accounts
+             WHERE deleted_at IS NULL"
+        );
+        $row = $rows[0] ?? [];
+        return [
+            'active'       => (int) ($row['active']       ?? 0),
+            'unsubscribed' => (int) ($row['unsubscribed'] ?? 0),
+            'total'        => (int) ($row['total']        ?? 0),
+        ];
+    }
+
+    /**
      * Détail d'une campagne avec ses pièces jointes.
      *
      * @return array<string, mixed>|null

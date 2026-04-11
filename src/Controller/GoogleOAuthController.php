@@ -12,6 +12,7 @@ use Core\Response;
 use Model\AccountModel;
 use Model\ConnectionModel;
 use Service\GoogleOAuthService;
+use Service\MailService;
 
 /**
  * Gère le flux OAuth2 Google : redirection vers Google et traitement du callback.
@@ -174,6 +175,7 @@ class GoogleOAuthController extends Controller
         }
 
         // Cas 3 — email inconnu → création de compte
+        $isNewAccount = false;
         if (!$account) {
             $accountId = $this->accounts->createFromGoogle(
                 $email,
@@ -182,12 +184,28 @@ class GoogleOAuthController extends Controller
                 $userInfo['given_name'] ?? '',
                 $userInfo['family_name'] ?? ''
             );
-            $account = $this->accounts->findById($accountId);
+            $account      = $this->accounts->findById($accountId);
+            $isNewAccount = true;
         }
 
         if (!$account) {
             $this->flash('modal_error', __('auth.google_error'));
             Response::redirect($loginUrl);
+        }
+
+        if ($isNewAccount) {
+            try {
+                $firstname    = $account['firstname'] ?? $userInfo['given_name'] ?? '';
+                $isSubscribed = (int) ($account['newsletter'] ?? 0) === 1;
+                (new \Service\MailService())->sendWelcome(
+                    $account['email'],
+                    $firstname,
+                    $lang,
+                    $isSubscribed
+                );
+            } catch (\Throwable $e) {
+                error_log('sendWelcome error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+            }
         }
 
         $this->issueSession($account, $lang);
@@ -314,6 +332,8 @@ class GoogleOAuthController extends Controller
 
         if (!$this->accounts->hasDeclaredMajority((int) $account['id'])) {
             $_SESSION['majority_pending'] = true;
+        } else {
+            unset($_SESSION['majority_pending']);
         }
 
         // _intended prioritaire sur oauth_return_path (navigation directe vers page protégée)

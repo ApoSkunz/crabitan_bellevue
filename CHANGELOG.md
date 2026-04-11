@@ -2,6 +2,53 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.65.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.64.0...v0.65.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **cart:** inclure user_id dans le résultat de getAbandonedForEmail ([21362ab](https://github.com/ApoSkunz/crabitan_bellevue/commit/21362ab2da5ca52143469428d41b097549a10066))
+* **marketing:** corriger FK wine_ratings + signature sendOrderStatusEmail ([a68edec](https://github.com/ApoSkunz/crabitan_bellevue/commit/a68edec73af2e703218316e4ceaee83a51d7e53e))
+* **marketing:** délai email post-achat J+7 → J+21 (3 semaines) ([e6caa14](https://github.com/ApoSkunz/crabitan_bellevue/commit/e6caa14f6357ca04dd2154c22c6faa009bd76296))
+* **marketing:** supprimer [@phpstan-ignore](https://github.com/phpstan-ignore) obsolètes + corriger TU post-merge ([14bd9ed](https://github.com/ApoSkunz/crabitan_bellevue/commit/14bd9edad6a2b3072007c80892b5f70c3e74fef7))
+* **order:** null-coalesce vintage key pour éviter PHP warning ([6d18a7c](https://github.com/ApoSkunz/crabitan_bellevue/commit/6d18a7cb7b29ca3e8540278b382216cde80637be))
+* **quality:** supprimer méthodes dupliquées + aligner tests sur nouvelles signatures ([da48f33](https://github.com/ApoSkunz/crabitan_bellevue/commit/da48f33732fe8dacfebee2fbade1fb7e6a5aba20))
+* **sonar:** corriger 16 code smells + bug CartModel SQL + extraire constantes dupliquées ([a3d3cfb](https://github.com/ApoSkunz/crabitan_bellevue/commit/a3d3cfb14ce7fcab227bc22979f5b69dc92257a6))
+* **sonar:** corriger code smell S1192 + augmenter couverture nouveau code ([f351744](https://github.com/ApoSkunz/crabitan_bellevue/commit/f351744bbef992f50eef94daa331b2413ed4a3a0))
+* **test:** ajouter colonnes award et extra_comment manquantes dans INSERT wines ([693ff75](https://github.com/ApoSkunz/crabitan_bellevue/commit/693ff758bb8e380dc4a1ef12f86bd98b129ecd30))
+* **test:** corriger 2 erreurs CI residuelles RatingModelTest ([7750f6d](https://github.com/ApoSkunz/crabitan_bellevue/commit/7750f6d330c92fa652dc738fcce281d643136103))
+* **test:** corriger 3 échecs CI — colonnes snapshot, stepper logique, require_once ([d934311](https://github.com/ApoSkunz/crabitan_bellevue/commit/d9343117b4a782f29d20871235dafdcc299f91f4))
+* **test:** corriger rateViaAccount — insérer connection active + FK disable pour wine_ratings ([1270b93](https://github.com/ApoSkunz/crabitan_bellevue/commit/1270b93c13233a832bfb688542071d895571cd52))
+* **test:** corriger warnings PHPCS lignes trop longues CartControllerTest ([eee201c](https://github.com/ApoSkunz/crabitan_bellevue/commit/eee201c90bd0d159ade49ba0256f9cad384abb0f))
+* **test:** supprimer colonne likes_count inexistante dans INSERT wines ([779d556](https://github.com/ApoSkunz/crabitan_bellevue/commit/779d556feeac86e8a611201f3fd4a5e159b3fa2e))
+* **ux:** email bienvenue contenu riche + notation badge image + schema rating_email_sent_at ([6a39f09](https://github.com/ApoSkunz/crabitan_bellevue/commit/6a39f09a3ec554833058edc0168110b45b105a4c))
+* **ux:** stepper ✓ sur confirmation + lien admin + email welcome OAuth + tri notation ([8ef71fc](https://github.com/ApoSkunz/crabitan_bellevue/commit/8ef71fc816a4fbda39ef7f281ba23cb8cca6579d))
+* **ux:** supprimer stepper sticky + corriger structure HTML cross-sell panier ([50764f5](https://github.com/ApoSkunz/crabitan_bellevue/commit/50764f56fb261760261ac0135b4b8ce68fb54ac1))
+* **view:** aligner ordre menu admin header sur sidebar back-office ([fe90f10](https://github.com/ApoSkunz/crabitan_bellevue/commit/fe90f10000c049d279397e5f965976f97cc396e1))
+* **view:** supprimer doublon cross-sell panier + ajouter cuvée spéciale sur les cartes ([6c09937](https://github.com/ApoSkunz/crabitan_bellevue/commit/6c0993733426577f2245fbb58b3fe8c1fe52551f))
+
+
+### Features
+
+* **admin:** dashboard marketing — panier moyen, segmentation, newsletter, top vins notés ([6d8beda](https://github.com/ApoSkunz/crabitan_bellevue/commit/6d8bedabe49b9b4f56a419cf8ad1de965fe960b1))
+* **controller:** RatingController — endpoint token email + notation directe + routes ([afd401d](https://github.com/ApoSkunz/crabitan_bellevue/commit/afd401d11366b8c86e7cacb87b9b13385cffba0c))
+* **controller:** RatingController — page notation commande via token order ([41035d7](https://github.com/ApoSkunz/crabitan_bellevue/commit/41035d74ddbaff2f061c407f691d3088ce14f72b))
+* **mail:** email bienvenue post-vérification + statut commande enrichi (adresse + suivi + CTA) ([e4f83a5](https://github.com/ApoSkunz/crabitan_bellevue/commit/e4f83a59d643eb828fea9693c837eb8d3ce26e7c))
+* **mail:** email post-achat rating /5 + script cron panier abandonné J+3 + sendAbandonedCart ([ed3637d](https://github.com/ApoSkunz/crabitan_bellevue/commit/ed3637d20689613f726764f48c7393b9da4504b8))
+* **marketing:** cross-sell panier + notation post-achat AJAX + fixes invité ([eceaa11](https://github.com/ApoSkunz/crabitan_bellevue/commit/eceaa110dfefd1cf62532a1127e1ef0572d6b0f4)), closes [#23](https://github.com/ApoSkunz/crabitan_bellevue/issues/23)
+* **model:** CartModel reminder_sent_at + OrderModel rating_email_sent_at + RatingModel méthodes complètes ([cfff756](https://github.com/ApoSkunz/crabitan_bellevue/commit/cfff756f1c25c1467b2a9ca1ff540646e7055742))
+* **model:** RatingModel + table wine_ratings pour notation /5 des vins ([b0f8326](https://github.com/ApoSkunz/crabitan_bellevue/commit/b0f83269c07b45098802c2e4d849fa763d44e906))
+* **model:** tri rating_desc + reminder_sent_at panier abandonné unique ([7bb6799](https://github.com/ApoSkunz/crabitan_bellevue/commit/7bb679905f390234af620b4c2b0a8cc2f7595325))
+* **model:** WineModel::getSimilar + getForCartCrossSell + injection cross-sell/rating WineController/CartController ([e812b82](https://github.com/ApoSkunz/crabitan_bellevue/commit/e812b82dc621fda705223b2bafd3478982351c1c))
+* **routes:** route GET /rating/order/{orderToken} → RatingController@rateOrder ([17fb060](https://github.com/ApoSkunz/crabitan_bellevue/commit/17fb060919a75e4dec4826267fabf850f5174b0f))
+* **service:** MailService — sendPostPurchase email notation J+7 + sendAbandonedCart enrichi ([f77e36e](https://github.com/ApoSkunz/crabitan_bellevue/commit/f77e36ea3d45f941d4bc3c726b85a9d2f41eb165))
+* **ux:** lien Marketing header admin + welcome email CTA newsletter ([974c795](https://github.com/ApoSkunz/crabitan_bellevue/commit/974c7953dc96abc0efe95a50da90747e87e2be51))
+* **ux:** stepper sticky + cross-sell logic + affichage note X.X/5 ([da7b0e3](https://github.com/ApoSkunz/crabitan_bellevue/commit/da7b0e393387535e8aa4dc12aa99ad1ecf694fc4))
+* **view,cron:** vue rating/order.php + scripts CronRunner send-abandoned-cart + send-post-purchase ([3980005](https://github.com/ApoSkunz/crabitan_bellevue/commit/39800052c92b325aa5e1c5000a812010a8d97780))
+* **view:** afficher millésime + cuvée spéciale dans le tableau du panier ([d3ec6b9](https://github.com/ApoSkunz/crabitan_bellevue/commit/d3ec6b9f9717a0d328feb061cec8377eb7d7df88))
+* **view:** cross-sell fiche vin + panier + widget notation /5 + SCSS + i18n ([5c9ff5d](https://github.com/ApoSkunz/crabitan_bellevue/commit/5c9ff5dfe4a84cdab45b46a7337bbdb5d2bb1f40))
+* **view:** stepper de progression tunnel commande (panier → livraison → confirmation) ([df65737](https://github.com/ApoSkunz/crabitan_bellevue/commit/df65737d610bc60ad9cb3c06150e938c21fed44f))
+
 # [0.64.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.63.1...v0.64.0) (2026-04-10)
 
 

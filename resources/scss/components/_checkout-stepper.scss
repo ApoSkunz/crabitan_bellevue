@@ -1,0 +1,131 @@
+// ============================================================
+// Checkout Stepper — tunnel de commande
+// ============================================================
+
+.checkout-stepper {
+    padding: 1.5rem 0 0.5rem;
+    background: var(--color-bg);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-gold) 20%, transparent);
+
+    &__list {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        gap: 0;
+    }
+
+    &__step {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        flex: 1;
+        max-width: 220px;
+
+        // Connecteur entre étapes
+        &:not(:last-child)::after {
+            content: '';
+            display: block;
+            flex: 1;
+            height: 2px;
+            background: color-mix(in srgb, var(--color-text-muted) 30%, transparent);
+            margin: 0 0.5rem;
+        }
+
+        &--done {
+            &::after {
+                background: var(--color-gold) !important;
+            }
+
+            .checkout-stepper__icon {
+                background: var(--color-gold);
+                color: var(--color-bg);
+                border-color: var(--color-gold);
+                opacity: 0.75;
+            }
+
+            .checkout-stepper__label {
+                color: var(--color-text-muted);
+                opacity: 0.75;
+            }
+        }
+
+        &--active {
+            .checkout-stepper__icon {
+                background: var(--color-gold);
+                color: var(--color-bg);
+                border-color: var(--color-gold);
+                font-weight: 700;
+            }
+
+            .checkout-stepper__label {
+                color: var(--color-gold);
+                font-weight: 700;
+            }
+        }
+
+        &--pending {
+            .checkout-stepper__icon {
+                background: transparent;
+                color: var(--color-text-muted);
+                border-color: color-mix(in srgb, var(--color-text-muted) 40%, transparent);
+                opacity: 0.6;
+            }
+
+            .checkout-stepper__label {
+                color: var(--color-text-muted);
+                opacity: 0.6;
+            }
+        }
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        border: 2px solid;
+        font-size: 0.85rem;
+        font-weight: 600;
+        flex-shrink: 0;
+        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    &__label {
+        font-size: 0.875rem;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        transition: color 0.2s ease;
+    }
+}
+
+// Mobile : numéros seulement, labels masqués
+@media (max-width: 575px) {
+    .checkout-stepper {
+        padding: 1rem 0 0.5rem;
+
+        &__list {
+            gap: 0;
+        }
+
+        &__step {
+            max-width: none;
+            justify-content: center;
+        }
+
+        &__label {
+            display: none;
+        }
+
+        &__icon {
+            width: 1.75rem;
+            height: 1.75rem;
+            font-size: 0.75rem;
+        }
+    }
+}

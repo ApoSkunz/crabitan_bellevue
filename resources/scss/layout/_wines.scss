@@ -444,6 +444,20 @@
         color: var(--color-gold);
     }
 
+    &__rating-badge {
+        position: absolute;
+        bottom: 0.5rem;
+        right: 0.5rem;
+        background: rgba(0, 0, 0, 0.65);
+        color: var(--color-gold);
+        font-size: 0.75rem;
+        font-family: Georgia, serif;
+        padding: 0.15rem 0.45rem;
+        border-radius: 2px;
+        pointer-events: none;
+        letter-spacing: 0.5px;
+    }
+
     &__actions {
         display: flex;
         align-items: center;
@@ -891,5 +905,163 @@
             color: var(--color-gold);
             border-color: var(--color-border-gold);
         }
+    }
+}
+
+// ============================================================
+// Widget notation fiche vin
+// ============================================================
+
+.wine-rating {
+    padding: 2.5rem 0 1.5rem;
+    border-top: 1px solid var(--color-border);
+
+    &__avg {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-bottom: 1rem;
+    }
+
+    &__star-display {
+        font-size: 1.25rem;
+        color: var(--color-text-muted);
+
+        &--filled {
+            color: var(--color-gold);
+        }
+    }
+
+    &__score {
+        font-family: var(--font-serif);
+        font-size: 1.1rem;
+        color: var(--color-gold);
+        margin-left: 0.25rem;
+    }
+
+    &__count {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+    }
+
+    &__widget-label {
+        font-family: var(--font-serif);
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+        margin-bottom: 0.5rem;
+    }
+
+    &__form {
+        display: inline-block;
+    }
+
+    &__stars {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    &__star {
+        background: none;
+        border: none;
+        font-size: 1.75rem;
+        cursor: pointer;
+        color: var(--color-text-muted);
+        line-height: 1;
+        padding: 0 0.1rem;
+        transition: color 150ms ease;
+
+        &:hover {
+            color: var(--color-gold);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 2px;
+        }
+    }
+
+    &__already {
+        font-size: 0.95rem;
+        color: var(--color-gold);
+        font-style: italic;
+    }
+}
+
+// ============================================================
+// Cross-sell fiche vin
+// ============================================================
+
+.wine-cross-sell {
+    padding: 3rem 0 4rem;
+    border-top: 1px solid var(--color-border);
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+        color: var(--color-gold);
+        margin-bottom: 1.5rem;
+    }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+
+        @include m.bp('md') {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        @include m.bp('lg') {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    &__price {
+        display: block;
+        margin-top: 0.25rem;
+        font-family: var(--font-serif);
+        font-size: 0.95rem;
+        color: var(--color-gold);
+    }
+}
+
+// ============================================================
+// Cross-sell panier
+// ============================================================
+
+.cart-cross-sell {
+    padding: 3rem 0 4rem;
+    border-top: 1px solid var(--color-border);
+    margin-top: 2rem;
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+        color: var(--color-gold);
+        margin-bottom: 1.5rem;
+    }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+
+        @include m.bp('md') {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        @include m.bp('lg') {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .wine-cross-sell__price {
+        display: block;
+        margin-top: 0.25rem;
+        font-family: var(--font-serif);
+        font-size: 0.95rem;
+        color: var(--color-gold);
     }
 }

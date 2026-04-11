@@ -190,6 +190,151 @@ class CartModel extends Model
     }
 
     /**
+     * Retourne les paniers abandonnés dont la dernière mise à jour se situe entre hoursMin et hoursMax heures.
+     *
+     * Seuls les paniers non vides (total_quantity > 0) associés à un utilisateur connecté
+     * (user_id non null) sont retournés. Ce critère cible les paniers J+3 par défaut.
+     *
+     * @param int $hoursMin Borne inférieure en heures (incluse)
+     * @param int $hoursMax Borne supérieure en heures (exclue)
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAbandoned(int $hoursMin = 72, int $hoursMax = 96): array
+    {
+        return $this->db->fetchAll(
+            "SELECT * FROM {$this->table}
+             WHERE user_id IS NOT NULL
+               AND total_quantity > 0
+               AND reminder_sent_at IS NULL
+               AND updated_at <= NOW() - INTERVAL ? HOUR
+               AND updated_at >  NOW() - INTERVAL ? HOUR",
+            [$hoursMin, $hoursMax]
+        );
+    }
+
+    /**
+     * Marque un panier comme ayant reçu la relance email.
+     *
+     * @param int $cartId Identifiant du panier
+     * @return void
+     */
+    public function markReminderSent(int $cartId): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET reminder_sent_at = NOW() WHERE id = ?",
+            [$cartId]
+        );
+    }
+
+    /**
+     * Retourne les données enrichies des paniers abandonnés prêts pour l'envoi email.
+     *
+     * Effectue un JOIN carts → accounts, puis enrichit les items via un JOIN sur wines.
+     * Chaque élément contient : cart_id, email, firstname, lang, items (enrichis), cart_url.
+     *
+     * @param int $hoursMin Borne inférieure en heures (incluse)
+     * @param int $hoursMax Borne supérieure en heures (exclue)
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAbandonedForEmail(int $hoursMin = 72, int $hoursMax = 96): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT c.id AS cart_id, c.content, c.user_id,
+                    a.email, a.lang,
+                    COALESCE(ai.firstname, '') AS firstname,
+                    COALESCE(ac.company_name, '') AS company_name
+               FROM {$this->table} c
+               JOIN accounts a ON a.id = c.user_id
+               LEFT JOIN account_individuals ai ON ai.account_id = a.id
+               LEFT JOIN account_companies   ac ON ac.account_id = a.id
+              WHERE c.user_id IS NOT NULL
+                AND c.total_quantity > 0
+                AND c.reminder_sent_at IS NULL
+                AND c.updated_at <= NOW() - INTERVAL ? HOUR
+                AND c.updated_at >  NOW() - INTERVAL ? HOUR",
+            [$hoursMin, $hoursMax]
+        );
+
+        $result = [];
+        foreach ($rows as $row) {
+            $rawItems = json_decode((string) ($row['content'] ?? '[]'), true);
+            if (!is_array($rawItems) || empty($rawItems)) {
+                continue;
+            }
+
+            $enrichedItems = $this->enrichCartItems($rawItems);
+
+            if (empty($enrichedItems)) {
+                continue;
+            }
+
+            $lang = in_array((string) ($row['lang'] ?? ''), ['fr', 'en'], true)
+                ? (string) $row['lang'] : 'fr';
+
+            $result[] = [
+                'cart_id'   => (int) $row['cart_id'],
+                'user_id'   => (int) ($row['user_id'] ?? 0),
+                'email'     => (string) ($row['email'] ?? ''),
+                'firstname' => (string) ($row['firstname'] ?? $row['company_name'] ?? 'Client'),
+                'lang'      => $lang,
+                'items'     => $enrichedItems,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Enrichit les items bruts d'un panier avec les données wines (label, prix, image).
+     *
+     * @param array<int, array<string, mixed>> $rawItems Items bruts [{wine_id, qty}]
+     * @return array<int, array<string, mixed>>
+     */
+    private function enrichCartItems(array $rawItems): array
+    {
+        $wineIds = array_filter(array_map(
+            fn(array $item): int => (int) ($item['wine_id'] ?? 0),
+            $rawItems
+        ), fn(int $id): bool => $id > 0);
+
+        if (empty($wineIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($wineIds), '?'));
+        $wines = $this->db->fetchAll(
+            "SELECT id, label_name, vintage, image_path, price
+               FROM wines
+              WHERE id IN ({$placeholders})",
+            array_values($wineIds)
+        );
+
+        $wineMap = [];
+        foreach ($wines as $wine) {
+            $wineMap[(int) $wine['id']] = $wine;
+        }
+
+        $enriched = [];
+        foreach ($rawItems as $item) {
+            $wineId = (int) ($item['wine_id'] ?? 0);
+            if (!isset($wineMap[$wineId])) {
+                continue;
+            }
+            $wine      = $wineMap[$wineId];
+            $enriched[] = [
+                'wine_id'    => $wineId,
+                'label_name' => (string) ($wine['label_name'] ?? ''),
+                'vintage'    => (int) ($wine['vintage'] ?? 0),
+                'image_path' => (string) ($wine['image_path'] ?? ''),
+                'price'      => (float) ($wine['price'] ?? 0.0),
+                'qty'        => (int) ($item['qty'] ?? 0),
+            ];
+        }
+
+        return $enriched;
+    }
+
+    /**
      * Retire un vin spécifique de tous les paniers (ex. vin rendu indisponible par l'admin).
      *
      * @param int $wineId Identifiant du vin à retirer

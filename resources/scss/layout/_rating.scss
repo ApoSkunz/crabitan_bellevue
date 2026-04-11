@@ -1,0 +1,183 @@
+// ============================================================
+// Pages de notation (post-achat email)
+// ============================================================
+
+.page-rating {
+    min-height: 60vh;
+    padding: 3rem 0 5rem;
+
+    .container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+}
+
+// ----------------------------------------------------------------
+// Page notation commande (/rating/order/{token})
+// ----------------------------------------------------------------
+
+.rating-order {
+    &__intro {
+        margin: 0 0 2.5rem;
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    &__item {
+        display: flex;
+        gap: 1.25rem;
+        align-items: flex-start;
+        padding: 1.75rem 0;
+        border-bottom: 1px solid rgba(232, 200, 106, 0.15);
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    &__img {
+        width: 64px;
+        flex-shrink: 0;
+        border-radius: 3px;
+    }
+
+    &__info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__wine-name {
+        margin: 0 0 0.75rem;
+        font-family: Georgia, serif;
+        font-size: 1rem;
+        color: var(--color-text);
+    }
+
+    &__vintage {
+        margin-left: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+    }
+
+    &__stars {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-bottom: 0.5rem;
+    }
+
+    &__star {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 3px;
+        font-family: Georgia, serif;
+        font-size: 1rem;
+        font-weight: bold;
+        text-decoration: none;
+        transition: opacity 0.15s, transform 0.1s;
+        background: rgba(232, 200, 106, 0.08);
+        color: var(--color-gold);
+        border: 1px solid rgba(232, 200, 106, 0.25);
+
+        &:hover {
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+
+        &--active {
+            background: linear-gradient(135deg, #e8c86a, #c9a84c);
+            color: #1a1208;
+            border-color: transparent;
+        }
+    }
+
+    &__current {
+        margin: 0.4rem 0 0;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+    }
+
+    &__alert {
+        background: rgba(232, 200, 106, 0.1);
+        border: 1px solid var(--color-gold);
+        border-radius: 4px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--color-gold);
+    }
+
+    &__empty {
+        color: var(--color-text-muted);
+    }
+
+    &__back {
+        display: block;
+        margin-top: 2.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        text-decoration: underline;
+
+        &:hover {
+            color: var(--color-gold);
+        }
+    }
+}
+
+// ----------------------------------------------------------------
+// Page confirmation + erreur
+// ----------------------------------------------------------------
+
+.rating-confirm,
+.rating-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 1.5rem;
+
+    &__card {
+        max-width: 480px;
+        width: 100%;
+        text-align: center;
+        padding: 2.5rem 2rem;
+        background: var(--color-surface);
+        border: 1px solid rgba(232, 200, 106, 0.2);
+        border-radius: 6px;
+    }
+
+    &__title {
+        font-family: Georgia, serif;
+        font-size: 1.6rem;
+        color: var(--color-gold);
+        margin: 0 0 1rem;
+    }
+
+    &__stars {
+        font-size: 2rem;
+        color: var(--color-gold);
+        margin: 0 0 0.75rem;
+        letter-spacing: 0.15em;
+    }
+
+    &__note,
+    &__message {
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+        margin: 0 0 1.75rem;
+    }
+
+    &__cta {
+        display: inline-block;
+    }
+}

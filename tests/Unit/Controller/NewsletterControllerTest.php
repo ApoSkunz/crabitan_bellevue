@@ -282,4 +282,161 @@ class NewsletterControllerTest extends TestCase
 
         $this->assertStringContainsString('auth-status--error', $output);
     }
+
+    // ----------------------------------------------------------------
+    // subscribeFromWelcome — toutes les branches
+    // ----------------------------------------------------------------
+
+    /**
+     * subscribeFromWelcome() — email vide → vue d'erreur.
+     */
+    public function testSubscribeFromWelcomeEmptyEmailShowsErrorView(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/fr/newsletter/inscription-bienvenue';
+        $_GET['email'] = '';
+
+        $controller = new NewsletterController(new Request());
+
+        ob_start();
+        $controller->subscribeFromWelcome([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
+
+    /**
+     * subscribeFromWelcome() — email invalide → vue d'erreur.
+     */
+    public function testSubscribeFromWelcomeInvalidEmailShowsErrorView(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/fr/newsletter/inscription-bienvenue';
+        $_GET['email'] = 'pas_un_email';
+
+        $controller = new NewsletterController(new Request());
+
+        ob_start();
+        $controller->subscribeFromWelcome([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
+
+    /**
+     * subscribeFromWelcome() — déjà confirmé (BDD) → vue succès sans appel subscribe.
+     */
+    public function testSubscribeFromWelcomeAlreadyConfirmedInDbShowsSuccessView(): void
+    {
+        $this->instanceProp->setValue(null, null);
+        $dbMock = $this->createStub(Database::class);
+        // findByEmail retourne un abonné confirmé
+        $dbMock->method('fetchOne')->willReturn(['email' => 'confirmed@example.com', 'newsletter_confirmed' => 1]);
+        $dbMock->method('fetchAll')->willReturn([]);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        $_SERVER['REQUEST_URI'] = '/fr/newsletter/inscription-bienvenue';
+        $_GET['email'] = 'confirmed@example.com';
+
+        $controller = new NewsletterController(new Request());
+
+        ob_start();
+        $controller->subscribeFromWelcome([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--ok', $output);
+    }
+
+    /**
+     * subscribeFromWelcome() — succès subscribe → vue succès.
+     */
+    public function testSubscribeFromWelcomeSuccessShowsSuccessView(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/en/newsletter/welcome-subscribe';
+        $_GET['email'] = 'nouveau@example.com';
+
+        $controller = new NewsletterController(new Request());
+
+        $serviceMock = $this->createMock(\Service\NewsletterService::class);
+        $serviceMock->expects($this->once())->method('subscribe');
+
+        $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
+        $prop->setValue($controller, $serviceMock);
+
+        ob_start();
+        $controller->subscribeFromWelcome([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--ok', $output);
+    }
+
+    /**
+     * subscribeFromWelcome() — already_confirmed exception → vue succès (anti-énumération).
+     */
+    public function testSubscribeFromWelcomeAlreadyConfirmedExceptionShowsSuccessView(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/fr/newsletter/inscription-bienvenue';
+        $_GET['email'] = 'deja@example.com';
+
+        $controller = new NewsletterController(new Request());
+
+        $serviceMock = $this->createMock(\Service\NewsletterService::class);
+        $serviceMock->method('subscribe')
+            ->willThrowException(new \Core\Exception\NewsletterException('already_confirmed'));
+
+        $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
+        $prop->setValue($controller, $serviceMock);
+
+        ob_start();
+        $controller->subscribeFromWelcome([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--ok', $output);
+    }
+
+    /**
+     * subscribeFromWelcome() — erreur générique → vue d'erreur.
+     */
+    public function testSubscribeFromWelcomeGenericErrorShowsErrorView(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/fr/newsletter/inscription-bienvenue';
+        $_GET['email'] = 'erreur@example.com';
+
+        $controller = new NewsletterController(new Request());
+
+        $serviceMock = $this->createMock(\Service\NewsletterService::class);
+        $serviceMock->method('subscribe')
+            ->willThrowException(new \Core\Exception\NewsletterException('rate_limit'));
+
+        $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
+        $prop->setValue($controller, $serviceMock);
+
+        ob_start();
+        $controller->subscribeFromWelcome([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
+
+    /**
+     * subscribeFromWelcome() — lang détectée depuis /en/ URI.
+     */
+    public function testSubscribeFromWelcomeDetectsEnglishLangFromUri(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/en/newsletter/welcome-subscribe';
+        $_GET['email'] = 'english@example.com';
+
+        $controller = new NewsletterController(new Request());
+
+        $serviceMock = $this->createMock(\Service\NewsletterService::class);
+        $serviceMock->expects($this->once())->method('subscribe')
+            ->with('english@example.com', 'en', $this->anything());
+
+        $prop = new \ReflectionProperty(NewsletterController::class, 'newsletterService');
+        $prop->setValue($controller, $serviceMock);
+
+        ob_start();
+        $controller->subscribeFromWelcome([]);
+        ob_get_clean();
+
+        $this->assertTrue(true); // subscribe appelé avec lang='en'
+    }
 }

@@ -198,4 +198,91 @@ class NewsletterControllerTest extends IntegrationTestCase
             ob_end_clean();
         }
     }
+
+    // ----------------------------------------------------------------
+    // subscribeFromWelcome — validation email
+    // ----------------------------------------------------------------
+
+    /**
+     * Email vide → vue erreur rendue.
+     */
+    public function testSubscribeFromWelcomeWithEmptyEmailRendersError(): void
+    {
+        $controller = $this->makeController(
+            'GET',
+            '/fr/newsletter/inscription-bienvenue',
+            ['email' => '']
+        );
+
+        ob_start();
+        $controller->subscribeFromWelcome([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
+
+    /**
+     * Email invalide → vue erreur rendue.
+     */
+    public function testSubscribeFromWelcomeWithInvalidEmailRendersError(): void
+    {
+        $controller = $this->makeController(
+            'GET',
+            '/fr/newsletter/inscription-bienvenue',
+            ['email' => 'not-an-email']
+        );
+
+        ob_start();
+        $controller->subscribeFromWelcome([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-status--error', $output);
+    }
+
+    /**
+     * Email déjà confirmé → vue succès rendue.
+     */
+    public function testSubscribeFromWelcomeWithAlreadyConfirmedEmailRendersSuccess(): void
+    {
+        $email = 'welcome-already-' . bin2hex(random_bytes(4)) . '@test.com';
+
+        self::$db->execute(
+            "INSERT INTO newsletter_subscriptions
+             (email, newsletter_confirmed, newsletter_consent_date, newsletter_consent_ip, lang, attempts_24h)
+             VALUES (?, 1, NOW(), '127.0.0.1', 'fr', 0)",
+            [$email]
+        );
+
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $controller = $this->makeController(
+            'GET',
+            '/fr/newsletter/inscription-bienvenue',
+            ['email' => $email]
+        );
+
+        ob_start();
+        $controller->subscribeFromWelcome([]);
+        $output = ob_get_clean();
+
+        $this->assertStringNotContainsString('auth-status--error', $output);
+    }
+
+    /**
+     * URL en anglais → langue 'en' détectée depuis l'URI.
+     */
+    public function testSubscribeFromWelcomeDetectsEnLangFromUri(): void
+    {
+        $controller = $this->makeController(
+            'GET',
+            '/en/newsletter/welcome-subscribe',
+            ['email' => 'not-an-email']
+        );
+
+        ob_start();
+        $controller->subscribeFromWelcome([]);
+        $output = ob_get_clean();
+
+        // Vue rendue même avec email invalide (vérifie que le flux EN ne plante pas)
+        $this->assertNotEmpty($output);
+    }
 }

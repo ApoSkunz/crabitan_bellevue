@@ -1,6 +1,7 @@
 <?php
 $isAdmin    = $isAdmin    ?? false;
 $activeCuvee = $activeCuvee ?? false;
+$ratings    = $ratings    ?? [];
 $pageTitle  = __('nav.wines');
 $appUrl         = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
 $metaDescription = $navLang === 'en'
@@ -76,6 +77,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                             <?php
                             $sortOptions = [
                                 'default'      => __('wine.sort.default'),
+                                'rating_desc'  => __('wine.sort.rating_desc'),
                                 'likes_desc'   => __('wine.sort.likes_desc'),
                                 'price_asc'    => __('wine.sort.price_asc'),
                                 'price_desc'   => __('wine.sort.price_desc'),
@@ -154,6 +156,10 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                                         <span class="wine-card__cert">
                                             <?= htmlspecialchars($wine['certification_label']) ?>
                                         </span>
+                                    <?php endif; ?>
+                                    <?php $wineRating = $ratings[(int) $wine['id']] ?? null; ?>
+                                    <?php if ($wineRating !== null) : ?>
+                                        <span class="wine-card__rating-badge"><?= number_format($wineRating, 1) ?>/5</span>
                                     <?php endif; ?>
                                 </div>
 
