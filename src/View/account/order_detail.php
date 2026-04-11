@@ -17,16 +17,24 @@ $statusColors = [
     'refunded'         => 'red',
     'return_requested' => 'teal',
     'refund_refused'   => 'red',
+    'refund_pending'   => 'orange',
 ];
-$isReturnFlow  = in_array($order['status'], ['return_requested', 'refunded', 'refund_refused'], true);
+$isReturnFlow  = in_array($order['status'], ['return_requested', 'refund_refused'], true)
+    || ($order['status'] === 'refunded' && !empty($order['delivered_at']));
+$isRefundFlow  = in_array($order['status'], ['refund_pending', 'refunded'], true) && !$isReturnFlow;
 $returnEndStep = $order['status'] === 'refund_refused' ? 'refund_refused' : 'refunded';
-$timeline      = $isReturnFlow
-    ? ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', $returnEndStep]
-    : ['pending', 'paid', 'processing', 'shipped', 'delivered'];
+if ($isReturnFlow) {
+    $timeline = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', $returnEndStep];
+} elseif ($isRefundFlow) {
+    $timeline = ['pending', 'paid', 'refund_pending', 'refunded'];
+} else {
+    $timeline = ['pending', 'paid', 'processing', 'shipped', 'delivered'];
+}
 $currentIdx  = array_search($order['status'], $timeline, true);
+$gaeEnabled           = filter_var($_ENV['CA_ENABLE_GAE'] ?? false, FILTER_VALIDATE_BOOLEAN);
 $cancellable          = $order['status'] === 'pending' && ($order['payment_method'] ?? '') !== 'card';
 $cancellablePendingCb = $order['status'] === 'pending' && ($order['payment_method'] ?? '') === 'card';
-$cancellableRefund    = $order['status'] === 'paid'    && ($order['payment_method'] ?? '') === 'card';
+$cancellableRefund    = $order['status'] === 'paid'    && ($order['payment_method'] ?? '') === 'card' && $gaeEnabled;
 /** @var bool $cancellableReturn */
 /** @var string|null $returnDeadline */
 $paymentMap  = [
@@ -236,7 +244,26 @@ $paymentMap  = [
                         </button>
                     </form>
                 </section>
-            <?php elseif (!in_array($order['status'], ['delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused'], true)) : ?>
+            <?php elseif ($order['status'] === 'refund_pending') : ?>
+                <section class="account-section">
+                    <p class="order-contact-notice">
+                        <?= __('account.order_refund_pending_notice') ?>
+                    </p>
+                </section>
+            <?php elseif (in_array($order['status'], ['processing', 'paid'], true) && (($order['payment_method'] ?? '') !== 'card' || !$gaeEnabled)) : ?>
+                <section class="account-section account-section--danger">
+                    <h2 class="account-section__title"><?= __('account.order_refund_btn') ?></h2>
+                    <p><?= __('account.order_refund_confirm') ?></p>
+                    <form method="POST"
+                          action="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/remboursement"
+                          data-confirm="<?= htmlspecialchars(__('account.order_refund_confirm')) ?>">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+                        <button type="submit" class="btn btn--danger">
+                            <?= __('account.order_refund_btn') ?>
+                        </button>
+                    </form>
+                </section>
+            <?php elseif (!in_array($order['status'], ['delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused', 'refund_pending'], true)) : ?>
                 <section class="account-section">
                     <p class="order-contact-notice">
                         <?= __('account.order_contact_for_cancel') ?>

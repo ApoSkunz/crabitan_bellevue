@@ -121,6 +121,31 @@ class WineModelStockTest extends IntegrationTestCase
     // create() + update() persistance stock_quantity
     // ----------------------------------------------------------------
 
+    // ----------------------------------------------------------------
+    // setLowStockNotifiedAt()
+    // ----------------------------------------------------------------
+
+    /**
+     * setLowStockNotifiedAt() met à jour la colonne low_stock_notified_at.
+     */
+    public function testSetLowStockNotifiedAtStoresTimestamp(): void
+    {
+        $wineId = $this->insertWine(100);
+
+        // Avant : NULL
+        $before = self::$db->fetchOne('SELECT low_stock_notified_at FROM wines WHERE id = ?', [$wineId]);
+        $this->assertNull($before['low_stock_notified_at']);
+
+        $this->model->setLowStockNotifiedAt($wineId);
+
+        $after = self::$db->fetchOne('SELECT low_stock_notified_at FROM wines WHERE id = ?', [$wineId]);
+        $this->assertNotNull($after['low_stock_notified_at']);
+    }
+
+    // ----------------------------------------------------------------
+    // create() + update() persistance stock_quantity
+    // ----------------------------------------------------------------
+
     /**
      * create() stocke bien stock_quantity.
      */

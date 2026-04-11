@@ -86,6 +86,8 @@ return [
     'wine.favorite_login' => 'Log in to add this wine to your favourites.',
     'wine.out_of_stock' => 'Out of stock',
     'wine.available'    => 'Available',
+    'wine.low_stock'     => 'Limited stock',
+    'wine.low_stock_qty' => 'btl remaining',
     'wine.favorites'      => 'Favorites',
     'wine.like_login'     => 'Please log in to like this wine.',
     'wine.vintage'      => 'Vintage',
@@ -216,6 +218,7 @@ return [
     'cart.qty_increase'         => 'Increase quantity',
     'cart.subtotal_label'       => 'Subtotal',
     'cart.total_ttc'            => 'Total incl. VAT',
+    'cart.wines_removed_notice' => 'One or more items were removed from your cart because they are no longer available. Please review your selection before continuing.',
     'cart.you_might_enjoy'      => 'You might enjoy',
     'cart.cross_sell.title'     => 'You might enjoy these wines',
     'cart.tier_next'            => 'for the next tier',
@@ -712,6 +715,12 @@ return [
     'account.order_return_slip_btn'            => 'Download return slip',
     'account.order_return_in_progress_title'   => 'Return in progress',
     'account.order_return_in_progress'         => 'Your return request has been registered. If you need assistance, you can contact our support.',
+    'account.order_refund_initiated'           => 'Your refund request has been received. You will receive a confirmation email.',
+    'account.order_refund_not_eligible'        => 'This order is not eligible for a refund.',
+    'account.order_refund_failed'              => 'The refund could not be initiated. Please contact our support.',
+    'account.order_refund_btn'                 => 'Request a refund',
+    'account.order_refund_confirm'             => 'Are you sure you want to request a refund for this order? This action is final.',
+    'account.order_refund_pending_notice'      => 'Your refund is being processed.',
 
     // Addresses — CRUD
     'account.address_add'        => 'Add an address',
@@ -817,6 +826,7 @@ return [
     'order.status.delivered'        => 'Delivered',
     'order.status.cancelled'        => 'Cancelled',
     'order.status.refunded'         => 'Refunded',
+    'order.status.refund_pending'   => 'Refund pending',
     'order.status.return_requested' => 'Return in progress',
     'order.status.refund_refused'   => 'Refund refused',
 

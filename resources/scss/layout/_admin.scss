@@ -433,6 +433,7 @@
     &--refunded          { background: #f1f5f9; color: #475569; }
     &--return_requested  { background: #f0fdfa; color: #0d9488; } /* NOSONAR css:S7924 — contraste intentionnel : badge statut sémantique */
     &--refund_refused    { background: #fee2e2; color: #b91c1c; }
+    &--refund_pending    { background: #fff7ed; color: #c2410c; } /* NOSONAR css:S7924 — contraste intentionnel : badge remboursement en attente */
     &--available  { background: #dcfce7; color: #15803d; }
     &--out        { background: #fee2e2; color: #b91c1c; }
     &--admin      { background: rgba(201, 168, 76, 0.15); color: #92701a; } /* NOSONAR css:S7924 — contraste intentionnel : badge rôle admin or */
@@ -691,6 +692,13 @@
     min-height: 80px;
 }
 
+.admin-field__error {
+    display: none;
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    color: #dc2626;
+}
+
 .admin-field__hint {
     display: block;
     margin-top: 0.25rem;
@@ -749,6 +757,37 @@
     }
 }
 
+.admin-section {
+    border-top: 1px solid rgba(8, 8, 8, 0.08);
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.admin-section__title {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1208;
+    margin: 0 0 0.25rem;
+    letter-spacing: 0.03em;
+}
+
+.admin-section__subtitle {
+    font-family: var(--font-serif);
+    font-size: 0.72rem;
+    font-variant: small-caps;
+    letter-spacing: 0.14em;
+    color: #8a7a60;
+    text-transform: uppercase;
+    margin: 1rem 0 0.75rem;
+}
+
+.admin-section__hint {
+    font-size: 0.8rem;
+    color: #8a7a60;
+    margin-bottom: 1rem;
+}
+
 .admin-form__actions {
     display: flex;
     align-items: center;
@@ -779,6 +818,11 @@
         font-family: var(--font-sans);
         font-size: 0.875rem;
         color: #1a1208;
+        min-width: 0; // empêche le débordement de la colonne grid
+
+        .badge {
+            white-space: normal; // long statuts (refund_pending, return_requested) wrappent
+        }
     }
 }
 

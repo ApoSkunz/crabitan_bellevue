@@ -1,5 +1,6 @@
 import '../scss/main.scss';
 import { initCarbonBadge } from './carbon-badge.js';
+import { initLazyLoad } from './lazy-load.js';
 
 // ============================================================
 // Thème jour / nuit
@@ -261,11 +262,20 @@ function initAccountPanel() {
 // Toast notification
 // ============================================================
 
-function showToast(msg, isError = false, duration = 5000) {
+function showToast(msg, isError = false, duration = 3000) {
     const toast = document.getElementById('cb-toast');
     if (!toast) return;
-    toast.textContent = msg;
     toast.className = 'cb-toast' + (isError ? ' cb-toast--error' : '');
+    const span = document.createElement('span');
+    span.textContent = msg;
+    const btn = document.createElement('button');
+    btn.className = 'cb-toast__close';
+    btn.setAttribute('aria-label', 'Fermer');
+    btn.textContent = '×';
+    btn.onclick = () => { clearTimeout(toast.__timer); toast.setAttribute('hidden', ''); };
+    toast.innerHTML = '';
+    toast.appendChild(span);
+    toast.appendChild(btn);
     toast.removeAttribute('hidden');
     clearTimeout(toast.__timer);
     toast.__timer = setTimeout(() => toast.setAttribute('hidden', ''), duration);
@@ -361,12 +371,49 @@ function initCartModal() {
         totalEl.textContent = 'Total : ' + total + ' €';
     }
 
+    function updateStockInfo(stock, effectiveMax) {
+        const stockInfoEl = document.getElementById('cart-modal-stock-info');
+        if (!stockInfoEl) { return; }
+        if (stock > 0 && effectiveMax > 0 && effectiveMax < 300) {
+            const plural = effectiveMax > 1 ? 's' : '';
+            const isEn   = document.documentElement.lang === 'en';
+            stockInfoEl.textContent = isEn
+                ? effectiveMax + ' bottle' + plural + ' available'
+                : effectiveMax + ' bouteille' + plural + ' disponible' + plural;
+            stockInfoEl.hidden = false;
+        } else {
+            stockInfoEl.hidden = true;
+        }
+    }
+
+    function updateCuveeLabel() {
+        const cuveeEl = document.getElementById('cart-modal-cuvee');
+        if (!cuveeEl) { return; }
+        if (currentCuvee) {
+            cuveeEl.textContent = '\u2605 ' + currentCuvee;
+            cuveeEl.hidden = false;
+        } else {
+            cuveeEl.hidden = true;
+        }
+    }
+
     function openModal(btn) {
         const wineId    = btn.dataset.wineId    || '';
         const wineName  = btn.dataset.wineName  || '';
         const winePrice = btn.dataset.winePrice || '';
         const wineImage = btn.dataset.wineImage || '';
         currentCuvee    = btn.dataset.wineCuvee || '';
+
+        // Max = stock disponible − quantité déjà dans le panier BDD
+        const stock      = Number.parseInt(btn.dataset.stock || '0', 10);
+        const cartQty    = (globalThis.__cartMap && wineId)
+            ? (globalThis.__cartMap[Number.parseInt(wineId, 10)] ?? 0)
+            : 0;
+        const effectiveMax = stock > 0 ? Math.max(0, stock - cartQty) : 0;
+        qtyInput.max   = effectiveMax > 0 ? String(effectiveMax) : '96';
+        qtyInput.min   = '1';
+
+        updateStockInfo(stock, effectiveMax);
 
         titleEl.textContent   = wineName;
         priceEl.textContent   = winePrice;
@@ -375,16 +422,9 @@ function initCartModal() {
         wineIdEl.value        = wineId;
         qtyInput.value        = 1;
         qtyHidden.value       = 1;
+        updateModalBtns();
 
-        const cuveeEl = document.getElementById('cart-modal-cuvee');
-        if (cuveeEl) {
-            if (currentCuvee) {
-                cuveeEl.textContent = '\u2605 ' + currentCuvee;
-                cuveeEl.hidden = false;
-            } else {
-                cuveeEl.hidden = true;
-            }
-        }
+        updateCuveeLabel();
 
         refreshTotal();
 
@@ -459,6 +499,9 @@ function initCartModal() {
 
             if (!data.success) throw new Error('API error');
 
+            if (data.capped && data.message) {
+                showToast(data.message, true);
+            }
             showCartSuccess(qty, data.total_quantity ?? null);
         } catch {
             const isEn = document.documentElement.lang === 'en';
@@ -475,17 +518,35 @@ function initCartModal() {
     cancelBtn?.addEventListener('click', closeModal);
 
     // Qty controls
+    function updateModalBtns() {
+        const min = Number.parseInt(qtyInput.min, 10) || 1;
+        const max = Number.parseInt(qtyInput.max, 10) || 96;
+        const val = Number.parseInt(qtyInput.value, 10) || 1;
+        if (minusBtn) minusBtn.disabled = val <= min;
+        if (plusBtn)  plusBtn.disabled  = val >= max;
+    }
+
     function updateQty(delta) {
         const min = Number.parseInt(qtyInput.min, 10) || 1;
         const max = Number.parseInt(qtyInput.max, 10) || 96;
         const val = Math.min(max, Math.max(min, (Number.parseInt(qtyInput.value, 10) || 1) + delta));
         qtyInput.value  = val;
         qtyHidden.value = val;
+        updateModalBtns();
     }
 
     minusBtn?.addEventListener('click', () => { updateQty(-1); refreshTotal(); });
     plusBtn?.addEventListener('click',  () => { updateQty(1);  refreshTotal(); });
-    qtyInput?.addEventListener('input', () => { qtyHidden.value = qtyInput.value; refreshTotal(); });
+    qtyInput?.addEventListener('input', () => {
+        const max = Number.parseInt(qtyInput.max, 10) || 96;
+        const min = Number.parseInt(qtyInput.min, 10) || 1;
+        let val = Number.parseInt(qtyInput.value, 10) || min;
+        if (val > max) { val = max; qtyInput.value = val; }
+        if (val < min) { val = min; qtyInput.value = val; }
+        qtyHidden.value = val;
+        updateModalBtns();
+        refreshTotal();
+    });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
@@ -2062,14 +2123,19 @@ function initCartPage() {
         const qtyInput = document.querySelector(`.js-cart-qty[data-wine-id="${wineId}"]`);
         if (!qtyInput) return;
 
+        const row   = btn.closest('[data-stock]');
+        const stock = Number.parseInt(row?.dataset.stock ?? '', 10);
+
         let qty = Number.parseInt(qtyInput.value, 10) || 1;
         qty     = isMinus ? Math.max(1, qty - 1) : qty + 1;
 
         qtyInput.value = qty;
 
-        // Désactiver le bouton − si qty = 1
+        // Désactiver − si qty = 1, + si qty >= stock
         const minusBtn = document.querySelector(`.js-qty-minus[data-wine-id="${wineId}"]`);
+        const plusBtn  = document.querySelector(`.js-qty-plus[data-wine-id="${wineId}"]`);
         if (minusBtn) minusBtn.disabled = qty <= 1;
+        if (plusBtn && !Number.isNaN(stock)) plusBtn.disabled = qty >= stock;
 
         debounceQty(async () => {
             try {
@@ -2080,6 +2146,14 @@ function initCartPage() {
                 });
                 const data = await res.json();
                 if (!data.success) throw new Error('update failed');
+                if (data.capped && data.message) {
+                    showToast(data.message, true);
+                    if (data.effective_qty !== undefined) {
+                        qtyInput.value = data.effective_qty;
+                        if (plusBtn && !Number.isNaN(stock)) plusBtn.disabled = data.effective_qty >= stock;
+                        if (minusBtn) minusBtn.disabled = data.effective_qty <= 1;
+                    }
+                }
                 updateCartCount(data.total_quantity ?? null);
             } catch {
                 showToast(isEn ? 'Failed to update quantity.' : 'Échec de la mise à jour.', true);
@@ -2093,12 +2167,16 @@ function initCartPage() {
         const input = e.target.closest('.js-cart-qty');
         if (!input) return;
 
-        const wineId = Number.parseInt(input.dataset.wineId, 10);
-        const qty = Math.max(1, Number.parseInt(input.value, 10) || 1);
-        input.value = qty;
+        const wineId  = Number.parseInt(input.dataset.wineId, 10);
+        const row2    = input.closest('[data-stock]');
+        const stock2  = Number.parseInt(row2?.dataset.stock ?? '', 10);
+        const qty     = Math.max(1, Number.parseInt(input.value, 10) || 1);
+        input.value   = qty;
 
         const minusBtn = document.querySelector(`.js-qty-minus[data-wine-id="${wineId}"]`);
+        const plusBtn2 = document.querySelector(`.js-qty-plus[data-wine-id="${wineId}"]`);
         if (minusBtn) minusBtn.disabled = qty <= 1;
+        if (plusBtn2 && !Number.isNaN(stock2)) plusBtn2.disabled = qty >= stock2;
 
         debounceQty(async () => {
             try {
@@ -2109,6 +2187,14 @@ function initCartPage() {
                 });
                 const data = await res.json();
                 if (!data.success) throw new Error('update failed');
+                if (data.capped && data.message) {
+                    showToast(data.message, true);
+                    if (data.effective_qty !== undefined) {
+                        input.value = data.effective_qty;
+                        if (plusBtn2 && !Number.isNaN(stock2)) plusBtn2.disabled = data.effective_qty >= stock2;
+                        if (minusBtn) minusBtn.disabled = data.effective_qty <= 1;
+                    }
+                }
                 updateCartCount(data.total_quantity ?? null);
             } catch {
                 showToast(isEn ? 'Failed to update quantity.' : 'Échec de la mise à jour.', true);
@@ -2246,6 +2332,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAnchorScroll();
     initFaqAccordion();
     initCarbonBadge();
+    initLazyLoad();
     initCartPage();
     initFlashAutofocus();
     initLangPreference();

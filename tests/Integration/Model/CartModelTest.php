@@ -294,7 +294,29 @@ class CartModelTest extends IntegrationTestCase
 
         $content = $this->model->getContent($row);
         $this->assertCount(1, $content);
-        $this->assertSame(20, $content[0]['wine_id']);
+        $this->assertSame(20, (int) $content[0]['wine_id']);
+    }
+
+    // ----------------------------------------------------------------
+    // removeWineFromAllCarts (alias de purgeWineFromAllCarts)
+    // ----------------------------------------------------------------
+
+    public function testRemoveWineFromAllCartsRemovesWineFromSingleCart(): void
+    {
+        $items = [
+            ['wine_id' => 10, 'qty' => 2, 'name' => 'Sauternes', 'image' => 'img.jpg'],
+            ['wine_id' => 20, 'qty' => 1, 'name' => 'Bordeaux', 'image' => 'img2.jpg'],
+        ];
+        $this->model->save($this->userId, $items);
+
+        $this->model->removeWineFromAllCarts(10);
+
+        $row = $this->model->findByUserId($this->userId);
+        $this->assertIsArray($row);
+
+        $content = $this->model->getContent($row);
+        $this->assertCount(1, $content);
+        $this->assertSame(20, (int) $content[0]['wine_id']);
     }
 
     /**
@@ -306,6 +328,21 @@ class CartModelTest extends IntegrationTestCase
         $this->model->save($this->userId, $items);
 
         $this->model->purgeWineFromAllCarts(99); // vin 99 absent
+
+        $row = $this->model->findByUserId($this->userId);
+        $this->assertIsArray($row);
+        $this->assertSame(3, (int) $row['total_quantity']);
+    }
+
+    public function testRemoveWineFromAllCartsDoesNothingIfWineAbsent(): void
+    {
+        $items = [
+            ['wine_id' => 10, 'qty' => 3, 'name' => 'Sauternes', 'image' => 'img.jpg'],
+        ];
+        $this->model->save($this->userId, $items);
+
+        // Vin 99 absent du panier → aucun changement
+        $this->model->removeWineFromAllCarts(99);
 
         $row = $this->model->findByUserId($this->userId);
         $this->assertIsArray($row);
@@ -324,6 +361,23 @@ class CartModelTest extends IntegrationTestCase
 
         $row = $this->model->findByUserId($this->userId);
         $this->assertIsArray($row);
+        $this->assertSame(0, (int) $row['total_quantity']);
+    }
+
+    public function testRemoveWineFromAllCartsEmptiesCartWhenOnlyOneItem(): void
+    {
+        $items = [
+            ['wine_id' => 10, 'qty' => 5, 'name' => 'Sauternes', 'image' => 'img.jpg'],
+        ];
+        $this->model->save($this->userId, $items);
+
+        $this->model->removeWineFromAllCarts(10);
+
+        $row = $this->model->findByUserId($this->userId);
+        $this->assertIsArray($row);
+
+        $content = $this->model->getContent($row);
+        $this->assertCount(0, $content);
         $this->assertSame(0, (int) $row['total_quantity']);
     }
 
