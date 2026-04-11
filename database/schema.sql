@@ -326,7 +326,7 @@ CREATE TABLE `orders` (
   `invoice_number`       VARCHAR(30)    DEFAULT NULL COMMENT 'Numéro de facture WEB-INVOICE-YYYY-XXXX',
   `path_invoice`         VARCHAR(255)   DEFAULT NULL,
   `ordered_at`           DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `delivered_at`         DATETIME       DEFAULT NULL COMMENT 'Date de livraison confirmée ; base du délai de rétractation (15 j)',
+  `delivered_at`         DATETIME       DEFAULT NULL COMMENT 'Date de livraison confirmée ; base du délai de rétractation (14 j — art. L221-18)',
   `rating_email_sent_at` DATETIME       DEFAULT NULL COMMENT 'Date d\'envoi de l\'email de notation J+7 post-livraison',
   `updated_at`           DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

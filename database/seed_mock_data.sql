@@ -839,7 +839,7 @@ VALUES
  '[{"wine_id":35,"label_name":"Bordeaux Blanc","vintage":2024,"wine_color":"white","format":"bottle","qty":12,"price":7.70,"subtotal":92.40},{"wine_id":21,"label_name":"Sainte-Croix-du-Mont","vintage":2016,"wine_color":"sweet","format":"bottle","qty":6,"price":11.50,"subtotal":69.00}]',
  161.40, 'card', 15.00, 1, 2, 'shipped', '2026-02-10 09:00:00', NULL),
 
--- delivered dans la fenêtre (< 15j, pour tester le retour) : delivered_at = aujourd'hui - 5 jours
+-- delivered dans la fenêtre (< 14j, pour tester le retour) : delivered_at = aujourd'hui - 5 jours
 (4, 3, 'CBV-2026-000004',
  '[{"wine_id":7,"label_name":"Bordeaux Rouge","vintage":2016,"wine_color":"red","format":"bottle","qty":24,"price":5.90,"subtotal":141.60}]',
  141.60, 'card', 15.00, 1, 2, 'delivered', '2026-01-05 11:00:00', DATE_SUB(NOW(), INTERVAL 5 DAY)),
@@ -854,7 +854,7 @@ VALUES
  '[{"wine_id":10,"label_name":"Bordeaux Rouge","vintage":2017,"wine_color":"red","format":"bottle","qty":6,"price":6.00,"subtotal":36.00}]',
  36.00, 'card', 0.00, 1, 2, 'refunded', '2026-01-25 13:00:00', '2026-02-01 10:00:00'),
 
--- return_requested (delivered_at > 15j pour être hors fenêtre)
+-- return_requested (delivered_at > 14j pour être hors fenêtre)
 (7, 3, 'CBV-2026-000007',
  '[{"wine_id":31,"label_name":"Sainte-Croix-du-Mont","vintage":2017,"wine_color":"sweet","format":"bottle","qty":6,"price":11.00,"subtotal":66.00}]',
  66.00, 'card', 0.00, 1, 2, 'return_requested', '2026-02-01 08:00:00', '2026-02-10 10:00:00'),
