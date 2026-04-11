@@ -2,6 +2,18 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.70.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.69.0...v0.70.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **controller:** fiche-retour PDF — supprimer colonne Format, intégrer Cuvée Spéciale dans colonne Vin ([e1e9f07](https://github.com/ApoSkunz/crabitan_bellevue/commit/e1e9f074234a4ebca2700fde06918d2351414fc4))
+
+
+### Features
+
+* **controller:** fiche-retour PDF — ajouter colonnes Millésime et Cuvée Spéciale ([8709239](https://github.com/ApoSkunz/crabitan_bellevue/commit/87092391af54ed4b71c19c146893922eb18111bc))
+
 # [0.69.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.68.1...v0.69.0) (2026-04-11)
 
 
