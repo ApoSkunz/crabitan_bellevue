@@ -2,6 +2,16 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.67.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.66.0...v0.67.0) (2026-04-11)
+
+
+### Features
+
+* **front:** ajouter lazy-load.js — Intersection Observer reveal + infinite scroll AJAX ([ffc599f](https://github.com/ApoSkunz/crabitan_bellevue/commit/ffc599fa828334790b2720730d55e915e2a1bc6d))
+* **front:** integrer initLazyLoad dans le bundle principal ([59b264f](https://github.com/ApoSkunz/crabitan_bellevue/commit/59b264fb17271e5a10c6a62e11243f6252cade83))
+* **scss:** spinner de chargement infini + classes js-reveal/is-revealed ([b5c48ad](https://github.com/ApoSkunz/crabitan_bellevue/commit/b5c48ad23b723fd5d8c1db254d0e3cdc5998434c))
+* **view:** ajouter loading=lazy sur image principale fiche vin ([5a127a3](https://github.com/ApoSkunz/crabitan_bellevue/commit/5a127a3a510b1fe0b673f9ff7479db8513379b99))
+
 # [0.66.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.65.0...v0.66.0) (2026-04-11)
 
 
