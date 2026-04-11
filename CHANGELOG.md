@@ -2,6 +2,29 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.66.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.65.0...v0.66.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **admin/ui:** pop-in de confirmation custom + fix validation newsletter ([87346ea](https://github.com/ApoSkunz/crabitan_bellevue/commit/87346eab6f6f10b4b075a0d0e5412ec99f7b35ff))
+* **admin/ui:** résoudre double modal + rouge objet newsletter ([acb2325](https://github.com/ApoSkunz/crabitan_bellevue/commit/acb232571f48cfdc6cf482a689bbbfb35ea1c0d4))
+* **csp/admin:** supprimer tous les on* inline — handlers délégués CSP-safe ([454a1e1](https://github.com/ApoSkunz/crabitan_bellevue/commit/454a1e13dec13448b336ddfce2893e454d14391b))
+* **newsletter/model:** countBySegment('tous'|unknown) → UNION toutes sources + fix test helper newsletter ([ea21306](https://github.com/ApoSkunz/crabitan_bellevue/commit/ea213064c1ae2b9459bdd01a8669ae4073345ad2))
+* **newsletter:** dédoublonner systématiquement newsletter_subscriptions à l'inscription + nonce CSP wines/form ([073cfce](https://github.com/ApoSkunz/crabitan_bellevue/commit/073cfce749d6df450148f615680af539fed537c7))
+* **rgpd/admin:** export portabilité — ZIP + données abonnement sans compte ([9495b90](https://github.com/ApoSkunz/crabitan_bellevue/commit/9495b90d039f6773faf553fcbe32b5d44406e241))
+* **scss/admin:** ajouter .admin-field__error (couleur rouge manquante) ([4c1cc2a](https://github.com/ApoSkunz/crabitan_bellevue/commit/4c1cc2ae4728f17eb46414f6fd0944f5d83eba6e))
+* **test:** corriger return type null→int dans mock Database::execute() ([10c3a6a](https://github.com/ApoSkunz/crabitan_bellevue/commit/10c3a6a22247ff2156c67e9dc85f33d73579ac3d))
+* **wines/admin:** ordre liste vins — disponibles en premier ([0d2f474](https://github.com/ApoSkunz/crabitan_bellevue/commit/0d2f474076b7742c6e39ac45a257eb469e0b540d))
+
+
+### Features
+
+* **newsletter:** consolider liste abonnés via UNION accounts + newsletter_subscriptions ([7d90b34](https://github.com/ApoSkunz/crabitan_bellevue/commit/7d90b344339cf28c02bf4c4463d5f0a95f0fec3d))
+* **newsletter:** dédoublonner newsletter_subscriptions à l'inscription (critères 4 et 5) ([94b641d](https://github.com/ApoSkunz/crabitan_bellevue/commit/94b641d3c50b044be7954a35abface6c5d34195e))
+* **newsletter:** segment non-inscrit (abonnés sans compte) ([3fcb796](https://github.com/ApoSkunz/crabitan_bellevue/commit/3fcb796c53ce9ebea0eb4c1bf0f209465e39375f))
+* **view:** adapter liste admin newsletter pour afficher abonnés sans compte (source=subscription) ([ac88a28](https://github.com/ApoSkunz/crabitan_bellevue/commit/ac88a281db9451fa81180b02429c82862729ee38))
+
 # [0.65.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.64.0...v0.65.0) (2026-04-11)
 
 
