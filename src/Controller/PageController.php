@@ -304,6 +304,7 @@ class PageController extends Controller
             '/contact'                      => '0.6',
             '/conditions-generales-de-vente' => '0.4',
             '/galerie'                      => '0.5',
+            '/accessibilite'                => '0.3',
         ];
 
         $wineModel = new WineModel();
