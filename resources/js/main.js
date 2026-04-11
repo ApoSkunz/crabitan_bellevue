@@ -378,6 +378,29 @@ function initCartModal() {
         const wineImage = btn.dataset.wineImage || '';
         currentCuvee    = btn.dataset.wineCuvee || '';
 
+        // Max = stock disponible − quantité déjà dans le panier BDD
+        const stock      = Number.parseInt(btn.dataset.stock || '0', 10);
+        const cartQty    = (globalThis.__cartMap && wineId)
+            ? (globalThis.__cartMap[Number.parseInt(wineId, 10)] ?? 0)
+            : 0;
+        const effectiveMax = stock > 0 ? Math.max(0, stock - cartQty) : 0;
+        qtyInput.max   = effectiveMax > 0 ? String(effectiveMax) : '96';
+        qtyInput.min   = '1';
+
+        // Message stock limité
+        const stockInfoEl = document.getElementById('cart-modal-stock-info');
+        if (stockInfoEl) {
+            const isEn = document.documentElement.lang === 'en';
+            if (stock > 0 && effectiveMax > 0 && effectiveMax < 300) {
+                stockInfoEl.textContent = isEn
+                    ? effectiveMax + ' bottle' + (effectiveMax > 1 ? 's' : '') + ' available'
+                    : effectiveMax + ' bouteille' + (effectiveMax > 1 ? 's' : '') + ' disponible' + (effectiveMax > 1 ? 's' : '');
+                stockInfoEl.hidden = false;
+            } else {
+                stockInfoEl.hidden = true;
+            }
+        }
+
         titleEl.textContent   = wineName;
         priceEl.textContent   = winePrice;
         imgEl.src             = wineImage;
@@ -385,6 +408,7 @@ function initCartModal() {
         wineIdEl.value        = wineId;
         qtyInput.value        = 1;
         qtyHidden.value       = 1;
+        updateModalBtns();
 
         const cuveeEl = document.getElementById('cart-modal-cuvee');
         if (cuveeEl) {
@@ -488,17 +512,35 @@ function initCartModal() {
     cancelBtn?.addEventListener('click', closeModal);
 
     // Qty controls
+    function updateModalBtns() {
+        const min = Number.parseInt(qtyInput.min, 10) || 1;
+        const max = Number.parseInt(qtyInput.max, 10) || 96;
+        const val = Number.parseInt(qtyInput.value, 10) || 1;
+        if (minusBtn) minusBtn.disabled = val <= min;
+        if (plusBtn)  plusBtn.disabled  = val >= max;
+    }
+
     function updateQty(delta) {
         const min = Number.parseInt(qtyInput.min, 10) || 1;
         const max = Number.parseInt(qtyInput.max, 10) || 96;
         const val = Math.min(max, Math.max(min, (Number.parseInt(qtyInput.value, 10) || 1) + delta));
         qtyInput.value  = val;
         qtyHidden.value = val;
+        updateModalBtns();
     }
 
     minusBtn?.addEventListener('click', () => { updateQty(-1); refreshTotal(); });
     plusBtn?.addEventListener('click',  () => { updateQty(1);  refreshTotal(); });
-    qtyInput?.addEventListener('input', () => { qtyHidden.value = qtyInput.value; refreshTotal(); });
+    qtyInput?.addEventListener('input', () => {
+        const max = Number.parseInt(qtyInput.max, 10) || 96;
+        const min = Number.parseInt(qtyInput.min, 10) || 1;
+        let val = Number.parseInt(qtyInput.value, 10) || min;
+        if (val > max) { val = max; qtyInput.value = val; }
+        if (val < min) { val = min; qtyInput.value = val; }
+        qtyHidden.value = val;
+        updateModalBtns();
+        refreshTotal();
+    });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
