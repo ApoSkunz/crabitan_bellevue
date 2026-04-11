@@ -30,7 +30,6 @@ foreach ($worktreeOverrides as $file) {
 }
 
 $autoloader->addPsr4('Tests\\', [$worktreeRoot . '/tests/'], true);
-
 define('APP_ENV', 'testing');
 define('APP_URL', 'http://localhost');
 define('APP_NAME', 'Crabitan Bellevue Test');
@@ -44,7 +43,6 @@ require_once ROOT_PATH . '/src/helpers.php';
 
 $_ENV['JWT_SECRET'] = 'test-secret-key-for-unit-tests';
 $_ENV['JWT_EXPIRY'] = '3600';
-
 $_ENV['MAIL_HOST']      = getenv('MAIL_HOST') !== false ? getenv('MAIL_HOST') : 'localhost';
 $_ENV['MAIL_PORT']      = getenv('MAIL_PORT') !== false ? getenv('MAIL_PORT') : '1025';
 $_ENV['MAIL_USER']      = getenv('MAIL_USER') !== false ? getenv('MAIL_USER') : 'noreply@test.local';
