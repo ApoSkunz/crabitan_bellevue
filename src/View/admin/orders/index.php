@@ -12,6 +12,7 @@ $statusLabels = [
     'refunded'         => 'Remboursée',
     'return_requested' => 'Retour en cours',
     'refund_refused'   => 'Remboursement refusé',
+    'refund_pending'   => 'Remboursement en attente',
 ];
 $paymentLabels = [
     'card'     => 'Carte bancaire',

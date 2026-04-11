@@ -17,6 +17,7 @@ $statusColors = [
     'refunded'         => 'red',
     'return_requested' => 'teal',
     'refund_refused'   => 'red',
+    'refund_pending'   => 'orange',
 ];
 $isReturnFlow  = in_array($order['status'], ['return_requested', 'refunded', 'refund_refused'], true);
 $returnEndStep = $order['status'] === 'refund_refused' ? 'refund_refused' : 'refunded';
@@ -236,7 +237,26 @@ $paymentMap  = [
                         </button>
                     </form>
                 </section>
-            <?php elseif (!in_array($order['status'], ['delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused'], true)) : ?>
+            <?php elseif ($order['status'] === 'refund_pending') : ?>
+                <section class="account-section">
+                    <p class="order-contact-notice">
+                        <?= __('account.order_refund_pending_notice') ?>
+                    </p>
+                </section>
+            <?php elseif (in_array($order['status'], ['processing', 'paid'], true) && ($order['payment_method'] ?? '') !== 'card') : ?>
+                <section class="account-section account-section--danger">
+                    <h2 class="account-section__title"><?= __('account.order_refund_btn') ?></h2>
+                    <p><?= __('account.order_refund_confirm') ?></p>
+                    <form method="POST"
+                          action="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/remboursement"
+                          data-confirm="<?= htmlspecialchars(__('account.order_refund_confirm')) ?>">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+                        <button type="submit" class="btn btn--danger">
+                            <?= __('account.order_refund_btn') ?>
+                        </button>
+                    </form>
+                </section>
+            <?php elseif (!in_array($order['status'], ['delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused', 'refund_pending'], true)) : ?>
                 <section class="account-section">
                     <p class="order-contact-notice">
                         <?= __('account.order_contact_for_cancel') ?>

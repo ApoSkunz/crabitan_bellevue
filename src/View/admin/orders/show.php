@@ -11,6 +11,7 @@ $statusLabels = [
     'refunded'         => 'Remboursée',
     'return_requested' => 'Retour en cours',
     'refund_refused'   => 'Remboursement refusé',
+    'refund_pending'   => 'Remboursement en attente',
 ];
 $allStatuses   = array_keys($statusLabels);
 
@@ -24,6 +25,7 @@ $statusRank = [
     'return_requested' => 5,
     'refunded'         => 6,
     'refund_refused'   => 6,
+    'refund_pending'   => 5,
     'cancelled'        => 99, // toujours terminal, jamais "en arrière"
 ];
 $currentRank = $statusRank[$order['status']] ?? 0;
@@ -219,6 +221,33 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                 <?php endif; ?>
             </div>
         </div>
+
+        <!-- Remboursement en attente (Vision Air) -->
+        <?php if ($order['status'] === 'refund_pending') : ?>
+        <div class="admin-card" style="margin-bottom:1.5rem;border:1px solid #f59e0b;">
+            <div class="admin-card__header" style="background:#fff8e1;">
+                <h2 style="color:#92400e;">&#9432; Remboursement à traiter</h2>
+            </div>
+            <div class="admin-card__body">
+                <p style="font-size:0.875rem;color:#78350f;margin-bottom:1rem;">
+                    Le remboursement automatique GAE est désactivé. Traitez ce remboursement manuellement dans Vision Air, puis confirmez ci-dessous.
+                </p>
+                <a href="https://www.ca-e-transactions.fr/admin" target="_blank" rel="noopener noreferrer"
+                   class="admin-btn admin-btn--outline"
+                   style="display:block;text-align:center;margin-bottom:1rem;border-color:#f59e0b;color:#92400e;">
+                    Traiter dans Vision Air ↗
+                </a>
+                <form method="POST" action="/admin/commandes/<?= (int) $order['id'] ?>/statut"
+                      onsubmit="return confirm('Confirmer que le remboursement a bien été effectué dans Vision Air ?');">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
+                    <input type="hidden" name="status" value="refunded">
+                    <button type="submit" class="admin-btn admin-btn--primary" style="width:100%;">
+                        Confirmer le remboursement
+                    </button>
+                </form>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <!-- Facture -->
         <?php if ($order['status'] !== 'cancelled') : ?>
