@@ -215,4 +215,115 @@ class CartModelTest extends TestCase
         $this->model->mergeLocalCart(42, $localItems, fn(int $id): int => 10);
         $this->assertTrue(true);
     }
+
+    // ----------------------------------------------------------------
+    // purgeWineFromAllCarts
+    // ----------------------------------------------------------------
+
+    public function testPurgeWineFromAllCartsRemovesWineFromMatchingCart(): void
+    {
+        $content = json_encode([['wine_id' => 2, 'qty' => 1, 'name' => 'Test', 'image' => 'img.jpg']]);
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([['id' => 1, 'user_id' => 10, 'content' => $content, 'total_quantity' => 1]]);
+
+        // save() appelle execute → doit être appelé une fois (le vin 2 est retiré)
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute');
+
+        $this->model->purgeWineFromAllCarts(2);
+    }
+
+    public function testPurgeWineFromAllCartsSkipsCartWithoutTargetWine(): void
+    {
+        $content = json_encode([['wine_id' => 99, 'qty' => 1, 'name' => 'Other', 'image' => 'img.jpg']]);
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([['id' => 1, 'user_id' => 10, 'content' => $content, 'total_quantity' => 1]]);
+
+        // Vin 2 absent du panier → pas de save() → execute non appelé
+        $this->dbMock
+            ->expects($this->never())
+            ->method('execute');
+
+        $this->model->purgeWineFromAllCarts(2);
+    }
+
+    public function testPurgeWineFromAllCartsDoesNothingWhenNoCartsExist(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([]);
+
+        $this->dbMock
+            ->expects($this->never())
+            ->method('execute');
+
+        $this->model->purgeWineFromAllCarts(1);
+    }
+
+    // ----------------------------------------------------------------
+    // removeWineFromAllCarts (alias)
+    // ----------------------------------------------------------------
+
+    public function testRemoveWineFromAllCartsDelegatesToPurge(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([]);
+
+        $this->model->removeWineFromAllCarts(5);
+    }
+
+    // ----------------------------------------------------------------
+    // capWineQtyAcrossAllCarts
+    // ----------------------------------------------------------------
+
+    public function testCapWineQtyAcrossAllCartsPurgesWhenMaxQtyIsZero(): void
+    {
+        // maxQty = 0 → appelle purgeWineFromAllCarts → fetchAll appelé
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([]);
+
+        $this->model->capWineQtyAcrossAllCarts(3, 0);
+    }
+
+    public function testCapWineQtyAcrossAllCartsCapsQtyWhenExceedsMax(): void
+    {
+        $content = json_encode([['wine_id' => 3, 'qty' => 10, 'name' => 'Test', 'image' => 'img.jpg']]);
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([['id' => 1, 'user_id' => 7, 'content' => $content, 'total_quantity' => 10]]);
+
+        // qty=10 > maxQty=4 → save appelé → execute appelé une fois
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute');
+
+        $this->model->capWineQtyAcrossAllCarts(3, 4);
+    }
+
+    public function testCapWineQtyAcrossAllCartsNoSaveWhenQtyWithinLimit(): void
+    {
+        $content = json_encode([['wine_id' => 3, 'qty' => 2, 'name' => 'Test', 'image' => 'img.jpg']]);
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([['id' => 1, 'user_id' => 7, 'content' => $content, 'total_quantity' => 2]]);
+
+        // qty=2 <= maxQty=5 → pas de modification → execute non appelé
+        $this->dbMock
+            ->expects($this->never())
+            ->method('execute');
+
+        $this->model->capWineQtyAcrossAllCarts(3, 5);
+    }
 }

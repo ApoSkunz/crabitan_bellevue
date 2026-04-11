@@ -24,8 +24,14 @@ class MailServiceTest extends TestCase
 
     protected function setUp(): void
     {
+        $_ENV['MAIL_USER'] = 'noreply@test.local';
         $this->service    = new MailService();
         $this->reflection = new ReflectionClass(MailService::class);
+    }
+
+    protected function tearDown(): void
+    {
+        unset($_ENV['MAIL_USER'], $_ENV['CONTACT_OWNER_EMAIL'], $_ENV['APP_URL']);
     }
 
     /**

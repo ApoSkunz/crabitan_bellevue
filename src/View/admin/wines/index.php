@@ -97,8 +97,17 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                         <td><?= (int) $wine['vintage'] ?></td>
                         <td><?= number_format((float) $wine['price'], 2, ',', ' ') ?>&nbsp;€</td>
                         <td><?= number_format((int) $wine['production_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
-                        <td><?= number_format((int) $wine['stock_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
+                        <td <?= (int) $wine['stock_quantity'] === 0 ? 'style="color:#c0392b;font-weight:600;"' : '' ?>>
+                            <?= number_format((int) $wine['stock_quantity'], 0, ',', ' ') ?>&nbsp;bt
+                        </td>
                         <td>
+                            <?php if (!(bool) $wine['available'] && (int) $wine['stock_quantity'] === 0) : ?>
+                                <span class="admin-btn admin-btn--sm admin-btn--out"
+                                      style="cursor:default;opacity:0.7;"
+                                      title="Stock épuisé — réapprovisionner avant de remettre en vente">
+                                    Indisponible
+                                </span>
+                            <?php else : ?>
                             <button type="button"
                                     class="js-toggle-available admin-btn admin-btn--sm <?= $wine['available'] ? 'admin-btn--available' : 'admin-btn--out' ?>"
                                     data-id="<?= (int) $wine['id'] ?>"
@@ -108,6 +117,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                                     aria-label="<?= $wine['available'] ? 'Rendre indisponible' : 'Rendre disponible' ?>">
                                 <?= $wine['available'] ? 'Disponible' : 'Indisponible' ?>
                             </button>
+                            <?php endif; ?>
                         </td>
                         <td style="text-align:center;">
                             <?php if ($wine['available']) : ?>

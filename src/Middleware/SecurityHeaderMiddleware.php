@@ -26,6 +26,8 @@ class SecurityHeaderMiddleware
             define('CSP_NONCE', $nonce);
         }
 
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+
         $csp = implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'nonce-{$nonce}'",
@@ -45,7 +47,6 @@ class SecurityHeaderMiddleware
         header("Content-Security-Policy: {$csp}");
 
         // X-Robots-Tag : noai sur les pages vins (catalogue)
-        $uri = $_SERVER['REQUEST_URI'] ?? '/';
         if (self::isWinePath($uri)) {
             header('X-Robots-Tag: noai, noimageai');
         }

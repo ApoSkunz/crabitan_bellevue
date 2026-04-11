@@ -49,6 +49,10 @@ class CartController extends Controller
         $nextTier    = null;
         $totalQty    = 0;
 
+        // Flash : articles retirés du panier lors d'un aller checkout → retour panier
+        $removedCount = (int) ($_SESSION['flash']['cart_wines_removed'] ?? 0);
+        unset($_SESSION['flash']['cart_wines_removed']);
+
         $userId = $this->resolveUserId();
         if ($userId !== null) {
             $isAuth       = true;
@@ -59,6 +63,7 @@ class CartController extends Controller
             $pricingRule  = $cartData['pricingRule'];
             $nextTier     = $cartData['nextTier'];
             $pricingModel = $cartData['pricingModel'] ?? null;
+            $removedCount += (int) ($cartData['removedFromEnrich'] ?? 0);
         }
 
         $pricingModel    = $pricingModel ?? new PricingRuleModel();
@@ -99,6 +104,7 @@ class CartController extends Controller
 
         $this->view('cart/index', [
             'lang'             => $lang,
+            'removedCount'     => $removedCount,
             'cartItems'        => $cartItems,
             'isAuth'           => $isAuth,
             'isB2B'            => $isB2B,
@@ -187,13 +193,16 @@ class CartController extends Controller
         $pricingRule  = null;
         $nextTier     = null;
         $pricingModel = null;
+        $removedFromEnrich = 0;
 
         if (!$isB2B) {
             $cartModel = new CartModel();
             $row       = $cartModel->findByUserId($userId);
             if ($row !== false) {
-                $cartItems = $cartModel->getContent($row);
-                $cartItems = $this->enrichItemsWithPrice($cartItems);
+                $rawItems  = $cartModel->getContent($row);
+                $enriched  = $this->enrichItemsWithPrice($rawItems);
+                $cartItems = $enriched['items'];
+                $removedFromEnrich = $enriched['removedCount'];
             }
 
             if (!empty($cartItems)) {
@@ -205,37 +214,48 @@ class CartController extends Controller
         }
 
         return [
-            'isB2B'        => $isB2B,
-            'cartItems'    => $cartItems,
-            'totalQty'     => $totalQty,
-            'pricingRule'  => $pricingRule,
-            'nextTier'     => $nextTier,
-            'pricingModel' => $pricingModel,
+            'isB2B'             => $isB2B,
+            'cartItems'         => $cartItems,
+            'totalQty'          => $totalQty,
+            'pricingRule'       => $pricingRule,
+            'nextTier'          => $nextTier,
+            'pricingModel'      => $pricingModel,
+            'removedFromEnrich' => $removedFromEnrich,
         ];
     }
 
     /**
      * Enrichit chaque article du panier avec le prix récupéré depuis WineModel.
      * Les champs name et image sont aussi complétés si absents.
+     * Les articles dont le vin est indisponible (available=0) sont exclus et comptabilisés.
      *
      * @param array<int, array<string, mixed>> $items Articles du panier (wine_id, qty, name, image)
-     * @return array<int, array<string, mixed>>
+     * @return array{items: array<int, array<string, mixed>>, removedCount: int}
      */
     private function enrichItemsWithPrice(array $items): array
     {
-        $wineModel = new WineModel();
-        foreach ($items as &$item) {
-            $wine          = $wineModel->getById((int) $item['wine_id']);
-            $rawImage      = $wine['image_path'] ?? '';
-            $fullImage     = $rawImage !== '' ? '/assets/images/wines/' . $rawImage : '';
-            $item['price']            = $wine !== null ? (float) ($wine['price'] ?? 0.0) : 0.0;
-            $item['image']            = ($item['image'] ?? '') !== '' ? $item['image'] : $fullImage;
-            $item['name']             = ($item['name']  ?? '') !== '' ? $item['name']  : ($wine['label_name'] ?? '');
-            $item['vintage']          = $wine !== null ? (int) ($wine['vintage'] ?? 0) : 0;
-            $item['is_cuvee_speciale'] = $wine !== null ? (bool) ($wine['is_cuvee_speciale'] ?? false) : false;
+        $wineModel   = new WineModel();
+        $enriched    = [];
+        $removedCount = 0;
+        foreach ($items as $item) {
+            $wine = $wineModel->getById((int) $item['wine_id']);
+
+            if ($wine === null || !(bool) ($wine['available'] ?? false)) {
+                $removedCount++;
+                continue;
+            }
+
+            $rawImage                  = $wine['image_path'] ?? '';
+            $fullImage                 = $rawImage !== '' ? '/assets/images/wines/' . $rawImage : '';
+            $item['price']             = (float) ($wine['price'] ?? 0.0);
+            $item['image']             = ($item['image'] ?? '') !== '' ? $item['image'] : $fullImage;
+            $item['name']              = ($item['name']  ?? '') !== '' ? $item['name']  : ($wine['label_name'] ?? '');
+            $item['vintage']           = (int) ($wine['vintage'] ?? 0);
+            $item['is_cuvee_speciale'] = (bool) ($wine['is_cuvee_speciale'] ?? false);
+            $item['stock_quantity']    = (int) ($wine['stock_quantity'] ?? 0);
+            $enriched[] = $item;
         }
-        unset($item);
-        return $items;
+        return ['items' => $enriched, 'removedCount' => $removedCount];
     }
 
     /**

@@ -2,6 +2,172 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.70.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.69.0...v0.70.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **controller:** fiche-retour PDF — supprimer colonne Format, intégrer Cuvée Spéciale dans colonne Vin ([e1e9f07](https://github.com/ApoSkunz/crabitan_bellevue/commit/e1e9f074234a4ebca2700fde06918d2351414fc4))
+
+
+### Features
+
+* **controller:** fiche-retour PDF — ajouter colonnes Millésime et Cuvée Spéciale ([8709239](https://github.com/ApoSkunz/crabitan_bellevue/commit/87092391af54ed4b71c19c146893922eb18111bc))
+
+# [0.69.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.68.1...v0.69.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **cart:** blocage stock en temps réel + alerte checkout vin indispo ([7841a54](https://github.com/ApoSkunz/crabitan_bellevue/commit/7841a5403f7308167df54fe8d0a98078c890c94e))
+* **model:** corriger ai.firstname (était ai.first_name) dans getCartUsersWithWine ([633549a](https://github.com/ApoSkunz/crabitan_bellevue/commit/633549a720f8b55cd2894cba315c6ca4ae4e75d8))
+* **model:** getCartUsersWithWine — LIKE au lieu de JSON_CONTAINS pour MariaDB ([a93987d](https://github.com/ApoSkunz/crabitan_bellevue/commit/a93987d2372f6c335a218379c97821c577c4193d))
+* **sonar:** réduire complexité openModal + supprimer ternaires imbriqués + NOSONAR cart ([198c48e](https://github.com/ApoSkunz/crabitan_bellevue/commit/198c48e4a19050805c4d8f9327636f620272303b))
+* **test:** phpcs — phpcs:ignore MultipleClasses sur stubs dans StockNotificationServiceTest ([a24b57d](https://github.com/ApoSkunz/crabitan_bellevue/commit/a24b57df436e5c6b60e30e655f47498864916377))
+* **ui:** toast 2000ms + bouton fermer + collection 4 colonnes (comme boutique) ([531c293](https://github.com/ApoSkunz/crabitan_bellevue/commit/531c29324319cd9a1bbe36b381ba8dcaf457b9cd))
+* **view:** badge stock sur collection + repositionner badge top-right + retirer border-top cross-sell ([6f0e761](https://github.com/ApoSkunz/crabitan_bellevue/commit/6f0e761d2f6a659f5a2a289badd21ec54d73ad1d))
+
+
+### Features
+
+* **admin:** stock=0 → available=0 automatiquement lors de la mise à jour vin ([187bcfb](https://github.com/ApoSkunz/crabitan_bellevue/commit/187bcfbeac56956f26b04f8cd5749ac339947ee1))
+* **cart:** bouton + grisé au max stock + toast 3000ms ([5cd4fab](https://github.com/ApoSkunz/crabitan_bellevue/commit/5cd4fabf35a18e443296ae89a40f70eaa442fca2))
+* **cart:** notifier silencieusement les vins filtrés au chargement du panier ([bb2e240](https://github.com/ApoSkunz/crabitan_bellevue/commit/bb2e24014b6ebe86f7167a081dbcff8d5f6a011c))
+* **controller:** alerte stock bas admin + contraintes stock commande ([fbec813](https://github.com/ApoSkunz/crabitan_bellevue/commit/fbec813b95712b22cd9f6f598407f6d267efa8db))
+* **controller:** filtrer silencieusement les vins unavailable dans enrichItemsWithPrice ([3b2b321](https://github.com/ApoSkunz/crabitan_bellevue/commit/3b2b3213062f7b16884836ed0946df839e5c1b43))
+* **i18n:** clé wine.low_stock_qty fr/en pour notice stock panier ([35dab5a](https://github.com/ApoSkunz/crabitan_bellevue/commit/35dab5a3101c986ed81aa76581b9afdb851aaa20))
+* **js:** modale panier — max effectif stock-panier + message stock limité ([836f0ae](https://github.com/ApoSkunz/crabitan_bellevue/commit/836f0ae74588997a443de9fdfa60d21a6a7f5c64))
+* **model:** ajouter resetLowStockNotified + getCartUsersWithWine ([2fe62ec](https://github.com/ApoSkunz/crabitan_bellevue/commit/2fe62ec1a920b42e22ad930f2277fe21c24531e9))
+* **model:** ajouter setLowStockNotifiedAt, getCartUsersWithWine, getActiveNewsletterSubscribers, removeWineFromAllCarts ([45afa3f](https://github.com/ApoSkunz/crabitan_bellevue/commit/45afa3fbd4583efe3b8b05e5e83df080d71a9cff))
+* **scss:** styles stock-info modale + admin-section + cart stock-notice ([a3ca419](https://github.com/ApoSkunz/crabitan_bellevue/commit/a3ca419c9b688c0825567a403f0469e736403649))
+* **service:** brancher StockNotificationService sur WineAdminController::update() ([9f22695](https://github.com/ApoSkunz/crabitan_bellevue/commit/9f2269564940919716e6dd73ac659f373e12c361))
+* **service:** créer StockNotificationService + sendLowStockAlert dans MailService ([1ac4b27](https://github.com/ApoSkunz/crabitan_bellevue/commit/1ac4b27973bf740c36422ce0d598ccde0c42f4fe))
+* **service:** StockNotificationService — traces error_log + split ligne PHPCS ([c86c342](https://github.com/ApoSkunz/crabitan_bellevue/commit/c86c3423f10aedade9f87a68be36e2705ba38e7d))
+* **view:** admin wines — cellule stock rouge + badge indisponible si stock=0 ([b86d2dc](https://github.com/ApoSkunz/crabitan_bellevue/commit/b86d2dc1acc56947a61625f435c8697d442fa178))
+* **view:** badge Stock limité sur catalogue et fiche vin quand stock ≤ STOCK_ALERTE_LIMIT ([a01a154](https://github.com/ApoSkunz/crabitan_bellevue/commit/a01a1547eefb13c40c1ebf3aa279f19b68695c4e))
+* **view:** contraintes stock — cartMap header + data-stock + notice panier ([c972ede](https://github.com/ApoSkunz/crabitan_bellevue/commit/c972edeee201b67e208ea82a1c75d2d0ecf2d747))
+
+## [0.68.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.68.0...v0.68.1) (2026-04-11)
+
+
+### Bug Fixes
+
+* **ci:** retirer administration:read — permission invalide au niveau job ([7417c35](https://github.com/ApoSkunz/crabitan_bellevue/commit/7417c35923fec0fc5177b57611a59ffe9a70522e))
+
+# [0.68.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.67.1...v0.68.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **ci:** supprimer warning PHPCS PSR1.SideEffects sur bootstrap_worktree.php (mélange define/require inévitable) ([bf403d1](https://github.com/ApoSkunz/crabitan_bellevue/commit/bf403d1967f005bffa726d17f3678286926b65cc))
+* **remboursement:** badge i18n refund_pending + Vision Air client lourd + CSP onsubmit ([0e7b344](https://github.com/ApoSkunz/crabitan_bellevue/commit/0e7b344e1cb8755ae0535df22a26fa959fe31082))
+* **scss:** empêcher débordement badge long dans admin-dl (refund_pending, return_requested) ([e241735](https://github.com/ApoSkunz/crabitan_bellevue/commit/e241735b37661525ea0adbee8e00e3eab36c912a))
+* **service:** remplacer RuntimeException générique par GaeRefundException (Sonar S112) ([ab0ca92](https://github.com/ApoSkunz/crabitan_bellevue/commit/ab0ca921bfe8ae97c296722e6d3bd30c9a973610))
+* **test:** adapter testOrderDetail processing+card — GAE=false → bouton refund (comportement attendu) ([246198b](https://github.com/ApoSkunz/crabitan_bellevue/commit/246198b4c38b7c848e94169f9cda8c87cd853872))
+* **test:** initialiser MAIL_USER dans MailServiceTest setUp ([d255da1](https://github.com/ApoSkunz/crabitan_bellevue/commit/d255da18c4fccac7f294b241b7b58e089ac61904))
+* **view:** adapter message confirmation remboursement selon CA_ENABLE_GAE (GAE=false → refund_pending, pas remboursement immédiat) ([9a1e343](https://github.com/ApoSkunz/crabitan_bellevue/commit/9a1e34379f34a4cbdfc42b9a82d2497578d5a12a))
+* **view:** stepper client — ajouter timeline refund_pending→refunded et distinguer retour vs remboursement direct (delivered_at) ([309275f](https://github.com/ApoSkunz/crabitan_bellevue/commit/309275f4fb133b8b4fd712d13ab96765442a23b2))
+
+
+### Features
+
+* **controller:** ajouter requestRefund dans AccountController ([703f966](https://github.com/ApoSkunz/crabitan_bellevue/commit/703f966993fe60c1fd424dafa8a9bdaa919dde71))
+* **i18n:** ajouter clés de traduction pour le remboursement client ([3b411ea](https://github.com/ApoSkunz/crabitan_bellevue/commit/3b411ea7e539789934bf8a2b47b7f727e94b058d))
+* **routes:** ajouter route POST remboursement client ([ca42921](https://github.com/ApoSkunz/crabitan_bellevue/commit/ca4292125af9bfa46e4f203326e1f288dca1f812))
+* **scss:** ajouter badge--refund_pending (orange distinct) ([b7c3141](https://github.com/ApoSkunz/crabitan_bellevue/commit/b7c3141ba5d2d3b39082d1fb1bbff36180b69b68))
+* **service:** ajouter sendRefundPendingEmail dans MailService ([74bfaa6](https://github.com/ApoSkunz/crabitan_bellevue/commit/74bfaa63b96d93a888e49bbc2d46a314f79af315))
+* **service:** créer GaeApiInterface, GaeApiClient et RefundService (us-remboursement-gae) ([49a2ab4](https://github.com/ApoSkunz/crabitan_bellevue/commit/49a2ab4a67420c148955943e88572a3259abc8b9))
+* **service:** notifier le propriétaire sur demande remboursement manuel (GAE=false) — comme pour les retours ([6c64be0](https://github.com/ApoSkunz/crabitan_bellevue/commit/6c64be052c9058c18574be721d107744c06acb5e))
+* **view:** afficher badge refund_pending et bloc Vision Air dans les vues commandes ([a3a7166](https://github.com/ApoSkunz/crabitan_bellevue/commit/a3a7166558ee9646b53d91f3a40fbe3b4ece12d3))
+
+## [0.67.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.67.0...v0.67.1) (2026-04-11)
+
+
+### Bug Fixes
+
+* **order:** corriger CANCEL_WINDOW_DAYS 15→14 (conformité art. L221-18) ([b5c307f](https://github.com/ApoSkunz/crabitan_bellevue/commit/b5c307f3fa24de907a8c668e6596b18cbff73d48))
+* **test:** aligner OrderModelTest sur CANCEL_WINDOW_DAYS=14 (L221-18 : 14j, pas 15j) ([ab57696](https://github.com/ApoSkunz/crabitan_bellevue/commit/ab57696183ef0018258de3bdb675ef3ddfb42ce2))
+
+# [0.67.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.66.0...v0.67.0) (2026-04-11)
+
+
+### Features
+
+* **front:** ajouter lazy-load.js — Intersection Observer reveal + infinite scroll AJAX ([ffc599f](https://github.com/ApoSkunz/crabitan_bellevue/commit/ffc599fa828334790b2720730d55e915e2a1bc6d))
+* **front:** integrer initLazyLoad dans le bundle principal ([59b264f](https://github.com/ApoSkunz/crabitan_bellevue/commit/59b264fb17271e5a10c6a62e11243f6252cade83))
+* **scss:** spinner de chargement infini + classes js-reveal/is-revealed ([b5c48ad](https://github.com/ApoSkunz/crabitan_bellevue/commit/b5c48ad23b723fd5d8c1db254d0e3cdc5998434c))
+* **view:** ajouter loading=lazy sur image principale fiche vin ([5a127a3](https://github.com/ApoSkunz/crabitan_bellevue/commit/5a127a3a510b1fe0b673f9ff7479db8513379b99))
+
+# [0.66.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.65.0...v0.66.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **admin/ui:** pop-in de confirmation custom + fix validation newsletter ([87346ea](https://github.com/ApoSkunz/crabitan_bellevue/commit/87346eab6f6f10b4b075a0d0e5412ec99f7b35ff))
+* **admin/ui:** résoudre double modal + rouge objet newsletter ([acb2325](https://github.com/ApoSkunz/crabitan_bellevue/commit/acb232571f48cfdc6cf482a689bbbfb35ea1c0d4))
+* **csp/admin:** supprimer tous les on* inline — handlers délégués CSP-safe ([454a1e1](https://github.com/ApoSkunz/crabitan_bellevue/commit/454a1e13dec13448b336ddfce2893e454d14391b))
+* **newsletter/model:** countBySegment('tous'|unknown) → UNION toutes sources + fix test helper newsletter ([ea21306](https://github.com/ApoSkunz/crabitan_bellevue/commit/ea213064c1ae2b9459bdd01a8669ae4073345ad2))
+* **newsletter:** dédoublonner systématiquement newsletter_subscriptions à l'inscription + nonce CSP wines/form ([073cfce](https://github.com/ApoSkunz/crabitan_bellevue/commit/073cfce749d6df450148f615680af539fed537c7))
+* **rgpd/admin:** export portabilité — ZIP + données abonnement sans compte ([9495b90](https://github.com/ApoSkunz/crabitan_bellevue/commit/9495b90d039f6773faf553fcbe32b5d44406e241))
+* **scss/admin:** ajouter .admin-field__error (couleur rouge manquante) ([4c1cc2a](https://github.com/ApoSkunz/crabitan_bellevue/commit/4c1cc2ae4728f17eb46414f6fd0944f5d83eba6e))
+* **test:** corriger return type null→int dans mock Database::execute() ([10c3a6a](https://github.com/ApoSkunz/crabitan_bellevue/commit/10c3a6a22247ff2156c67e9dc85f33d73579ac3d))
+* **wines/admin:** ordre liste vins — disponibles en premier ([0d2f474](https://github.com/ApoSkunz/crabitan_bellevue/commit/0d2f474076b7742c6e39ac45a257eb469e0b540d))
+
+
+### Features
+
+* **newsletter:** consolider liste abonnés via UNION accounts + newsletter_subscriptions ([7d90b34](https://github.com/ApoSkunz/crabitan_bellevue/commit/7d90b344339cf28c02bf4c4463d5f0a95f0fec3d))
+* **newsletter:** dédoublonner newsletter_subscriptions à l'inscription (critères 4 et 5) ([94b641d](https://github.com/ApoSkunz/crabitan_bellevue/commit/94b641d3c50b044be7954a35abface6c5d34195e))
+* **newsletter:** segment non-inscrit (abonnés sans compte) ([3fcb796](https://github.com/ApoSkunz/crabitan_bellevue/commit/3fcb796c53ce9ebea0eb4c1bf0f209465e39375f))
+* **view:** adapter liste admin newsletter pour afficher abonnés sans compte (source=subscription) ([ac88a28](https://github.com/ApoSkunz/crabitan_bellevue/commit/ac88a281db9451fa81180b02429c82862729ee38))
+
+# [0.65.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.64.0...v0.65.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **cart:** inclure user_id dans le résultat de getAbandonedForEmail ([21362ab](https://github.com/ApoSkunz/crabitan_bellevue/commit/21362ab2da5ca52143469428d41b097549a10066))
+* **marketing:** corriger FK wine_ratings + signature sendOrderStatusEmail ([a68edec](https://github.com/ApoSkunz/crabitan_bellevue/commit/a68edec73af2e703218316e4ceaee83a51d7e53e))
+* **marketing:** délai email post-achat J+7 → J+21 (3 semaines) ([e6caa14](https://github.com/ApoSkunz/crabitan_bellevue/commit/e6caa14f6357ca04dd2154c22c6faa009bd76296))
+* **marketing:** supprimer [@phpstan-ignore](https://github.com/phpstan-ignore) obsolètes + corriger TU post-merge ([14bd9ed](https://github.com/ApoSkunz/crabitan_bellevue/commit/14bd9edad6a2b3072007c80892b5f70c3e74fef7))
+* **order:** null-coalesce vintage key pour éviter PHP warning ([6d18a7c](https://github.com/ApoSkunz/crabitan_bellevue/commit/6d18a7cb7b29ca3e8540278b382216cde80637be))
+* **quality:** supprimer méthodes dupliquées + aligner tests sur nouvelles signatures ([da48f33](https://github.com/ApoSkunz/crabitan_bellevue/commit/da48f33732fe8dacfebee2fbade1fb7e6a5aba20))
+* **sonar:** corriger 16 code smells + bug CartModel SQL + extraire constantes dupliquées ([a3d3cfb](https://github.com/ApoSkunz/crabitan_bellevue/commit/a3d3cfb14ce7fcab227bc22979f5b69dc92257a6))
+* **sonar:** corriger code smell S1192 + augmenter couverture nouveau code ([f351744](https://github.com/ApoSkunz/crabitan_bellevue/commit/f351744bbef992f50eef94daa331b2413ed4a3a0))
+* **test:** ajouter colonnes award et extra_comment manquantes dans INSERT wines ([693ff75](https://github.com/ApoSkunz/crabitan_bellevue/commit/693ff758bb8e380dc4a1ef12f86bd98b129ecd30))
+* **test:** corriger 2 erreurs CI residuelles RatingModelTest ([7750f6d](https://github.com/ApoSkunz/crabitan_bellevue/commit/7750f6d330c92fa652dc738fcce281d643136103))
+* **test:** corriger 3 échecs CI — colonnes snapshot, stepper logique, require_once ([d934311](https://github.com/ApoSkunz/crabitan_bellevue/commit/d9343117b4a782f29d20871235dafdcc299f91f4))
+* **test:** corriger rateViaAccount — insérer connection active + FK disable pour wine_ratings ([1270b93](https://github.com/ApoSkunz/crabitan_bellevue/commit/1270b93c13233a832bfb688542071d895571cd52))
+* **test:** corriger warnings PHPCS lignes trop longues CartControllerTest ([eee201c](https://github.com/ApoSkunz/crabitan_bellevue/commit/eee201c90bd0d159ade49ba0256f9cad384abb0f))
+* **test:** supprimer colonne likes_count inexistante dans INSERT wines ([779d556](https://github.com/ApoSkunz/crabitan_bellevue/commit/779d556feeac86e8a611201f3fd4a5e159b3fa2e))
+* **ux:** email bienvenue contenu riche + notation badge image + schema rating_email_sent_at ([6a39f09](https://github.com/ApoSkunz/crabitan_bellevue/commit/6a39f09a3ec554833058edc0168110b45b105a4c))
+* **ux:** stepper ✓ sur confirmation + lien admin + email welcome OAuth + tri notation ([8ef71fc](https://github.com/ApoSkunz/crabitan_bellevue/commit/8ef71fc816a4fbda39ef7f281ba23cb8cca6579d))
+* **ux:** supprimer stepper sticky + corriger structure HTML cross-sell panier ([50764f5](https://github.com/ApoSkunz/crabitan_bellevue/commit/50764f56fb261760261ac0135b4b8ce68fb54ac1))
+* **view:** aligner ordre menu admin header sur sidebar back-office ([fe90f10](https://github.com/ApoSkunz/crabitan_bellevue/commit/fe90f10000c049d279397e5f965976f97cc396e1))
+* **view:** supprimer doublon cross-sell panier + ajouter cuvée spéciale sur les cartes ([6c09937](https://github.com/ApoSkunz/crabitan_bellevue/commit/6c0993733426577f2245fbb58b3fe8c1fe52551f))
+
+
+### Features
+
+* **admin:** dashboard marketing — panier moyen, segmentation, newsletter, top vins notés ([6d8beda](https://github.com/ApoSkunz/crabitan_bellevue/commit/6d8bedabe49b9b4f56a419cf8ad1de965fe960b1))
+* **controller:** RatingController — endpoint token email + notation directe + routes ([afd401d](https://github.com/ApoSkunz/crabitan_bellevue/commit/afd401d11366b8c86e7cacb87b9b13385cffba0c))
+* **controller:** RatingController — page notation commande via token order ([41035d7](https://github.com/ApoSkunz/crabitan_bellevue/commit/41035d74ddbaff2f061c407f691d3088ce14f72b))
+* **mail:** email bienvenue post-vérification + statut commande enrichi (adresse + suivi + CTA) ([e4f83a5](https://github.com/ApoSkunz/crabitan_bellevue/commit/e4f83a59d643eb828fea9693c837eb8d3ce26e7c))
+* **mail:** email post-achat rating /5 + script cron panier abandonné J+3 + sendAbandonedCart ([ed3637d](https://github.com/ApoSkunz/crabitan_bellevue/commit/ed3637d20689613f726764f48c7393b9da4504b8))
+* **marketing:** cross-sell panier + notation post-achat AJAX + fixes invité ([eceaa11](https://github.com/ApoSkunz/crabitan_bellevue/commit/eceaa110dfefd1cf62532a1127e1ef0572d6b0f4)), closes [#23](https://github.com/ApoSkunz/crabitan_bellevue/issues/23)
+* **model:** CartModel reminder_sent_at + OrderModel rating_email_sent_at + RatingModel méthodes complètes ([cfff756](https://github.com/ApoSkunz/crabitan_bellevue/commit/cfff756f1c25c1467b2a9ca1ff540646e7055742))
+* **model:** RatingModel + table wine_ratings pour notation /5 des vins ([b0f8326](https://github.com/ApoSkunz/crabitan_bellevue/commit/b0f83269c07b45098802c2e4d849fa763d44e906))
+* **model:** tri rating_desc + reminder_sent_at panier abandonné unique ([7bb6799](https://github.com/ApoSkunz/crabitan_bellevue/commit/7bb679905f390234af620b4c2b0a8cc2f7595325))
+* **model:** WineModel::getSimilar + getForCartCrossSell + injection cross-sell/rating WineController/CartController ([e812b82](https://github.com/ApoSkunz/crabitan_bellevue/commit/e812b82dc621fda705223b2bafd3478982351c1c))
+* **routes:** route GET /rating/order/{orderToken} → RatingController@rateOrder ([17fb060](https://github.com/ApoSkunz/crabitan_bellevue/commit/17fb060919a75e4dec4826267fabf850f5174b0f))
+* **service:** MailService — sendPostPurchase email notation J+7 + sendAbandonedCart enrichi ([f77e36e](https://github.com/ApoSkunz/crabitan_bellevue/commit/f77e36ea3d45f941d4bc3c726b85a9d2f41eb165))
+* **ux:** lien Marketing header admin + welcome email CTA newsletter ([974c795](https://github.com/ApoSkunz/crabitan_bellevue/commit/974c7953dc96abc0efe95a50da90747e87e2be51))
+* **ux:** stepper sticky + cross-sell logic + affichage note X.X/5 ([da7b0e3](https://github.com/ApoSkunz/crabitan_bellevue/commit/da7b0e393387535e8aa4dc12aa99ad1ecf694fc4))
+* **view,cron:** vue rating/order.php + scripts CronRunner send-abandoned-cart + send-post-purchase ([3980005](https://github.com/ApoSkunz/crabitan_bellevue/commit/39800052c92b325aa5e1c5000a812010a8d97780))
+* **view:** afficher millésime + cuvée spéciale dans le tableau du panier ([d3ec6b9](https://github.com/ApoSkunz/crabitan_bellevue/commit/d3ec6b9f9717a0d328feb061cec8377eb7d7df88))
+* **view:** cross-sell fiche vin + panier + widget notation /5 + SCSS + i18n ([5c9ff5d](https://github.com/ApoSkunz/crabitan_bellevue/commit/5c9ff5dfe4a84cdab45b46a7337bbdb5d2bb1f40))
+* **view:** stepper de progression tunnel commande (panier → livraison → confirmation) ([df65737](https://github.com/ApoSkunz/crabitan_bellevue/commit/df65737d610bc60ad9cb3c06150e938c21fed44f))
+
 # [0.64.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.63.1...v0.64.0) (2026-04-10)
 
 

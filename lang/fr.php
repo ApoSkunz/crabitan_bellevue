@@ -86,6 +86,8 @@ return [
     'wine.favorite_login' => 'Connectez-vous pour ajouter ce vin à vos favoris.',
     'wine.out_of_stock' => 'Épuisé',
     'wine.available'    => 'Disponible',
+    'wine.low_stock'     => 'Stock limité',
+    'wine.low_stock_qty' => 'bt restantes',
     'wine.favorites'      => 'Favoris',
     'wine.like_login'     => 'Connectez-vous pour aimer ce vin.',
     'wine.vintage'      => 'Millésime',
@@ -216,6 +218,7 @@ return [
     'cart.qty_increase'         => 'Augmenter la quantité',
     'cart.subtotal_label'       => 'Sous-total',
     'cart.total_ttc'            => 'Total TTC',
+    'cart.wines_removed_notice' => 'Un ou plusieurs articles ont été retirés de votre panier car ils ne sont plus disponibles. Vérifiez votre sélection avant de continuer.',
     'cart.you_might_enjoy'      => 'Vous pourriez apprécier',
     'cart.cross_sell.title'     => 'Ces vins pourraient vous plaire',
     'cart.tier_next'            => 'pour le palier suivant',
@@ -714,6 +717,12 @@ return [
     'account.order_return_slip_btn'            => 'Télécharger la fiche de retour',
     'account.order_return_in_progress_title'   => 'Retour en cours',
     'account.order_return_in_progress'         => 'Votre demande de retour est enregistrée. Si vous avez besoin d\'aide, vous pouvez contacter notre support.',
+    'account.order_refund_initiated'           => 'Votre demande de remboursement a été prise en compte. Vous recevrez un email de confirmation.',
+    'account.order_refund_not_eligible'        => 'Cette commande n\'est pas éligible au remboursement.',
+    'account.order_refund_failed'              => 'Le remboursement n\'a pas pu être initié. Veuillez contacter notre support.',
+    'account.order_refund_btn'                 => 'Demander un remboursement',
+    'account.order_refund_confirm'             => 'Êtes-vous sûr de vouloir demander un remboursement pour cette commande ? Cette action est définitive.',
+    'account.order_refund_pending_notice'      => 'Votre remboursement est en cours de traitement.',
 
     // Adresses — CRUD
     'account.address_add'        => 'Ajouter une adresse',
@@ -819,6 +828,7 @@ return [
     'order.status.delivered'        => 'Livrée',
     'order.status.cancelled'        => 'Annulée',
     'order.status.refunded'         => 'Remboursée',
+    'order.status.refund_pending'   => 'Remboursement en attente',
     'order.status.return_requested' => 'Retour en cours',
     'order.status.refund_refused'   => 'Remboursement refusé',
 

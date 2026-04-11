@@ -9,6 +9,7 @@ use Model\AccountModel;
 use Model\RgpdExportLogModel;
 use Model\RgpdRequestModel;
 use Service\MailService;
+use Service\RgpdExportService;
 
 /**
  * Contrôleur back-office — gestion des demandes d'exercice de droits RGPD.
@@ -287,26 +288,30 @@ class RgpdAdminController extends AdminController
      */
     private function handlePortabilite(array $request): void
     {
-        $email = (string) ($request['requester_email'] ?? '');
-        $name  = (string) ($request['requester_name']  ?? $email);
-
-        $exportData = [
-            'source'          => 'admin_rgpd_request',
-            'requester_email' => $email,
-            'requester_name'  => $name,
-            'request_date'    => $request['received_at'] ?? date('Y-m-d'),
-            'note'            => 'Export généré suite à demande RGPD Art. 20',
-        ];
+        $email  = (string) ($request['requester_email'] ?? '');
+        $name   = (string) ($request['requester_name']  ?? $email);
+        $svc    = new RgpdExportService();
 
         $accountModel = new AccountModel();
         $account      = $accountModel->findByEmail($email);
 
         if ($account) {
-            $exportData['account_id'] = $account['id'];
+            $exportData = $svc->buildForAccount((int) $account['id']);
+        } else {
+            $sub = \Core\Database::getInstance()->fetchOne(
+                'SELECT email, newsletter_confirmed, newsletter_consent_date,
+                        newsletter_consent_ip, consent_ip, lang, created_at
+                 FROM newsletter_subscriptions
+                 WHERE email = ?',
+                [$email]
+            );
+            $exportData = $sub
+                ? $svc->buildForSubscriber($sub)
+                : ['exported_at' => date('c'), 'email' => $email, 'note' => 'Aucune donnée trouvée'];
         }
 
-        $content  = (string) json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $filename = 'export-rgpd-' . date('Y-m-d') . '.json';
+        $basename             = 'export-rgpd-' . date('Y-m-d');
+        [$content, $filename] = $svc->buildZip($exportData, $basename);
 
         try {
             $mailService = new MailService();

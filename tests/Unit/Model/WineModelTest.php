@@ -1185,4 +1185,109 @@ class WineModelTest extends TestCase
 
         $this->model->getAllByColor(null, 'rating_desc');
     }
+
+    // ----------------------------------------------------------------
+    // decrementStock
+    // ----------------------------------------------------------------
+
+    public function testDecrementStockExecutesUpdateWithGreatestZero(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->stringContains('GREATEST(0, stock_quantity - ?)'),
+                $this->equalTo([3, 7])
+            );
+
+        $this->model->decrementStock(7, 3);
+    }
+
+    // ----------------------------------------------------------------
+    // setLowStockNotifiedAt
+    // ----------------------------------------------------------------
+
+    public function testSetLowStockNotifiedAtExecutesUpdate(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->stringContains('low_stock_notified_at = NOW()'),
+                $this->equalTo([42])
+            );
+
+        $this->model->setLowStockNotifiedAt(42);
+    }
+
+    // ----------------------------------------------------------------
+    // resetLowStockNotified
+    // ----------------------------------------------------------------
+
+    public function testResetLowStockNotifiedSetsNull(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->stringContains('low_stock_notified_at = NULL'),
+                $this->equalTo([42])
+            );
+
+        $this->model->resetLowStockNotified(42);
+    }
+
+    // ----------------------------------------------------------------
+    // setUnavailable
+    // ----------------------------------------------------------------
+
+    public function testSetUnavailableExecutesUpdate(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->stringContains('available = 0'),
+                $this->equalTo([5])
+            );
+
+        $this->model->setUnavailable(5);
+    }
+
+    // ----------------------------------------------------------------
+    // getCartUsersWithWine
+    // ----------------------------------------------------------------
+
+    public function testGetCartUsersWithWinePassesLikePatternsToFetchAll(): void
+    {
+        $users = [
+            ['id' => 1, 'email' => 'client@example.com', 'lang' => 'fr', 'first_name' => 'Alice', 'newsletter_unsubscribe_token' => null],
+        ];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('content LIKE ?'),
+                $this->equalTo(['%"wine_id":21,%', '%"wine_id":21}%'])
+            )
+            ->willReturn($users);
+
+        $result = $this->model->getCartUsersWithWine(21);
+
+        $this->assertCount(1, $result);
+        $this->assertSame('client@example.com', $result[0]['email']);
+    }
+
+    public function testGetCartUsersWithWineReturnsEmptyArrayWhenNoneFound(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([]);
+
+        $result = $this->model->getCartUsersWithWine(99);
+
+        $this->assertSame([], $result);
+    }
 }

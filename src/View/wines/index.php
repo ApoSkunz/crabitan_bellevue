@@ -150,6 +150,10 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
                                         </span>
+                                    <?php elseif ((int) ($wine['stock_quantity'] ?? 0) <= (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300)) : ?>
+                                        <span class="wine-card__badge wine-card__badge--low-stock">
+                                            <?= htmlspecialchars(__('wine.low_stock')) ?>
+                                        </span>
                                     <?php endif; ?>
 
                                     <?php if ($wine['certification_label']) : ?>
@@ -199,6 +203,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                                                 data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
                                                 data-wine-image="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
                                                 data-wine-cuvee="<?= !empty($wine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
+                                                data-stock="<?= (int) $wine['stock_quantity'] ?>"
                                                 aria-label="<?= htmlspecialchars(__('wine.add_to_cart') . ' : ' . $wine['label_name']) ?>"
                                             >&#128722;</button>
                                         <?php endif; ?>
