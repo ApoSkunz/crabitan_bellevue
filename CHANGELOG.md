@@ -2,6 +2,19 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.72.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.71.0...v0.72.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **test:** aligner TI GAE KO — statut attendu return_requested (plus paid) ([e3b7c34](https://github.com/ApoSkunz/crabitan_bellevue/commit/e3b7c347efb6777ee869853edc61c6b5a0c51206))
+
+
+### Features
+
+* **controller:** GAE KO — flash + email admin sendRefundGaeKoToOwner + statut return_requested + audit log ([2a7d419](https://github.com/ApoSkunz/crabitan_bellevue/commit/2a7d419fc55432bad2bda8b554fe17ab5ee160fb))
+* **mail:** sendRefundGaeKoToOwner — lien admin + message contrôle manuel + TU ([7c98bb7](https://github.com/ApoSkunz/crabitan_bellevue/commit/7c98bb7533d8956e5ddfd35362d88ea1c5adafc8))
+
 # [0.71.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.70.0...v0.71.0) (2026-04-11)
 
 
