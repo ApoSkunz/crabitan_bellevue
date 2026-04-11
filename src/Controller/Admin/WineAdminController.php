@@ -253,7 +253,8 @@ class WineAdminController extends AdminController
                         $lang
                     );
                     $sentCount++;
-                } catch (\Throwable) {
+                } catch (\Throwable $e) {
+                    \Core\ErrorLogger::handleException($e);
                     $failedCount++;
                 }
             }
@@ -376,8 +377,8 @@ class WineAdminController extends AdminController
             }
             try {
                 (new StockNotificationService())->notifyIfThresholdCrossed($wine, $newStock);
-            } catch (\Throwable) {
-                // Non bloquant — l'échec de la notification ne doit pas empêcher la sauvegarde
+            } catch (\Throwable $e) {
+                \Core\ErrorLogger::handleException($e);
             }
             if (!$data['available']) {
                 (new CartModel())->purgeWineFromAllCarts($id);

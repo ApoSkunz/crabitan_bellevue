@@ -290,7 +290,7 @@ class LegalDocumentAdminController extends AdminController
                 $this->model->logNotification($docId, $version, (int) $account['id']);
                 $success++;
             } catch (\Exception $e) {
-                error_log('[Legal notify] Échec envoi account ' . $account['id'] . ' : ' . $e->getMessage());
+                \Core\ErrorLogger::handleException($e);
                 $failure++;
             }
         }

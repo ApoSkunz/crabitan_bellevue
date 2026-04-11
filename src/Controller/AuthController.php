@@ -204,8 +204,8 @@ class AuthController extends Controller
                             (string) ($account['lang'] ?? 'fr'),
                             'Système (blocage automatique)'
                         );
-                    } catch (\Throwable) {
-                        // Mail non bloquant
+                    } catch (\Throwable $e) {
+                        \Core\ErrorLogger::handleException($e);
                     }
                 }
             }
@@ -223,7 +223,7 @@ class AuthController extends Controller
                         $mail = new MailService();
                         $mail->sendAccountLocked($account['email'], $displayName, $lang, $resetUrl);
                     } catch (\Throwable $e) {
-                        error_log('Mail account locked error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+                        \Core\ErrorLogger::handleException($e);
                     }
                     $this->flash('modal_error', sprintf(__('auth.account_locked'), max(1, $wait)));
                     Response::redirect($safeBack);
@@ -250,7 +250,7 @@ class AuthController extends Controller
                     $mail = new MailService();
                     $mail->sendEmailVerification($account['email'], $displayName, $verifyUrl, $lang);
                 } catch (\Throwable $e) {
-                    error_log('Resend verification error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+                    \Core\ErrorLogger::handleException($e);
                 }
             }
             $this->flash('modal_error', __('auth.invalid_credentials'));
@@ -504,7 +504,7 @@ class AuthController extends Controller
                 $mail = new MailService();
                 $mail->sendEmailAlreadyExists($email, $displayName, $lang, $loginUrl, $resetUrl);
             } catch (\Throwable $e) {
-                error_log('Mail duplicate register error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+                \Core\ErrorLogger::handleException($e);
             }
             // Normalisation du temps de réponse (anti timing oracle R14/R15) :
             // le chemin nominal exécute password_hash() en ligne ~403 ; on le simule ici
@@ -545,7 +545,7 @@ class AuthController extends Controller
             $mail = new MailService();
             $mail->sendEmailVerification($email, $displayName, $verifyUrl, $lang);
         } catch (\Throwable $e) {
-            error_log('Mail verification error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+            \Core\ErrorLogger::handleException($e);
         }
 
         $this->flash('register_success', '1');
@@ -604,7 +604,7 @@ class AuthController extends Controller
                 $isSubscribed
             );
         } catch (\Throwable $e) {
-            error_log('sendWelcome error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+            \Core\ErrorLogger::handleException($e);
         }
 
         $this->view('auth/verify', [
@@ -695,7 +695,7 @@ class AuthController extends Controller
                     $mail->sendPasswordReset($account['email'], $displayName, $resetUrl, $lang);
                 }
             } catch (\Throwable $e) {
-                error_log('Mail reset error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+                \Core\ErrorLogger::handleException($e);
             }
         } else {
             // Normalisation du temps de réponse (anti timing oracle R14/R15) :
@@ -856,14 +856,7 @@ class AuthController extends Controller
             try {
                 (new MailService())->sendEmailVerification($account['email'], $displayName, $verifyUrl, $lang);
             } catch (\Throwable $e) {
-                error_log('Resend activation error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
-                if (($_ENV['APP_ENV'] ?? 'prod') === 'dev') {
-                    file_put_contents(
-                        dirname(__DIR__, 2) . '/logs/mail_debug.log',
-                        date('Y-m-d H:i:s') . ' [resend] ' . get_class($e) . ': ' . $e->getMessage() . "\n",
-                        FILE_APPEND | LOCK_EX
-                    );
-                }
+                \Core\ErrorLogger::handleException($e);
             }
             $this->rateLimiter->recordAttempt($userKey, self::WINDOW_LOGIN);
         }
@@ -1087,7 +1080,7 @@ class AuthController extends Controller
                 $confirmToken
             );
         } catch (\Throwable $e) {
-            error_log('Mail new device alert error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+            \Core\ErrorLogger::handleException($e);
         }
 
         $_SESSION['pending_device'] = [

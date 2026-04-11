@@ -202,16 +202,7 @@ class OrderAdminController extends AdminController
                         $id
                     );
                 } catch (\Throwable $mailErr) {
-                    \Core\ErrorLogger::write([
-                        'timestamp' => date('Y-m-d H:i:s'),
-                        'level'     => 'EXCEPTION',
-                        'message'   => '[OrderAdmin] GAE KO mail error for order #' . $id . ': ' . $mailErr->getMessage(),
-                        'file'      => $mailErr->getFile(),
-                        'line'      => $mailErr->getLine(),
-                        'trace'     => substr($mailErr->getTraceAsString(), 0, 500),
-                        'url'       => $_SERVER['REQUEST_URI'] ?? '',
-                        'method'    => 'POST',
-                    ]);
+                    \Core\ErrorLogger::handleException($mailErr);
                 }
                 $this->orders->updateStatus($id, 'return_requested');
                 AuditLogger::log(
@@ -258,8 +249,7 @@ class OrderAdminController extends AdminController
                         $appUrl
                     );
                 } catch (\Throwable $e) {
-                    // phpcs:ignore Generic.Files.LineLength
-                    error_log('[OrderAdminController] SMTP error on status email: ' . $e->getMessage()); // NOSONAR — php:S4792
+                    \Core\ErrorLogger::handleException($e);
                 }
             }
         }
@@ -302,12 +292,11 @@ class OrderAdminController extends AdminController
                             );
                         }
                     } catch (\Throwable $mailErr) {
-                        // phpcs:ignore Generic.Files.LineLength
-                        error_log('[OrderAdmin] Invoice mail error for order #' . $id . ': ' . $mailErr->getMessage());
+                        \Core\ErrorLogger::handleException($mailErr);
                     }
                 }
             } catch (\Throwable $invoiceError) {
-                error_log('[OrderAdmin] Invoice error for order #' . $id . ': ' . $invoiceError->getMessage());
+                \Core\ErrorLogger::handleException($invoiceError);
             }
         }
 

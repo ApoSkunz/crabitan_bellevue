@@ -101,8 +101,8 @@ class AdminGestionAdminsController extends AdminController
                 (string) ($target['lang'] ?? 'fr'),
                 (string) $blockerName
             );
-        } catch (\Throwable) {
-            // Mail non bloquant
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::handleException($e);
         }
 
         $this->flash('success', sprintf('Le compte %s a été bloqué.', $target['email']));
@@ -151,8 +151,8 @@ class AdminGestionAdminsController extends AdminController
                 (string) ($target['lang'] ?? 'fr'),
                 (string) $unblockerName
             );
-        } catch (\Throwable) {
-            // Mail non bloquant
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::handleException($e);
         }
 
         $this->flash('success', sprintf('Le compte %s a été débloqué.', $target['email']));
