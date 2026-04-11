@@ -273,7 +273,7 @@ class OrderModelTest extends TestCase
     }
 
     /**
-     * Calcule correctement le ratio : 5 commandes / 10 paniers = 0.5.
+     * Calcule correctement le ratio : 5 commandes / (5 + 10 paniers abandonnés) = 0.3333.
      */
     public function testGetConversionRateCalculatesCorrectRatio(): void
     {
@@ -283,6 +283,6 @@ class OrderModelTest extends TestCase
                 ['cnt' => 10]
             );
 
-        $this->assertSame(0.5, $this->model->getConversionRate(30));
+        $this->assertSame(round(5 / 15, 4), $this->model->getConversionRate(30));
     }
 }
