@@ -68,7 +68,7 @@ class IpnController
                         );
                     }
                 } catch (\Throwable $alertError) {
-                    error_log('[IPN] Alert mail error: ' . $alertError->getMessage());
+                    \Core\ErrorLogger::warning($alertError, '[IPN]');
                 }
 
                 http_response_code(400);
@@ -103,7 +103,16 @@ class IpnController
             $snapshot = $this->intents->findByReference($ref);
 
             if ($snapshot === null) {
-                error_log('[IPN] INTENT_NOT_FOUND — ref=' . $ref);
+                \Core\ErrorLogger::write([
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'level'     => 'WARNING',
+                    'message'   => '[IPN] INTENT_NOT_FOUND — ref=' . $ref,
+                    'file'      => __FILE__,
+                    'line'      => __LINE__,
+                    'trace'     => '',
+                    'url'       => $_SERVER['REQUEST_URI'] ?? '',
+                    'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+                ]);
                 http_response_code(200);
                 echo 'INTENT_NOT_FOUND';
                 throw new HttpException(200);
@@ -164,11 +173,11 @@ class IpnController
                             );
                         }
                     } catch (\Throwable $mailInvoiceError) {
-                        error_log('[IPN] Invoice mail error for ref=' . $finalRef . ' : ' . $mailInvoiceError->getMessage());
+                        \Core\ErrorLogger::warning($mailInvoiceError, '[IPN]');
                     }
                 }
             } catch (\Throwable $invoiceError) {
-                error_log('[IPN] Invoice error for ref=' . $finalRef . ' : ' . $invoiceError->getMessage());
+                \Core\ErrorLogger::warning($invoiceError, '[IPN]');
             }
 
             // Emails de confirmation — non bloquants
@@ -200,7 +209,7 @@ class IpnController
                     $discount
                 );
             } catch (\Throwable $mailError) {
-                error_log('[IPN] Mail error for ref=' . $ref . ' : ' . $mailError->getMessage());
+                \Core\ErrorLogger::warning($mailError, '[IPN]');
             }
 
             unset($_SESSION['ca_payment']);
@@ -211,7 +220,7 @@ class IpnController
         } catch (HttpException $e) {
             throw $e;
         } catch (\Throwable $e) {
-            error_log('[IPN] Unexpected error: ' . $e->getMessage());
+            \Core\ErrorLogger::handleException($e);
             http_response_code(500);
             echo 'ERROR';
             throw new HttpException(500);

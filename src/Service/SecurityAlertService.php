@@ -143,8 +143,7 @@ class SecurityAlertService
         try {
             $this->mail->sendAdminLoginFailureAlert($to, $name, $lang, $ip);
         } catch (\Throwable $e) {
-            // NOSONAR php:S4792 — log non sensible
-            error_log('[SecurityAlertService] sendAdminLoginAlert (admin) failed: ' . $e->getMessage());
+            \Core\ErrorLogger::warning($e, '[SecurityAlertService]');
         }
 
         $maintainerMail = $_ENV['MAINTAINER_MAIL'] ?? '';
@@ -152,8 +151,7 @@ class SecurityAlertService
             try {
                 $this->mail->sendAdminLoginFailureAlert($maintainerMail, 'Mainteneur', 'fr', $ip, $name);
             } catch (\Throwable $e) {
-                // NOSONAR php:S4792 — log non sensible
-                error_log('[SecurityAlertService] sendAdminLoginAlert (maintainer) failed: ' . $e->getMessage());
+                \Core\ErrorLogger::warning($e, '[SecurityAlertService]');
             }
         }
     }
@@ -175,8 +173,7 @@ class SecurityAlertService
         try {
             $this->mail->sendAdminPasswordChangeAlert($to, $name, $lang, $ip, $userAgent);
         } catch (\Throwable $e) {
-            // NOSONAR php:S4792 — log non sensible
-            error_log('[SecurityAlertService] sendPasswordChangeAlert (admin) failed: ' . $e->getMessage());
+            \Core\ErrorLogger::warning($e, '[SecurityAlertService]');
         }
 
         $maintainerMail = $_ENV['MAINTAINER_MAIL'] ?? '';
@@ -191,8 +188,7 @@ class SecurityAlertService
                     $name
                 );
             } catch (\Throwable $e) {
-                // NOSONAR php:S4792 — log non sensible
-                error_log('[SecurityAlertService] sendPasswordChangeAlert (maintainer) failed: ' . $e->getMessage());
+                \Core\ErrorLogger::warning($e, '[SecurityAlertService]');
             }
         }
     }

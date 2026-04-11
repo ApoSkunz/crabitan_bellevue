@@ -103,13 +103,20 @@ class RefundService
     {
         $this->orders->updateStatus($orderId, 'refund_pending');
 
-        error_log( // NOSONAR — php:S4792
-            sprintf(
+        \Core\ErrorLogger::write([
+            'timestamp' => date('Y-m-d H:i:s'),
+            'level'     => 'WARNING',
+            'message'   => sprintf(
                 '[RefundService] Commande #%d (%s) passée en refund_pending — traitement manuel requis dans Vision Air.',
                 $orderId,
                 $order['order_reference'] ?? 'N/A'
-            )
-        );
+            ),
+            'file'   => __FILE__,
+            'line'   => __LINE__,
+            'trace'  => '',
+            'url'    => $_SERVER['REQUEST_URI'] ?? '',
+            'method' => $_SERVER['REQUEST_METHOD'] ?? '',
+        ]);
 
         $this->sendRefundInitiatedEmail($order, 'refund_pending');
         $this->notifyOwnerRefundPending($order);
@@ -139,7 +146,7 @@ class RefundService
         try {
             $this->mailer->sendRefundRequestedToOwner($order, $clientName, $clientEmail);
         } catch (\Throwable $e) {
-            error_log('[RefundService] SMTP owner error: ' . $e->getMessage()); // NOSONAR — php:S4792
+            \Core\ErrorLogger::warning($e, '[RefundService]');
         }
     }
 
@@ -175,7 +182,7 @@ class RefundService
                 $this->mailer->sendRefundPendingEmail($clientEmail, $clientName, $orderRef, $lang, $appUrl);
             }
         } catch (\Throwable $e) {
-            error_log('[RefundService] SMTP error: ' . $e->getMessage()); // NOSONAR — php:S4792
+            \Core\ErrorLogger::warning($e, '[RefundService]');
         }
     }
 }

@@ -390,7 +390,16 @@ class OrderController extends Controller
             // Vérification obligatoire avant création de commande pour empêcher la forge de l'URL de retour.
             $qs = $_SERVER['QUERY_STRING'] ?? '';
             if (!(new \Service\PaymentService())->verifyIpnSignature($qs)) {
-                error_log('[RETURN_OK] Invalid RSA signature on return URL — ref=' . $ref);
+                \Core\ErrorLogger::write([
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'level'     => 'WARNING',
+                    'message'   => '[RETURN_OK] Invalid RSA signature on return URL — ref=' . $ref,
+                    'file'      => __FILE__,
+                    'line'      => __LINE__,
+                    'trace'     => '',
+                    'url'       => $_SERVER['REQUEST_URI'] ?? '',
+                    'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+                ]);
                 $_SESSION['flash']['checkout_errors']['payment'] = __('checkout.payment_error');
                 Response::redirect("/{$lang}/commande");
             }
@@ -451,7 +460,7 @@ class OrderController extends Controller
                             $discount
                         );
                     } catch (\Throwable $mailError) {
-                        error_log('[RETURN_OK] Mail error for ref=' . $ref . ' : ' . $mailError->getMessage());
+                        \Core\ErrorLogger::warning($mailError, '[RETURN_OK]');
                     }
                 }
 
@@ -460,7 +469,16 @@ class OrderController extends Controller
         }
 
         if ($order === null) {
-            error_log('[RETURN_OK] Order not found and no intent — ref=' . $ref);
+            \Core\ErrorLogger::write([
+                'timestamp' => date('Y-m-d H:i:s'),
+                'level'     => 'WARNING',
+                'message'   => '[RETURN_OK] Order not found and no intent — ref=' . $ref,
+                'file'      => __FILE__,
+                'line'      => __LINE__,
+                'trace'     => '',
+                'url'       => $_SERVER['REQUEST_URI'] ?? '',
+                'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+            ]);
             $_SESSION['flash']['checkout_errors']['payment'] = __('checkout.payment_error');
             Response::redirect("/{$lang}/commande");
         }
@@ -769,8 +787,8 @@ class OrderController extends Controller
         if ($email !== '') {
             try {
                 (new \Service\MailService())->sendNewsletterWelcome($email, $name, $lang);
-            } catch (\Throwable $e) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
-                // Mail non bloquant
+            } catch (\Throwable $e) {
+                \Core\ErrorLogger::warning($e, '[ORDER]');
             }
         }
     }
@@ -831,11 +849,11 @@ class OrderController extends Controller
                         $clientLang
                     );
                 } catch (\Throwable $mailErr) {
-                    error_log('[ORDER] Invoice mail error for ref=' . $reference . ' : ' . $mailErr->getMessage());
+                    \Core\ErrorLogger::warning($mailErr, '[ORDER]');
                 }
             }
         } catch (\Throwable $e) {
-            error_log('[ORDER] Invoice error for ref=' . $reference . ' : ' . $e->getMessage());
+            \Core\ErrorLogger::warning($e, '[ORDER]');
         }
     }
 
@@ -875,8 +893,8 @@ class OrderController extends Controller
 
         try {
             (new StockNotificationService())->notifyIfThresholdCrossed($wine, $newStock);
-        } catch (\Throwable) {
-            // Non bloquant
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e, '[ORDER]');
         }
 
         (new CartModel())->capWineQtyAcrossAllCarts($wineId, $newStock);
@@ -919,8 +937,8 @@ class OrderController extends Controller
                 $total,
                 $shippingDiscount
             );
-        } catch (\Throwable $e) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
-            // Mail non bloquant — la commande est créée même en cas d'échec d'envoi
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e, '[ORDER]');
         }
     }
 }

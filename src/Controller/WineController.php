@@ -80,7 +80,16 @@ class WineController extends Controller
         if (is_dir($logDir) && is_writable($logDir)) {
             file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
         } else {
-            error_log('[anti-scraping] ' . trim($line));
+            \Core\ErrorLogger::write([
+                'timestamp' => date('Y-m-d H:i:s'),
+                'level'     => 'WARNING',
+                'message'   => '[anti-scraping] ' . trim($line),
+                'file'      => __FILE__,
+                'line'      => __LINE__,
+                'trace'     => '',
+                'url'       => $_SERVER['REQUEST_URI'] ?? '',
+                'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+            ]);
         }
     }
 
