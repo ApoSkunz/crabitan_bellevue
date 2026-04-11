@@ -1108,7 +1108,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     // ----------------------------------------------------------------
 
     /**
-     * Retourne les commandes livrées il y a 7 jours (fenêtre 168h–192h)
+     * Retourne les commandes livrées il y a 3 semaines (fenêtre 504h–528h)
      * dont l'email de notation n'a pas encore été envoyé.
      *
      * Nécessite la colonne rating_email_sent_at sur la table orders.
@@ -1122,8 +1122,8 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                FROM {$this->table}
               WHERE status = 'delivered'
                 AND rating_email_sent_at IS NULL
-                AND delivered_at <= NOW() - INTERVAL 168 HOUR
-                AND delivered_at >  NOW() - INTERVAL 192 HOUR"
+                AND delivered_at <= NOW() - INTERVAL 504 HOUR
+                AND delivered_at >  NOW() - INTERVAL 528 HOUR"
         );
     }
 

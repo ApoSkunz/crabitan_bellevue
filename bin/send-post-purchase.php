@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Cron — Email de notation post-achat J+7.
+ * Cron — Email de notation post-achat J+21.
  *
- * Envoie un email invitant le client à noter sa commande 7 jours après
- * la livraison confirmée (fenêtre 168h–192h). Un seul envoi par commande.
+ * Envoie un email invitant le client à noter sa commande 3 semaines après
+ * la livraison confirmée (fenêtre 504h–528h). Un seul envoi par commande.
  *
  * À planifier via cron (ex: tous les jours à 10h) :
  *   0 10 * * * php /var/www/crabitan_bellevue/bin/send-post-purchase.php >> /var/log/crabitan/cron.log 2>&1
@@ -27,7 +27,10 @@ exit($runner->run(function (callable $log): void {
 
     foreach ($orders as $order) {
         $account = $accountModel->findById((int) $order['user_id']);
-        if (!$account) { $log('[SKIP] user_id=' . $order['user_id']); continue; }
+        if (!$account) {
+            $log('[SKIP] user_id=' . $order['user_id']);
+            continue;
+        }
 
         // items depuis order['content'] (JSON)
         $items = json_decode((string) $order['content'], true) ?? [];

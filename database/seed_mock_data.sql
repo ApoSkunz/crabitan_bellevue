@@ -938,10 +938,10 @@ VALUES
  '[{"wine_id":10,"label_name":"Bordeaux Rouge","vintage":2017,"wine_color":"red","format":"bottle","qty":6,"price":6.00,"subtotal":36.00}]',
  36.00, 'card', 0.00, 1, 2, 'refund_refused', DATE_SUB(NOW(), INTERVAL 13 DAY), DATE_SUB(NOW(), INTERVAL 40 DAY)),
 
--- delivered J+8 — multi-vins (Sophie id=3) — cible email post-achat + test page notation
+-- delivered J+22 — multi-vins (Sophie id=3) — cible email post-achat J+21 (fenêtre 504h–528h) + test page notation
 (23, 3, 'CBV-2026-000023',
  '[{"wine_id":16,"label_name":"Sainte-Croix-du-Mont","vintage":2015,"wine_color":"sweet","format":"bottle","qty":12,"price":11.50,"subtotal":138.00},{"wine_id":30,"label_name":"Bordeaux Rouge","vintage":2020,"wine_color":"red","format":"bottle","qty":6,"price":7.70,"subtotal":46.20},{"wine_id":35,"label_name":"Bordeaux Blanc","vintage":2024,"wine_color":"white","format":"bottle","qty":6,"price":7.70,"subtotal":46.20}]',
- 230.40, 'card', 15.00, 1, 2, 'delivered', DATE_SUB(NOW(), INTERVAL 9 DAY), DATE_SUB(NOW(), INTERVAL 8 DAY));
+ 230.40, 'card', 15.00, 1, 2, 'delivered', DATE_SUB(NOW(), INTERVAL 23 DAY), DATE_SUB(NOW(), INTERVAL 22 DAY));
 
 ALTER TABLE `orders` AUTO_INCREMENT = 24;
 
