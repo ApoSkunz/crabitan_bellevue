@@ -153,7 +153,7 @@ class RatingModelTest extends IntegrationTestCase
 
         $snapshotId2 = (int) self::$db->insert(
             "INSERT INTO order_address_snapshots
-             (first_name, last_name, address_line1, city, postal_code, country)
+             (firstname, lastname, street, city, zip, country)
              VALUES (?, ?, ?, ?, ?, ?)",
             ['Rating2', 'User', '2 Rue Test', 'Paris', '75001', 'FR']
         );

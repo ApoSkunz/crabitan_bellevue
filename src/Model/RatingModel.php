@@ -166,7 +166,7 @@ class RatingModel extends Model
             "SELECT 1 FROM orders
              WHERE user_id = ?
                AND status IN ('paid','processing','shipped','delivered')
-               AND JSON_CONTAINS(content, JSON_OBJECT('wine_id', ?))
+               AND JSON_CONTAINS(content, JSON_OBJECT('wine_id', CAST(? AS UNSIGNED)))
              LIMIT 1",
             [$accountId, $wineId]
         );
