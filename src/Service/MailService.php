@@ -1652,17 +1652,32 @@ INNER;
      *
      * @param string $orderRef Référence de la commande
      * @param float  $amount   Montant de la commande
+     * @param int    $orderId  Identifiant de la commande (pour le lien admin)
      * @return void
      */
-    public function sendRefundGaeKoToOwner(string $orderRef, float $amount): void
+    public function sendRefundGaeKoToOwner(string $orderRef, float $amount, int $orderId = 0): void
     {
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
         $safeRef    = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeAmount = number_format($amount, 2, ',', ' ');
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+
+        $orderLink = $orderId > 0
+            ? htmlspecialchars($appUrl . '/admin/commandes/' . $orderId, ENT_QUOTES)
+            : '';
+        $orderLinkBlock = $orderLink !== ''
+            ? "<br><br><a href=\"{$orderLink}\" style=\"color:#c9a84c;\">Accéder à la commande dans l'administration</a>"
+            : '';
 
         $subject = 'Remboursement GAE KO — action manuelle requise';
-        $message = "Le remboursement GAE de la commande <strong>{$safeRef}</strong> ({$safeAmount}&nbsp;€) a échoué.<br><br>"
-            . "Veuillez procéder manuellement via Vision Air.";
+        $message = "Le remboursement CB (Crédit Agricole) de la commande <strong>{$safeRef}</strong> "
+            . "({$safeAmount}&nbsp;€) a échoué côté serveur bancaire.<br><br>"
+            . "La demande a automatiquement basculé en <strong>contrôle manuel</strong> conformément à la procédure "
+            . "de traitement des incidents de paiement. Le statut de la commande est désormais "
+            . "<em>Retour demandé</em> dans le back-office.<br><br>"
+            . "<strong>Action requise :</strong> Traiter le remboursement manuellement via Vision Air, "
+            . "puis mettre à jour le statut dans l'administration."
+            . $orderLinkBlock;
 
         $body = $this->emailSimpleLayout(
             'Remboursement GAE KO',
