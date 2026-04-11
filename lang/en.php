@@ -86,6 +86,7 @@ return [
     'wine.favorite_login' => 'Log in to add this wine to your favourites.',
     'wine.out_of_stock' => 'Out of stock',
     'wine.available'    => 'Available',
+    'wine.low_stock'    => 'Limited stock',
     'wine.favorites'      => 'Favorites',
     'wine.like_login'     => 'Please log in to like this wine.',
     'wine.vintage'      => 'Vintage',

@@ -86,6 +86,7 @@ return [
     'wine.favorite_login' => 'Connectez-vous pour ajouter ce vin à vos favoris.',
     'wine.out_of_stock' => 'Épuisé',
     'wine.available'    => 'Disponible',
+    'wine.low_stock'    => 'Stock limité',
     'wine.favorites'      => 'Favoris',
     'wine.like_login'     => 'Connectez-vous pour aimer ce vin.',
     'wine.vintage'      => 'Millésime',

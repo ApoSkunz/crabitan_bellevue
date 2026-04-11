@@ -333,6 +333,12 @@
             color: var(--color-text-muted);
             background-color: var(--color-surface);
         }
+
+        &--low-stock {
+            border-color: var(--color-gold);
+            color: var(--color-gold);
+            background-color: var(--color-surface);
+        }
     }
 
     &__cert {
@@ -743,6 +749,15 @@
     &__stock {
         font-size: 0.8rem;
         color: var(--color-text-muted);
+
+        &--low-stock {
+            color: var(--color-gold);
+            font-weight: 600;
+        }
+
+        &--available {
+            color: var(--color-text-muted);
+        }
     }
 
     &__out-of-stock {
