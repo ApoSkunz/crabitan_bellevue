@@ -205,4 +205,125 @@ class CartModelTest extends IntegrationTestCase
         $content = $this->model->getContent($row);
         $this->assertCount(2, $content);
     }
+
+    // ----------------------------------------------------------------
+    // getAbandonedForEmail
+    // ----------------------------------------------------------------
+
+    /**
+     * Aucun panier abandonné → tableau vide.
+     */
+    public function testGetAbandonedForEmailReturnsEmptyWhenNoCarts(): void
+    {
+        $result = $this->model->getAbandonedForEmail(72, 96);
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Un panier dont reminder_sent_at est déjà renseigné ne doit pas être retourné.
+     */
+    public function testGetAbandonedForEmailSkipsCartsWithReminderSent(): void
+    {
+        $past = date('Y-m-d H:i:s', strtotime('-80 hours'));
+
+        self::$db->execute(
+            "INSERT INTO carts (user_id, content, total_quantity, reminder_sent_at, updated_at)
+             VALUES (?, ?, 1, NOW(), ?)",
+            [$this->userId, json_encode([['wine_id' => 999, 'qty' => 1]]), $past]
+        );
+
+        $result = $this->model->getAbandonedForEmail(72, 96);
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Un panier hors de la fenêtre horaire ne doit pas être retourné.
+     */
+    public function testGetAbandonedForEmailSkipsCartsOutsideWindow(): void
+    {
+        // Mis à jour il y a seulement 1 heure — hors de la fenêtre 72-96h
+        $recent = date('Y-m-d H:i:s', strtotime('-1 hour'));
+
+        self::$db->execute(
+            "INSERT INTO carts (user_id, content, total_quantity, reminder_sent_at, updated_at)
+             VALUES (?, ?, 1, NULL, ?)",
+            [$this->userId, json_encode([['wine_id' => 999, 'qty' => 1]]), $recent]
+        );
+
+        $result = $this->model->getAbandonedForEmail(72, 96);
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Un panier avec contenu JSON vide ne doit pas être retourné.
+     */
+    public function testGetAbandonedForEmailSkipsCartsWithEmptyContent(): void
+    {
+        $past = date('Y-m-d H:i:s', strtotime('-80 hours'));
+
+        self::$db->execute(
+            "INSERT INTO carts (user_id, content, total_quantity, reminder_sent_at, updated_at)
+             VALUES (?, ?, 1, NULL, ?)",
+            [$this->userId, '[]', $past]
+        );
+
+        $result = $this->model->getAbandonedForEmail(72, 96);
+        $this->assertEmpty($result);
+    }
+
+    // ----------------------------------------------------------------
+    // purgeWineFromAllCarts
+    // ----------------------------------------------------------------
+
+    /**
+     * Un vin cible est retiré du panier.
+     */
+    public function testPurgeWineFromAllCartsRemovesTargetWine(): void
+    {
+        $items = [
+            ['wine_id' => 10, 'qty' => 2, 'name' => 'Bordeaux', 'image' => 'img.jpg'],
+            ['wine_id' => 20, 'qty' => 1, 'name' => 'Sauternes', 'image' => 'img2.jpg'],
+        ];
+        $this->model->save($this->userId, $items);
+
+        $this->model->purgeWineFromAllCarts(10);
+
+        $row = $this->model->findByUserId($this->userId);
+        $this->assertIsArray($row);
+
+        $content = $this->model->getContent($row);
+        $this->assertCount(1, $content);
+        $this->assertSame(20, $content[0]['wine_id']);
+    }
+
+    /**
+     * Un vin absent du panier ne modifie pas le contenu.
+     */
+    public function testPurgeWineFromAllCartsDoesNotModifyUnrelatedWines(): void
+    {
+        $items = [['wine_id' => 5, 'qty' => 3, 'name' => 'Rosé', 'image' => 'img.jpg']];
+        $this->model->save($this->userId, $items);
+
+        $this->model->purgeWineFromAllCarts(99); // vin 99 absent
+
+        $row = $this->model->findByUserId($this->userId);
+        $this->assertIsArray($row);
+        $this->assertSame(3, (int) $row['total_quantity']);
+    }
+
+    /**
+     * Panier sans aucun vin après purge → total_quantity remis à 0.
+     */
+    public function testPurgeWineFromAllCartsEmptiesCartIfOnlyWine(): void
+    {
+        $items = [['wine_id' => 7, 'qty' => 2, 'name' => 'Bordeaux', 'image' => 'img.jpg']];
+        $this->model->save($this->userId, $items);
+
+        $this->model->purgeWineFromAllCarts(7);
+
+        $row = $this->model->findByUserId($this->userId);
+        $this->assertIsArray($row);
+        $this->assertSame(0, (int) $row['total_quantity']);
+    }
 }

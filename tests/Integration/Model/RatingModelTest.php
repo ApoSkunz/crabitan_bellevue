@@ -307,4 +307,113 @@ class RatingModelTest extends IntegrationTestCase
 
         $this->assertFalse($this->model->hasOrdered($this->accountId, $otherWineId));
     }
+
+    // ------------------------------------------------------------------
+    // getAvgBulk
+    // ------------------------------------------------------------------
+
+    /**
+     * getAvgBulk retourne un tableau vide si aucun wine_id fourni.
+     */
+    public function testGetAvgBulkReturnsEmptyForEmptyInput(): void
+    {
+        $result = $this->model->getAvgBulk([]);
+        $this->assertSame([], $result);
+    }
+
+    /**
+     * getAvgBulk retourne null pour un vin sans avis.
+     */
+    public function testGetAvgBulkReturnsNullForWineWithNoRatings(): void
+    {
+        $result = $this->model->getAvgBulk([$this->wineId]);
+        $this->assertArrayHasKey($this->wineId, $result);
+        $this->assertNull($result[$this->wineId]); // 0 avis → null
+    }
+
+    /**
+     * getAvgBulk retourne la moyenne si >= 2 avis.
+     */
+    public function testGetAvgBulkReturnsMeanWithEnoughRatings(): void
+    {
+        // Créer un second compte pour avoir 2 avis
+        $accountId2 = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, lang, newsletter) VALUES (?, 'h', 'fr', 0)",
+            ['bulk2_' . bin2hex(random_bytes(4)) . '@test.com']
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility) VALUES (?, 'B', 'B', 'M')",
+            [$accountId2]
+        );
+
+        $this->model->upsert($this->accountId, $this->wineId, $this->orderId, 4);
+        $this->model->upsert($accountId2, $this->wineId, $this->orderId, 2);
+
+        $result = $this->model->getAvgBulk([$this->wineId]);
+        $this->assertArrayHasKey($this->wineId, $result);
+        $this->assertSame(3.0, $result[$this->wineId]);
+    }
+
+    // ------------------------------------------------------------------
+    // generateOrderToken / resolveOrderToken
+    // ------------------------------------------------------------------
+
+    /**
+     * generateOrderToken crée un token hexadécimal de 64 caractères.
+     */
+    public function testGenerateOrderTokenReturns64CharHex(): void
+    {
+        $token = $this->model->generateOrderToken($this->orderId, $this->accountId);
+        $this->assertSame(64, strlen($token));
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $token);
+    }
+
+    /**
+     * Un second appel pour le même (order_id, account_id) retourne le même token.
+     */
+    public function testGenerateOrderTokenIsIdempotent(): void
+    {
+        $token1 = $this->model->generateOrderToken($this->orderId, $this->accountId);
+        $token2 = $this->model->generateOrderToken($this->orderId, $this->accountId);
+        $this->assertSame($token1, $token2);
+    }
+
+    /**
+     * resolveOrderToken retourne null pour un token inconnu.
+     */
+    public function testResolveOrderTokenReturnsNullForUnknownToken(): void
+    {
+        $result = $this->model->resolveOrderToken(str_repeat('0', 64));
+        $this->assertNull($result);
+    }
+
+    /**
+     * resolveOrderToken retourne order_id et account_id pour un token valide.
+     */
+    public function testResolveOrderTokenReturnsIdsForValidToken(): void
+    {
+        $token = $this->model->generateOrderToken($this->orderId, $this->accountId);
+
+        $result = $this->model->resolveOrderToken($token);
+        $this->assertNotNull($result);
+        $this->assertSame($this->orderId, (int) $result['order_id']);
+        $this->assertSame($this->accountId, (int) $result['account_id']);
+    }
+
+    // ------------------------------------------------------------------
+    // getTopRated
+    // ------------------------------------------------------------------
+
+    /**
+     * getTopRated retourne un tableau vide si aucun vin n'a >= 2 avis.
+     */
+    public function testGetTopRatedReturnsEmptyWhenNoEnoughRatings(): void
+    {
+        $this->model->upsert($this->accountId, $this->wineId, $this->orderId, 5);
+
+        $result = $this->model->getTopRated(10);
+        // Un seul avis → pas retourné (min 2)
+        $wineIds = array_column($result, 'wine_id');
+        $this->assertNotContains($this->wineId, $wineIds);
+    }
 }
