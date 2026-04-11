@@ -2,8 +2,8 @@
  * error-reporter.js — Capture des erreurs JavaScript non gérées.
  *
  * Écoute window.onerror et window.onunhandledrejection.
- * En mode debug (window.__appDebug === true) : console.error uniquement.
- * Sinon : POST vers /api/log/client-error.
+ * Toujours : POST vers /api/log/client-error (dev + prod).
+ * En mode debug (window.__appDebug === true) : aussi console.error.
  *
  * Les erreurs d'extensions navigateur (source vide ou cross-origin sans stack)
  * sont ignorées silencieusement.
@@ -37,7 +37,6 @@ function sendReport(payload) {
     if (isDebug) {
         // eslint-disable-next-line no-console
         console.error('[error-reporter]', payload);
-        return;
     }
 
     try {
