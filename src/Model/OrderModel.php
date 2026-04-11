@@ -1102,4 +1102,60 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
             [$days]
         );
     }
+
+    // ----------------------------------------------------------------
+    // Marketing
+    // ----------------------------------------------------------------
+
+    /**
+     * Retourne les commandes livrées il y a 3 semaines (fenêtre 504h–528h)
+     * dont l'email de notation n'a pas encore été envoyé.
+     *
+     * Nécessite la colonne rating_email_sent_at sur la table orders.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getDeliveredForRatingEmail(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT id, user_id, content, price
+               FROM {$this->table}
+              WHERE status = 'delivered'
+                AND rating_email_sent_at IS NULL
+                AND delivered_at <= NOW() - INTERVAL 504 HOUR
+                AND delivered_at >  NOW() - INTERVAL 528 HOUR"
+        );
+    }
+
+    /**
+     * Marque une commande comme ayant reçu l'email de notation.
+     *
+     * @param int $orderId Identifiant de la commande
+     * @return void
+     */
+    public function markRatingEmailSent(int $orderId): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET rating_email_sent_at = NOW() WHERE id = ?",
+            [$orderId]
+        );
+    }
+
+    /**
+     * Retourne la valeur moyenne des commandes sur N derniers jours (statuts actifs).
+     *
+     * @param int $days Nombre de jours à considérer
+     * @return float Valeur moyenne arrondie à 2 décimales
+     */
+    public function getAvgOrderValue(int $days = 30): float
+    {
+        $row = $this->db->fetchOne(
+            "SELECT AVG(price) AS avg_val
+               FROM {$this->table}
+              WHERE status IN ('paid', 'processing', 'shipped', 'delivered')
+                AND ordered_at >= DATE_SUB(NOW(), INTERVAL ? DAY)",
+            [$days]
+        );
+        return round((float) ($row['avg_val'] ?? 0.0), 2);
+    }
 }

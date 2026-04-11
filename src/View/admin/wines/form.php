@@ -73,7 +73,7 @@ $maxYear = (int) date('Y');
                 <label class="admin-field__label" for="appellation">Appellation *</label>
                 <select id="appellation" name="appellation" required
                         class="admin-field__select<?= hasError($errors, 'appellation') ? $errClass : '' ?>"
-                        onchange="onAppellationChange(this.value)">
+>
                     <option value="">— Choisir une appellation —</option>
                     <?php foreach ($appellations as $label => $color) : ?>
                         <option value="<?= htmlspecialchars($label) ?>"
@@ -262,8 +262,7 @@ $maxYear = (int) date('Y');
                 </label>
                 <input type="file" id="image" name="image"
                        accept="image/jpeg,image/png,image/webp"
-                       class="admin-field__input<?= hasError($errors, 'image') ? $errClass : '' ?>"
-                       onchange="previewImage(this)">
+                       class="admin-field__input<?= hasError($errors, 'image') ? $errClass : '' ?>">
                 <?php if (hasError($errors, 'image')) : ?>
                     <span class="admin-field__error"><?= htmlspecialchars($errors['image']) ?></span>
                 <?php endif; ?>
@@ -360,7 +359,7 @@ $maxYear = (int) date('Y');
                     </div>
                 <?php endforeach; ?>
             </div>
-            <script>
+            <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
             (function () {
                 const kj   = document.getElementById('energy_kj');
                 const hint = document.getElementById('energy_kcal_hint');
@@ -441,6 +440,12 @@ function onAppellationChange(val) {
 
 document.getElementById('vintage').addEventListener('input', updateSlugPreview);
 updateSlugPreview();
+
+document.getElementById('appellation').addEventListener('change', function () { onAppellationChange(this.value); });
+(function () {
+    var imgInput = document.getElementById('image');
+    if (imgInput) { imgInput.addEventListener('change', function () { previewImage(this); }); }
+}());
 
 function previewImage(input) {
     const preview = document.querySelector('.js-image-preview');

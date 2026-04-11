@@ -47,7 +47,7 @@ class WineModel extends Model
      * Retourne les vins disponibles avec filtres, tri et pagination optionnels.
      *
      * @param string|null $color         Couleur (red|white|rosé|sweet)
-     * @param string      $sort          Tri : 'default'|'likes_desc'|'price_asc'|'price_desc'|'vintage_asc'|'vintage_desc'
+     * @param string      $sort          Tri : 'default'|'likes_desc'|'price_asc'|'price_desc'|'vintage_asc'|'vintage_desc'|'rating_desc'
      * @param int         $limit         Nombre de résultats (0 = pas de limite)
      * @param int         $offset        Décalage pour la pagination
      * @param bool|null   $cuveSpeciale  true = cuvée spéciale uniquement, null = tous
@@ -73,12 +73,19 @@ class WineModel extends Model
 
         $this->applyCuveeFilter($where, $cuveSpeciale);
 
+        $useRatingJoin = $sort === 'rating_desc';
+        $ratingJoin    = $useRatingJoin
+            ? "LEFT JOIN (SELECT wine_id, AVG(rating) AS avg_rating FROM wine_ratings
+                         GROUP BY wine_id HAVING COUNT(*) >= 2) wr ON w.id = wr.wine_id"
+            : '';
+
         $orderBy = match ($sort) {
             'likes_desc'   => 'likes_count DESC, vintage DESC',
             'price_asc'    => 'price ASC, vintage DESC',
             'price_desc'   => 'price DESC, vintage DESC',
             'vintage_asc'  => 'vintage ASC',
             'vintage_desc' => 'vintage DESC',
+            'rating_desc'  => 'COALESCE(wr.avg_rating, 0) DESC, vintage DESC',
             default        => self::ORDER_DEFAULT,
         };
 
@@ -95,6 +102,7 @@ class WineModel extends Model
                        w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
                        (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
                 FROM {$this->table} w
+                {$ratingJoin}
                 " . $this->buildWhereClause($where) . "
                 ORDER BY {$orderBy}{$limitClause}";
 
@@ -132,7 +140,7 @@ class WineModel extends Model
      * Inclut tous les vins (disponibles ET indisponibles).
      *
      * @param string|null $color   Filtre couleur optionnel
-     * @param string      $sort    Tri : 'default'|'likes_desc'|'vintage_asc'|'vintage_desc'
+     * @param string      $sort    Tri : 'default'|'likes_desc'|'vintage_asc'|'vintage_desc'|'rating_desc'
      * @param string|null $avail   Filtre dispo : null = tous | 'available' | 'out'
      * @param int         $perPage Limite totale (0 = pas de limite)
      * @param int         $offset  Décalage pour la pagination
@@ -163,10 +171,17 @@ class WineModel extends Model
 
         $this->applyCuveeFilter($where, $cuveSpeciale);
 
+        $useRatingJoin2 = $sort === 'rating_desc';
+        $ratingJoin2    = $useRatingJoin2
+            ? "LEFT JOIN (SELECT wine_id, AVG(rating) AS avg_rating FROM wine_ratings
+                         GROUP BY wine_id HAVING COUNT(*) >= 2) wr ON w.id = wr.wine_id"
+            : '';
+
         $orderBy = match ($sort) {
             'likes_desc'   => 'wine_color DESC, likes_count DESC, vintage DESC',
             'vintage_asc'  => 'wine_color DESC, vintage ASC',
             'vintage_desc' => 'wine_color DESC, vintage DESC',
+            'rating_desc'  => 'COALESCE(wr.avg_rating, 0) DESC, wine_color DESC, vintage DESC',
             default        => self::ORDER_DEFAULT,
         };
 
@@ -185,6 +200,7 @@ class WineModel extends Model
                     w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
                     (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
              FROM {$this->table} w
+             {$ratingJoin2}
              {$whereClause}
              ORDER BY {$orderBy}{$limitClause}",
             $params
@@ -438,7 +454,7 @@ class WineModel extends Model
                     production_quantity, stock_quantity, available, image_path, slug, is_cuvee_speciale, featured
              FROM {$this->table}
              {$whereClause}
-             ORDER BY featured DESC, available DESC, id DESC
+             ORDER BY available DESC, featured DESC, id DESC
              LIMIT ? OFFSET ?",
             $params
         );
@@ -676,6 +692,125 @@ class WineModel extends Model
     {
         $row = $this->db->fetchOne(
             "SELECT id, label_name, vintage FROM {$this->table} WHERE featured = 1 LIMIT 1"
+        );
+        return $row ?: null;
+    }
+
+    /**
+     * Retourne les vins similaires à un vin donné.
+     * Même couleur en priorité (prix ±30%), complète avec d'autres couleurs si besoin.
+     *
+     * @param int    $wineId Identifiant du vin de référence
+     * @param string $color  Couleur du vin de référence
+     * @param float  $price  Prix du vin de référence
+     * @param int    $limit  Nombre maximum de résultats
+     * @return array<int, array<string, mixed>>
+     */
+    /** Colonnes minimales pour les vues carte vin (cross-sell, similar, cart). */
+    private const CARD_COLS = 'id, label_name, wine_color, vintage, slug, price, image_path, stock_quantity, is_cuvee_speciale';
+
+    public function getSimilar(int $wineId, string $color, float $price, int $limit = 3): array
+    {
+        $cols = self::CARD_COLS;
+
+        $sameColor = $this->db->fetchAll(
+            "SELECT {$cols}
+             FROM {$this->table}
+             WHERE id != ? AND wine_color = ? AND available = 1
+             ORDER BY ABS(price - ?) ASC
+             LIMIT ?",
+            [$wineId, $color, $price, $limit]
+        );
+
+        if (count($sameColor) >= $limit) {
+            return $sameColor;
+        }
+
+        $remaining = $limit - count($sameColor);
+        $foundIds  = array_map(fn(array $r): int => (int) $r['id'], $sameColor);
+        $foundIds[] = $wineId;
+
+        $placeholders = implode(',', array_fill(0, count($foundIds), '?'));
+        $params       = array_merge($foundIds, [$remaining]);
+
+        $others = $this->db->fetchAll(
+            "SELECT {$cols}
+             FROM {$this->table}
+             WHERE wine_color != ? AND available = 1 AND id NOT IN ({$placeholders})
+             ORDER BY RAND()
+             LIMIT ?",
+            array_merge([$color], $params)
+        );
+
+        return array_merge($sameColor, $others);
+    }
+
+    /**
+     * Retourne N vins disponibles pour le cross-sell panier, en excluant les IDs donnés.
+     *
+     * @param int[] $excludeIds IDs des vins déjà dans le panier
+     * @param int   $limit      Nombre maximum de résultats
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForCartCrossSell(array $excludeIds, int $limit = 4): array
+    {
+        $cols = self::CARD_COLS;
+
+        if ($excludeIds === []) {
+            return $this->db->fetchAll(
+                "SELECT {$cols}
+                 FROM {$this->table}
+                 WHERE available = 1
+                 ORDER BY RAND()
+                 LIMIT ?",
+                [$limit]
+            );
+        }
+
+        $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+        $params       = array_merge($excludeIds, [$limit]);
+
+        return $this->db->fetchAll(
+            "SELECT {$cols}
+             FROM {$this->table}
+             WHERE available = 1 AND id NOT IN ({$placeholders})
+             ORDER BY RAND()
+             LIMIT ?",
+            $params
+        );
+    }
+
+    /**
+     * Retourne une cuvée spéciale disponible pour une couleur donnée, en excluant les IDs précisés.
+     * Utilisée pour garantir au moins une cuvée spéciale dans le cross-sell panier.
+     *
+     * @param string $color      Couleur souhaitée
+     * @param int[]  $excludeIds IDs à exclure
+     * @return array<string, mixed>|null
+     */
+    public function getCuveeSpecialeByColor(string $color, array $excludeIds = []): ?array
+    {
+        $cols = self::CARD_COLS;
+
+        if ($excludeIds === []) {
+            $row = $this->db->fetchOne(
+                "SELECT {$cols} FROM {$this->table}
+                 WHERE available = 1 AND is_cuvee_speciale = 1 AND wine_color = ?
+                 ORDER BY RAND() LIMIT 1",
+                [$color]
+            );
+            return $row ?: null;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+        $params       = array_merge([$color], $excludeIds);
+
+        $row = $this->db->fetchOne(
+            "SELECT {$cols} FROM {$this->table}
+             WHERE available = 1 AND is_cuvee_speciale = 1 AND wine_color = ?
+               AND id NOT IN ({$placeholders})
+             ORDER BY RAND() LIMIT 1",
+            $params
         );
         return $row ?: null;
     }

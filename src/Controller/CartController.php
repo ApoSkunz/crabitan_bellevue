@@ -82,7 +82,20 @@ class CartController extends Controller
             setcookie('cb-cart-count', (string) $totalQty, ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
         }
 
-        $randomWine = !$isB2B ? (new WineModel())->getRandomForCart() : null;
+        $randomWine     = !$isB2B ? (new WineModel())->getRandomForCart() : null;
+        $crossSellWines = [];
+        $featuredWine   = null;
+
+        if (!$isB2B) {
+            if ($isAuth) {
+                $crossSellData  = $this->resolveCrossSell($cartItems);
+                $crossSellWines = $crossSellData['crossSellWines'];
+                $featuredWine   = $crossSellData['featuredWine'];
+            } else {
+                // Invité : panier cookie inconnu côté serveur → 3 vins aléatoires
+                $crossSellWines = (new WineModel())->getForCartCrossSell([], 3);
+            }
+        }
 
         $this->view('cart/index', [
             'lang'             => $lang,
@@ -96,6 +109,8 @@ class CartController extends Controller
             'deliveryDiscount' => $deliveryDiscount,
             'pricingRules'     => $pricingRules,
             'randomWine'       => $randomWine,
+            'crossSellWines'   => $crossSellWines,
+            'featuredWine'     => $featuredWine,
         ]);
     }
 
@@ -216,10 +231,65 @@ class CartController extends Controller
             $item['price']            = $wine !== null ? (float) ($wine['price'] ?? 0.0) : 0.0;
             $item['image']            = ($item['image'] ?? '') !== '' ? $item['image'] : $fullImage;
             $item['name']             = ($item['name']  ?? '') !== '' ? $item['name']  : ($wine['label_name'] ?? '');
+            $item['vintage']          = $wine !== null ? (int) ($wine['vintage'] ?? 0) : 0;
             $item['is_cuvee_speciale'] = $wine !== null ? (bool) ($wine['is_cuvee_speciale'] ?? false) : false;
         }
         unset($item);
         return $items;
+    }
+
+    /**
+     * Résout la suggestion de vins cross-sell selon le contenu du panier.
+     *
+     * - Panier vide  → featuredWine (getFeatured/getLatest), crossSellWines vide
+     * - 1 vin unique → vins similaires (même couleur, limit 3)
+     * - 2+ vins uniques → 1 vin aléatoire hors panier
+     *
+     * @param  array<int, array<string, mixed>> $cartItems Articles du panier
+     * @return array{crossSellWines: array<int, array<string, mixed>>, featuredWine: array<string, mixed>|null}
+     */
+    private function resolveCrossSell(array $cartItems): array
+    {
+        $wineModel      = new WineModel();
+        $crossSellWines = [];
+        $featuredWine   = null;
+
+        $uniqueWineIds = array_unique(array_column($cartItems, 'wine_id'));
+        $uniqueCount   = count($uniqueWineIds);
+
+        if ($uniqueCount === 0) {
+            // Panier vide — vin mis en avant ou dernier vin
+            $featured = $wineModel->getFeatured();
+            $featuredWine = $featured ?? ($wineModel->getLatest(1)[0] ?? null);
+        } elseif ($uniqueCount === 1) {
+            // 1 vin unique — vins similaires + au moins 1 cuvée spéciale si le vin du panier n'en est pas une
+            $firstItem       = reset($cartItems);
+            $wineId          = (int) ($firstItem['wine_id'] ?? 0);
+            $wine            = $wineModel->getById($wineId);
+            $color           = (string) ($wine['wine_color'] ?? '');
+            $price           = (float) ($wine['price'] ?? 0.0);
+            $cartIsCuvee     = !empty($wine['is_cuvee_speciale']);
+            $crossSellWines  = $wineModel->getSimilar($wineId, $color, $price, 3);
+
+            if (!$cartIsCuvee) {
+                $hasCuvee = !empty(array_filter($crossSellWines, fn(array $w): bool => !empty($w['is_cuvee_speciale'])));
+                if (!$hasCuvee) {
+                    $excludeIds = array_map(fn(array $w): int => (int) $w['id'], $crossSellWines);
+                    $excludeIds[] = $wineId;
+                    $cuvee = $wineModel->getCuveeSpecialeByColor($color, $excludeIds);
+                    if ($cuvee !== null) {
+                        array_pop($crossSellWines);
+                        array_unshift($crossSellWines, $cuvee);
+                    }
+                }
+            }
+        } else {
+            // 2+ vins — 1 vin aléatoire hors panier
+            $excludeIds     = array_map('intval', $uniqueWineIds);
+            $crossSellWines = $wineModel->getForCartCrossSell($excludeIds, 1);
+        }
+
+        return ['crossSellWines' => $crossSellWines, 'featuredWine' => $featuredWine];
     }
 
     /**

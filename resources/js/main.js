@@ -1746,34 +1746,79 @@ function initCartPage() {
                 ul.className = 'cart-guest__list';
 
                 localItems.forEach((item) => {
-                    const d         = detailsMap[item.id] ?? {};
-                    const name      = d.name  || 'Vin';
-                    const image     = d.image || '';
-                    const priceNote = isEn ? 'Price calculated at checkout' : 'Prix calculé à la commande';
-                    const qtyLabel  = isEn ? 'Qty' : 'Qté';
+                    const d              = detailsMap[item.id] ?? {};
+                    const name           = d.name  || 'Vin';
+                    const image          = d.image || '';
+                    const vintage        = d.vintage || 0;
+                    const isCuvee        = !!d.is_cuvee_speciale;
+                    const priceNote      = isEn ? 'Price calculated at checkout' : 'Prix calculé à la commande';
+                    const qtyLabel       = isEn ? 'Qty' : 'Qté';
+                    const removeLabel    = isEn ? 'Remove' : 'Retirer';
+                    const cuveeLabelText = isEn ? 'Special cuvée' : 'Cuvée spéciale';
 
                     const li = document.createElement('li');
                     li.className = 'cart-guest__item';
+                    li.dataset.wineId = item.id;
 
                     const imgHtml = image
                         ? `<img src="${image}" alt="${name}" class="cart-guest__img" width="48" height="48" loading="lazy">`
+                        : '';
+                    const vintageHtml = vintage > 0
+                        ? ` <span class="cart-table__vintage">${vintage}</span>`
+                        : '';
+                    const cuveeHtml = isCuvee
+                        ? `<span class="cart-table__cuvee">${cuveeLabelText}</span>`
                         : '';
 
                     li.innerHTML = `
                         ${imgHtml}
                         <div class="cart-guest__info">
-                            <p class="cart-guest__name">${name}</p>
+                            <p class="cart-guest__name">${name}${vintageHtml}</p>
+                            ${cuveeHtml}
                             <p class="cart-guest__qty">${qtyLabel}\u00a0: ${item.qty || 1}</p>
                             <p class="cart-guest__price-note">${priceNote}</p>
-                        </div>`;
+                        </div>
+                        <button type="button" class="btn-retirer cart-guest__remove" aria-label="${removeLabel} — ${name}">
+                            <svg class="btn-retirer__icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                            </svg>
+                            <span class="btn-retirer__text">${removeLabel}</span>
+                        </button>`;
                     ul.appendChild(li);
+                });
+
+                // Suppression invité — cookie
+                ul.addEventListener('click', (ev) => {
+                    const removeBtn = ev.target.closest('.cart-guest__remove');
+                    if (!removeBtn) return;
+                    const liEl   = removeBtn.closest('.cart-guest__item');
+                    const itemId = Number.parseInt(liEl?.dataset.wineId ?? '0', 10);
+                    if (!itemId) return;
+
+                    const updated = getLocalCart().filter((i) => i.id !== itemId);
+                    saveLocalCart(updated);
+                    liEl.style.transition = 'opacity 200ms ease';
+                    liEl.style.opacity    = '0';
+                    setTimeout(() => {
+                        liEl.remove();
+                        updateCartCount();
+                        if (!ul.querySelector('.cart-guest__item')) {
+                            guestContainer.innerHTML = `<p class="cart-guest__loading">${isEn ? 'Your cart is empty.' : 'Votre panier est vide.'}</p>`;
+                            const rec = document.getElementById('cart-guest-recommendation');
+                            if (rec) rec.hidden = false;
+                            const browseCta = document.getElementById('cart-guest-browse-cta');
+                            if (browseCta) browseCta.hidden = false;
+                        }
+                    }, 200);
                 });
 
                 guestContainer.replaceChildren(ul);
 
-                // Masquer la recommandation "vous pourrez apprécier" si le panier n'est pas vide
+                // Masquer recommendation + browse CTA si le panier n'est pas vide
                 const rec = document.getElementById('cart-guest-recommendation');
                 if (rec) rec.hidden = true;
+                const browseCta = document.getElementById('cart-guest-browse-cta');
+                if (browseCta) browseCta.hidden = true;
             })
             .catch(() => {
                 guestContainer.querySelector('.cart-guest__loading').textContent =

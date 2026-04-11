@@ -61,8 +61,7 @@ $cssDisabled = ' disabled';
                     </label>
                     <input type="file" id="nl-image" name="nl_image"
                            accept="image/jpeg,image/png,image/webp"
-                           class="admin-field__input"
-                           onchange="previewNlImage(this)">
+                           class="admin-field__input">
                     <img id="nl-image-preview" src="" alt=""
                          style="display:none;max-height:120px;max-width:320px;object-fit:cover;
                                 margin-top:0.5rem;border:1px solid rgba(0,0,0,0.1);border-radius:4px;">
@@ -74,8 +73,7 @@ $cssDisabled = ' disabled';
                     </label>
                     <input type="file" id="nl-pdf" name="nl_pdf"
                            accept="application/pdf"
-                           class="admin-field__input"
-                           onchange="updateNlPdfName(this)">
+                           class="admin-field__input">
                     <p id="nl-pdf-name" style="display:none;font-size:0.78rem;color:#3d3425;margin-top:0.25rem;"></p>
                 </div>
                 <div class="admin-field" style="margin-bottom:1rem;">
@@ -90,14 +88,14 @@ $cssDisabled = ' disabled';
                 </div>
                 <div class="admin-field" style="margin-bottom:1rem;">
                     <label class="admin-field__label" for="nl-segment">Segment</label>
-                    <select id="nl-segment" name="segment" class="admin-field__input"
-                            onchange="onSegmentChange(this)">
+                    <select id="nl-segment" name="segment" class="admin-field__input">
                         <option value="tous">Tous les abonnés</option>
                         <option value="particuliers">Particuliers</option>
                         <option value="professionnels">Professionnels</option>
                         <option value="commandes">Clients ayant commandé</option>
                         <option value="sans-commande">Abonnés sans commande</option>
                         <option value="inactifs">Inactifs 6 mois</option>
+                        <option value="non-inscrit">Sans compte</option>
                     </select>
                     <p id="nl-segment-count"
                        style="font-size:0.78rem;color:#8a7a60;margin-top:0.25rem;">
@@ -105,8 +103,7 @@ $cssDisabled = ' disabled';
                     </p>
                 </div>
                 <div class="admin-form__actions">
-                    <button type="button" class="admin-btn admin-btn--primary"
-                            onclick="openNlModal()">
+                    <button type="button" class="admin-btn admin-btn--primary" id="nl-open-modal-btn">
                         Envoyer
                     </button>
                 </div>
@@ -138,10 +135,8 @@ $cssDisabled = ' disabled';
                     </p>
                     <p style="margin:0 0 1.5rem;"></p>
                     <div style="display:flex;gap:1rem;justify-content:flex-end;">
-                        <button type="button" class="admin-btn admin-btn--outline"
-                                onclick="closeNlModal()">Annuler</button>
-                        <button type="button" class="admin-btn admin-btn--primary"
-                                onclick="document.getElementById('nl-form').submit()">
+                        <button type="button" class="admin-btn admin-btn--outline" id="nl-close-modal-btn">Annuler</button>
+                        <button type="button" class="admin-btn admin-btn--primary" id="nl-confirm-send-btn">
                             Confirmer l'envoi
                         </button>
                     </div>
@@ -165,7 +160,7 @@ $cssDisabled = ' disabled';
             </h2>
             <form method="GET" style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;">
                 <label for="hperpage" style="color:#6b5f50;">Par page :</label>
-                <select id="hperpage" name="hperpage" onchange="this.form.submit()"
+                <select id="hperpage" name="hperpage" data-auto-submit="1"
                         style="font-size:0.8rem;padding:0.2em 0.5em;border:1px solid rgba(0,0,0,0.15);border-radius:3px;background:#fff;">
                     <?php foreach ([10, 25, 50] as $opt) : ?>
                         <option value="<?= $opt ?>" <?= ($historyPerPage ?? 10) === $opt ? 'selected' : '' ?>><?= $opt ?></option>
@@ -280,15 +275,26 @@ $cssDisabled = ' disabled';
                     }
                     ?>
                     <tr>
-                        <td style="color:#8a7a60;"><?= (int) $sub['id'] ?></td>
+                        <td style="color:#8a7a60;">
+                            <?= $sub['id'] !== null ? (int) $sub['id'] : '<span title="Abonné sans compte">—</span>' ?>
+                        </td>
                         <td><strong><?= $name ?></strong></td>
                         <td><?= htmlspecialchars($sub['email']) ?></td>
                         <td style="font-size:0.78rem;">
-                            <?= $sub['account_type'] === 'company' ? 'Société' : 'Particulier' ?>
+                            <?php
+                            $source = $sub['source'] ?? 'account';
+                            if ($source === 'subscription') {
+                                echo '<span style="color:#8a7a60;" title="Abonné sans compte">visiteur</span>';
+                            } elseif ($sub['account_type'] === 'company') {
+                                echo 'Société';
+                            } else {
+                                echo 'Particulier';
+                            }
+                            ?>
                         </td>
                         <td style="font-size:0.78rem;text-transform:uppercase;"><?= htmlspecialchars($sub['lang'] ?? '—') ?></td>
                         <td style="white-space:nowrap;font-size:0.8rem;">
-                            <?= date('d/m/Y', strtotime($sub['created_at'])) ?>
+                            <?= $sub['created_at'] ? date('d/m/Y', strtotime($sub['created_at'])) : '—' ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -319,6 +325,7 @@ const NL_SEGMENT_LABELS = {
     'commandes':     'Clients ayant commandé',
     'sans-commande': 'Abonnés sans commande',
     'inactifs':      'Inactifs 6 mois',
+    'non-inscrit':   'Sans compte',
 };
 
 function onSegmentChange(select) {
@@ -364,12 +371,13 @@ function openNlModal() {
     const subjectErr = document.getElementById('nl-subject-error');
     const bodyErr    = document.getElementById('nl-body-error');
 
+    const subjectWrap = subjectInput.parentElement;
     if (!subject) {
-        subjectInput.classList.add('is-error');
+        if (subjectWrap) { subjectWrap.style.borderColor = '#dc2626'; }
         subjectErr.style.display = 'block';
         hasError = true;
     } else {
-        subjectInput.classList.remove('is-error');
+        if (subjectWrap) { subjectWrap.style.borderColor = ''; }
         subjectErr.style.display = 'none';
     }
     if (!body) {
@@ -380,11 +388,7 @@ function openNlModal() {
         bodyInput.classList.remove('is-error');
         bodyErr.style.display = 'none';
     }
-    if (hasError) {
-        subjectInput.closest('.admin-form').querySelector('.admin-field__error[style*="block"]')
-            ?.closest('.admin-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-    }
+    if (hasError) { return; }
 
     document.getElementById('nl-modal-subject').textContent = subject || '—';
     const segmentSelect = document.getElementById('nl-segment');
@@ -415,6 +419,22 @@ function closeNlModal() {
 function nlModalEsc(e) {
     if (e.key === 'Escape') closeNlModal();
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    var nlImage      = document.getElementById('nl-image');
+    var nlPdf        = document.getElementById('nl-pdf');
+    var nlSegment    = document.getElementById('nl-segment');
+    var openBtn      = document.getElementById('nl-open-modal-btn');
+    var closeBtn     = document.getElementById('nl-close-modal-btn');
+    var confirmBtn   = document.getElementById('nl-confirm-send-btn');
+
+    if (nlImage)   { nlImage.addEventListener('change',   function () { previewNlImage(this); }); }
+    if (nlPdf)     { nlPdf.addEventListener('change',     function () { updateNlPdfName(this); }); }
+    if (nlSegment) { nlSegment.addEventListener('change', function () { onSegmentChange(this); }); }
+    if (openBtn)   { openBtn.addEventListener('click', openNlModal); }
+    if (closeBtn)  { closeBtn.addEventListener('click', closeNlModal); }
+    if (confirmBtn){ confirmBtn.addEventListener('click', function () { document.getElementById('nl-form').submit(); }); }
+});
 </script>
 
 <?php require_once SRC_PATH . '/View/admin/_close.php'; ?>

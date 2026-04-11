@@ -670,7 +670,7 @@ class OrderController extends Controller
             $item['name']             = $existingName !== '' ? $existingName : $fallbackName;
             $item['label_name']       = $item['name'];
             $item['is_cuvee_speciale'] = $wine ? (bool) ($wine['is_cuvee_speciale'] ?? false) : false;
-            $item['vintage']           = $wine ? (int) $wine['vintage'] : 0;
+            $item['vintage']           = $wine ? (int) ($wine['vintage'] ?? 0) : 0;
             $result[] = $item;
         }
         return $result;

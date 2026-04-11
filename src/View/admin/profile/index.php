@@ -33,7 +33,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                     <input type="password" id="current_password" name="current_password"
                            class="admin-field__input" autocomplete="current-password">
                     <button type="button" class="admin-field__eye" aria-label="Afficher le mot de passe"
-                            onclick="togglePwd('current_password', this)">
+                            data-pwd-target="current_password">
                         <svg class="eye-icon eye-icon--show" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
                         <svg class="eye-icon eye-icon--hide" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
                     </button>
@@ -47,7 +47,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                     <input type="password" id="new_password" name="new_password"
                            class="admin-field__input" autocomplete="new-password">
                     <button type="button" class="admin-field__eye" aria-label="Afficher le mot de passe"
-                            onclick="togglePwd('new_password', this)">
+                            data-pwd-target="new_password">
                         <svg class="eye-icon eye-icon--show" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
                         <svg class="eye-icon eye-icon--hide" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
                     </button>
@@ -61,7 +61,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                     <input type="password" id="new_password_confirm" name="new_password_confirm"
                            class="admin-field__input" autocomplete="new-password">
                     <button type="button" class="admin-field__eye" aria-label="Afficher le mot de passe"
-                            onclick="togglePwd('new_password_confirm', this)">
+                            data-pwd-target="new_password_confirm">
                         <svg class="eye-icon eye-icon--show" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
                         <svg class="eye-icon eye-icon--hide" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
                     </button>
@@ -109,7 +109,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                             <?php endif; ?>
                         </div>
                         <form method="POST" action="/admin/securite/session/<?= (int) $session['id'] ?>/revoquer"
-                              <?= $isCurrent ? 'onsubmit="return confirm(\'Révoquer votre session actuelle vous déconnectera. Continuer ?\')"' : '' ?>>
+                              <?= $isCurrent ? 'data-admin-confirm="Révoquer votre session actuelle vous déconnectera. Continuer ?"' : '' ?>>
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                             <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Révoquer</button>
                         </form>
@@ -117,7 +117,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                 <?php endforeach; ?>
             </div>
             <form method="POST" action="/admin/securite/sessions/revoquer-toutes"
-                  onsubmit="return confirm('Toutes vos sessions seront révoquées et vous serez déconnecté. Continuer ?')"
+                  data-admin-confirm="Toutes vos sessions seront révoquées et vous serez déconnecté. Continuer ?"
                   style="margin-top:1rem;">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Révoquer toutes les sessions</button>
@@ -153,7 +153,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                             <?php endif; ?>
                         </div>
                         <form method="POST" action="/admin/securite/appareils/retirer-confiance"
-                              onsubmit="return confirm('Retirer cet appareil de la liste de confiance ?')">
+                              data-admin-confirm="Retirer cet appareil de la liste de confiance ?">
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                             <input type="hidden" name="device_token" value="<?= htmlspecialchars($device['device_token']) ?>">
                             <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Retirer</button>
@@ -162,7 +162,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                 <?php endforeach; ?>
             </div>
             <form method="POST" action="/admin/securite/appareils/supprimer-toutes"
-                  onsubmit="return confirm('Tous les appareils de confiance seront supprimés. Vous resterez connecté pour cette session, mais devrez revalider chaque appareil à la prochaine connexion. Continuer ?')"
+                  data-admin-confirm="Tous les appareils de confiance seront supprimés. Vous resterez connecté pour cette session, mais devrez revalider chaque appareil à la prochaine connexion. Continuer ?"
                   style="margin-top:1rem;">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Supprimer tous les appareils de confiance</button>
@@ -207,7 +207,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                     <input type="password" id="admin_reset_password" name="password"
                            class="admin-field__input" autocomplete="current-password" required>
                     <button type="button" class="admin-field__eye" aria-label="Afficher le mot de passe"
-                            onclick="togglePwd('admin_reset_password', this)">
+                            data-pwd-target="admin_reset_password">
                         <svg class="eye-icon eye-icon--show" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
                         <svg class="eye-icon eye-icon--hide" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
                     </button>
@@ -248,15 +248,6 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
 </style>
 
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
-function togglePwd(inputId, btn) {
-    const input = document.getElementById(inputId);
-    const isHidden = input.type === 'password';
-    input.type = isHidden ? 'text' : 'password';
-    btn.querySelector('.eye-icon--show').style.display = isHidden ? 'none' : '';
-    btn.querySelector('.eye-icon--hide').style.display = isHidden ? '' : 'none';
-    btn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
-}
-
 // Validation formulaire changement mot de passe
 document.getElementById('profile-pwd-form').addEventListener('submit', function (e) {
     let hasError = false;

@@ -28,6 +28,9 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private const DATE_FORMAT_FR        = 'd/m/Y à H:i';
     private const DATE_FORMAT_DATE      = 'd/m/Y';
     private const PAYMENT_LABEL_CHEQUE  = 'Chèque';
+    private const WINE_IMAGE_PATH       = '/assets/images/wines/';
+    private const COL_UNIT_EN           = 'Unit price';
+    private const COL_UNIT_FR           = 'Prix unitaire';
 
     private PHPMailer $mailer;
 
@@ -266,7 +269,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
         $imageHtml = '';
         if ($imagePath !== '') {
-            $safeImg   = htmlspecialchars($appUrl . '/assets/images/wines/' . $imagePath, ENT_QUOTES);
+            $safeImg   = htmlspecialchars($appUrl . self::WINE_IMAGE_PATH . $imagePath, ENT_QUOTES);
             $imageHtml = "<img src=\"{$safeImg}\" alt=\"{$labelName} {$vintage}\""
                 . " width=\"192\" style=\"display:block;width:192px;max-width:100%;"
                 . "height:auto;margin:24px auto 16px;border:0;border-radius:4px;\">";
@@ -353,7 +356,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
                   . '<a href="' . $safeReactUrl . self::BTN_ANCHOR_STYLE_ATTR
                   . self::BTN_STYLE_PRIMARY
-                  . 'color:#1a1208;text-decoration:none;font-weight:bold;">Annuler la suppression</a>'
+                  . self::BTN_STYLE_LINK . 'Annuler la suppression</a>'
                   . '</td></tr></table>'
                 : '';
             $body = $this->emailSimpleLayout(
@@ -376,7 +379,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
                   . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
                   . '<a href="' . $safeReactUrl . self::BTN_ANCHOR_STYLE_ATTR
                   . self::BTN_STYLE_PRIMARY
-                  . 'color:#1a1208;text-decoration:none;font-weight:bold;">Cancel deletion</a>'
+                  . self::BTN_STYLE_LINK . 'Cancel deletion</a>'
                   . '</td></tr></table>'
                 : '';
             $body = $this->emailSimpleLayout(
@@ -1044,7 +1047,7 @@ INNER;
             $greeting       = "Hello {$safeName},";
             $colName        = 'Product';
             $colQty         = 'Qty';
-            $colUnit        = 'Unit price';
+            $colUnit        = self::COL_UNIT_EN;
             $colSub         = 'Subtotal';
             $labelTotal     = 'Total incl. tax';
             $labelDiscount  = 'Delivery discount';
@@ -1079,7 +1082,7 @@ INNER;
             $greeting       = "Bonjour {$safeName},";
             $colName        = 'Produit';
             $colQty         = 'Qté';
-            $colUnit        = 'Prix unitaire';
+            $colUnit        = self::COL_UNIT_FR;
             $colSub         = 'Sous-total';
             $labelTotal     = 'Total TTC';
             $labelDiscount  = 'Remise livraison';
@@ -1176,7 +1179,7 @@ INNER;
             $total,
             'Produit',
             'Qté',
-            'Prix unitaire',
+            self::COL_UNIT_FR,
             'Sous-total',
             'Total TTC',
             $shippingDiscount,
@@ -1276,21 +1279,29 @@ INNER;
      * Envoie un email transactionnel au client lors d'un changement de statut de commande.
      * N'envoie rien si le statut n'est pas dans la liste des déclencheurs.
      *
-     * @param string $toEmail   Adresse email du client
-     * @param string $toName    Prénom ou nom complet du client
-     * @param string $orderRef  Référence de la commande (ex. CB-2026-001)
-     * @param string $newStatus Nouveau statut de la commande
-     * @param string $lang      Langue du client ('fr' ou 'en')
-     * @param string $appUrl    URL de base de l'application
+     * @param string  $toEmail         Adresse email du client
+     * @param string  $toName          Prénom ou nom complet du client
+     * @param string  $orderRef        Référence de la commande (ex. CB-2026-001)
+     * @param string  $newStatus       Nouveau statut de la commande
+     * @param string  $lang            Langue du client ('fr' ou 'en')
+     * @param string  $appUrl          URL de base de l'application
+     * @param array   $items           Articles commandés (optionnel)
+     * @param array   $deliveryAddress Adresse de livraison (optionnel)
+     * @param string  $trackingUrl     Lien de suivi transporteur (optionnel, affiché si shipped)
+     * @param int     $orderId         Identifiant de la commande pour le CTA (optionnel)
      * @return void
      */
-    public function sendOrderStatusEmail(
+    public function sendOrderStatusEmail( // NOSONAR — php:S107 : 10 paramètres requis (statuts multiples, i18n, tracking, items)
         string $toEmail,
         string $toName,
         string $orderRef,
         string $newStatus,
         string $lang,
-        string $appUrl
+        string $appUrl,
+        array $items = [],
+        array $deliveryAddress = [],
+        string $trackingUrl = '',
+        int $orderId = 0
     ): void {
         $triggerStatuses = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
         if (!in_array($newStatus, $triggerStatuses, true)) {
@@ -1306,14 +1317,22 @@ INNER;
                 $newStatus,
                 $safeRef,
                 $safeName,
-                $safeUrl
+                $safeUrl,
+                $items,
+                $deliveryAddress,
+                $trackingUrl,
+                $orderId
             );
         } else {
             [$subject, $title, $greeting, $message] = $this->buildOrderStatusContentEn(
                 $newStatus,
                 $safeRef,
                 $safeName,
-                $safeUrl
+                $safeUrl,
+                $items,
+                $deliveryAddress,
+                $trackingUrl,
+                $orderId
             );
         }
 
@@ -1341,17 +1360,25 @@ INNER;
     /**
      * Construit le contenu de l'email de statut commande en français.
      *
-     * @param  string $status   Statut déclencheur
-     * @param  string $safeRef  Référence commande échappée
-     * @param  string $safeName Nom du client échappé
-     * @param  string $appUrl   URL de base
+     * @param  string $status          Statut déclencheur
+     * @param  string $safeRef         Référence commande échappée
+     * @param  string $safeName        Nom du client échappé
+     * @param  string $appUrl          URL de base
+     * @param  array  $items           Articles commandés (optionnel)
+     * @param  array  $deliveryAddress Adresse de livraison (optionnel)
+     * @param  string $trackingUrl     Lien de suivi (affiché si shipped et non vide)
+     * @param  int    $orderId         ID de la commande pour le CTA direct
      * @return array{string, string, string, string}  [subject, title, greeting, message]
      */
-    private function buildOrderStatusContentFr(
+    private function buildOrderStatusContentFr( // NOSONAR — php:S107 : 8 paramètres requis (statuts FR + items + adresse + tracking)
         string $status,
         string $safeRef,
         string $safeName,
-        string $appUrl
+        string $appUrl,
+        array $items = [],
+        array $deliveryAddress = [],
+        string $trackingUrl = '',
+        int $orderId = 0
     ): array {
         $subjects = [
             'processing' => "Votre commande est en préparation — {$safeRef}",
@@ -1382,31 +1409,89 @@ INNER;
                 . " Le crédit sera visible sur votre compte bancaire dans un délai de 3 à 5 jours ouvrés.",
         ];
 
-        $orderLinkBlock = "<br><br><a href=\"{$appUrl}/fr/mon-compte/commandes\" style=\"color:#c9a84c;\">"
-            . "Voir mes commandes</a>";
+        $extraBlocks = '';
+
+        // Récapitulatif des articles
+        if (!empty($items)) {
+            $total = array_sum(array_map(
+                fn(array $i) => (float) ($i['price'] ?? 0.0) * (int) ($i['qty'] ?? 0),
+                $items
+            ));
+            $extraBlocks .= '<br><br>' . $this->buildOrderItemsTable(
+                $items,
+                $total,
+                'Produit',
+                'Qté',
+                'Prix unit.',
+                'Sous-total',
+                'Total'
+            );
+        }
+
+        // Adresse de livraison
+        if (!empty($deliveryAddress)) {
+            $addr = $this->buildDeliveryAddressBlockFr($deliveryAddress);
+            if ($addr !== '') {
+                $extraBlocks .= '<br><br>' . $addr;
+            }
+        }
+
+        // Lien de suivi (shipped uniquement)
+        if ($status === 'shipped' && $trackingUrl !== '') {
+            $safeTracking  = htmlspecialchars($trackingUrl, ENT_QUOTES);
+            $extraBlocks  .= '<br><br>'
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$safeTracking}\" style=\"display:inline-block;padding:12px 28px;"
+                . 'font-family:Georgia,serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;'
+                . self::BTN_STYLE_LINK
+                . 'Suivre ma livraison</a>'
+                . '</td></tr></table>';
+        }
+
+        // CTA "Voir ma commande"
+        $orderPath = $orderId > 0
+            ? "/fr/mon-compte/commandes/{$orderId}"
+            : '/fr/mon-compte/commandes';
+        $extraBlocks .= '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;">'
+            . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
+            . "<a href=\"{$appUrl}{$orderPath}\" style=\"display:inline-block;padding:10px 24px;"
+            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;'
+            . 'color:#c9a84c;text-decoration:none;font-weight:bold;">'
+            . 'Voir ma commande</a>'
+            . '</td></tr></table>';
 
         return [
             $subjects[$status],
             $titles[$status],
             "Bonjour {$safeName},",
-            $messages[$status] . $orderLinkBlock,
+            $messages[$status] . $extraBlocks,
         ];
     }
 
     /**
      * Construit le contenu de l'email de statut commande en anglais.
      *
-     * @param  string $status   Statut déclencheur
-     * @param  string $safeRef  Référence commande échappée
-     * @param  string $safeName Nom du client échappé
-     * @param  string $appUrl   URL de base
+     * @param  string $status          Statut déclencheur
+     * @param  string $safeRef         Référence commande échappée
+     * @param  string $safeName        Nom du client échappé
+     * @param  string $appUrl          URL de base
+     * @param  array  $items           Articles commandés (optionnel)
+     * @param  array  $deliveryAddress Adresse de livraison (optionnel)
+     * @param  string $trackingUrl     Lien de suivi (affiché si shipped et non vide)
+     * @param  int    $orderId         ID de la commande pour le CTA direct
      * @return array{string, string, string, string}  [subject, title, greeting, message]
      */
-    private function buildOrderStatusContentEn(
+    private function buildOrderStatusContentEn( // NOSONAR — php:S107 : 8 paramètres requis (statuts EN + items + adresse + tracking)
         string $status,
         string $safeRef,
         string $safeName,
-        string $appUrl
+        string $appUrl,
+        array $items = [],
+        array $deliveryAddress = [],
+        string $trackingUrl = '',
+        int $orderId = 0
     ): array {
         $subjects = [
             'processing' => "Your order is being prepared — {$safeRef}",
@@ -1437,14 +1522,64 @@ INNER;
                 . " The credit should appear on your bank account within 3 to 5 working days.",
         ];
 
-        $orderLinkBlock = "<br><br><a href=\"{$appUrl}/en/my-account/orders\" style=\"color:#c9a84c;\">"
-            . "View my orders</a>";
+        $extraBlocks = '';
+
+        // Items summary
+        if (!empty($items)) {
+            $total = array_sum(array_map(
+                fn(array $i) => (float) ($i['price'] ?? 0.0) * (int) ($i['qty'] ?? 0),
+                $items
+            ));
+            $extraBlocks .= '<br><br>' . $this->buildOrderItemsTable(
+                $items,
+                $total,
+                'Product',
+                'Qty',
+                self::COL_UNIT_EN,
+                'Subtotal',
+                'Total'
+            );
+        }
+
+        // Delivery address
+        if (!empty($deliveryAddress)) {
+            $addr = $this->buildDeliveryAddressBlockEn($deliveryAddress);
+            if ($addr !== '') {
+                $extraBlocks .= '<br><br>' . $addr;
+            }
+        }
+
+        // Tracking link (shipped only)
+        if ($status === 'shipped' && $trackingUrl !== '') {
+            $safeTracking  = htmlspecialchars($trackingUrl, ENT_QUOTES);
+            $extraBlocks  .= '<br><br>'
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$safeTracking}\" style=\"display:inline-block;padding:12px 28px;"
+                . 'font-family:Georgia,serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;'
+                . self::BTN_STYLE_LINK
+                . 'Track my delivery</a>'
+                . '</td></tr></table>';
+        }
+
+        // CTA "View my order"
+        $orderPath = $orderId > 0
+            ? "/en/my-account/orders/{$orderId}"
+            : '/en/my-account/orders';
+        $extraBlocks .= '<br><br>'
+            . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;">'
+            . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
+            . "<a href=\"{$appUrl}{$orderPath}\" style=\"display:inline-block;padding:10px 24px;"
+            . 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;'
+            . 'color:#c9a84c;text-decoration:none;font-weight:bold;">'
+            . 'View my order</a>'
+            . '</td></tr></table>';
 
         return [
             $subjects[$status],
             $titles[$status],
             "Hello {$safeName},",
-            $messages[$status] . $orderLinkBlock,
+            $messages[$status] . $extraBlocks,
         ];
     }
 
@@ -1761,6 +1896,80 @@ INNER;
             'Hello,',
             $message
         );
+    }
+
+    /**
+     * Envoie l'email de bienvenue post-inscription (vérification d'email).
+     *
+     * Si $isSubscribed vaut false, un bouton CTA "S'abonner à la newsletter" est ajouté
+     * afin d'inviter l'utilisateur à rejoindre la newsletter en un clic.
+     *
+     * @param string $email        Adresse email du destinataire
+     * @param string $firstname    Prénom de l'utilisateur (peut être vide)
+     * @param string $lang         Langue ('fr' ou 'en')
+     * @param bool   $isSubscribed True si l'utilisateur est déjà abonné à la newsletter
+     * @return void
+     */
+    public function sendWelcome(string $email, string $firstname, string $lang, bool $isSubscribed = false): void
+    {
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $safeName    = $firstname !== '' ? htmlspecialchars($firstname, ENT_QUOTES) : $defaultName;
+        $greeting    = $lang === 'fr' ? "Bonjour {$safeName}," : "Hello {$safeName},";
+
+        // CTA catalogue
+        $catalogUrl = $lang === 'fr'
+            ? htmlspecialchars("{$appUrl}/fr/vins", ENT_QUOTES)
+            : htmlspecialchars("{$appUrl}/en/wines", ENT_QUOTES);
+        $catalogLabel = $lang === 'fr' ? 'Découvrir notre catalogue' : 'Discover our catalogue';
+        $catalogCta = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$catalogUrl}\" style=\"" . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK
+            . $catalogLabel . '</a></td></tr></table>';
+
+        // CTA newsletter conditionnel
+        $newsletterCta = '';
+        if (!$isSubscribed) {
+            $subscribeUrl = $lang === 'fr'
+                ? htmlspecialchars("{$appUrl}/fr/newsletter/inscription-bienvenue?email=" . urlencode($email), ENT_QUOTES)
+                : htmlspecialchars("{$appUrl}/en/newsletter/welcome-subscribe?email=" . urlencode($email), ENT_QUOTES);
+            $newsletterLabel = $lang === 'fr' ? "S'abonner à la newsletter" : 'Subscribe to the newsletter';
+            $newsletterCta = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;">'
+                . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
+                . "<a href=\"{$subscribeUrl}\" style=\"display:inline-block;padding:10px 24px;"
+                . self::BTN_STYLE_SECONDARY
+                . 'text-transform:uppercase;color:#c9a84c;text-decoration:none;font-weight:bold;">'
+                . $newsletterLabel . '</a></td></tr></table>';
+        }
+
+        if ($lang === 'fr') {
+            $subject = 'Bienvenue au Château Crabitan Bellevue';
+            $message = "Votre adresse email est confirmée — bienvenue dans la famille du Château Crabitan Bellevue !<br><br>"
+                . 'Niché au cœur de l\'appellation <strong>Sainte-Croix-du-Mont</strong>, notre château familial'
+                . ' perpétue depuis des générations l\'art des vins de Bordeaux liquoreux et secs.'
+                . ' Chaque bouteille est l\'expression d\'un terroir d\'exception et d\'un savoir-faire artisanal.<br><br>'
+                . $catalogCta . '<br>'
+                . $newsletterCta
+                . '<br><em>L\'équipe du Château Crabitan Bellevue</em>';
+        } else {
+            $subject = 'Welcome to Château Crabitan Bellevue';
+            $message = 'Your email address has been confirmed — welcome to the Château Crabitan Bellevue family!<br><br>'
+                . 'Nestled in the heart of the <strong>Sainte-Croix-du-Mont</strong> appellation,'
+                . ' our family estate has been crafting exceptional Bordeaux wines for generations.'
+                . ' Each bottle reflects the unique character of our terroir and our dedication to artisanal winemaking.<br><br>'
+                . $catalogCta . '<br>'
+                . $newsletterCta
+                . '<br><em>The Château Crabitan Bellevue team</em>';
+        }
+
+        $body = $this->emailSimpleLayout(
+            $lang === 'fr' ? 'Bienvenue' : 'Welcome',
+            $greeting,
+            $message,
+            $lang
+        );
+
+        $this->send($email, $firstname, $subject, $body);
     }
 
     /**
@@ -2345,6 +2554,68 @@ INNER;
         return $this->emailWrap($title, $inner);
     }
 
+    /**
+     * Construit le bloc HTML d'adresse de livraison pour les emails FR.
+     *
+     * @param  array $address Tableau avec les clés : firstname, lastname, line1, line2, zip, city, country
+     * @return string HTML du bloc adresse, vide si données insuffisantes
+     */
+    private function buildDeliveryAddressBlockFr(array $address): string
+    {
+        $city = trim((string) ($address['city'] ?? ''));
+        if ($city === '') {
+            return '';
+        }
+        $name    = trim(
+            htmlspecialchars((string) ($address['firstname'] ?? ''), ENT_QUOTES)
+            . ' '
+            . htmlspecialchars((string) ($address['lastname'] ?? ''), ENT_QUOTES)
+        );
+        $line1   = htmlspecialchars((string) ($address['line1'] ?? ''), ENT_QUOTES);
+        $line2   = htmlspecialchars((string) ($address['line2'] ?? ''), ENT_QUOTES);
+        $zip     = htmlspecialchars((string) ($address['zip'] ?? ''), ENT_QUOTES);
+        $safeCity    = htmlspecialchars($city, ENT_QUOTES);
+        $country = htmlspecialchars((string) ($address['country'] ?? ''), ENT_QUOTES);
+
+        $lines = array_filter([$name, $line1, $line2, trim("{$zip} {$safeCity}"), $country]);
+        $addrHtml = implode('<br>', $lines);
+
+        return '<p style="margin:0 0 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;'
+            . 'color:#8a7a60;">Adresse de livraison</p>'
+            . '<p style="margin:0;font-size:14px;line-height:1.7;color:#3d3425;">' . $addrHtml . '</p>';
+    }
+
+    /**
+     * Construit le bloc HTML d'adresse de livraison pour les emails EN.
+     *
+     * @param  array $address Tableau avec les clés : firstname, lastname, line1, line2, zip, city, country
+     * @return string HTML du bloc adresse, vide si données insuffisantes
+     */
+    private function buildDeliveryAddressBlockEn(array $address): string
+    {
+        $city = trim((string) ($address['city'] ?? ''));
+        if ($city === '') {
+            return '';
+        }
+        $name    = trim(
+            htmlspecialchars((string) ($address['firstname'] ?? ''), ENT_QUOTES)
+            . ' '
+            . htmlspecialchars((string) ($address['lastname'] ?? ''), ENT_QUOTES)
+        );
+        $line1   = htmlspecialchars((string) ($address['line1'] ?? ''), ENT_QUOTES);
+        $line2   = htmlspecialchars((string) ($address['line2'] ?? ''), ENT_QUOTES);
+        $zip     = htmlspecialchars((string) ($address['zip'] ?? ''), ENT_QUOTES);
+        $safeCity    = htmlspecialchars($city, ENT_QUOTES);
+        $country = htmlspecialchars((string) ($address['country'] ?? ''), ENT_QUOTES);
+
+        $lines = array_filter([$name, $line1, $line2, trim("{$zip} {$safeCity}"), $country]);
+        $addrHtml = implode('<br>', $lines);
+
+        return '<p style="margin:0 0 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;'
+            . 'color:#8a7a60;">Delivery address</p>'
+            . '<p style="margin:0;font-size:14px;line-height:1.7;color:#3d3425;">' . $addrHtml . '</p>';
+    }
+
     private function verificationBodyFr(string $name, string $url): string
     {
         $safeUrl  = htmlspecialchars($url, ENT_QUOTES);
@@ -2518,6 +2789,11 @@ INNER;
         return new \Model\OrderFormModel();
     }
 
+    protected function newRatingModel(): \Model\RatingModel
+    {
+        return new \Model\RatingModel();
+    }
+
     private function emailWrap(string $title, string $innerContent): string
     {
         return <<<HTML
@@ -2615,6 +2891,228 @@ HTML;
             </td>
           </tr>
 HTML;
+    }
+
+    /**
+     * Envoie l'email post-achat J+7 avec boutons de notation par article.
+     *
+     * Pour chaque article commandé, génère 5 liens de notation (notes 1 à 5)
+     * via RatingModel::generateEmailToken(). Le token est unique par triplet
+     * (account_id, wine_id, order_id) ; seule la note varie dans l'URL.
+     *
+     * @param string $to        Email client
+     * @param string $name      Prénom client
+     * @param int    $accountId ID compte
+     * @param int    $orderId   ID commande
+     * @param array<int, array<string, mixed>> $items Articles commandés (wine_id, label_name, vintage, image_path)
+     * @param string $lang      Langue
+     * @return void
+     */
+    public function sendPostPurchase(
+        string $to,
+        string $name,
+        int $accountId,
+        int $orderId,
+        array $items,
+        string $lang
+    ): void {
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $safeName   = htmlspecialchars($name, ENT_QUOTES);
+        $ratingModel = $this->newRatingModel();
+        $orderToken  = $ratingModel->generateOrderToken($orderId, $accountId);
+        $orderPageUrl = htmlspecialchars($appUrl . '/rating/order/' . $orderToken, ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject    = 'Comment s\'est passée votre dégustation ? — Château Crabitan Bellevue';
+            $title      = 'Votre avis compte';
+            $greeting   = "Bonjour {$safeName},";
+            $intro      = "Nous espérons que vous avez apprécié votre commande."
+                . " Votre avis nous aide à progresser — prenez un instant pour noter vos vins :";
+            $rateLabel  = 'Note :';
+            $ctaLabel   = 'Noter mes vins';
+            $ctaFallback = 'Vous préférez noter vin par vin ? Utilisez les liens ci-dessous :';
+        } else {
+            $subject    = 'How was your tasting experience? — Château Crabitan Bellevue';
+            $title      = 'Your opinion matters';
+            $greeting   = "Hello {$safeName},";
+            $intro      = "We hope you enjoyed your order."
+                . " Your feedback helps us improve — take a moment to rate your wines:";
+            $rateLabel  = 'Rate:';
+            $ctaLabel   = 'Rate my wines';
+            $ctaFallback = 'Prefer to rate wine by wine? Use the links below:';
+        }
+
+        // CTA principal — page de notation centralisée par commande
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$orderPageUrl}\" style=\""
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . $ctaLabel
+            . '</a></td></tr></table>';
+
+        // Liens individuels par vin (fallback)
+        $winesHtml = '';
+        foreach ($items as $item) {
+            $wineId    = (int) ($item['wine_id'] ?? 0);
+            $label     = htmlspecialchars((string) ($item['label_name'] ?? ''), ENT_QUOTES);
+            $vintage   = (int) ($item['vintage'] ?? 0);
+            $imagePath = (string) ($item['image_path'] ?? '');
+
+            $token = $ratingModel->generateEmailToken($accountId, $wineId, $orderId);
+
+            $imageHtml = '';
+            if ($imagePath !== '') {
+                $safeImg   = htmlspecialchars($appUrl . self::WINE_IMAGE_PATH . $imagePath, ENT_QUOTES);
+                $imageHtml = "<img src=\"{$safeImg}\" alt=\"{$label}\" width=\"80\""
+                    . " style=\"display:block;width:80px;height:auto;border:0;border-radius:3px;"
+                    . "margin-bottom:8px;\">";
+            }
+
+            $starsHtml = '';
+            for ($i = 1; $i <= 5; $i++) {
+                $ratingUrl = htmlspecialchars(
+                    $appUrl . '/rating/commande/' . $token . '/' . $i,
+                    ENT_QUOTES
+                );
+                $starsHtml .= "<a href=\"{$ratingUrl}\""
+                    . " style=\"display:inline-block;padding:8px 12px;margin:0 3px;"
+                    . "background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;"
+                    . "font-family:Georgia,serif;font-size:14px;font-weight:bold;"
+                    . "color:#1a1208;text-decoration:none;\">&#9733; {$i}</a>";
+            }
+
+            $vintageHtml = $vintage > 0
+                ? " <span style=\"font-size:12px;color:#8a7a60;\">{$vintage}</span>"
+                : '';
+
+            $winesHtml .= '<tr><td style="padding:16px 0;border-bottom:1px solid #ede8df;">'
+                . $imageHtml
+                . "<p style=\"margin:0 0 8px;font-family:Georgia,serif;font-size:16px;color:#1a1208;\">"
+                . "{$label}{$vintageHtml}</p>"
+                . "<p style=\"margin:0 0 8px;font-size:12px;letter-spacing:1px;"
+                . "text-transform:uppercase;color:#8a7a60;\">{$rateLabel}</p>"
+                . "<p style=\"margin:0;\">{$starsHtml}</p>"
+                . '</td></tr>';
+        }
+
+        $fallbackSection = '<p style="margin:24px 0 8px;font-size:13px;color:#8a7a60;">'
+            . htmlspecialchars($ctaFallback, ENT_QUOTES)
+            . '</p>'
+            . '<table style="width:100%;border-collapse:collapse;">'
+            . $winesHtml
+            . '</table>';
+
+        $message = "<p style=\"margin:0 0 24px;font-size:15px;line-height:1.7;color:#3d3425;\">"
+            . $intro
+            . "</p>"
+            . $ctaBtn
+            . $fallbackSection;
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Envoie l'email de relance panier abandonné.
+     *
+     * Rappelle au client les articles laissés dans son panier avec un CTA
+     * de retour vers la boutique.
+     *
+     * @param string $to       Email client
+     * @param string $name     Prénom client
+     * @param array<int, array<string, mixed>> $items Articles du panier (label_name, vintage, image_path, price, qty)
+     * @param string $lang     Langue
+     * @param string $cartUrl  URL de retour vers le panier
+     * @return void
+     */
+    public function sendAbandonedCart(
+        string $to,
+        string $name,
+        array $items,
+        string $lang,
+        string $cartUrl
+    ): void {
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $safeCart = htmlspecialchars($cartUrl, ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject    = 'Votre panier vous attend — Château Crabitan Bellevue';
+            $title      = 'Votre panier';
+            $greeting   = "Bonjour {$safeName},";
+            $intro      = "Vous avez laissé des articles dans votre panier."
+                . " Ils vous attendent toujours — finalisez votre commande avant qu'ils ne soient plus disponibles.";
+            $ctaLabel   = 'Reprendre ma commande';
+            $colQty     = 'Qté';
+            $colPrice   = self::COL_UNIT_FR;
+        } else {
+            $subject    = 'Your cart is waiting for you — Château Crabitan Bellevue';
+            $title      = 'Your cart';
+            $greeting   = "Hello {$safeName},";
+            $intro      = "You left some items in your cart."
+                . " They are still waiting for you — complete your order before they sell out.";
+            $ctaLabel   = 'Resume my order';
+            $colQty     = 'Qty';
+            $colPrice   = self::COL_UNIT_EN;
+        }
+
+        $rows = '';
+        foreach ($items as $item) {
+            $label     = htmlspecialchars((string) ($item['label_name'] ?? ''), ENT_QUOTES);
+            $vintage   = (int) ($item['vintage'] ?? 0);
+            $imagePath = (string) ($item['image_path'] ?? '');
+            $price     = number_format((float) ($item['price'] ?? 0.0), 2, ',', ' ');
+            $qty       = (int) ($item['qty'] ?? 0);
+
+            $imageHtml = '';
+            if ($imagePath !== '') {
+                $safeImg   = htmlspecialchars($appUrl . self::WINE_IMAGE_PATH . $imagePath, ENT_QUOTES);
+                $imageHtml = "<img src=\"{$safeImg}\" alt=\"{$label}\" width=\"60\""
+                    . " style=\"display:block;width:60px;height:auto;border:0;border-radius:3px;\">";
+            }
+
+            $vintageHtml = $vintage > 0
+                ? " <span style=\"font-size:12px;color:#8a7a60;\">{$vintage}</span>"
+                : '';
+
+            $tdStyle = 'padding:10px 8px;border-bottom:1px solid #ede8df;font-size:13px;color:#3d3425;';
+            $rows   .= '<tr>'
+                . "<td style=\"{$tdStyle}\">{$imageHtml}"
+                . "<span style=\"font-family:Georgia,serif;font-size:14px;color:#1a1208;\">"
+                . "{$label}{$vintageHtml}</span></td>"
+                . "<td style=\"{$tdStyle}text-align:center;\">{$qty}</td>"
+                . "<td style=\"{$tdStyle}text-align:right;\">{$price}&nbsp;€</td>"
+                . '</tr>';
+        }
+
+        $thStyle = 'padding:8px;background:#f7f3ec;font-size:11px;'
+            . 'color:#8a7a60;letter-spacing:1px;text-transform:uppercase;text-align:left;';
+        $tableHtml = '<table style="width:100%;border-collapse:collapse;margin:16px 0 24px;">'
+            . '<tr>'
+            . "<th style=\"{$thStyle}\">Vin</th>"
+            . "<th style=\"{$thStyle}text-align:center;\">{$colQty}</th>"
+            . "<th style=\"{$thStyle}text-align:right;\">{$colPrice}</th>"
+            . '</tr>'
+            . $rows
+            . '</table>';
+
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$safeCart}\" style=\""
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . $ctaLabel
+            . '</a></td></tr></table>';
+
+        $message = "<p style=\"margin:0 0 16px;font-size:15px;line-height:1.7;color:#3d3425;\">"
+            . $intro
+            . "</p>"
+            . $tableHtml
+            . $ctaBtn;
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
+        $this->send($to, $name, $subject, $body);
     }
 
     private function emailHeaderHtml(string $appUrl, string $logoUrl): string

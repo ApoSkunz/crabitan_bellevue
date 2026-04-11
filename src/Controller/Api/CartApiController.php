@@ -41,11 +41,11 @@ class CartApiController extends Controller
     // ----------------------------------------------------------------
 
     /**
-     * Retourne le nom, l'image et le prix des vins dont les IDs sont passés en paramètre.
+     * Retourne le nom, l'image, le prix, le millésime et le statut cuvée spéciale des vins.
      *
      * Accessible sans authentification (invités + connectés).
      * Paramètre GET : ids (liste d'entiers séparés par des virgules).
-     * Retourne : [{wine_id, name, image, price}].
+     * Retourne : [{wine_id, name, image, price, vintage, is_cuvee_speciale}].
      *
      * @param array<string, string> $params Paramètres de route (inutilisés)
      * @return void
@@ -65,10 +65,12 @@ class CartApiController extends Controller
             if ($wine !== null) {
                 $rawImage = $wine['image_path'] ?? '';
                 $result[] = [
-                    'wine_id' => (int) $id,
-                    'name'    => $wine['label_name'] ?? '',
-                    'image'   => $rawImage !== '' ? '/assets/images/wines/' . $rawImage : '',
-                    'price'   => (float) ($wine['price'] ?? 0),
+                    'wine_id'          => (int) $id,
+                    'name'             => $wine['label_name'] ?? '',
+                    'image'            => $rawImage !== '' ? '/assets/images/wines/' . $rawImage : '',
+                    'price'            => (float) ($wine['price'] ?? 0),
+                    'vintage'          => (int) ($wine['vintage'] ?? 0),
+                    'is_cuvee_speciale' => !empty($wine['is_cuvee_speciale']),
                 ];
             }
         }

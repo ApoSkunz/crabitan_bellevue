@@ -62,7 +62,7 @@ function buildPageUrl(int $page, int $perPage): string
     <form method="GET" action="/admin/bons-de-commande" style="display:flex;align-items:center;gap:0.5rem;">
         <label for="per-page-select" style="font-size:0.8rem;color:#8a7a60;">Par page :</label>
         <select id="per-page-select" name="per_page" class="admin-field__select" style="padding:0.25rem 0.5rem;font-size:0.85rem;"
-                onchange="this.form.submit()">
+                data-auto-submit="1">
             <?php foreach ([10, 25, 50] as $opt) : ?>
                 <option value="<?= $opt ?>" <?= $perPage === $opt ? 'selected' : '' ?>><?= $opt ?></option>
             <?php endforeach; ?>
@@ -103,7 +103,7 @@ function buildPageUrl(int $page, int $perPage): string
                                target="_blank" rel="noopener">Aperçu</a>
                             <form method="POST"
                                   action="/admin/bons-de-commande/<?= (int) $form['id'] ?>/supprimer"
-                                  onsubmit="return confirm('Supprimer ce bon de commande ?');"
+                                  data-admin-confirm="Supprimer ce bon de commande ?"
                                   style="margin:0;">
                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                 <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Supprimer</button>

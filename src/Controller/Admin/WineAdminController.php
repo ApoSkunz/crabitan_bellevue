@@ -364,6 +364,7 @@ class WineAdminController extends AdminController
             $this->nutrition->upsert($id, $nutritionPost);
             if (!$data['available']) {
                 (new CartModel())->purgeWineFromAllCarts($id);
+                $this->wines->unsetFeatured($id);
             }
             AuditLogger::log(
                 $adminUser['id'],
