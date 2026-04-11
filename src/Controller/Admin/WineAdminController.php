@@ -12,6 +12,7 @@ use Model\WineModel;
 use Model\WineNutritionModel;
 use Service\AuditLogger;
 use Service\MailService;
+use Service\StockNotificationService;
 use Service\TranslationService;
 
 class WineAdminController extends AdminController
@@ -362,6 +363,7 @@ class WineAdminController extends AdminController
         try {
             $this->wines->update($id, $data);
             $this->nutrition->upsert($id, $nutritionPost);
+            (new StockNotificationService())->notifyIfThresholdCrossed($wine, (int) ($data['stock_quantity'] ?? 0));
             if (!$data['available']) {
                 (new CartModel())->purgeWineFromAllCarts($id);
                 $this->wines->unsetFeatured($id);
