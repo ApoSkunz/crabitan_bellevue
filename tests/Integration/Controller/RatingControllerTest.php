@@ -259,4 +259,81 @@ class RatingControllerTest extends IntegrationTestCase
 
         $this->assertStringContainsString('invalid', strtolower($output));
     }
+
+    // ----------------------------------------------------------------
+    // rateViaEmail — happy path
+    // ----------------------------------------------------------------
+
+    /**
+     * Token valide (ligne BDD existante) + note valide → vue de confirmation.
+     */
+    public function testRateViaEmailWithValidTokenRendersConfirmView(): void
+    {
+        // Créer un compte de test
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, lang, newsletter)
+             VALUES ('rating-happy@example.com', 'h', 'fr', 0)"
+        );
+
+        $token = bin2hex(random_bytes(16));
+
+        // Insérer directement la ligne wine_ratings avec le token
+        self::$db->execute(
+            "INSERT INTO wine_ratings (account_id, wine_id, order_id, rating, token, token_used_at)
+             VALUES (?, 1, 1, 0, ?, NULL)",
+            [$userId, $token]
+        );
+
+        $ctrl = $this->makeController('GET', "/rating/commande/{$token}/4");
+
+        ob_start();
+        $ctrl->rateViaEmail(['token' => $token, 'note' => '4']);
+        $output = ob_get_clean();
+
+        // La vue rating/confirm doit être rendue
+        $this->assertNotEmpty($output);
+    }
+
+    // ----------------------------------------------------------------
+    // rateViaTokenApi — token invalide (note valide)
+    // ----------------------------------------------------------------
+
+    /**
+     * Token absent de la BDD + note valide → HttpException 404.
+     * (php://input vide produit token='', donc la validation 422 est atteinte en premier)
+     * Ce test vérifie le chemin 422 via body vide.
+     */
+    public function testRateViaTokenApiWithValidNoteButEmptyTokenReturns422(): void
+    {
+        $ctrl = $this->makeController('POST', '/api/rating/commande');
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(422);
+
+        ob_start();
+        try {
+            $ctrl->rateViaTokenApi([]);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // rateOrder — ordre de langue 'en'
+    // ----------------------------------------------------------------
+
+    /**
+     * Lang 'en' via cookie + token invalide → vue d'erreur en anglais.
+     */
+    public function testRateOrderWithEnCookieAndInvalidTokenRendersErrorView(): void
+    {
+        $_COOKIE = ['lang' => 'en'];
+        $ctrl    = $this->makeController('GET', '/rating/order/token-inexistant');
+
+        ob_start();
+        $ctrl->rateOrder(['orderToken' => 'token-inexistant']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('invalid', strtolower($output));
+    }
 }

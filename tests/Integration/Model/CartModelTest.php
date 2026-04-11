@@ -326,4 +326,165 @@ class CartModelTest extends IntegrationTestCase
         $this->assertIsArray($row);
         $this->assertSame(0, (int) $row['total_quantity']);
     }
+
+    // ----------------------------------------------------------------
+    // removeUnavailableItems
+    // ----------------------------------------------------------------
+
+    /**
+     * Pas de panier → retourne tableau vide.
+     */
+    public function testRemoveUnavailableItemsReturnsEmptyWhenNoCart(): void
+    {
+        $removed = $this->model->removeUnavailableItems($this->userId, fn(int $id): ?array => null);
+        $this->assertSame([], $removed);
+    }
+
+    /**
+     * Vin introuvable (wineData retourne null) → article retiré.
+     */
+    public function testRemoveUnavailableItemsRemovesWhenWineIsNull(): void
+    {
+        $items = [['wine_id' => 99, 'qty' => 1, 'name' => 'Vin inconnu', 'image' => '']];
+        $this->model->save($this->userId, $items);
+
+        $removed = $this->model->removeUnavailableItems($this->userId, fn(int $id): ?array => null);
+
+        $this->assertCount(1, $removed);
+        $this->assertSame(99, $removed[0]['wine_id']);
+        $row = $this->model->findByUserId($this->userId);
+        $this->assertIsArray($row);
+        $this->assertSame(0, (int) $row['total_quantity']);
+    }
+
+    /**
+     * Vin non disponible (available = 0) → article retiré.
+     */
+    public function testRemoveUnavailableItemsRemovesWhenWineUnavailable(): void
+    {
+        $items = [['wine_id' => 5, 'qty' => 2, 'name' => 'Vin indispo', 'image' => '']];
+        $this->model->save($this->userId, $items);
+
+        $removed = $this->model->removeUnavailableItems(
+            $this->userId,
+            fn(int $id): ?array => ['available' => 0, 'stock_quantity' => 10]
+        );
+
+        $this->assertCount(1, $removed);
+        $this->assertSame(5, $removed[0]['wine_id']);
+    }
+
+    /**
+     * Quantité dépasse le stock → plafonnée, article conservé.
+     */
+    public function testRemoveUnavailableItemsCapsQtyAtStock(): void
+    {
+        $items = [['wine_id' => 3, 'qty' => 8, 'name' => 'Vin dispo', 'image' => '']];
+        $this->model->save($this->userId, $items);
+
+        $removed = $this->model->removeUnavailableItems(
+            $this->userId,
+            fn(int $id): ?array => ['available' => 1, 'stock_quantity' => 3]
+        );
+
+        $this->assertSame([], $removed); // aucun article retiré
+        $row = $this->model->findByUserId($this->userId);
+        $this->assertIsArray($row);
+        $content = $this->model->getContent($row);
+        $this->assertSame(3, $content[0]['qty']); // plafonné à 3
+    }
+
+    /**
+     * Article disponible avec qty dans le stock → conservé sans modification.
+     */
+    public function testRemoveUnavailableItemsKeepsAvailableItems(): void
+    {
+        $items = [['wine_id' => 2, 'qty' => 2, 'name' => 'Vin ok', 'image' => '']];
+        $this->model->save($this->userId, $items);
+
+        $removed = $this->model->removeUnavailableItems(
+            $this->userId,
+            fn(int $id): ?array => ['available' => 1, 'stock_quantity' => 10]
+        );
+
+        $this->assertSame([], $removed);
+        $row = $this->model->findByUserId($this->userId);
+        $this->assertIsArray($row);
+        $this->assertSame(2, (int) $row['total_quantity']);
+    }
+
+    // ----------------------------------------------------------------
+    // getAbandoned
+    // ----------------------------------------------------------------
+
+    /**
+     * Aucun panier abandonné dans la fenêtre → tableau vide.
+     */
+    public function testGetAbandonedReturnsEmptyWhenNoCarts(): void
+    {
+        $result = $this->model->getAbandoned(72, 96);
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Panier récent (hors fenêtre) → non retourné.
+     */
+    public function testGetAbandonedExcludesRecentCarts(): void
+    {
+        $recent = date('Y-m-d H:i:s', strtotime('-1 hour'));
+        self::$db->execute(
+            "INSERT INTO carts (user_id, content, total_quantity, reminder_sent_at, updated_at)
+             VALUES (?, ?, 1, NULL, ?)",
+            [$this->userId, json_encode([['wine_id' => 1, 'qty' => 1]]), $recent]
+        );
+
+        $result = $this->model->getAbandoned(72, 96);
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Panier avec reminder_sent_at renseigné → non retourné.
+     */
+    public function testGetAbandonedExcludesCartsWithReminderSent(): void
+    {
+        $past = date('Y-m-d H:i:s', strtotime('-80 hours'));
+        self::$db->execute(
+            "INSERT INTO carts (user_id, content, total_quantity, reminder_sent_at, updated_at)
+             VALUES (?, ?, 1, NOW(), ?)",
+            [$this->userId, json_encode([['wine_id' => 1, 'qty' => 1]]), $past]
+        );
+
+        $result = $this->model->getAbandoned(72, 96);
+        $this->assertEmpty($result);
+    }
+
+    // ----------------------------------------------------------------
+    // markReminderSent
+    // ----------------------------------------------------------------
+
+    /**
+     * markReminderSent renseigne reminder_sent_at pour le panier.
+     */
+    public function testMarkReminderSentUpdatesColumn(): void
+    {
+        $items = [['wine_id' => 1, 'qty' => 1, 'name' => 'Bordeaux', 'image' => 'img.jpg']];
+        $this->model->save($this->userId, $items);
+
+        $row = self::$db->fetchOne(
+            "SELECT id FROM carts WHERE user_id = ?",
+            [$this->userId]
+        );
+        $this->assertIsArray($row);
+        $cartId = (int) $row['id'];
+
+        $this->model->markReminderSent($cartId);
+
+        $updated = self::$db->fetchOne(
+            "SELECT reminder_sent_at FROM carts WHERE id = ?",
+            [$cartId]
+        );
+        $this->assertIsArray($updated);
+        $this->assertNotNull($updated['reminder_sent_at']);
+    }
 }
