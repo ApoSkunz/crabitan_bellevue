@@ -82,11 +82,11 @@ class AuthControllerRegisterNewsletterDeduplicationTest extends TestCase
 
         $deleteCalled = false;
         $stub->method('execute')->willReturnCallback(
-            function (string $sql, array $params) use (&$deleteCalled): mixed {
+            function (string $sql, array $params) use (&$deleteCalled): int {
                 if (str_contains($sql, 'DELETE FROM newsletter_subscriptions')) {
                     $deleteCalled = true;
                 }
-                return null;
+                return 0;
             }
         );
 
@@ -119,11 +119,11 @@ class AuthControllerRegisterNewsletterDeduplicationTest extends TestCase
 
         $deleteCalled = false;
         $stub->method('execute')->willReturnCallback(
-            function (string $sql, array $params) use (&$deleteCalled): mixed {
+            function (string $sql, array $params) use (&$deleteCalled): int {
                 if (str_contains($sql, 'DELETE FROM newsletter_subscriptions')) {
                     $deleteCalled = true;
                 }
-                return null;
+                return 0;
             }
         );
 
