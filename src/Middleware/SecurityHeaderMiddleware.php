@@ -43,19 +43,23 @@ class SecurityHeaderMiddleware
         // X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
         // et HSTS sont gérés statiquement dans public/.htaccess
         header("Content-Security-Policy: {$csp}");
+
+        // X-Robots-Tag : noai sur les pages vins (catalogue)
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        if (self::isWinePath($uri)) {
+            header('X-Robots-Tag: noai, noimageai');
+        }
     }
 
     /**
-     * Indique si l'URI correspond à une page catalogue vins (fr/vins ou en/wines).
+     * Détermine si l'URI courante est une page catalogue vins.
      *
-     * Utilisé pour appliquer des en-têtes spécifiques (ex. X-Robots-Tag).
-     *
-     * @param string $uri URI de la requête (path + éventuel query string)
+     * @param string $uri URI de la requête
      * @return bool
      */
     public static function isWinePath(string $uri): bool
     {
-        $path = strtok($uri, '?') ?: $uri;
-        return (bool) preg_match('#^/(fr/vins|en/wines)(/|$)#', $path);
+        $path = strtok($uri, '?');
+        return (bool) preg_match('#^/(fr/vins|en/wines)(/|$)#', (string) $path);
     }
 }
