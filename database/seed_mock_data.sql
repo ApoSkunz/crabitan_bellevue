@@ -108,7 +108,7 @@ VALUES
  '{"fr":"Sélection des meilleurs lots de l\'année et passage 12 mois en fûts de chêne","en":"Selection of the best lots of the year and passing 12 months in oak barrels"}',
  '{"fr":"Médaille d\'Or Lyon 2017","en":"Gold medal Lyon 2017"}',
  '{"fr":"Cuvée Spéciale","en":"Special Cuvée"}',
- 'Wine_Sainte-Croix-du-Mont_2014_b77c86b19ee68ad74858bd5c2616c69b.png', 'sainte-croix-du-mont-2014-cuvee-speciale', 1),
+ 'Wine_Sainte-Croix-du-Mont_2014_b77c86b19ee68ad74858bd5c2616c69b.png', 'sainte-croix-du-mont-2014-cuvee-speciale', 0),
 
 -- 5 Sainte-Croix-du-Mont 2014
 ('Sainte-Croix-du-Mont', 'sweet', 'bottle', 2014, 8.70, 30000, 0, 'AOC', 27.00,

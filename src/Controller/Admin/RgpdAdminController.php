@@ -305,8 +305,35 @@ class RgpdAdminController extends AdminController
             $exportData['account_id'] = $account['id'];
         }
 
-        $content  = (string) json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $filename = 'export-rgpd-' . date('Y-m-d') . '.json';
+        // Abonnement newsletter sans compte (double opt-in RGPD Art. 7)
+        $sub = \Core\Database::getInstance()->fetchOne(
+            'SELECT email, newsletter_confirmed, newsletter_consent_date,
+                    newsletter_consent_ip, consent_ip, lang, created_at
+             FROM newsletter_subscriptions
+             WHERE email = ?',
+            [$email]
+        );
+        if ($sub) {
+            $exportData['newsletter_subscription'] = $sub;
+        }
+
+        $json     = (string) json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $date     = date('Y-m-d');
+        $basename = 'export-rgpd-' . $date;
+
+        if (class_exists('ZipArchive')) {
+            $tmpZip = (string) tempnam(sys_get_temp_dir(), 'cbv_rgpd_');
+            $zip    = new \ZipArchive();
+            $zip->open($tmpZip, \ZipArchive::OVERWRITE);
+            $zip->addFromString($basename . '.json', $json);
+            $zip->close();
+            $content  = (string) file_get_contents($tmpZip);
+            unlink($tmpZip);
+            $filename = $basename . '.zip';
+        } else {
+            $content  = $json;
+            $filename = $basename . '.json';
+        }
 
         try {
             $mailService = new MailService();
