@@ -812,11 +812,14 @@
     border: 1px solid var(--color-border-gold);
     color: var(--color-text);
     font-size: 0.9rem;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1.25rem;
     z-index: 600;
     white-space: nowrap;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     animation: toast-in 200ms ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 
     &[hidden] {
         display: none;
@@ -825,6 +828,20 @@
     &--error {
         border-color: #c0392b;
         color: #c0392b;
+    }
+
+    &__close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: currentColor;
+        font-size: 1.1rem;
+        line-height: 1;
+        padding: 0;
+        opacity: 0.5;
+        flex-shrink: 0;
+
+        &:hover { opacity: 1; }
     }
 }
 

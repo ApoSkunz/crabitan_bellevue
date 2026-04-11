@@ -262,11 +262,20 @@ function initAccountPanel() {
 // Toast notification
 // ============================================================
 
-function showToast(msg, isError = false, duration = 5000) {
+function showToast(msg, isError = false, duration = 2000) {
     const toast = document.getElementById('cb-toast');
     if (!toast) return;
-    toast.textContent = msg;
     toast.className = 'cb-toast' + (isError ? ' cb-toast--error' : '');
+    const span = document.createElement('span');
+    span.textContent = msg;
+    const btn = document.createElement('button');
+    btn.className = 'cb-toast__close';
+    btn.setAttribute('aria-label', 'Fermer');
+    btn.textContent = '×';
+    btn.onclick = () => { clearTimeout(toast.__timer); toast.setAttribute('hidden', ''); };
+    toast.innerHTML = '';
+    toast.appendChild(span);
+    toast.appendChild(btn);
     toast.removeAttribute('hidden');
     clearTimeout(toast.__timer);
     toast.__timer = setTimeout(() => toast.setAttribute('hidden', ''), duration);
