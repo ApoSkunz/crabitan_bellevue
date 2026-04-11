@@ -79,6 +79,32 @@ class ErrorLogger
     }
 
     /**
+     * Journalise une exception catchée et gérée avec le niveau WARNING.
+     *
+     * À utiliser dans les catch non bloquants (SMTP, services secondaires…)
+     * où l'erreur ne doit pas interrompre le flux principal.
+     *
+     * @param \Throwable $e       Exception catchée
+     * @param string     $context Préfixe de contexte (ex: '[IPN]', '[RefundService]')
+     * @return void
+     */
+    public static function warning(\Throwable $e, string $context = ''): void
+    {
+        $prefix = $context !== '' ? $context . ' ' : '';
+
+        self::write([
+            'timestamp' => date('Y-m-d H:i:s'),
+            'level'     => 'WARNING',
+            'message'   => $prefix . get_class($e) . ': ' . $e->getMessage(),
+            'file'      => $e->getFile(),
+            'line'      => $e->getLine(),
+            'trace'     => substr($e->getTraceAsString(), 0, self::TRACE_MAX_LEN),
+            'url'       => $_SERVER['REQUEST_URI'] ?? '',
+            'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+        ]);
+    }
+
+    /**
      * Écrit une entrée JSON dans le fichier de log du jour.
      *
      * @param array<string, mixed> $entry

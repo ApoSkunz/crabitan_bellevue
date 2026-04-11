@@ -120,6 +120,47 @@ class ErrorLoggerTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // warning()
+    // ----------------------------------------------------------------
+
+    /**
+     * warning() logue avec le level WARNING et inclut le contexte + message.
+     */
+    public function testWarningLogsWithWarningLevelAndContext(): void
+    {
+        ErrorLogger::warning(new \RuntimeException('SMTP down'), '[MailService]');
+
+        $files = glob(ROOT_PATH . '/storage/logs/php-error-*.log') ?: [];
+        $this->assertNotEmpty($files);
+
+        $content = file_get_contents($files[0]);
+        $this->assertNotFalse($content);
+
+        $lines   = array_filter(explode("\n", trim((string) $content)));
+        $decoded = json_decode((string) end($lines), true);
+        $this->assertSame('WARNING', $decoded['level']);
+        $this->assertStringContainsString('[MailService]', $decoded['message']);
+        $this->assertStringContainsString('SMTP down', $decoded['message']);
+    }
+
+    /**
+     * warning() sans contexte : message contient juste la classe + message.
+     */
+    public function testWarningWithoutContextLogsClassAndMessage(): void
+    {
+        ErrorLogger::warning(new \InvalidArgumentException('bad arg'));
+
+        $files = glob(ROOT_PATH . '/storage/logs/php-error-*.log') ?: [];
+        $content = file_get_contents($files[0]);
+        $this->assertNotFalse($content);
+
+        $lines   = array_filter(explode("\n", trim((string) $content)));
+        $decoded = json_decode((string) end($lines), true);
+        $this->assertSame('WARNING', $decoded['level']);
+        $this->assertStringContainsString('InvalidArgumentException', $decoded['message']);
+    }
+
+    // ----------------------------------------------------------------
     // handleException()
     // ----------------------------------------------------------------
 
