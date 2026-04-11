@@ -219,6 +219,7 @@ $router->get('/api/session/ping', 'Api\SessionApiController@ping');
 $router->post('/api/jeux/score', 'GameScoreController@save');
 $router->get('/api/jeux/score', 'GameScoreController@get');
 $router->get('/api/meteo', 'WeatherController@current');
+$router->post('/api/log/client-error', 'Api\LogApiController@clientError');
 
 // Tracking newsletter (pixel ouverture + redirect clic)
 $router->get('/track/open/{id}/{token}',                 'TrackingController@open');

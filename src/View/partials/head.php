@@ -33,6 +33,7 @@
 <?php endif; ?>
     <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/css/main.css">
+    <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">window.__appDebug = <?= (defined('APP_ENV') && APP_ENV === 'development') ? 'true' : 'false' ?>;</script>
 
 <?php if (isset($_COOKIE['auth_token'])) : ?>
     <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">

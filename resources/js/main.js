@@ -1,4 +1,5 @@
 import '../scss/main.scss';
+import './error-reporter.js';
 import { initCarbonBadge } from './carbon-badge.js';
 
 // ============================================================
