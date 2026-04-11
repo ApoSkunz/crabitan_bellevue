@@ -360,7 +360,7 @@ $maxYear = (int) date('Y');
                     </div>
                 <?php endforeach; ?>
             </div>
-            <script>
+            <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
             (function () {
                 const kj   = document.getElementById('energy_kj');
                 const hint = document.getElementById('energy_kcal_hint');

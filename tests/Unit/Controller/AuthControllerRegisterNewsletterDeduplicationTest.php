@@ -105,11 +105,12 @@ class AuthControllerRegisterNewsletterDeduplicationTest extends TestCase
     // ================================================================
 
     /**
-     * Quand newsletter=0, aucun DELETE sur newsletter_subscriptions ne doit être exécuté.
+     * Quand newsletter=0, le DELETE newsletter_subscriptions est quand même appelé
+     * (l'email appartient désormais au compte — la préférence est dans accounts.newsletter).
      *
      * @return void
      */
-    public function testNewsletterZeroDoesNotDeleteSubscription(): void
+    public function testNewsletterZeroAlsoDeletesSubscription(): void
     {
         $_POST = $this->basePost('0');
 
@@ -134,6 +135,6 @@ class AuthControllerRegisterNewsletterDeduplicationTest extends TestCase
         } catch (HttpException) {
         }
 
-        $this->assertFalse($deleteCalled, 'DELETE newsletter_subscriptions NE doit PAS être appelé quand newsletter=0');
+        $this->assertTrue($deleteCalled, 'DELETE newsletter_subscriptions doit être appelé même quand newsletter=0');
     }
 }

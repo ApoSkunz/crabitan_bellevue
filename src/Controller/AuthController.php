@@ -531,12 +531,11 @@ class AuthController extends Controller
             $company
         );
 
-        // Dédoublonnage newsletter : si l'utilisateur coche newsletter=1,
-        // supprimer l'entrée dans newsletter_subscriptions (visiteur sans compte).
-        // Si newsletter=0, l'entrée est conservée intacte (critère 5).
-        if ($newsletter === 1) {
-            $this->accounts->deleteNewsletterSubscriptionByEmail($email);
-        }
+        // Dédoublonnage newsletter : à la création de compte, toujours supprimer
+        // l'entrée orpheline dans newsletter_subscriptions (visiteur sans compte).
+        // L'email appartient désormais au compte — la préférence newsletter
+        // est gérée par accounts.newsletter, pas par newsletter_subscriptions.
+        $this->accounts->deleteNewsletterSubscriptionByEmail($email);
 
         $verifyUrl = APP_URL . "/{$lang}/verification/{$verificationToken}";
 
