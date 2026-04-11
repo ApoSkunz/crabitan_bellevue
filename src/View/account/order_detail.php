@@ -19,11 +19,17 @@ $statusColors = [
     'refund_refused'   => 'red',
     'refund_pending'   => 'orange',
 ];
-$isReturnFlow  = in_array($order['status'], ['return_requested', 'refunded', 'refund_refused'], true);
+$isReturnFlow  = in_array($order['status'], ['return_requested', 'refund_refused'], true)
+    || ($order['status'] === 'refunded' && !empty($order['delivered_at']));
+$isRefundFlow  = in_array($order['status'], ['refund_pending', 'refunded'], true) && !$isReturnFlow;
 $returnEndStep = $order['status'] === 'refund_refused' ? 'refund_refused' : 'refunded';
-$timeline      = $isReturnFlow
-    ? ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', $returnEndStep]
-    : ['pending', 'paid', 'processing', 'shipped', 'delivered'];
+if ($isReturnFlow) {
+    $timeline = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', $returnEndStep];
+} elseif ($isRefundFlow) {
+    $timeline = ['pending', 'paid', 'refund_pending', 'refunded'];
+} else {
+    $timeline = ['pending', 'paid', 'processing', 'shipped', 'delivered'];
+}
 $currentIdx  = array_search($order['status'], $timeline, true);
 $gaeEnabled           = filter_var($_ENV['CA_ENABLE_GAE'] ?? false, FILTER_VALIDATE_BOOLEAN);
 $cancellable          = $order['status'] === 'pending' && ($order['payment_method'] ?? '') !== 'card';
