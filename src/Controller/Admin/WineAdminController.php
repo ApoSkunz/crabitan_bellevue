@@ -341,6 +341,11 @@ class WineAdminController extends AdminController
         $nutritionPost   = $this->parseNutritionPost();
         $errors          = array_merge($errors, $this->validateNutrition($nutritionPost));
 
+        // Stock à 0 → indisponible automatiquement
+        if ((int) ($data['stock_quantity'] ?? 0) === 0) {
+            $data['available'] = 0;
+        }
+
         if ($errors !== []) {
             $this->view(self::FORM_VIEW, [
                 'adminUser'     => $adminUser,
