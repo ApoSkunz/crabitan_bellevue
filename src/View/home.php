@@ -284,7 +284,7 @@ $carouselSlides = [
                     poster="/assets/images/gallery/proprietaire.jpeg"
                     aria-label="<?= htmlspecialchars(__('home.video_title')) ?>"
                 >
-                    <source src="/assets/videos/chateau-crabitan-bellevue-1.mp4" type="video/mp4">
+                    <source src="/assets/videos/chateau-crabitan-bellevue-1.webm" type="video/webm">
                     <track kind="captions" src="" label="<?= htmlspecialchars(__('home.video_captions_label')) ?>" default>
                 </video>
             </div>
