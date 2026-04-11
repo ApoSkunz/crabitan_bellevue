@@ -39,11 +39,11 @@ class OrderModelTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * La constante doit valoir 15 jours (art. L221-18 Code conso).
+     * La constante doit valoir 14 jours (art. L221-18 Code conso).
      */
-    public function testCancelWindowDaysIs15(): void
+    public function testCancelWindowDaysIs14(): void
     {
-        $this->assertSame(15, OrderModel::CANCEL_WINDOW_DAYS);
+        $this->assertSame(14, OrderModel::CANCEL_WINDOW_DAYS);
     }
 
     // ----------------------------------------------------------------
@@ -87,13 +87,13 @@ class OrderModelTest extends TestCase
     }
 
     /**
-     * Retourne false si la fenêtre de 15 jours est dépassée.
+     * Retourne false si la fenêtre de 14 jours est dépassée.
      */
     public function testRequestReturnReturnsFalseWhenWindowExpired(): void
     {
         $this->dbMock->method('fetchOne')->willReturn([
             'status'       => 'delivered',
-            'delivered_at' => date('Y-m-d H:i:s', strtotime('-16 days')),
+            'delivered_at' => date('Y-m-d H:i:s', strtotime('-15 days')),
         ]);
 
         $this->assertFalse($this->model->requestReturnForUser(1, 1));
@@ -114,14 +114,14 @@ class OrderModelTest extends TestCase
     }
 
     /**
-     * Retourne true le dernier jour de la fenêtre (J+15, même heure).
+     * Retourne true le dernier jour de la fenêtre (J+14, même heure).
      */
     public function testRequestReturnReturnsTrueOnLastDay(): void
     {
         $this->dbMock->method('fetchOne')->willReturn([
             'status'       => 'delivered',
-            // 15 jours - 1 minute = encore dans la fenêtre
-            'delivered_at' => date('Y-m-d H:i:s', time() - (15 * 86400) + 60),
+            // 14 jours - 1 minute = encore dans la fenêtre
+            'delivered_at' => date('Y-m-d H:i:s', time() - (14 * 86400) + 60),
         ]);
         $this->dbMock->expects($this->once())->method('execute');
 

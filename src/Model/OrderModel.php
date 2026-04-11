@@ -15,7 +15,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     ];
 
     /** Fenêtre légale de rétractation après livraison (art. L221-18 Code conso). */
-    public const CANCEL_WINDOW_DAYS = 15;
+    public const CANCEL_WINDOW_DAYS = 14;
 
     public const VALID_PAYMENT_METHODS = [
         'card', 'virement', 'cheque',
