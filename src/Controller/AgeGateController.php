@@ -102,14 +102,8 @@ class AgeGateController extends Controller
      */
     private function logAgeVerification(): void
     {
-        $ip     = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $logDir = ROOT_PATH . '/logs';
-
-        if (!is_dir($logDir)) {
-            mkdir($logDir, 0755, true);
-        }
-
-        error_log(date('Y-m-d H:i:s') . ' | ' . $ip . PHP_EOL, 3, $logDir . '/age-gate.log');
+        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        \Core\ErrorLogger::info('[age-gate] verification ip=' . $ip);
     }
 
     /**

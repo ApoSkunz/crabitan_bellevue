@@ -25,6 +25,7 @@ class SecurityAlertService
 
     /** Clé APCu/session pour le compteur cumulatif auto-blocage (fenêtre 1h). */
     private const ADMIN_FAIL_CUMUL_PREFIX = 'admin_fail_cumul:';
+    private const LOG_CONTEXT             = '[SecurityAlertService]';
 
     private RateLimiterService $rateLimiter;
     private MailService $mail;
@@ -143,8 +144,7 @@ class SecurityAlertService
         try {
             $this->mail->sendAdminLoginFailureAlert($to, $name, $lang, $ip);
         } catch (\Throwable $e) {
-            // NOSONAR php:S4792 — log non sensible
-            error_log('[SecurityAlertService] sendAdminLoginAlert (admin) failed: ' . $e->getMessage());
+            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }
 
         $maintainerMail = $_ENV['MAINTAINER_MAIL'] ?? '';
@@ -152,8 +152,7 @@ class SecurityAlertService
             try {
                 $this->mail->sendAdminLoginFailureAlert($maintainerMail, 'Mainteneur', 'fr', $ip, $name);
             } catch (\Throwable $e) {
-                // NOSONAR php:S4792 — log non sensible
-                error_log('[SecurityAlertService] sendAdminLoginAlert (maintainer) failed: ' . $e->getMessage());
+                \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
             }
         }
     }
@@ -175,8 +174,7 @@ class SecurityAlertService
         try {
             $this->mail->sendAdminPasswordChangeAlert($to, $name, $lang, $ip, $userAgent);
         } catch (\Throwable $e) {
-            // NOSONAR php:S4792 — log non sensible
-            error_log('[SecurityAlertService] sendPasswordChangeAlert (admin) failed: ' . $e->getMessage());
+            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }
 
         $maintainerMail = $_ENV['MAINTAINER_MAIL'] ?? '';
@@ -191,8 +189,7 @@ class SecurityAlertService
                     $name
                 );
             } catch (\Throwable $e) {
-                // NOSONAR php:S4792 — log non sensible
-                error_log('[SecurityAlertService] sendPasswordChangeAlert (maintainer) failed: ' . $e->getMessage());
+                \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
             }
         }
     }

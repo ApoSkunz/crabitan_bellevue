@@ -388,6 +388,51 @@ class SecurityAlertServiceTest extends TestCase
     }
 
     /**
+     * sendAdminLoginAlert : exception sur l'envoi mainteneur → loggée en WARNING, pas de throw.
+     */
+    public function testSendAdminLoginAlertSwallowsMaintainerMailException(): void
+    {
+        $rl   = $this->createStub(RateLimiterService::class);
+        $mail = $this->createMock(MailService::class);
+
+        // Premier appel (admin) → OK ; deuxième (mainteneur) → throw
+        $mail->expects($this->exactly(2))
+            ->method('sendAdminLoginFailureAlert')
+            ->willReturnOnConsecutiveCalls(null, $this->throwException(new \RuntimeException('SMTP down')));
+
+        $_ENV['MAINTAINER_MAIL'] = 'maintainer@example.com';
+
+        $service = new SecurityAlertService($rl, $mail);
+        $service->sendAdminLoginAlert(['email' => 'admin@example.com', 'firstname' => 'Alice', 'lang' => 'fr'], '1.2.3.4');
+
+        $this->assertTrue(true); // pas de throw propagé
+    }
+
+    /**
+     * sendPasswordChangeAlert : exception sur l'envoi mainteneur → loggée en WARNING, pas de throw.
+     */
+    public function testSendPasswordChangeAlertSwallowsMaintainerMailException(): void
+    {
+        $rl   = $this->createStub(RateLimiterService::class);
+        $mail = $this->createMock(MailService::class);
+
+        $mail->expects($this->exactly(2))
+            ->method('sendAdminPasswordChangeAlert')
+            ->willReturnOnConsecutiveCalls(null, $this->throwException(new \RuntimeException('SMTP down')));
+
+        $_ENV['MAINTAINER_MAIL'] = 'maintainer@example.com';
+
+        $service = new SecurityAlertService($rl, $mail);
+        $service->sendPasswordChangeAlert(
+            ['email' => 'admin@example.com', 'firstname' => 'Alice', 'lang' => 'fr'],
+            '1.2.3.4',
+            'Mozilla/5.0'
+        );
+
+        $this->assertTrue(true);
+    }
+
+    /**
      * resolveLang : langue inconnue → fallback 'fr'.
      */
     public function testSendAdminLoginAlertFallsBackToFrForUnknownLang(): void

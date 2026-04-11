@@ -316,8 +316,8 @@ class RgpdAdminController extends AdminController
         try {
             $mailService = new MailService();
             $mailService->sendRgpdExport($email, $name, $content, $filename, 'fr');
-        } catch (\Exception) {
-            // Échec d'envoi non bloquant — l'admin peut retenter via exportPortabilite()
+        } catch (\Exception $e) {
+            \Core\ErrorLogger::warning($e);
         }
     }
 }

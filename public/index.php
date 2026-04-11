@@ -10,10 +10,12 @@ require_once ROOT_PATH . '/vendor/autoload.php';
 require_once ROOT_PATH . '/src/helpers.php';
 require_once ROOT_PATH . '/config/config.php';
 
+use Core\ErrorLogger;
 use Core\Router;
 use Core\Request;
 use Middleware\SecurityHeaderMiddleware;
 
+ErrorLogger::register();
 SecurityHeaderMiddleware::apply();
 
 $request = new Request();
@@ -65,6 +67,15 @@ try {
 } catch (\Core\Exception\HttpException) {
     exit;
 } catch (\Throwable $e) {
-    error_log('[500] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+    \Core\ErrorLogger::write([
+        'timestamp' => date('Y-m-d H:i:s'),
+        'level'     => 'EXCEPTION',
+        'message'   => get_class($e) . ': ' . $e->getMessage(),
+        'file'      => $e->getFile(),
+        'line'      => $e->getLine(),
+        'trace'     => substr($e->getTraceAsString(), 0, 500),
+        'url'       => $_SERVER['REQUEST_URI'] ?? '',
+        'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+    ]);
     \Core\Response::abort(500, 'Internal Server Error');
 }

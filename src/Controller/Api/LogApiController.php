@@ -105,7 +105,8 @@ class LogApiController extends Controller
             mkdir($logDir, 0755, true);
         }
 
-        $filename = $logDir . '/js-error-' . date('Y-m-d') . '.log';
+        $entry['channel'] = 'js';
+        $filename = $logDir . '/app-' . date('Y-m-d') . '.log';
         $line     = json_encode($entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
 
         file_put_contents($filename, $line, FILE_APPEND | LOCK_EX);
@@ -126,7 +127,7 @@ class LogApiController extends Controller
 
         $cutoff = time() - (self::RETENTION_DAYS * 86400);
 
-        foreach (glob($logDir . '/js-error-*.log') ?: [] as $file) {
+        foreach (glob($logDir . '/app-*.log') ?: [] as $file) {
             if (filemtime($file) < $cutoff) {
                 unlink($file);
             }

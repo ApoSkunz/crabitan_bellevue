@@ -313,7 +313,13 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 Response::redirect($back);
             } else {
                 // ca_numappel/ca_numtrans manquants → ne pas bloquer, logger, annulation normale
-                error_log("cancelOrder: missing CA transaction refs for order {$id}");
+                \Core\ErrorLogger::write([
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'level'     => 'WARNING',
+                    'message'   => "cancelOrder: missing CA transaction refs for order {$id}",
+                    'url'       => $_SERVER['REQUEST_URI'] ?? '',
+                    'method'    => 'POST',
+                ]);
             }
         }
 
@@ -326,8 +332,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 try {
                     $this->sendReturnEmails($id, $userId, $lang);
                 } catch (\Exception $e) {
-                    // L'échec d'envoi email ne doit pas bloquer la demande de retour
-                    error_log('[AccountController] sendReturnEmails failed: ' . $e->getMessage());
+                    \Core\ErrorLogger::warning($e);
                 }
             } else {
                 $_SESSION['flash']['order_error'] = __('account.order_cancel_failed');
@@ -383,7 +388,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $this->newRefundService()->refund($id);
             $_SESSION['flash']['order_success'] = __('account.order_refund_initiated');
         } catch (\Throwable $e) {
-            error_log('[AccountController] requestRefund failed: ' . $e->getMessage()); // NOSONAR — php:S4792
+            \Core\ErrorLogger::warning($e);
             $_SESSION['flash']['order_error'] = __('account.order_refund_failed');
         }
 
@@ -948,8 +953,8 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                     $lang,
                     $rawToken
                 );
-            } catch (\Throwable) {
-                // L'envoi de l'email ne bloque pas la demande de changement
+            } catch (\Throwable $e) {
+                \Core\ErrorLogger::warning($e);
             }
         }
 
@@ -1281,7 +1286,8 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         } catch (\Core\Exception\HttpException $e) {
             $_SESSION['flash']['profile_errors'] = ['email' => $e->getMessage()];
             Response::redirect($back);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e);
             $_SESSION['flash']['profile_errors'] = ['email' => __('error.generic')];
             Response::redirect($back);
         }
@@ -1477,8 +1483,8 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 $lang,
                 $reactivationToken
             );
-        } catch (\Throwable) {
-            // L'envoi de l'email ne bloque pas la suppression
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e);
         }
 
         // Supprimer le cookie
@@ -1578,8 +1584,8 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 (string) $account['email'],
                 (string) $account['lang']
             );
-        } catch (\Throwable) {
-            // L'envoi ne bloque pas la révocation
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e);
         }
 
         $this->view(self::VIEW_SECURITY_DENY, ['lang' => $lang, 'success' => true, 'expired' => false]);
@@ -1738,6 +1744,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $this->rgpdExportLogs->log($email, \Service\AuditLogger::getIp(), $filename, $userId);
             $_SESSION['flash']['export_sent'] = self::maskEmail($email);
         } catch (\Exception $e) {
+            \Core\ErrorLogger::warning($e);
             $_SESSION['flash']['export_error'] = __('account.export_error');
         }
 

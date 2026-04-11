@@ -202,8 +202,7 @@ class OrderAdminController extends AdminController
                         $id
                     );
                 } catch (\Throwable $mailErr) {
-                    // phpcs:ignore Generic.Files.LineLength
-                    error_log('[OrderAdmin] GAE KO mail error for order #' . $id . ': ' . $mailErr->getMessage()); // NOSONAR — php:S4792
+                    \Core\ErrorLogger::warning($mailErr);
                 }
                 $this->orders->updateStatus($id, 'return_requested');
                 AuditLogger::log(
@@ -250,8 +249,7 @@ class OrderAdminController extends AdminController
                         $appUrl
                     );
                 } catch (\Throwable $e) {
-                    // phpcs:ignore Generic.Files.LineLength
-                    error_log('[OrderAdminController] SMTP error on status email: ' . $e->getMessage()); // NOSONAR — php:S4792
+                    \Core\ErrorLogger::warning($e);
                 }
             }
         }
@@ -294,12 +292,11 @@ class OrderAdminController extends AdminController
                             );
                         }
                     } catch (\Throwable $mailErr) {
-                        // phpcs:ignore Generic.Files.LineLength
-                        error_log('[OrderAdmin] Invoice mail error for order #' . $id . ': ' . $mailErr->getMessage());
+                        \Core\ErrorLogger::warning($mailErr);
                     }
                 }
             } catch (\Throwable $invoiceError) {
-                error_log('[OrderAdmin] Invoice error for order #' . $id . ': ' . $invoiceError->getMessage());
+                \Core\ErrorLogger::warning($invoiceError);
             }
         }
 

@@ -204,7 +204,7 @@ class GoogleOAuthController extends Controller
                     $isSubscribed
                 );
             } catch (\Throwable $e) {
-                error_log('sendWelcome error: ' . $e->getMessage()); // NOSONAR php:S4792 — log d'erreur non sensible
+                \Core\ErrorLogger::warning($e, '[GoogleOAuth]');
             }
         }
 

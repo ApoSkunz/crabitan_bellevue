@@ -72,16 +72,17 @@ class WineController extends Controller
      */
     private function logScrapingAlert(string $ip, int $count): void
     {
-        $logDir  = defined('ROOT_PATH') ? ROOT_PATH . '/storage/logs' : sys_get_temp_dir();
-        $logFile = $logDir . '/scraping-' . date('Y-m-d') . '.log';
-        $line    = '[' . date('Y-m-d H:i:s') . '] SCRAPING_ALERT ip=' . $ip
-            . ' count=' . $count . ' limit=' . self::CATALOGUE_MONITOR_MAX . PHP_EOL;
-
-        if (is_dir($logDir) && is_writable($logDir)) {
-            file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
-        } else {
-            error_log('[anti-scraping] ' . trim($line));
-        }
+        \Core\ErrorLogger::write([
+            'timestamp' => date('Y-m-d H:i:s'),
+            'channel'   => 'scraping',
+            'level'     => 'WARNING',
+            'message'   => 'SCRAPING_ALERT ip=' . $ip . ' count=' . $count . ' limit=' . self::CATALOGUE_MONITOR_MAX,
+            'file'      => '',
+            'line'      => 0,
+            'trace'     => '',
+            'url'       => $_SERVER['REQUEST_URI'] ?? '',
+            'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+        ]);
     }
 
     /**
