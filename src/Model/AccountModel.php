@@ -1250,13 +1250,31 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      * Les autres segments (particuliers, professionnels, commandes…) ne concernent
      * que les comptes et n'incluent pas les abonnés sans compte.
      *
-     * @param  string $segment Identifiant du segment (tous, particuliers, professionnels, commandes, sans-commande, inactifs)
+     * @param  string $segment Identifiant du segment (tous, particuliers, professionnels, commandes, sans-commande, inactifs, non-inscrit)
      * @param  int    $limit   Nombre de lignes
      * @param  int    $offset  Décalage
      * @return array<int, array<string, mixed>>
      */
     public function getNewsletterSubscribersBySegment(string $segment, int $limit, int $offset): array
     {
+        if ($segment === 'non-inscrit') {
+            return $this->db->fetchAll(
+                "SELECT ns.email, NULL AS firstname, NULL AS lastname,
+                        NULL AS company_name, 'individual' AS account_type,
+                        ns.lang, NULL AS newsletter_unsubscribe_token,
+                        'subscription' AS source,
+                        ns.newsletter_consent_date AS created_at
+                 FROM newsletter_subscriptions ns
+                 WHERE ns.newsletter_confirmed = 1
+                   AND NOT EXISTS (
+                       SELECT 1 FROM {$this->table} a WHERE a.email = ns.email AND a.newsletter = 1
+                   )
+                 ORDER BY ns.newsletter_consent_date DESC
+                 LIMIT ? OFFSET ?",
+                [$limit, $offset]
+            );
+        }
+
         if ($segment === 'tous') {
             return $this->db->fetchAll(
                 "SELECT unified.email, unified.firstname, unified.lastname,
@@ -1315,6 +1333,18 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      */
     public function countNewsletterSubscribersBySegment(string $segment): int
     {
+        if ($segment === 'non-inscrit') {
+            $row = $this->db->fetchOne(
+                "SELECT COUNT(*) AS total
+                 FROM newsletter_subscriptions ns
+                 WHERE ns.newsletter_confirmed = 1
+                   AND NOT EXISTS (
+                       SELECT 1 FROM {$this->table} a WHERE a.email = ns.email AND a.newsletter = 1
+                   )"
+            );
+            return (int) ($row['total'] ?? 0);
+        }
+
         $where = $this->segmentWhere($segment);
         $row   = $this->db->fetchOne(
             "SELECT COUNT(*) AS total
