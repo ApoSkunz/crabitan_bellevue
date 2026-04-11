@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.73.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.73.0...v0.73.1) (2026-04-11)
+
+
+### Bug Fixes
+
+* **sitemap:** ajouter /accessibilite dans sitemap.xml (priorité 0.3) ([09f06af](https://github.com/ApoSkunz/crabitan_bellevue/commit/09f06af8babc67abe035ba8d3c19a1bb46c6c8bc))
+
 # [0.73.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.72.0...v0.73.0) (2026-04-11)
 
 
