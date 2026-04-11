@@ -371,6 +371,32 @@ function initCartModal() {
         totalEl.textContent = 'Total : ' + total + ' €';
     }
 
+    function updateStockInfo(stock, effectiveMax) {
+        const stockInfoEl = document.getElementById('cart-modal-stock-info');
+        if (!stockInfoEl) { return; }
+        if (stock > 0 && effectiveMax > 0 && effectiveMax < 300) {
+            const plural = effectiveMax > 1 ? 's' : '';
+            const isEn   = document.documentElement.lang === 'en';
+            stockInfoEl.textContent = isEn
+                ? effectiveMax + ' bottle' + plural + ' available'
+                : effectiveMax + ' bouteille' + plural + ' disponible' + plural;
+            stockInfoEl.hidden = false;
+        } else {
+            stockInfoEl.hidden = true;
+        }
+    }
+
+    function updateCuveeLabel() {
+        const cuveeEl = document.getElementById('cart-modal-cuvee');
+        if (!cuveeEl) { return; }
+        if (currentCuvee) {
+            cuveeEl.textContent = '\u2605 ' + currentCuvee;
+            cuveeEl.hidden = false;
+        } else {
+            cuveeEl.hidden = true;
+        }
+    }
+
     function openModal(btn) {
         const wineId    = btn.dataset.wineId    || '';
         const wineName  = btn.dataset.wineName  || '';
@@ -387,19 +413,7 @@ function initCartModal() {
         qtyInput.max   = effectiveMax > 0 ? String(effectiveMax) : '96';
         qtyInput.min   = '1';
 
-        // Message stock limité
-        const stockInfoEl = document.getElementById('cart-modal-stock-info');
-        if (stockInfoEl) {
-            const isEn = document.documentElement.lang === 'en';
-            if (stock > 0 && effectiveMax > 0 && effectiveMax < 300) {
-                stockInfoEl.textContent = isEn
-                    ? effectiveMax + ' bottle' + (effectiveMax > 1 ? 's' : '') + ' available'
-                    : effectiveMax + ' bouteille' + (effectiveMax > 1 ? 's' : '') + ' disponible' + (effectiveMax > 1 ? 's' : '');
-                stockInfoEl.hidden = false;
-            } else {
-                stockInfoEl.hidden = true;
-            }
-        }
+        updateStockInfo(stock, effectiveMax);
 
         titleEl.textContent   = wineName;
         priceEl.textContent   = winePrice;
@@ -410,15 +424,7 @@ function initCartModal() {
         qtyHidden.value       = 1;
         updateModalBtns();
 
-        const cuveeEl = document.getElementById('cart-modal-cuvee');
-        if (cuveeEl) {
-            if (currentCuvee) {
-                cuveeEl.textContent = '\u2605 ' + currentCuvee;
-                cuveeEl.hidden = false;
-            } else {
-                cuveeEl.hidden = true;
-            }
-        }
+        updateCuveeLabel();
 
         refreshTotal();
 

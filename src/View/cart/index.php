@@ -219,7 +219,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                                 <?php endif; ?>
                                 <?php
                                 $stockLimit = (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300);
-                                if ($stock > 0 && $stock <= $stockLimit) :
+                                if ($stock > 0 && $stock <= $stockLimit) : // NOSONAR — php:S3973 — syntaxe alternative PHP standard dans les vues
                                 ?>
                                     <span class="cart-table__stock-notice">
                                         <?= $stock ?> <?= htmlspecialchars(__('wine.low_stock_qty')) ?>
