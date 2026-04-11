@@ -463,6 +463,49 @@ class CartModelTest extends IntegrationTestCase
     // markReminderSent
     // ----------------------------------------------------------------
 
+    // ----------------------------------------------------------------
+    // getAbandonedForEmail — happy path avec vin enrichi
+    // ----------------------------------------------------------------
+
+    /**
+     * Retourne les données enrichies quand wine existe et cart dans la fenêtre.
+     */
+    public function testGetAbandonedForEmailReturnsEnrichedDataWhenWineExists(): void
+    {
+        // Insérer un vin minimal
+        $wineId = (int) self::$db->insert(
+            "INSERT INTO wines (label_name, wine_color, format, vintage, price,
+              production_quantity, stock_quantity, available, certification_label,
+              area, city, variety_of_vine, age_of_vineyard,
+              oenological_comment, soil, pruning, harvest, vinification,
+              barrel_fermentation, image_path, slug, is_cuvee_speciale, likes_count)
+             VALUES ('Vin Test TI', 'red', 'bottle', 2021, 12.00,
+              1000, 50, 1, 'AOC',
+              5.00, 'Test City', 'Merlot', 20,
+              '{\"fr\":\"nc\",\"en\":\"nc\"}',
+              '{\"fr\":\"nc\",\"en\":\"nc\"}',
+              '{\"fr\":\"nc\",\"en\":\"nc\"}',
+              '{\"fr\":\"nc\",\"en\":\"nc\"}',
+              '{\"fr\":\"nc\",\"en\":\"nc\"}',
+              '{\"fr\":\"nc\",\"en\":\"nc\"}',
+              'test.jpg', 'vin-test-ti', 0, 0)"
+        );
+
+        $past = date('Y-m-d H:i:s', strtotime('-80 hours'));
+        self::$db->execute(
+            "INSERT INTO carts (user_id, content, total_quantity, reminder_sent_at, updated_at)
+             VALUES (?, ?, 1, NULL, ?)",
+            [$this->userId, json_encode([['wine_id' => $wineId, 'qty' => 1]]), $past]
+        );
+
+        $result = $this->model->getAbandonedForEmail(72, 96);
+
+        $this->assertNotEmpty($result);
+        $this->assertSame($this->userId, (int) $result[0]['user_id']);
+        $this->assertNotEmpty($result[0]['items']);
+        $this->assertSame($wineId, $result[0]['items'][0]['wine_id']);
+    }
+
     /**
      * markReminderSent renseigne reminder_sent_at pour le panier.
      */

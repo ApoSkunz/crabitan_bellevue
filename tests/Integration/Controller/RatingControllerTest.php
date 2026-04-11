@@ -336,4 +336,92 @@ class RatingControllerTest extends IntegrationTestCase
 
         $this->assertStringContainsString('invalid', strtolower($output));
     }
+
+    // ----------------------------------------------------------------
+    // rateViaAccount — CSRF + validation note (avec auth valide)
+    // ----------------------------------------------------------------
+
+    /**
+     * JWT valide mais CSRF absent/mismatch → 403.
+     */
+    public function testRateViaAccountWithCsrfMismatchReturns403(): void
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, lang, newsletter)
+             VALUES ('rva-csrf@example.com', 'h', 'fr', 0)"
+        );
+
+        $token = \Core\Jwt::generate($userId, 'customer', 3600);
+        $_COOKIE  = ['auth_token' => $token];
+        $_SESSION = ['csrf' => 'correct-csrf'];
+        $_POST    = ['csrf_token' => 'wrong-csrf', 'note' => '4'];
+
+        $ctrl = $this->makeController('POST', '/fr/rating/vin/1');
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(403);
+
+        ob_start();
+        try {
+            $ctrl->rateViaAccount(['lang' => 'fr', 'wineId' => '1']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * JWT valide + CSRF correct + note invalide (0) → 422.
+     */
+    public function testRateViaAccountWithInvalidNoteReturns422(): void
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, lang, newsletter)
+             VALUES ('rva-note@example.com', 'h', 'fr', 0)"
+        );
+
+        $token = \Core\Jwt::generate($userId, 'customer', 3600);
+        $_COOKIE  = ['auth_token' => $token];
+        $_SESSION = ['csrf' => self::CSRF];
+        $_POST    = ['csrf_token' => self::CSRF, 'note' => '0'];
+
+        $ctrl = $this->makeController('POST', '/fr/rating/vin/1');
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(422);
+
+        ob_start();
+        try {
+            $ctrl->rateViaAccount(['lang' => 'fr', 'wineId' => '1']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * JWT valide + CSRF correct + note valide + pas de commande → 403.
+     */
+    public function testRateViaAccountWithValidNoteButNoOrderReturns403(): void
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, lang, newsletter)
+             VALUES ('rva-noorder@example.com', 'h', 'fr', 0)"
+        );
+
+        $token = \Core\Jwt::generate($userId, 'customer', 3600);
+        $_COOKIE  = ['auth_token' => $token];
+        $_SESSION = ['csrf' => self::CSRF];
+        $_POST    = ['csrf_token' => self::CSRF, 'note' => '4'];
+
+        $ctrl = $this->makeController('POST', '/fr/rating/vin/1');
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(403);
+
+        ob_start();
+        try {
+            $ctrl->rateViaAccount(['lang' => 'fr', 'wineId' => '1']);
+        } finally {
+            ob_end_clean();
+        }
+    }
 }
