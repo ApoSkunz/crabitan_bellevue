@@ -113,6 +113,9 @@ jobs:
     # Blue Team: CLI binary direct (pas l'action GitHub) car Legit-Labs/legitify@v1.0.2
     # utilise upload-artifact@v3 deprecated — l'action échoue au setup avant tout step.
     # On télécharge le binaire depuis GitHub Releases et on l'exécute directement.
+    permissions:
+      contents: read
+      administration: read  # requis pour branch protections, webhooks, repo settings
 
     steps:
       - name: Checkout
