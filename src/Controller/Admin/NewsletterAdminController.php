@@ -21,7 +21,7 @@ class NewsletterAdminController extends AdminController
     private const PER_PAGE                = 25;
     private const HISTORY_PER_PAGE        = 10;
     private const ALLOWED_HISTORY_PER_PAGE = [10, 25, 50];
-    private const ALLOWED_SEGMENTS = ['tous', 'particuliers', 'professionnels', 'commandes', 'sans-commande', 'inactifs'];
+    private const ALLOWED_SEGMENTS = ['tous', 'particuliers', 'professionnels', 'commandes', 'sans-commande', 'inactifs', 'non-inscrit'];
     private const ATTACHMENT_DIR = 'storage/newsletters/attachments/';
 
     private AccountModel $accounts;

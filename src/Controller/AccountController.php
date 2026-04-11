@@ -14,7 +14,6 @@ use Model\ConnectionModel;
 use Model\FavoriteModel;
 use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
-use Model\OrderAddressSnapshotModel;
 use Model\OrderModel;
 use Model\RgpdExportLogModel;
 use Service\AccountService;
@@ -49,7 +48,6 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     private OrderModel $orders;
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
-    private OrderAddressSnapshotModel $orderAddressSnapshots;
     private DeviceConfirmTokenModel $deviceConfirmTokens;
     private RateLimiterService $rateLimiter;
     private RgpdExportLogModel $rgpdExportLogs;
@@ -68,7 +66,6 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $this->orders              = new OrderModel();
         $this->connections         = new ConnectionModel();
         $this->trustedDevices          = new TrustedDeviceModel();
-        $this->orderAddressSnapshots   = new OrderAddressSnapshotModel();
         $this->deviceConfirmTokens     = new DeviceConfirmTokenModel();
         $this->rateLimiter         = new RateLimiterService();
         $this->rgpdExportLogs      = new RgpdExportLogModel();
@@ -1711,101 +1708,14 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
      * Assemble le tableau de données export RGPD (Art. 20) pour un utilisateur.
      *
      * Seam protégé pour permettre les tests d'intégration sans passer par exit().
+     * Délègue à RgpdExportService pour mutualiser avec l'export admin.
      *
      * @param int $userId Identifiant du compte
      * @return array<string, mixed>
      */
     protected function buildExportData(int $userId): array
     {
-        $account        = $this->accounts->findById($userId);
-        $addresses      = $this->addresses->getByUser($userId);
-        $favorites      = $this->favorites->getByUser($userId);
-        $orders         = $this->orders->getForUser($userId, 1, 9999);
-        $trustedDevices  = $this->trustedDevices->getForExport($userId);
-        $sessions        = $this->connections->getActiveForUser($userId);
-        $recentLogs      = $this->connections->getRecentForUser($userId);
-        $consentData     = $this->accounts->getConsentData($userId);
-        $addressSnapshots = $this->orderAddressSnapshots->getForUserExport($userId);
-
-        return [
-            'exported_at' => date('c'),
-            'account'     => [
-                'Email'          => $account['email']        ?? null,
-                'Type de compte' => $account['account_type'] ?? null,
-                'Langue'         => $account['lang']         ?? null,
-                'Date de création' => $account['created_at'] ?? null,
-                ...(($account['account_type'] ?? '') === 'company'
-                    ? ['Raison sociale' => $account['company_name'] ?? null]
-                    : [
-                        'Civilité' => $account['civility']  ?? null,
-                        'Prénom'   => $account['firstname'] ?? null,
-                        'Nom'      => $account['lastname']  ?? null,
-                    ]
-                ),
-                'Newsletter' => ($account['newsletter'] ?? 0) ? 'Oui' : 'Non',
-            ],
-            'addresses' => array_map(fn($a) => [
-                'type'      => $a['type'],
-                'civility'  => $a['civility'],
-                'firstname' => $a['firstname'],
-                'lastname'  => $a['lastname'],
-                'street'    => $a['street'],
-                'city'      => $a['city'],
-                'zip_code'  => $a['zip_code'],
-                'country'   => $a['country'],
-                'phone'     => $a['phone'],
-            ], $addresses),
-            'orders' => array_map(fn($o) => [
-                'reference'  => $o['order_reference'],
-                'status'     => $o['status'],
-                'price'      => $o['price'],
-                'ordered_at' => $o['ordered_at'],
-            ], $orders),
-            'favorites' => array_map(fn($f) => [
-                'name'    => $f['name'],
-                'vintage' => $f['vintage'],
-            ], $favorites),
-            'trusted_devices' => array_map(fn($d) => [
-                'device_name'  => $d['device_name'],
-                'confirmed_at' => $d['confirmed_at'],
-                'last_seen'    => $d['last_seen'],
-                'user_agent'   => $d['user_agent'],
-            ], $trustedDevices),
-            'active_sessions' => array_map(fn($s) => [
-                'device_name' => $s['device_name'],
-                'ip_address'  => $s['ip_address'],
-                'created_at'  => $s['created_at'],
-                'expired_at'  => $s['expired_at'],
-            ], $sessions),
-            'connection_logs' => array_map(fn($l) => [
-                'device_name' => $l['device_name'],
-                'ip_address'  => $l['ip_address'],
-                'user_agent'  => $l['user_agent'],
-                'auth_method' => $l['auth_method'],
-                'status'      => $l['status'],
-                'created_at'  => $l['created_at'],
-            ], $recentLogs),
-            'consentements' => [
-                'newsletter' => [
-                    'abonne'           => $consentData['newsletter']['abonne'] ? 'Oui' : 'Non',
-                    'email_verifie_le' => $consentData['newsletter']['email_verifie_le'],
-                ],
-                'cgv_versions_acceptees' => $consentData['cgv_versions'],
-            ],
-            'adresses_commandes' => array_map(fn($s) => [
-                'order_reference' => $s['order_reference'],
-                'address_type'    => $s['address_type'],
-                'civility'        => $s['civility'],
-                'firstname'       => $s['firstname'],
-                'lastname'        => $s['lastname'],
-                'street'          => $s['street'],
-                'city'            => $s['city'],
-                'zip'             => $s['zip'],
-                'country'         => $s['country'],
-                'phone'           => $s['phone'],
-                'ordered_at'      => $s['ordered_at'],
-            ], $addressSnapshots),
-        ];
+        return (new \Service\RgpdExportService())->buildForAccount($userId);
     }
 
     protected function buildExportContent(array $export, string $date, string $basename): array

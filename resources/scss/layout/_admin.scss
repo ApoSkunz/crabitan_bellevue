@@ -691,6 +691,13 @@
     min-height: 80px;
 }
 
+.admin-field__error {
+    display: none;
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    color: #dc2626;
+}
+
 .admin-field__hint {
     display: block;
     margin-top: 0.25rem;
