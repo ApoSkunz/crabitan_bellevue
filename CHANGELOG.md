@@ -2,6 +2,32 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.68.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.67.1...v0.68.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **ci:** supprimer warning PHPCS PSR1.SideEffects sur bootstrap_worktree.php (mélange define/require inévitable) ([bf403d1](https://github.com/ApoSkunz/crabitan_bellevue/commit/bf403d1967f005bffa726d17f3678286926b65cc))
+* **remboursement:** badge i18n refund_pending + Vision Air client lourd + CSP onsubmit ([0e7b344](https://github.com/ApoSkunz/crabitan_bellevue/commit/0e7b344e1cb8755ae0535df22a26fa959fe31082))
+* **scss:** empêcher débordement badge long dans admin-dl (refund_pending, return_requested) ([e241735](https://github.com/ApoSkunz/crabitan_bellevue/commit/e241735b37661525ea0adbee8e00e3eab36c912a))
+* **service:** remplacer RuntimeException générique par GaeRefundException (Sonar S112) ([ab0ca92](https://github.com/ApoSkunz/crabitan_bellevue/commit/ab0ca921bfe8ae97c296722e6d3bd30c9a973610))
+* **test:** adapter testOrderDetail processing+card — GAE=false → bouton refund (comportement attendu) ([246198b](https://github.com/ApoSkunz/crabitan_bellevue/commit/246198b4c38b7c848e94169f9cda8c87cd853872))
+* **test:** initialiser MAIL_USER dans MailServiceTest setUp ([d255da1](https://github.com/ApoSkunz/crabitan_bellevue/commit/d255da18c4fccac7f294b241b7b58e089ac61904))
+* **view:** adapter message confirmation remboursement selon CA_ENABLE_GAE (GAE=false → refund_pending, pas remboursement immédiat) ([9a1e343](https://github.com/ApoSkunz/crabitan_bellevue/commit/9a1e34379f34a4cbdfc42b9a82d2497578d5a12a))
+* **view:** stepper client — ajouter timeline refund_pending→refunded et distinguer retour vs remboursement direct (delivered_at) ([309275f](https://github.com/ApoSkunz/crabitan_bellevue/commit/309275f4fb133b8b4fd712d13ab96765442a23b2))
+
+
+### Features
+
+* **controller:** ajouter requestRefund dans AccountController ([703f966](https://github.com/ApoSkunz/crabitan_bellevue/commit/703f966993fe60c1fd424dafa8a9bdaa919dde71))
+* **i18n:** ajouter clés de traduction pour le remboursement client ([3b411ea](https://github.com/ApoSkunz/crabitan_bellevue/commit/3b411ea7e539789934bf8a2b47b7f727e94b058d))
+* **routes:** ajouter route POST remboursement client ([ca42921](https://github.com/ApoSkunz/crabitan_bellevue/commit/ca4292125af9bfa46e4f203326e1f288dca1f812))
+* **scss:** ajouter badge--refund_pending (orange distinct) ([b7c3141](https://github.com/ApoSkunz/crabitan_bellevue/commit/b7c3141ba5d2d3b39082d1fb1bbff36180b69b68))
+* **service:** ajouter sendRefundPendingEmail dans MailService ([74bfaa6](https://github.com/ApoSkunz/crabitan_bellevue/commit/74bfaa63b96d93a888e49bbc2d46a314f79af315))
+* **service:** créer GaeApiInterface, GaeApiClient et RefundService (us-remboursement-gae) ([49a2ab4](https://github.com/ApoSkunz/crabitan_bellevue/commit/49a2ab4a67420c148955943e88572a3259abc8b9))
+* **service:** notifier le propriétaire sur demande remboursement manuel (GAE=false) — comme pour les retours ([6c64be0](https://github.com/ApoSkunz/crabitan_bellevue/commit/6c64be052c9058c18574be721d107744c06acb5e))
+* **view:** afficher badge refund_pending et bloc Vision Air dans les vues commandes ([a3a7166](https://github.com/ApoSkunz/crabitan_bellevue/commit/a3a7166558ee9646b53d91f3a40fbe3b4ece12d3))
+
 ## [0.67.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.67.0...v0.67.1) (2026-04-11)
 
 
