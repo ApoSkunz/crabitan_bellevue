@@ -335,6 +335,19 @@ class CartModel extends Model
     }
 
     /**
+     * Retire un vin spécifique de tous les paniers BDD (ex. vin rendu indisponible par l'admin).
+     *
+     * Alias de purgeWineFromAllCarts — conserve les deux noms pour compatibilité.
+     *
+     * @param int $wineId Identifiant du vin à retirer
+     * @return void
+     */
+    public function removeWineFromAllCarts(int $wineId): void
+    {
+        $this->purgeWineFromAllCarts($wineId);
+    }
+
+    /**
      * Retire un vin spécifique de tous les paniers (ex. vin rendu indisponible par l'admin).
      *
      * @param int $wineId Identifiant du vin à retirer

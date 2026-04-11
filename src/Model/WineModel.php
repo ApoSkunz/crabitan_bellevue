@@ -596,6 +596,80 @@ class WineModel extends Model
     }
 
     /**
+     * Enregistre l'horodatage de la dernière notification stock bas pour un vin.
+     *
+     * @param int $id Identifiant du vin
+     * @return void
+     */
+    public function setLowStockNotifiedAt(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET low_stock_notified_at = NOW() WHERE id = ?",
+            [$id]
+        );
+    }
+
+    /**
+     * Retourne les utilisateurs (email, prénom, lang) ayant le vin dans leur panier BDD.
+     *
+     * @param int $wineId Identifiant du vin
+     * @return array<int, array<string, mixed>>
+     */
+    public function getCartUsersWithWine(int $wineId): array
+    {
+        return $this->db->fetchAll(
+            "SELECT a.id, a.email, a.lang,
+                    COALESCE(ai.first_name, a.email) AS first_name
+             FROM carts c
+             JOIN accounts a ON a.id = c.user_id
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             WHERE a.deleted_at IS NULL
+               AND JSON_CONTAINS(c.content, JSON_OBJECT('wine_id', ?), '$')",
+            [$wineId]
+        );
+    }
+
+    /**
+     * Retourne les abonnés newsletter actifs (email + lang + unsubscribe_token).
+     *
+     * Inclut les abonnés via le compte (newsletter=1) ET via le formulaire public (newsletter_subscriptions).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getActiveNewsletterSubscribers(): array
+    {
+        // Abonnés via compte
+        $fromAccounts = $this->db->fetchAll(
+            "SELECT a.email, a.lang,
+                    COALESCE(ai.first_name, a.email) AS first_name,
+                    a.newsletter_unsubscribe_token AS unsub_token
+             FROM accounts a
+             LEFT JOIN account_individuals ai ON ai.account_id = a.id
+             WHERE a.newsletter = 1
+               AND a.deleted_at IS NULL
+               AND a.role = 'customer'"
+        );
+
+        // Abonnés via formulaire public (double opt-in confirmé)
+        $fromSubscriptions = $this->db->fetchAll(
+            "SELECT email, lang, email AS first_name, newsletter_token_hash AS unsub_token
+             FROM newsletter_subscriptions
+             WHERE newsletter_confirmed = 1"
+        );
+
+        // Fusionner en dédupliquant par email
+        $merged = [];
+        foreach (array_merge($fromAccounts, $fromSubscriptions) as $row) {
+            $email = strtolower((string) ($row['email'] ?? ''));
+            if ($email !== '' && !isset($merged[$email])) {
+                $merged[$email] = $row;
+            }
+        }
+
+        return array_values($merged);
+    }
+
+    /**
      * Bascule la disponibilité d'un vin (available 0↔1).
      *
      * @param int $id Identifiant du vin
