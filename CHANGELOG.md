@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.68.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.68.0...v0.68.1) (2026-04-11)
+
+
+### Bug Fixes
+
+* **ci:** retirer administration:read — permission invalide au niveau job ([7417c35](https://github.com/ApoSkunz/crabitan_bellevue/commit/7417c35923fec0fc5177b57611a59ffe9a70522e))
+
 # [0.68.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.67.1...v0.68.0) (2026-04-11)
 
 
