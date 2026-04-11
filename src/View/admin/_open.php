@@ -63,14 +63,41 @@ if (empty($_SESSION['csrf'])) {
     <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
     window.__appUrl = '<?= htmlspecialchars(rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/'), ENT_QUOTES) ?>';
 
-    // Handlers délégués — conformité CSP (remplace tous les on* inline)
+    // ── Pop-in de confirmation globale ───────────────────────────────────
+    var __confirmModal   = null;
+    var __confirmResolve = null;
+
+    function __openConfirm(msg, onConfirm) {
+        if (!__confirmModal) { if (window.confirm(msg)) { onConfirm(); } return; }
+        document.getElementById('admin-confirm-msg').textContent = msg;
+        __confirmResolve = onConfirm;
+        __confirmModal.style.display = 'flex';
+        setTimeout(function () { document.getElementById('admin-confirm-ok').focus(); }, 30);
+    }
+
+    function __closeConfirm() {
+        if (__confirmModal) { __confirmModal.style.display = 'none'; }
+        __confirmResolve = null;
+    }
+
+    // ── Handlers délégués — conformité CSP ──────────────────────────────
     document.addEventListener('submit', function (e) {
         var msg = e.target.getAttribute('data-confirm');
-        if (msg && !confirm(msg)) { e.preventDefault(); }
+        if (!msg) { return; }
+        e.preventDefault();
+        var form = e.target;
+        __openConfirm(msg, function () {
+            form.removeAttribute('data-confirm');
+            form.submit();
+        });
     });
     document.addEventListener('click', function (e) {
         var link = e.target.closest('a[data-confirm]');
-        if (link && !confirm(link.getAttribute('data-confirm'))) { e.preventDefault(); }
+        if (link) {
+            e.preventDefault();
+            var href = link.href;
+            __openConfirm(link.getAttribute('data-confirm'), function () { window.location.href = href; });
+        }
         var btn = e.target.closest('button[data-pwd-target]');
         if (btn) {
             var input = document.getElementById(btn.dataset.pwdTarget);
@@ -92,6 +119,56 @@ if (empty($_SESSION['csrf'])) {
     });
 
     document.addEventListener('DOMContentLoaded', function () {
+        // ── Création de la pop-in de confirmation ────────────────────────
+        var modal = document.createElement('div');
+        modal.id = 'admin-confirm-modal';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;';
+
+        var inner = document.createElement('div');
+        inner.style.cssText = 'background:#fff;border-radius:8px;padding:2rem 2.5rem;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.22);';
+
+        var msgEl = document.createElement('p');
+        msgEl.id = 'admin-confirm-msg';
+        msgEl.style.cssText = 'font-size:0.9rem;color:#3d3425;margin:0 0 1.5rem;line-height:1.5;';
+
+        var actions = document.createElement('div');
+        actions.style.cssText = 'display:flex;gap:1rem;justify-content:flex-end;';
+
+        var cancelBtn = document.createElement('button');
+        cancelBtn.id = 'admin-confirm-cancel';
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'admin-btn admin-btn--outline';
+        cancelBtn.textContent = 'Annuler';
+
+        var okBtn = document.createElement('button');
+        okBtn.id = 'admin-confirm-ok';
+        okBtn.type = 'button';
+        okBtn.className = 'admin-btn admin-btn--danger';
+        okBtn.textContent = 'Confirmer';
+
+        actions.appendChild(cancelBtn);
+        actions.appendChild(okBtn);
+        inner.appendChild(msgEl);
+        inner.appendChild(actions);
+        modal.appendChild(inner);
+        document.body.appendChild(modal);
+        __confirmModal = modal;
+
+        cancelBtn.addEventListener('click', __closeConfirm);
+        okBtn.addEventListener('click', function () {
+            modal.style.display = 'none';
+            var resolve = __confirmResolve;
+            __confirmResolve = null;
+            if (resolve) { resolve(); }
+        });
+        modal.addEventListener('click', function (e) { if (e.target === modal) { __closeConfirm(); } });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal.style.display === 'flex') { __closeConfirm(); }
+        });
+
+        // ── Flash messages auto-hide ─────────────────────────────────────
         document.querySelectorAll('.admin-flash--success').forEach(function (el) {
             setTimeout(function () {
                 el.style.transition = 'opacity 400ms ease';

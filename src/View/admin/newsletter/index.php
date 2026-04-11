@@ -387,11 +387,7 @@ function openNlModal() {
         bodyInput.classList.remove('is-error');
         bodyErr.style.display = 'none';
     }
-    if (hasError) {
-        subjectInput.closest('.admin-form').querySelector('.admin-field__error[style*="block"]')
-            ?.closest('.admin-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-    }
+    if (hasError) { return; }
 
     document.getElementById('nl-modal-subject').textContent = subject || '—';
     const segmentSelect = document.getElementById('nl-segment');
