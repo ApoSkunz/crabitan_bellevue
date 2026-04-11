@@ -5063,4 +5063,161 @@ class AccountControllerTest extends IntegrationTestCase
         $this->assertIsString($output);
         $this->assertNotEmpty($output);
     }
+
+    // ----------------------------------------------------------------
+    // requestRefund()
+    // ----------------------------------------------------------------
+
+    /**
+     * Une commande "paid" avec CA_ENABLE_GAE=false doit passer à refund_pending en BDD
+     * et poser un flash success.
+     */
+    public function testRequestRefundWithGaeDisabledSetsRefundPendingInDb(): void
+    {
+        $_ENV['CA_ENABLE_GAE'] = 'false';
+
+        $userId    = $this->insertCustomer('req.refund.ok@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'paid');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $mockRefund = $this->createMock(\Service\RefundService::class);
+        $mockRefund->expects($this->once())
+            ->method('refund')
+            ->with($orderId)
+            ->willReturnCallback(function () use ($orderId) {
+                self::$db->execute(
+                    "UPDATE orders SET status = 'refund_pending' WHERE id = ?",
+                    [$orderId]
+                );
+                return 'refund_pending';
+            });
+
+        $controller = new class (
+            $this->makeRequest('POST', "/fr/mon-compte/commandes/{$orderId}/remboursement"),
+            $mockRefund
+        ) extends \Controller\AccountController {
+            public function __construct(
+                \Core\Request $request,
+                private \Service\RefundService $mockSvc
+            ) {
+                parent::__construct($request);
+            }
+
+            protected function newRefundService(): \Service\RefundService
+            {
+                return $this->mockSvc;
+            }
+        };
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $controller->requestRefund(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (\Core\Exception\HttpException $e) {
+            $this->assertNotEmpty($_SESSION['flash']['order_success'] ?? null);
+            $row = self::$db->fetchOne("SELECT status FROM orders WHERE id = ?", [$orderId]);
+            $this->assertSame('refund_pending', $row['status']);
+            throw $e;
+        } finally {
+            unset($_ENV['CA_ENABLE_GAE']);
+        }
+    }
+
+    /**
+     * Une commande avec statut non éligible (ex. "delivered") doit poser un flash error
+     * sans appeler RefundService.
+     */
+    public function testRequestRefundNonEligibleStatusFlashesError(): void
+    {
+        $userId    = $this->insertCustomer('req.refund.ineligible@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'delivered');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $mockRefund = $this->createMock(\Service\RefundService::class);
+        $mockRefund->expects($this->never())->method('refund');
+
+        $controller = new class (
+            $this->makeRequest('POST', "/fr/mon-compte/commandes/{$orderId}/remboursement"),
+            $mockRefund
+        ) extends \Controller\AccountController {
+            public function __construct(
+                \Core\Request $request,
+                private \Service\RefundService $mockSvc
+            ) {
+                parent::__construct($request);
+            }
+
+            protected function newRefundService(): \Service\RefundService
+            {
+                return $this->mockSvc;
+            }
+        };
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $controller->requestRefund(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (\Core\Exception\HttpException $e) {
+            $this->assertNotEmpty($_SESSION['flash']['order_error'] ?? null);
+            throw $e;
+        }
+    }
+
+    /**
+     * Si RefundService lève une exception, un flash error est posé et la commande reste inchangée.
+     */
+    public function testRequestRefundServiceExceptionFlashesError(): void
+    {
+        $_ENV['CA_ENABLE_GAE'] = 'true';
+
+        $userId    = $this->insertCustomer('req.refund.fail@test.local', 'individual');
+        $addressId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $addressId, 'paid');
+        $this->loginAs($userId);
+
+        $_POST = ['csrf_token' => self::CSRF];
+
+        $mockRefund = $this->createMock(\Service\RefundService::class);
+        $mockRefund->method('refund')
+            ->willThrowException(new \Exception\GaeRefundException('GAE error'));
+
+        $controller = new class (
+            $this->makeRequest('POST', "/fr/mon-compte/commandes/{$orderId}/remboursement"),
+            $mockRefund
+        ) extends \Controller\AccountController {
+            public function __construct(
+                \Core\Request $request,
+                private \Service\RefundService $mockSvc
+            ) {
+                parent::__construct($request);
+            }
+
+            protected function newRefundService(): \Service\RefundService
+            {
+                return $this->mockSvc;
+            }
+        };
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(302);
+
+        try {
+            $controller->requestRefund(['lang' => 'fr', 'id' => (string) $orderId]);
+        } catch (\Core\Exception\HttpException $e) {
+            $this->assertNotEmpty($_SESSION['flash']['order_error'] ?? null);
+            $row = self::$db->fetchOne("SELECT status FROM orders WHERE id = ?", [$orderId]);
+            $this->assertSame('paid', $row['status']);
+            throw $e;
+        } finally {
+            unset($_ENV['CA_ENABLE_GAE']);
+        }
+    }
 }
