@@ -2,6 +2,26 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.74.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.73.1...v0.74.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **error-handling:** corriger niveaux de log — warning() pour catches, info() pour audit ([6da2017](https://github.com/ApoSkunz/crabitan_bellevue/commit/6da2017c8a1893751b8c5690289ea4b699644dbf))
+* **security:** neutraliser log injection dans ErrorLogger ligne human-readable ([e837a20](https://github.com/ApoSkunz/crabitan_bellevue/commit/e837a200920f54a5b8480872610b23ad1bcd7118))
+* **sonar:** extraire constantes LOG_CONTEXT dupliquées (S1192) ([b3c0e0d](https://github.com/ApoSkunz/crabitan_bellevue/commit/b3c0e0dfd3a099b4f01079d05081e8c55a547588))
+
+
+### Features
+
+* **core:** brancher ErrorLogger sur les catch index.php + GAE KO OrderAdminController ([1ac95f0](https://github.com/ApoSkunz/crabitan_bellevue/commit/1ac95f03b2956919080715439692a17e579450e6))
+* **core:** ErrorLogger — handler PHP E_ALL + exceptions → storage/logs/php-error-YYYY-MM-DD.log + TU ([80c8925](https://github.com/ApoSkunz/crabitan_bellevue/commit/80c89254aed309d1fb6b95a1fcdcaa0289cb5107))
+* **error-handling:** ajouter ErrorLogger::warning() pour les catches non bloquants ([057f8e2](https://github.com/ApoSkunz/crabitan_bellevue/commit/057f8e27a4647175e6c1a87571e14e88a63fea17))
+* **error-handling:** ajouter ligne human-readable avant chaque entrée JSON dans ErrorLogger ([a42d842](https://github.com/ApoSkunz/crabitan_bellevue/commit/a42d842c80790aafef7ae4a6d7eaeecaf0007a43))
+* **error-handling:** brancher tous les catch existants sur ErrorLogger::handleException ([eaf529e](https://github.com/ApoSkunz/crabitan_bellevue/commit/eaf529e27e683e263e01b0df54eaf6131ac23648))
+* **error-handling:** remplacer tous les error_log() par ErrorLogger::warning/write ([d9085bd](https://github.com/ApoSkunz/crabitan_bellevue/commit/d9085bde7c4f15528cc125581a5b7337c8739c3f))
+* **logger:** fusionner tous les canaux dans app-YYYY-MM-DD.log ([54678e7](https://github.com/ApoSkunz/crabitan_bellevue/commit/54678e7154ef70a37ced9e36fbfa556fcd7aa8de))
+
 ## [0.73.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.73.0...v0.73.1) (2026-04-11)
 
 
