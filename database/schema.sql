@@ -209,6 +209,7 @@ CREATE TABLE `wines` (
   `aging_potential`      VARCHAR(100)   DEFAULT NULL COMMENT 'ex: 5 à 10 ans',
   `image_path`           VARCHAR(255)   NOT NULL,
   `slug`                 VARCHAR(255)   NOT NULL COMMENT 'URL SEO ex: bordeaux-chateau-x-2019',
+  `low_stock_notified_at` DATETIME      DEFAULT NULL COMMENT 'Horodatage dernier envoi email alerte stock bas — évite la double notification',
   `created_at`           DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`           DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

@@ -3618,4 +3618,18 @@ HTML;
 
         $this->send($to, $name, $subject, $body);
     }
+
+    /**
+     * Envoie un email d'alerte stock bas (corps HTML pré-construit par StockNotificationService).
+     *
+     * @param string $to      Adresse email destinataire
+     * @param string $name    Nom ou email du destinataire
+     * @param string $subject Sujet de l'email
+     * @param string $body    Corps HTML complet (construit par StockNotificationService)
+     * @return void
+     */
+    public function sendLowStockAlert(string $to, string $name, string $subject, string $body): void
+    {
+        $this->send($to, $name, $subject, $body);
+    }
 }

@@ -253,7 +253,7 @@
 
     &--collection {
         @include m.bp('xl') {
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr);
         }
     }
 }
@@ -315,7 +315,7 @@
 
     &__badge {
         position: absolute;
-        bottom: 0.5rem;
+        top: 0.5rem;
         right: 0.5rem;
         font-family: var(--font-serif);
         font-size: 0.7rem;
@@ -331,6 +331,12 @@
         &--out {
             border-color: var(--color-text-muted);
             color: var(--color-text-muted);
+            background-color: var(--color-surface);
+        }
+
+        &--low-stock {
+            border-color: var(--color-gold);
+            color: var(--color-gold);
             background-color: var(--color-surface);
         }
     }
@@ -743,6 +749,15 @@
     &__stock {
         font-size: 0.8rem;
         color: var(--color-text-muted);
+
+        &--low-stock {
+            color: var(--color-gold);
+            font-weight: 600;
+        }
+
+        &--available {
+            color: var(--color-text-muted);
+        }
     }
 
     &__out-of-stock {
@@ -1042,8 +1057,7 @@
 // ============================================================
 
 .wine-cross-sell {
-    padding: 3rem 0 4rem;
-    border-top: 1px solid var(--color-border);
+    padding: 6rem 0 4rem;
 
     &__title {
         font-family: var(--font-serif);

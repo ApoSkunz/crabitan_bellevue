@@ -26,11 +26,18 @@ $deliveryDiscount = $deliveryDiscount ?? 0.0;
 $pricingRules     = $pricingRules     ?? [];
 $crossSellWines   = $crossSellWines   ?? [];
 $featuredWine     = $featuredWine     ?? null;
+$removedCount     = (int) ($removedCount ?? 0);
 ?>
 
 <?php $checkoutStep = 1; require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S2003 : require intentionnel, le partiel est chargé plusieurs fois (vues + tests isolation) ?>
 
 <main class="page-cart" id="main-content">
+    <?php if ($removedCount > 0) : ?>
+    <div class="alert alert--warning container" role="alert">
+        <?= htmlspecialchars(__('cart.wines_removed_notice')) ?>
+    </div>
+    <?php endif; ?>
+
     <div class="page-hero page-hero--dark">
         <div class="container">
             <h1 class="home-section__title"><?= htmlspecialchars(__('cart.title')) ?></h1>
@@ -181,14 +188,15 @@ $featuredWine     = $featuredWine     ?? null;
                     <tbody id="cart-tbody">
                         <?php foreach ($cartItems as $item) : ?>
                         <?php
-                            $wineId      = (int)   ($item['wine_id'] ?? 0);
-                            $qty         = (int)   ($item['qty']     ?? 1);
-                            $name        = (string)($item['name']    ?? '');
-                            $image       = (string)($item['image']   ?? '');
-                            $price       = (float) ($item['price']   ?? 0.0);
+                            $wineId      = (int)   ($item['wine_id']       ?? 0);
+                            $qty         = (int)   ($item['qty']           ?? 1);
+                            $name        = (string)($item['name']          ?? '');
+                            $image       = (string)($item['image']         ?? '');
+                            $price       = (float) ($item['price']         ?? 0.0);
+                            $stock       = (int)   ($item['stock_quantity'] ?? 0);
                             $itemTotal   = $price * $qty;
                         ?>
-                        <tr class="cart-table__row" data-wine-id="<?= $wineId ?>" data-price="<?= number_format($price, 2, '.', '') ?>">
+                        <tr class="cart-table__row" data-wine-id="<?= $wineId ?>" data-price="<?= number_format($price, 2, '.', '') ?>" data-stock="<?= $stock ?>">
                             <td class="cart-table__col-image">
                                 <?php if ($image !== '') : ?>
                                 <img
@@ -209,6 +217,14 @@ $featuredWine     = $featuredWine     ?? null;
                                 <?php if (!empty($item['is_cuvee_speciale'])) : ?>
                                     <span class="cart-table__cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span>
                                 <?php endif; ?>
+                                <?php
+                                $stockLimit = (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300);
+                                if ($stock > 0 && $stock <= $stockLimit) : // NOSONAR — php:S3973 — syntaxe alternative PHP standard dans les vues
+                                ?>
+                                    <span class="cart-table__stock-notice">
+                                        <?= $stock ?> <?= htmlspecialchars(__('wine.low_stock_qty')) ?>
+                                    </span>
+                                <?php endif; ?>
                             </td>
                             <td class="cart-table__col-qty">
                                 <label for="qty-<?= $wineId ?>" class="sr-only">
@@ -224,11 +240,13 @@ $featuredWine     = $featuredWine     ?? null;
                                            id="qty-<?= $wineId ?>"
                                            value="<?= $qty ?>"
                                            min="1"
+                                           max="<?= $stock > 0 ? $stock : '' ?>"
                                            data-wine-id="<?= $wineId ?>"
                                            aria-label="<?= htmlspecialchars(__('cart.update_qty')) ?>">
                                     <button type="button"
                                             class="cart-qty-btn cart-qty-btn--plus js-qty-plus"
                                             data-wine-id="<?= $wineId ?>"
+                                            <?= ($stock > 0 && $qty >= $stock) ? 'disabled' : '' ?>
                                             aria-label="<?= htmlspecialchars(__('cart.qty_increase')) ?>">+</button>
                                 </div>
                             </td>

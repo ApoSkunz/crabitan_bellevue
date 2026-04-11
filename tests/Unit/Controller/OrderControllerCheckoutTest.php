@@ -648,6 +648,8 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
              'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
             false, // lookup snapshot delivery → pas trouvé
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'wine', 'vintage' => 2020], // postOrderStockActions → getById
         );
 
         $caught = null;
@@ -698,6 +700,8 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
              'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '33000', 'country' => 'France', 'phone' => ''],
             false, // lookup snapshot delivery → pas trouvé
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'wine', 'vintage' => 2020], // postOrderStockActions → getById
         );
 
         $caught = null;
@@ -757,6 +761,8 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
              'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
             false, // lookup snapshot delivery → pas trouvé
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'wine', 'vintage' => 2020], // postOrderStockActions → getById
         );
 
         $caught = null;
@@ -818,6 +824,8 @@ class OrderControllerCheckoutTest extends TestCase
             ['id' => 5, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
              'street' => '5 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
             false, // lookup snapshot delivery → pas trouvé
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'wine', 'vintage' => 2020], // postOrderStockActions → getById
         );
 
         $caught = null;

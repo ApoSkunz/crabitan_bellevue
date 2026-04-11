@@ -317,7 +317,7 @@ $maxYear = (int) date('Y');
         ?>
         <div class="admin-section">
             <h2 class="admin-section__title">Informations complémentaires</h2>
-            <p class="admin-section__hint" style="font-size:0.8rem;color:#8a7a60;margin-bottom:1rem;">
+            <p class="admin-section__hint">
                 Tous les champs sont facultatifs. Valeurs acceptées : <code>0</code>, <code>0,03</code>, <code>&lt; 0,2</code>, <code>traces</code>…
             </p>
 

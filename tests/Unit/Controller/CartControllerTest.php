@@ -411,6 +411,7 @@ class CartControllerTest extends TestCase
             'label_name' => 'Bordeaux Rouge',
             'price'      => '15.00',
             'quantity'   => 10,
+            'available'  => 1,
             'image_path' => 'bordeaux.jpg',
         ]);
 
@@ -418,9 +419,9 @@ class CartControllerTest extends TestCase
         $method = new \ReflectionMethod(CartController::class, 'enrichItemsWithPrice');
         $result = $method->invoke($this->makeController(), $items);
 
-        $this->assertSame(15.0, $result[0]['price']);
-        $this->assertSame('Bordeaux Rouge', $result[0]['name']);
-        $this->assertStringContainsString('bordeaux.jpg', $result[0]['image']);
+        $this->assertSame(15.0, $result['items'][0]['price']);
+        $this->assertSame('Bordeaux Rouge', $result['items'][0]['name']);
+        $this->assertStringContainsString('bordeaux.jpg', $result['items'][0]['image']);
     }
 
     #[RunInSeparateProcess]
@@ -433,6 +434,7 @@ class CartControllerTest extends TestCase
             'label_name' => 'BDD Name',
             'price'      => '10.00',
             'quantity'   => 5,
+            'available'  => 1,
             'image_path' => 'bdd.jpg',
         ]);
 
@@ -441,9 +443,9 @@ class CartControllerTest extends TestCase
         $result = $method->invoke($this->makeController(), $items);
 
         // Nom et image du cookie conservés — seul le price est enrichi depuis la BDD
-        $this->assertSame('Cookie Name', $result[0]['name']);
-        $this->assertSame('/assets/images/wines/cookie.jpg', $result[0]['image']);
-        $this->assertSame(10.0, $result[0]['price']);
+        $this->assertSame('Cookie Name', $result['items'][0]['name']);
+        $this->assertSame('/assets/images/wines/cookie.jpg', $result['items'][0]['image']);
+        $this->assertSame(10.0, $result['items'][0]['price']);
     }
 
     #[RunInSeparateProcess]
@@ -458,7 +460,9 @@ class CartControllerTest extends TestCase
         $method = new \ReflectionMethod(CartController::class, 'enrichItemsWithPrice');
         $result = $method->invoke($this->makeController(), $items);
 
-        $this->assertSame(0.0, $result[0]['price']);
+        // Vin introuvable → filtré, items vide, removedCount = 1
+        $this->assertSame([], $result['items']);
+        $this->assertSame(1, $result['removedCount']);
     }
 
     #[RunInSeparateProcess]
@@ -471,6 +475,7 @@ class CartControllerTest extends TestCase
             'label_name' => 'Sans image',
             'price'      => '8.00',
             'quantity'   => 3,
+            'available'  => 1,
             'image_path' => '',
         ]);
 
@@ -478,8 +483,8 @@ class CartControllerTest extends TestCase
         $method = new \ReflectionMethod(CartController::class, 'enrichItemsWithPrice');
         $result = $method->invoke($this->makeController(), $items);
 
-        $this->assertSame('', $result[0]['image']);
-        $this->assertSame(8.0, $result[0]['price']);
+        $this->assertSame('', $result['items'][0]['image']);
+        $this->assertSame(8.0, $result['items'][0]['price']);
     }
 
     // ================================================================
@@ -532,7 +537,7 @@ class CartControllerTest extends TestCase
             ['id' => 1, 'account_type' => 'individual'], // AccountModel::findById
             ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12, 'name' => 'Wine', 'image' => '']])], // CartModel::findByUserId
             // WineModel::getById (enrichItemsWithPrice)
-            ['id' => 1, 'price' => '10.00', 'label_name' => 'Wine', 'quantity' => 10, 'image_path' => ''],
+            ['id' => 1, 'price' => '10.00', 'label_name' => 'Wine', 'quantity' => 10, 'available' => 1, 'image_path' => ''],
             false, // PricingRuleModel::findForQuantity
             false  // PricingRuleModel::findNextTierFor
         );
