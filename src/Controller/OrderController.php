@@ -14,6 +14,7 @@ use Model\OrderModel;
 use Model\PricingRuleModel;
 use Model\LegalDocumentModel;
 use Model\WineModel;
+use Service\StockNotificationService;
 
 /**
  * Contrôleur de la page de commande (checkout).
@@ -327,7 +328,7 @@ class OrderController extends Controller
             $wineId = (int) ($item['wine_id'] ?? 0);
             $qty    = (int) ($item['qty']     ?? 0);
             if ($wineId > 0 && $qty > 0) {
-                $this->wines->decrementStock($wineId, $qty);
+                $this->postOrderStockActions($wineId, $qty);
             }
         }
         if ($clientEmail !== '') {
@@ -422,7 +423,7 @@ class OrderController extends Controller
                         $wineId = (int) ($item['wine_id'] ?? 0);
                         $qty    = (int) ($item['qty']     ?? 0);
                         if ($wineId > 0 && $qty > 0) {
-                            $this->wines->decrementStock($wineId, $qty);
+                            $this->postOrderStockActions($wineId, $qty);
                         }
                     }
 
@@ -853,6 +854,40 @@ class OrderController extends Controller
      * @param float                $shippingDiscount Remise livraison
      * @return void
      */
+    /**
+     * Décrémente le stock après commande, notifie si seuil franchi et plafonne les paniers.
+     * Si le stock atteint 0, marque le vin indisponible et purge tous les paniers.
+     *
+     * @param int $wineId Identifiant du vin
+     * @param int $qty    Quantité commandée
+     * @return void
+     */
+    private function postOrderStockActions(int $wineId, int $qty): void
+    {
+        $wine = $this->wines->getById($wineId);
+        $this->wines->decrementStock($wineId, $qty);
+
+        if ($wine === null) {
+            return;
+        }
+
+        $newStock = max(0, (int) ($wine['stock_quantity'] ?? 0) - $qty);
+
+        try {
+            (new StockNotificationService())->notifyIfThresholdCrossed($wine, $newStock);
+        } catch (\Throwable) {
+            // Non bloquant
+        }
+
+        (new CartModel())->capWineQtyAcrossAllCarts($wineId, $newStock);
+
+        // Stock à 0 → vin indisponible + purge paniers
+        if ($newStock === 0) {
+            $this->wines->setUnavailable($wineId);
+            (new CartModel())->purgeWineFromAllCarts($wineId);
+        }
+    }
+
     private function dispatchOrderEmails( // NOSONAR — php:S107 : 8 paramètres requis pour envoyer les emails de confirmation commande
         string $email,
         string $name,

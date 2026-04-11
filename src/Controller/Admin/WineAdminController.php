@@ -366,9 +366,19 @@ class WineAdminController extends AdminController
         }
 
         try {
+            $newStock  = (int) ($data['stock_quantity'] ?? 0);
+            $threshold = (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300);
             $this->wines->update($id, $data);
             $this->nutrition->upsert($id, $nutritionPost);
-            (new StockNotificationService())->notifyIfThresholdCrossed($wine, (int) ($data['stock_quantity'] ?? 0));
+            // Stock remonte au-dessus du seuil → réarmer la notification pour la prochaine descente
+            if ($newStock > $threshold) {
+                $this->wines->resetLowStockNotified($id);
+            }
+            try {
+                (new StockNotificationService())->notifyIfThresholdCrossed($wine, $newStock);
+            } catch (\Throwable) {
+                // Non bloquant — l'échec de la notification ne doit pas empêcher la sauvegarde
+            }
             if (!$data['available']) {
                 (new CartModel())->purgeWineFromAllCarts($id);
                 $this->wines->unsetFeatured($id);
