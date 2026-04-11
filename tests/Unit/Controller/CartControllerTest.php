@@ -622,8 +622,11 @@ class CartControllerTest extends TestCase
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
             ['id' => 1, 'account_type' => 'individual'],                        // AccountModel::findById
             ['user_id' => 1, 'content' => $cartContent],                        // CartModel::findByUserId
-            ['id' => 1, 'price' => '10.00', 'label_name' => 'Bordeaux', 'stock_quantity' => 10, 'image_path' => '', 'vintage' => 2020, 'is_cuvee_speciale' => 0], // WineModel::getById
-            ['id' => 1, 'price_type' => 'per_bottle', 'delivery_price' => '2.00', 'min_quantity' => 6], // PricingRuleModel::findForQuantity
+            // WineModel::getById
+            ['id' => 1, 'price' => '10.00', 'label_name' => 'Bordeaux', 'stock_quantity' => 10,
+             'image_path' => '', 'vintage' => 2020, 'is_cuvee_speciale' => 0],
+            // PricingRuleModel::findForQuantity
+            ['id' => 1, 'price_type' => 'per_bottle', 'delivery_price' => '2.00', 'min_quantity' => 6],
             false                                                                // PricingRuleModel::findNextTierFor
         );
         $stub->method('fetchAll')->willReturn([]);
@@ -660,7 +663,8 @@ class CartControllerTest extends TestCase
         $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
             ['id' => 2, 'account_type' => 'individual'],
             ['user_id' => 2, 'content' => $cartContent],
-            ['id' => 2, 'price' => '15.00', 'label_name' => 'Sauternes', 'stock_quantity' => 20, 'image_path' => '', 'vintage' => 2021, 'is_cuvee_speciale' => 0],
+            ['id' => 2, 'price' => '15.00', 'label_name' => 'Sauternes', 'stock_quantity' => 20,
+             'image_path' => '', 'vintage' => 2021, 'is_cuvee_speciale' => 0],
             ['id' => 2, 'price_type' => 'fixed', 'delivery_price' => '5.00', 'min_quantity' => 12],
             false
         );
