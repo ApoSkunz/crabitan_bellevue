@@ -1,0 +1,178 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Service;
+
+use Model\OrderModel;
+use PHPUnit\Framework\TestCase;
+use Service\GaeApiInterface;
+use Service\MailService;
+use Service\RefundService;
+
+/**
+ * Tests unitaires de RefundService.
+ *
+ * Couvre les deux branches CA_ENABLE_GAE=true et CA_ENABLE_GAE=false.
+ */
+class RefundServiceTest extends TestCase
+{
+    private OrderModel&\PHPUnit\Framework\MockObject\MockObject $ordersMock;
+    private GaeApiInterface&\PHPUnit\Framework\MockObject\MockObject $gaeMock;
+    private MailService&\PHPUnit\Framework\MockObject\MockObject $mailerMock;
+
+    /** @var array<string, mixed> */
+    private array $fakeOrder;
+
+    protected function setUp(): void
+    {
+        $this->ordersMock = $this->createMock(OrderModel::class);
+        $this->gaeMock    = $this->createMock(GaeApiInterface::class);
+        $this->mailerMock = $this->createMock(MailService::class);
+
+        $this->fakeOrder = [
+            'id'              => 42,
+            'order_reference' => 'CB-2026-0042',
+            'status'          => 'paid',
+            'price'           => '120.00',
+            'payment_method'  => 'card',
+            'ca_numappel'     => '12345',
+            'ca_numtrans'     => '67890',
+            'email'           => 'client@example.com',
+            'firstname'       => 'Jean',
+            'lastname'        => 'Dupont',
+            'lang'            => 'fr',
+        ];
+    }
+
+    protected function tearDown(): void
+    {
+        unset($_ENV['CA_ENABLE_GAE'], $_ENV['APP_URL']);
+    }
+
+    // ----------------------------------------------------------------
+    // CA_ENABLE_GAE = true
+    // ----------------------------------------------------------------
+
+    public function testRefundWithGaeEnabledCallsApiAndSetsRefunded(): void
+    {
+        $_ENV['CA_ENABLE_GAE'] = 'true';
+        $_ENV['APP_URL']       = 'https://crabitanbellevue.fr';
+
+        $this->ordersMock->expects($this->once())
+            ->method('findByIdForAdmin')
+            ->with(42)
+            ->willReturn($this->fakeOrder);
+
+        $this->gaeMock->expects($this->once())
+            ->method('refund')
+            ->with('CB-2026-0042', '12345', '67890', 12000)
+            ->willReturn(true);
+
+        $this->ordersMock->expects($this->once())
+            ->method('updateStatus')
+            ->with(42, 'refunded');
+
+        $this->mailerMock->expects($this->once())
+            ->method('sendOrderStatusEmail');
+
+        $service = new RefundService($this->ordersMock, $this->gaeMock, $this->mailerMock);
+        $result  = $service->refund(42);
+
+        $this->assertSame('refunded', $result);
+    }
+
+    public function testRefundWithGaeEnabledThrowsWhenApiFails(): void
+    {
+        $_ENV['CA_ENABLE_GAE'] = '1';
+
+        $this->ordersMock->method('findByIdForAdmin')->willReturn($this->fakeOrder);
+        $this->gaeMock->method('refund')->willReturn(false);
+        $this->ordersMock->expects($this->never())->method('updateStatus');
+
+        $service = new RefundService($this->ordersMock, $this->gaeMock, $this->mailerMock);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/Échec remboursement GAE/');
+
+        $service->refund(42);
+    }
+
+    // ----------------------------------------------------------------
+    // CA_ENABLE_GAE = false
+    // ----------------------------------------------------------------
+
+    public function testRefundWithGaeDisabledSetsRefundPendingAndLogs(): void
+    {
+        $_ENV['CA_ENABLE_GAE'] = 'false';
+        $_ENV['APP_URL']       = 'https://crabitanbellevue.fr';
+
+        $this->ordersMock->expects($this->once())
+            ->method('findByIdForAdmin')
+            ->with(42)
+            ->willReturn($this->fakeOrder);
+
+        $this->gaeMock->expects($this->never())->method('refund');
+
+        $this->ordersMock->expects($this->once())
+            ->method('updateStatus')
+            ->with(42, 'refund_pending');
+
+        $this->mailerMock->expects($this->once())
+            ->method('sendRefundPendingEmail');
+
+        $service = new RefundService($this->ordersMock, $this->gaeMock, $this->mailerMock);
+        $result  = $service->refund(42);
+
+        $this->assertSame('refund_pending', $result);
+    }
+
+    public function testRefundWithGaeDefaultsToDisabled(): void
+    {
+        unset($_ENV['CA_ENABLE_GAE']);
+        $_ENV['APP_URL'] = 'https://crabitanbellevue.fr';
+
+        $this->ordersMock->method('findByIdForAdmin')->willReturn($this->fakeOrder);
+        $this->gaeMock->expects($this->never())->method('refund');
+
+        $this->ordersMock->expects($this->once())
+            ->method('updateStatus')
+            ->with(42, 'refund_pending');
+
+        $service = new RefundService($this->ordersMock, $this->gaeMock, $this->mailerMock);
+        $result  = $service->refund(42);
+
+        $this->assertSame('refund_pending', $result);
+    }
+
+    public function testRefundThrowsInvalidArgumentWhenOrderNotFound(): void
+    {
+        $this->ordersMock->method('findByIdForAdmin')->willReturn(null);
+
+        $service = new RefundService($this->ordersMock, $this->gaeMock, $this->mailerMock);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/Commande introuvable/');
+
+        $service->refund(999);
+    }
+
+    public function testRefundSkipsEmailForPurgedAccount(): void
+    {
+        $_ENV['CA_ENABLE_GAE'] = 'false';
+
+        $purgedOrder         = $this->fakeOrder;
+        $purgedOrder['email'] = 'user@purged.invalid';
+
+        $this->ordersMock->method('findByIdForAdmin')->willReturn($purgedOrder);
+        $this->ordersMock->method('updateStatus');
+
+        $this->mailerMock->expects($this->never())->method('sendRefundPendingEmail');
+        $this->mailerMock->expects($this->never())->method('sendOrderStatusEmail');
+
+        $service = new RefundService($this->ordersMock, $this->gaeMock, $this->mailerMock);
+        $result  = $service->refund(42);
+
+        $this->assertSame('refund_pending', $result);
+    }
+}
