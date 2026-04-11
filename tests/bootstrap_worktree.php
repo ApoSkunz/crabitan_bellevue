@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// phpcs:disable PSR1.Files.SideEffects.FoundWithSymbols -- bootstrap : mélange define() et require inévitable
 // Bootstrap pour les tests en contexte worktree (vendor dans le projet parent).
 $parentVendor = dirname(__DIR__, 4) . '/vendor/autoload.php';
 $autoloader   = require $parentVendor;
