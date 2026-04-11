@@ -280,15 +280,26 @@ $cssDisabled = ' disabled';
                     }
                     ?>
                     <tr>
-                        <td style="color:#8a7a60;"><?= (int) $sub['id'] ?></td>
+                        <td style="color:#8a7a60;">
+                            <?= $sub['id'] !== null ? (int) $sub['id'] : '<span title="Abonné sans compte">—</span>' ?>
+                        </td>
                         <td><strong><?= $name ?></strong></td>
                         <td><?= htmlspecialchars($sub['email']) ?></td>
                         <td style="font-size:0.78rem;">
-                            <?= $sub['account_type'] === 'company' ? 'Société' : 'Particulier' ?>
+                            <?php
+                            $source = $sub['source'] ?? 'account';
+                            if ($source === 'subscription') {
+                                echo '<span style="color:#8a7a60;" title="Abonné sans compte">visiteur</span>';
+                            } elseif ($sub['account_type'] === 'company') {
+                                echo 'Société';
+                            } else {
+                                echo 'Particulier';
+                            }
+                            ?>
                         </td>
                         <td style="font-size:0.78rem;text-transform:uppercase;"><?= htmlspecialchars($sub['lang'] ?? '—') ?></td>
                         <td style="white-space:nowrap;font-size:0.8rem;">
-                            <?= date('d/m/Y', strtotime($sub['created_at'])) ?>
+                            <?= $sub['created_at'] ? date('d/m/Y', strtotime($sub['created_at'])) : '—' ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
