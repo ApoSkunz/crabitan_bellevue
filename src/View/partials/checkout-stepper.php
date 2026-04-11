@@ -21,7 +21,7 @@ $steps = [
 <nav class="checkout-stepper" aria-label="<?= htmlspecialchars(__('stepper.aria_label') ?: 'Étapes de la commande') ?>">
     <ol class="checkout-stepper__list">
         <?php foreach ($steps as $stepNum => $stepLabel) :
-            $isDone   = $stepNum < $checkoutStep || ($stepNum === $checkoutStep && $checkoutStep === count($steps));
+            $isDone   = $stepNum < $checkoutStep;
             $isActive = $stepNum === $checkoutStep && !$isDone;
             if ($isDone) {
                 $modifier    = 'checkout-stepper__step--done';

@@ -274,5 +274,4 @@ class RatingModel extends Model
             [$limit]
         );
     }
-
 }

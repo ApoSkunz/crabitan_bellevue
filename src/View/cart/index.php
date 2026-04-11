@@ -27,7 +27,7 @@ $crossSellWines   = $crossSellWines   ?? [];
 $featuredWine     = $featuredWine     ?? null;
 ?>
 
-<?php $checkoutStep = 1; require_once SRC_PATH . '/View/partials/checkout-stepper.php'; ?>
+<?php $checkoutStep = 1; require SRC_PATH . '/View/partials/checkout-stepper.php'; ?>
 
 <main class="page-cart" id="main-content">
     <div class="page-hero page-hero--dark">

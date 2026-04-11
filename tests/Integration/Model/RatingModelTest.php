@@ -66,7 +66,7 @@ class RatingModelTest extends IntegrationTestCase
         // Créer un snapshot d'adresse de facturation requis par orders
         $snapshotId = (int) self::$db->insert(
             "INSERT INTO order_address_snapshots
-             (first_name, last_name, address_line1, city, postal_code, country)
+             (firstname, lastname, street, city, zip, country)
              VALUES (?, ?, ?, ?, ?, ?)",
             ['Rating', 'User', '1 Rue Test', 'Paris', '75001', 'FR']
         );
