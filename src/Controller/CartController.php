@@ -217,6 +217,7 @@ class CartController extends Controller
     /**
      * Enrichit chaque article du panier avec le prix récupéré depuis WineModel.
      * Les champs name et image sont aussi complétés si absents.
+     * Les articles dont le vin est indisponible (available=0) sont silencieusement exclus.
      *
      * @param array<int, array<string, mixed>> $items Articles du panier (wine_id, qty, name, image)
      * @return array<int, array<string, mixed>>
@@ -224,18 +225,25 @@ class CartController extends Controller
     private function enrichItemsWithPrice(array $items): array
     {
         $wineModel = new WineModel();
-        foreach ($items as &$item) {
-            $wine          = $wineModel->getById((int) $item['wine_id']);
-            $rawImage      = $wine['image_path'] ?? '';
-            $fullImage     = $rawImage !== '' ? '/assets/images/wines/' . $rawImage : '';
-            $item['price']            = $wine !== null ? (float) ($wine['price'] ?? 0.0) : 0.0;
-            $item['image']            = ($item['image'] ?? '') !== '' ? $item['image'] : $fullImage;
-            $item['name']             = ($item['name']  ?? '') !== '' ? $item['name']  : ($wine['label_name'] ?? '');
-            $item['vintage']          = $wine !== null ? (int) ($wine['vintage'] ?? 0) : 0;
-            $item['is_cuvee_speciale'] = $wine !== null ? (bool) ($wine['is_cuvee_speciale'] ?? false) : false;
+        $enriched = [];
+        foreach ($items as $item) {
+            $wine = $wineModel->getById((int) $item['wine_id']);
+
+            // Filtrer silencieusement les vins indisponibles (available=0)
+            if ($wine === null || !(bool) ($wine['available'] ?? false)) {
+                continue;
+            }
+
+            $rawImage                  = $wine['image_path'] ?? '';
+            $fullImage                 = $rawImage !== '' ? '/assets/images/wines/' . $rawImage : '';
+            $item['price']             = (float) ($wine['price'] ?? 0.0);
+            $item['image']             = ($item['image'] ?? '') !== '' ? $item['image'] : $fullImage;
+            $item['name']              = ($item['name']  ?? '') !== '' ? $item['name']  : ($wine['label_name'] ?? '');
+            $item['vintage']           = (int) ($wine['vintage'] ?? 0);
+            $item['is_cuvee_speciale'] = (bool) ($wine['is_cuvee_speciale'] ?? false);
+            $enriched[] = $item;
         }
-        unset($item);
-        return $items;
+        return $enriched;
     }
 
     /**
