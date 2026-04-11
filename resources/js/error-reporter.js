@@ -49,7 +49,7 @@ function sendReport(payload) {
                 body: JSON.stringify(payload),
                 keepalive: true,
             });
-    } catch (_) {
+    } catch {
         // Erreur réseau — ne pas bloquer l'exécution
     }
 }
