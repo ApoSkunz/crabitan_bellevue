@@ -2,6 +2,22 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.71.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.70.0...v0.71.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **middleware:** aligner SecurityHeaderMiddleware sur main — apply() + isWinePath() sans doublon ([c71ede6](https://github.com/ApoSkunz/crabitan_bellevue/commit/c71ede678c695bf3f2c6948b6c3163c278e5c274))
+* **security:** robots.txt — autoriser IA légitimes, bloquer scrapers agressifs uniquement ([b873bfa](https://github.com/ApoSkunz/crabitan_bellevue/commit/b873bfa6dd105051655450669d0382e07ccea61e))
+
+
+### Features
+
+* **marketing:** taux de conversion — encarts commandes + paniers abandonnés + formule corrigée ([9366ec3](https://github.com/ApoSkunz/crabitan_bellevue/commit/9366ec3af88b0788ca495c89b77fc639fb6edf12))
+* **marketing:** taux de conversion commandes/paniers — controller + vue + TU ([9101086](https://github.com/ApoSkunz/crabitan_bellevue/commit/91010864a54bc938f871abcc2d7ae40cb79737fd))
+* **model:** OrderModel::getConversionRate — ratio commandes payées / paniers actifs 30 j ([ee8d8ed](https://github.com/ApoSkunz/crabitan_bellevue/commit/ee8d8eda368e18b65e40484676a02fe00042d00c))
+* **security:** anti-scraping — rate limiting catalogue, honeypot contact, robots.txt IA, monitoring ([e970ef0](https://github.com/ApoSkunz/crabitan_bellevue/commit/e970ef04f54c4324674d0530461aae73b9035e27))
+
 # [0.70.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.69.0...v0.70.0) (2026-04-11)
 
 
