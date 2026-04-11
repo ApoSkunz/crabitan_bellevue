@@ -252,6 +252,7 @@ class CartController extends Controller
             $item['name']              = ($item['name']  ?? '') !== '' ? $item['name']  : ($wine['label_name'] ?? '');
             $item['vintage']           = (int) ($wine['vintage'] ?? 0);
             $item['is_cuvee_speciale'] = (bool) ($wine['is_cuvee_speciale'] ?? false);
+            $item['stock_quantity']    = (int) ($wine['stock_quantity'] ?? 0);
             $enriched[] = $item;
         }
         return ['items' => $enriched, 'removedCount' => $removedCount];

@@ -188,14 +188,15 @@ $removedCount     = (int) ($removedCount ?? 0);
                     <tbody id="cart-tbody">
                         <?php foreach ($cartItems as $item) : ?>
                         <?php
-                            $wineId      = (int)   ($item['wine_id'] ?? 0);
-                            $qty         = (int)   ($item['qty']     ?? 1);
-                            $name        = (string)($item['name']    ?? '');
-                            $image       = (string)($item['image']   ?? '');
-                            $price       = (float) ($item['price']   ?? 0.0);
+                            $wineId      = (int)   ($item['wine_id']       ?? 0);
+                            $qty         = (int)   ($item['qty']           ?? 1);
+                            $name        = (string)($item['name']          ?? '');
+                            $image       = (string)($item['image']         ?? '');
+                            $price       = (float) ($item['price']         ?? 0.0);
+                            $stock       = (int)   ($item['stock_quantity'] ?? 0);
                             $itemTotal   = $price * $qty;
                         ?>
-                        <tr class="cart-table__row" data-wine-id="<?= $wineId ?>" data-price="<?= number_format($price, 2, '.', '') ?>">
+                        <tr class="cart-table__row" data-wine-id="<?= $wineId ?>" data-price="<?= number_format($price, 2, '.', '') ?>" data-stock="<?= $stock ?>">
                             <td class="cart-table__col-image">
                                 <?php if ($image !== '') : ?>
                                 <img
@@ -231,11 +232,13 @@ $removedCount     = (int) ($removedCount ?? 0);
                                            id="qty-<?= $wineId ?>"
                                            value="<?= $qty ?>"
                                            min="1"
+                                           max="<?= $stock > 0 ? $stock : '' ?>"
                                            data-wine-id="<?= $wineId ?>"
                                            aria-label="<?= htmlspecialchars(__('cart.update_qty')) ?>">
                                     <button type="button"
                                             class="cart-qty-btn cart-qty-btn--plus js-qty-plus"
                                             data-wine-id="<?= $wineId ?>"
+                                            <?= ($stock > 0 && $qty >= $stock) ? 'disabled' : '' ?>
                                             aria-label="<?= htmlspecialchars(__('cart.qty_increase')) ?>">+</button>
                                 </div>
                             </td>
