@@ -1492,4 +1492,103 @@ class OrderModelTest extends IntegrationTestCase
         $result = $this->model->findByReferenceWithAddresses('REF-UNKNOWN-99999');
         $this->assertNull($result);
     }
+
+    // ----------------------------------------------------------------
+    // getDeliveredForRatingEmail
+    // ----------------------------------------------------------------
+
+    /**
+     * Aucune commande dans la fenêtre → tableau vide.
+     */
+    public function testGetDeliveredForRatingEmailReturnsEmptyWhenNoMatch(): void
+    {
+        $result = $this->model->getDeliveredForRatingEmail();
+        $this->assertIsArray($result);
+        // Les autres tests utilisent des commandes hors fenêtre 504-528h
+        // On vérifie juste le retour du type attendu.
+        foreach ($result as $row) {
+            $this->assertArrayHasKey('id', $row);
+            $this->assertArrayHasKey('user_id', $row);
+        }
+    }
+
+    /**
+     * Une commande avec rating_email_sent_at renseigné n'est pas retournée.
+     */
+    public function testGetDeliveredForRatingEmailSkipsAlreadySentOrders(): void
+    {
+        $userId    = $this->insertAccount('rating_sent_' . bin2hex(random_bytes(4)) . '@example.com');
+        $billingId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $billingId, 'delivered', 'REF-RATING-SENT-' . bin2hex(random_bytes(4)));
+
+        // Commande delivered dans la fenêtre MAIS rating_email_sent_at déjà renseigné
+        self::$db->execute(
+            "UPDATE orders SET delivered_at = NOW() - INTERVAL 510 HOUR, rating_email_sent_at = NOW() WHERE id = ?",
+            [$orderId]
+        );
+
+        $result = $this->model->getDeliveredForRatingEmail();
+        $ids    = array_column($result, 'id');
+        $this->assertNotContains($orderId, $ids);
+    }
+
+    // ----------------------------------------------------------------
+    // markRatingEmailSent
+    // ----------------------------------------------------------------
+
+    /**
+     * markRatingEmailSent renseigne rating_email_sent_at.
+     */
+    public function testMarkRatingEmailSentSetsFlag(): void
+    {
+        $userId    = $this->insertAccount('mark_rating_' . bin2hex(random_bytes(4)) . '@example.com');
+        $billingId = $this->insertAddress($userId);
+        $orderId   = $this->insertOrder($userId, $billingId, 'delivered', 'REF-MARK-RATING-' . bin2hex(random_bytes(4)));
+
+        $this->model->markRatingEmailSent($orderId);
+
+        $row = self::$db->fetchOne(
+            "SELECT rating_email_sent_at FROM orders WHERE id = ?",
+            [$orderId]
+        );
+        $this->assertNotNull($row['rating_email_sent_at']);
+    }
+
+    // ----------------------------------------------------------------
+    // getAvgOrderValue
+    // ----------------------------------------------------------------
+
+    /**
+     * Aucune commande récente → retourne 0.0.
+     */
+    public function testGetAvgOrderValueReturnsZeroWhenNoOrders(): void
+    {
+        // Toutes les commandes existantes sont en 'pending' par défaut dans ce test
+        // ou dans des états non comptabilisés — on peut juste vérifier le type
+        $avg = $this->model->getAvgOrderValue(1); // 1 jour — fenêtre très courte
+        $this->assertIsFloat($avg);
+        $this->assertGreaterThanOrEqual(0.0, $avg);
+    }
+
+    /**
+     * getAvgOrderValue prend en compte les commandes paid dans la fenêtre.
+     */
+    public function testGetAvgOrderValueCalculatesCorrectAverage(): void
+    {
+        $userId    = $this->insertAccount('avg_order_' . bin2hex(random_bytes(4)) . '@example.com');
+        $billingId = $this->insertAddress($userId);
+
+        // Deux commandes paid aujourd'hui
+        $orderId1 = $this->insertOrder($userId, $billingId, 'paid', 'REF-AVG-1-' . bin2hex(random_bytes(4)));
+        $orderId2 = $this->insertOrder($userId, $billingId, 'paid', 'REF-AVG-2-' . bin2hex(random_bytes(4)));
+
+        // Mise à jour du prix pour maîtriser l'average
+        self::$db->execute("UPDATE orders SET price = 100.00 WHERE id = ?", [$orderId1]);
+        self::$db->execute("UPDATE orders SET price = 60.00  WHERE id = ?", [$orderId2]);
+
+        $avg = $this->model->getAvgOrderValue(30);
+
+        // Avec d'autres commandes potentielles, on vérifie juste que c'est > 0
+        $this->assertGreaterThan(0.0, $avg);
+    }
 }

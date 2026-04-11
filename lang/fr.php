@@ -117,6 +117,7 @@ return [
     'wine.sort.vintage_asc'  => 'Millésime croissant',
     'wine.sort.vintage_desc' => 'Millésime décroissant',
     'wine.sort.likes_desc'   => 'Les plus aimés',
+    'wine.sort.rating_desc'  => 'Mieux notés',
 
     // Vins — Fiche produit
     'wine.zoom'          => 'Agrandir la photo',
@@ -149,6 +150,16 @@ return [
     'wine.bottles'       => 'bouteilles',
     'wine.cuvee_speciale'  => 'Cuvée Spéciale',
     'wine.download_sheet' => 'Télécharger la fiche technique complète',
+
+    // Vins — Notation
+    'wine.rating.title'        => 'Avis clients',
+    'wine.rating.your_note'    => 'Votre note',
+    'wine.rating.already'      => 'Votre note :',
+    'wine.rating.reviews'      => 'avis',
+    'wine.rating.widget_label' => 'Notez ce vin',
+
+    // Vins — Cross-sell
+    'wine.similar.title'       => 'Vous aimerez aussi',
 
     // Vins — Collection
     'wine.collection_nav'  => 'Navigation par type de vin',
@@ -206,6 +217,7 @@ return [
     'cart.subtotal_label'       => 'Sous-total',
     'cart.total_ttc'            => 'Total TTC',
     'cart.you_might_enjoy'      => 'Vous pourriez apprécier',
+    'cart.cross_sell.title'     => 'Ces vins pourraient vous plaire',
     'cart.tier_next'            => 'pour le palier suivant',
     'cart.tier_first'           => 'pour votre remise livraison',
 
@@ -881,6 +893,12 @@ return [
     'checkout.deferred_order_notice'  => 'Votre commande sera expédiée dès réception de votre paiement.',
     'checkout.view_orders'            => 'Voir mes commandes',
     'checkout.continue_shopping'      => 'Continuer mes achats',
+
+    // Stepper tunnel de commande
+    'stepper.cart'         => 'Panier',
+    'stepper.delivery'     => 'Livraison & paiement',
+    'stepper.confirmation' => 'Confirmation',
+    'stepper.aria_label'   => 'Étapes de la commande',
 
     // Paiement CA e-Transactions
     'payment.redirect_title'   => 'Redirection vers le paiement sécurisé',

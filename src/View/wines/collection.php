@@ -1,5 +1,6 @@
 <?php
 $isAdmin   = $isAdmin ?? false;
+$ratings   = $ratings ?? [];
 $pageTitle = __('nav.collection');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
@@ -85,6 +86,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                             <?php
                             $sortOptions = [
                                 'default'      => __('wine.sort.default'),
+                                'rating_desc'  => __('wine.sort.rating_desc'),
                                 'likes_desc'   => __('wine.sort.likes_desc'),
                                 'vintage_asc'  => __('wine.sort.vintage_asc'),
                                 'vintage_desc' => __('wine.sort.vintage_desc'),
@@ -210,6 +212,10 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                         <span class="wine-card__cert">
                                             <?= htmlspecialchars($wine['certification_label']) ?>
                                         </span>
+                                    <?php endif; ?>
+                                    <?php $wineRating = $ratings[(int) $wine['id']] ?? null; ?>
+                                    <?php if ($wineRating !== null) : ?>
+                                        <span class="wine-card__rating-badge"><?= number_format($wineRating, 1) ?>/5</span>
                                     <?php endif; ?>
                                 </div>
 

@@ -8,6 +8,10 @@
     min-height: 100vh;
 }
 
+// ---- Stepper (pas de sticky — hauteur nav variable) ----
+
+// .checkout-stepper — styles définis dans _stepper.scss
+
 .checkout-section {
     padding: 2.5rem 1rem 4rem;
 }

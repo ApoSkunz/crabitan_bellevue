@@ -1121,4 +1121,68 @@ class WineModelTest extends TestCase
 
         $this->assertFalse($result);
     }
+
+    // ----------------------------------------------------------------
+    // getAll — sort rating_desc (LEFT JOIN wine_ratings)
+    // ----------------------------------------------------------------
+
+    public function testGetAllWithRatingDescSortIncludesRatingJoin(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('avg_rating'),
+                $this->anything()
+            )
+            ->willReturn([]);
+
+        $this->model->getAll(null, 'rating_desc');
+    }
+
+    public function testGetAllWithRatingDescSortBuildsCorrectOrderBy(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('COALESCE(wr.avg_rating, 0) DESC'),
+                $this->anything()
+            )
+            ->willReturn([]);
+
+        $this->model->getAll(null, 'rating_desc');
+    }
+
+    // ----------------------------------------------------------------
+    // getAllByColor — sort rating_desc (LEFT JOIN wine_ratings)
+    // ----------------------------------------------------------------
+
+    public function testGetAllByColorWithRatingDescSortIncludesRatingJoin(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('avg_rating'),
+                $this->anything()
+            )
+            ->willReturn([]);
+
+        $this->model->getAllByColor(null, 'rating_desc');
+    }
+
+    public function testGetAllByColorWithRatingDescSortBuildsCorrectOrderBy(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->stringContains('COALESCE(wr.avg_rating, 0) DESC'),
+                $this->anything()
+            )
+            ->willReturn([]);
+
+        $this->model->getAllByColor(null, 'rating_desc');
+    }
 }

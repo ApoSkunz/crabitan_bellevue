@@ -8,6 +8,7 @@ use Core\Controller;
 use Core\Jwt;
 use Core\Response;
 use Model\FavoriteModel;
+use Model\RatingModel;
 use Model\WineModel;
 use Service\RateLimiterService;
 use TCPDF;
@@ -67,9 +68,20 @@ class WineController extends Controller
         $totalPages = (int) ceil($total / $perPage);
         $wines      = $model->getAll($color, $sort, $perPage, $offset, $cuveSpeciale);
 
+        $ratings = [];
+        if (!empty($wines)) {
+            $ids = array_column($wines, 'id');
+            try {
+                $ratings = (new RatingModel())->getAvgBulk(array_map('intval', $ids));
+            } catch (\Throwable) {
+                $ratings = [];
+            }
+        }
+
         $this->view('wines/index', [
             'lang'           => $lang,
             'wines'          => $wines,
+            'ratings'        => $ratings,
             'likedIds'       => $this->getCurrentUserLikedIds(),
             'activeColor'    => $color,
             'activeSort'     => $sort,
@@ -78,6 +90,7 @@ class WineController extends Controller
             'page'           => $page,
             'totalPages'     => $totalPages,
             'total'          => $total,
+            'sort'           => $sort,
         ]);
     }
 
@@ -114,9 +127,21 @@ class WineController extends Controller
         // Page de première apparition de chaque couleur (sans filtre couleur, pour les raccourcis nav)
         $colorPages   = $model->getColorFirstPages($avail, $perPage);
 
+        $ratingsCollection = [];
+        if (!empty($winesByColor)) {
+            $allWines = array_merge(...array_values($winesByColor));
+            $ids      = array_column($allWines, 'id');
+            try {
+                $ratingsCollection = (new RatingModel())->getAvgBulk(array_map('intval', $ids));
+            } catch (\Throwable) {
+                $ratingsCollection = [];
+            }
+        }
+
         $this->view('wines/collection', [
             'lang'          => $lang,
             'winesByColor'  => $winesByColor,
+            'ratings'       => $ratingsCollection,
             'likedIds'      => $this->getCurrentUserLikedIds(),
             'activeColor'   => $color,
             'activeSort'    => $sort,
@@ -126,6 +151,7 @@ class WineController extends Controller
             'page'          => $page,
             'totalPages'    => $totalPages,
             'colorPages'    => $colorPages,
+            'sort'          => $sort,
         ]);
     }
 
@@ -578,6 +604,7 @@ class WineController extends Controller
         }
 
         $isLiked = false;
+        $userId  = null;
         $token   = $_COOKIE['auth_token'] ?? null;
         if ($token !== null) {
             try {
@@ -589,13 +616,32 @@ class WineController extends Controller
             }
         }
 
-        $nutrition = (new \Model\WineNutritionModel())->findByWineId((int) $wine['id']) ?: [];
+        $nutrition     = (new \Model\WineNutritionModel())->findByWineId((int) $wine['id']) ?: [];
+        $similarWines  = $model->getSimilar((int) $wine['id'], (string) $wine['wine_color'], (float) $wine['price']);
+
+        $avgRating     = null;
+        $ratingCount   = 0;
+        $accountRating = null;
+        try {
+            $ratingModel   = new \Model\RatingModel();
+            $avgRating     = $ratingModel->getAvgByWine((int) $wine['id']);
+            $ratingCount   = $ratingModel->countByWine((int) $wine['id']);
+            if ($token !== null && $userId !== null) {
+                $accountRating = $ratingModel->getByAccountAndWine($userId, (int) $wine['id']);
+            }
+        } catch (\Throwable) {
+            // RatingModel pas encore disponible
+        }
 
         $this->view('wines/show', [
-            'lang'      => $lang,
-            'wine'      => $wine,
-            'nutrition' => $nutrition,
-            'isLiked'   => $isLiked,
+            'lang'          => $lang,
+            'wine'          => $wine,
+            'nutrition'     => $nutrition,
+            'isLiked'       => $isLiked,
+            'similarWines'  => $similarWines,
+            'avgRating'     => $avgRating,
+            'ratingCount'   => $ratingCount,
+            'accountRating' => $accountRating,
         ]);
     }
 }

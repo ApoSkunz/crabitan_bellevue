@@ -465,7 +465,11 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
                 string $orderRef,
                 string $status,
                 string $lang,
-                string $appUrl
+                string $appUrl,
+                array $items = [],
+                array $deliveryAddress = [],
+                string $trackingUrl = '',
+                int $orderId = 0
             ): void {
                 throw new \RuntimeException('SMTP error simulé');
             }
@@ -544,7 +548,11 @@ class OrderAdminControllerTest extends AdminIntegrationTestCase
                         string $ref,
                         string $status,
                         string $lang,
-                        string $appUrl
+                        string $appUrl,
+                        array $items = [],
+                        array $deliveryAddress = [],
+                        string $trackingUrl = '',
+                        int $orderId = 0
                     ): void {
                         $this->called = true;
                     }

@@ -22,6 +22,7 @@
 @use 'components/modal';
 @use 'components/pwd-strength';
 @use 'components/majority-modal';
+@use 'components/checkout-stepper';
 
 // ============================================================
 // Layout
@@ -41,3 +42,4 @@
 @use 'layout/account';
 @use 'layout/cart';
 @use 'layout/checkout';
+@use 'layout/rating';

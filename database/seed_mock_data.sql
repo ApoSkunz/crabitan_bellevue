@@ -936,9 +936,14 @@ VALUES
 -- refund_refused — remboursement refusé en litige depuis 11 jours
 (22, 3, 'CBV-2026-000022',
  '[{"wine_id":10,"label_name":"Bordeaux Rouge","vintage":2017,"wine_color":"red","format":"bottle","qty":6,"price":6.00,"subtotal":36.00}]',
- 36.00, 'card', 0.00, 1, 2, 'refund_refused', DATE_SUB(NOW(), INTERVAL 13 DAY), DATE_SUB(NOW(), INTERVAL 40 DAY));
+ 36.00, 'card', 0.00, 1, 2, 'refund_refused', DATE_SUB(NOW(), INTERVAL 13 DAY), DATE_SUB(NOW(), INTERVAL 40 DAY)),
 
-ALTER TABLE `orders` AUTO_INCREMENT = 23;
+-- delivered J+22 — multi-vins (Sophie id=3) — cible email post-achat J+21 (fenêtre 504h–528h) + test page notation
+(23, 3, 'CBV-2026-000023',
+ '[{"wine_id":16,"label_name":"Sainte-Croix-du-Mont","vintage":2015,"wine_color":"sweet","format":"bottle","qty":12,"price":11.50,"subtotal":138.00},{"wine_id":30,"label_name":"Bordeaux Rouge","vintage":2020,"wine_color":"red","format":"bottle","qty":6,"price":7.70,"subtotal":46.20},{"wine_id":35,"label_name":"Bordeaux Blanc","vintage":2024,"wine_color":"white","format":"bottle","qty":6,"price":7.70,"subtotal":46.20}]',
+ 230.40, 'card', 15.00, 1, 2, 'delivered', DATE_SUB(NOW(), INTERVAL 23 DAY), DATE_SUB(NOW(), INTERVAL 22 DAY));
+
+ALTER TABLE `orders` AUTO_INCREMENT = 24;
 
 -- Forcer updated_at anciens sur les commandes bloquées de test
 UPDATE `orders` SET `updated_at` = DATE_SUB(NOW(), INTERVAL 20 DAY) WHERE `id` = 17;
@@ -1073,3 +1078,23 @@ INSERT INTO `newsletter_clicks` (`newsletter_id`, `link_id`, `subscriber_id`, `c
 ALTER TABLE `newsletter_clicks` AUTO_INCREMENT = 3;
 
 -- legal_documents : données initiales incluses dans schema.sql (INSERT au schéma)
+
+-- ============================================================
+-- wine_ratings : notes fictives pour tester le tri par notation
+-- Vins notés par plusieurs comptes (min 2 pour être publiques)
+-- wine_id 30 (Bordeaux Rouge 2020) : 5+4+5 = avg 4.67
+-- wine_id 35 (Bordeaux Blanc 2024) : 4+3 = avg 3.5
+-- wine_id 16 (Sainte-Croix-du-Mont 2015) : 5+5+4 = avg 4.67
+-- wine_id 21 (Sainte-Croix-du-Mont 2016) : 3+3 = avg 3.0
+-- ============================================================
+INSERT INTO `wine_ratings` (`account_id`, `wine_id`, `order_id`, `rating`, `created_at`) VALUES
+(3, 30, 2, 5, '2026-02-10 12:00:00'),
+(5, 30, 2, 4, '2026-02-11 09:00:00'),
+(6, 30, 2, 5, '2026-02-12 14:00:00'),
+(3, 35, 3, 4, '2026-02-15 10:00:00'),
+(5, 35, 3, 3, '2026-02-16 11:00:00'),
+(3, 16, 1, 5, '2026-02-20 09:00:00'),
+(5, 16, 1, 5, '2026-02-21 10:00:00'),
+(6, 16, 1, 4, '2026-02-22 11:00:00'),
+(3, 21, 3, 3, '2026-02-25 09:00:00'),
+(5, 21, 3, 3, '2026-02-26 10:00:00');
