@@ -1,5 +1,6 @@
 <?php
 $pageTitle = __('cart.title');
+defined('WINE_IMG_BASE') || define('WINE_IMG_BASE', '/assets/images/wines/');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
@@ -328,7 +329,7 @@ $featuredWine     = $featuredWine     ?? null;
                 <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($featuredWine['slug'] ?? '')) ?>"
                    class="cart-empty-wine__card">
-                    <?php $featuredImage = '/assets/images/wines/' . htmlspecialchars((string)($featuredWine['image_path'] ?? '')); ?>
+                    <?php $featuredImage = WINE_IMG_BASE . htmlspecialchars((string)($featuredWine['image_path'] ?? '')); ?>
                     <img src="<?= $featuredImage ?>"
                          alt="<?= htmlspecialchars((string)($featuredWine['label_name'] ?? '')) ?>"
                          class="cart-empty-wine__img"
@@ -342,7 +343,7 @@ $featuredWine     = $featuredWine     ?? null;
                 <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
                    class="cart-empty-wine__card">
-                    <?php $wineImage = '/assets/images/wines/' . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
+                    <?php $wineImage = WINE_IMG_BASE . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
                     <img src="<?= $wineImage ?>"
                          alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
                          class="cart-empty-wine__img"
@@ -401,7 +402,7 @@ $featuredWine     = $featuredWine     ?? null;
             <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
             <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
                class="cart-empty-wine__card">
-                <?php $wineImage = '/assets/images/wines/' . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
+                <?php $wineImage = WINE_IMG_BASE . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
                 <img src="<?= $wineImage ?>"
                      alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
                      class="cart-empty-wine__img"
