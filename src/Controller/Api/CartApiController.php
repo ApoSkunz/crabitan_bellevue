@@ -129,23 +129,41 @@ class CartApiController extends Controller
         $wine  = $this->wineModel->getById($wineId);
         $stock = $wine !== null ? (int) ($wine['stock_quantity'] ?? 0) : 0;
 
-        if ($wine === null || $stock <= 0) {
+        if ($wine === null || !(bool) ($wine['available'] ?? false) || $stock <= 0) {
             $this->json(['success' => false, 'message' => 'Vin indisponible'], 422);
         }
 
-        // Charger le panier existant et mettre à jour
+        // Charger le panier existant et calculer la quantité cible
         $existing = $this->cartModel->findByUserId($userId);
         $items    = $existing !== false ? $this->cartModel->getContent($existing) : [];
 
-        $items = $this->upsertItem($items, $wineId, $quantity, $stock);
+        $currentQty = 0;
+        foreach ($items as $item) {
+            if ((int) $item['wine_id'] === $wineId) {
+                $currentQty = (int) $item['qty'];
+                break;
+            }
+        }
+        $desiredQty = $currentQty + $quantity;
+
+        $result       = $this->upsertItem($items, $wineId, $quantity, $stock);
+        $items        = $result['items'];
+        $effectiveQty = $result['effective_qty'];
 
         $this->cartModel->save($userId, $items);
 
-        $this->json([
+        $response = [
             'success'        => true,
             'total_quantity' => array_sum(array_column($items, 'qty')),
             'items'          => $items,
-        ]);
+        ];
+        if ($effectiveQty < $desiredQty) {
+            $response['capped']          = true;
+            $response['effective_qty']   = $effectiveQty;
+            $response['stock_available'] = $stock;
+            $response['message']         = "Stock insuffisant — {$stock} bouteille(s) disponible(s)";
+        }
+        $this->json($response);
     }
 
     // ----------------------------------------------------------------
@@ -178,6 +196,10 @@ class CartApiController extends Controller
         $existing = $this->cartModel->findByUserId($userId);
         $items    = $existing !== false ? $this->cartModel->getContent($existing) : [];
 
+        $capped       = false;
+        $effectiveQty = 0;
+        $stock        = 0;
+
         if ($quantity <= 0) {
             // Supprimer l'item
             $items = array_values(array_filter(
@@ -188,16 +210,30 @@ class CartApiController extends Controller
             $wine  = $this->wineModel->getById($wineId);
             $stock = $wine !== null ? (int) ($wine['stock_quantity'] ?? 0) : 0;
 
-            $items = $this->upsertItem($items, $wineId, $quantity, $stock, true);
+            if ($wine === null || !(bool) ($wine['available'] ?? false) || $stock <= 0) {
+                $this->json(['success' => false, 'message' => 'Vin indisponible'], 422);
+            }
+
+            $result       = $this->upsertItem($items, $wineId, $quantity, $stock, true);
+            $items        = $result['items'];
+            $effectiveQty = $result['effective_qty'];
+            $capped       = $effectiveQty < $quantity;
         }
 
         $this->cartModel->save($userId, $items);
 
-        $this->json([
+        $response = [
             'success'        => true,
             'total_quantity' => array_sum(array_column($items, 'qty')),
             'items'          => $items,
-        ]);
+        ];
+        if ($capped) {
+            $response['capped']          = true;
+            $response['effective_qty']   = $effectiveQty;
+            $response['stock_available'] = $stock;
+            $response['message']         = "Stock insuffisant — {$stock} bouteille(s) disponible(s)";
+        }
+        $this->json($response);
     }
 
     // ----------------------------------------------------------------
@@ -310,7 +346,7 @@ class CartApiController extends Controller
      * @param int                              $qty     Quantité à ajouter ou remplacer
      * @param int                              $stock   Stock disponible (plafond)
      * @param bool                             $replace True = remplace la qté, False = cumule
-     * @return array<int, array<string, mixed>>
+     * @return array{items: array<int, array<string, mixed>>, effective_qty: int}
      */
     private function upsertItem(
         array $items,
@@ -319,24 +355,28 @@ class CartApiController extends Controller
         int $stock,
         bool $replace = false
     ): array {
-        $found = false;
+        $found        = false;
+        $effectiveQty = 0;
+
         foreach ($items as &$item) {
             if ((int) $item['wine_id'] === $wineId) {
-                $newQty      = $replace ? $qty : (int) $item['qty'] + $qty;
-                $item['qty'] = min($newQty, $stock);
-                $found       = true;
+                $newQty       = $replace ? $qty : (int) $item['qty'] + $qty;
+                $effectiveQty = min($newQty, $stock);
+                $item['qty']  = $effectiveQty;
+                $found        = true;
                 break;
             }
         }
         unset($item);
 
         if (!$found) {
+            $effectiveQty = min($qty, $stock);
             $items[] = [
                 'wine_id' => $wineId,
-                'qty'     => min($qty, $stock),
+                'qty'     => $effectiveQty,
             ];
         }
 
-        return $items;
+        return ['items' => $items, 'effective_qty' => $effectiveQty];
     }
 }

@@ -217,6 +217,7 @@ return [
     'cart.qty_increase'         => 'Augmenter la quantité',
     'cart.subtotal_label'       => 'Sous-total',
     'cart.total_ttc'            => 'Total TTC',
+    'cart.wines_removed_notice' => 'Un ou plusieurs articles ont été retirés de votre panier car ils ne sont plus disponibles. Vérifiez votre sélection avant de continuer.',
     'cart.you_might_enjoy'      => 'Vous pourriez apprécier',
     'cart.cross_sell.title'     => 'Ces vins pourraient vous plaire',
     'cart.tier_next'            => 'pour le palier suivant',

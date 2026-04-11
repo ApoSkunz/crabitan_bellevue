@@ -460,6 +460,9 @@ function initCartModal() {
 
             if (!data.success) throw new Error('API error');
 
+            if (data.capped && data.message) {
+                showToast(data.message, true);
+            }
             showCartSuccess(qty, data.total_quantity ?? null);
         } catch {
             const isEn = document.documentElement.lang === 'en';
@@ -2081,6 +2084,12 @@ function initCartPage() {
                 });
                 const data = await res.json();
                 if (!data.success) throw new Error('update failed');
+                if (data.capped && data.message) {
+                    showToast(data.message, true);
+                    if (data.effective_qty !== undefined) {
+                        qtyInput.value = data.effective_qty;
+                    }
+                }
                 updateCartCount(data.total_quantity ?? null);
             } catch {
                 showToast(isEn ? 'Failed to update quantity.' : 'Échec de la mise à jour.', true);
@@ -2110,6 +2119,12 @@ function initCartPage() {
                 });
                 const data = await res.json();
                 if (!data.success) throw new Error('update failed');
+                if (data.capped && data.message) {
+                    showToast(data.message, true);
+                    if (data.effective_qty !== undefined) {
+                        input.value = data.effective_qty;
+                    }
+                }
                 updateCartCount(data.total_quantity ?? null);
             } catch {
                 showToast(isEn ? 'Failed to update quantity.' : 'Échec de la mise à jour.', true);

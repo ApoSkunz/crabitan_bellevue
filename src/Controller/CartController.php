@@ -49,6 +49,10 @@ class CartController extends Controller
         $nextTier    = null;
         $totalQty    = 0;
 
+        // Flash : articles retirés du panier lors d'un aller checkout → retour panier
+        $removedCount = (int) ($_SESSION['flash']['cart_wines_removed'] ?? 0);
+        unset($_SESSION['flash']['cart_wines_removed']);
+
         $userId = $this->resolveUserId();
         if ($userId !== null) {
             $isAuth       = true;
@@ -99,6 +103,7 @@ class CartController extends Controller
 
         $this->view('cart/index', [
             'lang'             => $lang,
+            'removedCount'     => $removedCount,
             'cartItems'        => $cartItems,
             'isAuth'           => $isAuth,
             'isB2B'            => $isB2B,

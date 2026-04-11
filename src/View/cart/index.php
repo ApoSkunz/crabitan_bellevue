@@ -26,11 +26,18 @@ $deliveryDiscount = $deliveryDiscount ?? 0.0;
 $pricingRules     = $pricingRules     ?? [];
 $crossSellWines   = $crossSellWines   ?? [];
 $featuredWine     = $featuredWine     ?? null;
+$removedCount     = (int) ($removedCount ?? 0);
 ?>
 
 <?php $checkoutStep = 1; require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S2003 : require intentionnel, le partiel est chargé plusieurs fois (vues + tests isolation) ?>
 
 <main class="page-cart" id="main-content">
+    <?php if ($removedCount > 0) : ?>
+    <div class="alert alert--warning container" role="alert">
+        <?= htmlspecialchars(__('cart.wines_removed_notice')) ?>
+    </div>
+    <?php endif; ?>
+
     <div class="page-hero page-hero--dark">
         <div class="container">
             <h1 class="home-section__title"><?= htmlspecialchars(__('cart.title')) ?></h1>

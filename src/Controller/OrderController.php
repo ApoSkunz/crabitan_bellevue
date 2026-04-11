@@ -98,6 +98,12 @@ class OrderController extends Controller
             fn(int $id): ?array => $this->wines->getById($id)
         );
 
+        // Si des articles ont été retirés, informer l'utilisateur et le renvoyer au panier
+        if (!empty($removed)) {
+            $_SESSION['flash']['cart_wines_removed'] = count($removed);
+            Response::redirect("/{$lang}/panier");
+        }
+
         $row = $this->carts->findByUserId($userId);
         if ($row === false || $this->carts->getContent($row) === []) {
             Response::redirect("/{$lang}/panier");
