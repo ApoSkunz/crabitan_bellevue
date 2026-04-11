@@ -115,7 +115,6 @@ jobs:
     # On télécharge le binaire depuis GitHub Releases et on l'exécute directement.
     permissions:
       contents: read
-      administration: read  # requis pour branch protections, webhooks, repo settings
 
     steps:
       - name: Checkout
