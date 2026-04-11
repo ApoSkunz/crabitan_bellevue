@@ -10,10 +10,12 @@ require_once ROOT_PATH . '/vendor/autoload.php';
 require_once ROOT_PATH . '/src/helpers.php';
 require_once ROOT_PATH . '/config/config.php';
 
+use Core\ErrorLogger;
 use Core\Router;
 use Core\Request;
 use Middleware\SecurityHeaderMiddleware;
 
+ErrorLogger::register();
 SecurityHeaderMiddleware::apply();
 
 $request = new Request();
