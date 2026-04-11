@@ -1,0 +1,343 @@
+@use '../abstracts/mixins' as m;
+
+// ============================================================
+// Corrections responsive mobile — 320px à 767px
+// Ce fichier couvre UNIQUEMENT le breakpoint mobile (< md = 768px).
+// Ne pas modifier les breakpoints tablette (768px+).
+// ============================================================
+
+// ---- 1. Overflow global ----
+// Empêche tout scroll horizontal sur n'importe quelle page
+
+html,
+body {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+// ---- 2. Header mobile ----
+
+@media (max-width: 767px) {
+    // Logo trop grand pour 320px
+    .header-logo img {
+        height: 64px;
+    }
+
+    // Compresse les gaps sur petits écrans
+    .header-main {
+        gap: 0.4rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .header-left {
+        gap: 0.4rem;
+    }
+
+    .header-actions {
+        gap: 0.4rem;
+    }
+
+    // Menu mobile — évite le débordement sur 320px + scroll interne si long
+    .header-nav--mobile {
+        padding: 0.75rem 1rem;
+        max-height: calc(100dvh - 80px);
+        overflow-y: auto;
+
+        a {
+            font-size: 1.1rem;
+            padding: 0.65rem 0;
+        }
+    }
+
+    // Icônes du panier / langue — réduits sur 320px
+    .lang-switch a {
+        padding: 0.25em 0.45em;
+        font-size: 0.85rem;
+    }
+}
+
+// ---- 3. Catalogue vins — grille 1 colonne sur < 480px ----
+
+@media (max-width: 479px) {
+    .wines-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    // Cross-sell aussi en 1 colonne
+    .wine-cross-sell__grid,
+    .cart-cross-sell__grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+}
+
+// ---- 4. Filtres catalogue — pleine largeur sur mobile ----
+
+@media (max-width: 767px) {
+    .wines-filters {
+        padding: 1rem 0.75rem;
+
+        &__form {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        &__right {
+            margin-left: 0;
+            align-items: flex-start;
+        }
+
+        &__bottom-row {
+            justify-content: flex-start;
+        }
+
+        &__sort,
+        &__per-page {
+            flex-wrap: wrap;
+        }
+
+        &__sort select,
+        &__per-page select {
+            max-width: 100%;
+        }
+    }
+}
+
+// ---- 5. Fiche vin — image pleine largeur ----
+
+@media (max-width: 767px) {
+    .wine-detail__image-wrap {
+        height: 280px;
+    }
+
+    .wine-detail__actions {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    // Tableau nutrition — scroll horizontal contenu dans le wrapper
+    .wine-nutrition__table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    // Specs DL — empile les colonnes
+    .wine-detail__specs {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+
+        dt {
+            margin-top: 0.5rem;
+        }
+    }
+}
+
+// ---- 6. Espace compte ----
+
+@media (max-width: 767px) {
+    .account-page {
+        padding: 2rem 1rem 4rem;
+    }
+
+    // Nav latérale → pills horizontaux scrollables
+    .account-nav {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 0.4rem;
+        padding-bottom: 0.5rem;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        &__link {
+            white-space: nowrap;
+            flex-shrink: 0;
+            font-size: 0.82rem;
+            padding: 0.45rem 0.75rem;
+        }
+    }
+
+    // Formulaires compte — pleine largeur
+    .account-form {
+        max-width: 100%;
+    }
+
+    // Tableau commandes — scroll interne
+    .account-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    // Grille adresses → 1 colonne
+    .account-address-list {
+        grid-template-columns: 1fr;
+    }
+
+    // Favoris → 1 colonne sur très petit
+    @media (max-width: 479px) {
+        .account-favorites-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+// ---- 7. Panier ----
+
+@media (max-width: 767px) {
+    .cart-section {
+        padding: 1rem 0.75rem 3rem;
+    }
+
+    // Layout en colonne unique (déjà géré à 900px mais on le confirme proprement)
+    .cart-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    // Résumé : retire sticky sur mobile (evite overlap)
+    .cart-summary {
+        position: static;
+        padding: 1.25rem 1rem;
+    }
+}
+
+// ---- 8. Checkout ----
+
+@media (max-width: 767px) {
+    .checkout-section {
+        padding: 1.5rem 0.75rem 3rem;
+    }
+
+    // Layout en colonne unique
+    .checkout-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    // Résumé checkout : retire sticky
+    .checkout-summary {
+        position: static;
+    }
+
+    // Onglets paiement — texte plus petit sur 320px
+    .checkout-payment-tab {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.4rem;
+    }
+
+    // Carte checkout — moins de padding
+    .checkout-card {
+        padding: 1.25rem 1rem;
+    }
+
+    // Grille adresses en 1 col
+    .checkout-address-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+// ---- 9. Confirmation — adresses en 1 col sur petits écrans ----
+
+@media (max-width: 479px) {
+    .confirmation-addresses {
+        grid-template-columns: 1fr;
+    }
+
+    .confirmation-card {
+        padding: 1.5rem 1rem;
+    }
+}
+
+// ---- 10. Modal inscription — row 2 cols → 1 col ----
+
+@media (max-width: 479px) {
+    .register-modal__row {
+        grid-template-columns: 1fr;
+    }
+}
+
+// ---- 11. Homepage — padding réduit mobile ----
+
+@media (max-width: 767px) {
+    .home-section {
+        padding: 3rem 1rem;
+    }
+
+    .home-news {
+        padding: 3rem 0;
+
+        &__grid {
+            padding: 0 1rem;
+        }
+    }
+
+    .home-video {
+        padding: 3rem 0;
+
+        &__player {
+            padding: 0 1rem;
+        }
+    }
+
+    .home-location {
+        padding: 3rem 0;
+    }
+}
+
+// ---- 12. Modals connexion/inscription — scrollables ----
+// Déjà gérés avec max-height + overflow-y: auto dans _modal.scss
+// On s'assure juste que le padding interne ne génère pas d'overflow
+
+@media (max-width: 479px) {
+    .login-modal__inner,
+    .register-modal__inner,
+    .cart-modal__inner {
+        width: calc(100vw - 2rem);
+    }
+
+    .login-modal__body,
+    .register-modal__body,
+    .cart-modal__body {
+        padding: 1rem;
+    }
+
+    .login-modal__header,
+    .register-modal__header,
+    .cart-modal__header {
+        padding: 1rem 1rem 0.75rem;
+    }
+}
+
+// ---- 13. Footer — logos paiement centrés sur mobile ----
+
+@media (max-width: 767px) {
+    .footer-payments {
+        justify-content: center;
+    }
+
+    .footer-hve img {
+        height: 80px;
+    }
+}
+
+// ---- 14. Page hero — padding réduit ----
+
+@media (max-width: 767px) {
+    .page-hero {
+        padding: 2.5rem 1rem 2rem;
+    }
+}
+
+// ---- 15. Container utilitaire — padding réduit ----
+
+@media (max-width: 767px) {
+    .container {
+        padding: 0 1rem;
+    }
+}

@@ -10,6 +10,7 @@
 html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    overflow-x: hidden; // empêche le scroll horizontal global
 }
 
 body {
@@ -20,6 +21,7 @@ body {
     color: var(--color-text);
     background-color: var(--color-bg);
     transition: background-color 300ms ease, color 300ms ease;
+    overflow-x: hidden; // empêche le scroll horizontal global
 }
 
 img,
