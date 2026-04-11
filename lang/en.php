@@ -826,6 +826,8 @@ return [
     'mail.order_status_subject_delivered'  => 'Your order has been delivered — %s',
     'mail.order_status_subject_cancelled'  => 'Your order has been cancelled — %s',
     'mail.order_status_subject_refunded'   => 'Your order has been refunded — %s',
+    'admin.refund_gae_ko_subject'          => 'GAE Refund KO — manual action required',
+    'admin.refund_gae_ko_body'             => 'The GAE refund for order {ref} ({amount} €) has failed. Please process it manually via Vision Air.',
 
     'mail.order_status_body_processing' => 'Your order <strong>%s</strong> is currently being prepared. We are doing our best to ship it to you as soon as possible.',
     'mail.order_status_body_shipped'    => 'Your order <strong>%s</strong> has been shipped. You should receive it within the next few working days.',

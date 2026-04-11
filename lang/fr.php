@@ -828,6 +828,8 @@ return [
     'mail.order_status_subject_delivered'  => 'Votre commande a été livrée — %s',
     'mail.order_status_subject_cancelled'  => 'Votre commande a été annulée — %s',
     'mail.order_status_subject_refunded'   => 'Votre commande a été remboursée — %s',
+    'admin.refund_gae_ko_subject'          => 'Remboursement GAE KO — action manuelle requise',
+    'admin.refund_gae_ko_body'             => 'Le remboursement GAE de la commande {ref} ({amount} €) a échoué. Veuillez procéder manuellement via Vision Air.',
 
     'mail.order_status_body_processing' => 'Votre commande <strong>%s</strong> est actuellement en cours de préparation. Nous mettons tout en œuvre pour vous l\'expédier dans les meilleurs délais.',
     'mail.order_status_body_shipped'    => 'Votre commande <strong>%s</strong> a été expédiée. Vous devriez la recevoir dans les prochains jours ouvrés.',

@@ -1648,6 +1648,33 @@ INNER;
     }
 
     /**
+     * Notifie les gérants qu'un remboursement GAE a échoué — action manuelle requise.
+     *
+     * @param string $orderRef Référence de la commande
+     * @param float  $amount   Montant de la commande
+     * @return void
+     */
+    public function sendRefundGaeKoToOwner(string $orderRef, float $amount): void
+    {
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
+        $safeRef    = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeAmount = number_format($amount, 2, ',', ' ');
+
+        $subject = 'Remboursement GAE KO — action manuelle requise';
+        $message = "Le remboursement GAE de la commande <strong>{$safeRef}</strong> ({$safeAmount}&nbsp;€) a échoué.<br><br>"
+            . "Veuillez procéder manuellement via Vision Air.";
+
+        $body = $this->emailSimpleLayout(
+            'Remboursement GAE KO',
+            'Remboursement GAE KO — action manuelle requise',
+            $message,
+            'fr'
+        );
+
+        $this->send($ownerEmail, APP_NAME, $subject, $body);
+    }
+
+    /**
      * Envoie au propriétaire la liste des commandes sans mouvement depuis plus de $days jours.
      *
      * @param array<int, array<string, mixed>> $orders Commandes retournées par OrderModel::getStaleOrders()

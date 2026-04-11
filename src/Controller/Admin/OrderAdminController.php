@@ -194,7 +194,25 @@ class OrderAdminController extends AdminController
             $refunded = $this->newPaymentService()->callGaeCancelOrRefund($ref, $numappel, $numtrans, $amount);
 
             if (!$refunded) {
-                $this->flash('error', 'Échec du remboursement CB (CA). Vérifiez dans Vision Air.');
+                $this->flash('error', 'Échec du remboursement CB (CA). Les gérants ont été notifiés pour un remboursement manuel.');
+                try {
+                    $this->newMailService()->sendRefundGaeKoToOwner(
+                        $ref,
+                        (float) ($order['price'] ?? 0)
+                    );
+                } catch (\Throwable $mailErr) {
+                    // phpcs:ignore Generic.Files.LineLength
+                    error_log('[OrderAdmin] GAE KO mail error for order #' . $id . ': ' . $mailErr->getMessage()); // NOSONAR — php:S4792
+                }
+                $this->orders->updateStatus($id, 'return_requested');
+                AuditLogger::log(
+                    $adminUser['id'],
+                    'order.refund_gae_ko',
+                    'order',
+                    $id,
+                    ['ref' => $ref, 'amount' => $order['price'] ?? 0, 'new_status' => 'return_requested'],
+                    AuditLogger::getIp()
+                );
                 Response::redirect(self::ADMIN_URL . '/' . $id);
             }
         }
