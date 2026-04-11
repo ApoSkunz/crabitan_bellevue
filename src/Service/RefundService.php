@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Service;
 
+use Exception\GaeRefundException;
 use Model\OrderModel;
 
 /**
@@ -44,7 +45,7 @@ class RefundService
      *
      * @param int $orderId Identifiant de la commande à rembourser
      * @return string Nouveau statut de la commande (`refunded` ou `refund_pending`)
-     * @throws \RuntimeException Si GAE est activé et que le remboursement échoue
+     * @throws GaeRefundException Si GAE est activé et que le remboursement échoue
      * @throws \InvalidArgumentException Si la commande est introuvable
      */
     public function refund(int $orderId): string
@@ -70,7 +71,7 @@ class RefundService
      * @param int                  $orderId Identifiant de la commande
      * @param array<string, mixed> $order   Données de la commande
      * @return string Statut `refunded`
-     * @throws \RuntimeException Si le remboursement GAE échoue
+     * @throws GaeRefundException Si le remboursement GAE échoue
      */
     private function refundViaGae(int $orderId, array $order): string
     {
@@ -82,7 +83,7 @@ class RefundService
         $success = $this->gae->refund($ref, $numappel, $numtrans, $amount);
 
         if (!$success) {
-            throw new \RuntimeException("Échec remboursement GAE pour commande #{$orderId}");
+            throw new GaeRefundException("Échec remboursement GAE pour commande #{$orderId}");
         }
 
         $this->orders->updateStatus($orderId, 'refunded');
