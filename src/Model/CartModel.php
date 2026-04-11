@@ -273,6 +273,7 @@ class CartModel extends Model
 
             $result[] = [
                 'cart_id'   => (int) $row['cart_id'],
+                'user_id'   => (int) ($row['user_id'] ?? 0),
                 'email'     => (string) ($row['email'] ?? ''),
                 'firstname' => (string) ($row['firstname'] ?? $row['company_name'] ?? 'Client'),
                 'lang'      => $lang,
