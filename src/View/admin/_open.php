@@ -62,6 +62,35 @@ if (empty($_SESSION['csrf'])) {
     <link rel="stylesheet" href="/assets/css/main.css">
     <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
     window.__appUrl = '<?= htmlspecialchars(rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/'), ENT_QUOTES) ?>';
+
+    // Handlers délégués — conformité CSP (remplace tous les on* inline)
+    document.addEventListener('submit', function (e) {
+        var msg = e.target.getAttribute('data-confirm');
+        if (msg && !confirm(msg)) { e.preventDefault(); }
+    });
+    document.addEventListener('click', function (e) {
+        var link = e.target.closest('a[data-confirm]');
+        if (link && !confirm(link.getAttribute('data-confirm'))) { e.preventDefault(); }
+        var btn = e.target.closest('button[data-pwd-target]');
+        if (btn) {
+            var input = document.getElementById(btn.dataset.pwdTarget);
+            if (input) {
+                var h = input.type === 'password';
+                input.type = h ? 'text' : 'password';
+                var show = btn.querySelector('.eye-icon--show');
+                var hide = btn.querySelector('.eye-icon--hide');
+                if (show) { show.style.display = h ? 'none' : ''; }
+                if (hide) { hide.style.display = h ? '' : 'none'; }
+                btn.setAttribute('aria-label', h ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+            }
+        }
+    });
+    document.addEventListener('change', function (e) {
+        if (e.target.matches('select[data-auto-submit]') && e.target.form) {
+            e.target.form.submit();
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.admin-flash--success').forEach(function (el) {
             setTimeout(function () {

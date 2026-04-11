@@ -26,6 +26,8 @@ class SecurityHeaderMiddleware
             define('CSP_NONCE', $nonce);
         }
 
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+
         $csp = implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'nonce-{$nonce}'",
@@ -43,5 +45,22 @@ class SecurityHeaderMiddleware
         // X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
         // et HSTS sont gérés statiquement dans public/.htaccess
         header("Content-Security-Policy: {$csp}");
+
+        // X-Robots-Tag : noai sur les pages vins (catalogue)
+        if (self::isWinePath($uri)) {
+            header('X-Robots-Tag: noai, noimageai');
+        }
+    }
+
+    /**
+     * Détermine si l'URI courante est une page catalogue vins.
+     *
+     * @param string $uri URI de la requête
+     * @return bool
+     */
+    public static function isWinePath(string $uri): bool
+    {
+        $path = strtok($uri, '?');
+        return (bool) preg_match('#^/(fr/vins|en/wines)(/|$)#', (string) $path);
     }
 }

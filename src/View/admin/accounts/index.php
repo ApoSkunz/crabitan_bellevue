@@ -147,7 +147,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                                     <form method="POST"
                                           action="/admin/comptes/<?= (int) $account['id'] ?>/verifier"
                                           style="display:inline;"
-                                          onsubmit="return confirm('Vérifier ce compte manuellement ?')">
+                                          data-confirm="Vérifier ce compte manuellement ?">
                                         <input type="hidden" name="csrf_token"
                                                value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
                                         <button type="submit"

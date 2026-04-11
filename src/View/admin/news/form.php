@@ -41,8 +41,7 @@ $errClass = ' is-error';
                     <label class="admin-field__label" for="title_fr">Français *</label>
                     <input type="text" id="title_fr" name="title_fr"
                            class="admin-field__input<?= hasError($errors, 'title_fr') ? $errClass : '' ?>"
-                           value="<?= htmlspecialchars($titleData['fr'] ?? '') ?>"
-                           oninput="updateNewsSlug(this.value)">
+                           value="<?= htmlspecialchars($titleData['fr'] ?? '') ?>">
                     <span class="admin-field__error"
                           id="err-title_fr"
                           style="display:<?= hasError($errors, 'title_fr') ? 'block' : 'none' ?>;">
@@ -119,8 +118,7 @@ $errClass = ' is-error';
                 </label>
                 <input type="file" id="image" name="image"
                        accept="image/jpeg,image/png,image/webp"
-                       class="admin-field__input<?= hasError($errors, 'image') ? $errClass : '' ?>"
-                       onchange="previewImage(this)">
+                       class="admin-field__input<?= hasError($errors, 'image') ? $errClass : '' ?>">
                 <span class="admin-field__error"
                       id="err-image"
                       style="display:<?= hasError($errors, 'image') ? 'block' : 'none' ?>;">
@@ -199,6 +197,13 @@ function previewImage(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const titleInput = document.getElementById('title_fr');
+    const imageInput = document.getElementById('image');
+    if (titleInput) { titleInput.addEventListener('input', function () { updateNewsSlug(this.value); }); }
+    if (imageInput) { imageInput.addEventListener('change', function () { previewImage(this); }); }
+});
 </script>
 
 <?php require_once SRC_PATH . '/View/admin/_close.php'; ?>
