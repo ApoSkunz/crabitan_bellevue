@@ -1346,7 +1346,13 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         }
 
         $where = $this->segmentWhere($segment);
-        $row   = $this->db->fetchOne(
+
+        // 'tous' ou segment inconnu → toutes sources via UNION (même logique que countNewsletterSubscribers())
+        if ($where === '' && $segment !== 'non-inscrit') {
+            return $this->countNewsletterSubscribers();
+        }
+
+        $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total
              FROM {$this->table} a
              WHERE a.newsletter = 1 AND a.deleted_at IS NULL {$where}"

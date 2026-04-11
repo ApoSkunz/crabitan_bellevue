@@ -36,7 +36,7 @@ class AccountModelNewsletterConsolidationTest extends IntegrationTestCase
      */
     private function createNewsletterAccount(string $email): string
     {
-        $this->model->create(
+        $idStr = $this->model->create(
             'individual',
             $email,
             password_hash('TestPass7#!', PASSWORD_BCRYPT),
@@ -48,6 +48,9 @@ class AccountModelNewsletterConsolidationTest extends IntegrationTestCase
             'Jean',
             ''
         );
+        // create() met newsletter=0 + newsletter_optin_pending=1 (double opt-in)
+        // On simule la vérification email qui active le newsletter
+        $this->model->activateNewsletterFromPending((int) $idStr);
         return $email;
     }
 
