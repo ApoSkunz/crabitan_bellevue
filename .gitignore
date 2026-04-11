@@ -67,3 +67,7 @@ logs/
 # Scripts utilitaires locaux
 /coverage-check.php
 /coverage/
+
+# Stryker — rapports de mutation testing
+/build/stryker/
+/.stryker-tmp/
