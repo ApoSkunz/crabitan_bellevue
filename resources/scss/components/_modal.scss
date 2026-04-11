@@ -145,6 +145,13 @@
         }
     }
 
+    &__stock-info {
+        font-size: 0.72rem;
+        color: #c0392b;
+        font-style: italic;
+        margin: 0;
+    }
+
     &__qty-controls {
         display: flex;
         align-items: center;
