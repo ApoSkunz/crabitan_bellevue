@@ -371,12 +371,13 @@ function openNlModal() {
     const subjectErr = document.getElementById('nl-subject-error');
     const bodyErr    = document.getElementById('nl-body-error');
 
+    const subjectWrap = subjectInput.parentElement;
     if (!subject) {
-        subjectInput.classList.add('is-error');
+        if (subjectWrap) { subjectWrap.style.borderColor = '#dc2626'; }
         subjectErr.style.display = 'block';
         hasError = true;
     } else {
-        subjectInput.classList.remove('is-error');
+        if (subjectWrap) { subjectWrap.style.borderColor = ''; }
         subjectErr.style.display = 'none';
     }
     if (!body) {

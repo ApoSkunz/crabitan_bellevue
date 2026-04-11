@@ -82,21 +82,21 @@ if (empty($_SESSION['csrf'])) {
 
     // ── Handlers délégués — conformité CSP ──────────────────────────────
     document.addEventListener('submit', function (e) {
-        var msg = e.target.getAttribute('data-confirm');
+        var msg = e.target.getAttribute('data-admin-confirm');
         if (!msg) { return; }
         e.preventDefault();
         var form = e.target;
         __openConfirm(msg, function () {
-            form.removeAttribute('data-confirm');
+            form.removeAttribute('data-admin-confirm');
             form.submit();
         });
     });
     document.addEventListener('click', function (e) {
-        var link = e.target.closest('a[data-confirm]');
+        var link = e.target.closest('a[data-admin-confirm]');
         if (link) {
             e.preventDefault();
             var href = link.href;
-            __openConfirm(link.getAttribute('data-confirm'), function () { window.location.href = href; });
+            __openConfirm(link.getAttribute('data-admin-confirm'), function () { window.location.href = href; });
         }
         var btn = e.target.closest('button[data-pwd-target]');
         if (btn) {

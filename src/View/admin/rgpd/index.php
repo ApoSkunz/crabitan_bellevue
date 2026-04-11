@@ -151,7 +151,7 @@ if (!function_exists('rgpdUrl')) {
                                         <a href="/admin/rgpd/demandes/<?= (int) $req['id'] ?>/export-portabilite"
                                            class="admin-btn admin-btn--outline admin-btn--xs"
                                            style="display:block;text-align:center;margin-bottom:6px;"
-                                           data-confirm="Envoyer l'export RGPD ?">
+                                           data-admin-confirm="Envoyer l'export RGPD ?">
                                             &#128228; Envoyer export
                                         </a>
                                     <?php endif; ?>

@@ -109,7 +109,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                             <?php endif; ?>
                         </div>
                         <form method="POST" action="/admin/securite/session/<?= (int) $session['id'] ?>/revoquer"
-                              <?= $isCurrent ? 'data-confirm="Révoquer votre session actuelle vous déconnectera. Continuer ?"' : '' ?>>
+                              <?= $isCurrent ? 'data-admin-confirm="Révoquer votre session actuelle vous déconnectera. Continuer ?"' : '' ?>>
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                             <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Révoquer</button>
                         </form>
@@ -117,7 +117,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                 <?php endforeach; ?>
             </div>
             <form method="POST" action="/admin/securite/sessions/revoquer-toutes"
-                  data-confirm="Toutes vos sessions seront révoquées et vous serez déconnecté. Continuer ?"
+                  data-admin-confirm="Toutes vos sessions seront révoquées et vous serez déconnecté. Continuer ?"
                   style="margin-top:1rem;">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Révoquer toutes les sessions</button>
@@ -153,7 +153,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                             <?php endif; ?>
                         </div>
                         <form method="POST" action="/admin/securite/appareils/retirer-confiance"
-                              data-confirm="Retirer cet appareil de la liste de confiance ?">
+                              data-admin-confirm="Retirer cet appareil de la liste de confiance ?">
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                             <input type="hidden" name="device_token" value="<?= htmlspecialchars($device['device_token']) ?>">
                             <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Retirer</button>
@@ -162,7 +162,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                 <?php endforeach; ?>
             </div>
             <form method="POST" action="/admin/securite/appareils/supprimer-toutes"
-                  data-confirm="Tous les appareils de confiance seront supprimés. Vous resterez connecté pour cette session, mais devrez revalider chaque appareil à la prochaine connexion. Continuer ?"
+                  data-admin-confirm="Tous les appareils de confiance seront supprimés. Vous resterez connecté pour cette session, mais devrez revalider chaque appareil à la prochaine connexion. Continuer ?"
                   style="margin-top:1rem;">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Supprimer tous les appareils de confiance</button>

@@ -103,7 +103,7 @@ function buildPageUrl(int $page, int $perPage): string
                                target="_blank" rel="noopener">Aperçu</a>
                             <form method="POST"
                                   action="/admin/bons-de-commande/<?= (int) $form['id'] ?>/supprimer"
-                                  data-confirm="Supprimer ce bon de commande ?"
+                                  data-admin-confirm="Supprimer ce bon de commande ?"
                                   style="margin:0;">
                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                 <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Supprimer</button>

@@ -63,7 +63,7 @@
                                     <form method="POST"
                                           action="/admin/admins/<?= (int) $admin['id'] ?>/bloquer"
                                           style="display:inline;"
-                                          data-confirm="Bloquer le compte <?= htmlspecialchars($admin['email']) ?> ?">
+                                          data-admin-confirm="Bloquer le compte <?= htmlspecialchars($admin['email']) ?> ?">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                         <button type="submit"
                                                 class="admin-btn admin-btn--outline admin-btn--sm"
@@ -75,7 +75,7 @@
                                     <form method="POST"
                                           action="/admin/admins/<?= (int) $admin['id'] ?>/debloquer"
                                           style="display:inline;"
-                                          data-confirm="Débloquer le compte <?= htmlspecialchars($admin['email']) ?> ?">
+                                          data-admin-confirm="Débloquer le compte <?= htmlspecialchars($admin['email']) ?> ?">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                         <button type="submit"
                                                 class="admin-btn admin-btn--outline admin-btn--sm"
