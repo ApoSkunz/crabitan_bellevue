@@ -21,6 +21,8 @@ use Service\PaymentService;
  */
 class IpnController
 {
+    private const LOG_CONTEXT = '[IPN]';
+
     private PaymentService $payment;
     private OrderModel $orders;
     private CartModel $carts;
@@ -68,7 +70,7 @@ class IpnController
                         );
                     }
                 } catch (\Throwable $alertError) {
-                    \Core\ErrorLogger::warning($alertError, '[IPN]');
+                    \Core\ErrorLogger::warning($alertError, self::LOG_CONTEXT);
                 }
 
                 http_response_code(400);
@@ -173,11 +175,11 @@ class IpnController
                             );
                         }
                     } catch (\Throwable $mailInvoiceError) {
-                        \Core\ErrorLogger::warning($mailInvoiceError, '[IPN]');
+                        \Core\ErrorLogger::warning($mailInvoiceError, self::LOG_CONTEXT);
                     }
                 }
             } catch (\Throwable $invoiceError) {
-                \Core\ErrorLogger::warning($invoiceError, '[IPN]');
+                \Core\ErrorLogger::warning($invoiceError, self::LOG_CONTEXT);
             }
 
             // Emails de confirmation — non bloquants
@@ -209,7 +211,7 @@ class IpnController
                     $discount
                 );
             } catch (\Throwable $mailError) {
-                \Core\ErrorLogger::warning($mailError, '[IPN]');
+                \Core\ErrorLogger::warning($mailError, self::LOG_CONTEXT);
             }
 
             unset($_SESSION['ca_payment']);

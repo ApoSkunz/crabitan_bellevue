@@ -29,6 +29,8 @@ use Service\StockNotificationService;
  */
 class OrderController extends Controller
 {
+    private const LOG_CONTEXT = '[ORDER]';
+
     /** Délai de livraison estimé affiché au client (L216-1 Code conso). */
     private const DELIVERY_DELAY    = '7 à 15 jours à compter de la réception du paiement';
     private const DELIVERY_DELAY_EN = '7 to 15 days upon receipt of payment';
@@ -788,7 +790,7 @@ class OrderController extends Controller
             try {
                 (new \Service\MailService())->sendNewsletterWelcome($email, $name, $lang);
             } catch (\Throwable $e) {
-                \Core\ErrorLogger::warning($e, '[ORDER]');
+                \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
             }
         }
     }
@@ -849,11 +851,11 @@ class OrderController extends Controller
                         $clientLang
                     );
                 } catch (\Throwable $mailErr) {
-                    \Core\ErrorLogger::warning($mailErr, '[ORDER]');
+                    \Core\ErrorLogger::warning($mailErr, self::LOG_CONTEXT);
                 }
             }
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, '[ORDER]');
+            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }
     }
 
@@ -894,7 +896,7 @@ class OrderController extends Controller
         try {
             (new StockNotificationService())->notifyIfThresholdCrossed($wine, $newStock);
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, '[ORDER]');
+            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }
 
         (new CartModel())->capWineQtyAcrossAllCarts($wineId, $newStock);
@@ -938,7 +940,7 @@ class OrderController extends Controller
                 $shippingDiscount
             );
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, '[ORDER]');
+            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }
     }
 }
