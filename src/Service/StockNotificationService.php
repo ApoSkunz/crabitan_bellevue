@@ -9,8 +9,10 @@ use Model\WineModel;
 /**
  * Service de notification email lors du franchissement du seuil de stock bas.
  *
- * Envoie un email aux clients ayant le vin dans leur panier BDD
- * ET aux abonnés newsletter actifs quand le stock passe sous STOCK_ALERTE_LIMIT.
+ * Envoie un email uniquement aux clients ayant le vin dans leur panier BDD
+ * quand le stock passe sous STOCK_ALERTE_LIMIT.
+ * Les abonnés newsletter sont exclus : leur consentement couvre la newsletter,
+ * pas les alertes stock (scope RGPD distinct).
  * La colonne low_stock_notified_at évite les doublons de notification.
  */
 class StockNotificationService
@@ -68,7 +70,7 @@ class StockNotificationService
         $wineId = (int) ($wine['id'] ?? 0);
         $appUrl = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
 
-        // Notifier les clients avec le vin dans leur panier
+        // Notifier uniquement les clients ayant ce vin dans leur panier BDD
         $cartUsers = $this->wineModel->getCartUsersWithWine($wineId);
         foreach ($cartUsers as $user) {
             $this->sendLowStockAlert(
@@ -78,26 +80,6 @@ class StockNotificationService
                 $wine,
                 $appUrl,
                 (string) ($user['newsletter_unsubscribe_token'] ?? '')
-            );
-        }
-
-        // Notifier les abonnés newsletter actifs
-        $subscribers = $this->wineModel->getActiveNewsletterSubscribers();
-        $notifiedEmails = array_column($cartUsers, 'email');
-
-        foreach ($subscribers as $sub) {
-            $email = (string) ($sub['email'] ?? '');
-            // Éviter le doublon si déjà notifié comme client panier
-            if (in_array($email, $notifiedEmails, true)) {
-                continue;
-            }
-            $this->sendLowStockAlert(
-                $email,
-                (string) ($sub['first_name'] ?? ''),
-                (string) ($sub['lang'] ?? 'fr'),
-                $wine,
-                $appUrl,
-                (string) ($sub['unsub_token'] ?? '')
             );
         }
 

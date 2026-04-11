@@ -92,8 +92,9 @@ class StockNotificationServiceTest extends TestCase
         $this->assertSame(42, $this->wineModel->notifiedWineId);
     }
 
-    public function testNotifiesNewsletterSubscribersWhenThresholdCrossed(): void
+    public function testDoesNotNotifyNewsletterSubscribersOnlyCartUsers(): void
     {
+        // RGPD : consentement newsletter ≠ alerte stock — abonnés exclus
         $wine = $this->makeWine(oldStock: 500, notifiedAt: null);
         $this->wineModel->newsletterSubs = [
             ['email' => 'newsletter@example.com', 'first_name' => 'Bob', 'lang' => 'en', 'unsub_token' => 'tok2'],
@@ -102,12 +103,14 @@ class StockNotificationServiceTest extends TestCase
         $result = $this->service->notifyIfThresholdCrossed($wine, 100);
 
         $this->assertTrue($result);
-        $this->assertSame(1, $this->mailService->sendCount);
+        // Aucun email — l'abonné newsletter n'a pas le vin en panier
+        $this->assertSame(0, $this->mailService->sendCount);
         $this->assertSame(42, $this->wineModel->notifiedWineId);
     }
 
-    public function testDeduplicatesCartUserAndNewsletterSubscriber(): void
+    public function testNotifiesOnlyCartUserWhenAlsoNewsletterSubscriber(): void
     {
+        // Client avec vin en panier ET abonné newsletter → 1 seul email (client panier)
         $wine = $this->makeWine(oldStock: 500, notifiedAt: null);
         $this->wineModel->cartUsers = [
             ['email' => 'shared@example.com', 'first_name' => 'Charlie', 'lang' => 'fr', 'newsletter_unsubscribe_token' => 'tok3'],
@@ -119,7 +122,7 @@ class StockNotificationServiceTest extends TestCase
         $result = $this->service->notifyIfThresholdCrossed($wine, 100);
 
         $this->assertTrue($result);
-        // Un seul email envoyé (dédupliqué)
+        // Un seul email (client panier uniquement — newsletter exclue)
         $this->assertSame(1, $this->mailService->sendCount);
     }
 
