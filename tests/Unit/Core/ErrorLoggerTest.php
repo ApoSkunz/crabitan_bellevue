@@ -18,7 +18,7 @@ class ErrorLoggerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->logDir = sys_get_temp_dir() . '/test-php-error-logs-' . uniqid();
+        $this->logDir = sys_get_temp_dir() . '/test-app-logs-' . uniqid();
         mkdir($this->logDir, 0755, true);
 
         // Redéfinir ROOT_PATH pour pointer vers le répertoire temporaire
@@ -36,6 +36,83 @@ class ErrorLoggerTest extends TestCase
             unlink($f);
         }
         @rmdir($this->logDir);
+    }
+
+    // ----------------------------------------------------------------
+    // register()
+    // ----------------------------------------------------------------
+
+    /**
+     * register() installe les handlers sans lever d'exception.
+     */
+    public function testRegisterInstallsHandlers(): void
+    {
+        ErrorLogger::register();
+        $this->assertTrue(true); // reached without error
+        restore_error_handler();
+        restore_exception_handler();
+    }
+
+    // ----------------------------------------------------------------
+    // write() — création du répertoire
+    // ----------------------------------------------------------------
+
+    /**
+     * write() crée le répertoire storage/logs/ s'il n'existe pas.
+     */
+    public function testWriteCreatesLogDirIfMissing(): void
+    {
+        $logDir = ROOT_PATH . '/storage/logs';
+        foreach (glob($logDir . '/*.log') ?: [] as $f) {
+            unlink($f);
+        }
+        @rmdir($logDir);
+        @rmdir(ROOT_PATH . '/storage');
+
+        ErrorLogger::write([
+            'timestamp' => date('Y-m-d H:i:s'),
+            'level'     => 'INFO',
+            'message'   => 'dir creation test',
+            'file'      => '',
+            'line'      => 0,
+            'trace'     => '',
+            'url'       => '/test',
+            'method'    => 'GET',
+        ]);
+
+        $this->assertDirectoryExists($logDir);
+    }
+
+    // ----------------------------------------------------------------
+    // purgeOldLogs()
+    // ----------------------------------------------------------------
+
+    /**
+     * write() déclenche la purge et supprime les fichiers de plus de 30 jours.
+     */
+    public function testPurgeOldLogsDeletesExpiredFile(): void
+    {
+        $logDir = ROOT_PATH . '/storage/logs';
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+
+        $oldFile = $logDir . '/app-' . date('Y-m-d', strtotime('-31 days')) . '.log';
+        file_put_contents($oldFile, 'old entry');
+        touch($oldFile, time() - (31 * 86400));
+
+        ErrorLogger::write([
+            'timestamp' => date('Y-m-d H:i:s'),
+            'level'     => 'INFO',
+            'message'   => 'purge trigger',
+            'file'      => '',
+            'line'      => 0,
+            'trace'     => '',
+            'url'       => '/test',
+            'method'    => 'GET',
+        ]);
+
+        $this->assertFileDoesNotExist($oldFile);
     }
 
     // ----------------------------------------------------------------
@@ -94,7 +171,7 @@ class ErrorLoggerTest extends TestCase
             'method'    => 'GET',
         ]);
 
-        $files = glob(ROOT_PATH . '/storage/logs/php-error-*.log') ?: [];
+        $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
         $this->assertNotEmpty($files);
 
         $content = file_get_contents($files[0]);
@@ -130,7 +207,7 @@ class ErrorLoggerTest extends TestCase
     {
         ErrorLogger::warning(new \RuntimeException('SMTP down'), '[MailService]');
 
-        $files = glob(ROOT_PATH . '/storage/logs/php-error-*.log') ?: [];
+        $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
         $this->assertNotEmpty($files);
 
         $content = file_get_contents($files[0]);
@@ -150,7 +227,7 @@ class ErrorLoggerTest extends TestCase
     {
         ErrorLogger::warning(new \InvalidArgumentException('bad arg'));
 
-        $files = glob(ROOT_PATH . '/storage/logs/php-error-*.log') ?: [];
+        $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
         $content = file_get_contents($files[0]);
         $this->assertNotFalse($content);
 
@@ -171,7 +248,7 @@ class ErrorLoggerTest extends TestCase
     {
         ErrorLogger::handleException(new \RuntimeException('Something broke'));
 
-        $files = glob(ROOT_PATH . '/storage/logs/php-error-*.log') ?: [];
+        $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
         $this->assertNotEmpty($files);
 
         $content = file_get_contents($files[0]);

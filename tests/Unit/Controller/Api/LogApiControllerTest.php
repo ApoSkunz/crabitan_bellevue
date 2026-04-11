@@ -36,7 +36,7 @@ class LogApiControllerTest extends TestCase
         unset($_SERVER['REMOTE_ADDR']);
 
         // Nettoyer les fichiers de log créés pendant le test
-        $logFile = ROOT_PATH . '/storage/logs/js-error-' . date('Y-m-d') . '.log';
+        $logFile = ROOT_PATH . '/storage/logs/app-' . date('Y-m-d') . '.log';
         if (file_exists($logFile)) {
             unlink($logFile);
         }
@@ -146,7 +146,7 @@ class LogApiControllerTest extends TestCase
         $this->assertSame(204, $caught->status);
 
         // Vérifier que le fichier log a été créé
-        $logFile = ROOT_PATH . '/storage/logs/js-error-' . date('Y-m-d') . '.log';
+        $logFile = ROOT_PATH . '/storage/logs/app-' . date('Y-m-d') . '.log';
         $this->assertFileExists($logFile);
 
         $line = trim(file_get_contents($logFile) ?: '');

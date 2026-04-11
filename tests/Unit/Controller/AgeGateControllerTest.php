@@ -264,7 +264,9 @@ class AgeGateControllerTest extends TestCase
         $_COOKIE                = [];
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
-        $logFile = ROOT_PATH . '/logs/age-gate.log';
+        // L'audit age-gate passe désormais par ErrorLogger::info() → storage/logs/app-*.log
+        $logDir  = ROOT_PATH . '/storage/logs';
+        $logFile = $logDir . '/app-' . date('Y-m-d') . '.log';
         if (file_exists($logFile)) {
             unlink($logFile);
         }
@@ -277,8 +279,10 @@ class AgeGateControllerTest extends TestCase
         }
         ob_end_clean();
 
-        $this->assertFileExists($logFile, 'confirm() doit créer logs/age-gate.log');
-        $this->assertStringContainsString('127.0.0.1', (string) file_get_contents($logFile));
+        $this->assertFileExists($logFile, 'confirm() doit écrire dans storage/logs/app-*.log');
+        $content = (string) file_get_contents($logFile);
+        $this->assertStringContainsString('age-gate', $content);
+        $this->assertStringContainsString('127.0.0.1', $content);
     }
 
     /**
