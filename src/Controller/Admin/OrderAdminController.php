@@ -202,8 +202,16 @@ class OrderAdminController extends AdminController
                         $id
                     );
                 } catch (\Throwable $mailErr) {
-                    // phpcs:ignore Generic.Files.LineLength
-                    error_log('[OrderAdmin] GAE KO mail error for order #' . $id . ': ' . $mailErr->getMessage()); // NOSONAR — php:S4792
+                    \Core\ErrorLogger::write([
+                        'timestamp' => date('Y-m-d H:i:s'),
+                        'level'     => 'EXCEPTION',
+                        'message'   => '[OrderAdmin] GAE KO mail error for order #' . $id . ': ' . $mailErr->getMessage(),
+                        'file'      => $mailErr->getFile(),
+                        'line'      => $mailErr->getLine(),
+                        'trace'     => substr($mailErr->getTraceAsString(), 0, 500),
+                        'url'       => $_SERVER['REQUEST_URI'] ?? '',
+                        'method'    => 'POST',
+                    ]);
                 }
                 $this->orders->updateStatus($id, 'return_requested');
                 AuditLogger::log(
