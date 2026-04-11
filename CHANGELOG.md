@@ -2,6 +2,39 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.69.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.68.1...v0.69.0) (2026-04-11)
+
+
+### Bug Fixes
+
+* **cart:** blocage stock en temps réel + alerte checkout vin indispo ([7841a54](https://github.com/ApoSkunz/crabitan_bellevue/commit/7841a5403f7308167df54fe8d0a98078c890c94e))
+* **model:** corriger ai.firstname (était ai.first_name) dans getCartUsersWithWine ([633549a](https://github.com/ApoSkunz/crabitan_bellevue/commit/633549a720f8b55cd2894cba315c6ca4ae4e75d8))
+* **model:** getCartUsersWithWine — LIKE au lieu de JSON_CONTAINS pour MariaDB ([a93987d](https://github.com/ApoSkunz/crabitan_bellevue/commit/a93987d2372f6c335a218379c97821c577c4193d))
+* **sonar:** réduire complexité openModal + supprimer ternaires imbriqués + NOSONAR cart ([198c48e](https://github.com/ApoSkunz/crabitan_bellevue/commit/198c48e4a19050805c4d8f9327636f620272303b))
+* **test:** phpcs — phpcs:ignore MultipleClasses sur stubs dans StockNotificationServiceTest ([a24b57d](https://github.com/ApoSkunz/crabitan_bellevue/commit/a24b57df436e5c6b60e30e655f47498864916377))
+* **ui:** toast 2000ms + bouton fermer + collection 4 colonnes (comme boutique) ([531c293](https://github.com/ApoSkunz/crabitan_bellevue/commit/531c29324319cd9a1bbe36b381ba8dcaf457b9cd))
+* **view:** badge stock sur collection + repositionner badge top-right + retirer border-top cross-sell ([6f0e761](https://github.com/ApoSkunz/crabitan_bellevue/commit/6f0e761d2f6a659f5a2a289badd21ec54d73ad1d))
+
+
+### Features
+
+* **admin:** stock=0 → available=0 automatiquement lors de la mise à jour vin ([187bcfb](https://github.com/ApoSkunz/crabitan_bellevue/commit/187bcfbeac56956f26b04f8cd5749ac339947ee1))
+* **cart:** bouton + grisé au max stock + toast 3000ms ([5cd4fab](https://github.com/ApoSkunz/crabitan_bellevue/commit/5cd4fabf35a18e443296ae89a40f70eaa442fca2))
+* **cart:** notifier silencieusement les vins filtrés au chargement du panier ([bb2e240](https://github.com/ApoSkunz/crabitan_bellevue/commit/bb2e24014b6ebe86f7167a081dbcff8d5f6a011c))
+* **controller:** alerte stock bas admin + contraintes stock commande ([fbec813](https://github.com/ApoSkunz/crabitan_bellevue/commit/fbec813b95712b22cd9f6f598407f6d267efa8db))
+* **controller:** filtrer silencieusement les vins unavailable dans enrichItemsWithPrice ([3b2b321](https://github.com/ApoSkunz/crabitan_bellevue/commit/3b2b3213062f7b16884836ed0946df839e5c1b43))
+* **i18n:** clé wine.low_stock_qty fr/en pour notice stock panier ([35dab5a](https://github.com/ApoSkunz/crabitan_bellevue/commit/35dab5a3101c986ed81aa76581b9afdb851aaa20))
+* **js:** modale panier — max effectif stock-panier + message stock limité ([836f0ae](https://github.com/ApoSkunz/crabitan_bellevue/commit/836f0ae74588997a443de9fdfa60d21a6a7f5c64))
+* **model:** ajouter resetLowStockNotified + getCartUsersWithWine ([2fe62ec](https://github.com/ApoSkunz/crabitan_bellevue/commit/2fe62ec1a920b42e22ad930f2277fe21c24531e9))
+* **model:** ajouter setLowStockNotifiedAt, getCartUsersWithWine, getActiveNewsletterSubscribers, removeWineFromAllCarts ([45afa3f](https://github.com/ApoSkunz/crabitan_bellevue/commit/45afa3fbd4583efe3b8b05e5e83df080d71a9cff))
+* **scss:** styles stock-info modale + admin-section + cart stock-notice ([a3ca419](https://github.com/ApoSkunz/crabitan_bellevue/commit/a3ca419c9b688c0825567a403f0469e736403649))
+* **service:** brancher StockNotificationService sur WineAdminController::update() ([9f22695](https://github.com/ApoSkunz/crabitan_bellevue/commit/9f2269564940919716e6dd73ac659f373e12c361))
+* **service:** créer StockNotificationService + sendLowStockAlert dans MailService ([1ac4b27](https://github.com/ApoSkunz/crabitan_bellevue/commit/1ac4b27973bf740c36422ce0d598ccde0c42f4fe))
+* **service:** StockNotificationService — traces error_log + split ligne PHPCS ([c86c342](https://github.com/ApoSkunz/crabitan_bellevue/commit/c86c3423f10aedade9f87a68be36e2705ba38e7d))
+* **view:** admin wines — cellule stock rouge + badge indisponible si stock=0 ([b86d2dc](https://github.com/ApoSkunz/crabitan_bellevue/commit/b86d2dc1acc56947a61625f435c8697d442fa178))
+* **view:** badge Stock limité sur catalogue et fiche vin quand stock ≤ STOCK_ALERTE_LIMIT ([a01a154](https://github.com/ApoSkunz/crabitan_bellevue/commit/a01a1547eefb13c40c1ebf3aa279f19b68695c4e))
+* **view:** contraintes stock — cartMap header + data-stock + notice panier ([c972ede](https://github.com/ApoSkunz/crabitan_bellevue/commit/c972edeee201b67e208ea82a1c75d2d0ecf2d747))
+
 ## [0.68.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.68.0...v0.68.1) (2026-04-11)
 
 
