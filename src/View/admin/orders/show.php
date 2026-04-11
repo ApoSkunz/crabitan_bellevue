@@ -232,13 +232,11 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                 <p style="font-size:0.875rem;color:#78350f;margin-bottom:1rem;">
                     Le remboursement automatique GAE est désactivé. Traitez ce remboursement manuellement dans Vision Air, puis confirmez ci-dessous.
                 </p>
-                <a href="https://www.ca-e-transactions.fr/admin" target="_blank" rel="noopener noreferrer"
-                   class="admin-btn admin-btn--outline"
-                   style="display:block;text-align:center;margin-bottom:1rem;border-color:#f59e0b;color:#92400e;">
-                    Traiter dans Vision Air ↗
-                </a>
+                <p style="font-size:0.8rem;color:#92400e;background:#fef3c7;border:1px solid #f59e0b;border-radius:4px;padding:0.5rem 0.75rem;margin-bottom:1rem;">
+                    Ouvrez <strong>Vision Air</strong> depuis votre poste de travail pour effectuer le remboursement, puis confirmez ci-dessous.
+                </p>
                 <form method="POST" action="/admin/commandes/<?= (int) $order['id'] ?>/statut"
-                      onsubmit="return confirm('Confirmer que le remboursement a bien été effectué dans Vision Air ?');">
+                      data-admin-confirm="Confirmer que le remboursement a bien été effectué dans Vision Air ?">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                     <input type="hidden" name="status" value="refunded">
                     <button type="submit" class="admin-btn admin-btn--primary" style="width:100%;">

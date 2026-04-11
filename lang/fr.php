@@ -825,6 +825,7 @@ return [
     'order.status.delivered'        => 'Livrée',
     'order.status.cancelled'        => 'Annulée',
     'order.status.refunded'         => 'Remboursée',
+    'order.status.refund_pending'   => 'Remboursement en attente',
     'order.status.return_requested' => 'Retour en cours',
     'order.status.refund_refused'   => 'Remboursement refusé',
 

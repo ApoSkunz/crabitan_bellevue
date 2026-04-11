@@ -823,6 +823,7 @@ return [
     'order.status.delivered'        => 'Delivered',
     'order.status.cancelled'        => 'Cancelled',
     'order.status.refunded'         => 'Refunded',
+    'order.status.refund_pending'   => 'Refund pending',
     'order.status.return_requested' => 'Return in progress',
     'order.status.refund_refused'   => 'Refund refused',
 
