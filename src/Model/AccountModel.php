@@ -1130,31 +1130,96 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     // Newsletter
     // ----------------------------------------------------------------
 
-    /** @return array<int, array<string, mixed>> */
+    /**
+     * Retourne la liste unifiée des abonnés newsletter (comptes + abonnements sans compte).
+     *
+     * La requête UNION garantit l'absence de doublon sur l'email : si un visiteur
+     * s'est abonné via newsletter_subscriptions puis a créé un compte avec newsletter=1,
+     * seul le compte remonte (le dédoublonnage à l'inscription a supprimé l'entrée ns,
+     * mais le NOT EXISTS dans la branche ns sert de filet de sécurité).
+     *
+     * @param  int $limit  Nombre de lignes
+     * @param  int $offset Décalage
+     * @return array<int, array<string, mixed>>
+     */
     public function getNewsletterSubscribers(int $limit, int $offset): array
     {
         return $this->db->fetchAll(
-            "SELECT a.id, a.email, a.account_type, a.lang, a.created_at,
-                    a.newsletter_unsubscribe_token,
-                    ai.firstname, ai.lastname,
-                    ac.company_name
-             FROM {$this->table} a
-             LEFT JOIN account_individuals ai ON ai.account_id = a.id
-             LEFT JOIN account_companies   ac ON ac.account_id = a.id
-             WHERE a.newsletter = 1 AND a.deleted_at IS NULL
-             ORDER BY a.created_at DESC
+            "SELECT unified.id, unified.email, unified.firstname, unified.lastname,
+                    unified.company_name, unified.account_type, unified.lang,
+                    unified.source, unified.created_at
+             FROM (
+                 SELECT a.id, a.email, ai.firstname, ai.lastname, ac.company_name,
+                        a.account_type, a.lang, 'account' AS source, a.created_at
+                 FROM {$this->table} a
+                 LEFT JOIN account_individuals ai ON ai.account_id = a.id
+                 LEFT JOIN account_companies   ac ON ac.account_id = a.id
+                 WHERE a.newsletter = 1 AND a.deleted_at IS NULL
+
+                 UNION
+
+                 SELECT NULL AS id, ns.email, NULL AS firstname, NULL AS lastname,
+                        NULL AS company_name, 'individual' AS account_type,
+                        ns.lang, 'subscription' AS source,
+                        ns.newsletter_consent_date AS created_at
+                 FROM newsletter_subscriptions ns
+                 WHERE ns.newsletter_confirmed = 1
+                   AND NOT EXISTS (
+                       SELECT 1 FROM {$this->table} a2
+                       WHERE a2.email = ns.email AND a2.newsletter = 1
+                   )
+             ) AS unified
+             ORDER BY unified.created_at DESC
              LIMIT ? OFFSET ?",
             [$limit, $offset]
         );
     }
 
+    /**
+     * Compte le total des abonnés newsletter toutes sources confondues.
+     *
+     * Additionne les comptes newsletter=1 et les abonnements sans compte confirmés
+     * sans doublon sur l'email.
+     *
+     * @return int
+     */
     public function countNewsletterSubscribers(): int
     {
         $row = $this->db->fetchOne(
-            "SELECT COUNT(*) AS total FROM {$this->table}
-             WHERE newsletter = 1 AND deleted_at IS NULL"
+            "SELECT COUNT(*) AS total FROM (
+                 SELECT a.email
+                 FROM {$this->table} a
+                 WHERE a.newsletter = 1 AND a.deleted_at IS NULL
+
+                 UNION
+
+                 SELECT ns.email
+                 FROM newsletter_subscriptions ns
+                 WHERE ns.newsletter_confirmed = 1
+                   AND NOT EXISTS (
+                       SELECT 1 FROM {$this->table} a2
+                       WHERE a2.email = ns.email AND a2.newsletter = 1
+                   )
+             ) AS unified"
         );
         return (int) ($row['total'] ?? 0);
+    }
+
+    /**
+     * Supprime l'abonnement newsletter_subscriptions pour un email donné.
+     *
+     * Utilisé lors de la création de compte : si l'utilisateur coche newsletter=1,
+     * l'éventuelle entrée dans newsletter_subscriptions est supprimée (dédoublonnage).
+     *
+     * @param  string $email Adresse email à dédoublonner
+     * @return void
+     */
+    public function deleteNewsletterSubscriptionByEmail(string $email): void
+    {
+        $this->db->execute(
+            "DELETE FROM newsletter_subscriptions WHERE email = ?",
+            [$email]
+        );
     }
 
     /**
@@ -1180,6 +1245,11 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     /**
      * Retourne les abonnés newsletter filtrés par segment.
      *
+     * Pour le segment 'tous', la requête inclut les abonnés sans compte via UNION
+     * (newsletter_subscriptions confirmés non présents dans accounts avec newsletter=1).
+     * Les autres segments (particuliers, professionnels, commandes…) ne concernent
+     * que les comptes et n'incluent pas les abonnés sans compte.
+     *
      * @param  string $segment Identifiant du segment (tous, particuliers, professionnels, commandes, sans-commande, inactifs)
      * @param  int    $limit   Nombre de lignes
      * @param  int    $offset  Décalage
@@ -1187,6 +1257,40 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      */
     public function getNewsletterSubscribersBySegment(string $segment, int $limit, int $offset): array
     {
+        if ($segment === 'tous') {
+            return $this->db->fetchAll(
+                "SELECT unified.email, unified.firstname, unified.lastname,
+                        unified.company_name, unified.account_type, unified.lang,
+                        unified.newsletter_unsubscribe_token, unified.source, unified.created_at
+                 FROM (
+                     SELECT a.email, ai.firstname, ai.lastname, ac.company_name,
+                            a.account_type, a.lang, a.newsletter_unsubscribe_token,
+                            'account' AS source, a.created_at
+                     FROM {$this->table} a
+                     LEFT JOIN account_individuals ai ON ai.account_id = a.id
+                     LEFT JOIN account_companies   ac ON ac.account_id = a.id
+                     WHERE a.newsletter = 1 AND a.deleted_at IS NULL
+
+                     UNION
+
+                     SELECT ns.email, NULL AS firstname, NULL AS lastname,
+                            NULL AS company_name, 'individual' AS account_type,
+                            ns.lang, NULL AS newsletter_unsubscribe_token,
+                            'subscription' AS source,
+                            ns.newsletter_consent_date AS created_at
+                     FROM newsletter_subscriptions ns
+                     WHERE ns.newsletter_confirmed = 1
+                       AND NOT EXISTS (
+                           SELECT 1 FROM {$this->table} a2
+                           WHERE a2.email = ns.email AND a2.newsletter = 1
+                       )
+                 ) AS unified
+                 ORDER BY unified.created_at DESC
+                 LIMIT ? OFFSET ?",
+                [$limit, $offset]
+            );
+        }
+
         $where = $this->segmentWhere($segment);
         return $this->db->fetchAll(
             "SELECT a.id, a.email, a.account_type, a.lang, a.created_at,
