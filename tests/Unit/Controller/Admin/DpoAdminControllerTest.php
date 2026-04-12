@@ -29,6 +29,8 @@ class DpoAdminControllerTest extends TestCase
         $this->instanceProp = new \ReflectionProperty(\Core\Database::class, 'instance');
         $this->instanceProp->setValue(null, $dbMock);
 
+        $_ENV['DPO_EMAIL'] = $_ENV['DPO_EMAIL'] ?? 'dpo@test.local';
+
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI']    = '/admin/dpo';
         $this->ctrl = new \Controller\Admin\DpoAdminController(new \Core\Request());
@@ -218,8 +220,7 @@ class DpoAdminControllerTest extends TestCase
 
         $this->assertStringContainsString('GFA Bernard Solane et Fils', $html);
         $this->assertStringContainsString('398 341 701 00017', $html);
-        // L'email est lu depuis $_ENV['CONTACT_OWNER_EMAIL'] (fallback : crabitan.bellevue@orange.fr)
-        $expectedEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
-        $this->assertStringContainsString($expectedEmail, $html);
+        // L'email DPO est lu depuis $_ENV['DPO_EMAIL']
+        $this->assertStringContainsString($_ENV['DPO_EMAIL'], $html);
     }
 }
