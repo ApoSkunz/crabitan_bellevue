@@ -6,6 +6,7 @@ namespace Service;
 
 use Core\ErrorLogger;
 use Model\AccountModel;
+use Service\MailService;
 use Service\RateLimiterService;
 use Service\SecurityAlertService;
 
@@ -44,21 +45,27 @@ class LoginService
     private RateLimiterService $rateLimiter;
     private SecurityAlertService $securityAlert;
 
+    /** Service d'envoi d'emails. */
+    private MailService $mailer;
+
     /**
      * Constructeur avec injection des dépendances.
      *
      * @param AccountModel         $accounts      Modèle de comptes utilisateurs
      * @param RateLimiterService   $rateLimiter   Service de rate limiting
      * @param SecurityAlertService $securityAlert Service d'alertes sécurité admin
+     * @param MailService|null     $mailer        Service d'envoi d'emails (null → instancié en interne)
      */
     public function __construct(
         AccountModel $accounts,
         RateLimiterService $rateLimiter,
-        SecurityAlertService $securityAlert
+        SecurityAlertService $securityAlert,
+        ?MailService $mailer = null
     ) {
         $this->accounts      = $accounts;
         $this->rateLimiter   = $rateLimiter;
         $this->securityAlert = $securityAlert;
+        $this->mailer        = $mailer ?? new MailService();
     }
 
     /**
@@ -184,7 +191,7 @@ class LoginService
             : $lang;
 
         try {
-            (new MailService())->sendPendingDeletionLoginAlert(
+            $this->mailer->sendPendingDeletionLoginAlert(
                 (string) $deleted['email'],
                 $name,
                 $langUsed,
@@ -239,7 +246,7 @@ class LoginService
             $displayName = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
                 ?: ($account['company_name'] ?? (string) $account['email']);
             try {
-                (new MailService())->sendAdminAccountBlocked(
+                $this->mailer->sendAdminAccountBlocked(
                     (string) $account['email'],
                     $displayName,
                     (string) ($account['lang'] ?? 'fr'),
@@ -279,7 +286,7 @@ class LoginService
         $resetUrl = APP_URL . "/{$lang}/mot-de-passe-oublie";
 
         try {
-            (new MailService())->sendAccountLocked(
+            $this->mailer->sendAccountLocked(
                 (string) $account['email'],
                 $displayName,
                 $lang,
@@ -314,7 +321,7 @@ class LoginService
             : trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
 
         try {
-            (new MailService())->sendEmailVerification(
+            $this->mailer->sendEmailVerification(
                 (string) $account['email'],
                 $displayName,
                 $verifyUrl,

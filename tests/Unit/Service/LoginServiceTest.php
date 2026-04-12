@@ -9,6 +9,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Service\LoginService;
+use Service\MailService;
 use Service\RateLimiterService;
 use Service\SecurityAlertService;
 
@@ -71,18 +72,21 @@ class LoginServiceTest extends TestCase
      * @param AccountModel|null         $accounts      Stub ou mock AccountModel
      * @param RateLimiterService|null   $rateLimiter   Stub ou mock RateLimiterService
      * @param SecurityAlertService|null $securityAlert Stub ou mock SecurityAlertService
+     * @param MailService|null          $mailer        Stub ou mock MailService
      * @return LoginService
      */
     private function makeService(
         ?AccountModel $accounts = null,
         ?RateLimiterService $rateLimiter = null,
-        ?SecurityAlertService $securityAlert = null
+        ?SecurityAlertService $securityAlert = null,
+        ?MailService $mailer = null
     ): LoginService {
         $accounts      ??= $this->createStub(AccountModel::class);
         $rateLimiter   ??= $this->createStub(RateLimiterService::class);
         $securityAlert ??= $this->createStub(SecurityAlertService::class);
+        $mailer        ??= $this->createStub(MailService::class);
 
-        return new LoginService($accounts, $rateLimiter, $securityAlert);
+        return new LoginService($accounts, $rateLimiter, $securityAlert, $mailer);
     }
 
     // ----------------------------------------------------------------
@@ -468,6 +472,41 @@ class LoginServiceTest extends TestCase
     // ----------------------------------------------------------------
     // Suppression programmée — alerte session déjà envoyée
     // ----------------------------------------------------------------
+
+    // ----------------------------------------------------------------
+    // MailService injectable — sendAccountLocked mocké
+    // ----------------------------------------------------------------
+
+    /**
+     * Quand le seuil BT2 est atteint, sendAccountLocked doit être appelé sur le MailService injecté.
+     */
+    public function testAttemptSendsAccountLockedEmailWhenLocked(): void
+    {
+        $account = $this->makeAccount();
+
+        /** @var AccountModel&Stub $accounts */
+        $accounts = $this->createStub(AccountModel::class);
+        $accounts->method('findByEmail')->willReturn($account);
+
+        /** @var RateLimiterService&Stub $rateLimiter */
+        $rateLimiter = $this->createStub(RateLimiterService::class);
+        // checkLimit : BT2 pré-verif → true (pas encore locké), puis après échec → false (seuil atteint)
+        $rateLimiter->method('checkLimit')->willReturnOnConsecutiveCalls(true, false);
+
+        /** @var SecurityAlertService&Stub $securityAlert */
+        $securityAlert = $this->createStub(SecurityAlertService::class);
+        $securityAlert->method('shouldAlertOnFailedLogins')->willReturn(false);
+        $securityAlert->method('shouldAutoBlock')->willReturn(false);
+
+        /** @var MailService&MockObject $mailer */
+        $mailer = $this->createMock(MailService::class);
+        $mailer->expects($this->once())->method('sendAccountLocked');
+
+        $service = $this->makeService($accounts, $rateLimiter, $securityAlert, $mailer);
+        $result  = $service->attempt('user@example.com', 'wrong_password', 'login:1.1.1.1', 'fr', '1.1.1.1');
+
+        $this->assertSame('bad_credentials', $result['result']);
+    }
 
     /**
      * Si l'alerte de suppression a déjà été envoyée dans la session courante,
