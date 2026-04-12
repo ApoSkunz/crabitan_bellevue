@@ -94,40 +94,21 @@ class AccountAddressController extends AbstractAccountController
             Response::redirect($back);
         }
 
-        $type      = $this->request->post('type', '');
-        $civility  = $this->request->post('civility', '');
-        $firstname = trim($this->request->post('firstname', ''));
-        $lastname  = trim($this->request->post('lastname', ''));
-        $street    = trim($this->request->post('street', ''));
-        $city      = trim($this->request->post('city', ''));
-        $zipCode   = trim($this->request->post('zip_code', ''));
-        $country   = trim($this->request->post('country', 'France'));
-        $phone     = $this->normalizePhone(trim($this->request->post('phone', '')));
-
-        if (
-            $firstname === '' || $lastname === '' || $street === ''
-            || $city === '' || $zipCode === '' || $phone === ''
-        ) {
-            $_SESSION['flash']['address_error'] = __('account.address_required_fields');
-            Response::redirect($back);
-        }
-
-        if ($country === 'France' && !$this->isValidFranceMetroZip($zipCode)) {
-            $_SESSION['flash']['address_error'] = __('account.address_zip_invalid');
-            Response::redirect($back);
-        }
+        $type   = $this->request->post('type', '');
+        $fields = $this->extractAddressFields();
+        $this->validateAddressInput($fields, $back);
 
         $this->addresses->create(
             $userId,
             $type,
-            $firstname,
-            $lastname,
-            $civility,
-            $street,
-            $city,
-            $zipCode,
-            $country,
-            $phone
+            $fields['firstname'],
+            $fields['lastname'],
+            $fields['civility'],
+            $fields['street'],
+            $fields['city'],
+            $fields['zipCode'],
+            $fields['country'],
+            $fields['phone']
         );
         $_SESSION['flash']['address_success'] = __('account.address_added');
         Response::redirect($back);
@@ -194,27 +175,8 @@ class AccountAddressController extends AbstractAccountController
             Response::redirect($back);
         }
 
-        $civility  = $this->request->post('civility', '');
-        $firstname = trim($this->request->post('firstname', ''));
-        $lastname  = trim($this->request->post('lastname', ''));
-        $street    = trim($this->request->post('street', ''));
-        $city      = trim($this->request->post('city', ''));
-        $zipCode   = trim($this->request->post('zip_code', ''));
-        $country   = trim($this->request->post('country', 'France'));
-        $phone     = $this->normalizePhone(trim($this->request->post('phone', '')));
-
-        if (
-            $firstname === '' || $lastname === '' || $street === ''
-            || $city === '' || $zipCode === '' || $phone === ''
-        ) {
-            $_SESSION['flash']['address_error'] = __('account.address_required_fields');
-            Response::redirect($back);
-        }
-
-        if ($country === 'France' && !$this->isValidFranceMetroZip($zipCode)) {
-            $_SESSION['flash']['address_error'] = __('account.address_zip_invalid');
-            Response::redirect($back);
-        }
+        $fields = $this->extractAddressFields();
+        $this->validateAddressInput($fields, $back);
 
         if ($this->orders->hasActiveOrderForAddress($id)) {
             $_SESSION['flash']['address_error'] = __('account.address_edit_blocked');
@@ -224,14 +186,14 @@ class AccountAddressController extends AbstractAccountController
         $this->addresses->update(
             $id,
             $userId,
-            $firstname,
-            $lastname,
-            $civility,
-            $street,
-            $city,
-            $zipCode,
-            $country,
-            $phone
+            $fields['firstname'],
+            $fields['lastname'],
+            $fields['civility'],
+            $fields['street'],
+            $fields['city'],
+            $fields['zipCode'],
+            $fields['country'],
+            $fields['phone']
         );
         $_SESSION['flash']['address_success'] = __('account.address_updated');
         Response::redirect($back);
@@ -280,6 +242,50 @@ class AccountAddressController extends AbstractAccountController
     // ----------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------
+
+    /**
+     * Extrait les champs d'adresse depuis la requête POST.
+     *
+     * @return array{civility: string, firstname: string, lastname: string,
+     *               street: string, city: string, zipCode: string, country: string, phone: string}
+     */
+    private function extractAddressFields(): array
+    {
+        return [
+            'civility'  => $this->request->post('civility', ''),
+            'firstname' => trim($this->request->post('firstname', '')),
+            'lastname'  => trim($this->request->post('lastname', '')),
+            'street'    => trim($this->request->post('street', '')),
+            'city'      => trim($this->request->post('city', '')),
+            'zipCode'   => trim($this->request->post('zip_code', '')),
+            'country'   => trim($this->request->post('country', 'France')),
+            'phone'     => $this->normalizePhone(trim($this->request->post('phone', ''))),
+        ];
+    }
+
+    /**
+     * Valide les champs d'adresse et redirige si invalides.
+     *
+     * @param array{civility: string, firstname: string, lastname: string,
+     *              street: string, city: string, zipCode: string, country: string, phone: string} $fields
+     * @param string $back URL de redirection en cas d'erreur
+     * @return void
+     */
+    private function validateAddressInput(array $fields, string $back): void
+    {
+        if (
+            $fields['firstname'] === '' || $fields['lastname'] === '' || $fields['street'] === ''
+            || $fields['city'] === '' || $fields['zipCode'] === '' || $fields['phone'] === ''
+        ) {
+            $_SESSION['flash']['address_error'] = __('account.address_required_fields');
+            Response::redirect($back);
+        }
+
+        if ($fields['country'] === 'France' && !$this->isValidFranceMetroZip($fields['zipCode'])) {
+            $_SESSION['flash']['address_error'] = __('account.address_zip_invalid');
+            Response::redirect($back);
+        }
+    }
 
     /**
      * Normalise un numéro de téléphone.
