@@ -484,6 +484,16 @@ body {
         z-index: 99;
         max-height: none;
         overflow-y: auto;
+
+        // Fond semi-transparent — site visible derrière (dark mode)
+        background-color: rgba(8, 8, 8, 0.82);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+
+    // Light mode : fond beige givré
+    [data-theme='light'] .header-nav--mobile.is-open {
+        background-color: rgba(245, 240, 232, 0.88);
     }
 }
 
