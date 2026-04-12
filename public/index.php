@@ -41,7 +41,7 @@ $isPublicPath = str_starts_with($path, '/age-gate')
 // Crawlers SEO connus : pas de cookie mais on laisse passer pour l'indexation
 $ua        = $_SERVER['HTTP_USER_AGENT'] ?? '';
 $isCrawler = (bool) preg_match(
-    '/googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver|crawler|spider/i',
+    '/googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver|crawler|spider|headlesschrome|lighthouse/i',
     $ua
 );
 
