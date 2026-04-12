@@ -18,7 +18,7 @@
 // ---- Sidebar ----------------------------------------------
 
 .admin-sidebar {
-    width: 240px;
+    width: clamp(200px, 18vw, 260px); // WCAG 1.4.4 — largeur fluide, évite le débordement à fort zoom
     flex-shrink: 0;
     background: #0e0e0e;
     display: flex;
@@ -26,7 +26,8 @@
     position: sticky;
     top: 0;
     height: 100vh;
-    overflow: hidden;
+    overflow-y: auto; /* zoom: overflow intentionnel — scroll vertical si contenu dépasse à fort zoom */
+    overflow-x: hidden; /* zoom: overflow intentionnel — masque débordement horizontal uniquement */
 }
 
 .admin-sidebar__logo {
@@ -166,7 +167,7 @@
     font-size: 0.78rem;
     color: rgba(245, 240, 232, 0.8);
     white-space: nowrap;
-    overflow: hidden;
+    overflow: hidden; /* zoom: overflow intentionnel — ellipsis sur nom utilisateur trop long */
     text-overflow: ellipsis;
 }
 
@@ -801,7 +802,7 @@
 
 .admin-dl {
     display: grid;
-    grid-template-columns: 160px 1fr;
+    grid-template-columns: clamp(8rem, 15%, 12rem) 1fr; // WCAG 1.4.4 — clamp au lieu de 160px fixe
     gap: 0.6rem 1rem;
 
     dt {
