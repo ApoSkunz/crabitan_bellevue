@@ -125,7 +125,7 @@ class AuthController extends Controller
         }
 
         $email    = strtolower(trim($this->request->post('email', '')));
-        $password = $this->request->post('password', '');
+        $password = (string) $this->request->post('password', '');
 
         $attempt = $this->loginService->attempt($email, $password, $ipKey, $lang, $ip);
 
