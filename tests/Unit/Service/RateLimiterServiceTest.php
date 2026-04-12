@@ -639,6 +639,28 @@ class RateLimiterServiceTest extends TestCase
     }
 
     /**
+     * Si la BDD lève une exception sur execute() (delete),
+     * reset() ne doit pas propager l'exception.
+     */
+    public function testDbDeleteSilentOnException(): void
+    {
+        /** @var Database $db */
+        $db = $this->createStub(Database::class);
+        $db->method('execute')->willThrowException(new \RuntimeException('DB down'));
+
+        $service = new class ($db) extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+        };
+
+        // Ne doit pas lever d'exception
+        $service->reset('db:delete:error');
+        $this->assertTrue(true);
+    }
+
+    /**
      * Si la BDD lève une exception sur query() (set),
      * recordAttempt() ne doit pas propager l'exception.
      */
