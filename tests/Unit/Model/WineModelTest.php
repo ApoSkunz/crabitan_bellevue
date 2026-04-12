@@ -727,13 +727,18 @@ class WineModelTest extends TestCase
     {
         $expected = ['image_path' => '/img/wine.jpg', 'slug' => 'bordeaux-rouge-2022'];
 
+        // 1re fetchAll : IDs disponibles pour la couleur
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with($this->stringContains('wine_color = ?'))
+            ->willReturn([['id' => 42]]);
+
+        // fetchOne : récupère la ligne complète par id
         $this->dbMock
             ->expects($this->once())
             ->method('fetchOne')
-            ->with(
-                $this->stringContains('wine_color = ?'),
-                $this->equalTo(['red'])
-            )
+            ->with($this->stringContains('id = ?'), $this->equalTo([42]))
             ->willReturn($expected);
 
         $result = $this->model->getRandomByColor('red');
@@ -750,8 +755,10 @@ class WineModelTest extends TestCase
     {
         $this->dbMock
             ->expects($this->once())
-            ->method('fetchOne')
-            ->willReturn(false);
+            ->method('fetchAll')
+            ->willReturn([]);
+
+        $this->dbMock->expects($this->never())->method('fetchOne');
 
         $result = $this->model->getRandomByColor('white');
 
@@ -773,8 +780,14 @@ class WineModelTest extends TestCase
 
         $this->dbMock
             ->expects($this->once())
+            ->method('fetchAll')
+            ->with($this->stringContains('image_path IS NOT NULL'))
+            ->willReturn([['id' => 7]]);
+
+        $this->dbMock
+            ->expects($this->once())
             ->method('fetchOne')
-            ->with($this->stringContains('ORDER BY RAND()'))
+            ->with($this->stringContains('id = ?'), $this->equalTo([7]))
             ->willReturn($expected);
 
         $result = $this->model->getRandom();
@@ -791,8 +804,10 @@ class WineModelTest extends TestCase
     {
         $this->dbMock
             ->expects($this->once())
-            ->method('fetchOne')
-            ->willReturn(false);
+            ->method('fetchAll')
+            ->willReturn([]);
+
+        $this->dbMock->expects($this->never())->method('fetchOne');
 
         $result = $this->model->getRandom();
 
@@ -815,23 +830,22 @@ class WineModelTest extends TestCase
             ['slug' => 'vin-2', 'image_path' => '/img/vin2.jpg', 'label_name' => 'Vin 2'],
         ];
 
+        // 1re fetchAll : IDs éligibles
         $this->dbMock
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('fetchAll')
-            ->with(
-                $this->stringContains('ORDER BY RAND()'),
-                $this->equalTo([14])
-            )
-            ->willReturn($rows);
+            ->willReturnOnConsecutiveCalls(
+                [['id' => 1], ['id' => 2]],  // IDs
+                $rows                          // lignes finales
+            );
 
         $result = $this->model->getRandomForMemo();
 
         $this->assertCount(2, $result);
-        $this->assertSame('vin-1', $result[0]['slug']);
     }
 
     /**
-     * Vérifie que getRandomForMemo accepte un $limit personnalisé.
+     * Vérifie que getRandomForMemo retourne [] si aucun vin avec image.
      *
      * @return void
      */
@@ -840,10 +854,7 @@ class WineModelTest extends TestCase
         $this->dbMock
             ->expects($this->once())
             ->method('fetchAll')
-            ->with(
-                $this->stringContains('LIMIT ?'),
-                $this->equalTo([6])
-            )
+            ->with($this->stringContains('image_path IS NOT NULL'))
             ->willReturn([]);
 
         $result = $this->model->getRandomForMemo(6);
