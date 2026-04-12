@@ -210,7 +210,6 @@ class NewsletterAdminController extends AdminController
             $pdfName = $attachment['original_name'];
         }
 
-        $all    = $this->accounts->getNewsletterSubscribersBySegment($segment, 10000, 0);
         $mailer = new MailService();
         $sent   = 0;
         $failed = 0;
@@ -225,68 +224,84 @@ class NewsletterAdminController extends AdminController
             $linkMap[$url] = $trackingModel->saveLink($campaignId, $url);
         }
 
-        foreach ($all as $sub) {
-            $name  = $sub['account_type'] === 'company'
-                ? ($sub['company_name'] ?? '')
-                : trim(($sub['firstname'] ?? '') . ' ' . ($sub['lastname'] ?? ''));
-            $token = $sub['newsletter_unsubscribe_token'] ?? null;
-            $lang  = $sub['lang'] ?? 'fr';
+        // Envoi paginé par batch de 1000 abonnés pour éviter un chargement mémoire massif
+        $batchSize = 1000;
+        $offset    = 0;
+        do {
+            $batch   = $this->accounts->getNewsletterSubscribersBySegment($segment, $batchSize, $offset);
+            $offset += $batchSize;
 
-            // Sélection de la variante linguistique
-            $subjectSend = $lang === 'en' ? $subjectLineEn : $subjectLine;
-            $bodySend    = ($lang === 'en' && $bodyEn !== '') ? $bodyEn : $body;
-            $titleSend   = ($lang === 'en' && $titleEn !== '') ? $titleEn : $title;
+            foreach ($batch as $sub) {
+                $name  = $sub['account_type'] === 'company'
+                    ? ($sub['company_name'] ?? '')
+                    : trim(($sub['firstname'] ?? '') . ' ' . ($sub['lastname'] ?? ''));
+                $token = $sub['newsletter_unsubscribe_token'] ?? null;
+                $lang  = $sub['lang'] ?? 'fr';
 
-            // Bloc titre optionnel dans la langue sélectionnée
-            $titleHtmlSend = $titleSend !== ''
-                ? '<h2 style="margin:0 0 16px;font-family:Georgia,serif;font-size:22px;'
-                  . 'color:#1a1208;line-height:1.3;">'
-                  . htmlspecialchars($titleSend, ENT_QUOTES) . '</h2>'
-                : '';
+                // Sélection de la variante linguistique
+                $subjectSend = $lang === 'en' ? $subjectLineEn : $subjectLine;
+                $bodySend    = ($lang === 'en' && $bodyEn !== '') ? $bodyEn : $body;
+                $titleSend   = ($lang === 'en' && $titleEn !== '') ? $titleEn : $title;
 
-            // Corps : htmlspecialchars d'abord, puis remplacement des URLs par des ancres trackées
-            $safeContent = nl2br(htmlspecialchars($bodySend, ENT_QUOTES));
-            foreach ($linkMap as $url => $linkId) {
-                $trackUrl    = $appUrl . '/track/click/' . $campaignId . '/' . $linkId
-                    . ($token !== null ? '/' . rawurlencode($token) : '');
-                $safeUrl     = htmlspecialchars($url, ENT_QUOTES);
-                $safeTrack   = htmlspecialchars($trackUrl, ENT_QUOTES);
-                $safeContent = str_replace(
-                    $safeUrl,
-                    '<a href="' . $safeTrack . '" style="color:#8a6a2e;">' . $safeUrl . '</a>',
-                    $safeContent
+                // Bloc titre optionnel dans la langue sélectionnée
+                $titleHtmlSend = $titleSend !== ''
+                    ? '<h2 style="margin:0 0 16px;font-family:Georgia,serif;font-size:22px;'
+                      . 'color:#1a1208;line-height:1.3;">'
+                      . htmlspecialchars($titleSend, ENT_QUOTES) . '</h2>'
+                    : '';
+
+                // Corps : htmlspecialchars d'abord, puis remplacement des URLs par des ancres trackées
+                $safeContent = nl2br(htmlspecialchars($bodySend, ENT_QUOTES));
+                foreach ($linkMap as $url => $linkId) {
+                    $trackUrl    = $appUrl . '/track/click/' . $campaignId . '/' . $linkId
+                        . ($token !== null ? '/' . rawurlencode($token) : '');
+                    $safeUrl     = htmlspecialchars($url, ENT_QUOTES);
+                    $safeTrack   = htmlspecialchars($trackUrl, ENT_QUOTES);
+                    $safeContent = str_replace(
+                        $safeUrl,
+                        '<a href="' . $safeTrack . '" style="color:#8a6a2e;">' . $safeUrl . '</a>',
+                        $safeContent
+                    );
+                }
+
+                // Salutation selon langue et type de compte
+                $firstname    = htmlspecialchars(trim($sub['firstname'] ?? ''), ENT_QUOTES);
+                $defaultName  = $lang === 'en' ? 'dear subscriber' : 'cher abonné';
+                $fallbackName = $firstname ?: htmlspecialchars($name ?: $defaultName, ENT_QUOTES);
+                if ($sub['account_type'] === 'company') {
+                    $greeting = $lang === 'en' ? 'Dear Sir/Madam,' : 'Madame, Monsieur,';
+                } else {
+                    $greeting = $lang === 'en' ? 'Hello ' . $fallbackName . ',' : 'Bonjour ' . $fallbackName . ',';
+                }
+                $greetingHtml = '<p style="margin:0 0 20px;font-size:22px;color:#1a1208;font-family:Georgia,serif;">'
+                    . $greeting . '</p>';
+
+                $nlTitle  = $lang === 'en' ? 'Newsletter · Subscribers' : 'Newsletter · Abonnés';
+                $htmlBody = $mailer->buildNewsletterHtml(
+                    $nlTitle,
+                    $greetingHtml . $titleHtmlSend . $safeContent,
+                    $imageUrl,
+                    $token,
+                    $lang,
+                    $campaignId
                 );
+                try {
+                    $mailer->sendNewsletter(
+                        $sub['email'],
+                        $name ?: 'Abonné',
+                        $subjectSend,
+                        $htmlBody,
+                        $pdfPath,
+                        $pdfName,
+                        $token
+                    );
+                    $sent++;
+                } catch (\Throwable $e) {
+                    \Core\ErrorLogger::warning($e);
+                    $failed++;
+                }
             }
-
-            // Salutation selon langue et type de compte
-            $firstname    = htmlspecialchars(trim($sub['firstname'] ?? ''), ENT_QUOTES);
-            $defaultName  = $lang === 'en' ? 'dear subscriber' : 'cher abonné';
-            $fallbackName = $firstname ?: htmlspecialchars($name ?: $defaultName, ENT_QUOTES);
-            if ($sub['account_type'] === 'company') {
-                $greeting = $lang === 'en' ? 'Dear Sir/Madam,' : 'Madame, Monsieur,';
-            } else {
-                $greeting = $lang === 'en' ? 'Hello ' . $fallbackName . ',' : 'Bonjour ' . $fallbackName . ',';
-            }
-            $greetingHtml = '<p style="margin:0 0 20px;font-size:22px;color:#1a1208;font-family:Georgia,serif;">'
-                . $greeting . '</p>';
-
-            $nlTitle  = $lang === 'en' ? 'Newsletter · Subscribers' : 'Newsletter · Abonnés';
-            $htmlBody = $mailer->buildNewsletterHtml(
-                $nlTitle,
-                $greetingHtml . $titleHtmlSend . $safeContent,
-                $imageUrl,
-                $token,
-                $lang,
-                $campaignId
-            );
-            try {
-                $mailer->sendNewsletter($sub['email'], $name ?: 'Abonné', $subjectSend, $htmlBody, $pdfPath, $pdfName, $token);
-                $sent++;
-            } catch (\Throwable $e) {
-                \Core\ErrorLogger::warning($e);
-                $failed++;
-            }
-        }
+        } while (count($batch) === $batchSize);
 
         // Nettoyage du fichier temporaire (la copie permanente reste dans storage/)
         if ($pdfPath !== null && file_exists($pdfPath)) {
