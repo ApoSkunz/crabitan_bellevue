@@ -1,30 +1,42 @@
 /**
  * lighthouse-auth.cjs
- * Script Puppeteer pour LHCI — bypass age-gate.
+ * Script Puppeteer pour LHCI — bypass age-gate + cookie banner.
  *
- * ⚠️  PHP -S est single-threaded : tout page.goto() concurrent avec les
- *     audits LHCI provoque un timeout 30 s × N URLs (33 pages = ~16 min perdues).
+ * ⚠️  LHCI 0.15 ignore la valeur de retour du puppeteerScript.
+ *     Les cookies doivent être injectés via page.setCookie() en utilisant
+ *     la propriété `url` (pas `domain`), ce qui ne nécessite aucune navigation
+ *     et évite de bloquer PHP -S (single-threaded).
  *
- * Fix : retourner le cookie age_verified directement, sans navigation.
- * LHCI injecte automatiquement les cookies retournés sur chaque page auditée
- * avant de lancer le crawler Lighthouse.
+ * Cookies injectés :
+ *   - age_verified=1           → bypass vérification d'âge (Art. L3342-1 CSP)
+ *   - cb-cookie-consent=refused → masque le bandeau ePrivacy sans charger GA
  *
- * @param {import('puppeteer').Browser} _browser Non utilisé
- * @param {{url: string}} _context Non utilisé
- * @returns {{ cookies: import('puppeteer').Protocol.Network.Cookie[] }}
+ * @param {import('puppeteer').Browser} browser Instance Puppeteer partagée avec Lighthouse
+ * @param {{url: string}} _context URL en cours d'audit (non utilisée ici)
  */
-module.exports = async (_browser, _context) => {
-    return {
-        cookies: [
-            {
-                name: 'age_verified',
-                value: '1',
-                domain: 'localhost',
-                path: '/',
-                httpOnly: true,
-                sameSite: 'Lax',
-                secure: false,
-            },
-        ],
-    };
+module.exports = async (browser, _context) => {
+    const page = await browser.newPage();
+
+    await page.setCookie(
+        {
+            name: 'age_verified',
+            value: '1',
+            url: 'http://localhost:8080',
+            path: '/',
+            httpOnly: false,
+            sameSite: 'Lax',
+            secure: false,
+        },
+        {
+            name: 'cb-cookie-consent',
+            value: 'refused',
+            url: 'http://localhost:8080',
+            path: '/',
+            httpOnly: false,
+            sameSite: 'Lax',
+            secure: false,
+        },
+    );
+
+    await page.close();
 };
