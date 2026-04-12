@@ -9,7 +9,8 @@
     "dev": "vite build --watch",
     "lint": "eslint resources/js/ tests/E2E/ playwright.config.js",
     "test": "playwright test",
-    "mutation:js": "stryker run"
+    "mutation:js": "stryker run",
+    "lhci:local": "npx lhci collect --config=.lighthouserc.local.json && npx lhci assert --config=.lighthouserc.local.json"
   },
   "overrides": {
     "tmp": "^0.2.4"
