@@ -178,17 +178,17 @@ class AccountModelDeletionReminderTest extends IntegrationTestCase
     }
 
     // ------------------------------------------------------------------
-    // markDeletionReminderSent
+    // markDeletionReminder7dSent / markDeletionReminder1dSent
     // ------------------------------------------------------------------
 
     /**
-     * markDeletionReminderSent(7) renseigne deletion_reminder_7d_sent_at.
+     * markDeletionReminder7dSent() renseigne deletion_reminder_7d_sent_at.
      */
     public function testMarkReminderSent7d(): void
     {
         $id = $this->createAccountWithScheduledDeletion('mark7d@test.local', 7);
 
-        $this->model->markDeletionReminderSent($id, 7);
+        $this->model->markDeletionReminder7dSent($id);
 
         $row = self::$db->fetchOne(
             "SELECT deletion_reminder_7d_sent_at FROM accounts WHERE id = ?",
@@ -198,27 +198,18 @@ class AccountModelDeletionReminderTest extends IntegrationTestCase
     }
 
     /**
-     * markDeletionReminderSent(1) renseigne deletion_reminder_1d_sent_at.
+     * markDeletionReminder1dSent() renseigne deletion_reminder_1d_sent_at.
      */
     public function testMarkReminderSent1d(): void
     {
         $id = $this->createAccountWithScheduledDeletion('mark1d@test.local', 1);
 
-        $this->model->markDeletionReminderSent($id, 1);
+        $this->model->markDeletionReminder1dSent($id);
 
         $row = self::$db->fetchOne(
             "SELECT deletion_reminder_1d_sent_at FROM accounts WHERE id = ?",
             [$id]
         );
         $this->assertNotNull($row['deletion_reminder_1d_sent_at'], 'deletion_reminder_1d_sent_at doit être renseigné');
-    }
-
-    /**
-     * markDeletionReminderSent lève une InvalidArgumentException pour une valeur invalide.
-     */
-    public function testMarkReminderSentThrowsForInvalidDays(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->model->markDeletionReminderSent(1, 5);
     }
 }
