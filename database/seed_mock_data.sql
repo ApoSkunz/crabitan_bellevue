@@ -1009,11 +1009,11 @@ VALUES
 -- TRUSTED DEVICES
 -- ============================================================
 
-INSERT INTO `trusted_devices` (`user_id`, `device_token`, `device_name`, `confirmed_at`, `last_seen`) VALUES
-(3, 'device-uuid-sophie-macbook',  'Chrome · macOS',    '2026-01-10 10:05:00', '2026-03-28 08:00:00'),
-(3, 'device-uuid-sophie-iphone',   'Safari · iOS',      '2026-02-01 11:00:00', '2026-03-20 14:00:00'),
-(2, 'device-uuid-admin-chrome',    'Firefox · Windows', '2026-01-01 08:05:00', '2026-03-28 07:30:00'),
-(5, 'device-uuid-societe-ipad',    'Safari · iOS',      '2026-01-15 14:05:00', '2026-03-01 10:00:00');
+INSERT INTO `trusted_devices` (`user_id`, `device_token`, `device_name`, `confirmed_at`, `last_seen`, `expires_at`) VALUES
+(3, 'device-uuid-sophie-macbook',  'Chrome · macOS',    '2026-01-10 10:05:00', '2026-03-28 08:00:00', DATE_ADD('2026-03-28 08:00:00', INTERVAL 90 DAY)),
+(3, 'device-uuid-sophie-iphone',   'Safari · iOS',      '2026-02-01 11:00:00', '2026-03-20 14:00:00', DATE_ADD('2026-03-20 14:00:00', INTERVAL 90 DAY)),
+(2, 'device-uuid-admin-chrome',    'Firefox · Windows', '2026-01-01 08:05:00', '2026-03-28 07:30:00', DATE_ADD('2026-03-28 07:30:00', INTERVAL 90 DAY)),
+(5, 'device-uuid-societe-ipad',    'Safari · iOS',      '2026-01-15 14:05:00', '2026-03-01 10:00:00', DATE_ADD('2026-03-01 10:00:00', INTERVAL 90 DAY));
 
 -- ============================================================
 -- PASSWORD RESET TOKENS (quelques-uns pour les tests)
