@@ -15,10 +15,14 @@ declare(strict_types=1);
 
 use Core\Container;
 use Model\AccountModel;
+use Repository\MysqlUserRepository;
+use Repository\UserRepository;
 use Service\AccountService;
+use Service\LoginService;
 use Service\MailService;
 use Service\RateLimiterService;
 use Service\RgpdExportService;
+use Service\SecurityAlertService;
 
 $container = new Container();
 
@@ -41,7 +45,26 @@ $container->singleton(AccountService::class, fn(Container $c) =>
         $c->get(MailService::class)
     ));
 
+$container->singleton(SecurityAlertService::class, fn(Container $c) =>
+    new SecurityAlertService(
+        $c->get(RateLimiterService::class),
+        $c->get(MailService::class)
+    ));
+
+$container->singleton(LoginService::class, fn(Container $c) =>
+    new LoginService(
+        $c->get(AccountModel::class),
+        $c->get(RateLimiterService::class),
+        $c->get(SecurityAlertService::class),
+        $c->get(MailService::class)
+    ));
+
 $container->singleton(RgpdExportService::class, fn(Container $c) =>
     new RgpdExportService());
+
+// ── Repositories ─────────────────────────────────────────────────────────────
+
+$container->singleton(UserRepository::class, fn(Container $c) =>
+    new MysqlUserRepository($c->get(AccountModel::class)));
 
 return $container;

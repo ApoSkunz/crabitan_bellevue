@@ -13,12 +13,15 @@ class Router
     private array $routes = [];
 
     /**
-     * Initialise le routeur avec la requête courante.
+     * Initialise le routeur avec la requête courante et un container DI optionnel.
      *
-     * @param Request $request Requête HTTP courante
+     * @param Request        $request   Requête HTTP courante
+     * @param Container|null $container Conteneur PSR-11 pour la résolution des controllers (optionnel)
      */
-    public function __construct(private Request $request)
-    {
+    public function __construct(
+        private Request $request,
+        private ?Container $container = null
+    ) {
     }
 
     /**
@@ -114,7 +117,9 @@ class Router
             Response::abort(500, "Controller $namespace introuvable");
         }
 
-        $controller = new $namespace($this->request);
+        $controller = ($this->container !== null && $this->container->has($namespace))
+            ? $this->container->get($namespace)
+            : new $namespace($this->request);
 
         if (!method_exists($controller, $method)) {
             Response::abort(500, "Méthode $method introuvable dans $namespace");

@@ -22,7 +22,7 @@ ErrorLogger::register();
 SecurityHeaderMiddleware::apply();
 
 $request = new Request();
-$router  = new Router($request);
+$router  = new Router($request, $container);
 
 require_once ROOT_PATH . '/config/routes.php';
 
