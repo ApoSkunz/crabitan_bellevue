@@ -122,8 +122,9 @@ class WineModel extends Model
                        w.production_quantity, w.stock_quantity,
                        w.available, w.certification_label, w.image_path, w.slug,
                        w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
-                       (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
+                       COALESCE(lc.cnt, 0) AS likes_count
                 FROM {$this->table} w
+                LEFT JOIN (SELECT wine_id, COUNT(*) AS cnt FROM favorites GROUP BY wine_id) lc ON lc.wine_id = w.id
                 {$ratingJoin}
                 " . $this->buildWhereClause($where) . "
                 ORDER BY {$orderBy}{$limitClause}";
@@ -220,8 +221,9 @@ class WineModel extends Model
                     w.production_quantity, w.stock_quantity,
                     w.available, w.certification_label, w.image_path, w.slug,
                     w.oenological_comment, w.award, w.extra_comment, w.is_cuvee_speciale,
-                    (SELECT COUNT(*) FROM favorites f WHERE f.wine_id = w.id) AS likes_count
+                    COALESCE(lc.cnt, 0) AS likes_count
              FROM {$this->table} w
+             LEFT JOIN (SELECT wine_id, COUNT(*) AS cnt FROM favorites GROUP BY wine_id) lc ON lc.wine_id = w.id
              {$ratingJoin2}
              {$whereClause}
              ORDER BY {$orderBy}{$limitClause}",
