@@ -28,7 +28,22 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
 
     private function withProfile(): string
     {
-        return "SELECT a.*,
+        return "SELECT a.id, a.email, a.password, a.account_type, a.role, a.lang,
+                       a.newsletter, a.newsletter_unsubscribe_token, a.newsletter_optin_pending,
+                       a.newsletter_confirm_token, a.newsletter_confirm_expires_at,
+                       a.email_verification_token, a.email_verification_token_expires_at,
+                       a.email_verified_at, a.email_change_token, a.email_change_new_email,
+                       a.email_change_expires_at, a.email_change_used_at,
+                       a.google_id, a.apple_id,
+                       a.majority_declared_at, a.majority_declared_ip,
+                       a.deleted_at, a.scheduled_deletion_at,
+                       a.reactivation_token, a.reactivation_token_expires_at,
+                       a.encryption_version, a.inactivity_warning_sent_at,
+                       a.deletion_reminder_7d_sent_at, a.deletion_reminder_1d_sent_at,
+                       a.pending_password_hash, a.pending_password_expires_at,
+                       a.pending_password_session_token,
+                       a.security_confirm_token_hash, a.security_confirm_token_expires_at,
+                       a.is_blocked, a.created_at, a.updated_at, a.has_connected,
                        ai.lastname, ai.firstname, ai.civility,
                        ac.company_name, ac.siret
                 FROM {$this->table} a

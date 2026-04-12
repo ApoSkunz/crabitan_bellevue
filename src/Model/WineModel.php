@@ -473,8 +473,11 @@ class WineModel extends Model
             "SELECT id, label_name, wine_color, format, vintage, price,
                     production_quantity, stock_quantity, available, certification_label,
                     area, city, variety_of_vine, age_of_vineyard,
-                    oenological_comment, soil, pruning, harvest, vinification,
-                    barrel_fermentation, award, extra_comment,
+                    oenological_comment_fr, oenological_comment_en,
+                    soil_fr, soil_en, pruning_fr, pruning_en,
+                    harvest_fr, harvest_en, vinification_fr, vinification_en,
+                    barrel_fermentation_fr, barrel_fermentation_en,
+                    award_fr, award_en, extra_comment_fr, extra_comment_en,
                     is_cuvee_speciale, featured, alcohol_degree, aging_potential,
                     image_path, slug, low_stock_notified_at, created_at, updated_at
              FROM {$this->table} WHERE id = ?",

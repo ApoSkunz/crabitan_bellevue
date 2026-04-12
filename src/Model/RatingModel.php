@@ -143,7 +143,7 @@ class RatingModel extends Model
 
         $this->db->execute(
             "INSERT INTO {$this->table} (account_id, wine_id, order_id, rating, token, token_used_at)
-             VALUES (?, ?, ?, 0, ?, NULL)
+             VALUES (?, ?, ?, NULL, ?, NULL)
              ON DUPLICATE KEY UPDATE
                token         = VALUES(token),
                token_used_at = NULL,
