@@ -1,5 +1,9 @@
 <?php
-$pageTitle = __('accessibility.title');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('accessibility.title');
+$metaDescription = $navLang === 'en'
+    ? 'Accessibility statement for the Château Crabitan Bellevue website — our commitment to digital inclusion.'
+    : 'Déclaration d\'accessibilité du site Château Crabitan Bellevue — notre engagement pour l\'inclusion numérique.';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 

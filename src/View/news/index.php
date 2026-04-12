@@ -1,5 +1,9 @@
 <?php
-$pageTitle = __('nav.news');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('nav.news');
+$metaDescription = $navLang === 'en'
+    ? 'Latest news from Château Crabitan Bellevue — harvests, events and estate life.'
+    : 'Actualités du Château Crabitan Bellevue — vendanges, événements et vie du domaine.';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>

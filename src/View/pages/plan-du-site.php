@@ -1,5 +1,9 @@
 <?php
-$pageTitle = __('footer.sitemap');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('footer.sitemap');
+$metaDescription = $navLang === 'en'
+    ? 'Sitemap of the Château Crabitan Bellevue website — find all our pages easily.'
+    : 'Plan du site du Château Crabitan Bellevue — retrouvez facilement toutes nos pages.';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 

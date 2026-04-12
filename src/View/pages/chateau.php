@@ -1,5 +1,9 @@
 <?php
-$pageTitle = __('nav.chateau');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('nav.chateau');
+$metaDescription = $navLang === 'en'
+    ? 'Discover the history of Château Crabitan Bellevue, its vineyard and its commitment to Sainte-Croix-du-Mont AOC wines.'
+    : 'Découvrez l\'histoire du Château Crabitan Bellevue, son vignoble et son engagement pour les vins de Sainte-Croix-du-Mont AOC.';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>

@@ -1,5 +1,9 @@
 <?php
-$pageTitle = __('nav.savoir_faire');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('nav.savoir_faire');
+$metaDescription = $navLang === 'en'
+    ? 'From vine to cellar: the winemaking expertise of Château Crabitan Bellevue for exceptional Sainte-Croix-du-Mont wines.'
+    : 'De la vigne au chai : le savoir-faire du Château Crabitan Bellevue pour des vins de Sainte-Croix-du-Mont d\'exception.';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>

@@ -1,5 +1,9 @@
 <?php
-$pageTitle = __('footer.webmaster');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('footer.webmaster');
+$metaDescription = $navLang === 'en'
+    ? 'Webmaster information for the Château Crabitan Bellevue website — technical details and contacts.'
+    : 'Informations webmaster du site Château Crabitan Bellevue — détails techniques et contacts.';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 

@@ -1,5 +1,9 @@
 <?php
-$pageTitle = __('nav.contact');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('nav.contact');
+$metaDescription = $navLang === 'en'
+    ? 'Contact Château Crabitan Bellevue for any enquiry about our wines, visits or orders.'
+    : 'Contactez le Château Crabitan Bellevue pour toute question sur nos vins, visites ou commandes.';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>

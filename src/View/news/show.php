@@ -7,7 +7,8 @@ $newsBody  = $bodyData[$navLang] ?? ($bodyData['fr'] ?? '');
 $newsDate  = (new \DateTimeImmutable($item['created_at']))->format('d/m/Y');
 $newsImage = $item['image_path'] ?? '';
 
-$pageTitle = $newsTitle;
+$pageTitle       = $newsTitle;
+$metaDescription = mb_substr(strip_tags($newsBody), 0, 155);
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>

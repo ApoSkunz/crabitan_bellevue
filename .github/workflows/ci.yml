@@ -292,9 +292,11 @@ jobs:
 
   lighthouse:
     name: Lighthouse — Accessibilité
-    if: false   # standby — ESM/Puppeteer conflict en cours d'investigation
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      statuses: write
 
     services:
       mysql:
@@ -328,6 +330,16 @@ jobs:
 
       - name: Run schema on test DB
         run: mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/schema.sql
+
+      - name: Seed test user for Lighthouse auth
+        run: |
+          HASH=$(php -r "echo password_hash('Dev123456789!', PASSWORD_BCRYPT);")
+          mysql -h 127.0.0.1 -u root -proot crabitan_bellevue -e "
+            INSERT IGNORE INTO accounts
+              (email, password, role, lang, email_verified_at, created_at)
+            VALUES
+              ('client.verifie@dev.local', '$HASH', 'customer', 'fr', NOW(), NOW());
+          "
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -375,16 +387,34 @@ jobs:
 
       - name: Run Lighthouse CI
         env:
-          LHCI_GITHUB_APP_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LHCI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-        run: npx lhci autorun
+        run: |
+          npx lhci autorun
+          npx lhci upload --target=filesystem --outputDir=./lighthouse-reports || true
+
+      - name: Lighthouse — résumé agrégé
+        if: always()
+        run: |
+          echo "## Lighthouse CI — Résultats" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Page | Perf | A11y | SEO |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|------|-----|" >> $GITHUB_STEP_SUMMARY
+          for f in $(find lighthouse-reports -name "lhr-*.json" 2>/dev/null); do
+            [ -f "$f" ] || continue
+            url=$(jq -r '.finalUrl' "$f")
+            perf=$(jq -r '(.categories.performance.score // 0) * 100 | round | tostring' "$f")
+            a11y=$(jq -r '(.categories.accessibility.score // 0) * 100 | round | tostring' "$f")
+            seo=$(jq -r '(.categories.seo.score // 0) * 100 | round | tostring' "$f")
+            echo "| $url | ${perf}% | ${a11y}% | ${seo}% |" >> $GITHUB_STEP_SUMMARY
+          done
 
       - name: Upload Lighthouse report
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: lighthouse-report
-          path: .lighthouseci/
+          path: lighthouse-reports/
           retention-days: 7
 
   sca:

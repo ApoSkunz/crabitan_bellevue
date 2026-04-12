@@ -1,6 +1,7 @@
 <?php
-$pageTitle = __('newsletter.confirm_title');
-$noindex   = true;
+$pageTitle       = __('newsletter.confirm_title');
+$noindex         = true;
+$metaDescription = __('newsletter.confirm_meta_description');
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 
