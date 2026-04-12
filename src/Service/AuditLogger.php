@@ -54,13 +54,8 @@ class AuditLogger
      */
     public static function getIp(): string
     {
-        $forwarded = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
-        if ($forwarded !== '') {
-            $first = trim(explode(',', $forwarded)[0]);
-            if (filter_var($first, FILTER_VALIDATE_IP) !== false) {
-                return $first;
-            }
-        }
+        // VULN-017 : X-Forwarded-For spoofable — utiliser REMOTE_ADDR (IP réseau réelle)
+        // X-Forwarded-For est conservé uniquement derrière un proxy de confiance configuré.
         return (string) ($_SERVER['REMOTE_ADDR'] ?? '');
     }
 }

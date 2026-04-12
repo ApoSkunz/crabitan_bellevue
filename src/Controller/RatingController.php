@@ -167,6 +167,7 @@ class RatingController extends Controller
         }
 
         $ratingModel->upsert((int) $row['account_id'], (int) $row['wine_id'], (int) $row['order_id'], $note);
+        $ratingModel->markTokenUsed($token); // VULN-016 : consommer le token après notation AJAX (était absent)
 
         $this->json(['success' => true, 'note' => $note]);
     }
