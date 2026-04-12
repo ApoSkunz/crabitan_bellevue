@@ -988,6 +988,23 @@
         align-items: flex-start;
         gap: 0.6rem;
     }
+
+    // Formulaires — grille 2 col → 1 col
+    .admin-form__grid {
+        grid-template-columns: 1fr;
+
+        &--3 { grid-template-columns: 1fr; }
+    }
+
+    // Détail commande — layout 2 col → 1 col
+    .admin-order-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    // Adresses facturation/livraison — 2 col → 1 col
+    .admin-addresses-grid {
+        grid-template-columns: 1fr !important;
+    }
 }
 
 // ---- Tablette (768–1023px) — sidebar compacte (icônes) ---
