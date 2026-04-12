@@ -1,0 +1,134 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Controller\Account;
+
+use Core\Controller;
+use Core\Response;
+use Middleware\AuthMiddleware;
+use Model\AccountModel;
+use Model\FavoriteModel;
+
+/**
+ * Gère les préférences du compte : favoris, newsletter (désabonnement), langue.
+ */
+class AccountPreferenceController extends Controller
+{
+    private const VIEW_UNSUBSCRIBE = 'account/unsubscribe';
+
+    private AccountModel $accounts;
+    private FavoriteModel $favorites;
+
+    /**
+     * Initialise le contrôleur et ses dépendances.
+     *
+     * @param \Core\Request $request Requête HTTP courante
+     */
+    public function __construct(\Core\Request $request)
+    {
+        parent::__construct($request);
+        $this->accounts  = new AccountModel();
+        $this->favorites = new FavoriteModel();
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/mon-compte/favoris
+    // ----------------------------------------------------------------
+
+    /**
+     * Affiche la page des vins favoris du compte.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function favorites(array $params): void
+    {
+        $payload = $this->requireCustomer();
+        $userId  = (int) $payload['sub'];
+        $lang    = $params['lang'];
+
+        $this->view('account/favorites', [
+            'lang'      => $lang,
+            'account'   => $this->accounts->findById($userId),
+            'favorites' => $this->favorites->getByUser($userId),
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/newsletter/desabonnement?token=xxx
+    // ----------------------------------------------------------------
+
+    /**
+     * Affiche la page de confirmation de désabonnement newsletter.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function unsubscribePage(array $params): void
+    {
+        $lang  = $params['lang'];
+        $token = $this->request->get('token', '');
+        $cid   = (int) $this->request->get('cid', 0);
+
+        if ($token === '' || !$this->accounts->findByUnsubscribeToken($token)) {
+            $this->view(self::VIEW_UNSUBSCRIBE, ['lang' => $lang, 'success' => false, 'confirm' => false]);
+            return;
+        }
+
+        $this->view(self::VIEW_UNSUBSCRIBE, [
+            'lang'       => $lang,
+            'success'    => false,
+            'confirm'    => true,
+            'unsubToken' => $token,
+            'campaignId' => $cid > 0 ? $cid : null,
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/newsletter/desabonnement
+    // ----------------------------------------------------------------
+
+    /**
+     * Effectue le désabonnement newsletter via le token one-click.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     * @return void
+     */
+    public function unsubscribe(array $params): void
+    {
+        $lang       = $params['lang'];
+        $unsubToken = $this->request->post('unsub_token', '');
+        $campaignId = (int) $this->request->post('campaign_id', 0);
+        $account    = $unsubToken !== '' ? $this->accounts->findByUnsubscribeToken($unsubToken) : false;
+        $success    = false;
+
+        if ($account !== false) {
+            $this->accounts->unsubscribeByToken($unsubToken);
+            if ($campaignId > 0) {
+                (new \Model\NewsletterTrackingModel())->recordUnsubscribe($campaignId, (int) $account['id']);
+            }
+            $success = true;
+        }
+
+        $this->view(self::VIEW_UNSUBSCRIBE, [
+            'lang'    => $lang,
+            'success' => $success,
+            'confirm' => false,
+        ]);
+    }
+
+    /**
+     * Vérifie que la requête provient d'un customer authentifié.
+     *
+     * @return array<string, mixed>
+     */
+    private function requireCustomer(): array
+    {
+        $payload = AuthMiddleware::handle(redirectToLogin: true);
+        if (($payload['role'] ?? '') !== 'customer') {
+            Response::abort(404);
+        }
+        return $payload;
+    }
+}

@@ -153,47 +153,59 @@ $router->get('/{lang}/commande/paiement-ca/refuse', 'OrderController@paymentRetu
 // IPN CA — server-to-server (sans authentification)
 $router->post('/payment/ipn', 'IpnController@handle');
 
-// Espace client
-$router->get('/{lang}/mon-compte', 'AccountController@index');
-$router->get('/{lang}/mon-compte/profil', 'AccountController@profile');
-$router->post('/{lang}/mon-compte/profil', 'AccountController@updateProfile');
-$router->post('/{lang}/mon-compte/preference-langue', 'AccountController@updateLangPreference');
-$router->get('/{lang}/mon-compte/commandes', 'AccountController@orders');
-$router->get('/{lang}/mon-compte/commandes/{id}', 'AccountController@orderDetail');
-$router->post('/{lang}/mon-compte/commandes/{id}/annuler', 'AccountController@cancelOrder');
-$router->post('/{lang}/mon-compte/commandes/{id}/remboursement', 'AccountController@requestRefund');
+// Espace client — Profil & tableau de bord
+$router->get('/{lang}/mon-compte', 'Account\AccountProfileController@index');
+$router->get('/{lang}/mon-compte/profil', 'Account\AccountProfileController@profile');
+$router->post('/{lang}/mon-compte/profil', 'Account\AccountProfileController@updateProfile');
+$router->post('/{lang}/mon-compte/preference-langue', 'Account\AccountProfileController@updateLangPreference');
+$router->post('/{lang}/mon-compte/profil/changer-email', 'Account\AccountProfileController@requestEmailChange');
+$router->post('/{lang}/mon-compte/email/annuler', 'Account\AccountProfileController@cancelEmailChange');
+$router->get('/{lang}/mon-compte/email/confirmer', 'Account\AccountProfileController@confirmEmailChange');
+$router->get('/{lang}/mon-compte/email/revoquer', 'Account\AccountProfileController@revokeEmailChange');
+
+// Espace client — Commandes
+$router->get('/{lang}/mon-compte/commandes', 'Account\AccountOrderController@orders');
+$router->get('/{lang}/mon-compte/commandes/{id}', 'Account\AccountOrderController@orderDetail');
+$router->post('/{lang}/mon-compte/commandes/{id}/annuler', 'Account\AccountOrderController@cancelOrder');
+$router->post('/{lang}/mon-compte/commandes/{id}/remboursement', 'Account\AccountOrderController@requestRefund');
 $router->get('/{lang}/mon-compte/factures', 'InvoiceController@list');
 $router->get('/{lang}/mon-compte/commandes/{id}/facture', 'InvoiceController@download');
-$router->get('/{lang}/mon-compte/commandes/{id}/fiche-retour', 'AccountController@returnSlip');
-$router->get('/{lang}/mon-compte/adresses', 'AccountController@addresses');
-$router->post('/{lang}/mon-compte/adresses/ajouter', 'AccountController@addAddress');
-$router->get('/{lang}/mon-compte/adresses/{id}/modifier', 'AccountController@editAddress');
-$router->post('/{lang}/mon-compte/adresses/{id}/modifier', 'AccountController@updateAddress');
-$router->post('/{lang}/mon-compte/adresses/{id}/supprimer', 'AccountController@deleteAddress');
-$router->get('/{lang}/mon-compte/favoris', 'AccountController@favorites');
-$router->get('/{lang}/mon-compte/securite', 'AccountController@security');
-$router->post('/{lang}/mon-compte/securite/mot-de-passe', 'AccountController@changePassword');
-$router->post('/{lang}/mon-compte/securite/session/{id}/revoquer', 'AccountController@revokeSession');
-$router->post('/{lang}/mon-compte/securite/supprimer-compte', 'AccountController@deleteAccount');
-$router->post('/{lang}/mon-compte/securite/sessions/revoquer-toutes', 'AccountController@revokeAllUserSessions');
-$router->get('/{lang}/mon-compte/nouvel-appareil', 'AccountController@newDevice');
-$router->get('/{lang}/mon-compte/appareil/confirmer', 'AccountController@confirmDevice');
-$router->get('/{lang}/mon-compte/appareil/annuler', 'AccountController@cancelMfa');
-$router->post('/{lang}/mon-compte/securite/appareils/retirer-confiance', 'AccountController@untrustDevice');
-$router->post('/{lang}/mon-compte/securite/reinitialiser', 'AccountController@resetSecurity');
-$router->post('/{lang}/mon-compte/securite/appareils/supprimer-toutes', 'AccountController@untrustAllDevices');
-$router->get('/{lang}/compte/reactiver', 'AccountController@reactivateAccount');
+$router->get('/{lang}/mon-compte/commandes/{id}/fiche-retour', 'Account\AccountOrderController@returnSlip');
+
+// Espace client — Adresses
+$router->get('/{lang}/mon-compte/adresses', 'Account\AccountAddressController@addresses');
+$router->post('/{lang}/mon-compte/adresses/ajouter', 'Account\AccountAddressController@addAddress');
+$router->get('/{lang}/mon-compte/adresses/{id}/modifier', 'Account\AccountAddressController@editAddress');
+$router->post('/{lang}/mon-compte/adresses/{id}/modifier', 'Account\AccountAddressController@updateAddress');
+$router->post('/{lang}/mon-compte/adresses/{id}/supprimer', 'Account\AccountAddressController@deleteAddress');
+
+// Espace client — Préférences & favoris
+$router->get('/{lang}/mon-compte/favoris', 'Account\AccountPreferenceController@favorites');
+
+// Espace client — Sécurité
+$router->get('/{lang}/mon-compte/securite', 'Account\AccountSecurityController@security');
+$router->post('/{lang}/mon-compte/securite/mot-de-passe', 'Account\AccountSecurityController@changePassword');
+$router->post('/{lang}/mon-compte/securite/session/{id}/revoquer', 'Account\AccountSecurityController@revokeSession');
+$router->post('/{lang}/mon-compte/securite/supprimer-compte', 'Account\AccountSecurityController@deleteAccount');
+$router->post('/{lang}/mon-compte/securite/sessions/revoquer-toutes', 'Account\AccountSecurityController@revokeAllUserSessions');
+$router->get('/{lang}/mon-compte/nouvel-appareil', 'Account\AccountSecurityController@newDevice');
+$router->get('/{lang}/mon-compte/appareil/confirmer', 'Account\AccountSecurityController@confirmDevice');
+$router->get('/{lang}/mon-compte/appareil/annuler', 'Account\AccountSecurityController@cancelMfa');
+$router->post('/{lang}/mon-compte/securite/appareils/retirer-confiance', 'Account\AccountSecurityController@untrustDevice');
+$router->post('/{lang}/mon-compte/securite/reinitialiser', 'Account\AccountSecurityController@resetSecurity');
+$router->post('/{lang}/mon-compte/securite/appareils/supprimer-toutes', 'Account\AccountSecurityController@untrustAllDevices');
+$router->get('/{lang}/compte/reactiver', 'Account\AccountSecurityController@reactivateAccount');
 $router->get('/{lang}/session-expiree', 'AuthController@sessionExpired');
-$router->get('/{lang}/securite/confirmer', 'AccountController@confirmSecurityAction');
-$router->get('/{lang}/securite/ce-netait-pas-moi', 'AccountController@denySecurityAction');
-$router->get('/{lang}/mon-compte/export', 'AccountController@exportPage');
-$router->post('/{lang}/mon-compte/export/envoyer', 'AccountController@exportSend');
-$router->post('/{lang}/mon-compte/profil/changer-email', 'AccountController@requestEmailChange');
-$router->post('/{lang}/mon-compte/email/annuler', 'AccountController@cancelEmailChange');
-$router->get('/{lang}/mon-compte/email/confirmer', 'AccountController@confirmEmailChange');
-$router->get('/{lang}/mon-compte/email/revoquer', 'AccountController@revokeEmailChange');
-$router->get('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribePage');
-$router->post('/{lang}/newsletter/desabonnement', 'AccountController@unsubscribe');
+$router->get('/{lang}/securite/confirmer', 'Account\AccountSecurityController@confirmSecurityAction');
+$router->get('/{lang}/securite/ce-netait-pas-moi', 'Account\AccountSecurityController@denySecurityAction');
+
+// Espace client — Export RGPD
+$router->get('/{lang}/mon-compte/export', 'Account\AccountExportController@exportPage');
+$router->post('/{lang}/mon-compte/export/envoyer', 'Account\AccountExportController@exportSend');
+
+// Newsletter — désabonnement
+$router->get('/{lang}/newsletter/desabonnement', 'Account\AccountPreferenceController@unsubscribePage');
+$router->post('/{lang}/newsletter/desabonnement', 'Account\AccountPreferenceController@unsubscribe');
 
 // Newsletter — double opt-in (RGPD Art. 7)
 $router->get('/{lang}/newsletter/confirmation', 'NewsletterController@confirmSubscription');
@@ -223,8 +235,8 @@ $router->get('/api/meteo', 'WeatherController@current');
 $router->post('/api/log/client-error', 'Api\LogApiController@clientError');
 
 // Tracking newsletter (pixel ouverture + redirect clic)
-$router->get('/track/open/{id}/{token}',                 'TrackingController@open');
-$router->get('/track/click/{id}/{linkId}/{token}',       'TrackingController@click');
+$router->get('/track/open/{id}/{token}', 'TrackingController@open');
+$router->get('/track/click/{id}/{linkId}/{token}', 'TrackingController@click');
 
 // Bons de commande (téléchargement public, servi via PHP)
 $router->get('/bons-de-commande/{id}/telecharger', 'OrderFormController@download');

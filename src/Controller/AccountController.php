@@ -22,6 +22,12 @@ use Service\PasswordValidator;
 use Service\PaymentService;
 use Service\RateLimiterService;
 
+/**
+ * @deprecated Migré vers Controller\Account\* — conserver uniquement pour la rétro-compatibilité des tests.
+ *
+ * Les routes ont été déplacées vers les 6 controllers spécialisés dans src/Controller/Account/.
+ * Cette classe sera supprimée lors de la migration des tests (audit GL suivant).
+ */
 class AccountController extends Controller // NOSONAR — php:S1448 : découpage prévu à l'audit génie logiciel
 {
     private const PER_PAGE               = 10;
