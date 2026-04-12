@@ -285,6 +285,70 @@ class LoginServiceTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // Mauvais mot de passe — auto-block admin
+    // ----------------------------------------------------------------
+
+    /**
+     * Quand shouldAutoBlock retourne true, blockAccount doit être appelé sur le modèle injecté.
+     */
+    public function testAttemptAutoBlocksAdminWhenShouldAutoBlockIsTrue(): void
+    {
+        /** @var AccountModel&MockObject $accounts */
+        $accounts = $this->createMock(AccountModel::class);
+        $accounts->method('findByEmail')->willReturn($this->makeAccount(['role' => 'admin']));
+        $accounts->expects($this->once())->method('blockAccount')->with(42);
+
+        /** @var RateLimiterService&Stub $rateLimiter */
+        $rateLimiter = $this->createStub(RateLimiterService::class);
+        $rateLimiter->method('checkLimit')->willReturn(true);
+
+        /** @var SecurityAlertService&Stub $securityAlert */
+        $securityAlert = $this->createStub(SecurityAlertService::class);
+        $securityAlert->method('shouldAlertOnFailedLogins')->willReturn(false);
+        $securityAlert->method('shouldAutoBlock')->willReturn(true);
+
+        $service = $this->makeService($accounts, $rateLimiter, $securityAlert);
+        $result  = $service->attempt('user@example.com', 'wrong_password', 'login:1.1.1.1', 'fr', '1.1.1.1');
+
+        $this->assertSame('bad_credentials', $result['result']);
+    }
+
+    /**
+     * Quand firstname et lastname sont vides, displayName pour sendAdminAccountBlocked
+     * utilise company_name, puis fallback email.
+     * Vérifie que le code n'explose pas — blockAccount est appelé une fois.
+     */
+    public function testAttemptAutoBlockUsesEmailFallbackWhenNamesEmpty(): void
+    {
+        $account = $this->makeAccount([
+            'role'         => 'admin',
+            'account_type' => 'individual',
+            'firstname'    => '',
+            'lastname'     => '',
+            'company_name' => null,
+        ]);
+
+        /** @var AccountModel&MockObject $accounts */
+        $accounts = $this->createMock(AccountModel::class);
+        $accounts->method('findByEmail')->willReturn($account);
+        $accounts->expects($this->once())->method('blockAccount')->with(42);
+
+        /** @var RateLimiterService&Stub $rateLimiter */
+        $rateLimiter = $this->createStub(RateLimiterService::class);
+        $rateLimiter->method('checkLimit')->willReturn(true);
+
+        /** @var SecurityAlertService&Stub $securityAlert */
+        $securityAlert = $this->createStub(SecurityAlertService::class);
+        $securityAlert->method('shouldAlertOnFailedLogins')->willReturn(false);
+        $securityAlert->method('shouldAutoBlock')->willReturn(true);
+
+        $service = $this->makeService($accounts, $rateLimiter, $securityAlert);
+        $result  = $service->attempt('user@example.com', 'wrong_password', 'login:1.1.1.1', 'fr', '1.1.1.1');
+
+        $this->assertSame('bad_credentials', $result['result']);
+    }
+
+    // ----------------------------------------------------------------
     // Email non vérifié
     // ----------------------------------------------------------------
 

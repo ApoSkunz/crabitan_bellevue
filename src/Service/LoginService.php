@@ -235,7 +235,7 @@ class LoginService
         $this->securityAlert->recordAutoBlockFailure((int) $account['id']);
 
         if ($this->securityAlert->shouldAutoBlock((int) $account['id'])) {
-            (new \Model\AccountModel())->blockAccount((int) $account['id']);
+            $this->accounts->blockAccount((int) $account['id']);
             $displayName = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
                 ?: ($account['company_name'] ?? (string) $account['email']);
             try {
