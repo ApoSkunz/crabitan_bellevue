@@ -108,7 +108,12 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
         $lang = $params['lang'] ?? 'fr';
 
         $rawBack   = $this->request->post('redirect_back', '');
-        $validBack = preg_match('#^/[^/]#', $rawBack) && !str_contains($rawBack, '://');
+        // VULN-009 : validation stricte — rejeter //, null-byte, javascript:, data:, vbscript:
+        $validBack = $rawBack !== ''
+            && preg_match('#^/[a-zA-Z0-9\-_/]#', $rawBack)
+            && !str_contains($rawBack, '://')
+            && !str_starts_with($rawBack, '//')
+            && !str_contains($rawBack, "\0");
         $safeBack  = $validBack ? $rawBack : "/{$lang}";
 
         if (!$this->verifyCsrf()) {
@@ -223,7 +228,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
         // Cookie badge count — évite le flash à 0 au chargement de page suivant
         $loginCart   = $loginCartModel->findByUserId((int) $account['id']);
         $loginCount  = $loginCart !== false ? (int) ($loginCart['total_quantity'] ?? 0) : 0;
-        setcookie('cb-cart-count', (string) $loginCount, ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => false, 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
+        setcookie('cb-cart-count', (string) $loginCount, ['expires' => time() + 7 * 24 * 3600, 'path' => '/', 'secure' => APP_ENV === 'production', 'httponly' => false, 'samesite' => 'Lax']); // phpcs:ignore Generic.Files.LineLength
 
         // Déclaration de majorité — sync session avec l'état BDD
         if (!$this->accounts->hasDeclaredMajority((int) $account['id'])) {

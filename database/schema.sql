@@ -856,6 +856,7 @@ CREATE TABLE IF NOT EXISTS `wine_ratings` (
   `rating` TINYINT UNSIGNED DEFAULT NULL COMMENT '0 = token généré, non encore noté ; 1-5 = note utilisateur',
   `token` VARCHAR(64) NULL DEFAULT NULL,
   `token_used_at` DATETIME NULL DEFAULT NULL,
+  `token_created_at` DATETIME NULL DEFAULT NULL COMMENT 'VULN-008 : date de génération du token — expiration 90j',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

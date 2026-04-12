@@ -47,6 +47,12 @@ class LogApiController extends Controller
      */
     public function clientError(array $params): void // NOSONAR — $params requis par le router
     {
+        // VULN-002 : valider Content-Type — rejeter tout ce qui n'est pas JSON
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        if (!str_contains($contentType, 'application/json')) {
+            $this->json(['error' => 'Unsupported Media Type'], 415);
+        }
+
         $ip          = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $rlKey       = 'js-log:' . $ip;
         $rlDailyKey  = 'js-log-daily:' . $ip;
@@ -71,19 +77,32 @@ class LogApiController extends Controller
             $this->json(['error' => 'Bad Request'], 400);
         }
 
+        // VULN-003 : supprimer les caractères de contrôle de tous les champs texte libres
+        $sanitize = static fn(string $v, int $max): string =>
+            mb_substr(preg_replace('/[\x00-\x1F\x7F]/', '', $v) ?? $v, 0, $max);
+
         $entry = [
             'ts'      => date('c'),
-            'message' => mb_substr((string) ($body['message'] ?? ''), 0, 1000),
-            'source'  => mb_substr((string) ($body['source']  ?? ''), 0, 500),
+            'message' => $sanitize((string) ($body['message'] ?? ''), 1000),
+            'source'  => $sanitize((string) ($body['source']  ?? ''), 500),
             'lineno'  => (int) ($body['lineno'] ?? 0),
             'colno'   => (int) ($body['colno']  ?? 0),
-            'stack'   => mb_substr((string) ($body['stack']   ?? ''), 0, 5000),
-            'url'     => mb_substr((string) ($body['url']     ?? ''), 0, 500),
-            'ua'      => mb_substr((string) ($body['userAgent'] ?? ''), 0, 500),
+            'stack'   => $sanitize((string) ($body['stack']   ?? ''), 5000),
+            'url'     => $sanitize((string) ($body['url']     ?? ''), 500),
+            'ua'      => $sanitize((string) ($body['userAgent'] ?? ''), 500),
         ];
 
         $this->writeLog($entry);
-        $this->purgeOldLogs();
+
+        // VULN-011 : limiter purge à 1×/heure via APCu pour éviter la saturation I/O
+        $purgeKey = 'js_log_purge_last';
+        $lastPurge = function_exists('apcu_fetch') ? (int) @apcu_fetch($purgeKey) : 0;
+        if ((time() - $lastPurge) > 3600) {
+            $this->purgeOldLogs();
+            if (function_exists('apcu_store')) {
+                apcu_store($purgeKey, time(), 3600);
+            }
+        }
 
         $this->json(['ok' => true], 204);
     }

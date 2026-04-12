@@ -115,6 +115,10 @@ class LoginService
                 $this->maybeSendDeletionAlert($deleted, $lang);
                 return ['result' => 'deleted', 'account' => null, 'wait' => 0];
             }
+            // VULN-012 : dummy hash pour équilibrer le timing — évite l'énumération par timing attack
+            if ($deleted === false) {
+                password_verify($password, '$2y$12$invalidhashfortimingxx/invalidhashfortimingxx/eQrna'); // NOSONAR
+            }
         }
 
         // Vérification du mot de passe

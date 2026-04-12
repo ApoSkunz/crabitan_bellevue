@@ -28,18 +28,43 @@ class LogApiControllerTest extends TestCase
         $_SERVER['REMOTE_ADDR']    = '127.0.0.1';
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI']    = '/api/log/client-error';
+        $_SERVER['CONTENT_TYPE']   = 'application/json'; // VULN-002 : Content-Type requis
     }
 
     protected function tearDown(): void
     {
         $_SESSION = [];
-        unset($_SERVER['REMOTE_ADDR']);
+        unset($_SERVER['REMOTE_ADDR'], $_SERVER['CONTENT_TYPE']);
 
         // Nettoyer les fichiers de log créés pendant le test
         $logFile = ROOT_PATH . '/storage/logs/js-' . date('Y-m-d') . '.log';
         if (file_exists($logFile)) {
             unlink($logFile);
         }
+    }
+
+    // ----------------------------------------------------------------
+    // Test : Content-Type absent → 415
+    // ----------------------------------------------------------------
+
+    /**
+     * Un Content-Type non-JSON doit retourner 415 Unsupported Media Type.
+     */
+    public function testMissingContentTypeReturns415(): void
+    {
+        unset($_SERVER['CONTENT_TYPE']); // pas de Content-Type
+
+        $controller = $this->makeControllerWithBody(json_encode(['message' => 'test']) ?: '');
+
+        $caught = null;
+        try {
+            $controller->clientError([]);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(415, $caught->status);
     }
 
     // ----------------------------------------------------------------

@@ -25,7 +25,7 @@ class CookieHelper
             'path'     => '/',
             'secure'   => APP_ENV === 'production',
             'httponly' => true,
-            'samesite' => 'Lax',
+            'samesite' => 'Strict', // VULN-014 : Strict évite la transmission cross-site (liens externes)
         ];
 
         if ($expiry > 0) {
@@ -49,7 +49,7 @@ class CookieHelper
             'path'     => '/',
             'secure'   => APP_ENV === 'production',
             'httponly' => true,
-            'samesite' => 'Lax',
+            'samesite' => 'Strict', // VULN-014 : Strict évite la transmission cross-site (liens externes)
         ]);
     }
 }
