@@ -545,7 +545,7 @@ class WineController extends Controller
                 ($isEn ? 'Ageing'  : 'Élevage')   => $l($barrel),
             ]),
             ...( filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN)
-                ? [$isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES' => array_filter(
+                ? [($isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES') => array_filter(
                     $this->buildNutritionFields($nutrition, $isEn)
                 )]
                 : []

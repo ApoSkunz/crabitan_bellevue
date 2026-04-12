@@ -55,7 +55,7 @@ $isEn   = isset($lang) && $lang === 'en';
                     data-alt="<?= htmlspecialchars($photo['alt'], ENT_QUOTES) ?>"
                     aria-label="<?= htmlspecialchars(__('gallery.enlarge') . ' : ' . $photo['alt'], ENT_QUOTES) ?>">
                 <img src="<?= htmlspecialchars($photo['src'], ENT_QUOTES) ?>"
-                     alt="<?= htmlspecialchars($photo['alt'], ENT_QUOTES) ?>"
+                     alt="<?= htmlspecialchars($photo['alt'], ENT_QUOTES) ?>" <?php /* NOSONAR — Web:S6851 : alt provient d'une variable dynamique, pas du mot littéral "photo" */ ?>
                      loading="lazy"
                      class="gallery-item__img">
             </button>

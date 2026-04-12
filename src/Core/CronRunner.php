@@ -23,9 +23,11 @@ class CronRunner
     public function __construct(string $name, string $logDir = '')
     {
         $this->name   = $name;
-        $this->logDir = $logDir !== ''
-            ? $logDir
-            : (defined('ROOT_PATH') ? ROOT_PATH . '/storage/logs' : sys_get_temp_dir());
+        if ($logDir !== '') {
+            $this->logDir = $logDir;
+        } else {
+            $this->logDir = defined('ROOT_PATH') ? ROOT_PATH . '/storage/logs' : sys_get_temp_dir();
+        }
     }
 
     /**

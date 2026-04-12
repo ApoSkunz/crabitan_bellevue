@@ -1,13 +1,14 @@
 <?php
 $pageTitle = null; // Pas de titre dans <title> sur la home (château seul suffit)
+$brandName       = 'Château Crabitan Bellevue';
 $appUrl          = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
 $metaDescription = $navLang === 'en'
-    ? 'Château Crabitan Bellevue — Sainte-Croix-du-Mont AOC wines. Discover our estate and shop online.'
-    : 'Château Crabitan Bellevue — Vins de Sainte-Croix-du-Mont AOC. Découvrez notre domaine et achetez en ligne.';
+    ? "{$brandName} — Sainte-Croix-du-Mont AOC wines. Discover our estate and shop online."
+    : "{$brandName} — Vins de Sainte-Croix-du-Mont AOC. Découvrez notre domaine et achetez en ligne.";
 $canonical   = $appUrl . '/' . $navLang;
 $hreflangFr  = $appUrl . '/fr';
 $hreflangEn  = $appUrl . '/en';
-$ogTitle     = 'Château Crabitan Bellevue';
+$ogTitle     = $brandName;
 $ogDescription = $metaDescription;
 $ogUrl       = $canonical;
 $ogType      = 'website';
@@ -17,13 +18,13 @@ $jsonLd      = json_encode([
     '@graph'   => [
         [
             '@type' => 'Organization',
-            'name'  => 'Château Crabitan Bellevue',
+            'name'  => $brandName,
             'url'   => $appUrl,
             'logo'  => $appUrl . '/assets/images/logo/favicon.svg',
         ],
         [
             '@type'        => 'LocalBusiness',
-            'name'         => 'Château Crabitan Bellevue',
+            'name'         => $brandName,
             '@id'          => $appUrl,
             'url'          => $appUrl,
             'description'  => $metaDescription,

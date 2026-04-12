@@ -56,6 +56,8 @@ Thumbs.db
 
 # Lighthouse CI — rapports locaux
 /.lighthouseci/
+/.lighthouserc.local.json
+/lighthouse-auth-local.cjs
 logs/
 
 # Vite — artefacts de build non versionnés

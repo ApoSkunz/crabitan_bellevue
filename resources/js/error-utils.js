@@ -54,9 +54,14 @@ export function buildErrorPayload(message, source, lineno, colno, error, url, us
  * @returns {object}
  */
 export function buildRejectionPayload(reason, url, userAgent) {
-    const message = reason instanceof Error
-        ? reason.message
-        : String(reason ?? 'Unhandled Promise Rejection');
+    let message;
+    if (reason instanceof Error) {
+        message = reason.message;
+    } else if (reason instanceof Object) {
+        message = 'Unhandled Promise Rejection';
+    } else {
+        message = String(reason ?? 'Unhandled Promise Rejection');
+    }
     const stack = reason instanceof Error ? (reason.stack ?? '') : '';
 
     return {

@@ -9,7 +9,7 @@
  * sont ignorées silencieusement.
  */
 
-const isDebug = window.__appDebug === true;
+const isDebug = globalThis.__appDebug === true;
 const ENDPOINT = '/api/log/client-error';
 
 /**
@@ -23,7 +23,7 @@ function shouldIgnore(source, stack) {
     // Pas de source ni de stack → erreur cross-origin ou extension
     if (!source && !stack) return true;
     // Source présente mais hors domaine → extension navigateur
-    if (source && !source.includes(window.location.hostname)) return true;
+    if (source && !source.includes(globalThis.location.hostname)) return true;
     return false;
 }
 
@@ -53,25 +53,25 @@ function sendReport(payload) {
     }
 }
 
-window.onerror = function (message, source, lineno, colno, error) {
+globalThis.onerror = function (message, source, lineno, colno, error) {
     const stack = error?.stack ?? '';
 
-    if (shouldIgnore(source ?? '', stack)) return false;
+    if (shouldIgnore(source ?? '', stack)) return;
 
     sendReport({
-        message:   String(message),
+        message:   String(message), // NOSONAR — S6551 : window.onerror spec garantit DOMString
         source:    String(source ?? ''),
         lineno:    Number(lineno) || 0,
         colno:     Number(colno) || 0,
         stack:     stack,
-        url:       window.location.href,
+        url:       globalThis.location.href,
         userAgent: navigator.userAgent,
     });
 
     return false; // Ne pas supprimer l'affichage natif du navigateur
 };
 
-window.addEventListener('unhandledrejection', function (event) {
+globalThis.addEventListener('unhandledrejection', function (event) {
     const reason = event.reason;
     const message = reason instanceof Error ? reason.message : String(reason ?? 'Unhandled Promise Rejection');
     const stack   = reason instanceof Error ? (reason.stack ?? '') : '';
@@ -84,7 +84,7 @@ window.addEventListener('unhandledrejection', function (event) {
         lineno:    0,
         colno:     0,
         stack:     stack,
-        url:       window.location.href,
+        url:       globalThis.location.href,
         userAgent: navigator.userAgent,
     });
 });
