@@ -262,7 +262,7 @@ class RateLimiterService
             if ($row === false) {
                 return $default;
             }
-            return unserialize((string) $row['value']);
+            return json_decode((string) $row['value'], true);
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e, self::LOG_PREFIX);
             return $default;
@@ -281,7 +281,7 @@ class RateLimiterService
     {
         try {
             $expiresAt  = time() + $ttl;
-            $serialized = serialize($value);
+            $serialized = (string) json_encode($value);
             $this->db->query(
                 'INSERT INTO rate_limits (cache_key, value, expires_at)
                  VALUES (?, ?, ?)

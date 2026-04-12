@@ -23,8 +23,14 @@ abstract class AbstractAccountController extends Controller
      */
     protected function verifyCsrf(): bool
     {
-        $token = $this->request->post('csrf_token', '');
-        return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
+        $submitted = $this->request->post('csrf_token', '');
+        $session   = $_SESSION['csrf'] ?? '';
+        $valid     = $session !== '' && hash_equals($session, $submitted);
+        if ($valid) {
+            // VULN-008 : régénérer le token après usage pour limiter la fenêtre de rejeu
+            $_SESSION['csrf'] = bin2hex(random_bytes(32));
+        }
+        return $valid;
     }
 
     /**

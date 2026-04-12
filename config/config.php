@@ -43,7 +43,12 @@ unset($_detectedLang, $_acceptLang, $_langMatches, $_l, $_savedLang);
 // Chargement de la langue par défaut (surchargée par le Router si {lang} dans l'URL)
 \Core\Lang::load(DEFAULT_LANG);
 
-// Session
+// Session — attributs de sécurité explicites (VULN-004)
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    session_start([
+        'cookie_secure'   => APP_ENV === 'production',
+        'cookie_httponly' => true,
+        'cookie_samesite' => 'Lax',
+        'use_strict_mode' => true,
+    ]);
 }

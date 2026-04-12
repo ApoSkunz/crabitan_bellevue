@@ -18,6 +18,8 @@ class LogApiController extends Controller
 {
     private const MAX_ATTEMPTS    = 10;
     private const WINDOW_SECONDS  = 60;
+    private const MAX_DAILY       = 500;   // VULN-003 : budget quotidien par IP
+    private const WINDOW_DAILY    = 86400;
     private const RETENTION_DAYS  = 30;
     private const LOG_DIR_NAME    = 'storage/logs';
 
@@ -45,14 +47,21 @@ class LogApiController extends Controller
      */
     public function clientError(array $params): void // NOSONAR — $params requis par le router
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-        $rlKey = 'js-log:' . $ip;
+        $ip          = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $rlKey       = 'js-log:' . $ip;
+        $rlDailyKey  = 'js-log-daily:' . $ip;
 
+        // Rate limit par minute
         if (!$this->rateLimiter->checkLimit($rlKey, self::MAX_ATTEMPTS, self::WINDOW_SECONDS)) {
             $this->json(['error' => 'Too Many Requests'], 429);
         }
+        // VULN-003 : budget quotidien par IP (500 entrées/24h)
+        if (!$this->rateLimiter->checkLimit($rlDailyKey, self::MAX_DAILY, self::WINDOW_DAILY)) {
+            $this->json(['error' => 'Daily quota exceeded'], 429);
+        }
 
         $this->rateLimiter->recordAttempt($rlKey, self::WINDOW_SECONDS);
+        $this->rateLimiter->recordAttempt($rlDailyKey, self::WINDOW_DAILY);
 
         $raw = $this->readInput();
         /** @var array<string, mixed>|null $body */
@@ -105,8 +114,10 @@ class LogApiController extends Controller
             mkdir($logDir, 0755, true);
         }
 
-        $entry['channel'] = 'js';
-        $filename = $logDir . '/app-' . date('Y-m-d') . '.log';
+        // VULN-003 : logs JS dans fichier dédié — séparés des logs PHP critiques
+        $entry['channel'] = 'client_js';
+        unset($entry['level']); // refuser les champs de niveau fournis par le client
+        $filename = $logDir . '/js-' . date('Y-m-d') . '.log';
         $line     = json_encode($entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
 
         file_put_contents($filename, $line, FILE_APPEND | LOCK_EX);
@@ -127,7 +138,7 @@ class LogApiController extends Controller
 
         $cutoff = time() - (self::RETENTION_DAYS * 86400);
 
-        foreach (glob($logDir . '/app-*.log') ?: [] as $file) {
+        foreach (glob($logDir . '/js-*.log') ?: [] as $file) {
             if (filemtime($file) < $cutoff) {
                 unlink($file);
             }

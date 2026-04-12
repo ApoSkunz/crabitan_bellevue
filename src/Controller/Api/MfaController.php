@@ -71,7 +71,9 @@ class MfaController extends Controller
         $userId      = (int) $record['user_id'];
         $deviceToken = (string) $record['device_token'];
         $deviceName  = (string) ($record['device_name'] ?? '');
-        $redirectUrl = (string) ($record['redirect_url'] ?: '/' . ($record['lang'] ?? 'fr'));
+        $rawRedirect = (string) ($record['redirect_url'] ?: '/' . ($record['lang'] ?? 'fr'));
+        // VULN-009 : revalider le redirect_url lu en BDD (défense en profondeur contre injection SQL)
+        $redirectUrl = preg_match('#^/(fr|en)(/|$)#', $rawRedirect) ? $rawRedirect : '/fr';
         $recordLang  = (string) ($record['lang'] ?? 'fr');
 
         $account = $this->accounts->findById($userId);

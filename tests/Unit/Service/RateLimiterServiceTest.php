@@ -504,7 +504,7 @@ class RateLimiterServiceTest extends TestCase
         $db->method('fetchOne')
             ->willReturnCallback(function (string $sql, array $params) {
                 if (str_contains($params[0], ':until')) {
-                    return ['value' => serialize(time() + 600)];
+                    return ['value' => json_encode(time() + 600)];
                 }
                 return false;
             });

@@ -164,6 +164,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
         $cookieExpiry = $rememberMe ? $jwtExpiry : 86400;
         $token        = Jwt::generate((int) $account['id'], $account['role'], $jwtExpiry);
 
+        session_regenerate_id(true); // VULN-005 : protection session fixation après connexion réussie
         CookieHelper::set($token, $cookieExpiry);
 
         // Respecte la langue préférée enregistrée — ne pas l'écraser avec la lang de l'URL.
