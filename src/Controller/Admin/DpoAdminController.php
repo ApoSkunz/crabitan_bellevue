@@ -14,10 +14,10 @@ class DpoAdminController extends AdminController
     private const AUTHOR      = 'GFA Bernard Solane et Fils';
     private const SIRET       = '398 341 701 00017';
     private const ADDRESS     = 'Château Crabitan Bellevue — 33410 Sainte-Croix-du-Mont — France';
-    /** @return string Email DPO lu depuis la variable d'environnement CONTACT_OWNER_EMAIL */
+    /** @return string Email DPO lu depuis la variable d'environnement DPO_EMAIL */
     private function dpoEmail(): string
     {
-        return $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
+        return $_ENV['DPO_EMAIL'];
     }
     private const DATE_FORMAT = 'd/m/Y';
     // Offset révision annuelle (S1192)
