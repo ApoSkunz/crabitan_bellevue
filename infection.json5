@@ -4,9 +4,6 @@
         "directories": [
             "src/Model",
             "src/Service"
-        ],
-        "excludes": [
-            // Views are not business logic
         ]
     },
     "timeout": 10,
