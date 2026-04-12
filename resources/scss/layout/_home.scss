@@ -157,13 +157,13 @@
 .home-section--featured {
     .home-section__visual {
         img {
-            height: 480px;
+            height: 360px;
             object-fit: contain;
             object-position: center;
             background: transparent;
 
             @include m.bp('lg') {
-                height: 560px;
+                height: 440px;
             }
         }
     }

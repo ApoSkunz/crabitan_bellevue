@@ -9,50 +9,78 @@
 // ---- 1. Overflow global ----
 // Empêche tout scroll horizontal sur n'importe quelle page
 
+// overflow-x: clip (pas hidden) — bloque le scroll X sans créer de scroll container
+// → position: sticky du header reste fonctionnel sur mobile
 html,
 body {
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100%;
 }
 
 // ---- 2. Header mobile ----
 
 @media (max-width: 767px) {
-    // Logo trop grand pour 320px
-    .header-logo img {
-        height: 64px;
-    }
-
-    // Compresse les gaps sur petits écrans
+    // Header plus haut — espace pour le logo centré
     .header-main {
-        gap: 0.4rem;
-        padding: 0.5rem 0.75rem;
+        gap: 0;
+        padding: 0.6rem 0.75rem;
+        min-height: 96px;
+        position: relative; // déjà en desktop, confirmé mobile
     }
 
+    // Logo centré horizontalement et verticalement dans le header-main
+    // Sorti du flux → ne compte pas dans la largeur des flex items
+    .header-logo {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+
+        img {
+            height: 88px; // plus imposant qu'avant (64px)
+        }
+    }
+
+    // Gauche : lang-switch uniquement (logo sorti du flux)
     .header-left {
         gap: 0.4rem;
     }
 
+    // Droite : icônes + burger
     .header-actions {
-        gap: 0.4rem;
+        gap: 0.5rem;
     }
 
-    // Menu mobile — évite le débordement sur 320px + scroll interne si long
-    .header-nav--mobile {
-        padding: 0.75rem 1rem;
-        max-height: calc(100dvh - 80px);
-        overflow-y: auto;
-
-        a {
-            font-size: 1.1rem;
-            padding: 0.65rem 0;
-        }
+    // Bouton Connexion / Mon compte masqué sur mobile
+    // → accessible via menu burger (header-nav--mobile contient login + register + account)
+    .header-actions .btn--white,
+    .header-actions .btn--ghost {
+        display: none;
     }
 
-    // Icônes du panier / langue — réduits sur 320px
+    // Icônes du panier / langue — réduits sur mobile
     .lang-switch a {
         padding: 0.25em 0.45em;
         font-size: 0.85rem;
+    }
+
+    // Menu mobile — scroll interne si contenu long
+    // Typo serif (Cinzel) : lisible + élégant vs script illisible en petit
+    .header-nav--mobile {
+        padding: 0.75rem 1rem;
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+
+        a,
+        &__modal-btn {
+            font-family: var(--font-serif);
+            font-size: 0.95rem;
+            letter-spacing: 0.12em;
+            font-variant: small-caps;
+            padding: 0.7rem 0;
+            color: var(--color-text-muted);
+        }
     }
 }
 
@@ -142,6 +170,7 @@ body {
     }
 
     // Nav latérale → pills horizontaux scrollables
+    // Dégradé sur les bords : indique visuellement qu'on peut scroller
     .account-nav {
         flex-direction: row;
         flex-wrap: nowrap;
@@ -150,6 +179,11 @@ body {
         gap: 0.4rem;
         padding-bottom: 0.5rem;
         scrollbar-width: none;
+        // Fade droite uniquement → signal clair "il y a plus à droite"
+        // padding-right laisse dépasser le dernier item → coupé = affordance scroll
+        padding-right: 2.5rem;
+        -webkit-mask-image: linear-gradient(to right, black 0%, black 70%, transparent 100%);
+        mask-image: linear-gradient(to right, black 0%, black 70%, transparent 100%);
 
         &::-webkit-scrollbar {
             display: none;
@@ -168,10 +202,57 @@ body {
         max-width: 100%;
     }
 
-    // Tableau commandes — scroll interne
+    // Tableau commandes/factures → cards empilées (plus de scroll horizontal)
     .account-table-wrap {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        overflow-x: visible;
+    }
+
+    .account-table {
+        display: block;
+        width: 100%;
+
+        thead {
+            display: none; // labels portés par data-label sur chaque td
+        }
+
+        tbody,
+        tr {
+            display: block;
+        }
+
+        tr {
+            background: var(--color-surface);
+            border: 1px solid rgba(201, 168, 76, 0.25);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.9rem;
+
+            &:last-child {
+                border-bottom: none;
+                padding-top: 0.6rem;
+                justify-content: flex-end;
+            }
+
+            &::before {
+                content: attr(data-label);
+                font-size: 0.75rem;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                color: var(--color-text-muted);
+                flex-shrink: 0;
+                margin-right: 0.75rem;
+            }
+        }
     }
 
     // Grille adresses → 1 colonne
@@ -207,7 +288,24 @@ body {
     }
 }
 
-// ---- 8. Checkout ----
+// ---- 8. Stepper checkout — centré sur mobile ----
+
+@media (max-width: 575px) {
+    .checkout-stepper__list {
+        justify-content: center;
+    }
+
+    .checkout-stepper__step {
+        flex: 0 0 auto; // ne grandit plus → permet le centrage réel
+
+        &:not(:last-child)::after {
+            flex: none;
+            width: 3rem; // connecteur fixe
+        }
+    }
+}
+
+// ---- 9. Checkout ----
 
 @media (max-width: 767px) {
     .checkout-section {
@@ -314,7 +412,7 @@ body {
     }
 }
 
-// ---- 13. Footer — logos paiement centrés sur mobile ----
+// ---- 13. Footer — logos paiement centrés + mention Évin inline ----
 
 @media (max-width: 767px) {
     .footer-payments {
@@ -324,9 +422,30 @@ body {
     .footer-hve img {
         height: 80px;
     }
+
+    // Icônes Loi Évin + texte sur la même ligne
+    .footer-legal {
+        flex-wrap: nowrap;
+        align-items: flex-start;
+    }
 }
 
-// ---- 14. Page hero — padding réduit ----
+// ---- 14. Galerie — toolbar centrée + espace avec les photos ----
+
+@media (max-width: 767px) {
+    .gallery-toolbar {
+        justify-content: center;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .gallery-grid {
+        padding-top: 1.5rem;
+        padding-bottom: 3rem;
+    }
+}
+
+// ---- 15. Page hero — padding réduit ----
 
 @media (max-width: 767px) {
     .page-hero {
@@ -339,5 +458,13 @@ body {
 @media (max-width: 767px) {
     .container {
         padding: 0 1rem;
+    }
+}
+
+// ---- 16. Respiration universelle avant le footer ----
+
+@media (max-width: 767px) {
+    main {
+        padding-bottom: 3rem;
     }
 }

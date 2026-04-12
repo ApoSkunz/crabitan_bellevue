@@ -657,13 +657,13 @@
         color: var(--color-text-muted);
         cursor: pointer;
         user-select: none;
-        background: var(--color-surface);
+        background: #ffffff;
         transition: background 150ms ease;
 
         &::-webkit-details-marker { display: none; }
 
         &:hover {
-            background: color-mix(in srgb, var(--color-gold) 8%, var(--color-surface));
+            background: color-mix(in srgb, var(--color-gold) 8%, #ffffff);
             color: var(--color-text);
         }
     }
@@ -688,6 +688,7 @@
         padding: 0.45rem 1rem;
         font-size: 0.8rem;
         color: var(--color-text-muted);
+        background: #ffffff;
         border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
 
         &:last-child { border-bottom: none; }
@@ -695,7 +696,7 @@
         &--active {
             color: var(--color-gold);
             font-weight: 600;
-            background: color-mix(in srgb, var(--color-gold) 6%, var(--color-surface));
+            background: color-mix(in srgb, var(--color-gold) 6%, #ffffff);
         }
     }
 }
@@ -841,4 +842,59 @@
     60%       { transform: translateX(5px); }
     75%       { transform: translateX(-3px); }
     90%       { transform: translateX(3px); }
+}
+
+// ----------------------------------------------------------------
+// Dialog confirmation suppression article panier
+// ----------------------------------------------------------------
+
+.cart-remove-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    border: 1px solid var(--color-border-gold);
+    border-radius: 8px;
+    padding: 0;
+    width: min(440px, 92vw);
+    background: var(--color-surface);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+
+    &::backdrop {
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(2px);
+    }
+
+    &__inner {
+        padding: 2rem 1.75rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: 1.1rem;
+        letter-spacing: 0.08em;
+        color: var(--color-text);
+        margin: 0;
+        text-align: center;
+    }
+
+    &__body {
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        text-align: center;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    &__actions {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
 }

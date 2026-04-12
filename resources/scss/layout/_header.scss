@@ -376,13 +376,21 @@
         display: none !important;
     }
 
-    a {
+    a,
+    &__modal-btn {
         padding: 0.75rem 0;
         border-bottom: 1px solid var(--color-border);
         font-size: 1rem;
         color: var(--color-text-muted);
         font-family: var(--font-script);
         transition: color 200ms ease;
+        text-align: left;
+        background: none;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+        width: 100%;
+        cursor: pointer;
 
         &:last-child {
             border-bottom: none;
