@@ -1362,7 +1362,7 @@ class AuthControllerTest extends IntegrationTestCase
                      'Guyot', 'Guyot',
                      'Manuelle', 'Manual',
                      'Inox', 'Stainless',
-                     '', '', '', '',
+                     '', '', '', '', '', '',
                      'CartWine_2021.png', 'cart-wine-2021')"
         );
         $wineRow = self::$db->fetchOne(
