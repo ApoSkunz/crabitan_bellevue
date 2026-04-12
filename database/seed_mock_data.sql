@@ -44,6 +44,17 @@ TRUNCATE TABLE `newsletter_links`;
 TRUNCATE TABLE `newsletter_subscriptions`;
 TRUNCATE TABLE `newsletter_attachments`;
 TRUNCATE TABLE `newsletters`;
+TRUNCATE TABLE `newsletter_unsubscribes`;
+TRUNCATE TABLE `wine_nutrition`;
+TRUNCATE TABLE `wine_ratings`;
+TRUNCATE TABLE `order_rating_tokens`;
+TRUNCATE TABLE `payment_intents`;
+TRUNCATE TABLE `credit_card_token`;
+TRUNCATE TABLE `audit_log`;
+TRUNCATE TABLE `admin_logs`;
+TRUNCATE TABLE `rgpd_requests`;
+TRUNCATE TABLE `rgpd_export_logs`;
+TRUNCATE TABLE `legal_notification_logs`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
