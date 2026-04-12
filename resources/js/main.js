@@ -2204,11 +2204,22 @@ function initCartPage() {
         });
     });
 
-    // Délégation — suppression d'article
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('.js-cart-remove');
-        if (!btn) return;
+    // Délégation — suppression d'article (avec dialog de confirmation)
+    /** @type {HTMLButtonElement|null} */
+    let pendingRemoveBtn = null;
 
+    const removeDialog  = /** @type {HTMLDialogElement|null} */ (document.getElementById('cart-remove-dialog'));
+    const removeConfirm = document.getElementById('cart-remove-confirm');
+    const removeCancel  = document.getElementById('cart-remove-cancel');
+    const removeBody    = document.getElementById('cart-remove-dialog-body');
+
+    /**
+     * Exécute la suppression API après confirmation.
+     *
+     * @param {HTMLButtonElement} btn
+     * @return {void}
+     */
+    function doCartRemove(btn) {
         const wineId = Number.parseInt(btn.dataset.wineId, 10);
         btn.disabled = true;
 
@@ -2270,7 +2281,44 @@ function initCartPage() {
                 btn.disabled = false;
                 showToast(isEn ? 'Failed to remove item.' : 'Échec de la suppression.', true);
             });
+    }
+
+    // Click sur poubelle → ouvre le dialog de confirmation
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-cart-remove');
+        if (!btn) return;
+
+        if (!removeDialog) {
+            doCartRemove(btn);
+            return;
+        }
+
+        pendingRemoveBtn = btn;
+        const wineName = btn.dataset.wineName || '';
+        const tpl = (window.__cartRemoveConfirmBody || '%s').replace('%s', `«\u00a0${wineName}\u00a0»`);
+        if (removeBody) removeBody.textContent = tpl;
+        removeDialog.showModal();
     });
+
+    if (removeConfirm && removeDialog) {
+        removeConfirm.addEventListener('click', () => {
+            removeDialog.close();
+            if (pendingRemoveBtn) doCartRemove(pendingRemoveBtn);
+            pendingRemoveBtn = null;
+        });
+    }
+
+    if (removeCancel && removeDialog) {
+        removeCancel.addEventListener('click', () => {
+            removeDialog.close();
+            pendingRemoveBtn = null;
+        });
+    }
+
+    // Fermeture via Escape (natif dialog) — réinitialise le btn en attente
+    if (removeDialog) {
+        removeDialog.addEventListener('cancel', () => { pendingRemoveBtn = null; });
+    }
 
     // Désactiver les boutons − si qty initiale = 1
     document.querySelectorAll('.js-qty-minus').forEach((btn) => {
