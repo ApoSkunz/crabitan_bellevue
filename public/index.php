@@ -51,6 +51,11 @@ if (!$ageVerified && !$isPublicPath && !$isCrawler) {
     exit;
 }
 
+// Crawlers traités comme vérifiés pour l'affichage complet (meta tags, head, footer)
+if ($isCrawler && !$ageVerified) {
+    $_COOKIE['age_verified'] = '1';
+}
+
 // Sliding refresh : si "Se souvenir de moi" était coché, on repousse l'expiry à chaque visite
 if ($ageVerified && isset($_COOKIE['age_remember'])) {
     $ttl        = 397 * 24 * 3600;
