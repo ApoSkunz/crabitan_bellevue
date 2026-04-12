@@ -24,8 +24,10 @@ $jsonRequired = ['oenological_comment', 'soil', 'pruning', 'harvest', 'vinificat
 
 $decoded = [];
 foreach ($jsonFields as $field) {
-    $raw = $wine[$field] ?? '{}';
-    $decoded[$field] = is_string($raw) ? (json_decode($raw, true) ?? ['fr' => '', 'en' => '']) : ['fr' => '', 'en' => ''];
+    $decoded[$field] = [
+        'fr' => (string) ($wine[$field . '_fr'] ?? ''),
+        'en' => (string) ($wine[$field . '_en'] ?? ''),
+    ];
 }
 
 if (!function_exists('fieldVal')) {

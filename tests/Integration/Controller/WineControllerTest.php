@@ -44,18 +44,21 @@ class WineControllerTest extends IntegrationTestCase
             "INSERT INTO wines
                 (label_name, wine_color, format, vintage, price, production_quantity, available,
                  area, city, variety_of_vine, age_of_vineyard,
-                 oenological_comment, soil, pruning, harvest, vinification,
-                 barrel_fermentation, award, extra_comment, image_path, slug)
+                 oenological_comment_fr, oenological_comment_en,
+                 soil_fr, soil_en, pruning_fr, pruning_en,
+                 harvest_fr, harvest_en, vinification_fr, vinification_en,
+                 barrel_fermentation_fr, barrel_fermentation_en,
+                 award_fr, award_en, extra_comment_fr, extra_comment_en,
+                 image_path, slug)
              VALUES (?, ?, 'bottle', 2020, 22.00, 120, 1,
                      7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
-                     '{\"fr\":\"Description test\",\"en\":\"Test description\"}',
-                     '{\"fr\":\"Argile\",\"en\":\"Clay\"}',
-                     '{\"fr\":\"Guyot mixte\",\"en\":\"Mixed Guyot\"}',
-                     '{\"fr\":\"Manuelles\",\"en\":\"Manual\"}',
-                     '{\"fr\":\"Cuves inox\",\"en\":\"Stainless steel\"}',
-                     '{\"fr\":\"36 mois\",\"en\":\"36 months\"}',
-                     '{\"fr\":\"\",\"en\":\"\"}',
-                     '{\"fr\":\"\",\"en\":\"\"}',
+                     'Description test', 'Test description',
+                     'Argile', 'Clay',
+                     'Guyot mixte', 'Mixed Guyot',
+                     'Manuelles', 'Manual',
+                     'Cuves inox', 'Stainless steel',
+                     '36 mois', '36 months',
+                     '', '', '', '',
                      'Wine_Test_2020.png', ?)",
             ['Test Wine', $color, $slug]
         );

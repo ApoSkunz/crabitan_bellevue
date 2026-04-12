@@ -46,19 +46,17 @@ class RatingModelTest extends IntegrationTestCase
             "INSERT INTO wines
              (label_name, wine_color, format, vintage, price, production_quantity, available,
               certification_label, area, city, variety_of_vine, age_of_vineyard,
-              oenological_comment, soil, pruning, harvest, vinification,
-              barrel_fermentation, award, extra_comment, is_cuvee_speciale,
-              image_path, slug)
+              oenological_comment_fr, oenological_comment_en,
+              soil_fr, soil_en, pruning_fr, pruning_en,
+              harvest_fr, harvest_en, vinification_fr, vinification_en,
+              barrel_fermentation_fr, barrel_fermentation_en,
+              award_fr, award_en, extra_comment_fr, extra_comment_en,
+              is_cuvee_speciale, image_path, slug)
              VALUES (?, 'red', 'bottle', 2020, 19.90, 100, 1,
                      'AOC', 5.00, 'Bordeaux', 'Merlot', 20,
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
+                     '...', '...', '...', '...', '...', '...',
+                     '...', '...', '...', '...', '...', '...',
+                     '', '', '', '',
                      0, 'wine_rating_test.jpg', ?)",
             ['Rating Test Wine 2020', 'test-rating-wine-2020-' . bin2hex(random_bytes(4))]
         );
@@ -288,19 +286,17 @@ class RatingModelTest extends IntegrationTestCase
             "INSERT INTO wines
              (label_name, wine_color, format, vintage, price, production_quantity, available,
               certification_label, area, city, variety_of_vine, age_of_vineyard,
-              oenological_comment, soil, pruning, harvest, vinification,
-              barrel_fermentation, award, extra_comment, is_cuvee_speciale,
-              image_path, slug)
+              oenological_comment_fr, oenological_comment_en,
+              soil_fr, soil_en, pruning_fr, pruning_en,
+              harvest_fr, harvest_en, vinification_fr, vinification_en,
+              barrel_fermentation_fr, barrel_fermentation_en,
+              award_fr, award_en, extra_comment_fr, extra_comment_en,
+              is_cuvee_speciale, image_path, slug)
              VALUES (?, 'white', 'bottle', 2021, 15.00, 50, 1,
                      'AOC', 3.00, 'Loire', 'Sauvignon', 10,
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
-                     '{\"fr\":\"...\",\"en\":\"...\"}',
+                     '...', '...', '...', '...', '...', '...',
+                     '...', '...', '...', '...', '...', '...',
+                     '', '', '', '',
                      0, 'wine_other.jpg', ?)",
             ['Loire Blanc 2021', 'test-loire-blanc-2021-' . bin2hex(random_bytes(4))]
         );

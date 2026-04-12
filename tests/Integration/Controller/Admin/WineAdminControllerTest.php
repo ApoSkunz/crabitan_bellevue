@@ -23,20 +23,23 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
             "INSERT INTO wines
              (label_name, wine_color, format, vintage, price, production_quantity, available,
               area, city, variety_of_vine, age_of_vineyard,
-              oenological_comment, soil, pruning, harvest, vinification,
-              barrel_fermentation, award, extra_comment, image_path, slug)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+              oenological_comment_fr, oenological_comment_en,
+              soil_fr, soil_en, pruning_fr, pruning_en,
+              harvest_fr, harvest_en, vinification_fr, vinification_en,
+              barrel_fermentation_fr, barrel_fermentation_en,
+              award_fr, award_en, extra_comment_fr, extra_comment_en,
+              image_path, slug)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             [
                 'Vin Doublon', 'red', 'bottle', 2018, 15.00, 10, 1,
                 '1.00', 'Bordeaux', 'Merlot 100%', 15,
-                json_encode(['fr' => 'Desc doublon', 'en' => 'Duplicate desc']),
-                json_encode(['fr' => 'Argile', 'en' => 'Clay']),
-                json_encode(['fr' => 'Guyot', 'en' => 'Guyot']),
-                json_encode(['fr' => 'Manuel', 'en' => 'Manual']),
-                json_encode(['fr' => 'Inox', 'en' => 'Stainless']),
-                json_encode(['fr' => '12 mois', 'en' => '12 months']),
-                json_encode(['fr' => '', 'en' => '']),
-                json_encode(['fr' => '', 'en' => '']),
+                'Desc doublon', 'Duplicate desc',
+                'Argile', 'Clay',
+                'Guyot', 'Guyot',
+                'Manuel', 'Manual',
+                'Inox', 'Stainless',
+                '12 mois', '12 months',
+                '', '', '', '',
                 'Wine_Vin_Doublon_2018.png', $slug . '-' . uniqid(),
             ]
         );
@@ -76,20 +79,23 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
             "INSERT INTO wines
              (label_name, wine_color, format, vintage, price, production_quantity, available,
               area, city, variety_of_vine, age_of_vineyard,
-              oenological_comment, soil, pruning, harvest, vinification,
-              barrel_fermentation, award, extra_comment, image_path, slug)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+              oenological_comment_fr, oenological_comment_en,
+              soil_fr, soil_en, pruning_fr, pruning_en,
+              harvest_fr, harvest_en, vinification_fr, vinification_en,
+              barrel_fermentation_fr, barrel_fermentation_en,
+              award_fr, award_en, extra_comment_fr, extra_comment_en,
+              image_path, slug)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             [
                 'Vin TI', 'red', 'bottle', 2022, 18.50, 60, 1,
                 '0.50', 'Saint-Émilion', 'Merlot 80%', 20,
-                json_encode(['fr' => 'Desc TI', 'en' => 'TI desc']),
-                json_encode(['fr' => 'Argile', 'en' => 'Clay']),
-                json_encode(['fr' => 'Guyot', 'en' => 'Guyot']),
-                json_encode(['fr' => 'Manuel', 'en' => 'Manual']),
-                json_encode(['fr' => 'Inox', 'en' => 'Stainless']),
-                json_encode(['fr' => '12 mois', 'en' => '12 months']),
-                json_encode(['fr' => '', 'en' => '']),
-                json_encode(['fr' => '', 'en' => '']),
+                'Desc TI', 'TI desc',
+                'Argile', 'Clay',
+                'Guyot', 'Guyot',
+                'Manuel', 'Manual',
+                'Inox', 'Stainless',
+                '12 mois', '12 months',
+                '', '', '', '',
                 'Wine_Vin_TI_2022.png', 'vin-ti-' . uniqid(),
             ]
         );

@@ -230,8 +230,8 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $imagePath   = (string) ($wine['image_path'] ?? '');
         $isCuvee     = (bool) ($wine['is_cuvee_speciale'] ?? false);
 
-        // Champ award : JSON bilingue {"fr":"...","en":"..."}
-        $awardText = $this->resolveAwardText($wine['award'] ?? null, $lang);
+        // Champ award : colonnes bilingues award_fr / award_en (ou ancien format JSON rétro-compat)
+        $awardText = $this->resolveAwardText($wine, $lang);
 
         if ($lang === 'fr') {
             $subject      = sprintf(
@@ -1343,12 +1343,22 @@ INNER;
     /**
      * Extrait et échappe le texte de récompense depuis le champ award JSON bilingue.
      *
-     * @param  mixed  $awardRaw Valeur brute du champ award (string JSON, array ou null)
-     * @param  string $lang     Langue cible ('fr' ou 'en')
-     * @return string           Texte de récompense échappé, vide si absent
+     * @param  array<string, mixed> $wine Ligne vin contenant award_fr / award_en (ou ancien champ award JSON).
+     * @param  string               $lang Langue cible ('fr' ou 'en')
+     * @return string                     Texte de récompense échappé, vide si absent
      */
-    private function resolveAwardText(mixed $awardRaw, string $lang): string
+    private function resolveAwardText(array $wine, string $lang): string
     {
+        // Nouvelle structure : colonnes _fr / _en séparées
+        $fr = (string) ($wine['award_fr'] ?? '');
+        $en = (string) ($wine['award_en'] ?? '');
+        if ($fr !== '' || $en !== '') {
+            $value = $lang === 'en' ? ($en !== '' ? $en : $fr) : ($fr !== '' ? $fr : $en);
+            return htmlspecialchars(trim($value), ENT_QUOTES);
+        }
+
+        // Rétro-compat : ancien champ JSON bilingue
+        $awardRaw = $wine['award'] ?? null;
         $awardData = [];
         if ($awardRaw !== null && $awardRaw !== '' && $awardRaw !== '[]') {
             $decoded   = is_array($awardRaw) ? $awardRaw : (json_decode((string) $awardRaw, true) ?? []);

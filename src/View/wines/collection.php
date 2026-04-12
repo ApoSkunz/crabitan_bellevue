@@ -183,9 +183,9 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
 
                 <div class="wines-grid wines-grid--collection">
                     <?php foreach ($groupWines as $wine) :
-                        $comment     = json_decode($wine['oenological_comment'] ?? '{}', true) ?? [];
+                        $comment     = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
                         $description = $comment[$navLang] ?? ($comment['fr'] ?? '');
-                        $awardData   = json_decode($wine['award'] ?? '{}', true) ?? [];
+                        $awardData   = ['fr' => $wine['award_fr'] ?? '', 'en' => $wine['award_en'] ?? ''];
                         $award       = $awardData[$navLang] ?? ($awardData['fr'] ?? '');
                         ?>
                         <article class="wine-card<?= !$wine['available'] ? ' wine-card--out-of-stock' : '' ?>">

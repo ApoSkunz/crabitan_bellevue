@@ -1344,23 +1344,25 @@ class AuthControllerTest extends IntegrationTestCase
             [$id]
         );
 
-        // Insérer un vin réel pour le panier (colonnes JSON requises)
+        // Insérer un vin réel pour le panier (colonnes TEXT _fr/_en)
         self::$db->insert(
             "INSERT INTO wines
                 (label_name, wine_color, format, vintage, price, production_quantity, available,
                  area, city, variety_of_vine, age_of_vineyard,
-                 oenological_comment, soil, pruning, harvest, vinification,
-                 barrel_fermentation, award, extra_comment, image_path, slug)
+                 oenological_comment_fr, oenological_comment_en,
+                 soil_fr, soil_en, pruning_fr, pruning_en,
+                 harvest_fr, harvest_en, vinification_fr, vinification_en,
+                 barrel_fermentation_fr, barrel_fermentation_en,
+                 award_fr, award_en, extra_comment_fr, extra_comment_en,
+                 image_path, slug)
              VALUES ('Cart Wine', 'sweet', 'bottle', 2021, 20.00, 50, 1,
                      7.50, 'Sainte-Croix-du-Mont', 'Sémillon 98%', 30,
-                     '{\"fr\":\"Desc\",\"en\":\"Desc\"}',
-                     '{\"fr\":\"Argile\",\"en\":\"Clay\"}',
-                     '{\"fr\":\"Guyot\",\"en\":\"Guyot\"}',
-                     '{\"fr\":\"Manuelle\",\"en\":\"Manual\"}',
-                     '{\"fr\":\"Inox\",\"en\":\"Stainless\"}',
-                     '{\"fr\":\"\",\"en\":\"\"}',
-                     '{\"fr\":\"\",\"en\":\"\"}',
-                     '{\"fr\":\"\",\"en\":\"\"}',
+                     'Desc', 'Desc',
+                     'Argile', 'Clay',
+                     'Guyot', 'Guyot',
+                     'Manuelle', 'Manual',
+                     'Inox', 'Stainless',
+                     '', '', '', '',
                      'CartWine_2021.png', 'cart-wine-2021')"
         );
         $wineRow = self::$db->fetchOne(
@@ -1521,14 +1523,17 @@ class AuthControllerTest extends IntegrationTestCase
             "INSERT INTO wines
              (label_name, wine_color, format, vintage, price, production_quantity, stock_quantity, available,
               area, city, variety_of_vine, age_of_vineyard,
-              oenological_comment, soil, pruning, harvest, vinification,
-              barrel_fermentation, award, extra_comment, image_path, slug)
+              oenological_comment_fr, oenological_comment_en,
+              soil_fr, soil_en, pruning_fr, pruning_en,
+              harvest_fr, harvest_en, vinification_fr, vinification_en,
+              barrel_fermentation_fr, barrel_fermentation_en,
+              award_fr, award_en, extra_comment_fr, extra_comment_en,
+              image_path, slug)
              VALUES ('Legacy Wine', 'red', 'bottle', 2020, 18.00, 300, 0, 1,
                      5.00, 'Bordeaux', 'Merlot', 25,
-                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
-                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
-                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
-                     '{\"fr\":\"\",\"en\":\"\"}', '{\"fr\":\"\",\"en\":\"\"}',
+                     'test', 'test', 'test', 'test', 'test', 'test',
+                     'test', 'test', 'test', 'test', 'test', 'test',
+                     '', '', '', '',
                      'legacy_wine.png', 'legacy-wine-2020-merge-fix')"
         );
         $wineRow = self::$db->fetchOne(
@@ -1576,14 +1581,17 @@ class AuthControllerTest extends IntegrationTestCase
             "INSERT INTO wines
              (label_name, wine_color, format, vintage, price, production_quantity, stock_quantity, available,
               area, city, variety_of_vine, age_of_vineyard,
-              oenological_comment, soil, pruning, harvest, vinification,
-              barrel_fermentation, award, extra_comment, image_path, slug)
+              oenological_comment_fr, oenological_comment_en,
+              soil_fr, soil_en, pruning_fr, pruning_en,
+              harvest_fr, harvest_en, vinification_fr, vinification_en,
+              barrel_fermentation_fr, barrel_fermentation_en,
+              award_fr, award_en, extra_comment_fr, extra_comment_en,
+              image_path, slug)
              VALUES ('Stock Wine', 'white', 'bottle', 2019, 22.00, 200, 2, 1,
                      3.00, 'Bordeaux', 'Sauvignon', 15,
-                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
-                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
-                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
-                     '{\"fr\":\"\",\"en\":\"\"}', '{\"fr\":\"\",\"en\":\"\"}',
+                     'test', 'test', 'test', 'test', 'test', 'test',
+                     'test', 'test', 'test', 'test', 'test', 'test',
+                     '', '', '', '',
                      'stock_wine.png', 'stock-wine-2019-merge-fix')"
         );
         $wineRow = self::$db->fetchOne(
@@ -1634,14 +1642,17 @@ class AuthControllerTest extends IntegrationTestCase
             "INSERT INTO wines
              (label_name, wine_color, format, vintage, price, production_quantity, stock_quantity, available,
               area, city, variety_of_vine, age_of_vineyard,
-              oenological_comment, soil, pruning, harvest, vinification,
-              barrel_fermentation, award, extra_comment, image_path, slug)
+              oenological_comment_fr, oenological_comment_en,
+              soil_fr, soil_en, pruning_fr, pruning_en,
+              harvest_fr, harvest_en, vinification_fr, vinification_en,
+              barrel_fermentation_fr, barrel_fermentation_en,
+              award_fr, award_en, extra_comment_fr, extra_comment_en,
+              image_path, slug)
              VALUES ('Out Wine', 'rosé', 'bottle', 2018, 25.00, 100, 10, 0,
                      4.00, 'Bordeaux', 'Grenache', 18,
-                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
-                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
-                     '{\"fr\":\"test\",\"en\":\"test\"}', '{\"fr\":\"test\",\"en\":\"test\"}',
-                     '{\"fr\":\"\",\"en\":\"\"}', '{\"fr\":\"\",\"en\":\"\"}',
+                     'test', 'test', 'test', 'test', 'test', 'test',
+                     'test', 'test', 'test', 'test', 'test', 'test',
+                     '', '', '', '',
                      'out_wine.png', 'out-wine-2018-merge-fix')"
         );
         $wineRow = self::$db->fetchOne(

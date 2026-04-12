@@ -3,7 +3,7 @@ $isAdmin   = $isAdmin ?? false;
 $wineName  = ($wine['label_name'] ?? '') . ' ' . ($wine['vintage'] ?? '');
 $pageTitle = $wineName;
 $appUrl        = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
-$_oeno         = json_decode($wine['oenological_comment'] ?? '{}', true) ?? [];
+$_oeno         = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
 $_oenoText     = (string) ($_oeno[$navLang] ?? ($_oeno['fr'] ?? ''));
 $metaDescription = mb_substr(strip_tags($_oenoText), 0, 155);
 $canonical     = $appUrl . '/' . $navLang . '/vins/' . ($wine['slug'] ?? '');
@@ -34,15 +34,15 @@ $jsonLd        = json_encode([
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
-// Décodage des champs JSON
-$oeno    = json_decode($wine['oenological_comment'] ?? '{}', true) ?? [];
-$soil    = json_decode($wine['soil']                ?? '{}', true) ?? [];
-$pruning = json_decode($wine['pruning']             ?? '{}', true) ?? [];
-$harvest = json_decode($wine['harvest']             ?? '{}', true) ?? [];
-$vinif   = json_decode($wine['vinification']        ?? '{}', true) ?? [];
-$barrel  = json_decode($wine['barrel_fermentation'] ?? '{}', true) ?? [];
-$award   = json_decode($wine['award']               ?? '{}', true) ?? [];
-$extra   = json_decode($wine['extra_comment']       ?? '{}', true) ?? [];
+// Champs bilingues (colonnes _fr / _en séparées)
+$oeno    = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
+$soil    = ['fr' => $wine['soil_fr'] ?? '',                'en' => $wine['soil_en'] ?? ''];
+$pruning = ['fr' => $wine['pruning_fr'] ?? '',             'en' => $wine['pruning_en'] ?? ''];
+$harvest = ['fr' => $wine['harvest_fr'] ?? '',             'en' => $wine['harvest_en'] ?? ''];
+$vinif   = ['fr' => $wine['vinification_fr'] ?? '',        'en' => $wine['vinification_en'] ?? ''];
+$barrel  = ['fr' => $wine['barrel_fermentation_fr'] ?? '', 'en' => $wine['barrel_fermentation_en'] ?? ''];
+$award   = ['fr' => $wine['award_fr'] ?? '',               'en' => $wine['award_en'] ?? ''];
+$extra   = ['fr' => $wine['extra_comment_fr'] ?? '',       'en' => $wine['extra_comment_en'] ?? ''];
 
 $nutrition       = $nutrition ?? [];
 $avgRating       = $avgRating   ?? null;

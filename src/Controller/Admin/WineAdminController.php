@@ -593,13 +593,13 @@ class WineAdminController extends AdminController
             }
         }
 
-        // ---- Champs JSON bilingues ----
-        $jsonFields = [
+        // ---- Champs bilingues (colonnes _fr / _en séparées) ----
+        $bilingualFields = [
             'oenological_comment', 'soil', 'pruning', 'harvest',
             'vinification', 'barrel_fermentation', 'award', 'extra_comment',
         ];
-        $jsonData = [];
-        foreach ($jsonFields as $field) {
+        $flatData = [];
+        foreach ($bilingualFields as $field) {
             $fr = trim($r->post($field . '_fr', ''));
             $en = trim($r->post($field . '_en', ''));
 
@@ -611,7 +611,8 @@ class WineAdminController extends AdminController
                 $en = $this->translator->translate($fr);
             }
 
-            $jsonData[$field] = json_encode(['fr' => $fr, 'en' => $en]);
+            $flatData[$field . '_fr'] = $fr;
+            $flatData[$field . '_en'] = $en;
         }
 
         $data = array_merge([
@@ -633,7 +634,7 @@ class WineAdminController extends AdminController
             'aging_potential'     => $agingPotential,
             'image_path'          => $imagePath,
             'slug'                => $slug,
-        ], $jsonData);
+        ], $flatData);
 
         return [$data, $errors];
     }

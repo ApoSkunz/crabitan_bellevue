@@ -1199,58 +1199,58 @@ class MailServiceTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * Vérifie resolveAwardText avec null → retourne chaîne vide.
+     * Vérifie resolveAwardText avec wine sans award → retourne chaîne vide.
      */
     public function testResolveAwardTextNullReturnsEmpty(): void
     {
-        $result = $this->callPrivate('resolveAwardText', null, 'fr');
+        $result = $this->callPrivate('resolveAwardText', [], 'fr');
         $this->assertSame('', $result);
     }
 
     /**
-     * Vérifie resolveAwardText avec chaîne vide → retourne chaîne vide.
+     * Vérifie resolveAwardText avec award_fr/en vides → retourne chaîne vide.
      */
     public function testResolveAwardTextEmptyStringReturnsEmpty(): void
     {
-        $result = $this->callPrivate('resolveAwardText', '', 'fr');
+        $result = $this->callPrivate('resolveAwardText', ['award_fr' => '', 'award_en' => ''], 'fr');
         $this->assertSame('', $result);
     }
 
     /**
-     * Vérifie resolveAwardText avec JSON valide → retourne la valeur traduite.
+     * Vérifie resolveAwardText avec award_fr/en renseignés → retourne la valeur FR.
      */
     public function testResolveAwardTextJsonStringReturnsFrValue(): void
     {
-        $json   = json_encode(['fr' => 'Médaille d\'or', 'en' => 'Gold medal']);
-        $result = $this->callPrivate('resolveAwardText', $json, 'fr');
+        $wine   = ['award_fr' => "Médaille d'or", 'award_en' => 'Gold medal'];
+        $result = $this->callPrivate('resolveAwardText', $wine, 'fr');
         $this->assertSame('Médaille d&#039;or', $result);
     }
 
     /**
-     * Vérifie resolveAwardText avec JSON valide → retourne la valeur EN.
+     * Vérifie resolveAwardText avec award_fr/en renseignés → retourne la valeur EN.
      */
     public function testResolveAwardTextJsonStringReturnsEnValue(): void
     {
-        $json   = json_encode(['fr' => 'Médaille d\'or', 'en' => 'Gold medal']);
-        $result = $this->callPrivate('resolveAwardText', $json, 'en');
+        $wine   = ['award_fr' => "Médaille d'or", 'award_en' => 'Gold medal'];
+        $result = $this->callPrivate('resolveAwardText', $wine, 'en');
         $this->assertSame('Gold medal', $result);
     }
 
     /**
-     * Vérifie resolveAwardText avec tableau PHP passé directement → retourne la valeur.
+     * Vérifie resolveAwardText avec award_fr seul → retourne la valeur FR.
      */
     public function testResolveAwardTextArrayInputReturnsFrValue(): void
     {
-        $result = $this->callPrivate('resolveAwardText', ['fr' => 'Bronze', 'en' => 'Bronze medal'], 'fr');
+        $result = $this->callPrivate('resolveAwardText', ['award_fr' => 'Bronze', 'award_en' => 'Bronze medal'], 'fr');
         $this->assertSame('Bronze', $result);
     }
 
     /**
-     * Vérifie resolveAwardText avec JSON '[]' → retourne chaîne vide.
+     * Vérifie resolveAwardText avec award_fr/en vides → retourne chaîne vide.
      */
     public function testResolveAwardTextEmptyJsonArrayReturnsEmpty(): void
     {
-        $result = $this->callPrivate('resolveAwardText', '[]', 'fr');
+        $result = $this->callPrivate('resolveAwardText', ['award_fr' => '', 'award_en' => ''], 'fr');
         $this->assertSame('', $result);
     }
 

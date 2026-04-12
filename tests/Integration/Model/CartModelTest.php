@@ -527,19 +527,23 @@ class CartModelTest extends IntegrationTestCase
     public function testGetAbandonedForEmailReturnsEnrichedDataWhenWineExists(): void
     {
         // Insérer un vin minimal
-        $nc = '{"fr":"nc","en":"nc"}';
         $wineId = (int) self::$db->insert(
             "INSERT INTO wines (label_name, wine_color, format, vintage, price,
               production_quantity, stock_quantity, available, certification_label,
               area, city, variety_of_vine, age_of_vineyard,
-              oenological_comment, soil, pruning, harvest, vinification,
-              barrel_fermentation, award, extra_comment, image_path, slug, is_cuvee_speciale)
+              oenological_comment_fr, oenological_comment_en,
+              soil_fr, soil_en, pruning_fr, pruning_en,
+              harvest_fr, harvest_en, vinification_fr, vinification_en,
+              barrel_fermentation_fr, barrel_fermentation_en,
+              award_fr, award_en, extra_comment_fr, extra_comment_en,
+              image_path, slug, is_cuvee_speciale)
              VALUES ('Vin Test TI', 'red', 'bottle', 2021, 12.00,
               1000, 50, 1, 'AOC',
               5.00, 'Test City', 'Merlot', 20,
-              ?, ?, ?, ?, ?, ?, ?, ?,
-              'test.jpg', 'vin-test-ti', 0)",
-            [$nc, $nc, $nc, $nc, $nc, $nc, $nc, $nc]
+              'nc', 'nc', 'nc', 'nc', 'nc', 'nc',
+              'nc', 'nc', 'nc', 'nc', 'nc', 'nc',
+              '', '', '', '',
+              'test.jpg', 'vin-test-ti', 0)"
         );
 
         $past = date('Y-m-d H:i:s', strtotime('-80 hours'));

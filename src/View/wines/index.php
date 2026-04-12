@@ -125,9 +125,9 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
             <?php else : ?>
                 <div class="wines-grid">
                     <?php foreach ($wines as $wine) :
-                        $comment     = json_decode($wine['oenological_comment'] ?? '{}', true) ?? [];
+                        $comment     = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
                         $description = $comment[$navLang] ?? ($comment['fr'] ?? '');
-                        $awardData   = json_decode($wine['award'] ?? '{}', true) ?? [];
+                        $awardData   = ['fr' => $wine['award_fr'] ?? '', 'en' => $wine['award_en'] ?? ''];
                         $award       = $awardData[$navLang] ?? ($awardData['fr'] ?? '');
                         $colorLabel  = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                         ?>
