@@ -7,14 +7,14 @@
 .hero-carousel {
     position: relative;
     width: 100%;
-    overflow: hidden;
+    overflow: hidden; /* zoom: overflow intentionnel — clip slides débordantes, carousel déjà en clamp() */
 }
 
 .carousel {
     position: relative;
     width: 100%;
-    height: clamp(340px, 65vh, 680px);
-    overflow: hidden;
+    height: clamp(340px, 65vh, 680px); // WCAG 1.4.4 — déjà en clamp (slides héro, zone visuelle)
+    overflow: hidden; /* zoom: overflow intentionnel — clip slides, hauteur en clamp() */
     background-color: var(--color-bg);
 }
 

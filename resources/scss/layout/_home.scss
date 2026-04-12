@@ -47,7 +47,7 @@
 
     // Image / Visuel
     &__visual {
-        overflow: hidden;
+        overflow: hidden; /* zoom: overflow intentionnel — clip zoom CSS sur image hero (objet visuel, pas de texte) */
         position: relative;
 
         img {
