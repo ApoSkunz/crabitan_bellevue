@@ -62,7 +62,7 @@ jobs:
         run: npm run lint
 
   tests:
-    name: Tests (TU + TI)
+    name: Tests (TU + Fuzzing + TI)
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
