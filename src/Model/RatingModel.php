@@ -89,7 +89,8 @@ class RatingModel extends Model
     public function getByAccountAndWine(int $accountId, int $wineId): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE account_id = ? AND wine_id = ?",
+            "SELECT id, account_id, wine_id, order_id, rating, token, token_used_at, created_at, updated_at
+             FROM {$this->table} WHERE account_id = ? AND wine_id = ?",
             [$accountId, $wineId]
         );
         return $row ?: null;
@@ -105,7 +106,8 @@ class RatingModel extends Model
     public function findByToken(string $token): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE token = ? AND token_used_at IS NULL",
+            "SELECT id, account_id, wine_id, order_id, rating, token, token_used_at, created_at, updated_at
+             FROM {$this->table} WHERE token = ? AND token_used_at IS NULL",
             [$token]
         );
         return $row ?: null;

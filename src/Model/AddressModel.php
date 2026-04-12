@@ -30,7 +30,10 @@ class AddressModel extends Model
     public function getByUser(int $userId): array
     {
         return $this->db->fetchAll(
-            "SELECT * FROM {$this->table}
+            "SELECT id, user_id, type, firstname, lastname, civility,
+                    street, city, zip_code, country, phone, saved,
+                    deleted_at, preserved_for_order, created_at, updated_at
+             FROM {$this->table}
              WHERE user_id = ? AND saved = 1 AND deleted_at IS NULL
              ORDER BY type ASC, id ASC",
             [$userId]
@@ -50,7 +53,10 @@ class AddressModel extends Model
     public function findByIdForUser(int $id, int $userId): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            "SELECT id, user_id, type, firstname, lastname, civility,
+                    street, city, zip_code, country, phone, saved,
+                    deleted_at, preserved_for_order, created_at, updated_at
+             FROM {$this->table} WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
             [$id, $userId]
         );
         return $row ?: null;

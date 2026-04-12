@@ -21,7 +21,8 @@ class PricingModel extends Model
     public function getAll(): array
     {
         return $this->db->fetchAll(
-            "SELECT * FROM {$this->table} ORDER BY format ASC, min_quantity ASC"
+            "SELECT id, format, min_quantity, max_quantity, delivery_price, price_type, withdrawal_price, label, active, created_at, updated_at
+             FROM {$this->table} ORDER BY format ASC, min_quantity ASC"
         );
     }
 

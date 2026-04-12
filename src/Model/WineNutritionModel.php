@@ -30,7 +30,8 @@ class WineNutritionModel extends Model
     public function findByWineId(int $wineId): array|false
     {
         return $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE wine_id = ?",
+            "SELECT id, wine_id, energy_kj, fat_g, saturated_fat_g, carbohydrate_g, sugars_g, protein_g, salt_g, ingredients, updated_at
+             FROM {$this->table} WHERE wine_id = ?",
             [$wineId]
         );
     }

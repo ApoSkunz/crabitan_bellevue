@@ -71,7 +71,8 @@ class RgpdExportLogModel extends Model
         $params[]    = $offset;
 
         $rows = $this->db->fetchAll(
-            "SELECT * FROM {$this->table}
+            "SELECT id, user_id, email, ip, filename, requested_at, expires_at
+             FROM {$this->table}
              {$whereClause}
              ORDER BY requested_at DESC
              LIMIT ? OFFSET ?",

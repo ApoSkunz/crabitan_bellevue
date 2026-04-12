@@ -199,7 +199,11 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     public function findByReferenceOnly(string $reference): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE order_reference = ?",
+            "SELECT id, user_id, order_reference, content, price, payment_method, shipping_discount,
+                    id_billing_snapshot, id_delivery_snapshot, status, cgv_version,
+                    ca_numappel, ca_numtrans, invoice_number, path_invoice,
+                    ordered_at, delivered_at, rating_email_sent_at, updated_at
+             FROM {$this->table} WHERE order_reference = ?",
             [$reference]
         );
         return $row ?: null;
@@ -644,7 +648,13 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      */
     private function fetchAddressById(int $id): array|false
     {
-        return $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$id]);
+        return $this->db->fetchOne(
+            "SELECT id, user_id, type, firstname, lastname, civility,
+                    street, city, zip_code, country, phone, saved,
+                    deleted_at, preserved_for_order, created_at, updated_at
+             FROM addresses WHERE id = ?",
+            [$id]
+        );
     }
 
     // ----------------------------------------------------------------
