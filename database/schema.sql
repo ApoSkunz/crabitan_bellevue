@@ -163,8 +163,8 @@ CREATE TABLE `addresses` (
   `country`      VARCHAR(100)   NOT NULL,
   `phone`        VARCHAR(20)    NOT NULL,
   `saved`        TINYINT(1)     NOT NULL DEFAULT 0,
-  `deleted_at`          DATETIME    DEFAULT NULL COMMENT 'Soft-delete : adresse utilisée dans une commande — non supprimée physiquement',
-  `preserved_for_order` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'Préservée pour commande active — purgée par bin/purge_addresses.php',
+  `deleted_at`          DATETIME    DEFAULT NULL COMMENT 'Soft-delete RGPD Art. 17 — cycle : supprimée → preserved_for_order=1 si commande active → purgée par bin/purge_addresses.php après commande terminale (delivered/cancelled/refunded)',
+  `preserved_for_order` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'Préservée pour commande active (L441-9 C.com. archivage 10 ans via snapshot) — purgée par bin/purge_addresses.php dès commande terminale',
   `created_at`          DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`          DATETIME    DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -321,7 +321,8 @@ CREATE TABLE `order_address_snapshots` (
   `pseudonymized_at`  DATETIME      NULL DEFAULT NULL COMMENT 'Date de pseudonymisation RGPD (J+3650 depuis ordered_at)',
   PRIMARY KEY (`id`),
   INDEX `idx_oas_source_address`   (`source_address_id`),
-  INDEX `idx_oas_pseudonymized_at` (`pseudonymized_at`) COMMENT 'CRON pseudonymisation RGPD J+3650 — audit BDD 2026-04-12'
+  INDEX `idx_oas_pseudonymized_at` (`pseudonymized_at`) COMMENT 'CRON pseudonymisation RGPD J+3650 — audit BDD 2026-04-12',
+  CONSTRAINT `chk_oas_street_nonempty` CHECK (`street` != '' OR `pseudonymized_at` IS NOT NULL)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `orders` (
