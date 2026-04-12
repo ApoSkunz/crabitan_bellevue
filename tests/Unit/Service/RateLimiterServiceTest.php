@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service;
 
+use Core\Database;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Service\RateLimiterService;
 
@@ -434,5 +436,228 @@ class RateLimiterServiceTest extends TestCase
         $this->service->remember('rgpd_export_ts:7', 222, 86400);
 
         $this->assertSame(222, $this->service->recall('rgpd_export_ts:7'));
+    }
+
+    // ----------------------------------------------------------------
+    // Backend BDD — isDbAvailable
+    // ----------------------------------------------------------------
+
+    /**
+     * isDbAvailable() retourne false si aucune instance BDD injectée.
+     */
+    public function testIsDbAvailableReturnsFalseWithoutDb(): void
+    {
+        $this->assertFalse($this->service->isDbAvailable());
+    }
+
+    /**
+     * isDbAvailable() retourne true si une instance Database est injectée.
+     */
+    public function testIsDbAvailableReturnsTrueWithDb(): void
+    {
+        /** @var Database $db */
+        $db      = $this->createStub(Database::class);
+        $service = new class ($db) extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+        };
+
+        $this->assertTrue($service->isDbAvailable());
+    }
+
+    // ----------------------------------------------------------------
+    // Backend BDD — get() via checkLimit
+    // ----------------------------------------------------------------
+
+    /**
+     * Avec BDD disponible et bucket vide (fetchOne retourne false),
+     * checkLimit doit autoriser la requête.
+     */
+    public function testCheckLimitWithDbAllowsWhenBucketEmpty(): void
+    {
+        /** @var Database $db */
+        $db = $this->createStub(Database::class);
+        $db->method('fetchOne')->willReturn(false);
+
+        $service = new class ($db) extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+        };
+
+        $this->assertTrue($service->checkLimit('db:ip', 5, 900));
+    }
+
+    /**
+     * Avec BDD disponible et lockout actif stocké en BDD,
+     * checkLimit doit bloquer la requête.
+     */
+    public function testCheckLimitWithDbBlocksWhenLockoutActive(): void
+    {
+        /** @var Database $db */
+        $db = $this->createStub(Database::class);
+
+        // fetchOne retourne un lockout futur pour les clés :until
+        $db->method('fetchOne')
+            ->willReturnCallback(function (string $sql, array $params) {
+                if (str_contains($params[0], ':until')) {
+                    return ['value' => serialize(time() + 600)];
+                }
+                return false;
+            });
+
+        $service = new class ($db) extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+        };
+
+        $this->assertFalse($service->checkLimit('db:locked', 5, 900));
+    }
+
+    // ----------------------------------------------------------------
+    // Backend BDD — set() via recordAttempt
+    // ----------------------------------------------------------------
+
+    /**
+     * recordAttempt() avec BDD doit appeler query() (INSERT … ON DUPLICATE KEY).
+     */
+    public function testRecordAttemptWithDbCallsQuery(): void
+    {
+        /** @var Database&MockObject $db */
+        $db = $this->createMock(Database::class);
+
+        // fetchOne pour get() (bucket vide)
+        $db->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $stmtMock = $this->createStub(\PDOStatement::class);
+        $db->expects($this->once())
+            ->method('query')
+            ->willReturn($stmtMock);
+
+        $service = new class ($db) extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+        };
+
+        $service->recordAttempt('db:record', 900);
+    }
+
+    // ----------------------------------------------------------------
+    // Backend BDD — delete() via reset()
+    // ----------------------------------------------------------------
+
+    /**
+     * reset() avec BDD doit appeler execute() pour DELETE sur les deux clés.
+     */
+    public function testResetWithDbCallsExecute(): void
+    {
+        /** @var Database&MockObject $db */
+        $db = $this->createMock(Database::class);
+
+        $db->expects($this->exactly(2))
+            ->method('execute')
+            ->with(
+                $this->stringContains('DELETE FROM rate_limits'),
+                $this->anything()
+            )
+            ->willReturn(1);
+
+        $service = new class ($db) extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+        };
+
+        $service->reset('db:reset:ip');
+    }
+
+    // ----------------------------------------------------------------
+    // Fallback APCu absent + BDD absente → session
+    // ----------------------------------------------------------------
+
+    /**
+     * Sans APCu et sans BDD, le service bascule sur la session.
+     * recordAttempt doit incrémenter la session normalement.
+     */
+    public function testFallbackToSessionWhenNeitherApcuNorDb(): void
+    {
+        // $this->service n'a pas de BDD injectée (setUp)
+        $this->service->recordAttempt('fallback:ip', 900);
+        $this->service->recordAttempt('fallback:ip', 900);
+
+        $count = $_SESSION['_rl']['rl:fallback:ip:count'] ?? 0;
+        $this->assertSame(2, $count);
+    }
+
+    /**
+     * Sans APCu et sans BDD, reset() efface les entrées de session.
+     */
+    public function testResetFallbackSessionClearsEntries(): void
+    {
+        $this->service->recordAttempt('fallback:reset', 900);
+        $_SESSION['_rl']['rl:fallback:reset:until'] = time() + 600;
+
+        $this->service->reset('fallback:reset');
+
+        $this->assertArrayNotHasKey('rl:fallback:reset:count', $_SESSION['_rl'] ?? []);
+        $this->assertArrayNotHasKey('rl:fallback:reset:until', $_SESSION['_rl'] ?? []);
+    }
+
+    // ----------------------------------------------------------------
+    // Backend BDD — exception silencieuse
+    // ----------------------------------------------------------------
+
+    /**
+     * Si la BDD lève une exception sur fetchOne,
+     * get() retourne la valeur par défaut sans propager l'exception.
+     */
+    public function testDbGetReturnDefaultOnException(): void
+    {
+        /** @var Database $db */
+        $db = $this->createStub(Database::class);
+        $db->method('fetchOne')->willThrowException(new \RuntimeException('DB down'));
+
+        $service = new class ($db) extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+        };
+
+        // checkLimit doit retourner true (bucket vide = autorisation par défaut)
+        $this->assertTrue($service->checkLimit('db:error', 5, 900));
+    }
+
+    /**
+     * Si la BDD lève une exception sur query() (set),
+     * recordAttempt() ne doit pas propager l'exception.
+     */
+    public function testDbSetSilentOnException(): void
+    {
+        /** @var Database $db */
+        $db = $this->createStub(Database::class);
+        $db->method('fetchOne')->willReturn(false);
+        $db->method('query')->willThrowException(new \RuntimeException('DB down'));
+
+        $service = new class ($db) extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+        };
+
+        // Ne doit pas lever d'exception
+        $service->recordAttempt('db:set:error', 900);
+        $this->assertTrue(true);
     }
 }
