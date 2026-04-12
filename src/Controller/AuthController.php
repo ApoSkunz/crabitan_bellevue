@@ -14,6 +14,7 @@ use Model\PasswordResetModel;
 use Model\ConnectionModel;
 use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
+use Service\LoginService;
 use Service\MailService;
 use Service\PasswordValidator;
 use Service\RateLimiterService;
@@ -46,15 +47,6 @@ class AuthController extends Controller
     /** Nombre maximum d'inscriptions par IP par fenêtre. */
     private const MAX_REGISTER_IP = 5;
 
-    /** Nombre max d'échecs consécutifs avant lockout du compte (BT2). */
-    private const MAX_ACCOUNT_FAILURES = 3;
-
-    /** Durée du lockout compte en secondes (30 min). */
-    private const ACCOUNT_LOCKOUT_WINDOW = 1800;
-
-    /** Fenêtre de rate limiting pour le renvoi silencieux du token de vérification (1 heure). */
-    private const WINDOW_RESEND_VERIF = 3600;
-
     /** Nombre maximum de renvois de token de vérification par compte par fenêtre. */
     private const MAX_RESEND_VERIF = 3;
 
@@ -71,6 +63,7 @@ class AuthController extends Controller
     private DeviceConfirmTokenModel $deviceConfirmTokens;
     private RateLimiterService $rateLimiter;
     private SecurityAlertService $securityAlert;
+    private LoginService $loginService;
 
     /**
      * Initialise les dépendances du contrôleur.
@@ -87,6 +80,7 @@ class AuthController extends Controller
         $this->trustedDevices      = new TrustedDeviceModel();
         $this->rateLimiter         = new RateLimiterService();
         $this->securityAlert       = new SecurityAlertService();
+        $this->loginService        = new LoginService($this->accounts, $this->rateLimiter, $this->securityAlert);
     }
 
     // ----------------------------------------------------------------
@@ -107,7 +101,7 @@ class AuthController extends Controller
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
      */
-    public function login(array $params): void // NOSONAR php:S3776 — complexité inhérente au flux auth (rate limiting, MFA, device trust)
+    public function login(array $params): void
     {
         GuestMiddleware::handle();
         $lang = $params['lang'] ?? 'fr';
@@ -122,8 +116,8 @@ class AuthController extends Controller
         }
 
         // R1 — Rate limiting par IP
-        $ip      = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $ipKey   = 'login:' . $ip;
+        $ip    = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $ipKey = 'login:' . $ip;
         if (!$this->rateLimiter->checkLimit($ipKey, self::MAX_LOGIN_IP, self::WINDOW_LOGIN)) {
             $wait = (int) ceil($this->rateLimiter->getRetryAfter($ipKey) / 60);
             $this->flash('modal_error', sprintf(__('auth.too_many_attempts'), max(1, $wait)));
@@ -132,137 +126,22 @@ class AuthController extends Controller
 
         $email    = strtolower(trim($this->request->post('email', '')));
         $password = $this->request->post('password', '');
-        $account  = $this->accounts->findByEmail($email);
 
-        // BT2 — Compte déjà verrouillé (tentatives 6+) : bloquer sans email (déjà envoyé à la 5ème)
-        if ($account) {
-            $accountKey = 'account_lockout:' . (int) $account['id'];
-            if (!$this->rateLimiter->checkLimit($accountKey, self::MAX_ACCOUNT_FAILURES, self::ACCOUNT_LOCKOUT_WINDOW)) {
-                $wait = (int) ceil($this->rateLimiter->getRetryAfter($accountKey) / 60);
-                $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
-                $this->flash('modal_error', sprintf(__('auth.account_locked'), max(1, $wait)));
-                Response::redirect($safeBack);
-            }
-        }
+        $attempt = $this->loginService->attempt($email, $password, $ipKey, $lang, $ip);
 
-        // Compte soft-deleted : identifiants valides → message de réactivation (sans révéler l'existence si mdp faux)
-        if (!$account) {
-            $deleted = $this->accounts->findDeletedByEmail($email);
-            if (
-                $deleted
-                && $deleted['password'] !== null
-                && password_verify($password, (string) $deleted['password'])
-                && !empty($deleted['scheduled_deletion_at'])
-                && strtotime((string) $deleted['scheduled_deletion_at']) > time()
-            ) {
-                // Envoi de l'email de réactivation — une seule fois par session pour éviter le spam
-                $alertKey = 'deletion_alert_sent_' . (int) $deleted['id'];
-                if (empty($_SESSION[$alertKey]) && !empty($deleted['reactivation_token'])) {
-                    $name = $deleted['firstname'] ?? ($deleted['company_name'] ?? '');
-                    $lang = in_array((string) ($deleted['lang'] ?? ''), ['fr', 'en'], true)
-                        ? (string) $deleted['lang']
-                        : 'fr';
-                    try {
-                        (new \Service\MailService())->sendPendingDeletionLoginAlert(
-                            (string) $deleted['email'],
-                            (string) $name,
-                            $lang,
-                            (string) $deleted['reactivation_token'],
-                            (string) $deleted['scheduled_deletion_at']
-                        );
-                    } catch (\Throwable) {
-                        // Échec silencieux — le message flash est toujours affiché
-                    }
-                    $_SESSION[$alertKey] = true;
-                }
-                $this->flash('modal_error', __('auth.account_pending_deletion'));
-                Response::redirect($safeBack);
-            }
-        }
+        match ($attempt['result']) {
+            'locked'          => $this->handleLockedResult($attempt['wait'], $safeBack),
+            'deleted'         => $this->handleDeletedResult($safeBack),
+            'bad_credentials' => $this->handleBadCredentialsResult($attempt, $ipKey, $lang, $safeBack),
+            'unverified'      => $this->handleUnverifiedResult($safeBack),
+            default           => null,
+        };
 
-        if (!$account || $account['password'] === null || !password_verify($password, $account['password'])) {
-            $this->recordLoginFailure($ipKey, $account);
-
-            // Sécurité admin : alerte à 3 échecs / 5 min + blocage définitif à 5 cumulés / 1h
-            // Traité AVANT BT2 pour ne pas être court-circuité par le redirect du lockout
-            if ($account && in_array($account['role'] ?? '', ['admin', 'super_admin'], true)) {
-                if ($this->securityAlert->shouldAlertOnFailedLogins((int) $account['id'])) {
-                    $this->securityAlert->sendAdminLoginAlert(
-                        $account,
-                        $_SERVER['REMOTE_ADDR'] ?? 'inconnue'
-                    );
-                }
-                $this->securityAlert->recordAutoBlockFailure((int) $account['id']);
-                if ($this->securityAlert->shouldAutoBlock((int) $account['id'])) {
-                    (new \Model\AccountModel())->blockAccount((int) $account['id']);
-                    $displayName = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
-                        ?: ($account['company_name'] ?? (string) $account['email']);
-                    try {
-                        (new MailService())->sendAdminAccountBlocked(
-                            (string) $account['email'],
-                            $displayName,
-                            (string) ($account['lang'] ?? 'fr'),
-                            'Système (blocage automatique)'
-                        );
-                    } catch (\Throwable $e) {
-                        \Core\ErrorLogger::warning($e);
-                    }
-                }
-            }
-
-            // BT2 — Lockout temporaire 30 min après 3 échecs (tous comptes)
-            if ($account) {
-                $accountKey = 'account_lockout:' . (int) $account['id'];
-                if (!$this->rateLimiter->checkLimit($accountKey, self::MAX_ACCOUNT_FAILURES, self::ACCOUNT_LOCKOUT_WINDOW)) {
-                    $wait        = (int) ceil($this->rateLimiter->getRetryAfter($accountKey) / 60);
-                    $displayName = $account['account_type'] === 'company'
-                        ? ($account['company_name'] ?? '')
-                        : trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
-                    $resetUrl = APP_URL . "/{$lang}/mot-de-passe-oublie";
-                    try {
-                        $mail = new MailService();
-                        $mail->sendAccountLocked($account['email'], $displayName, $lang, $resetUrl);
-                    } catch (\Throwable $e) {
-                        \Core\ErrorLogger::warning($e);
-                    }
-                    $this->flash('modal_error', sprintf(__('auth.account_locked'), max(1, $wait)));
-                    Response::redirect($safeBack);
-                }
-            }
-
-            $this->flash('modal_error', __('auth.invalid_credentials'));
-            Response::redirect($safeBack);
-        }
-
-        if (!$account['email_verified_at']) {
-            $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
-            // Renvoi silencieux du token d'activation — anti-énumération : même réponse que
-            // identifiants invalides, sans révéler l'existence ni le statut du compte.
-            $resendKey = 'resend_verif:' . (int) $account['id'];
-            if ($this->rateLimiter->checkLimit($resendKey, self::MAX_RESEND_VERIF, self::WINDOW_RESEND_VERIF)) {
-                $newToken    = bin2hex(random_bytes(32));
-                $this->accounts->refreshVerificationToken((int) $account['id'], $newToken);
-                $verifyUrl   = APP_URL . "/{$lang}/verification/{$newToken}";
-                $displayName = $account['account_type'] === 'company'
-                    ? ($account['company_name'] ?? '')
-                    : trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
-                try {
-                    $mail = new MailService();
-                    $mail->sendEmailVerification($account['email'], $displayName, $verifyUrl, $lang);
-                } catch (\Throwable $e) {
-                    \Core\ErrorLogger::warning($e);
-                }
-            }
-            $this->flash('modal_error', __('auth.invalid_credentials'));
-            Response::redirect($safeBack);
-        }
+        /** @var array<string, mixed> $account */
+        $account = $attempt['account'];
 
         // Connexion réussie — réinitialiser les compteurs
-        $this->rateLimiter->reset($ipKey);
-        $this->rateLimiter->reset('account_lockout:' . (int) $account['id']);
-        if (in_array($account['role'] ?? '', ['admin', 'super_admin'], true)) {
-            $this->securityAlert->resetFailedLoginCount((int) $account['id']);
-        }
+        $this->loginService->resetCounters($ipKey, $account);
 
         $deviceToken = $this->resolveDeviceToken();
 
@@ -999,19 +878,66 @@ class AuthController extends Controller
     }
 
     /**
-     * Enregistre un échec de connexion sur le bucket IP et, si le compte existe, sur le bucket compte.
+     * Redirige avec un message d'erreur de compte verrouillé.
      *
-     * @param string       $ipKey   Clé de rate limiting de l'IP
-     * @param array|false  $account Données du compte (false si inconnu)
-     * @return void
+     * @param int    $wait     Minutes de lockout restantes
+     * @param string $safeBack URL de redirection
+     * @return never
      */
-    private function recordLoginFailure(string $ipKey, array|false $account): void
+    private function handleLockedResult(int $wait, string $safeBack): never
     {
-        $this->rateLimiter->recordAttempt($ipKey, self::WINDOW_LOGIN);
-        if ($account) {
-            $accountKey = 'account_lockout:' . (int) $account['id'];
-            $this->rateLimiter->recordAttempt($accountKey, self::ACCOUNT_LOCKOUT_WINDOW);
+        $this->flash('modal_error', sprintf(__('auth.account_locked'), max(1, $wait)));
+        Response::redirect($safeBack);
+    }
+
+    /**
+     * Redirige avec le message de suppression programmée.
+     *
+     * @param string $safeBack URL de redirection
+     * @return never
+     */
+    private function handleDeletedResult(string $safeBack): never
+    {
+        $this->flash('modal_error', __('auth.account_pending_deletion'));
+        Response::redirect($safeBack);
+    }
+
+    /**
+     * Redirige avec un message d'identifiants invalides, en gérant le lockout BT2 si déclenché.
+     *
+     * @param array{result: string, account: array<string, mixed>|null, wait: int} $attempt Résultat de LoginService::attempt()
+     * @param string                                                                $ipKey   Clé de rate limiting de l'IP
+     * @param string                                                                $lang    Code langue courant
+     * @param string                                                                $safeBack URL de redirection
+     * @return never
+     */
+    private function handleBadCredentialsResult(array $attempt, string $ipKey, string $lang, string $safeBack): never
+    {
+        // Si le compte vient d'être verrouillé (BT2), le service a déjà envoyé l'email
+        // On vérifie si le compte est maintenant locké pour afficher le bon message
+        if ($attempt['account'] !== null) {
+            $accountKey = 'account_lockout:' . (int) $attempt['account']['id'];
+            $remaining  = $this->rateLimiter->getRetryAfter($accountKey);
+            if ($remaining > 0) {
+                $wait = (int) ceil($remaining / 60);
+                $this->flash('modal_error', sprintf(__('auth.account_locked'), max(1, $wait)));
+                Response::redirect($safeBack);
+            }
         }
+        $this->flash('modal_error', __('auth.invalid_credentials'));
+        Response::redirect($safeBack);
+    }
+
+    /**
+     * Redirige avec un message d'identifiants invalides (email non vérifié — anti-énumération).
+     *
+     * @param string $safeBack URL de redirection
+     * @return never
+     */
+    private function handleUnverifiedResult(string $safeBack): never
+    {
+        $this->flash('modal_error', __('auth.invalid_credentials'));
+        Response::redirect($safeBack);
     }
 
     /**
