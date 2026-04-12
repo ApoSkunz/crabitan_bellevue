@@ -2,6 +2,40 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.79.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.78.1...v0.79.0) (2026-04-12)
+
+
+### Bug Fixes
+
+* **age-gate:** autoriser HeadlessChrome/Lighthouse comme crawler SEO ([fc948dc](https://github.com/ApoSkunz/crabitan_bellevue/commit/fc948dc67ead9ba49b6e4f799f4f4e5392ac3968))
+* **ci:** aligner mutation-testing.yml sur origin/main — ajouter pull_request paths ([dc50e72](https://github.com/ApoSkunz/crabitan_bellevue/commit/dc50e729ecf316bb029959e63a8199f67011225b))
+* **ci:** lighthouse — SEO crawl + 422 GitHub status + artifact + résumé agrégé ([f7ef223](https://github.com/ApoSkunz/crabitan_bellevue/commit/f7ef2235073275679926a8436b85ec98c5236f64))
+* **ci:** Lighthouse — URLs temporaires + rapport local + Job Summary ([78780ea](https://github.com/ApoSkunz/crabitan_bellevue/commit/78780ea48bd3d112c9c31ab8764a0c5d336277f4))
+* **ci:** lighthouse assertMatrix — SEO public pages only, a11y all pages ([beaedfb](https://github.com/ApoSkunz/crabitan_bellevue/commit/beaedfb5628f00d19af1deff82ff23636e0917e1))
+* **ci:** supprimer navigation puppeteer pour éviter timeout PHP single-thread ([3d47c6c](https://github.com/ApoSkunz/crabitan_bellevue/commit/3d47c6c7809fb325e87be7754f72d733b0966038))
+* **lhci:** $bare=false pour crawlers + assertMatrix noindex pages + liens rapports ([8612c50](https://github.com/ApoSkunz/crabitan_bellevue/commit/8612c50c65235555de65fbe36b93054b03ad87e8))
+* **lhci:** abaisser seuil performance CI à 0.65 ([e35f9e3](https://github.com/ApoSkunz/crabitan_bellevue/commit/e35f9e3d79a2629b50ad5009973c43890ad92718))
+* **lhci:** corriger injection cookies Puppeteer + token GitHub statuses ([861c878](https://github.com/ApoSkunz/crabitan_bellevue/commit/861c878ddca494967b15a8a597f85aa4e5705a2d))
+* **lhci:** désactiver audit is-crawlable — noindex intentionnel sur pages auth/compte ([5c3f4ee](https://github.com/ApoSkunz/crabitan_bellevue/commit/5c3f4ee1a6190039002129790e21f55eed091482))
+* **lhci:** exclure pages noindex du pattern SEO dans assertMatrix ([e721a84](https://github.com/ApoSkunz/crabitan_bellevue/commit/e721a841ca0ab980b216d7d3a2f508820272803b))
+* **lhci:** restaurer assertions SEO sur toutes les pages indexables ([6a851da](https://github.com/ApoSkunz/crabitan_bellevue/commit/6a851da92e8e17826f9317eb06783729c6eacf5c))
+* **lhci:** séparer assertions fr/en + passer upload en filesystem ([380aaf0](https://github.com/ApoSkunz/crabitan_bellevue/commit/380aaf065f31c9f0c1d14d69742e4dad2101424d))
+* **lhci:** supprimer trailing comma JSON dans lighthouserc.json ([60e01c8](https://github.com/ApoSkunz/crabitan_bellevue/commit/60e01c8c932264752b6350b29ad8486310f0e226))
+* **lhci:** supprimer URLs data-dépendantes inexistantes en CI ([988d80e](https://github.com/ApoSkunz/crabitan_bellevue/commit/988d80e4a03b6773a2369ebc0ca64941889dd3a8))
+* **lighthouse:** bypass age-gate via formulaire PHP + seed compte CI ([75d6965](https://github.com/ApoSkunz/crabitan_bellevue/commit/75d6965bfab6a8b807d1c7732ecb475d778ce23f)), closes [#age-gate-enter](https://github.com/ApoSkunz/crabitan_bellevue/issues/age-gate-enter)
+* **lighthouse:** naviguer sur /age-gate avant setCookie pour établir le contexte ([df56295](https://github.com/ApoSkunz/crabitan_bellevue/commit/df56295066a16a531eefaf9b56b504721f6d6c88))
+* **lighthouse:** networkidle2 → load pour éviter timeout CI ([923c6e5](https://github.com/ApoSkunz/crabitan_bellevue/commit/923c6e5b64b373b754854a49f53fbe43211493ef))
+* **seo:** ajouter meta description sur newsletter/confirmation ([2558de4](https://github.com/ApoSkunz/crabitan_bellevue/commit/2558de4e1a3f0a5a2ea47a4bae4bab19da20beda))
+
+
+### Features
+
+* **bin:** purge_rate_limits.php — purge cron des entrées expirées ([4a47287](https://github.com/ApoSkunz/crabitan_bellevue/commit/4a47287d0f6fbc5e78d67bbbacfa2c442c4fccd0))
+* **ci:** lighthouse toutes routes publiques + seuils performance/seo ([a9d9a6b](https://github.com/ApoSkunz/crabitan_bellevue/commit/a9d9a6bad2b2e51f9fd48722849d5bcc25ce2f15))
+* **lighthouse:** ajuster routes auditées — retirer fiche-technique PDF, ajouter routes manquantes ([02537f2](https://github.com/ApoSkunz/crabitan_bellevue/commit/02537f25d630ee7f70eda1eb8e6398a1f5a79545))
+* **seo:** ajouter meta description manquante sur toutes les pages publiques ([d613dc4](https://github.com/ApoSkunz/crabitan_bellevue/commit/d613dc417124b7924c8f716233a3bb35f29383b8))
+* **service:** backend BDD dans RateLimiterService (APCu → BDD → session) ([747d586](https://github.com/ApoSkunz/crabitan_bellevue/commit/747d586e066322b7e07b2fcaccba1586a8b5cde5))
+
 ## [0.78.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.78.0...v0.78.1) (2026-04-12)
 
 
