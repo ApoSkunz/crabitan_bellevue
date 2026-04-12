@@ -9,8 +9,7 @@ use Core\Model;
 /**
  * Modèle de gestion du catalogue de vins (consultation, filtrage, pagination, admin).
  */
-// NOSONAR — php:S1448 : 24 méthodes cohérentes au domaine vin — découpage artificiel sans valeur
-class WineModel extends Model
+class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérentes au domaine vin — découpage artificiel sans valeur
 {
     protected string $table = 'wines';
 

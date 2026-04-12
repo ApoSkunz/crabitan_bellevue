@@ -21,8 +21,9 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private const MAIL_SUBJECT_SEC_FR   = 'Sécurité du compte';
     private const MAIL_SUBJECT_SEC_EN   = 'Account security';
     private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
-    private const URL_PRIVACY = '/fr/politique-de-confidentialite';
-    private const URL_LEGAL   = '/fr/mentions-legales';
+    private const URL_PRIVACY        = '/fr/politique-de-confidentialite';
+    private const URL_LEGAL          = '/fr/mentions-legales';
+    private const PATH_ADMIN_ORDERS  = '/admin/commandes/';
     private const URL_SUPPORT = '/fr/support';
     private const URL_CGV        = '/fr/conditions-generales-de-vente';
     private const DATE_FORMAT_FR        = 'd/m/Y à H:i';
@@ -1624,7 +1625,7 @@ INNER;
         $appUrl       = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $orderId      = (int) ($order['id'] ?? 0);
         $orderLink    = $orderId > 0
-            ? htmlspecialchars($appUrl . '/admin/commandes/' . $orderId, ENT_QUOTES)
+            ? htmlspecialchars($appUrl . self::PATH_ADMIN_ORDERS . $orderId, ENT_QUOTES)
             : '';
 
         $rows = '';
@@ -1688,7 +1689,7 @@ INNER;
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
 
         $orderLink = $orderId > 0
-            ? htmlspecialchars($appUrl . '/admin/commandes/' . $orderId, ENT_QUOTES)
+            ? htmlspecialchars($appUrl . self::PATH_ADMIN_ORDERS . $orderId, ENT_QUOTES)
             : '';
         $orderLinkBlock = $orderLink !== ''
             ? "<br><br><a href=\"{$orderLink}\" style=\"color:#c9a84c;\">Accéder à la commande dans l'administration</a>"
@@ -1732,7 +1733,7 @@ INNER;
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $orderId    = (int) ($order['id'] ?? 0);
         $orderLink  = $orderId > 0
-            ? htmlspecialchars($appUrl . '/admin/commandes/' . $orderId, ENT_QUOTES)
+            ? htmlspecialchars($appUrl . self::PATH_ADMIN_ORDERS . $orderId, ENT_QUOTES)
             : '';
 
         $orderLinkBlock = $orderLink !== ''
@@ -1790,7 +1791,7 @@ INNER;
             $updatedAt = isset($order['updated_at']) ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['updated_at'])) : '—';
             $orderId   = (int) ($order['id'] ?? 0);
             $link      = $orderId > 0
-                ? "<a href=\"{$appUrl}/admin/commandes/{$orderId}\" style=\"color:#c9a84c;\">{$ref}</a>"
+                ? "<a href=\"{$appUrl}" . self::PATH_ADMIN_ORDERS . "{$orderId}\" style=\"color:#c9a84c;\">{$ref}</a>"
                 : $ref;
 
             $rows .= "<tr style=\"border-bottom:1px solid #ede8df;\">"
