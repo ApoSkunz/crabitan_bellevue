@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    paths:
+      - 'resources/js/cart-utils.js'
+      - 'resources/js/error-utils.js'
+      - 'tests/Unit/js/**'
+      - 'stryker.config.mjs'
   workflow_dispatch:
 
 jobs:
