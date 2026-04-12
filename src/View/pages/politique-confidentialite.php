@@ -1,6 +1,9 @@
 <?php
-$pageTitle    = __('footer.privacy_policy');
-$navLang      = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('footer.privacy_policy');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$metaDescription = $navLang === 'en'
+    ? 'Privacy policy of Château Crabitan Bellevue — how we protect and process your personal data.'
+    : 'Politique de confidentialité du Château Crabitan Bellevue — protection et traitement de vos données personnelles.';
 $isBare       = $bare ?? false;
 
 $legal        = require ROOT_PATH . '/config/legal.php'; // NOSONAR — php:S2003 : require_once retourne true au 2e appel (re-rendu tests)

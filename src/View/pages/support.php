@@ -1,6 +1,9 @@
 <?php
-$pageTitle = __('support.title');
-$navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('support.title');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$metaDescription = $navLang === 'en'
+    ? 'Customer support for Château Crabitan Bellevue — FAQ, contact and after-sales service.'
+    : 'Support client du Château Crabitan Bellevue — FAQ, contact et service après-vente.';
 $isBare    = $bare ?? false;
 
 $faqs = [];

@@ -1,5 +1,9 @@
 <?php
-$pageTitle = __('gallery.title');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('gallery.title');
+$metaDescription = $navLang === 'en'
+    ? 'Photo gallery of Château Crabitan Bellevue — vineyard, cellar and estate life in pictures.'
+    : 'Galerie photos du Château Crabitan Bellevue — vignoble, chai et vie du domaine en images.';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 

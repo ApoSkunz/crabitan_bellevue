@@ -1,6 +1,9 @@
 <?php
-$pageTitle    = __('footer.cgv');
-$navLang      = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('footer.cgv');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$metaDescription = $navLang === 'en'
+    ? 'General terms and conditions of sale for Château Crabitan Bellevue — ordering, delivery and withdrawal rights.'
+    : 'Conditions générales de vente du Château Crabitan Bellevue — commande, livraison et droit de rétractation.';
 $isBare       = $bare ?? false;
 $isFr         = $navLang === 'fr';
 $contactEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';

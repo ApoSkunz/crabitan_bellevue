@@ -1,6 +1,9 @@
 <?php
-$pageTitle = __('footer.legal_notice');
-$navLang   = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('footer.legal_notice');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$metaDescription = $navLang === 'en'
+    ? 'Legal notice of Château Crabitan Bellevue — publisher, hosting and intellectual property information.'
+    : 'Mentions légales du Château Crabitan Bellevue — éditeur, hébergeur et propriété intellectuelle.';
 $isBare    = $bare ?? false;
 
 $legal         = require ROOT_PATH . '/config/legal.php'; // NOSONAR — php:S2003 : require_once retourne true au 2e appel (re-rendu tests)

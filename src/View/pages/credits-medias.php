@@ -1,5 +1,9 @@
 <?php
-$pageTitle = __('footer.credits_medias');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('footer.credits_medias');
+$metaDescription = $navLang === 'en'
+    ? 'Media credits for the Château Crabitan Bellevue website — photos, icons and third-party resources.'
+    : 'Crédits médias du site Château Crabitan Bellevue — photos, icônes et ressources tierces.';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 

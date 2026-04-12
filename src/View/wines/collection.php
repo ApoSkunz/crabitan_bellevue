@@ -1,7 +1,11 @@
 <?php
 $isAdmin   = $isAdmin ?? false;
 $ratings   = $ratings ?? [];
-$pageTitle = __('nav.collection');
+$navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
+$pageTitle       = __('nav.collection');
+$metaDescription = $navLang === 'en'
+    ? 'Explore the full range of Château Crabitan Bellevue wines — sweet, white, red and rosé Bordeaux wines.'
+    : 'Découvrez la gamme complète des vins du Château Crabitan Bellevue — vins liquoreux, blancs, rouges et rosés de Bordeaux.';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
