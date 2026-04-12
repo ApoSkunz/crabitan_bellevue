@@ -2,6 +2,15 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.78.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.78.0...v0.78.1) (2026-04-12)
+
+
+### Bug Fixes
+
+* **sonar:** JS — globalThis, S3516, S6551, S6594 ([94e23c3](https://github.com/ApoSkunz/crabitan_bellevue/commit/94e23c3f8ae74dc711d87ac3289ad9d950393e3f))
+* **sonar:** PHP — S1192, S3358, S1448 ([14566bb](https://github.com/ApoSkunz/crabitan_bellevue/commit/14566bb572d3b10a4ccb51365b8c45654a83b17f))
+* **sonar:** SCSS — S4666 sélecteur dupliqué + S7924 NOSONAR + gitignore LH local ([9f5dfe4](https://github.com/ApoSkunz/crabitan_bellevue/commit/9f5dfe48a53a6f531fa826f418b18d8653cae550))
+
 # [0.78.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.77.0...v0.78.0) (2026-04-12)
 
 
