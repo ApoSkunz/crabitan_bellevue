@@ -320,7 +320,8 @@ CREATE TABLE `order_address_snapshots` (
   `created_at`        DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `pseudonymized_at`  DATETIME      NULL DEFAULT NULL COMMENT 'Date de pseudonymisation RGPD (J+3650 depuis ordered_at)',
   PRIMARY KEY (`id`),
-  INDEX `idx_oas_source_address` (`source_address_id`)
+  INDEX `idx_oas_source_address`   (`source_address_id`),
+  INDEX `idx_oas_pseudonymized_at` (`pseudonymized_at`) COMMENT 'CRON pseudonymisation RGPD J+3650 — audit BDD 2026-04-12'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `orders` (
@@ -848,7 +849,7 @@ CREATE TABLE IF NOT EXISTS `wine_ratings` (
   `account_id` INT NOT NULL,
   `wine_id` INT NOT NULL,
   `order_id` INT NOT NULL,
-  `rating` TINYINT UNSIGNED NOT NULL,
+  `rating` TINYINT UNSIGNED DEFAULT NULL COMMENT '0 = token généré, non encore noté ; 1-5 = note utilisateur',
   `token` VARCHAR(64) NULL DEFAULT NULL,
   `token_used_at` DATETIME NULL DEFAULT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -860,7 +861,7 @@ CREATE TABLE IF NOT EXISTS `wine_ratings` (
   CONSTRAINT `fk_wr_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_wr_wine` FOREIGN KEY (`wine_id`) REFERENCES `wines` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_wr_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `chk_rating_range` CHECK (`rating` BETWEEN 1 AND 5)
+  CONSTRAINT `chk_rating_range` CHECK (`rating` IS NULL OR `rating` BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
