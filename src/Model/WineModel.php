@@ -30,6 +30,50 @@ class WineModel extends Model
     }
 
     /**
+     * Retourne le fragment SQL commun aux requêtes de liste : colonnes bilingues,
+     * COALESCE likes_count, FROM et LEFT JOIN favorites agrégé.
+     *
+     * @return string Fragment SQL insérable après les colonnes fixes du SELECT
+     */
+    private function wineSelectFromFavorites(): string
+    {
+        return "w.oenological_comment_fr, w.oenological_comment_en,
+                       w.award_fr, w.award_en,
+                       w.extra_comment_fr, w.extra_comment_en, w.is_cuvee_speciale,
+                       COALESCE(lc.cnt, 0) AS likes_count
+                FROM {$this->table} w
+                LEFT JOIN (SELECT wine_id, COUNT(*) AS cnt FROM favorites GROUP BY wine_id) lc ON lc.wine_id = w.id";
+    }
+
+    /**
+     * Retourne les valeurs des champs bilingues (_fr/_en) pour INSERT ou UPDATE.
+     *
+     * @param array<string, mixed> $data
+     * @return list<string>
+     */
+    private function bilingualParams(array $data): array
+    {
+        return [
+            $data['oenological_comment_fr'] ?? '',
+            $data['oenological_comment_en'] ?? '',
+            $data['soil_fr'] ?? '',
+            $data['soil_en'] ?? '',
+            $data['pruning_fr'] ?? '',
+            $data['pruning_en'] ?? '',
+            $data['harvest_fr'] ?? '',
+            $data['harvest_en'] ?? '',
+            $data['vinification_fr'] ?? '',
+            $data['vinification_en'] ?? '',
+            $data['barrel_fermentation_fr'] ?? '',
+            $data['barrel_fermentation_en'] ?? '',
+            $data['award_fr'] ?? '',
+            $data['award_en'] ?? '',
+            $data['extra_comment_fr'] ?? '',
+            $data['extra_comment_en'] ?? '',
+        ];
+    }
+
+    /**
      * Retourne un ID aléatoire parmi les lignes correspondant à la clause WHERE donnée.
      *
      * Évite ORDER BY RAND() (full table sort O(n log n)) en récupérant uniquement les IDs
@@ -121,12 +165,7 @@ class WineModel extends Model
         $sql = "SELECT w.id, w.label_name, w.wine_color, w.format, w.vintage, w.price,
                        w.production_quantity, w.stock_quantity,
                        w.available, w.certification_label, w.image_path, w.slug,
-                       w.oenological_comment_fr, w.oenological_comment_en,
-                       w.award_fr, w.award_en,
-                       w.extra_comment_fr, w.extra_comment_en, w.is_cuvee_speciale,
-                       COALESCE(lc.cnt, 0) AS likes_count
-                FROM {$this->table} w
-                LEFT JOIN (SELECT wine_id, COUNT(*) AS cnt FROM favorites GROUP BY wine_id) lc ON lc.wine_id = w.id
+                       " . $this->wineSelectFromFavorites() . "
                 {$ratingJoin}
                 " . $this->buildWhereClause($where) . "
                 ORDER BY {$orderBy}{$limitClause}";
@@ -222,12 +261,7 @@ class WineModel extends Model
             "SELECT w.id, w.label_name, w.wine_color, w.vintage, w.price,
                     w.production_quantity, w.stock_quantity,
                     w.available, w.certification_label, w.image_path, w.slug,
-                    w.oenological_comment_fr, w.oenological_comment_en,
-                    w.award_fr, w.award_en,
-                    w.extra_comment_fr, w.extra_comment_en, w.is_cuvee_speciale,
-                    COALESCE(lc.cnt, 0) AS likes_count
-             FROM {$this->table} w
-             LEFT JOIN (SELECT wine_id, COUNT(*) AS cnt FROM favorites GROUP BY wine_id) lc ON lc.wine_id = w.id
+                    " . $this->wineSelectFromFavorites() . "
              {$ratingJoin2}
              {$whereClause}
              ORDER BY {$orderBy}{$limitClause}",
@@ -583,22 +617,7 @@ class WineModel extends Model
                 $data['city'],
                 $data['variety_of_vine'],
                 $data['age_of_vineyard'],
-                $data['oenological_comment_fr'] ?? '',
-                $data['oenological_comment_en'] ?? '',
-                $data['soil_fr'] ?? '',
-                $data['soil_en'] ?? '',
-                $data['pruning_fr'] ?? '',
-                $data['pruning_en'] ?? '',
-                $data['harvest_fr'] ?? '',
-                $data['harvest_en'] ?? '',
-                $data['vinification_fr'] ?? '',
-                $data['vinification_en'] ?? '',
-                $data['barrel_fermentation_fr'] ?? '',
-                $data['barrel_fermentation_en'] ?? '',
-                $data['award_fr'] ?? '',
-                $data['award_en'] ?? '',
-                $data['extra_comment_fr'] ?? '',
-                $data['extra_comment_en'] ?? '',
+                ...$this->bilingualParams($data),
                 $data['is_cuvee_speciale'],
                 $data['image_path'],
                 $data['slug'],
@@ -643,22 +662,7 @@ class WineModel extends Model
                 $data['city'],
                 $data['variety_of_vine'],
                 $data['age_of_vineyard'],
-                $data['oenological_comment_fr'] ?? '',
-                $data['oenological_comment_en'] ?? '',
-                $data['soil_fr'] ?? '',
-                $data['soil_en'] ?? '',
-                $data['pruning_fr'] ?? '',
-                $data['pruning_en'] ?? '',
-                $data['harvest_fr'] ?? '',
-                $data['harvest_en'] ?? '',
-                $data['vinification_fr'] ?? '',
-                $data['vinification_en'] ?? '',
-                $data['barrel_fermentation_fr'] ?? '',
-                $data['barrel_fermentation_en'] ?? '',
-                $data['award_fr'] ?? '',
-                $data['award_en'] ?? '',
-                $data['extra_comment_fr'] ?? '',
-                $data['extra_comment_en'] ?? '',
+                ...$this->bilingualParams($data),
                 $data['is_cuvee_speciale'],
                 $data['image_path'],
                 $data['slug'],
