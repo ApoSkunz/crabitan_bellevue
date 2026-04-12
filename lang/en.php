@@ -313,25 +313,32 @@ return [
     // Homepage — Wines section
     'home.wines_tag'   => 'Vintage',
     'home.wines_title' => 'Our Wines',
-    'home.wines_text'  => 'Perched on limestone cliffs above the Garonne, our vines express the full character'
-        . ' of the Sainte-Croix-du-Mont appellation. This exceptional terroir, shaped by fossilised oyster'
-        . ' limestone and gentle morning mists, creates the ideal conditions for Botrytis cinerea to flourish.'
-        . ' Alongside these remarkable sweet whites, Château Crabitan Bellevue crafts a range of red and dry'
-        . ' wines from the great Bordeaux varieties — Merlot, Cabernet Sauvignon and Sauvignon Blanc.',
+    'home.wines_text'  => 'Perched on the limestone cliffs that tower above the Garonne, our vines thrive in a'
+        . ' terroir shaped by millions of years of geological history. The morning mists and golden afternoons'
+        . ' of Sainte-Croix-du-Mont create perfect conditions for Botrytis cinerea — the precious fungus that'
+        . ' concentrates the aromatic richness of our sweet whites. But the Solane family does not stop there:'
+        . ' they also craft beautiful red and dry white wines from Merlot, Cabernet Sauvignon and Sauvignon'
+        . ' Blanc — honest, generous wines that reflect the people who make them.',
     'home.wines_cta'   => 'Discover our wines',
 
     // Homepage — History section
     'home.history_tag'   => 'Estate',
     'home.history_title' => 'Our History',
-    'home.history_text'  => 'For several generations, the Solane family has cultivated its vines on the'
-        . ' clay-limestone slopes of Sainte-Croix-du-Mont. An exceptional terroir producing wines of great finesse.',
+    'home.history_text'  => 'Since 1870, the Solane family has tended its vines on the clay-limestone slopes'
+        . ' of Sainte-Croix-du-Mont, passing down from generation to generation the same love of the land'
+        . ' and the same care for a job well done. Four generations have followed one another, each adding'
+        . ' their own chapter to the story. Today, Nicolas and Corinne carry this legacy forward with passion'
+        . ' and humility, making every new vintage another page of this beautiful family adventure.',
     'home.history_cta'   => 'Learn more',
 
     // Homepage — Savoir-Faire section
     'home.savoir_tag'   => 'Expertise',
     'home.savoir_title' => 'Our Know-How',
-    'home.savoir_text'  => 'From vine to cellar, every step is mastered with rigour and passion.'
-        . ' Careful ageing in oak barrels for complex, balanced and elegant wines.',
+    'home.savoir_text'  => 'Nothing here is left to chance. From careful winter pruning to hand-harvesting'
+        . ' on warm autumn days, every gesture is guided by experience and a love of wine. In the cellar,'
+        . ' the ageing process accompanies the wines as they develop, bringing them the complexity they deserve.'
+        . ' This is the know-how, passed down through generations, that gives Château Crabitan Bellevue'
+        . ' its unique character.',
     'home.savoir_cta'   => 'Learn more',
 
     // Homepage — Featured wine
@@ -407,16 +414,16 @@ return [
     // Le Château
     'chateau.origins_tag'    => 'Origins',
     'chateau.origins_title'  => 'A family of coopers',
-    'chateau.origins_text'   => 'Originally small craftsmen coopers, the family settled in Crabitan on the heights of Sainte-Croix-du-Mont in 1870. The current tasting room is a testimony to the old family kitchen of their ancestors. The vineyard gradually grew over the generations through purchases, leasing and planting of new plots.',
+    'chateau.origins_text'   => 'It all begins in 1870, when the Solane family — craftsmen coopers at the time — settle in Crabitan, on the heights of Sainte-Croix-du-Mont. The current tasting room still holds the memory of the old family kitchen. Patiently, at the pace of generations, the vineyard grew: a purchase here, a lease there, a new plot planted with care — each one an act of faith in this exceptional land.',
     'chateau.year1956_tag'   => '1956',
     'chateau.year1956_title' => 'The Great Frost',
-    'chateau.year1956_text'  => 'In February 1956, the great frost devastated the Bordeaux vineyards. In Crabitan, as throughout the Gironde, the vines were decimated. The Solane family set about replanting the plots, beginning a patient and determined renewal of the estate.',
+    'chateau.year1956_text'  => 'In February 1956, an unprecedented cold wave devastated the Bordeaux vineyards. In Crabitan, as throughout the Gironde, the vines were wiped out in just a few freezing nights. Rather than give up, the Solane family rolled up their sleeves and replanted every plot with determination — an act of resilience that says a great deal about the character of these people of the vine.',
     'chateau.year1975_tag'   => '1975',
     'chateau.year1975_title' => 'Château Crabitan Bellevue',
-    'chateau.year1975_text'  => 'The wines of the Clos de Crabitan were renamed Château Crabitan Bellevue and gained recognition with Bernard and Eliane at trade fairs and exhibitions, showcasing their outstanding quality-to-price ratio.',
+    'chateau.year1975_text'  => 'In 1975, the wines of the Clos de Crabitan take on a new name: Château Crabitan Bellevue. Bernard and Eliane take to the road, from show to fair and back again, proudly carrying their bottles and championing with conviction the quality-to-price ratio that wine lovers still appreciate today.',
     'chateau.year1994_tag'   => '1994',
     'chateau.year1994_title' => 'GFA Bernard Solane et Fils',
-    'chateau.year1994_text'  => 'Meanwhile the tractor had replaced the oxen and horse for vineyard work, making daily tasks less arduous on these difficult clay slopes. Nicolas, the current estate manager, joined his parents in 1994 with the creation of GFA Bernard Solane et Fils.',
+    'chateau.year1994_text'  => 'Meanwhile, the tractor had taken over from the oxen and horse on these demanding clay slopes — let us just say that the days became considerably less exhausting. In 1994, Nicolas joins his parents with enthusiasm and together they found GFA Bernard Solane et Fils, a new chapter written by four hands.',
     'chateau.today_tag'      => 'Today',
     'chateau.today_title'    => 'Nicolas & Corinne',
     'chateau.img_origins_alt' => 'The Solane family — late 19th century',
@@ -424,21 +431,21 @@ return [
     'chateau.img_1975_alt'   => 'Harvest in the 1970s — Château Crabitan Bellevue',
     'chateau.img_1994_alt'   => 'The barrel cellar — Château Crabitan Bellevue',
     'chateau.img_today_alt'  => 'Nicolas and Corinne Solane — Château Crabitan Bellevue',
-    'chateau.today_text'     => 'Every day, with the help of Corinne on the administrative side and their team in the cellar and vineyard, he strives to bring the grapes to perfect ripeness so that Crabitan Bellevue wines remain a pleasure to taste — whether for visitors at the estate or those who discover them further afield. Since 2020, the estate also offers online sales with direct delivery across France, so that everyone can receive their bottles at home.',
+    'chateau.today_text'     => 'Every morning, Nicolas walks the rows with the eye of someone who wants to give the very best. With Corinne handling the administrative side and a loyal team in the cellar and vineyard, they work together to ensure that every cuvée does justice to the terroir that raised them. Since 2020, Château Crabitan Bellevue has opened its doors beyond the estate itself: order your bottles online and have them delivered directly to your door, wherever you are in France.',
 
     // Savoir-Faire
     'savoir.vignoble_tag'   => 'The Vineyard',
     'savoir.vignoble_title' => 'An exceptional terroir',
-    'savoir.vignoble_text'  => 'Located on the heights of Sainte-Croix-du-Mont, our vines benefit from an ideal exposure and clay-limestone soil. These slopes shaped over centuries give the grapes an incomparable aromatic richness and concentration, the foundation of all our wines.',
+    'savoir.vignoble_text'  => 'It is on these limestone slopes of Sainte-Croix-du-Mont, facing the Garonne, that everything takes shape. Our vines enjoy an ideal exposure and clay-limestone soil shaped over millennia. This singular terroir — half sun, half mist — is the cradle of our wines: every bunch of grapes carries within it the imprint of this unique landscape, and it is this imprint that you find in every glass.',
     'savoir.vinif_tag'      => 'Winemaking',
     'savoir.vinif_title'    => 'The art of winemaking',
-    'savoir.vinif_text'     => 'The harvest is picked at perfect maturity, carefully vinified to preserve the unique expression of each plot. Each wine is crafted with respect for tradition while integrating the best contemporary practices, combining technical precision with a sensitivity to the product.',
+    'savoir.vinif_text'     => 'The harvest waits to be picked at perfect maturity — not a day too soon, not a day too late. In the cellar, each wine is vinified with respect for the plot it comes from, with constant care to preserve its character and freshness. Tradition and modernity meet here without conflict: we know where we come from, and we know exactly where we want to go.',
     'savoir.elevage_tag'    => 'Ageing',
     'savoir.elevage_title'  => 'Patience rewarded',
     'savoir.img_vignoble_alt' => 'The vineyard in summer — Château Crabitan Bellevue',
     'savoir.img_vinif_alt'   => 'Grape harvest — Château Crabitan Bellevue',
     'savoir.img_elevage_alt' => 'Barrel cellar — Château Crabitan Bellevue',
-    'savoir.elevage_text'   => 'Our sweet whites are aged patiently to develop their complexity and length. The red wines benefit from ageing tailored to each vintage, ensuring balance and elegance. Each bottle is the result of meticulous work from vine to bottling.',
+    'savoir.elevage_text'   => 'Time is an ingredient in its own right. Our sweet whites age slowly in the cellar, gradually developing the complex notes and length that define their character. The red wines are aged according to the personality of each vintage — with the patience of those who know that great things cannot be rushed. From vine to bottle, it is an art form.',
 
     // Support / FAQ
     'support.title'           => 'Support',
@@ -516,7 +523,7 @@ return [
 
     // Webmaster
     'webmaster.bio'           => 'Website designed and developed by Alexandre Solane, full-stack web developer.',
-    'webmaster.job_title'     => 'DevSecOps &amp; SRE Engineer',
+    'webmaster.job_title'     => 'Lead Application Integration Engineer — DevSecOps &amp; SRE',
     'webmaster.intro'         =>
         'Passionate about computing since my first introductory classes in high school,'
         . ' sparked by a mathematics teacher who ignited my curiosity…',
@@ -529,6 +536,90 @@ return [
         'To discuss a project, an opportunity, or simply connect,'
         . ' feel free to send me a private message on LinkedIn.',
     'webmaster.contact_btn'   => 'Send a LinkedIn message',
+
+    // Webmaster — Badges
+    'webmaster.badge_cdi'   => 'Permanent',
+    'webmaster.badge_stage' => 'Internship',
+
+    // Webmaster — EDF (main role Jan. 2025 → present)
+    'webmaster.edf_role'        => 'Lead Application Integration Engineer — DevSecOps & SRE',
+    'webmaster.edf_period'      => 'Jan. 2025 → present · Digital Division, EDF · Lyon, hybrid',
+    'webmaster.edf_task1'       => 'Strengthening CI/CD pipeline reliability',
+    'webmaster.edf_task2'       => 'Launch of the Zéro Obso community: proactive and automated obsolescence management through the PreObs innovation (automated Roadmap: SCA middleware & Infra)',
+    'webmaster.edf_task3'       => 'Innovation relay for the Nuclear Production IT department: fostering innovation and recognising talented employees — jury member for the CAP INNO challenge',
+    'webmaster.edf_task4'       => 'Transversal Security Champion: addressing cyber gaps with remediation plans embedded in project lifecycles',
+    'webmaster.edf_task5'       => 'Leading the Application Integrators Community of the Digital Division',
+    // Webmaster — EDF (sub-role Nov. 2023 → Dec. 2024)
+    'webmaster.edf_sub_role'    => 'Application Integration Engineer UNITEP — DevSecOps / SRE',
+    'webmaster.edf_sub_period'  => 'Nov. 2023 → Dec. 2024 · 1 year 1 month',
+    'webmaster.edf_sub_task1'   => 'Designing an industrial DevSecOps strategy and roadmap across 16 CAD 2D / 3D / 4D applications',
+    'webmaster.edf_sub_task2'   => 'Setting up CI/CD with workflow design: Security Gates SAST / SCA / SonarQube, Quality Gates',
+    'webmaster.edf_sub_task3'   => 'Experimenting with DORA metrics to measure DevOps performance',
+    'webmaster.edf_sub_task4'   => 'Common architecture for Automated Deployments (Ansible, IaC)',
+    'webmaster.edf_sub_task5'   => 'SRE: continuous monitoring, alerting, resilience from scratch, zero obsolescence',
+    'webmaster.edf_sub_task6'   => 'Co-designing with Valentine Gilles a cyber strategy: Horizon Zéro Vulnérabilité — participation in the DPNT 2025 challenge',
+
+    // Webmaster — Capgemini (main role)
+    'webmaster.capgemini_role'      => 'DevOps Engineer — System Team Leader SAFe',
+    'webmaster.capgemini_period'    => 'Aug. 2021 → Nov. 2023 · 2 years 4 months · Lyon',
+    'webmaster.capgemini_task1'     => 'DevOps Team Leader coordinating 3 engineers on a SAFe Train',
+    'webmaster.capgemini_task2'     => 'Automated deployment: GitLab CI, Jenkins, Ansible',
+    'webmaster.capgemini_task3'     => 'Automated monitoring: observability, alerting',
+    'webmaster.capgemini_task4'     => 'Multi-middleware technical support and continuous integration',
+    // Webmaster — Capgemini (intern)
+    'webmaster.capgemini_sub_role'   => 'DevOps Intern',
+    'webmaster.capgemini_sub_period' => 'Feb.–Aug. 2021 · 7 months',
+    'webmaster.capgemini_sub_task1'  => 'Maintaining a Continuous Integration platform (GitLab, Jenkins) and developing Jenkins CI/CD shared libraries',
+    'webmaster.capgemini_sub_task2'  => 'POC Asqatasun / Tanaguru (RGAA & GreenIT compliance), backup and artifact retention policy',
+    'webmaster.capgemini_sub_task3'  => 'Internship focused on CI/CD, automated GreenIT, monitoring, alerting',
+    'webmaster.capgemini_sub_task4'  => 'GitLab, Jenkins, SonarQube, ELK, Python, Shell',
+
+    // Webmaster — GFA Bernard Solane & Fils
+    'webmaster.gfa_role'         => 'Full Stack Developer Intern',
+    'webmaster.gfa_period'       => 'Jul.–Aug. 2020 · Sainte-Croix-du-Mont',
+    'webmaster.gfa_task1'        => 'Redesign of the showcase site into an e-commerce site (PHP, MySQL, JS, HTML/CSS)',
+    'webmaster.gfa_task2'        => 'MVC architecture, internal REST API, Crédit Agricole payment integration',
+    'webmaster.gfa_task3'        => '~50 user and admin pages, OWASP Top 10 security',
+    'webmaster.gfa_task4'        => 'Ongoing maintenance since then',
+    'webmaster.gfa_sub_role'     => 'Web Developer Intern',
+    'webmaster.gfa_sub_period'   => 'Jan.–Feb. 2019',
+    'webmaster.gfa_sub_task1'    => 'Design of a showcase website in HTML / CSS / JavaScript',
+
+    // Webmaster — Education
+    'webmaster.telecom_degree'  => 'Engineering Degree',
+    'webmaster.telecom_role'    => 'Computer Science & Telecommunications — Networks, systems, software development',
+    'webmaster.telecom_period'  => '2018 – 2021 · Saint-Étienne',
+    'webmaster.telecom_task1'   => 'Specialisations: Java Academy, High Performance Programming',
+    'webmaster.telecom_task2'   => 'TOEIC 830',
+    'webmaster.cpge_degree'     => 'Preparatory School',
+    'webmaster.cpge_role'       => 'Physics-Chemistry — Mathematics, physics, engineering sciences',
+    'webmaster.cpge_period'     => '2015 – 2018',
+    'webmaster.bac_degree'      => 'A-levels',
+    'webmaster.bac_role'        => 'Science stream',
+    'webmaster.bac_period'      => '2015',
+    'webmaster.oc_badge'        => 'Self-learning',
+    'webmaster.oc_role'         => 'Ongoing online courses: web development, DevOps, security, project management',
+    'webmaster.oc_period'       => '2015 → present',
+
+    // Webmaster — Skills (categories)
+    'webmaster.skills_dev'  => 'Development',
+    'webmaster.skills_sys'  => 'Systems',
+    'webmaster.skills_mw'   => 'Middlewares & Databases',
+
+    // Webmaster — Interests
+    'webmaster.hobbies_title'     => 'Interests',
+    'webmaster.hobbies_lifestyle' => 'Lifestyle',
+    'webmaster.hobbies_gastronomy'=> 'Gastronomy',
+    'webmaster.hobbies_arch'      => 'Architecture',
+    'webmaster.hobbies_tech'      => 'Tech & Security',
+    'webmaster.hobbies_it'        => 'Computer science',
+    'webmaster.hobbies_cyber'     => 'Cybersecurity',
+    'webmaster.hobbies_gaming'    => 'Video games',
+    'webmaster.hobbies_sport'     => 'Sport & Music',
+    'webmaster.hobbies_rugby'     => 'Rugby',
+    'webmaster.hobbies_hardrock'  => 'Hardstyle, Uptempo & Frenchcore',
+    'webmaster.hobbies_opera'     => 'Opera',
+    'webmaster.hobbies_rock'      => 'Rock & Metal',
 
     // Account panel (drawer)
     'panel.title'     => 'My account',

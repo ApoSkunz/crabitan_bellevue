@@ -313,27 +313,33 @@ return [
     // Homepage — Section Millésime / Nos vins
     'home.wines_tag'   => 'Millésime',
     'home.wines_title' => 'Nos Vins',
-    'home.wines_text'  => 'Juchés sur les falaises calcaires dominant la Garonne, nos vignes expriment toute'
-        . ' la noblesse de l\'appellation Sainte-Croix-du-Mont. Ce terroir d\'exception, façonné par des calcaires'
-        . ' à huîtres fossiles et la douceur des brumes matinales, réunit les conditions idéales au développement'
-        . ' du Botrytis cinerea. Aux côtés de ces blancs liquoreux,'
-        . ' le Château Crabitan Bellevue élabore une gamme de vins rouges et blancs secs issus des grands cépages'
-        . ' bordelais — Merlot, Cabernet Sauvignon et Sauvignon Blanc.',
+    'home.wines_text'  => 'Juchés sur les falaises calcaires qui dominent la Garonne, nos vignes s\'épanouissent'
+        . ' dans un terroir façonné par des millénaires d\'histoire géologique. Les brumes matinales et les'
+        . ' après-midi ensoleillés de Sainte-Croix-du-Mont offrent des conditions rêvées pour le développement'
+        . ' du Botrytis cinerea — ce champignon précieux qui concentre la richesse aromatique de nos blancs'
+        . ' liquoreux. Mais la famille Solane ne s\'arrête pas là : elle élabore aussi de beaux vins rouges'
+        . ' et blancs secs issus de Merlot, Cabernet Sauvignon et Sauvignon Blanc, aussi sincères et généreux'
+        . ' que ceux qui les font naître.',
     'home.wines_cta'   => 'Découvrir nos vins',
 
     // Homepage — Section Notre Histoire
     'home.history_tag'   => 'Domaine',
     'home.history_title' => 'Notre Histoire',
-    'home.history_text'  => 'Depuis plusieurs générations, la famille Solane cultive ses vignes sur les coteaux'
-        . ' argilo-calcaires de Sainte-Croix-du-Mont. Une terre d\'exception qui donne naissance'
-        . ' à des vins d\'une grande finesse.',
+    'home.history_text'  => 'Depuis 1870, la famille Solane cultive ses vignes sur les coteaux argilo-calcaires'
+        . ' de Sainte-Croix-du-Mont, transmettant de génération en génération le même amour de la terre et'
+        . ' le même soin du travail bien fait. Quatre générations se sont ainsi succédé, chacune apportant'
+        . ' sa pierre à l\'édifice. Aujourd\'hui, Nicolas et Corinne perpétuent cet héritage avec passion'
+        . ' et humilité, faisant de chaque millésime un nouveau chapitre de cette belle aventure familiale.',
     'home.history_cta'   => 'En savoir plus',
 
     // Homepage — Section Savoir-Faire
     'home.savoir_tag'   => 'Le Métier',
     'home.savoir_title' => 'Notre Savoir-Faire',
-    'home.savoir_text'  => 'De la vigne au chai, chaque étape est maîtrisée avec rigueur et passion.'
-        . ' Un élevage soigné en fûts de chêne pour des vins complexes, équilibrés et élégants.',
+    'home.savoir_text'  => 'Ici, rien n\'est laissé au hasard. De la taille minutieuse en hiver aux vendanges'
+        . ' à la main lors des belles journées d\'automne, chaque geste est guidé par l\'expérience et'
+        . ' l\'amour du vin. Au chai, l\'élevage accompagne les vins dans leur développement, leur offrant'
+        . ' toute la complexité qu\'ils méritent. C\'est ce savoir-faire, transmis de génération en génération,'
+        . ' qui donne au Château Crabitan Bellevue son caractère si particulier.',
     'home.savoir_cta'   => 'En savoir plus',
 
     // Homepage — Vin du moment
@@ -409,16 +415,16 @@ return [
     // Le Château
     'chateau.origins_tag'    => 'Les Origines',
     'chateau.origins_title'  => 'Une famille de tonneliers',
-    'chateau.origins_text'   => 'Tout d\'abord petits artisans tonneliers, la famille s\'est installée à Crabitan sur les hauteurs de Sainte-Croix-du-Mont en 1870. La salle de dégustation actuelle est un témoignage de l\'ancienne cuisine des aïeux de la famille. Le vignoble s\'est développé progressivement au fil des générations par l\'achat, la prise en fermage (location) et la plantation de parcelles de vigne.',
+    'chateau.origins_text'   => 'Tout commence en 1870, quand la famille Solane — alors artisans tonneliers — pose ses valises à Crabitan, sur les hauteurs de Sainte-Croix-du-Mont. La salle de dégustation actuelle porte encore la mémoire de l\'ancienne cuisine des aïeux. Patiemment, au rythme des générations, le vignoble s\'est agrandi : un achat ici, une prise en fermage là, une nouvelle parcelle plantée avec soin — autant d\'actes de foi dans ce terroir d\'exception.',
     'chateau.year1956_tag'   => '1956',
     'chateau.year1956_title' => 'La Grande Gelée',
-    'chateau.year1956_text'  => 'En février 1956, la grande gelée ravagea les vignobles bordelais. À Crabitan comme partout en Gironde, les pieds de vigne furent décimés. La famille Solane s\'attela à replanter les parcelles, amorçant un renouveau patient et déterminé du domaine.',
+    'chateau.year1956_text'  => 'En février 1956, une vague de froid sans précédent ravagea les vignobles bordelais. À Crabitan comme partout en Gironde, les pieds de vigne furent décimés en quelques nuits glaciales. Plutôt que de se résigner, la famille Solane se retroussa les manches et replanta chaque parcelle avec détermination — un acte de résilience qui en dit long sur le caractère de ces hommes et femmes de la vigne.',
     'chateau.year1975_tag'   => '1975',
     'chateau.year1975_title' => 'Château Crabitan Bellevue',
-    'chateau.year1975_text'  => 'Les vins du clos de Crabitan se renommèrent Château Crabitan Bellevue et se firent connaître avec Bernard et Eliane lors de salons et foires expositions en mettant en valeur leur bon rapport qualité/prix.',
+    'chateau.year1975_text'  => 'C\'est en 1975 que les vins du Clos de Crabitan prennent le nom de Château Crabitan Bellevue. Bernard et Eliane s\'en vont alors sur les routes, de salon en salon, de foire en foire, portant fièrement leurs bouteilles et défendant avec conviction ce rapport qualité-prix que les amateurs de vin apprécient encore aujourd\'hui.',
     'chateau.year1994_tag'   => '1994',
     'chateau.year1994_title' => 'GFA Bernard Solane et Fils',
-    'chateau.year1994_text'  => 'Entre temps le tracteur avait remplacé les bœufs et le cheval pour le travail de la vigne, ce qui dans ces coteaux argileux difficiles rendit les tâches quotidiennes moins ardues. Nicolas, gérant actuel du domaine, a rejoint ses parents en 1994 avec la création du GFA Bernard Solane et Fils.',
+    'chateau.year1994_text'  => 'Entre-temps, le tracteur avait pris la relève des bœufs et du cheval pour travailler ces coteaux argileux — autant dire que les journées étaient devenues sensiblement moins éprouvantes. En 1994, Nicolas rejoint ses parents avec enthousiasme et ils fondent ensemble le GFA Bernard Solane et Fils, une nouvelle page qui s\'écrit à quatre mains.',
     'chateau.today_tag'      => 'Aujourd\'hui',
     'chateau.today_title'    => 'Nicolas & Corinne',
     'chateau.img_origins_alt' => 'La famille Solane — fin XIXe siècle',
@@ -426,21 +432,21 @@ return [
     'chateau.img_1975_alt'   => 'Vendanges années 1970 — Château Crabitan Bellevue',
     'chateau.img_1994_alt'   => 'Le chai — Château Crabitan Bellevue',
     'chateau.img_today_alt'  => 'Nicolas et Corinne Solane — Château Crabitan Bellevue',
-    'chateau.today_text'     => 'Il s\'efforce chaque jour, avec le concours de Corinne à l\'administratif et de leur équipe au chai et au vignoble, d\'amener le raisin à la meilleure maturité afin de rendre les vins de Crabitan Bellevue toujours plaisants à déguster pour les visiteurs venant au domaine ou ceux qui les découvrent dans des régions plus lointaines. Depuis 2020, le domaine propose également la vente en ligne avec livraison directe en France, pour que chacun puisse recevoir ses bouteilles à domicile.',
+    'chateau.today_text'     => 'Chaque matin, Nicolas arpente les rangs avec le regard de quelqu\'un qui cherche à donner le meilleur. Avec Corinne à l\'administratif et une équipe fidèle au chai comme au vignoble, ils œuvrent de concert pour que chaque cuvée soit à la hauteur de ce terroir qui les a vus grandir. Depuis 2020, le Château Crabitan Bellevue ouvre ses portes au-delà des frontières du domaine : commandez vos bouteilles en ligne, et recevez-les directement chez vous, où que vous soyez en France.',
 
     // Savoir-Faire
     'savoir.vignoble_tag'   => 'Le Vignoble',
     'savoir.vignoble_title' => 'Un terroir d\'exception',
-    'savoir.vignoble_text'  => 'Situés sur les hauteurs de Sainte-Croix-du-Mont, nos vignes bénéficient d\'une exposition idéale et d\'un sol argilo-calcaire. Ces coteaux façonnés par les siècles confèrent aux raisins une richesse aromatique et une concentration incomparables, fondement de tous nos vins.',
+    'savoir.vignoble_text'  => 'C\'est sur ces coteaux calcaires de Sainte-Croix-du-Mont, face à la Garonne, que tout prend forme. Nos vignes bénéficient d\'une exposition idéale et d\'un sol argilo-calcaire façonné sur des millénaires. Ce terroir singulier, mi-soleil mi-brume, est le berceau de nos vins : chaque grappe porte en elle l\'empreinte de ce paysage unique, et c\'est cette empreinte que l\'on retrouve dans chaque verre.',
     'savoir.vinif_tag'      => 'La Vinification',
     'savoir.vinif_title'    => 'L\'art de la vinification',
-    'savoir.vinif_text'     => 'La vendange est récoltée à parfaite maturité, vinifiée avec soin pour préserver l\'expression unique de chaque parcelle. Chaque vin est élaboré en respectant les traditions tout en intégrant les meilleures pratiques contemporaines, alliant précision technique et sensibilité au produit.',
+    'savoir.vinif_text'     => 'La vendange attend d\'être cueillie à parfaite maturité — pas un jour trop tôt, pas un jour trop tard. En cave, chaque vin est vinifié dans le respect de la parcelle dont il est issu, avec le souci constant de préserver son caractère et sa fraîcheur. Tradition et modernité se croisent ici sans se contrarier : on sait d\'où l\'on vient, et on sait exactement où l\'on veut aller.',
     'savoir.elevage_tag'    => 'L\'Élevage',
     'savoir.elevage_title'  => 'La patience récompensée',
     'savoir.img_vignoble_alt' => 'Le vignoble en été — Château Crabitan Bellevue',
     'savoir.img_vinif_alt'   => 'Récolte des raisins — Château Crabitan Bellevue',
     'savoir.img_elevage_alt' => 'Chai à barriques — Château Crabitan Bellevue',
-    'savoir.elevage_text'   => 'Nos liquoreux sont élevés avec patience pour développer leur complexité et leur longueur en bouche. Les vins rouges bénéficient d\'un élevage adapté à chaque millésime, garantissant équilibre et élégance. Chaque bouteille est le fruit d\'un travail minutieux, de la vigne jusqu\'à la mise en bouteille.',
+    'savoir.elevage_text'   => 'Le temps est un ingrédient à part entière. Nos liquoreux s\'étirent lentement en cave, développant peu à peu ces notes complexes et cette longueur en bouche qui font leur renommée. Les vins rouges, eux, sont élevés selon la personnalité de chaque millésime — avec la patience de ceux qui savent que les belles choses ne se précipitent pas. De la vigne jusqu\'à la bouteille, c\'est tout un art.',
 
     // Support / FAQ
     'support.title'           => 'Support',
@@ -518,7 +524,7 @@ return [
 
     // Webmaster
     'webmaster.bio'           => 'Site conçu et développé par Alexandre Solane, développeur web full-stack.',
-    'webmaster.job_title'     => 'Ingénieur DevSecOps &amp; SRE',
+    'webmaster.job_title'     => 'Lead Intégrateur d\'application DevSecOps &amp; SRE',
     'webmaster.intro'         =>
         'Passionné d\'informatique depuis mes premiers cours d\'initiation en seconde'
         . ' générale, grâce à mon professeur de mathématiques qui a su éveiller ma curiosité…',
@@ -531,6 +537,90 @@ return [
         'Pour échanger sur un projet, une opportunité ou simplement discuter,'
         . ' envoyez-moi un message privé sur LinkedIn.',
     'webmaster.contact_btn'   => 'Envoyer un message LinkedIn',
+
+    // Webmaster — Badges
+    'webmaster.badge_cdi'   => 'CDI',
+    'webmaster.badge_stage' => 'Stage',
+
+    // Webmaster — EDF (poste principal jan. 2025 → présent)
+    'webmaster.edf_role'        => 'Lead Intégrateur d\'application DevSecOps & SRE',
+    'webmaster.edf_period'      => 'jan. 2025 → présent · Division Numérique, EDF · Lyon, hybride',
+    'webmaster.edf_task1'       => 'Renforcement de la fiabilisation des pipelines CI/CD',
+    'webmaster.edf_task2'       => 'Lancement de la communauté Zéro Obso : traitement de l\'obsolescence de manière préventive et automatisée via l\'innovation PreObs (Roadmap automatisée : SCA middleware & Infra)',
+    'webmaster.edf_task3'       => 'Relais innovation du département SI Production nucléaire : dynamiser l\'innovation et faire rayonner les salariés innovants — jury du challenge CAP INNO',
+    'webmaster.edf_task4'       => 'Security Champion transverse : traitement des écarts cyber avec plan de remédiation et suivi embarqué dans la vie des projets',
+    'webmaster.edf_task5'       => 'Animation du collectif Communauté des Intégratrices/Intégrateurs d\'applications de la Division Numérique',
+    // Webmaster — EDF (sous-rôle nov. 2023 → déc. 2024)
+    'webmaster.edf_sub_role'    => 'Intégrateur d\'applications UNITEP — DevSecOps / SRE',
+    'webmaster.edf_sub_period'  => 'nov. 2023 → déc. 2024 · 1 an 1 mois',
+    'webmaster.edf_sub_task1'   => 'Élaboration d\'une stratégie DevSecOps industrielle et roadmap sur 16 applications CAO 2D / 3D / 4D',
+    'webmaster.edf_sub_task2'   => 'Mise en place CI/CD avec workflow design : Security Gates SAST / SCA / SonarQube, Quality Gates',
+    'webmaster.edf_sub_task3'   => 'Expérimentation DORA metrics pour mesurer la performance DevOps',
+    'webmaster.edf_sub_task4'   => 'Architecture commune pour les Déploiements Automatisés (Ansible, IaC)',
+    'webmaster.edf_sub_task5'   => 'SRE : surveillance continue, alerting, résilience from scratch, zéro obsolescence',
+    'webmaster.edf_sub_task6'   => 'Élaboration avec Valentine Gilles d\'une stratégie cyber : Horizon Zéro Vulnérabilité — participation au challenge DPNT 2025',
+
+    // Webmaster — Capgemini (poste principal)
+    'webmaster.capgemini_role'      => 'Ingénieur DevOps — Team Leader System Team SAFe',
+    'webmaster.capgemini_period'    => 'août 2021 → nov. 2023 · 2 ans 4 mois · Lyon',
+    'webmaster.capgemini_task1'     => 'Team Leader DevOps coordonnant 3 ingénieurs sur un Train SAFe',
+    'webmaster.capgemini_task2'     => 'Déploiement automatisé : GitLab CI, Jenkins, Ansible',
+    'webmaster.capgemini_task3'     => 'Surveillance automatisée : monitoring, observability, alerting',
+    'webmaster.capgemini_task4'     => 'Support technique multi-middleware et intégration continue',
+    // Webmaster — Capgemini (stage)
+    'webmaster.capgemini_sub_role'   => 'Stagiaire DevOps',
+    'webmaster.capgemini_sub_period' => 'févr.–août 2021 · 7 mois',
+    'webmaster.capgemini_sub_task1'  => 'MCO d\'une plateforme d\'Intégration Continue (GitLab, Jenkins) et développement de shared libraries Jenkins CI/CD',
+    'webmaster.capgemini_sub_task2'  => 'POC Asqatasun / Tanaguru (conformité RGAA & GreenIT), politique de rétention des sauvegardes et des artifacts',
+    'webmaster.capgemini_sub_task3'  => 'Stage axé CI/CD, GreenIT automatisé, monitoring, alerting',
+    'webmaster.capgemini_sub_task4'  => 'GitLab, Jenkins, SonarQube, ELK, Python, Shell',
+
+    // Webmaster — GFA Bernard Solane & Fils
+    'webmaster.gfa_role'         => 'Stagiaire Développeur Full Stack',
+    'webmaster.gfa_period'       => 'juil.–août 2020 · Sainte-Croix-du-Mont',
+    'webmaster.gfa_task1'        => 'Refonte du site vitrine en site e-commerce (PHP, MySQL, JS, HTML/CSS)',
+    'webmaster.gfa_task2'        => 'Architecture MVC, API REST interne, paiement Crédit Agricole',
+    'webmaster.gfa_task3'        => '~50 pages utilisateurs et administrateurs, sécurité OWASP Top 10',
+    'webmaster.gfa_task4'        => 'MCO du site assurée depuis lors',
+    'webmaster.gfa_sub_role'     => 'Stagiaire Développeur Web',
+    'webmaster.gfa_sub_period'   => 'jan.–févr. 2019',
+    'webmaster.gfa_sub_task1'    => 'Conception d\'un site vitrine HTML / CSS / JavaScript',
+
+    // Webmaster — Formation
+    'webmaster.telecom_degree'  => 'Diplôme d\'ingénieur',
+    'webmaster.telecom_role'    => 'Informatique & Télécommunications — Réseaux, systèmes, développement logiciel',
+    'webmaster.telecom_period'  => '2018 – 2021 · Saint-Étienne',
+    'webmaster.telecom_task1'   => 'Spécialités : Java Académie, High Performance Programming',
+    'webmaster.telecom_task2'   => 'TOEIC 830',
+    'webmaster.cpge_degree'     => 'Prépa',
+    'webmaster.cpge_role'       => 'Filière Physique-Chimie — Mathématiques, physique, sciences de l\'ingénieur',
+    'webmaster.cpge_period'     => '2015 – 2018',
+    'webmaster.bac_degree'      => 'BAC',
+    'webmaster.bac_role'        => 'Série scientifique',
+    'webmaster.bac_period'      => '2015',
+    'webmaster.oc_badge'        => 'Auto-formation',
+    'webmaster.oc_role'         => 'Nombreux cours suivis en continu : développement web, DevOps, sécurité, gestion de projet',
+    'webmaster.oc_period'       => '2015 → présent',
+
+    // Webmaster — Compétences (catégories)
+    'webmaster.skills_dev'  => 'Développement',
+    'webmaster.skills_sys'  => 'Systèmes',
+    'webmaster.skills_mw'   => 'Middlewares & BDD',
+
+    // Webmaster — Centres d'intérêt
+    'webmaster.hobbies_title'     => 'Centres d\'intérêt',
+    'webmaster.hobbies_lifestyle' => 'Art de vivre',
+    'webmaster.hobbies_gastronomy'=> 'Gastronomie',
+    'webmaster.hobbies_arch'      => 'Architecture',
+    'webmaster.hobbies_tech'      => 'Numérique & Sécurité',
+    'webmaster.hobbies_it'        => 'Informatique',
+    'webmaster.hobbies_cyber'     => 'Cybersécurité',
+    'webmaster.hobbies_gaming'    => 'Jeux vidéo',
+    'webmaster.hobbies_sport'     => 'Sport & Musique',
+    'webmaster.hobbies_rugby'     => 'Rugby',
+    'webmaster.hobbies_hardrock'  => 'Hardstyle, Uptempo & Frenchcore',
+    'webmaster.hobbies_opera'     => 'Opéra',
+    'webmaster.hobbies_rock'      => 'Rock & Metal',
 
     // Account panel (drawer)
     'panel.title'     => 'Mon espace',
