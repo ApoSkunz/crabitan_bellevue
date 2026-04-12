@@ -11,8 +11,7 @@ namespace Repository;
  * L'implémentation concrète (ex. MysqlUserRepository) délègue à AccountModel ou
  * exécute directement les requêtes SQL.
  */
-// NOSONAR — php:S1448 — contrat complet des opérations AccountModel ; S107 — create() nécessite 10 params
-interface UserRepository
+interface UserRepository // NOSONAR — php:S1448 — contrat complet des opérations AccountModel
 {
     // ----------------------------------------------------------------
     // Lookup — lecture
@@ -134,7 +133,7 @@ interface UserRepository
      * @return string Identifiant du compte créé
      * @throws \Throwable En cas d'erreur BDD (rollback automatique)
      */
-    public function create(
+    public function create( // NOSONAR — php:S107 — 10 params nécessaires pour le formulaire d'inscription
         string $accountType,
         string $email,
         string $hashedPassword,
