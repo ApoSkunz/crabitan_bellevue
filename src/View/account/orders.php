@@ -113,19 +113,19 @@ if (!function_exists('ordersUrl')) {
                         <tbody>
                             <?php foreach ($orders as $order) : ?>
                                 <tr>
-                                    <td class="account-table__ref">
+                                    <td class="account-table__ref" data-label="<?= htmlspecialchars(__('account.order_ref')) ?>">
                                         <?= htmlspecialchars($order['order_reference']) ?>
                                     </td>
-                                    <td><?= htmlspecialchars(
+                                    <td data-label="<?= htmlspecialchars(__('account.order_date')) ?>"><?= htmlspecialchars(
                                         date('d/m/Y', strtotime($order['ordered_at']))
                                     ) ?></td>
-                                    <td>
+                                    <td data-label="<?= htmlspecialchars(__('account.order_status')) ?>">
                                         <span class="account-badge account-badge--<?= $statusColors[$order['status']] ?? 'grey' ?>">
                                             <?= __('order.status.' . $order['status']) ?>
                                         </span>
                                     </td>
-                                    <td><?= number_format((float) $order['price'], 2, ',', ' ') ?> €</td>
-                                    <td>
+                                    <td data-label="<?= htmlspecialchars(__('account.order_price')) ?>"><?= number_format((float) $order['price'], 2, ',', ' ') ?> €</td>
+                                    <td data-label="<?= htmlspecialchars(__('account.order_invoice')) ?>">
                                         <?php if ($order['path_invoice']) : ?>
                                             <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/facture"
                                                class="btn btn--ghost btn--sm"
@@ -136,7 +136,7 @@ if (!function_exists('ordersUrl')) {
                                             <span class="account-table__na">—</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td>
+                                    <td data-label="<?= htmlspecialchars(__('account.order_detail_link')) ?>">
                                         <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>"
                                            class="btn btn--ghost btn--sm">
                                             <?= __('account.order_detail_link') ?>
