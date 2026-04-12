@@ -98,7 +98,7 @@ class UploadFuzzingTest extends TestCase
     private function phpPayloadWithJpegMagic(): string
     {
         return "\xFF\xD8\xFF\xE0" // JPEG magic bytes
-             . "<?php system($_GET['cmd']); ?>\xFF\xD9";
+             . "<?php system(\$_GET['cmd']); ?>\xFF\xD9";
     }
 
     /**
@@ -161,7 +161,7 @@ class UploadFuzzingTest extends TestCase
      */
     private function buildTestableController(): \Controller\Admin\WineAdminController
     {
-        return new class(new Request()) extends \Controller\Admin\WineAdminController {
+        return new class (new Request()) extends \Controller\Admin\WineAdminController {
             /** @param string $src Fichier source */
             protected function moveUploadedFile(string $src, string $dest): bool
             {
@@ -411,7 +411,7 @@ class UploadFuzzingTest extends TestCase
 
     public function testInvoiceUploadWithPhpContentRejected(): void
     {
-        $phpContent = '<?php system($_GET["cmd"]); ?>';
+        $phpContent = '<?php system(\$_GET["cmd"]); ?>';
         $path       = $this->createTmpFile($phpContent, '.pdf');
 
         $_FILES['invoice'] = [
@@ -424,7 +424,7 @@ class UploadFuzzingTest extends TestCase
         $_POST    = ['csrf_token' => 'csrf-upload-fuzz', 'confirm_replace' => '1'];
         $_SESSION = ['csrf' => 'csrf-upload-fuzz'];
 
-        $ctrl = new class(new Request()) extends \Controller\Admin\OrderAdminController {
+        $ctrl = new class (new Request()) extends \Controller\Admin\OrderAdminController {
             protected function moveUploadedFile(string $src, string $dest): bool
             {
                 return copy($src, $dest);
@@ -459,7 +459,7 @@ class UploadFuzzingTest extends TestCase
         $_POST    = ['csrf_token' => 'csrf-upload-fuzz'];
         $_SESSION = ['csrf' => 'csrf-upload-fuzz'];
 
-        $ctrl = new class(new Request()) extends \Controller\Admin\OrderAdminController {
+        $ctrl = new class (new Request()) extends \Controller\Admin\OrderAdminController {
             protected function moveUploadedFile(string $src, string $dest): bool
             {
                 return false;
