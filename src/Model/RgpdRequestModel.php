@@ -86,7 +86,7 @@ class RgpdRequestModel extends Model
     {
         return $this->db->fetchOne(
             "SELECT r.id, r.type, r.status, r.requester_email, r.requester_name,
-                    r.received_at, r.treated_at, r.treated_by, r.notes,
+                    r.received_at, r.treated_at, r.treated_by, r.response_note,
                     a.email AS treated_by_email,
                     ai.firstname AS treated_by_firstname, ai.lastname AS treated_by_lastname,
                     ac.company_name AS treated_by_company
@@ -130,7 +130,7 @@ class RgpdRequestModel extends Model
 
         $rows = $this->db->fetchAll(
             "SELECT r.id, r.type, r.status, r.requester_email, r.requester_name,
-                    r.received_at, r.treated_at, r.treated_by, r.notes,
+                    r.received_at, r.treated_at, r.treated_by, r.response_note,
                     ai.firstname AS treated_by_firstname, ai.lastname AS treated_by_lastname,
                     ac.company_name AS treated_by_company,
                     DATEDIFF(NOW(), r.received_at) AS days_since_received
