@@ -474,26 +474,12 @@ body {
 // padding-top injecté par JS (hauteur réelle du header)
 // body.nav-open n'est plus nécessaire (pas de overflow:hidden qui casse sticky)
 
+// Menu burger : dropdown dans le sticky header — page visible en dessous
+// Pas de position:fixed ici (le header est sticky, le menu reste dans son flux)
 @media (max-width: 991px) {
     .header-nav--mobile.is-open {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 99;
-        max-height: none;
+        max-height: calc(100dvh - 100px);
         overflow-y: auto;
-
-        // Fond semi-transparent — site visible derrière (dark mode)
-        background-color: rgba(8, 8, 8, 0.82);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-    }
-
-    // Light mode : fond beige givré
-    [data-theme='light'] .header-nav--mobile.is-open {
-        background-color: rgba(245, 240, 232, 0.88);
     }
 }
 
