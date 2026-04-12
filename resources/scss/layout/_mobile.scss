@@ -468,3 +468,36 @@ body {
         padding-bottom: 3rem;
     }
 }
+
+// ---- 17. Body lock quand menu burger ouvert ----
+
+body.nav-open {
+    overflow: hidden;
+}
+
+// ---- 18. Mobile paysage / tablette basse (768–991px) — header burger ----
+
+@media (min-width: 768px) and (max-width: 991px) {
+    // Masquer le bouton compte (accessible via burger)
+    .header-actions .btn--white,
+    .header-actions .btn--ghost {
+        display: none;
+    }
+
+    // Menu burger — même typo + scroll interne que mobile portrait
+    .header-nav--mobile {
+        padding: 0.75rem 1rem;
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+
+        a,
+        &__modal-btn {
+            font-family: var(--font-serif);
+            font-size: 0.95rem;
+            letter-spacing: 0.12em;
+            font-variant: small-caps;
+            padding: 0.7rem 0;
+            color: var(--color-text-muted);
+        }
+    }
+}
