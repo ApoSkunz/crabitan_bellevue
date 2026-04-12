@@ -322,13 +322,13 @@ class IpnControllerHandleFlowTest extends TestCase
     }
 
     // ================================================================
-    // 7. Paiement accepté + findByReferenceWithAddresses retourne null
+    // 7. Paiement accepté + findByReferenceForInvoice retourne null
     //    → bloc facture entièrement ignoré
     // ================================================================
 
     /**
      * Vérifie que le bloc de génération de facture est ignoré quand
-     * findByReferenceWithAddresses retourne null.
+     * findByReferenceForInvoice retourne null.
      */
     public function testHandleSkipsInvoiceWhenOrderNotFoundByReference(): void
     {
@@ -342,7 +342,7 @@ class IpnControllerHandleFlowTest extends TestCase
         $intentsMock->method('delete');
         $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
         $cartMock->method('clear');
-        $orderMock->method('findByReferenceWithAddresses')->willReturn(null);
+        $orderMock->method('findByReferenceForInvoice')->willReturn(null);
 
         // updateInvoiceData ne doit jamais être appelé
         $orderMock->expects($this->never())->method('updateInvoiceData');
@@ -381,7 +381,7 @@ class IpnControllerHandleFlowTest extends TestCase
         $intentsMock->method('delete');
         $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
         $cartMock->method('clear');
-        $orderMock->method('findByReferenceWithAddresses')->willReturn([
+        $orderMock->method('findByReferenceForInvoice')->willReturn([
             'id'               => 999,
             'order_reference'  => 'WEB-CB-AABBCCDD-2026',
             'payment_method'   => 'card',
@@ -428,7 +428,7 @@ class IpnControllerHandleFlowTest extends TestCase
         $intentsMock->method('delete');
         $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
         $cartMock->method('clear');
-        $orderMock->method('findByReferenceWithAddresses')->willReturn([
+        $orderMock->method('findByReferenceForInvoice')->willReturn([
             'id'               => 999,
             'order_reference'  => 'WEB-CB-AABBCCDD-2026',
             'payment_method'   => 'card',
@@ -483,7 +483,7 @@ class IpnControllerHandleFlowTest extends TestCase
         $intentsMock->method('delete');
         $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
         $cartMock->method('clear');
-        $orderMock->method('findByReferenceWithAddresses')->willReturn([
+        $orderMock->method('findByReferenceForInvoice')->willReturn([
             'id'               => 999,
             'order_reference'  => 'WEB-CB-AABBCCDD-2026',
             'payment_method'   => 'card',
@@ -510,12 +510,12 @@ class IpnControllerHandleFlowTest extends TestCase
     }
 
     // ================================================================
-    // 11. Paiement accepté + findByReferenceWithAddresses lève exception
+    // 11. Paiement accepté + findByReferenceForInvoice lève exception
     //     → catch externe bloc facture
     // ================================================================
 
     /**
-     * Vérifie que si findByReferenceWithAddresses lève une exception, elle est
+     * Vérifie que si findByReferenceForInvoice lève une exception, elle est
      * absorbée par le catch externe et le traitement continue (200 OK).
      */
     public function testHandleInvoiceOuterExceptionIsCaughtSilently(): void
@@ -530,7 +530,7 @@ class IpnControllerHandleFlowTest extends TestCase
         $intentsMock->method('delete');
         $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
         $cartMock->method('clear');
-        $orderMock->method('findByReferenceWithAddresses')
+        $orderMock->method('findByReferenceForInvoice')
             ->willThrowException(new \RuntimeException('DB failure'));
 
         $caught = null;
@@ -650,7 +650,7 @@ class IpnControllerHandleFlowTest extends TestCase
         $intentsMock->method('delete');
         $orderMock->method('createFromIpn')->willReturn('WEB-CB-AABBCCDD-2026');
         $cartMock->method('clear');
-        $orderMock->method('findByReferenceWithAddresses')->willReturn([
+        $orderMock->method('findByReferenceForInvoice')->willReturn([
             'id'              => 42,
             'order_reference' => 'WEB-CB-AABBCCDD-2026',
             'payment_method'  => 'card',
