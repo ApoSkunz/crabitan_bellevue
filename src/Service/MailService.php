@@ -1353,7 +1353,11 @@ INNER;
         $fr = (string) ($wine['award_fr'] ?? '');
         $en = (string) ($wine['award_en'] ?? '');
         if ($fr !== '' || $en !== '') {
-            $value = $lang === 'en' ? ($en !== '' ? $en : $fr) : ($fr !== '' ? $fr : $en);
+            if ($lang === 'en') {
+                $value = $en !== '' ? $en : $fr;
+            } else {
+                $value = $fr !== '' ? $fr : $en;
+            }
             return htmlspecialchars(trim($value), ENT_QUOTES);
         }
 

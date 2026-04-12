@@ -932,7 +932,6 @@ class WineModel extends Model
         $foundIds[] = $wineId;
 
         $placeholders = implode(',', array_fill(0, count($foundIds), '?'));
-        $params       = array_merge($foundIds, [$remaining]);
 
         $otherIds = $this->db->fetchAll(
             "SELECT id FROM {$this->table}
