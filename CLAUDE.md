@@ -308,6 +308,20 @@ Les scripts exécutés en ligne de commande (cron jobs, purges, pseudonymisation
 
 ---
 
+## Boucles de problèmes — règle d'escalade
+
+Si Claude échoue à résoudre un problème après **2 tentatives** (même stratégie ou variantes proches) :
+
+1. **Stopper** — ne pas continuer à boucler.
+2. **Signaler** à Alexandre : décrire le blocage, ce qui a été tenté, pourquoi ça ne passe pas.
+3. **Proposer** une alternative : approche différente, outil différent, contournement, ou déléguer à l'utilisateur.
+
+> Exemples de blocages typiques : fichier inaccessible (Windows Defender, long path), commande qui échoue silencieusement, outil qui ne retourne pas sa sortie, boucle d'erreurs linter/CI sans progrès.
+
+**Ne jamais enchaîner plus de 2 tentatives sans en informer Alexandre.**
+
+---
+
 ## Règles absolues
 
 Ces règles ne souffrent **aucune exception** :
