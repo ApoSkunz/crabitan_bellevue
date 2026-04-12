@@ -2,6 +2,17 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.80.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.80.0...v0.80.1) (2026-04-12)
+
+
+### Bug Fixes
+
+* **config:** remettre HTTPS redirect commenté — décommenter à la MEP IONOS ([b5485ec](https://github.com/ApoSkunz/crabitan_bellevue/commit/b5485ecd99cad228b6cfba5abd7ac3803040b8f8))
+* **security:** corriger les 5 vulnérabilités P1 + 4 P2 (audit v3) ([41c31e0](https://github.com/ApoSkunz/crabitan_bellevue/commit/41c31e06862549ae3e5b234ad71043ce8cd56c49))
+* **security:** corriger VULN-002 à VULN-014 audit cyber v4 — HIGH/MEDIUM/LOW ([0089a5c](https://github.com/ApoSkunz/crabitan_bellevue/commit/0089a5cb36575472a00d4a462055db92f41efb55))
+* **security:** VULN-001 v4 TrackingController — open redirect via URL BDD ([3c62eb7](https://github.com/ApoSkunz/crabitan_bellevue/commit/3c62eb7f57eb8e85af7d8d5d583510624a40f019))
+* **security:** VULN-016 + VULN-017 audit cyber v5 ([933c159](https://github.com/ApoSkunz/crabitan_bellevue/commit/933c159f33cc6baf20d7e6d9dbdefbb544980523))
+
 # [0.80.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.79.0...v0.80.0) (2026-04-12)
 
 
