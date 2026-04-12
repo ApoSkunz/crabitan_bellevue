@@ -294,6 +294,9 @@ jobs:
     name: Lighthouse — Accessibilité
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      statuses: write
 
     services:
       mysql:
@@ -387,6 +390,22 @@ jobs:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: npx lhci autorun
+
+      - name: Lighthouse — résumé agrégé
+        if: always()
+        run: |
+          echo "## Lighthouse CI — Résultats" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Page | Perf | A11y | SEO |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|------|-----|" >> $GITHUB_STEP_SUMMARY
+          for f in .lighthouseci/lhr-*.json; do
+            [ -f "$f" ] || continue
+            url=$(jq -r '.finalUrl' "$f")
+            perf=$(jq -r '(.categories.performance.score // 0) * 100 | round | tostring' "$f")
+            a11y=$(jq -r '(.categories.accessibility.score // 0) * 100 | round | tostring' "$f")
+            seo=$(jq -r '(.categories.seo.score // 0) * 100 | round | tostring' "$f")
+            echo "| $url | ${perf}% | ${a11y}% | ${seo}% |" >> $GITHUB_STEP_SUMMARY
+          done
 
       - name: Upload Lighthouse report
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
