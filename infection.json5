@@ -17,7 +17,7 @@
         "@default": true
     },
     "testFramework": "phpunit",
-    "testFrameworkOptions": "--testsuite Unit",
+    "testFrameworkOptions": "--testsuite=Unit",
     "phpUnit": {
         "configDir": "."
     },
