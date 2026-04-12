@@ -647,8 +647,9 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     /**
      * Marque le rappel de suppression comme envoyé pour un compte.
      *
-     * @param int $id       Identifiant du compte
+     * @param int $id        Identifiant du compte
      * @param int $daysAhead 7 (rappel J-7) ou 1 (rappel J-1)
+     * @throws \InvalidArgumentException Si daysAhead est invalide
      */
     public function markDeletionReminderSent(int $id, int $daysAhead): void
     {
@@ -657,6 +658,11 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             1       => 'deletion_reminder_1d_sent_at',
             default => throw new \InvalidArgumentException("daysAhead must be 1 or 7, got {$daysAhead}"),
         };
+
+        $allowed = ['deletion_reminder_7d_sent_at', 'deletion_reminder_1d_sent_at'];
+        if (!in_array($column, $allowed, true)) {
+            throw new \InvalidArgumentException("Colonne non autorisée : {$column}");
+        }
 
         $this->db->execute(
             "UPDATE {$this->table} SET {$column} = NOW() WHERE id = ?",
