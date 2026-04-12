@@ -2,6 +2,41 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.78.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.77.0...v0.78.0) (2026-04-12)
+
+
+### Bug Fixes
+
+* **lhci:** $bare=false pour crawlers + assertMatrix noindex pages + liens rapports ([2bf64bd](https://github.com/ApoSkunz/crabitan_bellevue/commit/2bf64bdaddcedd24a5219e7dace24d8652b87dbc))
+* **model+test:** ca_numappel/numtrans dans findDetailForUser + rating NULL en test ([8f549eb](https://github.com/ApoSkunz/crabitan_bellevue/commit/8f549eb3b02e3b8c9003743b03c068ef404ff6bb))
+* **model:** P1 — findByReferenceForInvoice() sans ca_numappel/ca_numtrans ([de71c97](https://github.com/ApoSkunz/crabitan_bellevue/commit/de71c971654e14401a934f92c6ea45bafa2e964f))
+* **model:** P2 — remplacer markDeletionReminderSent() par deux méthodes dédiées ([b287731](https://github.com/ApoSkunz/crabitan_bellevue/commit/b28773149c871e21daf019cf69d8ca625c01ad59))
+* **model:** remplacer SELECT * et ORDER BY RAND() — audit BDD ([30ad256](https://github.com/ApoSkunz/crabitan_bellevue/commit/30ad256a3e222c59597e6e8acd0793512b52fb7c))
+* **model:** remplacer SELECT * par colonnes explicites — audit BDD ([5b6840c](https://github.com/ApoSkunz/crabitan_bellevue/commit/5b6840c3201dcb173f8af97691dcf67c83d003f7))
+* **model:** remplacer sous-requête corrélée N+1 likes_count par LEFT JOIN ([e157a10](https://github.com/ApoSkunz/crabitan_bellevue/commit/e157a10fe5ced35d893cdaf81069536562afc9c6))
+* **model:** supprimer SELECT * — colonnes explicites + rating NULL ([d76df12](https://github.com/ApoSkunz/crabitan_bellevue/commit/d76df12d679e874a475c91adb2a8a67c132c12dd))
+* **model:** whitelist explicite colonne dynamique AccountModel — audit BDD phase 3 ([a544dc0](https://github.com/ApoSkunz/crabitan_bellevue/commit/a544dc05d2c4ecc2e079d7a80bfeae96a2732a63))
+* **quality:** corriger 3 code smells SonarCloud PR [#133](https://github.com/ApoSkunz/crabitan_bellevue/issues/133) ([ed858cf](https://github.com/ApoSkunz/crabitan_bellevue/commit/ed858cf5c7ac7f5cd8d18ecbcdfdb839b279bad6))
+* **quality:** extraire bilingualParams() + wineSelectFromFavorites() — dédupliquer WineModel ([ce4fbd9](https://github.com/ApoSkunz/crabitan_bellevue/commit/ce4fbd9ad1dabc6fa1b03a8d06f766a9ef88b77b))
+* **quality:** extraire pickLocalizedValue() — complexité cognitive 17→9 ([c1e750d](https://github.com/ApoSkunz/crabitan_bellevue/commit/c1e750dbeaa70d5313d3225c0dfee2e5e422f86b))
+* **test:** supprimer uniqid() du slug dans insertTestWine ([78d4742](https://github.com/ApoSkunz/crabitan_bellevue/commit/78d4742c69d72d921e4f0f007e208cf60b2941e6))
+
+
+### Features
+
+* **cron:** purge_newsletter_subscriptions — rétention RGPD 13 mois ([1ca05df](https://github.com/ApoSkunz/crabitan_bellevue/commit/1ca05df3f3e4c2229b058ff6dc315ed6c99fa627))
+* **model/views:** décomposer colonnes JSON wines en _fr/_en — audit BDD phase 3 ([d7fc9c8](https://github.com/ApoSkunz/crabitan_bellevue/commit/d7fc9c818481c89f8e209cd78a593435c96dc04e))
+
+
+### Performance Improvements
+
+* **newsletter:** paginer l'envoi campagne par batch de 1000 — audit BDD phase 3 ([08a5377](https://github.com/ApoSkunz/crabitan_bellevue/commit/08a5377e5c595c933c20f0f2b865b47c432df1c7))
+
+
+### Reverts
+
+* **lighthouse:** retirer les changements lighthouse de la branche ([cd3df4a](https://github.com/ApoSkunz/crabitan_bellevue/commit/cd3df4a71a676bfd551a09dc0552f0170c9c194e))
+
 # [0.77.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.76.0...v0.77.0) (2026-04-12)
 
 
