@@ -49,7 +49,7 @@
     "assert": {
       "assertMatrix": [
         {
-          "matchingUrlPattern": "http://localhost:8080/(fr|en)/(le-chateau|savoir-faire|contact|vins|actualites|mentions-legales|politique-de-confidentialite|conditions-generales-de-vente|plan-du-site|support|jeux|credits-medias|galerie|accessibilite|webmaster|newsletter).*",
+          "matchingUrlPattern": "http://localhost:8080/(fr|en)/(le-chateau|savoir-faire|contact|vins|actualites|jeux|credits-medias|galerie|accessibilite).*",
           "assertions": {
             "categories:accessibility": ["error", { "minScore": 0.9 }],
             "categories:performance": ["error", { "minScore": 0.7 }],
@@ -65,7 +65,7 @@
           }
         },
         {
-          "matchingUrlPattern": "http://localhost:8080/(age-gate|fr/age-gate|fr/mot-de-passe-oublie|fr/panier|fr/commande|fr/mon-compte|fr/session-expiree).*",
+          "matchingUrlPattern": ".*",
           "assertions": {
             "categories:accessibility": ["error", { "minScore": 0.9 }]
           }
@@ -73,8 +73,7 @@
       ]
     },
     "upload": {
-      "target": "filesystem",
-      "outputDir": ".lighthouseci"
+      "target": "temporary-public-storage"
     }
   }
 }

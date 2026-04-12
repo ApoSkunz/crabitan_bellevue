@@ -41,7 +41,7 @@ $isPublicPath = str_starts_with($path, '/age-gate')
 // Crawlers SEO connus : pas de cookie mais on laisse passer pour l'indexation
 $ua        = $_SERVER['HTTP_USER_AGENT'] ?? '';
 $isCrawler = (bool) preg_match(
-    '/googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver|crawler|spider|headlesschrome|lighthouse/i',
+    '/googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver|crawler|spider/i',
     $ua
 );
 
@@ -49,6 +49,11 @@ if (!$ageVerified && !$isPublicPath && !$isCrawler) {
     $redirect = rawurlencode($path !== '/' ? $path : '/' . DEFAULT_LANG);
     header('Location: /age-gate?redirect=' . $redirect);
     exit;
+}
+
+// Crawlers traités comme vérifiés pour l'affichage complet (meta tags, head, footer)
+if ($isCrawler && !$ageVerified) {
+    $_COOKIE['age_verified'] = '1';
 }
 
 // Sliding refresh : si "Se souvenir de moi" était coché, on repousse l'expiry à chaque visite
