@@ -10,6 +10,9 @@ require_once ROOT_PATH . '/vendor/autoload.php';
 require_once ROOT_PATH . '/src/helpers.php';
 require_once ROOT_PATH . '/config/config.php';
 
+/** @var \Core\Container $container */
+$container = require ROOT_PATH . '/config/container.php'; // NOSONAR — bootstrap DI, side-effect intentionnel
+
 use Core\ErrorLogger;
 use Core\Router;
 use Core\Request;
@@ -19,7 +22,7 @@ ErrorLogger::register();
 SecurityHeaderMiddleware::apply();
 
 $request = new Request();
-$router  = new Router($request);
+$router  = new Router($request, $container);
 
 require_once ROOT_PATH . '/config/routes.php';
 

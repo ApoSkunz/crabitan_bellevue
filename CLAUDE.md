@@ -14,6 +14,18 @@
 
 ---
 
+## Mémoire persistante — MemPalace
+
+Ce projet utilise **MemPalace** comme système de mémoire persistante entre les sessions.
+
+Au démarrage de chaque session, appeler `mempalace_status` pour charger l'état du palace.
+Avant toute réponse sur une personne, un projet ou un événement passé : interroger `mempalace_kg_query` ou `mempalace_search`.
+En fin de session : `mempalace_diary_write` pour enregistrer ce qui s'est passé.
+
+Configuration locale : `mempalace.yaml` (rooms/wings) + `entities.json` (entités détectées).
+
+---
+
 ## Initialisation de session
 
 `CLAUDE.md` est chargé automatiquement — ne pas le relire.

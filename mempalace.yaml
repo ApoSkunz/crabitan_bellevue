@@ -1,0 +1,110 @@
+wing: crabitan_bellevue
+rooms:
+- name: backlog
+  description: Files from BACKLOG/
+  keywords:
+  - backlog
+  - backlog
+- name: bin
+  description: Files from bin/
+  keywords:
+  - bin
+  - bin
+- name: configuration
+  description: Files from config/
+  keywords:
+  - configuration
+  - config
+- name: backend
+  description: Files from database/
+  keywords:
+  - backend
+  - database
+- name: documentation
+  description: Files from docs/
+  keywords:
+  - documentation
+  - docs
+- name: lang
+  description: Files from lang/
+  keywords:
+  - lang
+  - lang
+- name: logs
+  description: Files from logs/
+  keywords:
+  - logs
+  - logs
+- name: playwright_report
+  description: Files from playwright-report/
+  keywords:
+  - playwright_report
+  - playwright-report
+- name: private_docs
+  description: Files from private-docs/
+  keywords:
+  - private_docs
+  - private-docs
+- name: private_scripts
+  description: Files from private-scripts/
+  keywords:
+  - private_scripts
+  - private-scripts
+- name: public
+  description: Files from public/
+  keywords:
+  - public
+  - public
+- name: resources
+  description: Files from resources/
+  keywords:
+  - resources
+  - resources
+- name: scripts
+  description: Files from scripts/
+  keywords:
+  - scripts
+  - scripts
+- name: src
+  description: Files from src/
+  keywords:
+  - src
+  - src
+- name: storage
+  description: Files from storage/
+  keywords:
+  - storage
+  - storage
+- name: test_results
+  description: Files from test-results/
+  keywords:
+  - test_results
+  - test-results
+- name: testing
+  description: Files from tests/
+  keywords:
+  - testing
+  - tests
+- name: var
+  description: Files from var/
+  keywords:
+  - var
+  - var
+- name: vendor
+  description: Files from vendor/
+  keywords:
+  - vendor
+  - vendor
+- name: design
+  description: Files from assets/
+  keywords:
+  - design
+  - assets
+- name: costs
+  description: Files from invoices/
+  keywords:
+  - costs
+  - invoices
+- name: general
+  description: Files that don't fit other rooms
+  keywords: []
