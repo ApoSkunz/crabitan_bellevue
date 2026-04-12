@@ -89,7 +89,7 @@ $homeLbl = $lang === 'en' ? '← Back to home' : '← Retour à l\'accueil';
         <div class="error-page__inner">
             <a href="<?= htmlspecialchars($homeUrl) ?>" class="error-page__logo"
                aria-label="<?= htmlspecialchars($appName) ?>">
-                <img src="/assets/images/logo/crabitan-bellevue-logo-modern.svg" alt="" width="72" height="72">
+                <img src="/assets/images/logo/crabitan-bellevue-logo.png" alt="" width="72" height="72">
             </a>
 
             <p class="error-page__code"><?= $statusCode ?></p>

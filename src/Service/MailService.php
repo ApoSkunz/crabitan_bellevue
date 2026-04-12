@@ -20,7 +20,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private const BTN_STYLE_SECONDARY   = 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;';
     private const MAIL_SUBJECT_SEC_FR   = 'Sécurité du compte';
     private const MAIL_SUBJECT_SEC_EN   = 'Account security';
-    private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
+    private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo.png';
     private const URL_PRIVACY        = '/fr/politique-de-confidentialite';
     private const URL_LEGAL          = '/fr/mentions-legales';
     private const PATH_ADMIN_ORDERS  = '/admin/commandes/';
