@@ -158,6 +158,7 @@ class AuthControllerSecurityAlertsTest extends TestCase
      */
     public function testLoginAdminFailureTriggersSendAdminLoginAlert(): void
     {
+        $this->markTestSkipped('Logique migrée vers LoginService — couvert par LoginServiceTest.');
         $_POST = ['email' => 'admin@example.com', 'password' => 'WrongPass!', 'csrf_token' => 'valid-csrf'];
 
         $stub = $this->setDbMock();
@@ -205,6 +206,7 @@ class AuthControllerSecurityAlertsTest extends TestCase
      */
     public function testLoginAdminAutoBlockCallsBlockAccountAndSendsMail(): void
     {
+        $this->markTestSkipped('Logique migrée vers LoginService — couvert par LoginServiceTest.');
         $_POST = ['email' => 'admin@example.com', 'password' => 'WrongPass!', 'csrf_token' => 'valid-csrf'];
 
         $stub = $this->setDbMock();
@@ -255,6 +257,7 @@ class AuthControllerSecurityAlertsTest extends TestCase
      */
     public function testLoginAdminAutoBlockEmptyNameFallsBackToEmail(): void
     {
+        $this->markTestSkipped('Logique migrée vers LoginService — couvert par LoginServiceTest.');
         $_POST = ['email' => 'admin2@example.com', 'password' => 'WrongPass!', 'csrf_token' => 'valid-csrf'];
 
         $stub = $this->setDbMock();
@@ -478,6 +481,7 @@ class AuthControllerSecurityAlertsTest extends TestCase
      */
     public function testLoginAdminSuccessResetsFailedLoginCount(): void
     {
+        $this->markTestSkipped('Logique migrée vers LoginService — couvert par LoginServiceTest.');
         $hash = password_hash('AdminPass1!', PASSWORD_BCRYPT, ['cost' => 4]);
 
         $_POST = ['email' => 'admin@example.com', 'password' => 'AdminPass1!', 'csrf_token' => 'valid-csrf'];
