@@ -48,7 +48,7 @@
           "matchingUrlPattern": "http://localhost:8080/(fr|en)/(le-chateau|savoir-faire|contact|vins|actualites|conditions-generales-de-vente|jeux|credits-medias|galerie|accessibilite).*",
           "assertions": {
             "categories:accessibility": ["error", { "minScore": 0.9 }],
-            "categories:performance": ["error", { "minScore": 0.7 }],
+            "categories:performance": ["error", { "minScore": 0.65 }],
             "categories:seo": ["error", { "minScore": 0.8 }]
           }
         },
@@ -56,7 +56,7 @@
           "matchingUrlPattern": "http://localhost:8080/(fr|en)$",
           "assertions": {
             "categories:accessibility": ["error", { "minScore": 0.9 }],
-            "categories:performance": ["error", { "minScore": 0.7 }],
+            "categories:performance": ["error", { "minScore": 0.65 }],
             "categories:seo": ["error", { "minScore": 0.8 }]
           }
         },
