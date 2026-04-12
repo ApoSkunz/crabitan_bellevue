@@ -23,7 +23,7 @@ function initCardReveal() {
         '.wine-card, .news-card, .gallery-item'
     );
 
-    if (!cards.length || !('IntersectionObserver' in window)) return;
+    if (!cards.length || !('IntersectionObserver' in globalThis)) return;
 
     const observer = new IntersectionObserver(
         (entries) => {
@@ -118,7 +118,7 @@ function swapPagination(doc) {
  * @return {void}
  */
 function initInfiniteScroll() {
-    if (!('IntersectionObserver' in window)) return;
+    if (!('IntersectionObserver' in globalThis)) return;
 
     // Trouver le conteneur de cartes actif
     let grid = null;
@@ -182,10 +182,10 @@ function initInfiniteScroll() {
                     }
 
                     // Mettre à jour l'URL avec pushState
-                    const pageMatch = nextUrl.match(/[?&]page=(\d+)/);
+                    const pageMatch = /[?&]page=(\d+)/.exec(nextUrl);
                     if (pageMatch) {
                         const url = new URL(nextUrl);
-                        window.history.pushState({ page: pageMatch[1] }, '', url.pathname + url.search);
+                        globalThis.history.pushState({ page: pageMatch[1] }, '', url.pathname + url.search);
                     }
 
                     // Mettre à jour la pagination DOM

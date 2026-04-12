@@ -2311,7 +2311,7 @@ function initCartPage() {
 
         pendingRemoveBtn = btn;
         const wineName = btn.dataset.wineName || '';
-        const tpl = (window.__cartRemoveConfirmBody || '%s').replace('%s', `«\u00a0${wineName}\u00a0»`);
+        const tpl = (globalThis.__cartRemoveConfirmBody || '%s').replace('%s', `«\u00a0${wineName}\u00a0»`);
         if (removeBody) removeBody.textContent = tpl;
         removeDialog.showModal();
     });
