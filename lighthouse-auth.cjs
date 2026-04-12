@@ -11,6 +11,11 @@
 module.exports = async (browser, _context) => {
     const page = await browser.newPage();
 
+    // Naviguer d'abord sur /age-gate pour établir le contexte de domaine,
+    // puis poser le cookie age_verified — setCookie avant toute navigation
+    // n'attache pas le cookie au contexte Puppeteer sur certaines versions.
+    await page.goto('http://localhost:8080/age-gate', { waitUntil: 'domcontentloaded', timeout: 30000 });
+
     await page.setCookie({
         name: 'age_verified',
         value: '1',
@@ -22,7 +27,7 @@ module.exports = async (browser, _context) => {
     await page.goto('http://localhost:8080/fr', { waitUntil: 'networkidle2', timeout: 30000 });
 
     // Ouvrir la modale de connexion
-    await page.waitForSelector('#login-modal-trigger', { visible: true });
+    await page.waitForSelector('#login-modal-trigger', { visible: true, timeout: 15000 });
     await page.click('#login-modal-trigger');
     await page.waitForSelector('#login-modal-email', { visible: true });
 
