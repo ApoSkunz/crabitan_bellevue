@@ -15,6 +15,7 @@ use Repository\MysqlUserRepository;
 use Repository\UserRepository;
 use Service\AccountService;
 use Service\MailService;
+use ValueObject\Email;
 
 /**
  * Gère le profil, le tableau de bord et les préférences de langue du compte client.
@@ -199,10 +200,11 @@ class AccountProfileController extends Controller
             Response::redirect($back);
         }
 
-        $newEmail        = trim($this->request->post('new_email', ''));
         $currentPassword = $this->request->post('current_password', '');
 
-        if ($newEmail === '' || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+        try {
+            $newEmail = (new Email($this->request->post('new_email', '')))->getValue();
+        } catch (\InvalidArgumentException) {
             $_SESSION['flash']['profile_errors'] = ['email' => __('account.email_change_invalid')];
             Response::redirect($back);
         }

@@ -19,6 +19,7 @@ use Service\MailService;
 use Service\PasswordValidator;
 use Service\RateLimiterService;
 use Service\SecurityAlertService;
+use ValueObject\Email;
 
 /**
  * Gère l'authentification des utilisateurs : connexion, déconnexion,
@@ -342,7 +343,12 @@ class AuthController extends Controller
         }
 
         $accountType = $this->request->post('account_type', '');
-        $email       = strtolower(trim($this->request->post('email', '')));
+        $rawEmail    = $this->request->post('email', '');
+        try {
+            $email = (new Email($rawEmail))->getValue();
+        } catch (\InvalidArgumentException) {
+            $email = strtolower(trim($rawEmail)); // invalide — validateRegister() retournera l'erreur
+        }
         $password    = $this->request->post('password', '');
         $confirm     = $this->request->post('password_confirm', '');
         $civility    = $this->request->post('civility', '');
