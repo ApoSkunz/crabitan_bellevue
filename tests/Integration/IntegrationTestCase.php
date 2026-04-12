@@ -44,9 +44,9 @@ abstract class IntegrationTestCase extends TestCase
      * Insère un vin minimal avec toutes les colonnes bilingues (_fr/_en) et retourne son ID.
      *
      * Helper partagé entre les tests d'intégration nécessitant un vin en base.
-     * Un suffixe uniqid() est ajouté au slug pour garantir l'unicité au sein de la transaction.
+     * Chaque test étant rollbacké, le slug est inséré tel quel — pas de collision possible.
      *
-     * @param string $slug      Préfixe du slug (uniqid() ajouté automatiquement)
+     * @param string $slug      Slug exact du vin (utilisé tel quel en BDD)
      * @param string $color     Couleur : 'red', 'white', 'rosé', 'sweet'
      * @param string $labelName Nom du vin
      * @return int              ID inséré
@@ -72,7 +72,7 @@ abstract class IntegrationTestCase extends TestCase
                      'Test FR','Test EN','Test FR','Test EN','Test FR','Test EN',
                      '','','','',
                      'test.png',?)",
-            [$labelName, $color, $slug . '-' . uniqid()]
+            [$labelName, $color, $slug]
         );
     }
 }
