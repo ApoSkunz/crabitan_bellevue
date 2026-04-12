@@ -110,7 +110,7 @@ class AuthController extends Controller
     public function login(array $params): void // NOSONAR php:S3776 — complexité inhérente au flux auth (rate limiting, MFA, device trust)
     {
         GuestMiddleware::handle();
-        $lang = $params['lang'];
+        $lang = $params['lang'] ?? 'fr';
 
         $rawBack   = $this->request->post('redirect_back', '');
         $validBack = preg_match('#^/[^/]#', $rawBack) && !str_contains($rawBack, '://');
@@ -446,7 +446,7 @@ class AuthController extends Controller
     public function register(array $params): void
     {
         GuestMiddleware::handle();
-        $lang = $params['lang'];
+        $lang = $params['lang'] ?? 'fr';
 
         if (!$this->verifyCsrf()) {
             $this->flash('modal_error', __('error.csrf'));
