@@ -1341,6 +1341,22 @@ INNER;
     }
 
     /**
+     * Sélectionne la valeur localisée avec fallback vers l'autre langue si absente.
+     *
+     * @param string $fr   Valeur en français
+     * @param string $en   Valeur en anglais
+     * @param string $lang Langue cible ('fr' ou 'en')
+     * @return string
+     */
+    private function pickLocalizedValue(string $fr, string $en, string $lang): string
+    {
+        if ($lang === 'en') {
+            return $en !== '' ? $en : $fr;
+        }
+        return $fr !== '' ? $fr : $en;
+    }
+
+    /**
      * Extrait et échappe le texte de récompense depuis le champ award JSON bilingue.
      *
      * @param  array<string, mixed> $wine Ligne vin contenant award_fr / award_en (ou ancien champ award JSON).
@@ -1353,12 +1369,7 @@ INNER;
         $fr = (string) ($wine['award_fr'] ?? '');
         $en = (string) ($wine['award_en'] ?? '');
         if ($fr !== '' || $en !== '') {
-            if ($lang === 'en') {
-                $value = $en !== '' ? $en : $fr;
-            } else {
-                $value = $fr !== '' ? $fr : $en;
-            }
-            return htmlspecialchars(trim($value), ENT_QUOTES);
+            return htmlspecialchars(trim($this->pickLocalizedValue($fr, $en, $lang)), ENT_QUOTES);
         }
 
         // Rétro-compat : ancien champ JSON bilingue
