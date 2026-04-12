@@ -22,12 +22,34 @@ class WineModel extends Model
     private const SQL_WHERE = 'WHERE ';
     private const SQL_AND          = ' AND ';
     private const COND_IMAGE       = "image_path IS NOT NULL AND image_path != ''";
-    private const SQL_RAND_LIMIT   = ' ORDER BY RAND() LIMIT 1';
 
     /** @param string[] $conditions */
     private function buildWhereClause(array $conditions): string
     {
         return $conditions !== [] ? self::SQL_WHERE . implode(self::SQL_AND, $conditions) : '';
+    }
+
+    /**
+     * Retourne un ID aléatoire parmi les lignes correspondant à la clause WHERE donnée.
+     *
+     * Évite ORDER BY RAND() (full table sort O(n log n)) en récupérant uniquement les IDs
+     * filtrés puis en sélectionnant aléatoirement via PHP — O(n) en mémoire, acceptable pour
+     * un catalogue de < 1 000 vins.
+     *
+     * @param string   $where  Clause WHERE complète (ex. "WHERE available = 1 AND wine_color = ?")
+     * @param mixed[]  $params Paramètres liés à la clause WHERE
+     * @return int|null ID aléatoire, ou null si aucune ligne ne correspond
+     */
+    private function randomPickId(string $where, array $params = []): ?int
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT id FROM {$this->table} {$where}",
+            $params
+        );
+        if ($rows === []) {
+            return null;
+        }
+        return (int) $rows[array_rand($rows)]['id'];
     }
 
     /**
@@ -344,15 +366,17 @@ class WineModel extends Model
             return null;
         }
 
-        $row = $this->db->fetchOne(
-            'SELECT image_path, slug FROM ' . $this->table
-            . ' ' . self::SQL_WHERE . self::COND_AVAILABLE
-            . self::SQL_AND . self::COND_COLOR
-            . self::SQL_AND . self::COND_IMAGE
-            . self::SQL_RAND_LIMIT,
+        $id = $this->randomPickId(
+            self::SQL_WHERE . self::COND_AVAILABLE . self::SQL_AND . self::COND_COLOR . self::SQL_AND . self::COND_IMAGE,
             [$color]
         );
-
+        if ($id === null) {
+            return null;
+        }
+        $row = $this->db->fetchOne(
+            "SELECT image_path, slug FROM {$this->table} WHERE id = ?",
+            [$id]
+        );
         return $row ?: null;
     }
 
@@ -363,13 +387,16 @@ class WineModel extends Model
      */
     public function getRandomForCart(): ?array
     {
-        $row = $this->db->fetchOne(
-            'SELECT id, label_name, image_path, slug, price FROM ' . $this->table
-            . ' ' . self::SQL_WHERE . self::COND_AVAILABLE
-            . self::SQL_AND . self::COND_IMAGE
-            . self::SQL_RAND_LIMIT
+        $id = $this->randomPickId(
+            self::SQL_WHERE . self::COND_AVAILABLE . self::SQL_AND . self::COND_IMAGE
         );
-
+        if ($id === null) {
+            return null;
+        }
+        $row = $this->db->fetchOne(
+            "SELECT id, label_name, image_path, slug, price FROM {$this->table} WHERE id = ?",
+            [$id]
+        );
         return $row ?: null;
     }
 
@@ -380,13 +407,16 @@ class WineModel extends Model
      */
     public function getRandom(): ?array
     {
-        $row = $this->db->fetchOne(
-            'SELECT image_path, slug FROM ' . $this->table
-            . ' ' . self::SQL_WHERE . self::COND_AVAILABLE
-            . self::SQL_AND . self::COND_IMAGE
-            . self::SQL_RAND_LIMIT
+        $id = $this->randomPickId(
+            self::SQL_WHERE . self::COND_AVAILABLE . self::SQL_AND . self::COND_IMAGE
         );
-
+        if ($id === null) {
+            return null;
+        }
+        $row = $this->db->fetchOne(
+            "SELECT image_path, slug FROM {$this->table} WHERE id = ?",
+            [$id]
+        );
         return $row ?: null;
     }
 
@@ -397,13 +427,22 @@ class WineModel extends Model
      */
     public function getRandomForMemo(int $limit = 14): array
     {
+        $ids = $this->db->fetchAll(
+            "SELECT id FROM {$this->table} WHERE " . self::COND_IMAGE,
+            []
+        );
+        if ($ids === []) {
+            return [];
+        }
+        shuffle($ids);
+        $pickedIds = array_column(array_slice($ids, 0, $limit), 'id');
+        if ($pickedIds === []) {
+            return [];
+        }
+        $placeholders = implode(',', array_fill(0, count($pickedIds), '?'));
         return $this->db->fetchAll(
-            "SELECT slug, image_path, label_name
-             FROM {$this->table}
-             WHERE " . self::COND_IMAGE . "
-             ORDER BY RAND()
-             LIMIT ?",
-            [$limit]
+            "SELECT slug, image_path, label_name FROM {$this->table} WHERE id IN ({$placeholders})",
+            $pickedIds
         );
     }
 
@@ -417,7 +456,14 @@ class WineModel extends Model
     public function getById(int $id): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE id = ?",
+            "SELECT id, label_name, wine_color, format, vintage, price,
+                    production_quantity, stock_quantity, available, certification_label,
+                    area, city, variety_of_vine, age_of_vineyard,
+                    oenological_comment, soil, pruning, harvest, vinification,
+                    barrel_fermentation, award, extra_comment,
+                    is_cuvee_speciale, featured, alcohol_degree, aging_potential,
+                    image_path, slug, low_stock_notified_at, created_at, updated_at
+             FROM {$this->table} WHERE id = ?",
             [$id]
         );
         return $row ?: null;
@@ -843,14 +889,22 @@ class WineModel extends Model
         $placeholders = implode(',', array_fill(0, count($foundIds), '?'));
         $params       = array_merge($foundIds, [$remaining]);
 
-        $others = $this->db->fetchAll(
-            "SELECT {$cols}
-             FROM {$this->table}
-             WHERE wine_color != ? AND available = 1 AND id NOT IN ({$placeholders})
-             ORDER BY RAND()
-             LIMIT ?",
-            array_merge([$color], $params)
+        $otherIds = $this->db->fetchAll(
+            "SELECT id FROM {$this->table}
+             WHERE wine_color != ? AND available = 1 AND id NOT IN ({$placeholders})",
+            array_merge([$color], $foundIds)
         );
+        shuffle($otherIds);
+        $pickedOtherIds = array_column(array_slice($otherIds, 0, $remaining), 'id');
+
+        $others = [];
+        if ($pickedOtherIds !== []) {
+            $phOther = implode(',', array_fill(0, count($pickedOtherIds), '?'));
+            $others  = $this->db->fetchAll(
+                "SELECT {$cols} FROM {$this->table} WHERE id IN ({$phOther})",
+                $pickedOtherIds
+            );
+        }
 
         return array_merge($sameColor, $others);
     }
@@ -866,27 +920,27 @@ class WineModel extends Model
     {
         $cols = self::CARD_COLS;
 
-        if ($excludeIds === []) {
-            return $this->db->fetchAll(
-                "SELECT {$cols}
-                 FROM {$this->table}
-                 WHERE available = 1
-                 ORDER BY RAND()
-                 LIMIT ?",
-                [$limit]
-            );
+        $where  = "WHERE available = 1";
+        $params = [];
+        if ($excludeIds !== []) {
+            $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+            $where  .= " AND id NOT IN ({$placeholders})";
+            $params  = $excludeIds;
         }
 
-        $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
-        $params       = array_merge($excludeIds, [$limit]);
-
-        return $this->db->fetchAll(
-            "SELECT {$cols}
-             FROM {$this->table}
-             WHERE available = 1 AND id NOT IN ({$placeholders})
-             ORDER BY RAND()
-             LIMIT ?",
+        $ids = $this->db->fetchAll(
+            "SELECT id FROM {$this->table} {$where}",
             $params
+        );
+        if ($ids === []) {
+            return [];
+        }
+        shuffle($ids);
+        $pickedIds = array_column(array_slice($ids, 0, $limit), 'id');
+        $ph = implode(',', array_fill(0, count($pickedIds), '?'));
+        return $this->db->fetchAll(
+            "SELECT {$cols} FROM {$this->table} WHERE id IN ({$ph})",
+            $pickedIds
         );
     }
 
@@ -900,27 +954,23 @@ class WineModel extends Model
      */
     public function getCuveeSpecialeByColor(string $color, array $excludeIds = []): ?array
     {
-        $cols = self::CARD_COLS;
+        $cols   = self::CARD_COLS;
+        $where  = "WHERE available = 1 AND is_cuvee_speciale = 1 AND wine_color = ?";
+        $params = [$color];
 
-        if ($excludeIds === []) {
-            $row = $this->db->fetchOne(
-                "SELECT {$cols} FROM {$this->table}
-                 WHERE available = 1 AND is_cuvee_speciale = 1 AND wine_color = ?
-                 ORDER BY RAND() LIMIT 1",
-                [$color]
-            );
-            return $row ?: null;
+        if ($excludeIds !== []) {
+            $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+            $where  .= " AND id NOT IN ({$placeholders})";
+            $params  = array_merge($params, $excludeIds);
         }
 
-        $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
-        $params       = array_merge([$color], $excludeIds);
-
+        $id = $this->randomPickId($where, $params);
+        if ($id === null) {
+            return null;
+        }
         $row = $this->db->fetchOne(
-            "SELECT {$cols} FROM {$this->table}
-             WHERE available = 1 AND is_cuvee_speciale = 1 AND wine_color = ?
-               AND id NOT IN ({$placeholders})
-             ORDER BY RAND() LIMIT 1",
-            $params
+            "SELECT {$cols} FROM {$this->table} WHERE id = ?",
+            [$id]
         );
         return $row ?: null;
     }
