@@ -39,7 +39,11 @@ exit($runner->run(function (callable $log): void {
                     $account['scheduled_deletion_at'],
                     $account['reactivation_token'] ?? ''
                 );
-                $model->markDeletionReminderSent((int) $account['id'], $days);
+                if ($days === 7) {
+                    $model->markDeletionReminder7dSent((int) $account['id']);
+                } else {
+                    $model->markDeletionReminder1dSent((int) $account['id']);
+                }
                 $sent++;
                 $log("[J-{$days}] Rappel envoyé à {$account['email']} (id={$account['id']})");
             } catch (\Throwable $e) {

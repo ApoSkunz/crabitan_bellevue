@@ -660,27 +660,27 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     /**
-     * Marque le rappel de suppression comme envoyé pour un compte.
+     * Marque le rappel J-7 avant suppression comme envoyé.
      *
-     * @param int $id        Identifiant du compte
-     * @param int $daysAhead 7 (rappel J-7) ou 1 (rappel J-1)
-     * @throws \InvalidArgumentException Si daysAhead est invalide
+     * @param int $id Identifiant du compte
      */
-    public function markDeletionReminderSent(int $id, int $daysAhead): void
+    public function markDeletionReminder7dSent(int $id): void
     {
-        $column = match ($daysAhead) {
-            7       => 'deletion_reminder_7d_sent_at',
-            1       => 'deletion_reminder_1d_sent_at',
-            default => throw new \InvalidArgumentException("daysAhead must be 1 or 7, got {$daysAhead}"),
-        };
-
-        $allowed = ['deletion_reminder_7d_sent_at', 'deletion_reminder_1d_sent_at'];
-        if (!in_array($column, $allowed, true)) {
-            throw new \InvalidArgumentException("Colonne non autorisée : {$column}");
-        }
-
         $this->db->execute(
-            "UPDATE {$this->table} SET {$column} = NOW() WHERE id = ?",
+            "UPDATE {$this->table} SET deletion_reminder_7d_sent_at = NOW() WHERE id = ?",
+            [$id]
+        );
+    }
+
+    /**
+     * Marque le rappel J-1 avant suppression comme envoyé.
+     *
+     * @param int $id Identifiant du compte
+     */
+    public function markDeletionReminder1dSent(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET deletion_reminder_1d_sent_at = NOW() WHERE id = ?",
             [$id]
         );
     }
