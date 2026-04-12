@@ -106,7 +106,7 @@ jobs:
       - name: Seed mock data
         run: mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/seed_mock_data.sql
 
-      - name: PHPUnit (TU)
+      - name: PHPUnit (TU + Fuzzing)
         env:
           DB_HOST: 127.0.0.1
           DB_NAME: crabitan_bellevue
