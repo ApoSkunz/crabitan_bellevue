@@ -2,6 +2,37 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.80.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.79.0...v0.80.0) (2026-04-12)
+
+
+### Bug Fixes
+
+* **ci+auth:** Stryker main uniquement + cast password string AuthController ([66b4f15](https://github.com/ApoSkunz/crabitan_bellevue/commit/66b4f151fb00a949beeb148d219be6041dc9cbae))
+* **lhci:** restaurer bloc crawler age_verified=1 supprimé par ab30224 ([64a0121](https://github.com/ApoSkunz/crabitan_bellevue/commit/64a0121898d84c0c61e137f33bdf7820270822df))
+* **model:** RgpdRequestModel — response_note (pas notes) dans les colonnes explicites ([2fea0f2](https://github.com/ApoSkunz/crabitan_bellevue/commit/2fea0f210e5f477450bc61e77b27dfa7a45250ff))
+* **model:** RgpdRequestModel — SELECT r.* → colonnes explicites (findById + getAll) ([334c5be](https://github.com/ApoSkunz/crabitan_bellevue/commit/334c5be0bc5e85f63a584e16b2a90d3764c8b351))
+* **service:** RateLimiterService — logger les fallbacks silencieux BDD ([354df54](https://github.com/ApoSkunz/crabitan_bellevue/commit/354df543a54e5a79db24ea6ded066d8d910733b0))
+* **sonar:** code smells — S1192 constantes, S1448/S3776/S112/S107/S3415/S1142/S1172 NOSONAR + params inutilisés retirés ([8de48a7](https://github.com/ApoSkunz/crabitan_bellevue/commit/8de48a70d25da66fc3185345ad36fe69c42693c7))
+* **sonar:** coverage 77→90% + duplications + code smells ([30102ca](https://github.com/ApoSkunz/crabitan_bellevue/commit/30102cac9fe3adfd59b35f2ae9bede3d5dab8d89))
+* **sonar:** exclure Account/* + RgpdExportService du CPD ([c27b20f](https://github.com/ApoSkunz/crabitan_bellevue/commit/c27b20fc9fadccc69d9668f7a1f1d53f8c43760d))
+* **test+service:** réduire Infection skipped — auto-block injectable + 2 TU + 4 tests nettoyés ([2f06591](https://github.com/ApoSkunz/crabitan_bellevue/commit/2f06591b526ab597a5aa3c4e1eb832bbba468503))
+* **test:** AccountControllerTest — assertions CSS class + texte traduit (panel.favorites, order_refund_btn) ([d9ee1d2](https://github.com/ApoSkunz/crabitan_bellevue/commit/d9ee1d226fd976475d475af2c18aae89e2b0109e))
+* **test:** AccountControllerTest — migrer buildPdfTableSection/buildExportPdf vers RgpdExportService ([a216cdf](https://github.com/ApoSkunz/crabitan_bellevue/commit/a216cdff8718ab42bf579a95168d97af4c6fe6e1))
+* **test:** marquer comme skip les TU AuthController migrés vers LoginService ([79514ad](https://github.com/ApoSkunz/crabitan_bellevue/commit/79514adc4dadcfa06a3ef18abbd8275fad6cbf50))
+* **test:** restaurer UploadFuzzingTest.php supprimé par erreur ([8e3528e](https://github.com/ApoSkunz/crabitan_bellevue/commit/8e3528e8210fa5c84c13d00026fe98d23c87ca80))
+
+
+### Features
+
+* **core:** DI Container PSR-11 léger + câblage initial ([ab30224](https://github.com/ApoSkunz/crabitan_bellevue/commit/ab30224d466d300ef81de5fede8521a56444c06f))
+* **mail:** domain mailers — AuthMailer, AccountMailer, OrderMailer, NewsletterMailer, RgpdMailer, ContactMailer ([d9e3bf0](https://github.com/ApoSkunz/crabitan_bellevue/commit/d9e3bf0722fdcd12bf97f04b8db583e58095ff79))
+* **repository:** OrderRepository interface + MysqlOrderRepository + 18 TU ([b910b3e](https://github.com/ApoSkunz/crabitan_bellevue/commit/b910b3e048c1c9122cd33e325712b6b61229a386))
+* **repository:** UserRepository interface + MysqlUserRepository ([aa9242b](https://github.com/ApoSkunz/crabitan_bellevue/commit/aa9242bf693d0795ed33388a407d10e82988cda0))
+* **router:** DI Container PSR-11 — résolution controllers via container ([402b4d9](https://github.com/ApoSkunz/crabitan_bellevue/commit/402b4d94cace98cd27fd4a637afd9c379cd637a4))
+* **service:** LoginService — MailService injectable (null → new fallback) ([9efecec](https://github.com/ApoSkunz/crabitan_bellevue/commit/9efecec1969b0ef5e6595636cdbdc988ebee0e09))
+* **valueobject:** adopter Email VO dans register() et requestEmailChange() ([a50c702](https://github.com/ApoSkunz/crabitan_bellevue/commit/a50c702f34fa892c1c30a5f03432de0a4293e43c))
+* **valueobject:** Email + Address Value Objects avec validation ([cf43a93](https://github.com/ApoSkunz/crabitan_bellevue/commit/cf43a930258e96af36e64ae2892315a11d4ea407))
+
 # [0.79.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.78.1...v0.79.0) (2026-04-12)
 
 
