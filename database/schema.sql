@@ -83,7 +83,9 @@ CREATE TABLE `accounts` (
   `majority_declared_ip`         TEXT           DEFAULT NULL COMMENT 'IP lors de la déclaration majorité (preuve RGPD Art. 7) — chiffrée AES-256-GCM (RGPD Art. 32)',
   `deleted_at`                   DATETIME       DEFAULT NULL COMMENT 'Soft delete',
   `scheduled_deletion_at`        DATETIME       DEFAULT NULL COMMENT 'Date de purge effective (J+30 après deleted_at)',
-  `reactivation_token`           VARCHAR(64)    DEFAULT NULL COMMENT 'Token annulation suppression compte (valide 30 jours)',
+  `reactivation_token`           VARCHAR(64)    DEFAULT NULL COMMENT 'Token annulation suppression compte',
+  `reactivation_token_expires_at` DATETIME      DEFAULT NULL COMMENT 'TTL 30 jours — enforcement du délai au niveau BDD (audit BDD 2026-04-12)',
+  `encryption_version`           TINYINT        NOT NULL DEFAULT 1 COMMENT 'Version de la clé AES-256-GCM — permet la rotation de clé (audit BDD 2026-04-12)',
   `inactivity_warning_sent_at`   DATETIME       DEFAULT NULL COMMENT 'Horodatage envoi avertissement inactivité RGPD (Art. 5 §1e)',
   `deletion_reminder_7d_sent_at` DATETIME       DEFAULT NULL COMMENT 'Horodatage envoi rappel J-7 avant anonymisation',
   `deletion_reminder_1d_sent_at` DATETIME       DEFAULT NULL COMMENT 'Horodatage envoi rappel J-1 avant anonymisation',
@@ -167,9 +169,10 @@ CREATE TABLE `addresses` (
   `updated_at`          DATETIME    DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_addresses_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
-  INDEX `idx_addresses_user_type` (`user_id`, `type`),
-  INDEX `idx_addresses_deleted`   (`deleted_at`),
-  INDEX `idx_addresses_preserved` (`preserved_for_order`)
+  INDEX `idx_addresses_user_type`    (`user_id`, `type`),
+  INDEX `idx_addresses_deleted`      (`deleted_at`),
+  INDEX `idx_addresses_preserved`    (`preserved_for_order`),
+  INDEX `idx_addresses_user_deleted` (`user_id`, `deleted_at`) COMMENT 'WHERE user_id = ? AND deleted_at IS NULL — audit BDD 2026-04-12'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -217,7 +220,9 @@ CREATE TABLE `wines` (
   INDEX `idx_wines_color_available` (`wine_color`, `available`),
   INDEX `idx_wines_format` (`format`),
   INDEX `idx_wines_vintage` (`vintage`),
-  INDEX `idx_wines_price` (`price`)
+  INDEX `idx_wines_price` (`price`),
+  CONSTRAINT `chk_wine_stock_nonneg` CHECK (`stock_quantity` >= 0),
+  CONSTRAINT `chk_wine_price_pos`    CHECK (`price` > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -365,11 +370,12 @@ CREATE TABLE `order_invoice_files` (
 -- ============================================================
 CREATE TABLE `payment_intents` (
   `reference`  VARCHAR(50)  NOT NULL,
-  `user_id`    INT          NOT NULL,
+  `user_id`    INT          NOT NULL COMMENT 'FK accounts.id — ON DELETE RESTRICT : pas d\'orpheline lors d\'IPN race condition',
   `snapshot`   JSON         NOT NULL COMMENT 'Snapshot complet : items, total, adresses, cgv_version, lang, newsletter',
   `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `expires_at` TIMESTAMP    NOT NULL DEFAULT '2000-01-01 00:00:00',
+  `expires_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Défaut = maintenant : entrée purgée immédiatement si INSERT oublie ce champ',
   PRIMARY KEY (`reference`),
+  CONSTRAINT `fk_payment_intents_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE RESTRICT,
   KEY `idx_payment_intents_expires` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -473,7 +479,8 @@ CREATE TABLE `favorites` (
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_favorites_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_favorites_wine` FOREIGN KEY (`wine_id`) REFERENCES `wines`    (`id`) ON DELETE CASCADE,
-  UNIQUE KEY `uq_favorites_user_wine` (`user_id`, `wine_id`)
+  UNIQUE KEY `uq_favorites_user_wine` (`user_id`, `wine_id`),
+  INDEX `idx_favorites_wine_id` (`wine_id`) COMMENT 'Couvre la sous-requête COUNT likes dans WineModel.getAll()'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -679,12 +686,13 @@ CREATE TABLE `newsletter_subscriptions` (
 -- ============================================================
 CREATE TABLE `audit_log` (
   `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `user_id`    INT UNSIGNED    NOT NULL,
+  `user_id`    INT             NOT NULL COMMENT 'FK accounts.id — ON DELETE RESTRICT pour accountability RGPD Art. 5.2',
   `event_type` VARCHAR(64)     NOT NULL COMMENT 'email_changed, email_change_request, …',
   `ip`         VARCHAR(45)     NOT NULL DEFAULT '' COMMENT 'IPv4 ou IPv6',
   `meta`       JSON            DEFAULT NULL COMMENT 'Données complémentaires (ancienne adresse, etc.)',
   `created_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  CONSTRAINT `fk_audit_log_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE RESTRICT,
   INDEX `idx_audit_log_user_id`    (`user_id`),
   INDEX `idx_audit_log_event_type` (`event_type`),
   INDEX `idx_audit_log_created_at` (`created_at`)
@@ -708,9 +716,10 @@ CREATE TABLE `admin_logs` (
   `created_at`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_admin_logs_admin` FOREIGN KEY (`admin_id`) REFERENCES `accounts` (`id`) ON DELETE RESTRICT,
-  INDEX `idx_admin_logs_admin_id`   (`admin_id`),
-  INDEX `idx_admin_logs_action`     (`action`),
-  INDEX `idx_admin_logs_created_at` (`created_at`)
+  INDEX `idx_admin_logs_admin_id`      (`admin_id`),
+  INDEX `idx_admin_logs_action`        (`action`),
+  INDEX `idx_admin_logs_created_at`    (`created_at`),
+  INDEX `idx_admin_logs_admin_created` (`admin_id`, `created_at`) COMMENT 'WHERE admin_id = ? ORDER BY created_at — audit BDD 2026-04-12'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Journal audit admin — rétention 3 ans (Art. 5.2 RGPD accountability)';
 
@@ -842,7 +851,8 @@ CREATE TABLE IF NOT EXISTS `wine_ratings` (
   KEY `idx_wine_id` (`wine_id`),
   CONSTRAINT `fk_wr_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_wr_wine` FOREIGN KEY (`wine_id`) REFERENCES `wines` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_wr_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_wr_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_rating_range` CHECK (`rating` BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
