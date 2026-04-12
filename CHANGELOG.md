@@ -2,6 +2,15 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.76.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.75.0...v0.76.0) (2026-04-12)
+
+
+### Features
+
+* **scss:** logo height fixe → clamp() + commentaire overflow nav (WCAG 1.4.4 zoom) ([a7c7b1c](https://github.com/ApoSkunz/crabitan_bellevue/commit/a7c7b1c47f44a35a157157e23d9a231317788a2c))
+* **scss:** overflow:hidden → overflow-x:hidden + commentaires WCAG sur overflow intentionnels ([57b71ad](https://github.com/ApoSkunz/crabitan_bellevue/commit/57b71ad77bed091a79e22785a8094e4aec43b75e))
+* **scss:** px fixes → clamp()/rem sur conteneurs structurels (WCAG 1.4.4) ([1de31c9](https://github.com/ApoSkunz/crabitan_bellevue/commit/1de31c9c112dbccdff93ae72af217c2c57c208fa))
+
 # [0.75.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.74.0...v0.75.0) (2026-04-12)
 
 
