@@ -137,33 +137,33 @@ if (!function_exists('buildInvoiceUrl')) {
                 <tbody>
                     <?php foreach ($invoices as $inv) : ?>
                         <tr>
-                            <td>
+                            <td data-label="N° Facture">
                                 <?php if ($inv['invoice_number']) : ?>
                                     <code style="font-size:0.75rem;"><?= htmlspecialchars((string) $inv['invoice_number']) ?></code>
                                 <?php else : ?>
                                     <span style="color:var(--color-text-muted);font-size:0.8rem;"><?= htmlspecialchars(basename((string) $inv['path'])) ?></span>
                                 <?php endif; ?>
                             </td>
-                            <td>
+                            <td data-label="Réf. commande">
                                 <a href="/admin/commandes/<?= (int) $inv['order_id'] ?>"
                                    style="font-size:0.8rem;">
                                     <?= htmlspecialchars((string) $inv['order_reference']) ?>
                                 </a>
                             </td>
-                            <td style="font-size:0.8rem;white-space:nowrap;">
+                            <td data-label="Date" style="font-size:0.8rem;white-space:nowrap;">
                                 <?= date('d/m/Y', strtotime((string) $inv['ordered_at'])) ?>
                             </td>
-                            <td style="text-align:right;font-size:0.85rem;font-weight:600;">
+                            <td data-label="Montant" style="font-size:0.85rem;font-weight:600;">
                                 <?= number_format((float) $inv['price'], 2, ',', '&nbsp;') ?>&nbsp;&euro;
                             </td>
-                            <td style="font-size:0.8rem;">
+                            <td data-label="Client" style="font-size:0.8rem;">
                                 <?= htmlspecialchars(trim($inv['firstname'] . ' ' . $inv['lastname'])) ?><br>
                                 <span style="color:var(--color-text-muted);font-size:0.72rem;"><?= htmlspecialchars((string) $inv['email']) ?></span>
                             </td>
-                            <td style="font-size:0.8rem;text-align:center;" title="<?= $inv['source'] === 'auto' ? 'Générée automatiquement' : 'Téléversée manuellement' ?>">
-                                <?= $inv['source'] === 'auto' ? '⚙' : '⬆' ?>
+                            <td data-label="Source" style="font-size:0.8rem;" title="<?= $inv['source'] === 'auto' ? 'Générée automatiquement' : 'Téléversée manuellement' ?>">
+                                <?= $inv['source'] === 'auto' ? '⚙ Auto' : '⬆ Manuel' ?>
                             </td>
-                            <td style="font-size:0.78rem;white-space:nowrap;color:var(--color-text-muted);">
+                            <td data-label="Générée le" style="font-size:0.78rem;white-space:nowrap;color:var(--color-text-muted);">
                                 <?= date('d/m/Y H:i', strtotime((string) $inv['uploaded_at'])) ?>
                             </td>
                             <td style="text-align:center;">

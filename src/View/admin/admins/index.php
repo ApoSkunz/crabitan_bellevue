@@ -39,18 +39,18 @@
                     $displayName = trim(($admin['firstname'] ?? '') . ' ' . ($admin['lastname'] ?? '')) ?: '—';
                     ?>
                     <tr>
-                        <td style="color:#8a7a60;"><?= (int) $admin['id'] ?></td>
-                        <td><?= htmlspecialchars($displayName) ?></td>
-                        <td><?= htmlspecialchars($admin['email']) ?></td>
-                        <td><?= htmlspecialchars($roleLabel) ?></td>
-                        <td style="white-space:nowrap;font-size:0.8rem;color:#8a7a60;">
+                        <td data-label="ID" style="color:#8a7a60;"><?= (int) $admin['id'] ?></td>
+                        <td data-label="Nom"><?= htmlspecialchars($displayName) ?></td>
+                        <td data-label="Email"><?= htmlspecialchars($admin['email']) ?></td>
+                        <td data-label="Rôle"><?= htmlspecialchars($roleLabel) ?></td>
+                        <td data-label="Dernière connexion" style="white-space:nowrap;font-size:0.8rem;color:#8a7a60;">
                             <?php if (!empty($admin['last_login_at'])) : ?>
                                 <?= date('d/m/Y H:i', strtotime($admin['last_login_at'])) ?>
                             <?php else : ?>
                                 <span style="color:#b91c1c;">Jamais</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td data-label="Statut">
                             <?php if ($isBlocked) : ?>
                                 <span style="color:#b91c1c;font-size:0.8rem;font-weight:600;">Bloqué</span>
                             <?php else : ?>

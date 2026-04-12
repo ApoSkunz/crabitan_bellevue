@@ -122,8 +122,8 @@ function buildPaginationUrl(
             <?php else : ?>
                 <?php foreach ($orders as $order) : ?>
                     <tr>
-                        <td><code style="font-size:0.8rem;"><?= htmlspecialchars($order['order_reference']) ?></code></td>
-                        <td>
+                        <td data-label="Référence"><code style="font-size:0.8rem;"><?= htmlspecialchars($order['order_reference']) ?></code></td>
+                        <td data-label="Client">
                             <?php if (str_ends_with((string) ($order['email'] ?? ''), '@purged.invalid')) : ?>
                                 <em style="color:#8a7a60;font-size:0.85rem;">Compte anonymisé</em>
                             <?php else : ?>
@@ -131,10 +131,10 @@ function buildPaginationUrl(
                                 <div style="font-size:0.75rem;color:#8a7a60;"><?= htmlspecialchars($order['email']) ?></div>
                             <?php endif; ?>
                         </td>
-                        <td><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span></td>
-                        <td class="col-hide-tablet" style="font-size:0.8rem;"><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></td>
-                        <td><?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€</td>
-                        <td style="white-space:nowrap;font-size:0.82rem;"><?= date('d/m/Y H:i', strtotime($order['ordered_at'])) ?></td>
+                        <td data-label="Statut"><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span></td>
+                        <td class="col-hide-tablet" data-label="Paiement" style="font-size:0.8rem;"><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></td>
+                        <td data-label="Montant"><?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€</td>
+                        <td data-label="Date" style="white-space:nowrap;font-size:0.82rem;"><?= date('d/m/Y H:i', strtotime($order['ordered_at'])) ?></td>
                         <td><a href="/admin/commandes/<?= (int) $order['id'] ?>" class="admin-btn admin-btn--outline admin-btn--sm">Voir</a></td>
                     </tr>
                 <?php endforeach; ?>

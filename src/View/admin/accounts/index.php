@@ -110,35 +110,35 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                     $verified = !empty($account['email_verified_at']);
     ?>
                     <tr>
-                        <td class="col-hide-tablet" style="color:#8a7a60;"><?= (int) $account['id'] ?></td>
-                        <td><?= htmlspecialchars($account['email']) ?></td>
-                        <td><?= htmlspecialchars($displayName) ?></td>
-                        <td class="col-hide-tablet" style="font-size:0.8rem;">
+                        <td class="col-hide-tablet" data-label="ID" style="color:#8a7a60;"><?= (int) $account['id'] ?></td>
+                        <td data-label="Email"><?= htmlspecialchars($account['email']) ?></td>
+                        <td data-label="Nom / Société"><?= htmlspecialchars($displayName) ?></td>
+                        <td class="col-hide-tablet" data-label="Type" style="font-size:0.8rem;">
                             <?= $account['account_type'] === 'company' ? 'Société' : 'Particulier' ?>
                         </td>
-                        <td>
+                        <td data-label="Rôle">
                             <span class="badge badge--<?= $roleBadge ?>">
                                 <?= htmlspecialchars($roleLabels[$account['role']] ?? $account['role']) ?>
                             </span>
                         </td>
-                        <td class="col-hide-tablet" style="text-transform:uppercase;font-size:0.8rem;">
+                        <td class="col-hide-tablet" data-label="Langue" style="text-transform:uppercase;font-size:0.8rem;">
                             <?= htmlspecialchars($account['lang']) ?>
                         </td>
-                        <td class="col-hide-tablet">
+                        <td class="col-hide-tablet" data-label="Vérifié">
                             <?php if ($verified) : ?>
                                 <span style="color:#15803d;font-size:0.8rem;">✓</span>
                             <?php else : ?>
                                 <span style="color:#b91c1c;font-size:0.8rem;">✗</span>
                             <?php endif; ?>
                         </td>
-                        <td class="col-hide-tablet">
+                        <td class="col-hide-tablet" data-label="Connecté">
                             <?php if (!empty($account['has_connected'])) : ?>
                                 <span style="color:#15803d;font-size:0.8rem;">✓</span>
                             <?php else : ?>
                                 <span style="color:#b91c1c;font-size:0.8rem;">✗</span>
                             <?php endif; ?>
                         </td>
-                        <td style="white-space:nowrap;font-size:0.8rem;">
+                        <td data-label="Inscrit le" style="white-space:nowrap;font-size:0.8rem;">
                             <?= date('d/m/Y', strtotime($account['created_at'])) ?>
                         </td>
                         <?php if ($isSuperAdmin) : ?>

@@ -39,10 +39,10 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
                     $titleFr   = $titleData['fr'] ?? '—';
                     ?>
                     <tr>
-                        <td style="color:#8a7a60;"><?= (int) $article['id'] ?></td>
-                        <td><strong><?= htmlspecialchars($titleFr) ?></strong></td>
-                        <td style="font-size:0.78rem;color:#8a7a60;"><?= htmlspecialchars($article['slug']) ?></td>
-                        <td>
+                        <td data-label="ID" style="color:#8a7a60;"><?= (int) $article['id'] ?></td>
+                        <td data-label="Titre"><strong><?= htmlspecialchars($titleFr) ?></strong></td>
+                        <td data-label="Slug" style="font-size:0.78rem;color:#8a7a60;"><?= htmlspecialchars($article['slug']) ?></td>
+                        <td data-label="Image">
                             <?php if (!empty($article['image_path'])) : ?>
                                 <img src="/assets/images/news/<?= htmlspecialchars($article['image_path']) ?>"
                                      alt="" style="height:36px;width:54px;object-fit:cover;border-radius:3px;">
@@ -50,7 +50,7 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
                                 <span style="color:#8a7a60;font-size:0.75rem;">—</span>
                             <?php endif; ?>
                         </td>
-                        <td style="white-space:nowrap;font-size:0.8rem;">
+                        <td data-label="Date" style="white-space:nowrap;font-size:0.8rem;">
                             <?= date('d/m/Y', strtotime($article['created_at'])) ?>
                         </td>
                         <td>

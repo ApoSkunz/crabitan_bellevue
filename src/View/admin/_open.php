@@ -188,7 +188,7 @@ if (empty($_SESSION['csrf'])) {
     <!-- ================================================================
          Sidebar
     ================================================================ -->
-    <aside class="admin-sidebar" aria-label="Navigation admin">
+    <aside class="admin-sidebar" id="admin-sidebar" aria-label="Navigation admin">
 
         <div class="admin-sidebar__logo">
             <a href="/admin" class="admin-sidebar__brand" aria-label="Crabitan Bellevue — accueil admin">
@@ -205,6 +205,7 @@ if (empty($_SESSION['csrf'])) {
                 <a
                     href="<?= htmlspecialchars($item['url']) ?>"
                     class="admin-nav__item<?= $adminSection === $key ? ' active' : '' ?>"
+                    data-label="<?= htmlspecialchars($item['label']) ?>"
                     <?= $adminSection === $key ? 'aria-current="page"' : '' ?>
                 >
                     <span class="admin-nav__icon"><?= $navIcons[$key] ?? '' ?></span>
@@ -234,10 +235,25 @@ if (empty($_SESSION['csrf'])) {
     <!-- ================================================================
          Contenu principal
     ================================================================ -->
+    <!-- Backdrop mobile (ferme la sidebar) -->
+    <div class="admin-sidebar-backdrop" id="admin-sidebar-backdrop" aria-hidden="true"></div>
+
     <div class="admin-main">
 
         <!-- Topbar -->
         <header class="admin-topbar">
+            <!-- Burger mobile -->
+            <button
+                type="button"
+                class="admin-topbar__burger"
+                id="admin-burger"
+                aria-label="Ouvrir le menu"
+                aria-expanded="false"
+                aria-controls="admin-sidebar"
+            >
+                <span></span><span></span><span></span>
+            </button>
+
             <nav class="admin-breadcrumb" aria-label="Fil d'Ariane">
                 <?php foreach ($breadcrumbs as $i => $crumb) :
                     $isLast = $i === count($breadcrumbs) - 1;
@@ -255,10 +271,39 @@ if (empty($_SESSION['csrf'])) {
                 <?php endforeach; ?>
             </nav>
 
-            <a href="/fr" class="admin-btn admin-btn--outline admin-btn--sm" style="margin-left:auto;" target="_blank" rel="noopener noreferrer">
-                Voir le site ↗
+            <a href="/fr" class="admin-btn admin-btn--outline admin-btn--sm" style="margin-left:auto;">
+                Voir le site
             </a>
         </header>
 
         <!-- Content -->
+        <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+        (function () {
+            var burger   = document.getElementById('admin-burger');
+            var sidebar  = document.getElementById('admin-sidebar');
+            var backdrop = document.getElementById('admin-sidebar-backdrop');
+            if (!burger || !sidebar || !backdrop) return;
+
+            function openSidebar() {
+                sidebar.classList.add('is-open');
+                backdrop.classList.add('is-visible');
+                burger.setAttribute('aria-expanded', 'true');
+                burger.setAttribute('aria-label', 'Fermer le menu');
+            }
+            function closeSidebar() {
+                sidebar.classList.remove('is-open');
+                backdrop.classList.remove('is-visible');
+                burger.setAttribute('aria-expanded', 'false');
+                burger.setAttribute('aria-label', 'Ouvrir le menu');
+            }
+
+            burger.addEventListener('click', function () {
+                sidebar.classList.contains('is-open') ? closeSidebar() : openSidebar();
+            });
+            backdrop.addEventListener('click', closeSidebar);
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeSidebar();
+            });
+        })();
+        </script>
         <main class="admin-content" id="admin-main-content">
