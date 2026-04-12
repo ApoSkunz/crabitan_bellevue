@@ -183,4 +183,21 @@ class NewsletterSubscriptionModel extends Model
                AND newsletter_token_expires_at < NOW()"
         );
     }
+
+    /**
+     * Supprime les abonnements confirmés datant de plus de 13 mois (RGPD Art. 5-1-e minimisation).
+     *
+     * Rétention maximale : 13 mois après newsletter_consent_date.
+     * À invoquer via un job de maintenance mensuel (CRON).
+     *
+     * @return int Nombre de lignes supprimées
+     */
+    public function purgeOlderThan13Months(): int
+    {
+        return $this->db->execute(
+            "DELETE FROM {$this->table}
+             WHERE newsletter_confirmed = 1
+               AND newsletter_consent_date < DATE_SUB(NOW(), INTERVAL 13 MONTH)"
+        );
+    }
 }

@@ -213,13 +213,20 @@ class WineControllerTest extends TestCase
             'area'                => '7.50',
             'age_of_vineyard'     => 30,
             'certification_label' => 'HVE',
-            'oenological_comment' => '{"fr":"Notes de miel","en":"Honey notes"}',
-            'soil'                => '{"fr":"Argile","en":"Clay"}',
-            'pruning'             => '{"fr":"Guyot mixte","en":"Mixed Guyot"}',
-            'harvest'             => '{"fr":"Manuelles","en":"Manual"}',
-            'vinification'        => '{"fr":"Cuves inox","en":"Stainless steel"}',
-            'barrel_fermentation' => '{"fr":"36 mois","en":"36 months"}',
-            'award'               => '{"fr":"Médaille d\'or","en":"Gold medal"}',
+            'oenological_comment_fr' => 'Notes de miel',
+            'oenological_comment_en' => 'Honey notes',
+            'soil_fr'                => 'Argile',
+            'soil_en'                => 'Clay',
+            'pruning_fr'             => 'Guyot mixte',
+            'pruning_en'             => 'Mixed Guyot',
+            'harvest_fr'             => 'Manuelles',
+            'harvest_en'             => 'Manual',
+            'vinification_fr'        => 'Cuves inox',
+            'vinification_en'        => 'Stainless steel',
+            'barrel_fermentation_fr' => '36 mois',
+            'barrel_fermentation_en' => '36 months',
+            'award_fr'               => 'Médaille d\'or',
+            'award_en'               => 'Gold medal',
         ];
     }
 
@@ -273,7 +280,8 @@ class WineControllerTest extends TestCase
         $renderBody = new \ReflectionMethod(\Controller\WineController::class, 'renderPdfBody');
         $l    = fn(array $arr): string => $arr['fr'] ?? '';
         $wine = $this->makeFakeWine();
-        $wine['award'] = '{"fr":"","en":""}';
+        $wine['award_fr'] = '';
+        $wine['award_en'] = '';
         ob_start();
         $pdf = $buildPdf->invoke($ctrl, '', 'fr');
         $renderBody->invoke($ctrl, $pdf, $wine, [], '', 'fr', $l);

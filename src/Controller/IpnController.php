@@ -147,7 +147,7 @@ class IpnController
 
             // Génération de la facture PDF — non bloquante
             try {
-                $order = $this->orders->findByReferenceWithAddresses($finalRef);
+                $order = $this->orders->findByReferenceForInvoice($finalRef);
                 if ($order !== null) {
                     $invoiceNumber = sprintf('WEB-INVOICE-%s-%04d', date('Y'), (int) $order['id']);
                     $invoiceDir    = ROOT_PATH . '/storage/invoices';

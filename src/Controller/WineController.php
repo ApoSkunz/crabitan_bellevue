@@ -500,13 +500,13 @@ class WineController extends Controller
     private function buildPdfSections(array $wine, array $nutrition, string $lang, callable $l): array // NOSONAR — php:S3776
     {
         $isEn    = $lang === 'en';
-        $oeno    = json_decode((string) ($wine['oenological_comment'] ?? '{}'), true) ?? [];
-        $soil    = json_decode((string) ($wine['soil']                ?? '{}'), true) ?? [];
-        $pruning = json_decode((string) ($wine['pruning']             ?? '{}'), true) ?? [];
-        $harvest = json_decode((string) ($wine['harvest']             ?? '{}'), true) ?? [];
-        $vinif   = json_decode((string) ($wine['vinification']        ?? '{}'), true) ?? [];
-        $barrel  = json_decode((string) ($wine['barrel_fermentation'] ?? '{}'), true) ?? [];
-        $award   = json_decode((string) ($wine['award']               ?? '{}'), true) ?? [];
+        $oeno    = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
+        $soil    = ['fr' => $wine['soil_fr'] ?? '',                'en' => $wine['soil_en'] ?? ''];
+        $pruning = ['fr' => $wine['pruning_fr'] ?? '',             'en' => $wine['pruning_en'] ?? ''];
+        $harvest = ['fr' => $wine['harvest_fr'] ?? '',             'en' => $wine['harvest_en'] ?? ''];
+        $vinif   = ['fr' => $wine['vinification_fr'] ?? '',        'en' => $wine['vinification_en'] ?? ''];
+        $barrel  = ['fr' => $wine['barrel_fermentation_fr'] ?? '', 'en' => $wine['barrel_fermentation_en'] ?? ''];
+        $award   = ['fr' => $wine['award_fr'] ?? '',               'en' => $wine['award_en'] ?? ''];
 
         $areaFmt  = $wine['area']            ? number_format((float) $wine['area'], 2, ',', ' ') . ' ha' : '';
         $ageStr   = $wine['age_of_vineyard'] ? $wine['age_of_vineyard'] . ' ans'                         : '';

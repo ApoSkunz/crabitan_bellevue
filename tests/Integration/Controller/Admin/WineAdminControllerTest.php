@@ -15,31 +15,13 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
     }
 
     /**
-     * Insère un vin avec un slug personnalisé pour déclencher les tests de doublon.
+     * Insère un vin avec un préfixe de slug personnalisé.
+     *
+     * @param string $slugPrefix Préfixe du slug (ex: 'bordeaux-rouge-2099')
      */
-    private function insertWineWithSlug(string $slug): int
+    private function insertWineWithSlug(string $slugPrefix): int
     {
-        return (int) self::$db->insert(
-            "INSERT INTO wines
-             (label_name, wine_color, format, vintage, price, production_quantity, available,
-              area, city, variety_of_vine, age_of_vineyard,
-              oenological_comment, soil, pruning, harvest, vinification,
-              barrel_fermentation, award, extra_comment, image_path, slug)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            [
-                'Vin Doublon', 'red', 'bottle', 2018, 15.00, 10, 1,
-                '1.00', 'Bordeaux', 'Merlot 100%', 15,
-                json_encode(['fr' => 'Desc doublon', 'en' => 'Duplicate desc']),
-                json_encode(['fr' => 'Argile', 'en' => 'Clay']),
-                json_encode(['fr' => 'Guyot', 'en' => 'Guyot']),
-                json_encode(['fr' => 'Manuel', 'en' => 'Manual']),
-                json_encode(['fr' => 'Inox', 'en' => 'Stainless']),
-                json_encode(['fr' => '12 mois', 'en' => '12 months']),
-                json_encode(['fr' => '', 'en' => '']),
-                json_encode(['fr' => '', 'en' => '']),
-                'Wine_Vin_Doublon_2018.png', $slug . '-' . uniqid(),
-            ]
-        );
+        return $this->insertWine($slugPrefix);
     }
 
     /**
@@ -70,29 +52,9 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         );
     }
 
-    private function insertWine(): int
+    private function insertWine(string $slugPrefix = 'vin-ti'): int
     {
-        return (int) self::$db->insert(
-            "INSERT INTO wines
-             (label_name, wine_color, format, vintage, price, production_quantity, available,
-              area, city, variety_of_vine, age_of_vineyard,
-              oenological_comment, soil, pruning, harvest, vinification,
-              barrel_fermentation, award, extra_comment, image_path, slug)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            [
-                'Vin TI', 'red', 'bottle', 2022, 18.50, 60, 1,
-                '0.50', 'Saint-Émilion', 'Merlot 80%', 20,
-                json_encode(['fr' => 'Desc TI', 'en' => 'TI desc']),
-                json_encode(['fr' => 'Argile', 'en' => 'Clay']),
-                json_encode(['fr' => 'Guyot', 'en' => 'Guyot']),
-                json_encode(['fr' => 'Manuel', 'en' => 'Manual']),
-                json_encode(['fr' => 'Inox', 'en' => 'Stainless']),
-                json_encode(['fr' => '12 mois', 'en' => '12 months']),
-                json_encode(['fr' => '', 'en' => '']),
-                json_encode(['fr' => '', 'en' => '']),
-                'Wine_Vin_TI_2022.png', 'vin-ti-' . uniqid(),
-            ]
-        );
+        return self::insertTestWine($slugPrefix, 'red', 'Vin TI');
     }
 
     // ----------------------------------------------------------------

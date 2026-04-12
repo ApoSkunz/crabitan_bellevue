@@ -229,7 +229,9 @@ class RgpdRequestModel extends Model
     public function getOverdueRequests(): array
     {
         $rows = $this->db->fetchAll(
-            "SELECT *, DATEDIFF(NOW(), received_at) AS days_since_received
+            "SELECT id, type, requester_email, requester_name, status,
+                    received_at, treated_at, treated_by, response_note, created_at,
+                    DATEDIFF(NOW(), received_at) AS days_since_received
              FROM {$this->table}
              WHERE status IN ('nouvelle', 'en_cours')
                AND DATEDIFF(NOW(), received_at) >= ?

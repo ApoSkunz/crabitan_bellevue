@@ -56,7 +56,8 @@ class DeviceConfirmTokenModel extends Model
     public function findByToken(string $token): array|false
     {
         return $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE token = ? AND expires_at > NOW() LIMIT 1",
+            "SELECT id, user_id, device_token, device_name, token, redirect_url, lang, expires_at, confirmed_at, created_at
+             FROM {$this->table} WHERE token = ? AND expires_at > NOW() LIMIT 1",
             [$token]
         );
     }
@@ -82,7 +83,8 @@ class DeviceConfirmTokenModel extends Model
     public function findConfirmedByToken(string $token): array|false
     {
         return $this->db->fetchOne(
-            "SELECT * FROM {$this->table}
+            "SELECT id, user_id, device_token, device_name, token, redirect_url, lang, expires_at, confirmed_at, created_at
+             FROM {$this->table}
              WHERE token = ? AND confirmed_at IS NOT NULL AND expires_at > NOW() LIMIT 1",
             [$token]
         );

@@ -38,7 +38,7 @@ class PasswordResetModel extends Model
     public function findByToken(string $token): array|false
     {
         return $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE token = ? AND expires_at > NOW()",
+            "SELECT id, user_id, token, requested_at, expires_at FROM {$this->table} WHERE token = ? AND expires_at > NOW()",
             [$token]
         );
     }

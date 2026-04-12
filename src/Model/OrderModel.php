@@ -97,7 +97,10 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     public function findByReference(string $reference, int $userId): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT o.*,
+            "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
+                    o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
+                    o.cgv_version, o.invoice_number, o.path_invoice,
+                    o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     b.civility  AS bill_civility,  b.firstname AS bill_firstname, b.lastname AS bill_lastname,
                     b.street    AS bill_street,    b.city      AS bill_city,
                     b.zip       AS bill_zip,       b.country   AS bill_country,  b.phone AS bill_phone,
@@ -199,7 +202,11 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     public function findByReferenceOnly(string $reference): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE order_reference = ?",
+            "SELECT id, user_id, order_reference, content, price, payment_method, shipping_discount,
+                    id_billing_snapshot, id_delivery_snapshot, status, cgv_version,
+                    ca_numappel, ca_numtrans, invoice_number, path_invoice,
+                    ordered_at, delivered_at, rating_email_sent_at, updated_at
+             FROM {$this->table} WHERE order_reference = ?",
             [$reference]
         );
         return $row ?: null;
@@ -269,7 +276,11 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     public function findByIdForAdmin(int $id): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT o.*,
+            "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
+                    o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
+                    o.cgv_version, o.ca_numappel, o.ca_numtrans,
+                    o.invoice_number, o.path_invoice,
+                    o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     a.email, a.lang,
                     COALESCE(ai.firstname, ac.company_name, '') AS firstname,
                     COALESCE(ai.lastname, '', '') AS lastname,
@@ -349,7 +360,41 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     }
 
     /**
-     * Recherche une commande par référence avec les adresses (pour génération de facture).
+     * Recherche une commande par référence avec les adresses, sans données de paiement CA.
+     * Usage : génération de facture PDF (InvoiceService, IpnController, OrderController).
+     * Les tokens CA (ca_numappel, ca_numtrans) ne sont pas nécessaires pour la facture.
+     *
+     * @param  string $reference Référence de la commande (WEB-CB-XXXXX-YYYY)
+     * @return array<string, mixed>|null
+     */
+    public function findByReferenceForInvoice(string $reference): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
+                    o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
+                    o.cgv_version, o.invoice_number, o.path_invoice,
+                    o.ordered_at, o.delivered_at, o.updated_at,
+                    a.email, a.lang,
+                    COALESCE(ai.firstname, ac.company_name, '') AS firstname,
+                    COALESCE(ai.lastname, '', '')                AS lastname,
+                    b.civility  AS bill_civility,
+                    b.firstname AS bill_firstname, b.lastname AS bill_lastname,
+                    b.street    AS bill_street,    b.city     AS bill_city,
+                    b.zip       AS bill_zip,       b.country  AS bill_country,
+                    b.phone     AS bill_phone
+             FROM {$this->table} o
+             JOIN accounts a                    ON a.id          = o.user_id
+             LEFT JOIN account_individuals ai   ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac   ON ac.account_id = a.id
+             LEFT JOIN order_address_snapshots b ON b.id         = o.id_billing_snapshot
+             WHERE o.order_reference = ?",
+            [$reference]
+        );
+        return $row ?: null;
+    }
+
+    /**
+     * Recherche une commande par référence avec les adresses et les références CA (admin/IPN uniquement).
      *
      * @param  string $reference Référence de la commande (WEB-CB-XXXXX-YYYY)
      * @return array<string, mixed>|null
@@ -357,7 +402,11 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     public function findByReferenceWithAddresses(string $reference): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT o.*,
+            "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
+                    o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
+                    o.cgv_version, o.ca_numappel, o.ca_numtrans,
+                    o.invoice_number, o.path_invoice,
+                    o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     a.email, a.lang,
                     COALESCE(ai.firstname, ac.company_name, '') AS firstname,
                     COALESCE(ai.lastname, '', '')                AS lastname,
@@ -544,7 +593,11 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     public function findDetailForUser(int $orderId, int $userId): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT o.*,
+            "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
+                    o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
+                    o.cgv_version, o.ca_numappel, o.ca_numtrans,
+                    o.invoice_number, o.path_invoice,
+                    o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     b.civility  AS bill_civility,  b.firstname AS bill_firstname, b.lastname AS bill_lastname,
                     b.street    AS bill_street,    b.city      AS bill_city,
                     b.zip       AS bill_zip,       b.country   AS bill_country,  b.phone AS bill_phone,
@@ -644,7 +697,13 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      */
     private function fetchAddressById(int $id): array|false
     {
-        return $this->db->fetchOne("SELECT * FROM addresses WHERE id = ?", [$id]);
+        return $this->db->fetchOne(
+            "SELECT id, user_id, type, firstname, lastname, civility,
+                    street, city, zip_code, country, phone, saved,
+                    deleted_at, preserved_for_order, created_at, updated_at
+             FROM addresses WHERE id = ?",
+            [$id]
+        );
     }
 
     // ----------------------------------------------------------------

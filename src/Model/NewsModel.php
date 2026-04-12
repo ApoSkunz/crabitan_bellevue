@@ -166,7 +166,8 @@ class NewsModel extends Model
     public function getById(int $id): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE id = ?",
+            "SELECT id, title, text_content, image_path, link_path, slug, created_at, updated_at
+             FROM {$this->table} WHERE id = ?",
             [$id]
         );
         return $row ?: null;

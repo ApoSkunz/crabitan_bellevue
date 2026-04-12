@@ -26,7 +26,8 @@ class CartModel extends Model
     public function findByUserId(int $userId): array|false
     {
         return $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE user_id = ?",
+            "SELECT id, user_id, content, total_quantity, created_at, updated_at, reminder_sent_at
+             FROM {$this->table} WHERE user_id = ?",
             [$userId]
         );
     }
@@ -202,7 +203,8 @@ class CartModel extends Model
     public function getAbandoned(int $hoursMin = 72, int $hoursMax = 96): array
     {
         return $this->db->fetchAll(
-            "SELECT * FROM {$this->table}
+            "SELECT id, user_id, content, total_quantity, updated_at, reminder_sent_at
+             FROM {$this->table}
              WHERE user_id IS NOT NULL
                AND total_quantity > 0
                AND reminder_sent_at IS NULL

@@ -21,7 +21,7 @@ class OrderFormModel extends Model
     public function getAll(): array
     {
         return $this->db->fetchAll(
-            "SELECT * FROM {$this->table} ORDER BY year DESC, uploaded_at DESC"
+            "SELECT id, year, label, filename, uploaded_at FROM {$this->table} ORDER BY year DESC, uploaded_at DESC"
         );
     }
 
@@ -47,7 +47,7 @@ class OrderFormModel extends Model
     {
         $offset = ($page - 1) * $perPage;
         return $this->db->fetchAll(
-            "SELECT * FROM {$this->table} ORDER BY year DESC, uploaded_at DESC LIMIT ? OFFSET ?",
+            "SELECT id, year, label, filename, uploaded_at FROM {$this->table} ORDER BY year DESC, uploaded_at DESC LIMIT ? OFFSET ?",
             [$perPage, $offset]
         );
     }
@@ -61,7 +61,7 @@ class OrderFormModel extends Model
     public function findById(int $id): array|false
     {
         return $this->db->fetchOne(
-            "SELECT * FROM {$this->table} WHERE id = ?",
+            "SELECT id, year, label, filename, uploaded_at FROM {$this->table} WHERE id = ?",
             [$id]
         );
     }
@@ -86,7 +86,7 @@ class OrderFormModel extends Model
     public function getLatest(): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT * FROM {$this->table} ORDER BY uploaded_at DESC, id DESC LIMIT 1"
+            "SELECT id, year, label, filename, uploaded_at FROM {$this->table} ORDER BY uploaded_at DESC, id DESC LIMIT 1"
         );
         return $row ?: null;
     }

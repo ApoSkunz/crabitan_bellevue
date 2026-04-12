@@ -68,13 +68,14 @@ class WineModelSimilarTest extends TestCase
 
     public function testGetSimilarCompleteWithOtherColorsWhenInsufficient(): void
     {
-        $sameColor  = [['id' => 2, 'label_name' => 'A', 'wine_color' => 'red', 'price' => 14.0]];
-        $otherColor = [['id' => 5, 'label_name' => 'X', 'wine_color' => 'white', 'price' => 12.0]];
+        $sameColor     = [['id' => 2, 'label_name' => 'A', 'wine_color' => 'red', 'price' => 14.0]];
+        $otherColorIds = [['id' => 5]];
+        $otherColorRows = [['id' => 5, 'label_name' => 'X', 'wine_color' => 'white', 'price' => 12.0]];
 
         $this->dbMock
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('fetchAll')
-            ->willReturnOnConsecutiveCalls($sameColor, $otherColor);
+            ->willReturnOnConsecutiveCalls($sameColor, $otherColorIds, $otherColorRows);
 
         $result = $this->model->getSimilar(1, 'red', 15.0, 3);
 
@@ -128,13 +129,12 @@ class WineModelSimilarTest extends TestCase
         $rows = [['id' => 3, 'label_name' => 'Vin X', 'wine_color' => 'white', 'price' => 12.0]];
 
         $this->dbMock
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('fetchAll')
-            ->with(
-                $this->logicalNot($this->stringContains('NOT IN')),
-                $this->equalTo([4])
-            )
-            ->willReturn($rows);
+            ->willReturnOnConsecutiveCalls(
+                [['id' => 3]],
+                $rows
+            );
 
         $result = $this->model->getForCartCrossSell([], 4);
 
@@ -144,15 +144,16 @@ class WineModelSimilarTest extends TestCase
 
     public function testGetForCartCrossSellReturnsUpToLimit(): void
     {
-        $wines = array_map(
+        $wineIds = array_map(fn(int $i): array => ['id' => $i], range(10, 13));
+        $wines   = array_map(
             fn(int $i): array => ['id' => $i, 'label_name' => "Vin {$i}", 'wine_color' => 'red'],
             range(10, 13)
         );
 
         $this->dbMock
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('fetchAll')
-            ->willReturn($wines);
+            ->willReturnOnConsecutiveCalls($wineIds, $wines);
 
         $result = $this->model->getForCartCrossSell([1, 2], 4);
 
