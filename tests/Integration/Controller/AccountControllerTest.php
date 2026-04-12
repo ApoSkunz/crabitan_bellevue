@@ -362,7 +362,7 @@ class AccountControllerTest extends IntegrationTestCase
         $this->makeController('GET', '/fr/mon-compte/favoris')->favorites(['lang' => 'fr']);
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('panel.favorites', $output);
+        $this->assertStringContainsString('account-page', $output);
     }
 
     /**
@@ -377,7 +377,7 @@ class AccountControllerTest extends IntegrationTestCase
         $this->makeController('GET', '/fr/mon-compte/favoris')->favorites(['lang' => 'fr']);
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('panel.favorites', $output);
+        $this->assertStringContainsString('account-page', $output);
     }
 
     /**
@@ -1040,7 +1040,7 @@ class AccountControllerTest extends IntegrationTestCase
             ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('account.order_refund_btn', $output);
+        $this->assertStringContainsString('Demander un remboursement', $output);
     }
 
     // ----------------------------------------------------------------
