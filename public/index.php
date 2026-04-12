@@ -10,6 +10,9 @@ require_once ROOT_PATH . '/vendor/autoload.php';
 require_once ROOT_PATH . '/src/helpers.php';
 require_once ROOT_PATH . '/config/config.php';
 
+/** @var \Core\Container $container */
+$container = require ROOT_PATH . '/config/container.php'; // NOSONAR — bootstrap DI, side-effect intentionnel
+
 use Core\ErrorLogger;
 use Core\Router;
 use Core\Request;
@@ -49,11 +52,6 @@ if (!$ageVerified && !$isPublicPath && !$isCrawler) {
     $redirect = rawurlencode($path !== '/' ? $path : '/' . DEFAULT_LANG);
     header('Location: /age-gate?redirect=' . $redirect);
     exit;
-}
-
-// Crawlers traités comme vérifiés pour l'affichage complet (meta tags, head, footer)
-if ($isCrawler && !$ageVerified) {
-    $_COOKIE['age_verified'] = '1';
 }
 
 // Sliding refresh : si "Se souvenir de moi" était coché, on repousse l'expiry à chaque visite
