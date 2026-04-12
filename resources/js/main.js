@@ -37,18 +37,21 @@ function initThemeToggle() {
 function initBurger() {
     const burger = document.getElementById('header-burger');
     const mobileNav = document.getElementById('header-nav-mobile');
+    const siteHeader = document.querySelector('.site-header');
     if (!burger || !mobileNav) return;
 
     function openMenu() {
+        // padding-top = hauteur réelle du header pour que le contenu démarre juste en dessous
+        const headerH = siteHeader ? siteHeader.getBoundingClientRect().height : 96;
+        mobileNav.style.paddingTop = headerH + 'px';
         mobileNav.classList.add('is-open');
         burger.setAttribute('aria-expanded', 'true');
-        document.body.classList.add('nav-open');
     }
 
     function closeMenu() {
         mobileNav.classList.remove('is-open');
+        mobileNav.style.paddingTop = '';
         burger.setAttribute('aria-expanded', 'false');
-        document.body.classList.remove('nav-open');
     }
 
     burger.addEventListener('click', () => {

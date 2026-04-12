@@ -469,10 +469,22 @@ body {
     }
 }
 
-// ---- 17. Body lock quand menu burger ouvert ----
+// ---- 17. Burger menu : overlay fixe (< 992px) ----
+// position:fixed → toujours visible peu importe la position de scroll
+// padding-top injecté par JS (hauteur réelle du header)
+// body.nav-open n'est plus nécessaire (pas de overflow:hidden qui casse sticky)
 
-body.nav-open {
-    overflow: hidden;
+@media (max-width: 991px) {
+    .header-nav--mobile.is-open {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 99;
+        max-height: none;
+        overflow-y: auto;
+    }
 }
 
 // ---- 18. Mobile paysage / tablette basse (768–991px) — header burger ----
@@ -484,11 +496,9 @@ body.nav-open {
         display: none;
     }
 
-    // Menu burger — même typo + scroll interne que mobile portrait
+    // Menu burger — même typo que mobile portrait
     .header-nav--mobile {
         padding: 0.75rem 1rem;
-        max-height: calc(100dvh - 100px);
-        overflow-y: auto;
 
         a,
         &__modal-btn {
