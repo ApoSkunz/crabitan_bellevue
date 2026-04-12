@@ -9,6 +9,8 @@ use Core\Response;
 use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\FavoriteModel;
+use Repository\MysqlUserRepository;
+use Repository\UserRepository;
 
 /**
  * Gère les préférences du compte : favoris, newsletter (désabonnement), langue.
@@ -17,18 +19,22 @@ class AccountPreferenceController extends Controller
 {
     private const VIEW_UNSUBSCRIBE = 'account/unsubscribe';
 
+    private UserRepository $userRepo;
+    /** AccountModel conservé pour les méthodes hors interface (unsubscribeByToken). */
     private AccountModel $accounts;
     private FavoriteModel $favorites;
 
     /**
      * Initialise le contrôleur et ses dépendances.
      *
-     * @param \Core\Request $request Requête HTTP courante
+     * @param \Core\Request       $request  Requête HTTP courante
+     * @param UserRepository|null $userRepo Dépôt utilisateur (null → MysqlUserRepository par défaut)
      */
-    public function __construct(\Core\Request $request)
+    public function __construct(\Core\Request $request, ?UserRepository $userRepo = null)
     {
         parent::__construct($request);
         $this->accounts  = new AccountModel();
+        $this->userRepo  = $userRepo ?? new MysqlUserRepository($this->accounts);
         $this->favorites = new FavoriteModel();
     }
 
@@ -50,7 +56,7 @@ class AccountPreferenceController extends Controller
 
         $this->view('account/favorites', [
             'lang'      => $lang,
-            'account'   => $this->accounts->findById($userId),
+            'account'   => $this->userRepo->findById($userId),
             'favorites' => $this->favorites->getByUser($userId),
         ]);
     }
@@ -71,7 +77,7 @@ class AccountPreferenceController extends Controller
         $token = $this->request->get('token', '');
         $cid   = (int) $this->request->get('cid', 0);
 
-        if ($token === '' || !$this->accounts->findByUnsubscribeToken($token)) {
+        if ($token === '' || !$this->userRepo->findByUnsubscribeToken($token)) {
             $this->view(self::VIEW_UNSUBSCRIBE, ['lang' => $lang, 'success' => false, 'confirm' => false]);
             return;
         }
@@ -100,7 +106,7 @@ class AccountPreferenceController extends Controller
         $lang       = $params['lang'];
         $unsubToken = $this->request->post('unsub_token', '');
         $campaignId = (int) $this->request->post('campaign_id', 0);
-        $account    = $unsubToken !== '' ? $this->accounts->findByUnsubscribeToken($unsubToken) : false;
+        $account    = $unsubToken !== '' ? $this->userRepo->findByUnsubscribeToken($unsubToken) : false;
         $success    = false;
 
         if ($account !== false) {

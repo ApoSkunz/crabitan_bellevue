@@ -10,25 +10,28 @@ use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\AddressModel;
 use Model\OrderModel;
+use Repository\MysqlUserRepository;
+use Repository\UserRepository;
 
 /**
  * Gère le CRUD des adresses de livraison/facturation du compte client.
  */
 class AccountAddressController extends Controller
 {
-    private AccountModel $accounts;
+    private UserRepository $userRepo;
     private AddressModel $addresses;
     private OrderModel $orders;
 
     /**
      * Initialise le contrôleur et ses dépendances.
      *
-     * @param \Core\Request $request Requête HTTP courante
+     * @param \Core\Request       $request  Requête HTTP courante
+     * @param UserRepository|null $userRepo Dépôt utilisateur (null → MysqlUserRepository par défaut)
      */
-    public function __construct(\Core\Request $request)
+    public function __construct(\Core\Request $request, ?UserRepository $userRepo = null)
     {
         parent::__construct($request);
-        $this->accounts  = new AccountModel();
+        $this->userRepo  = $userRepo ?? new MysqlUserRepository(new AccountModel());
         $this->addresses = new AddressModel();
         $this->orders    = new OrderModel();
     }
@@ -341,7 +344,7 @@ class AccountAddressController extends Controller
      */
     private function requireIndividual(int $userId, string $lang): void
     {
-        $account = $this->accounts->findById($userId);
+        $account = $this->userRepo->findById($userId);
         if ($account && $account['account_type'] === 'company') {
             $_SESSION['flash']['info'] = __('account.b2b_restricted');
             Response::redirect("/{$lang}/mon-compte");

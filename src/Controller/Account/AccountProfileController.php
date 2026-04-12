@@ -11,6 +11,8 @@ use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\FavoriteModel;
 use Model\OrderModel;
+use Repository\MysqlUserRepository;
+use Repository\UserRepository;
 use Service\AccountService;
 use Service\MailService;
 
@@ -21,6 +23,8 @@ class AccountProfileController extends Controller
 {
     private const CONTENT_TYPE_JSON = 'Content-Type: application/json';
 
+    private UserRepository $userRepo;
+    /** AccountModel conservé pour les méthodes hors interface (storeNewsletterConfirmToken). */
     private AccountModel $accounts;
     private FavoriteModel $favorites;
     private OrderModel $orders;
@@ -28,12 +32,14 @@ class AccountProfileController extends Controller
     /**
      * Initialise le contrôleur et ses dépendances.
      *
-     * @param \Core\Request $request Requête HTTP courante
+     * @param \Core\Request       $request  Requête HTTP courante
+     * @param UserRepository|null $userRepo Dépôt utilisateur (null → MysqlUserRepository par défaut)
      */
-    public function __construct(\Core\Request $request)
+    public function __construct(\Core\Request $request, ?UserRepository $userRepo = null)
     {
         parent::__construct($request);
         $this->accounts  = new AccountModel();
+        $this->userRepo  = $userRepo ?? new MysqlUserRepository($this->accounts);
         $this->favorites = new FavoriteModel();
         $this->orders    = new OrderModel();
     }
@@ -54,7 +60,7 @@ class AccountProfileController extends Controller
         $userId    = (int) $payload['sub'];
         $lang      = $params['lang'];
 
-        $account   = $this->accounts->findById($userId);
+        $account   = $this->userRepo->findById($userId);
         $isCompany = $account && $account['account_type'] === 'company';
 
         $info = $_SESSION['flash']['info'] ?? null;
@@ -96,7 +102,7 @@ class AccountProfileController extends Controller
             $_SESSION['flash']['email_change_sent']
         );
 
-        $account = $this->accounts->findById($userId);
+        $account = $this->userRepo->findById($userId);
 
         $this->view('account/profile', [
             'lang'            => $lang,
@@ -132,7 +138,7 @@ class AccountProfileController extends Controller
             Response::redirect($back);
         }
 
-        $account     = $this->accounts->findById($userId);
+        $account     = $this->userRepo->findById($userId);
         $newsletter  = $this->request->post('newsletter', '0') === '1';
         $errors      = [];
 
@@ -164,7 +170,7 @@ class AccountProfileController extends Controller
             Response::redirect($back);
         } elseif (!$newsletter && $currentNewsletter) {
             // Toggle 1→0 : désabonnement immédiat (pas de confirmation requise)
-            $this->accounts->updateNewsletter($userId, false);
+            $this->userRepo->updateNewsletter($userId, false);
         }
 
         $_SESSION['flash']['profile_success'] = __('account.profile_updated');
@@ -291,7 +297,7 @@ class AccountProfileController extends Controller
         }
 
         $hashedToken = hash('sha256', $rawToken);
-        $account     = $this->accounts->findByEmailChangeToken($hashedToken);
+        $account     = $this->userRepo->findByEmailChangeToken($hashedToken);
 
         if (!$account) {
             $this->view('account/email_change_confirm', [
@@ -302,7 +308,7 @@ class AccountProfileController extends Controller
             return;
         }
 
-        $this->accounts->clearEmailChangeToken((int) $account['id']);
+        $this->userRepo->clearEmailChangeToken((int) $account['id']);
 
         $this->view('account/email_change_confirm', [
             'lang'    => $lang,
@@ -334,7 +340,7 @@ class AccountProfileController extends Controller
             Response::redirect($back);
         }
 
-        $this->accounts->clearEmailChangeToken($userId);
+        $this->userRepo->clearEmailChangeToken($userId);
 
         $_SESSION['flash']['profile_success'] = __('account.email_change_cancelled');
         Response::redirect($back);
@@ -374,7 +380,7 @@ class AccountProfileController extends Controller
             return;
         }
 
-        $this->accounts->updateLang($userId, $newLang);
+        $this->userRepo->updateLang($userId, $newLang);
 
         $redirectTo = $this->request->post('redirect_to', '');
         if ($redirectTo !== '' && preg_match('#^/(fr|en)(/|$)#', $redirectTo)) {
@@ -427,7 +433,7 @@ class AccountProfileController extends Controller
             $errors['lastname'] = __('validation.required');
         }
         if ($errors === []) {
-            $this->accounts->updateIndividualProfile($userId, $civility, $firstname, $lastname);
+            $this->userRepo->updateIndividualProfile($userId, $civility, $firstname, $lastname);
         }
         return $errors;
     }
@@ -447,7 +453,7 @@ class AccountProfileController extends Controller
             $errors['company_name'] = __('validation.required');
         }
         if ($errors === []) {
-            $this->accounts->updateCompanyProfile($userId, $companyName, $siret);
+            $this->userRepo->updateCompanyProfile($userId, $companyName, $siret);
         }
         return $errors;
     }

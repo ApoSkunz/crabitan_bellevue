@@ -13,6 +13,8 @@ use Model\ConnectionModel;
 use Model\DeviceConfirmTokenModel;
 use Model\OrderModel;
 use Model\TrustedDeviceModel;
+use Repository\MysqlUserRepository;
+use Repository\UserRepository;
 use Service\PasswordValidator;
 use Service\RateLimiterService;
 
@@ -29,6 +31,8 @@ class AccountSecurityController extends Controller
     private const VIEW_SECURITY_CONFIRM = 'account/security-confirm';
     private const VIEW_SECURITY_DENY    = 'account/security-deny';
 
+    private UserRepository $userRepo;
+    /** AccountModel conservé pour les méthodes hors interface (getReactivationToken, getPendingSessionToken). */
     private AccountModel $accounts;
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
@@ -39,12 +43,14 @@ class AccountSecurityController extends Controller
     /**
      * Initialise le contrôleur et ses dépendances.
      *
-     * @param \Core\Request $request Requête HTTP courante
+     * @param \Core\Request       $request  Requête HTTP courante
+     * @param UserRepository|null $userRepo Dépôt utilisateur (null → MysqlUserRepository par défaut)
      */
-    public function __construct(\Core\Request $request)
+    public function __construct(\Core\Request $request, ?UserRepository $userRepo = null)
     {
         parent::__construct($request);
         $this->accounts            = new AccountModel();
+        $this->userRepo            = $userRepo ?? new MysqlUserRepository($this->accounts);
         $this->connections         = new ConnectionModel();
         $this->trustedDevices      = new TrustedDeviceModel();
         $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
@@ -72,7 +78,7 @@ class AccountSecurityController extends Controller
         $errors  = $_SESSION['flash']['security_errors']  ?? [];
         unset($_SESSION['flash']['security_success'], $_SESSION['flash']['security_errors']);
 
-        $account = $this->accounts->findById($userId);
+        $account = $this->userRepo->findById($userId);
 
         $this->view('account/security', [
             'lang'               => $lang,
@@ -124,7 +130,7 @@ class AccountSecurityController extends Controller
         $new     = $this->request->post('new_password', '');
         $confirm = $this->request->post('new_password_confirm', '');
 
-        $account = $this->accounts->findById($userId);
+        $account = $this->userRepo->findById($userId);
         $errors  = [];
 
         if (
@@ -159,14 +165,14 @@ class AccountSecurityController extends Controller
         $pendingHash  = password_hash($new, PASSWORD_BCRYPT);
         $expiresAt    = date('Y-m-d H:i:s', time() + 3600);
         $sessionToken = $_COOKIE['auth_token'] ?? '';
-        $this->accounts->savePendingPassword($userId, $pendingHash, $expiresAt, $sessionToken);
+        $this->userRepo->savePendingPassword($userId, $pendingHash, $expiresAt, $sessionToken);
 
         if ($account && isset($account['email'])) {
             $notifName = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
                 ?: ($account['company_name'] ?? 'Client');
             $rawToken  = bin2hex(random_bytes(32));
             $tokenHash = hash('sha256', $rawToken);
-            $this->accounts->saveSecurityConfirmToken($userId, $tokenHash, $expiresAt);
+            $this->userRepo->saveSecurityConfirmToken($userId, $tokenHash, $expiresAt);
             try {
                 (new \Service\MailService())->sendPasswordChangeConfirmation(
                     (string) $account['email'],
@@ -203,7 +209,7 @@ class AccountSecurityController extends Controller
             Response::redirect("/{$lang}/mon-compte/securite");
         }
 
-        $this->accounts->revokeAllSessions($userId);
+        $this->userRepo->revokeAllSessions($userId);
 
         CookieHelper::clear();
         Response::redirect("/{$lang}");
@@ -312,7 +318,7 @@ class AccountSecurityController extends Controller
         }
 
         $password = $this->request->post('password', '');
-        $account  = $this->accounts->findById($userId);
+        $account  = $this->userRepo->findById($userId);
 
         if (
             !$account
@@ -323,7 +329,7 @@ class AccountSecurityController extends Controller
             Response::redirect("/{$lang}/mon-compte/securite");
         }
 
-        $this->accounts->revokeAllSessions($userId);
+        $this->userRepo->revokeAllSessions($userId);
         $this->trustedDevices->deleteAllForUser($userId);
         CookieHelper::clear();
 
@@ -359,7 +365,7 @@ class AccountSecurityController extends Controller
             Response::redirect($back);
         }
 
-        $account = $this->accounts->findById($userId);
+        $account = $this->userRepo->findById($userId);
 
         if (!$account) {
             $_SESSION['flash']['security_errors'] = ['delete' => __('account.delete_wrong_password')];
@@ -374,8 +380,8 @@ class AccountSecurityController extends Controller
             }
         }
 
-        $this->accounts->revokeAllSessions($userId);
-        $this->accounts->delete($userId);
+        $this->userRepo->revokeAllSessions($userId);
+        $this->userRepo->delete($userId);
 
         $name             = $account['firstname'] ?? $account['company_name'] ?? 'Client';
         $reactivationToken = $this->accounts->getReactivationToken($userId) ?? '';
@@ -494,7 +500,7 @@ class AccountSecurityController extends Controller
         }
 
         $hash    = hash('sha256', $token);
-        $account = $this->accounts->findBySecurityConfirmToken($hash);
+        $account = $this->userRepo->findBySecurityConfirmToken($hash);
 
         if ($account === false) {
             $this->view(self::VIEW_SECURITY_CONFIRM, ['lang' => $lang, 'success' => false, 'expired' => true]);
@@ -503,10 +509,10 @@ class AccountSecurityController extends Controller
 
         $userId = (int) $account['id'];
 
-        $requestingToken = $this->accounts->getPendingSessionToken($userId);
+        $requestingToken = $this->accounts->getPendingSessionToken($userId); // hors interface
 
-        $this->accounts->applyPendingPassword($userId);
-        $this->accounts->consumeSecurityConfirmToken($userId);
+        $this->userRepo->applyPendingPassword($userId);
+        $this->userRepo->consumeSecurityConfirmToken($userId);
 
         if ($requestingToken !== null && $requestingToken !== '') {
             $deviceToken = $this->connections->getDeviceTokenByToken($requestingToken);
@@ -540,7 +546,7 @@ class AccountSecurityController extends Controller
         }
 
         $hash    = hash('sha256', $token);
-        $account = $this->accounts->findBySecurityConfirmToken($hash);
+        $account = $this->userRepo->findBySecurityConfirmToken($hash);
 
         if ($account === false) {
             $this->view(self::VIEW_SECURITY_DENY, ['lang' => $lang, 'success' => false, 'expired' => true]);
@@ -548,10 +554,10 @@ class AccountSecurityController extends Controller
         }
 
         $userId = (int) $account['id'];
-        $this->accounts->clearPendingPassword($userId);
-        $this->accounts->revokeAllSessions($userId);
+        $this->userRepo->clearPendingPassword($userId);
+        $this->userRepo->revokeAllSessions($userId);
         $this->trustedDevices->deleteAllForUser($userId);
-        $this->accounts->consumeSecurityConfirmToken($userId);
+        $this->userRepo->consumeSecurityConfirmToken($userId);
 
         try {
             (new \Service\MailService())->sendPasswordChangeDenied(
@@ -585,13 +591,13 @@ class AccountSecurityController extends Controller
             return;
         }
 
-        $account = $this->accounts->findByReactivationToken($token);
+        $account = $this->userRepo->findByReactivationToken($token);
         if ($account === false) {
             $this->view(self::VIEW_REACTIVATE, ['lang' => $lang, 'success' => false]);
             return;
         }
 
-        $this->accounts->reactivate((int) $account['id']);
+        $this->userRepo->reactivate((int) $account['id']);
         $this->view(self::VIEW_REACTIVATE, ['lang' => $lang, 'success' => true]);
     }
 

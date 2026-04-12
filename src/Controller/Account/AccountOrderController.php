@@ -9,6 +9,8 @@ use Core\Response;
 use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\OrderModel;
+use Repository\MysqlUserRepository;
+use Repository\UserRepository;
 use Service\PaymentService;
 
 /**
@@ -20,18 +22,19 @@ class AccountOrderController extends Controller
     private const PER_PAGE       = 10;
     private const VALID_PER_PAGES = [10, 25, 50];
 
-    private AccountModel $accounts;
+    private UserRepository $userRepo;
     private OrderModel $orders;
 
     /**
      * Initialise le contrôleur et ses dépendances.
      *
-     * @param \Core\Request $request Requête HTTP courante
+     * @param \Core\Request       $request  Requête HTTP courante
+     * @param UserRepository|null $userRepo Dépôt utilisateur (null → MysqlUserRepository par défaut)
      */
-    public function __construct(\Core\Request $request)
+    public function __construct(\Core\Request $request, ?UserRepository $userRepo = null)
     {
         parent::__construct($request);
-        $this->accounts = new AccountModel();
+        $this->userRepo = $userRepo ?? new MysqlUserRepository(new AccountModel());
         $this->orders   = new OrderModel();
     }
 
@@ -378,7 +381,7 @@ class AccountOrderController extends Controller
     private function sendReturnEmails(int $orderId, int $userId, string $lang): void
     {
         $order   = $this->orders->findDetailForUser($orderId, $userId);
-        $account = $this->accounts->findById($userId);
+        $account = $this->userRepo->findById($userId);
         if (!$order || !$account) {
             return;
         }
@@ -540,7 +543,7 @@ class AccountOrderController extends Controller
      */
     private function requireIndividual(int $userId, string $lang): void
     {
-        $account = $this->accounts->findById($userId);
+        $account = $this->userRepo->findById($userId);
         if ($account && $account['account_type'] === 'company') {
             $_SESSION['flash']['info'] = __('account.b2b_restricted');
             Response::redirect("/{$lang}/mon-compte");

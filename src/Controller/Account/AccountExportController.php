@@ -9,6 +9,8 @@ use Core\Response;
 use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\RgpdExportLogModel;
+use Repository\MysqlUserRepository;
+use Repository\UserRepository;
 use Service\RateLimiterService;
 
 /**
@@ -20,19 +22,20 @@ class AccountExportController extends Controller
     private const MAX_EXPORT_USER = 3;
     private const WINDOW_EXPORT   = 86400;
 
-    private AccountModel $accounts;
+    private UserRepository $userRepo;
     private RateLimiterService $rateLimiter;
     private RgpdExportLogModel $rgpdExportLogs;
 
     /**
      * Initialise le contrôleur et ses dépendances.
      *
-     * @param \Core\Request $request Requête HTTP courante
+     * @param \Core\Request       $request  Requête HTTP courante
+     * @param UserRepository|null $userRepo Dépôt utilisateur (null → MysqlUserRepository par défaut)
      */
-    public function __construct(\Core\Request $request)
+    public function __construct(\Core\Request $request, ?UserRepository $userRepo = null)
     {
         parent::__construct($request);
-        $this->accounts       = new AccountModel();
+        $this->userRepo       = $userRepo ?? new MysqlUserRepository(new AccountModel());
         $this->rateLimiter    = new RateLimiterService();
         $this->rgpdExportLogs = new RgpdExportLogModel();
     }
@@ -67,7 +70,7 @@ class AccountExportController extends Controller
         unset($_SESSION['flash']['export_sent'], $_SESSION['flash']['export_error']);
 
         $userId  = (int) $payload['sub'];
-        $account = $this->accounts->findById($userId);
+        $account = $this->userRepo->findById($userId);
 
         $lastExportTs = $this->rateLimiter->recall('rgpd_export_ts:' . $userId);
 
@@ -111,7 +114,7 @@ class AccountExportController extends Controller
         }
         $this->rateLimiter->recordAttempt($rlKey, self::WINDOW_EXPORT);
 
-        $account  = $this->accounts->findById($userId);
+        $account  = $this->userRepo->findById($userId);
         $email    = (string) ($account['email'] ?? '');
         $name     = (string) ($account['firstname'] ?? ($account['company_name'] ?? $email));
         $export   = $this->buildExportData($userId);
