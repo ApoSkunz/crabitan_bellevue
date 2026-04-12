@@ -257,7 +257,7 @@ class OrderAdminController extends AdminController
         // Génération automatique de la facture dès le premier changement de statut actif (virement/chèque)
         if ($status !== $oldStatus && empty($order['path_invoice'])) {
             try {
-                $fullOrder = $this->orders->findByReferenceWithAddresses(
+                $fullOrder = $this->orders->findByReferenceForInvoice(
                     (string) ($order['order_reference'] ?? '')
                 );
                 if ($fullOrder !== null) {

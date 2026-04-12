@@ -818,7 +818,7 @@ class OrderController extends Controller
     private function generateAndStoreInvoice(string $reference): void
     {
         try {
-            $order = $this->orders->findByReferenceWithAddresses($reference);
+            $order = $this->orders->findByReferenceForInvoice($reference);
             if ($order === null) {
                 return;
             }

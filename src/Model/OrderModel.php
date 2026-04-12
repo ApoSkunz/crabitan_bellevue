@@ -360,7 +360,41 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     }
 
     /**
-     * Recherche une commande par référence avec les adresses (pour génération de facture).
+     * Recherche une commande par référence avec les adresses, sans données de paiement CA.
+     * Usage : génération de facture PDF (InvoiceService, IpnController, OrderController).
+     * Les tokens CA (ca_numappel, ca_numtrans) ne sont pas nécessaires pour la facture.
+     *
+     * @param  string $reference Référence de la commande (WEB-CB-XXXXX-YYYY)
+     * @return array<string, mixed>|null
+     */
+    public function findByReferenceForInvoice(string $reference): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
+                    o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
+                    o.cgv_version, o.invoice_number, o.path_invoice,
+                    o.ordered_at, o.delivered_at, o.updated_at,
+                    a.email, a.lang,
+                    COALESCE(ai.firstname, ac.company_name, '') AS firstname,
+                    COALESCE(ai.lastname, '', '')                AS lastname,
+                    b.civility  AS bill_civility,
+                    b.firstname AS bill_firstname, b.lastname AS bill_lastname,
+                    b.street    AS bill_street,    b.city     AS bill_city,
+                    b.zip       AS bill_zip,       b.country  AS bill_country,
+                    b.phone     AS bill_phone
+             FROM {$this->table} o
+             JOIN accounts a                    ON a.id          = o.user_id
+             LEFT JOIN account_individuals ai   ON ai.account_id = a.id
+             LEFT JOIN account_companies   ac   ON ac.account_id = a.id
+             LEFT JOIN order_address_snapshots b ON b.id         = o.id_billing_snapshot
+             WHERE o.order_reference = ?",
+            [$reference]
+        );
+        return $row ?: null;
+    }
+
+    /**
+     * Recherche une commande par référence avec les adresses et les références CA (admin/IPN uniquement).
      *
      * @param  string $reference Référence de la commande (WEB-CB-XXXXX-YYYY)
      * @return array<string, mixed>|null
