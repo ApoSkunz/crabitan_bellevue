@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Integration\Controller;
 
 use Controller\AccountController;
+use Service\RgpdExportService;
 use Core\Exception\HttpException;
 use Core\Jwt;
 use Core\Request;
@@ -3506,11 +3507,11 @@ class AccountControllerTest extends IntegrationTestCase
      */
     public function testBuildPdfTableSectionWithEmptyRows(): void
     {
-        $ctrl = $this->makeController('GET', '/fr/mon-compte');
-        $ref  = new \ReflectionMethod(AccountController::class, 'buildPdfTableSection');
+        $service = new RgpdExportService();
+        $ref     = new \ReflectionMethod(RgpdExportService::class, 'buildPdfTableSection');
 
         $result = $ref->invoke(
-            $ctrl,
+            $service,
             'Commandes',
             [],
             '<tr><th>Référence</th></tr>',
@@ -3531,8 +3532,8 @@ class AccountControllerTest extends IntegrationTestCase
      */
     public function testBuildPdfTableSectionWithRows(): void
     {
-        $ctrl = $this->makeController('GET', '/fr/mon-compte');
-        $ref  = new \ReflectionMethod(AccountController::class, 'buildPdfTableSection');
+        $service = new RgpdExportService();
+        $ref     = new \ReflectionMethod(RgpdExportService::class, 'buildPdfTableSection');
 
         $rows = [
             ['reference' => 'CMD-001', 'status' => 'delivered', 'price' => '99.90', 'ordered_at' => '2025-01-10'],
@@ -3540,7 +3541,7 @@ class AccountControllerTest extends IntegrationTestCase
         ];
 
         $result = $ref->invoke(
-            $ctrl,
+            $service,
             'Commandes',
             $rows,
             '<tr><th>Référence</th><th>Statut</th></tr>',
@@ -3588,10 +3589,10 @@ class AccountControllerTest extends IntegrationTestCase
             'active_sessions' => [],
         ];
 
-        $ctrl = $this->makeController('GET', '/fr/mon-compte');
-        $ref  = new \ReflectionMethod(AccountController::class, 'buildExportPdf');
+        $service = new RgpdExportService();
+        $ref     = new \ReflectionMethod(RgpdExportService::class, 'buildExportPdf');
 
-        $result = $ref->invoke($ctrl, $export, '29/03/2026');
+        $result = $ref->invoke($service, $export, '29/03/2026');
 
         $this->assertIsString($result);
         $this->assertStringStartsWith('%PDF', $result);
@@ -3660,10 +3661,10 @@ class AccountControllerTest extends IntegrationTestCase
             ],
         ];
 
-        $ctrl = $this->makeController('GET', '/fr/mon-compte');
-        $ref  = new \ReflectionMethod(AccountController::class, 'buildExportPdf');
+        $service = new RgpdExportService();
+        $ref     = new \ReflectionMethod(RgpdExportService::class, 'buildExportPdf');
 
-        $result = $ref->invoke($ctrl, $export, '29/03/2026');
+        $result = $ref->invoke($service, $export, '29/03/2026');
 
         $this->assertIsString($result);
         $this->assertStringStartsWith('%PDF', $result);
