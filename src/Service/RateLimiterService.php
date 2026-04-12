@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Service;
 
+use Core\Database;
+
 /**
  * Service de limitation du taux de requêtes (rate limiting).
  *
  * Utilise APCu comme backend principal (mémoire partagée, persistante entre
  * les requêtes dans le même processus PHP-FPM). Si APCu n'est pas disponible,
- * bascule sur les sessions PHP comme fallback (acceptable en dev, déconseillé
- * en production multi-processus).
+ * bascule sur la BDD MySQL (table rate_limits). Si la BDD n'est pas disponible,
+ * bascule sur les sessions PHP comme dernier recours (acceptable en dev,
+ * déconseillé en production multi-processus).
  *
  * Chaque "bucket" est identifié par une clé arbitraire (ex. : "login:127.0.0.1"
  * ou "account_lockout:42"). Le service stocke deux entrées :
@@ -23,13 +26,25 @@ class RateLimiterService
     private const SUFFIX_COUNT = ':count';
     private const SUFFIX_UNTIL = ':until';
 
+    private ?Database $db;
+
+    /**
+     * Constructeur avec injection optionnelle de la base de données.
+     *
+     * @param Database|null $db Instance de la BDD (null = pas de backend BDD)
+     */
+    public function __construct(?Database $db = null)
+    {
+        $this->db = $db;
+    }
+
     /**
      * Vérifie si la clé est actuellement bloquée ou si elle a dépassé le seuil.
      *
      * Retourne true si la requête est autorisée, false si elle doit être rejetée.
      *
-     * @param string $key          Identifiant unique du bucket (ex. "login:127.0.0.1")
-     * @param int    $maxAttempts  Nombre maximum de tentatives autorisées dans la fenêtre
+     * @param string $key           Identifiant unique du bucket (ex. "login:127.0.0.1")
+     * @param int    $maxAttempts   Nombre maximum de tentatives autorisées dans la fenêtre
      * @param int    $windowSeconds Durée de la fenêtre glissante en secondes
      * @return bool True si autorisé, false si bloqué
      */
@@ -96,11 +111,11 @@ class RateLimiterService
     /**
      * Stocke une valeur arbitraire avec TTL (métadonnée associée à une clé de rate limiting).
      *
-     * Utilise le même backend que le rate limiter (APCu ou session).
+     * Utilise le même backend que le rate limiter (APCu, BDD ou session).
      *
-     * @param string $key Identifiant de la donnée (ex. "rgpd_export_ts:42")
+     * @param string $key   Identifiant de la donnée (ex. "rgpd_export_ts:42")
      * @param mixed  $value Valeur à stocker
-     * @param int    $ttl  Durée de vie en secondes
+     * @param int    $ttl   Durée de vie en secondes
      * @return void
      */
     public function remember(string $key, mixed $value, int $ttl): void
@@ -130,12 +145,22 @@ class RateLimiterService
         return function_exists('apcu_enabled') && apcu_enabled();
     }
 
+    /**
+     * Indique si le backend BDD est disponible.
+     *
+     * @return bool
+     */
+    public function isDbAvailable(): bool
+    {
+        return $this->db !== null;
+    }
+
     // ----------------------------------------------------------------
     // Helpers de stockage
     // ----------------------------------------------------------------
 
     /**
-     * Lit une valeur depuis APCu ou la session.
+     * Lit une valeur depuis APCu, la BDD ou la session (par ordre de priorité).
      *
      * @param string $key
      * @param mixed  $default
@@ -151,6 +176,10 @@ class RateLimiterService
             return $success ? $value : $default;
         }
 
+        if ($this->isDbAvailable()) {
+            return $this->dbGet($fullKey, $default);
+        }
+
         $this->ensureSession();
         if (!isset($_SESSION['_rl'][$fullKey])) {
             return $default;
@@ -163,11 +192,11 @@ class RateLimiterService
     }
 
     /**
-     * Écrit une valeur dans APCu ou la session, avec un TTL.
+     * Écrit une valeur dans APCu, la BDD ou la session (par ordre de priorité).
      *
      * @param string $key
      * @param mixed  $value
-     * @param int    $ttl   Durée de vie en secondes (ignorée pour les sessions)
+     * @param int    $ttl   Durée de vie en secondes
      * @return void
      */
     private function set(string $key, mixed $value, int $ttl): void
@@ -179,6 +208,11 @@ class RateLimiterService
             return;
         }
 
+        if ($this->isDbAvailable()) {
+            $this->dbSet($fullKey, $value, $ttl);
+            return;
+        }
+
         $this->ensureSession();
         $_SESSION['_rl'][$fullKey] = $value;
 
@@ -187,7 +221,7 @@ class RateLimiterService
     }
 
     /**
-     * Supprime une valeur dans APCu ou la session.
+     * Supprime une valeur dans APCu, la BDD ou la session (par ordre de priorité).
      *
      * @param string $key
      * @return void
@@ -201,8 +235,78 @@ class RateLimiterService
             return;
         }
 
+        if ($this->isDbAvailable()) {
+            $this->dbDelete($fullKey);
+            return;
+        }
+
         $this->ensureSession();
         unset($_SESSION['_rl'][$fullKey], $_SESSION['_rl_ttl'][$fullKey]);
+    }
+
+    /**
+     * Lit une valeur depuis la table rate_limits en BDD.
+     *
+     * @param string $fullKey Clé complète (avec préfixe rl:)
+     * @param mixed  $default
+     * @return mixed
+     */
+    private function dbGet(string $fullKey, mixed $default = null): mixed
+    {
+        try {
+            $row = $this->db->fetchOne(
+                'SELECT value FROM rate_limits WHERE cache_key = ? AND expires_at > UNIX_TIMESTAMP()',
+                [$fullKey]
+            );
+            if ($row === false) {
+                return $default;
+            }
+            return unserialize((string) $row['value']);
+        } catch (\Throwable $e) {
+            return $default;
+        }
+    }
+
+    /**
+     * Écrit une valeur dans la table rate_limits en BDD (upsert).
+     *
+     * @param string $fullKey    Clé complète (avec préfixe rl:)
+     * @param mixed  $value
+     * @param int    $ttl        Durée de vie en secondes
+     * @return void
+     */
+    private function dbSet(string $fullKey, mixed $value, int $ttl): void
+    {
+        try {
+            $expiresAt  = time() + $ttl;
+            $serialized = serialize($value);
+            $this->db->query(
+                'INSERT INTO rate_limits (cache_key, value, expires_at)
+                 VALUES (?, ?, ?)
+                 ON DUPLICATE KEY UPDATE value = ?, expires_at = ?',
+                [$fullKey, $serialized, $expiresAt, $serialized, $expiresAt]
+            );
+        } catch (\Throwable $e) {
+            // Silencieux : la BDD ne doit pas bloquer le rate limiting
+        }
+    }
+
+    /**
+     * Supprime une entrée de la table rate_limits en BDD.
+     *
+     * @param string $fullKey Clé complète (avec préfixe rl:)
+     * @return void
+     */
+    private function dbDelete(string $fullKey): void
+    {
+        try {
+            $this->db->execute(
+                'DELETE FROM rate_limits WHERE cache_key = ?',
+                [$fullKey]
+            );
+        } catch (\Throwable $e) {
+            // Silencieux
+        }
     }
 
     /**
