@@ -1009,11 +1009,11 @@ VALUES
 -- TRUSTED DEVICES
 -- ============================================================
 
-INSERT INTO `trusted_devices` (`user_id`, `device_token`, `device_name`, `confirmed_at`, `last_seen`) VALUES
-(3, 'device-uuid-sophie-macbook',  'Chrome · macOS',    '2026-01-10 10:05:00', '2026-03-28 08:00:00'),
-(3, 'device-uuid-sophie-iphone',   'Safari · iOS',      '2026-02-01 11:00:00', '2026-03-20 14:00:00'),
-(2, 'device-uuid-admin-chrome',    'Firefox · Windows', '2026-01-01 08:05:00', '2026-03-28 07:30:00'),
-(5, 'device-uuid-societe-ipad',    'Safari · iOS',      '2026-01-15 14:05:00', '2026-03-01 10:00:00');
+INSERT INTO `trusted_devices` (`user_id`, `device_token`, `device_name`, `confirmed_at`, `last_seen`, `expires_at`) VALUES
+(3, 'device-uuid-sophie-macbook',  'Chrome · macOS',    '2026-01-10 10:05:00', '2026-03-28 08:00:00', DATE_ADD('2026-03-28 08:00:00', INTERVAL 90 DAY)),
+(3, 'device-uuid-sophie-iphone',   'Safari · iOS',      '2026-02-01 11:00:00', '2026-03-20 14:00:00', DATE_ADD('2026-03-20 14:00:00', INTERVAL 90 DAY)),
+(2, 'device-uuid-admin-chrome',    'Firefox · Windows', '2026-01-01 08:05:00', '2026-03-28 07:30:00', DATE_ADD('2026-03-28 07:30:00', INTERVAL 90 DAY)),
+(5, 'device-uuid-societe-ipad',    'Safari · iOS',      '2026-01-15 14:05:00', '2026-03-01 10:00:00', DATE_ADD('2026-03-01 10:00:00', INTERVAL 90 DAY));
 
 -- ============================================================
 -- PASSWORD RESET TOKENS (quelques-uns pour les tests)
@@ -1104,14 +1104,14 @@ ALTER TABLE `newsletter_clicks` AUTO_INCREMENT = 3;
 -- wine_id 16 (Sainte-Croix-du-Mont 2015) : 5+5+4 = avg 4.67
 -- wine_id 21 (Sainte-Croix-du-Mont 2016) : 3+3 = avg 3.0
 -- ============================================================
-INSERT INTO `wine_ratings` (`account_id`, `wine_id`, `order_id`, `rating`, `created_at`) VALUES
-(3, 30, 2, 5, '2026-02-10 12:00:00'),
-(5, 30, 2, 4, '2026-02-11 09:00:00'),
-(6, 30, 2, 5, '2026-02-12 14:00:00'),
-(3, 35, 3, 4, '2026-02-15 10:00:00'),
-(5, 35, 3, 3, '2026-02-16 11:00:00'),
-(3, 16, 1, 5, '2026-02-20 09:00:00'),
-(5, 16, 1, 5, '2026-02-21 10:00:00'),
-(6, 16, 1, 4, '2026-02-22 11:00:00'),
-(3, 21, 3, 3, '2026-02-25 09:00:00'),
-(5, 21, 3, 3, '2026-02-26 10:00:00');
+INSERT INTO `wine_ratings` (`account_id`, `wine_id`, `order_id`, `rating`, `token_created_at`, `created_at`) VALUES
+(3, 30, 2, 5, NULL, '2026-02-10 12:00:00'),
+(5, 30, 2, 4, NULL, '2026-02-11 09:00:00'),
+(6, 30, 2, 5, NULL, '2026-02-12 14:00:00'),
+(3, 35, 3, 4, NULL, '2026-02-15 10:00:00'),
+(5, 35, 3, 3, NULL, '2026-02-16 11:00:00'),
+(3, 16, 1, 5, NULL, '2026-02-20 09:00:00'),
+(5, 16, 1, 5, NULL, '2026-02-21 10:00:00'),
+(6, 16, 1, 4, NULL, '2026-02-22 11:00:00'),
+(3, 21, 3, 3, NULL, '2026-02-25 09:00:00'),
+(5, 21, 3, 3, NULL, '2026-02-26 10:00:00');

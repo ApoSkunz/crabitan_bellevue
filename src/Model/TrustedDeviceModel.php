@@ -23,7 +23,8 @@ class TrustedDeviceModel extends Model
     public function isTrusted(int $userId, string $deviceToken): bool
     {
         $row = $this->db->fetchOne(
-            "SELECT id FROM {$this->table} WHERE user_id = ? AND device_token = ? LIMIT 1",
+            "SELECT id FROM {$this->table}
+             WHERE user_id = ? AND device_token = ? AND expires_at > NOW() LIMIT 1",
             [$userId, $deviceToken]
         );
         return (bool) $row;
@@ -40,9 +41,12 @@ class TrustedDeviceModel extends Model
     public function trust(int $userId, string $deviceToken, string $deviceName): void
     {
         $this->db->insert(
-            "INSERT INTO {$this->table} (user_id, device_token, device_name)
-             VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE device_name = VALUES(device_name), last_seen = CURRENT_TIMESTAMP",
+            "INSERT INTO {$this->table} (user_id, device_token, device_name, expires_at)
+             VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 90 DAY))
+             ON DUPLICATE KEY UPDATE
+               device_name = VALUES(device_name),
+               last_seen   = CURRENT_TIMESTAMP,
+               expires_at  = DATE_ADD(NOW(), INTERVAL 90 DAY)",
             [$userId, $deviceToken, $deviceName]
         );
     }

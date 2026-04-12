@@ -301,6 +301,7 @@ class GoogleOAuthController extends Controller
         $deviceToken = $this->resolveDeviceToken();
         $ua          = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
 
+        session_regenerate_id(true); // VULN-005 : protection session fixation après OAuth Google
         CookieHelper::set($token, self::JWT_EXPIRY);
 
         // Respecter la préférence de langue enregistrée — ne pas écraser avec la langue de l'URL

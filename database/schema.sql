@@ -431,9 +431,12 @@ CREATE TABLE `trusted_devices` (
   `device_name`  VARCHAR(255) DEFAULT NULL,
   `confirmed_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_seen`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `expires_at`   DATETIME     NOT NULL DEFAULT (DATE_ADD(NOW(), INTERVAL 90 DAY))
+                              COMMENT 'Sliding window 90j — renouvelé à chaque connexion (VULN-002)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_user_device` (`user_id`, `device_token`),
   INDEX `idx_td_user`         (`user_id`),
+  INDEX `idx_td_expires`      (`expires_at`),
   CONSTRAINT `fk_td_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -853,6 +856,7 @@ CREATE TABLE IF NOT EXISTS `wine_ratings` (
   `rating` TINYINT UNSIGNED DEFAULT NULL COMMENT '0 = token généré, non encore noté ; 1-5 = note utilisateur',
   `token` VARCHAR(64) NULL DEFAULT NULL,
   `token_used_at` DATETIME NULL DEFAULT NULL,
+  `token_created_at` DATETIME NULL DEFAULT NULL COMMENT 'VULN-008 : date de génération du token — expiration 90j',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

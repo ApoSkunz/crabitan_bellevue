@@ -102,7 +102,9 @@ class AgeGateController extends Controller
      */
     private function logAgeVerification(): void
     {
-        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        // VULN-006 : HTTP_X_FORWARDED_FOR est forgeable — utiliser REMOTE_ADDR uniquement
+        $rawIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $ip    = filter_var($rawIp, FILTER_VALIDATE_IP) ?: 'invalid';
         \Core\ErrorLogger::info('[age-gate] verification ip=' . $ip);
     }
 
@@ -132,12 +134,12 @@ class AgeGateController extends Controller
      */
     private function sanitizeRedirect(string $url): string
     {
-        // Autoriser uniquement les chemins commençant par "/" mais pas "//"
-        // "//" serait interprété comme un URL sans protocole (open redirect)
-        if (!str_starts_with($url, '/') || str_starts_with($url, '//')) {
+        // VULN-007 : décoder les encodages URL avant validation pour bloquer /%5C, /%2F%2F, etc.
+        $decoded = rawurldecode($url);
+        if (!preg_match('#^/(fr|en)(/[a-zA-Z0-9/_\-\.]*)?$#', $decoded)) {
             return '/' . DEFAULT_LANG;
         }
 
-        return $url;
+        return $decoded;
     }
 }

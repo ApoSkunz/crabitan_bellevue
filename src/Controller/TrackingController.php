@@ -84,7 +84,16 @@ class TrackingController extends Controller
 
         $this->tracking->recordClick($newsletterId, $linkId, $subscriberId);
 
-        Response::redirect($link['url']);
+        // VULN-001 (v4) : valider l'URL avant redirect — rejeter tout ce qui n'est pas HTTPS absolu
+        $targetUrl = $link['url'];
+        if (
+            filter_var($targetUrl, FILTER_VALIDATE_URL) === false
+            || !preg_match('#^https://#i', $targetUrl)
+        ) {
+            $this->abort(404);
+        }
+
+        Response::redirect($targetUrl);
     }
 
     /**

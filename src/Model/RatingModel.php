@@ -105,9 +105,13 @@ class RatingModel extends Model
      */
     public function findByToken(string $token): ?array
     {
+        // VULN-008 : token valide 90 jours après génération (token_created_at)
         $row = $this->db->fetchOne(
             "SELECT id, account_id, wine_id, order_id, rating, token, token_used_at, created_at, updated_at
-             FROM {$this->table} WHERE token = ? AND token_used_at IS NULL",
+             FROM {$this->table}
+             WHERE token = ?
+               AND token_used_at IS NULL
+               AND token_created_at > DATE_SUB(NOW(), INTERVAL 90 DAY)",
             [$token]
         );
         return $row ?: null;
@@ -141,13 +145,15 @@ class RatingModel extends Model
     {
         $token = bin2hex(random_bytes(32));
 
+        // VULN-008 : token_created_at tracé pour l'expiration 90j
         $this->db->execute(
-            "INSERT INTO {$this->table} (account_id, wine_id, order_id, rating, token, token_used_at)
-             VALUES (?, ?, ?, NULL, ?, NULL)
+            "INSERT INTO {$this->table} (account_id, wine_id, order_id, rating, token, token_used_at, token_created_at)
+             VALUES (?, ?, ?, NULL, ?, NULL, NOW())
              ON DUPLICATE KEY UPDATE
-               token         = VALUES(token),
-               token_used_at = NULL,
-               updated_at    = NOW()",
+               token            = VALUES(token),
+               token_used_at    = NULL,
+               token_created_at = NOW(),
+               updated_at       = NOW()",
             [$accountId, $wineId, $orderId, $token]
         );
 

@@ -41,12 +41,32 @@ $isPublicPath = str_starts_with($path, '/age-gate')
     || str_contains($path, '/auth/google')
     || str_ends_with($path, '/fiche-technique'); // QR codes — mention Loi Evin incluse dans le PDF
 
-// Crawlers SEO connus : pas de cookie mais on laisse passer pour l'indexation
+// Crawlers SEO connus : vérification DNS inverse pour éviter l'usurpation du User-Agent (VULN-004)
 $ua        = $_SERVER['HTTP_USER_AGENT'] ?? '';
-$isCrawler = (bool) preg_match(
-    '/googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver|crawler|spider/i',
-    $ua
-);
+$isCrawler = false;
+if (preg_match('/googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver|crawler|spider/i', $ua)) {
+    $remoteIp    = $_SERVER['REMOTE_ADDR'] ?? '';
+    $dnsCacheKey = 'bot_dns:' . md5($remoteIp);
+    $cached      = function_exists('apcu_fetch') && function_exists('apcu_exists') && apcu_exists($dnsCacheKey)
+        ? apcu_fetch($dnsCacheKey)
+        : null;
+
+    if ($cached !== null) {
+        $isCrawler = (bool) $cached;
+    } else {
+        $host      = $remoteIp !== '' ? (string) @gethostbyaddr($remoteIp) : '';
+        $isCrawler = str_ends_with($host, '.googlebot.com')
+            || str_ends_with($host, '.google.com')
+            || str_ends_with($host, '.search.msn.com')
+            || str_ends_with($host, '.crawl.yahoo.net')
+            || str_ends_with($host, '.duckduckgo.com')
+            || str_ends_with($host, '.archive.org');
+
+        if (function_exists('apcu_store')) {
+            apcu_store($dnsCacheKey, $isCrawler, 3600); // cache 1h par IP
+        }
+    }
+}
 
 if (!$ageVerified && !$isPublicPath && !$isCrawler) {
     $redirect = rawurlencode($path !== '/' ? $path : '/' . DEFAULT_LANG);
