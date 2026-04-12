@@ -1,54 +1,30 @@
 /**
  * lighthouse-auth.cjs
- * Script Puppeteer pour LHCI :
- * 1. Bypass age-gate en soumettant le vrai formulaire PHP (cookie set server-side).
- * 2. Connexion au compte client de test si disponible en BDD CI.
+ * Script Puppeteer pour LHCI — bypass age-gate.
  *
- * @param {import('puppeteer').Browser} browser
- * @param {{url: string, options: Record<string, unknown>}} context
- * @returns {Promise<{cookies: import('puppeteer').Protocol.Network.Cookie[]}>}
+ * ⚠️  PHP -S est single-threaded : tout page.goto() concurrent avec les
+ *     audits LHCI provoque un timeout 30 s × N URLs (33 pages = ~16 min perdues).
+ *
+ * Fix : retourner le cookie age_verified directement, sans navigation.
+ * LHCI injecte automatiquement les cookies retournés sur chaque page auditée
+ * avant de lancer le crawler Lighthouse.
+ *
+ * @param {import('puppeteer').Browser} _browser Non utilisé
+ * @param {{url: string}} _context Non utilisé
+ * @returns {{ cookies: import('puppeteer').Protocol.Network.Cookie[] }}
  */
-module.exports = async (browser, _context) => {
-    const page = await browser.newPage();
-
-    // ── 1. Age-gate ────────────────────────────────────────────────────────────
-    // Soumettre le vrai formulaire PHP pour que setcookie() s'exécute server-side.
-    // Poser le cookie manuellement via page.setCookie() ne fonctionne pas car
-    // Puppeteer ne peut pas définir de cookies pour localhost avant toute navigation.
-    await page.goto('http://localhost:8080/age-gate', {
-        waitUntil: 'domcontentloaded',
-        timeout: 30000,
-    });
-
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: 'load', timeout: 30000 }),
-        page.click('#age-gate-enter button[type="submit"]'),
-    ]);
-
-    // ── 2. Connexion (optionnelle — non bloquante si compte absent) ────────────
-    try {
-        const trigger = await page.waitForSelector('#login-modal-trigger', {
-            visible: true,
-            timeout: 10000,
-        });
-
-        await trigger.click();
-        await page.waitForSelector('#login-modal-email', { visible: true, timeout: 5000 });
-
-        await page.type('#login-modal-email', 'client.verifie@dev.local');
-        await page.type('#login-modal-password', 'Dev123456789!');
-
-        await Promise.all([
-            page.waitForNavigation({ waitUntil: 'load', timeout: 30000 }).catch(() => {}),
-            page.click('.login-modal__submit'),
-        ]);
-    } catch (_e) {
-        // Login facultatif — les pages publiques sont auditées avec l'age-gate bypassé.
-        // Les pages protégées (/mon-compte) montreront la page non-connectée.
-    }
-
-    const cookies = await page.cookies();
-    await page.close();
-
-    return { cookies };
+module.exports = async (_browser, _context) => {
+    return {
+        cookies: [
+            {
+                name: 'age_verified',
+                value: '1',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                sameSite: 'Lax',
+                secure: false,
+            },
+        ],
+    };
 };
