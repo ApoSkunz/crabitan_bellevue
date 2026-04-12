@@ -883,4 +883,20 @@ CREATE TABLE IF NOT EXISTS `order_rating_tokens` (
   CONSTRAINT `fk_ort_account` FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ============================================================
+-- Table : rate_limits
+-- Cache BDD pour RateLimiterService (fallback APCu → BDD → session).
+-- Purge cron via bin/purge_rate_limits.php (entrées expires_at < NOW()).
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `rate_limits` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `cache_key` VARCHAR(255) NOT NULL,
+  `value` TEXT NOT NULL,
+  `expires_at` INT UNSIGNED NOT NULL COMMENT 'UNIX timestamp',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_rate_limit_key` (`cache_key`),
+  KEY `idx_expires_at` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 COMMIT;
