@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Controller\Account;
 
-use Core\Controller;
 use Core\Response;
-use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\FavoriteModel;
 use Repository\MysqlUserRepository;
@@ -15,7 +13,7 @@ use Repository\UserRepository;
 /**
  * Gère les préférences du compte : favoris, newsletter (désabonnement), langue.
  */
-class AccountPreferenceController extends Controller
+class AccountPreferenceController extends AbstractAccountController
 {
     private const VIEW_UNSUBSCRIBE = 'account/unsubscribe';
 
@@ -122,19 +120,5 @@ class AccountPreferenceController extends Controller
             'success' => $success,
             'confirm' => false,
         ]);
-    }
-
-    /**
-     * Vérifie que la requête provient d'un customer authentifié.
-     *
-     * @return array<string, mixed>
-     */
-    private function requireCustomer(): array
-    {
-        $payload = AuthMiddleware::handle(redirectToLogin: true);
-        if (($payload['role'] ?? '') !== 'customer') {
-            Response::abort(404);
-        }
-        return $payload;
     }
 }

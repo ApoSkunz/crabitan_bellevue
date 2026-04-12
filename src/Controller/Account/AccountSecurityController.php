@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Controller\Account;
 
-use Core\Controller;
 use Core\CookieHelper;
 use Core\Response;
-use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\ConnectionModel;
 use Model\DeviceConfirmTokenModel;
@@ -21,7 +19,7 @@ use Service\RateLimiterService;
 /**
  * Gère la sécurité du compte : mot de passe, MFA, sessions, appareils, suppression, réactivation.
  */
-class AccountSecurityController extends Controller
+class AccountSecurityController extends AbstractAccountController
 {
     /** Rate limiting changement de mot de passe : 3 tentatives / 15 min / IP. */
     private const MAX_CHANGE_PW_IP = 3;
@@ -604,29 +602,4 @@ class AccountSecurityController extends Controller
     // ----------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------
-
-    /**
-     * Vérifie le token CSRF de la requête.
-     *
-     * @return bool
-     */
-    private function verifyCsrf(): bool
-    {
-        $token = $this->request->post('csrf_token', '');
-        return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
-    }
-
-    /**
-     * Vérifie que la requête provient d'un customer authentifié.
-     *
-     * @return array<string, mixed>
-     */
-    private function requireCustomer(): array
-    {
-        $payload = AuthMiddleware::handle(redirectToLogin: true);
-        if (($payload['role'] ?? '') !== 'customer') {
-            Response::abort(404);
-        }
-        return $payload;
-    }
 }

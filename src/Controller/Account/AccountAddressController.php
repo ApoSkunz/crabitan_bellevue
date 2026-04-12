@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Controller\Account;
 
-use Core\Controller;
 use Core\Response;
-use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\AddressModel;
 use Model\OrderModel;
@@ -16,7 +14,7 @@ use Repository\UserRepository;
 /**
  * Gère le CRUD des adresses de livraison/facturation du compte client.
  */
-class AccountAddressController extends Controller
+class AccountAddressController extends AbstractAccountController
 {
     private UserRepository $userRepo;
     private AddressModel $addresses;
@@ -308,31 +306,6 @@ class AccountAddressController extends Controller
         $num    = (int) $zip;
         $prefix = (int) substr($zip, 0, 2);
         return $num >= 1000 && $num <= 95999 && $prefix !== 20;
-    }
-
-    /**
-     * Vérifie le token CSRF de la requête.
-     *
-     * @return bool
-     */
-    private function verifyCsrf(): bool
-    {
-        $token = $this->request->post('csrf_token', '');
-        return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
-    }
-
-    /**
-     * Vérifie que la requête provient d'un customer authentifié.
-     *
-     * @return array<string, mixed>
-     */
-    private function requireCustomer(): array
-    {
-        $payload = AuthMiddleware::handle(redirectToLogin: true);
-        if (($payload['role'] ?? '') !== 'customer') {
-            Response::abort(404);
-        }
-        return $payload;
     }
 
     /**

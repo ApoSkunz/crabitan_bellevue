@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Controller\Account;
 
-use Core\Controller;
 use Core\CookieHelper;
 use Core\Response;
-use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\FavoriteModel;
 use Model\OrderModel;
@@ -20,9 +18,10 @@ use ValueObject\Email;
 /**
  * Gère le profil, le tableau de bord et les préférences de langue du compte client.
  */
-class AccountProfileController extends Controller
+class AccountProfileController extends AbstractAccountController
 {
-    private const CONTENT_TYPE_JSON = 'Content-Type: application/json';
+    private const CONTENT_TYPE_JSON          = 'Content-Type: application/json';
+    private const VIEW_EMAIL_CHANGE_CONFIRM  = 'account/email_change_confirm';
 
     private UserRepository $userRepo;
     /** AccountModel conservé pour les méthodes hors interface (storeNewsletterConfirmToken). */
@@ -244,7 +243,7 @@ class AccountProfileController extends Controller
         $rawToken = $this->request->get('token', '');
 
         if ($rawToken === '') {
-            $this->view('account/email_change_confirm', [
+            $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
                 'lang'    => $lang,
                 'success' => false,
                 'error'   => __('account.email_change_token_invalid'),
@@ -257,7 +256,7 @@ class AccountProfileController extends Controller
         try {
             $service->confirmEmailChange($rawToken);
         } catch (\Core\Exception\HttpException $e) {
-            $this->view('account/email_change_confirm', [
+            $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
                 'lang'    => $lang,
                 'success' => false,
                 'error'   => $e->getMessage(),
@@ -267,7 +266,7 @@ class AccountProfileController extends Controller
 
         CookieHelper::clear();
 
-        $this->view('account/email_change_confirm', [
+        $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
             'lang'    => $lang,
             'success' => true,
             'error'   => null,
@@ -290,7 +289,7 @@ class AccountProfileController extends Controller
         $rawToken = $this->request->get('token', '');
 
         if ($rawToken === '') {
-            $this->view('account/email_change_confirm', [
+            $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
                 'lang'    => $lang,
                 'success' => false,
                 'error'   => __('account.email_change_token_invalid'),
@@ -302,7 +301,7 @@ class AccountProfileController extends Controller
         $account     = $this->userRepo->findByEmailChangeToken($hashedToken);
 
         if (!$account) {
-            $this->view('account/email_change_confirm', [
+            $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
                 'lang'    => $lang,
                 'success' => false,
                 'error'   => __('account.email_change_token_invalid'),
@@ -312,7 +311,7 @@ class AccountProfileController extends Controller
 
         $this->userRepo->clearEmailChangeToken((int) $account['id']);
 
-        $this->view('account/email_change_confirm', [
+        $this->view(self::VIEW_EMAIL_CHANGE_CONFIRM, [
             'lang'    => $lang,
             'success' => true,
             'revoked' => true,
@@ -458,30 +457,5 @@ class AccountProfileController extends Controller
             $this->userRepo->updateCompanyProfile($userId, $companyName, $siret);
         }
         return $errors;
-    }
-
-    /**
-     * Vérifie le token CSRF de la requête.
-     *
-     * @return bool
-     */
-    private function verifyCsrf(): bool
-    {
-        $token = $this->request->post('csrf_token', '');
-        return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
-    }
-
-    /**
-     * Vérifie que la requête provient d'un customer authentifié.
-     *
-     * @return array<string, mixed>
-     */
-    private function requireCustomer(): array
-    {
-        $payload = AuthMiddleware::handle(redirectToLogin: true);
-        if (($payload['role'] ?? '') !== 'customer') {
-            Response::abort(404);
-        }
-        return $payload;
     }
 }

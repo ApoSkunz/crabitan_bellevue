@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Controller\Account;
 
-use Core\Controller;
 use Core\Response;
-use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\RgpdExportLogModel;
 use Repository\MysqlUserRepository;
@@ -16,7 +14,7 @@ use Service\RateLimiterService;
 /**
  * Gère l'export RGPD des données personnelles (Art. 20) depuis l'espace client.
  */
-class AccountExportController extends Controller
+class AccountExportController extends AbstractAccountController
 {
     /** Rate limiting export RGPD : 3 exports / 24 h / utilisateur. */
     private const MAX_EXPORT_USER = 3;
@@ -369,30 +367,5 @@ class AccountExportController extends Controller
             $h .= $rowFn($row);
         }
         return $h . '</table>';
-    }
-
-    /**
-     * Vérifie le token CSRF de la requête.
-     *
-     * @return bool
-     */
-    private function verifyCsrf(): bool
-    {
-        $token = $this->request->post('csrf_token', '');
-        return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
-    }
-
-    /**
-     * Vérifie que la requête provient d'un customer authentifié.
-     *
-     * @return array<string, mixed>
-     */
-    private function requireCustomer(): array
-    {
-        $payload = AuthMiddleware::handle(redirectToLogin: true);
-        if (($payload['role'] ?? '') !== 'customer') {
-            Response::abort(404);
-        }
-        return $payload;
     }
 }

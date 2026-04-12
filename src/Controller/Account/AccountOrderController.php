@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Controller\Account;
 
-use Core\Controller;
 use Core\Response;
-use Middleware\AuthMiddleware;
 use Model\AccountModel;
 use Model\OrderModel;
 use Repository\MysqlUserRepository;
@@ -16,7 +14,7 @@ use Service\PaymentService;
 /**
  * Gère les commandes et fiches de retour depuis l'espace client.
  */
-class AccountOrderController extends Controller
+class AccountOrderController extends AbstractAccountController
 {
     private const DATE_FORMAT    = 'd/m/Y';
     private const PER_PAGE       = 10;
@@ -507,31 +505,6 @@ class AccountOrderController extends Controller
 
         $pdf->writeHTML($html, true, false, true, false, '');
         return (string) $pdf->Output('', 'S');
-    }
-
-    /**
-     * Vérifie le token CSRF de la requête.
-     *
-     * @return bool
-     */
-    private function verifyCsrf(): bool
-    {
-        $token = $this->request->post('csrf_token', '');
-        return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
-    }
-
-    /**
-     * Vérifie que la requête provient d'un customer authentifié.
-     *
-     * @return array<string, mixed>
-     */
-    private function requireCustomer(): array
-    {
-        $payload = AuthMiddleware::handle(redirectToLogin: true);
-        if (($payload['role'] ?? '') !== 'customer') {
-            Response::abort(404);
-        }
-        return $payload;
     }
 
     /**
