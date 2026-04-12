@@ -3,19 +3,7 @@ name: Mutation Testing JS (Stryker)
 on:
   push:
     branches:
-      - 'feat/**'
-      - 'fix/**'
-    paths:
-      - 'resources/js/cart-utils.js'
-      - 'resources/js/error-utils.js'
-      - 'tests/unit/js/**'
-      - 'stryker.config.mjs'
-  pull_request:
-    paths:
-      - 'resources/js/cart-utils.js'
-      - 'resources/js/error-utils.js'
-      - 'tests/unit/js/**'
-      - 'stryker.config.mjs'
+      - main
   workflow_dispatch:
 
 jobs:
