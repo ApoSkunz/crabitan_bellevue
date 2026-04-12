@@ -2358,8 +2358,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initAddressAddToggle();
     initAlertAutoDismiss();
     initWineZoom();
-    // Pour les connectés : affichage immédiat depuis cookie count + vérification API
-    if (globalThis.__userLogged) {
+    // Pour les connectés non-admin : affichage immédiat depuis cookie count + vérification API
+    if (globalThis.__userLogged && !globalThis.__isAdmin) {
         // Affichage immédiat du badge depuis le cookie count (évite le flash à 0)
         const countCookie = document.cookie.split('; ').find((c) => c.startsWith('cb-cart-count='));
         if (countCookie) {
@@ -2373,7 +2373,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then((r) => r.ok ? r.json() : null)
             .then((data) => { if (data && typeof data.total_quantity === 'number') updateCartCount(data.total_quantity); })
             .catch(() => { /* fallback : badge reste sur la valeur du cookie */ });
-    } else {
+    } else if (!globalThis.__userLogged) {
         updateCartCount();
     }
     initNewsletterForm();

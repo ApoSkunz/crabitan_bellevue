@@ -253,6 +253,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
 
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 window.__userLogged       = <?= $isLogged ? 'true' : 'false' ?>;
+window.__isAdmin          = <?= $isAdmin ? 'true' : 'false' ?>;
 window.__cartMap          = <?= json_encode($headerCartMap, JSON_UNESCAPED_UNICODE) ?>;
 window.__navLang          = '<?= htmlspecialchars($navLang) ?>';
 window.__csrf             = '<?= htmlspecialchars($modalCsrf) ?>';
