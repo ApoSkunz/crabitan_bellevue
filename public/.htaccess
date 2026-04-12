@@ -2,10 +2,10 @@ Options -Indexes
 
 RewriteEngine On
 
-# ---- HTTPS redirect ----------------------------------------------------------
-RewriteCond %{HTTP_HOST} ^(www\.)?crabitanbellevue\.fr$ [NC]
-RewriteCond %{HTTPS} off
-RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+# ---- HTTPS redirect (décommenter en production) -----------------------------
+# RewriteCond %{HTTP_HOST} ^(www\.)?crabitanbellevue\.fr$ [NC]
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 # -----------------------------------------------------------------------------
 
 # ---- Mode maintenance -------------------------------------------------------
