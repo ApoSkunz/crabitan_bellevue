@@ -2,6 +2,36 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.77.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.76.0...v0.77.0) (2026-04-12)
+
+
+### Bug Fixes
+
+* **controller:** ?? 'fr' sur params['lang'] login+register AuthController — supprime PHP notice Infection ([7bda154](https://github.com/ApoSkunz/crabitan_bellevue/commit/7bda15408835d0d3e30e6c351adfa0cc281e9eac))
+* **deps:** supprimer @stryker-mutator/javascript-mutator inexistant + sync infection lock ([82a861c](https://github.com/ApoSkunz/crabitan_bellevue/commit/82a861c0b5bad76dd1438b33b13293c1d67ba323))
+* **deps:** sync package-lock.json après ajout @stryker-mutator/core ([fcbf8f4](https://github.com/ApoSkunz/crabitan_bellevue/commit/fcbf8f424d3e7c028752b5cf89933dc3f49a5d39))
+* **infection:** --testsuite Unit → --testsuite=Unit (syntaxe PHPUnit 13) ([796cefd](https://github.com/ApoSkunz/crabitan_bellevue/commit/796cefdbd87c52ccddecdb9ef1ac0a0a57eb4ef7))
+* **infection:** exclure src/Model du périmètre — SQL non testable en TU, timeouts + MSI faussé ([1bc9bf8](https://github.com/ApoSkunz/crabitan_bellevue/commit/1bc9bf867bfa518d700734a21cc658259a0ee13c))
+* **infection:** supprimer source.excludes vide — schéma requiert min 1 item ou clé absente ([1d50738](https://github.com/ApoSkunz/crabitan_bellevue/commit/1d50738d98262b11a65d7c904efbdd2e17c60253))
+* **service:** fallback ?? '' sur MAIL_USER manquant dans MailService — supprime PHP warning en TU Infection ([0e9e505](https://github.com/ApoSkunz/crabitan_bellevue/commit/0e9e505be881e2b0a54cd4a0f894f6cc405645b2))
+* **stryker:** corriger casse chemin tests Unit/js + supprimer options dépréciées mutator/files ([7155fbf](https://github.com/ApoSkunz/crabitan_bellevue/commit/7155fbf35119ad5e622402b4a0e0cd9d14627c9f))
+* **test:** [@run](https://github.com/run)InSeparateProcess sur testLangReturnsDefault — constante CURRENT_LANG non réinitialisable entre tests ([18672d2](https://github.com/ApoSkunz/crabitan_bellevue/commit/18672d2bb1442d51a94677442c8765de9f172311))
+* **test:** convertir fins de ligne CRLF → LF UploadFuzzingTest (PHPCS Generic.Files.LineEndings) ([1b22420](https://github.com/ApoSkunz/crabitan_bellevue/commit/1b224203a01a72f70dffe87d0015272580893ac4))
+* **test:** corriger PHPCS AnonClass + syntax error interpolation dollar UploadFuzzingTest ([2261d18](https://github.com/ApoSkunz/crabitan_bellevue/commit/2261d186b02b540fec8967f390ba96ba3e6816bc))
+* **test:** corriger tests fuzzing — #[DataProvider] PHPUnit13 + PasswordValidator::isStrong ([97f4d27](https://github.com/ApoSkunz/crabitan_bellevue/commit/97f4d27fb14c3250843efab4905e54604ccc2a25))
+* **test:** mocker Database::instance avant new class extends IpnController (IpnControllerHandleFlowTest) ([ddee9b0](https://github.com/ApoSkunz/crabitan_bellevue/commit/ddee9b082941d35d0bd999f97d7428f357c043ea))
+* **test:** mocker Database::instance dans setUp StockNotificationServiceTest — PDO connection refused ordre aléatoire Infection ([a2d7bad](https://github.com/ApoSkunz/crabitan_bellevue/commit/a2d7bad2f00f9fa2f45077c05bcccc565882d348))
+* **test:** purger le fichier log avant testValidPayloadReturns204AndWritesLog — isolation ordre aléatoire Infection ([4669b58](https://github.com/ApoSkunz/crabitan_bellevue/commit/4669b58219530dea8a454e685569ffb1089ea148))
+
+
+### Features
+
+* **qa:** configurer Infection PHP mutation testing ([d87b34c](https://github.com/ApoSkunz/crabitan_bellevue/commit/d87b34c1f89aeb57ed7782a6f5cc59711c8574da))
+* **qa:** configurer Stryker mutation testing JS ([69504ff](https://github.com/ApoSkunz/crabitan_bellevue/commit/69504ffff7a31a5e3f8186f701ed48e0e6983c2f))
+* **security:** fuzzing entrées PHP (us-fuzzing-php-inputs) ([665759e](https://github.com/ApoSkunz/crabitan_bellevue/commit/665759e766d5f1f017e9d7cada322e9ca16abd2e))
+* **security:** fuzzing routes API HTTP (us-fuzzing-api-routes) ([e6f16f2](https://github.com/ApoSkunz/crabitan_bellevue/commit/e6f16f2ed36b897a37a89bc4904deebb9e689b5f))
+* **security:** fuzzing upload fichiers (us-fuzzing-upload) ([40a0cb5](https://github.com/ApoSkunz/crabitan_bellevue/commit/40a0cb53c6fe7a54c343535d524f592db8e7e852))
+
 # [0.76.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.75.0...v0.76.0) (2026-04-12)
 
 
