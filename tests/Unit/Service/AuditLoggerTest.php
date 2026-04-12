@@ -127,14 +127,14 @@ class AuditLoggerTest extends TestCase
     }
 
     /**
-     * getIp() utilise le premier IP de X-Forwarded-For si valide.
+     * getIp() ignore X-Forwarded-For (spoofable) et retourne REMOTE_ADDR — VULN-017.
      */
-    public function testGetIpPrefersXForwardedFor(): void
+    public function testGetIpIgnoresXForwardedForAndUsesRemoteAddr(): void
     {
         $_SERVER['HTTP_X_FORWARDED_FOR'] = '203.0.113.5, 10.0.0.1';
         $_SERVER['REMOTE_ADDR']          = '10.0.0.1';
 
-        $this->assertSame('203.0.113.5', AuditLogger::getIp());
+        $this->assertSame('10.0.0.1', AuditLogger::getIp());
 
         unset($_SERVER['HTTP_X_FORWARDED_FOR']);
     }
