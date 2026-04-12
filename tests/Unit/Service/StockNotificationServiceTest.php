@@ -19,13 +19,25 @@ class StockNotificationServiceTest extends TestCase
     private StubMailServiceForStock $mailService;
     private StockNotificationService $service;
 
+    private \ReflectionProperty $dbInstanceProp;
+
     protected function setUp(): void
     {
+        // Mocker Database::instance avant d'instancier les stubs (parent WineModel appelle Database)
+        $dbMock = $this->createStub(\Core\Database::class);
+        $this->dbInstanceProp = new \ReflectionProperty(\Core\Database::class, 'instance');
+        $this->dbInstanceProp->setValue(null, $dbMock);
+
         $this->wineModel   = new StubWineModelForStock();
         $this->mailService = new StubMailServiceForStock();
         $this->service     = new StockNotificationService($this->wineModel, $this->mailService);
         $_ENV['STOCK_ALERTE_LIMIT'] = '300';
         $_ENV['APP_URL'] = 'https://crabitanbellevue.fr';
+    }
+
+    protected function tearDown(): void
+    {
+        $this->dbInstanceProp->setValue(null, null);
     }
 
     // ----------------------------------------------------------------

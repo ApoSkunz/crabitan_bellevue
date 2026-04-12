@@ -8,12 +8,14 @@
     "build": "vite build",
     "dev": "vite build --watch",
     "lint": "eslint resources/js/ tests/E2E/ playwright.config.js",
-    "test": "playwright test"
+    "test": "playwright test",
+    "mutation:js": "stryker run"
   },
   "overrides": {
     "tmp": "^0.2.4"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "^8.0.0",
     "@eslint/js": "^10.0.1",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.58.2",

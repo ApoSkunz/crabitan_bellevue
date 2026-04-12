@@ -1,0 +1,62 @@
+name: Mutation Testing
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - 'src/Model/**'
+      - 'src/Service/**'
+      - 'tests/Unit/**'
+
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  mutation:
+    name: Infection PHP — Mutation Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Non bloquant : le job est en continue-on-error pour ne pas bloquer le merge
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, zip
+          coverage: xdebug
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Create build directories
+        run: mkdir -p build/infection
+
+      - name: Run Infection
+        env:
+          XDEBUG_MODE: coverage
+        run: |
+          vendor/bin/infection \
+            --min-msi=60 \
+            --threads=4 \
+            --show-mutations \
+            --no-progress \
+            || true
+
+      - name: Upload Infection HTML report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: infection-report
+          path: build/infection/
+          retention-days: 14

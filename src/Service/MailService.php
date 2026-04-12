@@ -120,7 +120,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $message,
         string $lang
     ): void {
-        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
 
         $subjectLabel = $this->resolveSubjectLabel($subject, $lang);
         $subjectLine  = 'Contact site : ' . $subjectLabel;
@@ -1590,7 +1590,7 @@ INNER;
      */
     public function sendReturnRequestedToOwner(array $order, string $clientName, string $clientEmail): void
     {
-        $ownerEmail   = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
+        $ownerEmail   = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef      = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName     = htmlspecialchars($clientName, ENT_QUOTES);
         $safeEmail    = htmlspecialchars($clientEmail, ENT_QUOTES);
@@ -1657,7 +1657,7 @@ INNER;
      */
     public function sendRefundGaeKoToOwner(string $orderRef, float $amount, int $orderId = 0): void
     {
-        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef    = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeAmount = number_format($amount, 2, ',', ' ');
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
@@ -1699,7 +1699,7 @@ INNER;
      */
     public function sendRefundRequestedToOwner(array $order, string $clientName, string $clientEmail): void
     {
-        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef    = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName   = htmlspecialchars($clientName, ENT_QUOTES);
         $safeEmail  = htmlspecialchars($clientEmail, ENT_QUOTES);
@@ -1739,7 +1739,7 @@ INNER;
      */
     public function sendPendingOrdersAlert(array $orders, int $days = 7): void
     {
-        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'];
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $count      = count($orders);
         $statusLabels = [

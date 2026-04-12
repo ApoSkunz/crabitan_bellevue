@@ -56,6 +56,10 @@ class ControllerTest extends TestCase
         }
     }
 
+    /**
+     * @runInSeparateProcess — CURRENT_LANG est une constante PHP ; un test précédent
+     * peut la définir à 'zz'. Process isolé garantit qu'elle n'est pas encore définie.
+     */
     public function testLangReturnsDefaultWhenCurrentLangNotDefined(): void
     {
         // CURRENT_LANG is not defined in bootstrap — falls back to DEFAULT_LANG ('fr')

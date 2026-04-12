@@ -8,6 +8,10 @@
     <testsuites>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
+            <exclude>tests/Unit/Fuzzing</exclude>
+        </testsuite>
+        <testsuite name="Fuzzing">
+            <directory>tests/Unit/Fuzzing</directory>
         </testsuite>
         <testsuite name="Integration">
             <directory>tests/Integration</directory>

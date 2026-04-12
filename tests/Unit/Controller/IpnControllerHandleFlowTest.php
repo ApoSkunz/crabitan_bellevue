@@ -607,6 +607,10 @@ class IpnControllerHandleFlowTest extends TestCase
      */
     public function testHandleCallsMkdirInvoicesSeam(): void
     {
+        $dbMock = $this->createStub(\Core\Database::class);
+        $dbProp = new \ReflectionProperty(\Core\Database::class, 'instance');
+        $dbProp->setValue(null, $dbMock);
+
         $ctrl = new class extends IpnController {
             public bool $mkdirCalled = false;
             public string $mkdirPath = '';
@@ -669,6 +673,8 @@ class IpnControllerHandleFlowTest extends TestCase
 
         $this->assertTrue($ctrl->mkdirCalled, 'mkdirInvoices doit toujours être appelé depuis handle()');
         $this->assertStringContainsString('storage/invoices', $ctrl->mkdirPath);
+
+        $dbProp->setValue(null, null); // reset singleton pour ne pas polluer les tests suivants
     }
 
     // ================================================================
