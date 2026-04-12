@@ -16,7 +16,6 @@
   },
   "devDependencies": {
     "@stryker-mutator/core": "^8.0.0",
-    "@stryker-mutator/javascript-mutator": "^8.0.0",
     "@eslint/js": "^10.0.1",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.58.2",
