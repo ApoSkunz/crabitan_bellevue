@@ -561,7 +561,8 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.invoice_number, o.path_invoice,
+                    o.cgv_version, o.ca_numappel, o.ca_numtrans,
+                    o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     b.civility  AS bill_civility,  b.firstname AS bill_firstname, b.lastname AS bill_lastname,
                     b.street    AS bill_street,    b.city      AS bill_city,

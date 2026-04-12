@@ -281,7 +281,7 @@ class RatingControllerTest extends IntegrationTestCase
         self::$db->execute("SET FOREIGN_KEY_CHECKS=0");
         self::$db->execute(
             "INSERT INTO wine_ratings (account_id, wine_id, order_id, rating, token, token_used_at)
-             VALUES (?, 1, 1, 0, ?, NULL)",
+             VALUES (?, 1, 1, NULL, ?, NULL)",
             [$userId, $token]
         );
         self::$db->execute("SET FOREIGN_KEY_CHECKS=1");
