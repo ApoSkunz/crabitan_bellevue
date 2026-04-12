@@ -389,7 +389,9 @@ jobs:
         env:
           LHCI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-        run: npx lhci autorun
+        run: |
+          npx lhci autorun
+          npx lhci upload --target=filesystem --outputDir=./lighthouse-reports || true
 
       - name: Lighthouse — résumé agrégé
         if: always()
@@ -398,7 +400,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Page | Perf | A11y | SEO |" >> $GITHUB_STEP_SUMMARY
           echo "|------|------|------|-----|" >> $GITHUB_STEP_SUMMARY
-          for f in .lighthouseci/lhr-*.json; do
+          for f in $(find lighthouse-reports -name "lhr-*.json" 2>/dev/null); do
             [ -f "$f" ] || continue
             url=$(jq -r '.finalUrl' "$f")
             perf=$(jq -r '(.categories.performance.score // 0) * 100 | round | tostring' "$f")
@@ -412,7 +414,7 @@ jobs:
         if: always()
         with:
           name: lighthouse-report
-          path: .lighthouseci/
+          path: lighthouse-reports/
           retention-days: 7
 
   sca:
