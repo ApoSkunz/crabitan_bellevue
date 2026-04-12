@@ -8,9 +8,6 @@
 
 /** @type {import('@stryker-mutator/api/core').PartialStrykerOptions} */
 export default {
-    // Mutator
-    mutator: 'javascript',
-
     // Fichiers sources à muter
     mutate: [
         'resources/js/cart-utils.js',
@@ -20,16 +17,8 @@ export default {
     // Runner de tests — utilise node:test natif, sans framework tiers
     testRunner: 'command',
     commandRunner: {
-        command: 'node --test tests/unit/js/cart-utils.test.mjs tests/unit/js/error-utils.test.mjs',
+        command: 'node --test tests/Unit/js/cart-utils.test.mjs tests/Unit/js/error-utils.test.mjs',
     },
-
-    // Fichiers nécessaires au test runner (source + tests)
-    files: [
-        'resources/js/cart-utils.js',
-        'resources/js/error-utils.js',
-        'tests/unit/js/cart-utils.test.mjs',
-        'tests/unit/js/error-utils.test.mjs',
-    ],
 
     // Rapport
     reporters: ['html', 'progress', 'clear-text'],
@@ -54,12 +43,13 @@ export default {
     // Concurrence
     concurrency: 4,
 
-    // Exclusions build Vite
+    // Patterns ignorés (build Vite + tout sauf sources + tests ciblés)
     ignorePatterns: [
-        'public/assets/**',
-        'dist/**',
-        'node_modules/**',
-        'build/stryker/**',
+        '**',
+        '!resources/js/cart-utils.js',
+        '!resources/js/error-utils.js',
+        '!tests/Unit/js/cart-utils.test.mjs',
+        '!tests/Unit/js/error-utils.test.mjs',
     ],
 
     // Logging
