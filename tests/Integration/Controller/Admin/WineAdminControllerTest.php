@@ -15,34 +15,13 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
     }
 
     /**
-     * Insère un vin avec un slug personnalisé pour déclencher les tests de doublon.
+     * Insère un vin avec un préfixe de slug personnalisé.
+     *
+     * @param string $slugPrefix Préfixe du slug (ex: 'bordeaux-rouge-2099')
      */
-    private function insertWineWithSlug(string $slug): int
+    private function insertWineWithSlug(string $slugPrefix): int
     {
-        return (int) self::$db->insert(
-            "INSERT INTO wines
-             (label_name, wine_color, format, vintage, price, production_quantity, available,
-              area, city, variety_of_vine, age_of_vineyard,
-              oenological_comment_fr, oenological_comment_en,
-              soil_fr, soil_en, pruning_fr, pruning_en,
-              harvest_fr, harvest_en, vinification_fr, vinification_en,
-              barrel_fermentation_fr, barrel_fermentation_en,
-              award_fr, award_en, extra_comment_fr, extra_comment_en,
-              image_path, slug)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            [
-                'Vin Doublon', 'red', 'bottle', 2018, 15.00, 10, 1,
-                '1.00', 'Bordeaux', 'Merlot 100%', 15,
-                'Desc doublon', 'Duplicate desc',
-                'Argile', 'Clay',
-                'Guyot', 'Guyot',
-                'Manuel', 'Manual',
-                'Inox', 'Stainless',
-                '12 mois', '12 months',
-                '', '', '', '',
-                'Wine_Vin_Doublon_2018.png', $slug . '-' . uniqid(),
-            ]
-        );
+        return $this->insertWine($slugPrefix);
     }
 
     /**
@@ -73,7 +52,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         );
     }
 
-    private function insertWine(): int
+    private function insertWine(string $slugPrefix = 'vin-ti'): int
     {
         return (int) self::$db->insert(
             "INSERT INTO wines
@@ -96,7 +75,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
                 'Inox', 'Stainless',
                 '12 mois', '12 months',
                 '', '', '', '',
-                'Wine_Vin_TI_2022.png', 'vin-ti-' . uniqid(),
+                'Wine_Vin_TI_2022.png', $slugPrefix . '-' . uniqid(),
             ]
         );
     }
