@@ -60,7 +60,7 @@ class Container
     public function get(string $abstract): mixed
     {
         if (!$this->has($abstract)) {
-            throw new RuntimeException(
+            throw new RuntimeException( // NOSONAR — php:S112 — exception générique volontaire dans ce micro-container
                 "Aucun binding enregistré pour : {$abstract}"
             );
         }

@@ -11,6 +11,7 @@ namespace Repository;
  * L'implémentation concrète (ex. MysqlUserRepository) délègue à AccountModel ou
  * exécute directement les requêtes SQL.
  */
+// NOSONAR — php:S1448 — contrat complet des opérations AccountModel ; S107 — create() nécessite 10 params
 interface UserRepository
 {
     // ----------------------------------------------------------------

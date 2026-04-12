@@ -12,7 +12,7 @@ use Model\OrderModel;
  * Délègue toutes les opérations à OrderModel en constructor injection,
  * permettant le remplacement par un mock dans les tests unitaires.
  */
-class MysqlOrderRepository implements OrderRepository
+class MysqlOrderRepository implements OrderRepository // NOSONAR — php:S1448 — délégation complète de l'interface OrderRepository vers OrderModel
 {
     /**
      * @param OrderModel $model Modèle de commande sous-jacent

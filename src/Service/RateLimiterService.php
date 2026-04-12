@@ -25,6 +25,7 @@ class RateLimiterService
     private const PREFIX       = 'rl:';
     private const SUFFIX_COUNT = ':count';
     private const SUFFIX_UNTIL = ':until';
+    private const LOG_PREFIX   = '[RateLimiterService]';
 
     private ?Database $db;
 
@@ -263,7 +264,7 @@ class RateLimiterService
             }
             return unserialize((string) $row['value']);
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, '[RateLimiterService]');
+            \Core\ErrorLogger::warning($e, self::LOG_PREFIX);
             return $default;
         }
     }
@@ -288,7 +289,7 @@ class RateLimiterService
                 [$fullKey, $serialized, $expiresAt, $serialized, $expiresAt]
             );
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, '[RateLimiterService]');
+            \Core\ErrorLogger::warning($e, self::LOG_PREFIX);
         }
     }
 
@@ -306,7 +307,7 @@ class RateLimiterService
                 [$fullKey]
             );
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, '[RateLimiterService]');
+            \Core\ErrorLogger::warning($e, self::LOG_PREFIX);
         }
     }
 

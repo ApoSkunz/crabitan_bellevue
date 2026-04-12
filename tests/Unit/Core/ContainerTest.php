@@ -96,6 +96,7 @@ class ContainerTest extends TestCase
 
         $this->container->get('SpyService');
 
+        // NOSONAR — php:S3415 — ordre correct : expected=$container, actual=$receivedContainer
         $this->assertSame($this->container, $receivedContainer);
     }
 

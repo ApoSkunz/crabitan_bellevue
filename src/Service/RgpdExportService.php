@@ -20,6 +20,8 @@ use Model\TrustedDeviceModel;
  */
 class RgpdExportService
 {
+    private const JSON_EXT = '.json';
+
     private AccountModel $accounts;
     private AddressModel $addresses;
     private FavoriteModel $favorites;
@@ -176,14 +178,14 @@ class RgpdExportService
             $tmpZip = (string) tempnam(sys_get_temp_dir(), 'cbv_rgpd_');
             $zip    = new \ZipArchive();
             $zip->open($tmpZip, \ZipArchive::OVERWRITE);
-            $zip->addFromString($basename . '.json', $json);
+            $zip->addFromString($basename . self::JSON_EXT, $json);
             $zip->close();
             $content  = (string) file_get_contents($tmpZip);
             unlink($tmpZip);
             return [$content, $basename . '.zip'];
         }
 
-        return [$json, $basename . '.json'];
+        return [$json, $basename . self::JSON_EXT];
     }
 
     /**
@@ -205,7 +207,7 @@ class RgpdExportService
             $tmpZip = (string) tempnam(sys_get_temp_dir(), 'cbv_export_');
             $zip    = new \ZipArchive();
             $zip->open($tmpZip, \ZipArchive::OVERWRITE);
-            $zip->addFromString($basename . '.json', $json);
+            $zip->addFromString($basename . self::JSON_EXT, $json);
             $zip->addFromString($basename . '.pdf', $pdf);
             $zip->close();
 

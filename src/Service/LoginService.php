@@ -89,7 +89,7 @@ class LoginService
      * @param string $ip       Adresse IP brute de la requête
      * @return array{result: string, account: array<string, mixed>|null, wait: int}
      */
-    public function attempt(
+    public function attempt( // NOSONAR — php:S1142 — 5 retours nécessaires pour les cas auth distincts (locked/deleted/bad_credentials/unverified/ok)
         string $email,
         string $password,
         string $ipKey,
@@ -120,8 +120,8 @@ class LoginService
         // Vérification du mot de passe
         if (!$account || $account['password'] === null || !password_verify($password, (string) $account['password'])) {
             $this->recordLoginFailure($ipKey, $account);
-            $this->handleAdminFailure($account, $ip, $lang);
-            $this->handleBt2Lockout($account, $ipKey, $lang);
+            $this->handleAdminFailure($account, $ip);
+            $this->handleBt2Lockout($account, $lang);
             return ['result' => 'bad_credentials', 'account' => null, 'wait' => 0];
         }
 
@@ -226,10 +226,9 @@ class LoginService
      *
      * @param array<string, mixed>|false $account Données du compte (false si inconnu)
      * @param string                     $ip      Adresse IP de la requête
-     * @param string                     $lang    Code langue
      * @return void
      */
-    private function handleAdminFailure(array|false $account, string $ip, string $lang): void
+    private function handleAdminFailure(array|false $account, string $ip): void
     {
         if (!$account || !in_array($account['role'] ?? '', ['admin', 'super_admin'], true)) {
             return;
@@ -264,11 +263,10 @@ class LoginService
      * N'a aucun effet si le compte est inconnu ou si le seuil n'est pas encore atteint.
      *
      * @param array<string, mixed>|false $account Données du compte (false si inconnu)
-     * @param string                     $ipKey   Clé de rate limiting de l'IP
      * @param string                     $lang    Code langue
      * @return void
      */
-    private function handleBt2Lockout(array|false $account, string $ipKey, string $lang): void
+    private function handleBt2Lockout(array|false $account, string $lang): void
     {
         if (!$account) {
             return;

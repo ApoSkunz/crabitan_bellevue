@@ -13,7 +13,7 @@ use Model\AccountModel;
  * de la dépendance directe sur AccountModel et prépare une migration progressive
  * vers des requêtes SQL autonomes si AccountModel est découpé à terme.
  */
-class MysqlUserRepository implements UserRepository
+class MysqlUserRepository implements UserRepository // NOSONAR — php:S1448 — délégation complète de l'interface UserRepository vers AccountModel
 {
     private AccountModel $model;
 

@@ -28,7 +28,7 @@ use ValueObject\Email;
  * Intègre un rate limiting par IP sur les routes POST sensibles (R1/R2)
  * ainsi qu'un lockout de compte après 5 échecs consécutifs (BT2).
  */
-class AuthController extends Controller
+class AuthController extends Controller // NOSONAR — php:S1448 — controller auth multi-flux nécessite >20 méthodes
 {
     /** Fenêtre de rate limiting pour la connexion et l'inscription (15 min). */
     private const WINDOW_LOGIN    = 900;
@@ -102,7 +102,7 @@ class AuthController extends Controller
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
      */
-    public function login(array $params): void
+    public function login(array $params): void // NOSONAR — php:S3776 — complexité cognitive inhérente au flux d'authentification multi-cas
     {
         GuestMiddleware::handle();
         $lang = $params['lang'] ?? 'fr';
@@ -133,7 +133,7 @@ class AuthController extends Controller
         match ($attempt['result']) {
             'locked'          => $this->handleLockedResult($attempt['wait'], $safeBack),
             'deleted'         => $this->handleDeletedResult($safeBack),
-            'bad_credentials' => $this->handleBadCredentialsResult($attempt, $ipKey, $lang, $safeBack),
+            'bad_credentials' => $this->handleBadCredentialsResult($attempt, $safeBack),
             'unverified'      => $this->handleUnverifiedResult($safeBack),
             default           => null,
         };
@@ -912,12 +912,10 @@ class AuthController extends Controller
      * Redirige avec un message d'identifiants invalides, en gérant le lockout BT2 si déclenché.
      *
      * @param array{result: string, account: array<string, mixed>|null, wait: int} $attempt Résultat de LoginService::attempt()
-     * @param string                                                                $ipKey   Clé de rate limiting de l'IP
-     * @param string                                                                $lang    Code langue courant
      * @param string                                                                $safeBack URL de redirection
      * @return never
      */
-    private function handleBadCredentialsResult(array $attempt, string $ipKey, string $lang, string $safeBack): never
+    private function handleBadCredentialsResult(array $attempt, string $safeBack): never
     {
         // Si le compte vient d'être verrouillé (BT2), le service a déjà envoyé l'email
         // On vérifie si le compte est maintenant locké pour afficher le bon message
