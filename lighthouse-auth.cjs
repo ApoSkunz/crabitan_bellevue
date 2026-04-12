@@ -21,7 +21,7 @@ module.exports = async (browser, _context) => {
     });
 
     await Promise.all([
-        page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
+        page.waitForNavigation({ waitUntil: 'load', timeout: 30000 }),
         page.click('#age-gate-enter button[type="submit"]'),
     ]);
 
@@ -39,7 +39,7 @@ module.exports = async (browser, _context) => {
         await page.type('#login-modal-password', 'Dev123456789!');
 
         await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
+            page.waitForNavigation({ waitUntil: 'load', timeout: 30000 }).catch(() => {}),
             page.click('.login-modal__submit'),
         ]);
     } catch (_e) {
