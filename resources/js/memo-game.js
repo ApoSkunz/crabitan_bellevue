@@ -16,7 +16,7 @@ export function initMemoGame() {
     const PAIR_COUNT = Number.parseInt(section.dataset.pairCount, 10);
     const WIN_MSG    = section.dataset.winMsg;
     const LOSE_MSG   = section.dataset.loseMsg;
-    let worldRecord  = Number.parseInt(section.dataset.worldRecord, 10) || 0;
+    let worldRecord  = Math.min(Number.parseInt(section.dataset.worldRecord, 10) || 0, DURATION);
 
     // Record mondial
     const wrEl = document.createElement('p');
