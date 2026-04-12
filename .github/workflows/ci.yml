@@ -328,6 +328,16 @@ jobs:
       - name: Run schema on test DB
         run: mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/schema.sql
 
+      - name: Seed test user for Lighthouse auth
+        run: |
+          HASH=$(php -r "echo password_hash('Dev123456789!', PASSWORD_BCRYPT);")
+          mysql -h 127.0.0.1 -u root -proot crabitan_bellevue -e "
+            INSERT IGNORE INTO accounts
+              (email, password, role, lang, email_verified_at, created_at)
+            VALUES
+              ('client.verifie@dev.local', '$HASH', 'customer', 'fr', NOW(), NOW());
+          "
+
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
