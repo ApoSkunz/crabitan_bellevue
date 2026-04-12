@@ -123,6 +123,12 @@ class LogApiControllerTest extends TestCase
      */
     public function testValidPayloadReturns204AndWritesLog(): void
     {
+        // Isolation : purger le log avant le test (ordre aléatoire Infection)
+        $logFile = ROOT_PATH . '/storage/logs/app-' . date('Y-m-d') . '.log';
+        if (file_exists($logFile)) {
+            unlink($logFile);
+        }
+
         $payload = [
             'message'   => 'Uncaught ReferenceError: foo is not defined',
             'source'    => 'https://crabitan.local/assets/main.js',
