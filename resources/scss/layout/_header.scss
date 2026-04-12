@@ -50,7 +50,8 @@
     @include m.focus-ring;
 
     img {
-        height: 108px;
+        height: clamp(60px, 10vw, 108px); // WCAG 1.4.4 — évite débordement à fort zoom
+        max-height: 108px;
         width: auto;
     }
 }
@@ -240,7 +241,7 @@
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    overflow-x: auto;
+    overflow-x: auto; // WCAG 1.4.4 — intentionnel : nav scrollable à fort zoom (reflow horizontal)
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
