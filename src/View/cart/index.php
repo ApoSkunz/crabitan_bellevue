@@ -261,6 +261,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                                     type="button"
                                     class="js-cart-remove btn-retirer"
                                     data-wine-id="<?= $wineId ?>"
+                                    data-wine-name="<?= htmlspecialchars($name) ?>"
                                     aria-label="<?= htmlspecialchars(__('cart.remove')) ?> — <?= htmlspecialchars($name) ?>"
                                 >
                                     <svg class="btn-retirer__icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -575,6 +576,26 @@ $removedCount     = (int) ($removedCount ?? 0);
             if (notice) { notice.classList.add('cart-notice--error'); }
         }
     })();
+    </script>
+
+    <dialog id="cart-remove-dialog" class="cart-remove-dialog" aria-labelledby="cart-remove-dialog-title">
+        <div class="cart-remove-dialog__inner">
+            <h2 class="cart-remove-dialog__title" id="cart-remove-dialog-title">
+                <?= htmlspecialchars(__('cart.remove_confirm_title')) ?>
+            </h2>
+            <p class="cart-remove-dialog__body" id="cart-remove-dialog-body"></p>
+            <div class="cart-remove-dialog__actions">
+                <button type="button" class="btn btn--ghost" id="cart-remove-cancel">
+                    <?= htmlspecialchars(__('cart.remove_confirm_cancel')) ?>
+                </button>
+                <button type="button" class="btn btn--gold" id="cart-remove-confirm">
+                    <?= htmlspecialchars(__('cart.remove_confirm_ok')) ?>
+                </button>
+            </div>
+        </div>
+    </dialog>
+    <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+    window.__cartRemoveConfirmBody = <?= json_encode(htmlspecialchars(__('cart.remove_confirm_body'))) ?>;
     </script>
 </main>
 

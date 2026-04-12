@@ -51,7 +51,7 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
     <a href="/admin/commandes" class="admin-btn admin-btn--outline">← Retour</a>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 360px;gap:1.5rem;align-items:start;">
+<div class="admin-order-layout" style="display:grid;grid-template-columns:1fr 360px;gap:1.5rem;align-items:start;">
 
     <!-- Gauche : infos commande + articles -->
     <div>
@@ -76,7 +76,7 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                     <?php else : ?>
                         <?php foreach ($cartItems as $item) : ?>
                             <tr>
-                                <td>
+                                <td data-label="Vin">
                                     <?= htmlspecialchars($item['label_name'] ?? $item['name'] ?? '—') ?>
                                     <?php if (!empty($item['vintage'])) : ?>
                                         <span style="font-size:0.8rem;color:#8a7a60;margin-left:0.25rem;"><?= (int) $item['vintage'] ?></span>
@@ -85,10 +85,10 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                                         <br><span style="font-size:0.72rem;letter-spacing:1.5px;text-transform:uppercase;color:#c9a84c;font-family:Georgia,serif;">Cuvée Spéciale</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= htmlspecialchars($item['format'] ?? 'bottle') ?></td>
-                                <td><?= (int) ($item['qty'] ?? 0) ?></td>
-                                <td><?= number_format((float) ($item['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</td>
-                                <td><?= number_format((float) ($item['price'] ?? 0) * (int) ($item['qty'] ?? 0), 2, ',', ' ') ?>&nbsp;€</td>
+                                <td data-label="Format"><?= htmlspecialchars($item['format'] ?? 'bottle') ?></td>
+                                <td data-label="Qté"><?= (int) ($item['qty'] ?? 0) ?></td>
+                                <td data-label="Prix unit."><?= number_format((float) ($item['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</td>
+                                <td data-label="Sous-total"><?= number_format((float) ($item['price'] ?? 0) * (int) ($item['qty'] ?? 0), 2, ',', ' ') ?>&nbsp;€</td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -127,7 +127,7 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
         <!-- Adresses -->
         <div class="admin-card">
             <div class="admin-card__header"><h2>Adresses</h2></div>
-            <div class="admin-card__body" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+            <div class="admin-card__body admin-addresses-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
                 <div>
                     <p style="font-family:var(--font-sans);font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a7a60;margin-bottom:0.5rem;">Facturation</p>
                     <p style="font-size:0.875rem;line-height:1.7;color:#1a1208;">

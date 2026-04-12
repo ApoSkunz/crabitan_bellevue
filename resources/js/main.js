@@ -39,9 +39,25 @@ function initBurger() {
     const mobileNav = document.getElementById('header-nav-mobile');
     if (!burger || !mobileNav) return;
 
+    function openMenu() {
+        mobileNav.classList.add('is-open');
+        burger.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeMenu() {
+        mobileNav.classList.remove('is-open');
+        burger.setAttribute('aria-expanded', 'false');
+    }
+
     burger.addEventListener('click', () => {
-        const isOpen = mobileNav.classList.toggle('is-open');
-        burger.setAttribute('aria-expanded', String(isOpen));
+        mobileNav.classList.contains('is-open') ? closeMenu() : openMenu();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && mobileNav.classList.contains('is-open')) {
+            closeMenu();
+            burger.focus();
+        }
     });
 }
 
@@ -2204,11 +2220,22 @@ function initCartPage() {
         });
     });
 
-    // Délégation — suppression d'article
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('.js-cart-remove');
-        if (!btn) return;
+    // Délégation — suppression d'article (avec dialog de confirmation)
+    /** @type {HTMLButtonElement|null} */
+    let pendingRemoveBtn = null;
 
+    const removeDialog  = /** @type {HTMLDialogElement|null} */ (document.getElementById('cart-remove-dialog'));
+    const removeConfirm = document.getElementById('cart-remove-confirm');
+    const removeCancel  = document.getElementById('cart-remove-cancel');
+    const removeBody    = document.getElementById('cart-remove-dialog-body');
+
+    /**
+     * Exécute la suppression API après confirmation.
+     *
+     * @param {HTMLButtonElement} btn
+     * @return {void}
+     */
+    function doCartRemove(btn) {
         const wineId = Number.parseInt(btn.dataset.wineId, 10);
         btn.disabled = true;
 
@@ -2270,7 +2297,44 @@ function initCartPage() {
                 btn.disabled = false;
                 showToast(isEn ? 'Failed to remove item.' : 'Échec de la suppression.', true);
             });
+    }
+
+    // Click sur poubelle → ouvre le dialog de confirmation
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-cart-remove');
+        if (!btn) return;
+
+        if (!removeDialog) {
+            doCartRemove(btn);
+            return;
+        }
+
+        pendingRemoveBtn = btn;
+        const wineName = btn.dataset.wineName || '';
+        const tpl = (window.__cartRemoveConfirmBody || '%s').replace('%s', `«\u00a0${wineName}\u00a0»`);
+        if (removeBody) removeBody.textContent = tpl;
+        removeDialog.showModal();
     });
+
+    if (removeConfirm && removeDialog) {
+        removeConfirm.addEventListener('click', () => {
+            removeDialog.close();
+            if (pendingRemoveBtn) doCartRemove(pendingRemoveBtn);
+            pendingRemoveBtn = null;
+        });
+    }
+
+    if (removeCancel && removeDialog) {
+        removeCancel.addEventListener('click', () => {
+            removeDialog.close();
+            pendingRemoveBtn = null;
+        });
+    }
+
+    // Fermeture via Escape (natif dialog) — réinitialise le btn en attente
+    if (removeDialog) {
+        removeDialog.addEventListener('cancel', () => { pendingRemoveBtn = null; });
+    }
 
     // Désactiver les boutons − si qty initiale = 1
     document.querySelectorAll('.js-qty-minus').forEach((btn) => {
@@ -2310,8 +2374,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initAddressAddToggle();
     initAlertAutoDismiss();
     initWineZoom();
-    // Pour les connectés : affichage immédiat depuis cookie count + vérification API
-    if (globalThis.__userLogged) {
+    // Pour les connectés non-admin : affichage immédiat depuis cookie count + vérification API
+    if (globalThis.__userLogged && !globalThis.__isAdmin) {
         // Affichage immédiat du badge depuis le cookie count (évite le flash à 0)
         const countCookie = document.cookie.split('; ').find((c) => c.startsWith('cb-cart-count='));
         if (countCookie) {
@@ -2325,7 +2389,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then((r) => r.ok ? r.json() : null)
             .then((data) => { if (data && typeof data.total_quantity === 'number') updateCartCount(data.total_quantity); })
             .catch(() => { /* fallback : badge reste sur la valeur du cookie */ });
-    } else {
+    } else if (!globalThis.__userLogged) {
         updateCartCount();
     }
     initNewsletterForm();

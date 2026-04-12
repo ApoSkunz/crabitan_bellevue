@@ -68,12 +68,12 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th class="col-hide-tablet">ID</th>
                     <th>Appellation</th>
                     <th>Couleur</th>
                     <th>Millésime</th>
                     <th>Prix</th>
-                    <th>Qté produite</th>
+                    <th class="col-hide-tablet">Qté produite</th>
                     <th>Stock</th>
                     <th>Statut</th>
                     <th>Mis en avant</th>
@@ -86,21 +86,21 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
             <?php else : ?>
                 <?php foreach ($wines as $wine) : ?>
                     <tr>
-                        <td style="color:#8a7a60;"><?= (int) $wine['id'] ?></td>
-                        <td>
+                        <td class="col-hide-tablet" data-label="ID" style="color:#8a7a60;"><?= (int) $wine['id'] ?></td>
+                        <td data-label="Appellation">
                             <strong><?= htmlspecialchars($wine['label_name']) ?></strong>
                             <?php if ($wine['is_cuvee_speciale']) : ?>
                                 <span class="badge badge--admin" style="margin-left:0.35rem;">Cuvée</span>
                             <?php endif; ?>
                         </td>
-                        <td><?= htmlspecialchars($colorLabels[$wine['wine_color']] ?? $wine['wine_color']) ?></td>
-                        <td><?= (int) $wine['vintage'] ?></td>
-                        <td><?= number_format((float) $wine['price'], 2, ',', ' ') ?>&nbsp;€</td>
-                        <td><?= number_format((int) $wine['production_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
-                        <td <?= (int) $wine['stock_quantity'] === 0 ? 'style="color:#c0392b;font-weight:600;"' : '' ?>>
+                        <td data-label="Couleur"><?= htmlspecialchars($colorLabels[$wine['wine_color']] ?? $wine['wine_color']) ?></td>
+                        <td data-label="Millésime"><?= (int) $wine['vintage'] ?></td>
+                        <td data-label="Prix"><?= number_format((float) $wine['price'], 2, ',', ' ') ?>&nbsp;€</td>
+                        <td class="col-hide-tablet" data-label="Production"><?= number_format((int) $wine['production_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
+                        <td data-label="Stock" <?= (int) $wine['stock_quantity'] === 0 ? 'style="color:#c0392b;font-weight:600;"' : '' ?>>
                             <?= number_format((int) $wine['stock_quantity'], 0, ',', ' ') ?>&nbsp;bt
                         </td>
-                        <td>
+                        <td data-label="Statut">
                             <?php if (!(bool) $wine['available'] && (int) $wine['stock_quantity'] === 0) : ?>
                                 <span class="admin-btn admin-btn--sm admin-btn--out"
                                       style="cursor:default;opacity:0.7;"
@@ -119,7 +119,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
                             </button>
                             <?php endif; ?>
                         </td>
-                        <td style="text-align:center;">
+                        <td data-label="Mis en avant" style="text-align:center;">
                             <?php if ($wine['available']) : ?>
                             <button type="button"
                                     class="js-featured-btn admin-btn admin-btn--sm <?= $wine['featured'] ? 'admin-btn--gold' : 'admin-btn--outline' ?>"

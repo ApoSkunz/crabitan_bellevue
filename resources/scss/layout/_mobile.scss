@@ -1,0 +1,509 @@
+@use '../abstracts/mixins' as m;
+
+// ============================================================
+// Corrections responsive mobile — 320px à 767px
+// Ce fichier couvre UNIQUEMENT le breakpoint mobile (< md = 768px).
+// Ne pas modifier les breakpoints tablette (768px+).
+// ============================================================
+
+// ---- 1. Overflow global ----
+// Empêche tout scroll horizontal sur n'importe quelle page
+
+// overflow-x: clip (pas hidden) — bloque le scroll X sans créer de scroll container
+// → position: sticky du header reste fonctionnel sur mobile
+html,
+body {
+    overflow-x: clip;
+    max-width: 100%;
+}
+
+// ---- 2. Header mobile ----
+
+@media (max-width: 767px) {
+    // Header plus haut — espace pour le logo centré
+    .header-main {
+        gap: 0;
+        padding: 0.6rem 0.75rem;
+        min-height: 96px;
+        position: relative; // déjà en desktop, confirmé mobile
+    }
+
+    // Logo centré horizontalement et verticalement dans le header-main
+    // Sorti du flux → ne compte pas dans la largeur des flex items
+    .header-logo {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+
+        img {
+            height: 88px; // plus imposant qu'avant (64px)
+        }
+    }
+
+    // Gauche : lang-switch uniquement (logo sorti du flux)
+    .header-left {
+        gap: 0.4rem;
+    }
+
+    // Droite : icônes + burger
+    .header-actions {
+        gap: 0.5rem;
+    }
+
+    // Bouton Connexion / Mon compte masqué sur mobile
+    // → accessible via menu burger (header-nav--mobile contient login + register + account)
+    .header-actions .btn--white,
+    .header-actions .btn--ghost {
+        display: none;
+    }
+
+    // Icônes du panier / langue — réduits sur mobile
+    .lang-switch a {
+        padding: 0.25em 0.45em;
+        font-size: 0.85rem;
+    }
+
+    // Menu mobile — scroll interne si contenu long
+    // Typo serif (Cinzel) : lisible + élégant vs script illisible en petit
+    .header-nav--mobile {
+        padding: 0.75rem 1rem;
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+
+        a,
+        &__modal-btn {
+            font-family: var(--font-serif);
+            font-size: 0.95rem;
+            letter-spacing: 0.12em;
+            font-variant: small-caps;
+            padding: 0.7rem 0;
+            color: var(--color-text-muted);
+        }
+    }
+}
+
+// ---- 3. Catalogue vins — grille 1 colonne sur < 480px ----
+
+@media (max-width: 479px) {
+    .wines-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    // Cross-sell aussi en 1 colonne
+    .wine-cross-sell__grid,
+    .cart-cross-sell__grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+}
+
+// ---- 4. Filtres catalogue — pleine largeur sur mobile ----
+
+@media (max-width: 767px) {
+    .wines-filters {
+        padding: 1rem 0.75rem;
+
+        &__form {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        &__right {
+            margin-left: 0;
+            align-items: flex-start;
+        }
+
+        &__bottom-row {
+            justify-content: flex-start;
+        }
+
+        &__sort,
+        &__per-page {
+            flex-wrap: wrap;
+        }
+
+        &__sort select,
+        &__per-page select {
+            max-width: 100%;
+        }
+    }
+}
+
+// ---- 5. Fiche vin — image pleine largeur ----
+
+@media (max-width: 767px) {
+    .wine-detail__image-wrap {
+        height: 280px;
+    }
+
+    .wine-detail__actions {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    // Tableau nutrition — scroll horizontal contenu dans le wrapper
+    .wine-nutrition__table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    // Specs DL — empile les colonnes
+    .wine-detail__specs {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+
+        dt {
+            margin-top: 0.5rem;
+        }
+    }
+}
+
+// ---- 6. Espace compte ----
+
+@media (max-width: 767px) {
+    .account-page {
+        padding: 2rem 1rem 4rem;
+    }
+
+    // Nav latérale → pills horizontaux scrollables
+    // Dégradé sur les bords : indique visuellement qu'on peut scroller
+    .account-nav {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 0.4rem;
+        padding-bottom: 0.5rem;
+        scrollbar-width: none;
+        // Fade droite uniquement → signal clair "il y a plus à droite"
+        // padding-right laisse dépasser le dernier item → coupé = affordance scroll
+        padding-right: 2.5rem;
+        -webkit-mask-image: linear-gradient(to right, black 0%, black 70%, transparent 100%);
+        mask-image: linear-gradient(to right, black 0%, black 70%, transparent 100%);
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        &__link {
+            white-space: nowrap;
+            flex-shrink: 0;
+            font-size: 0.82rem;
+            padding: 0.45rem 0.75rem;
+        }
+    }
+
+    // Formulaires compte — pleine largeur
+    .account-form {
+        max-width: 100%;
+    }
+
+    // Tableau commandes/factures → cards empilées (plus de scroll horizontal)
+    .account-table-wrap {
+        overflow-x: visible;
+    }
+
+    .account-table {
+        display: block;
+        width: 100%;
+
+        thead {
+            display: none; // labels portés par data-label sur chaque td
+        }
+
+        tbody,
+        tr {
+            display: block;
+        }
+
+        tr {
+            background: var(--color-surface);
+            border: 1px solid rgba(201, 168, 76, 0.25);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.9rem;
+
+            &:last-child {
+                border-bottom: none;
+                padding-top: 0.6rem;
+                justify-content: flex-end;
+            }
+
+            &::before {
+                content: attr(data-label);
+                font-size: 0.75rem;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                color: var(--color-text-muted);
+                flex-shrink: 0;
+                margin-right: 0.75rem;
+            }
+        }
+    }
+
+    // Grille adresses → 1 colonne
+    .account-address-list {
+        grid-template-columns: 1fr;
+    }
+
+    // Favoris → 1 colonne sur très petit
+    @media (max-width: 479px) {
+        .account-favorites-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+// ---- 7. Panier ----
+
+@media (max-width: 767px) {
+    .cart-section {
+        padding: 1rem 0.75rem 3rem;
+    }
+
+    // Layout en colonne unique (déjà géré à 900px mais on le confirme proprement)
+    .cart-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    // Résumé : retire sticky sur mobile (evite overlap)
+    .cart-summary {
+        position: static;
+        padding: 1.25rem 1rem;
+    }
+}
+
+// ---- 8. Stepper checkout — centré sur mobile ----
+
+@media (max-width: 575px) {
+    .checkout-stepper__list {
+        justify-content: center;
+    }
+
+    .checkout-stepper__step {
+        flex: 0 0 auto; // ne grandit plus → permet le centrage réel
+
+        &:not(:last-child)::after {
+            flex: none;
+            width: 3rem; // connecteur fixe
+        }
+    }
+}
+
+// ---- 9. Checkout ----
+
+@media (max-width: 767px) {
+    .checkout-section {
+        padding: 1.5rem 0.75rem 3rem;
+    }
+
+    // Layout en colonne unique
+    .checkout-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    // Résumé checkout : retire sticky
+    .checkout-summary {
+        position: static;
+    }
+
+    // Onglets paiement — texte plus petit sur 320px
+    .checkout-payment-tab {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.4rem;
+    }
+
+    // Carte checkout — moins de padding
+    .checkout-card {
+        padding: 1.25rem 1rem;
+    }
+
+    // Grille adresses en 1 col
+    .checkout-address-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+// ---- 9. Confirmation — adresses en 1 col sur petits écrans ----
+
+@media (max-width: 479px) {
+    .confirmation-addresses {
+        grid-template-columns: 1fr;
+    }
+
+    .confirmation-card {
+        padding: 1.5rem 1rem;
+    }
+}
+
+// ---- 10. Modal inscription — row 2 cols → 1 col ----
+
+@media (max-width: 479px) {
+    .register-modal__row {
+        grid-template-columns: 1fr;
+    }
+}
+
+// ---- 11. Homepage — padding réduit mobile ----
+
+@media (max-width: 767px) {
+    .home-section {
+        padding: 3rem 1rem;
+    }
+
+    .home-news {
+        padding: 3rem 0;
+
+        &__grid {
+            padding: 0 1rem;
+        }
+    }
+
+    .home-video {
+        padding: 3rem 0;
+
+        &__player {
+            padding: 0 1rem;
+        }
+    }
+
+    .home-location {
+        padding: 3rem 0;
+    }
+}
+
+// ---- 12. Modals connexion/inscription — scrollables ----
+// Déjà gérés avec max-height + overflow-y: auto dans _modal.scss
+// On s'assure juste que le padding interne ne génère pas d'overflow
+
+@media (max-width: 479px) {
+    .login-modal__inner,
+    .register-modal__inner,
+    .cart-modal__inner {
+        width: calc(100vw - 2rem);
+    }
+
+    .login-modal__body,
+    .register-modal__body,
+    .cart-modal__body {
+        padding: 1rem;
+    }
+
+    .login-modal__header,
+    .register-modal__header,
+    .cart-modal__header {
+        padding: 1rem 1rem 0.75rem;
+    }
+}
+
+// ---- 13. Footer — logos paiement centrés + mention Évin inline ----
+
+@media (max-width: 767px) {
+    .footer-payments {
+        justify-content: center;
+    }
+
+    .footer-hve img {
+        height: 80px;
+    }
+
+    // Icônes Loi Évin + texte sur la même ligne
+    .footer-legal {
+        flex-wrap: nowrap;
+        align-items: flex-start;
+    }
+}
+
+// ---- 14. Galerie — toolbar centrée + espace avec les photos ----
+
+@media (max-width: 767px) {
+    .gallery-toolbar {
+        justify-content: center;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .gallery-grid {
+        padding-top: 1.5rem;
+        padding-bottom: 3rem;
+    }
+}
+
+// ---- 15. Page hero — padding réduit ----
+
+@media (max-width: 767px) {
+    .page-hero {
+        padding: 2.5rem 1rem 2rem;
+    }
+}
+
+// ---- 15. Container utilitaire — padding réduit ----
+
+@media (max-width: 767px) {
+    .container {
+        padding: 0 1rem;
+    }
+}
+
+// ---- 16. Respiration universelle avant le footer ----
+
+@media (max-width: 767px) {
+    main {
+        padding-bottom: 3rem;
+    }
+}
+
+// ---- 17. Burger menu : overlay fixe (< 992px) ----
+// position:fixed → toujours visible peu importe la position de scroll
+// padding-top injecté par JS (hauteur réelle du header)
+// body.nav-open n'est plus nécessaire (pas de overflow:hidden qui casse sticky)
+
+// Menu burger : dropdown dans le sticky header — page visible en dessous
+// Pas de position:fixed ici (le header est sticky, le menu reste dans son flux)
+@media (max-width: 991px) {
+    .header-nav--mobile.is-open {
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+    }
+}
+
+// ---- 18. Mobile paysage / tablette basse (768–991px) — header burger ----
+
+@media (min-width: 768px) and (max-width: 991px) {
+    // Masquer le bouton compte (accessible via burger)
+    .header-actions .btn--white,
+    .header-actions .btn--ghost {
+        display: none;
+    }
+
+    // Menu burger — même typo que mobile portrait
+    .header-nav--mobile {
+        padding: 0.75rem 1rem;
+
+        a,
+        &__modal-btn {
+            font-family: var(--font-serif);
+            font-size: 0.95rem;
+            letter-spacing: 0.12em;
+            font-variant: small-caps;
+            padding: 0.7rem 0;
+            color: var(--color-text-muted);
+        }
+    }
+}

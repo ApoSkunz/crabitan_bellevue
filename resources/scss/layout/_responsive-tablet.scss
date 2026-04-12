@@ -1,0 +1,249 @@
+@use '../abstracts/mixins' as m;
+
+// ============================================================
+// Responsive tablette — 768px–1023px (md → lg exclusive)
+// Ne touche PAS au mobile (< 768px) — géré séparément.
+// Breakpoints projet : md=768px, lg=992px (≈ 1024px)
+// ============================================================
+
+@media (min-width: 768px) and (max-width: 991px) {
+
+    // ----------------------------------------------------------
+    // 1. Admin back-office — sidebar réduite (icônes seules)
+    // ----------------------------------------------------------
+
+    .admin-shell {
+        // La sidebar se réduit à 56px — icônes seules
+    }
+
+    .admin-sidebar {
+        width: 56px;
+        overflow: hidden;
+
+        // Masquer les textes, titres, sections superflues
+        .admin-sidebar__title,
+        .admin-sidebar__superadmin,
+        .admin-sidebar__user-name,
+        .admin-sidebar__user-role,
+        .admin-logout,
+        .admin-sidebar__footer {
+            display: none;
+        }
+
+        // Logo réduit : masquer le nom de marque, garder le conteneur
+        .admin-sidebar__brand {
+            display: none;
+        }
+
+        .admin-sidebar__logo {
+            padding: 0.75rem 0;
+            display: flex;
+            justify-content: center;
+        }
+    }
+
+    // Nav items : centrer l'icône, masquer le libellé texte
+    .admin-nav__item {
+        padding: 0.85rem 0;
+        justify-content: center;
+        gap: 0;
+        border-left: 3px solid transparent;
+
+        // Masquer le texte — l'icône reste via .admin-nav__icon
+        // On utilise un span implicite : le texte qui suit l'icône
+        // Les libellés texte dans les <a> sont du texte brut après l'icône
+        font-size: 0; // masque le texte brut
+        letter-spacing: 0;
+
+        .admin-nav__icon {
+            font-size: 1.1rem; // rétablir la taille de l'icône
+            width: auto;
+            opacity: 1;
+        }
+    }
+
+    // Avatar seul dans le footer (si visible)
+    .admin-sidebar__user {
+        justify-content: center;
+    }
+
+    // ----------------------------------------------------------
+    // 2. Tableaux admin — colonnes secondaires masquables
+    // ----------------------------------------------------------
+
+    // Wrapper déjà overflow-x: auto — on affine le min-width
+    .admin-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    // Colonnes secondaires masquables via classe utilitaire
+    // Appliquée par les vues sur les <th>/<td> non prioritaires
+    .col-hide-tablet {
+        display: none !important;
+    }
+
+    // Réduire le padding des cellules pour gagner de la place
+    .admin-table {
+        th,
+        td {
+            padding: 0.5rem 0.65rem;
+            font-size: 0.8rem;
+        }
+    }
+
+    // ----------------------------------------------------------
+    // 3. Touch targets — min 44×44px (WCAG 2.5.5)
+    // ----------------------------------------------------------
+
+    // Boutons et liens admin
+    .admin-btn,
+    .admin-nav__item,
+    .admin-filters__btn,
+    .admin-pagination__item {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    // Boutons header nav (liens)
+    .header-nav__link {
+        min-height: 44px;
+    }
+
+    // Liens nav compte
+    .account-nav__link {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    // Bouton burger
+    .header-burger {
+        min-height: 44px;
+        min-width: 44px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    // Boutons panier/carte vin
+    .wine-card__cart,
+    .wine-card__heart {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    // Boutons cart-modal qty
+    .cart-modal__qty-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    // ----------------------------------------------------------
+    // 4. Catalogue — grille 2 colonnes confirmée (déjà en place)
+    // Wines-filters — alignement horizontal barre filtre
+    // ----------------------------------------------------------
+
+    .wines-filters {
+        &__form {
+            flex-direction: row;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem 1.5rem;
+        }
+
+        &__left,
+        &__right {
+            flex-direction: row;
+            align-items: center;
+            gap: 0.75rem 1.5rem;
+        }
+
+        &__right {
+            margin-left: auto;
+        }
+    }
+
+    // ----------------------------------------------------------
+    // 5. Navigation — hamburger déjà actif < lg (992px)
+    // Assure la touche 44px (déjà couvert ci-dessus)
+    // ----------------------------------------------------------
+
+    // ----------------------------------------------------------
+    // 6. Espace compte — nav latérale visible + compacte
+    // ----------------------------------------------------------
+
+    .account-shell {
+        // À 768-991px : shell à 2 colonnes mais nav plus étroite
+        grid-template-columns: 160px 1fr;
+        gap: 1.5rem;
+    }
+
+    .account-nav__link {
+        padding: 0.55rem 0.75rem;
+        font-size: 0.82rem;
+    }
+
+    // ----------------------------------------------------------
+    // 7. Modals — largeur max adaptée tablette (pas plein écran)
+    // ----------------------------------------------------------
+
+    .cart-modal__inner {
+        width: min(540px, 80vw);
+    }
+
+    .login-modal__inner {
+        width: min(440px, 75vw);
+    }
+
+    .register-modal__inner {
+        width: min(560px, 82vw);
+    }
+
+    // Modal suppression compte
+    .account-delete-modal__inner {
+        width: min(480px, 75vw);
+    }
+
+    // ----------------------------------------------------------
+    // 8. Formulaires admin grille — 1 col au lieu de 2 sur tablette
+    // ----------------------------------------------------------
+
+    .admin-form__grid {
+        grid-template-columns: 1fr;
+
+        &--3 {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    // ----------------------------------------------------------
+    // 9. Topbar admin — ajuster padding avec sidebar réduite
+    // ----------------------------------------------------------
+
+    .admin-topbar {
+        padding: 0.75rem 1rem;
+    }
+
+    .admin-content {
+        padding: 1.25rem 1rem;
+    }
+
+    // ----------------------------------------------------------
+    // 10. Page header admin — empiler bouton sous le titre sur tablette
+    // ----------------------------------------------------------
+
+    .admin-page-header {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    // ----------------------------------------------------------
+    // 11. Orientation paysage tablette — pas de régression
+    // Le layout flex row du shell reste intact
+    // ----------------------------------------------------------
+
+    // Stat cards — 2 colonnes minimum sur tablette
+    .admin-stats {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+}

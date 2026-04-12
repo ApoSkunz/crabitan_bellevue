@@ -33,23 +33,23 @@ require_once __DIR__ . '/../partials/header.php';
                         <tbody>
                             <?php foreach ($invoices as $inv) : ?>
                                 <tr>
-                                    <td>
+                                    <td data-label="<?= htmlspecialchars(__('account.order_invoice')) ?>">
                                         <span class="account-table__ref">
                                             <?= htmlspecialchars(
                                                 (string) ($inv['invoice_number'] ?? $inv['order_reference'])
                                             ) ?>
                                         </span>
                                     </td>
-                                    <td style="font-size:0.85rem;color:var(--color-text-muted);">
+                                    <td data-label="<?= htmlspecialchars(__('account.order_ref')) ?>" style="font-size:0.85rem;color:var(--color-text-muted);">
                                         <?= htmlspecialchars((string) $inv['order_reference']) ?>
                                     </td>
-                                    <td style="white-space:nowrap;">
+                                    <td data-label="<?= htmlspecialchars(__('account.order_date')) ?>" style="white-space:nowrap;">
                                         <?= date('d/m/Y', strtotime((string) $inv['ordered_at'])) ?>
                                     </td>
-                                    <td style="text-align:right;font-weight:600;">
+                                    <td data-label="<?= htmlspecialchars(__('account.order_price')) ?>" style="font-weight:600;">
                                         <?= number_format((float) $inv['price'], 2, ',', '&nbsp;') ?>&nbsp;&euro;
                                     </td>
-                                    <td style="text-align:center;">
+                                    <td data-label="<?= htmlspecialchars(__('account.download_invoice')) ?>">
                                         <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $inv['order_id'] ?>/facture"
                                            class="btn btn--ghost btn--sm"
                                            target="_blank" rel="noopener noreferrer">

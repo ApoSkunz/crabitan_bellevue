@@ -239,7 +239,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
             <?php if (!$isAdmin) : ?>
             <a href="/<?= htmlspecialchars($navLang) ?>/panier"><?= htmlspecialchars(__('nav.cart')) ?></a>
             <?php endif; ?>
-            <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte"><?= htmlspecialchars(__('nav.account')) ?></a>
+            <a href="<?= $isAdmin ? '/admin' : '/' . htmlspecialchars($navLang) . '/mon-compte' ?>"><?= htmlspecialchars(__('nav.account')) ?></a>
             <form method="POST" action="/<?= htmlspecialchars($navLang) ?>/deconnexion" class="logout-form--inline">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($modalCsrf) ?>">
                 <button type="submit" class="logout-form__btn-link"><?= htmlspecialchars(__('nav.logout')) ?></button>
@@ -253,6 +253,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
 
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 window.__userLogged       = <?= $isLogged ? 'true' : 'false' ?>;
+window.__isAdmin          = <?= $isAdmin ? 'true' : 'false' ?>;
 window.__cartMap          = <?= json_encode($headerCartMap, JSON_UNESCAPED_UNICODE) ?>;
 window.__navLang          = '<?= htmlspecialchars($navLang) ?>';
 window.__csrf             = '<?= htmlspecialchars($modalCsrf) ?>';

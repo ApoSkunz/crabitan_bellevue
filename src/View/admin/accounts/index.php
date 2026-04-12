@@ -76,14 +76,14 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th class="col-hide-tablet">ID</th>
                     <th>Email</th>
                     <th>Nom / Société</th>
-                    <th>Type</th>
+                    <th class="col-hide-tablet">Type</th>
                     <th>Rôle</th>
-                    <th>Langue</th>
-                    <th>Vérifié</th>
-                    <th>Connecté</th>
+                    <th class="col-hide-tablet">Langue</th>
+                    <th class="col-hide-tablet">Vérifié</th>
+                    <th class="col-hide-tablet">Connecté</th>
                     <th>Inscrit le</th>
                     <?php if ($isSuperAdmin) : ?>
                         <th></th>
@@ -110,35 +110,35 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                     $verified = !empty($account['email_verified_at']);
     ?>
                     <tr>
-                        <td style="color:#8a7a60;"><?= (int) $account['id'] ?></td>
-                        <td><?= htmlspecialchars($account['email']) ?></td>
-                        <td><?= htmlspecialchars($displayName) ?></td>
-                        <td style="font-size:0.8rem;">
+                        <td class="col-hide-tablet" data-label="ID" style="color:#8a7a60;"><?= (int) $account['id'] ?></td>
+                        <td data-label="Email"><?= htmlspecialchars($account['email']) ?></td>
+                        <td data-label="Nom / Société"><?= htmlspecialchars($displayName) ?></td>
+                        <td class="col-hide-tablet" data-label="Type" style="font-size:0.8rem;">
                             <?= $account['account_type'] === 'company' ? 'Société' : 'Particulier' ?>
                         </td>
-                        <td>
+                        <td data-label="Rôle">
                             <span class="badge badge--<?= $roleBadge ?>">
                                 <?= htmlspecialchars($roleLabels[$account['role']] ?? $account['role']) ?>
                             </span>
                         </td>
-                        <td style="text-transform:uppercase;font-size:0.8rem;">
+                        <td class="col-hide-tablet" data-label="Langue" style="text-transform:uppercase;font-size:0.8rem;">
                             <?= htmlspecialchars($account['lang']) ?>
                         </td>
-                        <td>
+                        <td class="col-hide-tablet" data-label="Vérifié">
                             <?php if ($verified) : ?>
                                 <span style="color:#15803d;font-size:0.8rem;">✓</span>
                             <?php else : ?>
                                 <span style="color:#b91c1c;font-size:0.8rem;">✗</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td class="col-hide-tablet" data-label="Connecté">
                             <?php if (!empty($account['has_connected'])) : ?>
                                 <span style="color:#15803d;font-size:0.8rem;">✓</span>
                             <?php else : ?>
                                 <span style="color:#b91c1c;font-size:0.8rem;">✗</span>
                             <?php endif; ?>
                         </td>
-                        <td style="white-space:nowrap;font-size:0.8rem;">
+                        <td data-label="Inscrit le" style="white-space:nowrap;font-size:0.8rem;">
                             <?= date('d/m/Y', strtotime($account['created_at'])) ?>
                         </td>
                         <?php if ($isSuperAdmin) : ?>

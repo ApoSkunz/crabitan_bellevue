@@ -43,3 +43,10 @@
 @use 'layout/cart';
 @use 'layout/checkout';
 @use 'layout/rating';
+@use 'layout/responsive-tablet';
+
+// ============================================================
+// Responsive mobile (320–767px) — doit être en dernier pour
+// surcharger correctement toutes les règles ci-dessus
+// ============================================================
+@use 'layout/mobile';
