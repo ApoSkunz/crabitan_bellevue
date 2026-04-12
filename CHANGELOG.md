@@ -2,6 +2,30 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.75.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.74.0...v0.75.0) (2026-04-12)
+
+
+### Bug Fixes
+
+* **admin:** rel="noopener noreferrer" sur lien Voir le site (target blank mobile) ([9a588a2](https://github.com/ApoSkunz/crabitan_bellevue/commit/9a588a2c79e27022f1c0c0a2c47a50074d49656d))
+* **burger:** dropdown sticky — pas de fixed, hauteur limitée à 100dvh-100px ([277fe24](https://github.com/ApoSkunz/crabitan_bellevue/commit/277fe2481bd768fc566eba20433cdc11faae51fa))
+* **burger:** overlay fixe — menu visible depuis n'importe quelle position de scroll ([3ae5668](https://github.com/ApoSkunz/crabitan_bellevue/commit/3ae56682dd2a224b695bf8d13e56275bee0f56ad))
+* **header:** burger menu 768-991px — typo Cinzel + scroll lock + masquer btn compte ([89ad01f](https://github.com/ApoSkunz/crabitan_bellevue/commit/89ad01f15564ecec2e942e3e9e8621de086ab712))
+* **header:** masquer le titre entre 768-991px (mobile paysage) ([27b69b2](https://github.com/ApoSkunz/crabitan_bellevue/commit/27b69b228ef213e07b4890aae1cd3181d6df1514))
+* **js:** ne pas appeler /api/cart/count pour les admins ([51c0991](https://github.com/ApoSkunz/crabitan_bellevue/commit/51c099122c60b40466f0712857716b44a400bc57))
+* **view:** lien admin burger mobile → /admin (sans préfixe langue) ([c2c8f86](https://github.com/ApoSkunz/crabitan_bellevue/commit/c2c8f864e2817fc8583bfd0991f7a4de7598db2b))
+* **view:** menu burger mobile → admin redirige vers /admin et non /mon-compte ([8ea45d6](https://github.com/ApoSkunz/crabitan_bellevue/commit/8ea45d6c7f9bbd9465629f165545ab231e4e5c28))
+
+
+### Features
+
+* **i18n:** clés dialog confirmation suppression panier (fr + en) ([d3b0f95](https://github.com/ApoSkunz/crabitan_bellevue/commit/d3b0f95a089d4223be54c6a8a0be9e57c5375570))
+* **js:** dialog confirmation avant suppression article panier ([3d17f9e](https://github.com/ApoSkunz/crabitan_bellevue/commit/3d17f9e9c31e2c917fa66fc5e9e19622d10af339))
+* **scss:** corrections responsive mobile 320-767px ([11a1d08](https://github.com/ApoSkunz/crabitan_bellevue/commit/11a1d08eed1af6f35abf2567530fc58e3e4dea6c))
+* **scss:** corrections responsive tablette 768-1023px + back-office ([1d2f35f](https://github.com/ApoSkunz/crabitan_bellevue/commit/1d2f35fdbcbb46329212a5e599ec50c76011587f))
+* **view/admin:** data-label tables cards + burger drawer + cart skip admin ([6b2d2d9](https://github.com/ApoSkunz/crabitan_bellevue/commit/6b2d2d9f8e619572058673b9272917bafc965c05))
+* **view:** data-label tables commandes/factures + dialog suppression panier ([7105baa](https://github.com/ApoSkunz/crabitan_bellevue/commit/7105baa45e1cc24fd180abfcb3f0b7d773a4ee74))
+
 # [0.74.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.73.1...v0.74.0) (2026-04-11)
 
 
