@@ -40,7 +40,7 @@
 // Badge HVE
 .footer-hve {
     img {
-        height: 110px;
+        height: clamp(4rem, 10vw, 6.875rem); // WCAG 1.4.4 — clamp au lieu de 110px fixe
         width: auto;
     }
 }
@@ -112,7 +112,7 @@
     gap: 0.75rem;
 
     img {
-        height: 56px;
+        height: clamp(2.5rem, 6vw, 3.5rem); // WCAG 1.4.4 — clamp au lieu de 56px fixe
         width: auto;
         opacity: 0.85;
         transition: opacity 200ms ease;

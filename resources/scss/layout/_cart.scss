@@ -133,8 +133,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    min-width: 2rem;  // WCAG 1.4.4 — min-width rem au lieu de 32px fixe
+    min-height: 2rem; // WCAG 1.4.4 — min-height rem au lieu de 32px fixe
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -311,7 +311,7 @@
     &__name {
         font-weight: 500;
         white-space: nowrap;
-        overflow: hidden;
+        overflow: hidden; /* zoom: overflow intentionnel — ellipsis sur nom produit, le container flex s'étire à fort zoom */
         text-overflow: ellipsis;
     }
 
@@ -533,15 +533,15 @@
     gap: 0.25rem;
     border: 1px solid var(--color-border-gold);
     border-radius: 6px;
-    overflow: hidden;
+    overflow: hidden; /* zoom: overflow intentionnel — clip border-radius, éléments enfants en min-height rem (WCAG 1.4.4) */
 }
 
 .cart-qty-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 32px;
+    min-width: 1.875rem; // WCAG 1.4.4 — min-width rem au lieu de 30px fixe
+    min-height: 2rem;    // WCAG 1.4.4 — min-height rem au lieu de 32px fixe
     border: none;
     background: var(--color-surface);
     color: var(--color-text);
@@ -568,8 +568,8 @@
 }
 
 .cart-qty-input {
-    width: 52px;
-    height: 32px;
+    width: 3.25rem;  // WCAG 1.4.4 — rem au lieu de 52px fixe
+    min-height: 2rem; // WCAG 1.4.4 — min-height rem, s'adapte au zoom
     text-align: center;
     font-size: 0.95rem;
     font-variant-numeric: tabular-nums;

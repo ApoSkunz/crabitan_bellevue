@@ -272,7 +272,7 @@
     display: flex;
     align-items: center;
     min-height: 180px;
-    overflow: hidden;
+    // WCAG 1.4.4 — overflow:hidden retiré du row : le texte du __body doit rester visible à fort zoom
 
     &--reverse {
         flex-direction: row-reverse;
@@ -282,7 +282,7 @@
         flex: 0 0 22%;
         max-width: 22%;
         height: 180px;
-        overflow: hidden;
+        overflow: hidden; /* zoom: overflow intentionnel — clip image vin dans sa zone, effet hover scale */
 
         img {
             width: 100%;
@@ -588,10 +588,10 @@
 
     &__photo {
         flex-shrink: 0;
-        width: 120px;
-        height: 120px;
+        width: clamp(4rem, 10vw, 7.5rem); // WCAG 1.4.4 — clamp au lieu de 120px fixe
+        height: clamp(4rem, 10vw, 7.5rem); // WCAG 1.4.4 — clamp au lieu de 120px fixe
         border-radius: 50%;
-        overflow: hidden;
+        overflow: hidden; /* zoom: overflow intentionnel — clip avatar circulaire, objet visuel */
         // box-shadow au lieu de border : évite le gap sub-pixel entre clip et bordure
         box-shadow: 0 0 0 2px var(--color-gold);
 

@@ -93,8 +93,8 @@
 
     &__image-wrap {
         flex-shrink: 0;
-        width: 90px;
-        height: 130px;
+        width: clamp(70px, 12vw, 5.625rem); // WCAG 1.4.4 — clamp au lieu de 90px fixe
+        height: clamp(100px, 18vw, 8.125rem); // WCAG 1.4.4 — clamp au lieu de 130px fixe
         display: flex;
         align-items: center;
         justify-content: center;

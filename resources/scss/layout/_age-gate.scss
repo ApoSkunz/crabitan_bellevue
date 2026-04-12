@@ -7,7 +7,7 @@
 .age-gate-page {
     background-color: var(--color-bg);
     min-height: 100dvh;
-    overflow: hidden;
+    overflow-x: hidden; // WCAG 1.4.4 — overflow-x uniquement : empêche scroll horizontal parasite sans bloquer scroll vertical à fort zoom
 }
 
 .age-gate {
@@ -128,7 +128,7 @@
     background-color: var(--color-surface);
     padding: 3rem 3.5rem;
     position: relative;
-    overflow: hidden;
+    overflow: hidden; /* zoom: overflow intentionnel — clip effet lumière oblique ::before, la card elle-même n'a pas de hauteur fixe */
 
     @include m.bp('md') {
         padding: 3.5rem 4rem;
@@ -433,6 +433,7 @@
 // ============================================================
 
 // Bloque le scroll de la page tant que l'overlay est visible
+// zoom: overflow intentionnel — modale fullscreen obligatoire (déclaration majorité Art. L3342-1 CSP), scroll bloqué intentionnellement
 body:has(.age-overlay) {
     overflow: hidden;
 }

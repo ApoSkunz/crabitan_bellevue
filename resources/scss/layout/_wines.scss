@@ -293,8 +293,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 280px;
-        overflow: hidden;
+        height: 280px; /* zoom: hauteur intentionnelle — zone d'affichage image vin, pas de texte */
+        overflow: hidden; /* zoom: overflow intentionnel — clip image dans la zone carte */
 
         @include m.bp('lg') {
             height: 320px;
@@ -644,9 +644,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 460px;
+        height: 460px; /* zoom: hauteur intentionnelle — viewer bouteille, pas de texte dans la zone */
         background-color: var(--color-bg);
-        overflow: hidden;
+        overflow: hidden; /* zoom: overflow intentionnel — clip image + curseur zoom, zone visuelle pure */
 
         @include m.bp('lg') {
             height: 540px;

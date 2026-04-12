@@ -77,8 +77,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 44px;
-        height: 44px;
+        min-width: 2.75rem; // WCAG 1.4.4 + 2.5.5 — min-width rem au lieu de 44px fixe
+        min-height: 2.75rem; // WCAG 1.4.4 + 2.5.5 — min-height rem au lieu de 44px fixe
         border-radius: 3px;
         font-family: Georgia, serif;
         font-size: 1rem;

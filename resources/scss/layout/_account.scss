@@ -539,7 +539,7 @@
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 4px;
-    overflow: hidden;
+    overflow: hidden; /* zoom: overflow intentionnel — clip border-radius, image seule en hauteur fixe (objet visuel, pas de texte) */
     display: flex;
     flex-direction: column;
     transition: border-color 200ms ease;
