@@ -75,6 +75,10 @@ return [
     'auth.google_link_cancel'       => 'No, go back to sign in',
     'auth.google_link_cancel_info'  => 'An account already exists with this email address. Sign in with your password, or click "Continue with Google" again to link your account.',
     'auth.google_link_note'         => 'By confirming, you\'ll be able to sign in with Google or your password.',
+    'auth.google_link_email_sent_intro'        => 'To link your Google account, a confirmation email has just been sent to',
+    'auth.google_link_email_sent_instructions' => 'Open your inbox and click the confirmation link to complete the linking.',
+    'auth.google_link_email_sent_ttl'          => 'The link is valid for 15 minutes. Without confirmation, no linking will be performed.',
+    'auth.google_link_token_invalid'           => 'The linking link is invalid or has expired. Please start the Google sign-in again.',
     'auth.modal.no_account'  => 'Don\'t have an account?',
     'auth.modal.sign_up'      => 'Sign up',
     'auth.modal.have_account' => 'Already have an account?',
@@ -238,7 +242,8 @@ return [
     'error.404'    => 'Page not found',
     'error.500'    => 'Server error',
     'error.403'    => 'Access denied',
-    'error.csrf'   => 'Invalid request, please try again.',
+    'error.csrf'          => 'Your security session has expired (form open for too long). Please reload the page and try again.',
+    'error.csrf_expired'  => 'Session expired for security reasons. Reload the page and submit again.',
 
     // Forms
     'common.close'          => 'Close',
@@ -1019,6 +1024,7 @@ return [
     'payment.success_fallback'  => 'If the page does not load, <a href="/{lang}/mon-compte/commandes">click here</a>.',
     'payment.success_loading'   => 'Your order is being finalised...',
     'payment.success_redirect'  => 'You will be redirected to your orders.',
+    'payment.card_unavailable'  => 'Card payment is temporarily unavailable. You can pay by bank transfer or cheque, or try again in a few minutes.',
 
     // Generic errors
     'error.generic' => 'An error occurred. Please try again.',

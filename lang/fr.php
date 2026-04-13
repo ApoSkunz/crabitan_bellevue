@@ -75,6 +75,10 @@ return [
     'auth.google_link_cancel'       => 'Non, revenir à la connexion',
     'auth.google_link_cancel_info'  => 'Un compte existe déjà avec cette adresse email. Connectez-vous avec votre mot de passe, ou cliquez à nouveau sur « Continuer avec Google » pour associer votre compte.',
     'auth.google_link_note'         => 'En confirmant, vous pourrez vous connecter avec Google ou votre mot de passe.',
+    'auth.google_link_email_sent_intro'        => 'Pour rattacher votre compte Google, un email de confirmation vient d\'être envoyé à',
+    'auth.google_link_email_sent_instructions' => 'Ouvrez votre boîte mail et cliquez sur le lien de confirmation pour finaliser le rattachement.',
+    'auth.google_link_email_sent_ttl'          => 'Le lien est valable 15 minutes. Sans confirmation, aucun rattachement ne sera effectué.',
+    'auth.google_link_token_invalid'           => 'Le lien de rattachement est invalide ou a expiré. Recommencez la connexion via Google.',
     'auth.modal.no_account'  => 'Pas encore de compte ?',
     'auth.modal.sign_up'      => 'S\'inscrire',
     'auth.modal.have_account' => 'Déjà un compte ?',
@@ -238,7 +242,8 @@ return [
     'error.404'    => 'Page introuvable',
     'error.500'    => 'Erreur serveur',
     'error.403'    => 'Accès refusé',
-    'error.csrf'   => 'Requête invalide, veuillez réessayer.',
+    'error.csrf'          => 'Votre session de sécurité a expiré (formulaire ouvert depuis trop longtemps). Rechargez la page puis réessayez.',
+    'error.csrf_expired'  => 'Session expirée pour des raisons de sécurité. Rechargez la page et validez à nouveau.',
 
     // Formulaires
     'common.close'          => 'Fermer',
@@ -1020,6 +1025,7 @@ return [
     'payment.success_fallback'  => 'Si la page ne se charge pas, <a href="/{lang}/mon-compte/commandes">cliquez ici</a>.',
     'payment.success_loading'   => 'Votre commande est en cours de finalisation...',
     'payment.success_redirect'  => 'Vous allez être redirigé vers votre espace commandes.',
+    'payment.card_unavailable'  => 'Le paiement par carte bancaire est momentanément indisponible. Vous pouvez régler par virement ou chèque, ou réessayer dans quelques minutes.',
 
     // Erreurs génériques
     'error.generic' => 'Une erreur est survenue. Veuillez réessayer.',
