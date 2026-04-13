@@ -13,28 +13,18 @@ require_once __DIR__ . '/../partials/header.php';
         <h1><?= htmlspecialchars(__('auth.google_link_title')) ?></h1>
 
         <p class="auth-card__intro">
-            <?= htmlspecialchars(__('auth.google_link_intro')) ?>
+            <?= htmlspecialchars(__('auth.google_link_email_sent_intro')) ?>
             <strong><?= htmlspecialchars($email) ?></strong>.
         </p>
-        <p><?= htmlspecialchars(__('auth.google_link_question')) ?></p>
-
-        <form method="POST" action="/<?= htmlspecialchars($lang) ?>/auth/google/link" class="auth-card__form">
-            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-            <input type="hidden" name="action" value="confirm">
-            <button type="submit" class="btn btn--gold btn--full">
-                <?= htmlspecialchars(__('auth.google_link_confirm')) ?>
-            </button>
-        </form>
+        <p><?= htmlspecialchars(__('auth.google_link_email_sent_instructions')) ?></p>
+        <p class="auth-card__note"><?= htmlspecialchars(__('auth.google_link_email_sent_ttl')) ?></p>
 
         <form method="POST" action="/<?= htmlspecialchars($lang) ?>/auth/google/link" class="auth-card__form auth-card__form--cancel">
-            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
             <input type="hidden" name="action" value="cancel">
             <button type="submit" class="btn btn--ghost btn--full">
                 <?= htmlspecialchars(__('auth.google_link_cancel')) ?>
             </button>
         </form>
-
-        <p class="auth-card__note"><?= htmlspecialchars(__('auth.google_link_note')) ?></p>
     </div>
 </main>
 <?php require_once __DIR__ . '/../partials/footer.php'; ?>

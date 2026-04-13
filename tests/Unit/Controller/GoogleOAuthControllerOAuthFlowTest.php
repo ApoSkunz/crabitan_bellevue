@@ -317,8 +317,9 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
         } catch (HttpException) {
         }
 
-        $this->assertArrayHasKey('pending_google_link', $_SESSION);
-        $this->assertSame('existing@example.com', $_SESSION['pending_google_link']['email']);
+        // Nouveau flux : double confirmation via email avant le rattachement.
+        $this->assertArrayHasKey('pending_google_link_email_sent', $_SESSION);
+        $this->assertSame('existing@example.com', $_SESSION['pending_google_link_email_sent']);
     }
 
     // ----------------------------------------------------------------
@@ -389,9 +390,12 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
     // linkConfirmPost() — sans pending_google_link
     // ----------------------------------------------------------------
 
-    public function testLinkConfirmPostWithoutPendingSetsFlashAndRedirects(): void
+    public function testLinkConfirmPostWithoutPendingRedirectsSilently(): void
     {
+        // Le rattachement s'effectue désormais via le lien email — linkConfirmPost
+        // ne gère plus que l'annulation. Sans "action=cancel", aucun flash n'est posé.
         $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST    = [];
         $_SESSION = [];
 
         try {
@@ -399,7 +403,7 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
         } catch (HttpException) {
         }
 
-        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+        $this->assertArrayNotHasKey('modal_error', $_SESSION['flash'] ?? []);
     }
 
     // ----------------------------------------------------------------

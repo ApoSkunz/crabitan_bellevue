@@ -186,10 +186,13 @@ class GoogleOAuthControllerTest extends TestCase
     // linkConfirmPost() — confirmation du rattachement
     // ----------------------------------------------------------------
 
-    public function testLinkConfirmPostWithNoPendingLinkSetsError(): void
+    public function testLinkConfirmPostWithNoPendingLinkRedirectsSilently(): void
     {
+        // Nouveau flux : linkConfirmPost ne gère plus que l'annulation — sans action=cancel
+        // et sans pending, on redirige silencieusement vers la page de connexion.
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SESSION = []; // pas de pending_google_link
+        $_POST    = [];
+        $_SESSION = [];
 
         $ctrl = $this->makeController();
 
@@ -198,7 +201,7 @@ class GoogleOAuthControllerTest extends TestCase
         } catch (HttpException) {
         }
 
-        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+        $this->assertArrayNotHasKey('modal_error', $_SESSION['flash'] ?? []);
     }
 
     public function testLinkConfirmPostCancelRedirectsToLogin(): void

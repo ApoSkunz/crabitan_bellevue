@@ -11,6 +11,7 @@ use Core\Jwt;
 use Core\Response;
 use Model\AccountModel;
 use Model\ConnectionModel;
+use Model\GoogleLinkTokenModel;
 use Model\TrustedDeviceModel;
 use Service\GoogleOAuthService;
 use Service\MailService;
@@ -31,6 +32,7 @@ class GoogleOAuthController extends Controller
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
     private GoogleOAuthService $oauth;
+    private GoogleLinkTokenModel $linkTokens;
 
     /**
      * Initialise les dépendances du contrôleur.
@@ -45,6 +47,7 @@ class GoogleOAuthController extends Controller
             $_ENV['GOOGLE_CLIENT_ID']     ?? '',
             $_ENV['GOOGLE_CLIENT_SECRET'] ?? ''
         );
+        $this->linkTokens     = new GoogleLinkTokenModel();
     }
 
     // ----------------------------------------------------------------
@@ -153,16 +156,32 @@ class GoogleOAuthController extends Controller
             }
         }
 
-        // Cas 2 — email connu (actif), pas encore de google_id → confirmation de rattachement
+        // Cas 2 — email connu (actif), pas encore de google_id → double confirmation via email
         if (!$account) {
             $existing = $this->accounts->findByEmail($email);
             if ($existing) {
-                $_SESSION['pending_google_link'] = [
-                    'google_id'  => $googleId,
-                    'account_id' => (int) $existing['id'],
-                    'email'      => $email,
-                    'firstname'  => $userInfo['given_name'] ?? '',
-                ];
+                try {
+                    $token       = $this->linkTokens->create(
+                        (int) $existing['id'],
+                        $googleId,
+                        $lang
+                    );
+                    $base        = rtrim($_ENV['APP_URL'] ?? '', '/');
+                    $confirmUrl  = $base . "/{$lang}/auth/google/link/verify?token=" . urlencode($token);
+                    $displayName = $existing['firstname']
+                        ?? $existing['company_name']
+                        ?? ($userInfo['given_name'] ?? '');
+                    (new MailService())->sendGoogleLinkConfirmation(
+                        $existing['email'],
+                        (string) $displayName,
+                        $confirmUrl,
+                        $lang
+                    );
+                } catch (\Throwable $e) {
+                    \Core\ErrorLogger::warning($e, '[GoogleOAuth/linkToken]');
+                }
+
+                $_SESSION['pending_google_link_email_sent'] = $email;
                 Response::redirect("/{$lang}/auth/google/link");
             }
         }
@@ -235,19 +254,61 @@ class GoogleOAuthController extends Controller
             session_start();
         }
 
-        $lang    = $this->resolveLang($params);
-        $pending = $_SESSION['pending_google_link'] ?? null;
+        $lang          = $this->resolveLang($params);
+        $emailSentTo   = $_SESSION['pending_google_link_email_sent'] ?? null;
+        unset($_SESSION['pending_google_link_email_sent']);
 
-        if (!$pending) {
+        if (!$emailSentTo) {
             Response::redirect("/{$lang}?login=1");
         }
 
         $this->view('auth/google-link-confirm', [
-            'lang'      => $lang,
-            'email'     => $pending['email'],
-            'firstname' => $pending['firstname'] ?? '',
-            'csrf'      => $_SESSION['csrf'] ?? '',
+            'lang'  => $lang,
+            'email' => $emailSentTo,
         ]);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/auth/google/link/verify?token=...
+    // ----------------------------------------------------------------
+
+    /**
+     * Consomme le token envoyé par email et rattache le compte Google au compte classique.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     */
+    public function linkVerifyByToken(array $params): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $lang     = $this->resolveLang($params);
+        $loginUrl = "/{$lang}?login=1";
+        $token    = (string) ($_GET['token'] ?? '');
+
+        if ($token === '') {
+            $this->flash('modal_error', __('auth.google_link_token_invalid'));
+            Response::redirect($loginUrl);
+        }
+
+        $record = $this->linkTokens->findActive($token);
+        if (!$record) {
+            $this->flash('modal_error', __('auth.google_link_token_invalid'));
+            Response::redirect($loginUrl);
+        }
+
+        $this->linkTokens->consume((int) $record['id']);
+
+        $this->accounts->linkGoogleId((int) $record['account_id'], (string) $record['google_id']);
+        $account = $this->accounts->findById((int) $record['account_id']);
+
+        if (!$account) {
+            $this->flash('modal_error', __('auth.google_error'));
+            Response::redirect($loginUrl);
+        }
+
+        $this->issueSession($account, $lang);
     }
 
     // ----------------------------------------------------------------
@@ -265,33 +326,16 @@ class GoogleOAuthController extends Controller
             session_start();
         }
 
-        $lang     = $this->resolveLang($params);
-        $loginUrl = "/{$lang}?login=1";
-        $pending  = $_SESSION['pending_google_link'] ?? null;
+        // Le rattachement s'effectue désormais via le lien email (linkVerifyByToken).
+        // Ce handler reste uniquement pour l'annulation volontaire depuis la page d'attente.
+        $lang = $this->resolveLang($params);
+        unset($_SESSION['pending_google_link'], $_SESSION['pending_google_link_email_sent']);
 
-        if (!$pending) {
-            $this->flash('modal_error', __('auth.google_error'));
-            Response::redirect($loginUrl);
-        }
-
-        unset($_SESSION['pending_google_link']);
-
-        // Annulation → retour au modal de connexion avec message explicatif
         if (($_POST['action'] ?? '') === 'cancel') {
             $_SESSION['flash']['modal_error'] = __('auth.google_link_cancel_info');
-            Response::redirect($loginUrl);
         }
 
-        // Confirmation → rattacher + connecter
-        $this->accounts->linkGoogleId((int) $pending['account_id'], $pending['google_id']);
-        $account = $this->accounts->findById((int) $pending['account_id']);
-
-        if (!$account) {
-            $this->flash('modal_error', __('auth.google_error'));
-            Response::redirect($loginUrl);
-        }
-
-        $this->issueSession($account, $lang);
+        Response::redirect("/{$lang}?login=1");
     }
 
     // ----------------------------------------------------------------
