@@ -66,6 +66,26 @@ $title   = $labels[$statusCode][$lang]       ?? ($lang === 'en' ? 'Error'       
 $desc    = $descriptions[$statusCode][$lang] ?? ($lang === 'en' ? 'An error occurred.' : 'Une erreur est survenue.');
 $homeUrl = '/' . $lang;
 $homeLbl = $lang === 'en' ? '← Back to home' : '← Retour à l\'accueil';
+
+// Lien retour via referer si présent et même origine (sécurité anti open-redirect)
+$backUrl = null;
+$ref     = $_SERVER['HTTP_REFERER'] ?? '';
+if ($ref !== '') {
+    $appUrl = defined('APP_URL') ? APP_URL : '';
+    $host   = $_SERVER['HTTP_HOST'] ?? '';
+    if (
+        ($appUrl !== '' && str_starts_with($ref, $appUrl))
+        || ($host !== '' && (str_starts_with($ref, 'https://' . $host) || str_starts_with($ref, 'http://' . $host)))
+    ) {
+        // Ne pas proposer le retour si referer = page d'erreur courante
+        $currentUri = ($_SERVER['HTTPS'] ?? '') === 'on' ? 'https://' : 'http://';
+        $currentUri .= $host . ($_SERVER['REQUEST_URI'] ?? '');
+        if ($ref !== $currentUri) {
+            $backUrl = $ref;
+        }
+    }
+}
+$backLbl = $lang === 'en' ? '← Back to previous page' : '← Retour à la page précédente';
 ?>
 <!DOCTYPE html>
 <html lang="<?= htmlspecialchars($lang) ?>" data-theme="dark">
@@ -97,9 +117,18 @@ $homeLbl = $lang === 'en' ? '← Back to home' : '← Retour à l\'accueil';
             <h1 class="error-page__title"><?= htmlspecialchars($title) ?></h1>
             <p class="error-page__desc"><?= htmlspecialchars($desc) ?></p>
 
-            <a href="<?= htmlspecialchars($homeUrl) ?>" class="btn btn--gold error-page__btn">
-                <?= htmlspecialchars($homeLbl) ?>
-            </a>
+            <?php if ($backUrl !== null) : ?>
+                <a href="<?= htmlspecialchars($backUrl) ?>" class="btn btn--gold error-page__btn">
+                    <?= htmlspecialchars($backLbl) ?>
+                </a>
+                <a href="<?= htmlspecialchars($homeUrl) ?>" class="btn btn--ghost error-page__btn">
+                    <?= htmlspecialchars($homeLbl) ?>
+                </a>
+            <?php else : ?>
+                <a href="<?= htmlspecialchars($homeUrl) ?>" class="btn btn--gold error-page__btn">
+                    <?= htmlspecialchars($homeLbl) ?>
+                </a>
+            <?php endif; ?>
         </div>
     </main>
 </body>
