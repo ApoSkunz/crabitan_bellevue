@@ -121,6 +121,7 @@ $router->get('/{lang}/actualites/{slug}', 'NewsController@show');
 $router->get('/{lang}/auth/google', 'GoogleOAuthController@authorize');
 $router->get('/{lang}/auth/google/callback', 'GoogleOAuthController@callback');
 $router->get('/{lang}/auth/google/link', 'GoogleOAuthController@linkConfirm');
+$router->get('/{lang}/auth/google/link/verify', 'GoogleOAuthController@linkVerifyByToken');
 $router->post('/{lang}/auth/google/link', 'GoogleOAuthController@linkConfirmPost');
 
 $router->post('/{lang}/connexion', 'AuthController@login');
