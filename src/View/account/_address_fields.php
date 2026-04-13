@@ -83,7 +83,7 @@ $countries = [
         <input type="text" id="addr-zip" name="zip_code"
                value="<?= htmlspecialchars($v['zip_code'] ?? '') ?>"
                required autocomplete="postal-code"
-               maxlength="10"
+               maxlength="10" inputmode="numeric"
                placeholder="75001">
         <p class="form-hint js-zip-error" hidden><?= __('account.address_zip_invalid') ?></p>
     </div>

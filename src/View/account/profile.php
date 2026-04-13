@@ -88,7 +88,8 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                             <label for="siret"><?= __('account.siret') ?></label>
                             <input type="text" id="siret" name="siret"
                                    value="<?= htmlspecialchars($account['siret'] ?? '') ?>"
-                                   maxlength="14" pattern="\d{14}">
+                                   maxlength="14" pattern="\d{14}" inputmode="numeric"
+                                   autocomplete="off">
                         </div>
                     <?php endif; ?>
 
