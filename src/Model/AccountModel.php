@@ -430,10 +430,11 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      */
     public function updateLang(int $id, string $lang): void
     {
-        $this->db->execute(
+        $rows = $this->db->execute(
             "UPDATE {$this->table} SET lang = ? WHERE id = ?",
             [$lang, $id]
         );
+        error_log("[LANG] updateLang id={$id} lang={$lang} rows_affected={$rows}");
     }
 
     /**
@@ -1425,6 +1426,9 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      */
     public function confirmNewsletterByToken(string $token): array|false
     {
+        $tokenPrefix = substr($token, 0, 8);
+        error_log("[NEWSLETTER] confirmByToken called prefix={$tokenPrefix} len=" . strlen($token));
+
         $account = $this->db->fetchOne(
             "SELECT id FROM {$this->table}
              WHERE newsletter_confirm_token = ?
@@ -1434,10 +1438,13 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
 
         if (!$account) {
+            error_log("[NEWSLETTER] SELECT by token returned 0 rows (token not matching or expired)");
             return false;
         }
 
-        $this->db->execute(
+        error_log("[NEWSLETTER] SELECT matched account id={$account['id']}");
+
+        $rows = $this->db->execute(
             "UPDATE {$this->table}
              SET newsletter = 1,
                  newsletter_confirm_token = NULL,
@@ -1445,6 +1452,8 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
              WHERE id = ?",
             [(int) $account['id']]
         );
+
+        error_log("[NEWSLETTER] UPDATE rows_affected={$rows} for id={$account['id']}");
 
         return $account;
     }
