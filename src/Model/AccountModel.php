@@ -1425,9 +1425,6 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      */
     public function confirmNewsletterByToken(string $token): array|false
     {
-        $tokenPrefix = substr($token, 0, 8);
-        \Core\ErrorLogger::info("[NEWSLETTER] confirmByToken called prefix={$tokenPrefix} len=" . strlen($token));
-
         $account = $this->db->fetchOne(
             "SELECT id FROM {$this->table}
              WHERE newsletter_confirm_token = ?
@@ -1437,13 +1434,10 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
 
         if (!$account) {
-            \Core\ErrorLogger::info("[NEWSLETTER] SELECT by token returned 0 rows (token not matching or expired)");
             return false;
         }
 
-        \Core\ErrorLogger::info("[NEWSLETTER] SELECT matched account id={$account['id']}");
-
-        $rows = $this->db->execute(
+        $this->db->execute(
             "UPDATE {$this->table}
              SET newsletter = 1,
                  newsletter_confirm_token = NULL,
@@ -1451,8 +1445,6 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
              WHERE id = ?",
             [(int) $account['id']]
         );
-
-        \Core\ErrorLogger::info("[NEWSLETTER] UPDATE rows_affected={$rows} for id={$account['id']}");
 
         return $account;
     }

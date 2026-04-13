@@ -488,11 +488,17 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
             $firstname    = $account['firstname'] ?? '';
             $isSubscribed = (int) ($account['newsletter'] ?? 0) === 1
                          || !empty($account['newsletter_optin_pending']);
+            $confirmToken = '';
+            if (!$isSubscribed) {
+                $confirmToken = bin2hex(random_bytes(32));
+                $this->accounts->storeNewsletterConfirmToken($accountId, $confirmToken);
+            }
             (new MailService())->sendWelcome(
                 $account['email'],
                 $firstname,
                 $lang,
-                $isSubscribed
+                $isSubscribed,
+                $confirmToken
             );
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e);
