@@ -76,11 +76,11 @@ class MailServiceWelcomeTest extends TestCase
         $prop = new ReflectionProperty(MailService::class, 'mailer');
         $prop->setValue($this->service, $stub); // NOSONAR — test unitaire
 
-        $this->service->sendWelcome('marie@example.com', 'Marie', 'fr', false);
+        $this->service->sendWelcome('marie@example.com', 'Marie', 'fr', false, 'abc123token');
 
         $html = $stub->Body;
         $this->assertStringContainsString('Marie', $html);
-        $this->assertStringContainsString('inscription-bienvenue', $html);
+        $this->assertStringContainsString('/fr/newsletter/confirmation?token=abc123token', $html);
         $this->assertStringContainsString("S'abonner", $html);
     }
 
@@ -99,11 +99,11 @@ class MailServiceWelcomeTest extends TestCase
         $prop = new ReflectionProperty(MailService::class, 'mailer');
         $prop->setValue($this->service, $stub); // NOSONAR — test unitaire
 
-        $this->service->sendWelcome('john@example.com', 'John', 'en', false);
+        $this->service->sendWelcome('john@example.com', 'John', 'en', false, 'xyz789token');
 
         $html = $stub->Body;
         $this->assertStringContainsString('John', $html);
-        $this->assertStringContainsString('welcome-subscribe', $html);
+        $this->assertStringContainsString('/en/newsletter/confirmation?token=xyz789token', $html);
         $this->assertStringContainsString('Subscribe to the newsletter', $html);
     }
 
