@@ -1219,7 +1219,7 @@ function initPageIntro() {
     overlay.setAttribute('aria-hidden', 'true');
 
     const img = document.createElement('img');
-    img.src       = '/assets/images/logo/crabitan-bellevue-logo-modern.svg';
+    img.src       = '/assets/images/logo/crabitan-bellevue-logo.png';
     img.alt       = '';
     img.width     = 180;
     img.height    = 180;

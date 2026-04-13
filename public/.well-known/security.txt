@@ -1,5 +1,0 @@
-Contact: mailto:security@crabitanbellevue.fr
-Expires: 2027-04-11T00:00:00.000Z
-Preferred-Languages: fr, en
-Policy: https://www.crabitanbellevue.fr/fr/mentions-legales
-Canonical: https://www.crabitanbellevue.fr/.well-known/security.txt

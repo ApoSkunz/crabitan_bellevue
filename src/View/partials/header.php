@@ -105,7 +105,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
         <!-- Gauche : logo + langue + contact -->
         <div class="header-left">
             <a href="/<?= htmlspecialchars($navLang) ?>" class="header-logo" aria-label="<?= htmlspecialchars(APP_NAME) ?>">
-                <img src="/assets/images/logo/crabitan-bellevue-logo-modern.svg" alt="" width="48" height="48">
+                <img src="/assets/images/logo/crabitan-bellevue-logo.png" alt="" width="48" height="48">
             </a>
 
             <nav class="lang-switch" aria-label="Langue / Language">

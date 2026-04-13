@@ -95,32 +95,28 @@ $age   = (new \DateTime())->diff($birth)->y;
                     <div class="cv-timeline__content">
                         <div class="cv-timeline__header">
                             <span class="cv-timeline__company">EDF</span>
-                            <span class="cv-timeline__badge">CDI</span>
+                            <span class="cv-timeline__badge"><?= htmlspecialchars(__('webmaster.badge_cdi')) ?></span>
                         </div>
-                        <p class="cv-timeline__role">Ingénieur DevSecOps &amp; SRE</p>
-                        <p class="cv-timeline__period">jan. 2025 → présent · Lyon, hybride</p>
+                        <p class="cv-timeline__role"><?= htmlspecialchars(__('webmaster.edf_role')) ?></p>
+                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.edf_period')) ?></p>
                         <ul class="cv-timeline__tasks">
-                            <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit</li>
-                            <li>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua</li>
-                            <li>Ut enim ad minim veniam, quis nostrud exercitation ullamco</li>
-                            <li>Duis aute irure dolor in reprehenderit in voluptate velit esse</li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_task1')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_task2')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_task3')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_task4')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_task5')) ?></li>
                         </ul>
                         <p class="cv-timeline__sub-role">
-                            <em>Intégrateur d'applications — DevSecOps / SRE</em>
-                            · nov. 2023 → déc. 2024 · 1 an 1 mois
+                            <em><?= htmlspecialchars(__('webmaster.edf_sub_role')) ?></em>
+                            · <?= htmlspecialchars(__('webmaster.edf_sub_period')) ?>
                         </p>
                         <ul class="cv-timeline__tasks">
-                            <li>Élaboration d'une stratégie DevSecOps industrielle
-                                et roadmap sur 16 applications CAO 2D / 3D / 4D</li>
-                            <li>Mise en place CI/CD avec workflow design :
-                                Security Gates SAST / SCA / SonarQube, Quality Gates</li>
-                            <li>Expérimentation DORA metrics pour mesurer la performance DevOps</li>
-                            <li>Architecture commune pour les Déploiements Automatisés
-                                (Ansible, IaC)</li>
-                            <li>SRE : surveillance continue, alerting, résilience
-                                from scratch, zéro obsolescence</li>
-                            <li>Gestion de projet Kanban : affinage tickets DevSecOps,
-                                animation rétros</li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_sub_task1')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_sub_task2')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_sub_task3')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_sub_task4')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_sub_task5')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_sub_task6')) ?></li>
                         </ul>
                     </div>
                 </li>
@@ -130,26 +126,25 @@ $age   = (new \DateTime())->diff($birth)->y;
                     <div class="cv-timeline__content">
                         <div class="cv-timeline__header">
                             <span class="cv-timeline__company">Capgemini</span>
-                            <span class="cv-timeline__badge">CDI</span>
+                            <span class="cv-timeline__badge"><?= htmlspecialchars(__('webmaster.badge_cdi')) ?></span>
                         </div>
-                        <p class="cv-timeline__role">Ingénieur DevOps — Team Leader System Team SAFe</p>
-                        <p class="cv-timeline__period">août 2021 → nov. 2023 · 2 ans 4 mois · Lyon</p>
+                        <p class="cv-timeline__role"><?= htmlspecialchars(__('webmaster.capgemini_role')) ?></p>
+                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.capgemini_period')) ?></p>
                         <ul class="cv-timeline__tasks">
-                            <li>Team Leader DevOps coordonnant 3 ingénieurs sur un Train SAFe</li>
-                            <li>Déploiement automatisé : GitLab CI, Jenkins, Ansible</li>
-                            <li>Surveillance automatisée : monitoring, observability, alerting</li>
-                            <li>Support technique multi-middleware et intégration continue</li>
+                            <li><?= htmlspecialchars(__('webmaster.capgemini_task1')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.capgemini_task2')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.capgemini_task3')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.capgemini_task4')) ?></li>
                         </ul>
                         <p class="cv-timeline__sub-role">
-                            <em>Stagiaire DevOps</em> · févr.–août 2021 · 7 mois
+                            <em><?= htmlspecialchars(__('webmaster.capgemini_sub_role')) ?></em>
+                            · <?= htmlspecialchars(__('webmaster.capgemini_sub_period')) ?>
                         </p>
                         <ul class="cv-timeline__tasks">
-                            <li>MCO d'une plateforme d'Intégration Continue (GitLab, Jenkins)
-                                et développement de shared libraries Jenkins CI/CD</li>
-                            <li>POC Asqatasun / Tanaguru (conformité RGAA &amp; GreenIT),
-                                politique de rétention des sauvegardes et des artifacts</li>
-                            <li>Stage axé CI/CD, GreenIT automatisé, monitoring, alerting</li>
-                            <li>GitLab, Jenkins, SonarQube, ELK, Python, Shell</li>
+                            <li><?= htmlspecialchars(__('webmaster.capgemini_sub_task1')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.capgemini_sub_task2')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.capgemini_sub_task3')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.capgemini_sub_task4')) ?></li>
                         </ul>
                     </div>
                 </li>
@@ -159,22 +154,22 @@ $age   = (new \DateTime())->diff($birth)->y;
                     <div class="cv-timeline__content">
                         <div class="cv-timeline__header">
                             <span class="cv-timeline__company">G.F.A Bernard Solane &amp; Fils</span>
-                            <span class="cv-timeline__badge cv-timeline__badge--stage">Stage</span>
+                            <span class="cv-timeline__badge cv-timeline__badge--stage"><?= htmlspecialchars(__('webmaster.badge_stage')) ?></span>
                         </div>
-                        <p class="cv-timeline__role">Stagiaire Développeur Full Stack</p>
-                        <p class="cv-timeline__period">juil.–août 2020 · Sainte-Croix-du-Mont</p>
+                        <p class="cv-timeline__role"><?= htmlspecialchars(__('webmaster.gfa_role')) ?></p>
+                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.gfa_period')) ?></p>
                         <ul class="cv-timeline__tasks">
-                            <li>Refonte du site vitrine en site e-commerce
-                                (PHP, MySQL, JS, HTML/CSS)</li>
-                            <li>Architecture MVC, API REST interne, paiement Crédit Agricole</li>
-                            <li>~50 pages utilisateurs et administrateurs, sécurité OWASP Top 10</li>
-                            <li>MCO du site assurée depuis lors</li>
+                            <li><?= htmlspecialchars(__('webmaster.gfa_task1')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.gfa_task2')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.gfa_task3')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.gfa_task4')) ?></li>
                         </ul>
                         <p class="cv-timeline__sub-role">
-                            <em>Stagiaire Développeur Web</em> · jan.–févr. 2019
+                            <em><?= htmlspecialchars(__('webmaster.gfa_sub_role')) ?></em>
+                            · <?= htmlspecialchars(__('webmaster.gfa_sub_period')) ?>
                         </p>
                         <ul class="cv-timeline__tasks">
-                            <li>Conception d'un site vitrine HTML / CSS / JavaScript</li>
+                            <li><?= htmlspecialchars(__('webmaster.gfa_sub_task1')) ?></li>
                         </ul>
                     </div>
                 </li>
@@ -196,17 +191,14 @@ $age   = (new \DateTime())->diff($birth)->y;
                         <div class="cv-timeline__header">
                             <span class="cv-timeline__company">Télécom Saint-Étienne</span>
                             <span class="cv-timeline__badge cv-timeline__badge--stage">
-                                Diplôme d'ingénieur
+                                <?= htmlspecialchars(__('webmaster.telecom_degree')) ?>
                             </span>
                         </div>
-                        <p class="cv-timeline__role">
-                            Informatique &amp; Télécommunications — Réseaux, systèmes,
-                            développement logiciel
-                        </p>
-                        <p class="cv-timeline__period">2018 – 2021 · Saint-Étienne</p>
+                        <p class="cv-timeline__role"><?= htmlspecialchars(__('webmaster.telecom_role')) ?></p>
+                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.telecom_period')) ?></p>
                         <ul class="cv-timeline__tasks">
-                            <li>Spécialités : Java Académie, High Performance Programming</li>
-                            <li>TOEIC 830</li>
+                            <li><?= htmlspecialchars(__('webmaster.telecom_task1')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.telecom_task2')) ?></li>
                         </ul>
                     </div>
                 </li>
@@ -217,13 +209,11 @@ $age   = (new \DateTime())->diff($birth)->y;
                         <div class="cv-timeline__header">
                             <span class="cv-timeline__company">Classes Préparatoires CPGE PC</span>
                             <span class="cv-timeline__badge cv-timeline__badge--stage">
-                                Prépa
+                                <?= htmlspecialchars(__('webmaster.cpge_degree')) ?>
                             </span>
                         </div>
-                        <p class="cv-timeline__role">
-                            Filière Physique-Chimie — Mathématiques, physique, sciences de l'ingénieur
-                        </p>
-                        <p class="cv-timeline__period">2015 – 2018</p>
+                        <p class="cv-timeline__role"><?= htmlspecialchars(__('webmaster.cpge_role')) ?></p>
+                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.cpge_period')) ?></p>
                     </div>
                 </li>
 
@@ -232,10 +222,10 @@ $age   = (new \DateTime())->diff($birth)->y;
                     <div class="cv-timeline__content">
                         <div class="cv-timeline__header">
                             <span class="cv-timeline__company">Baccalauréat S</span>
-                            <span class="cv-timeline__badge cv-timeline__badge--stage">BAC</span>
+                            <span class="cv-timeline__badge cv-timeline__badge--stage"><?= htmlspecialchars(__('webmaster.bac_degree')) ?></span>
                         </div>
-                        <p class="cv-timeline__role">Série scientifique</p>
-                        <p class="cv-timeline__period">2015</p>
+                        <p class="cv-timeline__role"><?= htmlspecialchars(__('webmaster.bac_role')) ?></p>
+                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.bac_period')) ?></p>
                     </div>
                 </li>
 
@@ -245,14 +235,11 @@ $age   = (new \DateTime())->diff($birth)->y;
                         <div class="cv-timeline__header">
                             <span class="cv-timeline__company">OpenClassrooms</span>
                             <span class="cv-timeline__badge cv-timeline__badge--stage">
-                                Auto-formation
+                                <?= htmlspecialchars(__('webmaster.oc_badge')) ?>
                             </span>
                         </div>
-                        <p class="cv-timeline__role">
-                            Nombreux cours suivis en continu : développement web, DevOps,
-                            sécurité, gestion de projet
-                        </p>
-                        <p class="cv-timeline__period">2015 → présent</p>
+                        <p class="cv-timeline__role"><?= htmlspecialchars(__('webmaster.oc_role')) ?></p>
+                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.oc_period')) ?></p>
                     </div>
                 </li>
 
@@ -274,7 +261,7 @@ $age   = (new \DateTime())->diff($birth)->y;
                     </ul>
                 </div>
                 <div class="cv-skills__group">
-                    <h4 class="cv-skills__cat">Développement</h4>
+                    <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.skills_dev')) ?></h4>
                     <ul class="cv-skills__tags">
                         <li>PHP</li><li>MySQL</li><li>JavaScript</li>
                         <li>HTML5</li><li>CSS3 / SCSS</li>
@@ -282,16 +269,49 @@ $age   = (new \DateTime())->diff($birth)->y;
                     </ul>
                 </div>
                 <div class="cv-skills__group">
-                    <h4 class="cv-skills__cat">Systèmes</h4>
+                    <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.skills_sys')) ?></h4>
                     <ul class="cv-skills__tags">
                         <li>Linux</li><li>AIX</li><li>Windows Server</li>
                     </ul>
                 </div>
                 <div class="cv-skills__group">
-                    <h4 class="cv-skills__cat">Middlewares &amp; BDD</h4>
+                    <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.skills_mw')) ?></h4>
                     <ul class="cv-skills__tags">
                         <li>Apache</li><li>JBoss</li><li>Tomcat</li>
                         <li>PostgreSQL</li><li>OpenSSL</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Centres d'intérêt -->
+        <section class="cv-block cv-block--hobbies" aria-labelledby="cv-hobbies-title">
+            <h3 id="cv-hobbies-title" class="cv-block__title">
+                <?= htmlspecialchars(__('webmaster.hobbies_title')) ?>
+            </h3>
+            <div class="cv-skills">
+                <div class="cv-skills__group">
+                    <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.hobbies_lifestyle')) ?></h4>
+                    <ul class="cv-skills__tags">
+                        <li><?= htmlspecialchars(__('webmaster.hobbies_gastronomy')) ?></li>
+                        <li><?= htmlspecialchars(__('webmaster.hobbies_arch')) ?></li>
+                    </ul>
+                </div>
+                <div class="cv-skills__group">
+                    <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.hobbies_tech')) ?></h4>
+                    <ul class="cv-skills__tags">
+                        <li><?= htmlspecialchars(__('webmaster.hobbies_it')) ?></li>
+                        <li><?= htmlspecialchars(__('webmaster.hobbies_cyber')) ?></li>
+                        <li><?= htmlspecialchars(__('webmaster.hobbies_gaming')) ?></li>
+                    </ul>
+                </div>
+                <div class="cv-skills__group">
+                    <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.hobbies_sport')) ?></h4>
+                    <ul class="cv-skills__tags">
+                        <li><?= htmlspecialchars(__('webmaster.hobbies_rugby')) ?></li>
+                        <li><?= htmlspecialchars(__('webmaster.hobbies_hardrock')) ?></li>
+                        <li><?= htmlspecialchars(__('webmaster.hobbies_opera')) ?></li>
+                        <li><?= htmlspecialchars(__('webmaster.hobbies_rock')) ?></li>
                     </ul>
                 </div>
             </div>

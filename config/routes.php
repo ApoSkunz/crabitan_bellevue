@@ -240,3 +240,6 @@ $router->get('/track/click/{id}/{linkId}/{token}', 'TrackingController@click');
 
 // Bons de commande (téléchargement public, servi via PHP)
 $router->get('/bons-de-commande/{id}/telecharger', 'OrderFormController@download');
+
+// Security.txt (RFC 9116) — généré dynamiquement depuis les variables d'environnement
+$router->get('/.well-known/security.txt', 'PageController@securityTxt');

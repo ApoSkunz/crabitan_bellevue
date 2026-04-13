@@ -23,6 +23,11 @@ abstract class IntegrationTestCase extends TestCase
     protected function setUp(): void
     {
         self::$db->beginTransaction();
+
+        $_ENV['CONTACT_OWNER_EMAIL'] = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'contact@test.local';
+        $_ENV['DPO_EMAIL']           = $_ENV['DPO_EMAIL']           ?? 'dpo@test.local';
+        $_ENV['SECURITY_EMAIL']      = $_ENV['SECURITY_EMAIL']      ?? 'security@test.local';
+        $_ENV['MAINTAINER_MAIL']     = $_ENV['MAINTAINER_MAIL']     ?? 'maintainer@test.local';
     }
 
     protected function tearDown(): void

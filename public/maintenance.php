@@ -1,4 +1,5 @@
 <?php
+
 // ============================================================
 // Page de maintenance — à servir via .htaccess
 // Activer : décommenter le bloc "Maintenance mode" dans .htaccess
@@ -164,7 +165,7 @@ header('Retry-After: 3600');
 
     <main class="maint" role="main">
         <img
-            src="/assets/images/logo/crabitan-bellevue-logo-modern.svg"
+            src="/assets/images/logo/crabitan-bellevue-logo.png"
             alt="Château Crabitan Bellevue"
             class="maint__logo"
             width="160"

@@ -314,7 +314,7 @@ class AccountOrderControllerTest extends IntegrationTestCase
              ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('order_detail', $output);
+        $this->assertStringContainsString('order-detail-header', $output);
     }
 
     /**
@@ -346,7 +346,7 @@ class AccountOrderControllerTest extends IntegrationTestCase
              ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('order_detail', $output);
+        $this->assertStringContainsString('order-detail-header', $output);
     }
 
     /**
@@ -364,7 +364,7 @@ class AccountOrderControllerTest extends IntegrationTestCase
              ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('order_detail', $output);
+        $this->assertStringContainsString('order-detail-header', $output);
     }
 
     /**
@@ -393,7 +393,7 @@ class AccountOrderControllerTest extends IntegrationTestCase
              ->orderDetail(['lang' => 'fr', 'id' => (string) $orderId]);
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('order_detail', $output);
+        $this->assertStringContainsString('order-detail-header', $output);
     }
 
     /**

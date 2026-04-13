@@ -58,7 +58,7 @@ $removedCount     = (int) ($removedCount ?? 0);
             <p class="cart-b2b__message"><?= htmlspecialchars(__('cart.b2b_message')) ?></p>
             <?php
             $b2bSubject = rawurlencode(__('cart.b2b_subject'));
-            $b2bEmail   = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
+            $b2bEmail   = $_ENV['CONTACT_OWNER_EMAIL'];
             ?>
             <a
                 href="mailto:<?= htmlspecialchars($b2bEmail) ?>?subject=<?= $b2bSubject ?>"
@@ -79,7 +79,7 @@ $removedCount     = (int) ($removedCount ?? 0);
         <!-- Notice > 600 bouteilles -->
         <?php
         $over600Subject = rawurlencode(__('cart.over_600_subject'));
-        $over600Email   = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
+        $over600Email   = $_ENV['CONTACT_OWNER_EMAIL'];
         ?>
         <div class="cart-notice cart-notice--contact js-notice-600"
              id="cart-notice-600"

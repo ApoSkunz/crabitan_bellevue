@@ -365,6 +365,26 @@ class PageController extends Controller
     }
 
     /**
+     * Génère le fichier security.txt (RFC 9116) dynamiquement depuis les variables d'environnement.
+     *
+     * @return void
+     */
+    public function securityTxt(): void
+    {
+        $email   = $_ENV['SECURITY_EMAIL'];
+        $appUrl  = rtrim($_ENV['APP_URL'], '/');
+        $expires = (new \DateTimeImmutable('+1 year'))->format(\DateTimeInterface::RFC3339);
+
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Cache-Control: public, max-age=86400');
+        echo "Contact: mailto:{$email}\n";
+        echo "Expires: {$expires}\n";
+        echo "Preferred-Languages: fr, en\n";
+        echo "Policy: {$appUrl}/fr/mentions-legales\n";
+        echo "Canonical: {$appUrl}/.well-known/security.txt\n";
+    }
+
+    /**
      * Instancie le MailService (seam de testabilité).
      *
      * @return MailService
