@@ -100,6 +100,51 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
      * @param string $lang Langue du compte ('fr' ou 'en')
      * @return void
      */
+    /**
+     * Envoie un email de double confirmation avant rattachement d'un compte classique à Google OAuth.
+     * Le lien est valable 15 minutes et porte un token à usage unique.
+     *
+     * @param string $to         Adresse email du compte classique
+     * @param string $name       Prénom ou nom complet affiché
+     * @param string $confirmUrl URL absolue du lien de confirmation
+     * @param string $lang       Langue du destinataire (fr|en)
+     */
+    public function sendGoogleLinkConfirmation(string $to, string $name, string $confirmUrl, string $lang): void
+    {
+        $subject = $lang === 'fr'
+            ? 'Confirmez le rattachement de votre compte à Google'
+            : 'Confirm linking your account to Google';
+
+        $safeUrl  = htmlspecialchars($confirmUrl, ENT_QUOTES);
+        $safeName = htmlspecialchars($name !== '' ? $name : 'Bonjour', ENT_QUOTES);
+
+        $body = $lang === 'fr'
+            ? $this->emailLayout(
+                'Rattachement compte ↔ Google',
+                "Bonjour {$safeName},",
+                'Une tentative de connexion via Google a été détectée avec votre adresse email.'
+                . ' Pour rattacher votre compte Crabitan Bellevue à Google, cliquez sur le bouton ci-dessous.',
+                $safeUrl,
+                'Confirmer le rattachement',
+                'Ce lien est valable <strong>15 minutes</strong>. Si vous n\'êtes pas à l\'origine'
+                . ' de cette demande, ignorez simplement cet email — aucun rattachement ne sera effectué.',
+                'fr'
+            )
+            : $this->emailLayout(
+                'Link account ↔ Google',
+                "Hello {$safeName},",
+                'A login attempt via Google was detected with your email address.'
+                . ' To link your Crabitan Bellevue account to Google, click the button below.',
+                $safeUrl,
+                'Confirm linking',
+                'This link is valid for <strong>15 minutes</strong>. If you did not request this,'
+                . ' simply ignore this email — no linking will be performed.',
+                'en'
+            );
+
+        $this->send($to, $name, $subject, $body);
+    }
+
     public function sendGoogleAccountInfo(string $to, string $name, string $lang): void
     {
         $subject = $lang === 'fr'
