@@ -11,7 +11,7 @@ use Core\Jwt;
 use Core\Response;
 use Model\AccountModel;
 use Model\ConnectionModel;
-use Model\GoogleLinkTokenModel;
+use Model\DeviceConfirmTokenModel;
 use Model\TrustedDeviceModel;
 use Service\GoogleOAuthService;
 use Service\MailService;
@@ -22,6 +22,12 @@ use Service\MailService;
  * Flux :
  *   GET /{lang}/auth/google          → authorize()  — génère le state, redirige vers Google
  *   GET /{lang}/auth/google/callback → callback()   — traite le retour, pose le JWT
+ *
+ * MFA (Option A, 2026-04-14) : identique au login classique — si le device n'est
+ * pas de confiance et que ce n'est pas la première connexion du compte, on envoie
+ * un email de confirmation new-device (DeviceConfirmToken). Pour le rattachement
+ * Cas 2, on stocke `pending_google_id` dans le token pour lier le compte à la
+ * confirmation MFA.
  */
 class GoogleOAuthController extends Controller
 {
@@ -31,8 +37,8 @@ class GoogleOAuthController extends Controller
     private AccountModel $accounts;
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
+    private DeviceConfirmTokenModel $deviceConfirmTokens;
     private GoogleOAuthService $oauth;
-    private GoogleLinkTokenModel $linkTokens;
 
     /**
      * Initialise les dépendances du contrôleur.
@@ -40,14 +46,14 @@ class GoogleOAuthController extends Controller
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
-        $this->accounts       = new AccountModel();
-        $this->connections    = new ConnectionModel();
-        $this->trustedDevices = new TrustedDeviceModel();
-        $this->oauth          = new GoogleOAuthService(
+        $this->accounts            = new AccountModel();
+        $this->connections         = new ConnectionModel();
+        $this->trustedDevices      = new TrustedDeviceModel();
+        $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
+        $this->oauth               = new GoogleOAuthService(
             $_ENV['GOOGLE_CLIENT_ID']     ?? '',
             $_ENV['GOOGLE_CLIENT_SECRET'] ?? ''
         );
-        $this->linkTokens     = new GoogleLinkTokenModel();
     }
 
     // ----------------------------------------------------------------
@@ -92,13 +98,13 @@ class GoogleOAuthController extends Controller
     /**
      * Traite le callback Google OAuth2.
      *
-     * Cas 1 — google_id connu          : connexion directe
-     * Cas 2 — email connu, pas google_id : rattachement automatique + connexion
-     * Cas 3 — email inconnu             : création de compte + connexion
+     * Cas 1 — google_id connu            : connexion (MFA si device non trusted)
+     * Cas 2 — email connu, pas google_id : MFA obligatoire + rattachement à la confirmation
+     * Cas 3 — email inconnu              : création de compte + connexion (bypass MFA, 1ère fois)
      *
      * @param array<string, string> $params Paramètres de route (lang)
      */
-    public function callback(array $params): void // NOSONAR php:S3776 — complexité OAuth : état CSRF, échange de code, 3 cas d'association
+    public function callback(array $params): void // NOSONAR php:S3776 — complexité OAuth : état CSRF, échange de code, 3 cas d'association + MFA
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -156,37 +162,16 @@ class GoogleOAuthController extends Controller
             }
         }
 
-        // Cas 2 — email connu (actif), pas encore de google_id → double confirmation via email
+        // Cas 2 — email connu (actif), pas encore de google_id → MFA standard avec pending_google_id
         if (!$account) {
             $existing = $this->accounts->findByEmail($email);
             if ($existing) {
-                try {
-                    $token       = $this->linkTokens->create(
-                        (int) $existing['id'],
-                        $googleId,
-                        $lang
-                    );
-                    $base        = rtrim($_ENV['APP_URL'] ?? '', '/');
-                    $confirmUrl  = $base . "/{$lang}/auth/google/link/verify?token=" . urlencode($token);
-                    $displayName = $existing['firstname']
-                        ?? $existing['company_name']
-                        ?? ($userInfo['given_name'] ?? '');
-                    (new MailService())->sendGoogleLinkConfirmation(
-                        $existing['email'],
-                        (string) $displayName,
-                        $confirmUrl,
-                        $lang
-                    );
-                } catch (\Throwable $e) {
-                    \Core\ErrorLogger::warning($e, '[GoogleOAuth/linkToken]');
-                }
-
-                $_SESSION['pending_google_link_email_sent'] = $email;
-                Response::redirect("/{$lang}/auth/google/link");
+                $this->challengeLinkViaMfa($existing, $googleId, $lang);
+                // challengeLinkViaMfa redirige → jamais atteint
             }
         }
 
-        // Cas 2b — compte en cours de suppression retrouvé via email → réactivation + rattachement
+        // Cas 2b — compte en cours de suppression retrouvé via email → réactivation + rattachement direct
         if (!$account) {
             $deleted = $this->accounts->findDeletedByEmail($email);
             if ($deleted) {
@@ -240,119 +225,100 @@ class GoogleOAuthController extends Controller
     }
 
     // ----------------------------------------------------------------
-    // GET /{lang}/auth/google/link
-    // ----------------------------------------------------------------
-
-    /**
-     * Affiche la page de confirmation de rattachement de compte.
-     *
-     * @param array<string, string> $params Paramètres de route (lang)
-     */
-    public function linkConfirm(array $params): void
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $lang          = $this->resolveLang($params);
-        $emailSentTo   = $_SESSION['pending_google_link_email_sent'] ?? null;
-        unset($_SESSION['pending_google_link_email_sent']);
-
-        if (!$emailSentTo) {
-            Response::redirect("/{$lang}?login=1");
-        }
-
-        $this->view('auth/google-link-confirm', [
-            'lang'  => $lang,
-            'email' => $emailSentTo,
-        ]);
-    }
-
-    // ----------------------------------------------------------------
-    // GET /{lang}/auth/google/link/verify?token=...
-    // ----------------------------------------------------------------
-
-    /**
-     * Consomme le token envoyé par email et rattache le compte Google au compte classique.
-     *
-     * @param array<string, string> $params Paramètres de route (lang)
-     */
-    public function linkVerifyByToken(array $params): void
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $lang     = $this->resolveLang($params);
-        $loginUrl = "/{$lang}?login=1";
-        $token    = (string) ($_GET['token'] ?? '');
-
-        if ($token === '') {
-            $this->flash('modal_error', __('auth.google_link_token_invalid'));
-            Response::redirect($loginUrl);
-        }
-
-        $record = $this->linkTokens->findActive($token);
-        if (!$record) {
-            $this->flash('modal_error', __('auth.google_link_token_invalid'));
-            Response::redirect($loginUrl);
-        }
-
-        $this->linkTokens->consume((int) $record['id']);
-
-        $this->accounts->linkGoogleId((int) $record['account_id'], (string) $record['google_id']);
-        $account = $this->accounts->findById((int) $record['account_id']);
-
-        if (!$account) {
-            $this->flash('modal_error', __('auth.google_error'));
-            Response::redirect($loginUrl);
-        }
-
-        $this->issueSession($account, $lang);
-    }
-
-    // ----------------------------------------------------------------
-    // POST /{lang}/auth/google/link
-    // ----------------------------------------------------------------
-
-    /**
-     * Traite la confirmation (ou l'annulation) du rattachement de compte Google.
-     *
-     * @param array<string, string> $params Paramètres de route (lang)
-     */
-    public function linkConfirmPost(array $params): void
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        // Le rattachement s'effectue désormais via le lien email (linkVerifyByToken).
-        // Ce handler reste uniquement pour l'annulation volontaire depuis la page d'attente.
-        $lang = $this->resolveLang($params);
-        unset($_SESSION['pending_google_link'], $_SESSION['pending_google_link_email_sent']);
-
-        if (($_POST['action'] ?? '') === 'cancel') {
-            $_SESSION['flash']['modal_error'] = __('auth.google_link_cancel_info');
-        }
-
-        Response::redirect("/{$lang}?login=1");
-    }
-
-    // ----------------------------------------------------------------
     // Helpers privés
     // ----------------------------------------------------------------
 
     /**
-     * Émet le JWT, enregistre la connexion et redirige vers l'espace client.
+     * Cas 2 — déclenche le flux MFA standard pour rattacher un google_id à un compte
+     * classique existant. Si l'appareil est déjà de confiance, rattachement direct.
+     * Sinon, email new-device avec pending_google_id — rattachement à la confirmation.
+     *
+     * @param array<string, mixed> $existing Compte classique trouvé par email
+     * @param string               $googleId google_id à rattacher
+     * @param string               $lang     Langue courante
+     */
+    private function challengeLinkViaMfa(array $existing, string $googleId, string $lang): never
+    {
+        $accountId   = (int) $existing['id'];
+        $deviceToken = $this->resolveDeviceToken();
+        $ua          = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+        $deviceName  = $this->deriveDeviceName($ua);
+
+        // Appareil déjà de confiance → rattachement direct + session
+        if ($this->trustedDevices->isTrusted($accountId, $deviceToken)) {
+            $this->accounts->linkGoogleId($accountId, $googleId);
+            $account = $this->accounts->findById($accountId);
+            if (!$account) {
+                $this->flash('modal_error', __('auth.google_error'));
+                Response::redirect("/{$lang}?login=1");
+            }
+            $this->issueSession($account, $lang);
+        }
+
+        // Appareil inconnu → MFA email avec pending_google_id
+        $confirmToken = bin2hex(random_bytes(32));
+        $returnPath   = $_SESSION['oauth_return_path'] ?? "/{$lang}";
+        $accountLang  = (string) ($existing['lang'] ?? $lang);
+
+        $this->deviceConfirmTokens->create(
+            $accountId,
+            $deviceToken,
+            $deviceName,
+            $confirmToken,
+            $returnPath,
+            $accountLang,
+            $googleId
+        );
+
+        try {
+            $displayName = $existing['firstname']
+                ?? $existing['company_name']
+                ?? '';
+            (new MailService())->sendNewDeviceAlert(
+                $existing['email'],
+                (string) $displayName,
+                $deviceName,
+                $_SERVER['REMOTE_ADDR'] ?? null,
+                $accountLang,
+                $confirmToken
+            );
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e, '[GoogleOAuth/linkMfa]');
+        }
+
+        $_SESSION['pending_device'] = [
+            'device_name' => $deviceName,
+            'mfa_token'   => $confirmToken,
+        ];
+        Response::redirect("/{$lang}/mon-compte/nouvel-appareil");
+    }
+
+    /**
+     * Émet le JWT (ou déclenche le challenge MFA), enregistre la connexion et redirige.
+     *
+     * MFA Option A : si l'appareil n'est pas de confiance et que ce n'est pas la
+     * première connexion, on envoie un email new-device et on bloque l'émission du
+     * JWT jusqu'à confirmation.
      *
      * @param array<string, mixed> $account Données du compte (id, role, lang…)
      * @param string               $lang    Code langue courant
      */
     private function issueSession(array $account, string $lang): never
     {
-        $token       = Jwt::generate((int) $account['id'], $account['role'], self::JWT_EXPIRY);
-        $deviceToken = $this->resolveDeviceToken();
-        $ua          = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+        $deviceToken      = $this->resolveDeviceToken();
+        $ua               = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+        $deviceName       = $this->deriveDeviceName($ua);
+        $accountId        = (int) $account['id'];
+        $isFirstEverLogin = !(bool) ($account['has_connected'] ?? false);
+        $isAlreadyTrusted = $this->trustedDevices->isTrusted($accountId, $deviceToken);
+        $trusted          = $isFirstEverLogin || $isAlreadyTrusted;
+
+        // MFA requis : appareil non de confiance et pas la 1ʳᵉ connexion → challenge email
+        if (!$trusted) {
+            $this->handleUntrustedDevice($account, $deviceToken, $deviceName, $lang);
+        }
+
+        $token       = Jwt::generate($accountId, $account['role'], self::JWT_EXPIRY);
 
         session_regenerate_id(true); // VULN-005 : protection session fixation après OAuth Google
         CookieHelper::set($token, self::JWT_EXPIRY);
@@ -371,10 +337,8 @@ class GoogleOAuthController extends Controller
             'samesite' => 'Lax',
         ]);
 
-        $deviceName = $this->deriveDeviceName($ua);
-
         $this->connections->create(
-            (int) $account['id'],
+            $accountId,
             $token,
             $deviceToken,
             $_SERVER['REMOTE_ADDR'] ?? null,
@@ -384,12 +348,15 @@ class GoogleOAuthController extends Controller
             self::JWT_EXPIRY
         );
 
-        // OAuth Google = preuve d'identité forte → appareil marqué de confiance (TTL 90j glissants)
-        $this->trustedDevices->trust((int) $account['id'], $deviceToken, $deviceName);
+        // 1ʳᵉ connexion : enroll trusted device (bypass MFA initial). Sinon, mise à jour last_seen.
+        if ($isFirstEverLogin) {
+            $this->accounts->markAsConnected($accountId);
+            $this->trustedDevices->trust($accountId, $deviceToken, $deviceName);
+        } elseif ($isAlreadyTrusted) {
+            $this->trustedDevices->updateLastSeen($accountId, $deviceToken);
+        }
 
-        $this->accounts->markAsConnected((int) $account['id']);
-
-        if (!$this->accounts->hasDeclaredMajority((int) $account['id'])) {
+        if (!$this->accounts->hasDeclaredMajority($accountId)) {
             $_SESSION['majority_pending'] = true;
         } else {
             unset($_SESSION['majority_pending']);
@@ -411,6 +378,58 @@ class GoogleOAuthController extends Controller
             $redirectTarget = '/' . $accountLang . ($m[2] ?? '');
         }
         Response::redirect($redirectTarget);
+    }
+
+    /**
+     * Crée un DeviceConfirmToken, envoie l'email new-device et redirige vers la
+     * page interstitielle de polling. Le JWT sera émis par MfaController::poll
+     * après confirmation.
+     *
+     * @param array<string, mixed> $account     Compte concerné
+     * @param string               $deviceToken Token device courant
+     * @param string               $deviceName  Nom lisible de l'appareil
+     * @param string               $lang        Langue courante
+     */
+    private function handleUntrustedDevice(
+        array $account,
+        string $deviceToken,
+        string $deviceName,
+        string $lang
+    ): never {
+        $confirmToken = bin2hex(random_bytes(32));
+        $accountLang  = (string) ($account['lang'] ?? $lang);
+        $returnPath   = $_SESSION['oauth_return_path'] ?? "/{$accountLang}";
+
+        $this->deviceConfirmTokens->create(
+            (int) $account['id'],
+            $deviceToken,
+            $deviceName,
+            $confirmToken,
+            $returnPath,
+            $accountLang
+        );
+
+        try {
+            $displayName = ($account['account_type'] ?? '') === 'company'
+                ? (string) ($account['company_name'] ?? 'Client')
+                : trim(((string) ($account['firstname'] ?? '')) . ' ' . ((string) ($account['lastname'] ?? '')));
+            (new MailService())->sendNewDeviceAlert(
+                $account['email'],
+                $displayName,
+                $deviceName,
+                $_SERVER['REMOTE_ADDR'] ?? null,
+                $accountLang,
+                $confirmToken
+            );
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e, '[GoogleOAuth/newDevice]');
+        }
+
+        $_SESSION['pending_device'] = [
+            'device_name' => $deviceName,
+            'mfa_token'   => $confirmToken,
+        ];
+        Response::redirect("/{$lang}/mon-compte/nouvel-appareil");
     }
 
     /**

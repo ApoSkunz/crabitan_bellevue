@@ -18,12 +18,13 @@ class DeviceConfirmTokenModel extends Model
      * Crée (ou remplace) un token de confirmation pour un couple user+device.
      * Expiration : 15 minutes.
      *
-     * @param int         $userId      Identifiant du compte
-     * @param string      $deviceToken Token de l'appareil à confirmer
-     * @param string|null $deviceName  Nom de l'appareil (optionnel)
-     * @param string      $token       Token brut de confirmation (64 hex chars)
-     * @param string      $redirectUrl URL de redirection après confirmation
-     * @param string      $lang        Langue de l'email de confirmation
+     * @param int         $userId          Identifiant du compte
+     * @param string      $deviceToken     Token de l'appareil à confirmer
+     * @param string|null $deviceName      Nom de l'appareil (optionnel)
+     * @param string      $token           Token brut de confirmation (64 hex chars)
+     * @param string      $redirectUrl     URL de redirection après confirmation
+     * @param string      $lang            Langue de l'email de confirmation
+     * @param string|null $pendingGoogleId google_id à rattacher à la confirmation (flow OAuth Cas 2)
      * @return void
      */
     public function create(
@@ -32,7 +33,8 @@ class DeviceConfirmTokenModel extends Model
         ?string $deviceName,
         string $token,
         string $redirectUrl,
-        string $lang
+        string $lang,
+        ?string $pendingGoogleId = null
     ): void {
         // Supprime tout token en attente pour ce user+device (idempotent)
         $this->db->execute(
@@ -41,9 +43,9 @@ class DeviceConfirmTokenModel extends Model
         );
         $this->db->insert(
             "INSERT INTO {$this->table}
-             (user_id, device_token, device_name, token, redirect_url, lang, expires_at)
-             VALUES (?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))",
-            [$userId, $deviceToken, $deviceName, $token, $redirectUrl, $lang]
+             (user_id, device_token, device_name, token, redirect_url, lang, pending_google_id, expires_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))",
+            [$userId, $deviceToken, $deviceName, $token, $redirectUrl, $lang, $pendingGoogleId]
         );
     }
 
@@ -56,7 +58,7 @@ class DeviceConfirmTokenModel extends Model
     public function findByToken(string $token): array|false
     {
         return $this->db->fetchOne(
-            "SELECT id, user_id, device_token, device_name, token, redirect_url, lang, expires_at, confirmed_at, created_at
+            "SELECT id, user_id, device_token, device_name, token, redirect_url, lang, pending_google_id, expires_at, confirmed_at, created_at
              FROM {$this->table} WHERE token = ? AND expires_at > NOW() LIMIT 1",
             [$token]
         );
@@ -83,7 +85,7 @@ class DeviceConfirmTokenModel extends Model
     public function findConfirmedByToken(string $token): array|false
     {
         return $this->db->fetchOne(
-            "SELECT id, user_id, device_token, device_name, token, redirect_url, lang, expires_at, confirmed_at, created_at
+            "SELECT id, user_id, device_token, device_name, token, redirect_url, lang, pending_google_id, expires_at, confirmed_at, created_at
              FROM {$this->table}
              WHERE token = ? AND confirmed_at IS NOT NULL AND expires_at > NOW() LIMIT 1",
             [$token]

@@ -11,13 +11,15 @@ use Core\Exception\HttpException;
 use Core\Request;
 use Model\AccountModel;
 use Model\ConnectionModel;
+use Model\DeviceConfirmTokenModel;
+use Model\TrustedDeviceModel;
 use PHPUnit\Framework\TestCase;
 use Service\GoogleOAuthService;
 
 /**
  * Tests unitaires GoogleOAuthController — couverture des branches non couvertes.
  *
- * Couvre : authorize(), callback() erreurs, linkConfirm(), linkConfirmPost(),
+ * Couvre : authorize(), callback() erreurs, Cas 2 (MFA rattachement),
  *          resolveDeviceToken(), resolveLang(), issueSession() via AccountModel mock.
  */
 class GoogleOAuthControllerOAuthFlowTest extends TestCase
@@ -285,10 +287,10 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // callback() — cas 2 : email connu → page de rattachement
+    // callback() — cas 2 : email connu → MFA standard avec pending_google_id
     // ----------------------------------------------------------------
 
-    public function testCallbackWithExistingEmailRedirectsToLinkPage(): void
+    public function testCallbackWithExistingEmailTriggersMfaChallenge(): void
     {
         $_GET     = ['code' => 'valid-code', 'state' => 'valid-state'];
         $_SESSION = ['oauth_google_state' => 'valid-state'];
@@ -307,19 +309,31 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
 
         $accountsMock = $this->createStub(AccountModel::class);
         $accountsMock->method('findByGoogleId')->willReturn(false);
-        $accountsMock->method('findByEmail')->willReturn(['id' => 7, 'email' => 'existing@example.com']);
+        $accountsMock->method('findByEmail')->willReturn([
+            'id' => 7, 'email' => 'existing@example.com', 'firstname' => 'Jane', 'lang' => 'fr',
+        ]);
 
         $accountsProp = new \ReflectionProperty(GoogleOAuthController::class, 'accounts');
         $accountsProp->setValue($ctrl, $accountsMock);
+
+        // Device non de confiance → MFA challenge obligatoire
+        $trustedMock = $this->createStub(TrustedDeviceModel::class);
+        $trustedMock->method('isTrusted')->willReturn(false);
+        $trustedProp = new \ReflectionProperty(GoogleOAuthController::class, 'trustedDevices');
+        $trustedProp->setValue($ctrl, $trustedMock);
+
+        $dctMock = $this->createStub(DeviceConfirmTokenModel::class);
+        $dctProp = new \ReflectionProperty(GoogleOAuthController::class, 'deviceConfirmTokens');
+        $dctProp->setValue($ctrl, $dctMock);
 
         try {
             $ctrl->callback(['lang' => 'fr']);
         } catch (HttpException) {
         }
 
-        // Nouveau flux : double confirmation via email avant le rattachement.
-        $this->assertArrayHasKey('pending_google_link_email_sent', $_SESSION);
-        $this->assertSame('existing@example.com', $_SESSION['pending_google_link_email_sent']);
+        // Nouveau flux (Option A MFA) : pending_device posé avec mfa_token.
+        $this->assertArrayHasKey('pending_device', $_SESSION);
+        $this->assertArrayHasKey('mfa_token', $_SESSION['pending_device']);
     }
 
     // ----------------------------------------------------------------
@@ -367,68 +381,6 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
         }
 
         $this->assertTrue(true); // flux atteint issueSession sans erreur
-    }
-
-    // ----------------------------------------------------------------
-    // linkConfirm() — sans pending_google_link
-    // ----------------------------------------------------------------
-
-    public function testLinkConfirmWithoutPendingRedirectsToLogin(): void
-    {
-        $_SESSION = [];
-
-        try {
-            $this->makeController()->linkConfirm(['lang' => 'fr']);
-        } catch (HttpException) {
-        }
-
-        // Pas de pending → redirige vers login (HttpException levée par Response::redirect)
-        $this->assertArrayNotHasKey('pending_google_link', $_SESSION);
-    }
-
-    // ----------------------------------------------------------------
-    // linkConfirmPost() — sans pending_google_link
-    // ----------------------------------------------------------------
-
-    public function testLinkConfirmPostWithoutPendingRedirectsSilently(): void
-    {
-        // Le rattachement s'effectue désormais via le lien email — linkConfirmPost
-        // ne gère plus que l'annulation. Sans "action=cancel", aucun flash n'est posé.
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST    = [];
-        $_SESSION = [];
-
-        try {
-            $this->makeController()->linkConfirmPost(['lang' => 'fr']);
-        } catch (HttpException) {
-        }
-
-        $this->assertArrayNotHasKey('modal_error', $_SESSION['flash'] ?? []);
-    }
-
-    // ----------------------------------------------------------------
-    // linkConfirmPost() — action cancel
-    // ----------------------------------------------------------------
-
-    public function testLinkConfirmPostCancelSetsFlashAndRedirects(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST    = ['action' => 'cancel'];
-        $_SESSION = ['pending_google_link' => [
-            'google_id'  => 'g-123',
-            'account_id' => 7,
-            'email'      => 'link@example.com',
-            'firstname'  => 'Jean',
-        ]];
-
-        try {
-            $this->makeController()->linkConfirmPost(['lang' => 'fr']);
-        } catch (HttpException) {
-        }
-
-        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
-        // pending_google_link supprimé lors du cancel
-        $this->assertArrayNotHasKey('pending_google_link', $_SESSION);
     }
 
     // ----------------------------------------------------------------
