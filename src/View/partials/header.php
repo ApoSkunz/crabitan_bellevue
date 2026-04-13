@@ -115,6 +115,9 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                         lang="<?= htmlspecialchars($l) ?>"
                         class="<?= $l === $navLang ? 'active' : '' ?>"
                         <?= $l === $navLang ? 'aria-current="true"' : '' ?>
+                        <?php if ($l !== $navLang) : ?>
+                        data-lang-toast="<?= htmlspecialchars($l === 'en' ? 'Switching to English…' : 'Passage en français…') ?>"
+                        <?php endif; ?>
                     ><?= strtoupper(htmlspecialchars($l)) ?></a>
                 <?php endforeach; ?>
             </nav>
