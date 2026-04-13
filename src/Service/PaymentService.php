@@ -357,10 +357,15 @@ class PaymentService
     }
 
     /**
-     * Vérifie si un serveur CA est disponible via GET {url}load.html.
+     * Vérifie si un serveur CA e-Transactions est joignable via GET {url}load.html.
+     *
+     * Le endpoint historique `load.html` renvoyait `server_status=OK` ; il renvoie
+     * désormais un 302 vers error.php. On considère donc le serveur disponible dès
+     * lors qu'il répond une valeur HTTP (aucun timeout / DNS fail). Le failover
+     * PRIMARY → SECONDARY reste assuré pour les pannes réseau réelles.
      *
      * @param string $baseUrl URL de base du serveur
-     * @return bool true si `server_status` = OK dans le HTML retourné
+     * @return bool true si le serveur répond (code HTTP > 0)
      */
     protected function isServerAvailable(string $baseUrl): bool
     {
@@ -370,21 +375,19 @@ class PaymentService
             return false;
         }
 
+        curl_setopt($ch, CURLOPT_NOBODY, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 5);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
-        $html = curl_exec($ch);
+        curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($html === false || !is_string($html)) {
-            return false;
-        }
-
-        return str_contains($html, 'server_status') && str_contains($html, 'OK');
+        return $httpCode > 0;
     }
 
     /**
