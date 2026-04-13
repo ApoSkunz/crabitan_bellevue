@@ -104,11 +104,17 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                 $shippingDiscount = (float) ($order['shipping_discount'] ?? 0.0);
                 $total            = (float) $order['price'];
             ?>
+            <?php $priceMismatch = abs(($itemsSubtotal - $shippingDiscount) - $total) > 0.01 && $itemsSubtotal > 0.0; ?>
+            <?php if ($priceMismatch) : ?>
+            <div style="margin:0 1.5rem 0.5rem;padding:0.6rem 0.9rem;background:#fff6dd;border:1px solid #e5c86a;border-radius:4px;font-size:0.8rem;color:#6b5a15;">
+                <strong>Prix indicatifs actuels.</strong> Les prix unitaires affichés sont les prix actuels du catalogue, pas les prix historiques de la commande. Seul le <strong>Total TTC</strong> fait foi pour cette commande.
+            </div>
+            <?php endif; ?>
             <div style="padding:0.75rem 1.5rem;border-top:1px solid rgba(8,8,8,0.06);">
                 <table style="width:100%;border-collapse:collapse;font-size:0.875rem;">
                     <tr>
-                        <th scope="row" style="padding:3px 0;color:#8a7a60;font-weight:normal;text-align:left;">Sous-total articles</th>
-                        <td style="padding:3px 0;text-align:right;color:#1a1208;"><?= number_format($itemsSubtotal, 2, ',', ' ') ?>&nbsp;€</td>
+                        <th scope="row" style="padding:3px 0;color:#8a7a60;font-weight:normal;text-align:left;">Sous-total articles<?= $priceMismatch ? ' <span style="color:#b38a00;font-weight:normal;">(indicatif)</span>' : '' ?></th>
+                        <td style="padding:3px 0;text-align:right;color:<?= $priceMismatch ? '#8a7a60' : '#1a1208' ?>;"><?= number_format($itemsSubtotal, 2, ',', ' ') ?>&nbsp;€</td>
                     </tr>
                     <?php if ($shippingDiscount > 0.0) : ?>
                     <tr>

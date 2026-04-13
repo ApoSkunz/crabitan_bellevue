@@ -558,7 +558,7 @@ return [
     'webmaster.edf_sub_task3'   => 'Expérimentation DORA metrics pour mesurer la performance DevOps',
     'webmaster.edf_sub_task4'   => 'Architecture commune pour les Déploiements Automatisés (Ansible, IaC)',
     'webmaster.edf_sub_task5'   => 'SRE : surveillance continue, alerting, résilience from scratch, zéro obsolescence',
-    'webmaster.edf_sub_task6'   => 'Élaboration avec Valentine Gilles d\'une stratégie cyber : Horizon Zéro Vulnérabilité — participation au challenge DPNT 2025',
+    'webmaster.edf_sub_task6'   => 'Collaboration sur l\'élaboration une stratégie cyber : Horizon Zéro Vulnérabilité — participation au challenge DPNT 2025',
 
     // Webmaster — Capgemini (poste principal)
     'webmaster.capgemini_role'      => 'Ingénieur DevOps — Team Leader System Team SAFe',
@@ -790,6 +790,8 @@ return [
     'account.item_unit_price'    => 'Prix unitaire',
     'account.item_subtotal'      => 'Sous-total',
     'account.order_subtotal'     => 'Sous-total articles',
+    'account.order_price_notice' => 'Prix indicatifs actuels. Les prix unitaires sont ceux du catalogue courant, pas ceux facturés à la commande. Seul le Total fait foi.',
+    'account.order_price_indicative' => 'indicatif',
     'account.order_shipping_discount' => 'Remise transport',
     'account.order_total'        => 'Total',
     'account.payment.card'       => 'Carte bancaire',
