@@ -145,9 +145,10 @@ class IpnController
                 }
             }
 
-            // Génération de la facture PDF — non bloquante
+            // Génération de la facture PDF — non bloquante, désactivable via INVOICE_AUTO_GENERATE=false
+            $autoInvoice = strtolower((string) ($_ENV['INVOICE_AUTO_GENERATE'] ?? 'true')) !== 'false';
             try {
-                $order = $this->orders->findByReferenceForInvoice($finalRef);
+                $order = $autoInvoice ? $this->orders->findByReferenceForInvoice($finalRef) : null;
                 if ($order !== null) {
                     $invoiceNumber = sprintf('WEB-INVOICE-%s-%04d', date('Y'), (int) $order['id']);
                     $invoiceDir    = ROOT_PATH . '/storage/invoices';
