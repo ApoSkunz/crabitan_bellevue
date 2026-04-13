@@ -1028,7 +1028,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
                 $displayName,
                 $deviceName,
                 $_SERVER['REMOTE_ADDR'] ?? null,
-                $lang,
+                (string) ($account['lang'] ?? $lang),
                 $confirmToken
             );
         } catch (\Throwable $e) {

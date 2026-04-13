@@ -395,9 +395,10 @@ class AccountOrderController extends AbstractAccountController
         file_put_contents($tmpPath, $pdfBytes);
 
         try {
-            $mailer = new \Service\MailService();
+            $mailLang = (string) ($account['lang'] ?? $lang);
+            $mailer   = new \Service\MailService();
             $mailer->sendReturnRequestedToOwner($order, $clientName, $clientEmail);
-            $mailer->sendReturnConfirmedToClient($clientEmail, $clientName, $order, $tmpPath, $lang);
+            $mailer->sendReturnConfirmedToClient($clientEmail, $clientName, $order, $tmpPath, $mailLang);
         } finally {
             if (file_exists($tmpPath)) {
                 unlink($tmpPath);

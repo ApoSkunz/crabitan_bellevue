@@ -164,8 +164,9 @@ class AccountProfileController extends AbstractAccountController
             // Toggle 0→1 : double opt-in — envoie un email de confirmation
             $token = bin2hex(random_bytes(32));
             $this->accounts->storeNewsletterConfirmToken($userId, $token);
-            $confirmUrl = APP_URL . "/{$lang}/newsletter/confirmation?token=" . urlencode($token);
-            (new MailService())->sendNewsletterConfirmation((string) $account['email'], $confirmUrl, $lang);
+            $mailLang   = (string) ($account['lang'] ?? $lang);
+            $confirmUrl = APP_URL . "/{$mailLang}/newsletter/confirmation?token=" . urlencode($token);
+            (new MailService())->sendNewsletterConfirmation((string) $account['email'], $confirmUrl, $mailLang);
             $_SESSION['flash']['profile_success'] = __('newsletter.confirm_sent');
             Response::redirect($back);
         } elseif (!$newsletter && $currentNewsletter) {

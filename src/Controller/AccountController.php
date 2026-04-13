@@ -437,9 +437,10 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         file_put_contents($tmpPath, $pdfBytes);
 
         try {
-            $mailer = new \Service\MailService();
+            $mailLang = (string) ($account['lang'] ?? $lang);
+            $mailer   = new \Service\MailService();
             $mailer->sendReturnRequestedToOwner($order, $clientName, $clientEmail);
-            $mailer->sendReturnConfirmedToClient($clientEmail, $clientName, $order, $tmpPath, $lang);
+            $mailer->sendReturnConfirmedToClient($clientEmail, $clientName, $order, $tmpPath, $mailLang);
         } finally {
             if (file_exists($tmpPath)) {
                 unlink($tmpPath);
@@ -956,7 +957,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                 (new \Service\MailService())->sendPasswordChangeConfirmation(
                     (string) $account['email'],
                     (string) $notifName,
-                    $lang,
+                    (string) ($account['lang'] ?? $lang),
                     $rawToken
                 );
             } catch (\Throwable $e) {
@@ -1237,8 +1238,9 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             // Toggle 0→1 : double opt-in — envoie un email de confirmation
             $token = bin2hex(random_bytes(32));
             $this->accounts->storeNewsletterConfirmToken($userId, $token);
-            $confirmUrl = APP_URL . "/{$lang}/newsletter/confirmation?token=" . urlencode($token);
-            (new MailService())->sendNewsletterConfirmation((string) $account['email'], $confirmUrl, $lang);
+            $mailLang   = (string) ($account['lang'] ?? $lang);
+            $confirmUrl = APP_URL . "/{$mailLang}/newsletter/confirmation?token=" . urlencode($token);
+            (new MailService())->sendNewsletterConfirmation((string) $account['email'], $confirmUrl, $mailLang);
             $_SESSION['flash']['profile_success'] = __('newsletter.confirm_sent');
             Response::redirect($back);
         } elseif (!$newsletter && $currentNewsletter) {
@@ -1486,7 +1488,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             (new \Service\MailService())->sendAccountDeletionConfirmation(
                 (string) $account['email'],
                 (string) $name,
-                $lang,
+                (string) ($account['lang'] ?? $lang),
                 $reactivationToken
             );
         } catch (\Throwable $e) {
@@ -1745,7 +1747,8 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $filename = $basename . ($isZip ? '.zip' : '.json');
 
         try {
-            $this->newMailService()->sendRgpdExport($email, $name, $content, $filename, $lang);
+            $mailLang = (string) ($account['lang'] ?? $lang);
+            $this->newMailService()->sendRgpdExport($email, $name, $content, $filename, $mailLang);
             $this->rateLimiter->remember('rgpd_export_ts:' . $userId, time(), self::WINDOW_EXPORT);
             $this->rgpdExportLogs->log($email, \Service\AuditLogger::getIp(), $filename, $userId);
             $_SESSION['flash']['export_sent'] = self::maskEmail($email);
