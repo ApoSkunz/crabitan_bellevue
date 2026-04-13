@@ -1,6 +1,7 @@
 Options -Indexes
 
 RewriteEngine On
+RewriteBase /
 
 # ---- HTTPS redirect (décommenter en production) -----------------------------
 # RewriteCond %{HTTP_HOST} ^(www\.)?crabitanbellevue\.fr$ [NC]
@@ -19,9 +20,10 @@ RewriteEngine On
 # ---- /Mode maintenance -------------------------------------------------------
 
 # Redirige tout vers index.php sauf fichiers/dossiers existants
+# Note IONOS : RewriteBase / + cible relative + [L,QSA] obligatoires (sinon 500)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
+RewriteRule ^(.*)$ index.php [L,QSA]
 
 # ---- Headers de sécurité HTTP ----
 # X-Frame-Options intentionnellement redondant avec CSP frame-ancestors pour compatibilité navigateurs anciens (VULN-013)
