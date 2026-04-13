@@ -66,6 +66,11 @@ class AccountService
             throw new HttpException(404, 'Compte introuvable.');
         }
 
+        // Blocage : un compte Google OAuth ne peut pas changer d'email (l'email vient du fournisseur)
+        if (!empty($account['google_id'])) {
+            throw new HttpException(403, null, __('account.email_change_blocked_google'));
+        }
+
         // Vérification du mot de passe
         if (
             $account['password'] === null

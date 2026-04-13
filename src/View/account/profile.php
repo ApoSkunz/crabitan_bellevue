@@ -137,13 +137,19 @@ $selected  = static fn(bool $c): string => $c ? ' selected' : '';
                     <div class="alert alert--success" role="alert"><?= htmlspecialchars($success ?? '') ?></div>
                 <?php endif; ?>
 
+                <?php $isGoogleAccount = !empty($account['google_id']); ?>
+
                 <?php
                 $hasPending = !empty($account['email_change_new_email'])
                     && !empty($account['email_change_expires_at'])
                     && strtotime((string) $account['email_change_expires_at']) > time();
                 ?>
 
-                <?php if ($hasPending) : ?>
+                <?php if ($isGoogleAccount) : ?>
+                    <div class="alert alert--info" role="status">
+                        <?= __('account.email_change_blocked_google') ?>
+                    </div>
+                <?php elseif ($hasPending) : ?>
                     <div class="alert alert--info" role="alert">
                         <strong><?= __('account.email_change_pending_title') ?></strong><br>
                         <?= htmlspecialchars(__('account.email_change_pending_body')) ?>
