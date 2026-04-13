@@ -62,6 +62,11 @@ class AdminLogModel extends Model
     {
         [$where, $params] = $this->buildWhere($filters);
 
+        // LIMIT / OFFSET injectés après cast (int) : PDO + ATTR_EMULATE_PREPARES=false
+        // refuse les entiers bindés en string pour ces clauses côté MySQL.
+        $limit  = max(1, $limit);
+        $offset = max(0, $offset);
+
         return $this->db->fetchAll(
             "SELECT al.*, a.email AS admin_email,
                     COALESCE(ai.firstname, ac.company_name, a.email) AS admin_name
@@ -71,8 +76,8 @@ class AdminLogModel extends Model
              LEFT JOIN account_companies   ac ON ac.account_id = al.admin_id
              {$where}
              ORDER BY al.created_at DESC
-             LIMIT ? OFFSET ?",
-            array_merge($params, [$limit, $offset])
+             LIMIT {$limit} OFFSET {$offset}",
+            $params
         );
     }
 
