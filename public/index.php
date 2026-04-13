@@ -75,6 +75,13 @@ if (!$isCrawler && preg_match('/WebsiteCarbon|websitecarbon\.com/i', $ua)) {
     $isCrawler = true;
 }
 
+// Crawlers SEO majeurs : UA-trust si le reverse-DNS a échoué (IONOS mutualisé sans APCu).
+// Un crawler usurpé ne verrait que le contenu public — aucun exploit Loi Evin possible
+// (crawler = lecture seule, pas de consommation d'alcool).
+if (!$isCrawler && preg_match('/Googlebot|Bingbot|DuckDuckBot|Applebot|YandexBot|Slurp/i', $ua)) {
+    $isCrawler = true;
+}
+
 if (!$ageVerified && !$isPublicPath && !$isCrawler) {
     $redirect = rawurlencode($path !== '/' ? $path : '/' . DEFAULT_LANG);
     header('Location: /age-gate?redirect=' . $redirect);
