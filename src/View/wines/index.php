@@ -40,7 +40,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
     <!-- ============================================================ -->
     <section class="wines-filters" aria-label="<?= htmlspecialchars(__('wine.filter_label')) ?>">
         <div class="container">
-            <form class="wines-filters__form" method="GET" action="" data-auto-submit>
+            <form class="wines-filters__form" method="GET" action="" data-auto-submit data-ajax-filter>
                 <div class="wines-filters__left">
                     <fieldset class="wines-filters__colors">
                         <legend><?= htmlspecialchars(__('wine.filter_show')) ?></legend>
@@ -118,7 +118,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
     <!-- ============================================================ -->
     <!-- GRILLE                                                        -->
     <!-- ============================================================ -->
-    <section class="wines-catalog" aria-label="<?= htmlspecialchars(__('nav.wines')) ?>">
+    <section class="wines-catalog" aria-label="<?= htmlspecialchars(__('nav.wines')) ?>" data-ajax-content>
         <div class="container">
             <?php if (empty($wines)) : ?>
                 <p class="wines-catalog__empty"><?= htmlspecialchars(__('wine.empty')) ?></p>

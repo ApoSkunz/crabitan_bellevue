@@ -41,7 +41,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
     <!-- Filtres collection -->
     <section class="wines-filters" aria-label="<?= htmlspecialchars(__('wine.filter_label')) ?>">
         <div class="container">
-            <form class="wines-filters__form" method="GET" action="" data-auto-submit>
+            <form class="wines-filters__form" method="GET" action="" data-auto-submit data-ajax-filter>
                 <div class="wines-filters__left">
                     <fieldset class="wines-filters__colors">
                         <legend><?= htmlspecialchars(__('wine.filter_show')) ?></legend>
@@ -126,6 +126,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
         </div>
     </section>
 
+    <div data-ajax-content>
     <nav class="collection-nav" aria-label="<?= htmlspecialchars(__('wine.collection_nav')) ?>">
         <div class="container">
             <ul class="collection-nav__list">
@@ -347,6 +348,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
             </nav>
         </div>
     <?php endif; ?>
+    </div><!-- /data-ajax-content -->
 </main>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

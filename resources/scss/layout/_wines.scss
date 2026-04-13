@@ -193,6 +193,19 @@
     }
 }
 
+// ============================================================
+// Filtres AJAX — fondu pendant le swap
+// ============================================================
+
+[data-ajax-content] {
+    transition: opacity 0.18s ease-out;
+
+    &.is-loading {
+        opacity: 0.35;
+        pointer-events: none;
+    }
+}
+
 .wines-pagination {
     display: flex;
     align-items: center;

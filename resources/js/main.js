@@ -3,6 +3,7 @@ import './error-reporter.js';
 import { initCarbonBadge } from './carbon-badge.js';
 import { initLazyLoad } from './lazy-load.js';
 import { initAutoSubmitFilters, initLangSwitchToast, initFocusTrap } from './ux-enhancements.js';
+import { initWinesFiltersAjax } from './wines-filters-ajax.js';
 
 // ============================================================
 // Thème jour / nuit
@@ -2408,6 +2409,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFlashAutofocus();
     initLangPreference();
     initAutoSubmitFilters();
+    initWinesFiltersAjax();
     initLangSwitchToast();
     initFocusTrap();
 

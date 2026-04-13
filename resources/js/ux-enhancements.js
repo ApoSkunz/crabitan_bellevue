@@ -24,6 +24,8 @@ export function initAutoSubmitFilters() {
             el.style.display = 'none';
         });
 
+        if (form.hasAttribute('data-ajax-filter')) return;
+
         form.addEventListener('change', (e) => {
             const t = e.target;
             if (!t || !(t.matches('select, input[type="radio"], input[type="checkbox"]'))) return;
