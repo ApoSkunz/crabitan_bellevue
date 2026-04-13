@@ -430,11 +430,10 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      */
     public function updateLang(int $id, string $lang): void
     {
-        $rows = $this->db->execute(
+        $this->db->execute(
             "UPDATE {$this->table} SET lang = ? WHERE id = ?",
             [$lang, $id]
         );
-        error_log("[LANG] updateLang id={$id} lang={$lang} rows_affected={$rows}");
     }
 
     /**

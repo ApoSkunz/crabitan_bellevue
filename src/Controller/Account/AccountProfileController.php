@@ -367,7 +367,6 @@ class AccountProfileController extends AbstractAccountController
         $userId  = (int) $payload['sub'];
 
         if (!$this->verifyCsrf()) {
-            error_log("[LANG-CTRL] CSRF FAIL userId={$userId}");
             header(self::CONTENT_TYPE_JSON);
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'csrf']);
@@ -376,14 +375,12 @@ class AccountProfileController extends AbstractAccountController
 
         $newLang = $this->request->post('lang', '');
         if (!in_array($newLang, ['fr', 'en'], true)) {
-            error_log("[LANG-CTRL] invalid_lang userId={$userId} lang=" . substr($newLang, 0, 10));
             header(self::CONTENT_TYPE_JSON);
             http_response_code(422);
             echo json_encode(['success' => false, 'error' => 'invalid_lang']);
             return;
         }
 
-        error_log("[LANG-CTRL] reached updateLang userId={$userId} newLang={$newLang}");
         $this->userRepo->updateLang($userId, $newLang);
 
         $redirectTo = $this->request->post('redirect_to', '');
