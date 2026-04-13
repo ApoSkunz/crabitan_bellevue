@@ -137,7 +137,7 @@ class PageController extends Controller
     {
         $lang = $this->resolveLang($params);
         $bare = isset($_GET['bare']) || ($_COOKIE['age_verified'] ?? '') !== '1';
-        $this->view('pages/mentions-legales', ['lang' => $lang, 'noindex' => true, 'bare' => $bare]);
+        $this->view('pages/mentions-legales', ['lang' => $lang, 'bare' => $bare]);
     }
 
     /**
@@ -150,7 +150,7 @@ class PageController extends Controller
     {
         $lang = $this->resolveLang($params);
         $bare = ($_COOKIE['age_verified'] ?? '') !== '1';
-        $this->view('pages/politique-confidentialite', ['lang' => $lang, 'noindex' => true, 'bare' => $bare]);
+        $this->view('pages/politique-confidentialite', ['lang' => $lang, 'bare' => $bare]);
     }
 
     /**
@@ -172,7 +172,6 @@ class PageController extends Controller
         ];
         $this->view('pages/plan-du-site', [
             'lang'       => $lang,
-            'noindex'    => true,
             'wineImages' => $wineImages,
         ]);
     }
