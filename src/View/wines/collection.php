@@ -41,7 +41,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
     <!-- Filtres collection -->
     <section class="wines-filters" aria-label="<?= htmlspecialchars(__('wine.filter_label')) ?>">
         <div class="container">
-            <form class="wines-filters__form" method="GET" action="">
+            <form class="wines-filters__form" method="GET" action="" data-auto-submit>
                 <div class="wines-filters__left">
                     <fieldset class="wines-filters__colors">
                         <legend><?= htmlspecialchars(__('wine.filter_show')) ?></legend>
@@ -78,7 +78,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
 
                     <?php require_once SRC_PATH . '/View/partials/wines-filter-cuvee.php'; ?>
 
-                    <button type="submit" class="btn btn--gold wines-filters__submit">
+                    <button type="submit" class="btn btn--gold wines-filters__submit js-noscript-only">
                         <?= htmlspecialchars(__('wine.filter_apply')) ?>
                     </button>
                 </div>

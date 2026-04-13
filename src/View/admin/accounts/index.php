@@ -38,7 +38,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
 </div>
 
 <!-- Filtres -->
-<form method="GET" action="/admin/comptes" class="admin-filters">
+<form method="GET" action="/admin/comptes" class="admin-filters" data-auto-submit>
     <select name="role" class="admin-filters__select" aria-label="Filtrer par rôle">
         <option value="">Tous les rôles</option>
         <?php foreach ($roleLabels as $val => $label) : ?>

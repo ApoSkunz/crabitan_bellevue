@@ -35,7 +35,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
 </div>
 
 <!-- Filtres -->
-<form method="GET" action="/admin/vins" class="admin-filters">
+<form method="GET" action="/admin/vins" class="admin-filters" data-auto-submit>
     <select name="color" class="admin-filters__select" aria-label="Filtrer par couleur">
         <option value="">Toutes les couleurs</option>
         <?php foreach ($colorLabels as $val => $label) : ?>
@@ -57,7 +57,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
         <?php endforeach; ?>
     </select>
 
-    <button type="submit" class="admin-filters__btn">Filtrer</button>
+    <button type="submit" class="admin-filters__btn js-noscript-only">Filtrer</button>
     <?php if ($color || $available || $perPage !== 10) : ?>
         <a href="/admin/vins" class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
     <?php endif; ?>
