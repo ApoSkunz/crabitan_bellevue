@@ -2,6 +2,23 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.81.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.80.1...v0.81.0) (2026-04-13)
+
+
+### Bug Fixes
+
+* **env:** supprime les fallbacks email hardcodés, câble DPO_EMAIL ([e54fca7](https://github.com/ApoSkunz/crabitan_bellevue/commit/e54fca72daf1c1dc3bc5129b71b6aacc6e522d13))
+* **jeux:** cap le record mondial du jeu mémo à DURATION (120 s) ([7f3bfea](https://github.com/ApoSkunz/crabitan_bellevue/commit/7f3bfeab8770f389b7eca27dab3bcbd1c8f8c581))
+* **test:** câble DPO_EMAIL dans setUp DpoAdminControllerTest ([cc15079](https://github.com/ApoSkunz/crabitan_bellevue/commit/cc150791cb0834a6c9724e40e8d6b9bae4bf9c3e))
+* **test:** corrige TI — env vars manquantes + traductions non chargées + assertions clés brutes ([0c0ab27](https://github.com/ApoSkunz/crabitan_bellevue/commit/0c0ab275753a1afbb2e71f3337b3b317a477fd76))
+
+
+### Features
+
+* **i18n:** externalise les centres d'intérêt webmaster en clés __() ([a6d11ff](https://github.com/ApoSkunz/crabitan_bellevue/commit/a6d11ff79d8ef453cf3263eeb524b727795ed75b))
+* **logo:** remplace le SVG moderne par le PNG officiel partout ([a8fcbe3](https://github.com/ApoSkunz/crabitan_bellevue/commit/a8fcbe31d981477330f761bc1111e0d39cb82a42))
+* **security:** security.txt dynamique via SECURITY_EMAIL + APP_URL (RFC 9116) ([cbe1118](https://github.com/ApoSkunz/crabitan_bellevue/commit/cbe11182b5d3132dd6122d5e7526cf3897071b32))
+
 ## [0.80.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.80.0...v0.80.1) (2026-04-12)
 
 
