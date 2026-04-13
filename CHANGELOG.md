@@ -2,6 +2,35 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.82.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.81.0...v0.82.0) (2026-04-13)
+
+
+### Bug Fixes
+
+* **admin:** corrige 500 /admin/logs — LIMIT/OFFSET PDO ([c00e9dd](https://github.com/ApoSkunz/crabitan_bellevue/commit/c00e9ddd21a8dfb5031d740ac3f34b494240a1f1))
+* **auth:** cookie auth_token SameSite=Strict → Lax pour OAuth callback ([3ec8b96](https://github.com/ApoSkunz/crabitan_bellevue/commit/3ec8b9604cbb54f93607f13b2a99c00b9a50cb8f))
+* **cart:** reload page panier après ajout cross-sell ([4bfa07d](https://github.com/ApoSkunz/crabitan_bellevue/commit/4bfa07dae3eeb6000804c07e5d5c5c73cd78fbc4))
+* **htaccess:** RewriteBase / + pattern ^(.*)$ pour compat IONOS ([a6271a3](https://github.com/ApoSkunz/crabitan_bellevue/commit/a6271a38ba91c2a1390198c089851a00b9232295))
+* **payment:** tolère le nouveau comportement de load.html côté CA e-Transactions ([356624c](https://github.com/ApoSkunz/crabitan_bellevue/commit/356624c4fd20baf72e1ef6f9e3756a2332038c37))
+* **register:** renvoie le mail de vérification si compte non activé ([7d8991d](https://github.com/ApoSkunz/crabitan_bellevue/commit/7d8991d7740956311beb1f6bd096cf61630c938d))
+* **seo:** retire noindex sur mentions-légales, confidentialité, plan-du-site ([ae7025c](https://github.com/ApoSkunz/crabitan_bellevue/commit/ae7025c2fdf1dee837a1e72dfbd66ea06ac377d5))
+* **seo:** UA-trust crawlers SEO majeurs — déblocage indexation ([4273205](https://github.com/ApoSkunz/crabitan_bellevue/commit/4273205449ba568a8dc14c65f7cdb3d5e2b93889))
+
+
+### Features
+
+* **accessibility:** publie scores Lighthouse sur la page RGAA ([0f49cec](https://github.com/ApoSkunz/crabitan_bellevue/commit/0f49cecf2eeb6fca004e0962d7b68dd9aae3c7fe))
+* **i18n:** ajoute wine.not_for_sale (FR/EN) ([ee38031](https://github.com/ApoSkunz/crabitan_bellevue/commit/ee380311da922b329de11095492cffa0d83897c9))
+* **ipn:** désactive la génération auto de facture via INVOICE_AUTO_GENERATE ([1b4be19](https://github.com/ApoSkunz/crabitan_bellevue/commit/1b4be19c980c52d904029f727f8bca87fb45a7fb))
+* **mail:** utilise lang BDD compte au lieu de lang URL ([384a757](https://github.com/ApoSkunz/crabitan_bellevue/commit/384a7579b6b4a3ecaa398c07f825fa4f6aa9de35))
+* **newsletter:** welcome email CTA 1-clic via token ([1584066](https://github.com/ApoSkunz/crabitan_bellevue/commit/1584066cb462a782ac5bb30422ba7069b560ffd7))
+* **oauth:** trusted device auto-enroll + welcome token 1-clic ([f6f03d2](https://github.com/ApoSkunz/crabitan_bellevue/commit/f6f03d2fff659feb2ace42fc9a0a0d96f7c76e8b))
+* **ops:** script opcache-reset.php protégé par token pour invalider bytecode IONOS ([3389331](https://github.com/ApoSkunz/crabitan_bellevue/commit/33893312d9df3037d999b0f5419f6c08571fc6b2))
+* **orders:** bandeau prix indicatifs quand catalogue != historique ([4417256](https://github.com/ApoSkunz/crabitan_bellevue/commit/44172562b6ba89b9bad11076d72e1b5516320d9e))
+* **wines:** ajoute image officielle Vin de Pays de l'Atlantique 2024 ([782a6f2](https://github.com/ApoSkunz/crabitan_bellevue/commit/782a6f2b409cfe48410aff55fa60c609841cfe1f))
+* **wines:** aligne cross-sell page détail sur logique panier ([2b32a30](https://github.com/ApoSkunz/crabitan_bellevue/commit/2b32a30caa8b5506a3142b980909ecb6b3c0c873))
+* **wines:** distingue non-disponible à la vente vs épuisé dans la collection ([a5618ca](https://github.com/ApoSkunz/crabitan_bellevue/commit/a5618ca6460f1681c6c6c6cab274a08e1d0b64ba))
+
 # [0.81.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.80.1...v0.81.0) (2026-04-13)
 
 
