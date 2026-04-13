@@ -547,6 +547,16 @@ CREATE TABLE `order_forms` (
   INDEX `idx_order_forms_uploaded` (`uploaded_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+INSERT INTO `order_forms` (`year`, `label`, `filename`, `uploaded_at`) VALUES
+(2020, NULL,  '2020_prices.pdf',    '2020-01-01 00:00:00'),
+(2021, NULL,  '2021_prices.pdf',    '2021-01-01 00:00:00'),
+(2021, 'V2',  '2021_prices_V2.pdf', '2021-06-01 00:00:00'),
+(2022, NULL,  '2022_prices.pdf',    '2022-01-01 00:00:00'),
+(2023, NULL,  '2023_prices.pdf',    '2023-01-01 00:00:00'),
+(2024, NULL,  '2024_prices.pdf',    '2024-01-01 00:00:00'),
+(2025, NULL,  '2025_prices.pdf',    '2025-01-01 00:00:00'),
+(2026, NULL,  '2026_prices.pdf',    '2026-01-01 00:00:00');
+
 -- ============================================================
 -- Table : game_scores
 -- Meilleur score mondial par jeu (sans pseudo — public)
@@ -559,11 +569,6 @@ CREATE TABLE `game_scores` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_game` (`game`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO `game_scores` (`game`, `score`) VALUES
-    ('vendangeuse', 0),
-    ('memo', 0),
-    ('tracteur', 0);
 
 -- ============================================================
 -- Table : newsletters

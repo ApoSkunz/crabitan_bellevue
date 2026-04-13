@@ -209,6 +209,10 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                     >
                                     <?php if (!$wine['available']) : ?>
                                         <span class="wine-card__badge wine-card__badge--out">
+                                            <?= htmlspecialchars(__('wine.not_for_sale')) ?>
+                                        </span>
+                                    <?php elseif ((int) ($wine['stock_quantity'] ?? 0) === 0) : ?>
+                                        <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
                                         </span>
                                     <?php elseif ((int) ($wine['stock_quantity'] ?? 0) <= (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300)) : ?>
@@ -249,9 +253,13 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                     <p class="wine-card__award">&#127942; <?= htmlspecialchars($award) ?></p>
                                 <?php endif; ?>
                                 <div class="wine-card__footer">
-                                    <strong class="wine-card__price">
-                                        <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
-                                    </strong>
+                                    <?php if ($wine['available']) : ?>
+                                        <strong class="wine-card__price">
+                                            <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
+                                        </strong>
+                                    <?php else : ?>
+                                        <strong class="wine-card__price wine-card__price--unavailable">&nbsp;</strong>
+                                    <?php endif; ?>
                                     <div class="wine-card__actions">
                                         <?php if ($wine['available'] && !$isAdmin) : ?>
                                             <button

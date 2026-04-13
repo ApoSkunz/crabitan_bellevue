@@ -478,7 +478,12 @@ function initCartModal() {
         if (footerEl)  footerEl.hidden   = true;
         if (successEl) successEl.hidden  = false;
         updateCartCount(serverCount);
-        setTimeout(closeModal, 1200);
+        // Si on est sur la page panier, recharger pour afficher le nouvel item
+        const onCartPage = !!document.querySelector('.page-cart');
+        setTimeout(() => {
+            closeModal();
+            if (onCartPage) globalThis.location.reload();
+        }, 1200);
     }
 
     // Open on js-add-to-cart click (delegated) — tous les utilisateurs

@@ -39,15 +39,21 @@ class AccountMailer
     /**
      * Envoie l'email de bienvenue après création de compte.
      *
-     * @param string $email        Adresse destinataire
-     * @param string $firstname    Prénom du destinataire
-     * @param string $lang         Code langue ('fr'|'en')
-     * @param bool   $isSubscribed Indique si l'utilisateur est abonné à la newsletter
+     * @param string $email         Adresse destinataire
+     * @param string $firstname     Prénom du destinataire
+     * @param string $lang          Code langue ('fr'|'en')
+     * @param bool   $isSubscribed  Indique si l'utilisateur est abonné à la newsletter
+     * @param string $confirmToken  Token newsletter (brut) pour CTA 1 clic ; requis si !$isSubscribed
      * @return void
      */
-    public function sendWelcome(string $email, string $firstname, string $lang, bool $isSubscribed = false): void
-    {
-        $this->mailer->sendWelcome($email, $firstname, $lang, $isSubscribed);
+    public function sendWelcome(
+        string $email,
+        string $firstname,
+        string $lang,
+        bool $isSubscribed = false,
+        string $confirmToken = ''
+    ): void {
+        $this->mailer->sendWelcome($email, $firstname, $lang, $isSubscribed, $confirmToken);
     }
 
     /**

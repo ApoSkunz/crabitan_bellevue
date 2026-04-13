@@ -374,8 +374,9 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     $swPrice   = (float) ($sw['price'] ?? 0.0);
                     $swImage   = htmlspecialchars((string) ($sw['image_path'] ?? ''));
                     $swId      = (int) ($sw['id'] ?? 0);
+                    $swCuvee   = !empty($sw['is_cuvee_speciale']);
                 ?>
-                <div class="wine-card wine-cross-sell__card">
+                <article class="wine-card wine-cross-sell__card">
                     <a href="/<?= htmlspecialchars($navLang) ?>/vins/<?= $swSlug ?>"
                        class="wine-card__inner"
                        aria-label="<?= $swName ?>">
@@ -386,30 +387,36 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                                  width="200" height="280"
                                  loading="lazy">
                         </div>
-                        <div class="wine-card__body">
-                            <p class="wine-card__name"><?= $swName ?></p>
+                    </a>
+                    <div class="wine-card__body">
+                        <h3 class="wine-card__name">
+                            <?= $swName ?>
                             <?php if ($swVintage > 0) : ?>
                             <span class="wine-card__vintage"><?= $swVintage ?></span>
                             <?php endif; ?>
-                            <strong class="wine-card__price wine-cross-sell__price">
+                        </h3>
+                        <?php if ($swCuvee) : ?>
+                        <p class="wine-card__extra"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></p>
+                        <?php endif; ?>
+                        <div class="wine-card__footer">
+                            <strong class="wine-card__price">
                                 <?= number_format($swPrice, 2, ',', ' ') ?>&nbsp;€
                             </strong>
+                            <?php if (!$isAdmin) : ?>
+                            <button type="button"
+                                    class="wine-card__cart js-add-to-cart"
+                                    data-wine-id="<?= $swId ?>"
+                                    data-wine-name="<?= $swName ?>"
+                                    data-wine-price="<?= htmlspecialchars(number_format($swPrice, 2, ',', ' ') . ' €') ?>"
+                                    data-wine-image="/assets/images/wines/<?= $swImage ?>"
+                                    data-wine-cuvee="<?= $swCuvee ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
+                                    aria-label="<?= htmlspecialchars(__('wine.add_to_cart')) ?> — <?= $swName ?>">
+                                &#128722;
+                            </button>
+                            <?php endif; ?>
                         </div>
-                    </a>
-                    <?php if (!$isAdmin) : ?>
-                    <div class="wine-card__footer">
-                        <button type="button"
-                                class="wine-card__cart js-add-to-cart"
-                                data-wine-id="<?= $swId ?>"
-                                data-wine-name="<?= $swName ?>"
-                                data-wine-price="<?= htmlspecialchars(number_format($swPrice, 2, ',', ' ') . ' €') ?>"
-                                data-wine-image="/assets/images/wines/<?= $swImage ?>"
-                                aria-label="<?= htmlspecialchars(__('wine.add_to_cart')) ?> — <?= $swName ?>">
-                            +
-                        </button>
                     </div>
-                    <?php endif; ?>
-                </div>
+                </article>
                 <?php endforeach; ?>
             </div>
         </div>

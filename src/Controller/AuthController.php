@@ -389,11 +389,21 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
             $displayName = $existingAccount['account_type'] === 'company'
                 ? ($existingAccount['company_name'] ?? '')
                 : trim(($existingAccount['firstname'] ?? '') . ' ' . ($existingAccount['lastname'] ?? ''));
-            $loginUrl = APP_URL . "/{$lang}?login=1";
-            $resetUrl = APP_URL . "/{$lang}/mot-de-passe-oublie";
+
             try {
                 $mail = new MailService();
-                $mail->sendEmailAlreadyExists($email, $displayName, $lang, $loginUrl, $resetUrl);
+                if (empty($existingAccount['email_verified_at'])) {
+                    // Compte créé mais pas encore activé (double-submit, premier mail perdu, relance) :
+                    // on rafraîchit le token et on renvoie le mail de vérification — pas le mail "tentative".
+                    $newToken = bin2hex(random_bytes(32));
+                    $this->accounts->refreshVerificationToken((int) $existingAccount['id'], $newToken);
+                    $verifyUrl = APP_URL . "/{$lang}/verification/{$newToken}";
+                    $mail->sendEmailVerification($email, $displayName, $verifyUrl, $lang);
+                } else {
+                    $loginUrl = APP_URL . "/{$lang}?login=1";
+                    $resetUrl = APP_URL . "/{$lang}/mot-de-passe-oublie";
+                    $mail->sendEmailAlreadyExists($email, $displayName, $lang, $loginUrl, $resetUrl);
+                }
             } catch (\Throwable $e) {
                 \Core\ErrorLogger::warning($e);
             }
@@ -488,11 +498,17 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
             $firstname    = $account['firstname'] ?? '';
             $isSubscribed = (int) ($account['newsletter'] ?? 0) === 1
                          || !empty($account['newsletter_optin_pending']);
+            $confirmToken = '';
+            if (!$isSubscribed) {
+                $confirmToken = bin2hex(random_bytes(32));
+                $this->accounts->storeNewsletterConfirmToken($accountId, $confirmToken);
+            }
             (new MailService())->sendWelcome(
                 $account['email'],
                 $firstname,
                 $lang,
-                $isSubscribed
+                $isSubscribed,
+                $confirmToken
             );
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e);
@@ -1012,7 +1028,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
                 $displayName,
                 $deviceName,
                 $_SERVER['REMOTE_ADDR'] ?? null,
-                $lang,
+                (string) ($account['lang'] ?? $lang),
                 $confirmToken
             );
         } catch (\Throwable $e) {

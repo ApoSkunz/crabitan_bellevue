@@ -890,6 +890,22 @@
     font-style: italic;
 }
 
+.order-price-notice {
+    background: #fff6dd;
+    border-left: 3px solid var(--color-gold);
+    color: #6b5a15;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    padding: 0.6rem 0.9rem;
+}
+
+.order-price-indicative {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    font-style: italic;
+    font-weight: normal;
+}
+
 .order-invoice-bottom {
     margin-top: 1rem;
     text-align: right;

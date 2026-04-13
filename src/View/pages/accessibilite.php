@@ -37,6 +37,22 @@ $isEn = $lang === 'en';
             General Accessibility Guidelines (RGAA v4). The non-conformities and exemptions are listed below.
         </p>
 
+        <h3>Automated Audit Results (Lighthouse)</h3>
+        <p>
+            An automated audit was performed using
+            <a href="https://developer.chrome.com/docs/lighthouse/accessibility/" rel="noopener noreferrer" target="_blank">Google Lighthouse</a>
+            (<em>Accessibility</em> category) on the main pages of the site.
+        </p>
+        <ul>
+            <li><strong>Average score: 94.7 / 100</strong> (min 93 — max 96)</li>
+            <li>24 unique pages audited — 37 runs total</li>
+            <li>Audit date: 13 April 2026</li>
+        </ul>
+        <p>
+            Lighthouse automatically evaluates a subset of RGAA/WCAG 2.1 criteria. It does not replace
+            a full manual audit, but provides a reproducible objective score.
+        </p>
+
         <h3>Non-accessible Content</h3>
         <ul>
             <li>Some decorative images may not have an empty <code>alt</code> attribute in all contexts.</li>
@@ -54,11 +70,11 @@ $isEn = $lang === 'en';
         <h3>Preparation of this Accessibility Statement</h3>
         <p>
             This statement was prepared on <strong>1 April 2026</strong>. It was last reviewed on
-            <strong>1 April 2026</strong>.
+            <strong>13 April 2026</strong>.
         </p>
         <p>
-            The assessment was carried out by an internal audit of the main pages of the site against
-            RGAA v4 criteria.
+            The assessment was carried out via an internal audit of the main pages of the site
+            against RGAA v4 criteria, supplemented by automated Google Lighthouse runs.
         </p>
 
         <h3>Feedback and Contact</h3>
@@ -112,6 +128,22 @@ $isEn = $lang === 'en';
             les dérogations sont énumérées ci-dessous.
         </p>
 
+        <h3>Résultats de l'audit automatisé (Lighthouse)</h3>
+        <p>
+            Un audit automatisé a été réalisé à l'aide de
+            <a href="https://developer.chrome.com/docs/lighthouse/accessibility/" rel="noopener noreferrer" target="_blank">Google Lighthouse</a>
+            (catégorie <em>Accessibility</em>) sur les principales pages du site.
+        </p>
+        <ul>
+            <li><strong>Score moyen : 94,7 / 100</strong> (min 93 — max 96)</li>
+            <li>24 pages uniques auditées — 37 exécutions au total</li>
+            <li>Date de l'audit : 13 avril 2026</li>
+        </ul>
+        <p>
+            Lighthouse évalue automatiquement un sous-ensemble des critères RGAA/WCAG 2.1. Il ne
+            remplace pas un audit manuel exhaustif, mais fournit un score objectif et reproductible.
+        </p>
+
         <h3>Contenus non accessibles</h3>
         <ul>
             <li>Certaines images décoratives peuvent ne pas disposer d'un attribut <code>alt</code> vide dans tous les contextes.</li>
@@ -129,10 +161,11 @@ $isEn = $lang === 'en';
         <h3>Établissement de cette déclaration d'accessibilité</h3>
         <p>
             Cette déclaration a été établie le <strong>1er avril 2026</strong>. Elle a été mise à jour
-            le <strong>1er avril 2026</strong>.
+            le <strong>13 avril 2026</strong>.
         </p>
         <p>
-            L'évaluation a été réalisée par un audit interne des principales pages du site selon les critères du RGAA v4.
+            L'évaluation a été réalisée par un audit interne des principales pages du site selon les
+            critères du RGAA v4, complété par des passages automatisés avec Google Lighthouse.
         </p>
 
         <h3>Retour d'information et contact</h3>

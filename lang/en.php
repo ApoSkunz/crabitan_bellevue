@@ -85,6 +85,7 @@ return [
     'wine.add_favorite'   => 'Add to favourites',
     'wine.favorite_login' => 'Log in to add this wine to your favourites.',
     'wine.out_of_stock' => 'Out of stock',
+    'wine.not_for_sale' => 'Not for sale',
     'wine.available'    => 'Available',
     'wine.low_stock'     => 'Limited stock',
     'wine.low_stock_qty' => 'btl remaining',
@@ -557,7 +558,7 @@ return [
     'webmaster.edf_sub_task3'   => 'Experimenting with DORA metrics to measure DevOps performance',
     'webmaster.edf_sub_task4'   => 'Common architecture for Automated Deployments (Ansible, IaC)',
     'webmaster.edf_sub_task5'   => 'SRE: continuous monitoring, alerting, resilience from scratch, zero obsolescence',
-    'webmaster.edf_sub_task6'   => 'Co-designing with Valentine Gilles a cyber strategy: Horizon Zéro Vulnérabilité — participation in the DPNT 2025 challenge',
+    'webmaster.edf_sub_task6'   => 'Co-designing on the development of a cyber strategy: Horizon Zéro Vulnérabilité — participation in the DPNT 2025 challenge',
 
     // Webmaster — Capgemini (main role)
     'webmaster.capgemini_role'      => 'DevOps Engineer — System Team Leader SAFe',
@@ -789,6 +790,8 @@ return [
     'account.item_unit_price'    => 'Unit price',
     'account.item_subtotal'      => 'Subtotal',
     'account.order_subtotal'     => 'Items subtotal',
+    'account.order_price_notice' => 'Indicative current prices. Unit prices shown are the current catalogue prices, not those invoiced at order time. Only the Total is authoritative.',
+    'account.order_price_indicative' => 'indicative',
     'account.order_shipping_discount' => 'Shipping discount',
     'account.order_total'        => 'Total',
     'account.payment.card'       => 'Credit card',

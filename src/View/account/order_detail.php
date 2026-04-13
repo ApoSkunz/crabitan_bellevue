@@ -146,9 +146,18 @@ $paymentMap  = [
                         <tfoot>
                             <?php
                             $itemsSubtotal = array_reduce($items, fn ($carry, $i) => $carry + (float) ($i['price'] ?? 0) * (int) ($i['qty'] ?? 0), 0.0);
+                            $discount       = (float) ($shippingDiscount ?? 0.0);
+                            $priceMismatch  = $itemsSubtotal > 0.0 && abs(($itemsSubtotal - $discount) - (float) $order['price']) > 0.01;
                             ?>
+                            <?php if ($priceMismatch) : ?>
                             <tr>
-                                <td colspan="3"><?= __('account.order_subtotal') ?></td>
+                                <td colspan="4" class="order-price-notice">
+                                    <?= __('account.order_price_notice') ?>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
+                            <tr>
+                                <td colspan="3"><?= __('account.order_subtotal') ?><?= $priceMismatch ? ' <em class="order-price-indicative">(' . __('account.order_price_indicative') . ')</em>' : '' ?></td>
                                 <td><?= number_format($itemsSubtotal, 2, ',', ' ') ?> €</td>
                             </tr>
                             <?php if ($shippingDiscount !== null && $shippingDiscount > 0.0) : ?>

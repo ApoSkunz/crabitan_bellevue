@@ -11,6 +11,7 @@ use Core\Jwt;
 use Core\Response;
 use Model\AccountModel;
 use Model\ConnectionModel;
+use Model\TrustedDeviceModel;
 use Service\GoogleOAuthService;
 use Service\MailService;
 
@@ -28,6 +29,7 @@ class GoogleOAuthController extends Controller
 
     private AccountModel $accounts;
     private ConnectionModel $connections;
+    private TrustedDeviceModel $trustedDevices;
     private GoogleOAuthService $oauth;
 
     /**
@@ -36,9 +38,10 @@ class GoogleOAuthController extends Controller
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
-        $this->accounts    = new AccountModel();
-        $this->connections = new ConnectionModel();
-        $this->oauth       = new GoogleOAuthService(
+        $this->accounts       = new AccountModel();
+        $this->connections    = new ConnectionModel();
+        $this->trustedDevices = new TrustedDeviceModel();
+        $this->oauth          = new GoogleOAuthService(
             $_ENV['GOOGLE_CLIENT_ID']     ?? '',
             $_ENV['GOOGLE_CLIENT_SECRET'] ?? ''
         );
@@ -197,11 +200,17 @@ class GoogleOAuthController extends Controller
             try {
                 $firstname    = $account['firstname'] ?? $userInfo['given_name'] ?? '';
                 $isSubscribed = (int) ($account['newsletter'] ?? 0) === 1;
+                $confirmToken = '';
+                if (!$isSubscribed) {
+                    $confirmToken = bin2hex(random_bytes(32));
+                    $this->accounts->storeNewsletterConfirmToken((int) $account['id'], $confirmToken);
+                }
                 (new \Service\MailService())->sendWelcome(
                     $account['email'],
                     $firstname,
                     $lang,
-                    $isSubscribed
+                    $isSubscribed,
+                    $confirmToken
                 );
             } catch (\Throwable $e) {
                 \Core\ErrorLogger::warning($e, '[GoogleOAuth]');
@@ -318,16 +327,21 @@ class GoogleOAuthController extends Controller
             'samesite' => 'Lax',
         ]);
 
+        $deviceName = $this->deriveDeviceName($ua);
+
         $this->connections->create(
             (int) $account['id'],
             $token,
             $deviceToken,
             $_SERVER['REMOTE_ADDR'] ?? null,
             $ua,
-            $this->deriveDeviceName($ua),
+            $deviceName,
             'google',
             self::JWT_EXPIRY
         );
+
+        // OAuth Google = preuve d'identité forte → appareil marqué de confiance (TTL 90j glissants)
+        $this->trustedDevices->trust((int) $account['id'], $deviceToken, $deviceName);
 
         $this->accounts->markAsConnected((int) $account['id']);
 

@@ -2013,14 +2013,20 @@ INNER;
      * Si $isSubscribed vaut false, un bouton CTA "S'abonner à la newsletter" est ajouté
      * afin d'inviter l'utilisateur à rejoindre la newsletter en un clic.
      *
-     * @param string $email        Adresse email du destinataire
-     * @param string $firstname    Prénom de l'utilisateur (peut être vide)
-     * @param string $lang         Langue ('fr' ou 'en')
-     * @param bool   $isSubscribed True si l'utilisateur est déjà abonné à la newsletter
+     * @param string $email         Adresse email du destinataire
+     * @param string $firstname     Prénom de l'utilisateur (peut être vide)
+     * @param string $lang          Langue ('fr' ou 'en')
+     * @param bool   $isSubscribed  True si l'utilisateur est déjà abonné à la newsletter
+     * @param string $confirmToken  Token newsletter_confirm_token (brut) à injecter dans le CTA ; requis pour inscription en 1 clic
      * @return void
      */
-    public function sendWelcome(string $email, string $firstname, string $lang, bool $isSubscribed = false): void
-    {
+    public function sendWelcome(
+        string $email,
+        string $firstname,
+        string $lang,
+        bool $isSubscribed = false,
+        string $confirmToken = ''
+    ): void {
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
         $safeName    = $firstname !== '' ? htmlspecialchars($firstname, ENT_QUOTES) : $defaultName;
@@ -2036,12 +2042,13 @@ INNER;
             . "<a href=\"{$catalogUrl}\" style=\"" . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK
             . $catalogLabel . '</a></td></tr></table>';
 
-        // CTA newsletter conditionnel
+        // CTA newsletter conditionnel — 1 clic = inscription directe via token
         $newsletterCta = '';
-        if (!$isSubscribed) {
-            $subscribeUrl = $lang === 'fr'
-                ? htmlspecialchars("{$appUrl}/fr/newsletter/inscription-bienvenue?email=" . urlencode($email), ENT_QUOTES)
-                : htmlspecialchars("{$appUrl}/en/newsletter/welcome-subscribe?email=" . urlencode($email), ENT_QUOTES);
+        if (!$isSubscribed && $confirmToken !== '') {
+            $subscribeUrl = htmlspecialchars(
+                "{$appUrl}/{$lang}/newsletter/confirmation?token=" . urlencode($confirmToken),
+                ENT_QUOTES
+            );
             $newsletterLabel = $lang === 'fr' ? "S'abonner à la newsletter" : 'Subscribe to the newsletter';
             $newsletterCta = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;">'
                 . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'

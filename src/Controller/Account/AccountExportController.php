@@ -126,7 +126,8 @@ class AccountExportController extends AbstractAccountController
         $filename = $basename . ($isZip ? '.zip' : '.json');
 
         try {
-            $this->newMailService()->sendRgpdExport($email, $name, $content, $filename, $lang);
+            $mailLang = (string) ($account['lang'] ?? $lang);
+            $this->newMailService()->sendRgpdExport($email, $name, $content, $filename, $mailLang);
             $this->rateLimiter->remember('rgpd_export_ts:' . $userId, time(), self::WINDOW_EXPORT);
             $this->rgpdExportLogs->log($email, \Service\AuditLogger::getIp(), $filename, $userId);
             $_SESSION['flash']['export_sent'] = AccountProfileController::maskEmail($email);

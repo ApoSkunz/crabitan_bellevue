@@ -683,7 +683,7 @@ class WineController extends Controller
         }
 
         $nutrition     = (new \Model\WineNutritionModel())->findByWineId((int) $wine['id']) ?: [];
-        $similarWines  = $model->getSimilar((int) $wine['id'], (string) $wine['wine_color'], (float) $wine['price']);
+        $similarWines  = $this->buildCrossSell($model, $wine);
 
         $avgRating     = null;
         $ratingCount   = 0;
@@ -709,5 +709,51 @@ class WineController extends Controller
             'ratingCount'   => $ratingCount,
             'accountRating' => $accountRating,
         ]);
+    }
+
+    /**
+     * Construit la liste cross-sell pour la page détail d'un vin.
+     *
+     * Applique la même logique que le panier pour le cas "1 vin unique" :
+     * vins similaires (même couleur, tri par proximité de prix) + garantie
+     * d'au moins 1 cuvée spéciale si le vin courant n'en est pas une.
+     *
+     * @param  \Model\WineModel        $model Instance du WineModel
+     * @param  array<string, mixed>   $wine  Vin courant
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildCrossSell(\Model\WineModel $model, array $wine): array
+    {
+        $wineId      = (int) $wine['id'];
+        $color       = (string) ($wine['wine_color'] ?? '');
+        $price       = (float) ($wine['price'] ?? 0.0);
+        $currentIsCuvee = !empty($wine['is_cuvee_speciale']);
+        $crossSell   = $model->getSimilar($wineId, $color, $price, 3);
+
+        if ($currentIsCuvee) {
+            return $crossSell;
+        }
+
+        $hasCuvee = !empty(array_filter(
+            $crossSell,
+            static fn(array $w): bool => !empty($w['is_cuvee_speciale'])
+        ));
+        if ($hasCuvee) {
+            return $crossSell;
+        }
+
+        $excludeIds   = array_map(static fn(array $w): int => (int) $w['id'], $crossSell);
+        $excludeIds[] = $wineId;
+        $cuvee        = $model->getCuveeSpecialeByColor($color, $excludeIds);
+        if ($cuvee === null) {
+            return $crossSell;
+        }
+
+        if (count($crossSell) >= 3) {
+            array_pop($crossSell);
+        }
+        array_unshift($crossSell, $cuvee);
+
+        return $crossSell;
     }
 }

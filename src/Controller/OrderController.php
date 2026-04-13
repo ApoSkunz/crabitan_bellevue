@@ -341,7 +341,7 @@ class OrderController extends Controller
                 $paymentMethod,
                 $items,
                 $total,
-                $lang,
+                (string) (($account !== false ? ($account['lang'] ?? null) : null) ?? $lang),
                 round($deliveryDiscount, 2)
             );
         }

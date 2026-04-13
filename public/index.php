@@ -68,6 +68,20 @@ if (preg_match('/googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|faceb
     }
 }
 
+// Website Carbon Badge : bypass age-gate pour que leur API mesure l'empreinte CO2.
+// Pas de reverse-DNS documenté chez eux → on se fie au UA uniquement (risque d'usurpation
+// accepté : Loi Evin ne couvre pas ce niveau de contournement technique).
+if (!$isCrawler && preg_match('/WebsiteCarbon|websitecarbon\.com/i', $ua)) {
+    $isCrawler = true;
+}
+
+// Crawlers SEO majeurs : UA-trust si le reverse-DNS a échoué (IONOS mutualisé sans APCu).
+// Un crawler usurpé ne verrait que le contenu public — aucun exploit Loi Evin possible
+// (crawler = lecture seule, pas de consommation d'alcool).
+if (!$isCrawler && preg_match('/Googlebot|Bingbot|DuckDuckBot|Applebot|YandexBot|Slurp/i', $ua)) {
+    $isCrawler = true;
+}
+
 if (!$ageVerified && !$isPublicPath && !$isCrawler) {
     $redirect = rawurlencode($path !== '/' ? $path : '/' . DEFAULT_LANG);
     header('Location: /age-gate?redirect=' . $redirect);

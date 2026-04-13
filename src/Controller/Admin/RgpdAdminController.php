@@ -294,6 +294,7 @@ class RgpdAdminController extends AdminController
 
         $accountModel = new AccountModel();
         $account      = $accountModel->findByEmail($email);
+        $sub          = null;
 
         if ($account) {
             $exportData = $svc->buildForAccount((int) $account['id']);
@@ -314,8 +315,9 @@ class RgpdAdminController extends AdminController
         [$content, $filename] = $svc->buildZip($exportData, $basename);
 
         try {
+            $mailLang    = (string) ($account['lang'] ?? $sub['lang'] ?? 'fr');
             $mailService = new MailService();
-            $mailService->sendRgpdExport($email, $name, $content, $filename, 'fr');
+            $mailService->sendRgpdExport($email, $name, $content, $filename, $mailLang);
         } catch (\Exception $e) {
             \Core\ErrorLogger::warning($e);
         }

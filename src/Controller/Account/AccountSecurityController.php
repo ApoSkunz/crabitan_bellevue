@@ -175,7 +175,7 @@ class AccountSecurityController extends AbstractAccountController
                 (new \Service\MailService())->sendPasswordChangeConfirmation(
                     (string) $account['email'],
                     (string) $notifName,
-                    $lang,
+                    (string) ($account['lang'] ?? $lang),
                     $rawToken
                 );
             } catch (\Throwable $e) {
@@ -387,7 +387,7 @@ class AccountSecurityController extends AbstractAccountController
             (new \Service\MailService())->sendAccountDeletionConfirmation(
                 (string) $account['email'],
                 (string) $name,
-                $lang,
+                (string) ($account['lang'] ?? $lang),
                 $reactivationToken
             );
         } catch (\Throwable $e) {
