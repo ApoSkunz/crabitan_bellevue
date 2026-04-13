@@ -17,6 +17,9 @@ define('SRC_PATH', __DIR__ . '/../src');
 // Helpers globaux (fonction __() pour les traductions)
 require_once ROOT_PATH . '/src/helpers.php';
 
+// Préchargement des traductions fr (évite que les tests d'intégration renvoient des clés brutes)
+\Core\Lang::load('fr');
+
 // JWT secret pour les tests
 $_ENV['JWT_SECRET'] = 'test-secret-key-for-unit-tests';
 $_ENV['JWT_EXPIRY'] = '3600';

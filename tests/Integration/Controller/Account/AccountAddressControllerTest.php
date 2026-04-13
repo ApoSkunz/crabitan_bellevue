@@ -359,7 +359,7 @@ class AccountAddressControllerTest extends IntegrationTestCase
              ->editAddress(['lang' => 'fr', 'id' => (string) $addressId]);
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('address_form', $output);
+        $this->assertStringContainsString('account-address-form', $output);
     }
 
     /**
