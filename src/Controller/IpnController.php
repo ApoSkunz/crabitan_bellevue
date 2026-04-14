@@ -202,7 +202,7 @@ class IpnController
                     $lang,
                     $discount
                 );
-                $pdfContext = $this->buildOwnerPdfContext($snapshot);
+                $pdfContext = (new \Service\OrderPdfContextBuilder())->build($snapshot);
                 $this->mail->sendOrderConfirmationToOwner(
                     $email,
                     $name,
@@ -253,41 +253,5 @@ class IpnController
     protected function createInvoiceService(): InvoiceService
     {
         return new InvoiceService();
-    }
-
-    /**
-     * Construit le contexte adresses (facturation + livraison) à joindre au PDF
-     * récapitulatif envoyé au gérant. Retourne null si on ne peut rien charger.
-     *
-     * @param array<string, mixed> $snapshot
-     * @return array{ordered_at: string, billing: array<string, mixed>, delivery: array<string, mixed>|null}|null
-     */
-    protected function buildOwnerPdfContext(array $snapshot): ?array
-    {
-        $userId    = (int) ($snapshot['user_id'] ?? 0);
-        $billingId = (int) ($snapshot['billing_address_id']  ?? 0);
-        $deliveryId = (int) ($snapshot['delivery_address_id'] ?? 0);
-        try {
-            $addresses = new \Model\AddressModel();
-            $billing = ($userId > 0 && $billingId > 0)
-                ? $addresses->findByIdForUser($billingId, $userId)
-                : null;
-            if ($billing === null) {
-                return null;
-            }
-            $delivery = match (true) {
-                $deliveryId === $billingId => $billing,
-                $deliveryId > 0            => $addresses->findByIdForUser($deliveryId, $userId),
-                default                    => null,
-            };
-            return [
-                'ordered_at' => date('Y-m-d H:i:s'),
-                'billing'    => $billing,
-                'delivery'   => $delivery,
-            ];
-        } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
-            return null;
-        }
     }
 }

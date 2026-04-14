@@ -341,7 +341,7 @@ class OrderController extends Controller
             }
         }
         if ($clientEmail !== '') {
-            $pdfContext = $this->buildOwnerPdfContext([
+            $pdfContext = (new \Service\OrderPdfContextBuilder())->build([
                 'user_id'             => $userId,
                 'billing_address_id'  => $billingAddressId,
                 'delivery_address_id' => $deliveryAddressId,
@@ -465,7 +465,7 @@ class OrderController extends Controller
                             $lang,
                             $discount
                         );
-                        $pdfContext = $this->buildOwnerPdfContext((array) $snapshot);
+                        $pdfContext = (new \Service\OrderPdfContextBuilder())->build((array) $snapshot);
                         $mail->sendOrderConfirmationToOwner(
                             (string) ($snapshot['client_email'] ?? ''),
                             (string) ($snapshot['client_name']  ?? ''),
@@ -964,42 +964,6 @@ class OrderController extends Controller
             );
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
-        }
-    }
-
-    /**
-     * Construit le contexte adresses (facturation + livraison) pour le PDF
-     * récap joint au mail gérant. Retourne null si insuffisant.
-     *
-     * @param array<string, mixed> $snapshot
-     * @return array{ordered_at: string, billing: array<string, mixed>, delivery: array<string, mixed>|null}|null
-     */
-    private function buildOwnerPdfContext(array $snapshot): ?array
-    {
-        $userId    = (int) ($snapshot['user_id'] ?? 0);
-        $billingId = (int) ($snapshot['billing_address_id']  ?? 0);
-        $deliveryId = (int) ($snapshot['delivery_address_id'] ?? 0);
-        try {
-            $addresses = new \Model\AddressModel();
-            $billing = ($userId > 0 && $billingId > 0)
-                ? $addresses->findByIdForUser($billingId, $userId)
-                : null;
-            if ($billing === null) {
-                return null;
-            }
-            $delivery = match (true) {
-                $deliveryId === $billingId => $billing,
-                $deliveryId > 0            => $addresses->findByIdForUser($deliveryId, $userId),
-                default                    => null,
-            };
-            return [
-                'ordered_at' => date(self::DATE_FORMAT_LOG),
-                'billing'    => $billing,
-                'delivery'   => $delivery,
-            ];
-        } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
-            return null;
         }
     }
 }
