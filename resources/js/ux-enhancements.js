@@ -81,17 +81,34 @@ export function initLangSwitchToast() {
             const msg = el.dataset.langToast || 'Langue mise à jour…';
             const href = el.getAttribute('href');
 
-            // Navigation différée pour laisser le toast visible
-            if (href && !el.dataset.langToastShown) {
-                event.preventDefault();
-                el.dataset.langToastShown = '1';
+            if (!href || el.dataset.langToastShown) {
                 showToast(msg);
-                setTimeout(() => {
-                    globalThis.location.href = href;
-                }, TOAST_DELAY_MS);
-            } else {
-                showToast(msg);
+                return;
             }
+
+            // Valide que la destination est bien même origine —
+            // prévient qu'un href manipulé (console, extension) redirige ailleurs.
+            let safePath = null;
+            try {
+                const url = new URL(href, globalThis.location.href);
+                if (url.origin === globalThis.location.origin) {
+                    safePath = url.pathname + url.search + url.hash;
+                }
+            } catch {
+                safePath = null;
+            }
+
+            if (safePath === null) {
+                showToast(msg);
+                return;
+            }
+
+            event.preventDefault();
+            el.dataset.langToastShown = '1';
+            showToast(msg);
+            setTimeout(() => {
+                globalThis.location.assign(safePath);
+            }, TOAST_DELAY_MS);
         });
     });
 }
