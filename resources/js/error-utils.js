@@ -57,12 +57,12 @@ export function buildRejectionPayload(reason, url, userAgent) {
     let message;
     if (reason instanceof Error) {
         message = reason.message;
-    } else if (reason instanceof Object) {
-        message = 'Unhandled Promise Rejection';
-    } else if (reason === null || reason === undefined) {
-        message = 'Unhandled Promise Rejection';
-    } else {
+    } else if (typeof reason === 'string') {
+        message = reason;
+    } else if (typeof reason === 'number' || typeof reason === 'boolean') {
         message = String(reason);
+    } else {
+        message = 'Unhandled Promise Rejection';
     }
     const stack = reason instanceof Error ? (reason.stack ?? '') : '';
 
