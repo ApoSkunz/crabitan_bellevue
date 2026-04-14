@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.84.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.84.0...v0.84.1) (2026-04-14)
+
+
+### Bug Fixes
+
+* **js:** Sonar S6551 — évite stringification Object dans buildRejectionPayload ([60fdb56](https://github.com/ApoSkunz/crabitan_bellevue/commit/60fdb56d27e44f7a040509f53e67f224e1d85bb3))
+
 # [0.84.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.83.0...v0.84.0) (2026-04-14)
 
 
