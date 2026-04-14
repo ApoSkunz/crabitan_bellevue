@@ -2,6 +2,39 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.83.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.82.0...v0.83.0) (2026-04-14)
+
+
+### Bug Fixes
+
+* **admin:** révocation session admin redirige vers /fr après clear cookie ([3e41ca6](https://github.com/ApoSkunz/crabitan_bellevue/commit/3e41ca6af8c1478d382031836d3d96243c5eaf1a))
+* **checkout:** fallback paiement CA indisponible — message + VIR/CHQ ([f91c8a7](https://github.com/ApoSkunz/crabitan_bellevue/commit/f91c8a7cead8ebddde7b9c656fe20dc4505a1e1a))
+* **invoice:** étend INVOICE_AUTO_GENERATE à tous les points de génération ([e4720ed](https://github.com/ApoSkunz/crabitan_bellevue/commit/e4720eda7743fabe02551c5d58d6a1481620dc04))
+* **lazy-load:** retire infinite scroll — per_page=10 affichait tout ([95d2809](https://github.com/ApoSkunz/crabitan_bellevue/commit/95d2809436b14155a17634341d97863a60114e0c))
+* **lazy-load:** stop updating URL with ?page=N during infinite scroll ([7cffddb](https://github.com/ApoSkunz/crabitan_bellevue/commit/7cffddb3edbd5378dd5fe5e8efbca627b5a9f372))
+* **security:** bypass age-gate via Referer websitecarbon.com ([594f436](https://github.com/ApoSkunz/crabitan_bellevue/commit/594f43602843153d42ae746754c9e1191d334e36))
+* **security:** valide same-origin avant navigation différée toast langue ([40c79ec](https://github.com/ApoSkunz/crabitan_bellevue/commit/40c79ec16ce3fe7a319be97de7348bd1d4c4a646))
+* **ux:** toast switchlang centré écran + navigation différée 700ms ([953fc44](https://github.com/ApoSkunz/crabitan_bellevue/commit/953fc44bb6f0e24575ae73fcff4f45bb0fbc458d))
+
+
+### Features
+
+* **account:** bloque changement email pour comptes Google OAuth ([658d9ca](https://github.com/ApoSkunz/crabitan_bellevue/commit/658d9ca56f36d22d634d4ac8f8eadb57e8454408))
+* **auth:** double confirmation email avant rattachement OAuth Google ([5c984b0](https://github.com/ApoSkunz/crabitan_bellevue/commit/5c984b0bb4b9c74d81bdf44ca17431fab4229ecd))
+* **auth:** MFA Google Option A + rattachement via MFA standard ([b209d55](https://github.com/ApoSkunz/crabitan_bellevue/commit/b209d55536ea137ff4105e54bc536ce106fc7517))
+* **errors:** lien retour via referer same-origin sur pages 404/500 ([6a75207](https://github.com/ApoSkunz/crabitan_bellevue/commit/6a75207ba37221ecb4d24bdf9f11b1e7574be248))
+* **filters:** auto-submit sort/per_page sur vues publiques et admin ([e0ab46b](https://github.com/ApoSkunz/crabitan_bellevue/commit/e0ab46b1a4cded7497bd1273477391e2c1fa1b50))
+* **forms:** inputmode numeric sur SIRET et code postal ([c0e5032](https://github.com/ApoSkunz/crabitan_bellevue/commit/c0e503202f557fa9ee9c277075f420a0b930ca07))
+* **i18n:** CSRF explicite, fallback paiement CA, confirmation OAuth link ([63ab400](https://github.com/ApoSkunz/crabitan_bellevue/commit/63ab4005a18fecf97d62351db8b755174650514c))
+* **mail:** sendGoogleLinkConfirmation pour rattachement OAuth ([c8ea8e9](https://github.com/ApoSkunz/crabitan_bellevue/commit/c8ea8e964f1fcc6b19c86dc407a6f7b7fa729def))
+* **maintenance:** page unifiée dans public/ + vin liquoreux doré ([934dc84](https://github.com/ApoSkunz/crabitan_bellevue/commit/934dc84457bb5f347ed1b79411d6267d943d7c84))
+* **model:** GoogleLinkTokenModel — tokens double confirmation OAuth ([5e79196](https://github.com/ApoSkunz/crabitan_bellevue/commit/5e79196268d67bcaf44f23bd2bf8e5fb162049a4))
+* **oauth:** restaure rattachement email dédié via GoogleLinkTokenModel ([953008b](https://github.com/ApoSkunz/crabitan_bellevue/commit/953008b3d2df2409973128c90e6797a36a920d9d))
+* **routes:** GET /{lang}/auth/google/link/verify pour token email ([08901a4](https://github.com/ApoSkunz/crabitan_bellevue/commit/08901a4d1dd2ec03362133be837b2d0121ef6e20))
+* **ux:** badge "Millésime épuisé" remplace le prix sur collection ([c13bdfe](https://github.com/ApoSkunz/crabitan_bellevue/commit/c13bdfecd50cb0b484f74483455a0253e95f9280))
+* **ux:** toast switch langue, focus trap modales, auto-submit filtres ([5781c1b](https://github.com/ApoSkunz/crabitan_bellevue/commit/5781c1b3485d6bd1b26b3418e4f24433162ce825))
+* **wines:** filtres AJAX instantanés + infinite scroll restauré ([857e077](https://github.com/ApoSkunz/crabitan_bellevue/commit/857e0776072739d122856076be96da2b5ba2e259))
+
 # [0.82.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.81.0...v0.82.0) (2026-04-13)
 
 
