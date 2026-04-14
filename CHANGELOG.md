@@ -2,6 +2,25 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.84.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.83.0...v0.84.0) (2026-04-14)
+
+
+### Bug Fixes
+
+* **filters:** retire per_page de l'URL (pagination supprimée) ([eb81890](https://github.com/ApoSkunz/crabitan_bellevue/commit/eb818906244587f92d343f3df19f769c16a6d24f))
+* **filters:** strip empty params et valeurs par défaut de l'URL AJAX ([391e294](https://github.com/ApoSkunz/crabitan_bellevue/commit/391e29421a78d0729e51e4ff77b71c3bbf6bbb82))
+* **pdf:** reprend l'adresse de livraison quand identique à facturation ([2df2235](https://github.com/ApoSkunz/crabitan_bellevue/commit/2df22357a11a80a5fae2c20744b0cc9368e8fcda))
+* **security:** whitelist routes nées d'un email face à l'age-gate ([512f135](https://github.com/ApoSkunz/crabitan_bellevue/commit/512f135851138addd12bf4ad11d3192b3e5dee9b))
+
+
+### Features
+
+* **account:** favoris affichent prix + bouton panier ou millésime épuisé ([18e3b3c](https://github.com/ApoSkunz/crabitan_bellevue/commit/18e3b3c1024950e549c0934d1c3579bd0681a246))
+* **mail:** PDF récap commande joint au mail gérant ([b3b4c14](https://github.com/ApoSkunz/crabitan_bellevue/commit/b3b4c14881aa4cb31dace19b4d2e678a30124138))
+* **news:** retire la pagination serveur des actualités + simplifie lazy-load ([cbe4bff](https://github.com/ApoSkunz/crabitan_bellevue/commit/cbe4bffefccd58651fbe3930d36092b88fd15cab))
+* **seo:** bypass HeadlessChrome + Vary User-Agent + URL racine carbon-badge ([ed3f09d](https://github.com/ApoSkunz/crabitan_bellevue/commit/ed3f09dcef847e6e7a7d65e4787dedb72214d886))
+* **wines:** retire la pagination serveur et le select per-page du catalogue ([3182df9](https://github.com/ApoSkunz/crabitan_bellevue/commit/3182df9b3597b65c9229bbf27f7b910536b8aee1))
+
 # [0.83.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.82.0...v0.83.0) (2026-04-14)
 
 
