@@ -101,7 +101,7 @@ class OrderSummaryPdfServiceTest extends TestCase
         $service = new OrderSummaryPdfService();
         $method  = new \ReflectionMethod(OrderSummaryPdfService::class, 'buildAddressBlock');
 
-        $html = $method->invoke($service, 'Adresse', []);
+        $html = $method->invoke($service, []);
 
         $this->assertStringContainsString('Aucune adresse', $html);
     }

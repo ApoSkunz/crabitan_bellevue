@@ -76,9 +76,9 @@ class OrderSummaryPdfService
         $rows         = $this->buildItemsRows($items);
         $discountRow  = $this->buildDiscountRow($shippingDiscount);
         $totalRow     = $this->buildTotalRow($total);
-        $billingHtml  = $this->buildAddressBlock('Adresse de facturation', $billing);
+        $billingHtml  = $this->buildAddressBlock($billing);
         $deliveryHtml = $delivery !== null
-            ? $this->buildAddressBlock('Adresse de livraison', $delivery)
+            ? $this->buildAddressBlock($delivery)
             : '<p style="font-size:9pt;color:#8a7060;font-style:italic;margin:0;">Identique à la facturation</p>';
 
         $sectionLabel = 'font-size:7pt;font-weight:bold;color:#c1a14b;text-transform:uppercase;'
@@ -218,7 +218,7 @@ table { width: 100%; border-collapse: collapse; }
     /**
      * @param array<string, mixed> $address
      */
-    private function buildAddressBlock(string $title, array $address): string
+    private function buildAddressBlock(array $address): string
     {
         $civility  = trim((string) ($address['civility']  ?? ''));
         $firstname = htmlspecialchars(trim((string) ($address['firstname'] ?? '')), ENT_QUOTES);

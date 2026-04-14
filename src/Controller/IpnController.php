@@ -267,22 +267,19 @@ class IpnController
         $userId    = (int) ($snapshot['user_id'] ?? 0);
         $billingId = (int) ($snapshot['billing_address_id']  ?? 0);
         $deliveryId = (int) ($snapshot['delivery_address_id'] ?? 0);
-        if ($userId <= 0 || $billingId <= 0) {
-            return null;
-        }
         try {
             $addresses = new \Model\AddressModel();
-            $billing   = $addresses->findByIdForUser($billingId, $userId);
+            $billing = ($userId > 0 && $billingId > 0)
+                ? $addresses->findByIdForUser($billingId, $userId)
+                : null;
             if ($billing === null) {
                 return null;
             }
-            if ($deliveryId === $billingId) {
-                $delivery = $billing;
-            } else {
-                $delivery = $deliveryId > 0
-                    ? $addresses->findByIdForUser($deliveryId, $userId)
-                    : null;
-            }
+            $delivery = match (true) {
+                $deliveryId === $billingId => $billing,
+                $deliveryId > 0            => $addresses->findByIdForUser($deliveryId, $userId),
+                default                    => null,
+            };
             return [
                 'ordered_at' => date('Y-m-d H:i:s'),
                 'billing'    => $billing,

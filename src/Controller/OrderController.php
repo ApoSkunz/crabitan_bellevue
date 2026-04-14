@@ -30,6 +30,7 @@ use Service\StockNotificationService;
 class OrderController extends Controller
 {
     private const LOG_CONTEXT = '[ORDER]';
+    private const DATE_FORMAT_LOG = 'Y-m-d H:i:s';
 
     /** Délai de livraison estimé affiché au client (L216-1 Code conso). */
     private const DELIVERY_DELAY    = '7 à 15 jours à compter de la réception du paiement';
@@ -405,7 +406,7 @@ class OrderController extends Controller
             $qs = $_SERVER['QUERY_STRING'] ?? '';
             if (!(new \Service\PaymentService())->verifyIpnSignature($qs)) {
                 \Core\ErrorLogger::write([
-                    'timestamp' => date('Y-m-d H:i:s'),
+                    'timestamp' => date(self::DATE_FORMAT_LOG),
                     'level'     => 'WARNING',
                     'message'   => '[RETURN_OK] Invalid RSA signature on return URL — ref=' . $ref,
                     'file'      => __FILE__,
@@ -486,7 +487,7 @@ class OrderController extends Controller
 
         if ($order === null) {
             \Core\ErrorLogger::write([
-                'timestamp' => date('Y-m-d H:i:s'),
+                'timestamp' => date(self::DATE_FORMAT_LOG),
                 'level'     => 'WARNING',
                 'message'   => '[RETURN_OK] Order not found and no intent — ref=' . $ref,
                 'file'      => __FILE__,
@@ -978,24 +979,21 @@ class OrderController extends Controller
         $userId    = (int) ($snapshot['user_id'] ?? 0);
         $billingId = (int) ($snapshot['billing_address_id']  ?? 0);
         $deliveryId = (int) ($snapshot['delivery_address_id'] ?? 0);
-        if ($userId <= 0 || $billingId <= 0) {
-            return null;
-        }
         try {
             $addresses = new \Model\AddressModel();
-            $billing   = $addresses->findByIdForUser($billingId, $userId);
+            $billing = ($userId > 0 && $billingId > 0)
+                ? $addresses->findByIdForUser($billingId, $userId)
+                : null;
             if ($billing === null) {
                 return null;
             }
-            if ($deliveryId === $billingId) {
-                $delivery = $billing;
-            } else {
-                $delivery = $deliveryId > 0
-                    ? $addresses->findByIdForUser($deliveryId, $userId)
-                    : null;
-            }
+            $delivery = match (true) {
+                $deliveryId === $billingId => $billing,
+                $deliveryId > 0            => $addresses->findByIdForUser($deliveryId, $userId),
+                default                    => null,
+            };
             return [
-                'ordered_at' => date('Y-m-d H:i:s'),
+                'ordered_at' => date(self::DATE_FORMAT_LOG),
                 'billing'    => $billing,
                 'delivery'   => $delivery,
             ];

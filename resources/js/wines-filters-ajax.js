@@ -20,12 +20,14 @@ import { initLazyLoad } from './lazy-load.js';
  */
 function buildUrl(form) {
     const params = new URLSearchParams(new FormData(form));
+    const toDelete = [];
 
-    for (const [key, value] of [...params.entries()]) {
+    for (const [key, value] of params.entries()) {
         if (value === '' || (key === 'sort' && value === 'default')) {
-            params.delete(key);
+            toDelete.push(key);
         }
     }
+    toDelete.forEach((key) => params.delete(key));
 
     const qs = params.toString();
     return globalThis.location.pathname + (qs ? '?' + qs : '');
