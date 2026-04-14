@@ -111,7 +111,7 @@ class OrderSummaryPdfServiceTest extends TestCase
         $service = new OrderSummaryPdfService();
         $method  = new \ReflectionMethod(OrderSummaryPdfService::class, 'buildLogoTag');
 
-        $html = $method->invoke($service, null);
+        $html = $method->invoke($service, null, 'Crabitan Bellevue');
 
         $this->assertStringContainsString('<span', $html);
     }
