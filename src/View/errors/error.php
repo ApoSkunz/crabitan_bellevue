@@ -71,15 +71,20 @@ $homeLbl = $lang === 'en' ? '← Back to home' : '← Retour à l\'accueil';
 $backUrl = null;
 $ref     = $_SERVER['HTTP_REFERER'] ?? '';
 if ($ref !== '') {
-    $appUrl = defined('APP_URL') ? APP_URL : '';
-    $host   = $_SERVER['HTTP_HOST'] ?? '';
-    if (
-        ($appUrl !== '' && str_starts_with($ref, $appUrl))
-        || ($host !== '' && (str_starts_with($ref, 'https://' . $host) || str_starts_with($ref, 'http://' . $host)))
-    ) {
+    $appUrl    = defined('APP_URL') ? APP_URL : '';
+    $host      = $_SERVER['HTTP_HOST'] ?? '';
+    $refParts  = parse_url($ref);
+    $refHost   = is_array($refParts) ? ($refParts['host'] ?? '') : '';
+    $refScheme = is_array($refParts) ? ($refParts['scheme'] ?? '') : '';
+
+    $sameOrigin  = $appUrl !== '' && str_starts_with($ref, $appUrl);
+    $sameHost    = $host !== '' && $refHost !== '' && strcasecmp($refHost, $host) === 0;
+    $validScheme = in_array($refScheme, ['https', 'http'], true);
+
+    if ($sameOrigin || ($sameHost && $validScheme)) {
         // Ne pas proposer le retour si referer = page d'erreur courante
-        $currentUri = ($_SERVER['HTTPS'] ?? '') === 'on' ? 'https://' : 'http://';
-        $currentUri .= $host . ($_SERVER['REQUEST_URI'] ?? '');
+        $currentScheme = ($_SERVER['HTTPS'] ?? '') === 'on' ? 'https' : 'http';
+        $currentUri    = $currentScheme . '://' . $host . ($_SERVER['REQUEST_URI'] ?? '');
         if ($ref !== $currentUri) {
             $backUrl = $ref;
         }
