@@ -14,6 +14,7 @@ return [
     'nav.contact'     => 'Contact',
     'nav.wines'       => 'Shop',
     'nav.collection'  => 'Wine Collection',
+    'collection.intro' => 'Find all the details of your favourite vintages since 2010.',
     'nav.news'        => 'News',
     'nav.savoir_faire' => 'Know-How',
     'nav.chateau'     => 'Le Château',
@@ -89,7 +90,7 @@ return [
     'wine.add_favorite'   => 'Add to favourites',
     'wine.favorite_login' => 'Log in to add this wine to your favourites.',
     'wine.out_of_stock' => 'Out of stock',
-    'wine.not_for_sale' => 'Not for sale',
+    'wine.not_for_sale' => 'Not sold',
     'wine.available'    => 'Available',
     'wine.low_stock'     => 'Limited stock',
     'wine.low_stock_qty' => 'btl remaining',
@@ -123,7 +124,6 @@ return [
     'wine.sort.price_desc'   => 'Price descending',
     'wine.sort.vintage_asc'  => 'Vintage ascending',
     'wine.sort.vintage_desc' => 'Vintage descending',
-    'wine.sort.likes_desc'   => 'Most liked',
     'wine.sort.rating_desc'  => 'Top rated',
 
     // Wines — Product sheet

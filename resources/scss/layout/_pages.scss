@@ -547,7 +547,7 @@
     cursor: pointer;
     overflow: hidden;
     aspect-ratio: 4 / 3;
-    transition: border-color 200ms ease;
+    transition: border-color 200ms ease, opacity 350ms ease, transform 350ms ease;
 
     &:hover {
         border-color: var(--color-gold);

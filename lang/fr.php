@@ -14,6 +14,7 @@ return [
     'nav.contact'     => 'Contact',
     'nav.wines'       => 'Boutique',
     'nav.collection'  => 'Collection des vins',
+    'collection.intro' => 'Retrouvez toutes les informations de vos millésimes préférés depuis 2010.',
     'nav.news'        => 'Actualités',
     'nav.savoir_faire' => 'Savoir-Faire',
     'nav.chateau'     => 'Le Château',
@@ -89,7 +90,7 @@ return [
     'wine.add_favorite'   => 'Ajouter aux favoris',
     'wine.favorite_login' => 'Connectez-vous pour ajouter ce vin à vos favoris.',
     'wine.out_of_stock' => 'Épuisé',
-    'wine.not_for_sale' => 'Non disponible à la vente',
+    'wine.not_for_sale' => 'Non commercialisé',
     'wine.available'    => 'Disponible',
     'wine.low_stock'     => 'Stock limité',
     'wine.low_stock_qty' => 'bt restantes',
@@ -123,7 +124,6 @@ return [
     'wine.sort.price_desc'   => 'Prix décroissant',
     'wine.sort.vintage_asc'  => 'Millésime croissant',
     'wine.sort.vintage_desc' => 'Millésime décroissant',
-    'wine.sort.likes_desc'   => 'Les plus aimés',
     'wine.sort.rating_desc'  => 'Mieux notés',
 
     // Vins — Fiche produit

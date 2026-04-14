@@ -34,6 +34,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
         <div class="container">
             <span class="home-section__tag"><?= htmlspecialchars(__('home.wines_tag')) ?></span>
             <h1 class="home-section__title"><?= htmlspecialchars(__('nav.collection')) ?></h1>
+            <p class="page-hero__intro"><?= htmlspecialchars(__('collection.intro')) ?></p>
             <div class="home-section__divider home-section__divider--center"></div>
         </div>
     </div>
@@ -91,7 +92,6 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                             $sortOptions = [
                                 'default'      => __('wine.sort.default'),
                                 'rating_desc'  => __('wine.sort.rating_desc'),
-                                'likes_desc'   => __('wine.sort.likes_desc'),
                                 'vintage_asc'  => __('wine.sort.vintage_asc'),
                                 'vintage_desc' => __('wine.sort.vintage_desc'),
                             ];
