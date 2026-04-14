@@ -12,6 +12,8 @@ namespace Service;
  */
 class OrderSummaryPdfService
 {
+    use PdfBrandingTrait;
+
     private const APP_NAME = 'Château Crabitan Bellevue';
 
     /**
@@ -72,8 +74,8 @@ class OrderSummaryPdfService
         $paymentLabel = $paymentLabels[$paymentMethod]
             ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
 
-        $logoTag      = $this->buildLogoTag($logoPath);
-        $rows         = $this->buildItemsRows($items);
+        $logoTag      = $this->buildLogoTag($logoPath, self::APP_NAME);
+        $rows         = $this->buildItemsRows($items, true);
         $discountRow  = $this->buildDiscountRow($shippingDiscount);
         $totalRow     = $this->buildTotalRow($total);
         $billingHtml  = $this->buildAddressBlock($billing);
@@ -149,49 +151,6 @@ table { width: 100%; border-collapse: collapse; }
 </p>';
     }
 
-    /**
-     * @param array<int, array<string, mixed>> $items
-     */
-    private function buildItemsRows(array $items): string
-    {
-        $rows = '';
-        foreach ($items as $item) {
-            $name = htmlspecialchars(
-                (string) ($item['label_name'] ?? $item['name'] ?? '-'),
-                ENT_QUOTES
-            );
-            $vintage = (int) ($item['vintage'] ?? 0);
-            if ($vintage > 0) {
-                $name .= ' <span style="color:#8a7060;">' . $vintage . '</span>';
-            }
-            $qty      = (int)   ($item['qty']   ?? 0);
-            $price    = (float) ($item['price'] ?? 0.0);
-            $subtotal = $qty * $price;
-            $rows .= '<tr>'
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;\">{$name}</td>"
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:center;\">{$qty}</td>"
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:right;\">"
-                    . number_format($price, 2, ',', ' ') . '&nbsp;&euro;</td>'
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:right;\">"
-                    . number_format($subtotal, 2, ',', ' ') . '&nbsp;&euro;</td>'
-                . '</tr>';
-        }
-        return $rows;
-    }
-
-    private function buildDiscountRow(float $shippingDiscount): string
-    {
-        if ($shippingDiscount <= 0.0) {
-            return '';
-        }
-        return '<tr>'
-            . '<td colspan="3" style="padding:4px 6px;border-bottom:1px solid #e8e0d0;">'
-                . '<em>Remise livraison</em></td>'
-            . '<td style="padding:4px 6px;border-bottom:1px solid #e8e0d0;text-align:right;font-style:italic;">'
-                . '-' . number_format($shippingDiscount, 2, ',', ' ') . '&nbsp;&euro;</td>'
-            . '</tr>';
-    }
-
     private function buildTotalRow(float $total): string
     {
         $totalFmt = number_format($total, 2, ',', ' ');
@@ -204,15 +163,6 @@ table { width: 100%; border-collapse: collapse; }
                 . 'color:#c1a14b;background-color:#f5f0e8;border-top:2px solid #c1a14b;">'
                 . $totalFmt . '&nbsp;&euro;</td>'
             . '</tr>';
-    }
-
-    private function buildLogoTag(?string $logoPath): string
-    {
-        if ($logoPath !== null) {
-            return '<img src="' . $logoPath . '" style="width:32mm;" />';
-        }
-        return '<span style="font-size:10pt;font-weight:bold;color:#c1a14b;">'
-            . htmlspecialchars(self::APP_NAME, ENT_QUOTES) . '</span>';
     }
 
     /**

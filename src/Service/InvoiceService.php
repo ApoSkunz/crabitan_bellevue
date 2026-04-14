@@ -11,6 +11,8 @@ namespace Service;
  */
 class InvoiceService
 {
+    use PdfBrandingTrait;
+
     private const APP_NAME    = 'Château Crabitan Bellevue';
     private const VENDOR_NAME   = 'G.F.A Bernard Solane & Fils';
     private const VENDOR_ADDR   = "1 Crabitan\n33410 Sainte-Croix-du-Mont\nFrance";
@@ -88,7 +90,7 @@ class InvoiceService
         $rows        = $this->buildItemsRows($items);
         $discountRow = $this->buildDiscountRow($shippingDiscount);
         $totalsRows  = $this->buildTotalsRows($total);
-        $logoTag     = $this->buildLogoTag($logoPath);
+        $logoTag     = $this->buildLogoTag($logoPath, self::APP_NAME);
 
         $sectionLabel = 'font-size:7pt;font-weight:bold;color:#c1a14b;text-transform:uppercase;'
             . 'letter-spacing:1.5px;margin:0 0 6px;';
@@ -192,71 +194,6 @@ table { width: 100%; border-collapse: collapse; }
   L\'abus d\'alcool est dangereux pour la sant&#233;. &#192; consommer avec mod&#233;ration.
 </td></tr>
 </table>';
-    }
-
-    /**
-     * Returns an inline logo img tag, or a fallback text span if the logo is absent.
-     *
-     * @param  string|null $logoPath Absolute path to the PNG, or null.
-     * @return string
-     */
-    private function buildLogoTag(?string $logoPath): string
-    {
-        if ($logoPath !== null) {
-            return '<img src="' . $logoPath . '" style="width:32mm;" />';
-        }
-        return '<span style="font-size:10pt;font-weight:bold;color:#c1a14b;">'
-            . htmlspecialchars(self::APP_NAME, ENT_QUOTES) . '</span>';
-    }
-
-    /**
-     * Builds the items rows HTML for the invoice table.
-     *
-     * @param  array<int, array<string, mixed>> $items
-     * @return string
-     */
-    private function buildItemsRows(array $items): string
-    {
-        $rows = '';
-        foreach ($items as $item) {
-            $name     = htmlspecialchars(
-                (string) ($item['label_name'] ?? $item['name'] ?? '-'),
-                ENT_QUOTES
-            );
-            $qty      = (int)   ($item['qty']   ?? 0);
-            $price    = (float) ($item['price'] ?? 0.0);
-            $subtotal = $qty * $price;
-            $rows .= '<tr>'
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;\">{$name}</td>"
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:center;\">{$qty}</td>"
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:right;\">"
-                    . number_format($price, 2, ',', ' ') . '&nbsp;&euro;</td>'
-                . "<td style=\"padding:5px 6px;border-bottom:1px solid #e8e0d0;text-align:right;\">"
-                    . number_format($subtotal, 2, ',', ' ') . '&nbsp;&euro;</td>'
-                . '</tr>';
-        }
-        return $rows;
-    }
-
-    /**
-     * Builds the shipping discount row HTML, or empty string if no discount.
-     *
-     * @param  float $shippingDiscount Discount amount (positive value).
-     * @return string
-     */
-    private function buildDiscountRow(float $shippingDiscount): string
-    {
-        if ($shippingDiscount <= 0.0) {
-            return '';
-        }
-        return '<tr>'
-            . '<td colspan="3" style="padding:4px 6px;border-bottom:1px solid #e8e0d0;">'
-                . '<em>Remise livraison</em></td>'
-            . '<td style="padding:4px 6px;border-bottom:1px solid #e8e0d0;text-align:right;'
-                . 'font-style:italic;">'
-                . '-' . number_format($shippingDiscount, 2, ',', ' ') . '&nbsp;&euro;'
-            . '</td>'
-            . '</tr>';
     }
 
     /**
