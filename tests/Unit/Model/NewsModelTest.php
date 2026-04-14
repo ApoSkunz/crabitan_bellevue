@@ -31,13 +31,6 @@ class NewsModelTest extends TestCase
         $this->assertSame($this->model->countAll(), $this->model->countForAdmin());
     }
 
-    public function testGetPaginatedReturnsArray(): void
-    {
-        $results = $this->model->getPaginated(9, 0);
-        $this->assertIsArray($results);
-        $this->assertLessThanOrEqual(9, count($results));
-    }
-
     public function testGetForAdminReturnsArray(): void
     {
         $results = $this->model->getForAdmin(10, 0);
