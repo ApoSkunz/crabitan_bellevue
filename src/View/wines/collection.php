@@ -22,10 +22,6 @@ $activeColor  = $activeColor  ?? null;
 $activeSort   = $activeSort   ?? 'default';
 $activeAvail  = $activeAvail  ?? '';
 $activeCuvee  = $activeCuvee  ?? false;
-$activePerPage = $activePerPage ?? 25;
-$page        = $page        ?? 1;
-$totalPages  = $totalPages  ?? 1;
-$colorPages  = $colorPages  ?? [];
 $cls         = ' is-active'; // single definition — used for radio filter active state
 ?>
 

@@ -92,17 +92,6 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                     </div>
 
                     <div class="wines-filters__bottom-row">
-                        <div class="wines-filters__per-page">
-                            <label for="wines-per-page"><?= htmlspecialchars(__('wine.per_page')) ?></label>
-                            <select id="wines-per-page" name="per_page">
-                                <?php foreach ([10, 25, 50, 100] as $n) : ?>
-                                    <option value="<?= $n ?>" <?= $activePerPage === $n ? 'selected' : '' ?>>
-                                        <?= $n ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
                         <a href="/<?= htmlspecialchars($navLang) ?>/vins/collection" class="wines-filters__collection-link">
                             <?= htmlspecialchars(__('wine.view_collection')) ?>
                         </a>
@@ -229,45 +218,6 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                 </div>
             <?php endif; ?>
 
-            <?php if ($totalPages > 1) : ?>
-                <?php
-                $buildUrl = static function (int $p) use ($activeColor, $activeSort, $activePerPage): string {
-                    $qs = array_filter([
-                        'color'    => $activeColor ?? '',
-                        'sort'     => $activeSort !== 'default' ? $activeSort : '',
-                        'per_page' => $activePerPage !== 25 ? (string) $activePerPage : '',
-                        'page'     => $p > 1 ? (string) $p : '',
-                    ]);
-                    return '?' . http_build_query($qs);
-                };
-    ?>
-                <nav class="wines-pagination" aria-label="Pagination">
-                    <?php if ($page > 1) : ?>
-                        <a href="<?= htmlspecialchars($buildUrl($page - 1)) ?>" class="wines-pagination__btn" rel="prev">&larr;</a>
-                    <?php else : ?>
-                        <span class="wines-pagination__btn wines-pagination__btn--disabled">&larr;</span>
-                    <?php endif; ?>
-
-                    <?php for ($p = 1; $p <= $totalPages; $p++) : ?>
-                        <?php if (abs($p - $page) <= 2 || $p === 1 || $p === $totalPages) : ?>
-                            <?php if (abs($p - $page) === 3) : ?>
-                                <span class="wines-pagination__ellipsis">&hellip;</span>
-                            <?php endif; ?>
-                            <a
-                                href="<?= htmlspecialchars($buildUrl($p)) ?>"
-                                class="wines-pagination__btn<?= $p === $page ? ' wines-pagination__btn--active' : '' ?>"
-                                <?= $p === $page ? 'aria-current="page"' : '' ?>
-                            ><?= $p ?></a>
-                        <?php endif; ?>
-                    <?php endfor; ?>
-
-                    <?php if ($page < $totalPages) : ?>
-                        <a href="<?= htmlspecialchars($buildUrl($page + 1)) ?>" class="wines-pagination__btn" rel="next">&rarr;</a>
-                    <?php else : ?>
-                        <span class="wines-pagination__btn wines-pagination__btn--disabled">&rarr;</span>
-                    <?php endif; ?>
-                </nav>
-            <?php endif; ?>
         </div>
     </section>
 </main>

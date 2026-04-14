@@ -20,8 +20,6 @@ import { initLazyLoad } from './lazy-load.js';
  */
 function buildUrl(form) {
     const params = new URLSearchParams(new FormData(form));
-    params.delete('page');
-    params.delete('per_page');
 
     for (const [key, value] of [...params.entries()]) {
         if (value === '' || (key === 'sort' && value === 'default')) {

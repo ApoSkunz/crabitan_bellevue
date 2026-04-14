@@ -101,7 +101,6 @@ return [
     'wine.in_stock'     => 'in stock',
     'wine.read_more'    => 'Learn more', // NOSONAR php:S1192 — same CTA label used intentionally across distinct translation keys
     'wine.empty'        => 'No wines available at the moment.',
-    'wine.per_page'     => 'Per page:',
     'wine.ttc_note'     => 'Prices inclusive of VAT, delivery included within mainland France. Discounts apply for orders in multiples of 12 bottles.',
 
     // Wines — Colors
