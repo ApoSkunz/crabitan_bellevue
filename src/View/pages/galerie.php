@@ -52,14 +52,14 @@ $isEn   = isset($lang) && $lang === 'en';
 
     <section id="gallery-container" class="gallery-grid container"
              aria-label="<?= htmlspecialchars(__('gallery.title')) ?>">
-        <?php foreach ($photos as $photo) : ?>
+        <?php foreach ($photos as $item) : ?>
             <button type="button"
                     class="gallery-item js-gallery-open"
-                    data-src="<?= htmlspecialchars($photo['src'], ENT_QUOTES) ?>"
-                    data-alt="<?= htmlspecialchars($photo['alt'], ENT_QUOTES) ?>"
-                    aria-label="<?= htmlspecialchars(__('gallery.enlarge') . ' : ' . $photo['alt'], ENT_QUOTES) ?>">
-                <img src="<?= htmlspecialchars($photo['src'], ENT_QUOTES) ?>"
-                     alt="<?= htmlspecialchars($photo['alt'], ENT_QUOTES) ?>" <?php /* NOSONAR — Web:S6851 : alt provient d'une variable dynamique, pas du mot littéral "photo" */ ?>
+                    data-src="<?= htmlspecialchars($item['src'], ENT_QUOTES) ?>"
+                    data-alt="<?= htmlspecialchars($item['alt'], ENT_QUOTES) ?>"
+                    aria-label="<?= htmlspecialchars(__('gallery.enlarge') . ' : ' . $item['alt'], ENT_QUOTES) ?>">
+                <img src="<?= htmlspecialchars($item['src'], ENT_QUOTES) ?>"
+                     alt="<?= htmlspecialchars($item['alt'], ENT_QUOTES) ?>"
                      loading="lazy"
                      class="gallery-item__img">
             </button>

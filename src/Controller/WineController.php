@@ -491,6 +491,12 @@ class WineController extends Controller
         ];
         $colorStr = $colorMap[$wine['wine_color'] ?? ''][$lang] ?? (string) ($wine['wine_color'] ?? '');
 
+        $nutritionEnabled = filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+        $nutritionLabel   = $isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES';
+        $nutritionSection = $nutritionEnabled
+            ? [$nutritionLabel => array_filter($this->buildNutritionFields($nutrition, $isEn))]
+            : [];
+
         return [
             ($isEn ? 'TASTING NOTES' : 'DÉGUSTATION') => array_filter([
                 ($isEn ? 'Tasting notes' : 'Commentaire') => $l($oeno),
@@ -517,12 +523,7 @@ class WineController extends Controller
                 'Vinification'                    => $l($vinif),
                 ($isEn ? 'Ageing'  : 'Élevage')   => $l($barrel),
             ]),
-            ...( filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN)
-                ? [($isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES') => array_filter(
-                    $this->buildNutritionFields($nutrition, $isEn)
-                )]
-                : []
-            ),
+            ...$nutritionSection,
         ];
     }
 
@@ -701,31 +702,25 @@ class WineController extends Controller
         $color       = (string) ($wine['wine_color'] ?? '');
         $price       = (float) ($wine['price'] ?? 0.0);
         $currentIsCuvee = !empty($wine['is_cuvee_speciale']);
-        $crossSell   = $model->getSimilar($wineId, $color, $price, 3);
-
-        if ($currentIsCuvee) {
-            return $crossSell;
-        }
-
-        $hasCuvee = !empty(array_filter(
+        $crossSell      = $model->getSimilar($wineId, $color, $price, 3);
+        $hasCuvee       = !empty(array_filter(
             $crossSell,
             static fn(array $w): bool => !empty($w['is_cuvee_speciale'])
         ));
-        if ($hasCuvee) {
+
+        if ($currentIsCuvee || $hasCuvee) {
             return $crossSell;
         }
 
         $excludeIds   = array_map(static fn(array $w): int => (int) $w['id'], $crossSell);
         $excludeIds[] = $wineId;
         $cuvee        = $model->getCuveeSpecialeByColor($color, $excludeIds);
-        if ($cuvee === null) {
-            return $crossSell;
+        if ($cuvee !== null) {
+            if (count($crossSell) >= 3) {
+                array_pop($crossSell);
+            }
+            array_unshift($crossSell, $cuvee);
         }
-
-        if (count($crossSell) >= 3) {
-            array_pop($crossSell);
-        }
-        array_unshift($crossSell, $cuvee);
 
         return $crossSell;
     }

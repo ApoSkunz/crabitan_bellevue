@@ -59,8 +59,10 @@ export function buildRejectionPayload(reason, url, userAgent) {
         message = reason.message;
     } else if (reason instanceof Object) {
         message = 'Unhandled Promise Rejection';
+    } else if (reason === null || reason === undefined) {
+        message = 'Unhandled Promise Rejection';
     } else {
-        message = String(reason ?? 'Unhandled Promise Rejection');
+        message = String(reason);
     }
     const stack = reason instanceof Error ? (reason.stack ?? '') : '';
 
