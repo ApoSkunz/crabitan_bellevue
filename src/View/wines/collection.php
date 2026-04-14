@@ -104,17 +104,6 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                     </div>
 
                     <div class="wines-filters__bottom-row">
-                        <div class="wines-filters__per-page">
-                            <label for="collection-per-page"><?= htmlspecialchars(__('wine.per_page')) ?></label>
-                            <select id="collection-per-page" name="per_page">
-                                <?php foreach ([10, 25, 50, 100] as $n) : ?>
-                                    <option value="<?= $n ?>" <?= $activePerPage === $n ? 'selected' : '' ?>>
-                                        <?= $n ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
                         <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="wines-filters__collection-link">
                             &#8592; <?= htmlspecialchars(__('nav.wines')) ?>
                         </a>
@@ -130,32 +119,17 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
     <nav class="collection-nav" aria-label="<?= htmlspecialchars(__('wine.collection_nav')) ?>">
         <div class="container">
             <ul class="collection-nav__list">
-                <?php
-                // Si le type est sur la page courante => ancre directe
-                // Sinon => page exacte où cette couleur apparaît (calculée via getColorFirstPages) + ancre
-                $colNavUrl = static function (string $color) use ($navLang, $activeSort, $activeAvail, $activePerPage, $colorPages): string {
-                    $targetPage = $colorPages[$color] ?? 1;
-                    $qs = array_filter([
-                        'sort'     => $activeSort !== 'default' ? $activeSort : '',
-                        'avail'    => $activeAvail,
-                        'per_page' => $activePerPage !== 25 ? (string) $activePerPage : '',
-                        'page'     => $targetPage > 1 ? (string) $targetPage : '',
-                    ]);
-                    $base = '/' . $navLang . '/vins/collection';
-                    return $base . ($qs !== [] ? '?' . http_build_query($qs) : '') . '#collection-' . $color;
-                };
-                foreach ($colorOrder as $color) :
-                    // Masquer les couleurs sans vins en BDD (compte tenu du filtre dispo)
-                    if (!isset($colorPages[$color])) {
+                <?php foreach ($colorOrder as $color) :
+                    // Vue collection sans pagination : seule une couleur présente dans le DOM
+                    // a une section #collection-{color}. On masque les autres pour éviter les ancres mortes.
+                    if (!isset($winesByColor[$color])) {
                         continue;
                     }
-                    $onPage = isset($winesByColor[$color]);
-                    $href   = $onPage ? '#collection-' . $color : $colNavUrl($color);
                     ?>
                     <li>
                         <a
-                            href="<?= htmlspecialchars($href) ?>"
-                            class="collection-nav__anchor<?= !$onPage ? ' collection-nav__anchor--other-page' : '' ?>"
+                            href="#collection-<?= htmlspecialchars($color) ?>"
+                            class="collection-nav__anchor"
                         >
                             <?= htmlspecialchars($colorLabels[$color] ?? $color) ?>
                         </a>
@@ -304,48 +278,6 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
         </div>
     <?php endif; ?>
 
-    <?php if ($totalPages > 1) : ?>
-        <?php
-        $buildUrl = static function (int $p) use ($activeColor, $activeSort, $activeAvail, $activePerPage): string {
-            $qs = array_filter([
-                'color'    => $activeColor ?? '',
-                'sort'     => $activeSort !== 'default' ? $activeSort : '',
-                'avail'    => $activeAvail,
-                'per_page' => $activePerPage !== 25 ? (string) $activePerPage : '',
-                'page'     => $p > 1 ? (string) $p : '',
-            ]);
-            return '?' . http_build_query($qs);
-        };
-    ?>
-        <div class="container">
-            <nav class="wines-pagination" aria-label="Pagination">
-                <?php if ($page > 1) : ?>
-                    <a href="<?= htmlspecialchars($buildUrl($page - 1)) ?>" class="wines-pagination__btn" rel="prev">&larr;</a>
-                <?php else : ?>
-                    <span class="wines-pagination__btn wines-pagination__btn--disabled">&larr;</span>
-                <?php endif; ?>
-
-                <?php for ($p = 1; $p <= $totalPages; $p++) : ?>
-                    <?php if (abs($p - $page) <= 2 || $p === 1 || $p === $totalPages) : ?>
-                        <?php if (abs($p - $page) === 3) : ?>
-                            <span class="wines-pagination__ellipsis">&hellip;</span>
-                        <?php endif; ?>
-                        <a
-                            href="<?= htmlspecialchars($buildUrl($p)) ?>"
-                            class="wines-pagination__btn<?= $p === $page ? ' wines-pagination__btn--active' : '' ?>"
-                            <?= $p === $page ? 'aria-current="page"' : '' ?>
-                        ><?= $p ?></a>
-                    <?php endif; ?>
-                <?php endfor; ?>
-
-                <?php if ($page < $totalPages) : ?>
-                    <a href="<?= htmlspecialchars($buildUrl($page + 1)) ?>" class="wines-pagination__btn" rel="next">&rarr;</a>
-                <?php else : ?>
-                    <span class="wines-pagination__btn wines-pagination__btn--disabled">&rarr;</span>
-                <?php endif; ?>
-            </nav>
-        </div>
-    <?php endif; ?>
     </div><!-- /data-ajax-content -->
 </main>
 

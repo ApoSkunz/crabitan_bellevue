@@ -179,18 +179,9 @@ class WineController extends Controller
         $rawAvail     = $_GET['avail'] ?? '';
         $avail        = in_array($rawAvail, ['available', 'out'], true) ? $rawAvail : null;
         $cuveSpeciale = isset($_GET['cuvee_speciale']) && $_GET['cuvee_speciale'] === '1' ? true : null;
-        $perPage      = (int) ($_GET['per_page'] ?? 25);
-        if (!in_array($perPage, self::VALID_PER_PAGE, true)) {
-            $perPage = self::DEFAULT_PER_PAGE;
-        }
-        $page    = max(1, (int) ($_GET['page'] ?? 1));
-        $offset  = ($page - 1) * $perPage;
 
-        $total        = $model->countAllByColor($color, $avail, $cuveSpeciale);
-        $totalPages   = (int) ceil($total / $perPage);
-        $winesByColor = $model->getAllByColor($color, $sort, $avail, $perPage, $offset, $cuveSpeciale);
-        // Page de première apparition de chaque couleur (sans filtre couleur, pour les raccourcis nav)
-        $colorPages   = $model->getColorFirstPages($avail, $perPage);
+        // Vue collection = vitrine complète : pas de pagination, tout charge en une fois.
+        $winesByColor = $model->getAllByColor($color, $sort, $avail, 0, 0, $cuveSpeciale);
 
         $ratingsCollection = [];
         if (!empty($winesByColor)) {
@@ -204,19 +195,15 @@ class WineController extends Controller
         }
 
         $this->view('wines/collection', [
-            'lang'          => $lang,
-            'winesByColor'  => $winesByColor,
-            'ratings'       => $ratingsCollection,
-            'likedIds'      => $this->getCurrentUserLikedIds(),
-            'activeColor'   => $color,
-            'activeSort'    => $sort,
-            'activeAvail'   => $rawAvail,
-            'activeCuvee'   => $cuveSpeciale === true,
-            'activePerPage' => $perPage,
-            'page'          => $page,
-            'totalPages'    => $totalPages,
-            'colorPages'    => $colorPages,
-            'sort'          => $sort,
+            'lang'         => $lang,
+            'winesByColor' => $winesByColor,
+            'ratings'      => $ratingsCollection,
+            'likedIds'     => $this->getCurrentUserLikedIds(),
+            'activeColor'  => $color,
+            'activeSort'   => $sort,
+            'activeAvail'  => $rawAvail,
+            'activeCuvee'  => $cuveSpeciale === true,
+            'sort'         => $sort,
         ]);
     }
 
