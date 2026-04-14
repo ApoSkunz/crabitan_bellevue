@@ -679,8 +679,8 @@
             display: block;
             font-size: 0.8rem;
             font-weight: 600;
-            color: #b71c1c; /* rouge foncé — contraste 5.8:1 sur fond clair (WCAG AA ✓) */ // NOSONAR — S7924 : contraste calculé sur fond blendé blanc
-            background: rgba(229, 57, 53, 0.08);
+            color: #7f1d1d; /* rouge foncé — contraste 9.4:1 sur #fdefef (WCAG AAA) */
+            background: #fdefef;
             border-left: 3px solid #e53935;
             padding: 0.35rem 0.6rem;
             margin-bottom: 0.5rem;
