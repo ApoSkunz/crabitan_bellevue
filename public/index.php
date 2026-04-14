@@ -97,6 +97,12 @@ if (!$isCrawler && preg_match('/Googlebot|Bingbot|DuckDuckBot|Applebot|YandexBot
     $isCrawler = true;
 }
 
+// WebsiteCarbon utilise un Chrome headless sans branding propre. On bypass l'age-gate
+// pour les UA HeadlessChrome / PhantomJS : ils consomment du contenu public uniquement.
+if (!$isCrawler && preg_match('/HeadlessChrome|PhantomJS|Lighthouse/i', $ua)) {
+    $isCrawler = true;
+}
+
 if (!$ageVerified && !$isPublicPath && !$isCrawler) {
     $redirect = rawurlencode($path !== '/' ? $path : '/' . DEFAULT_LANG);
     header('Location: /age-gate?redirect=' . $redirect);
@@ -118,6 +124,10 @@ if ($ageVerified && isset($_COOKIE['age_remember'])) {
 
 // Empêche le bfcache navigateur de restaurer des pages avec flash messages révolus
 header('Cache-Control: no-store');
+
+// Signale aux caches/CDN et à Google que la réponse peut varier selon l'UA
+// (crawler bypass age-gate vs humain redirect /age-gate) → évite accusation de cloaking.
+header('Vary: User-Agent', false);
 
 try {
     $router->dispatch();
