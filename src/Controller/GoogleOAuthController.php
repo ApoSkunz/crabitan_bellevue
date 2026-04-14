@@ -12,6 +12,7 @@ use Core\Response;
 use Model\AccountModel;
 use Model\ConnectionModel;
 use Model\DeviceConfirmTokenModel;
+use Model\GoogleLinkTokenModel;
 use Model\TrustedDeviceModel;
 use Service\GoogleOAuthService;
 use Service\MailService;
@@ -25,9 +26,12 @@ use Service\MailService;
  *
  * MFA (Option A, 2026-04-14) : identique au login classique — si le device n'est
  * pas de confiance et que ce n'est pas la première connexion du compte, on envoie
- * un email de confirmation new-device (DeviceConfirmToken). Pour le rattachement
- * Cas 2, on stocke `pending_google_id` dans le token pour lier le compte à la
- * confirmation MFA.
+ * un email de confirmation new-device (DeviceConfirmToken).
+ *
+ * Rattachement Cas 2 : flow email dédié (GoogleLinkTokenModel) — un email de
+ * confirmation est envoyé au compte existant, l'utilisateur clique le lien, le
+ * google_id est rattaché puis la session est émise (device auto-trusté car email
+ * déjà validé).
  */
 class GoogleOAuthController extends Controller
 {
@@ -38,6 +42,7 @@ class GoogleOAuthController extends Controller
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
     private DeviceConfirmTokenModel $deviceConfirmTokens;
+    private GoogleLinkTokenModel $linkTokens;
     private GoogleOAuthService $oauth;
 
     /**
@@ -50,6 +55,7 @@ class GoogleOAuthController extends Controller
         $this->connections         = new ConnectionModel();
         $this->trustedDevices      = new TrustedDeviceModel();
         $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
+        $this->linkTokens          = new GoogleLinkTokenModel();
         $this->oauth               = new GoogleOAuthService(
             $_ENV['GOOGLE_CLIENT_ID']     ?? '',
             $_ENV['GOOGLE_CLIENT_SECRET'] ?? ''
@@ -99,7 +105,7 @@ class GoogleOAuthController extends Controller
      * Traite le callback Google OAuth2.
      *
      * Cas 1 — google_id connu            : connexion (MFA si device non trusted)
-     * Cas 2 — email connu, pas google_id : MFA obligatoire + rattachement à la confirmation
+     * Cas 2 — email connu, pas google_id : envoi email de confirmation de rattachement
      * Cas 3 — email inconnu              : création de compte + connexion (bypass MFA, 1ère fois)
      *
      * @param array<string, string> $params Paramètres de route (lang)
@@ -162,12 +168,12 @@ class GoogleOAuthController extends Controller
             }
         }
 
-        // Cas 2 — email connu (actif), pas encore de google_id → MFA standard avec pending_google_id
+        // Cas 2 — email connu (actif), pas encore de google_id → double confirmation via email
         if (!$account) {
             $existing = $this->accounts->findByEmail($email);
             if ($existing) {
-                $this->challengeLinkViaMfa($existing, $googleId, $lang);
-                // challengeLinkViaMfa redirige → jamais atteint
+                $this->challengeLinkByEmail($existing, $googleId, $lang);
+                // challengeLinkByEmail redirige → jamais atteint
             }
         }
 
@@ -229,68 +235,144 @@ class GoogleOAuthController extends Controller
     // ----------------------------------------------------------------
 
     /**
-     * Cas 2 — déclenche le flux MFA standard pour rattacher un google_id à un compte
-     * classique existant. Si l'appareil est déjà de confiance, rattachement direct.
-     * Sinon, email new-device avec pending_google_id — rattachement à la confirmation.
+     * Cas 2 — déclenche le flux de double confirmation par email pour rattacher un
+     * google_id à un compte classique existant. Crée un token, envoie l'email puis
+     * redirige vers la page "email envoyé".
      *
      * @param array<string, mixed> $existing Compte classique trouvé par email
      * @param string               $googleId google_id à rattacher
      * @param string               $lang     Langue courante
      */
-    private function challengeLinkViaMfa(array $existing, string $googleId, string $lang): never
+    private function challengeLinkByEmail(array $existing, string $googleId, string $lang): never
     {
         $accountId   = (int) $existing['id'];
-        $deviceToken = $this->resolveDeviceToken();
-        $ua          = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
-        $deviceName  = $this->deriveDeviceName($ua);
-
-        // Appareil déjà de confiance → rattachement direct + session
-        if ($this->trustedDevices->isTrusted($accountId, $deviceToken)) {
-            $this->accounts->linkGoogleId($accountId, $googleId);
-            $account = $this->accounts->findById($accountId);
-            if (!$account) {
-                $this->flash('modal_error', __('auth.google_error'));
-                Response::redirect("/{$lang}?login=1");
-            }
-            $this->issueSession($account, $lang);
-        }
-
-        // Appareil inconnu → MFA email avec pending_google_id
-        $confirmToken = bin2hex(random_bytes(32));
-        $returnPath   = $_SESSION['oauth_return_path'] ?? "/{$lang}";
-        $accountLang  = (string) ($existing['lang'] ?? $lang);
-
-        $this->deviceConfirmTokens->create(
-            $accountId,
-            $deviceToken,
-            $deviceName,
-            $confirmToken,
-            $returnPath,
-            $accountLang,
-            $googleId
-        );
+        $accountLang = (string) ($existing['lang'] ?? $lang);
 
         try {
+            $token       = $this->linkTokens->create($accountId, $googleId, $accountLang);
+            $base        = rtrim($_ENV['APP_URL'] ?? '', '/');
+            $confirmUrl  = $base . "/{$accountLang}/auth/google/link/verify?token=" . urlencode($token);
             $displayName = $existing['firstname']
                 ?? $existing['company_name']
                 ?? '';
-            (new MailService())->sendNewDeviceAlert(
+            (new MailService())->sendGoogleLinkConfirmation(
                 $existing['email'],
                 (string) $displayName,
-                $deviceName,
-                $_SERVER['REMOTE_ADDR'] ?? null,
-                $accountLang,
-                $confirmToken
+                $confirmUrl,
+                $accountLang
             );
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, '[GoogleOAuth/linkMfa]');
+            \Core\ErrorLogger::warning($e, '[GoogleOAuth/linkToken]');
         }
 
-        $_SESSION['pending_device'] = [
-            'device_name' => $deviceName,
-            'mfa_token'   => $confirmToken,
-        ];
-        Response::redirect("/{$lang}/mon-compte/nouvel-appareil");
+        $_SESSION['pending_google_link_email_sent'] = $existing['email'];
+        Response::redirect("/{$lang}/auth/google/link");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/auth/google/link
+    // ----------------------------------------------------------------
+
+    /**
+     * Affiche la page de confirmation "email envoyé" après Cas 2.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     */
+    public function linkConfirm(array $params): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $lang        = $this->resolveLang($params);
+        $emailSentTo = $_SESSION['pending_google_link_email_sent'] ?? null;
+        unset($_SESSION['pending_google_link_email_sent']);
+
+        if (!$emailSentTo) {
+            Response::redirect("/{$lang}?login=1");
+        }
+
+        $this->view('auth/google-link-confirm', [
+            'lang'  => $lang,
+            'email' => $emailSentTo,
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/auth/google/link/verify?token=...
+    // ----------------------------------------------------------------
+
+    /**
+     * Consomme le token envoyé par email et rattache le compte Google au compte classique.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     */
+    public function linkVerifyByToken(array $params): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $lang     = $this->resolveLang($params);
+        $loginUrl = "/{$lang}?login=1";
+        $token    = (string) ($_GET['token'] ?? '');
+
+        if ($token === '') {
+            $this->flash('modal_error', __('auth.google_link_token_invalid'));
+            Response::redirect($loginUrl);
+        }
+
+        $record = $this->linkTokens->findActive($token);
+        if (!$record) {
+            $this->flash('modal_error', __('auth.google_link_token_invalid'));
+            Response::redirect($loginUrl);
+        }
+
+        $this->linkTokens->consume((int) $record['id']);
+
+        $accountId = (int) $record['account_id'];
+        $this->accounts->linkGoogleId($accountId, (string) $record['google_id']);
+        $account = $this->accounts->findById($accountId);
+
+        if (!$account) {
+            $this->flash('modal_error', __('auth.google_error'));
+            Response::redirect($loginUrl);
+        }
+
+        // L'email a été validé → device de confiance d'emblée pour éviter un
+        // double challenge MFA lors de l'émission de la session.
+        $deviceToken = $this->resolveDeviceToken();
+        $deviceName  = $this->deriveDeviceName($_SERVER['HTTP_USER_AGENT'] ?? 'unknown');
+        if (!$this->trustedDevices->isTrusted($accountId, $deviceToken)) {
+            $this->trustedDevices->trust($accountId, $deviceToken, $deviceName);
+        }
+
+        $this->issueSession($account, $lang);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/auth/google/link
+    // ----------------------------------------------------------------
+
+    /**
+     * Traite l'annulation du rattachement depuis la page "email envoyé".
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     */
+    public function linkConfirmPost(array $params): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $lang = $this->resolveLang($params);
+        unset($_SESSION['pending_google_link_email_sent']);
+
+        if (($_POST['action'] ?? '') === 'cancel') {
+            $_SESSION['flash']['modal_error'] = __('auth.google_link_cancel_info');
+        }
+
+        Response::redirect("/{$lang}?login=1");
     }
 
     /**

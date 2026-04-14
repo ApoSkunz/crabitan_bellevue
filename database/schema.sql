@@ -32,6 +32,7 @@ DROP TABLE IF EXISTS `password_reset`;
 DROP TABLE IF EXISTS `news`;
 DROP TABLE IF EXISTS `favorites`;
 DROP TABLE IF EXISTS `credit_card_token`;
+DROP TABLE IF EXISTS `google_link_tokens`;
 DROP TABLE IF EXISTS `device_confirm_tokens`;
 DROP TABLE IF EXISTS `trusted_devices`;
 DROP TABLE IF EXISTS `connections`;
@@ -453,7 +454,6 @@ CREATE TABLE `device_confirm_tokens` (
   `token`        VARCHAR(64)  NOT NULL,
   `redirect_url` VARCHAR(500) DEFAULT NULL,
   `lang`         VARCHAR(5)   NOT NULL DEFAULT 'fr',
-  `pending_google_id` VARCHAR(255) DEFAULT NULL COMMENT 'google_id à rattacher au compte si confirmation MFA — flow OAuth Google Cas 2',
   `expires_at`   DATETIME     NOT NULL,
   `confirmed_at` DATETIME     NULL     DEFAULT NULL COMMENT 'Rempli quand le lien email a été cliqué',
   `created_at`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -461,6 +461,27 @@ CREATE TABLE `device_confirm_tokens` (
   UNIQUE KEY `uq_dct_token` (`token`),
   INDEX `idx_dct_user` (`user_id`),
   CONSTRAINT `fk_dct_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : google_link_tokens
+-- Double confirmation email avant rattachement compte classique ↔ Google OAuth.
+-- Expiration : 15 minutes.
+-- ============================================================
+CREATE TABLE `google_link_tokens` (
+  `id`         INT(11)       NOT NULL AUTO_INCREMENT,
+  `account_id` INT(11)       NOT NULL,
+  `google_id`  VARCHAR(255)  NOT NULL,
+  `token_hash` VARCHAR(64)   NOT NULL COMMENT 'SHA-256 du token — original envoyé par mail',
+  `lang`       VARCHAR(5)    NOT NULL DEFAULT 'fr',
+  `expires_at` DATETIME      NOT NULL,
+  `consumed_at` DATETIME     NULL     DEFAULT NULL,
+  `created_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_glt_token_hash` (`token_hash`),
+  INDEX `idx_glt_account` (`account_id`),
+  INDEX `idx_glt_expires` (`expires_at`),
+  CONSTRAINT `fk_glt_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================

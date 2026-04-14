@@ -11,15 +11,14 @@ use Core\Exception\HttpException;
 use Core\Request;
 use Model\AccountModel;
 use Model\ConnectionModel;
-use Model\DeviceConfirmTokenModel;
-use Model\TrustedDeviceModel;
+use Model\GoogleLinkTokenModel;
 use PHPUnit\Framework\TestCase;
 use Service\GoogleOAuthService;
 
 /**
  * Tests unitaires GoogleOAuthController — couverture des branches non couvertes.
  *
- * Couvre : authorize(), callback() erreurs, Cas 2 (MFA rattachement),
+ * Couvre : authorize(), callback() erreurs, Cas 2 (rattachement par email),
  *          resolveDeviceToken(), resolveLang(), issueSession() via AccountModel mock.
  */
 class GoogleOAuthControllerOAuthFlowTest extends TestCase
@@ -287,10 +286,10 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // callback() — cas 2 : email connu → MFA standard avec pending_google_id
+    // callback() — cas 2 : email connu → rattachement par email (GoogleLinkToken)
     // ----------------------------------------------------------------
 
-    public function testCallbackWithExistingEmailTriggersMfaChallenge(): void
+    public function testCallbackWithExistingEmailRedirectsToLinkPage(): void
     {
         $_GET     = ['code' => 'valid-code', 'state' => 'valid-state'];
         $_SESSION = ['oauth_google_state' => 'valid-state'];
@@ -316,24 +315,22 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
         $accountsProp = new \ReflectionProperty(GoogleOAuthController::class, 'accounts');
         $accountsProp->setValue($ctrl, $accountsMock);
 
-        // Device non de confiance → MFA challenge obligatoire
-        $trustedMock = $this->createStub(TrustedDeviceModel::class);
-        $trustedMock->method('isTrusted')->willReturn(false);
-        $trustedProp = new \ReflectionProperty(GoogleOAuthController::class, 'trustedDevices');
-        $trustedProp->setValue($ctrl, $trustedMock);
+        // Mock GoogleLinkTokenModel pour éviter l'accès BDD
+        $linkTokensMock = $this->createStub(GoogleLinkTokenModel::class);
+        $linkTokensMock->method('create')->willReturn('fake-link-token-hex');
+        $linkTokensProp = new \ReflectionProperty(GoogleOAuthController::class, 'linkTokens');
+        $linkTokensProp->setValue($ctrl, $linkTokensMock);
 
-        $dctMock = $this->createStub(DeviceConfirmTokenModel::class);
-        $dctProp = new \ReflectionProperty(GoogleOAuthController::class, 'deviceConfirmTokens');
-        $dctProp->setValue($ctrl, $dctMock);
-
+        $redirectLocation = null;
         try {
             $ctrl->callback(['lang' => 'fr']);
-        } catch (HttpException) {
+        } catch (HttpException $e) {
+            $redirectLocation = (string) $e->location;
         }
 
-        // Nouveau flux (Option A MFA) : pending_device posé avec mfa_token.
-        $this->assertArrayHasKey('pending_device', $_SESSION);
-        $this->assertArrayHasKey('mfa_token', $_SESSION['pending_device']);
+        // Cas 2 rattachement : email envoyé + redirection vers /fr/auth/google/link
+        $this->assertSame('existing@example.com', $_SESSION['pending_google_link_email_sent'] ?? null);
+        $this->assertStringContainsString('/fr/auth/google/link', (string) $redirectLocation);
     }
 
     // ----------------------------------------------------------------

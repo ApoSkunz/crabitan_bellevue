@@ -8,6 +8,7 @@ use Controller\GoogleOAuthController;
 use Core\Database;
 use Core\Exception\HttpException;
 use Core\Request;
+use Model\GoogleLinkTokenModel;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -26,6 +27,7 @@ class GoogleOAuthControllerTest extends TestCase
         $_SESSION = [];
         $_COOKIE  = [];
         $_GET     = [];
+        $_POST    = [];
         $_ENV['GOOGLE_CLIENT_ID']     = 'test-id';
         $_ENV['GOOGLE_CLIENT_SECRET'] = 'test-secret';
         $_ENV['APP_URL']              = 'http://localhost';
@@ -161,5 +163,89 @@ class GoogleOAuthControllerTest extends TestCase
         }
 
         $this->assertArrayNotHasKey('oauth_google_state', $_SESSION);
+    }
+
+    // ----------------------------------------------------------------
+    // linkConfirm() — page "email envoyé" après Cas 2
+    // ----------------------------------------------------------------
+
+    public function testLinkConfirmWithoutSessionRedirectsToLogin(): void
+    {
+        $_SESSION = []; // pas de pending_google_link_email_sent
+
+        $ctrl = $this->makeController();
+
+        $redirect = null;
+        try {
+            $ctrl->linkConfirm(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $redirect = (string) $e->location;
+        }
+
+        $this->assertStringContainsString('login=1', (string) $redirect);
+    }
+
+    // ----------------------------------------------------------------
+    // linkVerifyByToken() — consommation du token email
+    // ----------------------------------------------------------------
+
+    public function testLinkVerifyByTokenWithEmptyTokenRedirectsWithError(): void
+    {
+        $_GET     = []; // pas de token
+        $_SESSION = [];
+
+        $ctrl = $this->makeController();
+
+        try {
+            $ctrl->linkVerifyByToken(['lang' => 'fr']);
+        } catch (HttpException) {
+        }
+
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+    }
+
+    public function testLinkVerifyByTokenWithInvalidTokenRedirectsWithError(): void
+    {
+        $_GET     = ['token' => 'invalid-token'];
+        $_SESSION = [];
+
+        $ctrl = $this->makeController();
+
+        // Mock pour renvoyer false (token inexistant ou expiré)
+        $linkTokensMock = $this->createStub(GoogleLinkTokenModel::class);
+        $linkTokensMock->method('findActive')->willReturn(false);
+
+        $prop = new \ReflectionProperty(GoogleOAuthController::class, 'linkTokens');
+        $prop->setValue($ctrl, $linkTokensMock);
+
+        try {
+            $ctrl->linkVerifyByToken(['lang' => 'fr']);
+        } catch (HttpException) {
+        }
+
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+    }
+
+    // ----------------------------------------------------------------
+    // linkConfirmPost() — annulation du rattachement
+    // ----------------------------------------------------------------
+
+    public function testLinkConfirmPostCancelSetsFlashAndRedirects(): void
+    {
+        $_POST    = ['action' => 'cancel'];
+        $_SESSION = ['pending_google_link_email_sent' => 'foo@example.com'];
+
+        $ctrl = $this->makeController();
+
+        $redirect = null;
+        try {
+            $ctrl->linkConfirmPost(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $redirect = (string) $e->location;
+        }
+
+        $this->assertArrayNotHasKey('pending_google_link_email_sent', $_SESSION);
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+        $this->assertStringContainsString('login=1', (string) $redirect);
     }
 }

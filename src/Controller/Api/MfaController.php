@@ -82,14 +82,6 @@ class MfaController extends Controller
             $this->json(['status' => 'expired']);
         }
 
-        // Flow OAuth Cas 2 : rattacher google_id au compte existant avant l'émission JWT
-        $pendingGoogleId = $record['pending_google_id'] ?? null;
-        $authSource      = 'password';
-        if (!empty($pendingGoogleId) && empty($account['google_id'])) {
-            $this->accounts->linkGoogleId($userId, (string) $pendingGoogleId);
-            $authSource = 'google';
-        }
-
         $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
         $jwt    = Jwt::generate($userId, $account['role']);
 
@@ -111,7 +103,7 @@ class MfaController extends Controller
             $_SERVER['REMOTE_ADDR'] ?? null,
             $ua,
             $deviceName,
-            $authSource,
+            'password',
             $expiry
         );
 
