@@ -90,7 +90,7 @@ return [
     'wine.add_favorite'   => 'Add to favourites',
     'wine.favorite_login' => 'Log in to add this wine to your favourites.',
     'wine.out_of_stock' => 'Out of stock',
-    'wine.not_for_sale' => 'Not sold',
+    'wine.not_for_sale' => 'Vintage sold out',
     'wine.available'    => 'Available',
     'wine.low_stock'     => 'Limited stock',
     'wine.low_stock_qty' => 'btl remaining',

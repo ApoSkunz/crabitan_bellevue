@@ -208,15 +208,11 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                         width="300"
                                         height="420"
                                     >
-                                    <?php if (!$wine['available']) : ?>
-                                        <span class="wine-card__badge wine-card__badge--out">
-                                            <?= htmlspecialchars(__('wine.not_for_sale')) ?>
-                                        </span>
-                                    <?php elseif ((int) ($wine['stock_quantity'] ?? 0) === 0) : ?>
+                                    <?php if ($wine['available'] && (int) ($wine['stock_quantity'] ?? 0) === 0) : ?>
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
                                         </span>
-                                    <?php elseif ((int) ($wine['stock_quantity'] ?? 0) <= (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300)) : ?>
+                                    <?php elseif ($wine['available'] && (int) ($wine['stock_quantity'] ?? 0) <= (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300)) : ?>
                                         <span class="wine-card__badge wine-card__badge--low-stock">
                                             <?= htmlspecialchars(__('wine.low_stock')) ?>
                                         </span>
@@ -259,7 +255,9 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                             <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
                                         </strong>
                                     <?php else : ?>
-                                        <strong class="wine-card__price wine-card__price--unavailable">&nbsp;</strong>
+                                        <strong class="wine-card__price wine-card__price--unavailable">
+                                            <?= htmlspecialchars(__('wine.not_for_sale')) ?>
+                                        </strong>
                                     <?php endif; ?>
                                     <div class="wine-card__actions">
                                         <?php if ($wine['available'] && !$isAdmin) : ?>
