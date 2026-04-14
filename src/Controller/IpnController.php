@@ -276,9 +276,13 @@ class IpnController
             if ($billing === null) {
                 return null;
             }
-            $delivery = $deliveryId > 0 && $deliveryId !== $billingId
-                ? $addresses->findByIdForUser($deliveryId, $userId)
-                : null;
+            if ($deliveryId === $billingId) {
+                $delivery = $billing;
+            } else {
+                $delivery = $deliveryId > 0
+                    ? $addresses->findByIdForUser($deliveryId, $userId)
+                    : null;
+            }
             return [
                 'ordered_at' => date('Y-m-d H:i:s'),
                 'billing'    => $billing,
