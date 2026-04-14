@@ -218,12 +218,8 @@ function initInfiniteScroll() {
                         initCardReveal();
                     }
 
-                    // Mettre à jour l'URL avec pushState
-                    const pageMatch = /[?&]page=(\d+)/.exec(nextUrl);
-                    if (pageMatch) {
-                        const url = new URL(nextUrl);
-                        globalThis.history.pushState({ page: pageMatch[1] }, '', url.pathname + url.search);
-                    }
+                    // Pas de pushState — l'URL reste stable pendant le scroll infini
+                    // (l'ancre rel="next" est mise à jour via swapPagination pour suivre la progression)
 
                     // Mettre à jour la pagination DOM (masquée)
                     swapPagination(doc);
