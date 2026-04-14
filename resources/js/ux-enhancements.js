@@ -47,14 +47,18 @@ export function initAutoSubmitFilters() {
 // ============================================================
 
 /**
- * Affiche un toast 1.2s avant reload quand la langue est changée.
- * Hook : éléments avec data-lang-toast (ex. select de l'en-tête, form profil).
+ * Affiche un toast centré avant reload quand la langue est changée.
+ * Hook : éléments avec data-lang-toast (ex. lien de l'en-tête, form profil).
+ *
+ * Diffère la navigation de 700 ms pour laisser le toast s'afficher.
  *
  * @return {void}
  */
 export function initLangSwitchToast() {
     const triggers = document.querySelectorAll('[data-lang-toast]');
     if (!triggers.length) return;
+
+    const TOAST_DELAY_MS = 700;
 
     const showToast = (msg) => {
         let toast = document.getElementById('lang-switch-toast');
@@ -67,13 +71,27 @@ export function initLangSwitchToast() {
             document.body.appendChild(toast);
         }
         toast.textContent = msg;
+        // Force reflow puis ajoute la classe pour rejouer la transition
+        void toast.offsetWidth;
         toast.classList.add('is-visible');
     };
 
     triggers.forEach((el) => {
-        el.addEventListener('click', () => {
+        el.addEventListener('click', (event) => {
             const msg = el.dataset.langToast || 'Langue mise à jour…';
-            showToast(msg);
+            const href = el.getAttribute('href');
+
+            // Navigation différée pour laisser le toast visible
+            if (href && !el.dataset.langToastShown) {
+                event.preventDefault();
+                el.dataset.langToastShown = '1';
+                showToast(msg);
+                setTimeout(() => {
+                    globalThis.location.href = href;
+                }, TOAST_DELAY_MS);
+            } else {
+                showToast(msg);
+            }
         });
     });
 }
