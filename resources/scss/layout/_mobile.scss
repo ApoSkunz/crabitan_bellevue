@@ -120,13 +120,11 @@ body {
             justify-content: flex-start;
         }
 
-        &__sort,
-        &__per-page {
+        &__sort {
             flex-wrap: wrap;
         }
 
-        &__sort select,
-        &__per-page select {
+        &__sort select {
             max-width: 100%;
         }
     }

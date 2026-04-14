@@ -422,7 +422,10 @@ class OrderControllerPaymentFlowTest extends TestCase
                 'shipping_discount' => 0.0,
                 'ordered_at'       => date('Y-m-d H:i:s'),
             ],
-            [               // 11. OrderModel::findByReference après création (line 420)
+            // 11. buildOwnerPdfContext → AddressModel::findByIdForUser billing
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris', 'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            [               // 12. OrderModel::findByReference après création (line 420)
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
                 'content'         => json_encode($snapshot['items']),
@@ -553,7 +556,11 @@ class OrderControllerPaymentFlowTest extends TestCase
             ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
              'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'wine', 'vintage' => 2020], // 9. postOrderStockActions → getById
             false,          // 10. findByReferenceWithAddresses → false (null-guard : facture skippée)
-            [               // 11. findByReference après création (line 420)
+            // 11. buildOwnerPdfContext → AddressModel::findByIdForUser billing
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris',
+             'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            [               // 12. findByReference après création (line 420)
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
                 'content'         => json_encode($snapshot['items']),
@@ -630,7 +637,11 @@ class OrderControllerPaymentFlowTest extends TestCase
                 'lastname'         => 'Dupont',
                 'lang'             => 'fr',
             ],
-            [               // 11. findByReference après création (line 420)
+            // 11. buildOwnerPdfContext → AddressModel::findByIdForUser billing
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris',
+             'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            [               // 12. findByReference après création (line 420)
                 'order_reference' => 'WEB-CB-AABBCCDD-2026',
                 'payment_method'  => 'card',
                 'content'         => json_encode($snapshot['items']),
@@ -1365,6 +1376,10 @@ class OrderControllerPaymentFlowTest extends TestCase
             ['id' => 684, 'order_reference' => 'WEB-CB-STOCK-DEC', 'payment_method' => 'card',
              'content' => json_encode($snapshot['items']), 'price' => 120.0,
              'shipping_discount' => 0.0, 'ordered_at' => date('Y-m-d H:i:s')],
+            // buildOwnerPdfContext → AddressModel::findByIdForUser billing
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris',
+             'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
             ['order_reference' => 'WEB-CB-STOCK-DEC', 'payment_method' => 'card',
              'content' => json_encode($snapshot['items'])],
         );

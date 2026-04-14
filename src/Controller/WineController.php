@@ -19,9 +19,6 @@ class WineController extends Controller
     // GET /{lang}/vins
     // ----------------------------------------------------------------
 
-    private const VALID_PER_PAGE = [10, 25, 50, 100];
-    private const DEFAULT_PER_PAGE = 25;
-
     /** Catalogue anti-scraping : max requêtes par fenêtre par IP */
     private const CATALOGUE_RATE_MAX    = 60;
     /** Fenêtre de rate limiting en secondes */
@@ -107,7 +104,8 @@ class WineController extends Controller
     }
 
     /**
-     * Affiche la liste des vins disponibles avec filtres et pagination.
+     * Affiche la liste des vins disponibles avec filtres.
+     * Pas de pagination : la grille est rendue via lazy-load / infinite scroll côté client.
      *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
@@ -121,16 +119,8 @@ class WineController extends Controller
         $color        = isset($_GET['color']) && $_GET['color'] !== '' ? $_GET['color'] : null;
         $sort         = $_GET['sort'] ?? 'default';
         $cuveSpeciale = isset($_GET['cuvee_speciale']) && $_GET['cuvee_speciale'] === '1' ? true : null;
-        $perPage      = (int) ($_GET['per_page'] ?? self::DEFAULT_PER_PAGE);
-        if (!in_array($perPage, self::VALID_PER_PAGE, true)) {
-            $perPage = self::DEFAULT_PER_PAGE;
-        }
-        $page    = max(1, (int) ($_GET['page'] ?? 1));
-        $offset  = ($page - 1) * $perPage;
 
-        $total      = $model->countAll($color, $cuveSpeciale);
-        $totalPages = (int) ceil($total / $perPage);
-        $wines      = $model->getAll($color, $sort, $perPage, $offset, $cuveSpeciale);
+        $wines = $model->getAll($color, $sort, 0, 0, $cuveSpeciale);
 
         $ratings = [];
         if (!empty($wines)) {
@@ -143,18 +133,14 @@ class WineController extends Controller
         }
 
         $this->view('wines/index', [
-            'lang'           => $lang,
-            'wines'          => $wines,
-            'ratings'        => $ratings,
-            'likedIds'       => $this->getCurrentUserLikedIds(),
-            'activeColor'    => $color,
-            'activeSort'     => $sort,
-            'activePerPage'  => $perPage,
-            'activeCuvee'    => $cuveSpeciale === true,
-            'page'           => $page,
-            'totalPages'     => $totalPages,
-            'total'          => $total,
-            'sort'           => $sort,
+            'lang'        => $lang,
+            'wines'       => $wines,
+            'ratings'     => $ratings,
+            'likedIds'    => $this->getCurrentUserLikedIds(),
+            'activeColor' => $color,
+            'activeSort'  => $sort,
+            'activeCuvee' => $cuveSpeciale === true,
+            'sort'        => $sort,
         ]);
     }
 
@@ -179,18 +165,9 @@ class WineController extends Controller
         $rawAvail     = $_GET['avail'] ?? '';
         $avail        = in_array($rawAvail, ['available', 'out'], true) ? $rawAvail : null;
         $cuveSpeciale = isset($_GET['cuvee_speciale']) && $_GET['cuvee_speciale'] === '1' ? true : null;
-        $perPage      = (int) ($_GET['per_page'] ?? 25);
-        if (!in_array($perPage, self::VALID_PER_PAGE, true)) {
-            $perPage = self::DEFAULT_PER_PAGE;
-        }
-        $page    = max(1, (int) ($_GET['page'] ?? 1));
-        $offset  = ($page - 1) * $perPage;
 
-        $total        = $model->countAllByColor($color, $avail, $cuveSpeciale);
-        $totalPages   = (int) ceil($total / $perPage);
-        $winesByColor = $model->getAllByColor($color, $sort, $avail, $perPage, $offset, $cuveSpeciale);
-        // Page de première apparition de chaque couleur (sans filtre couleur, pour les raccourcis nav)
-        $colorPages   = $model->getColorFirstPages($avail, $perPage);
+        // Vue collection = vitrine complète : pas de pagination, tout charge en une fois.
+        $winesByColor = $model->getAllByColor($color, $sort, $avail, 0, 0, $cuveSpeciale);
 
         $ratingsCollection = [];
         if (!empty($winesByColor)) {
@@ -204,19 +181,15 @@ class WineController extends Controller
         }
 
         $this->view('wines/collection', [
-            'lang'          => $lang,
-            'winesByColor'  => $winesByColor,
-            'ratings'       => $ratingsCollection,
-            'likedIds'      => $this->getCurrentUserLikedIds(),
-            'activeColor'   => $color,
-            'activeSort'    => $sort,
-            'activeAvail'   => $rawAvail,
-            'activeCuvee'   => $cuveSpeciale === true,
-            'activePerPage' => $perPage,
-            'page'          => $page,
-            'totalPages'    => $totalPages,
-            'colorPages'    => $colorPages,
-            'sort'          => $sort,
+            'lang'         => $lang,
+            'winesByColor' => $winesByColor,
+            'ratings'      => $ratingsCollection,
+            'likedIds'     => $this->getCurrentUserLikedIds(),
+            'activeColor'  => $color,
+            'activeSort'   => $sort,
+            'activeAvail'  => $rawAvail,
+            'activeCuvee'  => $cuveSpeciale === true,
+            'sort'         => $sort,
         ]);
     }
 

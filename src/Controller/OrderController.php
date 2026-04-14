@@ -30,6 +30,7 @@ use Service\StockNotificationService;
 class OrderController extends Controller
 {
     private const LOG_CONTEXT = '[ORDER]';
+    private const DATE_FORMAT_LOG = 'Y-m-d H:i:s';
 
     /** Délai de livraison estimé affiché au client (L216-1 Code conso). */
     private const DELIVERY_DELAY    = '7 à 15 jours à compter de la réception du paiement';
@@ -340,6 +341,11 @@ class OrderController extends Controller
             }
         }
         if ($clientEmail !== '') {
+            $pdfContext = (new \Service\OrderPdfContextBuilder())->build([
+                'user_id'             => $userId,
+                'billing_address_id'  => $billingAddressId,
+                'delivery_address_id' => $deliveryAddressId,
+            ]);
             $this->dispatchOrderEmails(
                 $clientEmail,
                 $clientName,
@@ -348,7 +354,8 @@ class OrderController extends Controller
                 $items,
                 $total,
                 (string) (($account !== false ? ($account['lang'] ?? null) : null) ?? $lang),
-                round($deliveryDiscount, 2)
+                round($deliveryDiscount, 2),
+                $pdfContext
             );
         }
 
@@ -399,7 +406,7 @@ class OrderController extends Controller
             $qs = $_SERVER['QUERY_STRING'] ?? '';
             if (!(new \Service\PaymentService())->verifyIpnSignature($qs)) {
                 \Core\ErrorLogger::write([
-                    'timestamp' => date('Y-m-d H:i:s'),
+                    'timestamp' => date(self::DATE_FORMAT_LOG),
                     'level'     => 'WARNING',
                     'message'   => '[RETURN_OK] Invalid RSA signature on return URL — ref=' . $ref,
                     'file'      => __FILE__,
@@ -458,6 +465,7 @@ class OrderController extends Controller
                             $lang,
                             $discount
                         );
+                        $pdfContext = (new \Service\OrderPdfContextBuilder())->build((array) $snapshot);
                         $mail->sendOrderConfirmationToOwner(
                             (string) ($snapshot['client_email'] ?? ''),
                             (string) ($snapshot['client_name']  ?? ''),
@@ -465,7 +473,8 @@ class OrderController extends Controller
                             'card',
                             (array) $snapshot['items'],
                             (float) $snapshot['total'],
-                            $discount
+                            $discount,
+                            $pdfContext
                         );
                     } catch (\Throwable $mailError) {
                         \Core\ErrorLogger::warning($mailError, '[RETURN_OK]');
@@ -478,7 +487,7 @@ class OrderController extends Controller
 
         if ($order === null) {
             \Core\ErrorLogger::write([
-                'timestamp' => date('Y-m-d H:i:s'),
+                'timestamp' => date(self::DATE_FORMAT_LOG),
                 'level'     => 'WARNING',
                 'message'   => '[RETURN_OK] Order not found and no intent — ref=' . $ref,
                 'file'      => __FILE__,
@@ -920,7 +929,7 @@ class OrderController extends Controller
         }
     }
 
-    private function dispatchOrderEmails( // NOSONAR — php:S107 : 8 paramètres requis pour envoyer les emails de confirmation commande
+    private function dispatchOrderEmails( // NOSONAR — php:S107 : 9 paramètres requis pour envoyer les emails de confirmation commande
         string $email,
         string $name,
         string $reference,
@@ -928,7 +937,8 @@ class OrderController extends Controller
         array $items,
         float $total,
         string $lang,
-        float $shippingDiscount = 0.0
+        float $shippingDiscount = 0.0,
+        ?array $pdfContext = null
     ): void {
         try {
             $mailer = new \Service\MailService();
@@ -949,7 +959,8 @@ class OrderController extends Controller
                 $method,
                 $items,
                 $total,
-                $shippingDiscount
+                $shippingDiscount,
+                $pdfContext
             );
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);

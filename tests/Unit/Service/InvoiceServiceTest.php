@@ -108,7 +108,7 @@ class InvoiceServiceTest extends TestCase
         $service = new InvoiceService();
         $method  = new \ReflectionMethod(InvoiceService::class, 'buildLogoTag');
 
-        $result = $method->invoke($service, null);
+        $result = $method->invoke($service, null, 'Crabitan Bellevue');
 
         $this->assertStringContainsString('<span', $result);
         $this->assertStringContainsString('Crabitan', $result);
@@ -122,7 +122,7 @@ class InvoiceServiceTest extends TestCase
         $service = new InvoiceService();
         $method  = new \ReflectionMethod(InvoiceService::class, 'buildLogoTag');
 
-        $result = $method->invoke($service, '/path/to/logo.png');
+        $result = $method->invoke($service, '/path/to/logo.png', 'Crabitan Bellevue');
 
         $this->assertStringContainsString('<img', $result);
         $this->assertStringContainsString('/path/to/logo.png', $result);

@@ -68,16 +68,18 @@ class OrderMailer
      * @param array<mixed> $items     Articles de la commande
      * @param float  $total           Montant total
      * @param float  $shippingDiscount Remise livraison (optionnel)
+     * @param array<string, mixed>|null $pdfContext Contexte PDF récap (billing, delivery, ordered_at)
      * @return void
      */
-    public function sendOrderConfirmationToOwner(
+    public function sendOrderConfirmationToOwner( // NOSONAR — php:S107 : 8 paramètres requis pour passer le contexte PDF récap
         string $clientEmail,
         string $clientName,
         string $orderRef,
         string $paymentMethod,
         array $items,
         float $total,
-        float $shippingDiscount = 0.0
+        float $shippingDiscount = 0.0,
+        ?array $pdfContext = null
     ): void {
         $this->mailer->sendOrderConfirmationToOwner(
             $clientEmail,
@@ -86,7 +88,8 @@ class OrderMailer
             $paymentMethod,
             $items,
             $total,
-            $shippingDiscount
+            $shippingDiscount,
+            $pdfContext
         );
     }
 

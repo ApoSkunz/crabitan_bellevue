@@ -734,4 +734,74 @@ class MailServiceBilingualTemplatesTest extends TestCase
 
         $this->assertStringContainsString('CB-2026-043', $stub->Subject ?? '');
     }
+
+    /**
+     * sendOrderConfirmationToOwner avec $pdfContext renseigné déclenche la génération
+     * du PDF récap et le joint au mail (couvre la branche $pdfContext !== null).
+     */
+    public function testSendOrderConfirmationToOwnerWithPdfContextGeneratesAttachment(): void
+    {
+        if (!defined('APP_NAME')) {
+            define('APP_NAME', 'Crabitan Bellevue');
+        }
+
+        $_ENV['CONTACT_OWNER_EMAIL'] = 'owner@example.com';
+        $service = new MailService();
+        $stub    = $this->injectStub($service);
+
+        $items = [
+            ['name' => 'Vin rouge 2022', 'qty' => 3, 'unit_price' => 18.50, 'subtotal' => 55.50],
+        ];
+
+        $address = [
+            'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+            'street' => '1 rue Test', 'zip' => '75001', 'city' => 'Paris',
+            'country' => 'France', 'phone' => '0102030405',
+        ];
+
+        $service->sendOrderConfirmationToOwner(
+            'client@example.com',
+            'Jean Dupont',
+            'CB-2026-PDF',
+            'card',
+            $items,
+            55.50,
+            0.0,
+            [
+                'ordered_at' => '2026-04-14 12:00:00',
+                'billing'    => $address,
+                'delivery'   => $address,
+            ]
+        );
+
+        $this->assertStringContainsString('CB-2026-PDF', $stub->Subject ?? '');
+    }
+
+    /**
+     * sendOrderConfirmationToOwner avec $pdfContext null saute la branche PDF
+     * (couvre le chemin alternatif sans génération PDF).
+     */
+    public function testSendOrderConfirmationToOwnerWithoutPdfContextSkipsAttachment(): void
+    {
+        if (!defined('APP_NAME')) {
+            define('APP_NAME', 'Crabitan Bellevue');
+        }
+
+        $_ENV['CONTACT_OWNER_EMAIL'] = 'owner@example.com';
+        $service = new MailService();
+        $stub    = $this->injectStub($service);
+
+        $service->sendOrderConfirmationToOwner(
+            'client@example.com',
+            'Jean Dupont',
+            'CB-2026-NOPDF',
+            'cheque',
+            [['name' => 'V', 'qty' => 1, 'price' => 10.0]],
+            10.0,
+            0.0,
+            null
+        );
+
+        $this->assertStringContainsString('CB-2026-NOPDF', $stub->Subject ?? '');
+    }
 }

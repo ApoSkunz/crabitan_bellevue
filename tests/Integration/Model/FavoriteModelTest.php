@@ -285,6 +285,9 @@ class FavoriteModelTest extends IntegrationTestCase
         $this->assertArrayHasKey('vintage', $row);
         $this->assertArrayHasKey('price', $row);
         $this->assertArrayHasKey('image_path', $row);
+        $this->assertArrayHasKey('available', $row);
+        $this->assertArrayHasKey('stock_quantity', $row);
+        $this->assertArrayHasKey('is_cuvee_speciale', $row);
         $this->assertSame($this->wineId, (int) $row['wine_id']);
     }
 

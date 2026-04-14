@@ -1200,14 +1200,15 @@ INNER;
      * @param float                $total         Total TTC en euros
      * @return void
      */
-    public function sendOrderConfirmationToOwner(
+    public function sendOrderConfirmationToOwner( // NOSONAR — php:S107 : 8 paramètres requis pour le récap commande + PDF joint
         string $clientEmail,
         string $clientName,
         string $orderRef,
         string $paymentMethod,
         array $items,
         float $total,
-        float $shippingDiscount = 0.0
+        float $shippingDiscount = 0.0,
+        ?array $pdfContext = null
     ): void {
         $ownerEmail    = $_ENV['CONTACT_OWNER_EMAIL'];
         $safeRef       = htmlspecialchars($orderRef, ENT_QUOTES);
@@ -1244,7 +1245,32 @@ INNER;
             $message,
             'fr'
         );
-        $this->send($ownerEmail, APP_NAME, $subject, $body);
+
+        $pdfContent = null;
+        $pdfName    = null;
+        if ($pdfContext !== null) {
+            try {
+                $pdfData = [
+                    'reference'         => $orderRef,
+                    'ordered_at'        => (string) ($pdfContext['ordered_at'] ?? date('Y-m-d H:i:s')),
+                    'payment_method'    => $paymentMethod,
+                    'items'             => $items,
+                    'total'             => $total,
+                    'shipping_discount' => $shippingDiscount,
+                    'billing'           => (array) ($pdfContext['billing']  ?? []),
+                    'delivery'          => $pdfContext['delivery'] ?? null,
+                ];
+                $pdfContent = (new OrderSummaryPdfService())->generate($pdfData);
+                $safeRefFile = preg_replace('/[^A-Za-z0-9_\-]/', '_', $orderRef) ?? 'order';
+                $pdfName     = "commande_WEB_{$safeRefFile}.pdf";
+            } catch (\Throwable $pdfError) {
+                \Core\ErrorLogger::warning($pdfError, 'OrderSummaryPdf');
+                $pdfContent = null;
+                $pdfName    = null;
+            }
+        }
+
+        $this->send($ownerEmail, APP_NAME, $subject, $body, null, null, $pdfName, $pdfContent);
     }
 
     /**
@@ -2694,14 +2720,15 @@ INNER;
         $this->mailer->send();
     }
 
-    private function send(
+    private function send( // NOSONAR — php:S107 : 8 paramètres requis pour gérer attachement chemin / chaîne / replyTo
         string $to,
         string $name,
         string $subject,
         string $body,
         ?string $attachmentPath = null,
         ?string $replyTo = null,
-        ?string $attachmentName = null
+        ?string $attachmentName = null,
+        ?string $attachmentString = null
     ): void {
         $this->mailer->clearAddresses();
         $this->mailer->clearAttachments();
@@ -2716,6 +2743,9 @@ INNER;
         $this->mailer->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], "\n", $body));
         if ($attachmentPath !== null) {
             $this->mailer->addAttachment($attachmentPath, $attachmentName ?? '');
+        }
+        if ($attachmentString !== null && $attachmentName !== null) {
+            $this->mailer->addStringAttachment($attachmentString, $attachmentName);
         }
         $this->mailer->send();
     }

@@ -61,24 +61,6 @@ class NewsModel extends Model
     }
 
     /**
-     * Retourne une page d'actualités avec limite et offset.
-     *
-     * @param int $limit  Nombre d'actualités à retourner
-     * @param int $offset Décalage (pagination)
-     * @return array<int, array<string, mixed>>
-     */
-    public function getPaginated(int $limit, int $offset): array
-    {
-        return $this->db->fetchAll(
-            "SELECT id, title, text_content, slug, image_path, link_path, created_at
-             FROM {$this->table}
-             ORDER BY created_at DESC
-             LIMIT ? OFFSET ?",
-            [$limit, $offset]
-        );
-    }
-
-    /**
      * Retourne le nombre total d'actualités.
      *
      * @return int

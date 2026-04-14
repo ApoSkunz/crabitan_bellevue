@@ -202,6 +202,7 @@ class IpnController
                     $lang,
                     $discount
                 );
+                $pdfContext = (new \Service\OrderPdfContextBuilder())->build($snapshot);
                 $this->mail->sendOrderConfirmationToOwner(
                     $email,
                     $name,
@@ -209,7 +210,8 @@ class IpnController
                     'card',
                     $items,
                     $total,
-                    $discount
+                    $discount,
+                    $pdfContext
                 );
             } catch (\Throwable $mailError) {
                 \Core\ErrorLogger::warning($mailError, self::LOG_CONTEXT);

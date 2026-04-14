@@ -23,7 +23,8 @@ class FavoriteModel extends Model
     {
         return $this->db->fetchAll(
             "SELECT f.wine_id, w.label_name AS name, w.slug, w.wine_color AS color,
-                    w.vintage, w.price, w.image_path
+                    w.vintage, w.price, w.image_path,
+                    w.available, w.stock_quantity, w.is_cuvee_speciale
              FROM {$this->table} f
              JOIN wines w ON w.id = f.wine_id
              WHERE f.user_id = ?

@@ -93,50 +93,6 @@ class WineControllerTest extends IntegrationTestCase
         $this->assertStringContainsString('wine-card', $output);
     }
 
-    public function testIndexWithInvalidPerPageFallsBackToDefault(): void
-    {
-        $this->insertWine('test-invalid-pp-2020', 'red');
-
-        $_GET['per_page'] = '7'; // Not in VALID_PER_PAGE
-
-        ob_start();
-        $this->makeController('/fr/vins')->index(['lang' => 'fr']);
-        $output = ob_get_clean();
-
-        // Vue chargée sans erreur, per_page remis à 25 par défaut
-        $this->assertStringContainsString('wines-catalog', $output);
-    }
-
-    public function testIndexWithValidPerPage10(): void
-    {
-        $this->insertWine('test-pp10-2020', 'white');
-
-        $_GET['per_page'] = '10';
-
-        ob_start();
-        $this->makeController('/fr/vins')->index(['lang' => 'fr']);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('wines-catalog', $output);
-    }
-
-    public function testIndexPaginationPageTwo(): void
-    {
-        // Insère suffisamment de vins pour avoir une deuxième page avec per_page=10
-        for ($i = 1; $i <= 12; $i++) {
-            $this->insertWine("test-pag-wine-{$i}", 'red');
-        }
-
-        $_GET['per_page'] = '10';
-        $_GET['page']     = '2';
-
-        ob_start();
-        $this->makeController('/fr/vins')->index(['lang' => 'fr']);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('wines-catalog', $output);
-    }
-
     public function testIndexWithSortPriceAsc(): void
     {
         $this->insertWine('test-sort-asc', 'red');
@@ -265,41 +221,12 @@ class WineControllerTest extends IntegrationTestCase
         $this->assertStringContainsString('<main', $output);
     }
 
-    public function testCollectionWithInvalidPerPageFallsBackToDefault(): void
-    {
-        $this->insertWine('test-col-pp', 'sweet');
-
-        $_GET['per_page'] = '999'; // Not in VALID_PER_PAGE
-
-        ob_start();
-        $this->makeController('/fr/vins/collection')->collection(['lang' => 'fr']);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('<main', $output);
-    }
-
     public function testCollectionWithColorFilter(): void
     {
         $this->insertWine('test-col-filt-red', 'red');
         $this->insertWine('test-col-filt-white', 'white');
 
         $_GET['color'] = 'red';
-
-        ob_start();
-        $this->makeController('/fr/vins/collection')->collection(['lang' => 'fr']);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('<main', $output);
-    }
-
-    public function testCollectionPaginationPageTwo(): void
-    {
-        for ($i = 1; $i <= 12; $i++) {
-            $this->insertWine("test-colpag-{$i}", 'red');
-        }
-
-        $_GET['per_page'] = '10';
-        $_GET['page']     = '2';
 
         ob_start();
         $this->makeController('/fr/vins/collection')->collection(['lang' => 'fr']);
@@ -557,45 +484,6 @@ class WineControllerTest extends IntegrationTestCase
         $output = ob_get_clean();
 
         $this->assertStringContainsString('<main', $output);
-    }
-
-    public function testIndexWithValidPerPage25(): void
-    {
-        $this->insertWine('test-pp25-wine', 'red');
-
-        $_GET['per_page'] = '25';
-
-        ob_start();
-        $this->makeController('/fr/vins')->index(['lang' => 'fr']);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('wines-catalog', $output);
-    }
-
-    public function testIndexWithValidPerPage50(): void
-    {
-        $this->insertWine('test-pp50-wine', 'white');
-
-        $_GET['per_page'] = '50';
-
-        ob_start();
-        $this->makeController('/fr/vins')->index(['lang' => 'fr']);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('wines-catalog', $output);
-    }
-
-    public function testIndexWithValidPerPage100(): void
-    {
-        $this->insertWine('test-pp100-wine', 'sweet');
-
-        $_GET['per_page'] = '100';
-
-        ob_start();
-        $this->makeController('/fr/vins')->index(['lang' => 'fr']);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('wines-catalog', $output);
     }
 
     // ----------------------------------------------------------------
