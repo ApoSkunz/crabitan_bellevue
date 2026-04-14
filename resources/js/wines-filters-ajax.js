@@ -21,6 +21,15 @@ import { initLazyLoad } from './lazy-load.js';
 function buildUrl(form) {
     const params = new URLSearchParams(new FormData(form));
     params.delete('page');
+
+    // Strip params vides + valeurs par défaut pour garder l'URL propre.
+    const defaults = { per_page: '25', sort: 'default' };
+    for (const [key, value] of [...params.entries()]) {
+        if (value === '' || defaults[key] === value) {
+            params.delete(key);
+        }
+    }
+
     const qs = params.toString();
     return globalThis.location.pathname + (qs ? '?' + qs : '');
 }
