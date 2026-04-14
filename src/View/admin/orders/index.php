@@ -72,7 +72,7 @@ function buildPaginationUrl(
 <?php endif; ?>
 
 <!-- Filtres -->
-<form method="GET" action="/admin/commandes" class="admin-filters">
+<form method="GET" action="/admin/commandes" class="admin-filters" data-auto-submit>
     <select name="status" class="admin-filters__select" aria-label="Filtrer par statut">
         <option value="">Tous les statuts</option>
         <?php foreach ($statusLabels as $val => $label) : ?>

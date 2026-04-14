@@ -34,6 +34,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
         <div class="container">
             <span class="home-section__tag"><?= htmlspecialchars(__('home.wines_tag')) ?></span>
             <h1 class="home-section__title"><?= htmlspecialchars(__('nav.collection')) ?></h1>
+            <p class="page-hero__intro"><?= htmlspecialchars(__('collection.intro')) ?></p>
             <div class="home-section__divider home-section__divider--center"></div>
         </div>
     </div>
@@ -41,7 +42,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
     <!-- Filtres collection -->
     <section class="wines-filters" aria-label="<?= htmlspecialchars(__('wine.filter_label')) ?>">
         <div class="container">
-            <form class="wines-filters__form" method="GET" action="">
+            <form class="wines-filters__form" method="GET" action="" data-auto-submit data-ajax-filter>
                 <div class="wines-filters__left">
                     <fieldset class="wines-filters__colors">
                         <legend><?= htmlspecialchars(__('wine.filter_show')) ?></legend>
@@ -78,7 +79,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
 
                     <?php require_once SRC_PATH . '/View/partials/wines-filter-cuvee.php'; ?>
 
-                    <button type="submit" class="btn btn--gold wines-filters__submit">
+                    <button type="submit" class="btn btn--gold wines-filters__submit js-noscript-only">
                         <?= htmlspecialchars(__('wine.filter_apply')) ?>
                     </button>
                 </div>
@@ -91,7 +92,6 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                             $sortOptions = [
                                 'default'      => __('wine.sort.default'),
                                 'rating_desc'  => __('wine.sort.rating_desc'),
-                                'likes_desc'   => __('wine.sort.likes_desc'),
                                 'vintage_asc'  => __('wine.sort.vintage_asc'),
                                 'vintage_desc' => __('wine.sort.vintage_desc'),
                             ];
@@ -126,6 +126,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
         </div>
     </section>
 
+    <div data-ajax-content>
     <nav class="collection-nav" aria-label="<?= htmlspecialchars(__('wine.collection_nav')) ?>">
         <div class="container">
             <ul class="collection-nav__list">
@@ -207,15 +208,11 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                         width="300"
                                         height="420"
                                     >
-                                    <?php if (!$wine['available']) : ?>
-                                        <span class="wine-card__badge wine-card__badge--out">
-                                            <?= htmlspecialchars(__('wine.not_for_sale')) ?>
-                                        </span>
-                                    <?php elseif ((int) ($wine['stock_quantity'] ?? 0) === 0) : ?>
+                                    <?php if ($wine['available'] && (int) ($wine['stock_quantity'] ?? 0) === 0) : ?>
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
                                         </span>
-                                    <?php elseif ((int) ($wine['stock_quantity'] ?? 0) <= (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300)) : ?>
+                                    <?php elseif ($wine['available'] && (int) ($wine['stock_quantity'] ?? 0) <= (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300)) : ?>
                                         <span class="wine-card__badge wine-card__badge--low-stock">
                                             <?= htmlspecialchars(__('wine.low_stock')) ?>
                                         </span>
@@ -258,7 +255,9 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                             <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
                                         </strong>
                                     <?php else : ?>
-                                        <strong class="wine-card__price wine-card__price--unavailable">&nbsp;</strong>
+                                        <strong class="wine-card__price wine-card__price--unavailable">
+                                            <?= htmlspecialchars(__('wine.not_for_sale')) ?>
+                                        </strong>
                                     <?php endif; ?>
                                     <div class="wine-card__actions">
                                         <?php if ($wine['available'] && !$isAdmin) : ?>
@@ -347,6 +346,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
             </nav>
         </div>
     <?php endif; ?>
+    </div><!-- /data-ajax-content -->
 </main>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

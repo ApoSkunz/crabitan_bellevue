@@ -40,7 +40,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
     <!-- ============================================================ -->
     <section class="wines-filters" aria-label="<?= htmlspecialchars(__('wine.filter_label')) ?>">
         <div class="container">
-            <form class="wines-filters__form" method="GET" action="">
+            <form class="wines-filters__form" method="GET" action="" data-auto-submit data-ajax-filter>
                 <div class="wines-filters__left">
                     <fieldset class="wines-filters__colors">
                         <legend><?= htmlspecialchars(__('wine.filter_show')) ?></legend>
@@ -65,7 +65,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
 
                     <?php require_once SRC_PATH . '/View/partials/wines-filter-cuvee.php'; ?>
 
-                    <button type="submit" class="btn btn--gold wines-filters__submit">
+                    <button type="submit" class="btn btn--gold wines-filters__submit js-noscript-only">
                         <?= htmlspecialchars(__('wine.filter_apply')) ?>
                     </button>
                 </div>
@@ -78,7 +78,6 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                             $sortOptions = [
                                 'default'      => __('wine.sort.default'),
                                 'rating_desc'  => __('wine.sort.rating_desc'),
-                                'likes_desc'   => __('wine.sort.likes_desc'),
                                 'price_asc'    => __('wine.sort.price_asc'),
                                 'price_desc'   => __('wine.sort.price_desc'),
                                 'vintage_asc'  => __('wine.sort.vintage_asc'),
@@ -118,7 +117,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
     <!-- ============================================================ -->
     <!-- GRILLE                                                        -->
     <!-- ============================================================ -->
-    <section class="wines-catalog" aria-label="<?= htmlspecialchars(__('nav.wines')) ?>">
+    <section class="wines-catalog" aria-label="<?= htmlspecialchars(__('nav.wines')) ?>" data-ajax-content>
         <div class="container">
             <?php if (empty($wines)) : ?>
                 <p class="wines-catalog__empty"><?= htmlspecialchars(__('wine.empty')) ?></p>

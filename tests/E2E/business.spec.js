@@ -21,9 +21,11 @@ test.describe('Catalogue — navigation et filtres', () => {
     test('le filtre couleur réduit la liste', async ({ page }) => {
         await page.goto('/fr/vins');
         const totalBefore = await page.locator('.wine-card').count();
-        // Le filtre est un formulaire GET — sélectionner la couleur puis soumettre
-        await page.locator('input[name="color"][value="red"]').check();
-        await page.locator('.wines-filters__submit').click();
+        // Auto-submit : cocher le radio déclenche la soumission du formulaire
+        await Promise.all([
+            page.waitForURL(/color=red/),
+            page.locator('input[name="color"][value="red"]').check(),
+        ]);
         await page.waitForLoadState('load');
         const totalAfter = await page.locator('.wine-card').count();
         expect(totalAfter).toBeLessThanOrEqual(totalBefore);

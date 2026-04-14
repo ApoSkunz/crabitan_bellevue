@@ -57,6 +57,92 @@ class MailServiceGoogleOAuthTest extends TestCase
         $this->service->sendGoogleAccountInfo('test@example.com', 'Jean Dupont', 'fr');
     }
 
+    // ----------------------------------------------------------------
+    // sendGoogleLinkConfirmation()
+    // ----------------------------------------------------------------
+
+    public function testSendGoogleLinkConfirmationFrBodyContainsCtaAndUrl(): void
+    {
+        $stub = $this->createStub(\PHPMailer\PHPMailer\PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setValue($this->service, $stub); // NOSONAR — test unitaire
+
+        $this->service->sendGoogleLinkConfirmation(
+            'user@example.com',
+            'Marie',
+            'http://localhost/fr/auth/google/link/verify?token=abcdef',
+            'fr'
+        );
+
+        $html = $stub->Body;
+        $subject = $stub->Subject;
+        $this->assertStringContainsString('Confirmez le rattachement', $subject);
+        $this->assertStringContainsString('Marie', $html);
+        $this->assertStringContainsString('token=abcdef', $html);
+        $this->assertStringContainsString('Confirmer le rattachement', $html);
+        $this->assertStringContainsString('15 minutes', $html);
+    }
+
+    public function testSendGoogleLinkConfirmationEnBodyContainsCtaAndUrl(): void
+    {
+        $stub = $this->createStub(\PHPMailer\PHPMailer\PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setValue($this->service, $stub); // NOSONAR — test unitaire
+
+        $this->service->sendGoogleLinkConfirmation(
+            'john@example.com',
+            'John',
+            'http://localhost/en/auth/google/link/verify?token=xyz789',
+            'en'
+        );
+
+        $html = $stub->Body;
+        $subject = $stub->Subject;
+        $this->assertStringContainsString('Confirm linking', $subject);
+        $this->assertStringContainsString('John', $html);
+        $this->assertStringContainsString('token=xyz789', $html);
+        $this->assertStringContainsString('Confirm linking', $html);
+        $this->assertStringContainsString('15 minutes', $html);
+    }
+
+    public function testSendGoogleLinkConfirmationEscapesXssInName(): void
+    {
+        $stub = $this->createStub(\PHPMailer\PHPMailer\PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setValue($this->service, $stub); // NOSONAR — test unitaire
+
+        $this->service->sendGoogleLinkConfirmation(
+            'xss@example.com',
+            '<script>alert(1)</script>',
+            'http://localhost/fr/auth/google/link/verify?token=safe',
+            'fr'
+        );
+
+        $html = $stub->Body;
+        $this->assertStringNotContainsString('<script>alert(1)</script>', $html);
+        $this->assertStringContainsString('&lt;script&gt;', $html);
+    }
+
+    public function testSendGoogleLinkConfirmationFallbackNameWhenEmpty(): void
+    {
+        $stub = $this->createStub(\PHPMailer\PHPMailer\PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setValue($this->service, $stub); // NOSONAR — test unitaire
+
+        $this->service->sendGoogleLinkConfirmation(
+            'noname@example.com',
+            '',
+            'http://localhost/fr/auth/google/link/verify?token=t',
+            'fr'
+        );
+
+        $this->assertStringContainsString('Bonjour', $stub->Body);
+    }
+
     public function testSendGoogleAccountInfoEnDoesNotThrow(): void
     {
         $this->injectMockMailer();

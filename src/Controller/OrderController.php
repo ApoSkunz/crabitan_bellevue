@@ -234,65 +234,71 @@ class OrderController extends Controller
         if ($paymentMethod === 'card') {
             $this->checkPaymentRateLimit($userId, $lang);
 
-            // Charger le compte (email, nom, adresse facturation pour PBX_BILLING)
-            $account     = (new AccountModel())->findById($userId);
-            $clientEmail = (string) ($account !== false ? ($account['email'] ?? '') : '');
-            $clientName  = trim(
-                ($account !== false ? ($account['firstname'] ?? '') : '')
-                . ' '
-                . ($account !== false ? ($account['lastname'] ?? '') : '')
-            );
+            try {
+                // Charger le compte (email, nom, adresse facturation pour PBX_BILLING)
+                $account     = (new AccountModel())->findById($userId);
+                $clientEmail = (string) ($account !== false ? ($account['email'] ?? '') : '');
+                $clientName  = trim(
+                    ($account !== false ? ($account['firstname'] ?? '') : '')
+                    . ' '
+                    . ($account !== false ? ($account['lastname'] ?? '') : '')
+                );
 
-            // Générer la référence avant envoi à CA
-            $reference = 'WEB-CB-' . strtoupper(bin2hex(random_bytes(4))) . '-' . date('Y');
+                // Générer la référence avant envoi à CA
+                $reference = 'WEB-CB-' . strtoupper(bin2hex(random_bytes(4))) . '-' . date('Y');
 
-            // Récupérer l'adresse de facturation pour PBX_BILLING
-            $billingAddr = $this->addresses->findByIdForUser($billingAddressId, $userId);
+                // Récupérer l'adresse de facturation pour PBX_BILLING
+                $billingAddr = $this->addresses->findByIdForUser($billingAddressId, $userId);
 
-            $snapshot = [
-                'reference'           => $reference,
-                'user_id'             => $userId,
-                'items'               => $items,
-                'total'               => $total,
-                'delivery_discount'   => $deliveryDiscount,
-                'billing_address_id'  => $billingAddressId,
-                'delivery_address_id' => $deliveryAddressId,
-                'cgv_version'         => $cgvVersion,
-                'lang'                => $lang,
-                'newsletter'          => (bool) $this->request->post('newsletter', ''),
-                'client_email'        => $clientEmail,
-                'client_name'         => $clientName,
-            ];
+                $snapshot = [
+                    'reference'           => $reference,
+                    'user_id'             => $userId,
+                    'items'               => $items,
+                    'total'               => $total,
+                    'delivery_discount'   => $deliveryDiscount,
+                    'billing_address_id'  => $billingAddressId,
+                    'delivery_address_id' => $deliveryAddressId,
+                    'cgv_version'         => $cgvVersion,
+                    'lang'                => $lang,
+                    'newsletter'          => (bool) $this->request->post('newsletter', ''),
+                    'client_email'        => $clientEmail,
+                    'client_name'         => $clientName,
+                ];
 
-            // Persister le snapshot en BDD — l'IPN CA (server-to-server) n'a pas
-            // accès à la session PHP du navigateur, il lira depuis payment_intents.
-            (new \Model\PaymentIntentModel())->save($reference, $userId, $snapshot);
+                // Persister le snapshot en BDD — l'IPN CA (server-to-server) n'a pas
+                // accès à la session PHP du navigateur, il lira depuis payment_intents.
+                (new \Model\PaymentIntentModel())->save($reference, $userId, $snapshot);
 
-            // Conserver aussi en session pour l'UX (paymentReturnOk)
-            $_SESSION['ca_payment'] = $snapshot;
+                // Conserver aussi en session pour l'UX (paymentReturnOk)
+                $_SESSION['ca_payment'] = $snapshot;
 
-            // Construire les champs PBX via PaymentService
-            $paymentService = new \Service\PaymentService();
-            $pbx = $paymentService->buildPbxFields(
-                $reference,
-                (int) round($total * 100),
-                $clientEmail,
-                (string) ($billingAddr !== null ? ($billingAddr['firstname'] ?? '') : ($account['firstname'] ?? '')),
-                (string) ($billingAddr !== null ? ($billingAddr['lastname']  ?? '') : ($account['lastname']  ?? '')),
-                (string) ($billingAddr !== null ? ($billingAddr['street']    ?? '') : ''),
-                (string) ($billingAddr !== null ? ($billingAddr['zip_code']  ?? '') : ''),
-                (string) ($billingAddr !== null ? ($billingAddr['city']      ?? '') : ''),
-                $totalQty,
-                $lang
-            );
+                // Construire les champs PBX via PaymentService
+                $paymentService = new \Service\PaymentService();
+                $pbx = $paymentService->buildPbxFields(
+                    $reference,
+                    (int) round($total * 100),
+                    $clientEmail,
+                    (string) ($billingAddr !== null ? ($billingAddr['firstname'] ?? '') : ($account['firstname'] ?? '')),
+                    (string) ($billingAddr !== null ? ($billingAddr['lastname']  ?? '') : ($account['lastname']  ?? '')),
+                    (string) ($billingAddr !== null ? ($billingAddr['street']    ?? '') : ''),
+                    (string) ($billingAddr !== null ? ($billingAddr['zip_code']  ?? '') : ''),
+                    (string) ($billingAddr !== null ? ($billingAddr['city']      ?? '') : ''),
+                    $totalQty,
+                    $lang
+                );
 
-            // Rendre la vue formulaire auto-submit (pas de redirection)
-            $this->view('order/payment-form', [
-                'lang'   => $lang,
-                'url'    => $pbx['url'],
-                'fields' => $pbx['fields'],
-            ]);
-            return;
+                // Rendre la vue formulaire auto-submit (pas de redirection)
+                $this->view('order/payment-form', [
+                    'lang'   => $lang,
+                    'url'    => $pbx['url'],
+                    'fields' => $pbx['fields'],
+                ]);
+                return;
+            } catch (\Throwable $e) {
+                \Core\ErrorLogger::warning($e);
+                $_SESSION['flash']['checkout_errors']['payment'] = __('payment.card_unavailable');
+                Response::redirect($back);
+            }
         }
 
         // ---- Chemin virement / chèque ----
@@ -817,6 +823,12 @@ class OrderController extends Controller
      */
     private function generateAndStoreInvoice(string $reference): void
     {
+        // Désactivable via INVOICE_AUTO_GENERATE=false — cohérent avec IpnController et OrderAdminController
+        $autoInvoice = strtolower((string) ($_ENV['INVOICE_AUTO_GENERATE'] ?? 'true')) !== 'false';
+        if (!$autoInvoice) {
+            return;
+        }
+
         try {
             $order = $this->orders->findByReferenceForInvoice($reference);
             if ($order === null) {

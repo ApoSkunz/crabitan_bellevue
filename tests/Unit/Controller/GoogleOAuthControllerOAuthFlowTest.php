@@ -11,13 +11,14 @@ use Core\Exception\HttpException;
 use Core\Request;
 use Model\AccountModel;
 use Model\ConnectionModel;
+use Model\GoogleLinkTokenModel;
 use PHPUnit\Framework\TestCase;
 use Service\GoogleOAuthService;
 
 /**
  * Tests unitaires GoogleOAuthController — couverture des branches non couvertes.
  *
- * Couvre : authorize(), callback() erreurs, linkConfirm(), linkConfirmPost(),
+ * Couvre : authorize(), callback() erreurs, Cas 2 (rattachement par email),
  *          resolveDeviceToken(), resolveLang(), issueSession() via AccountModel mock.
  */
 class GoogleOAuthControllerOAuthFlowTest extends TestCase
@@ -285,7 +286,7 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // callback() — cas 2 : email connu → page de rattachement
+    // callback() — cas 2 : email connu → rattachement par email (GoogleLinkToken)
     // ----------------------------------------------------------------
 
     public function testCallbackWithExistingEmailRedirectsToLinkPage(): void
@@ -307,18 +308,29 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
 
         $accountsMock = $this->createStub(AccountModel::class);
         $accountsMock->method('findByGoogleId')->willReturn(false);
-        $accountsMock->method('findByEmail')->willReturn(['id' => 7, 'email' => 'existing@example.com']);
+        $accountsMock->method('findByEmail')->willReturn([
+            'id' => 7, 'email' => 'existing@example.com', 'firstname' => 'Jane', 'lang' => 'fr',
+        ]);
 
         $accountsProp = new \ReflectionProperty(GoogleOAuthController::class, 'accounts');
         $accountsProp->setValue($ctrl, $accountsMock);
 
+        // Mock GoogleLinkTokenModel pour éviter l'accès BDD
+        $linkTokensMock = $this->createStub(GoogleLinkTokenModel::class);
+        $linkTokensMock->method('create')->willReturn('fake-link-token-hex');
+        $linkTokensProp = new \ReflectionProperty(GoogleOAuthController::class, 'linkTokens');
+        $linkTokensProp->setValue($ctrl, $linkTokensMock);
+
+        $redirectLocation = null;
         try {
             $ctrl->callback(['lang' => 'fr']);
-        } catch (HttpException) {
+        } catch (HttpException $e) {
+            $redirectLocation = (string) $e->location;
         }
 
-        $this->assertArrayHasKey('pending_google_link', $_SESSION);
-        $this->assertSame('existing@example.com', $_SESSION['pending_google_link']['email']);
+        // Cas 2 rattachement : email envoyé + redirection vers /fr/auth/google/link
+        $this->assertSame('existing@example.com', $_SESSION['pending_google_link_email_sent'] ?? null);
+        $this->assertStringContainsString('/fr/auth/google/link', (string) $redirectLocation);
     }
 
     // ----------------------------------------------------------------
@@ -366,65 +378,6 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
         }
 
         $this->assertTrue(true); // flux atteint issueSession sans erreur
-    }
-
-    // ----------------------------------------------------------------
-    // linkConfirm() — sans pending_google_link
-    // ----------------------------------------------------------------
-
-    public function testLinkConfirmWithoutPendingRedirectsToLogin(): void
-    {
-        $_SESSION = [];
-
-        try {
-            $this->makeController()->linkConfirm(['lang' => 'fr']);
-        } catch (HttpException) {
-        }
-
-        // Pas de pending → redirige vers login (HttpException levée par Response::redirect)
-        $this->assertArrayNotHasKey('pending_google_link', $_SESSION);
-    }
-
-    // ----------------------------------------------------------------
-    // linkConfirmPost() — sans pending_google_link
-    // ----------------------------------------------------------------
-
-    public function testLinkConfirmPostWithoutPendingSetsFlashAndRedirects(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SESSION = [];
-
-        try {
-            $this->makeController()->linkConfirmPost(['lang' => 'fr']);
-        } catch (HttpException) {
-        }
-
-        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
-    }
-
-    // ----------------------------------------------------------------
-    // linkConfirmPost() — action cancel
-    // ----------------------------------------------------------------
-
-    public function testLinkConfirmPostCancelSetsFlashAndRedirects(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST    = ['action' => 'cancel'];
-        $_SESSION = ['pending_google_link' => [
-            'google_id'  => 'g-123',
-            'account_id' => 7,
-            'email'      => 'link@example.com',
-            'firstname'  => 'Jean',
-        ]];
-
-        try {
-            $this->makeController()->linkConfirmPost(['lang' => 'fr']);
-        } catch (HttpException) {
-        }
-
-        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
-        // pending_google_link supprimé lors du cancel
-        $this->assertArrayNotHasKey('pending_google_link', $_SESSION);
     }
 
     // ----------------------------------------------------------------

@@ -5,7 +5,10 @@
  * 2. Infinite scroll : chargement AJAX de la page suivante quand la sentinelle
  *    entre dans le viewport, avec pushState (?page=N) et spinner.
  *
- * Pages cibles : .page-wines, .page-wines-collection, .page-news, .page-gallery
+ * Pages cibles : boutique (/vins), collection (/vins/collection), actualités (/actualites).
+ * La pagination classique reste rendue par le serveur (progressive enhancement
+ * + fallback JS désactivé) mais est masquée visuellement (style.display='none')
+ * par initInfiniteScroll() quand le scroll infini prend le relais.
  */
 
 // ============================================================
@@ -47,11 +50,16 @@ function initCardReveal() {
 // 2. Infinite scroll (pagination AJAX + pushState)
 // ============================================================
 
+/**
+ * Sélecteurs des pages cibles : boutique, collection, actualités.
+ * Le scroll infini ne s'active que si une de ces classes est présente sur <body>.
+ */
+const INFINITE_SCROLL_PAGES = ['.page-wines', '.page-wines-collection', '.page-news'];
+
 /** Sélecteurs du conteneur de cartes selon la page courante. */
 const GRID_SELECTORS = [
     '.wines-grid',       // /vins et /vins/collection
     '.home-news__grid',  // /actualites
-    '#gallery-container', // /galerie
 ];
 
 /**
@@ -96,7 +104,24 @@ function createSentinel() {
 }
 
 /**
- * Met à jour la pagination DOM avec celle de la page suivante.
+ * Masque la pagination serveur quand le JS prend le relais (progressive enhancement).
+ * Conserve l'ancre rel="next" pour en extraire les URLs sans la rendre visible.
+ *
+ * @return {void}
+ */
+function hideServerPagination() {
+    document.querySelectorAll('nav.wines-pagination, nav[aria-label="Pagination"]').forEach((nav) => {
+        nav.style.display = 'none';
+    });
+    // Cacher également le sélecteur "lignes par page" — non pertinent avec scroll infini
+    document.querySelectorAll('.wines-filters__per-page, .per-page-selector').forEach((el) => {
+        el.style.display = 'none';
+    });
+}
+
+/**
+ * Met à jour la pagination DOM (lien rel="next") avec celle de la page suivante,
+ * sans la rendre visible.
  *
  * @param {Document} doc - Document parsé de la page suivante
  * @return {void}
@@ -105,20 +130,31 @@ function swapPagination(doc) {
     const oldNav = document.querySelector('nav.wines-pagination');
     const newNav = doc.querySelector('nav.wines-pagination');
     if (oldNav && newNav) {
-        oldNav.replaceWith(newNav.cloneNode(true));
+        const clone = newNav.cloneNode(true);
+        clone.style.display = 'none';
+        oldNav.replaceWith(clone);
     } else if (oldNav && !newNav) {
         oldNav.remove();
     }
 }
 
 /**
- * Initialise le chargement infini sur les pages catalogue, collection,
- * actualités et galerie.
+ * Vérifie si la page courante est éligible au scroll infini.
+ *
+ * @return {boolean}
+ */
+function isInfiniteScrollPage() {
+    return INFINITE_SCROLL_PAGES.some((sel) => document.querySelector(`main${sel}`) !== null);
+}
+
+/**
+ * Initialise le chargement infini sur les pages catalogue, collection et actualités.
  *
  * @return {void}
  */
 function initInfiniteScroll() {
     if (!('IntersectionObserver' in globalThis)) return;
+    if (!isInfiniteScrollPage()) return;
 
     // Trouver le conteneur de cartes actif
     let grid = null;
@@ -129,7 +165,10 @@ function initInfiniteScroll() {
     }
     if (!grid) return;
 
-    // Vérifier qu'il y a une page suivante
+    // Masquer la pagination serveur (progressive enhancement)
+    hideServerPagination();
+
+    // Vérifier qu'il y a une page suivante — sinon tout tient déjà dans la grille
     if (!getNextPageUrl()) return;
 
     let loading = false;
@@ -138,10 +177,8 @@ function initInfiniteScroll() {
     const spinner = getOrCreateSpinner();
     const sentinel = createSentinel();
 
-    // Insérer sentinelle + spinner après le dernier élément de pagination ou après la grille
-    const paginationNav = document.querySelector('nav.wines-pagination, div.container > nav[aria-label="Pagination"]');
-    const insertAfter = paginationNav || grid;
-    insertAfter.after(sentinel);
+    // Insérer sentinelle + spinner après la grille (pas après la pagination maintenant cachée)
+    grid.after(sentinel);
     sentinel.before(spinner);
 
     const observer = new IntersectionObserver(
@@ -181,20 +218,15 @@ function initInfiniteScroll() {
                         initCardReveal();
                     }
 
-                    // Mettre à jour l'URL avec pushState
-                    const pageMatch = /[?&]page=(\d+)/.exec(nextUrl);
-                    if (pageMatch) {
-                        const url = new URL(nextUrl);
-                        globalThis.history.pushState({ page: pageMatch[1] }, '', url.pathname + url.search);
-                    }
+                    // Pas de pushState — l'URL reste stable pendant le scroll infini
+                    // (l'ancre rel="next" est mise à jour via swapPagination pour suivre la progression)
 
-                    // Mettre à jour la pagination DOM
+                    // Mettre à jour la pagination DOM (masquée)
                     swapPagination(doc);
 
                     spinner.classList.remove('is-visible');
                     loading = false;
 
-                    // Vérifier s'il reste une page suivante
                     if (!getNextPageUrl()) {
                         exhausted = true;
                         sentinel.remove();

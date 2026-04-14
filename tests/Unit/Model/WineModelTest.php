@@ -107,20 +107,6 @@ class WineModelTest extends TestCase
         $this->model->getAll(null, 'vintage_desc');
     }
 
-    public function testGetAllSortLikesDescBuildsCorrectOrder(): void
-    {
-        $this->dbMock
-            ->expects($this->once())
-            ->method('fetchAll')
-            ->with(
-                $this->stringContains('likes_count DESC'),
-                $this->anything()
-            )
-            ->willReturn([]);
-
-        $this->model->getAll(null, 'likes_desc');
-    }
-
     public function testGetAllWithLimitUsesLimitClause(): void
     {
         $this->dbMock
@@ -485,25 +471,6 @@ class WineModelTest extends TestCase
             ->willReturn([]);
 
         $this->model->getAllByColor(null, 'default', null, 10, 20);
-    }
-
-    /**
-     * Vérifie que getAllByColor avec sort='likes_desc' trie par likes_count DESC.
-     *
-     * @return void
-     */
-    public function testGetAllByColorWithLikesDescSort(): void
-    {
-        $this->dbMock
-            ->expects($this->once())
-            ->method('fetchAll')
-            ->with(
-                $this->stringContains('likes_count DESC'),
-                $this->anything()
-            )
-            ->willReturn([]);
-
-        $this->model->getAllByColor(null, 'likes_desc');
     }
 
     // ----------------------------------------------------------------

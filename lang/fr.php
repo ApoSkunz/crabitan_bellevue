@@ -14,6 +14,7 @@ return [
     'nav.contact'     => 'Contact',
     'nav.wines'       => 'Boutique',
     'nav.collection'  => 'Collection des vins',
+    'collection.intro' => 'Retrouvez toutes les informations de vos millésimes préférés depuis 2010.',
     'nav.news'        => 'Actualités',
     'nav.savoir_faire' => 'Savoir-Faire',
     'nav.chateau'     => 'Le Château',
@@ -75,6 +76,10 @@ return [
     'auth.google_link_cancel'       => 'Non, revenir à la connexion',
     'auth.google_link_cancel_info'  => 'Un compte existe déjà avec cette adresse email. Connectez-vous avec votre mot de passe, ou cliquez à nouveau sur « Continuer avec Google » pour associer votre compte.',
     'auth.google_link_note'         => 'En confirmant, vous pourrez vous connecter avec Google ou votre mot de passe.',
+    'auth.google_link_email_sent_intro'        => 'Pour rattacher votre compte Google, un email de confirmation vient d\'être envoyé à',
+    'auth.google_link_email_sent_instructions' => 'Ouvrez votre boîte mail et cliquez sur le lien de confirmation pour finaliser le rattachement.',
+    'auth.google_link_email_sent_ttl'          => 'Le lien est valable 15 minutes. Sans confirmation, aucun rattachement ne sera effectué.',
+    'auth.google_link_token_invalid'           => 'Le lien de rattachement est invalide ou a expiré. Recommencez la connexion via Google.',
     'auth.modal.no_account'  => 'Pas encore de compte ?',
     'auth.modal.sign_up'      => 'S\'inscrire',
     'auth.modal.have_account' => 'Déjà un compte ?',
@@ -85,7 +90,7 @@ return [
     'wine.add_favorite'   => 'Ajouter aux favoris',
     'wine.favorite_login' => 'Connectez-vous pour ajouter ce vin à vos favoris.',
     'wine.out_of_stock' => 'Épuisé',
-    'wine.not_for_sale' => 'Non disponible à la vente',
+    'wine.not_for_sale' => 'Millésime épuisé',
     'wine.available'    => 'Disponible',
     'wine.low_stock'     => 'Stock limité',
     'wine.low_stock_qty' => 'bt restantes',
@@ -119,7 +124,6 @@ return [
     'wine.sort.price_desc'   => 'Prix décroissant',
     'wine.sort.vintage_asc'  => 'Millésime croissant',
     'wine.sort.vintage_desc' => 'Millésime décroissant',
-    'wine.sort.likes_desc'   => 'Les plus aimés',
     'wine.sort.rating_desc'  => 'Mieux notés',
 
     // Vins — Fiche produit
@@ -238,7 +242,8 @@ return [
     'error.404'    => 'Page introuvable',
     'error.500'    => 'Erreur serveur',
     'error.403'    => 'Accès refusé',
-    'error.csrf'   => 'Requête invalide, veuillez réessayer.',
+    'error.csrf'          => 'Votre session de sécurité a expiré (formulaire ouvert depuis trop longtemps). Rechargez la page puis réessayez.',
+    'error.csrf_expired'  => 'Session expirée pour des raisons de sécurité. Rechargez la page et validez à nouveau.',
 
     // Formulaires
     'common.close'          => 'Fermer',
@@ -765,6 +770,7 @@ return [
     'account.email_change_cancelled'        => 'La demande de changement d\'adresse email a été annulée.',
     'account.email_change_revoked_title'    => 'Demande annulée',
     'account.email_change_revoked_body'     => 'La demande de changement d\'adresse email a bien été annulée. Votre adresse actuelle reste inchangée.',
+    'account.email_change_blocked_google'   => 'Votre compte est lié à Google. Votre adresse email est gérée par Google et ne peut pas être modifiée depuis ce site.',
 
     // Commandes — détail & annulation
     'account.order_detail'       => 'Détail de la commande',
@@ -1020,6 +1026,7 @@ return [
     'payment.success_fallback'  => 'Si la page ne se charge pas, <a href="/{lang}/mon-compte/commandes">cliquez ici</a>.',
     'payment.success_loading'   => 'Votre commande est en cours de finalisation...',
     'payment.success_redirect'  => 'Vous allez être redirigé vers votre espace commandes.',
+    'payment.card_unavailable'  => 'Le paiement par carte bancaire est momentanément indisponible. Vous pouvez régler par virement ou chèque, ou réessayer dans quelques minutes.',
 
     // Erreurs génériques
     'error.generic' => 'Une erreur est survenue. Veuillez réessayer.',

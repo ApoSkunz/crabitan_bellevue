@@ -75,6 +75,13 @@ if (!$isCrawler && preg_match('/WebsiteCarbon|websitecarbon\.com/i', $ua)) {
     $isCrawler = true;
 }
 
+// Fallback Referer : leur crawler headless peut utiliser un UA Chrome standard.
+// Si la requête vient depuis websitecarbon.com (test manuel ou API), on bypass.
+$referer = $_SERVER['HTTP_REFERER'] ?? '';
+if (!$isCrawler && $referer !== '' && preg_match('#^https?://([a-z0-9-]+\.)?websitecarbon\.com(/|$)#i', $referer)) {
+    $isCrawler = true;
+}
+
 // Crawlers SEO majeurs : UA-trust si le reverse-DNS a échoué (IONOS mutualisé sans APCu).
 // Un crawler usurpé ne verrait que le contenu public — aucun exploit Loi Evin possible
 // (crawler = lecture seule, pas de consommation d'alcool).

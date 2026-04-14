@@ -2,6 +2,8 @@ import '../scss/main.scss';
 import './error-reporter.js';
 import { initCarbonBadge } from './carbon-badge.js';
 import { initLazyLoad } from './lazy-load.js';
+import { initAutoSubmitFilters, initLangSwitchToast, initFocusTrap } from './ux-enhancements.js';
+import { initWinesFiltersAjax } from './wines-filters-ajax.js';
 
 // ============================================================
 // Thème jour / nuit
@@ -2406,6 +2408,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initCartPage();
     initFlashAutofocus();
     initLangPreference();
+    initAutoSubmitFilters();
+    initWinesFiltersAjax();
+    initLangSwitchToast();
+    initFocusTrap();
 
 // QR Code admin — modal depuis le tableau des vins
     const qrModal = document.getElementById('admin-qr-modal');

@@ -193,6 +193,19 @@
     }
 }
 
+// ============================================================
+// Filtres AJAX — fondu pendant le swap
+// ============================================================
+
+[data-ajax-content] {
+    transition: opacity 0.18s ease-out;
+
+    &.is-loading {
+        opacity: 0.35;
+        pointer-events: none;
+    }
+}
+
 .wines-pagination {
     display: flex;
     align-items: center;
@@ -448,6 +461,14 @@
         font-family: var(--font-serif);
         font-size: 1rem;
         color: var(--color-gold);
+
+        &--unavailable {
+            font-size: 0.85rem;
+            font-style: italic;
+            font-weight: 400;
+            color: var(--color-text-muted);
+            letter-spacing: 0.03em;
+        }
     }
 
     &__rating-badge {

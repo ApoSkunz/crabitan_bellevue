@@ -8,6 +8,7 @@ use Controller\GoogleOAuthController;
 use Core\Database;
 use Core\Exception\HttpException;
 use Core\Request;
+use Model\GoogleLinkTokenModel;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -26,6 +27,7 @@ class GoogleOAuthControllerTest extends TestCase
         $_SESSION = [];
         $_COOKIE  = [];
         $_GET     = [];
+        $_POST    = [];
         $_ENV['GOOGLE_CLIENT_ID']     = 'test-id';
         $_ENV['GOOGLE_CLIENT_SECRET'] = 'test-secret';
         $_ENV['APP_URL']              = 'http://localhost';
@@ -164,66 +166,86 @@ class GoogleOAuthControllerTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // linkConfirm() — page de confirmation de rattachement
+    // linkConfirm() — page "email envoyé" après Cas 2
     // ----------------------------------------------------------------
 
-    public function testLinkConfirmWithNoPendingLinkRedirects(): void
+    public function testLinkConfirmWithoutSessionRedirectsToLogin(): void
     {
-        $_SESSION = []; // pas de pending_google_link en session
+        $_SESSION = []; // pas de pending_google_link_email_sent
 
         $ctrl = $this->makeController();
 
+        $redirect = null;
         try {
             $ctrl->linkConfirm(['lang' => 'fr']);
-        } catch (HttpException) {
+        } catch (HttpException $e) {
+            $redirect = (string) $e->location;
         }
 
-        // doit rediriger (pas d'erreur fatale, pas de page affichée)
-        $this->assertTrue(true);
+        $this->assertStringContainsString('login=1', (string) $redirect);
     }
 
     // ----------------------------------------------------------------
-    // linkConfirmPost() — confirmation du rattachement
+    // linkVerifyByToken() — consommation du token email
     // ----------------------------------------------------------------
 
-    public function testLinkConfirmPostWithNoPendingLinkSetsError(): void
+    public function testLinkVerifyByTokenWithEmptyTokenRedirectsWithError(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SESSION = []; // pas de pending_google_link
+        $_GET     = []; // pas de token
+        $_SESSION = [];
 
         $ctrl = $this->makeController();
 
         try {
-            $ctrl->linkConfirmPost(['lang' => 'fr']);
+            $ctrl->linkVerifyByToken(['lang' => 'fr']);
         } catch (HttpException) {
         }
 
         $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
     }
 
-    public function testLinkConfirmPostCancelRedirectsToLogin(): void
+    public function testLinkVerifyByTokenWithInvalidTokenRedirectsWithError(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST    = ['action' => 'cancel'];
-        $_SESSION = [
-            'pending_google_link' => [
-                'google_id'  => 'g123',
-                'account_id' => 42,
-                'email'      => 'test@example.com',
-            ],
-        ];
+        $_GET     = ['token' => 'invalid-token'];
+        $_SESSION = [];
 
         $ctrl = $this->makeController();
 
-        $redirected = false;
+        // Mock pour renvoyer false (token inexistant ou expiré)
+        $linkTokensMock = $this->createStub(GoogleLinkTokenModel::class);
+        $linkTokensMock->method('findActive')->willReturn(false);
+
+        $prop = new \ReflectionProperty(GoogleOAuthController::class, 'linkTokens');
+        $prop->setValue($ctrl, $linkTokensMock);
+
+        try {
+            $ctrl->linkVerifyByToken(['lang' => 'fr']);
+        } catch (HttpException) {
+        }
+
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+    }
+
+    // ----------------------------------------------------------------
+    // linkConfirmPost() — annulation du rattachement
+    // ----------------------------------------------------------------
+
+    public function testLinkConfirmPostCancelSetsFlashAndRedirects(): void
+    {
+        $_POST    = ['action' => 'cancel'];
+        $_SESSION = ['pending_google_link_email_sent' => 'foo@example.com'];
+
+        $ctrl = $this->makeController();
+
+        $redirect = null;
         try {
             $ctrl->linkConfirmPost(['lang' => 'fr']);
         } catch (HttpException $e) {
-            $redirected = str_contains((string) $e->location, 'login=1')
-                || str_contains((string) $e->location, 'fr');
+            $redirect = (string) $e->location;
         }
 
-        $this->assertTrue($redirected);
-        $this->assertArrayNotHasKey('pending_google_link', $_SESSION);
+        $this->assertArrayNotHasKey('pending_google_link_email_sent', $_SESSION);
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+        $this->assertStringContainsString('login=1', (string) $redirect);
     }
 }

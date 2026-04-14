@@ -210,6 +210,31 @@ class AccountServiceEmailChangeTest extends TestCase
         $this->service->requestEmailChange(1, 'taken@example.com', 'Password123!', '127.0.0.1');
     }
 
+    /**
+     * Vérifie qu'un compte Google (google_id non null) ne peut pas changer d'email.
+     * L'adresse est gérée par le fournisseur OAuth.
+     */
+    public function testRequestEmailChangeRejectsGoogleAccount(): void
+    {
+        $this->expectException(HttpException::class);
+
+        $this->accountModel
+            ->method('findById')
+            ->willReturn([
+                'id'        => 7,
+                'email'     => 'user@gmail.com',
+                'password'  => null,
+                'lang'      => 'fr',
+                'google_id' => '1234567890',
+            ]);
+
+        $this->accountModel
+            ->expects($this->never())
+            ->method('saveEmailChangeToken');
+
+        $this->service->requestEmailChange(7, 'new@example.com', '', '127.0.0.1');
+    }
+
     // ----------------------------------------------------------------
     // confirmEmailChange — cas nominaux
     // ----------------------------------------------------------------

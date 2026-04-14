@@ -49,7 +49,7 @@ if (!function_exists('rgpdUrl')) {
     <a href="/admin/rgpd/demandes/ajouter" class="admin-btn admin-btn--primary admin-btn--sm">+ Nouvelle demande</a>
 </div>
 
-<form method="GET" action="/admin/rgpd/demandes" class="admin-filters" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+<form method="GET" action="/admin/rgpd/demandes" class="admin-filters" data-auto-submit style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
     <select name="status" class="admin-filters__select" aria-label="Filtrer par statut">
         <option value="">Tous les statuts</option>
         <?php foreach ($statusLabels as $val => $label) : ?>
@@ -74,7 +74,7 @@ if (!function_exists('rgpdUrl')) {
         <?php endforeach; ?>
     </select>
 
-    <button type="submit" class="admin-btn admin-btn--outline admin-btn--sm">Filtrer</button>
+    <button type="submit" class="admin-btn admin-btn--outline admin-btn--sm js-noscript-only">Filtrer</button>
     <a href="/admin/rgpd/demandes" class="admin-btn admin-btn--ghost admin-btn--sm">Réinitialiser</a>
 </form>
 

@@ -10,13 +10,14 @@ RewriteBase /
 # -----------------------------------------------------------------------------
 
 # ---- Mode maintenance -------------------------------------------------------
-# Pour activer : décommenter les 5 lignes RewriteCond/Rule ci-dessous.
-# Remplacer l'IP par la tienne (vérifier sur https://ifconfig.me avant d'activer).
-# ---- Activer maintenance (décommenter) ----
-# RewriteCond %{REQUEST_URI} !^/maintenance\.php$
-# RewriteCond %{REQUEST_URI} !^/assets/
-# RewriteCond %{REMOTE_ADDR} !^203\.0\.113\.42$
-# RewriteRule ^(.*)$ /maintenance.php [R=302,L]
+# La page maintenance.html + .htaccess.maintenance sont versionnés dans public/.
+# deploy-prod.sh upload .htaccess.maintenance → .htaccess pendant le deploy,
+# puis restaure ce .htaccess à la fin (désactivation automatique).
+#
+# Hors maintenance : un appel direct à /maintenance.html ou /.htaccess.maintenance
+# n'a pas de sens → on redirige vers l'accueil.
+RewriteRule ^maintenance\.html$ / [R=302,L]
+RewriteRule ^\.htaccess\.maintenance$ - [F,L]
 # ---- /Mode maintenance -------------------------------------------------------
 
 # Redirige tout vers index.php sauf fichiers/dossiers existants

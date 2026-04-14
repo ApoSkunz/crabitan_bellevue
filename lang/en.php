@@ -14,6 +14,7 @@ return [
     'nav.contact'     => 'Contact',
     'nav.wines'       => 'Shop',
     'nav.collection'  => 'Wine Collection',
+    'collection.intro' => 'Find all the details of your favourite vintages since 2010.',
     'nav.news'        => 'News',
     'nav.savoir_faire' => 'Know-How',
     'nav.chateau'     => 'Le Château',
@@ -75,6 +76,10 @@ return [
     'auth.google_link_cancel'       => 'No, go back to sign in',
     'auth.google_link_cancel_info'  => 'An account already exists with this email address. Sign in with your password, or click "Continue with Google" again to link your account.',
     'auth.google_link_note'         => 'By confirming, you\'ll be able to sign in with Google or your password.',
+    'auth.google_link_email_sent_intro'        => 'To link your Google account, a confirmation email has just been sent to',
+    'auth.google_link_email_sent_instructions' => 'Open your inbox and click the confirmation link to complete the linking.',
+    'auth.google_link_email_sent_ttl'          => 'The link is valid for 15 minutes. Without confirmation, no linking will be performed.',
+    'auth.google_link_token_invalid'           => 'The linking link is invalid or has expired. Please start the Google sign-in again.',
     'auth.modal.no_account'  => 'Don\'t have an account?',
     'auth.modal.sign_up'      => 'Sign up',
     'auth.modal.have_account' => 'Already have an account?',
@@ -85,7 +90,7 @@ return [
     'wine.add_favorite'   => 'Add to favourites',
     'wine.favorite_login' => 'Log in to add this wine to your favourites.',
     'wine.out_of_stock' => 'Out of stock',
-    'wine.not_for_sale' => 'Not for sale',
+    'wine.not_for_sale' => 'Vintage sold out',
     'wine.available'    => 'Available',
     'wine.low_stock'     => 'Limited stock',
     'wine.low_stock_qty' => 'btl remaining',
@@ -119,7 +124,6 @@ return [
     'wine.sort.price_desc'   => 'Price descending',
     'wine.sort.vintage_asc'  => 'Vintage ascending',
     'wine.sort.vintage_desc' => 'Vintage descending',
-    'wine.sort.likes_desc'   => 'Most liked',
     'wine.sort.rating_desc'  => 'Top rated',
 
     // Wines — Product sheet
@@ -238,7 +242,8 @@ return [
     'error.404'    => 'Page not found',
     'error.500'    => 'Server error',
     'error.403'    => 'Access denied',
-    'error.csrf'   => 'Invalid request, please try again.',
+    'error.csrf'          => 'Your security session has expired (form open for too long). Please reload the page and try again.',
+    'error.csrf_expired'  => 'Session expired for security reasons. Reload the page and submit again.',
 
     // Forms
     'common.close'          => 'Close',
@@ -764,6 +769,7 @@ return [
     'account.email_change_cancelled'        => 'The email address change request has been cancelled.',
     'account.email_change_revoked_title'    => 'Request cancelled',
     'account.email_change_revoked_body'     => 'The email address change request has been cancelled. Your current address remains unchanged.',
+    'account.email_change_blocked_google'   => 'Your account is linked to Google. Your email address is managed by Google and cannot be changed from this site.',
 
     // Orders — detail & cancellation
     'account.order_detail'       => 'Order detail',
@@ -1019,6 +1025,7 @@ return [
     'payment.success_fallback'  => 'If the page does not load, <a href="/{lang}/mon-compte/commandes">click here</a>.',
     'payment.success_loading'   => 'Your order is being finalised...',
     'payment.success_redirect'  => 'You will be redirected to your orders.',
+    'payment.card_unavailable'  => 'Card payment is temporarily unavailable. You can pay by bank transfer or cheque, or try again in a few minutes.',
 
     // Generic errors
     'error.generic' => 'An error occurred. Please try again.',

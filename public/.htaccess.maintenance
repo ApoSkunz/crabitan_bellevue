@@ -1,0 +1,32 @@
+# ============================================================
+# .htaccess MAINTENANCE — Crabitan Bellevue
+# Déployé temporairement pendant le déploiement prod.
+# Remplacé par le .htaccess normal à la fin du deploy.
+# ============================================================
+
+# ErrorDocument doit être déclaré AVANT la règle qui renvoie 503
+ErrorDocument 503 /maintenance.html
+
+RewriteEngine On
+
+# HTTPS redirect conservé (SEO + sécurité) — 301 avant le 503
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Garde-fou anti-boucle : si on est déjà dans une réponse 503 servie par
+# ErrorDocument, ne pas rejouer la règle (sinon Apache boucle)
+RewriteCond %{ENV:REDIRECT_STATUS} ^$
+
+# Autorise l'accès à maintenance.html, favicon et assets statiques
+RewriteCond %{REQUEST_URI} !^/maintenance\.html$
+RewriteCond %{REQUEST_URI} !^/favicon\.ico$
+RewriteCond %{REQUEST_URI} !\.(png|jpe?g|gif|svg|css|js|woff2?|ttf|eot|ico)$ [NC]
+
+# Envoie 503 (pas de cible → ErrorDocument prend le relais)
+RewriteRule .* - [R=503,L]
+
+# Retry-After pour les crawlers (30 min)
+<IfModule mod_headers.c>
+    Header always set Retry-After "1800"
+    Header always set Cache-Control "no-store, no-cache, must-revalidate"
+</IfModule>

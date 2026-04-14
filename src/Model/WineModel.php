@@ -112,7 +112,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
      * Retourne les vins disponibles avec filtres, tri et pagination optionnels.
      *
      * @param string|null $color         Couleur (red|white|rosé|sweet)
-     * @param string      $sort          Tri : 'default'|'likes_desc'|'price_asc'|'price_desc'|'vintage_asc'|'vintage_desc'|'rating_desc'
+     * @param string      $sort          Tri : 'default'|'price_asc'|'price_desc'|'vintage_asc'|'vintage_desc'|'rating_desc'
      * @param int         $limit         Nombre de résultats (0 = pas de limite)
      * @param int         $offset        Décalage pour la pagination
      * @param bool|null   $cuveSpeciale  true = cuvée spéciale uniquement, null = tous
@@ -145,7 +145,6 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
             : '';
 
         $orderBy = match ($sort) {
-            'likes_desc'   => 'likes_count DESC, vintage DESC',
             'price_asc'    => 'price ASC, vintage DESC',
             'price_desc'   => 'price DESC, vintage DESC',
             'vintage_asc'  => 'vintage ASC',
@@ -203,7 +202,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
      * Inclut tous les vins (disponibles ET indisponibles).
      *
      * @param string|null $color   Filtre couleur optionnel
-     * @param string      $sort    Tri : 'default'|'likes_desc'|'vintage_asc'|'vintage_desc'|'rating_desc'
+     * @param string      $sort    Tri : 'default'|'vintage_asc'|'vintage_desc'|'rating_desc'
      * @param string|null $avail   Filtre dispo : null = tous | 'available' | 'out'
      * @param int         $perPage Limite totale (0 = pas de limite)
      * @param int         $offset  Décalage pour la pagination
@@ -241,7 +240,6 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
             : '';
 
         $orderBy = match ($sort) {
-            'likes_desc'   => 'wine_color DESC, likes_count DESC, vintage DESC',
             'vintage_asc'  => 'wine_color DESC, vintage ASC',
             'vintage_desc' => 'wine_color DESC, vintage DESC',
             'rating_desc'  => 'COALESCE(wr.avg_rating, 0) DESC, wine_color DESC, vintage DESC',

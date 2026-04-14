@@ -15,7 +15,6 @@ use Service\SecurityAlertService;
 
 class ProfileAdminController extends AdminController
 {
-    private const ADMIN_URL    = '/admin';
     private const SECURITY_URL = '/admin/securite';
 
     /** Rate limiting changement de mot de passe admin : 1 tentative / jour / IP. */
@@ -184,7 +183,7 @@ class ProfileAdminController extends AdminController
             $currentToken = $_COOKIE['auth_token'] ?? null;
             if ($tokenOfRevoked !== null && $currentToken !== null && $tokenOfRevoked === $currentToken) {
                 CookieHelper::clear();
-                Response::redirect(self::ADMIN_URL);
+                Response::redirect('/fr');
             }
         }
 
@@ -211,7 +210,7 @@ class ProfileAdminController extends AdminController
 
         $this->accounts->revokeAllSessions($adminUser['id']);
         CookieHelper::clear();
-        Response::redirect(self::ADMIN_URL);
+        Response::redirect('/fr');
     }
 
     // ----------------------------------------------------------------
@@ -296,6 +295,6 @@ class ProfileAdminController extends AdminController
         $this->trustedDevices->deleteAllForUser($userId);
         CookieHelper::clear();
 
-        Response::redirect(self::ADMIN_URL);
+        Response::redirect('/fr');
     }
 }

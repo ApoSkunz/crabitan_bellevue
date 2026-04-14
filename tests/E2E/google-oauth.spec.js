@@ -115,13 +115,4 @@ test.describe('Google OAuth — boutons et flux d\'erreur', () => {
         await expect(page.locator('#login-modal .alert--error')).toBeVisible();
     });
 
-    // ── Page de rattachement sans session ────────────────────────────────────
-
-    test('/auth/google/link sans pending_google_link en session redirige vers login', async ({ page, context }) => {
-        await visitVerified(page, context, '/fr');
-        await page.goto('/fr/auth/google/link');
-
-        await expect(page).not.toHaveURL(/\/auth\/google\/link/);
-    });
-
 });

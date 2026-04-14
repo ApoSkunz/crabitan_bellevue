@@ -85,6 +85,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
             <label for="addr-zip-<?= $idSuffix ?>"><?= htmlspecialchars(__('account.address_zip')) ?> *</label>
             <input type="text" id="addr-zip-<?= $idSuffix ?>" name="<?= $prefix ?>zip_code"
                    value="<?= $v('zip_code') ?>" required autocomplete="postal-code" maxlength="10"
+                   inputmode="numeric"
                    placeholder="75001" class="js-addr-zip" data-suffix="<?= $idSuffix ?>">
             <p class="form-hint js-zip-error-<?= $idSuffix ?>" hidden>
                 <?= htmlspecialchars(__('checkout.error_zip_mainland')) ?>
