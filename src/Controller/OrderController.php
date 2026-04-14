@@ -823,6 +823,12 @@ class OrderController extends Controller
      */
     private function generateAndStoreInvoice(string $reference): void
     {
+        // Désactivable via INVOICE_AUTO_GENERATE=false — cohérent avec IpnController et OrderAdminController
+        $autoInvoice = strtolower((string) ($_ENV['INVOICE_AUTO_GENERATE'] ?? 'true')) !== 'false';
+        if (!$autoInvoice) {
+            return;
+        }
+
         try {
             $order = $this->orders->findByReferenceForInvoice($reference);
             if ($order === null) {
