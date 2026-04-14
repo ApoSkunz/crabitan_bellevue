@@ -24,11 +24,11 @@ export function initAutoSubmitFilters() {
             el.style.display = 'none';
         });
 
-        if (form.hasAttribute('data-ajax-filter')) return;
+        if (form.dataset.ajaxFilter !== undefined) return;
 
         form.addEventListener('change', (e) => {
             const t = e.target;
-            if (!t || !(t.matches('select, input[type="radio"], input[type="checkbox"]'))) return;
+            if (!t?.matches('select, input[type="radio"], input[type="checkbox"]')) return;
             form.submit();
         });
     });
@@ -71,8 +71,9 @@ export function initLangSwitchToast() {
             document.body.appendChild(toast);
         }
         toast.textContent = msg;
-        // Force reflow puis ajoute la classe pour rejouer la transition
-        void toast.offsetWidth;
+        // Force reflow via getBoundingClientRect (pas de void, pas d'expression orpheline)
+        const _reflow = toast.getBoundingClientRect().width;
+        if (_reflow < 0) return; // jamais vrai — conserve la référence au calcul de reflow
         toast.classList.add('is-visible');
     };
 

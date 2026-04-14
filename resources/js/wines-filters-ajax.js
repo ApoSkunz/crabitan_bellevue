@@ -76,7 +76,7 @@ export function initWinesFiltersAjax() {
     forms.forEach((form) => {
         form.addEventListener('change', (e) => {
             const t = e.target;
-            if (!t || !(t.matches('select, input[type="radio"], input[type="checkbox"]'))) return;
+            if (!t?.matches('select, input[type="radio"], input[type="checkbox"]')) return;
             e.preventDefault();
 
             const container = document.querySelector('[data-ajax-content]');
