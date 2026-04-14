@@ -45,16 +45,38 @@ require_once __DIR__ . '/../partials/header.php';
                                         <?= (int) $wine['vintage'] ?>
                                     </span>
                                 <?php endif; ?>
-                                <span class="account-favorite-card__price">
-                                    <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
-                                </span>
-                                <button
-                                    class="btn btn--ghost btn--sm js-account-fav-remove"
-                                    data-wine-id="<?= (int) $wine['wine_id'] ?>"
-                                    aria-label="<?= __('account.remove_favorite') ?>"
-                                >
-                                    <?= __('account.remove_favorite') ?>
-                                </button>
+                                <?php $isAvailable = (bool) ($wine['available'] ?? false); ?>
+                                <?php if ($isAvailable) : ?>
+                                    <span class="account-favorite-card__price">
+                                        <?= number_format((float) $wine['price'], 2, ',', ' ') ?> €
+                                    </span>
+                                <?php else : ?>
+                                    <span class="account-favorite-card__price account-favorite-card__price--unavailable">
+                                        <em><?= htmlspecialchars(__('wine.not_for_sale')) ?></em>
+                                    </span>
+                                <?php endif; ?>
+                                <div class="account-favorite-card__actions">
+                                    <?php if ($isAvailable) : ?>
+                                        <button
+                                            type="button"
+                                            class="btn btn--gold btn--sm js-add-to-cart"
+                                            data-wine-id="<?= (int) $wine['wine_id'] ?>"
+                                            data-wine-name="<?= htmlspecialchars($wine['name'] . ' ' . (int) $wine['vintage']) ?>"
+                                            data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
+                                            data-wine-image="/assets/images/wines/<?= htmlspecialchars((string) $wine['image_path']) ?>"
+                                            data-wine-cuvee="<?= !empty($wine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
+                                            data-stock="<?= (int) ($wine['stock_quantity'] ?? 0) ?>"
+                                            aria-label="<?= htmlspecialchars(__('wine.add_to_cart') . ' : ' . $wine['name']) ?>"
+                                        >&#128722;</button>
+                                    <?php endif; ?>
+                                    <button
+                                        class="btn btn--ghost btn--sm js-account-fav-remove"
+                                        data-wine-id="<?= (int) $wine['wine_id'] ?>"
+                                        aria-label="<?= __('account.remove_favorite') ?>"
+                                    >
+                                        <?= __('account.remove_favorite') ?>
+                                    </button>
+                                </div>
                             </div>
                         </li>
                     <?php endforeach; ?>
