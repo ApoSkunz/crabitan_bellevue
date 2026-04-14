@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.84.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.84.1...v0.84.2) (2026-04-14)
+
+
+### Bug Fixes
+
+* **js:** Sonar S6551 — typeof ladder explicite pour reason ([b605d65](https://github.com/ApoSkunz/crabitan_bellevue/commit/b605d65269658ebacac2674e9844a01caf67e023))
+
 ## [0.84.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.84.0...v0.84.1) (2026-04-14)
 
 
