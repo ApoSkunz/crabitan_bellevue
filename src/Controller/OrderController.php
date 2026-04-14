@@ -340,6 +340,11 @@ class OrderController extends Controller
             }
         }
         if ($clientEmail !== '') {
+            $pdfContext = $this->buildOwnerPdfContext([
+                'user_id'             => $userId,
+                'billing_address_id'  => $billingAddressId,
+                'delivery_address_id' => $deliveryAddressId,
+            ]);
             $this->dispatchOrderEmails(
                 $clientEmail,
                 $clientName,
@@ -348,7 +353,8 @@ class OrderController extends Controller
                 $items,
                 $total,
                 (string) (($account !== false ? ($account['lang'] ?? null) : null) ?? $lang),
-                round($deliveryDiscount, 2)
+                round($deliveryDiscount, 2),
+                $pdfContext
             );
         }
 
@@ -458,6 +464,7 @@ class OrderController extends Controller
                             $lang,
                             $discount
                         );
+                        $pdfContext = $this->buildOwnerPdfContext((array) $snapshot);
                         $mail->sendOrderConfirmationToOwner(
                             (string) ($snapshot['client_email'] ?? ''),
                             (string) ($snapshot['client_name']  ?? ''),
@@ -465,7 +472,8 @@ class OrderController extends Controller
                             'card',
                             (array) $snapshot['items'],
                             (float) $snapshot['total'],
-                            $discount
+                            $discount,
+                            $pdfContext
                         );
                     } catch (\Throwable $mailError) {
                         \Core\ErrorLogger::warning($mailError, '[RETURN_OK]');
@@ -920,7 +928,7 @@ class OrderController extends Controller
         }
     }
 
-    private function dispatchOrderEmails( // NOSONAR — php:S107 : 8 paramètres requis pour envoyer les emails de confirmation commande
+    private function dispatchOrderEmails( // NOSONAR — php:S107 : 9 paramètres requis pour envoyer les emails de confirmation commande
         string $email,
         string $name,
         string $reference,
@@ -928,7 +936,8 @@ class OrderController extends Controller
         array $items,
         float $total,
         string $lang,
-        float $shippingDiscount = 0.0
+        float $shippingDiscount = 0.0,
+        ?array $pdfContext = null
     ): void {
         try {
             $mailer = new \Service\MailService();
@@ -949,10 +958,46 @@ class OrderController extends Controller
                 $method,
                 $items,
                 $total,
-                $shippingDiscount
+                $shippingDiscount,
+                $pdfContext
             );
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
+        }
+    }
+
+    /**
+     * Construit le contexte adresses (facturation + livraison) pour le PDF
+     * récap joint au mail gérant. Retourne null si insuffisant.
+     *
+     * @param array<string, mixed> $snapshot
+     * @return array{ordered_at: string, billing: array<string, mixed>, delivery: array<string, mixed>|null}|null
+     */
+    private function buildOwnerPdfContext(array $snapshot): ?array
+    {
+        $userId    = (int) ($snapshot['user_id'] ?? 0);
+        $billingId = (int) ($snapshot['billing_address_id']  ?? 0);
+        $deliveryId = (int) ($snapshot['delivery_address_id'] ?? 0);
+        if ($userId <= 0 || $billingId <= 0) {
+            return null;
+        }
+        try {
+            $addresses = new \Model\AddressModel();
+            $billing   = $addresses->findByIdForUser($billingId, $userId);
+            if ($billing === null) {
+                return null;
+            }
+            $delivery = $deliveryId > 0 && $deliveryId !== $billingId
+                ? $addresses->findByIdForUser($deliveryId, $userId)
+                : null;
+            return [
+                'ordered_at' => date('Y-m-d H:i:s'),
+                'billing'    => $billing,
+                'delivery'   => $delivery,
+            ];
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
+            return null;
         }
     }
 }

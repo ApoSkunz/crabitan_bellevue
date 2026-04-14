@@ -202,6 +202,7 @@ class IpnController
                     $lang,
                     $discount
                 );
+                $pdfContext = $this->buildOwnerPdfContext($snapshot);
                 $this->mail->sendOrderConfirmationToOwner(
                     $email,
                     $name,
@@ -209,7 +210,8 @@ class IpnController
                     'card',
                     $items,
                     $total,
-                    $discount
+                    $discount,
+                    $pdfContext
                 );
             } catch (\Throwable $mailError) {
                 \Core\ErrorLogger::warning($mailError, self::LOG_CONTEXT);
@@ -251,5 +253,40 @@ class IpnController
     protected function createInvoiceService(): InvoiceService
     {
         return new InvoiceService();
+    }
+
+    /**
+     * Construit le contexte adresses (facturation + livraison) à joindre au PDF
+     * récapitulatif envoyé au gérant. Retourne null si on ne peut rien charger.
+     *
+     * @param array<string, mixed> $snapshot
+     * @return array{ordered_at: string, billing: array<string, mixed>, delivery: array<string, mixed>|null}|null
+     */
+    protected function buildOwnerPdfContext(array $snapshot): ?array
+    {
+        $userId    = (int) ($snapshot['user_id'] ?? 0);
+        $billingId = (int) ($snapshot['billing_address_id']  ?? 0);
+        $deliveryId = (int) ($snapshot['delivery_address_id'] ?? 0);
+        if ($userId <= 0 || $billingId <= 0) {
+            return null;
+        }
+        try {
+            $addresses = new \Model\AddressModel();
+            $billing   = $addresses->findByIdForUser($billingId, $userId);
+            if ($billing === null) {
+                return null;
+            }
+            $delivery = $deliveryId > 0 && $deliveryId !== $billingId
+                ? $addresses->findByIdForUser($deliveryId, $userId)
+                : null;
+            return [
+                'ordered_at' => date('Y-m-d H:i:s'),
+                'billing'    => $billing,
+                'delivery'   => $delivery,
+            ];
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
+            return null;
+        }
     }
 }
