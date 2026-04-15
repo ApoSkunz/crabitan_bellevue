@@ -134,7 +134,8 @@ class GameScoreControllerTest extends TestCase
     {
         $this->bootstrapApp();
 
-        PhpInputMockStream::$inputData = (string) json_encode(['game' => 'memo', 'score' => 500]);
+        // 'memo' est capé à 119 (score = secondes restantes < DURATION) → on teste avec un score valide
+        PhpInputMockStream::$inputData = (string) json_encode(['game' => 'memo', 'score' => 90]);
         stream_wrapper_unregister('php');
         stream_wrapper_register('php', PhpInputMockStream::class);
 

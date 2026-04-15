@@ -12,6 +12,8 @@ class GameScoreController extends Controller
 {
     private const ALLOWED_GAMES  = ['vendangeuse', 'memo', 'labour', 'catapulte', 'vendangeexpress'];
     private const MAX_SCORE      = 99999;
+    // Mémo = secondes restantes à la victoire ; DURATION = 120 s, cap strict < 120
+    private const MEMO_MAX_SCORE = 119;
     private const MAX_SAVE_RATE  = 20;  // VULN-007 : max 20 soumissions par minute par IP
     private const WINDOW_RATE    = 60;
 
@@ -37,6 +39,11 @@ class GameScoreController extends Controller
         $score = isset($data['score']) ? (int) $data['score']          : -1;
 
         if (!in_array($game, self::ALLOWED_GAMES, true) || $score < 0 || $score > self::MAX_SCORE) {
+            $this->json(['error' => 'Invalid payload'], 400);
+        }
+
+        // Cap spécifique mémo : score = secondes restantes, jamais >= DURATION
+        if ($game === 'memo' && $score > self::MEMO_MAX_SCORE) {
             $this->json(['error' => 'Invalid payload'], 400);
         }
 
