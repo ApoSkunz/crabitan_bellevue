@@ -134,7 +134,39 @@ export function initLabourChronoGame() {
 
     canvas.setAttribute('tabindex', '0');
     canvas.addEventListener('mousedown',  (e) => handlePointer(e.clientX, e.clientY));
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handlePointer(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
+
+    // ── Swipe mobile : ↑/↓ pour changer de rangée ─────────────
+    const SWIPE_THRESHOLD = 24; // px
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchMoved  = false;
+
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const t = e.touches[0];
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        touchMoved  = false;
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+        if (state !== 'running') return;
+        const t  = e.touches[0];
+        const dy = t.clientY - touchStartY;
+        const dx = t.clientX - touchStartX;
+        if (!touchMoved && Math.abs(dy) > SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+            changeLane(dy > 0 ? 1 : -1);
+            touchStartY = t.clientY; // permet swipes multiples
+            touchMoved  = true;
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        if (touchMoved) { e.preventDefault(); return; }
+        const t = e.changedTouches[0];
+        handlePointer(t.clientX, t.clientY);
+    }, { passive: false });
 
     canvas.addEventListener('keydown', (e) => {
         switch (e.code) {
