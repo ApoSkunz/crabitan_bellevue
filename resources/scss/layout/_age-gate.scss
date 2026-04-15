@@ -288,15 +288,24 @@
     }
 
     .age-gate {
-        // padding-bottom = hauteur banner (~120px) + marge visuelle
-        // justify-content: center + padding-bottom asymétrique centre le contenu dans la zone visible
-        padding: 2rem 1rem 150px;
+        // Mobile : legal-footer redevient statique → plus besoin de réserver 150px en bas
+        padding: 2rem 1rem 2rem;
         gap: 1rem;
         justify-content: center;
     }
 
     .age-gate::before {
-        inset: 12px 12px 155px 12px; // bas du cadre remonte au-dessus du cookie banner
+        inset: 12px; // sort du mode "réserver le bas pour le banner" ; retour au cadre uniforme
+    }
+
+    // Mobile : bascule le footer légal dans le flux pour ne plus chevaucher
+    // les boutons ENTRER / QUITTER de la carte
+    .age-gate__legal-footer {
+        position: static;
+        margin: 1.5rem auto 1.25rem;
+        padding: 0 1rem;
+        flex-wrap: wrap;
+        text-align: center;
     }
 
     .age-gate__quote {
