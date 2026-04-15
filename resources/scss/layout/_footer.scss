@@ -268,11 +268,26 @@
 .footer-copyright {
     font-size: 0.75rem;
     color: var(--color-text-muted);
-    white-space: nowrap;
     flex-shrink: 0;
+    line-height: 1.5;
+
+    // Mobile : chaque ligne visible séparément pour éviter la casse
+    &__line {
+        display: block;
+    }
 
     @include m.bp('md') {
         text-align: right;
+        white-space: nowrap;
+
+        // Desktop : on garde le rendu sur une ligne avec séparateur
+        &__line {
+            display: inline;
+        }
+
+        &__line + &__line::before {
+            content: ' — ';
+        }
     }
 
     // Lien webmaster
