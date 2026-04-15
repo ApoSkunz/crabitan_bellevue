@@ -1,0 +1,24 @@
+# ============================================================
+# docker-compose.override.yml — racine projet
+# But : monter .env.docker sur /var/www/html/.env DANS le container
+#       sans toucher au .env XAMPP local.
+#
+# Lancement (depuis la racine du projet) :
+#   docker compose \
+#     -f private-docs/PTI/1.0.0/docker-compose.yml \
+#     -f docker-compose.override.yml \
+#     up -d --build
+# ============================================================
+
+services:
+  web:
+    volumes:
+      # Path relatif au compose PRINCIPAL (private-docs/PTI/1.0.0/) → racine = ../../../
+      - ../../../.env.docker:/var/www/html/.env:ro
+
+  db:
+    # Override MySQL 8.4 : --default-authentication-plugin a été supprimé
+    # (caching_sha2_password est déjà le défaut depuis 8.0).
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
