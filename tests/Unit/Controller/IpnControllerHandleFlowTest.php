@@ -138,6 +138,9 @@ class IpnControllerHandleFlowTest extends TestCase
             'Trans'  => '5678',
         ];
         $_SESSION = [];
+
+        // Force la génération de facture pour que les tests vérifient bien le flux complet
+        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
     }
 
     protected function tearDown(): void
@@ -146,6 +149,7 @@ class IpnControllerHandleFlowTest extends TestCase
         $_SESSION = [];
         $_SERVER['QUERY_STRING'] = '';
         unset($_ENV['MAINTAINER_MAIL']);
+        unset($_ENV['INVOICE_AUTO_GENERATE']);
     }
 
     // ================================================================
