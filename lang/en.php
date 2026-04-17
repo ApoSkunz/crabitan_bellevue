@@ -103,6 +103,11 @@ return [
     'wine.empty'        => 'No wines available at the moment.',
     'wine.ttc_note'     => 'Prices inclusive of VAT, delivery included within mainland France. Discounts apply for orders in multiples of 12 bottles.',
 
+    // Case of 12 banner
+    'wine.case_banner.aria'    => 'Mixed case composition',
+    'wine.case_banner.eyebrow' => 'The art of the blend',
+    'wine.case_banner.message' => 'Compose your case of 12 bottles by freely mixing our cuvées.',
+
     // Wines - Colors
     'wine.color.all'        => 'All wines',
     'wine.color.red'        => 'Red',

@@ -122,11 +122,15 @@ if ($footerToken) {
                 <span><?= htmlspecialchars(__('footer.alcohol_warning')) ?></span>
             </div>
             <p class="footer-copyright">
-                &copy; 2019&ndash;<?= date('Y') ?> <?= htmlspecialchars(APP_NAME) ?> &mdash;
-                <?= htmlspecialchars(__('footer.made_by')) ?>
-                <a href="/<?= htmlspecialchars($navLang) ?>/webmaster">
-                    <?= htmlspecialchars(__('footer.webmaster')) ?>
-                </a>
+                <span class="footer-copyright__line">
+                    &copy; 2019&ndash;<?= date('Y') ?> <?= htmlspecialchars(APP_NAME) ?>
+                </span>
+                <span class="footer-copyright__line">
+                    <?= htmlspecialchars(__('footer.made_by')) ?>
+                    <a href="/<?= htmlspecialchars($navLang) ?>/webmaster">
+                        <?= htmlspecialchars(__('footer.webmaster')) ?>
+                    </a>
+                </span>
             </p>
         </div>
     </div>

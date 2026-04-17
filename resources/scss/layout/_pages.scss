@@ -226,6 +226,14 @@
     background-color: var(--color-bg);
 }
 
+#contact-location {
+    padding-top: 2rem;
+
+    .home-section__divider--center {
+        margin-bottom: 2.5rem;
+    }
+}
+
 // Spinner bouton submit
 .btn__spinner {
     display: inline-block;

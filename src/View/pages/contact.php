@@ -128,6 +128,8 @@ require_once SRC_PATH . '/View/partials/header.php';
     <!-- Localisation -->
     <section class="contact-section home-section home-section--surface" id="contact-location">
         <div class="container">
+            <h2 class="contact-form__title"><?= htmlspecialchars(__('contact.section_where')) ?></h2>
+            <div class="home-section__divider home-section__divider--center"></div>
             <div class="home-location__inner">
 
                 <div class="home-location__info">
@@ -137,9 +139,6 @@ require_once SRC_PATH . '/View/partials/header.php';
                         <p>France</p>
                     </div>
                     <div class="home-location__contact">
-                        <h2 class="home-location__contact-title">
-                            <?= htmlspecialchars(__('contact.section_where')) ?>
-                        </h2>
                         <p>
                             <?php $phoneRaw = preg_replace('/\s/', '', __('home.location_phone')) ?? ''; ?>
                             <a href="tel:<?= htmlspecialchars($phoneRaw) ?>">

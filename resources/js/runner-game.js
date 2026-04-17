@@ -70,6 +70,7 @@ export function initRunnerGame() {
     // ── État ──────────────────────────────────────────────────────
     let state       = 'idle';
     let score       = 0;
+    let distance    = 0;
     let hiScore     = 0;
     let worldRecord = Number.parseInt(canvas.dataset.worldRecord, 10) || 0;
     let speed       = 5;
@@ -87,6 +88,7 @@ export function initRunnerGame() {
     // ── Reset ─────────────────────────────────────────────────────
     function reset() {
         score        = 0;
+        distance     = 0;
         speed        = 5;
         frame        = 0;
         obstacles    = [];
@@ -545,8 +547,10 @@ export function initRunnerGame() {
         if (state !== 'running') return;
 
         frame++;
-        score   = Math.floor(frame / 7);
-        speed   = 5 + score * 0.005;
+        // Score accumulé à la vitesse courante : plus tu cours vite, plus vite le score grimpe
+        distance += speed;
+        score    = Math.floor(distance / 5);
+        speed    = 5 + Math.floor(distance / 800) * 0.35;
         hillOff += speed * 0.4;
 
         // Physique

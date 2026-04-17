@@ -145,8 +145,10 @@ class IpnController
                 }
             }
 
-            // Génération de la facture PDF — non bloquante, désactivable via INVOICE_AUTO_GENERATE=false
-            $autoInvoice = strtolower((string) ($_ENV['INVOICE_AUTO_GENERATE'] ?? 'true')) !== 'false';
+            // Génération de la facture PDF — non bloquante, désactivable via INVOICE_AUTO_GENERATE=false.
+            // NB : parse_ini_file() convertit 'false' en chaîne vide → on traite '' comme désactivé.
+            $envFlag     = strtolower(trim((string) ($_ENV['INVOICE_AUTO_GENERATE'] ?? 'true')));
+            $autoInvoice = !in_array($envFlag, ['', 'false', '0', 'no', 'off'], true);
             try {
                 $order = $autoInvoice ? $this->orders->findByReferenceForInvoice($finalRef) : null;
                 if ($order !== null) {
