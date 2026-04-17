@@ -112,7 +112,7 @@ class GameScoreControllerTest extends TestCase
         try {
             $this->makeController()->get([]);
             ob_end_clean();
-            $this->assertTrue(true); // succès inattendu sans BDD réelle
+            $this->addToAssertionCount(1); // succès inattendu sans BDD réelle
         } catch (HttpException $e) {
             ob_end_clean();
             // 200 = réponse JSON retournée (HttpException levée par Response::json)
@@ -121,6 +121,35 @@ class GameScoreControllerTest extends TestCase
             ob_end_clean();
             $this->markTestSkipped('BDD indisponible : ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Score mémo > MEMO_MAX_SCORE (119) → 400 Invalid payload.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSaveRejects400WhenMemoScoreExceedsCap(): void
+    {
+        $this->bootstrapApp();
+
+        PhpInputMockStream::$inputData = (string) json_encode(['game' => 'memo', 'score' => 120]);
+        stream_wrapper_unregister('php');
+        stream_wrapper_register('php', PhpInputMockStream::class);
+
+        $caught = null;
+        ob_start();
+        try {
+            $this->makeController()->save([]);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } catch (\Throwable $e) {
+            ob_end_clean();
+            $this->markTestSkipped('Flux php:// indisponible : ' . $e->getMessage());
+        }
+        ob_end_clean();
+
+        $this->assertNotNull($caught, 'save() doit lancer HttpException(400) quand score mémo > 119');
+        $this->assertSame(400, $caught->status);
     }
 
     /**
@@ -148,7 +177,6 @@ class GameScoreControllerTest extends TestCase
         } catch (\Throwable $e) {
             ob_end_clean();
             $this->markTestSkipped('BDD ou php:// indisponible : ' . $e->getMessage());
-            return;
         }
         ob_end_clean();
 
