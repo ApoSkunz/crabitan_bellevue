@@ -33,11 +33,17 @@ class CronRunner
     /**
      * Exécute le job en gérant lock, logs, rotation et code de sortie.
      *
-     * @param callable(callable(string):void):void $job Callable recevant $log en argument
+     * Passe `bool $dryRun` en 2e argument au callable. Lancer le script avec
+     * `--dry-run` pour simuler sans écrire en base ni envoyer d'emails.
+     *
+     * @param callable(callable(string):void, bool):void $job Callable recevant $log et $dryRun
      * @return int 0 = succès ou skip, 1 = erreur fatale
      */
     public function run(callable $job): int
     {
+        $dryRun   = in_array('--dry-run', $GLOBALS['argv'] ?? [], true);
+        $prefix   = $dryRun ? '[DRY-RUN] ' : '';
+
         $lockFile = sys_get_temp_dir() . '/cron_' . $this->name . '.lock';
         $lock     = fopen($lockFile, 'c');
 
@@ -50,11 +56,11 @@ class CronRunner
         }
 
         $this->rotate();
-        $this->write('START');
+        $this->write($prefix . 'START');
 
         try {
-            $job(fn(string $msg) => $this->write($msg));
-            $this->write('END');
+            $job(fn(string $msg) => $this->write($msg), $dryRun);
+            $this->write($prefix . 'END');
         } catch (\Throwable $e) {
             $this->write(
                 'FATAL — ' . $e->getMessage()
