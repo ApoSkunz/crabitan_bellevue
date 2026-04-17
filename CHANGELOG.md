@@ -2,6 +2,18 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.85.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.85.0...v0.85.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* **i18n:** em dash → tiret simple dans lang/fr et lang/en (hors webmaster) ([4c845c3](https://github.com/ApoSkunz/crabitan_bellevue/commit/4c845c3c841d03aa30129f8f8a896e3e502744de))
+* **i18n:** remplace en-dash par tiret simple (hors webmaster) ([18497a9](https://github.com/ApoSkunz/crabitan_bellevue/commit/18497a9ed827c8d38880ae7341480234b9b6b3ad))
+* **i18n:** remplacer guillemets typographiques par apostrophes PHP dans wine.case_banner ([ac27011](https://github.com/ApoSkunz/crabitan_bellevue/commit/ac270117f3bfb6b9ef19fc5d23437b9e5e1afb76))
+* **i18n:** résoudre conflits merge main — intégrer wine.case_banner.* keys ([d46b0b5](https://github.com/ApoSkunz/crabitan_bellevue/commit/d46b0b5eb00726e2fc8aad4a19907819d6350f46))
+* **mail:** restaurer accents dans buildNewsletterHtml + sync signature stub test ([abd78bf](https://github.com/ApoSkunz/crabitan_bellevue/commit/abd78bf2c9763bb4081d30d304e9c4d36162a6b6))
+* **mail:** wording alerte stock - ce vin est dans votre panier ([d809d03](https://github.com/ApoSkunz/crabitan_bellevue/commit/d809d0356467d6959c8de1e5e7ef4f41d2497432))
+
 # [0.85.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.84.2...v0.85.0) (2026-04-17)
 
 
