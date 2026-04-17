@@ -32,7 +32,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
 
         <p>
             <strong>GFA Bernard Solane &amp; Fils</strong><br>
-            Château Crabitan Bellevue – 33410 Sainte-Croix-du-Mont – France<br>
+            Château Crabitan Bellevue - 33410 Sainte-Croix-du-Mont - France<br>
             Tél. : <a href="tel:+33556620153">05 56 62 01 53</a><br>
             Email : <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
         </p>
@@ -159,7 +159,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             (courrier postal ou email) à :
         </p>
         <p>
-            GFA Bernard Solane &amp; Fils – Château Crabitan Bellevue – 33410 Sainte-Croix-du-Mont – France<br>
+            GFA Bernard Solane &amp; Fils - Château Crabitan Bellevue - 33410 Sainte-Croix-du-Mont - France<br>
             Email : <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
         </p>
         <p>
@@ -287,8 +287,8 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         </ul>
         <p><strong>Horaires d'ouverture :</strong></p>
         <ul>
-            <li>Lundi au samedi : 09h00 – 18h00</li>
-            <li>Dimanche : 09h00 – 12h00</li>
+            <li>Lundi au samedi : 09h00 - 18h00</li>
+            <li>Dimanche : 09h00 - 12h00</li>
         </ul>
         <p>
             Pour le suivi de commande, l'exercice du droit de rétractation ou la mise en œuvre
@@ -351,7 +351,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
 
         <p>
             <strong>GFA Bernard Solane &amp; Fils</strong><br>
-            Château Crabitan Bellevue – 33410 Sainte-Croix-du-Mont – France<br>
+            Château Crabitan Bellevue - 33410 Sainte-Croix-du-Mont - France<br>
             Phone: <a href="tel:+33556620153">+33 5 56 62 01 53</a><br>
             Email: <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
         </p>
@@ -458,7 +458,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         <h3>2. How to exercise your right</h3>
         <p>
             Send an unambiguous declaration (by post or email) to:<br>
-            GFA Bernard Solane &amp; Fils – Château Crabitan Bellevue – 33410 Sainte-Croix-du-Mont – France<br>
+            GFA Bernard Solane &amp; Fils - Château Crabitan Bellevue - 33410 Sainte-Croix-du-Mont - France<br>
             Email: <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
         </p>
         <p>
@@ -576,8 +576,8 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         </ul>
         <p><strong>Opening hours:</strong></p>
         <ul>
-            <li>Monday to Saturday: 09:00 – 18:00 (CET/CEST)</li>
-            <li>Sunday: 09:00 – 12:00 (CET/CEST)</li>
+            <li>Monday to Saturday: 09:00 - 18:00 (CET/CEST)</li>
+            <li>Sunday: 09:00 - 12:00 (CET/CEST)</li>
         </ul>
         <p>
             For order tracking, exercising your right of withdrawal or making a warranty claim,

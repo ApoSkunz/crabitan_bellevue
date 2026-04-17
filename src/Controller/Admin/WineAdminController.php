@@ -551,7 +551,7 @@ class WineAdminController extends AdminController
         $agingPotential = trim($r->post('aging_potential', '')) ?: null;
 
         if ($vintage < 1900 || $vintage > (int) date('Y')) {
-            $errors['vintage'] = 'Millésime invalide (1900 – ' . date('Y') . ').';
+            $errors['vintage'] = 'Millesime invalide (1900 - ' . date('Y') . ').';
         }
         if ($price < 3.0) {
             $errors['price'] = 'Le prix doit être d\'au moins 3 €.';

@@ -22,7 +22,7 @@ $months = [
     7 => 'Juillet',  8 => 'Août',      9 => 'Septembre',
     10 => 'Octobre', 11 => 'Novembre', 12 => 'Décembre',
 ];
-$quarters = [1 => 'T1 (jan–mar)', 2 => 'T2 (avr–jun)', 3 => 'T3 (jul–sep)', 4 => 'T4 (oct–déc)'];
+$quarters = [1 => 'T1 (jan-mar)', 2 => 'T2 (avr-jun)', 3 => 'T3 (jul-sep)', 4 => 'T4 (oct-dec)'];
 
 if (!function_exists('buildInvoiceUrl')) {
     function buildInvoiceUrl(int $year, ?int $month, ?int $quarter, int $page = 1, int $perPage = 25): string

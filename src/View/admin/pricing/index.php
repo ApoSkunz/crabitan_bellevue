@@ -50,7 +50,7 @@ function pricingLabel(mixed $raw, string $lang): string
                     <td><?= htmlspecialchars($formatLabels[$rule['format']] ?? $rule['format']) ?></td>
                     <td style="white-space:nowrap;">
                         <?= (int) $rule['min_quantity'] ?>
-                        –
+                        -
                         <?= $rule['max_quantity'] !== null ? (int) $rule['max_quantity'] : '∞' ?>
                     </td>
                     <td><?= htmlspecialchars(pricingLabel($rule['label'], 'fr')) ?></td>
