@@ -37,9 +37,11 @@ class CronController extends Controller
             return;
         }
 
+        $dryRun = isset($_GET['dry_run']) && $_GET['dry_run'] === '1';
+
         ob_start();
 
-        $runner   = new CronRunner($job);
+        $runner   = new CronRunner($job, '', $dryRun);
         $exitCode = $runner->run($fn);
 
         $output = (string) ob_get_clean();
