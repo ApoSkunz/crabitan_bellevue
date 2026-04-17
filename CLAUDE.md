@@ -24,6 +24,40 @@ Lire les docs suivants **uniquement si la tâche le nécessite** :
 | `docs/SETUP-DEV.md` | tâche liée à l'environnement, XAMPP, `.env`, commandes |
 | `docs/TESTING-STRATEGY.md` | écriture ou modification de tests (TU / TI / E2E) |
 | `docs/CHARTE-GRAPHIQUE.md` | tâche frontend, SCSS, UI, composant visuel |
+| `private-docs/cron-jobs/cron-jobs.md` | tâche liée aux cron jobs ou à `CronController` |
+| `private-docs/audits/BILAN-AUDITS.md` | consultation d'un rapport d'audit existant |
+
+---
+
+## Dossiers privés (gitignorés)
+
+Ces dossiers existent localement mais ne sont **jamais commités**.
+
+### `private-docs/`
+
+Documentation de référence interne :
+
+| Sous-dossier | Contenu |
+|---|---|
+| `audits/` | Rapports d'audit par domaine : `Cyber/`, `DB/`, `GL/`, `QA/`, `UX/`, `LGH/`, `Marketing/`, `Fonctionnalités/`, `CI-CD/` + `BILAN-AUDITS.md` (synthèse globale) |
+| `cron-jobs/` | Configuration IONOS, liste des jobs HTTP, endpoints, procédure dry-run |
+| `fuzzing/` | Résultats et rapports de fuzzing PHP/upload |
+| `mutation-testing/` | Rapports Infection PHP |
+| `PTI/` | Scripts de build et déploiement production (`build-prod.sh`, `deploy-prod.sh`) |
+| `run-cyber/` | Playbooks Red Team / Blue Team |
+| `security_gpg/` | Procédures clés GPG et rotation chiffrement |
+| `backlog/` | Exports et snapshots backlog |
+
+### `private-scripts/`
+
+Scripts utilitaires locaux non déployés :
+
+| Sous-dossier | Contenu |
+|---|---|
+| `cron/` | `dry-run-all.sh` — teste tous les cron jobs via HTTP GET avec `dry_run=1` |
+| `sonar/` | `sonar-issues.sh` — génère `sonar-report.txt` depuis l'API SonarCloud |
+| `rto-rpo/` | Procédures de test de reprise (RTO/RPO) |
+| `backlog/` | Scripts de génération PDF backlog |
 
 ---
 
@@ -415,11 +449,13 @@ Ne jamais ignorer un besoin en supposant qu'il sera tracé plus tard.
 
 Les 4 audits suivants sont à réaliser **en dernier**, après que tous les EPICs fonctionnels sont `✅ Claude`. Ils s'exécutent dans cet ordre :
 
-| Audit | Enabler | Expert | Rapport produit |
-|---|---|---|---|
-| BDD | `audit-bdd/` | Architecte BDD MySQL | `docs/audit-bdd-[date].md` |
-| Génie Logiciel | `audit-genie-logiciel/` | Architecte Génie Logicielle | `docs/audit-genie-logiciel-[date].md` |
-| QA | `audit-qa/` | Expert QA | `docs/audit-qa-[date].md` |
-| Cybersécurité | `audit-cyber/` | Expert Red Team → Blue Team | `docs/audit-cyber-[date].md` |
+| Audit | Expert | Rapport produit (gitignored) |
+|---|---|---|
+| BDD | Architecte BDD MySQL | `private-docs/audits/DB/audit-bdd-[date].md` |
+| Génie Logiciel | Architecte Génie Logicielle | `private-docs/audits/GL/audit-gl-[date].md` |
+| QA | Expert QA | `private-docs/audits/QA/audit-qa-[date].md` |
+| Cybersécurité | Expert Red Team → Blue Team | `private-docs/audits/Cyber/audit-cyber-[date].md` |
 
 L'audit cyber reste le tout dernier — il valide l'ensemble avant déploiement.
+
+La synthèse de tous les audits est dans `private-docs/audits/BILAN-AUDITS.md`.

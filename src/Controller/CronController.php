@@ -17,6 +17,8 @@ use Core\CronRunner;
  */
 class CronController extends Controller
 {
+    private const CONTENT_TYPE = 'Content-Type: text/plain; charset=utf-8';
+
     /**
      * Exécute le job cron demandé après vérification du token.
      *
@@ -32,7 +34,7 @@ class CronController extends Controller
 
         if ($fn === null) {
             http_response_code(404);
-            header('Content-Type: text/plain; charset=utf-8');
+            header(self::CONTENT_TYPE);
             echo "Unknown job: {$job}\n";
             return;
         }
@@ -47,12 +49,12 @@ class CronController extends Controller
         $output = (string) ob_get_clean();
 
         http_response_code($exitCode === 0 ? 200 : 500);
-        header('Content-Type: text/plain; charset=utf-8');
+        header(self::CONTENT_TYPE);
         echo $output;
     }
 
     /**
-     * Vérifie le token secret en temps constant — renvoie 403 si invalide ou absent.
+     * Vérifie le token secret en temps constant — renvoie 404 si invalide ou absent.
      *
      * @return void
      */
@@ -63,7 +65,7 @@ class CronController extends Controller
 
         if ($expected === '' || !hash_equals($expected, $provided)) {
             http_response_code(404);
-            header('Content-Type: text/plain; charset=utf-8');
+            header(self::CONTENT_TYPE);
             echo "Not Found\n";
             exit;
         }
@@ -77,8 +79,22 @@ class CronController extends Controller
      */
     private function getJob(string $job): ?callable
     {
+        return $this->getAccountJob($job)
+            ?? $this->getPurgeJob($job)
+            ?? $this->getNewsletterJob($job)
+            ?? $this->getNotificationJob($job);
+    }
+
+    /**
+     * Jobs RGPD comptes : purge et avertissements d'inactivité/suppression.
+     *
+     * @param  string $job
+     * @return (callable(callable(string):void, bool):void)|null
+     */
+    private function getAccountJob(string $job): ?callable
+    {
         return match ($job) {
-            'purge-accounts'                => function (callable $log, bool $dryRun): void {
+            'purge-accounts' => function (callable $log, bool $dryRun): void {
                 $model  = new \Model\AccountModel();
                 $mailer = new \Service\MailService();
 
@@ -105,7 +121,7 @@ class CronController extends Controller
                 }
             },
 
-            'purge-inactive-accounts'       => function (callable $log, bool $dryRun): void {
+            'purge-inactive-accounts' => function (callable $log, bool $dryRun): void {
                 $model          = new \Model\AccountModel();
                 $mailer         = new \Service\MailService();
                 $inactiveMonths = (int) ($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
@@ -174,79 +190,7 @@ class CronController extends Controller
                 }
             },
 
-            'pseudonymize-orders'           => function (callable $log, bool $dryRun): void {
-                $model = new \Model\OrderModel();
-
-                if ($dryRun) {
-                    $log('[DRY-RUN] Would pseudonymize expired order snapshots — aucune écriture BDD');
-                    return;
-                }
-
-                $count = $model->pseudonymizeExpired();
-                $log("{$count} snapshot(s) pseudonymisé(s)");
-            },
-
-            'purge-connections'             => function (callable $log, bool $dryRun): void {
-                $model = new \Model\ConnectionModel();
-
-                if ($dryRun) {
-                    $log('[DRY-RUN] Would purge expired/revoked connections — aucune écriture BDD');
-                    return;
-                }
-
-                $purged = $model->purgeExpired();
-                $log("{$purged} session(s) purgée(s)");
-            },
-
-            'purge-addresses'               => function (callable $log, bool $dryRun): void {
-                $model    = new \Model\AddressModel();
-                $orphaned = $model->getOrphanedAddresses();
-                $log('Adresses orphelines éligibles : ' . count($orphaned));
-
-                if ($orphaned === []) {
-                    $log('0 adresse purgée');
-                    return;
-                }
-
-                foreach ($orphaned as $addr) {
-                    $log("Adresse id={$addr['id']} (user_id={$addr['user_id']}) éligible");
-                }
-
-                if ($dryRun) {
-                    $log('[DRY-RUN] Would delete ' . count($orphaned) . ' adresse(s) — aucune écriture BDD');
-                    return;
-                }
-
-                $purged = $model->purgeOrphaned();
-                $log("{$purged} adresse(s) supprimée(s)");
-            },
-
-            'purge-newsletter-subscriptions' => function (callable $log, bool $dryRun): void {
-                $model = new \Model\NewsletterSubscriptionModel();
-
-                if ($dryRun) {
-                    $log('[DRY-RUN] Would purge expired pending subscriptions — aucune écriture BDD');
-                    return;
-                }
-
-                $pending = $model->purgeExpiredPending();
-                $log("{$pending} abonnement(s) non confirmé(s) expiré(s) supprimé(s)");
-            },
-
-            'purge-rate-limits'             => function (callable $log, bool $dryRun): void {
-                $db = \Core\Database::getInstance();
-
-                if ($dryRun) {
-                    $count = $db->fetchOne('SELECT COUNT(*) AS n FROM rate_limits WHERE expires_at < UNIX_TIMESTAMP()')['n'] ?? 0;
-                    $log("[DRY-RUN] Would delete {$count} entrée(s) expirée(s) — aucune écriture BDD");
-                    return;
-                }
-
-                $deleted = $db->execute('DELETE FROM rate_limits WHERE expires_at < UNIX_TIMESTAMP()');
-                $log("rate_limits : {$deleted} entrée(s) expirée(s) supprimée(s)");
-            },
-
-            'send-deletion-reminders'       => function (callable $log, bool $dryRun): void {
+            'send-deletion-reminders' => function (callable $log, bool $dryRun): void {
                 $model  = new \Model\AccountModel();
                 $mailer = new \Service\MailService();
                 $sent   = 0;
@@ -290,7 +234,130 @@ class CronController extends Controller
                 }
             },
 
-            'send-abandoned-cart'           => function (callable $log, bool $dryRun): void {
+            default => null,
+        };
+    }
+
+    /**
+     * Jobs de purge données : sessions, adresses, snapshots, rate limits.
+     *
+     * @param  string $job
+     * @return (callable(callable(string):void, bool):void)|null
+     */
+    private function getPurgeJob(string $job): ?callable
+    {
+        return match ($job) {
+            'pseudonymize-orders' => function (callable $log, bool $dryRun): void {
+                $model = new \Model\OrderModel();
+
+                if ($dryRun) {
+                    $log('[DRY-RUN] Would pseudonymize expired order snapshots — aucune écriture BDD');
+                    return;
+                }
+
+                $count = $model->pseudonymizeExpired();
+                $log("{$count} snapshot(s) pseudonymisé(s)");
+            },
+
+            'purge-connections' => function (callable $log, bool $dryRun): void {
+                $model = new \Model\ConnectionModel();
+
+                if ($dryRun) {
+                    $log('[DRY-RUN] Would purge expired/revoked connections — aucune écriture BDD');
+                    return;
+                }
+
+                $purged = $model->purgeExpired();
+                $log("{$purged} session(s) purgée(s)");
+            },
+
+            'purge-addresses' => function (callable $log, bool $dryRun): void {
+                $model    = new \Model\AddressModel();
+                $orphaned = $model->getOrphanedAddresses();
+                $log('Adresses orphelines éligibles : ' . count($orphaned));
+
+                if ($orphaned === []) {
+                    $log('0 adresse purgée');
+                    return;
+                }
+
+                foreach ($orphaned as $addr) {
+                    $log("Adresse id={$addr['id']} (user_id={$addr['user_id']}) éligible");
+                }
+
+                if ($dryRun) {
+                    $log('[DRY-RUN] Would delete ' . count($orphaned) . ' adresse(s) — aucune écriture BDD');
+                    return;
+                }
+
+                $purged = $model->purgeOrphaned();
+                $log("{$purged} adresse(s) supprimée(s)");
+            },
+
+            'purge-rate-limits' => function (callable $log, bool $dryRun): void {
+                $db = \Core\Database::getInstance();
+
+                if ($dryRun) {
+                    $count = $db->fetchOne('SELECT COUNT(*) AS n FROM rate_limits WHERE expires_at < UNIX_TIMESTAMP()')['n'] ?? 0;
+                    $log("[DRY-RUN] Would delete {$count} entrée(s) expirée(s) — aucune écriture BDD");
+                    return;
+                }
+
+                $deleted = $db->execute('DELETE FROM rate_limits WHERE expires_at < UNIX_TIMESTAMP()');
+                $log("rate_limits : {$deleted} entrée(s) expirée(s) supprimée(s)");
+            },
+
+            default => null,
+        };
+    }
+
+    /**
+     * Jobs newsletter : purge abonnements et tracking.
+     *
+     * @param  string $job
+     * @return (callable(callable(string):void, bool):void)|null
+     */
+    private function getNewsletterJob(string $job): ?callable
+    {
+        return match ($job) {
+            'purge-newsletter-subscriptions' => function (callable $log, bool $dryRun): void {
+                $model = new \Model\NewsletterSubscriptionModel();
+
+                if ($dryRun) {
+                    $log('[DRY-RUN] Would purge expired pending subscriptions — aucune écriture BDD');
+                    return;
+                }
+
+                $pending = $model->purgeExpiredPending();
+                $log("{$pending} abonnement(s) non confirmé(s) expiré(s) supprimé(s)");
+            },
+
+            'purge-newsletter-tracking' => function (callable $log, bool $dryRun): void {
+                $model = new \Model\NewsletterTrackingModel();
+
+                if ($dryRun) {
+                    $log('[DRY-RUN] Would purge newsletter tracking older than 13 months — aucune écriture BDD');
+                    return;
+                }
+
+                $deleted = $model->purgeOlderThan13Months();
+                $log("{$deleted} enregistrement(s) de tracking purgé(s)");
+            },
+
+            default => null,
+        };
+    }
+
+    /**
+     * Jobs notifications email : paniers abandonnés, post-achat, alertes commandes, tokens.
+     *
+     * @param  string $job
+     * @return (callable(callable(string):void, bool):void)|null
+     */
+    private function getNotificationJob(string $job): ?callable
+    {
+        return match ($job) {
+            'send-abandoned-cart' => function (callable $log, bool $dryRun): void {
                 $cartModel = new \Model\CartModel();
                 $mailer    = new \Service\MailService();
                 $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
@@ -316,7 +383,7 @@ class CronController extends Controller
                 }
             },
 
-            'send-post-purchase'            => function (callable $log, bool $dryRun): void {
+            'send-post-purchase' => function (callable $log, bool $dryRun): void {
                 $orderModel   = new \Model\OrderModel();
                 $accountModel = new \Model\AccountModel();
                 $mailer       = new \Service\MailService();
@@ -356,7 +423,7 @@ class CronController extends Controller
                 }
             },
 
-            'alert-pending-orders'          => function (callable $log, bool $dryRun): void {
+            'alert-pending-orders' => function (callable $log, bool $dryRun): void {
                 $model       = new \Model\OrderModel();
                 $mailer      = new \Service\MailService();
                 $staleOrders = $model->getStaleOrders(7);
@@ -377,7 +444,7 @@ class CronController extends Controller
                 $log("{$count} commande(s) bloquée(s) — alerte envoyée au propriétaire");
             },
 
-            'clean-expired-tokens'          => function (callable $log, bool $dryRun): void {
+            'clean-expired-tokens' => function (callable $log, bool $dryRun): void {
                 $service = new \Service\TokenPurgeService(\Core\Database::getInstance());
 
                 if ($dryRun) {
@@ -393,18 +460,6 @@ class CronController extends Controller
                 $log("connections           : {$counts['connections']} supprimé(s)");
                 $log("email_verification    : {$counts['email_verification']} compte(s) mis à jour");
                 $log('Total nettoyé : ' . array_sum($counts) . ' entrée(s)');
-            },
-
-            'purge-newsletter-tracking'     => function (callable $log, bool $dryRun): void {
-                $model = new \Model\NewsletterTrackingModel();
-
-                if ($dryRun) {
-                    $log('[DRY-RUN] Would purge newsletter tracking older than 13 months — aucune écriture BDD');
-                    return;
-                }
-
-                $deleted = $model->purgeOlderThan13Months();
-                $log("{$deleted} enregistrement(s) de tracking purgé(s)");
             },
 
             default => null,
