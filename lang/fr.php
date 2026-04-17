@@ -104,9 +104,9 @@ return [
     'wine.ttc_note'     => 'Prix TTC, livraison comprise en France métropolitaine. Remises appliquées par multiples de 12 bouteilles.',
 
     // Bandeau caisse de 12
-    ‘wine.case_banner.aria’    => ‘Composition de caisse assortie’,
-    ‘wine.case_banner.eyebrow’ => ‘L’art de l’assortiment’,
-    ‘wine.case_banner.message’ => ‘Composez vos caisses de 12 bouteilles en mélangeant librement nos cuvées.’,
+    'wine.case_banner.aria'    => 'Composition de caisse assortie',
+    'wine.case_banner.eyebrow' => 'L\'art de l\'assortiment',
+    'wine.case_banner.message' => 'Composez vos caisses de 12 bouteilles en mélangeant librement nos cuvées.',
 
     // Vins - Couleurs
     'wine.color.all'        => 'Tous les vins',
