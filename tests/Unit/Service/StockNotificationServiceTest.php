@@ -270,7 +270,8 @@ class StubMailServiceForStock extends \Service\MailService // phpcs:ignore PSR1.
         ?string $imageUrl = null,
         ?string $unsubToken = null,
         string $lang = 'fr',
-        ?int $campaignId = null
+        ?int $campaignId = null,
+        ?string $unsubInfoOverride = null
     ): string {
         return '<html><body>' . $htmlContent . '</body></html>';
     }

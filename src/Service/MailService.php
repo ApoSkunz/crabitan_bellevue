@@ -1028,8 +1028,8 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         }
 
         $unsubInfo  = $unsubInfoOverride ?? ($lang === 'en'
-            ? 'You are receiving this email because you subscribed to the Chateau Crabitan Bellevue newsletter.'
-            : 'Vous recevez cet email car vous etes abonne(e) a la newsletter du Chateau Crabitan Bellevue.');
+            ? 'You are receiving this email because you subscribed to the Château Crabitan Bellevue newsletter.'
+            : 'Vous recevez cet email car vous êtes abonné(e) à la newsletter du Château Crabitan Bellevue.');
         $unsubLink  = $lang === 'en' ? 'Unsubscribe from the newsletter' : 'Se désinscrire de la newsletter';
 
         $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
