@@ -26,6 +26,14 @@ class OrderModelAddressEncryptionTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // DB_ENCRYPT_KEY peut être unset par EncryptionServiceTest — recharger depuis .env
+        if (($key = $_ENV['DB_ENCRYPT_KEY'] ?? '') === '') {
+            $dotenv = is_file(ROOT_PATH . '/.env') ? parse_ini_file(ROOT_PATH . '/.env') : [];
+            $_ENV['DB_ENCRYPT_KEY'] = $dotenv['DB_ENCRYPT_KEY'] ?? '';
+            unset($key, $dotenv);
+        }
+
         $this->enc           = EncryptionService::fromEnv();
         $this->addressModel  = new AddressModel($this->enc);
         $this->orderModel    = new OrderModel($this->enc);
