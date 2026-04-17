@@ -2,6 +2,21 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.86.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.85.1...v0.86.0) (2026-04-17)
+
+
+### Bug Fixes
+
+* **cron:** rotation logs 30→90j + dry-run purge_newsletter_tracking ([ec8d68e](https://github.com/ApoSkunz/crabitan_bellevue/commit/ec8d68ebffac64e5064e4393ca6e2cc9305c5af0))
+* **ErrorLogger:** anonymisation IP RGPD + filtre bruit 404/405 ([62ff007](https://github.com/ApoSkunz/crabitan_bellevue/commit/62ff007ec68e320e12821d8804c28aedd07d6b8d))
+* **logs:** aligner ErrorLoggerTest sur RETENTION_DAYS=90 (30→90 jours) ([3386010](https://github.com/ApoSkunz/crabitan_bellevue/commit/338601034d3df533341c73bfc3c4b06facae7482))
+
+
+### Features
+
+* **cron:** ajouter support --dry-run sur tous les scripts bin/ ([c614f1c](https://github.com/ApoSkunz/crabitan_bellevue/commit/c614f1c64158ececbefd54220e950e4f4ece5fd7))
+* **CronRunner:** support flag --dry-run passé en 2e arg aux callables ([bf0fc32](https://github.com/ApoSkunz/crabitan_bellevue/commit/bf0fc32b03003cc543f13a9c4bf9ad1ffacbaf44))
+
 ## [0.85.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.85.0...v0.85.1) (2026-04-17)
 
 
