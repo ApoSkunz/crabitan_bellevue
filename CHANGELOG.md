@@ -2,6 +2,25 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.87.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.86.0...v0.87.0) (2026-04-17)
+
+
+### Bug Fixes
+
+* **AccountModel:** décrypter majority_declared_ip dans decryptRow() ([b5eb1d2](https://github.com/ApoSkunz/crabitan_bellevue/commit/b5eb1d2122bd8cd618c090aed6f9a89bfaec3b67))
+* **ci:** ajouter DB_ENCRYPT_KEY dans le .env E2E des workflows ci.yml et e2e.yml ([e861d23](https://github.com/ApoSkunz/crabitan_bellevue/commit/e861d239aacd55346bfffde81a1050ed365d2fad))
+* **model:** décrypter street stocké dans le dedup createFromAddress ([480f932](https://github.com/ApoSkunz/crabitan_bellevue/commit/480f932f8f42ecd99f23cb941d3362219877c870))
+* **test:** ajouter DB_ENCRYPT_KEY fallback dans bootstrap + isolation RgpdExportServiceTest ([d9b7c0c](https://github.com/ApoSkunz/crabitan_bellevue/commit/d9b7c0cf6a9e980603d1cb1e2b333f76317a584a))
+* **test:** recharger DB_ENCRYPT_KEY dans setUp si unset par EncryptionServiceTest ([265affb](https://github.com/ApoSkunz/crabitan_bellevue/commit/265affbc5cd8015840a51e0809c5e8a9095d9c9b))
+* **test:** sauvegarder/restaurer DB_ENCRYPT_KEY dans EncryptionServiceTest tearDown ([3ea706b](https://github.com/ApoSkunz/crabitan_bellevue/commit/3ea706b9888394c9fcb444253d350e5026d5f39e))
+
+
+### Features
+
+* **addresses:** chiffrement AES-256-GCM street+phone — AddressModel, OrderModel, OrderAddressSnapshotModel ([25b8c45](https://github.com/ApoSkunz/crabitan_bellevue/commit/25b8c451610b5c8502b0c60f778fcefbfc7c49dc))
+* **EncryptionService:** préfixe ENC:, backward compat legacy, guard fromEnv, isEncrypted() ([4385b0a](https://github.com/ApoSkunz/crabitan_bellevue/commit/4385b0a395928fb710e839030c7db4f6c851d9f6))
+* **security:** étendre rotate_encryption_keys.php pour addresses + order_address_snapshots ([c9e2148](https://github.com/ApoSkunz/crabitan_bellevue/commit/c9e2148a02739d009b327179ef579db42df3ee3f))
+
 # [0.86.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.85.1...v0.86.0) (2026-04-17)
 
 
