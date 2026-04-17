@@ -128,6 +128,8 @@ require_once SRC_PATH . '/View/partials/header.php';
     <!-- Localisation -->
     <section class="contact-section home-section home-section--surface" id="contact-location">
         <div class="container">
+            <h2 class="contact-form__title"><?= htmlspecialchars(__('contact.section_where')) ?></h2>
+            <div class="home-section__divider home-section__divider--center"></div>
             <div class="home-location__inner">
 
                 <div class="home-location__info">
