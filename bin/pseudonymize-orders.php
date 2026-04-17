@@ -17,8 +17,14 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('pseudonymize_orders');
-exit($runner->run(function (callable $log): void {
+exit($runner->run(function (callable $log, bool $dryRun): void {
     $model = new \Model\OrderModel();
+
+    if ($dryRun) {
+        $log('[DRY-RUN] Would pseudonymize expired order snapshots — aucune écriture BDD');
+        return;
+    }
+
     $count = $model->pseudonymizeExpired();
     $log("{$count} snapshot(s) pseudonymisé(s)");
 }));

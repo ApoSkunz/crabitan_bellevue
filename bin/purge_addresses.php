@@ -17,7 +17,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('purge_addresses');
-exit($runner->run(function (callable $log): void {
+exit($runner->run(function (callable $log, bool $dryRun): void {
     $model    = new \Model\AddressModel();
     $orphaned = $model->getOrphanedAddresses();
     $log('Adresses orphelines éligibles : ' . count($orphaned));
@@ -29,6 +29,11 @@ exit($runner->run(function (callable $log): void {
 
     foreach ($orphaned as $addr) {
         $log("Adresse id={$addr['id']} (user_id={$addr['user_id']}) éligible");
+    }
+
+    if ($dryRun) {
+        $log('[DRY-RUN] Would delete ' . count($orphaned) . ' adresse(s) — aucune écriture BDD');
+        return;
     }
 
     $purged = $model->purgeOrphaned();

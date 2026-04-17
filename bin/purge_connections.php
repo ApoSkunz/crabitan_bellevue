@@ -17,8 +17,14 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('purge_connections');
-exit($runner->run(function (callable $log): void {
-    $model  = new \Model\ConnectionModel();
+exit($runner->run(function (callable $log, bool $dryRun): void {
+    $model = new \Model\ConnectionModel();
+
+    if ($dryRun) {
+        $log('[DRY-RUN] Would purge expired/revoked connections — aucune écriture BDD');
+        return;
+    }
+
     $purged = $model->purgeExpired();
     $log("{$purged} session(s) purgée(s)");
 }));

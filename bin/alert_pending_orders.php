@@ -18,7 +18,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('alert_pending_orders');
-exit($runner->run(function (callable $log): void {
+exit($runner->run(function (callable $log, bool $dryRun): void {
     $model  = new \Model\OrderModel();
     $mailer = new \Service\MailService();
 
@@ -30,6 +30,12 @@ exit($runner->run(function (callable $log): void {
     }
 
     $count = count($staleOrders);
+
+    if ($dryRun) {
+        $log("[DRY-RUN] Would send alert for {$count} commande(s) bloquée(s) — aucun email envoyé");
+        return;
+    }
+
     $mailer->sendPendingOrdersAlert($staleOrders, 7);
     $log("{$count} commande(s) bloquée(s) — alerte envoyée au propriétaire");
 }));

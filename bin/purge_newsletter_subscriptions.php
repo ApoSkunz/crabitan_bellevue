@@ -18,8 +18,14 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('purge_newsletter_subscriptions');
-exit($runner->run(function (callable $log): void {
+exit($runner->run(function (callable $log, bool $dryRun): void {
     $model = new \Model\NewsletterSubscriptionModel();
+
+    if ($dryRun) {
+        $log('[DRY-RUN] Would purge expired pending subscriptions — aucune écriture BDD');
+        $log('[DRY-RUN] Would purge subscriptions older than 13 months — aucune écriture BDD');
+        return;
+    }
 
     $pending = $model->purgeExpiredPending();
     $log("{$pending} abonnement(s) non confirmé(s) expiré(s) supprimé(s)");
