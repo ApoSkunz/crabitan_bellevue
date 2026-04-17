@@ -2,6 +2,22 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.88.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.87.1...v0.88.0) (2026-04-17)
+
+
+### Bug Fixes
+
+* **cron:** corriger ROOT_PATH dans cron-bootstrap.php après reorg bin/cron/ ([1bd7c9e](https://github.com/ApoSkunz/crabitan_bellevue/commit/1bd7c9e915290582303035e210163f47c9e62e44))
+* **cron:** exclure /cron/ de l'age-gate dans index.php ([debddd3](https://github.com/ApoSkunz/crabitan_bellevue/commit/debddd32a9065f22e5a37088edfc5f02eec4f374))
+* **cron:** retourner 404 au lieu de 403 sur token invalide ([f1d3ac9](https://github.com/ApoSkunz/crabitan_bellevue/commit/f1d3ac975f999331117bc8fed3862980948a7a91))
+* **rgpd:** supprimer purge abonnés newsletter confirmés > 13 mois ([f7ba59d](https://github.com/ApoSkunz/crabitan_bellevue/commit/f7ba59d8311f4d4d23291cb4bc5dfa1af0478121))
+
+
+### Features
+
+* **cron:** CronController HTTP GET pour IONOS mutualisé ([d7d84ae](https://github.com/ApoSkunz/crabitan_bellevue/commit/d7d84aeedd67426bb3ace2295fff8781d5ecabd5))
+* **cron:** support dry_run HTTP via CronRunner forcedDryRun ([0348db9](https://github.com/ApoSkunz/crabitan_bellevue/commit/0348db9c98c14c9966781c21aa09b239cc87f1fd))
+
 ## [0.87.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.87.0...v0.87.1) (2026-04-17)
 
 
