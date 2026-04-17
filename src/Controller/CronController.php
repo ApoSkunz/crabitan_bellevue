@@ -94,147 +94,10 @@ class CronController extends Controller
     private function getAccountJob(string $job): ?callable
     {
         return match ($job) {
-            'purge-accounts' => function (callable $log, bool $dryRun): void {
-                $model  = new \Model\AccountModel();
-                $mailer = new \Service\MailService();
-
-                $due = $model->getAccountsDueForDeletion();
-                $log('Comptes éligibles à l\'anonymisation : ' . count($due));
-
-                foreach ($due as $account) {
-                    $name = trim((string) ($account['name'] ?? '')) ?: $account['email'];
-                    if ($dryRun) {
-                        $log("[DRY-RUN] Would send final deletion email to {$account['email']} (id={$account['id']})");
-                        continue;
-                    }
-                    try {
-                        $mailer->sendFinalDeletion($account['email'], $name, $account['lang'] ?? 'fr');
-                        $log("[EMAIL] Notification envoyée à {$account['email']} (id={$account['id']})");
-                    } catch (\Throwable $e) {
-                        $log("[EMAIL-ERR] id={$account['id']} : " . $e->getMessage());
-                    }
-                }
-
-                if (!$dryRun) {
-                    $purged = $model->purgeScheduledDeletions();
-                    $log("{$purged} compte(s) anonymisé(s)");
-                }
-            },
-
-            'purge-inactive-accounts' => function (callable $log, bool $dryRun): void {
-                $model          = new \Model\AccountModel();
-                $mailer         = new \Service\MailService();
-                $inactiveMonths = (int) ($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
-
-                $log("Seuil d'inactivité : {$inactiveMonths} mois");
-
-                $inactive = $model->getInactiveAccounts($inactiveMonths);
-                $log('Phase 1 — comptes à avertir : ' . count($inactive));
-
-                $warned = 0;
-                foreach ($inactive as $account) {
-                    $id           = (int) $account['id'];
-                    $deletionDate = date('d/m/Y', strtotime('+30 days'));
-
-                    if ($dryRun) {
-                        $log("[DRY-RUN] Would send inactivity warning to {$account['email']} (id={$id})");
-                        continue;
-                    }
-                    try {
-                        $mailer->sendInactivityWarning(
-                            (string) $account['email'],
-                            (string) $account['name'],
-                            (string) ($account['lang'] ?? 'fr'),
-                            $deletionDate
-                        );
-                        $model->markInactivityWarningSent($id);
-                        $warned++;
-                        $log("[WARN] Email envoyé à {$account['email']} (id={$id})");
-                    } catch (\Throwable $e) {
-                        $log("[WARN-ERR] id={$id} : " . $e->getMessage());
-                    }
-                }
-
-                $toDelete    = $model->getAccountsToSoftDelete();
-                $softDeleted = 0;
-                $log('Phase 2 — comptes à soft-delete : ' . count($toDelete));
-
-                foreach ($toDelete as $account) {
-                    $id = (int) $account['id'];
-                    if ($dryRun) {
-                        $log("[DRY-RUN] Would soft-delete compte id={$id} ({$account['email']})");
-                        continue;
-                    }
-                    try {
-                        $token        = $model->softDeleteForInactivity($id);
-                        $deletionDate = date('d/m/Y', strtotime('+30 days'));
-                        $name         = trim((string) ($account['name'] ?? '')) ?: $account['email'];
-                        $mailer->sendInactivityDeletion(
-                            $account['email'],
-                            $name,
-                            $account['lang'] ?? 'fr',
-                            $deletionDate,
-                            $token
-                        );
-                        $softDeleted++;
-                        $log("[DELETE] Compte id={$id} ({$account['email']}) soft-deleted");
-                    } catch (\Throwable $e) {
-                        $log("[DELETE-ERR] id={$id} : " . $e->getMessage());
-                    }
-                }
-
-                if (!$dryRun) {
-                    $log("Terminé : {$warned} avertissement(s), {$softDeleted} soft-delete(s)");
-                } else {
-                    $log('[DRY-RUN] Simulation terminée — aucune écriture BDD, aucun email envoyé');
-                }
-            },
-
-            'send-deletion-reminders' => function (callable $log, bool $dryRun): void {
-                $model  = new \Model\AccountModel();
-                $mailer = new \Service\MailService();
-                $sent   = 0;
-
-                foreach ([7, 1] as $days) {
-                    $accounts = $model->getAccountsPendingDeletionReminder($days);
-
-                    foreach ($accounts as $account) {
-                        $name = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
-                            ?: $account['email'];
-
-                        if ($dryRun) {
-                            $log("[DRY-RUN] Would send J-{$days} reminder to {$account['email']} (id={$account['id']})");
-                            continue;
-                        }
-
-                        try {
-                            $mailer->sendDeletionReminder(
-                                $account['email'],
-                                $name,
-                                $account['lang'] ?? 'fr',
-                                $days,
-                                $account['scheduled_deletion_at'],
-                                $account['reactivation_token'] ?? ''
-                            );
-                            if ($days === 7) {
-                                $model->markDeletionReminder7dSent((int) $account['id']);
-                            } else {
-                                $model->markDeletionReminder1dSent((int) $account['id']);
-                            }
-                            $sent++;
-                            $log("[J-{$days}] Rappel envoyé à {$account['email']} (id={$account['id']})");
-                        } catch (\Throwable $e) {
-                            $log("[J-{$days}] ERREUR id={$account['id']} : " . $e->getMessage());
-                        }
-                    }
-                }
-
-                if (!$dryRun) {
-                    $log("{$sent} rappel(s) envoyé(s)");
-                }
-            },
-
-            default => null,
+            'purge-accounts'          => fn(callable $log, bool $dryRun) => $this->doJobPurgeAccounts($log, $dryRun),
+            'purge-inactive-accounts' => fn(callable $log, bool $dryRun) => $this->doJobPurgeInactiveAccounts($log, $dryRun),
+            'send-deletion-reminders' => fn(callable $log, bool $dryRun) => $this->doJobSendDeletionReminders($log, $dryRun),
+            default                   => null,
         };
     }
 
@@ -247,67 +110,11 @@ class CronController extends Controller
     private function getPurgeJob(string $job): ?callable
     {
         return match ($job) {
-            'pseudonymize-orders' => function (callable $log, bool $dryRun): void {
-                $model = new \Model\OrderModel();
-
-                if ($dryRun) {
-                    $log('[DRY-RUN] Would pseudonymize expired order snapshots — aucune écriture BDD');
-                    return;
-                }
-
-                $count = $model->pseudonymizeExpired();
-                $log("{$count} snapshot(s) pseudonymisé(s)");
-            },
-
-            'purge-connections' => function (callable $log, bool $dryRun): void {
-                $model = new \Model\ConnectionModel();
-
-                if ($dryRun) {
-                    $log('[DRY-RUN] Would purge expired/revoked connections — aucune écriture BDD');
-                    return;
-                }
-
-                $purged = $model->purgeExpired();
-                $log("{$purged} session(s) purgée(s)");
-            },
-
-            'purge-addresses' => function (callable $log, bool $dryRun): void {
-                $model    = new \Model\AddressModel();
-                $orphaned = $model->getOrphanedAddresses();
-                $log('Adresses orphelines éligibles : ' . count($orphaned));
-
-                if ($orphaned === []) {
-                    $log('0 adresse purgée');
-                    return;
-                }
-
-                foreach ($orphaned as $addr) {
-                    $log("Adresse id={$addr['id']} (user_id={$addr['user_id']}) éligible");
-                }
-
-                if ($dryRun) {
-                    $log('[DRY-RUN] Would delete ' . count($orphaned) . ' adresse(s) — aucune écriture BDD');
-                    return;
-                }
-
-                $purged = $model->purgeOrphaned();
-                $log("{$purged} adresse(s) supprimée(s)");
-            },
-
-            'purge-rate-limits' => function (callable $log, bool $dryRun): void {
-                $db = \Core\Database::getInstance();
-
-                if ($dryRun) {
-                    $count = $db->fetchOne('SELECT COUNT(*) AS n FROM rate_limits WHERE expires_at < UNIX_TIMESTAMP()')['n'] ?? 0;
-                    $log("[DRY-RUN] Would delete {$count} entrée(s) expirée(s) — aucune écriture BDD");
-                    return;
-                }
-
-                $deleted = $db->execute('DELETE FROM rate_limits WHERE expires_at < UNIX_TIMESTAMP()');
-                $log("rate_limits : {$deleted} entrée(s) expirée(s) supprimée(s)");
-            },
-
-            default => null,
+            'pseudonymize-orders' => fn(callable $log, bool $dryRun) => $this->doJobPseudonymizeOrders($log, $dryRun),
+            'purge-connections'   => fn(callable $log, bool $dryRun) => $this->doJobPurgeConnections($log, $dryRun),
+            'purge-addresses'     => fn(callable $log, bool $dryRun) => $this->doJobPurgeAddresses($log, $dryRun),
+            'purge-rate-limits'   => fn(callable $log, bool $dryRun) => $this->doJobPurgeRateLimits($log, $dryRun),
+            default               => null,
         };
     }
 
@@ -320,31 +127,9 @@ class CronController extends Controller
     private function getNewsletterJob(string $job): ?callable
     {
         return match ($job) {
-            'purge-newsletter-subscriptions' => function (callable $log, bool $dryRun): void {
-                $model = new \Model\NewsletterSubscriptionModel();
-
-                if ($dryRun) {
-                    $log('[DRY-RUN] Would purge expired pending subscriptions — aucune écriture BDD');
-                    return;
-                }
-
-                $pending = $model->purgeExpiredPending();
-                $log("{$pending} abonnement(s) non confirmé(s) expiré(s) supprimé(s)");
-            },
-
-            'purge-newsletter-tracking' => function (callable $log, bool $dryRun): void {
-                $model = new \Model\NewsletterTrackingModel();
-
-                if ($dryRun) {
-                    $log('[DRY-RUN] Would purge newsletter tracking older than 13 months — aucune écriture BDD');
-                    return;
-                }
-
-                $deleted = $model->purgeOlderThan13Months();
-                $log("{$deleted} enregistrement(s) de tracking purgé(s)");
-            },
-
-            default => null,
+            'purge-newsletter-subscriptions' => fn(callable $log, bool $dryRun) => $this->doJobPurgeNewsletterSubscriptions($log, $dryRun),
+            'purge-newsletter-tracking'      => fn(callable $log, bool $dryRun) => $this->doJobPurgeNewsletterTracking($log, $dryRun),
+            default                          => null,
         };
     }
 
@@ -357,112 +142,443 @@ class CronController extends Controller
     private function getNotificationJob(string $job): ?callable
     {
         return match ($job) {
-            'send-abandoned-cart' => function (callable $log, bool $dryRun): void {
-                $cartModel = new \Model\CartModel();
-                $mailer    = new \Service\MailService();
-                $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
-
-                $carts = $cartModel->getAbandonedForEmail();
-                $log('Paniers éligibles : ' . count($carts));
-
-                foreach ($carts as $data) {
-                    $cartUrl = ($data['lang'] === 'fr') ? $appUrl . '/fr/panier' : $appUrl . '/en/cart';
-
-                    if ($dryRun) {
-                        $log('[DRY-RUN] Would send abandoned cart to ' . $data['email'] . ' (cart_id=' . $data['cart_id'] . ')');
-                        continue;
-                    }
-
-                    try {
-                        $mailer->sendAbandonedCart($data['email'], $data['firstname'], $data['items'], $data['lang'], $cartUrl);
-                        $cartModel->markReminderSent($data['cart_id']);
-                        $log('[OK] ' . $data['email']);
-                    } catch (\Throwable $e) {
-                        $log('[ERR] ' . $data['email'] . ' : ' . $e->getMessage());
-                    }
-                }
-            },
-
-            'send-post-purchase' => function (callable $log, bool $dryRun): void {
-                $orderModel   = new \Model\OrderModel();
-                $accountModel = new \Model\AccountModel();
-                $mailer       = new \Service\MailService();
-
-                $orders = $orderModel->getDeliveredForRatingEmail();
-                $log('Commandes éligibles notation : ' . count($orders));
-
-                foreach ($orders as $order) {
-                    $account = $accountModel->findById((int) $order['user_id']);
-                    if (!$account) {
-                        $log('[SKIP] user_id=' . $order['user_id']);
-                        continue;
-                    }
-
-                    if ($dryRun) {
-                        $log('[DRY-RUN] Would send post-purchase to ' . $account['email'] . ' commande #' . $order['id']);
-                        continue;
-                    }
-
-                    $items = json_decode((string) $order['content'], true) ?? [];
-                    $lang  = in_array($account['lang'] ?? '', ['fr', 'en'], true) ? $account['lang'] : 'fr';
-
-                    try {
-                        $mailer->sendPostPurchase(
-                            $account['email'],
-                            $account['firstname'] ?? 'Client',
-                            (int) $order['user_id'],
-                            (int) $order['id'],
-                            $items,
-                            $lang
-                        );
-                        $orderModel->markRatingEmailSent((int) $order['id']);
-                        $log('[OK] ' . $account['email'] . ' commande #' . $order['id']);
-                    } catch (\Throwable $e) {
-                        $log('[ERR] commande #' . $order['id'] . ' : ' . $e->getMessage());
-                    }
-                }
-            },
-
-            'alert-pending-orders' => function (callable $log, bool $dryRun): void {
-                $model       = new \Model\OrderModel();
-                $mailer      = new \Service\MailService();
-                $staleOrders = $model->getStaleOrders(7);
-
-                if (empty($staleOrders)) {
-                    $log('Aucune commande bloquée — aucun email envoyé');
-                    return;
-                }
-
-                $count = count($staleOrders);
-
-                if ($dryRun) {
-                    $log("[DRY-RUN] Would send alert for {$count} commande(s) bloquée(s) — aucun email envoyé");
-                    return;
-                }
-
-                $mailer->sendPendingOrdersAlert($staleOrders, 7);
-                $log("{$count} commande(s) bloquée(s) — alerte envoyée au propriétaire");
-            },
-
-            'clean-expired-tokens' => function (callable $log, bool $dryRun): void {
-                $service = new \Service\TokenPurgeService(\Core\Database::getInstance());
-
-                if ($dryRun) {
-                    $log('[DRY-RUN] Would purge expired tokens'
-                        . ' (password_reset, device_confirm_tokens, connections, email_verification)'
-                        . ' — aucune écriture BDD');
-                    return;
-                }
-
-                $counts = $service->purgeAll();
-                $log("password_reset        : {$counts['password_reset']} supprimé(s)");
-                $log("device_confirm_tokens : {$counts['device_confirm_tokens']} supprimé(s)");
-                $log("connections           : {$counts['connections']} supprimé(s)");
-                $log("email_verification    : {$counts['email_verification']} compte(s) mis à jour");
-                $log('Total nettoyé : ' . array_sum($counts) . ' entrée(s)');
-            },
-
-            default => null,
+            'send-abandoned-cart'  => fn(callable $log, bool $dryRun) => $this->doJobSendAbandonedCart($log, $dryRun),
+            'send-post-purchase'   => fn(callable $log, bool $dryRun) => $this->doJobSendPostPurchase($log, $dryRun),
+            'alert-pending-orders' => fn(callable $log, bool $dryRun) => $this->doJobAlertPendingOrders($log, $dryRun),
+            'clean-expired-tokens' => fn(callable $log, bool $dryRun) => $this->doJobCleanExpiredTokens($log, $dryRun),
+            default                => null,
         };
+    }
+
+    /**
+     * Envoie l'email de suppression définitive puis anonymise les comptes planifiés (RGPD Art. 17).
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeAccounts(callable $log, bool $dryRun): void
+    {
+        $model  = new \Model\AccountModel();
+        $mailer = new \Service\MailService();
+
+        $due = $model->getAccountsDueForDeletion();
+        $log('Comptes éligibles à l\'anonymisation : ' . count($due));
+
+        foreach ($due as $account) {
+            $name = trim((string) ($account['name'] ?? '')) ?: $account['email'];
+            if ($dryRun) {
+                $log("[DRY-RUN] Would send final deletion email to {$account['email']} (id={$account['id']})");
+                continue;
+            }
+            try {
+                $mailer->sendFinalDeletion($account['email'], $name, $account['lang'] ?? 'fr');
+                $log("[EMAIL] Notification envoyée à {$account['email']} (id={$account['id']})");
+            } catch (\Throwable $e) {
+                $log("[EMAIL-ERR] id={$account['id']} : " . $e->getMessage());
+            }
+        }
+
+        if (!$dryRun) {
+            $purged = $model->purgeScheduledDeletions();
+            $log("{$purged} compte(s) anonymisé(s)");
+        }
+    }
+
+    /**
+     * Avertit les comptes inactifs puis soft-delete ceux qui n'ont pas réagi (RGPD Art. 5-1e).
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeInactiveAccounts(callable $log, bool $dryRun): void
+    {
+        $model          = new \Model\AccountModel();
+        $mailer         = new \Service\MailService();
+        $inactiveMonths = (int) ($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
+
+        $log("Seuil d'inactivité : {$inactiveMonths} mois");
+
+        $inactive = $model->getInactiveAccounts($inactiveMonths);
+        $log('Phase 1 — comptes à avertir : ' . count($inactive));
+
+        $warned = 0;
+        foreach ($inactive as $account) {
+            $id           = (int) $account['id'];
+            $deletionDate = date('d/m/Y', strtotime('+30 days'));
+            if ($dryRun) {
+                $log("[DRY-RUN] Would send inactivity warning to {$account['email']} (id={$id})");
+                continue;
+            }
+            try {
+                $mailer->sendInactivityWarning(
+                    (string) $account['email'],
+                    (string) $account['name'],
+                    (string) ($account['lang'] ?? 'fr'),
+                    $deletionDate
+                );
+                $model->markInactivityWarningSent($id);
+                $warned++;
+                $log("[WARN] Email envoyé à {$account['email']} (id={$id})");
+            } catch (\Throwable $e) {
+                $log("[WARN-ERR] id={$id} : " . $e->getMessage());
+            }
+        }
+
+        $toDelete    = $model->getAccountsToSoftDelete();
+        $softDeleted = 0;
+        $log('Phase 2 — comptes à soft-delete : ' . count($toDelete));
+
+        foreach ($toDelete as $account) {
+            $id = (int) $account['id'];
+            if ($dryRun) {
+                $log("[DRY-RUN] Would soft-delete compte id={$id} ({$account['email']})");
+                continue;
+            }
+            try {
+                $token        = $model->softDeleteForInactivity($id);
+                $deletionDate = date('d/m/Y', strtotime('+30 days'));
+                $name         = trim((string) ($account['name'] ?? '')) ?: $account['email'];
+                $mailer->sendInactivityDeletion(
+                    $account['email'],
+                    $name,
+                    $account['lang'] ?? 'fr',
+                    $deletionDate,
+                    $token
+                );
+                $softDeleted++;
+                $log("[DELETE] Compte id={$id} ({$account['email']}) soft-deleted");
+            } catch (\Throwable $e) {
+                $log("[DELETE-ERR] id={$id} : " . $e->getMessage());
+            }
+        }
+
+        if (!$dryRun) {
+            $log("Terminé : {$warned} avertissement(s), {$softDeleted} soft-delete(s)");
+        } else {
+            $log('[DRY-RUN] Simulation terminée — aucune écriture BDD, aucun email envoyé');
+        }
+    }
+
+    /**
+     * Envoie les rappels J-7 et J-1 avant la suppression définitive d'un compte.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobSendDeletionReminders(callable $log, bool $dryRun): void
+    {
+        $model  = new \Model\AccountModel();
+        $mailer = new \Service\MailService();
+        $sent   = 0;
+
+        foreach ([7, 1] as $days) {
+            $accounts = $model->getAccountsPendingDeletionReminder($days);
+
+            foreach ($accounts as $account) {
+                $name = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
+                    ?: $account['email'];
+
+                if ($dryRun) {
+                    $log("[DRY-RUN] Would send J-{$days} reminder to {$account['email']} (id={$account['id']})");
+                    continue;
+                }
+
+                try {
+                    $mailer->sendDeletionReminder(
+                        $account['email'],
+                        $name,
+                        $account['lang'] ?? 'fr',
+                        $days,
+                        $account['scheduled_deletion_at'],
+                        $account['reactivation_token'] ?? ''
+                    );
+                    if ($days === 7) {
+                        $model->markDeletionReminder7dSent((int) $account['id']);
+                    } else {
+                        $model->markDeletionReminder1dSent((int) $account['id']);
+                    }
+                    $sent++;
+                    $log("[J-{$days}] Rappel envoyé à {$account['email']} (id={$account['id']})");
+                } catch (\Throwable $e) {
+                    $log("[J-{$days}] ERREUR id={$account['id']} : " . $e->getMessage());
+                }
+            }
+        }
+
+        if (!$dryRun) {
+            $log("{$sent} rappel(s) envoyé(s)");
+        }
+    }
+
+    /**
+     * Pseudonymise les snapshots d'adresses de commandes de plus de 10 ans.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPseudonymizeOrders(callable $log, bool $dryRun): void
+    {
+        $model = new \Model\OrderModel();
+
+        if ($dryRun) {
+            $log('[DRY-RUN] Would pseudonymize expired order snapshots — aucune écriture BDD');
+            return;
+        }
+
+        $count = $model->pseudonymizeExpired();
+        $log("{$count} snapshot(s) pseudonymisé(s)");
+    }
+
+    /**
+     * Supprime les sessions révoquées ou expirées de la table connections.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeConnections(callable $log, bool $dryRun): void
+    {
+        $model = new \Model\ConnectionModel();
+
+        if ($dryRun) {
+            $log('[DRY-RUN] Would purge expired/revoked connections — aucune écriture BDD');
+            return;
+        }
+
+        $purged = $model->purgeExpired();
+        $log("{$purged} session(s) purgée(s)");
+    }
+
+    /**
+     * Supprime les adresses orphelines dont toutes les commandes sont en statut terminal.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeAddresses(callable $log, bool $dryRun): void
+    {
+        $model    = new \Model\AddressModel();
+        $orphaned = $model->getOrphanedAddresses();
+        $log('Adresses orphelines éligibles : ' . count($orphaned));
+
+        if ($orphaned === []) {
+            $log('0 adresse purgée');
+            return;
+        }
+
+        foreach ($orphaned as $addr) {
+            $log("Adresse id={$addr['id']} (user_id={$addr['user_id']}) éligible");
+        }
+
+        if ($dryRun) {
+            $log('[DRY-RUN] Would delete ' . count($orphaned) . ' adresse(s) — aucune écriture BDD');
+            return;
+        }
+
+        $purged = $model->purgeOrphaned();
+        $log("{$purged} adresse(s) supprimée(s)");
+    }
+
+    /**
+     * Supprime les entrées expirées de la table rate_limits.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeRateLimits(callable $log, bool $dryRun): void
+    {
+        $db = \Core\Database::getInstance();
+
+        if ($dryRun) {
+            $count = $db->fetchOne('SELECT COUNT(*) AS n FROM rate_limits WHERE expires_at < UNIX_TIMESTAMP()')['n'] ?? 0;
+            $log("[DRY-RUN] Would delete {$count} entrée(s) expirée(s) — aucune écriture BDD");
+            return;
+        }
+
+        $deleted = $db->execute('DELETE FROM rate_limits WHERE expires_at < UNIX_TIMESTAMP()');
+        $log("rate_limits : {$deleted} entrée(s) expirée(s) supprimée(s)");
+    }
+
+    /**
+     * Purge les abonnements newsletter non confirmés dont le token a expiré.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeNewsletterSubscriptions(callable $log, bool $dryRun): void
+    {
+        $model = new \Model\NewsletterSubscriptionModel();
+
+        if ($dryRun) {
+            $log('[DRY-RUN] Would purge expired pending subscriptions — aucune écriture BDD');
+            return;
+        }
+
+        $pending = $model->purgeExpiredPending();
+        $log("{$pending} abonnement(s) non confirmé(s) expiré(s) supprimé(s)");
+    }
+
+    /**
+     * Supprime les données de tracking newsletter de plus de 13 mois.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeNewsletterTracking(callable $log, bool $dryRun): void
+    {
+        $model = new \Model\NewsletterTrackingModel();
+
+        if ($dryRun) {
+            $log('[DRY-RUN] Would purge newsletter tracking older than 13 months — aucune écriture BDD');
+            return;
+        }
+
+        $deleted = $model->purgeOlderThan13Months();
+        $log("{$deleted} enregistrement(s) de tracking purgé(s)");
+    }
+
+    /**
+     * Envoie un email de relance aux clients dont le panier est abandonné depuis 72–96h.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobSendAbandonedCart(callable $log, bool $dryRun): void
+    {
+        $cartModel = new \Model\CartModel();
+        $mailer    = new \Service\MailService();
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+
+        $carts = $cartModel->getAbandonedForEmail();
+        $log('Paniers éligibles : ' . count($carts));
+
+        foreach ($carts as $data) {
+            $cartUrl = ($data['lang'] === 'fr') ? $appUrl . '/fr/panier' : $appUrl . '/en/cart';
+
+            if ($dryRun) {
+                $log('[DRY-RUN] Would send abandoned cart to ' . $data['email'] . ' (cart_id=' . $data['cart_id'] . ')');
+                continue;
+            }
+
+            try {
+                $mailer->sendAbandonedCart($data['email'], $data['firstname'], $data['items'], $data['lang'], $cartUrl);
+                $cartModel->markReminderSent($data['cart_id']);
+                $log('[OK] ' . $data['email']);
+            } catch (\Throwable $e) {
+                $log('[ERR] ' . $data['email'] . ' : ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Envoie l'invitation à noter la commande 3 semaines après livraison confirmée.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobSendPostPurchase(callable $log, bool $dryRun): void
+    {
+        $orderModel   = new \Model\OrderModel();
+        $accountModel = new \Model\AccountModel();
+        $mailer       = new \Service\MailService();
+
+        $orders = $orderModel->getDeliveredForRatingEmail();
+        $log('Commandes éligibles notation : ' . count($orders));
+
+        foreach ($orders as $order) {
+            $account = $accountModel->findById((int) $order['user_id']);
+            if (!$account) {
+                $log('[SKIP] user_id=' . $order['user_id']);
+                continue;
+            }
+
+            if ($dryRun) {
+                $log('[DRY-RUN] Would send post-purchase to ' . $account['email'] . ' commande #' . $order['id']);
+                continue;
+            }
+
+            $items = json_decode((string) $order['content'], true) ?? [];
+            $lang  = in_array($account['lang'] ?? '', ['fr', 'en'], true) ? $account['lang'] : 'fr';
+
+            try {
+                $mailer->sendPostPurchase(
+                    $account['email'],
+                    $account['firstname'] ?? 'Client',
+                    (int) $order['user_id'],
+                    (int) $order['id'],
+                    $items,
+                    $lang
+                );
+                $orderModel->markRatingEmailSent((int) $order['id']);
+                $log('[OK] ' . $account['email'] . ' commande #' . $order['id']);
+            } catch (\Throwable $e) {
+                $log('[ERR] commande #' . $order['id'] . ' : ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Envoie un récap hebdo au propriétaire listant les commandes bloquées > 7 jours.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobAlertPendingOrders(callable $log, bool $dryRun): void
+    {
+        $model       = new \Model\OrderModel();
+        $mailer      = new \Service\MailService();
+        $staleOrders = $model->getStaleOrders(7);
+
+        if (empty($staleOrders)) {
+            $log('Aucune commande bloquée — aucun email envoyé');
+            return;
+        }
+
+        $count = count($staleOrders);
+
+        if ($dryRun) {
+            $log("[DRY-RUN] Would send alert for {$count} commande(s) bloquée(s) — aucun email envoyé");
+            return;
+        }
+
+        $mailer->sendPendingOrdersAlert($staleOrders, 7);
+        $log("{$count} commande(s) bloquée(s) — alerte envoyée au propriétaire");
+    }
+
+    /**
+     * Purge les tokens expirés : reset mot de passe, MFA appareil, sessions, vérif email.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobCleanExpiredTokens(callable $log, bool $dryRun): void
+    {
+        $service = new \Service\TokenPurgeService(\Core\Database::getInstance());
+
+        if ($dryRun) {
+            $log('[DRY-RUN] Would purge expired tokens'
+                . ' (password_reset, device_confirm_tokens, connections, email_verification)'
+                . ' — aucune écriture BDD');
+            return;
+        }
+
+        $counts = $service->purgeAll();
+        $log("password_reset        : {$counts['password_reset']} supprimé(s)");
+        $log("device_confirm_tokens : {$counts['device_confirm_tokens']} supprimé(s)");
+        $log("connections           : {$counts['connections']} supprimé(s)");
+        $log("email_verification    : {$counts['email_verification']} compte(s) mis à jour");
+        $log('Total nettoyé : ' . array_sum($counts) . ' entrée(s)');
     }
 }
