@@ -72,6 +72,11 @@ $router->post('/admin/rgpd/demandes/{id}/statut', 'Admin\RgpdAdminController@upd
 $router->get('/admin/rgpd/demandes/{id}/export-portabilite', 'Admin\RgpdAdminController@exportPortabilite');
 
 // ============================================================
+// Cron (IONOS HTTP GET — protégé par token secret)
+// ============================================================
+$router->get('/cron/{job}', 'CronController@run');
+
+// ============================================================
 // Routes publiques
 // ============================================================
 
