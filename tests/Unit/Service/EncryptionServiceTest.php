@@ -13,10 +13,21 @@ use Service\EncryptionService;
 class EncryptionServiceTest extends TestCase
 {
     private EncryptionService $enc;
+    private string|false $savedEncryptKey;
 
     protected function setUp(): void
     {
-        $this->enc = new EncryptionService('test-secret-key-for-unit-tests');
+        $this->enc            = new EncryptionService('test-secret-key-for-unit-tests');
+        $this->savedEncryptKey = $_ENV['DB_ENCRYPT_KEY'] ?? false;
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->savedEncryptKey !== false) {
+            $_ENV['DB_ENCRYPT_KEY'] = $this->savedEncryptKey;
+        } else {
+            unset($_ENV['DB_ENCRYPT_KEY']);
+        }
     }
 
     public function testEncryptDecryptRoundTrip(): void
