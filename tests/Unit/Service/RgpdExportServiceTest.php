@@ -16,10 +16,24 @@ use Service\RgpdExportService;
 class RgpdExportServiceTest extends TestCase
 {
     private RgpdExportService $service;
+    private string|false $savedEncryptKey;
 
     protected function setUp(): void
     {
+        $this->savedEncryptKey = $_ENV['DB_ENCRYPT_KEY'] ?? false;
+        if ($this->savedEncryptKey === false || $this->savedEncryptKey === '') {
+            $_ENV['DB_ENCRYPT_KEY'] = 'test-key-rgpd-export-service';
+        }
         $this->service = new RgpdExportService();
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->savedEncryptKey !== false) {
+            $_ENV['DB_ENCRYPT_KEY'] = $this->savedEncryptKey;
+        } else {
+            unset($_ENV['DB_ENCRYPT_KEY']);
+        }
     }
 
     // ----------------------------------------------------------------

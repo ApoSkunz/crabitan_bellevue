@@ -41,6 +41,9 @@ foreach ($_dotEnv ?: [] as $_k => $_v) {
 }
 unset($_dotEnv, $_k, $_v);
 
+// Clé de chiffrement — fallback test si ni CI ni .env ne la fournissent
+$_ENV['DB_ENCRYPT_KEY'] ??= 'test-encrypt-key-for-unit-tests-only';
+
 // BDD pour les tests d'intégration (surchargeable via variables d'environnement CI)
 $_ENV['DB_HOST'] = getenv('DB_HOST') ?: '127.0.0.1';
 $_ENV['DB_PORT'] = getenv('DB_PORT') ?: '3306';
