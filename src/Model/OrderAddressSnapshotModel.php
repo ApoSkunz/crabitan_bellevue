@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Model;
 
 use Core\Model;
+use Service\EncryptionService;
 
 /**
  * Snapshot immuable d'une adresse associée à une commande.
@@ -18,6 +19,17 @@ use Core\Model;
 class OrderAddressSnapshotModel extends Model
 {
     protected string $table = 'order_address_snapshots';
+
+    private EncryptionService $encryption;
+
+    /**
+     * @param EncryptionService|null $encryption Service de chiffrement (null = construit depuis l'environnement)
+     */
+    public function __construct(?EncryptionService $encryption = null)
+    {
+        parent::__construct();
+        $this->encryption = $encryption ?? EncryptionService::fromEnv();
+    }
 
     /**
      * Retourne un snapshot existant ou en crée un nouveau (find-or-create).
@@ -43,14 +55,15 @@ class OrderAddressSnapshotModel extends Model
         $country   = $address['country']   ?? '';
         $phone     = $address['phone']     ?? '';
 
+        // Dedup : street exclu (chiffré avec IV aléatoire — comparaison impossible)
         if ($sourceAddressId !== null) {
             $existing = $this->db->fetchOne(
                 "SELECT id FROM {$this->table}
                  WHERE source_address_id = ?
                    AND firstname = ? AND lastname = ?
-                   AND street = ? AND city = ? AND zip = ? AND country = ?
+                   AND city = ? AND zip = ? AND country = ?
                  ORDER BY id DESC LIMIT 1",
-                [$sourceAddressId, $firstname, $lastname, $street, $city, $zip, $country]
+                [$sourceAddressId, $firstname, $lastname, $city, $zip, $country]
             );
             if ($existing !== false) {
                 return (int) $existing['id'];
@@ -61,7 +74,12 @@ class OrderAddressSnapshotModel extends Model
             "INSERT INTO {$this->table}
              (source_address_id, civility, firstname, lastname, street, city, zip, country, phone)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [$sourceAddressId, $civility, $firstname, $lastname, $street, $city, $zip, $country, $phone]
+            [
+                $sourceAddressId, $civility, $firstname, $lastname,
+                $this->encryption->encrypt($street),
+                $city, $zip, $country,
+                $this->encryption->encrypt($phone),
+            ]
         );
         return (int) $id;
     }
@@ -77,7 +95,7 @@ class OrderAddressSnapshotModel extends Model
      */
     public function getForUserExport(int $userId): array
     {
-        return $this->db->fetchAll(
+        $rows = $this->db->fetchAll(
             "SELECT oas.civility, oas.firstname, oas.lastname, oas.street,
                     oas.city, oas.zip, oas.country, oas.phone,
                     o.order_reference, o.ordered_at, 'facturation' AS address_type
@@ -97,5 +115,15 @@ class OrderAddressSnapshotModel extends Model
              ORDER BY ordered_at DESC",
             [$userId, $userId]
         );
+
+        return array_map(function (array $row): array {
+            if (isset($row['street']) && is_string($row['street'])) {
+                $row['street'] = $this->encryption->decrypt($row['street']) ?? $row['street'];
+            }
+            if (isset($row['phone']) && is_string($row['phone'])) {
+                $row['phone'] = $this->encryption->decrypt($row['phone']) ?? $row['phone'];
+            }
+            return $row;
+        }, $rows);
     }
 }

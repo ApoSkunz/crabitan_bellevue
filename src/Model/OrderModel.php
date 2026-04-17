@@ -5,10 +5,22 @@ declare(strict_types=1);
 namespace Model;
 
 use Core\Model;
+use Service\EncryptionService;
 
 class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionnel ; découpage prévu à l'audit génie logiciel
 {
     protected string $table = 'orders';
+
+    private EncryptionService $encryption;
+
+    /**
+     * @param EncryptionService|null $encryption Service de chiffrement (null = construit depuis l'environnement)
+     */
+    public function __construct(?EncryptionService $encryption = null)
+    {
+        parent::__construct();
+        $this->encryption = $encryption ?? EncryptionService::fromEnv();
+    }
 
     private const VALID_STATUSES = [
         'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused', 'refund_pending',
@@ -697,13 +709,23 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      */
     private function fetchAddressById(int $id): array|false
     {
-        return $this->db->fetchOne(
+        $row = $this->db->fetchOne(
             "SELECT id, user_id, type, firstname, lastname, civility,
                     street, city, zip_code, country, phone, saved,
                     deleted_at, preserved_for_order, created_at, updated_at
              FROM addresses WHERE id = ?",
             [$id]
         );
+        if (!is_array($row)) {
+            return false;
+        }
+        if (isset($row['street']) && is_string($row['street'])) {
+            $row['street'] = $this->encryption->decrypt($row['street']) ?? $row['street'];
+        }
+        if (isset($row['phone']) && is_string($row['phone'])) {
+            $row['phone'] = $this->encryption->decrypt($row['phone']) ?? $row['phone'];
+        }
+        return $row;
     }
 
     // ----------------------------------------------------------------
