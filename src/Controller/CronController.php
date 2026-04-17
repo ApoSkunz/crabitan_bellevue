@@ -202,7 +202,36 @@ class CronController extends Controller
 
         $inactive = $model->getInactiveAccounts($inactiveMonths);
         $log('Phase 1 — comptes à avertir : ' . count($inactive));
+        $warned = $this->doJobPurgeInactivePhase1($log, $dryRun, $inactive, $model, $mailer);
 
+        $toDelete = $model->getAccountsToSoftDelete();
+        $log('Phase 2 — comptes à soft-delete : ' . count($toDelete));
+        $softDeleted = $this->doJobPurgeInactivePhase2($log, $dryRun, $toDelete, $model, $mailer);
+
+        if (!$dryRun) {
+            $log("Terminé : {$warned} avertissement(s), {$softDeleted} soft-delete(s)");
+        } else {
+            $log('[DRY-RUN] Simulation terminée — aucune écriture BDD, aucun email envoyé');
+        }
+    }
+
+    /**
+     * Phase 1 : envoie les avertissements d'inactivité.
+     *
+     * @param callable(string):void                $log
+     * @param bool                                 $dryRun
+     * @param array<int, array<string, mixed>>     $inactive
+     * @param \Model\AccountModel                  $model
+     * @param \Service\MailService                 $mailer
+     * @return int Nombre d'emails d'avertissement envoyés
+     */
+    private function doJobPurgeInactivePhase1(
+        callable $log,
+        bool $dryRun,
+        array $inactive,
+        \Model\AccountModel $model,
+        \Service\MailService $mailer
+    ): int {
         $warned = 0;
         foreach ($inactive as $account) {
             $id           = (int) $account['id'];
@@ -225,11 +254,27 @@ class CronController extends Controller
                 $log("[WARN-ERR] id={$id} : " . $e->getMessage());
             }
         }
+        return $warned;
+    }
 
-        $toDelete    = $model->getAccountsToSoftDelete();
+    /**
+     * Phase 2 : soft-delete les comptes qui n'ont pas réagi à l'avertissement.
+     *
+     * @param callable(string):void                $log
+     * @param bool                                 $dryRun
+     * @param array<int, array<string, mixed>>     $toDelete
+     * @param \Model\AccountModel                  $model
+     * @param \Service\MailService                 $mailer
+     * @return int Nombre de comptes soft-deletés
+     */
+    private function doJobPurgeInactivePhase2(
+        callable $log,
+        bool $dryRun,
+        array $toDelete,
+        \Model\AccountModel $model,
+        \Service\MailService $mailer
+    ): int {
         $softDeleted = 0;
-        $log('Phase 2 — comptes à soft-delete : ' . count($toDelete));
-
         foreach ($toDelete as $account) {
             $id = (int) $account['id'];
             if ($dryRun) {
@@ -253,12 +298,7 @@ class CronController extends Controller
                 $log("[DELETE-ERR] id={$id} : " . $e->getMessage());
             }
         }
-
-        if (!$dryRun) {
-            $log("Terminé : {$warned} avertissement(s), {$softDeleted} soft-delete(s)");
-        } else {
-            $log('[DRY-RUN] Simulation terminée — aucune écriture BDD, aucun email envoyé');
-        }
+        return $softDeleted;
     }
 
     /**

@@ -198,4 +198,199 @@ class CronControllerTest extends IntegrationTestCase
         $this->assertSame(200, http_response_code());
         $this->assertStringContainsString('anonymisation', $output);
     }
+
+    // ----------------------------------------------------------------
+    // purge-accounts — avec compte éligible (foreach body)
+    // ----------------------------------------------------------------
+
+    public function testPurgeAccountsDryRunWithEligibleAccount(): void
+    {
+        self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at, scheduled_deletion_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW(), DATE_SUB(NOW(), INTERVAL 1 DAY))",
+            ['purge-eligible-dry@cron-test.com']
+        );
+
+        $output = $this->runJob('purge-accounts', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
+    }
+
+    public function testPurgeAccountsRealRunWithEligibleAccount(): void
+    {
+        self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at, scheduled_deletion_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW(), DATE_SUB(NOW(), INTERVAL 1 DAY))",
+            ['purge-eligible-real@cron-test.com']
+        );
+
+        $output = $this->runJob('purge-accounts', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('anonymisation', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // send-deletion-reminders — branche !dryRun + compte éligible J-7
+    // ----------------------------------------------------------------
+
+    public function testSendDeletionRemindersRealRunReturns200(): void
+    {
+        $output = $this->runJob('send-deletion-reminders', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('rappel(s)', $output);
+    }
+
+    public function testSendDeletionRemindersDryRunWithEligibleAccount(): void
+    {
+        self::$db->insert(
+            "INSERT INTO accounts
+             (email, password, role, lang, email_verified_at, deleted_at, scheduled_deletion_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW(), NOW(), DATE_ADD(NOW(), INTERVAL 168 HOUR))",
+            ['reminder-7d@cron-test.com']
+        );
+
+        $output = $this->runJob('send-deletion-reminders', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // purge-inactive-accounts — phase 1 et 2 avec comptes éligibles
+    // ----------------------------------------------------------------
+
+    public function testPurgeInactiveAccountsDryRunWithInactiveAccount(): void
+    {
+        self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at, created_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW(), DATE_SUB(NOW(), INTERVAL 37 MONTH))",
+            ['inactive-dry@cron-test.com']
+        );
+
+        $output = $this->runJob('purge-inactive-accounts', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
+    }
+
+    public function testPurgeInactiveAccountsRealRunWithInactiveAccount(): void
+    {
+        self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at, created_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW(), DATE_SUB(NOW(), INTERVAL 37 MONTH))",
+            ['inactive-real@cron-test.com']
+        );
+
+        $output = $this->runJob('purge-inactive-accounts', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('avertissement(s)', $output);
+    }
+
+    public function testPurgeInactiveAccountsDryRunWithSoftDeletableAccount(): void
+    {
+        self::$db->insert(
+            "INSERT INTO accounts
+             (email, password, role, lang, email_verified_at, inactivity_warning_sent_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW(), DATE_SUB(NOW(), INTERVAL 31 DAY))",
+            ['softdelete-dry@cron-test.com']
+        );
+
+        $output = $this->runJob('purge-inactive-accounts', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
+    }
+
+    public function testPurgeInactiveAccountsRealRunWithSoftDeletableAccount(): void
+    {
+        self::$db->insert(
+            "INSERT INTO accounts
+             (email, password, role, lang, email_verified_at, inactivity_warning_sent_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW(), DATE_SUB(NOW(), INTERVAL 31 DAY))",
+            ['softdelete-real@cron-test.com']
+        );
+
+        $output = $this->runJob('purge-inactive-accounts', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('avertissement(s)', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // purge-addresses — exécution réelle avec suppression
+    // ----------------------------------------------------------------
+
+    public function testPurgeAddressesRealRunDeletesOrphanedAddress(): void
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW())",
+            ['orphan-addr-real@cron-test.com']
+        );
+
+        self::$db->execute(
+            "INSERT INTO addresses
+             (user_id, type, firstname, lastname, street, city, zip_code, country, phone, preserved_for_order)
+             VALUES (?, 'billing', 'Test', 'User', 'ENC:dummystreet', 'Bordeaux', '33000', 'FR',
+                     'ENC:dummyphone', 1)",
+            [$userId]
+        );
+
+        $output = $this->runJob('purge-addresses', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('adresse(s)', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // send-abandoned-cart — avec panier abandonné seedé
+    // ----------------------------------------------------------------
+
+    public function testSendAbandonedCartDryRunWithAbandonedCart(): void
+    {
+        $wineId = self::insertTestWine('cron-abandoned', 'red', 'Wine Cron Test');
+
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW())",
+            ['abandoned-cart@cron-test.com']
+        );
+
+        self::$db->execute(
+            "INSERT INTO carts (user_id, content, total_quantity, updated_at)
+             VALUES (?, ?, 1, DATE_SUB(NOW(), INTERVAL 84 HOUR))",
+            [$userId, json_encode([['wine_id' => $wineId, 'qty' => 1]])]
+        );
+
+        $output = $this->runJob('send-abandoned-cart', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
+    }
+
+    public function testSendAbandonedCartRealRunWithAbandonedCart(): void
+    {
+        $wineId = self::insertTestWine('cron-abandoned-real', 'red', 'Wine Cron Real');
+
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW())",
+            ['abandoned-cart-real@cron-test.com']
+        );
+
+        self::$db->execute(
+            "INSERT INTO carts (user_id, content, total_quantity, updated_at)
+             VALUES (?, ?, 1, DATE_SUB(NOW(), INTERVAL 84 HOUR))",
+            [$userId, json_encode([['wine_id' => $wineId, 'qty' => 1]])]
+        );
+
+        $output = $this->runJob('send-abandoned-cart', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('Paniers', $output);
+    }
 }
