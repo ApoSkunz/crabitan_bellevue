@@ -22,6 +22,9 @@ class ErrorLogger
     private const RETENTION_DAYS  = 30;
     private const TRACE_MAX_LEN   = 500;
 
+    /** Codes HTTP exclus du log (bruit — crawlers, scanners). */
+    private const SILENT_HTTP_CODES = [404, 405];
+
     /**
      * Enregistre le handler d'erreurs et d'exceptions PHP.
      *
@@ -55,6 +58,7 @@ class ErrorLogger
             'trace'     => '',
             'url'       => $_SERVER['REQUEST_URI'] ?? '',
             'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+            'ip'        => self::anonymizeIp($_SERVER['REMOTE_ADDR'] ?? ''),
         ]);
 
         // false = le handler natif PHP continue à s'exécuter (display_errors en dev)
@@ -69,6 +73,11 @@ class ErrorLogger
      */
     public static function handleException(\Throwable $e): void
     {
+        // Filtre 404/405 — bruit crawlers/scanners, pas d'intérêt opérationnel
+        if ($e instanceof \Core\Exception\HttpException && in_array($e->status, self::SILENT_HTTP_CODES, true)) {
+            return;
+        }
+
         $trace = substr($e->getTraceAsString(), 0, self::TRACE_MAX_LEN);
 
         self::write([
@@ -80,6 +89,7 @@ class ErrorLogger
             'trace'     => $trace,
             'url'       => $_SERVER['REQUEST_URI'] ?? '',
             'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+            'ip'        => self::anonymizeIp($_SERVER['REMOTE_ADDR'] ?? ''),
         ]);
     }
 
@@ -167,6 +177,38 @@ class ErrorLogger
         file_put_contents($filename, $human . $json, FILE_APPEND | LOCK_EX);
 
         self::purgeOldLogs($logDir);
+    }
+
+    /**
+     * Anonymise une adresse IP pour conformité RGPD.
+     *
+     * IPv4 : dernier octet remplacé par 0 (ex: 1.2.3.4 → 1.2.3.0).
+     * IPv6 : dernier groupe remplacé par 0 (ex: 2001:db8::1 → 2001:db8::0).
+     *
+     * @param string $ip Adresse IP brute
+     * @return string    Adresse IP anonymisée
+     */
+    private static function anonymizeIp(string $ip): string
+    {
+        if ($ip === '') {
+            return '';
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return preg_replace('/\.\d+$/', '.0', $ip) ?? $ip;
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $expanded = inet_ntop(inet_pton($ip) ?: '');
+            if ($expanded === false) {
+                return $ip;
+            }
+            $parts       = explode(':', $expanded);
+            $parts[count($parts) - 1] = '0000';
+            return implode(':', $parts);
+        }
+
+        return $ip;
     }
 
     /**
