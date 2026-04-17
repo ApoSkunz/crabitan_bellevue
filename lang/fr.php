@@ -19,7 +19,7 @@ return [
     'nav.savoir_faire' => 'Savoir-Faire',
     'nav.chateau'     => 'Le Château',
     'nav.cart'        => 'Panier',
-    'nav.account'     => 'Mon compte', // NOSONAR php:S1192 — fichier i18n : la valeur 'Mon compte' est intentionnellement répétée dans plusieurs clés
+    'nav.account'     => 'Mon compte', // NOSONAR php:S1192 - fichier i18n : la valeur 'Mon compte' est intentionnellement répétée dans plusieurs clés
     'nav.login'       => 'Connexion',
     'nav.support'     => 'Support',
     'nav.logout'      => 'Déconnexion',
@@ -85,7 +85,7 @@ return [
     'auth.modal.have_account' => 'Déjà un compte ?',
     'auth.modal.sign_in'      => 'Se connecter',
 
-    // Vins — Catalogue
+    // Vins - Catalogue
     'wine.add_to_cart'    => 'Ajouter au panier',
     'wine.add_favorite'   => 'Ajouter aux favoris',
     'wine.favorite_login' => 'Connectez-vous pour ajouter ce vin à vos favoris.',
@@ -99,25 +99,25 @@ return [
     'wine.vintage'      => 'Millésime',
     'wine.price'        => 'Prix',
     'wine.in_stock'     => 'en stock',
-    'wine.read_more'    => 'En savoir plus', // NOSONAR php:S1192 — même libellé CTA utilisé intentionnellement sur des clés de traduction distinctes
+    'wine.read_more'    => 'En savoir plus', // NOSONAR php:S1192 - même libellé CTA utilisé intentionnellement sur des clés de traduction distinctes
     'wine.empty'        => 'Aucun vin disponible pour le moment.',
     'wine.ttc_note'     => 'Prix TTC, livraison comprise en France métropolitaine. Remises appliquées par multiples de 12 bouteilles.',
 
-    // Vins — Couleurs
+    // Vins - Couleurs
     'wine.color.all'        => 'Tous les vins',
     'wine.color.red'        => 'Rouges',
     'wine.color.white'      => 'Blancs secs',
     'wine.color.rosé'       => 'Rosés',
     'wine.color.sweet'      => 'Blancs doux',
 
-    // Vins — Filtres
+    // Vins - Filtres
     'wine.filter_label'  => 'Filtrer les vins',
     'wine.filter_show'   => 'Afficher :',
     'wine.filter_sort'   => 'Résultats triés selon :',
     'wine.filter_apply'  => 'Appliquer le filtre',
     'wine.view_collection' => 'Vue par collection',
 
-    // Vins — Tri
+    // Vins - Tri
     'wine.sort.default'      => 'Crabitan Bellevue présente',
     'wine.sort.price_asc'    => 'Prix croissant',
     'wine.sort.price_desc'   => 'Prix décroissant',
@@ -125,7 +125,7 @@ return [
     'wine.sort.vintage_desc' => 'Millésime décroissant',
     'wine.sort.rating_desc'  => 'Mieux notés',
 
-    // Vins — Fiche produit
+    // Vins - Fiche produit
     'wine.zoom'          => 'Agrandir la photo',
     'wine.tasting'       => 'Dégustation',
     'wine.technical'     => 'Fiche technique',
@@ -157,17 +157,17 @@ return [
     'wine.cuvee_speciale'  => 'Cuvée Spéciale',
     'wine.download_sheet' => 'Télécharger la fiche technique complète',
 
-    // Vins — Notation
+    // Vins - Notation
     'wine.rating.title'        => 'Avis clients',
     'wine.rating.your_note'    => 'Votre note',
     'wine.rating.already'      => 'Votre note :',
     'wine.rating.reviews'      => 'avis',
     'wine.rating.widget_label' => 'Notez ce vin',
 
-    // Vins — Cross-sell
+    // Vins - Cross-sell
     'wine.similar.title'       => 'Vous aimerez aussi',
 
-    // Vins — Collection
+    // Vins - Collection
     'wine.collection_nav'  => 'Navigation par type de vin',
     'wine.filter_avail'    => 'Disponibilité :',
     'wine.filter_cuvee'    => 'Cuvée spéciale',
@@ -175,7 +175,7 @@ return [
     'wine.avail.available' => 'Disponible',
     'wine.avail.out'       => 'Épuisé',
 
-    // Vins — Accords mets & vins
+    // Vins - Accords mets & vins
     'wine.pairing_title' => 'Accords mets & vins',
     'wine.pairing.sweet' => 'Idéal à l\'apéritif, avec du foie gras, du roquefort ou des desserts aux fruits jaunes. Se déguste frais (8-10 °C).',
     'wine.pairing.white' => 'Parfait avec les poissons, fruits de mer, volailles en sauce et fromages de chèvre frais. Servir à 10-12 °C.',
@@ -208,9 +208,9 @@ return [
     'cart.delivery_none'     => 'Livraison calculée à la commande',
     'cart.b2b_title'         => 'Compte professionnel',
     'cart.b2b_message'       => 'Vous disposez d\'un compte client professionnel. Pour bénéficier de nos tarifs B2B et passer commande, merci de nous contacter :',
-    'cart.b2b_subject'       => 'Demande de renseignements — Tarifs B2B',
+    'cart.b2b_subject'       => 'Demande de renseignements - Tarifs B2B',
     'cart.over_600_notice'         => 'Pour des commandes supérieures à 600 bouteilles, merci de contacter directement le château :',
-    'cart.over_600_subject'        => 'Commande importante — Plus de 600 bouteilles',
+    'cart.over_600_subject'        => 'Commande importante - Plus de 600 bouteilles',
     'cart.over_600_checkout_error' => 'Veuillez nous contacter pour finaliser une commande de plus de 600 bouteilles.',
     'cart.product'   => 'Produit',
     'cart.unit_price' => 'Prix unitaire',
@@ -253,7 +253,7 @@ return [
     'form.account_type'            => 'Statut',
     'form.account_type.individual' => 'Particulier',
     'form.account_type.company'    => 'Professionnel',
-    'form.gender'                  => 'Civilité', // NOSONAR php:S1192 — fichier i18n : 'Civilité' est une valeur de traduction répétée dans plusieurs clés
+    'form.gender'                  => 'Civilité', // NOSONAR php:S1192 - fichier i18n : 'Civilité' est une valeur de traduction répétée dans plusieurs clés
     'form.gender.m'                => 'Monsieur',
     'form.gender.f'                => 'Madame',
     'form.gender.other'            => 'Autre',
@@ -306,28 +306,28 @@ return [
     'btn.cancel'   => 'Annuler',
     'btn.back'     => 'Retour',
 
-    // Homepage — Carousel
+    // Homepage - Carousel
     'home.carousel_alt'   => 'Vignoble du Château Crabitan Bellevue',
     'home.carousel_title' => 'Château Crabitan Bellevue',
-    'home.carousel_sub'   => 'Vins de Bordeaux — Sainte-Croix-du-Mont',
+    'home.carousel_sub'   => 'Vins de Bordeaux - Sainte-Croix-du-Mont',
 
     'home.img_wines_alt'   => 'Gamme des vins du Château Crabitan Bellevue',
-    'home.img_harvest_alt' => 'Vendanges à cheval — Château Crabitan Bellevue',
-    'home.img_cellar_alt'  => 'Chai à barriques — Château Crabitan Bellevue',
+    'home.img_harvest_alt' => 'Vendanges à cheval - Château Crabitan Bellevue',
+    'home.img_cellar_alt'  => 'Chai à barriques - Château Crabitan Bellevue',
 
-    // Homepage — Section Millésime / Nos vins
+    // Homepage - Section Millésime / Nos vins
     'home.wines_tag'   => 'Millésime',
     'home.wines_title' => 'Nos Vins',
     'home.wines_text'  => 'Juchés sur les falaises calcaires qui dominent la Garonne, nos vignes s\'épanouissent'
         . ' dans un terroir façonné par des millénaires d\'histoire géologique. Les brumes matinales et les'
         . ' après-midi ensoleillés de Sainte-Croix-du-Mont offrent des conditions rêvées pour le développement'
-        . ' du Botrytis cinerea — ce champignon précieux qui concentre la richesse aromatique de nos blancs'
+        . ' du Botrytis cinerea - ce champignon précieux qui concentre la richesse aromatique de nos blancs'
         . ' liquoreux. Mais la famille Solane ne s\'arrête pas là : elle élabore aussi de beaux vins rouges'
         . ' et blancs secs issus de Merlot, Cabernet Sauvignon et Sauvignon Blanc, aussi sincères et généreux'
         . ' que ceux qui les font naître.',
     'home.wines_cta'   => 'Découvrir nos vins',
 
-    // Homepage — Section Notre Histoire
+    // Homepage - Section Notre Histoire
     'home.history_tag'   => 'Domaine',
     'home.history_title' => 'Notre Histoire',
     'home.history_text'  => 'Depuis 1870, la famille Solane cultive ses vignes sur les coteaux argilo-calcaires'
@@ -337,7 +337,7 @@ return [
         . ' et humilité, faisant de chaque millésime un nouveau chapitre de cette belle aventure familiale.',
     'home.history_cta'   => 'En savoir plus',
 
-    // Homepage — Section Savoir-Faire
+    // Homepage - Section Savoir-Faire
     'home.savoir_tag'   => 'Le Métier',
     'home.savoir_title' => 'Notre Savoir-Faire',
     'home.savoir_text'  => 'Ici, rien n\'est laissé au hasard. De la taille minutieuse en hiver aux vendanges'
@@ -347,7 +347,7 @@ return [
         . ' qui donne au Château Crabitan Bellevue son caractère si particulier.',
     'home.savoir_cta'   => 'En savoir plus',
 
-    // Homepage — Vin du moment
+    // Homepage - Vin du moment
     'home.featured_tag'      => 'Sélection',
     'home.featured_title'    => 'Le Vin du Moment',
     'home.featured_cta'      => 'Découvrir',
@@ -355,17 +355,17 @@ return [
     'home.featured_badge'    => 'Cuvée Spéciale',
     'home.featured_vintage'  => 'Millésime',
 
-    // Homepage — Section Vidéo
+    // Homepage - Section Vidéo
     'home.video_tag'            => 'Le domaine',
     'home.video_title'          => 'Le Château en vidéo',
     'home.video_captions_label' => 'Sous-titres indisponibles (vidéo sans paroles)',
 
-    // Homepage — Section Actualités
+    // Homepage - Section Actualités
     'home.news_tag'   => 'À la une',
     'home.news_title' => 'Actualités',
     'home.news_cta'   => 'Toutes les actualités',
 
-    // Homepage — Section Localisation
+    // Homepage - Section Localisation
     'home.location_title'   => 'Où sommes-nous ?',
     'home.location_address' => 'Crabitan, 33410 Sainte-Croix-du-Mont',
     'home.location_contact' => 'Comment nous joindre ?',
@@ -413,30 +413,30 @@ return [
     'legal.editor_title'  => 'Éditeur du site',
     'legal.hosting_title' => 'Hébergement',
     'legal.ai_mention'    => 'Ce site a été développé avec l\'assistance de Claude, un modèle d\'intelligence artificielle édité par Anthropic.',
-    'legal.hosting_info'  => 'Ce site est hébergé par IONOS (1&1 Internet SARL) — 7, place de la Gare, 57200 Sarreguemines — France. Téléphone : +33 (0)9 70 80 89 11. Contact : email@1and1.fr.',
+    'legal.hosting_info'  => 'Ce site est hébergé par IONOS (1&1 Internet SARL) - 7, place de la Gare, 57200 Sarreguemines - France. Téléphone : +33 (0)9 70 80 89 11. Contact : email@1and1.fr.',
     'legal.data_title'    => 'Données personnelles',
     'legal.data_info'     => 'Conformément au RGPD, vous disposez d\'un droit d\'accès, de rectification et de suppression de vos données. Pour exercer ce droit, contactez-nous par téléphone ou courrier.',
 
     // Le Château
     'chateau.origins_tag'    => 'Les Origines',
     'chateau.origins_title'  => 'Une famille de tonneliers',
-    'chateau.origins_text'   => 'Tout commence en 1870, quand la famille Solane — alors artisans tonneliers — pose ses valises à Crabitan, sur les hauteurs de Sainte-Croix-du-Mont. La salle de dégustation actuelle porte encore la mémoire de l\'ancienne cuisine des aïeux. Patiemment, au rythme des générations, le vignoble s\'est agrandi : un achat ici, une prise en fermage là, une nouvelle parcelle plantée avec soin — autant d\'actes de foi dans ce terroir d\'exception.',
+    'chateau.origins_text'   => 'Tout commence en 1870, quand la famille Solane - alors artisans tonneliers - pose ses valises à Crabitan, sur les hauteurs de Sainte-Croix-du-Mont. La salle de dégustation actuelle porte encore la mémoire de l\'ancienne cuisine des aïeux. Patiemment, au rythme des générations, le vignoble s\'est agrandi : un achat ici, une prise en fermage là, une nouvelle parcelle plantée avec soin - autant d\'actes de foi dans ce terroir d\'exception.',
     'chateau.year1956_tag'   => '1956',
     'chateau.year1956_title' => 'La Grande Gelée',
-    'chateau.year1956_text'  => 'En février 1956, une vague de froid sans précédent ravagea les vignobles bordelais. À Crabitan comme partout en Gironde, les pieds de vigne furent décimés en quelques nuits glaciales. Plutôt que de se résigner, la famille Solane se retroussa les manches et replanta chaque parcelle avec détermination — un acte de résilience qui en dit long sur le caractère de ces hommes et femmes de la vigne.',
+    'chateau.year1956_text'  => 'En février 1956, une vague de froid sans précédent ravagea les vignobles bordelais. À Crabitan comme partout en Gironde, les pieds de vigne furent décimés en quelques nuits glaciales. Plutôt que de se résigner, la famille Solane se retroussa les manches et replanta chaque parcelle avec détermination - un acte de résilience qui en dit long sur le caractère de ces hommes et femmes de la vigne.',
     'chateau.year1975_tag'   => '1975',
     'chateau.year1975_title' => 'Château Crabitan Bellevue',
     'chateau.year1975_text'  => 'C\'est en 1975 que les vins du Clos de Crabitan prennent le nom de Château Crabitan Bellevue. Bernard et Eliane s\'en vont alors sur les routes, de salon en salon, de foire en foire, portant fièrement leurs bouteilles et défendant avec conviction ce rapport qualité-prix que les amateurs de vin apprécient encore aujourd\'hui.',
     'chateau.year1994_tag'   => '1994',
     'chateau.year1994_title' => 'GFA Bernard Solane et Fils',
-    'chateau.year1994_text'  => 'Entre-temps, le tracteur avait pris la relève des bœufs et du cheval pour travailler ces coteaux argileux — autant dire que les journées étaient devenues sensiblement moins éprouvantes. En 1994, Nicolas rejoint ses parents avec enthousiasme et ils fondent ensemble le GFA Bernard Solane et Fils, une nouvelle page qui s\'écrit à quatre mains.',
+    'chateau.year1994_text'  => 'Entre-temps, le tracteur avait pris la relève des bœufs et du cheval pour travailler ces coteaux argileux - autant dire que les journées étaient devenues sensiblement moins éprouvantes. En 1994, Nicolas rejoint ses parents avec enthousiasme et ils fondent ensemble le GFA Bernard Solane et Fils, une nouvelle page qui s\'écrit à quatre mains.',
     'chateau.today_tag'      => 'Aujourd\'hui',
     'chateau.today_title'    => 'Nicolas & Corinne',
-    'chateau.img_origins_alt' => 'La famille Solane — fin XIXe siècle',
-    'chateau.img_1956_alt'   => 'Vendanges 1956 — Château Crabitan Bellevue',
-    'chateau.img_1975_alt'   => 'Vendanges années 1970 — Château Crabitan Bellevue',
-    'chateau.img_1994_alt'   => 'Le chai — Château Crabitan Bellevue',
-    'chateau.img_today_alt'  => 'Nicolas et Corinne Solane — Château Crabitan Bellevue',
+    'chateau.img_origins_alt' => 'La famille Solane - fin XIXe siècle',
+    'chateau.img_1956_alt'   => 'Vendanges 1956 - Château Crabitan Bellevue',
+    'chateau.img_1975_alt'   => 'Vendanges années 1970 - Château Crabitan Bellevue',
+    'chateau.img_1994_alt'   => 'Le chai - Château Crabitan Bellevue',
+    'chateau.img_today_alt'  => 'Nicolas et Corinne Solane - Château Crabitan Bellevue',
     'chateau.today_text'     => 'Chaque matin, Nicolas arpente les rangs avec le regard de quelqu\'un qui cherche à donner le meilleur. Avec Corinne à l\'administratif et une équipe fidèle au chai comme au vignoble, ils œuvrent de concert pour que chaque cuvée soit à la hauteur de ce terroir qui les a vus grandir. Depuis 2020, le Château Crabitan Bellevue ouvre ses portes au-delà des frontières du domaine : commandez vos bouteilles en ligne, et recevez-les directement chez vous, où que vous soyez en France.',
 
     // Savoir-Faire
@@ -445,13 +445,13 @@ return [
     'savoir.vignoble_text'  => 'C\'est sur ces coteaux calcaires de Sainte-Croix-du-Mont, face à la Garonne, que tout prend forme. Nos vignes bénéficient d\'une exposition idéale et d\'un sol argilo-calcaire façonné sur des millénaires. Ce terroir singulier, mi-soleil mi-brume, est le berceau de nos vins : chaque grappe porte en elle l\'empreinte de ce paysage unique, et c\'est cette empreinte que l\'on retrouve dans chaque verre.',
     'savoir.vinif_tag'      => 'La Vinification',
     'savoir.vinif_title'    => 'L\'art de la vinification',
-    'savoir.vinif_text'     => 'La vendange attend d\'être cueillie à parfaite maturité — pas un jour trop tôt, pas un jour trop tard. En cave, chaque vin est vinifié dans le respect de la parcelle dont il est issu, avec le souci constant de préserver son caractère et sa fraîcheur. Tradition et modernité se croisent ici sans se contrarier : on sait d\'où l\'on vient, et on sait exactement où l\'on veut aller.',
+    'savoir.vinif_text'     => 'La vendange attend d\'être cueillie à parfaite maturité - pas un jour trop tôt, pas un jour trop tard. En cave, chaque vin est vinifié dans le respect de la parcelle dont il est issu, avec le souci constant de préserver son caractère et sa fraîcheur. Tradition et modernité se croisent ici sans se contrarier : on sait d\'où l\'on vient, et on sait exactement où l\'on veut aller.',
     'savoir.elevage_tag'    => 'L\'Élevage',
     'savoir.elevage_title'  => 'La patience récompensée',
-    'savoir.img_vignoble_alt' => 'Le vignoble en été — Château Crabitan Bellevue',
-    'savoir.img_vinif_alt'   => 'Récolte des raisins — Château Crabitan Bellevue',
-    'savoir.img_elevage_alt' => 'Chai à barriques — Château Crabitan Bellevue',
-    'savoir.elevage_text'   => 'Le temps est un ingrédient à part entière. Nos liquoreux s\'étirent lentement en cave, développant peu à peu ces notes complexes et cette longueur en bouche qui font leur renommée. Les vins rouges, eux, sont élevés selon la personnalité de chaque millésime — avec la patience de ceux qui savent que les belles choses ne se précipitent pas. De la vigne jusqu\'à la bouteille, c\'est tout un art.',
+    'savoir.img_vignoble_alt' => 'Le vignoble en été - Château Crabitan Bellevue',
+    'savoir.img_vinif_alt'   => 'Récolte des raisins - Château Crabitan Bellevue',
+    'savoir.img_elevage_alt' => 'Chai à barriques - Château Crabitan Bellevue',
+    'savoir.elevage_text'   => 'Le temps est un ingrédient à part entière. Nos liquoreux s\'étirent lentement en cave, développant peu à peu ces notes complexes et cette longueur en bouche qui font leur renommée. Les vins rouges, eux, sont élevés selon la personnalité de chaque millésime - avec la patience de ceux qui savent que les belles choses ne se précipitent pas. De la vigne jusqu\'à la bouteille, c\'est tout un art.',
 
     // Support / FAQ
     'support.title'           => 'Support',
@@ -502,7 +502,7 @@ return [
     'jeux.catapulte_title' => 'Tonneau Catapulte',
     'jeux.catapulte_desc'  => 'Ajustez l\'angle avec ↑↓, maintenez Espace pour charger, relâchez pour lancer le tonneau le plus loin !',
     'jeux.vendangeexpress_title' => 'Vendange Express',
-    'jeux.vendangeexpress_desc'  => 'Les raisins et bouteilles tombent des vignes ! Déplacez la caisse avec ← → pour tout attraper. 10 vies — ne laissez rien passer !',
+    'jeux.vendangeexpress_desc'  => 'Les raisins et bouteilles tombent des vignes ! Déplacez la caisse avec ← → pour tout attraper. 10 vies - ne laissez rien passer !',
 
     // Plan du site
     'sitemap.intro'            => 'Retrouvez les différentes pages de notre site',
@@ -639,7 +639,7 @@ return [
     'panel.export'    => 'Export RGPD',
     'panel.logout'    => 'Déconnexion',
 
-    // Espace client — pages
+    // Espace client - pages
     'account.title'              => 'Mon compte',
     'account.welcome'            => 'Bienvenue dans votre espace',
     'account.orders_title'       => 'Mes commandes',
@@ -692,7 +692,7 @@ return [
     'account.device_confirmed'        => 'Appareil confirmé et enregistré comme appareil de confiance.',
     'account.device_confirmed_title'       => 'Appareil confirmé',
     'account.device_confirm_expired_title' => 'Lien invalide',
-    'account.device_confirmed_body'   => 'Votre appareil a été validé. Vous pouvez fermer cet onglet — la connexion s\'effectue automatiquement sur l\'autre page.',
+    'account.device_confirmed_body'   => 'Votre appareil a été validé. Vous pouvez fermer cet onglet - la connexion s\'effectue automatiquement sur l\'autre page.',
     'account.device_confirm_expired'  => 'Le lien de confirmation a expiré ou est invalide. Veuillez vous reconnecter.',
     'account.mfa_cancelled_title'     => 'Tentative annulée',
     'account.mfa_cancelled_body'      => 'La tentative de connexion a été annulée et le lien de confirmation invalidé. Si vous pensez que votre compte est compromis, changez votre mot de passe.',
@@ -714,7 +714,7 @@ return [
     'account.security_confirm_security_btn'    => 'Gérer la sécurité de mon compte',
     'account.security_confirm_reset_btn'       => 'Réinitialiser mon mot de passe',
     'account.security_confirm_login_btn'       => 'Se connecter',
-    'account.security_deny_success_title'      => 'Demande annulée — compte protégé',
+    'account.security_deny_success_title'      => 'Demande annulée - compte protégé',
     'account.security_deny_success_body'       => 'La demande de changement de mot de passe a été annulée. Toutes vos sessions actives ont été révoquées. Un email de confirmation vous a été envoyé.',
     'account.security_deny_error_title'        => 'Lien invalide ou expiré',
     'account.security_deny_expired_body'       => 'Ce lien a expiré (validité 1 heure). Si vous pensez que votre compte est compromis, réinitialisez votre mot de passe.',
@@ -748,7 +748,7 @@ return [
     'account.email_change_request_btn' => 'Contacter le support',
     'account.email_change_subject'    => 'Demande de changement d\'adresse e-mail',
 
-    // Changement d'email — double opt-in
+    // Changement d'email - double opt-in
     'account.email_change_section_title'    => 'Modifier mon adresse email',
     'account.email_change_intro'            => 'Un lien de confirmation sera envoyé à votre adresse actuelle. Le changement ne sera effectif qu\'après validation.',
     'account.email_current'                 => 'Adresse actuelle',
@@ -771,7 +771,7 @@ return [
     'account.email_change_revoked_body'     => 'La demande de changement d\'adresse email a bien été annulée. Votre adresse actuelle reste inchangée.',
     'account.email_change_blocked_google'   => 'Votre compte est lié à Google. Votre adresse email est gérée par Google et ne peut pas être modifiée depuis ce site.',
 
-    // Commandes — détail & annulation
+    // Commandes - détail & annulation
     'account.order_detail'       => 'Détail de la commande',
     'account.order_items'        => 'Articles commandés',
     'account.order_payment'      => 'Paiement',
@@ -805,10 +805,10 @@ return [
     'account.payment.cheque'     => 'Chèque',
     'account.order_contact_for_cancel' => 'Cette commande ne peut plus être annulée en ligne.',
     'account.order_return_after_delivery' => 'Votre droit de rétractation (15 jours) sera disponible dès réception de votre commande.',
-    'account.order_contact_subject'    => 'Demande d\'annulation — commande',
+    'account.order_contact_subject'    => 'Demande d\'annulation - commande',
     'account.order_contact_link'       => 'Contacter le support',
     'account.order_return_notice'          => 'Pour toute demande de retour (carton d\'origine scellé, bouteilles non ouvertes, sous réserve de vérification à réception), contactez-nous.',
-    'account.order_return_subject'         => 'Demande de retour — commande',
+    'account.order_return_subject'         => 'Demande de retour - commande',
     'account.order_return_request_btn'     => 'Exercer mon droit de rétractation',
     'account.order_return_window'          => 'Vous pouvez exercer votre droit de rétractation jusqu\'au %s (15 jours après réception).',
     'account.order_return_confirm'         => 'Souhaitez-vous exercer votre droit de rétractation ? Le retour doit être effectué en carton d\'origine scellé, bouteilles non ouvertes. Cette action est irréversible.',
@@ -826,7 +826,7 @@ return [
     'account.order_refund_confirm'             => 'Êtes-vous sûr de vouloir demander un remboursement pour cette commande ? Cette action est définitive.',
     'account.order_refund_pending_notice'      => 'Votre remboursement est en cours de traitement.',
 
-    // Adresses — CRUD
+    // Adresses - CRUD
     'account.address_add'        => 'Ajouter une adresse',
     'account.address_edit'       => 'Modifier',
     'account.address_delete'     => 'Supprimer',
@@ -838,7 +838,7 @@ return [
     'account.address_required_fields' => 'Veuillez remplir tous les champs obligatoires (téléphone inclus).',
     'account.address_zip_invalid'    => 'Le code postal doit correspondre à la France métropolitaine (hors Corse).',
     'account.address_phone_hint'     => 'Obligatoire pour la livraison (ex : +33 6 12 34 56 78 ou +49 30 12345678)',
-    'account.address_locked_notice'  => 'Adresse liée à une commande en cours — modification et suppression indisponibles.',
+    'account.address_locked_notice'  => 'Adresse liée à une commande en cours - modification et suppression indisponibles.',
     'account.address_delivery_only_france' => 'Livraison en France métropolitaine uniquement (hors Corse).',
     'account.address_type_label' => 'Type d\'adresse',
     'account.address_street'     => 'Rue',
@@ -862,7 +862,7 @@ return [
     'account.export_item_favorites' => 'Vos vins favoris',
     'account.export_item_trusted_devices' => 'Vos appareils de confiance enregistrés',
     'account.export_item_sessions' => 'Vos sessions actives',
-    'account.export_retention'   => 'Durée de conservation : vos données personnelles (nom, e-mail, adresses…) sont supprimées dans les 30 jours suivant la fermeture de votre compte. Vos commandes sont conservées 10 ans conformément aux obligations légales, mais anonymisées — sans aucun lien vers votre identité.',
+    'account.export_retention'   => 'Durée de conservation : vos données personnelles (nom, e-mail, adresses…) sont supprimées dans les 30 jours suivant la fermeture de votre compte. Vos commandes sont conservées 10 ans conformément aux obligations légales, mais anonymisées - sans aucun lien vers votre identité.',
     'account.export_send_btn'    => 'Recevoir mes données par email',
     'account.export_sent_title'  => 'Export envoyé !',
     'account.export_sent_body'   => 'Votre archive a été envoyée à <strong>%s</strong>. Pensez à vérifier vos spams.',
@@ -905,7 +905,7 @@ return [
     'newsletter.unsubscribe_error' => 'Ce lien de désabonnement est invalide ou a déjà été utilisé. Gérez vos préférences depuis votre espace compte.',
     'newsletter.manage_link'       => 'Gérer mes préférences de communication',
 
-    // Newsletter — double opt-in (RGPD Art. 7)
+    // Newsletter - double opt-in (RGPD Art. 7)
     'newsletter.confirm_title'     => 'Confirmation d\'abonnement newsletter',
     'newsletter.confirm_success'   => 'Votre abonnement est confirmé. Vous recevrez nos prochaines actualités et offres du Château Crabitan Bellevue.',
     'newsletter.confirm_invalid'   => 'Ce lien de confirmation est invalide. Il a peut-être déjà été utilisé.',
@@ -919,7 +919,7 @@ return [
     'newsletter.rate_limit'        => 'Trop de tentatives. Veuillez patienter avant de réessayer.',
     'newsletter.invalid_email'     => 'Adresse email invalide.',
 
-    // Newsletter — nouveau vin
+    // Newsletter - nouveau vin
     'mail.new_wine_subject'  => 'Nouveau vin disponible : %s %d',
     'mail.new_wine_discover' => 'Découvrir ce vin',
 
@@ -935,13 +935,13 @@ return [
     'order.status.return_requested' => 'Retour en cours',
     'order.status.refund_refused'   => 'Remboursement refusé',
 
-    // Emails transactionnels — changement de statut commande
-    'mail.order_status_subject_processing' => 'Votre commande est en préparation — %s',
-    'mail.order_status_subject_shipped'    => 'Votre commande a été expédiée — %s',
-    'mail.order_status_subject_delivered'  => 'Votre commande a été livrée — %s',
-    'mail.order_status_subject_cancelled'  => 'Votre commande a été annulée — %s',
-    'mail.order_status_subject_refunded'   => 'Votre commande a été remboursée — %s',
-    'admin.refund_gae_ko_subject'          => 'Remboursement GAE KO — action manuelle requise',
+    // Emails transactionnels - changement de statut commande
+    'mail.order_status_subject_processing' => 'Votre commande est en préparation - %s',
+    'mail.order_status_subject_shipped'    => 'Votre commande a été expédiée - %s',
+    'mail.order_status_subject_delivered'  => 'Votre commande a été livrée - %s',
+    'mail.order_status_subject_cancelled'  => 'Votre commande a été annulée - %s',
+    'mail.order_status_subject_refunded'   => 'Votre commande a été remboursée - %s',
+    'admin.refund_gae_ko_subject'          => 'Remboursement GAE KO - action manuelle requise',
     'admin.refund_gae_ko_body'             => 'Le remboursement GAE de la commande {ref} ({amount} €) a échoué. Veuillez procéder manuellement via Vision Air.',
 
     'mail.order_status_body_processing' => 'Votre commande <strong>%s</strong> est actuellement en cours de préparation. Nous mettons tout en œuvre pour vous l\'expédier dans les meilleurs délais.',
@@ -950,7 +950,7 @@ return [
     'mail.order_status_body_cancelled'  => 'Votre commande <strong>%s</strong> a été annulée. Si vous avez déjà été débité(e), le remboursement sera traité dans les meilleurs délais.',
     'mail.order_status_body_refunded'   => 'Votre commande <strong>%s</strong> a été remboursée. Le crédit sera visible sur votre compte bancaire dans un délai de 3 à 5 jours ouvrés.',
 
-    // Checkout — tunnel de commande
+    // Checkout - tunnel de commande
     'checkout.title'                  => 'Validation de commande',
     'checkout.billing_address'        => 'Adresse de facturation',
     'checkout.delivery_address'       => 'Adresse de livraison',
@@ -977,7 +977,7 @@ return [
     'checkout.cgv_link'               => 'Conditions Générales de Vente',
     'checkout.newsletter_optin'       => 'Je souhaite recevoir les actualités et offres du Château Crabitan Bellevue par email.',
     'checkout.newsletter_subscribed'  => 'Vous êtes maintenant inscrit(e) à notre newsletter.',
-    'checkout.age_confirmation'       => 'En validant cette commande, je certifie avoir 18 ans ou plus (Art. L3342-1 CSP — vente d\'alcool interdite aux mineurs).',
+    'checkout.age_confirmation'       => 'En validant cette commande, je certifie avoir 18 ans ou plus (Art. L3342-1 CSP - vente d\'alcool interdite aux mineurs).',
     'checkout.withdrawal_right'       => 'Conformément à l\'art. L221-18 du Code de la consommation, vous disposez d\'un délai de rétractation de 14 jours à compter de la réception de votre commande.',
     'checkout.delivery_delay_notice'  => 'Délai de livraison estimé :',
     'checkout.delivery_delay_suffix'  => '',

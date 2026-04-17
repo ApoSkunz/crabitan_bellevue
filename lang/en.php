@@ -19,7 +19,7 @@ return [
     'nav.savoir_faire' => 'Know-How',
     'nav.chateau'     => 'Le Château',
     'nav.cart'        => 'Cart',
-    'nav.account'     => 'My account', // NOSONAR php:S1192 — i18n file: 'My account' is intentionally repeated across multiple translation keys
+    'nav.account'     => 'My account', // NOSONAR php:S1192 - i18n file: 'My account' is intentionally repeated across multiple translation keys
     'nav.login'       => 'Login',
     'nav.support'     => 'Support',
     'nav.logout'      => 'Logout',
@@ -85,7 +85,7 @@ return [
     'auth.modal.have_account' => 'Already have an account?',
     'auth.modal.sign_in'      => 'Sign in',
 
-    // Wines — Catalogue
+    // Wines - Catalogue
     'wine.add_to_cart'    => 'Add to cart',
     'wine.add_favorite'   => 'Add to favourites',
     'wine.favorite_login' => 'Log in to add this wine to your favourites.',
@@ -99,25 +99,25 @@ return [
     'wine.vintage'      => 'Vintage',
     'wine.price'        => 'Price',
     'wine.in_stock'     => 'in stock',
-    'wine.read_more'    => 'Learn more', // NOSONAR php:S1192 — same CTA label used intentionally across distinct translation keys
+    'wine.read_more'    => 'Learn more', // NOSONAR php:S1192 - same CTA label used intentionally across distinct translation keys
     'wine.empty'        => 'No wines available at the moment.',
     'wine.ttc_note'     => 'Prices inclusive of VAT, delivery included within mainland France. Discounts apply for orders in multiples of 12 bottles.',
 
-    // Wines — Colors
+    // Wines - Colors
     'wine.color.all'        => 'All wines',
     'wine.color.red'        => 'Red',
     'wine.color.white'      => 'Dry white',
     'wine.color.rosé'       => 'Rosé',
     'wine.color.sweet'      => 'Sweet white',
 
-    // Wines — Filters
+    // Wines - Filters
     'wine.filter_label'  => 'Filter wines',
     'wine.filter_show'   => 'Show:',
     'wine.filter_sort'   => 'Sort by:',
     'wine.filter_apply'  => 'Apply filter',
     'wine.view_collection' => 'View by collection',
 
-    // Wines — Sort
+    // Wines - Sort
     'wine.sort.default'      => 'Crabitan Bellevue presents',
     'wine.sort.price_asc'    => 'Price ascending',
     'wine.sort.price_desc'   => 'Price descending',
@@ -125,7 +125,7 @@ return [
     'wine.sort.vintage_desc' => 'Vintage descending',
     'wine.sort.rating_desc'  => 'Top rated',
 
-    // Wines — Product sheet
+    // Wines - Product sheet
     'wine.zoom'          => 'Enlarge photo',
     'wine.tasting'       => 'Tasting notes',
     'wine.technical'     => 'Technical sheet',
@@ -157,17 +157,17 @@ return [
     'wine.cuvee_speciale'  => 'Special Cuvée',
     'wine.download_sheet' => 'Download complete technical sheet',
 
-    // Wines — Rating
+    // Wines - Rating
     'wine.rating.title'        => 'Customer reviews',
     'wine.rating.your_note'    => 'Your rating',
     'wine.rating.already'      => 'Your rating:',
     'wine.rating.reviews'      => 'reviews',
     'wine.rating.widget_label' => 'Rate this wine',
 
-    // Wines — Cross-sell
+    // Wines - Cross-sell
     'wine.similar.title'       => 'You might also like',
 
-    // Wines — Collection
+    // Wines - Collection
     'wine.collection_nav'  => 'Navigate by wine type',
     'wine.filter_avail'    => 'Availability:',
     'wine.filter_cuvee'    => 'Special cuvée',
@@ -175,7 +175,7 @@ return [
     'wine.avail.available' => 'Available',
     'wine.avail.out'       => 'Out of stock',
 
-    // Wines — Food pairing
+    // Wines - Food pairing
     'wine.pairing_title' => 'Food & Wine Pairing',
     'wine.pairing.sweet' => 'Perfect as an aperitif, with foie gras, Roquefort or fruit desserts. Serve chilled at 8-10 °C.',
     'wine.pairing.white' => 'Pairs beautifully with fish, seafood, chicken dishes and fresh goat\'s cheese. Serve at 10-12 °C.',
@@ -208,9 +208,9 @@ return [
     'cart.delivery_none'     => 'Delivery calculated at checkout',
     'cart.b2b_title'         => 'Professional account',
     'cart.b2b_message'       => 'You have a professional customer account. To benefit from our B2B rates and place an order, please contact us:',
-    'cart.b2b_subject'       => 'Enquiry — B2B Rates',
+    'cart.b2b_subject'       => 'Enquiry - B2B Rates',
     'cart.over_600_notice'         => 'For orders exceeding 600 bottles, please contact the château directly:',
-    'cart.over_600_subject'        => 'Large order enquiry — Over 600 bottles',
+    'cart.over_600_subject'        => 'Large order enquiry - Over 600 bottles',
     'cart.over_600_checkout_error' => 'Please contact us to finalise an order of more than 600 bottles.',
     'cart.product'   => 'Product',
     'cart.unit_price' => 'Unit price',
@@ -306,27 +306,27 @@ return [
     'btn.cancel'   => 'Cancel',
     'btn.back'     => 'Back',
 
-    // Homepage — Carousel
+    // Homepage - Carousel
     'home.carousel_alt'   => 'Château Crabitan Bellevue vineyard',
     'home.carousel_title' => 'Château Crabitan Bellevue',
-    'home.carousel_sub'   => 'Bordeaux Wines — Sainte-Croix-du-Mont',
+    'home.carousel_sub'   => 'Bordeaux Wines - Sainte-Croix-du-Mont',
 
     'home.img_wines_alt'   => 'Wine range at Château Crabitan Bellevue',
-    'home.img_harvest_alt' => 'Horse-drawn harvest — Château Crabitan Bellevue',
-    'home.img_cellar_alt'  => 'Barrel cellar — Château Crabitan Bellevue',
+    'home.img_harvest_alt' => 'Horse-drawn harvest - Château Crabitan Bellevue',
+    'home.img_cellar_alt'  => 'Barrel cellar - Château Crabitan Bellevue',
 
-    // Homepage — Wines section
+    // Homepage - Wines section
     'home.wines_tag'   => 'Vintage',
     'home.wines_title' => 'Our Wines',
     'home.wines_text'  => 'Perched on the limestone cliffs that tower above the Garonne, our vines thrive in a'
         . ' terroir shaped by millions of years of geological history. The morning mists and golden afternoons'
-        . ' of Sainte-Croix-du-Mont create perfect conditions for Botrytis cinerea — the precious fungus that'
+        . ' of Sainte-Croix-du-Mont create perfect conditions for Botrytis cinerea - the precious fungus that'
         . ' concentrates the aromatic richness of our sweet whites. But the Solane family does not stop there:'
         . ' they also craft beautiful red and dry white wines from Merlot, Cabernet Sauvignon and Sauvignon'
-        . ' Blanc — honest, generous wines that reflect the people who make them.',
+        . ' Blanc - honest, generous wines that reflect the people who make them.',
     'home.wines_cta'   => 'Discover our wines',
 
-    // Homepage — History section
+    // Homepage - History section
     'home.history_tag'   => 'Estate',
     'home.history_title' => 'Our History',
     'home.history_text'  => 'Since 1870, the Solane family has tended its vines on the clay-limestone slopes'
@@ -336,7 +336,7 @@ return [
         . ' and humility, making every new vintage another page of this beautiful family adventure.',
     'home.history_cta'   => 'Learn more',
 
-    // Homepage — Savoir-Faire section
+    // Homepage - Savoir-Faire section
     'home.savoir_tag'   => 'Expertise',
     'home.savoir_title' => 'Our Know-How',
     'home.savoir_text'  => 'Nothing here is left to chance. From careful winter pruning to hand-harvesting'
@@ -346,7 +346,7 @@ return [
         . ' its unique character.',
     'home.savoir_cta'   => 'Learn more',
 
-    // Homepage — Featured wine
+    // Homepage - Featured wine
     'home.featured_tag'      => 'Selection',
     'home.featured_title'    => 'Wine of the Moment',
     'home.featured_cta'      => 'Discover',
@@ -354,17 +354,17 @@ return [
     'home.featured_badge'    => 'Special Cuvée',
     'home.featured_vintage'  => 'Vintage',
 
-    // Homepage — Video section
+    // Homepage - Video section
     'home.video_tag'            => 'The estate',
     'home.video_title'          => 'The Estate on Video',
     'home.video_captions_label' => 'Captions not available (ambient music only)',
 
-    // Homepage — News section
+    // Homepage - News section
     'home.news_tag'   => 'Latest news',
     'home.news_title' => 'News',
     'home.news_cta'   => 'All news',
 
-    // Homepage — Location section
+    // Homepage - Location section
     'home.location_title'   => 'Where are we?',
     'home.location_address' => 'Crabitan, 33410 Sainte-Croix-du-Mont',
     'home.location_contact' => 'How to reach us?',
@@ -412,45 +412,45 @@ return [
     'legal.editor_title'  => 'Website editor',
     'legal.hosting_title' => 'Hosting',
     'legal.ai_mention'    => 'This website was developed with the assistance of Claude, an artificial intelligence model published by Anthropic.',
-    'legal.hosting_info'  => 'This website is hosted by IONOS (1&1 Internet SARL) — 7, place de la Gare, 57200 Sarreguemines — France. Phone: +33 (0)9 70 80 89 11. Contact: email@1and1.fr.',
+    'legal.hosting_info'  => 'This website is hosted by IONOS (1&1 Internet SARL) - 7, place de la Gare, 57200 Sarreguemines - France. Phone: +33 (0)9 70 80 89 11. Contact: email@1and1.fr.',
     'legal.data_title'    => 'Personal data',
     'legal.data_info'     => 'In accordance with GDPR, you have the right to access, rectify and delete your personal data. To exercise this right, contact us by phone or mail.',
 
     // Le Château
     'chateau.origins_tag'    => 'Origins',
     'chateau.origins_title'  => 'A family of coopers',
-    'chateau.origins_text'   => 'It all begins in 1870, when the Solane family — craftsmen coopers at the time — settle in Crabitan, on the heights of Sainte-Croix-du-Mont. The current tasting room still holds the memory of the old family kitchen. Patiently, at the pace of generations, the vineyard grew: a purchase here, a lease there, a new plot planted with care — each one an act of faith in this exceptional land.',
+    'chateau.origins_text'   => 'It all begins in 1870, when the Solane family - craftsmen coopers at the time - settle in Crabitan, on the heights of Sainte-Croix-du-Mont. The current tasting room still holds the memory of the old family kitchen. Patiently, at the pace of generations, the vineyard grew: a purchase here, a lease there, a new plot planted with care - each one an act of faith in this exceptional land.',
     'chateau.year1956_tag'   => '1956',
     'chateau.year1956_title' => 'The Great Frost',
-    'chateau.year1956_text'  => 'In February 1956, an unprecedented cold wave devastated the Bordeaux vineyards. In Crabitan, as throughout the Gironde, the vines were wiped out in just a few freezing nights. Rather than give up, the Solane family rolled up their sleeves and replanted every plot with determination — an act of resilience that says a great deal about the character of these people of the vine.',
+    'chateau.year1956_text'  => 'In February 1956, an unprecedented cold wave devastated the Bordeaux vineyards. In Crabitan, as throughout the Gironde, the vines were wiped out in just a few freezing nights. Rather than give up, the Solane family rolled up their sleeves and replanted every plot with determination - an act of resilience that says a great deal about the character of these people of the vine.',
     'chateau.year1975_tag'   => '1975',
     'chateau.year1975_title' => 'Château Crabitan Bellevue',
     'chateau.year1975_text'  => 'In 1975, the wines of the Clos de Crabitan take on a new name: Château Crabitan Bellevue. Bernard and Eliane take to the road, from show to fair and back again, proudly carrying their bottles and championing with conviction the quality-to-price ratio that wine lovers still appreciate today.',
     'chateau.year1994_tag'   => '1994',
     'chateau.year1994_title' => 'GFA Bernard Solane et Fils',
-    'chateau.year1994_text'  => 'Meanwhile, the tractor had taken over from the oxen and horse on these demanding clay slopes — let us just say that the days became considerably less exhausting. In 1994, Nicolas joins his parents with enthusiasm and together they found GFA Bernard Solane et Fils, a new chapter written by four hands.',
+    'chateau.year1994_text'  => 'Meanwhile, the tractor had taken over from the oxen and horse on these demanding clay slopes - let us just say that the days became considerably less exhausting. In 1994, Nicolas joins his parents with enthusiasm and together they found GFA Bernard Solane et Fils, a new chapter written by four hands.',
     'chateau.today_tag'      => 'Today',
     'chateau.today_title'    => 'Nicolas & Corinne',
-    'chateau.img_origins_alt' => 'The Solane family — late 19th century',
-    'chateau.img_1956_alt'   => 'Harvest 1956 — Château Crabitan Bellevue',
-    'chateau.img_1975_alt'   => 'Harvest in the 1970s — Château Crabitan Bellevue',
-    'chateau.img_1994_alt'   => 'The barrel cellar — Château Crabitan Bellevue',
-    'chateau.img_today_alt'  => 'Nicolas and Corinne Solane — Château Crabitan Bellevue',
+    'chateau.img_origins_alt' => 'The Solane family - late 19th century',
+    'chateau.img_1956_alt'   => 'Harvest 1956 - Château Crabitan Bellevue',
+    'chateau.img_1975_alt'   => 'Harvest in the 1970s - Château Crabitan Bellevue',
+    'chateau.img_1994_alt'   => 'The barrel cellar - Château Crabitan Bellevue',
+    'chateau.img_today_alt'  => 'Nicolas and Corinne Solane - Château Crabitan Bellevue',
     'chateau.today_text'     => 'Every morning, Nicolas walks the rows with the eye of someone who wants to give the very best. With Corinne handling the administrative side and a loyal team in the cellar and vineyard, they work together to ensure that every cuvée does justice to the terroir that raised them. Since 2020, Château Crabitan Bellevue has opened its doors beyond the estate itself: order your bottles online and have them delivered directly to your door, wherever you are in France.',
 
     // Savoir-Faire
     'savoir.vignoble_tag'   => 'The Vineyard',
     'savoir.vignoble_title' => 'An exceptional terroir',
-    'savoir.vignoble_text'  => 'It is on these limestone slopes of Sainte-Croix-du-Mont, facing the Garonne, that everything takes shape. Our vines enjoy an ideal exposure and clay-limestone soil shaped over millennia. This singular terroir — half sun, half mist — is the cradle of our wines: every bunch of grapes carries within it the imprint of this unique landscape, and it is this imprint that you find in every glass.',
+    'savoir.vignoble_text'  => 'It is on these limestone slopes of Sainte-Croix-du-Mont, facing the Garonne, that everything takes shape. Our vines enjoy an ideal exposure and clay-limestone soil shaped over millennia. This singular terroir - half sun, half mist - is the cradle of our wines: every bunch of grapes carries within it the imprint of this unique landscape, and it is this imprint that you find in every glass.',
     'savoir.vinif_tag'      => 'Winemaking',
     'savoir.vinif_title'    => 'The art of winemaking',
-    'savoir.vinif_text'     => 'The harvest waits to be picked at perfect maturity — not a day too soon, not a day too late. In the cellar, each wine is vinified with respect for the plot it comes from, with constant care to preserve its character and freshness. Tradition and modernity meet here without conflict: we know where we come from, and we know exactly where we want to go.',
+    'savoir.vinif_text'     => 'The harvest waits to be picked at perfect maturity - not a day too soon, not a day too late. In the cellar, each wine is vinified with respect for the plot it comes from, with constant care to preserve its character and freshness. Tradition and modernity meet here without conflict: we know where we come from, and we know exactly where we want to go.',
     'savoir.elevage_tag'    => 'Ageing',
     'savoir.elevage_title'  => 'Patience rewarded',
-    'savoir.img_vignoble_alt' => 'The vineyard in summer — Château Crabitan Bellevue',
-    'savoir.img_vinif_alt'   => 'Grape harvest — Château Crabitan Bellevue',
-    'savoir.img_elevage_alt' => 'Barrel cellar — Château Crabitan Bellevue',
-    'savoir.elevage_text'   => 'Time is an ingredient in its own right. Our sweet whites age slowly in the cellar, gradually developing the complex notes and length that define their character. The red wines are aged according to the personality of each vintage — with the patience of those who know that great things cannot be rushed. From vine to bottle, it is an art form.',
+    'savoir.img_vignoble_alt' => 'The vineyard in summer - Château Crabitan Bellevue',
+    'savoir.img_vinif_alt'   => 'Grape harvest - Château Crabitan Bellevue',
+    'savoir.img_elevage_alt' => 'Barrel cellar - Château Crabitan Bellevue',
+    'savoir.elevage_text'   => 'Time is an ingredient in its own right. Our sweet whites age slowly in the cellar, gradually developing the complex notes and length that define their character. The red wines are aged according to the personality of each vintage - with the patience of those who know that great things cannot be rushed. From vine to bottle, it is an art form.',
 
     // Support / FAQ
     'support.title'           => 'Support',
@@ -485,7 +485,7 @@ return [
     // Jeux
     'jeux.title'       => 'Games',
     'jeux.memo_title'  => 'The Secret Cave',
-    'jeux.memo_desc'   => 'Memorise the cards for 3 seconds, then find the 9 pairs of wine bottles before time runs out. Beware — each wrong pair costs you 5 seconds!',
+    'jeux.memo_desc'   => 'Memorise the cards for 3 seconds, then find the 9 pairs of wine bottles before time runs out. Beware - each wrong pair costs you 5 seconds!',
     'jeux.hours'       => 'hours',
     'jeux.minutes'     => 'minutes',
     'jeux.seconds'     => 'seconds',
@@ -501,7 +501,7 @@ return [
     'jeux.catapulte_title' => 'Barrel Catapult',
     'jeux.catapulte_desc'  => 'Adjust angle with ↑↓, hold Space to charge power, release to launch the barrel as far as possible!',
     'jeux.vendangeexpress_title' => 'Harvest Express',
-    'jeux.vendangeexpress_desc'  => 'Grapes and bottles are falling from the vines! Move the crate with ← → to catch them all. 10 lives — don\'t let anything drop!',
+    'jeux.vendangeexpress_desc'  => 'Grapes and bottles are falling from the vines! Move the crate with ← → to catch them all. 10 lives - don\'t let anything drop!',
 
     // Sitemap
     'sitemap.intro'            => 'Browse all pages on our website',
@@ -638,7 +638,7 @@ return [
     'panel.export'    => 'GDPR export',
     'panel.logout'    => 'Log out',
 
-    // Account area — pages
+    // Account area - pages
     'account.title'              => 'My account',
     'account.welcome'            => 'Welcome to your account',
     'account.orders_title'       => 'My orders',
@@ -691,11 +691,11 @@ return [
     'account.device_confirmed'        => 'Device confirmed and registered as a trusted device.',
     'account.device_confirmed_title'       => 'Device confirmed',
     'account.device_confirm_expired_title' => 'Invalid link',
-    'account.device_confirmed_body'   => 'Your device has been validated. You can close this tab — sign-in will complete automatically on the other page.',
+    'account.device_confirmed_body'   => 'Your device has been validated. You can close this tab - sign-in will complete automatically on the other page.',
     'account.device_confirm_expired'  => 'The confirmation link has expired or is invalid. Please sign in again.',
     'account.mfa_cancelled_title'     => 'Attempt cancelled',
     'account.mfa_cancelled_body'      => 'The sign-in attempt has been cancelled and the confirmation link invalidated. If you believe your account is compromised, please change your password.',
-    'account.mfa_denied_legal'        => 'Any unauthorised access to a computer system is a criminal offence under French law (Articles 323-1 et seq. of the Penal Code — up to 2 years imprisonment and €60,000 fine). If you are not the account holder, cease all connection attempts immediately.',
+    'account.mfa_denied_legal'        => 'Any unauthorised access to a computer system is a criminal offence under French law (Articles 323-1 et seq. of the Penal Code - up to 2 years imprisonment and €60,000 fine). If you are not the account holder, cease all connection attempts immediately.',
     'account.trusted_devices'         => 'Trusted devices',
     'account.trusted_devices_empty'   => 'No trusted devices registered.',
     'account.trust_device'            => 'Trust this device',
@@ -713,7 +713,7 @@ return [
     'account.security_confirm_security_btn'    => 'Manage my account security',
     'account.security_confirm_reset_btn'       => 'Reset my password',
     'account.security_confirm_login_btn'       => 'Sign in',
-    'account.security_deny_success_title'      => 'Request cancelled — account protected',
+    'account.security_deny_success_title'      => 'Request cancelled - account protected',
     'account.security_deny_success_body'       => 'The password change request has been cancelled. All your active sessions have been revoked. A confirmation email has been sent.',
     'account.security_deny_error_title'        => 'Invalid or expired link',
     'account.security_deny_expired_body'       => 'This link has expired (valid for 1 hour). If you think your account is compromised, reset your password.',
@@ -747,7 +747,7 @@ return [
     'account.email_change_request_btn' => 'Contact support',
     'account.email_change_subject'    => 'Request to change email address',
 
-    // Email change — double opt-in
+    // Email change - double opt-in
     'account.email_change_section_title'    => 'Update my email address',
     'account.email_change_intro'            => 'A confirmation link will be sent to your current address. The change only takes effect after you confirm it.',
     'account.email_current'                 => 'Current address',
@@ -770,7 +770,7 @@ return [
     'account.email_change_revoked_body'     => 'The email address change request has been cancelled. Your current address remains unchanged.',
     'account.email_change_blocked_google'   => 'Your account is linked to Google. Your email address is managed by Google and cannot be changed from this site.',
 
-    // Orders — detail & cancellation
+    // Orders - detail & cancellation
     'account.order_detail'       => 'Order detail',
     'account.order_items'        => 'Ordered items',
     'account.order_payment'      => 'Payment',
@@ -804,10 +804,10 @@ return [
     'account.payment.cheque'     => 'Cheque',
     'account.order_contact_for_cancel' => 'This order can no longer be cancelled online.',
     'account.order_return_after_delivery' => 'Your right of withdrawal (15 days) will be available upon delivery of your order.',
-    'account.order_contact_subject'    => 'Cancellation request — order',
+    'account.order_contact_subject'    => 'Cancellation request - order',
     'account.order_contact_link'       => 'Contact support',
     'account.order_return_notice'          => 'For any return request (original sealed carton, unopened bottles, subject to verification upon receipt), please contact us.',
-    'account.order_return_subject'         => 'Return request — order',
+    'account.order_return_subject'         => 'Return request - order',
     'account.order_return_request_btn'     => 'Exercise my right of withdrawal',
     'account.order_return_window'          => 'You may exercise your right of withdrawal until %s (15 days after delivery).',
     'account.order_return_confirm'         => 'Do you wish to exercise your right of withdrawal? The return must be made in the original sealed carton, with unopened bottles. This action cannot be undone.',
@@ -825,7 +825,7 @@ return [
     'account.order_refund_confirm'             => 'Are you sure you want to request a refund for this order? This action is final.',
     'account.order_refund_pending_notice'      => 'Your refund is being processed.',
 
-    // Addresses — CRUD
+    // Addresses - CRUD
     'account.address_add'        => 'Add an address',
     'account.address_edit'       => 'Edit',
     'account.address_delete'     => 'Delete',
@@ -837,7 +837,7 @@ return [
     'account.address_required_fields' => 'Please fill in all required fields (phone included).',
     'account.address_zip_invalid'    => 'The postcode must be in mainland France (excluding Corsica).',
     'account.address_phone_hint'     => 'Required for delivery (e.g. +33 6 12 34 56 78 or +49 30 12345678)',
-    'account.address_locked_notice'  => 'Address linked to an active order — editing and deletion unavailable.',
+    'account.address_locked_notice'  => 'Address linked to an active order - editing and deletion unavailable.',
     'account.address_delivery_only_france' => 'Delivery to mainland France only (excluding Corsica).',
     'account.address_type_label' => 'Address type',
     'account.address_street'     => 'Street',
@@ -861,7 +861,7 @@ return [
     'account.export_item_favorites' => 'Your favourite wines',
     'account.export_item_trusted_devices' => 'Your registered trusted devices',
     'account.export_item_sessions' => 'Your active sessions',
-    'account.export_retention'   => 'Retention period: your personal data (name, email, addresses…) is deleted within 30 days of account closure. Your orders are retained for 10 years as required by law, but anonymised — with no link to your identity.',
+    'account.export_retention'   => 'Retention period: your personal data (name, email, addresses…) is deleted within 30 days of account closure. Your orders are retained for 10 years as required by law, but anonymised - with no link to your identity.',
     'account.export_send_btn'    => 'Receive my data by email',
     'account.export_sent_title'  => 'Export sent!',
     'account.export_sent_body'   => 'Your archive has been sent to <strong>%s</strong>. Please check your spam folder.',
@@ -904,7 +904,7 @@ return [
     'newsletter.unsubscribe_error' => 'This unsubscribe link is invalid or has already been used. Manage your preferences from your account.',
     'newsletter.manage_link'       => 'Manage my communication preferences',
 
-    // Newsletter — double opt-in (RGPD Art. 7)
+    // Newsletter - double opt-in (RGPD Art. 7)
     'newsletter.confirm_title'     => 'Newsletter subscription confirmation',
     'newsletter.confirm_success'   => 'Your subscription is confirmed. You will receive our upcoming news and offers from Château Crabitan Bellevue.',
     'newsletter.confirm_invalid'   => 'This confirmation link is invalid. It may have already been used.',
@@ -918,7 +918,7 @@ return [
     'newsletter.rate_limit'        => 'Too many attempts. Please wait before trying again.',
     'newsletter.invalid_email'     => 'Invalid email address.',
 
-    // Newsletter — new wine
+    // Newsletter - new wine
     'mail.new_wine_subject'  => 'New wine available: %s %d',
     'mail.new_wine_discover' => 'Discover this wine',
 
@@ -934,13 +934,13 @@ return [
     'order.status.return_requested' => 'Return in progress',
     'order.status.refund_refused'   => 'Refund refused',
 
-    // Transactional emails — order status change
-    'mail.order_status_subject_processing' => 'Your order is being prepared — %s',
-    'mail.order_status_subject_shipped'    => 'Your order has been shipped — %s',
-    'mail.order_status_subject_delivered'  => 'Your order has been delivered — %s',
-    'mail.order_status_subject_cancelled'  => 'Your order has been cancelled — %s',
-    'mail.order_status_subject_refunded'   => 'Your order has been refunded — %s',
-    'admin.refund_gae_ko_subject'          => 'GAE Refund KO — manual action required',
+    // Transactional emails - order status change
+    'mail.order_status_subject_processing' => 'Your order is being prepared - %s',
+    'mail.order_status_subject_shipped'    => 'Your order has been shipped - %s',
+    'mail.order_status_subject_delivered'  => 'Your order has been delivered - %s',
+    'mail.order_status_subject_cancelled'  => 'Your order has been cancelled - %s',
+    'mail.order_status_subject_refunded'   => 'Your order has been refunded - %s',
+    'admin.refund_gae_ko_subject'          => 'GAE Refund KO - manual action required',
     'admin.refund_gae_ko_body'             => 'The GAE refund for order {ref} ({amount} €) has failed. Please process it manually via Vision Air.',
 
     'mail.order_status_body_processing' => 'Your order <strong>%s</strong> is currently being prepared. We are doing our best to ship it to you as soon as possible.',
@@ -949,7 +949,7 @@ return [
     'mail.order_status_body_cancelled'  => 'Your order <strong>%s</strong> has been cancelled. If you have already been charged, a refund will be processed as soon as possible.',
     'mail.order_status_body_refunded'   => 'Your order <strong>%s</strong> has been refunded. The credit should appear on your bank account within 3 to 5 working days.',
 
-    // Checkout — order tunnel
+    // Checkout - order tunnel
     'checkout.title'                  => 'Order checkout',
     'checkout.billing_address'        => 'Billing address',
     'checkout.delivery_address'       => 'Delivery address',
