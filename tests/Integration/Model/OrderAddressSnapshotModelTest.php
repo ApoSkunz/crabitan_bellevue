@@ -70,15 +70,19 @@ class OrderAddressSnapshotModelTest extends IntegrationTestCase
             [$id]
         );
 
+        $enc = \Service\EncryptionService::fromEnv();
+
         $this->assertNotFalse($row);
         $this->assertSame('F', $row['civility']);
         $this->assertSame('Marie', $row['firstname']);
         $this->assertSame('Martin', $row['lastname']);
-        $this->assertSame('5 avenue du Vin', $row['street']);
+        $this->assertStringStartsWith('ENC:', $row['street']);
+        $this->assertSame('5 avenue du Vin', $enc->decrypt($row['street']));
         $this->assertSame('Lyon', $row['city']);
         $this->assertSame('69001', $row['zip']);
         $this->assertSame('France', $row['country']);
-        $this->assertSame('0700000001', $row['phone']);
+        $this->assertStringStartsWith('ENC:', $row['phone']);
+        $this->assertSame('0700000001', $enc->decrypt($row['phone']));
     }
 
     // ----------------------------------------------------------------

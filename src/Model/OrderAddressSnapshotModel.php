@@ -55,10 +55,9 @@ class OrderAddressSnapshotModel extends Model
         $country   = $address['country']   ?? '';
         $phone     = $address['phone']     ?? '';
 
-        // Dedup : street exclu (chiffré avec IV aléatoire — comparaison impossible)
         if ($sourceAddressId !== null) {
             $existing = $this->db->fetchOne(
-                "SELECT id FROM {$this->table}
+                "SELECT id, street FROM {$this->table}
                  WHERE source_address_id = ?
                    AND firstname = ? AND lastname = ?
                    AND city = ? AND zip = ? AND country = ?
@@ -66,7 +65,10 @@ class OrderAddressSnapshotModel extends Model
                 [$sourceAddressId, $firstname, $lastname, $city, $zip, $country]
             );
             if ($existing !== false) {
-                return (int) $existing['id'];
+                $storedStreet = $this->encryption->decrypt((string) $existing['street']) ?? $existing['street'];
+                if ($storedStreet === $street) {
+                    return (int) $existing['id'];
+                }
             }
         }
 
