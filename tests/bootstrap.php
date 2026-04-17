@@ -32,6 +32,15 @@ $_ENV['MAIL_PASS']      = getenv('MAIL_PASS') !== false ? getenv('MAIL_PASS') : 
 $_ENV['MAIL_FROM_NAME'] = getenv('MAIL_FROM_NAME') ?: 'Crabitan Bellevue Test';
 $_ENV['MAIL_FROM']      = getenv('MAIL_FROM') !== false ? getenv('MAIL_FROM') : 'noreply@test.local';
 
+// Variables d'environnement depuis .env si présent (TI locaux — surchargeable via CI)
+$_dotEnv = is_file(ROOT_PATH . '/.env') ? parse_ini_file(ROOT_PATH . '/.env') : [];
+foreach ($_dotEnv ?: [] as $_k => $_v) {
+    if (!isset($_ENV[$_k])) {
+        $_ENV[$_k] = $_v;
+    }
+}
+unset($_dotEnv, $_k, $_v);
+
 // BDD pour les tests d'intégration (surchargeable via variables d'environnement CI)
 $_ENV['DB_HOST'] = getenv('DB_HOST') ?: '127.0.0.1';
 $_ENV['DB_PORT'] = getenv('DB_PORT') ?: '3306';
