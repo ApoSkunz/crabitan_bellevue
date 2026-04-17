@@ -197,5 +197,4 @@ class NewsletterSubscriptionModelTest extends TestCase
 
         $this->assertSame(3, $count);
     }
-
 }

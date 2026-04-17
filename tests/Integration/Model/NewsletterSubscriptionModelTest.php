@@ -306,5 +306,4 @@ class NewsletterSubscriptionModelTest extends IntegrationTestCase
         );
         $this->assertNotFalse($stillThere);
     }
-
 }
