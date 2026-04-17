@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [0.87.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.87.0...v0.87.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* **model:** déchiffrer street/phone des snapshots dans toutes les méthodes JOIN ([14f83ec](https://github.com/ApoSkunz/crabitan_bellevue/commit/14f83ec78a03bbbc319606b54ad961a3d95ad463))
+
 # [0.87.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.86.0...v0.87.0) (2026-04-17)
 
 
