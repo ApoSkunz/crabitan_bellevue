@@ -165,7 +165,18 @@ class StockNotificationService
             . $ctaBtn;
 
         $unsubParam = $unsubToken !== '' ? $unsubToken : null;
-        $htmlBody   = $this->mailService->buildNewsletterHtml($title, $htmlContent, null, $unsubParam, $lang);
+        $stockInfo  = $lang === 'en'
+            ? 'You are receiving this email because this wine is in your cart.'
+            : 'Vous recevez cet email car ce vin est dans votre panier.';
+        $htmlBody   = $this->mailService->buildNewsletterHtml(
+            $title,
+            $htmlContent,
+            null,
+            $unsubParam,
+            $lang,
+            null,
+            $stockInfo
+        );
 
         try {
             $this->mailService->sendLowStockAlert($toEmail, $toName, $subject, $htmlBody);

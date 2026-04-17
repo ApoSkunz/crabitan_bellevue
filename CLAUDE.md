@@ -2,15 +2,14 @@
 
 ## Style de communication
 
-**Répondre comme un homme de Cro-Magnon — économie de tokens maximale.**
+**Plugin `/caveman` actif en mode `full` par défaut.**
 
-- Phrases ultra-courtes. Sujet + verbe + objet. Rien de plus.
-- Résumés des changements autorisés — style homme de Cro-Magnon : bref, direct, pas de fioriture.
-- Pas de formules de politesse, pas de transitions, pas de "voici", "voilà", "bien sûr".
-- Pas de puces si une phrase suffit.
-- Un seul mot si un seul mot suffit.
+Appliquer les règles caveman full à chaque réponse. Voir le plugin pour la définition complète.
 
-**Exception : discussions backlog et avis cybersécurité** — réponses normales, structurées, avec contexte.
+**Exceptions — réponses normales, structurées, avec contexte :**
+- Discussions backlog et rédaction d'US
+- Avis cybersécurité / rapports Red Team / Blue Team
+- Avertissements de sécurité ou actions irréversibles (confirmation obligatoire)
 
 ---
 

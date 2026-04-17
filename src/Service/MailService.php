@@ -978,13 +978,25 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $this->send($to, $name, $subject, $body);
     }
 
+    /**
+     * Construit le HTML d'un email de type newsletter.
+     *
+     * @param string      $title            Titre affiché en haut du mail
+     * @param string      $htmlContent      Corps HTML du mail
+     * @param string|null $imageUrl         URL d'une image optionnelle
+     * @param string|null $unsubToken       Token de désabonnement newsletter
+     * @param string      $lang             Langue (fr|en)
+     * @param int|null    $campaignId       Identifiant campagne (tracking pixel)
+     * @param string|null $unsubInfoOverride Texte explicatif personnalisé (remplace le texte newsletter par défaut)
+     */
     public function buildNewsletterHtml(
         string $title,
         string $htmlContent,
         ?string $imageUrl = null,
         ?string $unsubToken = null,
         string $lang = 'fr',
-        ?int $campaignId = null
+        ?int $campaignId = null,
+        ?string $unsubInfoOverride = null
     ): string {
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $logoUrl    = $appUrl . self::LOGO_PATH;
@@ -1015,9 +1027,9 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
                 . " style=\"display:block;width:1px;height:1px;border:0;\">";
         }
 
-        $unsubInfo  = $lang === 'en'
+        $unsubInfo  = $unsubInfoOverride ?? ($lang === 'en'
             ? 'You are receiving this email because you subscribed to the Château Crabitan Bellevue newsletter.'
-            : 'Vous recevez cet email car vous êtes abonné(e) à la newsletter du Château Crabitan Bellevue.';
+            : 'Vous recevez cet email car vous êtes abonné(e) à la newsletter du Château Crabitan Bellevue.');
         $unsubLink  = $lang === 'en' ? 'Unsubscribe from the newsletter' : 'Se désinscrire de la newsletter';
 
         $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
