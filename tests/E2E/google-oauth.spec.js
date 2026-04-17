@@ -99,7 +99,7 @@ test.describe('Google OAuth — boutons et flux d\'erreur', () => {
         await visitVerified(page, context, '/fr');
         await page.goto('/fr/auth/google/callback?error=access_denied');
 
-        await expect(page).toHaveURL(/\/fr(\?login=1)?/);
+        await page.waitForURL(/\/fr\?login=1$/);
         await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
         await expect(page.locator('#login-modal .alert--error')).toBeVisible();
     });
@@ -110,7 +110,7 @@ test.describe('Google OAuth — boutons et flux d\'erreur', () => {
         await visitVerified(page, context, '/fr');
         await page.goto('/fr/auth/google/callback?code=fake-code&state=attacker-state');
 
-        await expect(page).toHaveURL(/\/fr(\?login=1)?/);
+        await page.waitForURL(/\/fr\?login=1$/);
         await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
         await expect(page.locator('#login-modal .alert--error')).toBeVisible();
     });
