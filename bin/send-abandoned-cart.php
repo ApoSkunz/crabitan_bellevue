@@ -17,7 +17,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('send-abandoned-cart');
-exit($runner->run(function (callable $log): void {
+exit($runner->run(function (callable $log, bool $dryRun): void {
     $cartModel = new \Model\CartModel();
     $mailer    = new \Service\MailService();
     $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
@@ -27,6 +27,12 @@ exit($runner->run(function (callable $log): void {
 
     foreach ($carts as $data) {
         $cartUrl = ($data['lang'] === 'fr') ? $appUrl . '/fr/panier' : $appUrl . '/en/cart';
+
+        if ($dryRun) {
+            $log('[DRY-RUN] Would send abandoned cart to ' . $data['email'] . ' (cart_id=' . $data['cart_id'] . ')');
+            continue;
+        }
+
         try {
             $mailer->sendAbandonedCart($data['email'], $data['firstname'], $data['items'], $data['lang'], $cartUrl);
             $cartModel->markReminderSent($data['cart_id']);

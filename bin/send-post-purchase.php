@@ -17,7 +17,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('send-post-purchase');
-exit($runner->run(function (callable $log): void {
+exit($runner->run(function (callable $log, bool $dryRun): void {
     $orderModel   = new \Model\OrderModel();
     $accountModel = new \Model\AccountModel();
     $mailer       = new \Service\MailService();
@@ -29,6 +29,11 @@ exit($runner->run(function (callable $log): void {
         $account = $accountModel->findById((int) $order['user_id']);
         if (!$account) {
             $log('[SKIP] user_id=' . $order['user_id']);
+            continue;
+        }
+
+        if ($dryRun) {
+            $log('[DRY-RUN] Would send post-purchase to ' . $account['email'] . ' commande #' . $order['id']);
             continue;
         }
 

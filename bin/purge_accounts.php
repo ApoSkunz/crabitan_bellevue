@@ -17,7 +17,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('purge_accounts');
-exit($runner->run(function (callable $log): void {
+exit($runner->run(function (callable $log, bool $dryRun): void {
     $model  = new \Model\AccountModel();
     $mailer = new \Service\MailService();
 
@@ -26,12 +26,21 @@ exit($runner->run(function (callable $log): void {
 
     foreach ($due as $account) {
         $name = trim((string) ($account['name'] ?? '')) ?: $account['email'];
+        if ($dryRun) {
+            $log("[DRY-RUN] Would send final deletion email to {$account['email']} (id={$account['id']})");
+            continue;
+        }
         try {
             $mailer->sendFinalDeletion($account['email'], $name, $account['lang'] ?? 'fr');
             $log("[EMAIL] Notification envoyée à {$account['email']} (id={$account['id']})");
         } catch (\Throwable $e) {
             $log("[EMAIL-ERR] id={$account['id']} : " . $e->getMessage());
         }
+    }
+
+    if ($dryRun) {
+        $log('[DRY-RUN] Would anonymize ' . count($due) . ' compte(s) — aucune écriture BDD');
+        return;
     }
 
     $purged = $model->purgeScheduledDeletions();

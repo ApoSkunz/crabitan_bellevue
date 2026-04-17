@@ -20,9 +20,15 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('clean_expired_tokens');
-exit($runner->run(function (callable $log): void {
+exit($runner->run(function (callable $log, bool $dryRun): void {
     $service = new \Service\TokenPurgeService(\Core\Database::getInstance());
-    $counts  = $service->purgeAll();
+
+    if ($dryRun) {
+        $log('[DRY-RUN] Would purge expired tokens (password_reset, device_confirm_tokens, connections, email_verification) — aucune écriture BDD');
+        return;
+    }
+
+    $counts = $service->purgeAll();
 
     $log("password_reset        : {$counts['password_reset']} supprimé(s)");
     $log("device_confirm_tokens : {$counts['device_confirm_tokens']} supprimé(s)");

@@ -18,7 +18,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('send_deletion_reminders');
-exit($runner->run(function (callable $log): void {
+exit($runner->run(function (callable $log, bool $dryRun): void {
     $model  = new \Model\AccountModel();
     $mailer = new \Service\MailService();
     $sent   = 0;
@@ -29,6 +29,11 @@ exit($runner->run(function (callable $log): void {
         foreach ($accounts as $account) {
             $name = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
                 ?: $account['email'];
+
+            if ($dryRun) {
+                $log("[DRY-RUN] Would send J-{$days} reminder to {$account['email']} (id={$account['id']})");
+                continue;
+            }
 
             try {
                 $mailer->sendDeletionReminder(
@@ -52,5 +57,7 @@ exit($runner->run(function (callable $log): void {
         }
     }
 
-    $log("{$sent} rappel(s) envoyé(s)");
+    if (!$dryRun) {
+        $log("{$sent} rappel(s) envoyé(s)");
+    }
 }));

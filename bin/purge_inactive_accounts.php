@@ -20,7 +20,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('purge_inactive_accounts');
-exit($runner->run(function (callable $log): void {
+exit($runner->run(function (callable $log, bool $dryRun): void {
     $model          = new \Model\AccountModel();
     $mailer         = new \Service\MailService();
     $inactiveMonths = (int) ($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
@@ -35,6 +35,12 @@ exit($runner->run(function (callable $log): void {
     foreach ($inactive as $account) {
         $id           = (int) $account['id'];
         $deletionDate = date('d/m/Y', strtotime('+30 days'));
+
+        if ($dryRun) {
+            $log("[DRY-RUN] Would send inactivity warning to {$account['email']} (id={$id}), suppression prévue {$deletionDate}");
+            continue;
+        }
+
         try {
             $mailer->sendInactivityWarning(
                 (string) $account['email'],
@@ -51,12 +57,18 @@ exit($runner->run(function (callable $log): void {
     }
 
     // Phase 2 — Soft-delete
-    $toDelete    = $model->getAccountsToSoftDelete();
-    $softDeleted = 0;
+    $toDelete = $model->getAccountsToSoftDelete();
     $log('Phase 2 — comptes à soft-delete : ' . count($toDelete));
 
+    $softDeleted = 0;
     foreach ($toDelete as $account) {
         $id = (int) $account['id'];
+
+        if ($dryRun) {
+            $log("[DRY-RUN] Would soft-delete compte id={$id} ({$account['email']})");
+            continue;
+        }
+
         try {
             $token        = $model->softDeleteForInactivity($id);
             $deletionDate = date('d/m/Y', strtotime('+30 days'));
@@ -73,6 +85,11 @@ exit($runner->run(function (callable $log): void {
         } catch (\Throwable $e) {
             $log("[DELETE-ERR] id={$id} : " . $e->getMessage());
         }
+    }
+
+    if ($dryRun) {
+        $log('[DRY-RUN] Simulation terminée — aucune écriture BDD, aucun email envoyé');
+        return;
     }
 
     $log("Terminé : {$warned} avertissement(s), {$softDeleted} soft-delete(s)");

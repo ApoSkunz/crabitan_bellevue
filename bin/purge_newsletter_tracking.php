@@ -15,8 +15,14 @@ declare(strict_types=1);
 require_once __DIR__ . '/cron-bootstrap.php';
 
 $runner = new \Core\CronRunner('purge_newsletter_tracking');
-exit($runner->run(function (callable $log): void {
-    $model   = new \Model\NewsletterTrackingModel();
+exit($runner->run(function (callable $log, bool $dryRun): void {
+    $model = new \Model\NewsletterTrackingModel();
+
+    if ($dryRun) {
+        $log('[DRY-RUN] Would purge newsletter tracking older than 13 months — aucune écriture BDD');
+        return;
+    }
+
     $deleted = $model->purgeOlderThan13Months();
     $log("{$deleted} enregistrement(s) de tracking purgé(s)");
 }));

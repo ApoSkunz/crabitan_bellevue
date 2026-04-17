@@ -88,7 +88,7 @@ class ErrorLoggerTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * write() déclenche la purge et supprime les fichiers de plus de 30 jours.
+     * write() déclenche la purge et supprime les fichiers de plus de 90 jours.
      */
     public function testPurgeOldLogsDeletesExpiredFile(): void
     {
@@ -97,9 +97,9 @@ class ErrorLoggerTest extends TestCase
             mkdir($logDir, 0755, true);
         }
 
-        $oldFile = $logDir . '/app-' . date('Y-m-d', strtotime('-31 days')) . '.log';
+        $oldFile = $logDir . '/app-' . date('Y-m-d', strtotime('-91 days')) . '.log';
         file_put_contents($oldFile, 'old entry');
-        touch($oldFile, time() - (31 * 86400));
+        touch($oldFile, time() - (91 * 86400));
 
         ErrorLogger::write([
             'timestamp' => date('Y-m-d H:i:s'),

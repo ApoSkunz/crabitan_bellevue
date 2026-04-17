@@ -9,7 +9,7 @@ namespace Core;
  *
  * Capture toutes les erreurs PHP et exceptions non catchées,
  * les écrit au format JSON dans storage/logs/app-YYYY-MM-DD.log
- * avec une rétention de 30 jours.
+ * avec une rétention de 90 jours.
  *
  * Toutes les sources (PHP, JS, scraping, cron) écrivent dans le même fichier
  * et se distinguent par le champ `channel`.
@@ -19,8 +19,11 @@ class ErrorLogger
     private const LOG_DIR_NAME    = 'storage/logs';
     private const LOG_PREFIX      = 'app';
     private const DATETIME_FORMAT = 'Y-m-d H:i:s';
-    private const RETENTION_DAYS  = 30;
+    private const RETENTION_DAYS  = 90;
     private const TRACE_MAX_LEN   = 500;
+
+    /** Codes HTTP exclus du log (bruit — crawlers, scanners). */
+    private const SILENT_HTTP_CODES = [404, 405];
 
     /**
      * Enregistre le handler d'erreurs et d'exceptions PHP.
@@ -55,6 +58,7 @@ class ErrorLogger
             'trace'     => '',
             'url'       => $_SERVER['REQUEST_URI'] ?? '',
             'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+            'ip'        => self::anonymizeIp($_SERVER['REMOTE_ADDR'] ?? ''),
         ]);
 
         // false = le handler natif PHP continue à s'exécuter (display_errors en dev)
@@ -69,6 +73,11 @@ class ErrorLogger
      */
     public static function handleException(\Throwable $e): void
     {
+        // Filtre 404/405 — bruit crawlers/scanners, pas d'intérêt opérationnel
+        if ($e instanceof \Core\Exception\HttpException && in_array($e->status, self::SILENT_HTTP_CODES, true)) {
+            return;
+        }
+
         $trace = substr($e->getTraceAsString(), 0, self::TRACE_MAX_LEN);
 
         self::write([
@@ -80,6 +89,7 @@ class ErrorLogger
             'trace'     => $trace,
             'url'       => $_SERVER['REQUEST_URI'] ?? '',
             'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
+            'ip'        => self::anonymizeIp($_SERVER['REMOTE_ADDR'] ?? ''),
         ]);
     }
 
@@ -170,7 +180,39 @@ class ErrorLogger
     }
 
     /**
-     * Supprime les fichiers app-*.log âgés de plus de 30 jours.
+     * Anonymise une adresse IP pour conformité RGPD.
+     *
+     * IPv4 : dernier octet remplacé par 0 (ex: 1.2.3.4 → 1.2.3.0).
+     * IPv6 : dernier groupe remplacé par 0 (ex: 2001:db8::1 → 2001:db8::0).
+     *
+     * @param string $ip Adresse IP brute
+     * @return string    Adresse IP anonymisée
+     */
+    private static function anonymizeIp(string $ip): string
+    {
+        if ($ip === '') {
+            return '';
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return preg_replace('/\.\d+$/', '.0', $ip) ?? $ip;
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $expanded = inet_ntop(inet_pton($ip) ?: '');
+            if ($expanded === false) {
+                return $ip;
+            }
+            $parts       = explode(':', $expanded);
+            $parts[count($parts) - 1] = '0000';
+            return implode(':', $parts);
+        }
+
+        return $ip;
+    }
+
+    /**
+     * Supprime les fichiers app-*.log âgés de plus de 90 jours.
      *
      * @param string $logDir Chemin du répertoire de logs
      * @return void
