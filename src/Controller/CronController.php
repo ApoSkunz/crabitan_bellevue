@@ -60,9 +60,9 @@ class CronController extends Controller
         $provided = $_GET['token'] ?? '';
 
         if ($expected === '' || !hash_equals($expected, $provided)) {
-            http_response_code(403);
+            http_response_code(404);
             header('Content-Type: text/plain; charset=utf-8');
-            echo "Forbidden\n";
+            echo "Not Found\n";
             exit;
         }
     }
