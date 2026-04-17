@@ -18,11 +18,17 @@ export function initCarbonBadge() {
     const wcb = document.getElementById('wcb');
     if (!('fetch' in globalThis) || !wcb) return;
 
-    // On passe l'URL racine du site à l'API : leur crawler backend (HeadlessChrome) n'a
-    // pas de cookie age_verified et tombe sur /age-gate pour toute URL profonde → 503.
-    // La racine suffit pour mesurer l'empreinte CO2 représentative du site.
+    // Exclusion back-office : aucun audit carbone sur les pages /admin
+    // (défense en profondeur, le footer badge n'est déjà pas rendu en admin)
+    const pathname = globalThis.location.pathname || '/';
+    if (pathname.startsWith('/admin')) return;
+
+    // Audit page-par-page : on passe l'URL exacte de la page courante à l'API.
+    // Le crawler backend WebsiteCarbon (HeadlessChrome) est whitelisté dans public/index.php
+    // pour bypasser l'age-gate, donc les URLs profondes sont mesurables.
     const origin = globalThis.location.origin || 'https://www.crabitanbellevue.fr';
-    const url = encodeURIComponent(origin + '/');
+    const pageUrl = origin + pathname;
+    const url = encodeURIComponent(pageUrl);
 
     function renderResult(data) {
         // Caster en nombre pour neutraliser tout contenu non numérique de l'API (XSS)

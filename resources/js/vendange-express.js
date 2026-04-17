@@ -50,7 +50,7 @@ export function initVendangeExpressGame() {
     };
 
     // ── Layout ───────────────────────────────────────────────
-    const N_COLS     = 4;
+    const N_COLS     = 3;
     const VINE_Y     = 55;       // hauteur de la zone vigne en haut
     const GROUND_Y   = H - 30;
     const CRATE_W    = 78;
@@ -120,7 +120,49 @@ export function initVendangeExpressGame() {
 
     canvas.setAttribute('tabindex', '0');
     canvas.addEventListener('mousedown',  (e) => handlePointer(e.clientX, e.clientY));
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handlePointer(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
+
+    // ── Swipe mobile : suivre le doigt horizontalement ────────
+    let touchActive  = false;
+    let touchStartX  = 0;
+    let touchStartY  = 0;
+    let touchMoved   = false;
+    const DRAG_THRESHOLD = 12;
+
+    function canvasXFromClient(clientX) {
+        const rect = canvas.getBoundingClientRect();
+        return (clientX - rect.left) * (canvas.width / rect.width);
+    }
+
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const t = e.touches[0];
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        touchActive = true;
+        touchMoved  = false;
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+        if (!touchActive) return;
+        const t  = e.touches[0];
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
+        if (!touchMoved && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
+            touchMoved = Math.abs(dx) > Math.abs(dy);
+        }
+        if (touchMoved && state === 'running') {
+            const cx = canvasXFromClient(t.clientX);
+            crateX = Math.max(CRATE_W / 2, Math.min(canvas.width - CRATE_W / 2, cx));
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        touchActive = false;
+        if (touchMoved) { e.preventDefault(); return; }
+        const t = e.changedTouches[0];
+        handlePointer(t.clientX, t.clientY);
+    }, { passive: false });
 
     canvas.addEventListener('keydown', (e) => {
         switch (e.code) {

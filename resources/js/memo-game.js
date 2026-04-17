@@ -16,7 +16,10 @@ export function initMemoGame() {
     const PAIR_COUNT = Number.parseInt(section.dataset.pairCount, 10);
     const WIN_MSG    = section.dataset.winMsg;
     const LOSE_MSG   = section.dataset.loseMsg;
-    let worldRecord  = Math.min(Number.parseInt(section.dataset.worldRecord, 10) || 0, DURATION);
+    // Record mondial = secondes restantes à la victoire. Impossible d'atteindre DURATION
+    // (il faut cliquer des cartes après le flash) → on ignore tout seed >= DURATION
+    const wrRaw      = Number.parseInt(section.dataset.worldRecord, 10) || 0;
+    let worldRecord  = (wrRaw > 0 && wrRaw < DURATION) ? wrRaw : 0;
 
     // Record mondial
     const wrEl = document.createElement('p');
@@ -49,9 +52,10 @@ export function initMemoGame() {
     function pad(n) { return String(n).padStart(2, '0'); } // NOSONAR javascript:S7721 — pure function dans DOMContentLoaded
 
     function updateTimer() {
-        const h = Math.floor(secondsLeft / 3600);
-        const m = Math.floor((secondsLeft % 3600) / 60);
-        const s = secondsLeft % 60;
+        const safe = Math.max(0, secondsLeft);
+        const h = Math.floor(safe / 3600);
+        const m = Math.floor((safe % 3600) / 60);
+        const s = safe % 60;
         document.getElementById('memo-hours').textContent   = pad(h);
         document.getElementById('memo-minutes').textContent = pad(m);
         document.getElementById('memo-seconds').textContent = pad(s);
