@@ -125,6 +125,9 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
              WHERE o.order_reference = ? AND o.user_id = ?",
             [$reference, $userId]
         );
+        if (is_array($row)) {
+            $row = $this->decryptSnapshotFields($row, ['bill_street', 'bill_phone', 'del_street']);
+        }
         return $row ?: null;
     }
 
@@ -312,6 +315,9 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
              WHERE o.id = ?",
             [$id]
         );
+        if (is_array($row)) {
+            $row = $this->decryptSnapshotFields($row, ['bill_street', 'bill_phone', 'del_street']);
+        }
         return $row ?: null;
     }
 
@@ -402,6 +408,9 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
              WHERE o.order_reference = ?",
             [$reference]
         );
+        if (is_array($row)) {
+            $row = $this->decryptSnapshotFields($row, ['bill_street', 'bill_phone']);
+        }
         return $row ?: null;
     }
 
@@ -435,6 +444,9 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
              WHERE o.order_reference = ?",
             [$reference]
         );
+        if (is_array($row)) {
+            $row = $this->decryptSnapshotFields($row, ['bill_street', 'bill_phone']);
+        }
         return $row ?: null;
     }
 
@@ -622,6 +634,9 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
              WHERE o.id = ? AND o.user_id = ?",
             [$orderId, $userId]
         );
+        if (is_array($row)) {
+            $row = $this->decryptSnapshotFields($row, ['bill_street', 'bill_phone', 'del_street']);
+        }
         return $row ?: null;
     }
 
@@ -707,6 +722,23 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param int $id Identifiant de l'adresse
      * @return array<string, mixed>|false
      */
+    /**
+     * Déchiffre les champs street/phone d'un snapshot dans un tableau de résultat.
+     *
+     * @param  array<string, mixed> $row
+     * @param  string[]             $fields Liste des clés à déchiffrer (ex. ['bill_street', 'bill_phone'])
+     * @return array<string, mixed>
+     */
+    private function decryptSnapshotFields(array $row, array $fields): array
+    {
+        foreach ($fields as $field) {
+            if (isset($row[$field]) && is_string($row[$field])) {
+                $row[$field] = $this->encryption->decrypt($row[$field]) ?? $row[$field];
+            }
+        }
+        return $row;
+    }
+
     private function fetchAddressById(int $id): array|false
     {
         $row = $this->db->fetchOne(
