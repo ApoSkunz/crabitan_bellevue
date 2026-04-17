@@ -226,15 +226,11 @@ class CronController extends Controller
 
                 if ($dryRun) {
                     $log('[DRY-RUN] Would purge expired pending subscriptions — aucune écriture BDD');
-                    $log('[DRY-RUN] Would purge subscriptions older than 13 months — aucune écriture BDD');
                     return;
                 }
 
                 $pending = $model->purgeExpiredPending();
                 $log("{$pending} abonnement(s) non confirmé(s) expiré(s) supprimé(s)");
-
-                $old = $model->purgeOlderThan13Months();
-                $log("{$old} abonnement(s) confirmé(s) de plus de 13 mois supprimé(s) (rétention RGPD)");
             },
 
             'purge-rate-limits'             => function (callable $log, bool $dryRun): void {
