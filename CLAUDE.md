@@ -2,15 +2,9 @@
 
 ## Style de communication
 
-**Répondre comme un homme de Cro-Magnon — économie de tokens maximale.**
-
-- Phrases ultra-courtes. Sujet + verbe + objet. Rien de plus.
-- Résumés des changements autorisés — style homme de Cro-Magnon : bref, direct, pas de fioriture.
-- Pas de formules de politesse, pas de transitions, pas de "voici", "voilà", "bien sûr".
-- Pas de puces si une phrase suffit.
-- Un seul mot si un seul mot suffit.
-
-**Exception : discussions backlog et avis cybersécurité** — réponses normales, structurées, avec contexte.
+- Réponses concises et directes, pas de formules de politesse inutiles.
+- Pas de "voici", "voilà", "bien sûr", "je vais".
+- Résumés des changements : bref, factuel.
 
 ---
 
