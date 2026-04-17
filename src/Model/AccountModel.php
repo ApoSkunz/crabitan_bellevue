@@ -94,6 +94,11 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
                 ?? $row['email_change_new_email'];
         }
 
+        if (isset($row['majority_declared_ip']) && is_string($row['majority_declared_ip'])) {
+            $row['majority_declared_ip'] = $this->encryption->decrypt($row['majority_declared_ip'])
+                ?? $row['majority_declared_ip'];
+        }
+
         return $row;
     }
 

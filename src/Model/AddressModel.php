@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Model;
 
 use Core\Model;
+use Service\EncryptionService;
 
 /**
  * Gestion des adresses de facturation et de livraison d'un compte utilisateur.
@@ -12,12 +13,25 @@ use Core\Model;
  * Implémente la logique de soft-delete différenciée :
  * - adresse liée à une commande (snapshot) → deleted_at = NOW()
  * - adresse jamais utilisée dans une commande → suppression physique
+ *
+ * Les colonnes `street` et `phone` sont chiffrées en AES-256-GCM (RGPD Art. 32).
  */
 class AddressModel extends Model
 {
     protected string $table = 'addresses';
 
     private const VALID_TYPES = ['billing', 'delivery'];
+
+    private EncryptionService $encryption;
+
+    /**
+     * @param EncryptionService|null $encryption Service de chiffrement (null = construit depuis l'environnement)
+     */
+    public function __construct(?EncryptionService $encryption = null)
+    {
+        parent::__construct();
+        $this->encryption = $encryption ?? EncryptionService::fromEnv();
+    }
 
     /**
      * Retourne les adresses sauvegardées et non supprimées de l'utilisateur.
@@ -29,7 +43,7 @@ class AddressModel extends Model
      */
     public function getByUser(int $userId): array
     {
-        return $this->db->fetchAll(
+        $rows = $this->db->fetchAll(
             "SELECT id, user_id, type, firstname, lastname, civility,
                     street, city, zip_code, country, phone, saved,
                     deleted_at, preserved_for_order, created_at, updated_at
@@ -38,6 +52,7 @@ class AddressModel extends Model
              ORDER BY type ASC, id ASC",
             [$userId]
         );
+        return array_map(fn(array $row) => $this->decryptRow($row), $rows);
     }
 
     /**
@@ -59,7 +74,7 @@ class AddressModel extends Model
              FROM {$this->table} WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
             [$id, $userId]
         );
-        return $row ?: null;
+        return $row ? $this->decryptRow($row) : null;
     }
 
     /**
@@ -111,7 +126,12 @@ class AddressModel extends Model
             "INSERT INTO {$this->table}
              (user_id, type, firstname, lastname, civility, street, city, zip_code, country, phone, saved)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
-            [$userId, $type, $firstname, $lastname, $civility, $street, $city, $zipCode, $country, $phone]
+            [
+                $userId, $type, $firstname, $lastname, $civility,
+                $this->encryption->encrypt($street),
+                $city, $zipCode, $country,
+                $this->encryption->encrypt($phone),
+            ]
         );
         return (int) $id;
     }
@@ -148,8 +168,31 @@ class AddressModel extends Model
              SET firstname = ?, lastname = ?, civility = ?,
                  street = ?, city = ?, zip_code = ?, country = ?, phone = ?
              WHERE id = ? AND user_id = ?",
-            [$firstname, $lastname, $civility, $street, $city, $zipCode, $country, $phone, $id, $userId]
+            [
+                $firstname, $lastname, $civility,
+                $this->encryption->encrypt($street),
+                $city, $zipCode, $country,
+                $this->encryption->encrypt($phone),
+                $id, $userId,
+            ]
         );
+    }
+
+    /**
+     * Déchiffre les colonnes sensibles d'une ligne d'adresse.
+     *
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private function decryptRow(array $row): array
+    {
+        if (isset($row['street']) && is_string($row['street'])) {
+            $row['street'] = $this->encryption->decrypt($row['street']) ?? $row['street'];
+        }
+        if (isset($row['phone']) && is_string($row['phone'])) {
+            $row['phone'] = $this->encryption->decrypt($row['phone']) ?? $row['phone'];
+        }
+        return $row;
     }
 
     /**

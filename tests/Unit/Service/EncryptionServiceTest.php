@@ -13,10 +13,21 @@ use Service\EncryptionService;
 class EncryptionServiceTest extends TestCase
 {
     private EncryptionService $enc;
+    private string|false $savedEncryptKey;
 
     protected function setUp(): void
     {
-        $this->enc = new EncryptionService('test-secret-key-for-unit-tests');
+        $this->enc            = new EncryptionService('test-secret-key-for-unit-tests');
+        $this->savedEncryptKey = $_ENV['DB_ENCRYPT_KEY'] ?? false;
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->savedEncryptKey !== false) {
+            $_ENV['DB_ENCRYPT_KEY'] = $this->savedEncryptKey;
+        } else {
+            unset($_ENV['DB_ENCRYPT_KEY']);
+        }
     }
 
     public function testEncryptDecryptRoundTrip(): void
@@ -88,5 +99,41 @@ class EncryptionServiceTest extends TestCase
         $this->assertSame($plain, $service->decrypt($service->encrypt($plain)));
 
         unset($_ENV['DB_ENCRYPT_KEY']);
+    }
+
+    public function testEncryptedValueHasEncPrefix(): void
+    {
+        $encrypted = $this->enc->encrypt('some value');
+        $this->assertStringStartsWith('ENC:', $encrypted);
+    }
+
+    public function testIsEncryptedReturnsTrueForEncPrefixed(): void
+    {
+        $encrypted = $this->enc->encrypt('test');
+        $this->assertTrue($this->enc->isEncrypted($encrypted));
+    }
+
+    public function testIsEncryptedReturnsFalseForPlainText(): void
+    {
+        $this->assertFalse($this->enc->isEncrypted('plain text value'));
+    }
+
+    public function testDecryptLegacyValueWithoutPrefix(): void
+    {
+        // Simule une valeur chiffrée avec l'ancienne version (sans préfixe ENC:)
+        $iv         = random_bytes(12);
+        $tag        = '';
+        $key        = hash('sha256', 'test-secret-key-for-unit-tests', true);
+        $ciphertext = openssl_encrypt('legacy-value', 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+        $legacy     = base64_encode($iv . $tag . $ciphertext);
+
+        $this->assertSame('legacy-value', $this->enc->decrypt($legacy));
+    }
+
+    public function testFromEnvThrowsIfKeyMissing(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        unset($_ENV['DB_ENCRYPT_KEY']);
+        EncryptionService::fromEnv();
     }
 }
