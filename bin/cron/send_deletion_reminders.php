@@ -8,7 +8,7 @@
  * deletion_reminder_7d_sent_at / deletion_reminder_1d_sent_at.
  *
  * À planifier via cron (ex: tous les jours à 09h00) :
- *   0 9 * * * php /var/www/crabitan_bellevue/bin/send_deletion_reminders.php >> /var/log/crabitan/reminders.log 2>&1
+ *   0 9 * * * php /var/www/crabitan_bellevue/bin/cron/send_deletion_reminders.php >> /var/log/crabitan/reminders.log 2>&1
  *
  * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */

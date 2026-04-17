@@ -12,7 +12,7 @@
  *   ENCRYPTION_KEY_V2  = <nouvelle clé v2, 32 octets hex>
  *
  * Exécution (fenêtre de maintenance recommandée) :
- *   php bin/rotate_encryption_keys.php --host <host> --user <user> --db <db>
+ *   php bin/secu/rotate_encryption_keys.php --host <host> --user <user> --db <db>
  *
  * ⚠️  NE PAS planifier via cron — exécution manuelle unique par rotation.
  * ⚠️  Snapshot BDD obligatoire avant exécution.
@@ -21,7 +21,7 @@
 
 declare(strict_types=1);
 
-define('ROOT_PATH', dirname(__DIR__));
+define('ROOT_PATH', dirname(__DIR__, 2));
 require_once ROOT_PATH . '/vendor/autoload.php';
 require_once ROOT_PATH . '/src/helpers.php';
 

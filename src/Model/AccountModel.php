@@ -813,7 +813,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
 
         // Suppression des adresses sauvegardées (données personnelles, non nécessaires à la comptabilité)
         // Les snapshots adresses/facturation dans orders.content sont conservés pour obligation comptable.
-        // Les adresses preserved_for_order = 1 sont purgées séparément par bin/purge_addresses.php.
+        // Les adresses preserved_for_order = 1 sont purgées séparément par bin/cron/purge_addresses.php.
         $this->db->execute(
             "DELETE FROM addresses WHERE user_id IN ({$placeholders}) AND preserved_for_order = 0",
             $ids
@@ -929,7 +929,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
 
     /**
      * Marque les adresses liées à des commandes actives comme préservées.
-     * Elles seront purgées par bin/purge_addresses.php une fois les commandes terminées.
+     * Elles seront purgées par bin/cron/purge_addresses.php une fois les commandes terminées.
      *
      * @param int $id Identifiant du compte
      */

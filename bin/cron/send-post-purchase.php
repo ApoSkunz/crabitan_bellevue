@@ -7,7 +7,7 @@
  * la livraison confirmée (fenêtre 504h–528h). Un seul envoi par commande.
  *
  * À planifier via cron (ex: tous les jours à 10h) :
- *   0 10 * * * php /var/www/crabitan_bellevue/bin/send-post-purchase.php >> /var/log/crabitan/cron.log 2>&1
+ *   0 10 * * * php /var/www/crabitan_bellevue/bin/cron/send-post-purchase.php >> /var/log/crabitan/cron.log 2>&1
  *
  * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */

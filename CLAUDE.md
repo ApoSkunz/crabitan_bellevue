@@ -300,10 +300,12 @@ Les scripts exécutés en ligne de commande (cron jobs, purges, pseudonymisation
 
 | Répertoire | Contenu |
 |---|---|
-| `bin/` | Scripts CLI / cron : purge_accounts, pseudonymize-orders, etc. |
+| `bin/cron/` | Tâches périodiques : purge_*, send-*, pseudonymize-orders, alert_pending_orders, clean_expired_tokens, cron-bootstrap.php |
+| `bin/secu/` | Outils sécurité ponctuels : rotate_encryption_keys.php |
+| `bin/dev/` | Outils QA / dev local : fuzzing-php.sh |
 | `scripts/` | Outils de dev local uniquement (sonar-report, CI helpers…) |
 
-**Règle :** tout nouveau script destiné à être planifié via cron ou exécuté par le système doit être créé dans `bin/`, jamais dans `scripts/`.
+**Règle :** tout nouveau script destiné à être planifié via cron ou exécuté par le système doit être créé dans `bin/cron/`, `bin/secu/` ou `bin/dev/` selon la thématique, jamais directement dans `bin/` ou `scripts/`.
 
 ---
 

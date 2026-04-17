@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# bin/fuzzing-php.sh — Lancement du corpus de fuzzing PHP (US2)
+# bin/dev/fuzzing-php.sh — Lancement du corpus de fuzzing PHP (US2)
 #
 # Usage :
-#   bash bin/fuzzing-php.sh            # Lance les 3 suites de fuzzing
-#   bash bin/fuzzing-php.sh --upload   # Upload seulement
-#   bash bin/fuzzing-php.sh --api      # Routes API seulement
-#   bash bin/fuzzing-php.sh --inputs   # Entrées PHP seulement
+#   bash bin/dev/fuzzing-php.sh            # Lance les 3 suites de fuzzing
+#   bash bin/dev/fuzzing-php.sh --upload   # Upload seulement
+#   bash bin/dev/fuzzing-php.sh --api      # Routes API seulement
+#   bash bin/dev/fuzzing-php.sh --inputs   # Entrées PHP seulement
 # ==============================================================================
 
 set -euo pipefail

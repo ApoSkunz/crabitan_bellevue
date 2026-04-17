@@ -7,7 +7,7 @@
  * libérant l'espace occupé par les compteurs et lockouts périmés.
  *
  * À planifier via cron (ex: toutes les heures) :
- *   0 * * * * php /var/www/crabitan_bellevue/bin/purge_rate_limits.php >> /var/log/crabitan/rate_limits.log 2>&1
+ *   0 * * * * php /var/www/crabitan_bellevue/bin/cron/purge_rate_limits.php >> /var/log/crabitan/rate_limits.log 2>&1
  *
  * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */

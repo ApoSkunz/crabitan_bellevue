@@ -7,7 +7,7 @@
  * commandé depuis 72 à 96 heures (fenêtre J+3). Une seule relance par panier.
  *
  * À planifier via cron (ex: tous les jours à 9h) :
- *   0 9 * * * php /var/www/crabitan_bellevue/bin/send-abandoned-cart.php >> /var/log/crabitan/cron.log 2>&1
+ *   0 9 * * * php /var/www/crabitan_bellevue/bin/cron/send-abandoned-cart.php >> /var/log/crabitan/cron.log 2>&1
  *
  * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */

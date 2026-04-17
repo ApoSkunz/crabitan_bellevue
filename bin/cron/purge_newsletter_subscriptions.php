@@ -8,7 +8,7 @@
  *   2. Abonnements confirmés datant de plus de 13 mois (rétention maximale RGPD).
  *
  * À planifier via cron (ex: le 1er de chaque mois à 03h00) :
- *   0 3 1 * * php /var/www/crabitan_bellevue/bin/purge_newsletter_subscriptions.php >> /var/log/crabitan/purge.log 2>&1
+ *   0 3 1 * * php /var/www/crabitan_bellevue/bin/cron/purge_newsletter_subscriptions.php >> /var/log/crabitan/purge.log 2>&1
  *
  * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */
