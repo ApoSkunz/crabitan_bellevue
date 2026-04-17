@@ -15,6 +15,7 @@ use Core\CronRunner;
  *
  * Route : GET /cron/{job}?token={CRON_SECRET_TOKEN}
  */
+// NOSONAR php:S1448 — 13 jobs cron + 5 méthodes de routage + helpers intentionnellement regroupés ; découpage post-live (GL sprint 12)
 class CronController extends Controller
 {
     private const CONTENT_TYPE = 'Content-Type: text/plain; charset=utf-8';
@@ -316,40 +317,62 @@ class CronController extends Controller
 
         foreach ([7, 1] as $days) {
             $accounts = $model->getAccountsPendingDeletionReminder($days);
-
             foreach ($accounts as $account) {
-                $name = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
-                    ?: $account['email'];
-
-                if ($dryRun) {
-                    $log("[DRY-RUN] Would send J-{$days} reminder to {$account['email']} (id={$account['id']})");
-                    continue;
-                }
-
-                try {
-                    $mailer->sendDeletionReminder(
-                        $account['email'],
-                        $name,
-                        $account['lang'] ?? 'fr',
-                        $days,
-                        $account['scheduled_deletion_at'],
-                        $account['reactivation_token'] ?? ''
-                    );
-                    if ($days === 7) {
-                        $model->markDeletionReminder7dSent((int) $account['id']);
-                    } else {
-                        $model->markDeletionReminder1dSent((int) $account['id']);
-                    }
-                    $sent++;
-                    $log("[J-{$days}] Rappel envoyé à {$account['email']} (id={$account['id']})");
-                } catch (\Throwable $e) {
-                    $log("[J-{$days}] ERREUR id={$account['id']} : " . $e->getMessage());
-                }
+                $sent += $this->doSendReminderForAccount($log, $dryRun, $account, $days, $model, $mailer);
             }
         }
 
         if (!$dryRun) {
             $log("{$sent} rappel(s) envoyé(s)");
+        }
+    }
+
+    /**
+     * Envoie ou simule l'envoi du rappel pour un compte donné.
+     *
+     * @param callable(string):void    $log
+     * @param bool                     $dryRun
+     * @param array<string, mixed>     $account
+     * @param int                      $days
+     * @param \Model\AccountModel      $model
+     * @param \Service\MailService     $mailer
+     * @return int 1 si l'email a été envoyé, 0 sinon
+     */
+    private function doSendReminderForAccount(
+        callable $log,
+        bool $dryRun,
+        array $account,
+        int $days,
+        \Model\AccountModel $model,
+        \Service\MailService $mailer
+    ): int {
+        $name = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''))
+            ?: $account['email'];
+
+        if ($dryRun) {
+            $log("[DRY-RUN] Would send J-{$days} reminder to {$account['email']} (id={$account['id']})");
+            return 0;
+        }
+
+        try {
+            $mailer->sendDeletionReminder(
+                $account['email'],
+                $name,
+                $account['lang'] ?? 'fr',
+                $days,
+                $account['scheduled_deletion_at'],
+                $account['reactivation_token'] ?? ''
+            );
+            if ($days === 7) {
+                $model->markDeletionReminder7dSent((int) $account['id']);
+            } else {
+                $model->markDeletionReminder1dSent((int) $account['id']);
+            }
+            $log("[J-{$days}] Rappel envoyé à {$account['email']} (id={$account['id']})");
+            return 1;
+        } catch (\Throwable $e) {
+            $log("[J-{$days}] ERREUR id={$account['id']} : " . $e->getMessage());
+            return 0;
         }
     }
 
