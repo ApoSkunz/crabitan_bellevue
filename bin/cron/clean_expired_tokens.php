@@ -10,7 +10,7 @@
  *   - accounts              : token de vérification email expiré et non utilisé (grâce 7j)
  *
  * À planifier via cron (ex: tous les dimanches à 04h00) :
- *   0 4 * * 0 php /var/www/crabitan_bellevue/bin/clean_expired_tokens.php >> /var/log/crabitan/tokens.log 2>&1
+ *   0 4 * * 0 php /var/www/crabitan_bellevue/bin/cron/clean_expired_tokens.php >> /var/log/crabitan/tokens.log 2>&1
  *
  * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */

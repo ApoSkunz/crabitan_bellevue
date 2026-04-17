@@ -8,7 +8,7 @@
  * pas bougé depuis plus de 7 jours. Aucun email si aucune commande concernée.
  *
  * À planifier via cron (ex: tous les lundis à 07h00) :
- *   0 7 * * 1 php /var/www/crabitan_bellevue/bin/alert_pending_orders.php >> /var/log/crabitan/pending_orders.log 2>&1
+ *   0 7 * * 1 php /var/www/crabitan_bellevue/bin/cron/alert_pending_orders.php >> /var/log/crabitan/pending_orders.log 2>&1
  *
  * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */

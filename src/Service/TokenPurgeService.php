@@ -18,7 +18,7 @@ use Core\Database;
  * Tolérance (période de grâce) : évite de supprimer un token qu'un process
  * concurrent lirait encore dans la même fenêtre de temps.
  *
- * @see bin/clean_expired_tokens.php
+ * @see bin/cron/clean_expired_tokens.php
  */
 class TokenPurgeService
 {

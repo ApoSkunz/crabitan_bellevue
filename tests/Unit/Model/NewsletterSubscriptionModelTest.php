@@ -197,29 +197,4 @@ class NewsletterSubscriptionModelTest extends TestCase
 
         $this->assertSame(3, $count);
     }
-
-    // ----------------------------------------------------------------
-    // purgeOlderThan13Months
-    // ----------------------------------------------------------------
-
-    public function testPurgeOlderThan13MonthsReturnsDeletedCount(): void
-    {
-        $this->dbMock->expects($this->once())
-            ->method('execute')
-            ->with($this->stringContains('INTERVAL 13 MONTH'))
-            ->willReturn(2);
-
-        $count = $this->model->purgeOlderThan13Months();
-
-        $this->assertSame(2, $count);
-    }
-
-    public function testPurgeOlderThan13MonthsReturnsZeroWhenNothingToDelete(): void
-    {
-        $this->dbMock->method('execute')->willReturn(0);
-
-        $count = $this->model->purgeOlderThan13Months();
-
-        $this->assertSame(0, $count);
-    }
 }

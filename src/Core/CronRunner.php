@@ -16,13 +16,17 @@ class CronRunner
     private string $name;
     private string $logDir;
 
+    private ?bool $forcedDryRun;
+
     /**
-     * @param string $name   Nom du script (utilisé pour le fichier de log et le lock)
-     * @param string $logDir Répertoire de logs (vide = ROOT_PATH/storage/logs)
+     * @param string    $name        Nom du script (utilisé pour le fichier de log et le lock)
+     * @param string    $logDir      Répertoire de logs (vide = ROOT_PATH/storage/logs)
+     * @param bool|null $forcedDryRun true/false force le mode dry-run (null = lire depuis argv)
      */
-    public function __construct(string $name, string $logDir = '')
+    public function __construct(string $name, string $logDir = '', ?bool $forcedDryRun = null)
     {
-        $this->name   = $name;
+        $this->name         = $name;
+        $this->forcedDryRun = $forcedDryRun;
         if ($logDir !== '') {
             $this->logDir = $logDir;
         } else {
@@ -34,14 +38,14 @@ class CronRunner
      * Exécute le job en gérant lock, logs, rotation et code de sortie.
      *
      * Passe `bool $dryRun` en 2e argument au callable. Lancer le script avec
-     * `--dry-run` pour simuler sans écrire en base ni envoyer d'emails.
+     * `--dry-run` (CLI) ou forcer via le constructeur (HTTP).
      *
      * @param callable(callable(string):void, bool):void $job Callable recevant $log et $dryRun
      * @return int 0 = succès ou skip, 1 = erreur fatale
      */
     public function run(callable $job): int
     {
-        $dryRun   = in_array('--dry-run', $GLOBALS['argv'] ?? [], true);
+        $dryRun = $this->forcedDryRun ?? in_array('--dry-run', $GLOBALS['argv'] ?? [], true);
         $prefix   = $dryRun ? '[DRY-RUN] ' : '';
 
         $lockFile = sys_get_temp_dir() . '/cron_' . $this->name . '.lock';

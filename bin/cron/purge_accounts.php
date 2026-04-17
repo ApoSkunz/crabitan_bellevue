@@ -7,7 +7,7 @@
  * Seules les données personnelles identifiantes sont anonymisées.
  *
  * À planifier via cron (ex: tous les jours à 02h00) :
- *   0 2 * * * php /var/www/crabitan_bellevue/bin/purge_accounts.php >> /var/log/crabitan/purge.log 2>&1
+ *   0 2 * * * php /var/www/crabitan_bellevue/bin/cron/purge_accounts.php >> /var/log/crabitan/purge.log 2>&1
  *
  * Sur IONOS : Hébergement → Cron jobs → ajouter la commande ci-dessus.
  */
