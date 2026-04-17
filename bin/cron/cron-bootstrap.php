@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-defined('ROOT_PATH') || define('ROOT_PATH', dirname(__DIR__));
+defined('ROOT_PATH') || define('ROOT_PATH', dirname(__DIR__, 2));
 defined('SRC_PATH')  || define('SRC_PATH', ROOT_PATH . '/src');
 defined('LANG_PATH') || define('LANG_PATH', ROOT_PATH . '/lang');
 
