@@ -19,7 +19,7 @@ class ErrorLogger
     private const LOG_DIR_NAME    = 'storage/logs';
     private const LOG_PREFIX      = 'app';
     private const DATETIME_FORMAT = 'Y-m-d H:i:s';
-    private const RETENTION_DAYS  = 30;
+    private const RETENTION_DAYS  = 90;
     private const TRACE_MAX_LEN   = 500;
 
     /** Codes HTTP exclus du log (bruit — crawlers, scanners). */
