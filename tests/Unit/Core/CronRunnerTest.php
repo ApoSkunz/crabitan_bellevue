@@ -114,4 +114,70 @@ class CronRunnerTest extends TestCase
         $this->assertStringContainsString('FATAL', file_get_contents($logFile));
         $this->assertStringContainsString('boom', file_get_contents($logFile));
     }
+
+    // ----------------------------------------------------------------
+    // forcedDryRun
+    // ----------------------------------------------------------------
+
+    public function testForcedDryRunTruePassesTrueToCallable(): void
+    {
+        $runner         = new CronRunner('test_dry_true', $this->logDir, true);
+        $dryRunReceived = null;
+
+        ob_start();
+        $runner->run(function (callable $log, bool $dryRun) use (&$dryRunReceived): void {
+            $dryRunReceived = $dryRun;
+        });
+        ob_end_clean();
+
+        $this->assertTrue($dryRunReceived);
+    }
+
+    public function testForcedDryRunFalsePassesFalseToCallable(): void
+    {
+        $runner         = new CronRunner('test_dry_false', $this->logDir, false);
+        $dryRunReceived = null;
+
+        ob_start();
+        $runner->run(function (callable $log, bool $dryRun) use (&$dryRunReceived): void {
+            $dryRunReceived = $dryRun;
+        });
+        ob_end_clean();
+
+        $this->assertFalse($dryRunReceived);
+    }
+
+    public function testForcedDryRunNullDefaultsToFalseWhenNoArgv(): void
+    {
+        $savedArgv          = $GLOBALS['argv'] ?? [];
+        $GLOBALS['argv']    = [];
+        $runner             = new CronRunner('test_dry_null', $this->logDir, null);
+        $dryRunReceived     = null;
+
+        ob_start();
+        $runner->run(function (callable $log, bool $dryRun) use (&$dryRunReceived): void {
+            $dryRunReceived = $dryRun;
+        });
+        ob_end_clean();
+
+        $GLOBALS['argv'] = $savedArgv;
+        $this->assertFalse($dryRunReceived);
+    }
+
+    public function testForcedDryRunNullReadsDryRunFromArgv(): void
+    {
+        $savedArgv       = $GLOBALS['argv'] ?? [];
+        $GLOBALS['argv'] = ['script.php', '--dry-run'];
+        $runner          = new CronRunner('test_dry_argv', $this->logDir, null);
+        $dryRunReceived  = null;
+
+        ob_start();
+        $runner->run(function (callable $log, bool $dryRun) use (&$dryRunReceived): void {
+            $dryRunReceived = $dryRun;
+        });
+        ob_end_clean();
+
+        $GLOBALS['argv'] = $savedArgv;
+        $this->assertTrue($dryRunReceived);
+    }
 }
