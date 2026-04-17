@@ -289,10 +289,9 @@
 
     .age-gate {
         // Mobile : legal-footer redevient statique → plus besoin de réserver 150px en bas
-        padding: 2.5rem 1rem 0.5rem; // top: dégager FR/EN + theme-toggle (fixed top:1rem)
-        gap: 0.5rem;
-        justify-content: flex-start;
-        min-height: auto;
+        padding: 3rem 1rem 0.5rem; // top: dégager FR/EN + theme-toggle (fixed top:1rem ~35px)
+        gap: 0.75rem;
+        justify-content: center;
     }
 
     .age-gate::before {
@@ -310,15 +309,15 @@
     }
 
     .age-gate__quote {
-        font-size: 1.2rem;
-        line-height: 1.4;
+        font-size: clamp(1.6rem, 7vw, 2.4rem);
+        line-height: 1.3;
     }
 
     .age-gate__logo {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
 
         img {
-            max-height: 55px;
+            max-height: 65px;
         }
     }
 
