@@ -2,6 +2,29 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.85.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.84.2...v0.85.0) (2026-04-17)
+
+
+### Bug Fixes
+
+* **contact:** restaurer titre section "Où sommes-nous" ([d6e5a90](https://github.com/ApoSkunz/crabitan_bellevue/commit/d6e5a90310e684904fe14ba4f207407c66ea3a07))
+* **contact:** retrait titre doublon "Où nous trouver" ([670e65c](https://github.com/ApoSkunz/crabitan_bellevue/commit/670e65c2d7e6b0dbc51dd2e13e80cc88a0be539f))
+* **game-score:** cap memo à 119 (secondes restantes < DURATION) ([fd64c6e](https://github.com/ApoSkunz/crabitan_bellevue/commit/fd64c6ef2ee7d6f829947bd56b58bb3d1ef38ecb))
+* **invoice:** INVOICE_AUTO_GENERATE traite chaîne vide comme désactivé ([491b936](https://github.com/ApoSkunz/crabitan_bellevue/commit/491b936fe179ed1b8f673694933e1d6209847018))
+* **view:** require → require_once pour wines-case-banner (Sonar S2003) ([7f5bc95](https://github.com/ApoSkunz/crabitan_bellevue/commit/7f5bc95521e1732346196261c26432954f7da9fb))
+
+
+### Features
+
+* **carbon:** audit page-par-page au lieu de la base URL ([5d1b4d7](https://github.com/ApoSkunz/crabitan_bellevue/commit/5d1b4d7314c46ae3629bcd7746c502cb18730a7d))
+* **games:** UX mobile — swipe labour/vendange, 3 colonnes, score vitesse ([e2b9a90](https://github.com/ApoSkunz/crabitan_bellevue/commit/e2b9a90564b5d8d3f2dc66a84ca268ef14d14c50))
+* **wines:** bandeau caisse de 12 panachée sur /vins et /collection ([e0fbbf2](https://github.com/ApoSkunz/crabitan_bellevue/commit/e0fbbf22424233dfe9e45ce0269b8a9d7a85b419))
+
+
+### Reverts
+
+* restaurer UploadFuzzingTest supprimé par erreur ([1699616](https://github.com/ApoSkunz/crabitan_bellevue/commit/16996164d9ee4da99f413199b5c21c692a7894a0))
+
 ## [0.84.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.84.1...v0.84.2) (2026-04-14)
 
 
