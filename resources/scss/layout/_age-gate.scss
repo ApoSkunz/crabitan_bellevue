@@ -289,9 +289,10 @@
 
     .age-gate {
         // Mobile : legal-footer redevient statique → plus besoin de réserver 150px en bas
-        padding: 2rem 1rem 2rem;
-        gap: 1rem;
-        justify-content: center;
+        padding: 2.5rem 1rem 0.5rem; // top: dégager FR/EN + theme-toggle (fixed top:1rem)
+        gap: 0.5rem;
+        justify-content: flex-start;
+        min-height: auto;
     }
 
     .age-gate::before {
@@ -302,31 +303,32 @@
     // les boutons ENTRER / QUITTER de la carte
     .age-gate__legal-footer {
         position: static;
-        margin: 1.5rem auto 1.25rem;
+        margin: 0.5rem auto 0.5rem;
         padding: 0 1rem;
         flex-wrap: wrap;
         text-align: center;
     }
 
     .age-gate__quote {
-        font-size: 3rem;
+        font-size: 1.2rem;
+        line-height: 1.4;
     }
 
     .age-gate__logo {
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
 
         img {
-            max-height: 70px;
+            max-height: 55px;
         }
     }
 
     .age-gate__card {
-        padding: 1.75rem 1.5rem;
+        padding: 1.25rem 1.25rem;
     }
 
     .age-gate__intro {
-        font-size: 0.85rem;
-        margin-bottom: 1.25rem;
+        font-size: 0.8rem;
+        margin-bottom: 0.75rem;
     }
 
     .age-gate__choice {
