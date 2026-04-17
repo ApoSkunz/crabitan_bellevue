@@ -2,9 +2,14 @@
 
 ## Style de communication
 
-- Réponses concises et directes, pas de formules de politesse inutiles.
-- Pas de "voici", "voilà", "bien sûr", "je vais".
-- Résumés des changements : bref, factuel.
+**Plugin `/caveman` actif en mode `full` par défaut.**
+
+Appliquer les règles caveman full à chaque réponse. Voir le plugin pour la définition complète.
+
+**Exceptions — réponses normales, structurées, avec contexte :**
+- Discussions backlog et rédaction d'US
+- Avis cybersécurité / rapports Red Team / Blue Team
+- Avertissements de sécurité ou actions irréversibles (confirmation obligatoire)
 
 ---
 
