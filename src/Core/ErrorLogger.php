@@ -9,7 +9,7 @@ namespace Core;
  *
  * Capture toutes les erreurs PHP et exceptions non catchées,
  * les écrit au format JSON dans storage/logs/app-YYYY-MM-DD.log
- * avec une rétention de 30 jours.
+ * avec une rétention de 90 jours.
  *
  * Toutes les sources (PHP, JS, scraping, cron) écrivent dans le même fichier
  * et se distinguent par le champ `channel`.
@@ -212,7 +212,7 @@ class ErrorLogger
     }
 
     /**
-     * Supprime les fichiers app-*.log âgés de plus de 30 jours.
+     * Supprime les fichiers app-*.log âgés de plus de 90 jours.
      *
      * @param string $logDir Chemin du répertoire de logs
      * @return void
