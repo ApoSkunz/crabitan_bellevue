@@ -2,6 +2,32 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.0.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.89.0...v1.0.0) (2026-04-18)
+
+
+* feat!: enable major version bump on breaking changes + fix npm vulnerabilities ([301db54](https://github.com/ApoSkunz/crabitan_bellevue/commit/301db54a554d712eaa3e7157b6c0009e83b3cc59))
+
+
+### Bug Fixes
+
+* **ci:** patch brace-expansion + picomatch nested in @semantic-release/npm bundle ([90f4641](https://github.com/ApoSkunz/crabitan_bellevue/commit/90f464137f78f87238157665686751163cdac1ce))
+* **deps:** update phpunit/phpunit 13.0.5 → 13.1.7 (CVE — versions ≤ 13.1.5 vulnérables) ([34bee14](https://github.com/ApoSkunz/crabitan_bellevue/commit/34bee142885ebf017312c3b1bb9f55de7f819d5f))
+
+
+### BREAKING CHANGES
+
+* .releaserc.json releaseRule "breaking:true" corrected from
+"minor" to "major" — breaking changes now trigger a major semver bump (v1.0.0+)
+instead of a minor bump. Previous releases since v0.85.1 with BREAKING CHANGE
+footer were incorrectly tagged as 0.x.
+
+- npm audit fix: basic-ftp, lodash, lodash-es, vite updated to safe versions
+- package.json overrides: brace-expansion ^2.0.3, picomatch ^4.0.4
+- semantic-release updated to 25.0.3
+- 2 remaining vulns in semantic-release/npm bundle (CI-only, 0 prod vulns)
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 # [0.89.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.88.1...v0.89.0) (2026-04-18)
 
 
