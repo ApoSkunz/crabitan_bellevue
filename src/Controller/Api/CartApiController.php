@@ -7,6 +7,7 @@ namespace Controller\Api;
 use Core\Controller;
 use Core\Jwt;
 use Model\CartModel;
+use Model\ConnectionModel;
 use Model\WineModel;
 
 /**
@@ -23,17 +24,19 @@ class CartApiController extends Controller
 
     private CartModel $cartModel;
     private WineModel $wineModel;
+    private ConnectionModel $connectionModel;
 
     /**
-     * Initialise les modèles du panier et des vins.
+     * Initialise les modèles du panier, des vins et des connexions.
      *
      * @param \Core\Request $request Requête HTTP courante
      */
     public function __construct(\Core\Request $request)
     {
         parent::__construct($request);
-        $this->cartModel = new CartModel();
-        $this->wineModel = new WineModel();
+        $this->cartModel       = new CartModel();
+        $this->wineModel       = new WineModel();
+        $this->connectionModel = new ConnectionModel();
     }
 
     // ----------------------------------------------------------------
@@ -313,6 +316,11 @@ class CartApiController extends Controller
         $role = $payload['role'] ?? '';
         if (in_array($role, ['admin', 'super_admin'], true)) {
             $this->json(['success' => false, 'message' => 'Accès refusé'], 403);
+        }
+
+        // Vérification de révocation côté serveur — un JWT révoqué doit être rejeté
+        if (!$this->connectionModel->isActiveByToken($token)) {
+            $this->json(['success' => false, 'message' => 'Session révoquée'], 401);
         }
 
         return (int) ($payload['sub'] ?? 0);

@@ -120,6 +120,11 @@ class MfaController extends Controller
         $this->deviceConfirmTokens->deleteByToken($token);
         unset($_SESSION['pending_device']);
 
+        // Prévention session fixation — regénérer l'ID de session après émission du JWT
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
+
         $this->json(['status' => 'ok', 'redirect' => $redirectUrl]);
     }
 }

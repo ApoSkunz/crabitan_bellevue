@@ -48,7 +48,7 @@ jobs:
           docker run --rm \
             -v "${{ github.workspace }}:/github/workspace" \
             exakat/exakat-ga:latest \
-            > exakat-report.txt 2>&1 || true
+            > exakat-report.txt 2>&1
           cat exakat-report.txt
 
       - name: Upload Exakat report
