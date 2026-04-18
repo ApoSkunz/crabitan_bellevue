@@ -2,6 +2,39 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.2.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.1.1...v1.2.0) (2026-04-18)
+
+
+### Bug Fixes
+
+* **assets:** renommer Atlantique 2024 avec espaces/apostrophe pour matcher la BDD ([0df2660](https://github.com/ApoSkunz/crabitan_bellevue/commit/0df2660ea8d2d349fc086873e6246d8b09f776d9))
+* **js:** désactiver carbon-badge sur localhost/crabitan.local ([066dc8d](https://github.com/ApoSkunz/crabitan_bellevue/commit/066dc8db8ab19bc43e845886f9cc2bc5590421fb))
+* **perf:** AddType image/webp .webp — MIME manquant sur XAMPP ([8102555](https://github.com/ApoSkunz/crabitan_bellevue/commit/810255557d066e5e06244dc8a659cbfe3334bf7d))
+* **scss:** display:contents sur picture dans wine-card et wine-detail image-wrap ([425b8ec](https://github.com/ApoSkunz/crabitan_bellevue/commit/425b8ec737c2358536e16610383f494ea51747a4))
+* **view:** dédupliquer literals '/\.[^.]+$/' et '.webp' dans cart/index.php (S1192) ([99a5bf1](https://github.com/ApoSkunz/crabitan_bellevue/commit/99a5bf1cb9f85ff464ddf3c068d255931db205d3))
+* **view:** encoder les noms de fichiers vin dans srcset (espaces → %20) ([d646ba0](https://github.com/ApoSkunz/crabitan_bellevue/commit/d646ba0857d1f4a1a586bae311817ea0683b4ee6))
+* **view:** rawurlencode sur tous les chemins images vin (src + srcset + data-wine-image) ([5152f48](https://github.com/ApoSkunz/crabitan_bellevue/commit/5152f4820030b53f1b37bc7d76737e2977cddcb1))
+
+
+### Features
+
+* **admin:** hook ImageVariantService sur upload/remplacement image vin ([e77cae2](https://github.com/ApoSkunz/crabitan_bellevue/commit/e77cae20b6bb3f082a4724fdcc2c5534f077452e))
+* **assets:** ajouter image vin Bordeaux Rouge 2022 depuis la prod ([ca50d1a](https://github.com/ApoSkunz/crabitan_bellevue/commit/ca50d1aca38b1d5dfe67bd0c5f1ed7cf8115414f))
+* **assets:** générer les 39 WebP vins depuis images prod (quality 85) ([60bfefa](https://github.com/ApoSkunz/crabitan_bellevue/commit/60bfefacc5a0f3d67726fdee59d30363fc086d84))
+* **assets:** variantes carousel 800w/1600w JPG+WebP pour picture srcset ([5e41c68](https://github.com/ApoSkunz/crabitan_bellevue/commit/5e41c68b359c298cbd177428da4bce3de975e9d2))
+* **assets:** variantes gallery 600w/1200w JPG+WebP pour picture srcset ([efa5485](https://github.com/ApoSkunz/crabitan_bellevue/commit/efa54852d6deca5d320bfec93e891a26e58e4caa))
+* **service:** ImageVariantService — génère/supprime variantes WebP vin ([3fd1730](https://github.com/ApoSkunz/crabitan_bellevue/commit/3fd17304944b77a3a09f69ecb91649b95f8c2a9f))
+
+
+### Performance Improvements
+
+* **view:** ACTION-09 — width/height sur toutes les images (CLS) ([0d3d60e](https://github.com/ApoSkunz/crabitan_bellevue/commit/0d3d60e802b99998d9a1ba3f0273bc899534695e))
+* **view:** ACTION-12/17/22 — preload carousel, meta-description, skip-link ([4895469](https://github.com/ApoSkunz/crabitan_bellevue/commit/48954696b5daf93a701ea01c56e60654f0574529))
+* **view:** ACTION-webp — <picture> WebP+PNG fallback sur toutes les images vin ([e7d321a](https://github.com/ApoSkunz/crabitan_bellevue/commit/e7d321aa969b33734a2c54fe7d39bd9c2befd233))
+* **view:** carousel slides — picture+WebP srcset (remplace background-image) ([630b090](https://github.com/ApoSkunz/crabitan_bellevue/commit/630b090d8212725776e19948ddfa50b9c7a6ae77))
+* **view:** CORRECTIF-07 — picture+srcset WebP sur vues vins ([dcaf2ac](https://github.com/ApoSkunz/crabitan_bellevue/commit/dcaf2ac1352d3669f37045c1b1b118ee1aa1db33))
+* **view:** CORRECTIF-07 — picture+WebP sur images gallery/carousel ([ee9ad2b](https://github.com/ApoSkunz/crabitan_bellevue/commit/ee9ad2bc5166e45daad9ec8e8ddfa5a53ef71f2b))
+
 ## [1.1.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.1.0...v1.1.1) (2026-04-18)
 
 
