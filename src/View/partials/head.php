@@ -85,6 +85,7 @@ endif;
 ?>
 </head>
 <body>
+<a class="skip-link" href="#main-content"><?= htmlspecialchars(__('accessibility.skip_to_content')) ?></a>
 <?php if (($_COOKIE['age_verified'] ?? '') !== '1') : ?>
 <?php require_once SRC_PATH . '/View/partials/age-gate-overlay.php'; ?>
 <?php endif; ?>

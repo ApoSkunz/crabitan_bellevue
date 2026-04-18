@@ -135,7 +135,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                 id="theme-toggle"
                 class="theme-toggle"
                 type="button"
-                aria-label="Basculer le thème jour / nuit"
+                aria-label="<?= __('common.toggle_theme') ?>"
             >
                 <span class="icon-sun" aria-hidden="true">&#9728;</span>
                 <span class="icon-moon" aria-hidden="true">&#9790;</span>
@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <h2 id="cart-modal-title" class="cart-modal__title"></h2>
                 <p id="cart-modal-cuvee" class="cart-modal__cuvee" hidden></p>
             </div>
-            <button id="cart-modal-close" class="cart-modal__close" type="button" aria-label="Fermer">&times;</button>
+            <button id="cart-modal-close" class="cart-modal__close" type="button" aria-label="<?= __('common.close') ?>">&times;</button>
         </div>
         <div class="cart-modal__body">
             <div class="cart-modal__product">
@@ -401,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 data-title-login="<?= htmlspecialchars(__('auth.login')) ?>"
                 data-title-forgot="<?= htmlspecialchars(__('auth.forgot_password')) ?>"
             ><?= htmlspecialchars(__('auth.login')) ?></h2>
-            <button id="login-modal-close" class="login-modal__close" type="button" aria-label="Fermer">&times;</button>
+            <button id="login-modal-close" class="login-modal__close" type="button" aria-label="<?= __('common.close') ?>">&times;</button>
         </div>
         <div class="login-modal__body">
             <?php if ($flashInfo !== null) : ?>
@@ -533,7 +533,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="register-modal__header">
             <!-- NOSONAR Web:S6850 — title is static translated string -->
             <h2 id="register-modal-title" class="register-modal__title"><?= htmlspecialchars(__('auth.register')) ?></h2>
-            <button id="register-modal-close" class="register-modal__close" type="button" aria-label="Fermer">&times;</button>
+            <button id="register-modal-close" class="register-modal__close" type="button" aria-label="<?= __('common.close') ?>">&times;</button>
         </div>
         <div class="register-modal__body">
             <?php if ($registerSuccess) : ?>
@@ -715,7 +715,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <h2 id="reset-modal-title" class="login-modal__title">
                 <?= htmlspecialchars(__('auth.reset_password')) ?>
             </h2>
-            <button id="reset-modal-close" class="login-modal__close" type="button" aria-label="Fermer">&times;</button>
+            <button id="reset-modal-close" class="login-modal__close" type="button" aria-label="<?= __('common.close') ?>">&times;</button>
         </div>
         <div class="login-modal__body">
             <?php if (!$resetValid) : ?>

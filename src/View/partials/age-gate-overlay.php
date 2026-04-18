@@ -34,7 +34,7 @@ $exitUrl = (!empty($httpReferer) && !str_starts_with($httpReferer, $siteOrigin))
             id="theme-toggle"
             class="theme-toggle"
             type="button"
-            aria-label="Basculer le thème jour / nuit"
+            aria-label="<?= __('common.toggle_theme') ?>"
         >
             <span class="icon-sun" aria-hidden="true">&#9728;</span>
             <span class="icon-moon" aria-hidden="true">&#9790;</span>

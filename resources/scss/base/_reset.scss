@@ -1,4 +1,22 @@
 // Reset moderne (inspiré de Andy Bell's modern CSS reset)
+
+// Skip-link WCAG 2.1 A / RGAA 12.7 — visible uniquement au focus clavier
+.skip-link {
+    position: absolute;
+    top: -9999px;
+    left: 0;
+    z-index: 9999;
+    padding: 0.5rem 1rem;
+    background: var(--color-gold, #b8860b);
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:focus {
+        top: 0;
+    }
+}
+
 *,
 *::before,
 *::after {

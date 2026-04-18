@@ -30,7 +30,7 @@ if (!$isBare) {
 <body class="bare-legal">
     <div class="bare-legal__bar">
         <span><?= htmlspecialchars($pageTitle) ?></span>
-        <button type="button" class="bare-legal__close" onclick="window.close()" aria-label="Fermer">&#10005;</button>
+        <button type="button" class="bare-legal__close" onclick="window.close()" aria-label="<?= __('common.close') ?>">&#10005;</button>
     </div>
     <div class="container">
 <?php else : ?>
