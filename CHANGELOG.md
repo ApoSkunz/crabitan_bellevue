@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.1.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.0.1...v1.1.0) (2026-04-18)
+
+
+### Features
+
+* **ci:** ajouter workflow SBOM CycloneDX (PHP + Node.js) ([595b4bf](https://github.com/ApoSkunz/crabitan_bellevue/commit/595b4bf12e024009911c9a73a05496ac83a3573f))
+
 ## [1.0.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.0.0...v1.0.1) (2026-04-18)
 
 
