@@ -82,7 +82,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
             <div class="wine-detail__visual">
                 <div class="wine-detail__image-wrap">
                     <picture>
-                        <source srcset="/assets/images/wines/<?= htmlspecialchars((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
+                        <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
                         <img
                             src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
                             alt="<?= htmlspecialchars($wineName) ?>"
@@ -384,7 +384,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                        class="wine-card__inner"
                        aria-label="<?= $swName ?>">
                         <div class="wine-card__image-wrap">
-                            <?php $swWebp = htmlspecialchars((string) preg_replace('/\.[^.]+$/', '.webp', (string) ($sw['image_path'] ?? ''))); ?>
+                            <?php $swWebp = rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', (string) ($sw['image_path'] ?? ''))); ?>
                             <picture>
                                 <source srcset="/assets/images/wines/<?= $swWebp ?>" type="image/webp">
                                 <img src="/assets/images/wines/<?= $swImage ?>"

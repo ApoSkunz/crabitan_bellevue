@@ -26,7 +26,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
 $wineImgWebp = static function (?array $wine, string $fallback): string {
     if ($wine !== null && !empty($wine['image_path'])) {
         $webp = (string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path']);
-        return '/assets/images/wines/' . htmlspecialchars($webp);
+        return '/assets/images/wines/' . rawurlencode($webp);
     }
     return $fallback;
 };

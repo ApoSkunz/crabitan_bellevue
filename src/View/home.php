@@ -136,7 +136,7 @@ $carouselSlides = [
         <div class="home-section__inner container">
             <div class="home-section__visual">
                 <picture>
-                    <source srcset="/assets/images/wines/<?= htmlspecialchars((string) preg_replace('/\.[^.]+$/', '.webp', $featuredWine['image_path'])) ?>" type="image/webp">
+                    <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $featuredWine['image_path'])) ?>" type="image/webp">
                     <img
                         src="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
                         alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"

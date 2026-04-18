@@ -173,7 +173,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                             >
                                 <div class="wine-card__image-wrap">
                                     <picture>
-                                        <source srcset="/assets/images/wines/<?= htmlspecialchars((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
+                                        <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
                                         <img
                                             src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
                                             alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"

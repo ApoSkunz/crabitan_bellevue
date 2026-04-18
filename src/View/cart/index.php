@@ -351,7 +351,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                     <?php
                         $featuredImagePath = (string)($featuredWine['image_path'] ?? '');
                         $featuredImage     = WINE_IMG_BASE . htmlspecialchars($featuredImagePath);
-                        $featuredImageWebp = WINE_IMG_BASE . htmlspecialchars((string) preg_replace('/\.[^.]+$/', '.webp', $featuredImagePath));
+                        $featuredImageWebp = WINE_IMG_BASE . rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $featuredImagePath));
                     ?>
                     <picture>
                         <source srcset="<?= $featuredImageWebp ?>" type="image/webp">
@@ -372,7 +372,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                     <?php
                         $randomImagePath = (string)($randomWine['image_path'] ?? '');
                         $wineImage       = WINE_IMG_BASE . htmlspecialchars($randomImagePath);
-                        $wineImageWebp   = WINE_IMG_BASE . htmlspecialchars((string) preg_replace('/\.[^.]+$/', '.webp', $randomImagePath));
+                        $wineImageWebp   = WINE_IMG_BASE . rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $randomImagePath));
                     ?>
                     <picture>
                         <source srcset="<?= $wineImageWebp ?>" type="image/webp">
@@ -438,7 +438,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                 <?php
                     $guestImagePath = (string)($randomWine['image_path'] ?? '');
                     $wineImage      = WINE_IMG_BASE . htmlspecialchars($guestImagePath);
-                    $wineImageWebp  = WINE_IMG_BASE . htmlspecialchars((string) preg_replace('/\.[^.]+$/', '.webp', $guestImagePath));
+                    $wineImageWebp  = WINE_IMG_BASE . rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $guestImagePath));
                 ?>
                 <picture>
                     <source srcset="<?= $wineImageWebp ?>" type="image/webp">
@@ -477,7 +477,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                    class="wine-card__inner"
                    aria-label="<?= $cwName ?>">
                     <div class="wine-card__image-wrap">
-                        <?php $cwWebp = htmlspecialchars((string) preg_replace('/\.[^.]+$/', '.webp', (string) ($cw['image_path'] ?? ''))); ?>
+                        <?php $cwWebp = rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', (string) ($cw['image_path'] ?? ''))); ?>
                         <picture>
                             <source srcset="/assets/images/wines/<?= $cwWebp ?>" type="image/webp">
                             <img src="/assets/images/wines/<?= $cwImage ?>"
