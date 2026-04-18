@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.0.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.0.0...v1.0.1) (2026-04-18)
+
+
+### Bug Fixes
+
+* **htaccess:** add admin IP bypass to maintenance mode ([c0c2dd0](https://github.com/ApoSkunz/crabitan_bellevue/commit/c0c2dd06496bf99c3224625450f1b4bae97f4798))
+
 # [1.0.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.89.0...v1.0.0) (2026-04-18)
 
 
