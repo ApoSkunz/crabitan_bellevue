@@ -236,13 +236,14 @@ class RatingModel extends Model
             return (string) $existing['token'];
         }
 
-        $token = bin2hex(random_bytes(32));
+        $token     = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+90 days'));
 
         $this->db->execute(
-            "INSERT INTO order_rating_tokens (order_id, account_id, token)
-             VALUES (?, ?, ?)
+            "INSERT INTO order_rating_tokens (order_id, account_id, token, expires_at)
+             VALUES (?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE token = token",
-            [$orderId, $accountId, $token]
+            [$orderId, $accountId, $token, $expiresAt]
         );
 
         return $token;

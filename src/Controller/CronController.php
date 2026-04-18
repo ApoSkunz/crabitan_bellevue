@@ -15,7 +15,7 @@ use Core\CronRunner;
  *
  * Route : GET /cron/{job}?token={CRON_SECRET_TOKEN}
  */
-// NOSONAR php:S1448 — 13 jobs cron + 5 méthodes de routage + helpers intentionnellement regroupés ; découpage post-live (GL sprint 12)
+// NOSONAR php:S1448 — 14 jobs cron + 5 méthodes de routage + helpers intentionnellement regroupés ; découpage post-live (GL sprint 12)
 class CronController extends Controller
 {
     private const CONTENT_TYPE = 'Content-Type: text/plain; charset=utf-8';
@@ -112,10 +112,11 @@ class CronController extends Controller
     {
         return match ($job) {
             'pseudonymize-orders' => fn(callable $log, bool $dryRun) => $this->doJobPseudonymizeOrders($log, $dryRun),
-            'purge-connections'   => fn(callable $log, bool $dryRun) => $this->doJobPurgeConnections($log, $dryRun),
-            'purge-addresses'     => fn(callable $log, bool $dryRun) => $this->doJobPurgeAddresses($log, $dryRun),
-            'purge-rate-limits'   => fn(callable $log, bool $dryRun) => $this->doJobPurgeRateLimits($log, $dryRun),
-            default               => null,
+            'purge-connections'         => fn(callable $log, bool $dryRun) => $this->doJobPurgeConnections($log, $dryRun),
+            'purge-addresses'           => fn(callable $log, bool $dryRun) => $this->doJobPurgeAddresses($log, $dryRun),
+            'purge-rate-limits'         => fn(callable $log, bool $dryRun) => $this->doJobPurgeRateLimits($log, $dryRun),
+            'purge-order-rating-tokens' => fn(callable $log, bool $dryRun) => $this->doJobPurgeOrderRatingTokens($log, $dryRun),
+            default                     => null,
         };
     }
 
@@ -466,6 +467,27 @@ class CronController extends Controller
 
         $deleted = $db->execute('DELETE FROM rate_limits WHERE expires_at < UNIX_TIMESTAMP()');
         $log("rate_limits : {$deleted} entrée(s) expirée(s) supprimée(s)");
+    }
+
+    /**
+     * Purge les tokens de notation de commande expirés (TTL 90 jours).
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeOrderRatingTokens(callable $log, bool $dryRun): void
+    {
+        $db = \Core\Database::getInstance();
+
+        if ($dryRun) {
+            $count = $db->fetchOne('SELECT COUNT(*) AS n FROM order_rating_tokens WHERE expires_at < NOW()')['n'] ?? 0;
+            $log("[DRY-RUN] Would delete {$count} token(s) expiré(s) — aucune écriture BDD");
+            return;
+        }
+
+        $deleted = $db->execute('DELETE FROM order_rating_tokens WHERE expires_at < NOW()');
+        $log("order_rating_tokens : {$deleted} token(s) expiré(s) supprimé(s)");
     }
 
     /**

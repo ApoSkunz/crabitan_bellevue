@@ -47,8 +47,8 @@ class ErrorLoggerTest extends TestCase
      */
     public function testRegisterInstallsHandlers(): void
     {
+        $this->expectNotToPerformAssertions();
         ErrorLogger::register();
-        $this->assertTrue(true); // reached without error
         restore_error_handler();
         restore_exception_handler();
     }
@@ -259,5 +259,64 @@ class ErrorLoggerTest extends TestCase
         $this->assertSame('EXCEPTION', $decoded['level']);
         $this->assertStringContainsString('RuntimeException', $decoded['message']);
         $this->assertStringContainsString('Something broke', $decoded['message']);
+    }
+
+    // ----------------------------------------------------------------
+    // info()
+    // ----------------------------------------------------------------
+
+    /**
+     * info() logue avec le level INFO et le message fourni.
+     */
+    public function testInfoLogsWithInfoLevel(): void
+    {
+        ErrorLogger::info('Vérification âge validée ip=1.2.3.0');
+
+        $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
+        $this->assertNotEmpty($files);
+
+        $content = file_get_contents($files[0]);
+        $this->assertNotFalse($content);
+
+        $lines   = array_filter(explode("\n", trim((string) $content)));
+        $decoded = json_decode((string) end($lines), true);
+        $this->assertSame('INFO', $decoded['level']);
+        $this->assertStringContainsString('âge', $decoded['message']);
+    }
+
+    // ----------------------------------------------------------------
+    // handleException() — silencieux 404/405
+    // ----------------------------------------------------------------
+
+    /**
+     * handleException() ne logue PAS les HttpException 404 (bruit crawlers).
+     */
+    public function testHandleExceptionSilentFor404(): void
+    {
+        $logDir = ROOT_PATH . '/storage/logs';
+        foreach (glob($logDir . '/*.log') ?: [] as $f) {
+            unlink($f);
+        }
+
+        ErrorLogger::handleException(new \Core\Exception\HttpException(404));
+
+        $files = glob($logDir . '/app-*.log') ?: [];
+        $this->assertEmpty($files, 'HttpException 404 ne doit pas créer de fichier log');
+    }
+
+    /**
+     * handleException() ne logue PAS les HttpException 405.
+     */
+    public function testHandleExceptionSilentFor405(): void
+    {
+        $logDir = ROOT_PATH . '/storage/logs';
+        foreach (glob($logDir . '/*.log') ?: [] as $f) {
+            unlink($f);
+        }
+
+        ErrorLogger::handleException(new \Core\Exception\HttpException(405));
+
+        $files = glob($logDir . '/app-*.log') ?: [];
+        $this->assertEmpty($files, 'HttpException 405 ne doit pas créer de fichier log');
     }
 }

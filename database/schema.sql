@@ -352,7 +352,8 @@ CREATE TABLE `orders` (
   CONSTRAINT `fk_orders_billing_snapshot` FOREIGN KEY (`id_billing_snapshot`)  REFERENCES `order_address_snapshots` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_orders_delivery_snapshot` FOREIGN KEY (`id_delivery_snapshot`) REFERENCES `order_address_snapshots` (`id`) ON DELETE RESTRICT,
   INDEX `idx_orders_user_status` (`user_id`, `status`),
-  INDEX `idx_orders_ordered_at` (`ordered_at`)
+  INDEX `idx_orders_ordered_at` (`ordered_at`),
+  INDEX `idx_orders_status_ordered_at` (`status`, `ordered_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -907,9 +908,11 @@ CREATE TABLE IF NOT EXISTS `order_rating_tokens` (
   `account_id` INT NOT NULL,
   `token` VARCHAR(64) NOT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` DATETIME NOT NULL COMMENT 'Expiration du token de notation (purge cron après dépassement)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_order_token` (`token`),
   UNIQUE KEY `uq_order_account` (`order_id`, `account_id`),
+  INDEX `idx_ort_expires_at` (`expires_at`),
   CONSTRAINT `fk_ort_order` FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ort_account` FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -251,6 +251,7 @@ return [
 
     // Formulaires
     'common.close'          => 'Fermer',
+    'common.toggle_theme'   => 'Basculer le thème jour / nuit',
     'form.lastname'         => 'Nom',
     'form.firstname'        => 'Prénom',
     'form.identity'                => 'Identité',
@@ -529,8 +530,9 @@ return [
     'gallery.lightbox_label' => 'Visionneuse de photos',
 
     // Accessibilité
-    'accessibility.title'    => 'Accessibilité',
-    'accessibility.intro'    => 'Déclaration de conformité au RGAA v4',
+    'accessibility.skip_to_content' => 'Aller au contenu principal',
+    'accessibility.title'           => 'Accessibilité',
+    'accessibility.intro'           => 'Déclaration de conformité au RGAA v4',
 
     // Webmaster
     'webmaster.bio'           => 'Site conçu et développé par Alexandre Solane, développeur web full-stack.',

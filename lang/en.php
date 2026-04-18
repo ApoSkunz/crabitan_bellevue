@@ -251,6 +251,7 @@ return [
 
     // Forms
     'common.close'          => 'Close',
+    'common.toggle_theme'   => 'Toggle day / night theme',
     'form.lastname'         => 'Last name',
     'form.firstname'        => 'First name',
     'form.identity'                => 'Identity',
@@ -528,8 +529,9 @@ return [
     'gallery.lightbox_label' => 'Photo viewer',
 
     // Accessibility
-    'accessibility.title'    => 'Accessibility',
-    'accessibility.intro'    => 'RGAA v4 compliance statement',
+    'accessibility.skip_to_content' => 'Skip to main content',
+    'accessibility.title'           => 'Accessibility',
+    'accessibility.intro'           => 'RGAA v4 compliance statement',
 
     // Webmaster
     'webmaster.bio'           => 'Website designed and developed by Alexandre Solane, full-stack web developer.',

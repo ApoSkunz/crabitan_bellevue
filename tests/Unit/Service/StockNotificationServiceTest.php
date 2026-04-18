@@ -179,6 +179,31 @@ class StockNotificationServiceTest extends TestCase
         $this->assertSame(42, $this->wineModel->notifiedWineId);
     }
 
+    public function testNoNotificationWhenWineNotAvailable(): void
+    {
+        $wine = $this->makeWine(oldStock: 500, notifiedAt: null);
+        $wine['available'] = false;
+
+        $result = $this->service->notifyIfThresholdCrossed($wine, 100);
+
+        $this->assertFalse($result);
+        $this->assertSame(0, $this->mailService->sendCount);
+    }
+
+    public function testNotifiesWhenWineIsAvailable(): void
+    {
+        $wine = $this->makeWine(oldStock: 500, notifiedAt: null);
+        $wine['available'] = true;
+        $this->wineModel->cartUsers = [
+            ['email' => 'test@example.com', 'first_name' => 'Alice', 'lang' => 'fr', 'newsletter_unsubscribe_token' => 'tok'],
+        ];
+
+        $result = $this->service->notifyIfThresholdCrossed($wine, 100);
+
+        $this->assertTrue($result);
+        $this->assertSame(1, $this->mailService->sendCount);
+    }
+
     public function testSkipsEmailWhenAddressIsEmpty(): void
     {
         // Couvre le return anticipé de sendLowStockAlert quand toEmail = ''

@@ -63,8 +63,10 @@ class StockNotificationService
         $notified = $wine['low_stock_notified_at'] ?? null;
         $wineId   = (int) ($wine['id'] ?? 0);
 
-        // Seuil non franchi ou déjà notifié
-        if ($oldStock <= $limit || $newStock > $limit || $notified !== null) {
+        $available = (bool) ($wine['available'] ?? true);
+
+        // Seuil non franchi, déjà notifié, ou vin non commercialisé
+        if (!$available || $oldStock <= $limit || $newStock > $limit || $notified !== null) {
             return false;
         }
 

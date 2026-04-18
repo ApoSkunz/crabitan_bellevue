@@ -21,6 +21,7 @@ class ErrorLogger
     private const DATETIME_FORMAT = 'Y-m-d H:i:s';
     private const RETENTION_DAYS  = 90;
     private const TRACE_MAX_LEN   = 500;
+    private const URL_MAX_LEN     = 500;
 
     /** Codes HTTP exclus du log (bruit — crawlers, scanners). */
     private const SILENT_HTTP_CODES = [404, 405];
@@ -56,7 +57,7 @@ class ErrorLogger
             'file'      => $errfile,
             'line'      => $errline,
             'trace'     => '',
-            'url'       => $_SERVER['REQUEST_URI'] ?? '',
+            'url'       => substr((string) ($_SERVER['REQUEST_URI'] ?? ''), 0, self::URL_MAX_LEN),
             'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
             'ip'        => self::anonymizeIp($_SERVER['REMOTE_ADDR'] ?? ''),
         ]);
@@ -87,7 +88,7 @@ class ErrorLogger
             'file'      => $e->getFile(),
             'line'      => $e->getLine(),
             'trace'     => $trace,
-            'url'       => $_SERVER['REQUEST_URI'] ?? '',
+            'url'       => substr((string) ($_SERVER['REQUEST_URI'] ?? ''), 0, self::URL_MAX_LEN),
             'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
             'ip'        => self::anonymizeIp($_SERVER['REMOTE_ADDR'] ?? ''),
         ]);
@@ -112,7 +113,7 @@ class ErrorLogger
             'file'      => '',
             'line'      => 0,
             'trace'     => '',
-            'url'       => $_SERVER['REQUEST_URI'] ?? '',
+            'url'       => substr((string) ($_SERVER['REQUEST_URI'] ?? ''), 0, self::URL_MAX_LEN),
             'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
         ]);
     }
@@ -138,7 +139,7 @@ class ErrorLogger
             'file'      => $e->getFile(),
             'line'      => $e->getLine(),
             'trace'     => substr($e->getTraceAsString(), 0, self::TRACE_MAX_LEN),
-            'url'       => $_SERVER['REQUEST_URI'] ?? '',
+            'url'       => substr((string) ($_SERVER['REQUEST_URI'] ?? ''), 0, self::URL_MAX_LEN),
             'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
         ]);
     }
@@ -198,17 +199,29 @@ class ErrorLogger
             return preg_replace('/\.\d+$/', '.0', $ip) ?? $ip;
         }
 
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-            $expanded = inet_ntop(inet_pton($ip) ?: '');
-            if ($expanded === false) {
-                return $ip;
-            }
-            $parts       = explode(':', $expanded);
-            $parts[count($parts) - 1] = '0000';
-            return implode(':', $parts);
+        return self::anonymizeIpv6($ip);
+    }
+
+    /**
+     * Anonymise la dernière partie d'une adresse IPv6.
+     *
+     * @param string $ip Adresse IPv6 brute
+     * @return string    Adresse IPv6 anonymisée (ou adresse originale si invalide)
+     */
+    private static function anonymizeIpv6(string $ip): string
+    {
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            return $ip;
         }
 
-        return $ip;
+        $expanded = inet_ntop(inet_pton($ip) ?: '');
+        if ($expanded === false) {
+            return $ip;
+        }
+
+        $parts                    = explode(':', $expanded);
+        $parts[count($parts) - 1] = '0000';
+        return implode(':', $parts);
     }
 
     /**

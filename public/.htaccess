@@ -3,11 +3,14 @@ Options -Indexes
 RewriteEngine On
 RewriteBase /
 
-# ---- HTTPS redirect (décommenter en production) -----------------------------
+# ---- HTTPS redirect (domaine prod uniquement — sans effet sur crabitan.local) ----
+# Ces lignes sont commentées en local. build-prod.sh les décommente automatiquement
+# dans le livrable build/prod/ via patch_htaccess(). deploy-prod.sh vérifie ensuite
+# que la redirection est active avant de lancer le mirror SFTP.
 # RewriteCond %{HTTP_HOST} ^(www\.)?crabitanbellevue\.fr$ [NC]
 # RewriteCond %{HTTPS} off
 # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
 
 # ---- Mode maintenance -------------------------------------------------------
 # La page maintenance.html + .htaccess.maintenance sont versionnés dans public/.

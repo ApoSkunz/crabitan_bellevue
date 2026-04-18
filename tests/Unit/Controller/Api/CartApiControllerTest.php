@@ -21,6 +21,7 @@ class CartApiControllerTest extends TestCase
     protected function setUp(): void
     {
         $dbMock = $this->createStub(Database::class);
+        $dbMock->method('fetchOne')->willReturn(['id' => 1]);
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
         $this->instanceProp->setValue(null, $dbMock);
 
@@ -141,7 +142,7 @@ class CartApiControllerTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         $dbMock = $this->setDbMock();
-        $dbMock->method('fetchOne')->willReturn(false);
+        $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(['id' => 1], false);
 
         $output = '';
         ob_start();
@@ -256,7 +257,7 @@ class CartApiControllerTest extends TestCase
         $_POST   = ['wine_id' => 99, 'quantity' => 1, 'csrf_token' => 'test-csrf-token'];
 
         $dbMock = $this->setDbMock();
-        $dbMock->method('fetchOne')->willReturn(false);
+        $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(['id' => 1], false);
 
         $this->expectException(HttpException::class);
         $this->expectExceptionCode(422);
@@ -300,8 +301,9 @@ class CartApiControllerTest extends TestCase
         $_POST   = ['wine_id' => 1, 'quantity' => 2, 'csrf_token' => 'test-csrf-token'];
 
         $dbMock = $this->setDbMock();
-        // fetchOne : 1er appel WineModel::getById, 2e appel CartModel::findByUserId
+        // fetchOne : 1er appel isActiveByToken, 2e appel WineModel::getById, 3e appel CartModel::findByUserId
         $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],
             ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'stock_quantity' => 5, 'available' => 1, 'image_path' => ''],
             false
         );
@@ -328,7 +330,9 @@ class CartApiControllerTest extends TestCase
         $_POST   = ['wine_id' => 1, 'quantity' => 2, 'csrf_token' => 'test-csrf-token'];
 
         $dbMock = $this->setDbMock();
+        // fetchOne : 1er appel isActiveByToken, 2e appel WineModel::getById, 3e appel CartModel::findByUserId
         $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],
             ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'stock_quantity' => 10, 'available' => 1, 'image_path' => ''],
             ['id' => 1, 'user_id' => 1, 'content' => '[{"wine_id":1,"qty":3}]', 'total_quantity' => 3]
         );
@@ -354,7 +358,9 @@ class CartApiControllerTest extends TestCase
         $_POST   = ['wine_id' => 1, 'quantity' => 10, 'csrf_token' => 'test-csrf-token'];
 
         $dbMock = $this->setDbMock();
+        // fetchOne : 1er appel isActiveByToken, 2e appel WineModel::getById, 3e appel CartModel::findByUserId
         $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],
             ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'stock_quantity' => 3, 'available' => 1, 'image_path' => ''],
             false
         );
@@ -462,8 +468,9 @@ class CartApiControllerTest extends TestCase
         $_POST   = ['wine_id' => 1, 'quantity' => 5, 'csrf_token' => 'test-csrf-token'];
 
         $dbMock = $this->setDbMock();
-        // fetchOne : 1er appel CartModel::findByUserId, 2e appel WineModel::getById
+        // fetchOne : 1er appel isActiveByToken, 2e appel CartModel::findByUserId, 3e appel WineModel::getById
         $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],
             ['id' => 1, 'user_id' => 1, 'content' => '[{"wine_id":1,"qty":3}]', 'total_quantity' => 3],
             ['id' => 1, 'label_name' => 'Test', 'price' => '10.00', 'stock_quantity' => 10, 'available' => 1, 'image_path' => '']
         );

@@ -57,10 +57,9 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             des produits commandés.
         </p>
         <p>
-            <strong>Zone de livraison :</strong> la livraison est assurée exclusivement en <strong>France hexagonale</strong>
-            (hors Corse, îles côtières et collectivités d'outre-mer).
-            Pour toute expédition vers une autre zone géographique, merci de nous contacter directement
-            afin d'étudier les modalités et les coûts associés.
+            <strong>Zone de livraison :</strong> la livraison est assurée exclusivement en <strong>France métropolitaine</strong>
+            (Corse non incluse).
+            Toute commande ayant pour destination un autre territoire (Corse, DOM-TOM, pays étrangers) ne peut être traitée.
         </p>
 
         <h2>III. Commande</h2>
@@ -118,6 +117,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         <p>
             Les produits sont livrés à l'adresse indiquée lors de votre commande,
             dans un délai moyen de 14 jours à compter de la validation de la commande et de l'encaissement.
+            La livraison est assurée exclusivement en <strong>France métropolitaine</strong> (Corse non incluse).
         </p>
         <p>
             Nos produits (vins en bouteilles) nécessitent le recours à un transporteur spécialisé pour
@@ -163,8 +163,28 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             Email : <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
         </p>
         <p>
-            Les produits retournés doivent l'être dans leur état d'origine et complets
-            (emballage intact, accessoires), permettant leur recommercialisation à l'état neuf.
+            Vous pouvez également utiliser le formulaire type de rétractation ci-dessous
+            (Annexe A — Art. L221-5 du Code de la consommation) :
+        </p>
+        <blockquote style="border-left:3px solid #ccc;padding-left:1rem;margin:1rem 0;font-size:0.9rem;">
+            À l'attention de GFA Bernard Solane et Fils, Château Crabitan Bellevue,
+            33410 Sainte-Croix-du-Mont —
+            <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a><br><br>
+            Je/Nous (*) vous notifie/notifions (*) par la présente ma/notre (*) rétractation du contrat
+            portant sur la vente des biens (*) / pour la prestation de services (*) ci-dessous :<br><br>
+            — N° de commande : ……………………………<br>
+            — Commandé(s) le (*) / Reçu(s) le (*) : ……………………………<br>
+            — Nom du (des) consommateur(s) : ……………………………<br>
+            — Adresse du (des) consommateur(s) : ……………………………<br>
+            — Signature (uniquement si formulaire transmis sur papier) : ……………………………<br>
+            — Date : ……………………………<br><br>
+            (*) Rayez la mention inutile.
+        </blockquote>
+        <p>
+            Les produits retournés doivent l'être dans leur état d'origine et complets,
+            avec le <strong>carton d'origine non descellé</strong>.
+            Tout carton rescellé avec un ruban adhésif différent de l'original est considéré comme altéré
+            et prive le consommateur de son droit de rétractation pour les bouteilles concernées.
             Seul le prix des produits sera remboursé ; les frais d'envoi aller et les frais de retour restent à votre charge.
             Nous vous communiquons sur demande les coordonnées d'un transporteur habilité pour ce type de marchandise.
         </p>
@@ -172,10 +192,10 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         <h3>3. Remboursement</h3>
         <p>
             GFA Bernard Solane &amp; Fils procédera au remboursement du montant des produits
-            au plus tard dans les <strong>14 jours</strong> à compter de la réception de votre décision,
-            selon le même moyen de paiement que celui utilisé lors de la commande.
-            Ce délai peut être différé jusqu'à récupération effective du produit ou jusqu'à fourniture
-            de la preuve de son expédition, la date retenue étant celle du premier de ces faits.
+            au plus tard dans les <strong>14 jours</strong> à compter de la <strong>réception et vérification</strong>
+            des produits retournés, selon le même moyen de paiement que celui utilisé lors de la commande.
+            Ce délai court à compter de la récupération effective des produits retournés ;
+            le remboursement ne peut intervenir avant réception et examen de l'état des produits.
         </p>
 
         <h3>4. Produits exclus du droit de rétractation</h3>
@@ -186,6 +206,9 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
         <ul>
             <li>Les biens descellés (bouteilles ouvertes) qui ne peuvent être renvoyés pour des raisons
                 d'hygiène ou de sécurité alimentaire ;</li>
+            <li>Les cartons rescellés avec un ruban adhésif différent de l'original — toute modification
+                du conditionnement d'expédition est assimilée à une descelle et prive le consommateur
+                de son droit de rétractation pour les bouteilles contenues ;</li>
             <li>Les coffrets-cadeaux personnalisés (voir conditions spécifiques sur la fiche du produit concerné).</li>
         </ul>
 
@@ -303,10 +326,9 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             en cas de litige, sauf disposition légale contraire applicable au consommateur.
         </p>
         <p>
-            <strong>Médiation :</strong> en cas de litige non résolu amiablement avec notre service clientèle,
-            vous pouvez recourir gratuitement à la médiation de la consommation,
-            conformément aux articles L. 611-1 et suivants du Code de la consommation.
-            Pour plus d'informations : <a href="https://www.economie.gouv.fr/mediation-conso" target="_blank" rel="noopener noreferrer">economie.gouv.fr/mediation-conso</a>.
+            En cas de litige, nous nous engageons à traiter votre réclamation directement et à vous apporter
+            une réponse dans un délai moyen de <strong>7 jours ouvrés</strong>. Contactez-nous à
+            <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>.
         </p>
         <p>
             <strong>Règlement en ligne des litiges :</strong> conformément à l'article 14 du Règlement (UE) n° 524/2013,
@@ -375,9 +397,9 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             Risk of loss or damage transfers to you upon physical receipt of the goods.
         </p>
         <p>
-            <strong>Delivery area:</strong> deliveries are made exclusively within <strong>mainland France</strong>
-            (excluding Corsica, coastal islands and overseas territories).
-            For shipments outside this area, please contact us directly to discuss arrangements and costs.
+            <strong>Delivery area:</strong> deliveries are made exclusively within <strong>metropolitan France</strong>
+            (Corsica not included).
+            Orders destined for any other territory (Corsica, overseas departments and territories, foreign countries) cannot be processed.
         </p>
 
         <h2>III. Ordering</h2>
@@ -461,6 +483,24 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             GFA Bernard Solane &amp; Fils - Château Crabitan Bellevue - 33410 Sainte-Croix-du-Mont - France<br>
             Email: <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>
         </p>
+        <p>
+            You may also use the standard withdrawal form below
+            (Annex A — Directive 2011/83/EU, transposed to Art. L221-5 Consumer Code):
+        </p>
+        <blockquote style="border-left:3px solid #ccc;padding-left:1rem;margin:1rem 0;font-size:0.9rem;">
+            To: GFA Bernard Solane et Fils, Château Crabitan Bellevue,
+            33410 Sainte-Croix-du-Mont, France —
+            <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a><br><br>
+            I/We (*) hereby give notice that I/We (*) withdraw from my/our (*) contract of sale
+            of the following goods (*) / for the provision of the following service (*) below:<br><br>
+            — Order number: ……………………………<br>
+            — Ordered on (*) / received on (*): ……………………………<br>
+            — Name of consumer(s): ……………………………<br>
+            — Address of consumer(s): ……………………………<br>
+            — Signature (only if this form is submitted on paper): ……………………………<br>
+            — Date: ……………………………<br><br>
+            (*) Delete as appropriate.
+        </blockquote>
         <p>
             Returned products must be in their original, sealed condition and complete with all packaging,
             to allow resale as new. Only the product price will be refunded; outbound and return shipping costs

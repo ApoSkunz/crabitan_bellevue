@@ -218,6 +218,26 @@ class ConnectionModel extends Model
     }
 
     /**
+     * Vérifie qu'un token JWT correspond à une connexion active et non expirée.
+     *
+     * Utilisé pour valider la révocation côté serveur : un JWT structurellement
+     * valide peut avoir été révoqué via revokeById() ou revokeAllForUser().
+     *
+     * @param string $token JWT de session
+     * @return bool true si la connexion est active et non expirée
+     */
+    public function isActiveByToken(string $token): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT id FROM {$this->table}
+             WHERE token = ? AND status = 'active' AND expired_at > NOW()
+             LIMIT 1",
+            [$token]
+        );
+        return (bool) $row;
+    }
+
+    /**
      * Purge les connexions révoquées ou expirées.
      *
      * @return int Nombre de lignes supprimées

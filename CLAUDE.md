@@ -449,13 +449,53 @@ Ne jamais ignorer un besoin en supposant qu'il sera tracé plus tard.
 
 Les 4 audits suivants sont à réaliser **en dernier**, après que tous les EPICs fonctionnels sont `✅ Claude`. Ils s'exécutent dans cet ordre :
 
-| Audit | Expert | Rapport produit (gitignored) |
-|---|---|---|
-| BDD | Architecte BDD MySQL | `private-docs/audits/DB/audit-bdd-[date].md` |
-| Génie Logiciel | Architecte Génie Logicielle | `private-docs/audits/GL/audit-gl-[date].md` |
-| QA | Expert QA | `private-docs/audits/QA/audit-qa-[date].md` |
-| Cybersécurité | Expert Red Team → Blue Team | `private-docs/audits/Cyber/audit-cyber-[date].md` |
+| Audit | Enabler | Expert | Fichier cible |
+|---|---|---|---|
+| BDD | `audit-bdd/` | Architecte BDD MySQL | `private-docs/audits/DB/audit-bdd.md` |
+| Génie Logiciel | `audit-genie-logiciel/` | Architecte Génie Logicielle | `private-docs/audits/GL/audit-gl.md` |
+| QA | `audit-qa/` | Expert QA | `private-docs/audits/QA/audit-qa.md` |
+| Cybersécurité | `audit-cyber/` | Expert Red Team → Blue Team | `private-docs/audits/Cyber/audit-cyber.md` |
 
 L'audit cyber reste le tout dernier — il valide l'ensemble avant déploiement.
 
-La synthèse de tous les audits est dans `private-docs/audits/BILAN-AUDITS.md`.
+---
+
+## Audits — formalisme et organisation
+
+### Emplacement
+
+Tous les audits sont dans `private-docs/audits/`. **Un seul fichier par catégorie**, jamais de fichiers datés multiples.
+
+| Catégorie | Fichier unique |
+|---|---|
+| Cybersécurité | `Cyber/audit-cyber.md` |
+| CI/CD | `CI-CD/audit-cicd.md` |
+| Base de données | `DB/audit-bdd.md` |
+| Génie logiciel | `GL/audit-gl.md` |
+| QA / Tests | `QA/audit-qa.md` |
+| Marketing | `Marketing/audit-marketing.md` |
+| Fonctionnalités / Backlog | `Backlog/audit-fonctionnalites.md` |
+| UX / UI | `UX/audit-ux.md` |
+| Légal / Juridique | `LGH/audit-lgh.md` |
+| RGPD Résilience | `RGPD-Juridique/audit-rgpd-juridique.md` |
+
+### Règle de mise à jour
+
+Quand un nouvel audit est produit pour une catégorie existante :
+1. **Remplacer le contenu** de l'unique fichier par le nouveau contenu (pas créer un nouveau fichier daté)
+2. **Ajouter une ligne** dans la section `## Historique des révisions` en bas du fichier :
+
+```markdown
+## Historique des révisions
+
+| Version | Date | Score | Évolutions principales |
+|---|---|---|---|
+| v1 | AAAA-MM-JJ | X.X/10 | Description courte des changements |
+| v2 | AAAA-MM-JJ | X.X/10 | Description courte des changements |
+```
+
+### Interdits
+
+- ❌ Créer `audit-cyber-2026-04-18.md` → toujours mettre à jour `audit-cyber.md`
+- ❌ Garder d'anciens fichiers datés — supprimer après consolidation
+- ❌ Créer un fichier audit hors de `private-docs/audits/`
