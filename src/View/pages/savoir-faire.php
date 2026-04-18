@@ -25,7 +25,7 @@ require_once SRC_PATH . '/View/partials/header.php';
                 <img
                     src="/assets/images/carousel/vignoble-ete.jpg"
                     alt="<?= htmlspecialchars(__('savoir.img_vignoble_alt')) ?>"
-                    loading="lazy"
+                    fetchpriority="high"
                     width="600"
                     height="400"
                 >

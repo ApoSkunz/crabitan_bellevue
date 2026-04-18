@@ -134,7 +134,7 @@ $carouselSlides = [
                 <img
                     src="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
                     alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"
-                    loading="lazy"
+                    fetchpriority="high"
                     width="400"
                     height="600"
                 >
