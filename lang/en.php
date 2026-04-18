@@ -340,7 +340,7 @@ return [
         . ' and the same care for a job well done. Four generations have followed one another, each adding'
         . ' their own chapter to the story. Today, Nicolas and Corinne carry this legacy forward with passion'
         . ' and humility, making every new vintage another page of this beautiful family adventure.',
-    'home.history_cta'   => 'Learn more',
+    'home.history_cta'   => 'Discover the château',
 
     // Homepage - Savoir-Faire section
     'home.savoir_tag'   => 'Expertise',
@@ -350,12 +350,12 @@ return [
         . ' the ageing process accompanies the wines as they develop, bringing them the complexity they deserve.'
         . ' This is the know-how, passed down through generations, that gives Château Crabitan Bellevue'
         . ' its unique character.',
-    'home.savoir_cta'   => 'Learn more',
+    'home.savoir_cta'   => 'Explore our expertise',
 
     // Homepage - Featured wine
     'home.featured_tag'      => 'Selection',
     'home.featured_title'    => 'Wine of the Moment',
-    'home.featured_cta'      => 'Discover',
+    'home.featured_cta'      => 'View this wine',
     'home.featured_cart_cta' => 'Add to cart',
     'home.featured_badge'    => 'Special Cuvée',
     'home.featured_vintage'  => 'Vintage',
