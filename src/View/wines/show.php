@@ -81,30 +81,15 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
             <!-- Colonne image -->
             <div class="wine-detail__visual">
                 <div class="wine-detail__image-wrap">
-                    <?php
-                    $wImgBase = preg_replace('/\.[^.]+$/', '', $wine['image_path']);
-                    $wImgExt  = strtolower(pathinfo($wine['image_path'], PATHINFO_EXTENSION));
-                    ?>
-                    <picture>
-                        <source
-                            srcset="/assets/images/wines/<?= htmlspecialchars($wImgBase) ?>-300w.webp 300w,
-                                    /assets/images/wines/<?= htmlspecialchars($wImgBase) ?>-600w.webp 600w"
-                            type="image/webp"
-                            sizes="(max-width: 480px) 300px, 400px"
-                        >
-                        <img
-                            src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
-                            srcset="/assets/images/wines/<?= htmlspecialchars($wImgBase) ?>-300w.<?= $wImgExt ?> 300w,
-                                    /assets/images/wines/<?= htmlspecialchars($wImgBase) ?>-600w.<?= $wImgExt ?> 600w"
-                            sizes="(max-width: 480px) 300px, 400px"
-                            alt="<?= htmlspecialchars($wineName) ?>"
-                            class="wine-detail__image js-wine-zoom"
-                            width="400"
-                            height="560"
-                            fetchpriority="high"
-                            title="<?= htmlspecialchars(__('wine.zoom')) ?>"
-                        >
-                    </picture>
+                    <img
+                        src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                        alt="<?= htmlspecialchars($wineName) ?>"
+                        class="wine-detail__image js-wine-zoom"
+                        width="400"
+                        height="560"
+                        fetchpriority="high"
+                        title="<?= htmlspecialchars(__('wine.zoom')) ?>"
+                    >
                     <span class="wine-detail__zoom-hint" aria-hidden="true">&#128269;</span>
                 </div>
             </div>

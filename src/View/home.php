@@ -131,28 +131,13 @@ $carouselSlides = [
     <section class="home-section home-section--featured home-section--dark" id="vin-du-moment">
         <div class="home-section__inner container">
             <div class="home-section__visual">
-                <?php
-                $fwBase = preg_replace('/\.[^.]+$/', '', $featuredWine['image_path']);
-                $fwExt  = strtolower(pathinfo($featuredWine['image_path'], PATHINFO_EXTENSION));
-                ?>
-                <picture>
-                    <source
-                        srcset="/assets/images/wines/<?= htmlspecialchars($fwBase) ?>-300w.webp 300w,
-                                /assets/images/wines/<?= htmlspecialchars($fwBase) ?>-600w.webp 600w"
-                        type="image/webp"
-                        sizes="(max-width: 480px) 300px, 400px"
-                    >
-                    <img
-                        src="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
-                        srcset="/assets/images/wines/<?= htmlspecialchars($fwBase) ?>-300w.<?= $fwExt ?> 300w,
-                                /assets/images/wines/<?= htmlspecialchars($fwBase) ?>-600w.<?= $fwExt ?> 600w"
-                        sizes="(max-width: 480px) 300px, 400px"
-                        alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"
-                        fetchpriority="high"
-                        width="400"
-                        height="600"
-                    >
-                </picture>
+                <img
+                    src="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
+                    alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"
+                    fetchpriority="high"
+                    width="400"
+                    height="600"
+                >
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('home.featured_tag')) ?></span>

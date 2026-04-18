@@ -590,7 +590,6 @@ class WineAdminController extends AdminController
         ) {
             $oldFile = ROOT_PATH . '/public/assets/images/wines/' . $existing['image_path'];
             if (file_exists($oldFile)) {
-                (new ImageVariantService())->deleteWineVariants($oldFile);
                 @unlink($oldFile);
             }
         }
@@ -684,7 +683,10 @@ class WineAdminController extends AdminController
             return ['path' => $existingPath ?? '', 'error' => 'Erreur lors du téléversement.'];
         }
 
-        (new ImageVariantService())->generateWineVariants($destDir . $filename);
+        $webpPath = (new ImageVariantService())->convertToWebp($destDir . $filename);
+        if ($webpPath !== null) {
+            $filename = basename($webpPath);
+        }
 
         return ['path' => $filename, 'error' => null];
     }

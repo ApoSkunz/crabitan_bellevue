@@ -172,29 +172,14 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                 aria-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                             >
                                 <div class="wine-card__image-wrap">
-                                    <?php
-                                    $imgBase = preg_replace('/\.[^.]+$/', '', $wine['image_path']);
-                                    $imgExt  = strtolower(pathinfo($wine['image_path'], PATHINFO_EXTENSION));
-                                    ?>
-                                    <picture>
-                                        <source
-                                            srcset="/assets/images/wines/<?= htmlspecialchars($imgBase) ?>-300w.webp 300w,
-                                                    /assets/images/wines/<?= htmlspecialchars($imgBase) ?>-600w.webp 600w"
-                                            type="image/webp"
-                                            sizes="(max-width: 480px) 300px, 600px"
-                                        >
-                                        <img
-                                            src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
-                                            srcset="/assets/images/wines/<?= htmlspecialchars($imgBase) ?>-300w.<?= $imgExt ?> 300w,
-                                                    /assets/images/wines/<?= htmlspecialchars($imgBase) ?>-600w.<?= $imgExt ?> 600w"
-                                            sizes="(max-width: 480px) 300px, 600px"
-                                            alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
-                                            class="wine-card__image"
-                                            <?= $wineIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
-                                            width="300"
-                                            height="420"
-                                        >
-                                    </picture>
+                                    <img
+                                        src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                                        alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
+                                        class="wine-card__image"
+                                        <?= $wineIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
+                                        width="300"
+                                        height="420"
+                                    >
                                     <?php if ($wine['available'] && (int) ($wine['stock_quantity'] ?? 0) === 0) : ?>
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
