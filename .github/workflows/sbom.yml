@@ -1,0 +1,156 @@
+name: SBOM
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  generate:
+    name: Generate SBOM (PHP + Node.js)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@9e72090525849c5e82e596468b86eb55e9cc5401 # v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --no-interaction --no-progress --optimize-autoloader
+
+      - name: Install CycloneDX PHP Composer plugin
+        run: |
+          composer config allow-plugins.cyclonedx/cyclonedx-php-composer true
+          composer require --dev cyclonedx/cyclonedx-php-composer \
+            --no-interaction --no-progress --quiet
+
+      - name: Generate PHP SBOM (CycloneDX JSON)
+        run: |
+          composer make-bom \
+            --output-format=JSON \
+            --output-file=sbom-php.cdx.json \
+            --no-interaction
+
+      - name: Install Node.js dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Generate Node.js SBOM (CycloneDX JSON)
+        run: |
+          npm sbom \
+            --omit dev \
+            --package-lock-only \
+            --sbom-format cyclonedx \
+            --sbom-type application \
+            > sbom-node.cdx.json
+
+      - name: Fetch previous release SBOMs for diff
+        id: prev
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PREV_TAG=$(gh release list --limit 2 --json tagName --jq '.[1].tagName // ""')
+          echo "prev_tag=$PREV_TAG" >> "$GITHUB_OUTPUT"
+
+          if [ -n "$PREV_TAG" ]; then
+            gh release download "$PREV_TAG" \
+              --pattern "sbom-php.cdx.json" \
+              --output sbom-php-prev.cdx.json 2>/dev/null \
+              && echo "prev_php=true" >> "$GITHUB_OUTPUT" \
+              || echo "prev_php=false" >> "$GITHUB_OUTPUT"
+
+            gh release download "$PREV_TAG" \
+              --pattern "sbom-node.cdx.json" \
+              --output sbom-node-prev.cdx.json 2>/dev/null \
+              && echo "prev_node=true" >> "$GITHUB_OUTPUT" \
+              || echo "prev_node=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "prev_php=false" >> "$GITHUB_OUTPUT"
+            echo "prev_node=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Diff SBOMs vs previous release
+        env:
+          PREV_PHP: ${{ steps.prev.outputs.prev_php }}
+          PREV_NODE: ${{ steps.prev.outputs.prev_node }}
+          PREV_TAG: ${{ steps.prev.outputs.prev_tag }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os
+
+          def load(path):
+              try:
+                  with open(path) as f:
+                      data = json.load(f)
+                  return {c['name']: c.get('version', '?') for c in data.get('components', [])}
+              except Exception:
+                  return {}
+
+          def diff_report(label, prev_path, curr_path):
+              prev = load(prev_path)
+              curr = load(curr_path)
+              if not prev:
+                  return
+              added   = {k: curr[k] for k in curr if k not in prev}
+              removed = {k: prev[k] for k in prev if k not in curr}
+              changed = {k: (prev[k], curr[k]) for k in curr if k in prev and curr[k] != prev[k]}
+              lines = [f'## {label} SBOM diff (vs {os.environ.get("PREV_TAG", "previous release")})']
+              if not (added or removed or changed):
+                  lines.append('No dependency changes.')
+              for k, v in sorted(added.items()):
+                  lines.append(f'+ {k}  {v}')
+              for k, v in sorted(removed.items()):
+                  lines.append(f'- {k}  {v}')
+              for k, (o, n) in sorted(changed.items()):
+                  lines.append(f'~ {k}  {o} → {n}')
+              print('\n'.join(lines))
+
+          summary_path = os.environ.get('GITHUB_STEP_SUMMARY', '/dev/stdout')
+          with open(summary_path, 'a') as out:
+              import sys
+              old_stdout = sys.stdout
+              sys.stdout = out
+
+              if os.environ.get('PREV_PHP') == 'true':
+                  diff_report('PHP', 'sbom-php-prev.cdx.json', 'sbom-php.cdx.json')
+
+              if os.environ.get('PREV_NODE') == 'true':
+                  diff_report('Node.js', 'sbom-node-prev.cdx.json', 'sbom-node.cdx.json')
+
+              sys.stdout = old_stdout
+          PYEOF
+
+      - name: Upload SBOM as CI artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sbom-${{ github.event.release.tag_name || github.sha }}
+          path: |
+            sbom-php.cdx.json
+            sbom-node.cdx.json
+          retention-days: 365
+
+      - name: Attach SBOM to GitHub Release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            sbom-php.cdx.json \
+            sbom-node.cdx.json \
+            --clobber
