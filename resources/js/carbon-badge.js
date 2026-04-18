@@ -23,6 +23,10 @@ export function initCarbonBadge() {
     const pathname = globalThis.location.pathname || '/';
     if (pathname.startsWith('/admin')) return;
 
+    // Désactivé en local — l'API ne peut pas atteindre crabitan.local → 503 console
+    const hostname = globalThis.location.hostname || '';
+    if (hostname === 'localhost' || hostname === 'crabitan.local' || hostname === '127.0.0.1') return;
+
     // Audit page-par-page : on passe l'URL exacte de la page courante à l'API.
     // Le crawler backend WebsiteCarbon (HeadlessChrome) est whitelisté dans public/index.php
     // pour bypasser l'age-gate, donc les URLs profondes sont mesurables.

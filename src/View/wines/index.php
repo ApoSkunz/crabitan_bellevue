@@ -128,14 +128,17 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                                 aria-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                             >
                                 <div class="wine-card__image-wrap">
-                                    <img
-                                        src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
-                                        alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
-                                        class="wine-card__image"
-                                        <?= $wineIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
-                                        width="300"
-                                        height="420"
-                                    >
+                                    <picture>
+                                        <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
+                                        <img
+                                            src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
+                                            alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
+                                            class="wine-card__image"
+                                            <?= $wineIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
+                                            width="300"
+                                            height="420"
+                                        >
+                                    </picture>
                                     <?php if (!$wine['available']) : ?>
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
@@ -191,7 +194,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                                                 data-wine-id="<?= (int) $wine['id'] ?>"
                                                 data-wine-name="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                                                 data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
-                                                data-wine-image="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                                                data-wine-image="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
                                                 data-wine-cuvee="<?= !empty($wine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                                                 data-stock="<?= (int) $wine['stock_quantity'] ?>"
                                                 aria-label="<?= htmlspecialchars(__('wine.add_to_cart') . ' : ' . $wine['label_name']) ?>"

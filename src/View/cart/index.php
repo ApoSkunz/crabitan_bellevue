@@ -27,6 +27,8 @@ $pricingRules     = $pricingRules     ?? [];
 $crossSellWines   = $crossSellWines   ?? [];
 $featuredWine     = $featuredWine     ?? null;
 $removedCount     = (int) ($removedCount ?? 0);
+/** @var callable(string): string $toWebp */
+$toWebp = static fn(string $p): string => (string) preg_replace('/\.[^.]+$/', '.webp', $p);
 ?>
 
 <?php $checkoutStep = 1; require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S2003 : require intentionnel, le partiel est chargé plusieurs fois (vues + tests isolation) ?>
@@ -348,11 +350,18 @@ $removedCount     = (int) ($removedCount ?? 0);
                 <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($featuredWine['slug'] ?? '')) ?>"
                    class="cart-empty-wine__card">
-                    <?php $featuredImage = WINE_IMG_BASE . htmlspecialchars((string)($featuredWine['image_path'] ?? '')); ?>
-                    <img src="<?= $featuredImage ?>"
-                         alt="<?= htmlspecialchars((string)($featuredWine['label_name'] ?? '')) ?>"
-                         class="cart-empty-wine__img"
-                         width="120" height="160" loading="lazy">
+                    <?php
+                        $featuredImagePath = (string)($featuredWine['image_path'] ?? '');
+                        $featuredImage     = WINE_IMG_BASE . rawurlencode($featuredImagePath);
+                        $featuredImageWebp = WINE_IMG_BASE . rawurlencode($toWebp($featuredImagePath));
+                    ?>
+                    <picture>
+                        <source srcset="<?= $featuredImageWebp ?>" type="image/webp">
+                        <img src="<?= $featuredImage ?>"
+                             alt="<?= htmlspecialchars((string)($featuredWine['label_name'] ?? '')) ?>"
+                             class="cart-empty-wine__img"
+                             width="120" height="160" loading="lazy">
+                    </picture>
                     <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($featuredWine['label_name'] ?? '')) ?></span>
                     <span class="cart-empty-wine__price"><?= number_format((float)($featuredWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
                 </a>
@@ -362,11 +371,18 @@ $removedCount     = (int) ($removedCount ?? 0);
                 <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
                    class="cart-empty-wine__card">
-                    <?php $wineImage = WINE_IMG_BASE . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
-                    <img src="<?= $wineImage ?>"
-                         alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
-                         class="cart-empty-wine__img"
-                         width="120" height="160" loading="lazy">
+                    <?php
+                        $randomImagePath = (string)($randomWine['image_path'] ?? '');
+                        $wineImage       = WINE_IMG_BASE . rawurlencode($randomImagePath);
+                        $wineImageWebp   = WINE_IMG_BASE . rawurlencode($toWebp($randomImagePath));
+                    ?>
+                    <picture>
+                        <source srcset="<?= $wineImageWebp ?>" type="image/webp">
+                        <img src="<?= $wineImage ?>"
+                             alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
+                             class="cart-empty-wine__img"
+                             width="120" height="160" loading="lazy">
+                    </picture>
                     <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?></span>
                     <span class="cart-empty-wine__price"><?= number_format((float)($randomWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
                 </a>
@@ -421,11 +437,18 @@ $removedCount     = (int) ($removedCount ?? 0);
             <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
             <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
                class="cart-empty-wine__card">
-                <?php $wineImage = WINE_IMG_BASE . htmlspecialchars((string)($randomWine['image_path'] ?? '')); ?>
-                <img src="<?= $wineImage ?>"
-                     alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
-                     class="cart-empty-wine__img"
-                     width="120" height="160" loading="lazy">
+                <?php
+                    $guestImagePath = (string)($randomWine['image_path'] ?? '');
+                    $wineImage      = WINE_IMG_BASE . rawurlencode($guestImagePath);
+                    $wineImageWebp  = WINE_IMG_BASE . rawurlencode($toWebp($guestImagePath));
+                ?>
+                <picture>
+                    <source srcset="<?= $wineImageWebp ?>" type="image/webp">
+                    <img src="<?= $wineImage ?>"
+                         alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
+                         class="cart-empty-wine__img"
+                         width="120" height="160" loading="lazy">
+                </picture>
                 <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?></span>
                 <span class="cart-empty-wine__price"><?= number_format((float)($randomWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
             </a>
@@ -447,7 +470,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                 $cwName    = htmlspecialchars((string) ($cw['label_name'] ?? ''));
                 $cwVintage = (int) ($cw['vintage'] ?? 0);
                 $cwPrice   = (float) ($cw['price'] ?? 0.0);
-                $cwImage   = htmlspecialchars((string) ($cw['image_path'] ?? ''));
+                $cwImage   = rawurlencode((string) ($cw['image_path'] ?? ''));
                 $cwId      = (int) ($cw['id'] ?? 0);
                 $cwCuvee   = !empty($cw['is_cuvee_speciale']);
             ?>
@@ -456,11 +479,15 @@ $removedCount     = (int) ($removedCount ?? 0);
                    class="wine-card__inner"
                    aria-label="<?= $cwName ?>">
                     <div class="wine-card__image-wrap">
-                        <img src="/assets/images/wines/<?= $cwImage ?>"
-                             alt="<?= $cwName ?>"
-                             class="wine-card__image"
-                             width="200" height="280"
-                             loading="lazy">
+                        <?php $cwWebp = rawurlencode($toWebp((string) ($cw['image_path'] ?? ''))); ?>
+                        <picture>
+                            <source srcset="/assets/images/wines/<?= $cwWebp ?>" type="image/webp">
+                            <img src="/assets/images/wines/<?= $cwImage ?>"
+                                 alt="<?= $cwName ?>"
+                                 class="wine-card__image"
+                                 width="200" height="280"
+                                 loading="lazy">
+                        </picture>
                     </div>
                 </a>
                 <div class="wine-card__body">

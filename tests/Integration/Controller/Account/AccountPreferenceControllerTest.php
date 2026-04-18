@@ -276,6 +276,36 @@ class AccountPreferenceControllerTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
+     * Langue EN → vue rendue (branche metaDescription anglaise).
+     */
+    public function testUnsubscribePageEnglishLang(): void
+    {
+        $_GET = ['token' => ''];
+
+        ob_start();
+        $this->makeController('GET', '/en/newsletter/unsubscribe')
+             ->unsubscribePage(['lang' => 'en']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-card', $output);
+    }
+
+    /**
+     * Langue EN → vue rendue (branche metaDescription anglaise dans unsubscribe POST).
+     */
+    public function testUnsubscribeEnglishLang(): void
+    {
+        $_POST = ['unsub_token' => '', 'campaign_id' => '0'];
+
+        ob_start();
+        $this->makeController('POST', '/en/newsletter/unsubscribe')
+             ->unsubscribe(['lang' => 'en']);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('auth-card', $output);
+    }
+
+    /**
      * Token vide en POST → success=false.
      */
     public function testUnsubscribeEmptyToken(): void

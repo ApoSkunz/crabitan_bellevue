@@ -81,15 +81,18 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
             <!-- Colonne image -->
             <div class="wine-detail__visual">
                 <div class="wine-detail__image-wrap">
-                    <img
-                        src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
-                        alt="<?= htmlspecialchars($wineName) ?>"
-                        class="wine-detail__image js-wine-zoom"
-                        width="400"
-                        height="560"
-                        fetchpriority="high"
-                        title="<?= htmlspecialchars(__('wine.zoom')) ?>"
-                    >
+                    <picture>
+                        <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
+                        <img
+                            src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
+                            alt="<?= htmlspecialchars($wineName) ?>"
+                            class="wine-detail__image js-wine-zoom"
+                            width="400"
+                            height="560"
+                            fetchpriority="high"
+                            title="<?= htmlspecialchars(__('wine.zoom')) ?>"
+                        >
+                    </picture>
                     <span class="wine-detail__zoom-hint" aria-hidden="true">&#128269;</span>
                 </div>
             </div>
@@ -128,7 +131,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                                 data-wine-id="<?= (int) $wine['id'] ?>"
                                 data-wine-name="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                                 data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
-                                data-wine-image="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                                data-wine-image="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
                                 data-wine-cuvee="<?= !empty($wine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                             >
                                 <?= htmlspecialchars(__('wine.add_to_cart')) ?>
@@ -372,7 +375,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     $swName    = htmlspecialchars((string) ($sw['label_name'] ?? ''));
                     $swVintage = (int) ($sw['vintage'] ?? 0);
                     $swPrice   = (float) ($sw['price'] ?? 0.0);
-                    $swImage   = htmlspecialchars((string) ($sw['image_path'] ?? ''));
+                    $swImage   = rawurlencode((string) ($sw['image_path'] ?? ''));
                     $swId      = (int) ($sw['id'] ?? 0);
                     $swCuvee   = !empty($sw['is_cuvee_speciale']);
                 ?>
@@ -381,11 +384,15 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                        class="wine-card__inner"
                        aria-label="<?= $swName ?>">
                         <div class="wine-card__image-wrap">
-                            <img src="/assets/images/wines/<?= $swImage ?>"
-                                 alt="<?= $swName ?>"
-                                 class="wine-card__image"
-                                 width="200" height="280"
-                                 loading="lazy">
+                            <?php $swWebp = rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', (string) ($sw['image_path'] ?? ''))); ?>
+                            <picture>
+                                <source srcset="/assets/images/wines/<?= $swWebp ?>" type="image/webp">
+                                <img src="/assets/images/wines/<?= $swImage ?>"
+                                     alt="<?= $swName ?>"
+                                     class="wine-card__image"
+                                     width="200" height="280"
+                                     loading="lazy">
+                            </picture>
                         </div>
                     </a>
                     <div class="wine-card__body">
@@ -432,7 +439,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
     <button class="wine-zoom-overlay__close" id="wine-zoom-close" type="button" aria-label="<?= __('common.close') ?>">&times;</button>
     <img
         id="wine-zoom-img"
-        src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+        src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
         alt="<?= htmlspecialchars($wineName) ?>"
         class="wine-zoom-overlay__image"
     >

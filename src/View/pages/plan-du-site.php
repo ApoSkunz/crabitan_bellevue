@@ -19,8 +19,16 @@ $fallbackWineImg = '/assets/images/gallery/apercu-vins.jpg';
  */
 $wineImg = static function (?array $wine, string $fallback): string {
     return ($wine !== null && !empty($wine['image_path']))
-        ? '/assets/images/wines/' . htmlspecialchars($wine['image_path'])
+        ? '/assets/images/wines/' . rawurlencode($wine['image_path'])
         : $fallback;
+};
+/** Retourne le srcset WebP d'une image de vin (même token, extension .webp). */
+$wineImgWebp = static function (?array $wine, string $fallback): string {
+    if ($wine !== null && !empty($wine['image_path'])) {
+        $webp = (string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path']);
+        return '/assets/images/wines/' . rawurlencode($webp);
+    }
+    return $fallback;
 };
 ?>
 
@@ -38,8 +46,12 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--sweet">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['sweet'] ?? null, $fallbackWineImg) ?>"
-                     alt="<?= htmlspecialchars(__('wine.color.sweet')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="<?= $wineImgWebp($wineImages['sweet'] ?? null, $fallbackWineImg) ?>" type="image/webp">
+                    <img src="<?= $wineImg($wineImages['sweet'] ?? null, $fallbackWineImg) ?>"
+                         alt="<?= htmlspecialchars(__('wine.color.sweet')) ?>"
+                         fetchpriority="high" width="300" height="420">
+                </picture>
             </div>
             <div class="sitemap-wine-row__body">
                 <a href="/<?= htmlspecialchars($navLang) ?>/vins?color=sweet">
@@ -50,8 +62,12 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--reverse sitemap-wine-row--red">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['red'] ?? null, $fallbackWineImg) ?>"
-                     alt="<?= htmlspecialchars(__('wine.color.red')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="<?= $wineImgWebp($wineImages['red'] ?? null, $fallbackWineImg) ?>" type="image/webp">
+                    <img src="<?= $wineImg($wineImages['red'] ?? null, $fallbackWineImg) ?>"
+                         alt="<?= htmlspecialchars(__('wine.color.red')) ?>"
+                         loading="lazy" width="300" height="420">
+                </picture>
             </div>
             <div class="sitemap-wine-row__body">
                 <a href="/<?= htmlspecialchars($navLang) ?>/vins?color=red">
@@ -62,8 +78,12 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--white">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['white'] ?? null, $fallbackWineImg) ?>"
-                     alt="<?= htmlspecialchars(__('wine.color.white')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="<?= $wineImgWebp($wineImages['white'] ?? null, $fallbackWineImg) ?>" type="image/webp">
+                    <img src="<?= $wineImg($wineImages['white'] ?? null, $fallbackWineImg) ?>"
+                         alt="<?= htmlspecialchars(__('wine.color.white')) ?>"
+                         loading="lazy" width="300" height="420">
+                </picture>
             </div>
             <div class="sitemap-wine-row__body">
                 <a href="/<?= htmlspecialchars($navLang) ?>/vins?color=white">
@@ -74,8 +94,12 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--reverse sitemap-wine-row--rose">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['rosé'] ?? null, $fallbackWineImg) ?>"
-                     alt="<?= htmlspecialchars(__('wine.color.rosé')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="<?= $wineImgWebp($wineImages['rosé'] ?? null, $fallbackWineImg) ?>" type="image/webp">
+                    <img src="<?= $wineImg($wineImages['rosé'] ?? null, $fallbackWineImg) ?>"
+                         alt="<?= htmlspecialchars(__('wine.color.rosé')) ?>"
+                         loading="lazy" width="300" height="420">
+                </picture>
             </div>
             <div class="sitemap-wine-row__body">
                 <a href="/<?= htmlspecialchars($navLang) ?>/vins?color=ros%C3%A9">
@@ -86,8 +110,12 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--collection">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['collection'] ?? null, $fallbackWineImg) ?>"
-                     alt="<?= htmlspecialchars(__('nav.collection')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="<?= $wineImgWebp($wineImages['collection'] ?? null, $fallbackWineImg) ?>" type="image/webp">
+                    <img src="<?= $wineImg($wineImages['collection'] ?? null, $fallbackWineImg) ?>"
+                         alt="<?= htmlspecialchars(__('nav.collection')) ?>"
+                         loading="lazy" width="300" height="420">
+                </picture>
             </div>
             <div class="sitemap-wine-row__body">
                 <a href="/<?= htmlspecialchars($navLang) ?>/vins/collection">
@@ -107,21 +135,30 @@ $wineImg = static function (?array $wine, string $fallback): string {
         <div class="sitemap-grid sitemap-grid--3">
 
             <a href="/<?= htmlspecialchars($navLang) ?>/le-chateau" class="sitemap-card">
-                <img src="/assets/images/gallery/premiere-famille.jpg"
-                     alt="<?= htmlspecialchars(__('nav.chateau')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/premiere-famille-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/premiere-famille-600w.jpg"
+                         alt="" loading="lazy" width="600" height="267">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.chateau')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/savoir-faire" class="sitemap-card">
-                <img src="/assets/images/gallery/vendanges-cheval.jpg"
-                     alt="<?= htmlspecialchars(__('nav.savoir_faire')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/vendanges-cheval-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/vendanges-cheval-600w.jpg"
+                         alt="" loading="lazy" width="600" height="267">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.savoir_faire')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/vins"
                class="sitemap-card sitemap-card--soft-zoom sitemap-card--fit">
-                <img src="/assets/images/gallery/exposition-vins.jpg"
-                     alt="<?= htmlspecialchars(__('nav.wines')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/exposition-vins-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/exposition-vins-600w.jpg"
+                         alt="" loading="lazy" width="600" height="267">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.wines')) ?></span>
             </a>
 
@@ -137,20 +174,29 @@ $wineImg = static function (?array $wine, string $fallback): string {
         <div class="sitemap-grid sitemap-grid--3">
 
             <a href="/<?= htmlspecialchars($navLang) ?>" class="sitemap-card">
-                <img src="/assets/images/gallery/domaine-ancien.jpg"
-                     alt="<?= htmlspecialchars(__('nav.home')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/domaine-ancien-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/domaine-ancien-600w.jpg"
+                         alt="" loading="lazy" width="600" height="499">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.home')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/contact" class="sitemap-card">
-                <img src="/assets/images/gallery/proprietaire.jpeg"
-                     alt="<?= htmlspecialchars(__('nav.contact')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/proprietaire-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/proprietaire-600w.jpg"
+                         alt="" loading="lazy" width="600" height="306">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.contact')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/actualites" class="sitemap-card">
-                <img src="/assets/images/gallery/domaine-noir-blanc.jpg"
-                     alt="<?= htmlspecialchars(__('nav.news')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/domaine-noir-blanc-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/domaine-noir-blanc-600w.jpg"
+                         alt="" loading="lazy" width="600" height="267">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.news')) ?></span>
             </a>
 
@@ -166,56 +212,80 @@ $wineImg = static function (?array $wine, string $fallback): string {
         <div class="sitemap-grid sitemap-grid--4">
 
             <a href="/<?= htmlspecialchars($navLang) ?>/jeux" class="sitemap-card">
-                <img src="/assets/images/gallery/vendanges-1956.jpg"
-                     alt="<?= htmlspecialchars(__('jeux.title')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/vendanges-1956-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/vendanges-1956-600w.jpg"
+                         alt="" loading="lazy" width="600" height="267">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('jeux.title')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/support" class="sitemap-card">
-                <img src="/assets/images/gallery/etiquette-1933.jpg"
-                     alt="<?= htmlspecialchars(__('support.title')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/etiquette-1933-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/etiquette-1933-600w.jpg"
+                         alt="" loading="lazy" width="600" height="267">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('support.title')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/plan-du-site" class="sitemap-card">
                 <img src="/assets/images/gallery/anciens-proprietaires.jpg"
-                     alt="<?= htmlspecialchars(__('footer.sitemap')) ?>" loading="lazy">
+                     alt="" loading="lazy" width="558" height="248">
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.sitemap')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/mentions-legales" class="sitemap-card">
-                <img src="/assets/images/gallery/chai-barriques.jpg"
-                     alt="<?= htmlspecialchars(__('footer.legal_notice')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/chai-barriques-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/chai-barriques-600w.jpg"
+                         alt="" loading="lazy" width="600" height="267">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.legal_notice')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/politique-de-confidentialite" class="sitemap-card">
-                <img src="/assets/images/gallery/chien-vignes.jpg"
-                     alt="<?= htmlspecialchars(__('footer.privacy_policy')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/chien-vignes-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/chien-vignes-600w.jpg"
+                         alt="" loading="lazy" width="600" height="267">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.privacy_policy')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/conditions-generales-de-vente" class="sitemap-card">
-                <img src="/assets/images/gallery/apercu-vins.jpg"
-                     alt="<?= htmlspecialchars(__('footer.cgv')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/apercu-vins-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/apercu-vins-600w.jpg"
+                         alt="" loading="lazy" width="600" height="469">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.cgv')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/credits-medias" class="sitemap-card">
-                <img src="/assets/images/gallery/botrytis-cinerea.jpg"
-                     alt="<?= htmlspecialchars(__('footer.credits_medias')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/botrytis-cinerea-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/botrytis-cinerea-600w.jpg"
+                         alt="" loading="lazy" width="600" height="150">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.credits_medias')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/galerie" class="sitemap-card">
-                <img src="/assets/images/gallery/chai-barriques.jpg"
-                     alt="<?= htmlspecialchars(__('gallery.title')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/chai-barriques-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/chai-barriques-600w.jpg"
+                         alt="" loading="lazy" width="600" height="267">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('gallery.title')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/accessibilite" class="sitemap-card">
-                <img src="/assets/images/gallery/domaine-ancien.jpg"
-                     alt="<?= htmlspecialchars(__('accessibility.title')) ?>" loading="lazy">
+                <picture>
+                    <source srcset="/assets/images/gallery/domaine-ancien-600w.webp" type="image/webp">
+                    <img src="/assets/images/gallery/domaine-ancien-600w.jpg"
+                         alt="" loading="lazy" width="600" height="499">
+                </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('accessibility.title')) ?></span>
             </a>
 

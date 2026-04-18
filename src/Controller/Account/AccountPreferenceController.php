@@ -75,15 +75,20 @@ class AccountPreferenceController extends AbstractAccountController
         $token = $this->request->get('token', '');
         $cid   = (int) $this->request->get('cid', 0);
 
+        $unsubMeta = $lang === 'en'
+            ? 'Unsubscribe from the Château Crabitan Bellevue newsletter.'
+            : 'Se désabonner de la newsletter du Château Crabitan Bellevue.';
+
         if ($token === '' || !$this->userRepo->findByUnsubscribeToken($token)) {
-            $this->view(self::VIEW_UNSUBSCRIBE, ['lang' => $lang, 'success' => false, 'confirm' => false]);
+            $this->view(self::VIEW_UNSUBSCRIBE, ['lang' => $lang, 'metaDescription' => $unsubMeta, 'success' => false, 'confirm' => false]);
             return;
         }
 
         $this->view(self::VIEW_UNSUBSCRIBE, [
-            'lang'       => $lang,
-            'success'    => false,
-            'confirm'    => true,
+            'lang'            => $lang,
+            'metaDescription' => $unsubMeta,
+            'success'         => false,
+            'confirm'         => true,
             'unsubToken' => $token,
             'campaignId' => $cid > 0 ? $cid : null,
         ]);
@@ -102,6 +107,9 @@ class AccountPreferenceController extends AbstractAccountController
     public function unsubscribe(array $params): void
     {
         $lang       = $params['lang'];
+        $unsubMeta  = $lang === 'en'
+            ? 'Unsubscribe from the Château Crabitan Bellevue newsletter.'
+            : 'Se désabonner de la newsletter du Château Crabitan Bellevue.';
         $unsubToken = $this->request->post('unsub_token', '');
         $campaignId = (int) $this->request->post('campaign_id', 0);
         $account    = $unsubToken !== '' ? $this->userRepo->findByUnsubscribeToken($unsubToken) : false;
@@ -116,9 +124,10 @@ class AccountPreferenceController extends AbstractAccountController
         }
 
         $this->view(self::VIEW_UNSUBSCRIBE, [
-            'lang'    => $lang,
-            'success' => $success,
-            'confirm' => false,
+            'lang'            => $lang,
+            'metaDescription' => $unsubMeta,
+            'success'         => $success,
+            'confirm'         => false,
         ]);
     }
 }

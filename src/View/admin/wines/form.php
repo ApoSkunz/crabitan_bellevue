@@ -247,7 +247,7 @@ $maxYear = (int) date('Y');
                 <div style="margin-bottom:1rem;">
                     <p style="font-size:0.75rem;color:#8a7a60;margin-bottom:0.5rem;">Image actuelle :</p>
                     <img class="js-image-preview"
-                         src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                         src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
                          alt="Aperçu actuel"
                          style="max-height:160px;max-width:240px;object-fit:contain;
                                 border:1px solid rgba(0,0,0,0.1);border-radius:4px;">

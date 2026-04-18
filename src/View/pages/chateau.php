@@ -22,13 +22,16 @@ require_once SRC_PATH . '/View/partials/header.php';
     <section class="home-section" id="origines">
         <div class="home-section__inner container">
             <div class="home-section__visual home-section__visual--vintage">
-                <img
-                    src="/assets/images/gallery/premiere-famille.jpg"
-                    alt="<?= htmlspecialchars(__('chateau.img_origins_alt')) ?>"
-                    fetchpriority="high"
-                    width="600"
-                    height="400"
-                >
+                <picture>
+                    <source srcset="/assets/images/gallery/premiere-famille-600w.webp" type="image/webp">
+                    <img
+                        src="/assets/images/gallery/premiere-famille-600w.jpg"
+                        alt="<?= htmlspecialchars(__('chateau.img_origins_alt')) ?>"
+                        fetchpriority="high"
+                        width="600"
+                        height="400"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('chateau.origins_tag')) ?></span>
@@ -43,13 +46,16 @@ require_once SRC_PATH . '/View/partials/header.php';
     <section class="home-section home-section--dark" id="vendanges-1956">
         <div class="home-section__inner container home-section__inner--reverse">
             <div class="home-section__visual home-section__visual--vintage">
-                <img
-                    src="/assets/images/gallery/vendanges-cheval.jpg"
-                    alt="<?= htmlspecialchars(__('chateau.img_1956_alt')) ?>"
-                    loading="lazy"
-                    width="600"
-                    height="400"
-                >
+                <picture>
+                    <source srcset="/assets/images/gallery/vendanges-cheval-600w.webp" type="image/webp">
+                    <img
+                        src="/assets/images/gallery/vendanges-cheval-600w.jpg"
+                        alt="<?= htmlspecialchars(__('chateau.img_1956_alt')) ?>"
+                        loading="lazy"
+                        width="600"
+                        height="400"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('chateau.year1956_tag')) ?></span>
@@ -64,13 +70,16 @@ require_once SRC_PATH . '/View/partials/header.php';
     <section class="home-section" id="annee-1975">
         <div class="home-section__inner container">
             <div class="home-section__visual home-section__visual--vintage">
-                <img
-                    src="/assets/images/gallery/vendanges-1956.jpg"
-                    alt="<?= htmlspecialchars(__('chateau.img_1975_alt')) ?>"
-                    loading="lazy"
-                    width="600"
-                    height="400"
-                >
+                <picture>
+                    <source srcset="/assets/images/gallery/vendanges-1956-600w.webp" type="image/webp">
+                    <img
+                        src="/assets/images/gallery/vendanges-1956-600w.jpg"
+                        alt="<?= htmlspecialchars(__('chateau.img_1975_alt')) ?>"
+                        loading="lazy"
+                        width="600"
+                        height="400"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('chateau.year1975_tag')) ?></span>
@@ -85,13 +94,16 @@ require_once SRC_PATH . '/View/partials/header.php';
     <section class="home-section home-section--dark" id="annee-1994">
         <div class="home-section__inner container home-section__inner--reverse">
             <div class="home-section__visual">
-                <img
-                    src="/assets/images/gallery/chai-barriques.jpg"
-                    alt="<?= htmlspecialchars(__('chateau.img_1994_alt')) ?>"
-                    loading="lazy"
-                    width="600"
-                    height="400"
-                >
+                <picture>
+                    <source srcset="/assets/images/gallery/chai-barriques-600w.webp" type="image/webp">
+                    <img
+                        src="/assets/images/gallery/chai-barriques-600w.jpg"
+                        alt="<?= htmlspecialchars(__('chateau.img_1994_alt')) ?>"
+                        loading="lazy"
+                        width="600"
+                        height="400"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('chateau.year1994_tag')) ?></span>
@@ -106,13 +118,16 @@ require_once SRC_PATH . '/View/partials/header.php';
     <section class="home-section" id="aujourd-hui">
         <div class="home-section__inner container">
             <div class="home-section__visual">
-                <img
-                    src="/assets/images/gallery/proprietaire.jpeg"
-                    alt="<?= htmlspecialchars(__('chateau.img_today_alt')) ?>"
-                    loading="lazy"
-                    width="600"
-                    height="400"
-                >
+                <picture>
+                    <source srcset="/assets/images/gallery/proprietaire-600w.webp" type="image/webp">
+                    <img
+                        src="/assets/images/gallery/proprietaire-600w.jpg"
+                        alt="<?= htmlspecialchars(__('chateau.img_today_alt')) ?>"
+                        loading="lazy"
+                        width="600"
+                        height="400"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('chateau.today_tag')) ?></span>
