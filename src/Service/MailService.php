@@ -1066,7 +1066,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
 INNER;
 
-        return $this->emailWrap($safeTitle, $inner);
+        return $this->emailWrap($safeTitle, $inner, $lang);
     }
 
     /**
@@ -2797,7 +2797,7 @@ INNER;
 
 INNER;
 
-        return $this->emailWrap($title, $inner);
+        return $this->emailWrap($title, $inner, $lang);
     }
 
     /**
@@ -2976,8 +2976,11 @@ INNER;
         $urlSupport = $appUrl . self::URL_SUPPORT;
         $urlCgv     = $appUrl . self::URL_CGV;
 
-        $headerHtml = $this->emailHeaderHtml($appUrl, $logoUrl);
-        $footerHtml = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $urlCgv, $lang);
+        $headerHtml  = $this->emailHeaderHtml($appUrl, $logoUrl);
+        $footerHtml  = $this->emailFooterHtml($urlPrivacy, $urlLegal, $urlSupport, $urlCgv, $lang);
+        $fallbackMsg = $lang === 'fr'
+            ? 'Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :'
+            : 'If the button does not work, copy this link into your browser:';
 
         $inner = <<<INNER
 
@@ -3009,7 +3012,7 @@ INNER;
 
               <!-- Fallback URL -->
               <p style="margin:0 0 24px;font-size:12px;color:#8a7a60;line-height:1.6;">
-                Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+                {$fallbackMsg}<br>
                 <a href="{$url}" style="color:#c9a84c;word-break:break-all;">{$url}</a>
               </p>
 
@@ -3027,7 +3030,7 @@ INNER;
 
 INNER;
 
-        return $this->emailWrap($title, $inner);
+        return $this->emailWrap($title, $inner, $lang);
     }
 
     protected function newOrderFormModel(): \Model\OrderFormModel
@@ -3040,11 +3043,11 @@ INNER;
         return new \Model\RatingModel();
     }
 
-    private function emailWrap(string $title, string $innerContent): string
+    private function emailWrap(string $title, string $innerContent, string $lang = 'fr'): string
     {
         return <<<HTML
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{$lang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -3101,25 +3104,29 @@ HTML;
             ? 'Château Crabitan Bellevue ne vous demandera jamais votre mot de passe ni vos coordonnées bancaires par email.'
             // phpcs:ignore Generic.Files.LineLength
             : 'Château Crabitan Bellevue will never ask for your password or banking details by email.';
+        $lPrivacy = $lang === 'fr' ? 'Politique de confidentialité' : 'Privacy policy';
+        $lCgv     = $lang === 'fr' ? 'CGV' : 'T&amp;Cs';
+        $lLegal   = $lang === 'fr' ? 'Mentions légales' : 'Legal notice';
+        $lSupport = $lang === 'fr' ? 'Assistance' : 'Support';
         return <<<HTML
           <tr>
             <td align="center" style="padding-top:24px;">
               <p style="margin:0 0 4px;">
                 <a href="{$urlPrivacy}" class="footer-link"
                    style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Politique de confidentialité</a>
+                >{$lPrivacy}</a>
                 <span style="color:#c4b89a;padding:0 8px;">|</span>
                 <a href="{$urlCgv}" class="footer-link"
                    style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >CGV</a>
+                >{$lCgv}</a>
                 <span style="color:#c4b89a;padding:0 8px;">|</span>
                 <a href="{$urlLegal}" class="footer-link"
                    style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Mentions légales</a>
+                >{$lLegal}</a>
                 <span style="color:#c4b89a;padding:0 8px;">|</span>
                 <a href="{$urlSupport}" class="footer-link"
                    style="font-size:11px;color:#8a7a60;text-decoration:none;letter-spacing:1px;"
-                >Assistance</a>
+                >{$lSupport}</a>
               </p>
               <!-- Mention Loi Évin obligatoire — Art. L3323-4 CSP -->
               <p style="margin:0 0 6px;font-size:11px;color:#6b5e4a;font-style:italic;line-height:1.5;">

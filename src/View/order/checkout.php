@@ -391,6 +391,15 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                 ================================================ -->
                 <aside class="checkout-summary" aria-labelledby="checkout-summary-title">
                     <div class="checkout-card">
+                        <button type="button" class="checkout-summary__toggle" aria-expanded="false" aria-controls="checkout-summary-details">
+                            <span class="checkout-summary__toggle-label">
+                                <?= $totalQty ?> <?= htmlspecialchars($isEn ? ($totalQty > 1 ? 'bottles' : 'bottle') : ($totalQty > 1 ? 'bouteilles' : 'bouteille')) ?>
+                                — <?= number_format($total, 2, ',', ' ') ?>&nbsp;€
+                            </span>
+                            <span class="checkout-summary__toggle-chevron" aria-hidden="true">▼</span>
+                        </button>
+
+                        <div id="checkout-summary-details" class="checkout-summary__details">
                         <h2 class="checkout-card__title" id="checkout-summary-title">
                             <?= htmlspecialchars(__('checkout.summary_title')) ?>
                         </h2>
@@ -433,16 +442,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                             </div>
                         </div>
 
-                        <p class="checkout-summary__qty">
-                            <?php
-                            if ($isEn) {
-                                $bottleLabel = $totalQty > 1 ? 'bottles' : 'bottle';
-                            } else {
-                                $bottleLabel = $totalQty > 1 ? 'bouteilles' : 'bouteille';
-                            }
-                            ?>
-                            <?= $totalQty ?> <?= htmlspecialchars($bottleLabel) ?>
-                        </p>
+                        </div><!-- /.checkout-summary__details -->
 
                         <?php if (isset($errors['multiple_12'])) : ?>
                         <p class="checkout-summary__error checkout-summary__error--multiple12" role="alert">
@@ -662,6 +662,16 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
 
     initZipCityAutocomplete('addr-zip-del',  'addr-city-del',  'js-zip-error-del',  true);
     initZipCityAutocomplete('addr-zip-bill', 'addr-city-bill', 'js-zip-error-bill', false);
+
+    // Récapitulatif collapsible mobile
+    var summaryToggle = document.querySelector('.checkout-summary__toggle');
+    if (summaryToggle) {
+        summaryToggle.addEventListener('click', function () {
+            var aside = this.closest('.checkout-summary');
+            var expanded = aside.classList.toggle('is-expanded');
+            this.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        });
+    }
 
 })();
 </script>
