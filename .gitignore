@@ -31,11 +31,8 @@ Thumbs.db
 # Claude Code
 .claude/
 
-# Scripts — rapports générés localement
-/scripts/
-
-# Specs & backlog locaux (non versionnés)
-/BACKLOG/
+# Report Sonar local
+sonar-report.txt
 
 # Docs privées locales (non versionnées)
 /private-docs/
@@ -44,21 +41,13 @@ Thumbs.db
 /private-scripts/
 
 # Base de données — seeds et scripts locaux uniquement (schema + seed_mock_data versionnés)
-/database/migrate_*.sql
 /database/migrations/
-/database/seed_dev_data.php
-/database/seed_news_prod.sql
-/database/seed_order_forms.sql
-/database/seed_orders_camille.php
-/database/seed_pricing_rules_prod.php
-/database/seed_users_dev.php
-/database/seed_wines_prod.sql
 
 # Lighthouse CI — rapports locaux
 /.lighthouseci/
 /.lighthouserc.local.json
 /lighthouse-auth-local.cjs
-logs/
+/logs/
 
 # Vite — artefacts de build non versionnés
 /public/assets/js/browser.js
