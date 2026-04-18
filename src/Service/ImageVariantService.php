@@ -32,21 +32,28 @@ class ImageVariantService
             return $absPath;
         }
 
+        return $this->doConvert($absPath, $mime);
+    }
+
+    /**
+     * Effectue la conversion GD vers WebP.
+     *
+     * @param string $absPath Chemin absolu source
+     * @param string $mime    Type MIME détecté
+     * @return string|null Chemin WebP généré, ou null en échec
+     */
+    private function doConvert(string $absPath, string $mime): ?string
+    {
         $image = $this->loadImage($absPath, $mime);
         if ($image === false) {
             return null;
         }
 
         $webpPath = (string) preg_replace('/\.[^.]+$/', '', $absPath) . '.webp';
-
-        if (!imagewebp($image, $webpPath, self::WEBP_QUALITY)) {
-            imagedestroy($image);
-            return null;
-        }
-
+        $ok = imagewebp($image, $webpPath, self::WEBP_QUALITY);
         imagedestroy($image);
 
-        return $webpPath;
+        return $ok ? $webpPath : null;
     }
 
     /**
@@ -63,7 +70,7 @@ class ImageVariantService
         };
     }
 
-    private function gdSupported(): bool
+    protected function gdSupported(): bool
     {
         return extension_loaded('gd') && function_exists('imagewebp');
     }
