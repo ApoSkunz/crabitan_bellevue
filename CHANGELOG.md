@@ -2,6 +2,27 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.1.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.1.0...v1.1.1) (2026-04-18)
+
+
+### Bug Fixes
+
+* **a11y:** ajuster --color-gold light mode [#7](https://github.com/ApoSkunz/crabitan_bellevue/issues/7)a611e → [#8](https://github.com/ApoSkunz/crabitan_bellevue/issues/8)b6914 ([63d2d79](https://github.com/ApoSkunz/crabitan_bellevue/commit/63d2d7983d97f52f7ab26a3ed72ddc9a3e549021)), closes [#7a611e](https://github.com/ApoSkunz/crabitan_bellevue/issues/7a611e) [#8b6914](https://github.com/ApoSkunz/crabitan_bellevue/issues/8b6914) [#f5f0e8](https://github.com/ApoSkunz/crabitan_bellevue/issues/f5f0e8) [#fff](https://github.com/ApoSkunz/crabitan_bellevue/issues/fff)
+* **a11y:** CORRECTIF-01 — contraste couleur or en mode jour (WCAG AA) ([30150ac](https://github.com/ApoSkunz/crabitan_bellevue/commit/30150ac73116511cce1a3fc23dee9ece88845bd9)), closes [#c9a84c](https://github.com/ApoSkunz/crabitan_bellevue/issues/c9a84c) [#7a611e](https://github.com/ApoSkunz/crabitan_bellevue/issues/7a611e) [#f5f0e8](https://github.com/ApoSkunz/crabitan_bellevue/issues/f5f0e8) [#fff](https://github.com/ApoSkunz/crabitan_bellevue/issues/fff) [#fff](https://github.com/ApoSkunz/crabitan_bellevue/issues/fff)
+* **a11y:** CORRECTIF-06 — aria-hidden badge+icône panier (label-content-name-mismatch) ([06c119b](https://github.com/ApoSkunz/crabitan_bellevue/commit/06c119b68ea4fdfad906f33935190da439efc994))
+
+
+### Performance Improvements
+
+* **cache:** CORRECTIF-03 — gzip + Cache-Control assets statiques ([555942b](https://github.com/ApoSkunz/crabitan_bellevue/commit/555942bbd24f602484b0b206a0df717f9e73f588))
+* **lcp:** CORRECTIF-02 — defer main.js sur toutes les vues ([7eb24ec](https://github.com/ApoSkunz/crabitan_bellevue/commit/7eb24ec7621fd85e4be13a9a0db05080f960dbfc))
+* **lcp:** CORRECTIF-04 — retirer lazy sur images LCP, fetchpriority=high ([ea93e7f](https://github.com/ApoSkunz/crabitan_bellevue/commit/ea93e7fab5ca6e61bdc319e43af52bf8dc5cabc3))
+
+
+### Reverts
+
+* **a11y:** annuler CORRECTIF-01 contraste gold — rétablir #c9a84c ([5ab5e43](https://github.com/ApoSkunz/crabitan_bellevue/commit/5ab5e4356afe95da30cf575956b0a63af45441db)), closes [#c9a84c](https://github.com/ApoSkunz/crabitan_bellevue/issues/c9a84c) [#c9a84c](https://github.com/ApoSkunz/crabitan_bellevue/issues/c9a84c)
+
 # [1.1.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.0.1...v1.1.0) (2026-04-18)
 
 
