@@ -13,6 +13,10 @@ RewriteEngine On
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+# Bypass maintenance pour IP admin
+RewriteCond %{REMOTE_ADDR} ^90\.5\.222\.193$
+RewriteRule .* - [L]
+
 # Garde-fou anti-boucle : si on est déjà dans une réponse 503 servie par
 # ErrorDocument, ne pas rejouer la règle (sinon Apache boucle)
 RewriteCond %{ENV:REDIRECT_STATUS} ^$
