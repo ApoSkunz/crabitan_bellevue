@@ -13,10 +13,11 @@
     "lhci:local": "npx lhci collect --config=.lighthouserc.local.json && npx lhci assert --config=.lighthouserc.local.json"
   },
   "overrides": {
-    "tmp": "^0.2.4"
+    "tmp": "^0.2.4",
+    "brace-expansion": "^2.0.3",
+    "picomatch": "^4.0.4"
   },
   "devDependencies": {
-    "@stryker-mutator/core": "^9.6.1",
     "@eslint/js": "^10.0.1",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.58.2",
@@ -25,11 +26,12 @@
     "@semantic-release/git": "^10.0.0",
     "@semantic-release/github": "^10.0.0",
     "@semantic-release/release-notes-generator": "^14.0.0",
+    "@stryker-mutator/core": "^9.6.1",
     "eslint": "^10.1.0",
     "globals": "^17.5.0",
     "nyc": "^17.0.0",
     "sass": "^1.83.0",
-    "semantic-release": "^24.0.0",
+    "semantic-release": "^25.0.3",
     "vite": "^6.0.0",
     "vite-plugin-istanbul": "^6.0.2"
   },
