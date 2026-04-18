@@ -29,6 +29,35 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [L,QSA]
 
+# ---- Compression gzip ----
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript text/javascript application/json text/xml image/svg+xml
+</IfModule>
+
+# ---- Cache navigateur ----
+<IfModule mod_expires.c>
+    ExpiresActive On
+    # JS / CSS — 1 semaine (noms de fichiers sans hash de contenu)
+    ExpiresByType text/css               "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType text/javascript        "access plus 1 week"
+    # Images
+    ExpiresByType image/png              "access plus 6 months"
+    ExpiresByType image/jpeg             "access plus 6 months"
+    ExpiresByType image/webp             "access plus 6 months"
+    ExpiresByType image/svg+xml          "access plus 6 months"
+    ExpiresByType image/gif              "access plus 6 months"
+    ExpiresByType image/x-icon           "access plus 1 year"
+    # Vidéos
+    ExpiresByType video/webm             "access plus 6 months"
+    ExpiresByType video/mp4              "access plus 6 months"
+    # Fonts
+    ExpiresByType font/woff2             "access plus 1 year"
+    ExpiresByType font/woff              "access plus 1 year"
+    ExpiresByType font/ttf               "access plus 1 year"
+    ExpiresByType font/otf               "access plus 1 year"
+</IfModule>
+
 # ---- Headers de sécurité HTTP ----
 # X-Frame-Options intentionnellement redondant avec CSP frame-ancestors pour compatibilité navigateurs anciens (VULN-013)
 Header always set X-Frame-Options "DENY"
