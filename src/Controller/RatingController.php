@@ -7,6 +7,7 @@ namespace Controller;
 use Core\Controller;
 use Core\Database;
 use Middleware\AuthMiddleware;
+use Service\RateLimiterService;
 
 /**
  * Gère les actions de notation des vins (par email et depuis l'espace client).
@@ -151,6 +152,14 @@ class RatingController extends Controller
      */
     public function rateViaTokenApi(array $params): void // NOSONAR — $params requis par le router
     {
+        $ip      = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+        $limiter = new RateLimiterService(Database::getInstance());
+        $rlKey   = 'rating_token:' . $ip;
+        if (!$limiter->checkLimit($rlKey, 30, 60)) {
+            $this->json(['success' => false, 'message' => 'Trop de requêtes'], 429);
+        }
+        $limiter->recordAttempt($rlKey, 60);
+
         $body  = json_decode((string) file_get_contents('php://input'), true) ?? [];
         $token = (string) ($body['token'] ?? '');
         $note  = (int) ($body['note']  ?? 0);
