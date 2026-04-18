@@ -22,6 +22,14 @@ $wineImg = static function (?array $wine, string $fallback): string {
         ? '/assets/images/wines/' . htmlspecialchars($wine['image_path'])
         : $fallback;
 };
+/** Retourne le srcset WebP d'une image de vin (même token, extension .webp). */
+$wineImgWebp = static function (?array $wine, string $fallback): string {
+    if ($wine !== null && !empty($wine['image_path'])) {
+        $webp = (string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path']);
+        return '/assets/images/wines/' . htmlspecialchars($webp);
+    }
+    return $fallback;
+};
 ?>
 
 <main class="page-sitemap" id="main-content">
@@ -38,9 +46,12 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--sweet">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['sweet'] ?? null, $fallbackWineImg) ?>"
-                     alt="<?= htmlspecialchars(__('wine.color.sweet')) ?>"
-                     fetchpriority="high" width="300" height="420">
+                <picture>
+                    <source srcset="<?= $wineImgWebp($wineImages['sweet'] ?? null, $fallbackWineImg) ?>" type="image/webp">
+                    <img src="<?= $wineImg($wineImages['sweet'] ?? null, $fallbackWineImg) ?>"
+                         alt="<?= htmlspecialchars(__('wine.color.sweet')) ?>"
+                         fetchpriority="high" width="300" height="420">
+                </picture>
             </div>
             <div class="sitemap-wine-row__body">
                 <a href="/<?= htmlspecialchars($navLang) ?>/vins?color=sweet">
@@ -51,9 +62,12 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--reverse sitemap-wine-row--red">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['red'] ?? null, $fallbackWineImg) ?>"
-                     alt="<?= htmlspecialchars(__('wine.color.red')) ?>"
-                     loading="lazy" width="300" height="420">
+                <picture>
+                    <source srcset="<?= $wineImgWebp($wineImages['red'] ?? null, $fallbackWineImg) ?>" type="image/webp">
+                    <img src="<?= $wineImg($wineImages['red'] ?? null, $fallbackWineImg) ?>"
+                         alt="<?= htmlspecialchars(__('wine.color.red')) ?>"
+                         loading="lazy" width="300" height="420">
+                </picture>
             </div>
             <div class="sitemap-wine-row__body">
                 <a href="/<?= htmlspecialchars($navLang) ?>/vins?color=red">
@@ -64,9 +78,12 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--white">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['white'] ?? null, $fallbackWineImg) ?>"
-                     alt="<?= htmlspecialchars(__('wine.color.white')) ?>"
-                     loading="lazy" width="300" height="420">
+                <picture>
+                    <source srcset="<?= $wineImgWebp($wineImages['white'] ?? null, $fallbackWineImg) ?>" type="image/webp">
+                    <img src="<?= $wineImg($wineImages['white'] ?? null, $fallbackWineImg) ?>"
+                         alt="<?= htmlspecialchars(__('wine.color.white')) ?>"
+                         loading="lazy" width="300" height="420">
+                </picture>
             </div>
             <div class="sitemap-wine-row__body">
                 <a href="/<?= htmlspecialchars($navLang) ?>/vins?color=white">
@@ -77,9 +94,12 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--reverse sitemap-wine-row--rose">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['rosé'] ?? null, $fallbackWineImg) ?>"
-                     alt="<?= htmlspecialchars(__('wine.color.rosé')) ?>"
-                     loading="lazy" width="300" height="420">
+                <picture>
+                    <source srcset="<?= $wineImgWebp($wineImages['rosé'] ?? null, $fallbackWineImg) ?>" type="image/webp">
+                    <img src="<?= $wineImg($wineImages['rosé'] ?? null, $fallbackWineImg) ?>"
+                         alt="<?= htmlspecialchars(__('wine.color.rosé')) ?>"
+                         loading="lazy" width="300" height="420">
+                </picture>
             </div>
             <div class="sitemap-wine-row__body">
                 <a href="/<?= htmlspecialchars($navLang) ?>/vins?color=ros%C3%A9">
@@ -90,9 +110,12 @@ $wineImg = static function (?array $wine, string $fallback): string {
 
         <div class="sitemap-wine-row sitemap-wine-row--collection">
             <div class="sitemap-wine-row__img">
-                <img src="<?= $wineImg($wineImages['collection'] ?? null, $fallbackWineImg) ?>"
-                     alt="<?= htmlspecialchars(__('nav.collection')) ?>"
-                     loading="lazy" width="300" height="420">
+                <picture>
+                    <source srcset="<?= $wineImgWebp($wineImages['collection'] ?? null, $fallbackWineImg) ?>" type="image/webp">
+                    <img src="<?= $wineImg($wineImages['collection'] ?? null, $fallbackWineImg) ?>"
+                         alt="<?= htmlspecialchars(__('nav.collection')) ?>"
+                         loading="lazy" width="300" height="420">
+                </picture>
             </div>
             <div class="sitemap-wine-row__body">
                 <a href="/<?= htmlspecialchars($navLang) ?>/vins/collection">

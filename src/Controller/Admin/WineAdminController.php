@@ -11,7 +11,6 @@ use Model\NewsletterModel;
 use Model\WineModel;
 use Model\WineNutritionModel;
 use Service\AuditLogger;
-use Service\ImageVariantService;
 use Service\MailService;
 use Service\StockNotificationService;
 use Service\TranslationService;
@@ -681,11 +680,6 @@ class WineAdminController extends AdminController
 
         if (!$this->moveUploadedFile($file['tmp_name'], $destDir . $filename)) {
             return ['path' => $existingPath ?? '', 'error' => 'Erreur lors du téléversement.'];
-        }
-
-        $webpPath = (new ImageVariantService())->convertToWebp($destDir . $filename);
-        if ($webpPath !== null) {
-            $filename = basename($webpPath);
         }
 
         return ['path' => $filename, 'error' => null];

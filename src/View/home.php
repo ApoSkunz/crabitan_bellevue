@@ -135,13 +135,16 @@ $carouselSlides = [
     <section class="home-section home-section--featured home-section--dark" id="vin-du-moment">
         <div class="home-section__inner container">
             <div class="home-section__visual">
-                <img
-                    src="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
-                    alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"
-                    fetchpriority="high"
-                    width="400"
-                    height="600"
-                >
+                <picture>
+                    <source srcset="/assets/images/wines/<?= htmlspecialchars((string) preg_replace('/\.[^.]+$/', '.webp', $featuredWine['image_path'])) ?>" type="image/webp">
+                    <img
+                        src="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
+                        alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"
+                        fetchpriority="high"
+                        width="400"
+                        height="600"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('home.featured_tag')) ?></span>

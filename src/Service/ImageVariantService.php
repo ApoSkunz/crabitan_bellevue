@@ -45,7 +45,6 @@ class ImageVariantService
         }
 
         imagedestroy($image);
-        @unlink($absPath);
 
         return $webpPath;
     }

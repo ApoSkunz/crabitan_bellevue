@@ -81,15 +81,18 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
             <!-- Colonne image -->
             <div class="wine-detail__visual">
                 <div class="wine-detail__image-wrap">
-                    <img
-                        src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
-                        alt="<?= htmlspecialchars($wineName) ?>"
-                        class="wine-detail__image js-wine-zoom"
-                        width="400"
-                        height="560"
-                        fetchpriority="high"
-                        title="<?= htmlspecialchars(__('wine.zoom')) ?>"
-                    >
+                    <picture>
+                        <source srcset="/assets/images/wines/<?= htmlspecialchars((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
+                        <img
+                            src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                            alt="<?= htmlspecialchars($wineName) ?>"
+                            class="wine-detail__image js-wine-zoom"
+                            width="400"
+                            height="560"
+                            fetchpriority="high"
+                            title="<?= htmlspecialchars(__('wine.zoom')) ?>"
+                        >
+                    </picture>
                     <span class="wine-detail__zoom-hint" aria-hidden="true">&#128269;</span>
                 </div>
             </div>
@@ -381,11 +384,15 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                        class="wine-card__inner"
                        aria-label="<?= $swName ?>">
                         <div class="wine-card__image-wrap">
-                            <img src="/assets/images/wines/<?= $swImage ?>"
-                                 alt="<?= $swName ?>"
-                                 class="wine-card__image"
-                                 width="200" height="280"
-                                 loading="lazy">
+                            <?php $swWebp = htmlspecialchars((string) preg_replace('/\.[^.]+$/', '.webp', (string) ($sw['image_path'] ?? ''))); ?>
+                            <picture>
+                                <source srcset="/assets/images/wines/<?= $swWebp ?>" type="image/webp">
+                                <img src="/assets/images/wines/<?= $swImage ?>"
+                                     alt="<?= $swName ?>"
+                                     class="wine-card__image"
+                                     width="200" height="280"
+                                     loading="lazy">
+                            </picture>
                         </div>
                     </a>
                     <div class="wine-card__body">
