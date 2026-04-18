@@ -115,7 +115,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/premiere-famille-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/premiere-famille-600w.jpg"
-                         alt="<?= htmlspecialchars(__('nav.chateau')) ?>" loading="lazy" width="600" height="267">
+                         alt="" loading="lazy" width="600" height="267">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.chateau')) ?></span>
             </a>
@@ -124,7 +124,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/vendanges-cheval-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/vendanges-cheval-600w.jpg"
-                         alt="<?= htmlspecialchars(__('nav.savoir_faire')) ?>" loading="lazy" width="600" height="267">
+                         alt="" loading="lazy" width="600" height="267">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.savoir_faire')) ?></span>
             </a>
@@ -134,7 +134,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/exposition-vins-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/exposition-vins-600w.jpg"
-                         alt="<?= htmlspecialchars(__('nav.wines')) ?>" loading="lazy" width="600" height="267">
+                         alt="" loading="lazy" width="600" height="267">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.wines')) ?></span>
             </a>
@@ -154,7 +154,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/domaine-ancien-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/domaine-ancien-600w.jpg"
-                         alt="<?= htmlspecialchars(__('nav.home')) ?>" loading="lazy" width="600" height="499">
+                         alt="" loading="lazy" width="600" height="499">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.home')) ?></span>
             </a>
@@ -163,7 +163,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/proprietaire-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/proprietaire-600w.jpg"
-                         alt="<?= htmlspecialchars(__('nav.contact')) ?>" loading="lazy" width="600" height="306">
+                         alt="" loading="lazy" width="600" height="306">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.contact')) ?></span>
             </a>
@@ -172,7 +172,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/domaine-noir-blanc-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/domaine-noir-blanc-600w.jpg"
-                         alt="<?= htmlspecialchars(__('nav.news')) ?>" loading="lazy" width="600" height="267">
+                         alt="" loading="lazy" width="600" height="267">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('nav.news')) ?></span>
             </a>
@@ -192,7 +192,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/vendanges-1956-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/vendanges-1956-600w.jpg"
-                         alt="<?= htmlspecialchars(__('jeux.title')) ?>" loading="lazy" width="600" height="267">
+                         alt="" loading="lazy" width="600" height="267">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('jeux.title')) ?></span>
             </a>
@@ -201,14 +201,14 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/etiquette-1933-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/etiquette-1933-600w.jpg"
-                         alt="<?= htmlspecialchars(__('support.title')) ?>" loading="lazy" width="600" height="267">
+                         alt="" loading="lazy" width="600" height="267">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('support.title')) ?></span>
             </a>
 
             <a href="/<?= htmlspecialchars($navLang) ?>/plan-du-site" class="sitemap-card">
                 <img src="/assets/images/gallery/anciens-proprietaires.jpg"
-                     alt="<?= htmlspecialchars(__('footer.sitemap')) ?>" loading="lazy" width="558" height="248">
+                     alt="" loading="lazy" width="558" height="248">
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.sitemap')) ?></span>
             </a>
 
@@ -216,7 +216,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/chai-barriques-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/chai-barriques-600w.jpg"
-                         alt="<?= htmlspecialchars(__('footer.legal_notice')) ?>" loading="lazy" width="600" height="267">
+                         alt="" loading="lazy" width="600" height="267">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.legal_notice')) ?></span>
             </a>
@@ -225,7 +225,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/chien-vignes-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/chien-vignes-600w.jpg"
-                         alt="<?= htmlspecialchars(__('footer.privacy_policy')) ?>" loading="lazy" width="600" height="267">
+                         alt="" loading="lazy" width="600" height="267">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.privacy_policy')) ?></span>
             </a>
@@ -234,7 +234,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/apercu-vins-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/apercu-vins-600w.jpg"
-                         alt="<?= htmlspecialchars(__('footer.cgv')) ?>" loading="lazy" width="600" height="469">
+                         alt="" loading="lazy" width="600" height="469">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.cgv')) ?></span>
             </a>
@@ -243,7 +243,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/botrytis-cinerea-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/botrytis-cinerea-600w.jpg"
-                         alt="<?= htmlspecialchars(__('footer.credits_medias')) ?>" loading="lazy" width="600" height="150">
+                         alt="" loading="lazy" width="600" height="150">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('footer.credits_medias')) ?></span>
             </a>
@@ -252,7 +252,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/chai-barriques-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/chai-barriques-600w.jpg"
-                         alt="<?= htmlspecialchars(__('gallery.title')) ?>" loading="lazy" width="600" height="267">
+                         alt="" loading="lazy" width="600" height="267">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('gallery.title')) ?></span>
             </a>
@@ -261,7 +261,7 @@ $wineImg = static function (?array $wine, string $fallback): string {
                 <picture>
                     <source srcset="/assets/images/gallery/domaine-ancien-600w.webp" type="image/webp">
                     <img src="/assets/images/gallery/domaine-ancien-600w.jpg"
-                         alt="<?= htmlspecialchars(__('accessibility.title')) ?>" loading="lazy" width="600" height="499">
+                         alt="" loading="lazy" width="600" height="499">
                 </picture>
                 <span class="sitemap-card__label"><?= htmlspecialchars(__('accessibility.title')) ?></span>
             </a>
