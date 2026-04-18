@@ -84,6 +84,6 @@
 
 <?php require_once SRC_PATH . '/View/partials/cookie-banner.php'; ?>
 
-<script src="/assets/js/main.js"></script>
+<script src="/assets/js/main.js" defer></script>
 </body>
 </html>
