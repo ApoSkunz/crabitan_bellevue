@@ -34,13 +34,75 @@ require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : r
 
         <h3>4. Newsletter</h3>
         <p>Si vous vous inscrivez à notre newsletter, nous conservons votre adresse e-mail sur la base de votre consentement (article 6-1-a du RGPD). Vous pouvez vous désinscrire à tout moment depuis votre espace «&nbsp;Mon Compte&nbsp;» ou via le lien de désinscription présent dans chaque e-mail. La newsletter utilise un mécanisme de double opt-in&nbsp;: votre inscription n&#8217;est confirmée qu&#8217;après validation de votre e-mail.</p>
-        <p>Nos newsletters intègrent un pixel de mesure (image 1&times;1 invisible) et des liens de suivi afin de mesurer le nombre d&#8217;ouvertures et de clics. Ces données sont traitées sur la base de notre intérêt légitime (article&nbsp;6-1-f du RGPD) à améliorer la pertinence de nos communications. Vous pouvez vous opposer à ce traitement à tout moment en vous désabonnant de la newsletter via le lien présent dans chaque e-mail ou depuis votre espace «&nbsp;Mon Compte&nbsp;».</p>
 
-        <h3>5. Cookies de mesure d&#8217;audience</h3>
+        <h3>5. Suivi des e-mails (tracking)</h3>
+        <p>Nos e-mails (newsletters et e-mails de relance panier) intègrent un pixel de mesure (image 1&times;1 invisible) et des liens de suivi qui nous permettent de mesurer le taux d&#8217;ouverture et les clics. Ces données sont traitées sur la base de notre <strong>intérêt légitime</strong> (article&nbsp;6-1-f du RGPD) à améliorer la pertinence de nos communications. Aucune donnée de tracking n&#8217;est partagée avec des tiers. Vous pouvez vous opposer à ce traitement en vous désabonnant de la newsletter ou en contactant notre DPO à <a href="mailto:<?= $safeEmail ?>"><?= $safeEmail ?></a>.</p>
+
+        <h3>6. Relance panier abandonné</h3>
+        <p>Si vous avez ajouté des produits à votre panier sans finaliser votre commande, nous sommes susceptibles de vous envoyer un e-mail de rappel dans les 72 heures suivant l&#8217;abandon, dans le but de faciliter votre achat. Ce traitement est fondé sur notre <strong>intérêt légitime</strong> (article&nbsp;6-1-f du RGPD) à maintenir la relation commerciale avec nos clients identifiés. Seuls les clients disposant d&#8217;un compte vérifié sont concernés. Vous pouvez vous opposer à ce traitement à tout moment en contactant notre DPO à <a href="mailto:<?= $safeEmail ?>"><?= $safeEmail ?></a> ou en supprimant votre compte.</p>
+
+        <h3>7. Cookies de mesure d&#8217;audience</h3>
         <p>Avec votre consentement, nous utilisons Google Analytics 4 pour mesurer l&#8217;audience de notre site (pages consultées, durée de visite, type d&#8217;appareil). Votre adresse IP est anonymisée avant tout stockage. Aucun script de mesure n&#8217;est chargé sans votre consentement préalable (Art. 82 Loi Informatique et Libertés). Vous pouvez retirer votre consentement à tout moment depuis le lien «&nbsp;Gérer les cookies&nbsp;» en bas de chaque page.</p>
 
-        <h3>6. Cookies techniques</h3>
+        <h3>8. Cookies techniques</h3>
         <p>Nous utilisons des cookies strictement nécessaires au fonctionnement du site&nbsp;: cookie de session (authentification), cookie de préférence de langue et cookie de vérification de l&#8217;âge. Ces cookies ne nécessitent pas de consentement car ils sont indispensables au service demandé.</p>
+
+        <h3>9. Liste détaillée des cookies déposés</h3>
+        <p>Conformément à la délibération CNIL n°2020-091 du 17&nbsp;septembre 2020, voici la liste exhaustive des cookies que nous déposons&nbsp;:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Nom du cookie</th>
+                    <th scope="col">Finalité</th>
+                    <th scope="col">Durée de conservation</th>
+                    <th scope="col">Consentement requis</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>auth_token</code></td>
+                    <td>Authentification — contient le JWT de session de l&#8217;utilisateur connecté (HttpOnly, Secure)</td>
+                    <td>1&nbsp;heure (durée du JWT)</td>
+                    <td>Non — strictement nécessaire</td>
+                </tr>
+                <tr>
+                    <td><code>device_token</code></td>
+                    <td>Mémorisation de l&#8217;appareil de confiance pour la validation MFA (HttpOnly, Secure)</td>
+                    <td>90&nbsp;jours</td>
+                    <td>Non — strictement nécessaire à la sécurité du compte</td>
+                </tr>
+                <tr>
+                    <td><code>lang</code></td>
+                    <td>Mémorisation de la préférence de langue (FR/EN)</td>
+                    <td>Session (fermé à la fermeture du navigateur)</td>
+                    <td>Non — préférence fonctionnelle</td>
+                </tr>
+                <tr>
+                    <td><code>age_verified</code></td>
+                    <td>Mémorisation de la déclaration de majorité (barrière d&#8217;âge légale alcool)</td>
+                    <td>Session</td>
+                    <td>Non — obligation légale (Art. L3342-1 CSP)</td>
+                </tr>
+                <tr>
+                    <td><code>cookie_consent</code></td>
+                    <td>Mémorisation du choix de consentement aux cookies analytiques</td>
+                    <td>13&nbsp;mois (recommandation CNIL 2020)</td>
+                    <td>Non — nécessaire au respect de votre choix</td>
+                </tr>
+                <tr>
+                    <td><code>_ga</code></td>
+                    <td>Google Analytics 4 — identification de session anonymisée pour mesure d&#8217;audience</td>
+                    <td>2&nbsp;ans</td>
+                    <td><strong>Oui</strong> — déposé uniquement après consentement explicite</td>
+                </tr>
+                <tr>
+                    <td><code>_ga_*</code></td>
+                    <td>Google Analytics 4 — persistance de session pour le suivi des pages vues</td>
+                    <td>2&nbsp;ans</td>
+                    <td><strong>Oui</strong> — déposé uniquement après consentement explicite</td>
+                </tr>
+            </tbody>
+        </table>
 
         <h2>III. Principe de minimisation</h2>
         <p>La protection de vos données personnelles est notre priorité. Nous appliquons le principe de minimisation posé par l&#8217;article 5-1-c du RGPD&nbsp;: nous ne collectons que les données strictement nécessaires à la finalité pour laquelle elles sont demandées. Aucune donnée superflue n&#8217;est conservée. Vos données ne sont ni vendues, ni cédées, ni partagées avec des tiers à des fins commerciales.</p>
@@ -104,7 +166,7 @@ require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : r
         <p>Ces prestataires sont contractuellement tenus de respecter la confidentialité de vos données et de ne les utiliser qu&#8217;aux fins convenues.</p>
 
         <h2>VI. Transferts de données hors de l&#8217;Union européenne</h2>
-        <p>Certains de nos sous-traitants (Google LLC, Apple Inc., GitHub Inc.) sont établis aux États-Unis. Ces transferts sont encadrés par des <strong>Clauses Contractuelles Types (SCCs)</strong> adoptées par la Commission européenne, dans le respect du cadre EU-US Data Privacy Framework. Vous pouvez demander communication des garanties mises en place en contactant&nbsp;: <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>.</p>
+        <p>Certains de nos sous-traitants (Google LLC, GitHub Inc.) sont établis aux États-Unis. Ces transferts sont encadrés par des <strong>Clauses Contractuelles Types (SCCs)</strong> adoptées par la Commission européenne, dans le respect du cadre EU-US Data Privacy Framework. Vous pouvez demander communication des garanties mises en place en contactant&nbsp;: <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a>.</p>
 
         <h2>VII. Vos droits</h2>
         <p>Conformément au Règlement Général sur la Protection des Données (RGPD &ndash; Règlement UE 2016/679) et à la loi Informatique et Libertés n°78-17 du 6&nbsp;janvier 1978 modifiée, vous disposez des droits suivants&nbsp;:</p>
