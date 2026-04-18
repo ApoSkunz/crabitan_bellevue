@@ -249,8 +249,18 @@ class PageController extends Controller
         $photos  = [];
         foreach ($files as $file) {
             $filename = basename($file);
+            // Exclure les variantes générées (-600w, -800w, -1200w, -1600w)
+            if (preg_match('/-\d+w\.(jpg|jpeg|png|webp)$/i', $filename)) {
+                continue;
+            }
             $alt      = ucfirst(str_replace(['-', '_'], ' ', pathinfo($filename, PATHINFO_FILENAME)));
-            $photos[] = ['src' => '/assets/images/gallery/' . $filename, 'alt' => $alt];
+            $size     = @getimagesize($file);
+            $photos[] = [
+                'src'    => '/assets/images/gallery/' . $filename,
+                'alt'    => $alt,
+                'width'  => $size ? (int) $size[0] : 0,
+                'height' => $size ? (int) $size[1] : 0,
+            ];
         }
         $this->view('pages/galerie', ['lang' => $lang, 'photos' => $photos]);
     }

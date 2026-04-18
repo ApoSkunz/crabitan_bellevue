@@ -52,7 +52,10 @@ $isEn   = isset($lang) && $lang === 'en';
 
     <section id="gallery-container" class="gallery-grid container"
              aria-label="<?= htmlspecialchars(__('gallery.title')) ?>">
-        <?php foreach ($photos as $item) : ?>
+        <?php foreach ($photos as $idx => $item) :
+            $w = (int) ($item['width']  ?? 0);
+            $h = (int) ($item['height'] ?? 0);
+            ?>
             <button type="button"
                     class="gallery-item js-gallery-open"
                     data-src="<?= htmlspecialchars($item['src'], ENT_QUOTES) ?>"
@@ -60,8 +63,9 @@ $isEn   = isset($lang) && $lang === 'en';
                     aria-label="<?= htmlspecialchars(__('gallery.enlarge') . ' : ' . $item['alt'], ENT_QUOTES) ?>">
                 <img src="<?= htmlspecialchars($item['src'], ENT_QUOTES) ?>"
                      alt="<?= htmlspecialchars($item['alt'], ENT_QUOTES) ?>"
-                     loading="lazy"
-                     class="gallery-item__img">
+                     <?= $idx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
+                     class="gallery-item__img"
+                     <?= $w > 0 ? 'width="' . $w . '" height="' . $h . '"' : '' ?>>
             </button>
         <?php endforeach; ?>
     </section>
