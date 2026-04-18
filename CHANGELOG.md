@@ -2,6 +2,45 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [0.89.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.88.1...v0.89.0) (2026-04-18)
+
+
+* feat!: release v1.0.0 — chiffrement AES-256-GCM adresses + CronController IONOS ([9c3387c](https://github.com/ApoSkunz/crabitan_bellevue/commit/9c3387c5a69bad103112c67cf47ab883781e4c89))
+
+
+### Bug Fixes
+
+* **a11y:** skip-link + ARIA i18n labels — WCAG 2.1 A / RGAA 12.7 ([2485302](https://github.com/ApoSkunz/crabitan_bellevue/commit/2485302750b4e72cdef3d49ac109039b2f0e778b)), closes [#main-content](https://github.com/ApoSkunz/crabitan_bellevue/issues/main-content)
+* **ci:** supply chain — SHA épinglés e2e/mutation, persist-credentials release ([adbe64c](https://github.com/ApoSkunz/crabitan_bellevue/commit/adbe64cca9453f714b9cbf97742f47427cb7fd5d))
+* **lgh:** CGV — rétractation, livraison, carton, N° commande ([d5c4600](https://github.com/ApoSkunz/crabitan_bellevue/commit/d5c4600f2f3f31756740cc848465f23a4df7950d))
+* **quality:** resolve 2 SonarCloud code smells ([9912938](https://github.com/ApoSkunz/crabitan_bellevue/commit/99129381175e6059b0f83789b0483a1200cf6c61)), closes [#fff](https://github.com/ApoSkunz/crabitan_bellevue/issues/fff) [#080808](https://github.com/ApoSkunz/crabitan_bellevue/issues/080808) [#c9a84c](https://github.com/ApoSkunz/crabitan_bellevue/issues/c9a84c)
+* **rgpd:** politique confidentialité — retrait Apple, tableau cookies CNIL 2020-091 ([f47f380](https://github.com/ApoSkunz/crabitan_bellevue/commit/f47f38053864ae9c528c8a0c33b75cf26121ece2))
+* **security:** durcissement auth — révocation JWT, session fixation, rate limit, URI ([1824299](https://github.com/ApoSkunz/crabitan_bellevue/commit/1824299a9ea3b042386bde193eaef8b2267ac3ce))
+* **security:** protéger storage/ par .htaccess Require all denied ([355d791](https://github.com/ApoSkunz/crabitan_bellevue/commit/355d791feec84b8d0223ac150420473962602a46))
+* **stock:** bloquer alertes stock bas sur vins non commercialisés ([b1b1604](https://github.com/ApoSkunz/crabitan_bellevue/commit/b1b16043913a36751642c2b07b5dac7848819f8a))
+* **ux:** checkout récapitulatif collapsible mobile + emails bilingues ([fa92b64](https://github.com/ApoSkunz/crabitan_bellevue/commit/fa92b64c609f0ada88a19dff0c88a32a0c4948cd))
+
+
+### Features
+
+* **cron:** purge tokens notation commande + route HTTP IONOS ([b0f1cd0](https://github.com/ApoSkunz/crabitan_bellevue/commit/b0f1cd04111af282165d9bde2a80b57477acb790))
+
+
+### BREAKING CHANGES
+
+* Les colonnes addresses.street, addresses.phone,
+order_address_snapshots.street et order_address_snapshots.phone passent
+de VARCHAR à TEXT et sont chiffrées AES-256-GCM (format ENC:<base64>).
+Migration obligatoire avant mise en service :
+  1. mysql … < database/migrations/db_crabitan_mig_002.sql
+  2. php private-docs/PTI/1.0.0/encrypt_existing_addresses.php …
+Toute lecture des adresses sans déchiffrement retournera des données illisibles.
+* CronController HTTP GET requis — les 14 jobs cron sont
+désormais exposés via /cron/{job}?token=CRON_SECRET_TOKEN (IONOS mutualisé).
+CRON_SECRET_TOKEN obligatoire dans .env.
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ## [0.88.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.88.0...v0.88.1) (2026-04-17)
 
 # [0.88.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v0.87.1...v0.88.0) (2026-04-17)
