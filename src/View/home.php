@@ -138,7 +138,7 @@ $carouselSlides = [
                 <picture>
                     <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $featuredWine['image_path'])) ?>" type="image/webp">
                     <img
-                        src="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
+                        src="/assets/images/wines/<?= rawurlencode($featuredWine['image_path']) ?>"
                         alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"
                         fetchpriority="high"
                         width="400"
@@ -178,7 +178,7 @@ $carouselSlides = [
                         data-wine-id="<?= (int) $featuredWine['id'] ?>"
                         data-wine-name="<?= htmlspecialchars($featuredWine['label_name'] . ' ' . $featuredWine['vintage']) ?>"
                         data-wine-price="<?= htmlspecialchars(number_format((float) $featuredWine['price'], 2, ',', ' ') . ' €') ?>"
-                        data-wine-image="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
+                        data-wine-image="/assets/images/wines/<?= rawurlencode($featuredWine['image_path']) ?>"
                         data-wine-cuvee="<?= !empty($featuredWine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                     >
                         <svg width="14" height="14" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5h2l1.5 7.5h7l1.5-5H4.5"/><circle cx="6.5" cy="12.5" r="1" fill="currentColor" stroke="none"/><circle cx="11.5" cy="12.5" r="1" fill="currentColor" stroke="none"/></svg>

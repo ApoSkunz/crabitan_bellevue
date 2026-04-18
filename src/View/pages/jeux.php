@@ -74,7 +74,7 @@ $pairCount = count($wines ?? []);
                         <span class="memo-card__back" aria-hidden="true"></span>
                         <span class="memo-card__front">
                             <img
-                                src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                                src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
                                 alt="<?= htmlspecialchars($wine['label_name']) ?>"
                                 loading="lazy"
                                 width="120"

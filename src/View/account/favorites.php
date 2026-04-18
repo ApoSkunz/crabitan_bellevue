@@ -28,7 +28,7 @@ require_once __DIR__ . '/../partials/header.php';
                                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>">
                                     <img
                                         class="account-favorite-card__img"
-                                        src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                                        src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
                                         alt="<?= htmlspecialchars($wine['name']) ?>"
                                         loading="lazy"
                                         width="120"
@@ -63,7 +63,7 @@ require_once __DIR__ . '/../partials/header.php';
                                             data-wine-id="<?= (int) $wine['wine_id'] ?>"
                                             data-wine-name="<?= htmlspecialchars($wine['name'] . ' ' . (int) $wine['vintage']) ?>"
                                             data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
-                                            data-wine-image="/assets/images/wines/<?= htmlspecialchars((string) $wine['image_path']) ?>"
+                                            data-wine-image="/assets/images/wines/<?= rawurlencode((string) $wine['image_path']) ?>"
                                             data-wine-cuvee="<?= !empty($wine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                                             data-stock="<?= (int) ($wine['stock_quantity'] ?? 0) ?>"
                                             aria-label="<?= htmlspecialchars(__('wine.add_to_cart') . ' : ' . $wine['name']) ?>"

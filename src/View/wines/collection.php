@@ -175,7 +175,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                     <picture>
                                         <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
                                         <img
-                                            src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                                            src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
                                             alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                                             class="wine-card__image"
                                             <?= $wineIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
@@ -242,7 +242,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                                 data-wine-id="<?= (int) $wine['id'] ?>"
                                                 data-wine-name="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                                                 data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
-                                                data-wine-image="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
+                                                data-wine-image="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
                                                 data-wine-cuvee="<?= !empty($wine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                                                 data-stock="<?= (int) $wine['stock_quantity'] ?>"
                                                 aria-label="<?= htmlspecialchars(__('wine.add_to_cart') . ' : ' . $wine['label_name']) ?>"

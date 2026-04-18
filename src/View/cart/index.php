@@ -350,7 +350,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                    class="cart-empty-wine__card">
                     <?php
                         $featuredImagePath = (string)($featuredWine['image_path'] ?? '');
-                        $featuredImage     = WINE_IMG_BASE . htmlspecialchars($featuredImagePath);
+                        $featuredImage     = WINE_IMG_BASE . rawurlencode($featuredImagePath);
                         $featuredImageWebp = WINE_IMG_BASE . rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $featuredImagePath));
                     ?>
                     <picture>
@@ -371,7 +371,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                    class="cart-empty-wine__card">
                     <?php
                         $randomImagePath = (string)($randomWine['image_path'] ?? '');
-                        $wineImage       = WINE_IMG_BASE . htmlspecialchars($randomImagePath);
+                        $wineImage       = WINE_IMG_BASE . rawurlencode($randomImagePath);
                         $wineImageWebp   = WINE_IMG_BASE . rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $randomImagePath));
                     ?>
                     <picture>
@@ -437,7 +437,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                class="cart-empty-wine__card">
                 <?php
                     $guestImagePath = (string)($randomWine['image_path'] ?? '');
-                    $wineImage      = WINE_IMG_BASE . htmlspecialchars($guestImagePath);
+                    $wineImage      = WINE_IMG_BASE . rawurlencode($guestImagePath);
                     $wineImageWebp  = WINE_IMG_BASE . rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $guestImagePath));
                 ?>
                 <picture>
@@ -468,7 +468,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                 $cwName    = htmlspecialchars((string) ($cw['label_name'] ?? ''));
                 $cwVintage = (int) ($cw['vintage'] ?? 0);
                 $cwPrice   = (float) ($cw['price'] ?? 0.0);
-                $cwImage   = htmlspecialchars((string) ($cw['image_path'] ?? ''));
+                $cwImage   = rawurlencode((string) ($cw['image_path'] ?? ''));
                 $cwId      = (int) ($cw['id'] ?? 0);
                 $cwCuvee   = !empty($cw['is_cuvee_speciale']);
             ?>

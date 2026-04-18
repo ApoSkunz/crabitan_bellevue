@@ -19,7 +19,7 @@ $fallbackWineImg = '/assets/images/gallery/apercu-vins.jpg';
  */
 $wineImg = static function (?array $wine, string $fallback): string {
     return ($wine !== null && !empty($wine['image_path']))
-        ? '/assets/images/wines/' . htmlspecialchars($wine['image_path'])
+        ? '/assets/images/wines/' . rawurlencode($wine['image_path'])
         : $fallback;
 };
 /** Retourne le srcset WebP d'une image de vin (même token, extension .webp). */
