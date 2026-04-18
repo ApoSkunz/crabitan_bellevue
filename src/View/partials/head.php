@@ -32,6 +32,11 @@
     <script type="application/ld+json" nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>"><?= $jsonLd ?></script>
 <?php endif; ?>
     <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
+<?php if (!empty($preloadCarousel)) : ?>
+    <link rel="preload" as="image"
+          imagesrcset="/assets/images/carousel/vignoble-ete-800w.webp 800w, /assets/images/carousel/vignoble-ete-1600w.webp 1600w"
+          imagesizes="100vw">
+<?php endif; ?>
     <link rel="stylesheet" href="/assets/css/main.css">
     <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">window.__appDebug = <?= (defined('APP_ENV') && APP_ENV === 'development') ? 'true' : 'false' ?>;</script>
 

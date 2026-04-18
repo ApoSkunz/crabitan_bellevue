@@ -104,6 +104,7 @@ class CartController extends Controller
 
         $this->view('cart/index', [
             'lang'             => $lang,
+            'metaDescription'  => $lang === 'en' ? 'Your cart — Château Crabitan Bellevue.' : 'Votre panier — Château Crabitan Bellevue.',
             'removedCount'     => $removedCount,
             'cartItems'        => $cartItems,
             'isAuth'           => $isAuth,
