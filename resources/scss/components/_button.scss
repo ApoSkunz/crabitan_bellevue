@@ -59,12 +59,6 @@
         }
     }
 
-    // Mode jour — texte blanc sur fond doré foncé (#7a611e) → WCAG AA 5.93:1
-    [data-theme='light'] &--gold:hover,
-    [data-theme='light'] &--primary:hover {
-        color: #ffffff;
-    }
-
     // Variante fantôme clair
     &--ghost {
         background-color: transparent;
