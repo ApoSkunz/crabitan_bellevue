@@ -22,13 +22,16 @@ require_once SRC_PATH . '/View/partials/header.php';
     <section class="home-section" id="vignoble">
         <div class="home-section__inner container">
             <div class="home-section__visual">
-                <img
-                    src="/assets/images/carousel/vignoble-ete.jpg"
-                    alt="<?= htmlspecialchars(__('savoir.img_vignoble_alt')) ?>"
-                    fetchpriority="high"
-                    width="600"
-                    height="400"
-                >
+                <picture>
+                    <source srcset="/assets/images/carousel/vignoble-ete-800w.webp" type="image/webp">
+                    <img
+                        src="/assets/images/carousel/vignoble-ete-800w.jpg"
+                        alt="<?= htmlspecialchars(__('savoir.img_vignoble_alt')) ?>"
+                        fetchpriority="high"
+                        width="600"
+                        height="400"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('savoir.vignoble_tag')) ?></span>
@@ -43,13 +46,16 @@ require_once SRC_PATH . '/View/partials/header.php';
     <section class="home-section home-section--dark" id="vinification">
         <div class="home-section__inner container home-section__inner--reverse">
             <div class="home-section__visual">
-                <img
-                    src="/assets/images/carousel/raisins-recolte.jpg"
-                    alt="<?= htmlspecialchars(__('savoir.img_vinif_alt')) ?>"
-                    loading="lazy"
-                    width="600"
-                    height="400"
-                >
+                <picture>
+                    <source srcset="/assets/images/carousel/raisins-recolte-800w.webp" type="image/webp">
+                    <img
+                        src="/assets/images/carousel/raisins-recolte-800w.jpg"
+                        alt="<?= htmlspecialchars(__('savoir.img_vinif_alt')) ?>"
+                        loading="lazy"
+                        width="600"
+                        height="400"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('savoir.vinif_tag')) ?></span>
@@ -64,13 +70,16 @@ require_once SRC_PATH . '/View/partials/header.php';
     <section class="home-section" id="elevage">
         <div class="home-section__inner container">
             <div class="home-section__visual">
-                <img
-                    src="/assets/images/gallery/chai-barriques.jpg"
-                    alt="<?= htmlspecialchars(__('savoir.img_elevage_alt')) ?>"
-                    loading="lazy"
-                    width="600"
-                    height="400"
-                >
+                <picture>
+                    <source srcset="/assets/images/gallery/chai-barriques-600w.webp" type="image/webp">
+                    <img
+                        src="/assets/images/gallery/chai-barriques-600w.jpg"
+                        alt="<?= htmlspecialchars(__('savoir.img_elevage_alt')) ?>"
+                        loading="lazy"
+                        width="600"
+                        height="400"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('savoir.elevage_tag')) ?></span>

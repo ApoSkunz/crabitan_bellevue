@@ -131,13 +131,28 @@ $carouselSlides = [
     <section class="home-section home-section--featured home-section--dark" id="vin-du-moment">
         <div class="home-section__inner container">
             <div class="home-section__visual">
-                <img
-                    src="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
-                    alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"
-                    fetchpriority="high"
-                    width="400"
-                    height="600"
-                >
+                <?php
+                $fwBase = preg_replace('/\.[^.]+$/', '', $featuredWine['image_path']);
+                $fwExt  = strtolower(pathinfo($featuredWine['image_path'], PATHINFO_EXTENSION));
+                ?>
+                <picture>
+                    <source
+                        srcset="/assets/images/wines/<?= htmlspecialchars($fwBase) ?>-300w.webp 300w,
+                                /assets/images/wines/<?= htmlspecialchars($fwBase) ?>-600w.webp 600w"
+                        type="image/webp"
+                        sizes="(max-width: 480px) 300px, 400px"
+                    >
+                    <img
+                        src="/assets/images/wines/<?= htmlspecialchars($featuredWine['image_path']) ?>"
+                        srcset="/assets/images/wines/<?= htmlspecialchars($fwBase) ?>-300w.<?= $fwExt ?> 300w,
+                                /assets/images/wines/<?= htmlspecialchars($fwBase) ?>-600w.<?= $fwExt ?> 600w"
+                        sizes="(max-width: 480px) 300px, 400px"
+                        alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"
+                        fetchpriority="high"
+                        width="400"
+                        height="600"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('home.featured_tag')) ?></span>
@@ -190,13 +205,16 @@ $carouselSlides = [
     <section class="home-section home-section--wines" id="nos-vins">
         <div class="home-section__inner container">
             <div class="home-section__visual">
-                <img
-                    src="/assets/images/gallery/apercu-vins.jpg"
-                    alt="<?= htmlspecialchars(__('home.img_wines_alt')) ?>"
-                    loading="lazy"
-                    width="600"
-                    height="400"
-                >
+                <picture>
+                    <source srcset="/assets/images/gallery/apercu-vins-600w.webp" type="image/webp">
+                    <img
+                        src="/assets/images/gallery/apercu-vins-600w.jpg"
+                        alt="<?= htmlspecialchars(__('home.img_wines_alt')) ?>"
+                        loading="lazy"
+                        width="600"
+                        height="400"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('home.wines_tag')) ?></span>
@@ -225,13 +243,16 @@ $carouselSlides = [
                 </a>
             </div>
             <div class="home-section__visual home-section__visual--vintage">
-                <img
-                    src="/assets/images/gallery/vendanges-cheval.jpg"
-                    alt="<?= htmlspecialchars(__('home.img_harvest_alt')) ?>"
-                    loading="lazy"
-                    width="600"
-                    height="400"
-                >
+                <picture>
+                    <source srcset="/assets/images/gallery/vendanges-cheval-600w.webp" type="image/webp">
+                    <img
+                        src="/assets/images/gallery/vendanges-cheval-600w.jpg"
+                        alt="<?= htmlspecialchars(__('home.img_harvest_alt')) ?>"
+                        loading="lazy"
+                        width="600"
+                        height="400"
+                    >
+                </picture>
             </div>
         </div>
     </section>
@@ -242,13 +263,16 @@ $carouselSlides = [
     <section class="home-section home-section--savoir" id="savoir-faire">
         <div class="home-section__inner container">
             <div class="home-section__visual">
-                <img
-                    src="/assets/images/gallery/chai-barriques.jpg"
-                    alt="<?= htmlspecialchars(__('home.img_cellar_alt')) ?>"
-                    loading="lazy"
-                    width="600"
-                    height="400"
-                >
+                <picture>
+                    <source srcset="/assets/images/gallery/chai-barriques-600w.webp" type="image/webp">
+                    <img
+                        src="/assets/images/gallery/chai-barriques-600w.jpg"
+                        alt="<?= htmlspecialchars(__('home.img_cellar_alt')) ?>"
+                        loading="lazy"
+                        width="600"
+                        height="400"
+                    >
+                </picture>
             </div>
             <div class="home-section__content">
                 <span class="home-section__tag"><?= htmlspecialchars(__('home.savoir_tag')) ?></span>
