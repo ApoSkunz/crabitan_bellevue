@@ -12,7 +12,7 @@ $ogTitle     = $brandName;
 $ogDescription = $metaDescription;
 $ogUrl       = $canonical;
 $ogType      = 'website';
-$ogImage     = $appUrl . '/assets/images/carousel/vignoble-ete.jpg';
+$ogImage     = $appUrl . '/assets/images/carousel/vignoble-ete-1600w.jpg';
 $jsonLd      = json_encode([
     '@context' => 'https://schema.org',
     '@graph'   => [
@@ -43,26 +43,11 @@ require_once SRC_PATH . '/View/partials/header.php';
 
 
 $carouselSlides = [
-    [
-        'image' => '/assets/images/carousel/vignoble-ete.jpg',
-        'alt'   => __('home.carousel_alt') . ' — été',
-    ],
-    [
-        'image' => '/assets/images/carousel/vignoble-automne.jpg',
-        'alt'   => __('home.carousel_alt') . ' — automne',
-    ],
-    [
-        'image' => '/assets/images/carousel/raisins-recolte.jpg',
-        'alt'   => __('home.carousel_alt') . ' — récolte',
-    ],
-    [
-        'image' => '/assets/images/carousel/vignoble-allee.jpg',
-        'alt'   => __('home.carousel_alt') . ' — allée',
-    ],
-    [
-        'image' => '/assets/images/carousel/vignoble-hiver.jpg',
-        'alt'   => __('home.carousel_alt') . ' — hiver',
-    ],
+    ['base' => 'vignoble-ete',    'suffix' => 'été'],
+    ['base' => 'vignoble-automne','suffix' => 'automne'],
+    ['base' => 'raisins-recolte', 'suffix' => 'récolte'],
+    ['base' => 'vignoble-allee',  'suffix' => 'allée'],
+    ['base' => 'vignoble-hiver',  'suffix' => 'hiver'],
 ];
 ?>
 
@@ -74,14 +59,32 @@ $carouselSlides = [
     <section class="hero-carousel" aria-label="<?= htmlspecialchars(__('home.carousel_title')) ?>">
         <div class="carousel" id="hero-carousel">
             <div class="carousel__track" aria-live="polite">
-                <?php foreach ($carouselSlides as $i => $slide) : ?>
+                <?php foreach ($carouselSlides as $i => $slide) :
+                    $alt  = htmlspecialchars(__('home.carousel_alt') . ' — ' . $slide['suffix']);
+                    $base = '/assets/images/carousel/' . $slide['base'];
+                    ?>
                     <div
                         class="carousel__slide<?= $i === 0 ? ' is-active' : '' ?>"
                         aria-hidden="<?= $i === 0 ? 'false' : 'true' ?>"
-                        role="img" <?php // NOSONAR — background-image CSS, <img> impossible ici ?>
-                        aria-label="<?= htmlspecialchars($slide['alt']) ?>"
-                        style="background-image:url('<?= htmlspecialchars($slide['image']) ?>')"
-                    ></div>
+                    >
+                        <picture>
+                            <source
+                                type="image/webp"
+                                srcset="<?= $base ?>-800w.webp 800w, <?= $base ?>-1600w.webp 1600w"
+                                sizes="100vw"
+                            >
+                            <img
+                                src="<?= $base ?>-1600w.jpg"
+                                srcset="<?= $base ?>-800w.jpg 800w, <?= $base ?>-1600w.jpg 1600w"
+                                sizes="100vw"
+                                alt="<?= $alt ?>"
+                                class="carousel__slide-img"
+                                <?= $i === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
+                                width="1600"
+                                height="1067"
+                            >
+                        </picture>
+                    </div>
                 <?php endforeach; ?>
             </div>
 
