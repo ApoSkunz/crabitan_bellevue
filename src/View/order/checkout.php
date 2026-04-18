@@ -393,7 +393,14 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                     <div class="checkout-card">
                         <button type="button" class="checkout-summary__toggle" aria-expanded="false" aria-controls="checkout-summary-details">
                             <span class="checkout-summary__toggle-label">
-                                <?= $totalQty ?> <?= htmlspecialchars($isEn ? ($totalQty > 1 ? 'bottles' : 'bottle') : ($totalQty > 1 ? 'bouteilles' : 'bouteille')) ?>
+                                <?php
+                            if ($isEn) {
+                                $bottleLabel = $totalQty > 1 ? 'bottles' : 'bottle';
+                            } else {
+                                $bottleLabel = $totalQty > 1 ? 'bouteilles' : 'bouteille';
+                            }
+                            ?>
+                            <?= $totalQty ?> <?= htmlspecialchars($bottleLabel) ?>
                                 — <?= number_format($total, 2, ',', ' ') ?>&nbsp;€
                             </span>
                             <span class="checkout-summary__toggle-chevron" aria-hidden="true">▼</span>
