@@ -159,7 +159,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                 <div class="home-section__divider"></div>
 
                 <div class="wines-grid wines-grid--collection">
-                    <?php foreach ($groupWines as $wine) :
+                    <?php foreach ($groupWines as $wineIdx => $wine) :
                         $comment     = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
                         $description = $comment[$navLang] ?? ($comment['fr'] ?? '');
                         $awardData   = ['fr' => $wine['award_fr'] ?? '', 'en' => $wine['award_en'] ?? ''];
@@ -176,7 +176,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                         src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
                                         alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                                         class="wine-card__image"
-                                        loading="lazy"
+                                        <?= $wineIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
                                         width="300"
                                         height="420"
                                     >

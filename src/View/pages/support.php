@@ -77,7 +77,7 @@ if (!$isBare) {
 
 <?php if ($isBare) : ?>
     </div>
-    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/main.js" defer></script>
 </body>
 </html>
 <?php else : ?>

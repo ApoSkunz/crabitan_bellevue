@@ -25,7 +25,7 @@ require_once SRC_PATH . '/View/partials/header.php';
                 <img
                     src="/assets/images/gallery/premiere-famille.jpg"
                     alt="<?= htmlspecialchars(__('chateau.img_origins_alt')) ?>"
-                    loading="lazy"
+                    fetchpriority="high"
                     width="600"
                     height="400"
                 >

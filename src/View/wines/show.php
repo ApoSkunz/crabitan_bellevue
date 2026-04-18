@@ -87,7 +87,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                         class="wine-detail__image js-wine-zoom"
                         width="400"
                         height="560"
-                        loading="lazy"
+                        fetchpriority="high"
                         title="<?= htmlspecialchars(__('wine.zoom')) ?>"
                     >
                     <span class="wine-detail__zoom-hint" aria-hidden="true">&#128269;</span>

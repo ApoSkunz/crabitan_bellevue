@@ -114,7 +114,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                 <p class="wines-catalog__empty"><?= htmlspecialchars(__('wine.empty')) ?></p>
             <?php else : ?>
                 <div class="wines-grid">
-                    <?php foreach ($wines as $wine) :
+                    <?php foreach ($wines as $wineIdx => $wine) :
                         $comment     = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
                         $description = $comment[$navLang] ?? ($comment['fr'] ?? '');
                         $awardData   = ['fr' => $wine['award_fr'] ?? '', 'en' => $wine['award_en'] ?? ''];
@@ -132,7 +132,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                                         src="/assets/images/wines/<?= htmlspecialchars($wine['image_path']) ?>"
                                         alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                                         class="wine-card__image"
-                                        loading="lazy"
+                                        <?= $wineIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
                                         width="300"
                                         height="420"
                                     >
