@@ -27,6 +27,8 @@ $pricingRules     = $pricingRules     ?? [];
 $crossSellWines   = $crossSellWines   ?? [];
 $featuredWine     = $featuredWine     ?? null;
 $removedCount     = (int) ($removedCount ?? 0);
+/** @var callable(string): string $toWebp */
+$toWebp = static fn(string $p): string => (string) preg_replace('/\.[^.]+$/', '.webp', $p);
 ?>
 
 <?php $checkoutStep = 1; require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S2003 : require intentionnel, le partiel est chargé plusieurs fois (vues + tests isolation) ?>
@@ -351,7 +353,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                     <?php
                         $featuredImagePath = (string)($featuredWine['image_path'] ?? '');
                         $featuredImage     = WINE_IMG_BASE . rawurlencode($featuredImagePath);
-                        $featuredImageWebp = WINE_IMG_BASE . rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $featuredImagePath));
+                        $featuredImageWebp = WINE_IMG_BASE . rawurlencode($toWebp($featuredImagePath));
                     ?>
                     <picture>
                         <source srcset="<?= $featuredImageWebp ?>" type="image/webp">
@@ -372,7 +374,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                     <?php
                         $randomImagePath = (string)($randomWine['image_path'] ?? '');
                         $wineImage       = WINE_IMG_BASE . rawurlencode($randomImagePath);
-                        $wineImageWebp   = WINE_IMG_BASE . rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $randomImagePath));
+                        $wineImageWebp   = WINE_IMG_BASE . rawurlencode($toWebp($randomImagePath));
                     ?>
                     <picture>
                         <source srcset="<?= $wineImageWebp ?>" type="image/webp">
@@ -438,7 +440,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                 <?php
                     $guestImagePath = (string)($randomWine['image_path'] ?? '');
                     $wineImage      = WINE_IMG_BASE . rawurlencode($guestImagePath);
-                    $wineImageWebp  = WINE_IMG_BASE . rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $guestImagePath));
+                    $wineImageWebp  = WINE_IMG_BASE . rawurlencode($toWebp($guestImagePath));
                 ?>
                 <picture>
                     <source srcset="<?= $wineImageWebp ?>" type="image/webp">
@@ -477,7 +479,7 @@ $removedCount     = (int) ($removedCount ?? 0);
                    class="wine-card__inner"
                    aria-label="<?= $cwName ?>">
                     <div class="wine-card__image-wrap">
-                        <?php $cwWebp = rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', (string) ($cw['image_path'] ?? ''))); ?>
+                        <?php $cwWebp = rawurlencode($toWebp((string) ($cw['image_path'] ?? ''))); ?>
                         <picture>
                             <source srcset="/assets/images/wines/<?= $cwWebp ?>" type="image/webp">
                             <img src="/assets/images/wines/<?= $cwImage ?>"
