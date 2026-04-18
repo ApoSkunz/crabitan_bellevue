@@ -37,6 +37,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Patch nested vulnerabilities in @semantic-release/npm bundle
+        # brace-expansion + picomatch sont bundlés dans node_modules/npm (via @semantic-release/npm).
+        # Inaccessibles via package.json overrides — on écrase directement les versions vulnérables.
+        run: |
+          (cd node_modules/npm && npm install brace-expansion@'^2.0.3' --no-save --ignore-scripts --no-audit 2>/dev/null) || true
+          (cd node_modules/npm/node_modules/tinyglobby && npm install picomatch@'^4.0.4' --no-save --ignore-scripts --no-audit 2>/dev/null) || true
+
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
