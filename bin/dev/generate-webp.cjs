@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 /**
- * Génère des variantes WebP + redimensionnées pour toutes les images statiques.
+ * Génère des variantes WebP + redimensionnées pour les images statiques.
  *
  * Usage : node bin/dev/generate-webp.js
  *
  * Dossiers traités :
- *   public/assets/images/wines/    → variantes 300w, 600w (PNG + WebP)
  *   public/assets/images/carousel/ → variantes 800w, 1600w (JPEG + WebP)
  *   public/assets/images/gallery/  → variantes 600w, 1200w (JPEG + WebP)
  *
@@ -20,12 +19,6 @@ const path  = require('path');
 const ROOT = path.resolve(__dirname, '../../public/assets/images');
 
 const JOBS = [
-    {
-        dir:    path.join(ROOT, 'wines'),
-        exts:   ['.png'],
-        widths: [300, 600],
-        quality: { webp: 82, jpg: 85, png: 9 },
-    },
     {
         dir:    path.join(ROOT, 'carousel'),
         exts:   ['.jpg', '.jpeg'],
