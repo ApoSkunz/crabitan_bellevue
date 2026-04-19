@@ -213,17 +213,23 @@
     }
 
     &--out-of-stock {
-        opacity: 0.75;
-
         // Désactiver le lift au hover — produit non dispo ne doit pas sembler interactif
         &:hover {
             transform: none;
             border-color: var(--color-border);
         }
 
-        .wine-card__image {
-            filter: blur(2px) grayscale(50%);
+        .wine-card__image-wrap {
+            &::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.45);
+                pointer-events: none;
+            }
+        }
 
+        .wine-card__image {
             // Annuler le scale hover (hérité de .wine-card:hover .wine-card__image)
             .wine-card:hover & {
                 transform: none;
