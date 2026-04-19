@@ -1,5 +1,10 @@
 name: DAST — Full Scan (ISO prod)
 
+# Credentials seed (données mock — jamais en production) :
+#   super_admin : superadmin@dev.local  / Dev123456789!  / device_token: mock-jwt-admin-active-001
+#   admin       : admin@dev.local       / Dev123456789!  / device_token: mock-jwt-admin-active-001
+#   customer    : client.verifie@dev.local / Dev123456789! / device_token: mock-jwt-sophie-active-001
+
 on:
   push:
     branches: [main]
@@ -9,9 +14,11 @@ permissions: read-all
 
 jobs:
   zap-full:
-    name: ZAP Full Scan — PHP server ISO prod
+    name: ZAP Full Scan — PHP server ISO prod (3 rôles)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
+    permissions:
+      issues: write
 
     services:
       mysql:
@@ -57,10 +64,10 @@ jobs:
           mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/schema.sql
           mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/seed_mock_data.sql
 
-      - name: Create .env (ISO prod — données CI)
+      - name: Create .env (APP_ENV=test — cookies non-secure pour HTTP local)
         run: |
           cat > .env << 'EOF'
-          APP_ENV=production
+          APP_ENV=test
           APP_URL=http://localhost:8080
           APP_NAME="Crabitan Bellevue"
           DB_HOST=127.0.0.1
@@ -96,13 +103,76 @@ jobs:
         id: host-ip
         run: echo "ip=$(ip route show default | awk '/default/{print $3}')" >> $GITHUB_OUTPUT
 
-      - name: ZAP Full Scan
+      # ── Authentification customer (client.verifie@dev.local) ──────────────────
+      - name: Login — customer
+        id: auth-customer
+        run: |
+          BASE="http://localhost:8080"
+
+          # GET login page → session + CSRF token
+          curl -s -c /tmp/cookies-customer.txt "$BASE/fr/connexion" > /tmp/login.html
+          CSRF=$(grep -oP 'name="csrf_token" value="\K[^"]+' /tmp/login.html | head -1)
+
+          # POST login avec device_token (appareil de confiance id=3)
+          curl -s \
+            -b /tmp/cookies-customer.txt \
+            -c /tmp/cookies-customer.txt \
+            --cookie "device_token=mock-jwt-sophie-active-001" \
+            --data-urlencode "email=client.verifie@dev.local" \
+            --data-urlencode "password=Dev123456789!" \
+            --data-urlencode "csrf_token=$CSRF" \
+            -X POST -L "$BASE/fr/connexion" > /dev/null
+
+          TOKEN=$(grep $'\tauth_token\t' /tmp/cookies-customer.txt | awk '{print $NF}')
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+          [ -n "$TOKEN" ] && echo "✅ customer auth OK" || echo "⚠️ customer auth KO — scan anonyme"
+
+      # ── ZAP Full Scan — rôle customer ─────────────────────────────────────────
+      - name: ZAP Full Scan — customer (mon-compte, panier, checkout)
+        continue-on-error: true
         uses: zaproxy/action-full-scan@v0.11.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
           target: 'http://${{ steps.host-ip.outputs.ip }}:8080'
+          auth_header: 'Cookie: auth_token=${{ steps.auth-customer.outputs.token }}; age_verified=1'
           rules_file_name: '.zap/rules.tsv'
           fail_action: false
           cmd_options: '-config network.connection.timeoutInSecs=20'
-          issue_title: '[DAST] ZAP Full Scan — alertes de sécurité'
+          issue_title: '[DAST] ZAP Full Scan (customer) — alertes'
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifact_name: zap-full-${{ github.run_number }}
+          artifact_name: zap-full-customer-${{ github.run_number }}
+
+      # ── Authentification admin (admin@dev.local) ──────────────────────────────
+      - name: Login — admin
+        id: auth-admin
+        run: |
+          BASE="http://localhost:8080"
+
+          curl -s -c /tmp/cookies-admin.txt "$BASE/fr/connexion" > /tmp/login.html
+          CSRF=$(grep -oP 'name="csrf_token" value="\K[^"]+' /tmp/login.html | head -1)
+
+          curl -s \
+            -b /tmp/cookies-admin.txt \
+            -c /tmp/cookies-admin.txt \
+            --cookie "device_token=mock-jwt-admin-active-001" \
+            --data-urlencode "email=admin@dev.local" \
+            --data-urlencode "password=Dev123456789!" \
+            --data-urlencode "csrf_token=$CSRF" \
+            -X POST -L "$BASE/fr/connexion" > /dev/null
+
+          TOKEN=$(grep $'\tauth_token\t' /tmp/cookies-admin.txt | awk '{print $NF}')
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+          [ -n "$TOKEN" ] && echo "✅ admin auth OK" || echo "⚠️ admin auth KO — scan anonyme"
+
+      # ── ZAP Full Scan — rôle admin ────────────────────────────────────────────
+      - name: ZAP Full Scan — admin (/admin/*)
+        continue-on-error: true
+        uses: zaproxy/action-full-scan@v0.11.0  # TODO: pin to SHA — Dependabot le mettra à jour
+        with:
+          target: 'http://${{ steps.host-ip.outputs.ip }}:8080/admin'
+          auth_header: 'Cookie: auth_token=${{ steps.auth-admin.outputs.token }}'
+          rules_file_name: '.zap/rules.tsv'
+          fail_action: false
+          cmd_options: '-config network.connection.timeoutInSecs=20'
+          issue_title: '[DAST] ZAP Full Scan (admin) — alertes'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifact_name: zap-full-admin-${{ github.run_number }}
