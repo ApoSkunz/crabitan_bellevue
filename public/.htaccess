@@ -73,3 +73,9 @@ Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 
 # HSTS — uniquement sur HTTPS (env=HTTPS non défini sur HTTP → header absent en local)
 Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+# Cross-Origin headers
+Header always set Cross-Origin-Opener-Policy "same-origin"
+Header always set Cross-Origin-Resource-Policy "same-origin"
+# COEP (Cross-Origin-Embedder-Policy) intentionnellement absent :
+# require-corp est incompatible avec Google OAuth (iframe cross-origin interdit)
