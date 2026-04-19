@@ -34,7 +34,8 @@
         "phpunit/phpunit": "^13.1.6",
         "phpstan/phpstan": "^2.1",
         "squizlabs/php_codesniffer": "^4.0",
-        "infection/infection": "*"
+        "infection/infection": "*",
+        "cyclonedx/cyclonedx-php-composer": "*"
     },
     "scripts": {
         "mutation": [
