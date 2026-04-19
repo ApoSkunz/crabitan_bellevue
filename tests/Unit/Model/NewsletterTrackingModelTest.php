@@ -207,6 +207,36 @@ class NewsletterTrackingModelTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // getLinkMap()
+    // ----------------------------------------------------------------
+
+    /**
+     * getLinkMap() retourne un tableau url → linkId.
+     */
+    public function testGetLinkMapReturnsUrlToIdMap(): void
+    {
+        $rows = [
+            ['id' => 3, 'url' => 'https://example.com'],
+            ['id' => 7, 'url' => 'https://example.com/page'],
+        ];
+        $this->dbMock->method('fetchAll')->willReturn($rows);
+
+        $map = $this->model->getLinkMap(1);
+
+        $this->assertSame(['https://example.com' => 3, 'https://example.com/page' => 7], $map);
+    }
+
+    /**
+     * getLinkMap() retourne un tableau vide si aucun lien.
+     */
+    public function testGetLinkMapReturnsEmptyWhenNoLinks(): void
+    {
+        $this->dbMock->method('fetchAll')->willReturn([]);
+
+        $this->assertSame([], $this->model->getLinkMap(99));
+    }
+
+    // ----------------------------------------------------------------
     // getLinkStats()
     // ----------------------------------------------------------------
 

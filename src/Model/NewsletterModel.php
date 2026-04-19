@@ -35,16 +35,21 @@ class NewsletterModel extends Model
      * @param string      $bodyEn       Corps EN brut (vide = même que FR)
      * @return int Identifiant de la campagne créée
      */
+    /**
+     * @param array{subject_en?:string,title_en?:string,body_en?:string} $translations EN overrides
+     */
     public function create(
         string $subject,
         ?string $title,
         string $body,
         ?string $imageUrl,
         ?string $segmentLabel = null,
-        string $subjectEn = '',
-        string $titleEn = '',
-        string $bodyEn = ''
+        array $translations = []
     ): int {
+        $subjectEn = $translations['subject_en'] ?? '';
+        $titleEn   = $translations['title_en']   ?? '';
+        $bodyEn    = $translations['body_en']     ?? '';
+
         return (int) $this->db->insert(
             "INSERT INTO {$this->table}
              (subject, title, body, image_url, segment_label, subject_en, title_en, body_en)

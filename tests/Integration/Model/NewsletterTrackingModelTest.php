@@ -128,6 +128,41 @@ class NewsletterTrackingModelTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // getLinkMap()
+    // ----------------------------------------------------------------
+
+    public function testGetLinkMapReturnsUrlToIdMap(): void
+    {
+        $url1   = 'https://example.com/a';
+        $url2   = 'https://example.com/b';
+        $linkId1 = $this->model->saveLink($this->newsletterId, $url1);
+        $linkId2 = $this->model->saveLink($this->newsletterId, $url2);
+
+        $map = $this->model->getLinkMap($this->newsletterId);
+
+        $this->assertArrayHasKey($url1, $map);
+        $this->assertArrayHasKey($url2, $map);
+        $this->assertSame($linkId1, $map[$url1]);
+        $this->assertSame($linkId2, $map[$url2]);
+    }
+
+    public function testGetLinkMapReturnsEmptyForCampaignWithNoLinks(): void
+    {
+        $this->assertSame([], $this->model->getLinkMap($this->newsletterId));
+    }
+
+    public function testGetLinkMapIgnoresOtherCampaigns(): void
+    {
+        $otherId = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_count, failed_count, sent_at) VALUES (?, ?, 0, 0, NOW())",
+            ['Other', 'Body']
+        );
+        $this->model->saveLink($otherId, 'https://other.com');
+
+        $this->assertSame([], $this->model->getLinkMap($this->newsletterId));
+    }
+
+    // ----------------------------------------------------------------
     // getLinkStats()
     // ----------------------------------------------------------------
 

@@ -474,6 +474,30 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // store — stock=0 + available=1 → erreur disponibilité
+    // ----------------------------------------------------------------
+
+    public function testStoreRendersFormWhenStock0AndAvailable1(): void
+    {
+        $_POST['csrf_token']          = self::CSRF_TOKEN;
+        $_POST['appellation']         = 'Bordeaux Rouge';
+        $_POST['vintage']             = '2022';
+        $_POST['price']               = '10.00';
+        $_POST['production_quantity'] = '12';
+        $_POST['stock_quantity']      = '0';
+        $_POST['available']           = '1';
+        $_POST['certification_label'] = 'AOC';
+        $_FILES = [];
+
+        ob_start();
+        $this->makeController('POST')->store([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<form', $output);
+        $this->assertStringContainsString('sans stock', $output);
+    }
+
+    // ----------------------------------------------------------------
     // store — champs JSON requis manquants (FR vide) → erreur champs JSON
     // ----------------------------------------------------------------
 

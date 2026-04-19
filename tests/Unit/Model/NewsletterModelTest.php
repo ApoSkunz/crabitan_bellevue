@@ -132,6 +132,51 @@ class NewsletterModelTest extends TestCase
         $this->model->create('Sujet', '', 'Corps', null);
     }
 
+    /**
+     * create() passe les traductions EN depuis le tableau $translations.
+     */
+    public function testCreatePassesTranslations(): void
+    {
+        $this->dbMock->expects($this->once())
+            ->method('insert')
+            ->with(
+                $this->anything(),
+                $this->callback(fn ($p) =>
+                    $p[5] === 'Subject EN'
+                    && $p[6] === 'Title EN'
+                    && $p[7] === 'Body EN'
+                )
+            )
+            ->willReturn('9');
+
+        $this->model->create(
+            'Sujet FR',
+            'Titre FR',
+            'Corps FR',
+            null,
+            null,
+            ['subject_en' => 'Subject EN', 'title_en' => 'Title EN', 'body_en' => 'Body EN']
+        );
+    }
+
+    /**
+     * create() stocke NULL pour les traductions EN vides.
+     */
+    public function testCreateStoresNullForEmptyTranslations(): void
+    {
+        $this->dbMock->expects($this->once())
+            ->method('insert')
+            ->with(
+                $this->anything(),
+                $this->callback(fn ($p) =>
+                    $p[5] === null && $p[6] === null && $p[7] === null
+                )
+            )
+            ->willReturn('10');
+
+        $this->model->create('Sujet', null, 'Corps', null);
+    }
+
     // ----------------------------------------------------------------
     // updateStats()
     // ----------------------------------------------------------------

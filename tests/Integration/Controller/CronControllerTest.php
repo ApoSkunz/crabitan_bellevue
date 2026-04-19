@@ -465,4 +465,111 @@ class CronControllerTest extends IntegrationTestCase
         );
         $this->assertFalse($row);
     }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-queue — vin existant, SMTP fail → markFailed + log ERR
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterQueueWineSmtpFailDeletesRow(): void
+    {
+        $wineId = self::insertTestWine('cron-smtp-fail', 'red', 'Vin SMTP Fail');
+
+        $nlId = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_at) VALUES (?, '<p>Test</p>', NOW())",
+            ['Test wine smtp fail']
+        );
+
+        self::$db->execute(
+            'INSERT INTO newsletter_send_queue
+             (newsletter_id, wine_id, recipient_email, recipient_name, unsub_token, lang)
+             VALUES (?, ?, ?, ?, ?, ?)',
+            [$nlId, $wineId, 'winesubsmtp@test.local', 'Abonné SMTP', 'tok-smtp', 'fr']
+        );
+
+        $output = $this->runJob('send-newsletter-queue', dryRun: false);
+
+        $this->assertStringContainsString('ERR', $output);
+
+        $row = self::$db->fetchOne(
+            "SELECT id FROM newsletter_send_queue WHERE recipient_email = 'winesubsmtp@test.local'"
+        );
+        $this->assertFalse($row);
+    }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-queue — admin, campagne introuvable → markFailed + log SKIP
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterQueueAdminMissingCampaignDeletesRow(): void
+    {
+        self::$db->execute(
+            'INSERT INTO newsletter_send_queue
+             (newsletter_id, wine_id, recipient_email, recipient_name, unsub_token, lang)
+             VALUES (?, NULL, ?, ?, ?, ?)',
+            [999999, 'adminnl@test.local', 'Admin Sub', 'tok-adm', 'fr']
+        );
+
+        $output = $this->runJob('send-newsletter-queue', dryRun: false);
+
+        $this->assertStringContainsString('SKIP', $output);
+
+        $row = self::$db->fetchOne(
+            "SELECT id FROM newsletter_send_queue WHERE recipient_email = 'adminnl@test.local'"
+        );
+        $this->assertFalse($row);
+    }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-queue — admin, campagne existante, SMTP fail → ERR + row deleted
+    // Couvre sendAdminQueueItem + buildAdminNewsletterHtml
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterQueueAdminSmtpFailDeletesRow(): void
+    {
+        $nlId = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_at, queued_count) VALUES (?, ?, NOW(), 1)",
+            ['Admin NL SMTP test', '<p>Corps de test avec lien https://crabitanbellevue.fr/fr/vins</p>']
+        );
+
+        self::$db->execute(
+            'INSERT INTO newsletter_send_queue
+             (newsletter_id, wine_id, recipient_email, recipient_name, unsub_token, lang)
+             VALUES (?, NULL, ?, ?, ?, ?)',
+            [$nlId, 'adminnl2@test.local', 'Admin Sub EN', 'tok-adm2', 'en']
+        );
+
+        $output = $this->runJob('send-newsletter-queue', dryRun: false);
+
+        $this->assertStringContainsString('ERR', $output);
+
+        $row = self::$db->fetchOne(
+            "SELECT id FROM newsletter_send_queue WHERE recipient_email = 'adminnl2@test.local'"
+        );
+        $this->assertFalse($row);
+    }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-queue — dry_run admin campaign logs correctly
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterQueueDryRunAdminItemLogs(): void
+    {
+        $nlId = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_at) VALUES (?, '<p>Test</p>', NOW())",
+            ['Admin NL dry run']
+        );
+
+        self::$db->execute(
+            'INSERT INTO newsletter_send_queue
+             (newsletter_id, wine_id, recipient_email, recipient_name, unsub_token, lang)
+             VALUES (?, NULL, ?, ?, ?, ?)',
+            [$nlId, 'dryrun.admin@test.local', 'Admin Dry', 'tok-dry', 'fr']
+        );
+
+        $output = $this->runJob('send-newsletter-queue', dryRun: true);
+
+        $this->assertStringContainsString('DRY-RUN', $output);
+        $this->assertStringContainsString('admin-nl#', $output);
+        $this->assertStringContainsString('dryrun.admin@test.local', $output);
+    }
 }

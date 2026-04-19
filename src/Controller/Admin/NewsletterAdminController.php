@@ -204,13 +204,11 @@ class NewsletterAdminController extends AdminController
             $body,
             $imageUrl,
             $segmentLabel,
-            $subjectLineEn,
-            $titleEn,
-            $bodyEn
+            ['subject_en' => $subjectLineEn, 'title_en' => $titleEn, 'body_en' => $bodyEn]
         );
 
         // Pièce jointe PDF — copie permanente dans storage/ (chemin récupéré par le cron)
-        $attachment = $this->storeNewsletterPdf($_FILES['nl_pdf'] ?? [], $campaignId);
+        $this->storeNewsletterPdf($_FILES['nl_pdf'] ?? [], $campaignId);
 
         // Tracking : extraire les liens uniques des deux corps et les persister en BDD
         $trackingModel = new NewsletterTrackingModel();
