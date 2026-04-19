@@ -2,6 +2,14 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.3.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.3.0...v1.3.1) (2026-04-19)
+
+
+### Bug Fixes
+
+* **sonar:** corriger S3973 (accolades if logs) + S1448 NOSONAR mauvaise ligne (CronController) ([800b506](https://github.com/ApoSkunz/crabitan_bellevue/commit/800b506e96692717a51e465f8103436e34d6d7dd))
+* **view:** corriger ParseError dans admin/logs/index.php — accolade manquante après refactoring Sonar ([ddf48c7](https://github.com/ApoSkunz/crabitan_bellevue/commit/ddf48c7cb088c76a2a0b14822fa4770b809de0ef))
+
 # [1.3.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.2.0...v1.3.0) (2026-04-19)
 
 
