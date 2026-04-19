@@ -135,7 +135,8 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                 id="theme-toggle"
                 class="theme-toggle"
                 type="button"
-                aria-label="<?= __('common.toggle_theme') ?>"
+                aria-label="<?= htmlspecialchars(__('common.toggle_theme')) ?>"
+                title="<?= htmlspecialchars(__('common.toggle_theme')) ?>"
             >
                 <span class="icon-sun" aria-hidden="true">&#9728;</span>
                 <span class="icon-moon" aria-hidden="true">&#9790;</span>
@@ -146,7 +147,6 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                 <a
                     href="/<?= htmlspecialchars($navLang) ?>/panier"
                     class="header-cart<?= str_contains($currentPath, '/panier') ? $activeClass : '' ?>"
-                    aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
                 >
                     <span class="header-cart__wrap">
                         <span class="header-cart__badge header-cart__count" aria-hidden="true">0</span>
@@ -168,7 +168,6 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                 <button
                     type="button"
                     class="header-cart js-cart-login-prompt"
-                    aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
                     data-login-url="/<?= htmlspecialchars($navLang) ?>/connexion"
                 >
                     <span class="header-cart__wrap">
@@ -391,6 +390,7 @@ document.addEventListener('DOMContentLoaded', function () {
     aria-hidden="true"
     role="dialog"
     aria-modal="true"
+    data-nosnippet
     aria-labelledby="login-modal-title"
 >
     <div class="login-modal__backdrop" id="login-modal-backdrop"></div>
@@ -526,6 +526,7 @@ document.addEventListener('DOMContentLoaded', function () {
     aria-hidden="true"
     role="dialog"
     aria-modal="true"
+    data-nosnippet
     aria-labelledby="register-modal-title"
 >
     <div class="register-modal__backdrop" id="register-modal-backdrop"></div>

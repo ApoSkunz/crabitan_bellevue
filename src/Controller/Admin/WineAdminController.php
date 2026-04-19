@@ -11,6 +11,7 @@ use Model\NewsletterModel;
 use Model\WineModel;
 use Model\WineNutritionModel;
 use Service\AuditLogger;
+use Service\ImageVariantService;
 use Service\MailService;
 use Service\StockNotificationService;
 use Service\TranslationService;
@@ -581,15 +582,20 @@ class WineAdminController extends AdminController
             $errors['image'] = $imgError;
         }
 
-        // Supprime l'ancienne photo si une nouvelle a été uploadée avec succès
+        // Supprime l'ancienne photo (original + variante WebP) si une nouvelle a été uploadée avec succès
         if (
             $imgError === null
             && $imagePath !== ($existing['image_path'] ?? '')
             && !empty($existing['image_path'])
         ) {
-            $oldFile = ROOT_PATH . '/public/assets/images/wines/' . $existing['image_path'];
+            $winesDir   = ROOT_PATH . '/public/assets/images/wines/';
+            $oldFile    = $winesDir . $existing['image_path'];
+            $oldWebp    = $winesDir . (string) preg_replace('/\.[^.]+$/', '.webp', $existing['image_path']);
             if (file_exists($oldFile)) {
                 @unlink($oldFile);
+            }
+            if ($oldWebp !== $oldFile && file_exists($oldWebp)) {
+                @unlink($oldWebp);
             }
         }
 
@@ -681,6 +687,8 @@ class WineAdminController extends AdminController
         if (!$this->moveUploadedFile($file['tmp_name'], $destDir . $filename)) {
             return ['path' => $existingPath ?? '', 'error' => 'Erreur lors du téléversement.'];
         }
+
+        (new ImageVariantService())->convertToWebp($destDir . $filename);
 
         return ['path' => $filename, 'error' => null];
     }

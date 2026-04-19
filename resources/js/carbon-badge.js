@@ -53,10 +53,18 @@ export function initCarbonBadge() {
         if (p) p.textContent += 'Plus propre que ' + pct + '% des pages testées';
     }
 
-    function fetchBadge(render = true) {
-        fetch('https://api.websitecarbon.com/b?url=' + url)
-            .then((r) => { if (!r.ok) { throw new Error(r.status + ' ' + r.statusText); } return r.json(); })
+    function fetchBadge(targetUrl, render = true) {
+        fetch('https://api.websitecarbon.com/b?url=' + targetUrl)
+            .then((r) => {
+                if (r.status === 503 && targetUrl !== encodeURIComponent(origin + '/')) {
+                    fetchBadge(encodeURIComponent(origin + '/'), render);
+                    return null;
+                }
+                if (!r.ok) { throw new Error(r.status + ' ' + r.statusText); }
+                return r.json();
+            })
             .then((data) => {
+                if (!data) return;
                 if (render) renderResult(data);
                 data.t = Date.now();
                 localStorage.setItem('wcb_' + url, JSON.stringify(data));
@@ -76,8 +84,8 @@ export function initCarbonBadge() {
         const cached = JSON.parse(stored);
         renderResult(cached);
         // Rafraîchir en arrière-plan si le cache dépasse 24h
-        if (Date.now() - cached.t > 864e5) fetchBadge(false);
+        if (Date.now() - cached.t > 864e5) fetchBadge(url, false);
     } else {
-        fetchBadge();
+        fetchBadge(url);
     }
 }
