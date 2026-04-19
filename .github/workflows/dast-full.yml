@@ -114,7 +114,7 @@ jobs:
           curl -s \
             --cookie "age_verified=1" \
             -c /tmp/cookies-customer.txt \
-            "$BASE/fr/connexion" > /tmp/login.html
+            "$BASE/fr/vins" > /tmp/login.html
 
           CSRF=$(grep -oP 'name="csrf_token" value="\K[^"]+' /tmp/login.html | head -1)
           echo "DEBUG customer CSRF=${CSRF:0:8}…"
@@ -161,7 +161,7 @@ jobs:
           curl -s \
             --cookie "age_verified=1" \
             -c /tmp/cookies-admin.txt \
-            "$BASE/fr/connexion" > /tmp/login.html
+            "$BASE/fr/vins" > /tmp/login.html
 
           CSRF=$(grep -oP 'name="csrf_token" value="\K[^"]+' /tmp/login.html | head -1)
           echo "DEBUG admin CSRF=${CSRF:0:8}…"
