@@ -467,16 +467,17 @@ class CronControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
-    // send-newsletter-queue — vin existant, SMTP fail → markFailed + log ERR
+    // send-newsletter-queue — vin existant, SMTP OK → log [OK] + row deleted (RGPD)
+    // Note : Mailhog est actif en CI (port 1025) — SMTP réussit toujours
     // ----------------------------------------------------------------
 
-    public function testSendNewsletterQueueWineSmtpFailDeletesRow(): void
+    public function testSendNewsletterQueueWineSuccessDeletesRow(): void
     {
-        $wineId = self::insertTestWine('cron-smtp-fail', 'red', 'Vin SMTP Fail');
+        $wineId = self::insertTestWine('cron-smtp-ok', 'red', 'Vin SMTP OK');
 
         $nlId = (int) self::$db->insert(
             "INSERT INTO newsletters (subject, body, sent_at) VALUES (?, '<p>Test</p>', NOW())",
-            ['Test wine smtp fail']
+            ['Test wine smtp ok']
         );
 
         self::$db->execute(
@@ -488,7 +489,7 @@ class CronControllerTest extends IntegrationTestCase
 
         $output = $this->runJob('send-newsletter-queue', dryRun: false);
 
-        $this->assertStringContainsString('ERR', $output);
+        $this->assertStringContainsString('[OK]', $output);
 
         $row = self::$db->fetchOne(
             "SELECT id FROM newsletter_send_queue WHERE recipient_email = 'winesubsmtp@test.local'"
@@ -520,11 +521,12 @@ class CronControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
-    // send-newsletter-queue — admin, campagne existante, SMTP fail → ERR + row deleted
+    // send-newsletter-queue — admin, campagne existante, SMTP OK → [OK] + row deleted (RGPD)
     // Couvre sendAdminQueueItem + buildAdminNewsletterHtml
+    // Note : Mailhog est actif en CI (port 1025) — SMTP réussit toujours
     // ----------------------------------------------------------------
 
-    public function testSendNewsletterQueueAdminSmtpFailDeletesRow(): void
+    public function testSendNewsletterQueueAdminSuccessDeletesRow(): void
     {
         $nlId = (int) self::$db->insert(
             "INSERT INTO newsletters (subject, body, sent_at, queued_count) VALUES (?, ?, NOW(), 1)",
@@ -540,7 +542,7 @@ class CronControllerTest extends IntegrationTestCase
 
         $output = $this->runJob('send-newsletter-queue', dryRun: false);
 
-        $this->assertStringContainsString('ERR', $output);
+        $this->assertStringContainsString('[OK]', $output);
 
         $row = self::$db->fetchOne(
             "SELECT id FROM newsletter_send_queue WHERE recipient_email = 'adminnl2@test.local'"
