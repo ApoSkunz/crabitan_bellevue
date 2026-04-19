@@ -107,12 +107,16 @@ $skipped       = 0;
 $log('=== accounts ===');
 $offset = 0;
 do {
-    $rows = $pdo->query(
+    $selAccounts = $pdo->prepare(
         "SELECT id, email_change_new_email, majority_declared_ip
          FROM accounts
          WHERE encryption_version = 1
-         LIMIT {$batch} OFFSET {$offset}"
-    )->fetchAll();
+         LIMIT :limit OFFSET :offset"
+    );
+    $selAccounts->bindValue(':limit', $batch, PDO::PARAM_INT);
+    $selAccounts->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $selAccounts->execute();
+    $rows = $selAccounts->fetchAll();
     if ($rows === []) {
         break;
     }
@@ -149,9 +153,11 @@ do {
 $log('=== addresses ===');
 $offset = 0;
 do {
-    $rows = $pdo->query(
-        "SELECT id, street, phone FROM addresses LIMIT {$batch} OFFSET {$offset}"
-    )->fetchAll();
+    $selAddr = $pdo->prepare("SELECT id, street, phone FROM addresses LIMIT :limit OFFSET :offset");
+    $selAddr->bindValue(':limit', $batch, PDO::PARAM_INT);
+    $selAddr->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $selAddr->execute();
+    $rows = $selAddr->fetchAll();
     if ($rows === []) {
         break;
     }
@@ -189,11 +195,15 @@ do {
 $log('=== order_address_snapshots ===');
 $offset = 0;
 do {
-    $rows = $pdo->query(
+    $selOas = $pdo->prepare(
         "SELECT id, street, phone FROM order_address_snapshots
          WHERE pseudonymized_at IS NULL
-         LIMIT {$batch} OFFSET {$offset}"
-    )->fetchAll();
+         LIMIT :limit OFFSET :offset"
+    );
+    $selOas->bindValue(':limit', $batch, PDO::PARAM_INT);
+    $selOas->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $selOas->execute();
+    $rows = $selOas->fetchAll();
     if ($rows === []) {
         break;
     }
