@@ -190,12 +190,12 @@
         background-color: rgba(201, 168, 76, 0.12);
     }
 
-    .icon-sun  { display: none; }
-    .icon-moon { display: block; }
+    .icon-sun  { display: block; }
+    .icon-moon { display: none; }
 
     [data-theme='light'] & {
-        .icon-sun  { display: block; }
-        .icon-moon { display: none; }
+        .icon-sun  { display: none; }
+        .icon-moon { display: block; }
     }
 }
 

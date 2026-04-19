@@ -19,7 +19,7 @@ function applyTheme(theme) {
 
 function initTheme() {
     const saved = localStorage.getItem(THEME_KEY);
-    applyTheme(saved || 'dark');
+    applyTheme(saved || 'light');
 }
 
 function initThemeToggle() {

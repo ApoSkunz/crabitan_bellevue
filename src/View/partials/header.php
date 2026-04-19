@@ -135,7 +135,8 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                 id="theme-toggle"
                 class="theme-toggle"
                 type="button"
-                aria-label="<?= __('common.toggle_theme') ?>"
+                aria-label="<?= htmlspecialchars(__('common.toggle_theme')) ?>"
+                title="<?= htmlspecialchars(__('common.toggle_theme')) ?>"
             >
                 <span class="icon-sun" aria-hidden="true">&#9728;</span>
                 <span class="icon-moon" aria-hidden="true">&#9790;</span>
