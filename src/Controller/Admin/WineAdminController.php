@@ -248,6 +248,9 @@ class WineAdminController extends AdminController
                 $queueModel->enqueue($campaignId, $wineId, (string) $sub['email'], $name, $unsubToken, $lang);
                 $queueCount++;
             }
+            if ($queueCount > 0) {
+                $nlModel->setQueuedCount($campaignId, $queueCount);
+            }
         }
 
         $flashMsg = "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » ajouté avec succès.";
@@ -523,6 +526,9 @@ class WineAdminController extends AdminController
         $quantity      = (int) $r->post('production_quantity', 0);
         $stockQuantity = (int) $r->post('stock_quantity', 0);
         $available = $r->post('available', '0') === '1' ? 1 : 0;
+        if ($stockQuantity === 0) {
+            $available = 0;
+        }
         $certLabel = trim($r->post('certification_label', ''));
         $area          = (float) str_replace(',', '.', $r->post('area', '0'));
         $city          = trim($r->post('city', ''));
@@ -543,6 +549,9 @@ class WineAdminController extends AdminController
         }
         if ($stockQuantity < 0) {
             $errors['stock_quantity'] = 'Stock invalide.';
+        }
+        if ($stockQuantity === 0 && $r->post('available', '0') === '1') {
+            $errors['available'] = 'Un vin sans stock ne peut pas être mis en vente — décochez "Disponible à la vente" ou renseignez un stock.';
         }
         if (!in_array($certLabel, self::CERT_LABELS, true)) {
             $errors['certification_label'] = 'Appellation invalide. Valeurs autorisées : ' . implode(', ', self::CERT_LABELS) . '.';

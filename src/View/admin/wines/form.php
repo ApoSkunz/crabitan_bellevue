@@ -54,6 +54,9 @@ $maxYear = (int) date('Y');
         <?php if (hasError($errors, 'slug')) : ?>
             <br><?= htmlspecialchars($errors['slug']) ?>
         <?php endif; ?>
+        <?php if (hasError($errors, 'available')) : ?>
+            <br><?= htmlspecialchars($errors['available']) ?>
+        <?php endif; ?>
     </div>
 <?php endif; ?>
 
@@ -204,11 +207,14 @@ $maxYear = (int) date('Y');
             </div>
 
             <div class="admin-field admin-field--full">
-                <div class="admin-field__check">
+                <div class="admin-field__check<?= !empty($errors['available']) ? ' admin-field__check--error' : '' ?>">
                     <input type="hidden" name="available" value="0">
                     <input type="checkbox" id="available" name="available" value="1"
                            <?= ($wine['available'] ?? 1) ? 'checked' : '' ?>>
                     <label for="available">Disponible à la vente</label>
+                    <?php if (!empty($errors['available'])) : ?>
+                        <span class="admin-field__error"><?= htmlspecialchars($errors['available']) ?></span>
+                    <?php endif; ?>
                 </div>
                 <div class="admin-field__check">
                     <input type="hidden" name="is_cuvee_speciale" value="0">

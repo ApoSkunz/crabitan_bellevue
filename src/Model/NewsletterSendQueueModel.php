@@ -7,7 +7,8 @@ namespace Model;
 use Core\Model;
 
 /**
- * File d'attente d'envoi des newsletters (nouveau vin).
+ * File d'attente d'envoi des newsletters (nouveau vin + campagnes admin).
+ * wine_id = NULL pour les campagnes admin, INT pour les newsletters nouveau vin.
  * Permet un envoi différé par cron pour respecter les limites SMTP IONOS.
  */
 class NewsletterSendQueueModel extends Model
@@ -17,17 +18,17 @@ class NewsletterSendQueueModel extends Model
     /**
      * Enfile un destinataire pour une campagne.
      *
-     * @param int    $newsletterId  ID de la campagne newsletters
-     * @param int    $wineId        ID du vin concerné
-     * @param string $email         Adresse du destinataire
-     * @param string $name          Nom affiché
-     * @param string $unsubToken    Token de désabonnement
-     * @param string $lang          Langue (fr|en)
+     * @param int      $newsletterId  ID de la campagne newsletters
+     * @param int|null $wineId        ID du vin (NULL pour campagnes admin)
+     * @param string   $email         Adresse du destinataire
+     * @param string   $name          Nom affiché
+     * @param string   $unsubToken    Token de désabonnement
+     * @param string   $lang          Langue (fr|en)
      * @return void
      */
     public function enqueue(
         int $newsletterId,
-        int $wineId,
+        ?int $wineId,
         string $email,
         string $name,
         string $unsubToken,
@@ -66,29 +67,40 @@ class NewsletterSendQueueModel extends Model
     }
 
     /**
-     * Marque un envoi comme réussi.
+     * Enregistre un envoi réussi : incrémente sent_count sur la campagne et supprime la ligne queue.
+     * Suppression immédiate = conformité RGPD (pas d'emails en table après traitement).
      *
-     * @param int $id Identifiant de la ligne queue
+     * @param int $id           Identifiant de la ligne queue
+     * @param int $newsletterId ID de la campagne (pour incrément atomique)
      * @return void
      */
-    public function markSent(int $id): void
+    public function markSent(int $id, int $newsletterId): void
     {
         $this->db->execute(
-            'UPDATE newsletter_send_queue SET status = \'sent\', sent_at = NOW() WHERE id = :id',
+            'UPDATE newsletters SET sent_count = sent_count + 1 WHERE id = :nl_id',
+            [':nl_id' => $newsletterId]
+        );
+        $this->db->execute(
+            'DELETE FROM newsletter_send_queue WHERE id = :id',
             [':id' => $id]
         );
     }
 
     /**
-     * Marque un envoi comme échoué.
+     * Enregistre un échec d'envoi : incrémente failed_count sur la campagne et supprime la ligne queue.
      *
-     * @param int $id Identifiant de la ligne queue
+     * @param int $id           Identifiant de la ligne queue
+     * @param int $newsletterId ID de la campagne (pour incrément atomique)
      * @return void
      */
-    public function markFailed(int $id): void
+    public function markFailed(int $id, int $newsletterId): void
     {
         $this->db->execute(
-            'UPDATE newsletter_send_queue SET status = \'failed\' WHERE id = :id',
+            'UPDATE newsletters SET failed_count = failed_count + 1 WHERE id = :nl_id',
+            [':nl_id' => $newsletterId]
+        );
+        $this->db->execute(
+            'DELETE FROM newsletter_send_queue WHERE id = :id',
             [':id' => $id]
         );
     }
@@ -102,24 +114,5 @@ class NewsletterSendQueueModel extends Model
     {
         $row = $this->db->fetchOne('SELECT COUNT(*) AS cnt FROM newsletter_send_queue WHERE status = \'pending\'');
         return $row !== false ? (int) $row['cnt'] : 0;
-    }
-
-    /**
-     * Met à jour les stats sent_count/failed_count de la campagne depuis la queue.
-     *
-     * @param int $newsletterId
-     * @return void
-     */
-    public function refreshCampaignStats(int $newsletterId): void
-    {
-        $this->db->execute(
-            'UPDATE newsletters
-             SET sent_count   = (SELECT COUNT(*) FROM newsletter_send_queue
-                                 WHERE newsletter_id = :id1 AND status = \'sent\'),
-                 failed_count = (SELECT COUNT(*) FROM newsletter_send_queue
-                                 WHERE newsletter_id = :id2 AND status = \'failed\')
-             WHERE id = :id3',
-            [':id1' => $newsletterId, ':id2' => $newsletterId, ':id3' => $newsletterId]
-        );
     }
 }

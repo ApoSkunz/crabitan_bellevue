@@ -401,6 +401,7 @@ class CronControllerTest extends IntegrationTestCase
 
     public function testSendNewsletterQueueEmptyQueueReturns200(): void
     {
+        self::$db->execute('DELETE FROM newsletter_send_queue', []);
         $output = $this->runJob('send-newsletter-queue', dryRun: false);
 
         $this->assertSame(200, http_response_code());
@@ -458,9 +459,119 @@ class CronControllerTest extends IntegrationTestCase
         $this->assertSame(200, http_response_code());
         $this->assertStringContainsString('SKIP', $output);
 
+        // Row deleted after markFailed (RGPD compliance — no emails persist after processing)
         $row = self::$db->fetchOne(
-            "SELECT status FROM newsletter_send_queue WHERE recipient_email = 'sub2@test.local'"
+            "SELECT id FROM newsletter_send_queue WHERE recipient_email = 'sub2@test.local'"
         );
-        $this->assertSame('failed', $row['status'] ?? '');
+        $this->assertFalse($row);
+    }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-queue — vin existant, SMTP OK → log [OK] + row deleted (RGPD)
+    // Note : Mailhog est actif en CI (port 1025) — SMTP réussit toujours
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterQueueWineSuccessDeletesRow(): void
+    {
+        $wineId = self::insertTestWine('cron-smtp-ok', 'red', 'Vin SMTP OK');
+
+        $nlId = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_at) VALUES (?, '<p>Test</p>', NOW())",
+            ['Test wine smtp ok']
+        );
+
+        self::$db->execute(
+            'INSERT INTO newsletter_send_queue
+             (newsletter_id, wine_id, recipient_email, recipient_name, unsub_token, lang)
+             VALUES (?, ?, ?, ?, ?, ?)',
+            [$nlId, $wineId, 'winesubsmtp@test.local', 'Abonné SMTP', 'tok-smtp', 'fr']
+        );
+
+        $output = $this->runJob('send-newsletter-queue', dryRun: false);
+
+        $this->assertStringContainsString('[OK]', $output);
+
+        $row = self::$db->fetchOne(
+            "SELECT id FROM newsletter_send_queue WHERE recipient_email = 'winesubsmtp@test.local'"
+        );
+        $this->assertFalse($row);
+    }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-queue — admin, campagne introuvable → markFailed + log SKIP
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterQueueAdminMissingCampaignDeletesRow(): void
+    {
+        self::$db->execute(
+            'INSERT INTO newsletter_send_queue
+             (newsletter_id, wine_id, recipient_email, recipient_name, unsub_token, lang)
+             VALUES (?, NULL, ?, ?, ?, ?)',
+            [999999, 'adminnl@test.local', 'Admin Sub', 'tok-adm', 'fr']
+        );
+
+        $output = $this->runJob('send-newsletter-queue', dryRun: false);
+
+        $this->assertStringContainsString('SKIP', $output);
+
+        $row = self::$db->fetchOne(
+            "SELECT id FROM newsletter_send_queue WHERE recipient_email = 'adminnl@test.local'"
+        );
+        $this->assertFalse($row);
+    }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-queue — admin, campagne existante, SMTP OK → [OK] + row deleted (RGPD)
+    // Couvre sendAdminQueueItem + buildAdminNewsletterHtml
+    // Note : Mailhog est actif en CI (port 1025) — SMTP réussit toujours
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterQueueAdminSuccessDeletesRow(): void
+    {
+        $nlId = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_at, queued_count) VALUES (?, ?, NOW(), 1)",
+            ['Admin NL SMTP test', '<p>Corps de test avec lien https://crabitanbellevue.fr/fr/vins</p>']
+        );
+
+        self::$db->execute(
+            'INSERT INTO newsletter_send_queue
+             (newsletter_id, wine_id, recipient_email, recipient_name, unsub_token, lang)
+             VALUES (?, NULL, ?, ?, ?, ?)',
+            [$nlId, 'adminnl2@test.local', 'Admin Sub EN', 'tok-adm2', 'en']
+        );
+
+        $output = $this->runJob('send-newsletter-queue', dryRun: false);
+
+        $this->assertStringContainsString('[OK]', $output);
+
+        $row = self::$db->fetchOne(
+            "SELECT id FROM newsletter_send_queue WHERE recipient_email = 'adminnl2@test.local'"
+        );
+        $this->assertFalse($row);
+    }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-queue — dry_run admin campaign logs correctly
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterQueueDryRunAdminItemLogs(): void
+    {
+        $nlId = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_at) VALUES (?, '<p>Test</p>', NOW())",
+            ['Admin NL dry run']
+        );
+
+        self::$db->execute(
+            'INSERT INTO newsletter_send_queue
+             (newsletter_id, wine_id, recipient_email, recipient_name, unsub_token, lang)
+             VALUES (?, NULL, ?, ?, ?, ?)',
+            [$nlId, 'dryrun.admin@test.local', 'Admin Dry', 'tok-dry', 'fr']
+        );
+
+        $output = $this->runJob('send-newsletter-queue', dryRun: true);
+
+        $this->assertStringContainsString('DRY-RUN', $output);
+        $this->assertStringContainsString('admin-nl#', $output);
+        $this->assertStringContainsString('dryrun.admin@test.local', $output);
     }
 }

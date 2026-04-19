@@ -6,8 +6,6 @@ namespace Tests\Unit\Model;
 
 use Core\Database;
 use Model\NewsletterSendQueueModel;
-use PDO;
-use PDOStatement;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -15,9 +13,13 @@ use PHPUnit\Framework\TestCase;
  */
 class NewsletterSendQueueModelTest extends TestCase
 {
-    private function mockDb(array $methods = []): Database
+    private function makeModel(Database $db): NewsletterSendQueueModel
     {
-        return $this->createStub(Database::class);
+        $model = new NewsletterSendQueueModel();
+        $ref   = new \ReflectionProperty(NewsletterSendQueueModel::class, 'db');
+        $ref->setAccessible(true);
+        $ref->setValue($model, $db);
+        return $model;
     }
 
     public function testEnqueueExecutesInsert(): void
@@ -30,12 +32,20 @@ class NewsletterSendQueueModelTest extends TestCase
                 $this->arrayHasKey(':email')
             );
 
-        $model = new NewsletterSendQueueModel();
-        $ref   = new \ReflectionProperty(NewsletterSendQueueModel::class, 'db');
-        $ref->setAccessible(true);
-        $ref->setValue($model, $db);
+        $this->makeModel($db)->enqueue(1, 42, 'test@example.com', 'Jean Dupont', 'tok123', 'fr');
+    }
 
-        $model->enqueue(1, 42, 'test@example.com', 'Jean Dupont', 'tok123', 'fr');
+    public function testEnqueueAcceptsNullWineId(): void
+    {
+        $db = $this->createMock(Database::class);
+        $db->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->stringContains('INSERT INTO newsletter_send_queue'),
+                $this->callback(fn($p) => array_key_exists(':wine_id', $p) && $p[':wine_id'] === null)
+            );
+
+        $this->makeModel($db)->enqueue(5, null, 'a@b.com', 'Admin Sub', 'tok999', 'en');
     }
 
     public function testGetPendingReturnsFetchAll(): void
@@ -48,13 +58,7 @@ class NewsletterSendQueueModelTest extends TestCase
         $db = $this->createStub(Database::class);
         $db->method('fetchAll')->willReturn($expected);
 
-        $model = new NewsletterSendQueueModel();
-        $ref   = new \ReflectionProperty(NewsletterSendQueueModel::class, 'db');
-        $ref->setAccessible(true);
-        $ref->setValue($model, $db);
-
-        $result = $model->getPending(10);
-        $this->assertSame($expected, $result);
+        $this->assertSame($expected, $this->makeModel($db)->getPending(10));
     }
 
     public function testGetPendingEmptyReturnsEmpty(): void
@@ -62,48 +66,49 @@ class NewsletterSendQueueModelTest extends TestCase
         $db = $this->createStub(Database::class);
         $db->method('fetchAll')->willReturn([]);
 
-        $model = new NewsletterSendQueueModel();
-        $ref   = new \ReflectionProperty(NewsletterSendQueueModel::class, 'db');
-        $ref->setAccessible(true);
-        $ref->setValue($model, $db);
-
-        $this->assertSame([], $model->getPending(30));
+        $this->assertSame([], $this->makeModel($db)->getPending(30));
     }
 
-    public function testMarkSentExecutesUpdate(): void
+    public function testMarkSentIncrementsAndDeletes(): void
     {
         $db = $this->createMock(Database::class);
-        $db->expects($this->once())
+        $db->expects($this->exactly(2))
             ->method('execute')
-            ->with(
-                $this->stringContains("status = 'sent'"),
-                [':id' => 7]
-            );
+            ->willReturnCallback(function (string $sql, array $params): int {
+                static $call = 0;
+                $call++;
+                if ($call === 1) {
+                    $this->assertStringContainsString('sent_count = sent_count + 1', $sql);
+                    $this->assertSame([':nl_id' => 10], $params);
+                } else {
+                    $this->assertStringContainsString('DELETE FROM newsletter_send_queue', $sql);
+                    $this->assertSame([':id' => 7], $params);
+                }
+                return 1;
+            });
 
-        $model = new NewsletterSendQueueModel();
-        $ref   = new \ReflectionProperty(NewsletterSendQueueModel::class, 'db');
-        $ref->setAccessible(true);
-        $ref->setValue($model, $db);
-
-        $model->markSent(7);
+        $this->makeModel($db)->markSent(7, 10);
     }
 
-    public function testMarkFailedExecutesUpdate(): void
+    public function testMarkFailedIncrementsAndDeletes(): void
     {
         $db = $this->createMock(Database::class);
-        $db->expects($this->once())
+        $db->expects($this->exactly(2))
             ->method('execute')
-            ->with(
-                $this->stringContains("status = 'failed'"),
-                [':id' => 3]
-            );
+            ->willReturnCallback(function (string $sql, array $params): int {
+                static $call = 0;
+                $call++;
+                if ($call === 1) {
+                    $this->assertStringContainsString('failed_count = failed_count + 1', $sql);
+                    $this->assertSame([':nl_id' => 10], $params);
+                } else {
+                    $this->assertStringContainsString('DELETE FROM newsletter_send_queue', $sql);
+                    $this->assertSame([':id' => 3], $params);
+                }
+                return 1;
+            });
 
-        $model = new NewsletterSendQueueModel();
-        $ref   = new \ReflectionProperty(NewsletterSendQueueModel::class, 'db');
-        $ref->setAccessible(true);
-        $ref->setValue($model, $db);
-
-        $model->markFailed(3);
+        $this->makeModel($db)->markFailed(3, 10);
     }
 
     public function testCountPendingReturnsCnt(): void
@@ -111,12 +116,7 @@ class NewsletterSendQueueModelTest extends TestCase
         $db = $this->createStub(Database::class);
         $db->method('fetchOne')->willReturn(['cnt' => '5']);
 
-        $model = new NewsletterSendQueueModel();
-        $ref   = new \ReflectionProperty(NewsletterSendQueueModel::class, 'db');
-        $ref->setAccessible(true);
-        $ref->setValue($model, $db);
-
-        $this->assertSame(5, $model->countPending());
+        $this->assertSame(5, $this->makeModel($db)->countPending());
     }
 
     public function testCountPendingReturnZeroWhenFetchFails(): void
@@ -124,29 +124,6 @@ class NewsletterSendQueueModelTest extends TestCase
         $db = $this->createStub(Database::class);
         $db->method('fetchOne')->willReturn(false);
 
-        $model = new NewsletterSendQueueModel();
-        $ref   = new \ReflectionProperty(NewsletterSendQueueModel::class, 'db');
-        $ref->setAccessible(true);
-        $ref->setValue($model, $db);
-
-        $this->assertSame(0, $model->countPending());
-    }
-
-    public function testRefreshCampaignStatsExecutesUpdate(): void
-    {
-        $db = $this->createMock(Database::class);
-        $db->expects($this->once())
-            ->method('execute')
-            ->with(
-                $this->stringContains('UPDATE newsletters'),
-                $this->arrayHasKey(':id1')
-            );
-
-        $model = new NewsletterSendQueueModel();
-        $ref   = new \ReflectionProperty(NewsletterSendQueueModel::class, 'db');
-        $ref->setAccessible(true);
-        $ref->setValue($model, $db);
-
-        $model->refreshCampaignStats(1);
+        $this->assertSame(0, $this->makeModel($db)->countPending());
     }
 }

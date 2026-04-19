@@ -114,6 +114,25 @@ class NewsletterTrackingModel extends Model
     }
 
     /**
+     * Retourne la map url → linkId pour une campagne (utilisée par le cron pour le click-tracking).
+     *
+     * @param  int                  $newsletterId Identifiant de la campagne
+     * @return array<string, int>   url => linkId
+     */
+    public function getLinkMap(int $newsletterId): array
+    {
+        $rows = $this->db->fetchAll(
+            'SELECT id, url FROM newsletter_links WHERE newsletter_id = ?',
+            [$newsletterId]
+        );
+        $map = [];
+        foreach ($rows as $row) {
+            $map[(string) $row['url']] = (int) $row['id'];
+        }
+        return $map;
+    }
+
+    /**
      * Retourne le détail des clics par lien pour une campagne.
      * Chaque ligne contient : url, total_clicks, unique_clicks.
      *

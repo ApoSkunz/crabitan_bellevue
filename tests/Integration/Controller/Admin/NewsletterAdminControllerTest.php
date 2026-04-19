@@ -370,15 +370,15 @@ class NewsletterAdminControllerTest extends AdminIntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Vérifie que le flash 'success' contient " échec(s)" quand l'envoi échoue
-     * (MailService lève une exception, $failed > 0 → branche $msg .= ", {$failed} échec(s)." couverte).
+     * Vérifie que le flash 'success' contient "en file d'attente" après création de campagne.
+     * L'envoi est désormais différé via cron (queue) — plus de send synchrone.
      */
-    public function testSendFlashMessageContainsFailureCountWhenMailFails(): void
+    public function testSendFlashMessageContainsQueuedCount(): void
     {
         $this->insertSubscriber();
 
         $_POST['csrf_token'] = self::CSRF_TOKEN;
-        $_POST['subject']    = 'Test failure count';
+        $_POST['subject']    = 'Test queue flash';
         $_POST['body']       = 'Corps.';
 
         try {
@@ -388,9 +388,8 @@ class NewsletterAdminControllerTest extends AdminIntegrationTestCase
             $this->assertSame(302, $e->status);
         }
 
-        // En environnement de test le MailService échoue → le flash doit contenir "email(s)"
         $flash = $_SESSION['admin_flash']['success'] ?? '';
-        $this->assertStringContainsString('email(s)', $flash);
+        $this->assertStringContainsString('en file d\'attente', $flash);
     }
 
     // ----------------------------------------------------------------

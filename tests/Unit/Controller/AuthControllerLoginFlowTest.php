@@ -39,6 +39,7 @@ class AuthControllerLoginFlowTest extends TestCase
         $_SERVER['REQUEST_URI']     = '/fr/connexion';
         $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit/Test';
         $_SERVER['REMOTE_ADDR']     = '127.0.0.1';
+        $_ENV['MFA_EMAIL_ENABLED']  = 'true'; // force MFA on indépendamment du .env local
     }
 
     protected function tearDown(): void
@@ -47,7 +48,7 @@ class AuthControllerLoginFlowTest extends TestCase
         $_SESSION = [];
         $_POST    = [];
         $_COOKIE  = [];
-        unset($_SERVER['REMOTE_ADDR']);
+        unset($_SERVER['REMOTE_ADDR'], $_ENV['MFA_EMAIL_ENABLED']);
     }
 
     private function setDbMock(): \PHPUnit\Framework\MockObject\Stub

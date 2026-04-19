@@ -1120,10 +1120,16 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
                     a.email_verified_at, a.has_connected, a.created_at, a.deleted_at,
                     a.is_blocked,
                     ai.lastname, ai.firstname, ai.civility,
-                    ac.company_name, ac.siret
+                    ac.company_name, ac.siret,
+                    lc.last_connection
              FROM {$this->table} a
              LEFT JOIN account_individuals ai ON ai.account_id = a.id
              LEFT JOIN account_companies   ac ON ac.account_id = a.id
+             LEFT JOIN (
+                 SELECT user_id, MAX(created_at) AS last_connection
+                 FROM connections
+                 GROUP BY user_id
+             ) lc ON lc.user_id = a.id
              {$where}
              ORDER BY a.created_at DESC
              LIMIT ? OFFSET ?",

@@ -253,6 +253,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['variety_of_vine']     = 'Merlot';
         $_POST['age_of_vineyard']     = '20';
         $_POST['certification_label'] = 'AOC';
+        $_POST['stock_quantity']       = '60';
         $_POST['available']           = '1';
         $_POST['is_cuvee_speciale']   = '0';
         foreach (['oenological_comment', 'soil', 'pruning', 'harvest', 'vinification', 'barrel_fermentation'] as $f) {
@@ -285,6 +286,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['variety_of_vine']     = 'Cabernet Sauvignon';
         $_POST['age_of_vineyard']     = '25';
         $_POST['certification_label'] = 'AOC';
+        $_POST['stock_quantity']       = '30';
         $_POST['available']           = '1';
         $_POST['is_cuvee_speciale']   = '1';
         foreach (['oenological_comment', 'soil', 'pruning', 'harvest', 'vinification', 'barrel_fermentation'] as $f) {
@@ -474,6 +476,30 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // store — stock=0 + available=1 → erreur disponibilité
+    // ----------------------------------------------------------------
+
+    public function testStoreRendersFormWhenStock0AndAvailable1(): void
+    {
+        $_POST['csrf_token']          = self::CSRF_TOKEN;
+        $_POST['appellation']         = 'Bordeaux Rouge';
+        $_POST['vintage']             = '2022';
+        $_POST['price']               = '10.00';
+        $_POST['production_quantity'] = '12';
+        $_POST['stock_quantity']      = '0';
+        $_POST['available']           = '1';
+        $_POST['certification_label'] = 'AOC';
+        $_FILES = [];
+
+        ob_start();
+        $this->makeController('POST')->store([]);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<form', $output);
+        $this->assertStringContainsString('sans stock', $output);
+    }
+
+    // ----------------------------------------------------------------
     // store — champs JSON requis manquants (FR vide) → erreur champs JSON
     // ----------------------------------------------------------------
 
@@ -543,6 +569,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['vintage']             = '2022';
         $_POST['price']               = '18,50'; // virgule comme séparateur décimal
         $_POST['production_quantity']            = '60';
+        $_POST['stock_quantity']      = '60';
         $_POST['area']                = '0,50';
         $_POST['city']                = 'Saint-Émilion';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -593,6 +620,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['vintage']             = '2021';
         $_POST['price']               = '20.00';
         $_POST['production_quantity']            = '50';
+        $_POST['stock_quantity']      = '50';
         $_POST['area']                = '1.00';
         $_POST['city']                = 'Bordeaux';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -1150,6 +1178,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['vintage']             = '1990';
         $_POST['price']               = '35.00';
         $_POST['production_quantity']            = '20';
+        $_POST['stock_quantity']      = '20';
         $_POST['area']                = '0.30';
         $_POST['city']                = 'Pomerol';
         $_POST['variety_of_vine']     = 'Merlot 100%';
@@ -1226,6 +1255,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['vintage']             = '1985';
         $_POST['price']               = '25.00';
         $_POST['production_quantity']            = '30';
+        $_POST['stock_quantity']      = '30';
         $_POST['city']                = 'Pomerol';
         $_POST['area']                = '0.5';
         $_POST['variety_of_vine']     = 'Cabernet Sauvignon';
