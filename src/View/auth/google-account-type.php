@@ -36,7 +36,7 @@ require_once __DIR__ . '/../partials/header.php';
                 </label>
             </div>
 
-            <div class="form-group" id="company-name-group" style="display:none; margin-top:1rem">
+            <div class="form-group" id="company-name-group" style="display:none; margin-top:1rem; margin-bottom:1rem">
                 <label class="form-label" for="company_name">
                     <?= htmlspecialchars(__('auth.google_type_company_name')) ?>
                 </label>
