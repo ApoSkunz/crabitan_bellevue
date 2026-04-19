@@ -24,12 +24,55 @@ class NewsletterModel extends Model
      * @param string|null $segmentLabel Segment ciblé (NULL = tous les abonnés)
      * @return int Identifiant de la campagne créée
      */
-    public function create(string $subject, ?string $title, string $body, ?string $imageUrl, ?string $segmentLabel = null): int
-    {
+    /**
+     * @param string      $subject      Objet FR
+     * @param string|null $title        Titre FR optionnel
+     * @param string      $body         Corps FR brut
+     * @param string|null $imageUrl     URL image d'en-tête
+     * @param string|null $segmentLabel Segment ciblé
+     * @param string      $subjectEn    Objet EN (vide = même que FR)
+     * @param string      $titleEn      Titre EN (vide = même que FR)
+     * @param string      $bodyEn       Corps EN brut (vide = même que FR)
+     * @return int Identifiant de la campagne créée
+     */
+    public function create(
+        string $subject,
+        ?string $title,
+        string $body,
+        ?string $imageUrl,
+        ?string $segmentLabel = null,
+        string $subjectEn = '',
+        string $titleEn = '',
+        string $bodyEn = ''
+    ): int {
         return (int) $this->db->insert(
-            "INSERT INTO {$this->table} (subject, title, body, image_url, segment_label)
-             VALUES (?, ?, ?, ?, ?)",
-            [$subject, $title !== '' ? $title : null, $body, $imageUrl, $segmentLabel]
+            "INSERT INTO {$this->table}
+             (subject, title, body, image_url, segment_label, subject_en, title_en, body_en)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                $subject,
+                $title !== '' ? $title : null,
+                $body,
+                $imageUrl,
+                $segmentLabel,
+                $subjectEn !== '' ? $subjectEn : null,
+                $titleEn   !== '' ? $titleEn   : null,
+                $bodyEn    !== '' ? $bodyEn     : null,
+            ]
+        );
+    }
+
+    /**
+     * Enregistre le nombre d'abonnés mis en file d'attente pour cette campagne.
+     *
+     * @param int $id    Identifiant de la campagne
+     * @param int $count Nombre de destinataires enfilés
+     */
+    public function setQueuedCount(int $id, int $count): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET queued_count = ? WHERE id = ?",
+            [$count, $id]
         );
     }
 
@@ -75,7 +118,7 @@ class NewsletterModel extends Model
     {
         return $this->db->fetchAll(
             "SELECT nl.id, nl.subject, nl.image_url, nl.sent_count, nl.failed_count,
-                    nl.sent_at, nl.segment_label,
+                    nl.queued_count, nl.sent_at, nl.segment_label,
                     (SELECT COUNT(*) FROM newsletter_opens WHERE newsletter_id = nl.id) AS opens_count
              FROM {$this->table} nl
              ORDER BY nl.sent_at DESC
@@ -126,7 +169,9 @@ class NewsletterModel extends Model
     public function findCampaignById(int $id): ?array
     {
         $row = $this->db->fetchOne(
-            "SELECT id, subject, title, body, image_url, sent_count, failed_count, sent_at, segment_label
+            "SELECT id, subject, title, body, image_url, sent_count, failed_count,
+                    queued_count, sent_at, segment_label,
+                    subject_en, title_en, body_en
              FROM {$this->table}
              WHERE id = ?",
             [$id]
