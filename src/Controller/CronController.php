@@ -241,6 +241,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                 $log("[DRY-RUN] Would send inactivity warning to {$account['email']} (id={$id})");
                 continue;
             }
+            $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
             try {
                 $mailer->sendInactivityWarning(
                     (string) $account['email'],
@@ -253,6 +254,9 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                 $log("[WARN] Email envoyé à {$account['email']} (id={$id})");
             } catch (\Throwable $e) {
                 $log("[WARN-ERR] id={$id} : " . $e->getMessage());
+            }
+            if ($delayMs > 0) {
+                usleep($delayMs * 1000);
             }
         }
         return $warned;
@@ -553,12 +557,16 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                 continue;
             }
 
+            $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
             try {
                 $mailer->sendAbandonedCart($data['email'], $data['firstname'], $data['items'], $data['lang'], $cartUrl);
                 $cartModel->markReminderSent($data['cart_id']);
                 $log('[OK] ' . $data['email']);
             } catch (\Throwable $e) {
                 $log('[ERR] ' . $data['email'] . ' : ' . $e->getMessage());
+            }
+            if ($delayMs > 0) {
+                usleep($delayMs * 1000);
             }
         }
     }
@@ -594,6 +602,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             $items = json_decode((string) $order['content'], true) ?? [];
             $lang  = in_array($account['lang'] ?? '', ['fr', 'en'], true) ? $account['lang'] : 'fr';
 
+            $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
             try {
                 $mailer->sendPostPurchase(
                     $account['email'],
@@ -607,6 +616,9 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                 $log('[OK] ' . $account['email'] . ' commande #' . $order['id']);
             } catch (\Throwable $e) {
                 $log('[ERR] commande #' . $order['id'] . ' : ' . $e->getMessage());
+            }
+            if ($delayMs > 0) {
+                usleep($delayMs * 1000);
             }
         }
     }

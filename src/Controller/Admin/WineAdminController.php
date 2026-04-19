@@ -234,10 +234,12 @@ class WineAdminController extends AdminController
         $cuveeMark = $data['is_cuvee_speciale'] ? ' — Cuvée Spéciale' : '';
 
         $sentCount   = 0;
-        $failedCount = 0;
-        if ((int) $data['available'] === 1) {
+        $failedCount        = 0;
+        $newsletterEnabled  = filter_var($_ENV['NEW_WINE_NEWSLETTER_ENABLED'] ?? 'true', FILTER_VALIDATE_BOOLEAN);
+        if ((int) $data['available'] === 1 && $newsletterEnabled) {
             $subscribers = $this->accounts->getNewsletterSubscribers(10000, 0);
             $appUrl      = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+            $delayMs     = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
             foreach ($subscribers as $sub) {
                 $lang       = in_array($sub['lang'] ?? '', ['fr', 'en'], true) ? (string) $sub['lang'] : 'fr';
                 $personName = trim(($sub['firstname'] ?? '') . ' ' . ($sub['lastname'] ?? ''));
@@ -258,6 +260,9 @@ class WineAdminController extends AdminController
                     \Core\ErrorLogger::warning($e);
                     $failedCount++;
                 }
+                if ($delayMs > 0) {
+                    usleep($delayMs * 1000);
+                }
             }
             if ($sentCount > 0 || $failedCount > 0) {
                 $subject    = 'Nouveau vin : ' . $data['label_name'] . ' ' . $data['vintage'];
@@ -267,10 +272,17 @@ class WineAdminController extends AdminController
                 $campaignId  = $newsletters->create($subject, null, $body, $imageUrl);
                 $newsletters->updateStats($campaignId, $sentCount, $failedCount);
             }
+        } elseif ((int) $data['available'] === 1 && !$newsletterEnabled) {
+            $subscribers = $this->accounts->getNewsletterSubscribers(10000, 0);
+            \Core\ErrorLogger::info(
+                '[NEW_WINE_NEWSLETTER_DISABLED] ' . count($subscribers) . ' abonnés non notifiés — NEW_WINE_NEWSLETTER_ENABLED=false'
+            );
         }
 
         $flashMsg = "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » ajouté avec succès.";
-        if ($sentCount > 0 || $failedCount > 0) {
+        if (!$newsletterEnabled && (int) $data['available'] === 1) {
+            $flashMsg .= ' Newsletter désactivée (NEW_WINE_NEWSLETTER_ENABLED=false).';
+        } elseif ($sentCount > 0 || $failedCount > 0) {
             $flashMsg .= " Newsletter : {$sentCount} envoyée(s), {$failedCount} échec(s).";
         }
         $this->flash('success', $flashMsg);
