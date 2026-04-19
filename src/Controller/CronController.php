@@ -15,7 +15,7 @@ use Core\CronRunner;
  *
  * Route : GET /cron/{job}?token={CRON_SECRET_TOKEN}
  */
-class CronController extends Controller
+class CronController extends Controller // NOSONAR php:S1448 — jobs cron volontairement regroupés ; split prévu GL sprint 12
 {
     private const CONTENT_TYPE = 'Content-Type: text/plain; charset=utf-8';
 
