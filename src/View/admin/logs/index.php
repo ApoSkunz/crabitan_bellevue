@@ -165,7 +165,7 @@
                                 <?php if (!empty($log['details'])) : ?>
                                     <?php
                                     $decoded = json_decode((string) $log['details'], true);
-                                    if (is_array($decoded)) :
+                                    if (is_array($decoded)) : // NOSONAR — php:S3973 : alternative syntax intentionnelle (template PHP)
                                     ?>
                                         <ul style="margin:0;padding-left:1rem;list-style:disc;">
                                             <?php foreach ($decoded as $k => $v) : ?>
