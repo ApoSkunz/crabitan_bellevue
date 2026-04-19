@@ -40,12 +40,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     {
         $this->mailer = new PHPMailer(true);
         $this->mailer->isSMTP();
-        $this->mailer->Host    = $_ENV['MAIL_HOST'] ?? 'crabitanbellevue.fr';
-        $this->mailer->Port    = (int) ($_ENV['MAIL_PORT'] ?? 25);
         $this->mailer->CharSet = 'UTF-8';
-
-        // Configuration initiale : canal TRANSACTIONNEL (noreply@)
-        // Chaque méthode send*() appelle applySmtpConfig() pour basculer sur le bon canal.
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
     }
 
@@ -64,15 +59,13 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
             MailChannel::CONTACT        => 'MAIL_CONTACT_',
         };
 
-        // USER/PASS spécifiques au canal — HOST/PORT/ENCRYPTION partagés via MAIL_*
-        $user     = $_ENV[$prefix . 'USER']       ?? '';
-        $pass     = $_ENV[$prefix . 'PASS']       ?? '';
-        $smtpHost = $_ENV[$prefix . 'HOST']       ?? ($_ENV['MAIL_HOST']       ?? 'crabitanbellevue.fr');
-        $port     = (int) ($_ENV[$prefix . 'PORT']       ?? ($_ENV['MAIL_PORT']       ?? 25));
-        $enc      = $_ENV[$prefix . 'ENCRYPTION'] ?? ($_ENV['MAIL_ENCRYPTION'] ?? '');
+        // HOST/PORT/ENCRYPTION partagés — USER/PASS spécifiques au canal
+        $user = $_ENV[$prefix . 'USER'] ?? '';
+        $pass = $_ENV[$prefix . 'PASS'] ?? '';
+        $enc  = $_ENV['MAIL_ENCRYPTION'] ?? '';
 
-        $this->mailer->Host = $smtpHost;
-        $this->mailer->Port = $port;
+        $this->mailer->Host = $_ENV['MAIL_HOST'] ?? 'crabitanbellevue.fr';
+        $this->mailer->Port = (int) ($_ENV['MAIL_PORT'] ?? 25);
 
         if ($user !== '') {
             $this->mailer->SMTPAuth   = true;
@@ -85,12 +78,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
             $this->mailer->SMTPAutoTLS = false;
         }
 
-        $appUrl      = $_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : self::DEFAULT_URL);
-        $parsedHost  = parse_url($appUrl, PHP_URL_HOST) ?? 'crabitanbellevue.fr';
-        $fromAddress = $user !== ''
-            ? $user
-            : ($_ENV['MAIL_FROM'] ?? ('noreply@' . $parsedHost));
-        $this->mailer->setFrom($fromAddress, $_ENV['MAIL_FROM_NAME'] ?? 'Crabitan Bellevue');
+        $this->mailer->setFrom($user !== '' ? $user : 'noreply@crabitanbellevue.fr', $_ENV['MAIL_FROM_NAME'] ?? 'Crabitan Bellevue');
     }
 
     public function sendEmailVerification(string $to, string $name, string $verifyUrl, string $lang): void

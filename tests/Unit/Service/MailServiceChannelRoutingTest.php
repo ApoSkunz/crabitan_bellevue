@@ -7,6 +7,7 @@ namespace Tests\Unit\Service;
 use Core\MailChannel;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPUnit\Framework\Attributes\BackupGlobals;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Service\MailService;
@@ -24,30 +25,21 @@ class MailServiceChannelRoutingTest extends TestCase
     {
         $this->reflection = new ReflectionClass(MailService::class);
 
-        $_ENV['MAIL_HOST']       = 'smtp.default.test';
+        // Partagé tous canaux
+        $_ENV['MAIL_HOST']       = 'smtp.shared.test';
         $_ENV['MAIL_PORT']       = '587';
         $_ENV['MAIL_ENCRYPTION'] = 'tls';
+        $_ENV['MAIL_FROM_NAME']  = 'Test';
 
-        $_ENV['MAIL_NOREPLY_USER'] = 'noreply@noreply.test';
-        $_ENV['MAIL_NOREPLY_PASS'] = 'pass-noreply';
-
-        $_ENV['MAIL_SECURITY_HOST']       = 'smtp.security.test';
-        $_ENV['MAIL_SECURITY_PORT']       = '587';
-        $_ENV['MAIL_SECURITY_USER']       = 'security@security.test';
-        $_ENV['MAIL_SECURITY_PASS']       = 'pass-security';
-        $_ENV['MAIL_SECURITY_ENCRYPTION'] = 'tls';
-
-        $_ENV['MAIL_NEWSLETTER_HOST']       = 'smtp.newsletter.test';
-        $_ENV['MAIL_NEWSLETTER_PORT']       = '587';
-        $_ENV['MAIL_NEWSLETTER_USER']       = 'newsletter@newsletter.test';
-        $_ENV['MAIL_NEWSLETTER_PASS']       = 'pass-newsletter';
-        $_ENV['MAIL_NEWSLETTER_ENCRYPTION'] = 'tls';
-
-        $_ENV['MAIL_CONTACT_HOST']       = 'smtp.contact.test';
-        $_ENV['MAIL_CONTACT_PORT']       = '587';
-        $_ENV['MAIL_CONTACT_USER']       = 'contact@contact.test';
-        $_ENV['MAIL_CONTACT_PASS']       = 'pass-contact';
-        $_ENV['MAIL_CONTACT_ENCRYPTION'] = 'tls';
+        // USER/PASS par canal
+        $_ENV['MAIL_NOREPLY_USER']      = 'noreply@noreply.test';
+        $_ENV['MAIL_NOREPLY_PASS']      = 'pass-noreply';
+        $_ENV['MAIL_SECURITY_USER']     = 'security@security.test';
+        $_ENV['MAIL_SECURITY_PASS']     = 'pass-security';
+        $_ENV['MAIL_NEWSLETTER_USER']   = 'newsletter@newsletter.test';
+        $_ENV['MAIL_NEWSLETTER_PASS']   = 'pass-newsletter';
+        $_ENV['MAIL_CONTACT_USER']      = 'contact@contact.test';
+        $_ENV['MAIL_CONTACT_PASS']      = 'pass-contact';
     }
 
     /**
@@ -77,69 +69,43 @@ class MailServiceChannelRoutingTest extends TestCase
     }
 
     /**
-     * Canal TRANSACTIONNEL utilise MAIL_NOREPLY_*.
+     * Tous les canaux partagent MAIL_HOST — seul USER/PASS diffèrent.
      */
-    public function testTransactionnelUsesNoreplySmtp(): void
+    #[DataProvider('channelProvider')]
+    public function testAllChannelsUseSharedHost(MailChannel $channel, string $expectedUser): void
     {
+        $service = new MailService();
+        $this->applyChannel($service, $channel);
+        $mailer = $this->getMailer($service);
+
+        $this->assertSame('smtp.shared.test', $mailer->Host);
+        $this->assertSame($expectedUser, $mailer->Username);
+    }
+
+    /**
+     * @return array<string, array{MailChannel, string}>
+     */
+    public static function channelProvider(): array
+    {
+        return [
+            'transactionnel' => [MailChannel::TRANSACTIONNEL, 'noreply@noreply.test'],
+            'security'       => [MailChannel::SECURITY,       'security@security.test'],
+            'newsletter'     => [MailChannel::NEWSLETTER,     'newsletter@newsletter.test'],
+            'contact'        => [MailChannel::CONTACT,        'contact@contact.test'],
+        ];
+    }
+
+    /**
+     * Sans MAIL_NOREPLY_USER → SMTPAuth désactivé, pas d'erreur.
+     */
+    public function testChannelWithoutUserDisablesSMTPAuth(): void
+    {
+        unset($_ENV['MAIL_NOREPLY_USER'], $_ENV['MAIL_NOREPLY_PASS']);
+
         $service = new MailService();
         $this->applyChannel($service, MailChannel::TRANSACTIONNEL);
         $mailer = $this->getMailer($service);
 
-        $this->assertSame('smtp.default.test', $mailer->Host);
-        $this->assertSame('noreply@noreply.test', $mailer->Username);
-    }
-
-    /**
-     * Canal SECURITY utilise MAIL_SECURITY_*.
-     */
-    public function testSecurityChannelUsesDedicatedSmtp(): void
-    {
-        $service = new MailService();
-        $this->applyChannel($service, MailChannel::SECURITY);
-        $mailer = $this->getMailer($service);
-
-        $this->assertSame('smtp.security.test', $mailer->Host);
-        $this->assertSame('security@security.test', $mailer->Username);
-    }
-
-    /**
-     * Canal NEWSLETTER utilise MAIL_NEWSLETTER_*.
-     */
-    public function testNewsletterChannelUsesDedicatedSmtp(): void
-    {
-        $service = new MailService();
-        $this->applyChannel($service, MailChannel::NEWSLETTER);
-        $mailer = $this->getMailer($service);
-
-        $this->assertSame('smtp.newsletter.test', $mailer->Host);
-        $this->assertSame('newsletter@newsletter.test', $mailer->Username);
-    }
-
-    /**
-     * Canal CONTACT utilise MAIL_CONTACT_*.
-     */
-    public function testContactChannelUsesDedicatedSmtp(): void
-    {
-        $service = new MailService();
-        $this->applyChannel($service, MailChannel::CONTACT);
-        $mailer = $this->getMailer($service);
-
-        $this->assertSame('smtp.contact.test', $mailer->Host);
-        $this->assertSame('contact@contact.test', $mailer->Username);
-    }
-
-    /**
-     * HOST partagé — MAIL_SECURITY_HOST absent utilise MAIL_HOST.
-     */
-    public function testChannelFallsBackToSharedHostWhenSpecificHostAbsent(): void
-    {
-        unset($_ENV['MAIL_SECURITY_HOST']);
-
-        $service = new MailService();
-        $this->applyChannel($service, MailChannel::SECURITY);
-        $mailer = $this->getMailer($service);
-
-        $this->assertSame('smtp.default.test', $mailer->Host);
-        $this->assertSame('security@security.test', $mailer->Username);
+        $this->assertFalse($mailer->SMTPAuth);
     }
 }
