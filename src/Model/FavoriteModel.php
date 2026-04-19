@@ -21,7 +21,7 @@ class FavoriteModel extends Model
      */
     public function getByUser(int $userId): array
     {
-        return $this->db->fetchAll(
+        $rows = $this->db->fetchAll(
             "SELECT f.wine_id, w.label_name AS name, w.slug, w.wine_color AS color,
                     w.vintage, w.price, w.image_path,
                     w.available, w.stock_quantity, w.is_cuvee_speciale
@@ -31,6 +31,12 @@ class FavoriteModel extends Model
              ORDER BY f.created_at DESC",
             [$userId]
         );
+        return array_map(static function (array $row): array {
+            if (isset($row['image_path']) && is_string($row['image_path'])) {
+                $row['image_path'] = str_replace(' ', '_', $row['image_path']);
+            }
+            return $row;
+        }, $rows);
     }
 
     /**

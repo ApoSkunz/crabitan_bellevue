@@ -22,6 +22,31 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
     private const SQL_AND          = ' AND ';
     private const COND_IMAGE       = "image_path IS NOT NULL AND image_path != ''";
 
+    /**
+     * Normalise image_path d'une ligne vin : remplace les espaces par des underscores.
+     * Nécessaire pour les données de seed où image_path contient des espaces alors que
+     * les fichiers physiques utilisent des underscores.
+     *
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private static function normalizeRow(array $row): array
+    {
+        if (isset($row['image_path']) && is_string($row['image_path'])) {
+            $row['image_path'] = str_replace(' ', '_', $row['image_path']);
+        }
+        return $row;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $rows
+     * @return array<int, array<string, mixed>>
+     */
+    private static function normalizeRows(array $rows): array
+    {
+        return array_map([self::class, 'normalizeRow'], $rows);
+    }
+
     /** @param string[] $conditions */
     private function buildWhereClause(array $conditions): string
     {
@@ -168,7 +193,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
                 " . $this->buildWhereClause($where) . "
                 ORDER BY {$orderBy}{$limitClause}";
 
-        return $this->db->fetchAll($sql, $params);
+        return self::normalizeRows($this->db->fetchAll($sql, $params));
     }
 
     /**
@@ -266,7 +291,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
         );
 
         $grouped = [];
-        foreach ($rows as $row) {
+        foreach (self::normalizeRows($rows) as $row) {
             $grouped[$row['wine_color']][] = $row;
         }
 
@@ -377,7 +402,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
             [$slug]
         );
 
-        return $row ?: null;
+        return $row ? self::normalizeRow($row) : null;
     }
 
     /**
@@ -387,7 +412,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
      */
     public function getLatest(int $limit = 3): array
     {
-        return $this->db->fetchAll(
+        return self::normalizeRows($this->db->fetchAll(
             "SELECT id, label_name, wine_color, vintage, price, production_quantity, stock_quantity,
                     available, image_path, slug,
                     oenological_comment_fr, oenological_comment_en
@@ -396,7 +421,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
              ORDER BY id DESC
              LIMIT ?",
             [$limit]
-        );
+        ));
     }
 
     /**
@@ -422,7 +447,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
             "SELECT image_path, slug FROM {$this->table} WHERE id = ?",
             [$id]
         );
-        return $row ?: null;
+        return $row ? self::normalizeRow($row) : null;
     }
 
     /**
@@ -442,7 +467,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
             "SELECT id, label_name, image_path, slug, price FROM {$this->table} WHERE id = ?",
             [$id]
         );
-        return $row ?: null;
+        return $row ? self::normalizeRow($row) : null;
     }
 
     /**
@@ -462,7 +487,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
             "SELECT image_path, slug FROM {$this->table} WHERE id = ?",
             [$id]
         );
-        return $row ?: null;
+        return $row ? self::normalizeRow($row) : null;
     }
 
     /**
@@ -485,10 +510,10 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
             return [];
         }
         $placeholders = implode(',', array_fill(0, count($pickedIds), '?'));
-        return $this->db->fetchAll(
+        return self::normalizeRows($this->db->fetchAll(
             "SELECT slug, image_path, label_name FROM {$this->table} WHERE id IN ({$placeholders})",
             $pickedIds
-        );
+        ));
     }
 
     // ----------------------------------------------------------------
@@ -514,7 +539,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
              FROM {$this->table} WHERE id = ?",
             [$id]
         );
-        return $row ?: null;
+        return $row ? self::normalizeRow($row) : null;
     }
 
     /**
@@ -543,7 +568,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
         $params[]    = $limit;
         $params[]    = $offset;
 
-        return $this->db->fetchAll(
+        return self::normalizeRows($this->db->fetchAll(
             "SELECT id, label_name, wine_color, format, vintage, price,
                     production_quantity, stock_quantity, available, image_path, slug, is_cuvee_speciale, featured
              FROM {$this->table}
@@ -551,7 +576,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
              ORDER BY available DESC, featured DESC, id DESC
              LIMIT ? OFFSET ?",
             $params
-        );
+        ));
     }
 
     public function countForAdmin(?string $color, ?string $available = null): int
@@ -843,7 +868,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
             "SELECT {$cols} FROM {$this->table} WHERE featured = 1 AND available = 1 LIMIT 1"
         );
         if ($row) {
-            return $row;
+            return self::normalizeRow($row);
         }
 
         // 2. Fallback : cuvée spéciale disponible
@@ -851,14 +876,14 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
             "SELECT {$cols} FROM {$this->table} WHERE is_cuvee_speciale = 1 AND available = 1 ORDER BY vintage DESC LIMIT 1"
         );
         if ($row) {
-            return $row;
+            return self::normalizeRow($row);
         }
 
         // 3. Fallback : vin disponible le plus récent
         $row = $this->db->fetchOne(
             "SELECT {$cols} FROM {$this->table} WHERE available = 1 ORDER BY id DESC LIMIT 1"
         );
-        return $row ?: null;
+        return $row ? self::normalizeRow($row) : null;
     }
 
     /**
