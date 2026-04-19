@@ -1,7 +1,8 @@
 // Reset moderne (inspiré de Andy Bell's modern CSS reset)
 
 // Skip-link WCAG 2.1 A / RGAA 12.7 — visible uniquement au focus clavier
-// position:fixed + transform évite le bug overflow:hidden sur html/body qui coupe top:-9999px
+// Double technique : clip-path masque visuellement + translateY(-100%) sort du viewport
+// Évite le bug overflow:hidden sur html/body qui coupe top:-9999px
 .skip-link {
     position: fixed;
     top: 0;
@@ -13,9 +14,16 @@
     font-weight: 600;
     text-decoration: none;
     transform: translateY(-100%);
+    // clip-path garantit l'invisibilité même si un ancêtre crée un stacking context
+    // qui empêcherait le translateY de sortir du viewport
+    clip-path: inset(100%);
+    white-space: nowrap;
+    overflow: hidden;
+    transition: transform 150ms ease, clip-path 150ms ease;
 
     &:focus {
         transform: translateY(0);
+        clip-path: inset(0%);
     }
 }
 

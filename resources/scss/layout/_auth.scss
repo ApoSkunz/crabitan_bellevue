@@ -159,12 +159,11 @@
 
 // ---- Form groups (reset-password) ----
 
-// fieldset + display:flex = bug rendu Chrome/Safari — override ici après .form-group
-fieldset.form-group--radio {
-    display: block;
-    border: none;
-    padding: 0;
-    margin: 0;
+// Groupe radio — div[role="group"] (RGAA valide, évite les quirks fieldset+flex)
+.form-group--radio {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     width: 100%;
     text-align: left;
 }

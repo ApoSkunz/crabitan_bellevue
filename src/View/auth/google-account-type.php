@@ -20,8 +20,10 @@ require_once __DIR__ . '/../partials/header.php';
 
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
 
-            <fieldset class="form-group form-group--radio">
-                <legend class="sr-only"><?= htmlspecialchars(__('form.account_type')) ?></legend>
+            <div role="group"
+                 aria-labelledby="account-type-legend"
+                 class="form-group--radio">
+                <span id="account-type-legend" class="sr-only"><?= htmlspecialchars(__('form.account_type')) ?></span>
 
                 <label class="radio-label">
                     <input type="radio" name="account_type" value="individual" checked>
@@ -32,7 +34,7 @@ require_once __DIR__ . '/../partials/header.php';
                     <input type="radio" name="account_type" value="company" id="type-company">
                     <?= htmlspecialchars(__('form.account_type.company')) ?>
                 </label>
-            </fieldset>
+            </div>
 
             <div class="form-group" id="company-name-group" style="display:none">
                 <label class="form-label" for="company_name">
