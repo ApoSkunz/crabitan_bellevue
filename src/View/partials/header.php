@@ -390,6 +390,7 @@ document.addEventListener('DOMContentLoaded', function () {
     aria-hidden="true"
     role="dialog"
     aria-modal="true"
+    data-nosnippet
     aria-labelledby="login-modal-title"
 >
     <div class="login-modal__backdrop" id="login-modal-backdrop"></div>
@@ -525,6 +526,7 @@ document.addEventListener('DOMContentLoaded', function () {
     aria-hidden="true"
     role="dialog"
     aria-modal="true"
+    data-nosnippet
     aria-labelledby="register-modal-title"
 >
     <div class="register-modal__backdrop" id="register-modal-backdrop"></div>
