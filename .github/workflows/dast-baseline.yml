@@ -2,7 +2,7 @@ name: DAST — Baseline Scan (prod)
 
 on:
   schedule:
-    - cron: '0 3 1-7 * 6'  # premier samedi du mois, 03h00 UTC
+    - cron: '0 3 * * 0'  # tous les dimanches, 03h00 UTC
   workflow_dispatch:
 
 permissions: read-all
