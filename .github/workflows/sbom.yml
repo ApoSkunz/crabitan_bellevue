@@ -43,7 +43,7 @@ jobs:
 
       - name: Generate PHP SBOM (CycloneDX JSON)
         run: |
-          composer make-bom \
+          composer CycloneDX:make-bom \
             --output-format=JSON \
             --output-file=sbom-php.cdx.json \
             --no-interaction
