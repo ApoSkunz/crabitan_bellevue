@@ -33,7 +33,7 @@ class FavoriteModel extends Model
         );
         return array_map(static function (array $row): array {
             if (isset($row['image_path']) && is_string($row['image_path'])) {
-                $row['image_path'] = str_replace(' ', '_', $row['image_path']);
+                $row['image_path'] = str_replace([' ', "'"], '_', $row['image_path']);
             }
             return $row;
         }, $rows);

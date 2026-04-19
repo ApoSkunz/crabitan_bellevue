@@ -327,7 +327,7 @@ class CartModel extends Model
                 'wine_id'    => $wineId,
                 'label_name' => (string) ($wine['label_name'] ?? ''),
                 'vintage'    => (int) ($wine['vintage'] ?? 0),
-                'image_path' => str_replace(' ', '_', (string) ($wine['image_path'] ?? '')),
+                'image_path' => str_replace([' ', "'"], '_', (string) ($wine['image_path'] ?? '')),
                 'price'      => (float) ($wine['price'] ?? 0.0),
                 'qty'        => (int) ($item['qty'] ?? 0),
             ];

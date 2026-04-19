@@ -23,9 +23,9 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
     private const COND_IMAGE       = "image_path IS NOT NULL AND image_path != ''";
 
     /**
-     * Normalise image_path d'une ligne vin : remplace les espaces par des underscores.
-     * Nécessaire pour les données de seed où image_path contient des espaces alors que
-     * les fichiers physiques utilisent des underscores.
+     * Normalise image_path d'une ligne vin : remplace espaces et apostrophes par underscores.
+     * Nécessaire pour les données de seed où image_path contient des espaces/apostrophes
+     * ("Vin de Pays de l'Atlantique") alors que les fichiers physiques utilisent des underscores.
      *
      * @param array<string, mixed> $row
      * @return array<string, mixed>
@@ -33,7 +33,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
     private static function normalizeRow(array $row): array
     {
         if (isset($row['image_path']) && is_string($row['image_path'])) {
-            $row['image_path'] = str_replace(' ', '_', $row['image_path']);
+            $row['image_path'] = str_replace([' ', "'"], '_', $row['image_path']);
         }
         return $row;
     }
