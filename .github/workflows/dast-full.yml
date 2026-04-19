@@ -82,6 +82,7 @@ jobs:
           MAIL_USER=noreply@crabitanbellevue.fr
           MAIL_PASS=unused
           MAIL_FROM_NAME="Crabitan Bellevue"
+          MFA_EMAIL_ENABLED=false
           CONTACT_OWNER_EMAIL=owner@crabitanbellevue.fr
           DPO_EMAIL=dpo@crabitanbellevue.fr
           SECURITY_EMAIL=security@crabitanbellevue.fr
@@ -109,10 +110,13 @@ jobs:
         run: |
           BASE="http://localhost:8080"
 
-          # age_verified=1 requis : sans ce cookie, l'age-gate intercepte la page login
-          # et le formulaire avec csrf_token n'est jamais rendu côté HTML
+          # Pré-seed cookie jar au format Netscape : age_verified + device_token persistent
+          # à travers les redirects -L (--cookie "k=v" ne persiste pas après redirect)
+          printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tage_verified\t1\n' > /tmp/cookies-customer.txt
+          printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tdevice_token\tmock-jwt-sophie-active-001\n' >> /tmp/cookies-customer.txt
+
           curl -s \
-            --cookie "age_verified=1" \
+            -b /tmp/cookies-customer.txt \
             -c /tmp/cookies-customer.txt \
             "$BASE/fr" > /tmp/login.html
 
@@ -122,7 +126,6 @@ jobs:
           curl -s \
             -b /tmp/cookies-customer.txt \
             -c /tmp/cookies-customer.txt \
-            --cookie "device_token=mock-jwt-sophie-active-001; age_verified=1" \
             --data-urlencode "email=client.verifie@dev.local" \
             --data-urlencode "password=Dev123456789!" \
             --data-urlencode "csrf_token=$CSRF" \
@@ -144,10 +147,15 @@ jobs:
         uses: zaproxy/action-full-scan@v0.11.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
           target: 'http://${{ steps.host-ip.outputs.ip }}:8080'
-          auth_header: 'Cookie: auth_token=${{ steps.auth-customer.outputs.token }}; age_verified=1'
           rules_file_name: '.zap/rules.tsv'
           fail_action: false
-          cmd_options: '-config network.connection.timeoutInSecs=20'
+          cmd_options: >-
+            -config network.connection.timeoutInSecs=20
+            -config "replacer.full_list(0).description=auth-customer"
+            -config "replacer.full_list(0).enabled=true"
+            -config "replacer.full_list(0).matchtype=REQ_HEADER"
+            -config "replacer.full_list(0).matchstr=Cookie"
+            -config "replacer.full_list(0).replacement=auth_token=${{ steps.auth-customer.outputs.token }};age_verified=1"
           issue_title: '[DAST] ZAP Full Scan (customer) — alertes'
           token: ${{ secrets.GITHUB_TOKEN }}
           artifact_name: zap-full-customer-${{ github.run_number }}
@@ -158,8 +166,12 @@ jobs:
         run: |
           BASE="http://localhost:8080"
 
+          # Pré-seed cookie jar au format Netscape : age_verified + device_token persistent
+          printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tage_verified\t1\n' > /tmp/cookies-admin.txt
+          printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tdevice_token\tmock-jwt-admin-active-001\n' >> /tmp/cookies-admin.txt
+
           curl -s \
-            --cookie "age_verified=1" \
+            -b /tmp/cookies-admin.txt \
             -c /tmp/cookies-admin.txt \
             "$BASE/fr" > /tmp/login.html
 
@@ -169,7 +181,6 @@ jobs:
           curl -s \
             -b /tmp/cookies-admin.txt \
             -c /tmp/cookies-admin.txt \
-            --cookie "device_token=mock-jwt-admin-active-001; age_verified=1" \
             --data-urlencode "email=admin@dev.local" \
             --data-urlencode "password=Dev123456789!" \
             --data-urlencode "csrf_token=$CSRF" \
@@ -191,10 +202,15 @@ jobs:
         uses: zaproxy/action-full-scan@v0.11.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
           target: 'http://${{ steps.host-ip.outputs.ip }}:8080/admin'
-          auth_header: 'Cookie: auth_token=${{ steps.auth-admin.outputs.token }}; age_verified=1'
           rules_file_name: '.zap/rules.tsv'
           fail_action: false
-          cmd_options: '-config network.connection.timeoutInSecs=20'
+          cmd_options: >-
+            -config network.connection.timeoutInSecs=20
+            -config "replacer.full_list(0).description=auth-admin"
+            -config "replacer.full_list(0).enabled=true"
+            -config "replacer.full_list(0).matchtype=REQ_HEADER"
+            -config "replacer.full_list(0).matchstr=Cookie"
+            -config "replacer.full_list(0).replacement=auth_token=${{ steps.auth-admin.outputs.token }};age_verified=1"
           issue_title: '[DAST] ZAP Full Scan (admin) — alertes'
           token: ${{ secrets.GITHUB_TOKEN }}
           artifact_name: zap-full-admin-${{ github.run_number }}
