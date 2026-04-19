@@ -139,7 +139,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                                             height="420"
                                         >
                                     </picture>
-                                    <?php if (!$wine['available']) : ?>
+                                    <?php if (!$wine['available'] || (int) ($wine['stock_quantity'] ?? 0) === 0) : ?>
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
                                         </span>

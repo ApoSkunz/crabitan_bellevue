@@ -526,6 +526,9 @@ class WineAdminController extends AdminController
         $quantity      = (int) $r->post('production_quantity', 0);
         $stockQuantity = (int) $r->post('stock_quantity', 0);
         $available = $r->post('available', '0') === '1' ? 1 : 0;
+        if ($stockQuantity === 0) {
+            $available = 0;
+        }
         $certLabel = trim($r->post('certification_label', ''));
         $area          = (float) str_replace(',', '.', $r->post('area', '0'));
         $city          = trim($r->post('city', ''));
@@ -546,6 +549,9 @@ class WineAdminController extends AdminController
         }
         if ($stockQuantity < 0) {
             $errors['stock_quantity'] = 'Stock invalide.';
+        }
+        if ($stockQuantity === 0 && $r->post('available', '0') === '1') {
+            $errors['available'] = 'Stock à 0 — impossible de mettre le vin en vente.';
         }
         if (!in_array($certLabel, self::CERT_LABELS, true)) {
             $errors['certification_label'] = 'Appellation invalide. Valeurs autorisées : ' . implode(', ', self::CERT_LABELS) . '.';

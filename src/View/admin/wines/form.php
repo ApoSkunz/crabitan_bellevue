@@ -209,6 +209,9 @@ $maxYear = (int) date('Y');
                     <input type="checkbox" id="available" name="available" value="1"
                            <?= ($wine['available'] ?? 1) ? 'checked' : '' ?>>
                     <label for="available">Disponible à la vente</label>
+                    <?php if (!empty($errors['available'])) : ?>
+                        <span class="admin-field__error"><?= htmlspecialchars($errors['available']) ?></span>
+                    <?php endif; ?>
                 </div>
                 <div class="admin-field__check">
                     <input type="hidden" name="is_cuvee_speciale" value="0">
