@@ -316,14 +316,19 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
      */
     private function doJobSendDeletionReminders(callable $log, bool $dryRun): void
     {
-        $model  = new \Model\AccountModel();
-        $mailer = new \Service\MailService();
-        $sent   = 0;
+        $model   = new \Model\AccountModel();
+        $mailer  = new \Service\MailService();
+        $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+        $sent    = 0;
 
         foreach ([7, 1] as $days) {
             $accounts = $model->getAccountsPendingDeletionReminder($days);
             foreach ($accounts as $account) {
-                $sent += $this->doSendReminderForAccount($log, $dryRun, $account, $days, $model, $mailer);
+                $result = $this->doSendReminderForAccount($log, $dryRun, $account, $days, $model, $mailer);
+                $sent  += $result;
+                if ($result === 1 && $delayMs > 0) {
+                    usleep($delayMs * 1000);
+                }
             }
         }
 
