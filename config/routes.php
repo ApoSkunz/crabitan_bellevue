@@ -125,6 +125,8 @@ $router->get('/{lang}/actualites/{slug}', 'NewsController@show');
 // Auth
 $router->get('/{lang}/auth/google', 'GoogleOAuthController@authorize');
 $router->get('/{lang}/auth/google/callback', 'GoogleOAuthController@callback');
+$router->get('/{lang}/auth/google/type-compte', 'GoogleOAuthController@accountTypePending');
+$router->post('/{lang}/auth/google/type-compte', 'GoogleOAuthController@accountTypeSubmit');
 $router->get('/{lang}/auth/google/link', 'GoogleOAuthController@linkConfirm');
 $router->get('/{lang}/auth/google/link/verify', 'GoogleOAuthController@linkVerifyByToken');
 $router->post('/{lang}/auth/google/link', 'GoogleOAuthController@linkConfirmPost');

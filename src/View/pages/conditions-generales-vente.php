@@ -43,6 +43,15 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             GFA Bernard Solane &amp; Fils n'a pas vocation à vendre à des professionnels via son site ;
             pour toute demande professionnelle, merci de nous contacter directement.
         </p>
+        <p>
+            <strong>Vente exclusivement aux consommateurs finals (B2C).</strong>
+            Le présent site est réservé aux acheteurs agissant en qualité de consommateurs au sens de l'article
+            liminaire du Code de la consommation, c'est-à-dire toute personne physique qui agit à des fins qui
+            n'entrent pas dans le cadre de son activité commerciale, industrielle, artisanale, libérale ou agricole.
+            Les professionnels souhaitant s'approvisionner sont invités à nous contacter directement ; leurs achats
+            ne bénéficieront pas du régime protecteur du droit de la consommation (droit de rétractation, garanties
+            légales de conformité).
+        </p>
 
         <h2>II. Prix</h2>
 
@@ -383,6 +392,13 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             in your country of residence.
             GFA Bernard Solane &amp; Fils does not sell to professionals through this website;
             for trade enquiries, please contact us directly.
+        </p>
+        <p>
+            <strong>Business-to-consumer (B2C) sales only.</strong>
+            This website is exclusively intended for end consumers acting for purposes outside their trade,
+            business, craft or profession. Professionals wishing to place trade orders are invited to contact
+            us directly; purchases made in a professional capacity do not benefit from consumer protection rights
+            (right of withdrawal, statutory conformity warranty).
         </p>
 
         <h2>II. Prices</h2>

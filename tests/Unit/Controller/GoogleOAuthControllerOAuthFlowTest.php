@@ -337,12 +337,10 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
     // callback() — cas 3 : email inconnu → création de compte
     // ----------------------------------------------------------------
 
-    public function testCallbackWithUnknownEmailCreatesAccount(): void
+    public function testCallbackWithUnknownEmailStoresPendingSessionAndRedirects(): void
     {
         $_GET     = ['code' => 'valid-code', 'state' => 'valid-state'];
         $_SESSION = ['oauth_google_state' => 'valid-state'];
-
-        $newAccount = ['id' => 55, 'role' => 'customer', 'lang' => 'fr', 'email' => 'new@example.com', 'firstname' => 'New'];
 
         $ctrl = $this->makeController();
 
@@ -358,26 +356,24 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
 
         $accountsMock = $this->createStub(AccountModel::class);
         $accountsMock->method('findByGoogleId')->willReturn(false);
+        $accountsMock->method('findDeletedByGoogleId')->willReturn(false);
         $accountsMock->method('findByEmail')->willReturn(false);
-        $accountsMock->method('createFromGoogle')->willReturn(55);
-        $accountsMock->method('findById')->willReturn($newAccount);
-        // updateLang() et markAsConnected() retournent void — createStub les gère sans configuration
+        $accountsMock->method('findDeletedByEmail')->willReturn(false);
 
         $accountsProp = new \ReflectionProperty(GoogleOAuthController::class, 'accounts');
         $accountsProp->setValue($ctrl, $accountsMock);
-
-        $connsMock = $this->createStub(ConnectionModel::class);
-        // create() retourne void — createStub le gère sans configuration
-
-        $connsProp = new \ReflectionProperty(GoogleOAuthController::class, 'connections');
-        $connsProp->setValue($ctrl, $connsMock);
 
         try {
             $ctrl->callback(['lang' => 'fr']);
         } catch (HttpException) {
         }
 
-        $this->assertTrue(true); // flux atteint issueSession sans erreur
+        // Cas 3 : session pending stockée, redirection vers le formulaire de type de compte
+        // Inspection via JSON pour éviter les contraintes PHPStan sur la shape figée de $_SESSION.
+        $sessionJson = json_encode($_SESSION) ?: '';
+        $this->assertStringContainsString('"oauth_google_pending"', $sessionJson);
+        $this->assertStringContainsString('"new@example.com"', $sessionJson);
+        $this->assertStringContainsString('"g-new"', $sessionJson);
     }
 
     // ----------------------------------------------------------------
@@ -418,5 +414,152 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
         } catch (HttpException $e) {
             $this->assertStringContainsString('login=1', (string) $e->location);
         }
+    }
+
+    // ----------------------------------------------------------------
+    // accountTypePending() — GET /{lang}/auth/google/type-compte
+    // ----------------------------------------------------------------
+
+    public function testAccountTypePendingRedirectsWhenNoPendingSession(): void
+    {
+        $_SESSION = [];
+
+        try {
+            $this->makeController()->accountTypePending(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertStringContainsString('login=1', (string) $e->location);
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // accountTypeSubmit() — POST /{lang}/auth/google/type-compte
+    // ----------------------------------------------------------------
+
+    public function testAccountTypeSubmitRedirectsWhenNoPendingSession(): void
+    {
+        $_SESSION = [];
+        $_POST    = [];
+
+        try {
+            $this->makeController()->accountTypeSubmit(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertStringContainsString('login=1', (string) $e->location);
+        }
+    }
+
+    public function testAccountTypeSubmitRedirectsOnInvalidCsrf(): void
+    {
+        $_SESSION = [
+            'csrf'                  => 'valid-csrf-token',
+            'oauth_google_pending'  => [
+                'email'     => 'test@example.com',
+                'google_id' => 'g-123',
+                'lang'      => 'fr',
+                'firstname' => 'Test',
+                'lastname'  => 'User',
+            ],
+        ];
+        $_POST = ['csrf_token' => 'wrong-token', 'account_type' => 'individual'];
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        try {
+            $this->makeController()->accountTypeSubmit(['lang' => 'fr']);
+            $this->fail('Expected HttpException');
+        } catch (HttpException $e) {
+            $this->assertStringContainsString('type-compte', (string) $e->location);
+        }
+    }
+
+    public function testAccountTypeSubmitCreatesIndividualAccountAndIssuesSession(): void
+    {
+        $_SESSION = [
+            'csrf'                 => 'valid-csrf-token',
+            'oauth_google_pending' => [
+                'email'     => 'new@example.com',
+                'google_id' => 'g-456',
+                'lang'      => 'fr',
+                'firstname' => 'Alice',
+                'lastname'  => 'Dupont',
+            ],
+        ];
+        $_POST = ['csrf_token' => 'valid-csrf-token', 'account_type' => 'individual', 'company_name' => ''];
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $ctrl = $this->makeController();
+
+        $accountsMock = $this->createStub(AccountModel::class);
+        $accountsMock->method('createFromGoogle')->willReturn(99);
+        $accountsMock->method('findById')->willReturn([
+            'id' => 99, 'role' => 'customer', 'lang' => 'fr',
+            'email' => 'new@example.com', 'firstname' => 'Alice',
+        ]);
+
+        $accountsProp = new \ReflectionProperty(GoogleOAuthController::class, 'accounts');
+        $accountsProp->setValue($ctrl, $accountsMock);
+
+        $connsMock = $this->createStub(ConnectionModel::class);
+        $connsProp = new \ReflectionProperty(GoogleOAuthController::class, 'connections');
+        $connsProp->setValue($ctrl, $connsMock);
+
+        try {
+            $ctrl->accountTypeSubmit(['lang' => 'fr']);
+        } catch (HttpException) {
+        }
+
+        // Pending session doit être effacé
+        $this->assertArrayNotHasKey('oauth_google_pending', $_SESSION);
+    }
+
+    public function testAccountTypeSubmitCreatesCompanyAccountWithCompanyName(): void
+    {
+        $_SESSION = [
+            'csrf'                 => 'valid-csrf-token',
+            'oauth_google_pending' => [
+                'email'     => 'pro@example.com',
+                'google_id' => 'g-789',
+                'lang'      => 'fr',
+                'firstname' => 'Jean',
+                'lastname'  => 'Martin',
+            ],
+        ];
+        $_POST = ['csrf_token' => 'valid-csrf-token', 'account_type' => 'company', 'company_name' => 'SARL Dupont'];
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $ctrl = $this->makeController();
+
+        $createCapture = null;
+        $accountsMock  = $this->createMock(AccountModel::class);
+        $accountsMock->expects($this->once())
+            ->method('createFromGoogle')
+            ->with(
+                'pro@example.com',
+                'g-789',
+                'fr',
+                'Jean',
+                'Martin',
+                'company',
+                'SARL Dupont'
+            )
+            ->willReturn(100);
+        $accountsMock->method('findById')->willReturn([
+            'id' => 100, 'role' => 'customer', 'lang' => 'fr',
+            'email' => 'pro@example.com', 'company_name' => 'SARL Dupont',
+        ]);
+
+        $accountsProp = new \ReflectionProperty(GoogleOAuthController::class, 'accounts');
+        $accountsProp->setValue($ctrl, $accountsMock);
+
+        $connsMock = $this->createStub(ConnectionModel::class);
+        $connsProp = new \ReflectionProperty(GoogleOAuthController::class, 'connections');
+        $connsProp->setValue($ctrl, $connsMock);
+
+        try {
+            $ctrl->accountTypeSubmit(['lang' => 'fr']);
+        } catch (HttpException) {
+        }
+
+        $this->assertArrayNotHasKey('oauth_google_pending', $_SESSION);
     }
 }
