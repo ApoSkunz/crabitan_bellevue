@@ -91,6 +91,7 @@ class CronControllerTest extends IntegrationTestCase
             'alert-pending-orders'           => ['alert-pending-orders'],
             'clean-expired-tokens'           => ['clean-expired-tokens'],
             'purge-newsletter-tracking'      => ['purge-newsletter-tracking'],
+            'send-newsletter-queue'          => ['send-newsletter-queue'],
         ];
     }
 
@@ -392,5 +393,74 @@ class CronControllerTest extends IntegrationTestCase
 
         $this->assertSame(200, http_response_code());
         $this->assertStringContainsString('Paniers', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-queue — file vide → log clair
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterQueueEmptyQueueReturns200(): void
+    {
+        $output = $this->runJob('send-newsletter-queue', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('vide', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-queue — dry_run avec données en file
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterQueueDryRunWithPendingItemsLogsEach(): void
+    {
+        $wineId = self::insertTestWine('cron-nl-queue-test', 'red', 'Vin Queue Test');
+
+        $nlId = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_at) VALUES (?, '<p>Test</p>', NOW())",
+            ['Test newsletter queue']
+        );
+
+        self::$db->execute(
+            'INSERT INTO newsletter_send_queue
+             (newsletter_id, wine_id, recipient_email, recipient_name, unsub_token, lang)
+             VALUES (?, ?, ?, ?, ?, ?)',
+            [$nlId, $wineId, 'sub@test.local', 'Abonné Test', 'tok-abc', 'fr']
+        );
+
+        $output = $this->runJob('send-newsletter-queue', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
+        $this->assertStringContainsString('sub@test.local', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-queue — vin introuvable → markFailed + log SKIP
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterQueueMarksFailedWhenWineNotFound(): void
+    {
+        $nlId = (int) self::$db->insert(
+            "INSERT INTO newsletters (subject, body, sent_at) VALUES (?, '<p>Test</p>', NOW())",
+            ['Test newsletter missing wine']
+        );
+
+        // wine_id=999999 n'existe pas
+        self::$db->execute(
+            'INSERT INTO newsletter_send_queue
+             (newsletter_id, wine_id, recipient_email, recipient_name, unsub_token, lang)
+             VALUES (?, ?, ?, ?, ?, ?)',
+            [$nlId, 999999, 'sub2@test.local', 'Abonné 2', 'tok-xyz', 'fr']
+        );
+
+        $output = $this->runJob('send-newsletter-queue', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('SKIP', $output);
+
+        $row = self::$db->fetchOne(
+            "SELECT status FROM newsletter_send_queue WHERE recipient_email = 'sub2@test.local'"
+        );
+        $this->assertSame('failed', $row['status'] ?? '');
     }
 }
