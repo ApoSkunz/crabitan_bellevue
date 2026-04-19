@@ -144,8 +144,7 @@ class NewsletterModelTest extends TestCase
                 $this->callback(fn ($p) =>
                     $p[5] === 'Subject EN'
                     && $p[6] === 'Title EN'
-                    && $p[7] === 'Body EN'
-                )
+                    && $p[7] === 'Body EN')
             )
             ->willReturn('9');
 
@@ -169,8 +168,7 @@ class NewsletterModelTest extends TestCase
             ->with(
                 $this->anything(),
                 $this->callback(fn ($p) =>
-                    $p[5] === null && $p[6] === null && $p[7] === null
-                )
+                    $p[5] === null && $p[6] === null && $p[7] === null)
             )
             ->willReturn('10');
 
