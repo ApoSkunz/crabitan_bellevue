@@ -38,33 +38,15 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
     public function __construct()
     {
-        $mailUser = $_ENV['MAIL_USER'] ?? '';
-        $mailPass = $_ENV['MAIL_PASS'] ?? '';
-        $encryption = $_ENV['MAIL_ENCRYPTION'] ?? '';
-
         $this->mailer = new PHPMailer(true);
         $this->mailer->isSMTP();
         $this->mailer->Host    = $_ENV['MAIL_HOST'] ?? 'crabitanbellevue.fr';
         $this->mailer->Port    = (int) ($_ENV['MAIL_PORT'] ?? 25);
         $this->mailer->CharSet = 'UTF-8';
 
-        if ($mailUser !== '') {
-            $this->mailer->SMTPAuth   = true;
-            $this->mailer->Username   = $mailUser;
-            $this->mailer->Password   = $mailPass;
-            $this->mailer->SMTPSecure = $encryption !== '' ? $encryption : PHPMailer::ENCRYPTION_STARTTLS;
-        } else {
-            $this->mailer->SMTPAuth   = false;
-            $this->mailer->SMTPSecure = '';
-            $this->mailer->SMTPAutoTLS = false;
-        }
-
-        $appUrl      = $_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : self::DEFAULT_URL);
-        $host        = parse_url($appUrl, PHP_URL_HOST) ?? 'crabitanbellevue.fr';
-        $fromAddress = $mailUser !== ''
-            ? $mailUser
-            : ($_ENV['MAIL_FROM'] ?? ('noreply@' . $host));
-        $this->mailer->setFrom($fromAddress, $_ENV['MAIL_FROM_NAME'] ?? 'Crabitan Bellevue');
+        // Configuration initiale : canal TRANSACTIONNEL (noreply@)
+        // Chaque méthode send*() appelle applySmtpConfig() pour basculer sur le bon canal.
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
     }
 
     /**
@@ -76,25 +58,18 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private function applySmtpConfig(MailChannel $channel): void
     {
         $prefix = match ($channel) {
-            MailChannel::SECURITY      => 'MAIL_SECURITY_',
-            MailChannel::NEWSLETTER    => 'MAIL_NEWSLETTER_',
-            MailChannel::CONTACT       => 'MAIL_CONTACT_',
-            MailChannel::TRANSACTIONNEL => null,
+            MailChannel::TRANSACTIONNEL => 'MAIL_NOREPLY_',
+            MailChannel::SECURITY       => 'MAIL_SECURITY_',
+            MailChannel::NEWSLETTER     => 'MAIL_NEWSLETTER_',
+            MailChannel::CONTACT        => 'MAIL_CONTACT_',
         };
 
-        if ($prefix !== null) {
-            $user     = $_ENV[$prefix . 'USER']       ?? ($_ENV['MAIL_USER']       ?? '');
-            $pass     = $_ENV[$prefix . 'PASS']       ?? ($_ENV['MAIL_PASS']       ?? '');
-            $smtpHost = $_ENV[$prefix . 'HOST']       ?? ($_ENV['MAIL_HOST']       ?? 'crabitanbellevue.fr');
-            $port     = (int) ($_ENV[$prefix . 'PORT']       ?? ($_ENV['MAIL_PORT']       ?? 25));
-            $enc      = $_ENV[$prefix . 'ENCRYPTION'] ?? ($_ENV['MAIL_ENCRYPTION'] ?? '');
-        } else {
-            $user     = $_ENV['MAIL_USER']       ?? '';
-            $pass     = $_ENV['MAIL_PASS']       ?? '';
-            $smtpHost = $_ENV['MAIL_HOST']       ?? 'crabitanbellevue.fr';
-            $port     = (int) ($_ENV['MAIL_PORT']       ?? 25);
-            $enc      = $_ENV['MAIL_ENCRYPTION'] ?? '';
-        }
+        // USER/PASS spécifiques au canal — HOST/PORT/ENCRYPTION partagés via MAIL_*
+        $user     = $_ENV[$prefix . 'USER']       ?? '';
+        $pass     = $_ENV[$prefix . 'PASS']       ?? '';
+        $smtpHost = $_ENV[$prefix . 'HOST']       ?? ($_ENV['MAIL_HOST']       ?? 'crabitanbellevue.fr');
+        $port     = (int) ($_ENV[$prefix . 'PORT']       ?? ($_ENV['MAIL_PORT']       ?? 25));
+        $enc      = $_ENV[$prefix . 'ENCRYPTION'] ?? ($_ENV['MAIL_ENCRYPTION'] ?? '');
 
         $this->mailer->Host = $smtpHost;
         $this->mailer->Port = $port;

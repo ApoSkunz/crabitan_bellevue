@@ -26,9 +26,10 @@ class MailServiceChannelRoutingTest extends TestCase
 
         $_ENV['MAIL_HOST']       = 'smtp.default.test';
         $_ENV['MAIL_PORT']       = '587';
-        $_ENV['MAIL_USER']       = 'noreply@default.test';
-        $_ENV['MAIL_PASS']       = 'pass-default';
         $_ENV['MAIL_ENCRYPTION'] = 'tls';
+
+        $_ENV['MAIL_NOREPLY_USER'] = 'noreply@noreply.test';
+        $_ENV['MAIL_NOREPLY_PASS'] = 'pass-noreply';
 
         $_ENV['MAIL_SECURITY_HOST']       = 'smtp.security.test';
         $_ENV['MAIL_SECURITY_PORT']       = '587';
@@ -76,16 +77,16 @@ class MailServiceChannelRoutingTest extends TestCase
     }
 
     /**
-     * Canal TRANSACTIONNEL utilise les variables MAIL_* de base.
+     * Canal TRANSACTIONNEL utilise MAIL_NOREPLY_*.
      */
-    public function testTransactionnelUsesDefaultSmtp(): void
+    public function testTransactionnelUsesNoreplySmtp(): void
     {
         $service = new MailService();
         $this->applyChannel($service, MailChannel::TRANSACTIONNEL);
         $mailer = $this->getMailer($service);
 
         $this->assertSame('smtp.default.test', $mailer->Host);
-        $this->assertSame('noreply@default.test', $mailer->Username);
+        $this->assertSame('noreply@noreply.test', $mailer->Username);
     }
 
     /**
@@ -128,65 +129,17 @@ class MailServiceChannelRoutingTest extends TestCase
     }
 
     /**
-     * Fallback : si MAIL_SECURITY_USER absent, utilise MAIL_USER.
+     * HOST partagé — MAIL_SECURITY_HOST absent utilise MAIL_HOST.
      */
-    public function testSecurityChannelFallsBackToDefaultWhenVarsAbsent(): void
+    public function testChannelFallsBackToSharedHostWhenSpecificHostAbsent(): void
     {
-        unset(
-            $_ENV['MAIL_SECURITY_HOST'],
-            $_ENV['MAIL_SECURITY_PORT'],
-            $_ENV['MAIL_SECURITY_USER'],
-            $_ENV['MAIL_SECURITY_PASS'],
-            $_ENV['MAIL_SECURITY_ENCRYPTION']
-        );
+        unset($_ENV['MAIL_SECURITY_HOST']);
 
         $service = new MailService();
         $this->applyChannel($service, MailChannel::SECURITY);
         $mailer = $this->getMailer($service);
 
         $this->assertSame('smtp.default.test', $mailer->Host);
-        $this->assertSame('noreply@default.test', $mailer->Username);
-    }
-
-    /**
-     * Fallback : si MAIL_NEWSLETTER_USER absent, utilise MAIL_USER.
-     */
-    public function testNewsletterChannelFallsBackToDefaultWhenVarsAbsent(): void
-    {
-        unset(
-            $_ENV['MAIL_NEWSLETTER_HOST'],
-            $_ENV['MAIL_NEWSLETTER_PORT'],
-            $_ENV['MAIL_NEWSLETTER_USER'],
-            $_ENV['MAIL_NEWSLETTER_PASS'],
-            $_ENV['MAIL_NEWSLETTER_ENCRYPTION']
-        );
-
-        $service = new MailService();
-        $this->applyChannel($service, MailChannel::NEWSLETTER);
-        $mailer = $this->getMailer($service);
-
-        $this->assertSame('smtp.default.test', $mailer->Host);
-        $this->assertSame('noreply@default.test', $mailer->Username);
-    }
-
-    /**
-     * Fallback : si MAIL_CONTACT_USER absent, utilise MAIL_USER.
-     */
-    public function testContactChannelFallsBackToDefaultWhenVarsAbsent(): void
-    {
-        unset(
-            $_ENV['MAIL_CONTACT_HOST'],
-            $_ENV['MAIL_CONTACT_PORT'],
-            $_ENV['MAIL_CONTACT_USER'],
-            $_ENV['MAIL_CONTACT_PASS'],
-            $_ENV['MAIL_CONTACT_ENCRYPTION']
-        );
-
-        $service = new MailService();
-        $this->applyChannel($service, MailChannel::CONTACT);
-        $mailer = $this->getMailer($service);
-
-        $this->assertSame('smtp.default.test', $mailer->Host);
-        $this->assertSame('noreply@default.test', $mailer->Username);
+        $this->assertSame('security@security.test', $mailer->Username);
     }
 }
