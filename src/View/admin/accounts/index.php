@@ -85,6 +85,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                     <th class="col-hide-tablet">Vérifié</th>
                     <th class="col-hide-tablet">Connecté</th>
                     <th>Inscrit le</th>
+                    <th class="col-hide-tablet">Dernière connexion</th>
                     <?php if ($isSuperAdmin) : ?>
                         <th></th>
                     <?php endif; ?>
@@ -92,7 +93,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
             </thead>
             <tbody>
             <?php if (empty($accounts)) : ?>
-                <tr><td colspan="<?= $isSuperAdmin ? 10 : 9 ?>"
+                <tr><td colspan="<?= $isSuperAdmin ? 11 : 10 ?>"
                         style="text-align:center;color:#8a7a60;padding:2rem;">Aucun compte trouvé</td></tr>
             <?php else : ?>
                 <?php foreach ($accounts as $account) : ?>
@@ -140,6 +141,13 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                         </td>
                         <td data-label="Inscrit le" style="white-space:nowrap;font-size:0.8rem;">
                             <?= date('d/m/Y', strtotime($account['created_at'])) ?>
+                        </td>
+                        <td class="col-hide-tablet" data-label="Dernière connexion" style="white-space:nowrap;font-size:0.8rem;">
+                            <?php if (!empty($account['last_connection'])) : ?>
+                                <?= date('d/m/Y H:i', strtotime($account['last_connection'])) ?>
+                            <?php else : ?>
+                                <span style="color:#8a7a60;">—</span>
+                            <?php endif; ?>
                         </td>
                         <?php if ($isSuperAdmin) : ?>
                             <td>

@@ -179,13 +179,14 @@ $cssDisabled = ' disabled';
                     <th>Envoyés</th>
                     <th>Ouvertures</th>
                     <th>Échecs</th>
+                    <th>Statut</th>
                     <th>Date</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
             <?php if (empty($history)) : ?>
-                <tr><td colspan="8" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune campagne envoyée</td></tr>
+                <tr><td colspan="9" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune campagne envoyée</td></tr>
             <?php else : ?>
                 <?php foreach ($history as $campaign) : ?>
                     <tr>
@@ -209,6 +210,23 @@ $cssDisabled = ' disabled';
                         <td style="color:<?= (int) $campaign['failed_count'] > 0 ? '#c62828' : '#8a7a60' ?>;">
                             <?= (int) $campaign['failed_count'] ?>
                         </td>
+                        <?php
+                        $queued    = (int) ($campaign['queued_count'] ?? 0);
+                        $processed = (int) $campaign['sent_count'] + (int) $campaign['failed_count'];
+                        if ($queued === 0) :
+                        ?>
+                            <td style="font-size:0.78rem;color:#8a7a60;">—</td>
+                        <?php elseif ($processed >= $queued) : ?>
+                            <td style="font-size:0.78rem;">
+                                <span style="color:#2e7d32;font-weight:600;">✓ Terminé</span>
+                                <span style="font-size:0.72rem;color:#8a7a60;">&nbsp;(<?= $queued ?>)</span>
+                            </td>
+                        <?php else : ?>
+                            <td style="font-size:0.78rem;">
+                                <span style="color:#b45309;font-weight:600;">⏳ En cours</span>
+                                <span style="font-size:0.72rem;color:#8a7a60;">&nbsp;<?= $processed ?>/<?= $queued ?></span>
+                            </td>
+                        <?php endif; ?>
                         <td style="white-space:nowrap;font-size:0.8rem;">
                             <?= date('d/m/Y H:i', strtotime($campaign['sent_at'])) ?>
                         </td>
