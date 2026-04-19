@@ -2,6 +2,27 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.5.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.4.0...v1.5.0) (2026-04-19)
+
+
+### Bug Fixes
+
+* **auth:** add CSP nonce to inline script on google-account-type view ([2445778](https://github.com/ApoSkunz/crabitan_bellevue/commit/244577810dc7dbd47b1b5c943d27d8547e460027))
+* **auth:** add margin-bottom on company-name group before submit button ([f57adae](https://github.com/ApoSkunz/crabitan_bellevue/commit/f57adaeeaf69b84718b491e4a97f9643b1d848be))
+* **auth:** add margin-bottom on radio group for spacing before submit button ([ec075fd](https://github.com/ApoSkunz/crabitan_bellevue/commit/ec075fde93f231bf2be8741aeda3ce20091c6de4))
+* **auth:** add margin-top on company-name field when it appears ([235eea5](https://github.com/ApoSkunz/crabitan_bellevue/commit/235eea5d2ed92448afe6fd48d49c9fe224052c4e))
+* **auth:** fix fieldset radio overflow — use fieldset-specific selector after .form-group ([1a09ba1](https://github.com/ApoSkunz/crabitan_bellevue/commit/1a09ba1816c1c1955ec3e4f280a09747814f51d6))
+* **auth:** fix radio layout on google-type-compte (fieldset+flex Chrome bug) ([597e2d5](https://github.com/ApoSkunz/crabitan_bellevue/commit/597e2d5615bba1eff22f36be46a16f99f4e88eb4))
+* **auth:** replace fieldset with div[role=group] + fix skip-link visibility ([b52d3ae](https://github.com/ApoSkunz/crabitan_bellevue/commit/b52d3ae250a22c9a0b36997688bd7b253c1de483))
+
+
+### Features
+
+* **auth:** Google OAuth account type selection before account creation ([d26a554](https://github.com/ApoSkunz/crabitan_bellevue/commit/d26a5543480cf5ab1c6c26552f161a29f45c7867))
+* **auth:** pre-fill company_name with Google fullname + fix radio/icon layout ([ef5d720](https://github.com/ApoSkunz/crabitan_bellevue/commit/ef5d720cb407f337b63239c8a4c56c6bb545c182))
+* **legal:** add explicit B2C-only clause in CGV (FR + EN) ([ad7120c](https://github.com/ApoSkunz/crabitan_bellevue/commit/ad7120c4ab9379b64c6993e2ea35f15f84e6a2c5))
+* **model:** extend createFromGoogle() to support company account type ([258493d](https://github.com/ApoSkunz/crabitan_bellevue/commit/258493d860a01504765e44301474cc3563d13d42))
+
 # [1.4.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.3.3...v1.4.0) (2026-04-19)
 
 
