@@ -2,6 +2,28 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.3.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.2.0...v1.3.0) (2026-04-19)
+
+
+### Bug Fixes
+
+* **carbon:** fallback origin sur 503 — per-page en priorité, racine si non indexé ([b4e6209](https://github.com/ApoSkunz/crabitan_bellevue/commit/b4e6209bffac03e1496e1cf828c1137c05f1ae87))
+* **model:** normaliser apostrophes → underscore dans image_path (rosés) ([9d4364d](https://github.com/ApoSkunz/crabitan_bellevue/commit/9d4364d29156ef5d1852c01fc6691c6261095469))
+* **model:** normaliser image_path — espaces → underscores à la lecture (WineModel, FavoriteModel, CartModel) ([d55de57](https://github.com/ApoSkunz/crabitan_bellevue/commit/d55de57a4ddc5044080924cdea78d9c484d13bfa))
+* **seo:** data-nosnippet sur modales login/register — évite snippet mot de passe dans SERP ([2185aaa](https://github.com/ApoSkunz/crabitan_bellevue/commit/2185aaaf1b354c6df529faf9cd46a43d1511b5ed))
+* **ux:** thème light par défaut, inverser icônes toggle, title au survol ([cbd5366](https://github.com/ApoSkunz/crabitan_bellevue/commit/cbd5366ca932cd86ef3f851ee53feca007fee7ed))
+
+
+### Features
+
+* **admin:** générer WebP à l'upload et supprimer original+WebP à la mise à jour ([f0c7f37](https://github.com/ApoSkunz/crabitan_bellevue/commit/f0c7f37c4e79e1106bac3962eefaac15e715b24e))
+* **lighthouse:** améliorer A11y/Perf/SEO — theme dark default, target-size, i18n carousel, cart aria ([3042012](https://github.com/ApoSkunz/crabitan_bellevue/commit/3042012f5685a6d11e4d8c2431df7ed513231e09))
+
+
+### Reverts
+
+* **model:** supprimer normalisation image_path — correction côté BDD ([15b78b6](https://github.com/ApoSkunz/crabitan_bellevue/commit/15b78b6bc2ba3faa005c9c099822ad59385dceff))
+
 # [1.2.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.1.1...v1.2.0) (2026-04-18)
 
 
