@@ -15,8 +15,7 @@ use Core\CronRunner;
  *
  * Route : GET /cron/{job}?token={CRON_SECRET_TOKEN}
  */
-// NOSONAR php:S1448 — 14 jobs cron + 5 méthodes de routage + helpers intentionnellement regroupés ; découpage post-live (GL sprint 12)
-class CronController extends Controller
+class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes cohérentes au domaine cron — découpage artificiel sans valeur
 {
     private const CONTENT_TYPE = 'Content-Type: text/plain; charset=utf-8';
 

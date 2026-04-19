@@ -114,7 +114,7 @@ jobs:
           curl -s \
             --cookie "age_verified=1" \
             -c /tmp/cookies-customer.txt \
-            "$BASE/fr/connexion" > /tmp/login.html
+            "$BASE/fr" > /tmp/login.html
 
           CSRF=$(grep -oP 'name="csrf_token" value="\K[^"]+' /tmp/login.html | head -1)
           echo "DEBUG customer CSRF=${CSRF:0:8}…"
@@ -161,7 +161,7 @@ jobs:
           curl -s \
             --cookie "age_verified=1" \
             -c /tmp/cookies-admin.txt \
-            "$BASE/fr/connexion" > /tmp/login.html
+            "$BASE/fr" > /tmp/login.html
 
           CSRF=$(grep -oP 'name="csrf_token" value="\K[^"]+' /tmp/login.html | head -1)
           echo "DEBUG admin CSRF=${CSRF:0:8}…"
@@ -191,7 +191,7 @@ jobs:
         uses: zaproxy/action-full-scan@v0.11.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
           target: 'http://${{ steps.host-ip.outputs.ip }}:8080/admin'
-          auth_header: 'Cookie: auth_token=${{ steps.auth-admin.outputs.token }}'
+          auth_header: 'Cookie: auth_token=${{ steps.auth-admin.outputs.token }}; age_verified=1'
           rules_file_name: '.zap/rules.tsv'
           fail_action: false
           cmd_options: '-config network.connection.timeoutInSecs=20'
