@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.3.3](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.3.2...v1.3.3) (2026-04-19)
+
+
+### Bug Fixes
+
+* **secu:** prepared statements sur les SELECT LIMIT/OFFSET dans rotate_encryption_keys.php ([a93ec4e](https://github.com/ApoSkunz/crabitan_bellevue/commit/a93ec4ebc2f295921df982edbfaeb25972540c31))
+
 ## [1.3.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.3.1...v1.3.2) (2026-04-19)
 
 
