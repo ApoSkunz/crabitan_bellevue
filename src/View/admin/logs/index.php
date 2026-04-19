@@ -165,17 +165,19 @@
                                 <?php if (!empty($log['details'])) : ?>
                                     <?php
                                     $decoded = json_decode((string) $log['details'], true);
-                                    if (is_array($decoded)) {
-                                        echo '<ul style="margin:0;padding-left:1rem;list-style:disc;">';
-                                        foreach ($decoded as $k => $v) {
-                                            echo '<li><strong>' . htmlspecialchars((string) $k) . '</strong>: '
-                                                . htmlspecialchars((string) (is_array($v) ? json_encode($v) : $v)) . '</li>';
-                                        }
-                                        echo '</ul>';
-                                    } else {
-                                        echo '<span style="color:var(--color-text-muted);">' . htmlspecialchars((string) $log['details']) . '</span>';
-                                    }
+                                    if (is_array($decoded)) :
                                     ?>
+                                        <ul style="margin:0;padding-left:1rem;list-style:disc;">
+                                            <?php foreach ($decoded as $k => $v) : ?>
+                                                <li>
+                                                    <strong><?= htmlspecialchars((string) $k) ?></strong>:
+                                                    <?= htmlspecialchars((string) (is_array($v) ? json_encode($v) : $v)) ?>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php else : ?>
+                                        <span style="color:var(--color-text-muted);"><?= htmlspecialchars((string) $log['details']) ?></span>
+                                    <?php endif; ?>
                                 <?php else : ?>
                                     <span style="color:var(--color-text-muted);">—</span>
                                 <?php endif; ?>
