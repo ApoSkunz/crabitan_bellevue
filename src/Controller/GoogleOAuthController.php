@@ -187,44 +187,116 @@ class GoogleOAuthController extends Controller
             }
         }
 
-        // Cas 3 — email inconnu → création de compte
-        $isNewAccount = false;
+        // Cas 3 — email inconnu → sélection du type de compte avant création
         if (!$account) {
-            $accountId = $this->accounts->createFromGoogle(
-                $email,
-                $googleId,
-                $lang,
-                $userInfo['given_name'] ?? '',
-                $userInfo['family_name'] ?? ''
-            );
-            $account      = $this->accounts->findById($accountId);
-            $isNewAccount = true;
+            $_SESSION['oauth_google_pending'] = [
+                'email'     => $email,
+                'google_id' => $googleId,
+                'lang'      => $lang,
+                'firstname' => $userInfo['given_name'] ?? '',
+                'lastname'  => $userInfo['family_name'] ?? '',
+            ];
+            Response::redirect("/{$lang}/auth/google/type-compte");
         }
+
+        $this->issueSession($account, $lang);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /{lang}/auth/google/type-compte
+    // ----------------------------------------------------------------
+
+    /**
+     * Affiche le formulaire de sélection du type de compte (Cas 3 — nouvel utilisateur Google).
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     */
+    public function accountTypePending(array $params): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $lang = $this->resolveLang($params);
+
+        if (empty($_SESSION['oauth_google_pending'])) {
+            Response::redirect("/{$lang}?login=1");
+        }
+
+        $this->view('auth/google-account-type', ['lang' => $lang]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /{lang}/auth/google/type-compte
+    // ----------------------------------------------------------------
+
+    /**
+     * Crée le compte Google avec le type choisi par l'utilisateur, puis émet la session.
+     *
+     * @param array<string, string> $params Paramètres de route (lang)
+     */
+    public function accountTypeSubmit(array $params): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $lang    = $this->resolveLang($params);
+        $pending = $_SESSION['oauth_google_pending'] ?? null;
+
+        if (!$pending) {
+            $this->flash('modal_error', __('auth.google_type_session_expired'));
+            Response::redirect("/{$lang}?login=1");
+        }
+
+        $csrf = $this->request->post('csrf_token', '');
+        if (!isset($_SESSION['csrf']) || !hash_equals($_SESSION['csrf'], $csrf)) {
+            $this->flash('modal_error', __('auth.google_error'));
+            Response::redirect("/{$lang}/auth/google/type-compte");
+        }
+
+        $accountType = $this->request->post('account_type', 'individual');
+        if (!in_array($accountType, ['individual', 'company'], true)) {
+            $accountType = 'individual';
+        }
+        $companyName = trim($this->request->post('company_name', ''));
+
+        unset($_SESSION['oauth_google_pending']);
+
+        $accountId = $this->accounts->createFromGoogle(
+            $pending['email'],
+            $pending['google_id'],
+            $pending['lang'],
+            $pending['firstname'],
+            $pending['lastname'],
+            $accountType,
+            $companyName
+        );
+
+        $account = $this->accounts->findById($accountId);
 
         if (!$account) {
             $this->flash('modal_error', __('auth.google_error'));
-            Response::redirect($loginUrl);
+            Response::redirect("/{$lang}?login=1");
         }
 
-        if ($isNewAccount) {
-            try {
-                $firstname    = $account['firstname'] ?? $userInfo['given_name'] ?? '';
-                $isSubscribed = (int) ($account['newsletter'] ?? 0) === 1;
-                $confirmToken = '';
-                if (!$isSubscribed) {
-                    $confirmToken = bin2hex(random_bytes(32));
-                    $this->accounts->storeNewsletterConfirmToken((int) $account['id'], $confirmToken);
-                }
-                (new \Service\MailService())->sendWelcome(
-                    $account['email'],
-                    $firstname,
-                    $lang,
-                    $isSubscribed,
-                    $confirmToken
-                );
-            } catch (\Throwable $e) {
-                \Core\ErrorLogger::warning($e, '[GoogleOAuth]');
+        try {
+            $firstname    = $account['firstname'] ?? $account['company_name'] ?? $pending['firstname'];
+            $isSubscribed = (int) ($account['newsletter'] ?? 0) === 1;
+            $confirmToken = '';
+            if (!$isSubscribed) {
+                $confirmToken = bin2hex(random_bytes(32));
+                $this->accounts->storeNewsletterConfirmToken((int) $account['id'], $confirmToken);
             }
+            (new \Service\MailService())->sendWelcome(
+                $account['email'],
+                (string) $firstname,
+                $pending['lang'],
+                $isSubscribed,
+                $confirmToken
+            );
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e, '[GoogleOAuth/accountTypeSubmit]');
         }
 
         $this->issueSession($account, $lang);
