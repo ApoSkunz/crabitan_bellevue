@@ -726,6 +726,7 @@
     align-items: center;
     gap: 0.5rem;
     margin-top: 0.25rem;
+    flex-wrap: wrap;
 
     input[type='checkbox'] {
         width: 1rem;
@@ -739,6 +740,17 @@
         font-size: 0.875rem;
         color: #1a1208;
         cursor: pointer;
+    }
+
+    &--error {
+        background-color: #fff5f5;
+        border: 1px solid #e53e3e;
+        border-radius: 4px;
+        padding: 0.4rem 0.6rem;
+
+        label {
+            color: #c53030;
+        }
     }
 }
 

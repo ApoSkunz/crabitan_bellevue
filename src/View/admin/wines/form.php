@@ -204,7 +204,7 @@ $maxYear = (int) date('Y');
             </div>
 
             <div class="admin-field admin-field--full">
-                <div class="admin-field__check">
+                <div class="admin-field__check<?= !empty($errors['available']) ? ' admin-field__check--error' : '' ?>">
                     <input type="hidden" name="available" value="0">
                     <input type="checkbox" id="available" name="available" value="1"
                            <?= ($wine['available'] ?? 1) ? 'checked' : '' ?>>
