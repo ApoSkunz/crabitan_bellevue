@@ -2,6 +2,16 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.5.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.5.0...v1.5.1) (2026-04-19)
+
+
+### Bug Fixes
+
+* **ci:** add age_verified=1 cookie to DAST auth steps + debug output ([2045043](https://github.com/ApoSkunz/crabitan_bellevue/commit/20450438919b3d270ab3fb7030ee3430444827f1))
+* **security:** add COOP + CORP headers to .htaccess ([3294304](https://github.com/ApoSkunz/crabitan_bellevue/commit/329430466a7c5ca5b9f94f019b0bd4d14044e578))
+* **security:** document ZAP false positives in .zap/rules.tsv ([ad8e72a](https://github.com/ApoSkunz/crabitan_bellevue/commit/ad8e72aea561237311c45d373bcfa0d8f2e2b6c1))
+* **security:** fix HSTS never sent on IONOS — remove env=HTTPS condition ([9fb340b](https://github.com/ApoSkunz/crabitan_bellevue/commit/9fb340bb3115831783fcac2fd66f84eacd645503))
+
 # [1.5.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.4.0...v1.5.0) (2026-04-19)
 
 
