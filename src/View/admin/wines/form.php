@@ -54,6 +54,9 @@ $maxYear = (int) date('Y');
         <?php if (hasError($errors, 'slug')) : ?>
             <br><?= htmlspecialchars($errors['slug']) ?>
         <?php endif; ?>
+        <?php if (hasError($errors, 'available')) : ?>
+            <br><?= htmlspecialchars($errors['available']) ?>
+        <?php endif; ?>
     </div>
 <?php endif; ?>
 

@@ -551,7 +551,7 @@ class WineAdminController extends AdminController
             $errors['stock_quantity'] = 'Stock invalide.';
         }
         if ($stockQuantity === 0 && $r->post('available', '0') === '1') {
-            $errors['available'] = 'Stock à 0 — impossible de mettre le vin en vente.';
+            $errors['available'] = 'Un vin sans stock ne peut pas être mis en vente — décochez "Disponible à la vente" ou renseignez un stock.';
         }
         if (!in_array($certLabel, self::CERT_LABELS, true)) {
             $errors['certification_label'] = 'Appellation invalide. Valeurs autorisées : ' . implode(', ', self::CERT_LABELS) . '.';
