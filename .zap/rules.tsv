@@ -1,0 +1,12 @@
+# ZAP Scan Rules — faux positifs documentés
+# Format : alertId<TAB>ACTION
+# ACTION : IGNORE | WARN | FAIL
+#
+# Alimenter après le premier run :
+#   - Identifier les faux positifs dans le rapport ZAP
+#   - Ajouter une ligne par alerte avec justification en commentaire
+#   - Passer à FAIL les alertes critiques réelles une fois confirmées
+#
+# Exemple :
+# 10038	IGNORE	# Content Security Policy — gérée via SecurityHeaderMiddleware (nonce)
+# 10020	IGNORE	# X-Frame-Options — déjà dans SecurityHeaderMiddleware
