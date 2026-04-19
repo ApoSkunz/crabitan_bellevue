@@ -2,6 +2,24 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.8.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.7.0...v1.8.0) (2026-04-19)
+
+
+### Bug Fixes
+
+* **ci:** corriger auth ZAP DAST — cookie jar Netscape + replacer cmd_options ([aef22e5](https://github.com/ApoSkunz/crabitan_bellevue/commit/aef22e55ee3f577b4ea26b1db213be2442dfb68b))
+* **tests:** corriger 8 échecs TI — stock_quantity manquant + SMTP Mailhog ([f13565d](https://github.com/ApoSkunz/crabitan_bellevue/commit/f13565d08b0962bdac8301e82c4cb20a08fded2b))
+* **wine:** explicit error message when available=1 with stock=0 ([f56d78c](https://github.com/ApoSkunz/crabitan_bellevue/commit/f56d78c73abcef9af426efc96c4e29b1b46bca4d))
+* **wine:** highlight available field error when stock=0 blocks sale toggle ([dd18a4d](https://github.com/ApoSkunz/crabitan_bellevue/commit/dd18a4d8cb6653272c749bf7a13474068c513862))
+* **wine:** stock=0 forces available=0 on create+edit, error if available=1 with stock=0 ([15eb001](https://github.com/ApoSkunz/crabitan_bellevue/commit/15eb001ca2a6d6c5794a2f134071ccb70b005fba))
+
+
+### Features
+
+* **controller:** newsletter queue — admin enqueue, cron admin branch, last_connection ([0dbeab6](https://github.com/ApoSkunz/crabitan_bellevue/commit/0dbeab6e00ff034864b07aa0f12db49eb1653b84))
+* **model:** newsletter queue — EN columns, atomic stats, getLinkMap, nullable wine_id ([8c6d514](https://github.com/ApoSkunz/crabitan_bellevue/commit/8c6d5144405be9f730d47776126cdc7824c04a4f))
+* **view:** admin accounts last_connection column + newsletter campaign status ([d4f0e1c](https://github.com/ApoSkunz/crabitan_bellevue/commit/d4f0e1ca1462975daec1d7edeb4e3f79b28024f8))
+
 # [1.7.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.6.1...v1.7.0) (2026-04-19)
 
 
