@@ -2,6 +2,19 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.4.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.3.3...v1.4.0) (2026-04-19)
+
+
+### Bug Fixes
+
+* **ci:** URL prod corrigée crabitanbellevue.fr + full scan déclenché sur push main ([55b0197](https://github.com/ApoSkunz/crabitan_bellevue/commit/55b0197102e3944516216268b9f645ad838e7e2a))
+
+
+### Features
+
+* **ci:** ajout workflows DAST ZAP baseline (prod mensuel) + full scan (ISO prod Docker) ([49a4f88](https://github.com/ApoSkunz/crabitan_bellevue/commit/49a4f88fa20c386a672b81bfb262192ffc283ba5))
+* **ci:** dast-full scan multi-rôles — login curl customer + admin avec device_token seed ([6b41101](https://github.com/ApoSkunz/crabitan_bellevue/commit/6b4110160f5a2c02afe4c0571cf6068206d9d335))
+
 ## [1.3.3](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.3.2...v1.3.3) (2026-04-19)
 
 
