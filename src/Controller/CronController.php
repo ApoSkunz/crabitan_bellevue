@@ -143,10 +143,11 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     private function getNotificationJob(string $job): ?callable
     {
         return match ($job) {
-            'send-abandoned-cart'  => fn(callable $log, bool $dryRun) => $this->doJobSendAbandonedCart($log, $dryRun),
-            'send-post-purchase'   => fn(callable $log, bool $dryRun) => $this->doJobSendPostPurchase($log, $dryRun),
-            'alert-pending-orders' => fn(callable $log, bool $dryRun) => $this->doJobAlertPendingOrders($log, $dryRun),
-            'clean-expired-tokens' => fn(callable $log, bool $dryRun) => $this->doJobCleanExpiredTokens($log, $dryRun),
+            'send-abandoned-cart'    => fn(callable $log, bool $dryRun) => $this->doJobSendAbandonedCart($log, $dryRun),
+            'send-post-purchase'     => fn(callable $log, bool $dryRun) => $this->doJobSendPostPurchase($log, $dryRun),
+            'alert-pending-orders'   => fn(callable $log, bool $dryRun) => $this->doJobAlertPendingOrders($log, $dryRun),
+            'clean-expired-tokens'   => fn(callable $log, bool $dryRun) => $this->doJobCleanExpiredTokens($log, $dryRun),
+            'send-newsletter-queue'  => fn(callable $log, bool $dryRun) => $this->doJobSendNewsletterQueue($log, $dryRun),
             default                => null,
         };
     }
@@ -619,6 +620,89 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             }
             if ($delayMs > 0) {
                 usleep($delayMs * 1000);
+            }
+        }
+    }
+
+    /**
+     * Envoie un batch de la file d'attente newsletter (nouveau vin).
+     * Taille du batch : CRON_NEWSLETTER_BATCH_SIZE (défaut 30).
+     * Délai inter-envoi : CRON_MAIL_DELAY_MS (défaut 0).
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobSendNewsletterQueue(callable $log, bool $dryRun): void
+    {
+        $queueModel = new \Model\NewsletterSendQueueModel();
+        $wineModel  = new \Model\WineModel();
+        $mailer     = new \Service\MailService();
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $batchSize  = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
+        $delayMs    = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+
+        $pending = $queueModel->getPending($batchSize);
+        $total   = count($pending);
+
+        if ($total === 0) {
+            $log('File newsletter vide — aucun envoi');
+            return;
+        }
+
+        $log("Batch newsletter : {$total} destinataire(s) à traiter");
+
+        $sent   = 0;
+        $failed = 0;
+
+        foreach ($pending as $item) {
+            $id      = (int) $item['id'];
+            $wineId  = (int) $item['wine_id'];
+            $nlId    = (int) $item['newsletter_id'];
+            $email   = (string) $item['recipient_email'];
+            $name    = (string) $item['recipient_name'];
+            $unsub   = (string) $item['unsub_token'];
+            $lang    = (string) $item['lang'];
+
+            if ($dryRun) {
+                $log("[DRY-RUN] Would send newsletter #{$nlId} to {$email} (queue_id={$id})");
+                continue;
+            }
+
+            $wine = $wineModel->getById($wineId);
+            if ($wine === null) {
+                $log("[SKIP] wine_id={$wineId} introuvable — queue_id={$id}");
+                $queueModel->markFailed($id);
+                $failed++;
+                continue;
+            }
+
+            try {
+                $mailer->sendNewWineNewsletter($email, $name, $unsub, $wine, $appUrl, $lang);
+                $queueModel->markSent($id);
+                $sent++;
+                $log("[OK] {$email} (queue_id={$id})");
+            } catch (\Throwable $e) {
+                $queueModel->markFailed($id);
+                $failed++;
+                $log("[ERR] {$email} (queue_id={$id}) : " . $e->getMessage());
+            }
+
+            if ($delayMs > 0) {
+                usleep($delayMs * 1000);
+            }
+        }
+
+        if (!$dryRun) {
+            $log("Résultat : {$sent} envoyé(s), {$failed} échec(s)");
+            // Refresh stats campagne pour les newsletters traitées dans ce batch
+            $nlIds = array_unique(array_column($pending, 'newsletter_id'));
+            foreach ($nlIds as $nlId) {
+                $queueModel->refreshCampaignStats((int) $nlId);
+            }
+            $remaining = $queueModel->countPending();
+            if ($remaining > 0) {
+                $log("Restants en file : {$remaining}");
             }
         }
     }

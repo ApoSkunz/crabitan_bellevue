@@ -12,7 +12,6 @@ use Model\WineModel;
 use Model\WineNutritionModel;
 use Service\AuditLogger;
 use Service\ImageVariantService;
-use Service\MailService;
 use Service\StockNotificationService;
 use Service\TranslationService;
 
@@ -67,7 +66,6 @@ class WineAdminController extends AdminController
     private WineNutritionModel $nutrition;
     private TranslationService $translator;
     private AccountModel $accounts;
-    private MailService $mailer;
 
     /**
      * Initialise le contrôleur vins admin avec ses dépendances.
@@ -81,7 +79,6 @@ class WineAdminController extends AdminController
         $this->nutrition  = new WineNutritionModel();
         $this->translator = new TranslationService($_ENV['TRANSLATION_API_KEY'] ?? '');
         $this->accounts   = new AccountModel();
-        $this->mailer     = new MailService();
     }
 
     // ----------------------------------------------------------------
@@ -231,59 +228,31 @@ class WineAdminController extends AdminController
             AuditLogger::getIp()
         );
 
-        $cuveeMark = $data['is_cuvee_speciale'] ? ' — Cuvée Spéciale' : '';
+        $cuveeMark  = $data['is_cuvee_speciale'] ? ' — Cuvée Spéciale' : '';
+        $queueCount = 0;
 
-        $sentCount   = 0;
-        $failedCount        = 0;
-        $newsletterEnabled  = filter_var($_ENV['NEW_WINE_NEWSLETTER_ENABLED'] ?? 'true', FILTER_VALIDATE_BOOLEAN);
-        if ((int) $data['available'] === 1 && $newsletterEnabled) {
-            $subscribers = $this->accounts->getNewsletterSubscribers(10000, 0);
-            $appUrl      = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
-            $delayMs     = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+        if ((int) $data['available'] === 1) {
+            $subscribers  = $this->accounts->getNewsletterSubscribers(10000, 0);
+            $queueModel   = new \Model\NewsletterSendQueueModel();
+            $nlModel      = new NewsletterModel();
+            $subject      = 'Nouveau vin : ' . $data['label_name'] . ' ' . $data['vintage'];
+            $body         = '<p>' . htmlspecialchars($data['label_name'] . ' ' . $data['vintage']) . '</p>';
+            $imageUrl     = !empty($data['image_path']) ? '/assets/images/wines/' . $data['image_path'] : null;
+            $campaignId   = $nlModel->create($subject, null, $body, $imageUrl);
             foreach ($subscribers as $sub) {
                 $lang       = in_array($sub['lang'] ?? '', ['fr', 'en'], true) ? (string) $sub['lang'] : 'fr';
                 $personName = trim(($sub['firstname'] ?? '') . ' ' . ($sub['lastname'] ?? ''));
                 $name       = (string) ($sub['company_name'] ?? $personName);
                 $name       = $name !== '' ? $name : (string) $sub['email'];
                 $unsubToken = (string) ($sub['newsletter_unsubscribe_token'] ?? '');
-                try {
-                    $this->mailer->sendNewWineNewsletter(
-                        (string) $sub['email'],
-                        $name,
-                        $unsubToken,
-                        $data,
-                        $appUrl,
-                        $lang
-                    );
-                    $sentCount++;
-                } catch (\Throwable $e) {
-                    \Core\ErrorLogger::warning($e);
-                    $failedCount++;
-                }
-                if ($delayMs > 0) {
-                    usleep($delayMs * 1000);
-                }
+                $queueModel->enqueue($campaignId, $wineId, (string) $sub['email'], $name, $unsubToken, $lang);
+                $queueCount++;
             }
-            if ($sentCount > 0 || $failedCount > 0) {
-                $subject    = 'Nouveau vin : ' . $data['label_name'] . ' ' . $data['vintage'];
-                $body       = '<p>' . htmlspecialchars($data['label_name'] . ' ' . $data['vintage']) . '</p>';
-                $imageUrl   = !empty($data['image_path']) ? '/assets/images/wines/' . $data['image_path'] : null;
-                $newsletters = new NewsletterModel();
-                $campaignId  = $newsletters->create($subject, null, $body, $imageUrl);
-                $newsletters->updateStats($campaignId, $sentCount, $failedCount);
-            }
-        } elseif ((int) $data['available'] === 1 && !$newsletterEnabled) {
-            $subscribers = $this->accounts->getNewsletterSubscribers(10000, 0);
-            \Core\ErrorLogger::info(
-                '[NEW_WINE_NEWSLETTER_DISABLED] ' . count($subscribers) . ' abonnés non notifiés — NEW_WINE_NEWSLETTER_ENABLED=false'
-            );
         }
 
         $flashMsg = "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » ajouté avec succès.";
-        if (!$newsletterEnabled && (int) $data['available'] === 1) {
-            $flashMsg .= ' Newsletter désactivée (NEW_WINE_NEWSLETTER_ENABLED=false).';
-        } elseif ($sentCount > 0 || $failedCount > 0) {
-            $flashMsg .= " Newsletter : {$sentCount} envoyée(s), {$failedCount} échec(s).";
+        if ($queueCount > 0) {
+            $flashMsg .= " {$queueCount} abonné(s) en file d'attente newsletter (envoi différé via cron).";
         }
         $this->flash('success', $flashMsg);
         Response::redirect(self::ADMIN_URL);

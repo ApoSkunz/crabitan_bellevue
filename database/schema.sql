@@ -722,6 +722,27 @@ CREATE TABLE `newsletter_subscriptions` (
   INDEX `idx_newsletter_subscriptions_confirmed` (`newsletter_confirmed`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- ============================================================
+-- Table : newsletter_send_queue
+-- File d'attente d'envoi différé (nouveau vin) — envoi par cron avec délai SMTP
+-- ============================================================
+DROP TABLE IF EXISTS `newsletter_send_queue`;
+CREATE TABLE `newsletter_send_queue` (
+  `id`              INT            NOT NULL AUTO_INCREMENT,
+  `newsletter_id`   INT            NOT NULL COMMENT 'FK newsletters.id',
+  `wine_id`         INT            NOT NULL COMMENT 'FK wines.id — données vin reconstituées par le cron',
+  `recipient_email` VARCHAR(255)   NOT NULL,
+  `recipient_name`  VARCHAR(255)   NOT NULL DEFAULT '',
+  `unsub_token`     VARCHAR(64)    NOT NULL DEFAULT '',
+  `lang`            ENUM('fr','en') NOT NULL DEFAULT 'fr',
+  `status`          ENUM('pending','sent','failed') NOT NULL DEFAULT 'pending',
+  `created_at`      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `sent_at`         DATETIME       DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `idx_nlq_status_created` (`status`, `created_at`),
+  INDEX `idx_nlq_newsletter` (`newsletter_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='File d''attente envoi newsletter vin — cron send-newsletter-queue';
+-- ============================================================
 -- Table : audit_log
 -- Log d'audit RGPD (Art. 30) — changements email, suppressions, etc.
 -- ============================================================
