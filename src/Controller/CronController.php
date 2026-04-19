@@ -640,12 +640,14 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
      */
     private function doJobSendNewsletterQueue(callable $log, bool $dryRun): void
     {
-        $queueModel = new \Model\NewsletterSendQueueModel();
-        $wineModel  = new \Model\WineModel();
-        $mailer     = new \Service\MailService();
-        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
-        $batchSize  = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
-        $delayMs    = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+        $queueModel    = new \Model\NewsletterSendQueueModel();
+        $wineModel     = new \Model\WineModel();
+        $nlModel       = new \Model\NewsletterModel();
+        $trackingModel = new \Model\NewsletterTrackingModel();
+        $mailer        = new \Service\MailService();
+        $appUrl        = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $batchSize     = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
+        $delayMs       = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
 
         $pending = $queueModel->getPending($batchSize);
         $total   = count($pending);
@@ -657,40 +659,125 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
 
         $log("Batch newsletter : {$total} destinataire(s) à traiter");
 
-        $sent   = 0;
-        $failed = 0;
+        $sent            = 0;
+        $failed          = 0;
+        $campaignCache   = []; // nlId → campaign row
+        $linkMapCache    = []; // nlId → [url => linkId]
 
         foreach ($pending as $item) {
-            $id      = (int) $item['id'];
-            $wineId  = (int) $item['wine_id'];
-            $nlId    = (int) $item['newsletter_id'];
-            $email   = (string) $item['recipient_email'];
-            $name    = (string) $item['recipient_name'];
-            $unsub   = (string) $item['unsub_token'];
-            $lang    = (string) $item['lang'];
+            $id     = (int) $item['id'];
+            $nlId   = (int) $item['newsletter_id'];
+            $email  = (string) $item['recipient_email'];
+            $name   = (string) $item['recipient_name'];
+            $unsub  = (string) $item['unsub_token'];
+            $lang   = (string) $item['lang'];
+            $wineId = $item['wine_id'] !== null ? (int) $item['wine_id'] : null;
 
             if ($dryRun) {
-                $log("[DRY-RUN] Would send newsletter #{$nlId} to {$email} (queue_id={$id})");
+                $type = $wineId !== null ? "wine#{$wineId}" : "admin-nl#{$nlId}";
+                $log("[DRY-RUN] Would send {$type} to {$email} (queue_id={$id})");
                 continue;
             }
 
-            $wine = $wineModel->getById($wineId);
-            if ($wine === null) {
-                $log("[SKIP] wine_id={$wineId} introuvable — queue_id={$id}");
-                $queueModel->markFailed($id);
-                $failed++;
-                continue;
-            }
+            // ---- Branche vin (wine_id non null) ----
+            if ($wineId !== null) {
+                $wine = $wineModel->getById($wineId);
+                if ($wine === null) {
+                    $log("[SKIP] wine_id={$wineId} introuvable — queue_id={$id}");
+                    $queueModel->markFailed($id, $nlId);
+                    $failed++;
+                    continue;
+                }
+                try {
+                    $mailer->sendNewWineNewsletter($email, $name, $unsub, $wine, $appUrl, $lang);
+                    $queueModel->markSent($id, $nlId);
+                    $sent++;
+                    $log("[OK] wine#{$wineId} → {$email} (queue_id={$id})");
+                } catch (\Throwable $e) {
+                    $queueModel->markFailed($id, $nlId);
+                    $failed++;
+                    $log("[ERR] wine#{$wineId} → {$email} (queue_id={$id}) : " . $e->getMessage());
+                }
+            } else {
+                // ---- Branche newsletter admin (wine_id null) ----
+                if (!isset($campaignCache[$nlId])) {
+                    $campaignCache[$nlId] = $nlModel->findCampaignById($nlId);
+                    $linkMapCache[$nlId]  = $trackingModel->getLinkMap($nlId);
+                }
 
-            try {
-                $mailer->sendNewWineNewsletter($email, $name, $unsub, $wine, $appUrl, $lang);
-                $queueModel->markSent($id);
-                $sent++;
-                $log("[OK] {$email} (queue_id={$id})");
-            } catch (\Throwable $e) {
-                $queueModel->markFailed($id);
-                $failed++;
-                $log("[ERR] {$email} (queue_id={$id}) : " . $e->getMessage());
+                $campaign = $campaignCache[$nlId];
+                if ($campaign === null) {
+                    $log("[SKIP] campaign #{$nlId} introuvable — queue_id={$id}");
+                    $queueModel->markFailed($id, $nlId);
+                    $failed++;
+                    continue;
+                }
+
+                $subject  = ($lang === 'en' && $campaign['subject_en']) ? (string) $campaign['subject_en'] : (string) $campaign['subject'];
+                $bodyRaw  = ($lang === 'en' && $campaign['body_en'])    ? (string) $campaign['body_en']    : (string) $campaign['body'];
+                $titleRaw = ($lang === 'en' && $campaign['title_en'])   ? (string) $campaign['title_en']   : (string) ($campaign['title'] ?? '');
+                $imageUrl = $campaign['image_url'] !== null ? (string) $campaign['image_url'] : null;
+
+                // Click-tracking : remplacer URLs par ancres trackées
+                $safeContent = nl2br(htmlspecialchars($bodyRaw, ENT_QUOTES));
+                foreach ($linkMapCache[$nlId] as $url => $linkId) {
+                    $trackUrl    = $appUrl . '/track/click/' . $nlId . '/' . $linkId
+                        . ($unsub !== '' ? '/' . rawurlencode($unsub) : '');
+                    $safeUrl     = htmlspecialchars($url, ENT_QUOTES);
+                    $safeTrack   = htmlspecialchars($trackUrl, ENT_QUOTES);
+                    $safeContent = str_replace(
+                        $safeUrl,
+                        '<a href="' . $safeTrack . '" style="color:#8a6a2e;">' . $safeUrl . '</a>',
+                        $safeContent
+                    );
+                }
+
+                // Salutation personnalisée
+                $firstname    = htmlspecialchars(explode(' ', trim($name))[0] ?? $name, ENT_QUOTES);
+                $defaultName  = $lang === 'en' ? 'dear subscriber' : 'cher abonné';
+                $fallback     = $firstname ?: htmlspecialchars($name ?: $defaultName, ENT_QUOTES);
+                $greeting     = $lang === 'en' ? 'Hello ' . $fallback . ',' : 'Bonjour ' . $fallback . ',';
+                $greetingHtml = '<p style="margin:0 0 20px;font-size:22px;color:#1a1208;font-family:Georgia,serif;">'
+                    . $greeting . '</p>';
+
+                $titleHtml = $titleRaw !== ''
+                    ? '<h2 style="margin:0 0 16px;font-family:Georgia,serif;font-size:22px;color:#1a1208;line-height:1.3;">'
+                      . htmlspecialchars($titleRaw, ENT_QUOTES) . '</h2>'
+                    : '';
+
+                $nlTitle  = $lang === 'en' ? 'Newsletter · Subscribers' : 'Newsletter · Abonnés';
+                $htmlBody = $mailer->buildNewsletterHtml(
+                    $nlTitle,
+                    $greetingHtml . $titleHtml . $safeContent,
+                    $imageUrl,
+                    $unsub !== '' ? $unsub : null,
+                    $lang,
+                    $nlId
+                );
+
+                // PDF attachment (premier fichier lié à la campagne)
+                $attachment = $campaign['attachments'][0] ?? null;
+                $pdfPath    = $attachment !== null ? ROOT_PATH . '/' . (string) $attachment['stored_path'] : null;
+                $pdfName    = $attachment !== null ? (string) $attachment['original_name'] : null;
+
+                try {
+                    $mailer->sendNewsletter(
+                        $email,
+                        $name ?: 'Abonné',
+                        $subject,
+                        $htmlBody,
+                        $pdfPath,
+                        $pdfName,
+                        $unsub !== '' ? $unsub : null
+                    );
+                    $queueModel->markSent($id, $nlId);
+                    $sent++;
+                    $log("[OK] admin-nl#{$nlId} → {$email} (queue_id={$id})");
+                } catch (\Throwable $e) {
+                    $queueModel->markFailed($id, $nlId);
+                    $failed++;
+                    $log("[ERR] admin-nl#{$nlId} → {$email} (queue_id={$id}) : " . $e->getMessage());
+                }
             }
 
             if ($delayMs > 0) {
@@ -700,11 +787,6 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
 
         if (!$dryRun) {
             $log("Résultat : {$sent} envoyé(s), {$failed} échec(s)");
-            // Refresh stats campagne pour les newsletters traitées dans ce batch
-            $nlIds = array_unique(array_column($pending, 'newsletter_id'));
-            foreach ($nlIds as $nlId) {
-                $queueModel->refreshCampaignStats((int) $nlId);
-            }
             $remaining = $queueModel->countPending();
             if ($remaining > 0) {
                 $log("Restants en file : {$remaining}");

@@ -248,6 +248,9 @@ class WineAdminController extends AdminController
                 $queueModel->enqueue($campaignId, $wineId, (string) $sub['email'], $name, $unsubToken, $lang);
                 $queueCount++;
             }
+            if ($queueCount > 0) {
+                $nlModel->setQueuedCount($campaignId, $queueCount);
+            }
         }
 
         $flashMsg = "Vin « {$data['label_name']} {$data['vintage']}{$cuveeMark} » ajouté avec succès.";
