@@ -104,16 +104,16 @@ $carouselSlides = [
                 class="carousel__btn carousel__btn--prev"
                 id="carousel-prev"
                 type="button"
-                aria-label="Diapositive précédente"
+                aria-label="<?= htmlspecialchars(__('home.carousel_prev')) ?>"
             >&#8249;</button>
             <button
                 class="carousel__btn carousel__btn--next"
                 id="carousel-next"
                 type="button"
-                aria-label="Diapositive suivante"
+                aria-label="<?= htmlspecialchars(__('home.carousel_next')) ?>"
             >&#8250;</button>
 
-            <div class="carousel__dots" role="tablist" aria-label="Diapositives">
+            <div class="carousel__dots" role="tablist" aria-label="<?= htmlspecialchars(__('home.carousel_dots')) ?>">
                 <?php foreach ($carouselSlides as $i => $slide) : ?>
                     <button
                         class="carousel__dot<?= $i === 0 ? ' is-active' : '' ?>"

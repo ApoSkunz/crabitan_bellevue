@@ -63,7 +63,8 @@ if (preg_match('/googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|faceb
     if ($cached !== null) {
         $isCrawler = (bool) $cached;
     } else {
-        $host      = $remoteIp !== '' ? (string) @gethostbyaddr($remoteIp) : '';
+        $hostResult = $remoteIp !== '' ? gethostbyaddr($remoteIp) : false;
+        $host       = ($hostResult !== false) ? (string) $hostResult : '';
         $isCrawler = str_ends_with($host, '.googlebot.com')
             || str_ends_with($host, '.google.com')
             || str_ends_with($host, '.search.msn.com')

@@ -320,6 +320,9 @@ return [
     'home.carousel_alt'   => 'Château Crabitan Bellevue vineyard',
     'home.carousel_title' => 'Château Crabitan Bellevue',
     'home.carousel_sub'   => 'Bordeaux Wines - Sainte-Croix-du-Mont',
+    'home.carousel_prev'  => 'Previous slide',
+    'home.carousel_next'  => 'Next slide',
+    'home.carousel_dots'  => 'Slides',
 
     'home.img_wines_alt'   => 'Wine range at Château Crabitan Bellevue',
     'home.img_harvest_alt' => 'Horse-drawn harvest - Château Crabitan Bellevue',
