@@ -2,6 +2,20 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.7.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.6.1...v1.7.0) (2026-04-19)
+
+
+### Bug Fixes
+
+* **cron:** appliquer CRON_MAIL_DELAY_MS dans send-deletion-reminders ([752687a](https://github.com/ApoSkunz/crabitan_bellevue/commit/752687ade8a4ffcb21f9b33dc7087dce95a8e6f6))
+
+
+### Features
+
+* **cron:** ajouter bin/cron/send-newsletter-queue.php ([57203af](https://github.com/ApoSkunz/crabitan_bellevue/commit/57203afcb4aab626c1ff72c5363cf8a56849d8bf))
+* **newsletter:** envoi différé via queue newsletter_send_queue + cron send-newsletter-queue ([0dc57c7](https://github.com/ApoSkunz/crabitan_bellevue/commit/0dc57c7cd14d8908715385d28278b6195b683556))
+* **smtp:** ajouter toggles MFA_EMAIL_ENABLED + NEW_WINE_NEWSLETTER_ENABLED + CRON_MAIL_DELAY_MS ([9c1edff](https://github.com/ApoSkunz/crabitan_bellevue/commit/9c1edffce52465a27b0f8e6509fc907a3f525ddd))
+
 ## [1.6.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.6.0...v1.6.1) (2026-04-19)
 
 
