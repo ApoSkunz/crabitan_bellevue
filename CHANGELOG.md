@@ -2,6 +2,19 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.6.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.5.1...v1.6.0) (2026-04-19)
+
+
+### Bug Fixes
+
+* **i18n:** replace em/en dashes with hyphens in FR webmaster keys ([f61fe18](https://github.com/ApoSkunz/crabitan_bellevue/commit/f61fe186930bacaa262e0073889377d2ea2aec83))
+
+
+### Features
+
+* **i18n:** replace hyphens with em dashes in EN lang file (site + emails) ([71dcaeb](https://github.com/ApoSkunz/crabitan_bellevue/commit/71dcaeba4bcba56ca094f55bd6258b82ef313f77))
+* **ui:** boxed badge on unavailable wine price slot + soften dark overlay (0.28) ([58f1bd8](https://github.com/ApoSkunz/crabitan_bellevue/commit/58f1bd8d550b49b02ce1a4a42bb70bdad12b1afe))
+
 ## [1.5.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.5.0...v1.5.1) (2026-04-19)
 
 
