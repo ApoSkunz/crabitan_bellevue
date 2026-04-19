@@ -126,6 +126,37 @@
     }
 }
 
+// ---- Google OAuth — type compte ----
+
+.auth-card__google-icon {
+    display: flex;
+    justify-content: center;
+}
+
+.form-group--radio {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: left;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--color-text);
+
+    input[type='radio'] {
+        flex-shrink: 0;
+        width: 1rem;
+        height: 1rem;
+        accent-color: var(--color-gold);
+        cursor: pointer;
+    }
+}
+
 // ---- Form groups (reset-password) ----
 
 .form-group {

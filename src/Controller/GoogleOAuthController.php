@@ -223,7 +223,12 @@ class GoogleOAuthController extends Controller
             Response::redirect("/{$lang}?login=1");
         }
 
-        $this->view('auth/google-account-type', ['lang' => $lang]);
+        $pending = $_SESSION['oauth_google_pending'];
+        $this->view('auth/google-account-type', [
+            'lang'            => $lang,
+            'googleFirstname' => $pending['firstname'],
+            'googleLastname'  => $pending['lastname'],
+        ]);
     }
 
     // ----------------------------------------------------------------

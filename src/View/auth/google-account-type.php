@@ -1,6 +1,7 @@
 <?php
-$pageTitle = __('auth.google_type_title');
-$noindex   = true;
+$pageTitle       = __('auth.google_type_title');
+$noindex         = true;
+$googleFullName  = trim(($googleFirstname ?? '') . ' ' . ($googleLastname ?? ''));
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 ?>
@@ -12,8 +13,6 @@ require_once __DIR__ . '/../partials/header.php';
 
         <h1><?= htmlspecialchars(__('auth.google_type_title')) ?></h1>
 
-        <p class="auth-card__intro"><?= htmlspecialchars(__('auth.google_type_intro')) ?></p>
-
         <form method="POST"
               action="/<?= htmlspecialchars($lang) ?>/auth/google/type-compte"
               class="auth-card__form"
@@ -22,7 +21,7 @@ require_once __DIR__ . '/../partials/header.php';
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
 
             <fieldset class="form-group form-group--radio">
-                <legend class="form-label"><?= htmlspecialchars(__('form.account_type')) ?></legend>
+                <legend class="sr-only"><?= htmlspecialchars(__('form.account_type')) ?></legend>
 
                 <label class="radio-label">
                     <input type="radio" name="account_type" value="individual" checked>
@@ -43,6 +42,7 @@ require_once __DIR__ . '/../partials/header.php';
                        id="company_name"
                        name="company_name"
                        class="form-control"
+                       value="<?= htmlspecialchars($googleFullName) ?>"
                        maxlength="255"
                        autocomplete="organization">
             </div>
