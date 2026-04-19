@@ -2,6 +2,15 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.6.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.6.0...v1.6.1) (2026-04-19)
+
+
+### Bug Fixes
+
+* **ci:** use /fr for CSRF GET + add age_verified=1 to admin ZAP auth_header ([48b598d](https://github.com/ApoSkunz/crabitan_bellevue/commit/48b598d70978fce049fd91734db05495f8e4ae32))
+* **ci:** use /fr/vins to extract CSRF token — no GET route exists for /fr/connexion ([dc6f0d9](https://github.com/ApoSkunz/crabitan_bellevue/commit/dc6f0d95bd0997191182e139aeaf9df66ed56194))
+* **sonar:** suppress S1448 on CronController and S3973 on admin logs view ([67e3699](https://github.com/ApoSkunz/crabitan_bellevue/commit/67e36990c7c519c0f4c5485ad4669abfe127e08c))
+
 # [1.6.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.5.1...v1.6.0) (2026-04-19)
 
 
