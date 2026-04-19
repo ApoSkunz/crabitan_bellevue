@@ -71,8 +71,9 @@ Header always set Referrer-Policy "strict-origin-when-cross-origin"
 Header always set X-Permitted-Cross-Domain-Policies "none"
 Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 
-# HSTS — uniquement sur HTTPS (env=HTTPS non défini sur HTTP → header absent en local)
-Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+# HSTS — envoyé sans condition (HTTP→HTTPS déjà redirigé plus haut).
+# env=HTTPS retiré : IONOS mutualisé termine SSL en amont, env=HTTPS jamais défini.
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 
 # Cross-Origin headers
 Header always set Cross-Origin-Opener-Policy "same-origin"
