@@ -401,6 +401,7 @@ class CronControllerTest extends IntegrationTestCase
 
     public function testSendNewsletterQueueEmptyQueueReturns200(): void
     {
+        self::$db->execute('DELETE FROM newsletter_send_queue', []);
         $output = $this->runJob('send-newsletter-queue', dryRun: false);
 
         $this->assertSame(200, http_response_code());
@@ -458,9 +459,10 @@ class CronControllerTest extends IntegrationTestCase
         $this->assertSame(200, http_response_code());
         $this->assertStringContainsString('SKIP', $output);
 
+        // Row deleted after markFailed (RGPD compliance — no emails persist after processing)
         $row = self::$db->fetchOne(
-            "SELECT status FROM newsletter_send_queue WHERE recipient_email = 'sub2@test.local'"
+            "SELECT id FROM newsletter_send_queue WHERE recipient_email = 'sub2@test.local'"
         );
-        $this->assertSame('failed', $row['status'] ?? '');
+        $this->assertFalse($row);
     }
 }
