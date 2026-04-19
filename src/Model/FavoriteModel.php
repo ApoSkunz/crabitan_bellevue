@@ -21,7 +21,7 @@ class FavoriteModel extends Model
      */
     public function getByUser(int $userId): array
     {
-        $rows = $this->db->fetchAll(
+        return $this->db->fetchAll(
             "SELECT f.wine_id, w.label_name AS name, w.slug, w.wine_color AS color,
                     w.vintage, w.price, w.image_path,
                     w.available, w.stock_quantity, w.is_cuvee_speciale
@@ -31,7 +31,6 @@ class FavoriteModel extends Model
              ORDER BY f.created_at DESC",
             [$userId]
         );
-        return $rows;
     }
 
     /**
