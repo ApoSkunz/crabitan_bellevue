@@ -146,7 +146,6 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                 <a
                     href="/<?= htmlspecialchars($navLang) ?>/panier"
                     class="header-cart<?= str_contains($currentPath, '/panier') ? $activeClass : '' ?>"
-                    aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
                 >
                     <span class="header-cart__wrap">
                         <span class="header-cart__badge header-cart__count" aria-hidden="true">0</span>
@@ -168,7 +167,6 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                 <button
                     type="button"
                     class="header-cart js-cart-login-prompt"
-                    aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
                     data-login-url="/<?= htmlspecialchars($navLang) ?>/connexion"
                 >
                     <span class="header-cart__wrap">
