@@ -60,6 +60,7 @@ class CronControllerTest extends TestCase
             'clean-expired-tokens'           => ['clean-expired-tokens'],
             'purge-newsletter-tracking'      => ['purge-newsletter-tracking'],
             'purge-order-rating-tokens'      => ['purge-order-rating-tokens'],
+            'send-newsletter-queue'          => ['send-newsletter-queue'],
         ];
     }
 
