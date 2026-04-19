@@ -109,23 +109,34 @@ jobs:
         run: |
           BASE="http://localhost:8080"
 
-          # GET login page → session + CSRF token
-          curl -s -c /tmp/cookies-customer.txt "$BASE/fr/connexion" > /tmp/login.html
-          CSRF=$(grep -oP 'name="csrf_token" value="\K[^"]+' /tmp/login.html | head -1)
+          # age_verified=1 requis : sans ce cookie, l'age-gate intercepte la page login
+          # et le formulaire avec csrf_token n'est jamais rendu côté HTML
+          curl -s \
+            --cookie "age_verified=1" \
+            -c /tmp/cookies-customer.txt \
+            "$BASE/fr/connexion" > /tmp/login.html
 
-          # POST login avec device_token (appareil de confiance id=3)
+          CSRF=$(grep -oP 'name="csrf_token" value="\K[^"]+' /tmp/login.html | head -1)
+          echo "DEBUG customer CSRF=${CSRF:0:8}…"
+
           curl -s \
             -b /tmp/cookies-customer.txt \
             -c /tmp/cookies-customer.txt \
-            --cookie "device_token=mock-jwt-sophie-active-001" \
+            --cookie "device_token=mock-jwt-sophie-active-001; age_verified=1" \
             --data-urlencode "email=client.verifie@dev.local" \
             --data-urlencode "password=Dev123456789!" \
             --data-urlencode "csrf_token=$CSRF" \
-            -X POST -L "$BASE/fr/connexion" > /dev/null
+            -X POST -L "$BASE/fr/connexion" > /tmp/login-response-customer.html
 
           TOKEN=$(grep $'\tauth_token\t' /tmp/cookies-customer.txt | awk '{print $NF}')
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
-          [ -n "$TOKEN" ] && echo "✅ customer auth OK" || echo "⚠️ customer auth KO — scan anonyme"
+          if [ -n "$TOKEN" ]; then
+            echo "✅ customer auth OK"
+          else
+            echo "⚠️ customer auth KO — scan anonyme"
+            echo "DEBUG response (50 lignes) :"
+            head -50 /tmp/login-response-customer.html || true
+          fi
 
       # ── ZAP Full Scan — rôle customer ─────────────────────────────────────────
       - name: ZAP Full Scan — customer (mon-compte, panier, checkout)
@@ -147,21 +158,32 @@ jobs:
         run: |
           BASE="http://localhost:8080"
 
-          curl -s -c /tmp/cookies-admin.txt "$BASE/fr/connexion" > /tmp/login.html
+          curl -s \
+            --cookie "age_verified=1" \
+            -c /tmp/cookies-admin.txt \
+            "$BASE/fr/connexion" > /tmp/login.html
+
           CSRF=$(grep -oP 'name="csrf_token" value="\K[^"]+' /tmp/login.html | head -1)
+          echo "DEBUG admin CSRF=${CSRF:0:8}…"
 
           curl -s \
             -b /tmp/cookies-admin.txt \
             -c /tmp/cookies-admin.txt \
-            --cookie "device_token=mock-jwt-admin-active-001" \
+            --cookie "device_token=mock-jwt-admin-active-001; age_verified=1" \
             --data-urlencode "email=admin@dev.local" \
             --data-urlencode "password=Dev123456789!" \
             --data-urlencode "csrf_token=$CSRF" \
-            -X POST -L "$BASE/fr/connexion" > /dev/null
+            -X POST -L "$BASE/fr/connexion" > /tmp/login-response-admin.html
 
           TOKEN=$(grep $'\tauth_token\t' /tmp/cookies-admin.txt | awk '{print $NF}')
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
-          [ -n "$TOKEN" ] && echo "✅ admin auth OK" || echo "⚠️ admin auth KO — scan anonyme"
+          if [ -n "$TOKEN" ]; then
+            echo "✅ admin auth OK"
+          else
+            echo "⚠️ admin auth KO — scan anonyme"
+            echo "DEBUG response (50 lignes) :"
+            head -50 /tmp/login-response-admin.html || true
+          fi
 
       # ── ZAP Full Scan — rôle admin ────────────────────────────────────────────
       - name: ZAP Full Scan — admin (/admin/*)
