@@ -174,7 +174,8 @@
                                         echo '</ul>';
                                     } else {
                                         echo '<span style="color:var(--color-text-muted);">' . htmlspecialchars((string) $log['details']) . '</span>';
-                                    <?php endif; ?>
+                                    }
+                                    ?>
                                 <?php else : ?>
                                     <span style="color:var(--color-text-muted);">—</span>
                                 <?php endif; ?>
