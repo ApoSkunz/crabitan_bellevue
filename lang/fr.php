@@ -316,6 +316,9 @@ return [
     'home.carousel_alt'   => 'Vignoble du Château Crabitan Bellevue',
     'home.carousel_title' => 'Château Crabitan Bellevue',
     'home.carousel_sub'   => 'Vins de Bordeaux - Sainte-Croix-du-Mont',
+    'home.carousel_prev'  => 'Diapositive précédente',
+    'home.carousel_next'  => 'Diapositive suivante',
+    'home.carousel_dots'  => 'Diapositives',
 
     'home.img_wines_alt'   => 'Gamme des vins du Château Crabitan Bellevue',
     'home.img_harvest_alt' => 'Vendanges à cheval - Château Crabitan Bellevue',

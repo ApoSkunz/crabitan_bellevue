@@ -59,10 +59,11 @@ body {
         display: none;
     }
 
-    // Icônes du panier / langue — réduits sur mobile
+    // Icônes du panier / langue — taille min 44px maintenue sur mobile
     .lang-switch a {
-        padding: 0.25em 0.45em;
+        padding: 0.5em 0.6em;
         font-size: 0.85rem;
+        min-height: 44px;
     }
 
     // Menu mobile — scroll interne si contenu long
