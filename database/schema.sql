@@ -598,15 +598,19 @@ CREATE TABLE `game_scores` (
 -- Historique des campagnes envoyées
 -- ============================================================
 CREATE TABLE `newsletters` (
-  `id`           INT            NOT NULL AUTO_INCREMENT,
-  `subject`      VARCHAR(255)   NOT NULL,
-  `title`        VARCHAR(255)   DEFAULT NULL COMMENT 'Titre optionnel affiché dans la newsletter',
-  `body`         TEXT           NOT NULL,
-  `image_url`    VARCHAR(500)   DEFAULT NULL COMMENT 'URL publique de l\'image d\'en-tête optionnelle',
-  `sent_count`   INT            NOT NULL DEFAULT 0,
-  `failed_count` INT            NOT NULL DEFAULT 0,
-  `sent_at`      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `segment_label` VARCHAR(100)  DEFAULT NULL COMMENT 'Segment ciblé lors de l\'envoi (NULL = tous)',
+  `id`            INT            NOT NULL AUTO_INCREMENT,
+  `subject`       VARCHAR(255)   NOT NULL,
+  `title`         VARCHAR(255)   DEFAULT NULL COMMENT 'Titre optionnel affiché dans la newsletter',
+  `body`          TEXT           NOT NULL,
+  `image_url`     VARCHAR(500)   DEFAULT NULL COMMENT 'URL publique de l\'image d\'en-tête optionnelle',
+  `sent_count`    INT            NOT NULL DEFAULT 0,
+  `failed_count`  INT            NOT NULL DEFAULT 0,
+  `queued_count`  INT            NOT NULL DEFAULT 0 COMMENT 'Abonnés mis en file d\'attente (envoi différé)',
+  `sent_at`       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `segment_label` VARCHAR(100)   DEFAULT NULL COMMENT 'Segment ciblé lors de l\'envoi (NULL = tous)',
+  `subject_en`    VARCHAR(255)   DEFAULT NULL COMMENT 'Objet EN traduit (DeepL) — utilisé par le cron',
+  `title_en`      VARCHAR(255)   DEFAULT NULL COMMENT 'Titre EN traduit',
+  `body_en`       TEXT           DEFAULT NULL COMMENT 'Corps EN traduit',
   PRIMARY KEY (`id`),
   INDEX `idx_newsletters_sent_at` (`sent_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -729,7 +733,7 @@ DROP TABLE IF EXISTS `newsletter_send_queue`;
 CREATE TABLE `newsletter_send_queue` (
   `id`              INT            NOT NULL AUTO_INCREMENT,
   `newsletter_id`   INT            NOT NULL COMMENT 'FK newsletters.id',
-  `wine_id`         INT            NOT NULL COMMENT 'FK wines.id — données vin reconstituées par le cron',
+  `wine_id`         INT            NULL    COMMENT 'FK wines.id — NULL pour newsletters admin, INT pour nouveau vin',
   `recipient_email` VARCHAR(255)   NOT NULL,
   `recipient_name`  VARCHAR(255)   NOT NULL DEFAULT '',
   `unsub_token`     VARCHAR(64)    NOT NULL DEFAULT '',
@@ -741,7 +745,7 @@ CREATE TABLE `newsletter_send_queue` (
   INDEX `idx_nlq_status_created` (`status`, `created_at`),
   INDEX `idx_nlq_newsletter` (`newsletter_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-  COMMENT='File d''attente envoi newsletter vin — cron send-newsletter-queue';
+  COMMENT='File d''attente envoi newsletter (vin + campagnes admin) — cron send-newsletter-queue';
 -- ============================================================
 -- Table : audit_log
 -- Log d'audit RGPD (Art. 30) — changements email, suppressions, etc.
