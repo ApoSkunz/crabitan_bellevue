@@ -9,7 +9,7 @@ permissions: read-all
 
 jobs:
   zap-baseline:
-    name: ZAP Baseline — crabitan-bellevue.fr
+    name: ZAP Baseline — crabitanbellevue.fr
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -24,7 +24,7 @@ jobs:
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.14.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
-          target: 'https://crabitan-bellevue.fr'
+          target: 'https://crabitanbellevue.fr'
           rules_file_name: '.zap/rules.tsv'
           fail_action: false
           issue_title: '[DAST] ZAP Baseline — alertes de sécurité'

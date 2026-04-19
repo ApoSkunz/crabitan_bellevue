@@ -1,6 +1,8 @@
 name: DAST — Full Scan (ISO prod)
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
   release:
     types: [published]
