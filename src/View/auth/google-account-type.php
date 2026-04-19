@@ -54,7 +54,7 @@ require_once __DIR__ . '/../partials/header.php';
     </div>
 </main>
 
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {
     var radios   = document.querySelectorAll('input[name="account_type"]');
     var group    = document.getElementById('company-name-group');
