@@ -59,16 +59,43 @@ body {
         display: none;
     }
 
-    // Theme toggle : retrait cercle/border sur mobile — icône seule avec padding touch 44px
-    .theme-toggle {
-        width: auto;
-        height: auto;
-        border: none;
-        border-radius: 0;
-        padding: 0.6rem 0.5rem;
-        font-size: 1.3rem;
-        min-width: 44px;
-        min-height: 44px;
+    // Theme toggle masqué de la barre header sur mobile → dans le menu burger
+    .header-actions .theme-toggle {
+        display: none;
+    }
+
+    // Theme toggle dans le menu burger — même style que les liens nav mobile
+    .header-nav--mobile__theme-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--color-border);
+        font-family: var(--font-serif);
+        font-size: 0.95rem;
+        font-variant: small-caps;
+        letter-spacing: 0.12em;
+        color: var(--color-text-muted);
+        background: none;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+        width: 100%;
+        cursor: pointer;
+        text-align: left;
+        transition: color 200ms ease;
+
+        &:hover {
+            color: var(--color-gold);
+        }
+
+        .icon-sun  { display: inline; }
+        .icon-moon { display: none; }
+
+        [data-theme='light'] & {
+            .icon-sun  { display: none; }
+            .icon-moon { display: inline; }
+        }
     }
 
     // Icônes du panier / langue — taille min 44px maintenue sur mobile
