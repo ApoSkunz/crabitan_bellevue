@@ -158,8 +158,15 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                 </h2>
                 <div class="home-section__divider"></div>
 
+                <?php $lazyThreshold = 8; ?>
                 <div class="wines-grid wines-grid--collection">
                     <?php foreach ($groupWines as $wineIdx => $wine) :
+                        if ($wineIdx === $lazyThreshold) : ?>
+                        </div><!-- end eager grid -->
+                        <template class="js-lazy-cards">
+                        <div class="wines-grid wines-grid--collection wines-grid--lazy">
+                    <?php endif; ?>
+                    <?php
                         $comment     = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
                         $description = $comment[$navLang] ?? ($comment['fr'] ?? '');
                         $awardData   = ['fr' => $wine['award_fr'] ?? '', 'en' => $wine['award_en'] ?? ''];
@@ -172,17 +179,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                 aria-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                             >
                                 <div class="wine-card__image-wrap">
-                                    <picture>
-                                        <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
-                                        <img
-                                            src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
-                                            alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
-                                            class="wine-card__image"
-                                            <?= $wineIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
-                                            width="300"
-                                            height="420"
-                                        >
-                                    </picture>
+                                    <?php require SRC_PATH . '/View/partials/wine-card-picture.php'; ?>
                                     <?php if ($wine['available'] && (int) ($wine['stock_quantity'] ?? 0) === 0) : ?>
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
@@ -268,7 +265,13 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                             </div>
                         </article>
                     <?php endforeach; ?>
-                </div>
+                <?php if (count($groupWines) > $lazyThreshold) : ?>
+                        </div><!-- end lazy grid -->
+                        </template>
+                        <div class="js-lazy-sentinel" aria-hidden="true"></div>
+                <?php else : ?>
+                </div><!-- end eager grid (all cards) -->
+                <?php endif; ?>
             </div>
         </section>
     <?php endforeach; ?>

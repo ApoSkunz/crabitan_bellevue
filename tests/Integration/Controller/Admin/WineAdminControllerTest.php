@@ -1106,6 +1106,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
         $_POST['vintage']             = '2022';
         $_POST['price']               = '18.50';
         $_POST['production_quantity']            = '60';
+        $_POST['stock_quantity']      = '10';
         $_POST['area']                = '0.50';
         $_POST['city']                = 'Saint-Émilion';
         $_POST['variety_of_vine']     = 'Merlot';
@@ -1139,7 +1140,7 @@ class WineAdminControllerTest extends AdminIntegrationTestCase
 
         @unlink($tmpFile);
 
-        // L'ancienne image doit avoir été supprimée par @unlink
+        // L'ancienne image doit avoir été supprimée par deleteVariants()
         $this->assertFileDoesNotExist($oldFilePath);
 
         // Nettoyer les éventuels nouveaux fichiers générés

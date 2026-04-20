@@ -11,7 +11,8 @@ $hreflangFr    = $appUrl . '/fr/vins/' . ($wine['slug'] ?? '');
 $hreflangEn    = $appUrl . '/en/vins/' . ($wine['slug'] ?? '');
 $ogTitle       = $wineName . ' — Château Crabitan Bellevue';
 $ogDescription = $metaDescription;
-$ogImage       = $appUrl . '/assets/images/wines/' . ($wine['image_path'] ?? '');
+$winesBase     = '/assets/images/wines/';
+$ogImage       = $appUrl . $winesBase . ($wine['image_path'] ?? '');
 $ogUrl         = $canonical;
 $ogType        = 'product';
 $jsonLd        = json_encode([
@@ -81,10 +82,15 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
             <!-- Colonne image -->
             <div class="wine-detail__visual">
                 <div class="wine-detail__image-wrap">
+                    <?php
+                    $wFile = $wine['image_path'];
+                    ?>
                     <picture>
-                        <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
+                        <source
+                            srcset="<?= $winesBase .rawurlencode((string) preg_replace('/\.[^.]+$/', '', $wFile) . '.webp') ?>"
+                            type="image/webp">
                         <img
-                            src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
+                            src="<?= $winesBase .rawurlencode($wFile) ?>"
                             alt="<?= htmlspecialchars($wineName) ?>"
                             class="wine-detail__image js-wine-zoom"
                             width="400"
@@ -131,7 +137,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                                 data-wine-id="<?= (int) $wine['id'] ?>"
                                 data-wine-name="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                                 data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
-                                data-wine-image="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
+                                data-wine-image="<?= $winesBase . rawurlencode($wine['image_path']) ?>"
                                 data-wine-cuvee="<?= !empty($wine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                             >
                                 <?= htmlspecialchars(__('wine.add_to_cart')) ?>
@@ -309,15 +315,14 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     </div>
                 <?php endif; ?>
 
-                <a
-                    href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>/fiche-technique"
-                    class="wine-detail__download"
+                <button
+                    type="button"
+                    class="wine-detail__download js-pdf-download"
+                    data-href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>/fiche-technique"
                     aria-label="<?= htmlspecialchars(__('wine.download_sheet') . ' : ' . $wineName) ?>"
-                    target="_blank"
-                    rel="noopener noreferrer"
                 >
                     &#128196; <?= htmlspecialchars(__('wine.download_sheet')) ?>
-                </a>
+                </button>
             </div>
         </div>
     </section>
@@ -384,10 +389,20 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                        class="wine-card__inner"
                        aria-label="<?= $swName ?>">
                         <div class="wine-card__image-wrap">
-                            <?php $swWebp = rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', (string) ($sw['image_path'] ?? ''))); ?>
+                            <?php
+                            $swFile  = (string) ($sw['image_path'] ?? '');
+                            $swNoExt = (string) preg_replace('/\.[^.]+$/', '', $swFile);
+                            $swExt   = pathinfo($swFile, PATHINFO_EXTENSION);
+                            $swBase  = $winesBase;
+                            ?>
                             <picture>
-                                <source srcset="/assets/images/wines/<?= $swWebp ?>" type="image/webp">
-                                <img src="/assets/images/wines/<?= $swImage ?>"
+                                <source
+                                    srcset="<?= $swBase . rawurlencode($swNoExt . '-400w.webp') ?> 400w"
+                                    sizes="200px"
+                                    type="image/webp">
+                                <img src="<?= $swBase . rawurlencode($swFile) ?>"
+                                     srcset="<?= $swBase . rawurlencode($swNoExt . '-400w.' . $swExt) ?> 400w"
+                                     sizes="200px"
                                      alt="<?= $swName ?>"
                                      class="wine-card__image"
                                      width="200" height="280"
@@ -415,7 +430,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                                     data-wine-id="<?= $swId ?>"
                                     data-wine-name="<?= $swName ?>"
                                     data-wine-price="<?= htmlspecialchars(number_format($swPrice, 2, ',', ' ') . ' €') ?>"
-                                    data-wine-image="/assets/images/wines/<?= $swImage ?>"
+                                    data-wine-image="<?= $winesBase . $swImage ?>"
                                     data-wine-cuvee="<?= $swCuvee ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                                     aria-label="<?= htmlspecialchars(__('wine.add_to_cart')) ?> — <?= $swName ?>">
                                 &#128722;
@@ -432,6 +447,35 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
 
 </main>
 
+<!-- PDF progress overlay -->
+<div
+    id="pdf-progress-overlay"
+    class="pdf-progress-overlay"
+    hidden
+    aria-hidden="true"
+    role="status"
+    aria-live="polite"
+>
+    <div class="pdf-progress-overlay__box">
+        <p
+            class="pdf-progress-overlay__msg"
+            id="pdf-progress-msg"
+            data-default="<?= htmlspecialchars(__('wine.pdf_generating')) ?>"
+            data-error="<?= htmlspecialchars(__('wine.pdf_error')) ?>"
+        ><?= htmlspecialchars(__('wine.pdf_generating')) ?></p>
+        <div
+            class="pdf-progress-overlay__track"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+        >
+            <div class="pdf-progress-overlay__bar" id="pdf-progress-bar"></div>
+        </div>
+        <p class="pdf-progress-overlay__label" id="pdf-progress-label">0%</p>
+    </div>
+</div>
+
 <!-- Zoom overlay -->
 <!-- NOSONAR Web:S6819 — custom overlay with full JS focus/keyboard management; <dialog> migration deferred -->
 <div id="wine-zoom-overlay" class="wine-zoom-overlay" aria-hidden="true" role="dialog" aria-label="<?= htmlspecialchars(__('wine.zoom')) ?>">
@@ -439,7 +483,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
     <button class="wine-zoom-overlay__close" id="wine-zoom-close" type="button" aria-label="<?= __('common.close') ?>">&times;</button>
     <img
         id="wine-zoom-img"
-        src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
+        src="<?= $winesBase . rawurlencode($wine['image_path']) ?>"
         alt="<?= htmlspecialchars($wineName) ?>"
         class="wine-zoom-overlay__image"
     >

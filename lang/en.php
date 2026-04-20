@@ -165,6 +165,8 @@ return [
     'wine.bottles'       => 'bottles',
     'wine.cuvee_speciale'  => 'Special Cuvée',
     'wine.download_sheet' => 'Download complete technical sheet',
+    'wine.pdf_generating' => 'Generating PDF…',
+    'wine.pdf_error'      => 'Error — please try again.',
 
     // Wines - Rating
     'wine.rating.title'        => 'Customer reviews',

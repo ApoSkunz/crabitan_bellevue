@@ -165,6 +165,8 @@ return [
     'wine.bottles'       => 'bouteilles',
     'wine.cuvee_speciale'  => 'Cuvée Spéciale',
     'wine.download_sheet' => 'Télécharger la fiche technique complète',
+    'wine.pdf_generating' => 'Génération du PDF en cours…',
+    'wine.pdf_error'      => 'Erreur — veuillez réessayer.',
 
     // Vins - Notation
     'wine.rating.title'        => 'Avis clients',

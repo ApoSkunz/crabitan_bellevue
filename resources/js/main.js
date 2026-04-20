@@ -4,6 +4,8 @@ import { initCarbonBadge } from './carbon-badge.js';
 import { initLazyLoad } from './lazy-load.js';
 import { initAutoSubmitFilters, initLangSwitchToast, initFocusTrap } from './ux-enhancements.js';
 import { initWinesFiltersAjax } from './wines-filters-ajax.js';
+import { initLazyCards } from './wines-lazy-cards.js';
+import { initWinePdfDownload } from './wine-pdf-download.js';
 
 // ============================================================
 // Thème jour / nuit
@@ -2410,6 +2412,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initLangPreference();
     initAutoSubmitFilters();
     initWinesFiltersAjax();
+    initLazyCards();
+    initWinePdfDownload();
     initLangSwitchToast();
     initFocusTrap();
 

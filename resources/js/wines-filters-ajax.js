@@ -11,6 +11,7 @@
  */
 
 import { initLazyLoad } from './lazy-load.js';
+import { initLazyCards } from './wines-lazy-cards.js';
 
 /**
  * Construit l'URL cible à partir du formulaire + reset page=1.
@@ -62,8 +63,9 @@ async function swapContent(url, container) {
             requestAnimationFrame(() => {
                 newContent.classList.remove('is-loading');
             });
-            // Ré-init lazy reveal + infinite scroll sur le nouveau DOM
+            // Ré-init lazy reveal + lazy-cards (dom-size) sur le nouveau DOM
             initLazyLoad();
+            initLazyCards();
         } else {
             container.classList.remove('is-loading');
         }
