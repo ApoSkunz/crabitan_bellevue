@@ -164,8 +164,8 @@ class ImageVariantService
     private function loadImage(string $absPath, string $mime)
     {
         return match ($mime) {
-            'image/jpeg' => imagecreatefromjpeg($absPath),
-            'image/png'  => imagecreatefrompng($absPath),
+            'image/jpeg' => @imagecreatefromjpeg($absPath),
+            'image/png'  => @imagecreatefrompng($absPath),
             default      => false,
         };
     }
