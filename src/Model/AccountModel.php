@@ -439,6 +439,20 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     /**
+     * Met à jour la date de dernière connexion réussie.
+     *
+     * @param int $id Identifiant du compte
+     * @return void
+     */
+    public function updateLastLoginAt(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET last_login_at = NOW() WHERE id = ?",
+            [$id]
+        );
+    }
+
+    /**
      * Met à jour la langue préférée d'un compte.
      *
      * @param int    $id   Identifiant du compte
@@ -862,10 +876,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
                    SELECT 1 FROM orders o
                    WHERE o.user_id = a.id AND o.status IN ('pending', 'processing')
                )
-               AND COALESCE(
-                   (SELECT MAX(c.created_at) FROM connections c WHERE c.user_id = a.id),
-                   a.created_at
-               ) < DATE_SUB(NOW(), INTERVAL ? MONTH)",
+               AND COALESCE(a.last_login_at, a.created_at) < DATE_SUB(NOW(), INTERVAL ? MONTH)",
             [$months]
         );
     }
@@ -1133,26 +1144,20 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
 
         $orderBy = match ($sort) {
             'created_at_asc'         => 'a.created_at ASC',
-            'last_connection_desc'   => 'lc.last_connection DESC',
-            'last_connection_asc'    => 'lc.last_connection ASC',
+            'last_connection_desc'   => 'a.last_login_at DESC',
+            'last_connection_asc'    => 'a.last_login_at ASC',
             default                  => 'a.created_at DESC',
         };
 
         return $this->db->fetchAll(
             "SELECT a.id, a.email, a.account_type, a.role, a.lang, a.newsletter,
                     a.email_verified_at, a.has_connected, a.created_at, a.deleted_at,
-                    a.is_blocked,
+                    a.is_blocked, a.last_login_at AS last_connection,
                     ai.lastname, ai.firstname, ai.civility,
-                    ac.company_name, ac.siret,
-                    lc.last_connection
+                    ac.company_name, ac.siret
              FROM {$this->table} a
              LEFT JOIN account_individuals ai ON ai.account_id = a.id
              LEFT JOIN account_companies   ac ON ac.account_id = a.id
-             LEFT JOIN (
-                 SELECT user_id, MAX(created_at) AS last_connection
-                 FROM connections
-                 GROUP BY user_id
-             ) lc ON lc.user_id = a.id
              {$where}
              ORDER BY {$orderBy}
              LIMIT ? OFFSET ?",
@@ -1610,11 +1615,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             "SELECT a.id, a.email, a.role, a.is_blocked, a.created_at,
                     COALESCE(ai.firstname, ac.company_name, '') AS firstname,
                     COALESCE(ai.lastname, '') AS lastname,
-                    (SELECT c.created_at
-                     FROM connections c
-                     WHERE c.user_id = a.id AND c.status = 'active'
-                     ORDER BY c.created_at DESC
-                     LIMIT 1) AS last_login_at
+                    a.last_login_at
              FROM {$this->table} a
              LEFT JOIN account_individuals ai ON ai.account_id = a.id
              LEFT JOIN account_companies   ac ON ac.account_id = a.id
