@@ -153,12 +153,28 @@ jobs:
       - name: Grant ZAP container write access to workspace
         run: chmod a+w "$GITHUB_WORKSPACE"
 
+      - name: Debug — vérifier auth customer avant scan
+        run: |
+          BASE="http://localhost:8080"
+          TOKEN="${{ steps.auth-customer.outputs.token }}"
+          if [ -z "$TOKEN" ]; then
+            echo "❌ token customer vide — scan sera anonyme"
+            exit 0
+          fi
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Cookie: auth_token=$TOKEN;age_verified=1" \
+            "$BASE/fr/mon-compte")
+          echo "GET /fr/mon-compte → HTTP $HTTP"
+          [ "$HTTP" = "200" ] && echo "✅ auth customer OK" || echo "⚠️ auth customer KO (code $HTTP)"
+
       - name: ZAP Full Scan — customer (mon-compte, panier, checkout)
         continue-on-error: true
         uses: zaproxy/action-full-scan@v0.12.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
-          target: 'http://${{ steps.host-ip.outputs.ip }}:8080'
+          target: 'http://${{ steps.host-ip.outputs.ip }}:8080/fr'
           rules_file_name: '.zap/rules.tsv'
+          context_file_name: '.zap/contexts/customer.context'
+          ajax_spider: true
           fail_action: false
           issue_title: '[DAST] ZAP Full Scan (customer) — alertes'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -207,12 +223,28 @@ jobs:
           echo "ZAP_AUTH_HEADER_VALUE=auth_token=${{ steps.auth-admin.outputs.token }};age_verified=1" >> $GITHUB_ENV
           echo "ZAP_AUTH_HEADER_SITE=http://${{ steps.host-ip.outputs.ip }}:8080" >> $GITHUB_ENV
 
+      - name: Debug — vérifier auth admin avant scan
+        run: |
+          BASE="http://localhost:8080"
+          TOKEN="${{ steps.auth-admin.outputs.token }}"
+          if [ -z "$TOKEN" ]; then
+            echo "❌ token admin vide — scan sera anonyme"
+            exit 0
+          fi
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Cookie: auth_token=$TOKEN;age_verified=1" \
+            "$BASE/admin")
+          echo "GET /admin → HTTP $HTTP"
+          [ "$HTTP" = "200" ] && echo "✅ auth admin OK" || echo "⚠️ auth admin KO (code $HTTP)"
+
       - name: ZAP Full Scan — admin (/admin/*)
         continue-on-error: true
         uses: zaproxy/action-full-scan@v0.12.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
           target: 'http://${{ steps.host-ip.outputs.ip }}:8080/admin'
           rules_file_name: '.zap/rules.tsv'
+          context_file_name: '.zap/contexts/admin.context'
+          ajax_spider: true
           fail_action: false
           issue_title: '[DAST] ZAP Full Scan (admin) — alertes'
           token: ${{ secrets.GITHUB_TOKEN }}

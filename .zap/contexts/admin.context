@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration>
+    <context>
+        <name>Admin</name>
+        <desc>Scope admin — /admin/* + /api/*</desc>
+        <inscope>true</inscope>
+        <!-- Routes admin -->
+        <incregexes>http://[^/]+/admin.*</incregexes>
+        <incregexes>http://[^/]+/api/.*</incregexes>
+        <!-- Exclure cron (token secret), tracking pixel, IPN CA -->
+        <excregexes>http://[^/]+/cron/.*</excregexes>
+        <excregexes>http://[^/]+/track/.*</excregexes>
+        <excregexes>http://[^/]+/payment/ipn.*</excregexes>
+        <excregexes>http://[^/]+/age-gate.*</excregexes>
+        <urlparser>
+            <class>org.parosproxy.paros.model.SiteMapDefaultHandler</class>
+            <config/>
+        </urlparser>
+        <postparser>
+            <class>org.zaproxy.zap.model.StandardParameterParser</class>
+            <config/>
+        </postparser>
+        <authentication>
+            <type>0</type>
+            <loggedin>Tableau de bord|/admin</loggedin>
+            <loggedout>connexion|Se connecter</loggedout>
+        </authentication>
+        <users/>
+        <forceduser>-1</forceduser>
+        <session>
+            <type>0</type>
+        </session>
+        <authorization>
+            <type>0</type>
+            <basic>
+                <header/>
+                <body/>
+                <logic>AND</logic>
+                <code>-1</code>
+            </basic>
+        </authorization>
+    </context>
+</configuration>
