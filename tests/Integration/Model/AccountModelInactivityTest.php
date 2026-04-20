@@ -61,6 +61,10 @@ class AccountModelInactivityTest extends IntegrationTestCase
              VALUES (?, 'tok_recent', 'dev_recent', '127.0.0.1', 'UA', 'PC', 'password', 'active', DATE_ADD(NOW(), INTERVAL 30 DAY), NOW())",
             [$userId]
         );
+        self::$db->execute(
+            "UPDATE accounts SET last_login_at = NOW() WHERE id = ?",
+            [$userId]
+        );
     }
 
     // ── getInactiveAccounts ──────────────────────────────────────────────────
