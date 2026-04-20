@@ -360,7 +360,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace('/\.[^.]+$/', '.
                         <img src="<?= $featuredImage ?>"
                              alt="<?= htmlspecialchars((string)($featuredWine['label_name'] ?? '')) ?>"
                              class="cart-empty-wine__img"
-                             width="120" height="160" loading="lazy">
+                             width="120" height="160" fetchpriority="high">
                     </picture>
                     <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($featuredWine['label_name'] ?? '')) ?></span>
                     <span class="cart-empty-wine__price"><?= number_format((float)($featuredWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
@@ -381,7 +381,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace('/\.[^.]+$/', '.
                         <img src="<?= $wineImage ?>"
                              alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
                              class="cart-empty-wine__img"
-                             width="120" height="160" loading="lazy">
+                             width="120" height="160" fetchpriority="high">
                     </picture>
                     <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?></span>
                     <span class="cart-empty-wine__price"><?= number_format((float)($randomWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
@@ -447,7 +447,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace('/\.[^.]+$/', '.
                     <img src="<?= $wineImage ?>"
                          alt="<?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?>"
                          class="cart-empty-wine__img"
-                         width="120" height="160" loading="lazy">
+                         width="120" height="160" fetchpriority="high">
                 </picture>
                 <span class="cart-empty-wine__name"><?= htmlspecialchars((string)($randomWine['label_name'] ?? '')) ?></span>
                 <span class="cart-empty-wine__price"><?= number_format((float)($randomWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
