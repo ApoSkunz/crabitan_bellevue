@@ -155,10 +155,10 @@ class MailServiceTest extends TestCase
     #[BackupGlobals(true)]
     public function testConstructIfBranchWithNonEmptyMailUser(): void
     {
-        $_ENV['MAIL_USER']       = 'noreply@example.com';
-        $_ENV['MAIL_PASS']       = 'secret';
-        $_ENV['MAIL_ENCRYPTION'] = '';
-        $_ENV['APP_URL']         = 'http://crabitan.local';
+        $_ENV['MAIL_NOREPLY_USER'] = 'noreply@example.com';
+        $_ENV['MAIL_NOREPLY_PASS'] = 'secret';
+        $_ENV['MAIL_ENCRYPTION']   = '';
+        $_ENV['APP_URL']           = 'http://crabitan.local';
 
         $service = new MailService();
         $this->assertInstanceOf(MailService::class, $service);
@@ -179,8 +179,8 @@ class MailServiceTest extends TestCase
     #[BackupGlobals(true)]
     public function testConstructElseBranchWithEmptyMailUser(): void
     {
-        $_ENV['MAIL_USER'] = '';
-        $_ENV['APP_URL']   = 'http://crabitan.local';
+        unset($_ENV['MAIL_NOREPLY_USER']);
+        $_ENV['APP_URL'] = 'http://crabitan.local';
 
         $service = new MailService();
         $this->assertInstanceOf(MailService::class, $service);
@@ -1265,10 +1265,10 @@ class MailServiceTest extends TestCase
     #[BackupGlobals(true)]
     public function testConstructWithCustomEncryptionUsesProvidedValue(): void
     {
-        $_ENV['MAIL_USER']       = 'noreply@example.com';
-        $_ENV['MAIL_PASS']       = 'secret';
-        $_ENV['MAIL_ENCRYPTION'] = PHPMailer::ENCRYPTION_SMTPS;
-        $_ENV['APP_URL']         = 'http://crabitan.local';
+        $_ENV['MAIL_NOREPLY_USER'] = 'noreply@example.com';
+        $_ENV['MAIL_NOREPLY_PASS'] = 'secret';
+        $_ENV['MAIL_ENCRYPTION']   = PHPMailer::ENCRYPTION_SMTPS;
+        $_ENV['APP_URL']           = 'http://crabitan.local';
 
         $service = new MailService();
 

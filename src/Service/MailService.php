@@ -1253,7 +1253,7 @@ INNER;
         float $shippingDiscount = 0.0,
         ?array $pdfContext = null
     ): void {
-        $ownerEmail    = $_ENV['CONTACT_OWNER_EMAIL'];
+        $ownerEmail    = $_ENV['CONTACT_OWNER_EMAIL'] ?? '';
         $safeRef       = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeClient    = htmlspecialchars($clientName, ENT_QUOTES);
         $safeEmail     = htmlspecialchars($clientEmail, ENT_QUOTES);
