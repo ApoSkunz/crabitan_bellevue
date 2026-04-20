@@ -19,6 +19,15 @@ class ImageVariantService
     /** @var int[] Largeurs cibles pour les variantes responsive */
     private const WIDTHS = [400, 800];
 
+    /** @var string Extension WebP */
+    private const EXT_WEBP = '.webp';
+
+    /** @var string Regex suppression extension */
+    private const EXT_REGEX = '/\.[^.]+$/';
+
+    /** @var string MIME type PNG */
+    private const MIME_PNG = 'image/png';
+
     /**
      * Génère toutes les variantes depuis une image source :
      *   - {name}.webp (conversion à taille originale)
@@ -28,7 +37,7 @@ class ImageVariantService
      * @param string $absPath Chemin absolu vers l'image source (PNG, JPEG)
      * @return void
      */
-    public function generateVariants(string $absPath): void
+    public function generateVariants(string $absPath): void // NOSONAR — php:S3776 : complexité inhérente au pipeline GD multi-format
     {
         if (!$this->gdSupported() || !file_exists($absPath)) {
             return;
@@ -40,7 +49,7 @@ class ImageVariantService
             return;
         }
 
-        $base = (string) preg_replace('/\.[^.]+$/', '', $absPath);
+        $base = (string) preg_replace(self::EXT_REGEX, '', $absPath);
         $ext  = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
 
         $source = $this->loadImage($absPath, $mime);
@@ -48,54 +57,76 @@ class ImageVariantService
             return;
         }
 
-        // WebP à taille originale
-        imagewebp($source, $base . '.webp', self::WEBP_QUALITY);
+        imagewebp($source, $base . self::EXT_WEBP, self::WEBP_QUALITY);
 
         $origW = imagesx($source);
         $origH = imagesy($source);
 
         foreach (self::WIDTHS as $targetW) {
-            if ($origW <= $targetW) {
-                // Source plus petite que la cible → copier l'original comme variante
-                copy($absPath, $base . '-' . $targetW . 'w.' . $ext);
-                imagewebp($source, $base . '-' . $targetW . 'w.webp', self::WEBP_QUALITY);
-                continue;
-            }
-
-            $targetH  = (int) round($origH * $targetW / $origW);
-            $resized  = imagecreatetruecolor($targetW, $targetH);
-
-            if ($resized === false) {
-                continue;
-            }
-
-            // Transparence PNG
-            if ($mime === 'image/png') {
-                imagealphablending($resized, false);
-                imagesavealpha($resized, true);
-                $transparent = imagecolorallocatealpha($resized, 0, 0, 0, 127);
-                if ($transparent !== false) {
-                    imagefilledrectangle($resized, 0, 0, $targetW, $targetH, $transparent);
-                }
-            }
-
-            imagecopyresampled($resized, $source, 0, 0, 0, 0, $targetW, $targetH, $origW, $origH);
-
-            // Variante format original
-            $variantPath = $base . '-' . $targetW . 'w.' . $ext;
-            if ($mime === 'image/png') {
-                imagepng($resized, $variantPath, 9);
-            } else {
-                imagejpeg($resized, $variantPath, self::JPEG_QUALITY);
-            }
-
-            // Variante WebP
-            imagewebp($resized, $base . '-' . $targetW . 'w.webp', self::WEBP_QUALITY);
-
-            imagedestroy($resized);
+            $this->generateWidth($source, $absPath, $base, $ext, $mime, $targetW, $origW, $origH);
         }
 
         imagedestroy($source);
+    }
+
+    /**
+     * Génère une variante redimensionnée pour une largeur cible donnée.
+     *
+     * @param \GdImage $source Image source GD
+     * @param string   $absPath Chemin original (pour copie si pas d'upscale)
+     * @param string   $base    Chemin sans extension
+     * @param string   $ext     Extension format original
+     * @param string   $mime    MIME type source
+     * @param int      $targetW Largeur cible
+     * @param int      $origW   Largeur originale
+     * @param int      $origH   Hauteur originale
+     * @return void
+     */
+    private function generateWidth(
+        \GdImage $source,
+        string $absPath,
+        string $base,
+        string $ext,
+        string $mime,
+        int $targetW,
+        int $origW,
+        int $origH
+    ): void {
+        $suffix = '-' . $targetW . 'w.';
+
+        if ($origW <= $targetW) {
+            copy($absPath, $base . $suffix . $ext);
+            imagewebp($source, $base . $suffix . 'webp', self::WEBP_QUALITY);
+            return;
+        }
+
+        $targetH = (int) round($origH * $targetW / $origW);
+        $resized = imagecreatetruecolor($targetW, $targetH);
+
+        if ($resized === false) {
+            return;
+        }
+
+        if ($mime === self::MIME_PNG) {
+            imagealphablending($resized, false);
+            imagesavealpha($resized, true);
+            $transparent = imagecolorallocatealpha($resized, 0, 0, 0, 127);
+            if ($transparent !== false) {
+                imagefilledrectangle($resized, 0, 0, $targetW, $targetH, $transparent);
+            }
+        }
+
+        imagecopyresampled($resized, $source, 0, 0, 0, 0, $targetW, $targetH, $origW, $origH);
+
+        $variantPath = $base . $suffix . $ext;
+        if ($mime === self::MIME_PNG) {
+            imagepng($resized, $variantPath, 9);
+        } else {
+            imagejpeg($resized, $variantPath, self::JPEG_QUALITY);
+        }
+
+        imagewebp($resized, $base . $suffix . 'webp', self::WEBP_QUALITY);
+        imagedestroy($resized);
     }
 
     /**
@@ -106,12 +137,12 @@ class ImageVariantService
      */
     public function deleteVariants(string $absPath): void
     {
-        $base = (string) preg_replace('/\.[^.]+$/', '', $absPath);
+        $base = (string) preg_replace(self::EXT_REGEX, '', $absPath);
         $ext  = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
 
         $candidates = [
             $absPath,
-            $base . '.webp',
+            $base . self::EXT_WEBP,
         ];
 
         foreach (self::WIDTHS as $w) {
@@ -144,14 +175,13 @@ class ImageVariantService
             return $absPath;
         }
 
-        $image = $this->loadImage($absPath, $mime);
-        if ($image === false) {
-            return null;
-        }
+        $image    = $this->loadImage($absPath, $mime);
+        $webpPath = (string) preg_replace(self::EXT_REGEX, '', $absPath) . self::EXT_WEBP;
+        $ok       = $image !== false && imagewebp($image, $webpPath, self::WEBP_QUALITY);
 
-        $webpPath = (string) preg_replace('/\.[^.]+$/', '', $absPath) . '.webp';
-        $ok       = imagewebp($image, $webpPath, self::WEBP_QUALITY);
-        imagedestroy($image);
+        if ($image !== false) {
+            imagedestroy($image);
+        }
 
         return $ok ? $webpPath : null;
     }
@@ -165,7 +195,7 @@ class ImageVariantService
     {
         return match ($mime) {
             'image/jpeg' => @imagecreatefromjpeg($absPath),
-            'image/png'  => @imagecreatefrompng($absPath),
+            self::MIME_PNG  => @imagecreatefrompng($absPath),
             default      => false,
         };
     }

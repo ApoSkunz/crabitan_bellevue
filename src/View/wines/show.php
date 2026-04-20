@@ -11,7 +11,8 @@ $hreflangFr    = $appUrl . '/fr/vins/' . ($wine['slug'] ?? '');
 $hreflangEn    = $appUrl . '/en/vins/' . ($wine['slug'] ?? '');
 $ogTitle       = $wineName . ' — Château Crabitan Bellevue';
 $ogDescription = $metaDescription;
-$ogImage       = $appUrl . '/assets/images/wines/' . ($wine['image_path'] ?? '');
+$winesBase     = '/assets/images/wines/';
+$ogImage       = $appUrl . $winesBase . ($wine['image_path'] ?? '');
 $ogUrl         = $canonical;
 $ogType        = 'product';
 $jsonLd        = json_encode([
@@ -82,15 +83,14 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
             <div class="wine-detail__visual">
                 <div class="wine-detail__image-wrap">
                     <?php
-                    $wBase = '/assets/images/wines/';
                     $wFile = $wine['image_path'];
                     ?>
                     <picture>
                         <source
-                            srcset="<?= $wBase . rawurlencode((string) preg_replace('/\.[^.]+$/', '', $wFile) . '.webp') ?>"
+                            srcset="<?= $winesBase .rawurlencode((string) preg_replace('/\.[^.]+$/', '', $wFile) . '.webp') ?>"
                             type="image/webp">
                         <img
-                            src="<?= $wBase . rawurlencode($wFile) ?>"
+                            src="<?= $winesBase .rawurlencode($wFile) ?>"
                             alt="<?= htmlspecialchars($wineName) ?>"
                             class="wine-detail__image js-wine-zoom"
                             width="400"
@@ -137,7 +137,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                                 data-wine-id="<?= (int) $wine['id'] ?>"
                                 data-wine-name="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                                 data-wine-price="<?= htmlspecialchars(number_format((float) $wine['price'], 2, ',', ' ') . ' €') ?>"
-                                data-wine-image="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
+                                data-wine-image="<?= $winesBase . rawurlencode($wine['image_path']) ?>"
                                 data-wine-cuvee="<?= !empty($wine['is_cuvee_speciale']) ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                             >
                                 <?= htmlspecialchars(__('wine.add_to_cart')) ?>
@@ -393,7 +393,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                             $swFile  = (string) ($sw['image_path'] ?? '');
                             $swNoExt = (string) preg_replace('/\.[^.]+$/', '', $swFile);
                             $swExt   = pathinfo($swFile, PATHINFO_EXTENSION);
-                            $swBase  = '/assets/images/wines/';
+                            $swBase  = $winesBase;
                             ?>
                             <picture>
                                 <source
@@ -430,7 +430,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                                     data-wine-id="<?= $swId ?>"
                                     data-wine-name="<?= $swName ?>"
                                     data-wine-price="<?= htmlspecialchars(number_format($swPrice, 2, ',', ' ') . ' €') ?>"
-                                    data-wine-image="/assets/images/wines/<?= $swImage ?>"
+                                    data-wine-image="<?= $winesBase . $swImage ?>"
                                     data-wine-cuvee="<?= $swCuvee ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                                     aria-label="<?= htmlspecialchars(__('wine.add_to_cart')) ?> — <?= $swName ?>">
                                 &#128722;
@@ -483,7 +483,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
     <button class="wine-zoom-overlay__close" id="wine-zoom-close" type="button" aria-label="<?= __('common.close') ?>">&times;</button>
     <img
         id="wine-zoom-img"
-        src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
+        src="<?= $winesBase . rawurlencode($wine['image_path']) ?>"
         alt="<?= htmlspecialchars($wineName) ?>"
         class="wine-zoom-overlay__image"
     >
