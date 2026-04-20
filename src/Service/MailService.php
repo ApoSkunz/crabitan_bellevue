@@ -3008,7 +3008,7 @@ INNER;
         return $this->emailLayout(
             'Réinitialisation de votre mot de passe',
             "Bonjour {$safeName},",
-            'Suite à une demande de l\'équipe d\'administration, un administrateur vient de vous envoyer'
+            'Suite à votre demande auprès de l\'équipe d\'administration, un administrateur vient de vous envoyer'
             . ' ce lien de réinitialisation de votre mot de passe.'
             . ' Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.',
             $safeUrl,
@@ -3026,7 +3026,7 @@ INNER;
         return $this->emailLayout(
             'Password reset',
             "Hello {$safeName},",
-            'Following a request from the administration team, an administrator has sent you'
+            'Following your request to the administration team, an administrator has sent you'
             . ' this password reset link.'
             . ' Click the button below to set a new password.',
             $safeUrl,
