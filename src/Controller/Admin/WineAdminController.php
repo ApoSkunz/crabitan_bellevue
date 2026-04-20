@@ -100,8 +100,16 @@ class WineAdminController extends AdminController
         $perPageReq = (int) $this->request->get('per_page', self::DEFAULT_PER_PAGE);
         $perPage    = in_array($perPageReq, self::ALLOWED_PER_PAGE, true) ? $perPageReq : self::DEFAULT_PER_PAGE;
 
-        $total = $this->wines->countForAdmin($color, $available);
-        $wines = $this->wines->getForAdmin($color, $available, $perPage, ($page - 1) * $perPage);
+        $vintageReq = $this->request->get('vintage') ?: null;
+        $vintage    = ($vintageReq !== null && ctype_digit($vintageReq)) ? (int) $vintageReq : null;
+        $labelName  = $this->request->get('label_name') ?: null;
+        $cuveeReq   = $this->request->get('cuvee');
+        $cuvee      = ($cuveeReq === '1') ? true : (($cuveeReq === '0') ? false : null);
+
+        $total      = $this->wines->countForAdmin($color, $available, $vintage, $labelName, $cuvee);
+        $wines      = $this->wines->getForAdmin($color, $available, $perPage, ($page - 1) * $perPage, $vintage, $labelName, $cuvee);
+        $vintages   = $this->wines->getAdminVintages();
+        $labelNames = $this->wines->getAdminLabelNames();
 
         $this->view('admin/wines/index', [
             'adminUser'    => $adminUser,
@@ -114,6 +122,11 @@ class WineAdminController extends AdminController
             'perPage'      => $perPage,
             'color'        => $color,
             'available'    => $available,
+            'vintage'      => $vintageReq,
+            'labelName'    => $labelName,
+            'cuvee'        => $cuveeReq,
+            'vintages'     => $vintages,
+            'labelNames'   => $labelNames,
             'flash'        => $this->getFlash('success'),
             'flashError'   => $this->getFlash('error'),
         ]);

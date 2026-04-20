@@ -6,7 +6,7 @@ $roleLabels = ['customer' => 'Client', 'admin' => 'Admin', 'super_admin' => 'Sup
 $isSuperAdmin = $currentRole === 'super_admin';
 
 if (!function_exists('accountUrl')) {
-function accountUrl(int $p, ?string $role, ?string $type, string $search, int $perPage): string
+function accountUrl(int $p, ?string $role, ?string $type, string $search, int $perPage, ?string $sort = null): string
 {
     $q = ['page' => $p];
     if ($role) {
@@ -20,6 +20,9 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
     }
     if ($perPage !== 10) {
         $q['per_page'] = $perPage;
+    }
+    if ($sort !== null) {
+        $q['sort'] = $sort;
     }
     return '/admin/comptes?' . http_build_query($q);
 }
@@ -64,6 +67,9 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
         <?php endforeach; ?>
     </select>
 
+    <?php if ($sort ?? null) : ?>
+        <input type="hidden" name="sort" value="<?= htmlspecialchars($sort) ?>">
+    <?php endif; ?>
     <button type="submit" class="admin-filters__btn">Filtrer</button>
     <?php if ($role || ($type ?? null) || $search) : ?>
         <a href="/admin/comptes<?= $perPage !== 10 ? '?per_page=' . $perPage : '' ?>"
@@ -84,8 +90,30 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                     <th class="col-hide-tablet">Langue</th>
                     <th class="col-hide-tablet">Vérifié</th>
                     <th class="col-hide-tablet">Connecté</th>
-                    <th>Inscrit le</th>
-                    <th class="col-hide-tablet">Dernière connexion</th>
+                    <th>
+                        <?php
+                        $sortCreated = ($sort ?? null) === 'created_at_asc' ? 'created_at_desc' : 'created_at_asc';
+                        $sortCreatedIcon = match ($sort ?? null) {
+                            'created_at_asc'  => ' ↑',
+                            'created_at_desc' => ' ↓',
+                            default           => ' ↕',
+                        };
+                        ?>
+                        <a href="<?= htmlspecialchars(accountUrl(1, $role, $type ?? null, $search, $perPage, $sortCreated)) ?>"
+                           style="color:inherit;text-decoration:none;">Inscrit le<?= $sortCreatedIcon ?></a>
+                    </th>
+                    <th class="col-hide-tablet">
+                        <?php
+                        $sortLc = ($sort ?? null) === 'last_connection_asc' ? 'last_connection_desc' : 'last_connection_asc';
+                        $sortLcIcon = match ($sort ?? null) {
+                            'last_connection_asc'  => ' ↑',
+                            'last_connection_desc' => ' ↓',
+                            default                => ' ↕',
+                        };
+                        ?>
+                        <a href="<?= htmlspecialchars(accountUrl(1, $role, $type ?? null, $search, $perPage, $sortLc)) ?>"
+                           style="color:inherit;text-decoration:none;">Dernière connexion<?= $sortLcIcon ?></a>
+                    </th>
                     <?php if ($isSuperAdmin) : ?>
                         <th></th>
                     <?php endif; ?>
@@ -176,13 +204,13 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
 
     <?php if ($totalPages > 1) : ?>
         <div class="admin-pagination">
-            <a href="<?= htmlspecialchars(accountUrl(max(1, $page - 1), $role, $type ?? null, $search, $perPage)) ?>"
+            <a href="<?= htmlspecialchars(accountUrl(max(1, $page - 1), $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
                class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>">‹</a>
             <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
-                <a href="<?= htmlspecialchars(accountUrl($i, $role, $type ?? null, $search, $perPage)) ?>"
+                <a href="<?= htmlspecialchars(accountUrl($i, $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
                    class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"><?= $i ?></a>
             <?php endfor; ?>
-            <a href="<?= htmlspecialchars(accountUrl(min($totalPages, $page + 1), $role, $type ?? null, $search, $perPage)) ?>"
+            <a href="<?= htmlspecialchars(accountUrl(min($totalPages, $page + 1), $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
                class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>">›</a>
         </div>
     <?php endif; ?>
