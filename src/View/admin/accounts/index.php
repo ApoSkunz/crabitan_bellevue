@@ -61,15 +61,19 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
            placeholder="Email, nom, prénom…"
            value="<?= htmlspecialchars($search) ?>">
 
+    <select name="sort" class="admin-filters__select" aria-label="Trier par">
+        <option value="created_at_desc" <?= ($sort ?? null) === 'created_at_desc' || ($sort ?? null) === null ? 'selected' : '' ?>>Inscription — décroissant</option>
+        <option value="created_at_asc"  <?= ($sort ?? null) === 'created_at_asc'  ? 'selected' : '' ?>>Inscription — croissant</option>
+        <option value="last_connection_desc" <?= ($sort ?? null) === 'last_connection_desc' ? 'selected' : '' ?>>Connexion — décroissant</option>
+        <option value="last_connection_asc"  <?= ($sort ?? null) === 'last_connection_asc'  ? 'selected' : '' ?>>Connexion — croissant</option>
+    </select>
+
     <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
         <?php foreach ([10, 25, 50] as $n) : ?>
             <option value="<?= $n ?>" <?= (int)$perPage === $n ? 'selected' : '' ?>><?= $n ?> / page</option>
         <?php endforeach; ?>
     </select>
 
-    <?php if ($sort ?? null) : ?>
-        <input type="hidden" name="sort" value="<?= htmlspecialchars($sort) ?>">
-    <?php endif; ?>
     <button type="submit" class="admin-filters__btn">Filtrer</button>
     <?php if ($role || ($type ?? null) || $search) : ?>
         <a href="/admin/comptes<?= $perPage !== 10 ? '?per_page=' . $perPage : '' ?>"
@@ -90,30 +94,8 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                     <th class="col-hide-tablet">Langue</th>
                     <th class="col-hide-tablet">Vérifié</th>
                     <th class="col-hide-tablet">Connecté</th>
-                    <th>
-                        <?php
-                        $sortCreated = ($sort ?? null) === 'created_at_asc' ? 'created_at_desc' : 'created_at_asc';
-                        $sortCreatedIcon = match ($sort ?? null) {
-                            'created_at_asc'  => ' ↑',
-                            'created_at_desc' => ' ↓',
-                            default           => ' ↕',
-                        };
-                        ?>
-                        <a href="<?= htmlspecialchars(accountUrl(1, $role, $type ?? null, $search, $perPage, $sortCreated)) ?>"
-                           style="color:inherit;text-decoration:none;">Inscrit le<?= $sortCreatedIcon ?></a>
-                    </th>
-                    <th class="col-hide-tablet">
-                        <?php
-                        $sortLc = ($sort ?? null) === 'last_connection_asc' ? 'last_connection_desc' : 'last_connection_asc';
-                        $sortLcIcon = match ($sort ?? null) {
-                            'last_connection_asc'  => ' ↑',
-                            'last_connection_desc' => ' ↓',
-                            default                => ' ↕',
-                        };
-                        ?>
-                        <a href="<?= htmlspecialchars(accountUrl(1, $role, $type ?? null, $search, $perPage, $sortLc)) ?>"
-                           style="color:inherit;text-decoration:none;">Dernière connexion<?= $sortLcIcon ?></a>
-                    </th>
+                    <th>Inscrit le</th>
+                    <th class="col-hide-tablet">Dernière connexion</th>
                     <?php if ($isSuperAdmin) : ?>
                         <th></th>
                     <?php endif; ?>
