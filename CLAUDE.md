@@ -478,6 +478,7 @@ Tous les audits sont dans `private-docs/audits/`. **Un seul fichier par catégor
 | UX / UI | `UX/audit-ux.md` |
 | Légal / Juridique | `LGH/audit-lgh.md` |
 | RGPD Résilience | `RGPD-Juridique/audit-rgpd-juridique.md` |
+| Vulnérabilités (`/security`) | `Vuln/audit-vuln.md` |
 
 ### Règle de mise à jour
 
