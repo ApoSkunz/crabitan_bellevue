@@ -145,9 +145,27 @@ class GoogleLinkStatusController extends Controller
             unset($_SESSION['majority_pending']);
         }
 
-        unset($_SESSION['pending_google_link_token'], $_SESSION['google_link_status_last_call']);
+        $intended   = $_SESSION['_intended'] ?? null;
+        $returnPath = $_SESSION['oauth_return_path'] ?? "/{$accountLang}";
+        unset(
+            $_SESSION['pending_google_link_token'],
+            $_SESSION['google_link_status_last_call'],
+            $_SESSION['_intended'],
+            $_SESSION['oauth_return_path']
+        );
 
-        $redirect = "/{$accountLang}/mon-compte";
+        $validIntended = $intended !== null
+            && is_string($intended)
+            && preg_match('#^/[^/]#', $intended)
+            && !str_contains($intended, '://');
+
+        $redirect = $validIntended ? $intended : $returnPath;
+
+        // Langue du compte différente de la langue de l'URL de retour → adapter
+        if (preg_match('#^/(fr|en)(/.+)?$#', $redirect, $m) && $m[1] !== $accountLang) {
+            $redirect = '/' . $accountLang . ($m[2] ?? '');
+        }
+
         $this->json(['status' => 'linked', 'redirect' => $redirect]);
     }
 
