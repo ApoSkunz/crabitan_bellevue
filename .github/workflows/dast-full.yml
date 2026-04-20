@@ -153,6 +153,11 @@ jobs:
       - name: Grant ZAP container write access to workspace
         run: chmod a+w "$GITHUB_WORKSPACE"
 
+      - name: Seed URLs customer — remplacer TARGET par l'IP réelle
+        run: |
+          IP="${{ steps.host-ip.outputs.ip }}"
+          sed "s|TARGET|${IP}:8080|g" .zap/urls-customer.txt > .zap/urls-customer-ci.txt
+
       - name: Debug — vérifier auth customer avant scan
         run: |
           BASE="http://localhost:8080"
@@ -175,6 +180,7 @@ jobs:
           rules_file_name: '.zap/rules.tsv'
           context_file_name: '.zap/contexts/customer.context'
           ajax_spider: true
+          cmd_options: '-l .zap/urls-customer-ci.txt'
           fail_action: false
           issue_title: '[DAST] ZAP Full Scan (customer) — alertes'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -237,6 +243,11 @@ jobs:
           echo "GET /admin → HTTP $HTTP"
           [ "$HTTP" = "200" ] && echo "✅ auth admin OK" || echo "⚠️ auth admin KO (code $HTTP)"
 
+      - name: Seed URLs admin — remplacer TARGET par l'IP réelle
+        run: |
+          IP="${{ steps.host-ip.outputs.ip }}"
+          sed "s|TARGET|${IP}:8080|g" .zap/urls-admin.txt > .zap/urls-admin-ci.txt
+
       - name: ZAP Full Scan — admin (/admin/*)
         continue-on-error: true
         uses: zaproxy/action-full-scan@v0.12.0  # TODO: pin to SHA — Dependabot le mettra à jour
@@ -245,6 +256,7 @@ jobs:
           rules_file_name: '.zap/rules.tsv'
           context_file_name: '.zap/contexts/admin.context'
           ajax_spider: true
+          cmd_options: '-l .zap/urls-admin-ci.txt'
           fail_action: false
           issue_title: '[DAST] ZAP Full Scan (admin) — alertes'
           token: ${{ secrets.GITHUB_TOKEN }}
