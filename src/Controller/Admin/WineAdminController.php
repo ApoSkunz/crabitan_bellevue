@@ -574,32 +574,30 @@ class WineAdminController extends AdminController
             ? ($existing['slug'] ?? $this->generateSlug($labelName, $vintage))
             : $this->generateSlug($labelName, $vintage);
 
-        // ---- Upload image ----
-        ['path' => $imagePath, 'error' => $imgError] = $this->handleImageUpload(
-            $appellation,
-            $vintage,
-            $existing['image_path'] ?? null,
-            $existing === null
-        );
-        if ($imgError !== null) {
-            $errors['image'] = $imgError;
-        }
+        // ---- Upload image — phase 1 : validation seule, aucun déplacement ----
+        $file      = $_FILES['image'] ?? [];
+        $imagePath = $existing['image_path'] ?? '';
+        /** @var array{tmp: string, dest: string, filename: string, destDir: string}|null $pendingFile */
+        $pendingFile = null;
 
-        // Supprime l'ancienne photo (original + variante WebP) si une nouvelle a été uploadée avec succès
-        if (
-            $imgError === null
-            && $imagePath !== ($existing['image_path'] ?? '')
-            && !empty($existing['image_path'])
-        ) {
-            $winesDir   = ROOT_PATH . '/public/assets/images/wines/';
-            $oldFile    = $winesDir . $existing['image_path'];
-            $oldWebp    = $winesDir . (string) preg_replace('/\.[^.]+$/', '.webp', $existing['image_path']);
-            if (file_exists($oldFile)) {
-                @unlink($oldFile);
+        if (!empty($file['tmp_name'])) {
+            $finfo    = new \finfo(\FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($file['tmp_name']);
+            if (!in_array($mimeType, self::ALLOWED_MIME, true)) {
+                $errors['image'] = 'Format non autorisé (jpg, png, webp uniquement).';
+            } else {
+                $ext      = self::MIME_EXT[$mimeType];
+                $safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', self::deaccent($appellation)) ?? 'wine';
+                $safeName = trim($safeName, '_');
+                $destDir  = ROOT_PATH . '/public/assets/images/wines/';
+                do {
+                    $token    = bin2hex(random_bytes(8));
+                    $filename = "Wine_{$safeName}_{$vintage}_{$token}.{$ext}";
+                } while (file_exists($destDir . $filename));
+                $pendingFile = ['tmp' => $file['tmp_name'], 'dest' => $destDir . $filename, 'filename' => $filename, 'destDir' => $destDir];
             }
-            if ($oldWebp !== $oldFile && file_exists($oldWebp)) {
-                @unlink($oldWebp);
-            }
+        } elseif ($existing === null) {
+            $errors['image'] = "L'image est obligatoire.";
         }
 
         // ---- Champs bilingues (colonnes _fr / _en séparées) ----
@@ -607,19 +605,40 @@ class WineAdminController extends AdminController
             'oenological_comment', 'soil', 'pruning', 'harvest',
             'vinification', 'barrel_fermentation', 'award', 'extra_comment',
         ];
-        $flatData = [];
+
+        // Pass 1 : collecte + validation required (pas de traduction)
+        /** @var array<string, array{fr: string, en: string}> $rawBilingual */
+        $rawBilingual = [];
         foreach ($bilingualFields as $field) {
             $fr = trim($r->post($field . '_fr', ''));
             $en = trim($r->post($field . '_en', ''));
-
             if (in_array($field, self::JSON_REQUIRED, true) && $fr === '') {
                 $errors[$field . '_fr'] = self::JSON_LABELS[$field] . ' (FR) est obligatoire.';
             }
+            $rawBilingual[$field] = ['fr' => $fr, 'en' => $en];
+        }
 
-            if ($fr !== '' && $en === '') {
+        // ---- Upload image — phase 2 : déplacement + variantes (seulement si formulaire valide) ----
+        if ($errors === [] && $pendingFile !== null) {
+            if ($this->moveUploadedFile($pendingFile['tmp'], $pendingFile['dest'])) {
+                (new ImageVariantService())->generateVariants($pendingFile['dest']);
+                if (!empty($existing['image_path'])) {
+                    (new ImageVariantService())->deleteVariants($pendingFile['destDir'] . $existing['image_path']);
+                }
+                $imagePath = $pendingFile['filename'];
+            } else {
+                $errors['image'] = 'Erreur lors du téléversement.';
+            }
+        }
+
+        // Pass 2 : traduction uniquement si formulaire valide
+        $flatData = [];
+        foreach ($bilingualFields as $field) {
+            $fr = $rawBilingual[$field]['fr'];
+            $en = $rawBilingual[$field]['en'];
+            if ($errors === [] && $fr !== '' && $en === '') {
                 $en = $this->translator->translate($fr);
             }
-
             $flatData[$field . '_fr'] = $fr;
             $flatData[$field . '_en'] = $en;
         }
@@ -646,54 +665,6 @@ class WineAdminController extends AdminController
         ], $flatData);
 
         return [$data, $errors];
-    }
-
-    /**
-     * Gère l'upload d'une image vin.
-     * Valide le MIME, génère un nom unique (Wine_{appellation}_{vintage}_{token}.{ext}).
-     *
-     * @return array{path: string, error: string|null}
-     */
-    private function handleImageUpload( // NOSONAR — php:S1142 : early returns sur validation MIME/upload sont intentionnels
-        string $appellation,
-        int $vintage,
-        ?string $existingPath,
-        bool $required
-    ): array {
-        $file = $_FILES['image'] ?? [];
-
-        if (empty($file['tmp_name'])) {
-            if ($required) {
-                return ['path' => '', 'error' => "L'image est obligatoire."];
-            }
-            return ['path' => $existingPath ?? '', 'error' => null];
-        }
-
-        $finfo    = new \finfo(\FILEINFO_MIME_TYPE);
-        $mimeType = $finfo->file($file['tmp_name']);
-
-        if (!in_array($mimeType, self::ALLOWED_MIME, true)) {
-            return ['path' => $existingPath ?? '', 'error' => 'Format non autorisé (jpg, png, webp uniquement).'];
-        }
-
-        $ext      = self::MIME_EXT[$mimeType];
-        $safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', self::deaccent($appellation)) ?? 'wine';
-        $safeName = trim($safeName, '_');
-        $destDir  = ROOT_PATH . '/public/assets/images/wines/';
-
-        // Génère un nom unique avec token
-        do {
-            $token    = bin2hex(random_bytes(8));
-            $filename = "Wine_{$safeName}_{$vintage}_{$token}.{$ext}";
-        } while (file_exists($destDir . $filename));
-
-        if (!$this->moveUploadedFile($file['tmp_name'], $destDir . $filename)) {
-            return ['path' => $existingPath ?? '', 'error' => 'Erreur lors du téléversement.'];
-        }
-
-        (new ImageVariantService())->convertToWebp($destDir . $filename);
-
-        return ['path' => $filename, 'error' => null];
     }
 
     /**
