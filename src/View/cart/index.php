@@ -200,15 +200,26 @@ $toWebp = static fn(string $p): string => (string) preg_replace('/\.[^.]+$/', '.
                         ?>
                         <tr class="cart-table__row" data-wine-id="<?= $wineId ?>" data-price="<?= number_format($price, 2, '.', '') ?>" data-stock="<?= $stock ?>">
                             <td class="cart-table__col-image">
-                                <?php if ($image !== '') : ?>
-                                <img
-                                    src="<?= htmlspecialchars($image) ?>"
-                                    alt="<?= htmlspecialchars($name) ?>"
-                                    class="cart-table__img"
-                                    width="64"
-                                    height="64"
-                                    loading="lazy"
-                                >
+                                <?php if ($image !== '') :
+                                    $ctFile  = basename(parse_url($image, PHP_URL_PATH) ?? $image);
+                                    $ctNoExt = (string) preg_replace('/\.[^.]+$/', '', $ctFile);
+                                    $ctExt   = pathinfo($ctFile, PATHINFO_EXTENSION);
+                                    $ctBase  = '/assets/images/wines/';
+                                    ?>
+                                <picture>
+                                    <source
+                                        srcset="<?= $ctBase . rawurlencode($ctNoExt . '-400w.webp') ?>"
+                                        type="image/webp">
+                                    <img
+                                        src="<?= htmlspecialchars($image) ?>"
+                                        srcset="<?= $ctBase . rawurlencode($ctNoExt . '-400w.' . $ctExt) ?>"
+                                        alt="<?= htmlspecialchars($name) ?>"
+                                        class="cart-table__img"
+                                        width="64"
+                                        height="64"
+                                        loading="lazy"
+                                    >
+                                </picture>
                                 <?php endif; ?>
                             </td>
                             <td class="cart-table__col-product cart-table__name">

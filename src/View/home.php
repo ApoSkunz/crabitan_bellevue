@@ -135,12 +135,23 @@ $carouselSlides = [
     <section class="home-section home-section--featured home-section--dark" id="vin-du-moment">
         <div class="home-section__inner container">
             <div class="home-section__visual">
+                <?php
+                $fwFile  = (string) ($featuredWine['image_path'] ?? '');
+                $fwNoExt = (string) preg_replace('/\.[^.]+$/', '', $fwFile);
+                $fwExt   = pathinfo($fwFile, PATHINFO_EXTENSION);
+                $fwBase  = '/assets/images/wines/';
+                ?>
                 <picture>
-                    <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $featuredWine['image_path'])) ?>" type="image/webp">
+                    <source
+                        srcset="<?= $fwBase . rawurlencode($fwNoExt . '-400w.webp') ?> 400w, <?= $fwBase . rawurlencode($fwNoExt . '-800w.webp') ?> 800w"
+                        sizes="(max-width: 640px) 400px, 400px"
+                        type="image/webp">
                     <img
-                        src="/assets/images/wines/<?= rawurlencode($featuredWine['image_path']) ?>"
+                        src="<?= $fwBase . rawurlencode($fwFile) ?>"
+                        srcset="<?= $fwBase . rawurlencode($fwNoExt . '-400w.' . $fwExt) ?> 400w, <?= $fwBase . rawurlencode($fwNoExt . '-800w.' . $fwExt) ?> 800w"
+                        sizes="(max-width: 640px) 400px, 400px"
                         alt="<?= htmlspecialchars($featuredWine['label_name']) ?>"
-                        fetchpriority="high"
+                        loading="lazy"
                         width="400"
                         height="600"
                     >

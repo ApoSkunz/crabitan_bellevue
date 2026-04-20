@@ -85,12 +85,19 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     <?php
                     $wFile = $wine['image_path'];
                     ?>
+                    <?php
+                    $wNoExt = (string) preg_replace('/\.[^.]+$/', '', $wFile);
+                    $wExt   = pathinfo($wFile, PATHINFO_EXTENSION);
+                    ?>
                     <picture>
                         <source
-                            srcset="<?= $winesBase .rawurlencode((string) preg_replace('/\.[^.]+$/', '', $wFile) . '.webp') ?>"
+                            srcset="<?= $winesBase . rawurlencode($wNoExt . '-400w.webp') ?> 400w, <?= $winesBase . rawurlencode($wNoExt . '-800w.webp') ?> 800w"
+                            sizes="(max-width: 640px) 400px, 500px"
                             type="image/webp">
                         <img
-                            src="<?= $winesBase .rawurlencode($wFile) ?>"
+                            src="<?= $winesBase . rawurlencode($wFile) ?>"
+                            srcset="<?= $winesBase . rawurlencode($wNoExt . '-400w.' . $wExt) ?> 400w, <?= $winesBase . rawurlencode($wNoExt . '-800w.' . $wExt) ?> 800w"
+                            sizes="(max-width: 640px) 400px, 500px"
                             alt="<?= htmlspecialchars($wineName) ?>"
                             class="wine-detail__image js-wine-zoom"
                             width="400"

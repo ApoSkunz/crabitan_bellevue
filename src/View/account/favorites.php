@@ -26,13 +26,26 @@ require_once __DIR__ . '/../partials/header.php';
                         <li class="account-favorite-card">
                             <?php if ($wine['image_path']) : ?>
                                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>">
-                                    <img
-                                        class="account-favorite-card__img"
-                                        src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
-                                        alt="<?= htmlspecialchars($wine['name']) ?>"
-                                        loading="lazy"
-                                        width="120"
-                                    >
+                                    <?php
+                                    $favFile  = (string) ($wine['image_path'] ?? '');
+                                    $favNoExt = (string) preg_replace('/\.[^.]+$/', '', $favFile);
+                                    $favExt   = pathinfo($favFile, PATHINFO_EXTENSION);
+                                    $favBase  = '/assets/images/wines/';
+                                    ?>
+                                    <picture>
+                                        <source
+                                            srcset="<?= $favBase . rawurlencode($favNoExt . '-400w.webp') ?>"
+                                            type="image/webp">
+                                        <img
+                                            class="account-favorite-card__img"
+                                            src="<?= $favBase . rawurlencode($favFile) ?>"
+                                            srcset="<?= $favBase . rawurlencode($favNoExt . '-400w.' . $favExt) ?>"
+                                            alt="<?= htmlspecialchars($wine['name']) ?>"
+                                            loading="lazy"
+                                            width="120"
+                                            height="168"
+                                        >
+                                    </picture>
                                 </a>
                             <?php endif; ?>
                             <div class="account-favorite-card__body">
