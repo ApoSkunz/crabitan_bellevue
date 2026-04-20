@@ -913,6 +913,21 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     /**
+     * Réinitialise l'avertissement d'inactivité lors d'une reconnexion réussie.
+     * Permet au cycle RGPD (Phase 1 → Phase 2) de redémarrer après 36 mois d'inactivité.
+     *
+     * @param int $id Identifiant du compte
+     * @return void
+     */
+    public function resetInactivityWarning(int $id): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET inactivity_warning_sent_at = NULL WHERE id = ? AND inactivity_warning_sent_at IS NOT NULL",
+            [$id]
+        );
+    }
+
+    /**
      * Soft-delete un compte inactif : pose deleted_at, scheduled_deletion_at J+30,
      * génère un token de réactivation et révoque toutes les sessions actives.
      *

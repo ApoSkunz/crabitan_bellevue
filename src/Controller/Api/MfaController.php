@@ -108,6 +108,7 @@ class MfaController extends Controller
         );
 
         $this->trustedDevices->trust($userId, $deviceToken, $deviceName);
+        $this->accounts->resetInactivityWarning($userId);
 
         if (!(bool) ($account['has_connected'] ?? false)) {
             $this->accounts->markAsConnected($userId);

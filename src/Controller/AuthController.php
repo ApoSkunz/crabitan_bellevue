@@ -208,6 +208,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
             $jwtExpiry
         );
 
+        $this->accounts->resetInactivityWarning((int) $account['id']);
         $this->updateDeviceTrust((int) $account['id'], $deviceToken, $deviceName, $isFirstEverLogin, $isAlreadyTrusted);
 
         // Fusion panier cookie → BDD après connexion réussie
