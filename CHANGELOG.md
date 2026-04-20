@@ -2,6 +2,21 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.10.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.9.2...v1.10.0) (2026-04-20)
+
+
+### Bug Fixes
+
+* **ci:** corriger 3 bugs CI — ZAP getopt, Lighthouse DB_ENCRYPT_KEY, brace-expansion ([178749a](https://github.com/ApoSkunz/crabitan_bellevue/commit/178749aa34897113bbb41550c7e1f10743963de0))
+* **e2e:** age-gate sans remember → cookie 24h (plus session cookie) ([ee097d2](https://github.com/ApoSkunz/crabitan_bellevue/commit/ee097d2c2d201bb2d79770223ebb247481e7a3db))
+
+
+### Features
+
+* **admin:** tri date/connexion comptes, filtres vintage/appellation/cuvée vins ([9edddd8](https://github.com/ApoSkunz/crabitan_bellevue/commit/9edddd8a887eb642d2483cbfbda63d82c3fdc713))
+* **i18n:** traduire politique de confidentialité en anglais (RGPD art. 12) ([ca46d1e](https://github.com/ApoSkunz/crabitan_bellevue/commit/ca46d1ecf9e1a42855cf1250cb1d99a8c8d258a9))
+* **session:** JWT sans mémoire 1h→2h, age-gate sans mémoire session→24h ([38a00eb](https://github.com/ApoSkunz/crabitan_bellevue/commit/38a00ebc588a5543c21afa1362c220259b609307))
+
 ## [1.9.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.9.1...v1.9.2) (2026-04-20)
 
 
