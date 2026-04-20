@@ -25,11 +25,12 @@ function initTheme() {
 }
 
 function initThemeToggle() {
-    document.querySelectorAll('.js-theme-toggle').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-            applyTheme(next);
-        });
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+        const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
     });
 }
 
