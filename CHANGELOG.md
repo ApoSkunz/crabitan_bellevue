@@ -2,6 +2,20 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.14.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.13.0...v1.14.0) (2026-04-20)
+
+
+### Bug Fixes
+
+* **ci:** upgrade zaproxy/action-full-scan v0.11.0 → v0.12.0 ([acf5202](https://github.com/ApoSkunz/crabitan_bellevue/commit/acf5202493e2ba4f7eee8b05b61d6e436f8ba1b6))
+* **sonar:** corriger bugs et code smells php:S2003 S1192 S3358 S3776 ([6a8ceea](https://github.com/ApoSkunz/crabitan_bellevue/commit/6a8ceea7ce383198146e7ab1c39c8f3e9ad4d3df))
+* **sonar:** résoudre php:S107 CronController — refacto context param + extract resolveCuveeFilter ([2dd83ec](https://github.com/ApoSkunz/crabitan_bellevue/commit/2dd83ec6af325f2dbd7728da400663dd5a15aa96))
+
+
+### Features
+
+* **secu:** backfill_last_login_at.php — réparation données inactivité RGPD ([86e27fa](https://github.com/ApoSkunz/crabitan_bellevue/commit/86e27faa9d57188e78faea20f7599da48c8a45d3))
+
 # [1.13.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.12.0...v1.13.0) (2026-04-20)
 
 
