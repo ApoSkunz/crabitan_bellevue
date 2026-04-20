@@ -661,40 +661,74 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
 
         $log("Batch newsletter : {$total} destinataire(s) à traiter");
 
-        $sent          = 0;
-        $failed        = 0;
-        $campaignCache = [];
-        $linkMapCache  = [];
+        $context = [
+            'sent'         => 0,
+            'failed'       => 0,
+            'campaignCache' => [],
+            'linkMapCache'  => [],
+        ];
 
         foreach ($pending as $item) {
-            $id     = (int) $item['id'];
-            $wineId = $item['wine_id'] !== null ? (int) $item['wine_id'] : null;
-
-            if ($dryRun) {
-                $nlId = (int) $item['newsletter_id'];
-                $type = $wineId !== null ? "wine#{$wineId}" : "admin-nl#{$nlId}";
-                $log("[DRY-RUN] Would send {$type} to {$item['recipient_email']} (queue_id={$id})");
-                continue;
-            }
-
-            if ($wineId !== null) {
-                $ok = $this->sendWineQueueItem($services, $log, $item, $appUrl);
-            } else {
-                $ok = $this->sendAdminQueueItem($services, $log, $campaignCache, $linkMapCache, $item, $appUrl);
-            }
-            $ok ? $sent++ : $failed++;
-
-            if ($delayMs > 0) {
-                usleep($delayMs * 1000);
-            }
+            $this->processNewsletterQueueItem(
+                $services,
+                $log,
+                $item,
+                $dryRun,
+                $appUrl,
+                $delayMs,
+                $context
+            );
         }
 
         if (!$dryRun) {
-            $log("Résultat : {$sent} envoyé(s), {$failed} échec(s)");
+            $log("Résultat : {$context['sent']} envoyé(s), {$context['failed']} échec(s)");
             $remaining = $services['queue']->countPending();
             if ($remaining > 0) {
                 $log("Restants en file : {$remaining}");
             }
+        }
+    }
+
+    /**
+     * Traite un élément de la file d'attente newsletter (vin ou admin).
+     *
+     * @param array<string,mixed>   $services Instances des modèles et services
+     * @param callable(string):void $log
+     * @param array<string,mixed>   $item     Ligne de la queue
+     * @param bool                  $dryRun
+     * @param string                $appUrl
+     * @param int                   $delayMs  Délai inter-envoi en ms
+     * @param array<string,mixed>   $context  sent, failed, campaignCache, linkMapCache (passé par référence)
+     * @return void
+     */
+    private function processNewsletterQueueItem(
+        array $services,
+        callable $log,
+        array $item,
+        bool $dryRun,
+        string $appUrl,
+        int $delayMs,
+        array &$context
+    ): void {
+        $id     = (int) $item['id'];
+        $wineId = $item['wine_id'] !== null ? (int) $item['wine_id'] : null;
+
+        if ($dryRun) {
+            $nlId = (int) $item['newsletter_id'];
+            $type = $wineId !== null ? "wine#{$wineId}" : "admin-nl#{$nlId}";
+            $log("[DRY-RUN] Would send {$type} to {$item['recipient_email']} (queue_id={$id})");
+            return;
+        }
+
+        if ($wineId !== null) {
+            $ok = $this->sendWineQueueItem($services, $log, $item, $appUrl);
+        } else {
+            $ok = $this->sendAdminQueueItem($services, $log, $context['campaignCache'], $context['linkMapCache'], $item, $appUrl);
+        }
+        $ok ? $context['sent']++ : $context['failed']++;
+
+        if ($delayMs > 0) {
+            usleep($delayMs * 1000);
         }
     }
 
@@ -841,18 +875,13 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             : (string) ($campaign['title'] ?? '');
         $imageUrl = $campaign['image_url'] !== null ? (string) $campaign['image_url'] : null;
 
-        $safeContent = nl2br(htmlspecialchars($bodyRaw, ENT_QUOTES));
-        foreach ($linkMap as $url => $linkId) {
-            $trackUrl    = $appUrl . '/track/click/' . $nlId . '/' . $linkId
-                . ($unsub !== '' ? '/' . rawurlencode($unsub) : '');
-            $safeUrl     = htmlspecialchars((string) $url, ENT_QUOTES);
-            $safeTrack   = htmlspecialchars($trackUrl, ENT_QUOTES);
-            $safeContent = str_replace(
-                $safeUrl,
-                '<a href="' . $safeTrack . '" style="color:#8a6a2e;">' . $safeUrl . '</a>',
-                $safeContent
-            );
-        }
+        $safeContent = $this->applyTrackingLinks(
+            nl2br(htmlspecialchars($bodyRaw, ENT_QUOTES)),
+            $linkMap,
+            $appUrl,
+            $nlId,
+            $unsub
+        );
 
         $firstname    = htmlspecialchars(explode(' ', trim($name))[0] ?? $name, ENT_QUOTES);
         $defaultName  = $lang === 'en' ? 'dear subscriber' : 'cher abonné';
@@ -876,6 +905,37 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             $lang,
             $nlId
         );
+    }
+
+    /**
+     * Remplace les URLs de la newsletter par des liens de tracking.
+     *
+     * @param string            $safeContent Contenu HTML déjà échappé
+     * @param array<string,int> $linkMap     url → linkId
+     * @param string            $appUrl
+     * @param int               $nlId
+     * @param string            $unsub
+     * @return string Contenu avec liens trackés
+     */
+    private function applyTrackingLinks(
+        string $safeContent,
+        array $linkMap,
+        string $appUrl,
+        int $nlId,
+        string $unsub
+    ): string {
+        foreach ($linkMap as $url => $linkId) {
+            $trackUrl    = $appUrl . '/track/click/' . $nlId . '/' . $linkId
+                . ($unsub !== '' ? '/' . rawurlencode($unsub) : '');
+            $safeUrl     = htmlspecialchars((string) $url, ENT_QUOTES);
+            $safeTrack   = htmlspecialchars($trackUrl, ENT_QUOTES);
+            $safeContent = str_replace(
+                $safeUrl,
+                '<a href="' . $safeTrack . '" style="color:#8a6a2e;">' . $safeUrl . '</a>',
+                $safeContent
+            );
+        }
+        return $safeContent;
     }
 
     /**

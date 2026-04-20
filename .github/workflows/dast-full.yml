@@ -152,7 +152,7 @@ jobs:
 
       - name: ZAP Full Scan — customer (mon-compte, panier, checkout)
         continue-on-error: true
-        uses: zaproxy/action-full-scan@v0.11.0  # TODO: pin to SHA — Dependabot le mettra à jour
+        uses: zaproxy/action-full-scan@v0.12.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
           target: 'http://${{ steps.host-ip.outputs.ip }}:8080'
           rules_file_name: '.zap/rules.tsv'
@@ -206,7 +206,7 @@ jobs:
 
       - name: ZAP Full Scan — admin (/admin/*)
         continue-on-error: true
-        uses: zaproxy/action-full-scan@v0.11.0  # TODO: pin to SHA — Dependabot le mettra à jour
+        uses: zaproxy/action-full-scan@v0.12.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
           target: 'http://${{ steps.host-ip.outputs.ip }}:8080/admin'
           rules_file_name: '.zap/rules.tsv'

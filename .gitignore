@@ -46,6 +46,7 @@ sonar-report.txt
 # Lighthouse CI — rapports locaux
 /.lighthouseci/
 /.lighthouserc.local.json
+/.lighthouserc.noauth.json
 /lighthouse-auth-local.cjs
 /logs/
 
