@@ -2,6 +2,19 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.9.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.8.0...v1.9.0) (2026-04-20)
+
+
+### Bug Fixes
+
+* **ci:** corriger ZAP -c ordering et MAIL_USER dans dast-full.yml ([1b84767](https://github.com/ApoSkunz/crabitan_bellevue/commit/1b847677a774797af038085229cb62fe9ab8a0b6))
+* **mail:** corriger tests MAIL_USER → MAIL_NOREPLY_USER + CONTACT_OWNER_EMAIL nullsafe ([91f2d28](https://github.com/ApoSkunz/crabitan_bellevue/commit/91f2d2829be46bddc2d7f8d995138a0c8799607a))
+
+
+### Features
+
+* **mail:** routing SMTP multi-canal via MailChannel enum ([1987d44](https://github.com/ApoSkunz/crabitan_bellevue/commit/1987d44b1f7e905b5fc953b987cd0c1c758b39d0))
+
 # [1.8.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.7.0...v1.8.0) (2026-04-19)
 
 
