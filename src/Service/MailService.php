@@ -110,6 +110,29 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     }
 
     /**
+     * Envoie un lien de réinitialisation de mot de passe initié par un administrateur.
+     *
+     * @param string $to       Adresse email du destinataire
+     * @param string $name     Prénom ou nom complet
+     * @param string $resetUrl URL absolue de réinitialisation
+     * @param string $lang     Langue du destinataire (fr|en)
+     * @return void
+     */
+    public function sendAdminPasswordReset(string $to, string $name, string $resetUrl, string $lang): void
+    {
+        $this->applySmtpConfig(MailChannel::SECURITY);
+        $subject = $lang === 'fr'
+            ? 'Réinitialisation de votre mot de passe — demande administrateur'
+            : 'Password reset — administrator request';
+
+        $body = $lang === 'fr'
+            ? $this->resetAdminBodyFr($name, $resetUrl)
+            : $this->resetAdminBodyEn($name, $resetUrl);
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
      * Envoie un email de double confirmation avant rattachement d'un compte classique à Google OAuth.
      * Le lien est valable 15 minutes et porte un token à usage unique.
      *
@@ -2974,6 +2997,42 @@ INNER;
             'Reset my password',
             'This link is valid for <strong>1 hour</strong>. If you did not request a password reset,'
             . ' please ignore this email — your password will remain unchanged.',
+            'en'
+        );
+    }
+
+    private function resetAdminBodyFr(string $name, string $url): string
+    {
+        $safeUrl  = htmlspecialchars($url, ENT_QUOTES);
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        return $this->emailLayout(
+            'Réinitialisation de votre mot de passe',
+            "Bonjour {$safeName},",
+            'Suite à une demande de l\'équipe d\'administration, un administrateur vient de vous envoyer'
+            . ' ce lien de réinitialisation de votre mot de passe.'
+            . ' Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.',
+            $safeUrl,
+            'Réinitialiser mon mot de passe',
+            'Ce lien est valable <strong>1 heure</strong>. Si vous n\'avez pas sollicité'
+            . ' cette demande, vous pouvez ignorer cet email — votre mot de passe reste inchangé.',
+            'fr'
+        );
+    }
+
+    private function resetAdminBodyEn(string $name, string $url): string
+    {
+        $safeUrl  = htmlspecialchars($url, ENT_QUOTES);
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        return $this->emailLayout(
+            'Password reset',
+            "Hello {$safeName},",
+            'Following a request from the administration team, an administrator has sent you'
+            . ' this password reset link.'
+            . ' Click the button below to set a new password.',
+            $safeUrl,
+            'Reset my password',
+            'This link is valid for <strong>1 hour</strong>. If you did not request this,'
+            . ' you can safely ignore this email — your password will remain unchanged.',
             'en'
         );
     }

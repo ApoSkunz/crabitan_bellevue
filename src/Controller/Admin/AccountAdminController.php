@@ -143,7 +143,7 @@ class AccountAdminController extends AdminController
 
         try {
             $mail = new MailService();
-            $mail->sendPasswordReset($row['email'], $displayName, $resetUrl, $lang);
+            $mail->sendAdminPasswordReset($row['email'], $displayName, $resetUrl, $lang);
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e);
             $this->flash('error', "Erreur envoi email pour compte #{$id}.");
