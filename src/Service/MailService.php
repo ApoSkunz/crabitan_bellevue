@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Service;
 
+use Core\MailChannel;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -37,37 +38,52 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
     public function __construct()
     {
-        $mailUser = $_ENV['MAIL_USER'] ?? '';
-        $mailPass = $_ENV['MAIL_PASS'] ?? '';
-        $encryption = $_ENV['MAIL_ENCRYPTION'] ?? '';
-
         $this->mailer = new PHPMailer(true);
         $this->mailer->isSMTP();
-        $this->mailer->Host    = $_ENV['MAIL_HOST'] ?? 'crabitanbellevue.fr';
-        $this->mailer->Port    = (int) ($_ENV['MAIL_PORT'] ?? 25);
         $this->mailer->CharSet = 'UTF-8';
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
+    }
 
-        if ($mailUser !== '') {
+    /**
+     * Reconfigure le mailer SMTP selon le canal demandé.
+     * Fallback sur MAIL_* si les variables MAIL_{CHANNEL}_* ne sont pas définies.
+     *
+     * @param MailChannel $channel Canal SMTP à utiliser
+     */
+    private function applySmtpConfig(MailChannel $channel): void
+    {
+        $prefix = match ($channel) {
+            MailChannel::TRANSACTIONNEL => 'MAIL_NOREPLY_',
+            MailChannel::SECURITY       => 'MAIL_SECURITY_',
+            MailChannel::NEWSLETTER     => 'MAIL_NEWSLETTER_',
+            MailChannel::CONTACT        => 'MAIL_CONTACT_',
+        };
+
+        // HOST/PORT/ENCRYPTION partagés — USER/PASS spécifiques au canal
+        $user = $_ENV[$prefix . 'USER'] ?? '';
+        $pass = $_ENV[$prefix . 'PASS'] ?? '';
+        $enc  = $_ENV['MAIL_ENCRYPTION'] ?? '';
+
+        $this->mailer->Host = $_ENV['MAIL_HOST'] ?? 'crabitanbellevue.fr';
+        $this->mailer->Port = (int) ($_ENV['MAIL_PORT'] ?? 25);
+
+        if ($user !== '') {
             $this->mailer->SMTPAuth   = true;
-            $this->mailer->Username   = $mailUser;
-            $this->mailer->Password   = $mailPass;
-            $this->mailer->SMTPSecure = $encryption !== '' ? $encryption : PHPMailer::ENCRYPTION_STARTTLS;
+            $this->mailer->Username   = $user;
+            $this->mailer->Password   = $pass;
+            $this->mailer->SMTPSecure = $enc !== '' ? $enc : PHPMailer::ENCRYPTION_STARTTLS;
         } else {
-            $this->mailer->SMTPAuth   = false;
-            $this->mailer->SMTPSecure = '';
+            $this->mailer->SMTPAuth    = false;
+            $this->mailer->SMTPSecure  = '';
             $this->mailer->SMTPAutoTLS = false;
         }
 
-        $appUrl      = $_ENV['APP_URL'] ?? (defined('APP_URL') ? APP_URL : self::DEFAULT_URL);
-        $host        = parse_url($appUrl, PHP_URL_HOST) ?? 'crabitanbellevue.fr';
-        $fromAddress = $mailUser !== ''
-            ? $mailUser
-            : ($_ENV['MAIL_FROM'] ?? ('noreply@' . $host));
-        $this->mailer->setFrom($fromAddress, $_ENV['MAIL_FROM_NAME'] ?? 'Crabitan Bellevue');
+        $this->mailer->setFrom($user !== '' ? $user : 'noreply@crabitanbellevue.fr', $_ENV['MAIL_FROM_NAME'] ?? 'Crabitan Bellevue');
     }
 
     public function sendEmailVerification(string $to, string $name, string $verifyUrl, string $lang): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Activez votre compte Crabitan Bellevue'
             : 'Activate your Crabitan Bellevue account';
@@ -81,6 +97,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
     public function sendPasswordReset(string $to, string $name, string $resetUrl, string $lang): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Réinitialisation de votre mot de passe'
             : 'Reset your password';
@@ -103,6 +120,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
      */
     public function sendGoogleLinkConfirmation(string $to, string $name, string $confirmUrl, string $lang): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Confirmez le rattachement de votre compte à Google'
             : 'Confirm linking your account to Google';
@@ -147,6 +165,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
      */
     public function sendGoogleAccountInfo(string $to, string $name, string $lang): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Votre compte est associé à Google'
             : 'Your account is linked to Google';
@@ -166,6 +185,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $message,
         string $lang
     ): void {
+        $this->applySmtpConfig(MailChannel::CONTACT);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
 
         $subjectLabel = $this->resolveSubjectLabel($subject, $lang);
@@ -197,6 +217,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $lang,
         string $userMessage = ''
     ): void {
+        $this->applySmtpConfig(MailChannel::CONTACT);
         $safeName    = htmlspecialchars($firstname, ENT_QUOTES);
         $isOrderForm = $subject === 'bon_commande';
         $subjectLabel = htmlspecialchars($this->resolveSubjectLabel($subject, $lang), ENT_QUOTES);
@@ -234,6 +255,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         ?string $attachmentName = null,
         ?string $unsubToken = null
     ): void {
+        $this->applySmtpConfig(MailChannel::NEWSLETTER);
         if ($unsubToken !== null) {
             $appUrl = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
             $this->mailer->addCustomHeader(
@@ -268,6 +290,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $appUrl,
         string $lang
     ): void {
+        $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $appUrl      = rtrim($appUrl, '/');
         $labelName   = htmlspecialchars((string) ($wine['label_name'] ?? ''), ENT_QUOTES);
         $appellation = htmlspecialchars((string) ($wine['certification_label'] ?? ''), ENT_QUOTES);
@@ -377,6 +400,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $lang,
         string $reactivationToken = ''
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Confirmation de suppression de votre compte'
             : 'Account deletion confirmation';
@@ -485,6 +509,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $scheduledDeletionAt,
         string $reactivationToken
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $reactUrl    = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
@@ -566,6 +591,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $lang,
         string $deletionDate
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $loginUrl    = $appUrl . '/' . $lang . '?login=1';
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
@@ -636,6 +662,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $deletionDate,
         string $reactivationToken
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $appUrl       = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $reactUrl     = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
         $safeName     = htmlspecialchars($name, ENT_QUOTES);
@@ -702,6 +729,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
      */
     public function sendFinalDeletion(string $to, string $name, string $lang): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
 
         if ($lang === 'fr') {
@@ -758,6 +786,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $lang,
         string $confirmToken = ''
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Confirmez votre changement de mot de passe'
             : 'Confirm your password change';
@@ -834,6 +863,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
      */
     public function sendPasswordChangeDenied(string $to, string $lang): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $subject  = $lang === 'fr'
             ? 'Sécurité — Demande de changement de mot de passe annulée'
             : 'Security — Password change request cancelled';
@@ -887,6 +917,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $lang,
         string $deviceToken = ''
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Sécurité — Nouvelle connexion depuis un appareil inconnu'
             : 'Security — New sign-in from an unrecognised device';
@@ -1222,7 +1253,7 @@ INNER;
         float $shippingDiscount = 0.0,
         ?array $pdfContext = null
     ): void {
-        $ownerEmail    = $_ENV['CONTACT_OWNER_EMAIL'];
+        $ownerEmail    = $_ENV['CONTACT_OWNER_EMAIL'] ?? '';
         $safeRef       = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeClient    = htmlspecialchars($clientName, ENT_QUOTES);
         $safeEmail     = htmlspecialchars($clientEmail, ENT_QUOTES);
@@ -2009,6 +2040,7 @@ INNER;
      */
     public function sendNewsletterConfirmation(string $to, string $confirmUrl, string $lang): void
     {
+        $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $subject = $lang === 'fr'
             ? 'Confirmez votre abonnement à la newsletter Crabitan Bellevue'
             : 'Confirm your Crabitan Bellevue newsletter subscription';
@@ -2184,6 +2216,7 @@ INNER;
      */
     public function sendNewsletterWelcome(string $to, string $name, string $lang): void
     {
+        $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $subject = $lang === 'fr'
             ? 'Bienvenue dans la newsletter Crabitan Bellevue'
             : 'Welcome to the Crabitan Bellevue newsletter';
@@ -2234,6 +2267,7 @@ INNER;
         string $newEmail,
         string $revokeUrl = ''
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $safeName     = htmlspecialchars($name, ENT_QUOTES);
         $safeUrl      = htmlspecialchars($confirmUrl, ENT_QUOTES);
         $safeNewEmail = htmlspecialchars($newEmail, ENT_QUOTES);
@@ -2312,6 +2346,7 @@ INNER;
      */
     public function sendEmailChangeNotification(string $to, string $lang): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         if ($lang === 'fr') {
             $subject  = 'Votre adresse email a été soumise sur Crabitan Bellevue';
             $title    = 'Information — changement d\'adresse email';
@@ -2439,6 +2474,7 @@ INNER;
 
     public function sendIpnSignatureAlert(string $to, string $date, string $ip): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $safeDate = htmlspecialchars($date, ENT_QUOTES);
         $safeIp   = htmlspecialchars($ip, ENT_QUOTES);
 
@@ -2484,6 +2520,7 @@ INNER;
         string $ip,
         ?string $targetName = null
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $safeIp   = htmlspecialchars($ip, ENT_QUOTES);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
         $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
@@ -2560,6 +2597,7 @@ INNER;
         string $userAgent,
         ?string $targetName = null
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $safeIp    = htmlspecialchars($ip, ENT_QUOTES);
         $safeUa    = htmlspecialchars(substr($userAgent, 0, 200), ENT_QUOTES);
         $safeName  = htmlspecialchars($name, ENT_QUOTES);
@@ -2621,6 +2659,7 @@ INNER;
      */
     public function sendAdminAccountBlocked(string $to, string $name, string $lang, string $blockerName): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
         $safeBlocker = htmlspecialchars($blockerName, ENT_QUOTES);
         $safeDate    = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
@@ -2657,6 +2696,7 @@ INNER;
      */
     public function sendAdminAccountUnblocked(string $to, string $name, string $lang, string $unblockerName): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $safeName      = htmlspecialchars($name, ENT_QUOTES);
         $safeUnblocker = htmlspecialchars($unblockerName, ENT_QUOTES);
         $safeDate      = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
@@ -3471,6 +3511,7 @@ HTML;
         string $loginUrl,
         string $resetUrl
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Tentative de création de compte — Château Crabitan Bellevue'
             : 'Account registration attempt — Château Crabitan Bellevue';
@@ -3502,6 +3543,7 @@ HTML;
      */
     public function sendAccountLocked(string $to, string $name, string $lang, string $resetUrl): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Alerte sécurité — Votre compte a été temporairement verrouillé'
             : 'Security alert — Your account has been temporarily locked';
@@ -3660,6 +3702,7 @@ HTML;
         string $reactivationToken,
         string $scheduledDeletionAt
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $reactUrl = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
@@ -3799,6 +3842,7 @@ HTML;
      */
     public function sendLowStockAlert(string $to, string $name, string $subject, string $body): void
     {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $this->send($to, $name, $subject, $body);
     }
 }

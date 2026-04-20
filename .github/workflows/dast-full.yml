@@ -79,9 +79,9 @@ jobs:
           JWT_EXPIRY=3600
           MAIL_HOST=localhost
           MAIL_PORT=1025
-          MAIL_USER=noreply@crabitanbellevue.fr
-          MAIL_PASS=unused
           MAIL_FROM_NAME="Crabitan Bellevue"
+          MAIL_NOREPLY_USER=noreply@crabitanbellevue.fr
+          MAIL_NOREPLY_PASS=unused
           MFA_EMAIL_ENABLED=false
           CONTACT_OWNER_EMAIL=owner@crabitanbellevue.fr
           DPO_EMAIL=dpo@crabitanbellevue.fr
@@ -142,14 +142,17 @@ jobs:
           fi
 
       # ── ZAP Full Scan — rôle customer ─────────────────────────────────────────
+      # -c .zap/rules.tsv placé EN TÊTE de cmd_options (avant tout -config) :
+      # getopt(non-GNU) s'arrête au 1er arg non-option → -config serait parsé en
+      # "-c onfig" si rules_file_name (action) place -c avant cmd_options.
       - name: ZAP Full Scan — customer (mon-compte, panier, checkout)
         continue-on-error: true
         uses: zaproxy/action-full-scan@v0.11.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
           target: 'http://${{ steps.host-ip.outputs.ip }}:8080'
-          rules_file_name: '.zap/rules.tsv'
           fail_action: false
           cmd_options: >-
+            -c .zap/rules.tsv
             -config network.connection.timeoutInSecs=20
             -config "replacer.full_list(0).description=auth-customer"
             -config "replacer.full_list(0).enabled=true"
@@ -202,9 +205,9 @@ jobs:
         uses: zaproxy/action-full-scan@v0.11.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
           target: 'http://${{ steps.host-ip.outputs.ip }}:8080/admin'
-          rules_file_name: '.zap/rules.tsv'
           fail_action: false
           cmd_options: >-
+            -c .zap/rules.tsv
             -config network.connection.timeoutInSecs=20
             -config "replacer.full_list(0).description=auth-admin"
             -config "replacer.full_list(0).enabled=true"
