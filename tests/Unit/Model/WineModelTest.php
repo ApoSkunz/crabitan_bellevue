@@ -941,7 +941,7 @@ class WineModelTest extends TestCase
     // getAllSlugs
     // ----------------------------------------------------------------
 
-    public function testGetAllSlugsReturnsAvailableSlugs(): void
+    public function testGetAllSlugsReturnsAllSlugs(): void
     {
         $rows = [
             ['slug' => 'bordeaux-rouge-2020'],
@@ -952,7 +952,10 @@ class WineModelTest extends TestCase
             ->expects($this->once())
             ->method('fetchAll')
             ->with(
-                $this->stringContains('WHERE available = 1'),
+                $this->logicalAnd(
+                    $this->stringContains('SELECT slug FROM'),
+                    $this->logicalNot($this->stringContains('available'))
+                ),
                 $this->equalTo([])
             )
             ->willReturn($rows);

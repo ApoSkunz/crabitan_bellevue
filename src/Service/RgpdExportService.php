@@ -174,7 +174,7 @@ class RgpdExportService
     {
         $json = (string) json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
-        if (class_exists('ZipArchive')) {
+        if ($this->isZipAvailable()) {
             $tmpZip = (string) tempnam(sys_get_temp_dir(), 'cbv_rgpd_');
             $zip    = new \ZipArchive();
             $zip->open($tmpZip, \ZipArchive::OVERWRITE);
@@ -202,7 +202,7 @@ class RgpdExportService
     {
         $json = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '{}';
 
-        if (class_exists('ZipArchive')) {
+        if ($this->isZipAvailable()) {
             $pdf    = $this->buildExportPdf($export, $date);
             $tmpZip = (string) tempnam(sys_get_temp_dir(), 'cbv_export_');
             $zip    = new \ZipArchive();
@@ -217,6 +217,17 @@ class RgpdExportService
         }
 
         return [$json, false];
+    }
+
+    /**
+     * Indique si l'extension ZipArchive est disponible.
+     * Méthode protégée pour permettre l'override en test.
+     *
+     * @return bool
+     */
+    protected function isZipAvailable(): bool
+    {
+        return class_exists('ZipArchive');
     }
 
     /**
