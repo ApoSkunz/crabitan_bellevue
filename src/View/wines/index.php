@@ -128,10 +128,21 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                                 aria-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                             >
                                 <div class="wine-card__image-wrap">
+                                    <?php
+                                    $wBase   = '/assets/images/wines/';
+                                    $wFile   = $wine['image_path'];
+                                    $wNoExt  = (string) preg_replace('/\.[^.]+$/', '', $wFile);
+                                    $wExt    = pathinfo($wFile, PATHINFO_EXTENSION);
+                                    ?>
                                     <picture>
-                                        <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
+                                        <source
+                                            srcset="<?= $wBase . rawurlencode($wNoExt . '-400w.webp') ?> 400w, <?= $wBase . rawurlencode($wNoExt . '-800w.webp') ?> 800w"
+                                            sizes="(max-width: 640px) 400px, 300px"
+                                            type="image/webp">
                                         <img
-                                            src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
+                                            src="<?= $wBase . rawurlencode($wFile) ?>"
+                                            srcset="<?= $wBase . rawurlencode($wNoExt . '-400w.' . $wExt) ?> 400w, <?= $wBase . rawurlencode($wNoExt . '-800w.' . $wExt) ?> 800w"
+                                            sizes="(max-width: 640px) 400px, 300px"
                                             alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                                             class="wine-card__image"
                                             <?= $wineIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>

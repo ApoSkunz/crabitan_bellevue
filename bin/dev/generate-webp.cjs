@@ -31,6 +31,12 @@ const JOBS = [
         widths: [600, 1200],
         quality: { webp: 82, jpg: 85, png: 9 },
     },
+    {
+        dir:    path.join(ROOT, 'wines'),
+        exts:   ['.png', '.jpg', '.jpeg'],
+        widths: [400, 800],
+        quality: { webp: 82, jpg: 85, png: 9 },
+    },
 ];
 
 async function processFile(filePath, widths, quality) {

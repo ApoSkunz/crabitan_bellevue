@@ -81,10 +81,21 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
             <!-- Colonne image -->
             <div class="wine-detail__visual">
                 <div class="wine-detail__image-wrap">
+                    <?php
+                    $wBase  = '/assets/images/wines/';
+                    $wFile  = $wine['image_path'];
+                    $wNoExt = (string) preg_replace('/\.[^.]+$/', '', $wFile);
+                    $wExt   = pathinfo($wFile, PATHINFO_EXTENSION);
+                    ?>
                     <picture>
-                        <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
+                        <source
+                            srcset="<?= $wBase . rawurlencode($wNoExt . '-400w.webp') ?> 400w, <?= $wBase . rawurlencode($wNoExt . '-800w.webp') ?> 800w"
+                            sizes="(max-width: 640px) 400px, 800px"
+                            type="image/webp">
                         <img
-                            src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
+                            src="<?= $wBase . rawurlencode($wFile) ?>"
+                            srcset="<?= $wBase . rawurlencode($wNoExt . '-400w.' . $wExt) ?> 400w, <?= $wBase . rawurlencode($wNoExt . '-800w.' . $wExt) ?> 800w"
+                            sizes="(max-width: 640px) 400px, 800px"
                             alt="<?= htmlspecialchars($wineName) ?>"
                             class="wine-detail__image js-wine-zoom"
                             width="400"
@@ -384,10 +395,20 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                        class="wine-card__inner"
                        aria-label="<?= $swName ?>">
                         <div class="wine-card__image-wrap">
-                            <?php $swWebp = rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', (string) ($sw['image_path'] ?? ''))); ?>
+                            <?php
+                            $swFile  = (string) ($sw['image_path'] ?? '');
+                            $swNoExt = (string) preg_replace('/\.[^.]+$/', '', $swFile);
+                            $swExt   = pathinfo($swFile, PATHINFO_EXTENSION);
+                            $swBase  = '/assets/images/wines/';
+                            ?>
                             <picture>
-                                <source srcset="/assets/images/wines/<?= $swWebp ?>" type="image/webp">
-                                <img src="/assets/images/wines/<?= $swImage ?>"
+                                <source
+                                    srcset="<?= $swBase . rawurlencode($swNoExt . '-400w.webp') ?> 400w"
+                                    sizes="200px"
+                                    type="image/webp">
+                                <img src="<?= $swBase . rawurlencode($swFile) ?>"
+                                     srcset="<?= $swBase . rawurlencode($swNoExt . '-400w.' . $swExt) ?> 400w"
+                                     sizes="200px"
                                      alt="<?= $swName ?>"
                                      class="wine-card__image"
                                      width="200" height="280"

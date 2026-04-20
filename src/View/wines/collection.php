@@ -158,8 +158,15 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                 </h2>
                 <div class="home-section__divider"></div>
 
+                <?php $lazyThreshold = 8; ?>
                 <div class="wines-grid wines-grid--collection">
                     <?php foreach ($groupWines as $wineIdx => $wine) :
+                        if ($wineIdx === $lazyThreshold) : ?>
+                        </div><!-- end eager grid -->
+                        <template class="js-lazy-cards">
+                        <div class="wines-grid wines-grid--collection wines-grid--lazy">
+                    <?php endif; ?>
+                    <?php
                         $comment     = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
                         $description = $comment[$navLang] ?? ($comment['fr'] ?? '');
                         $awardData   = ['fr' => $wine['award_fr'] ?? '', 'en' => $wine['award_en'] ?? ''];
@@ -172,10 +179,21 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                 aria-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                             >
                                 <div class="wine-card__image-wrap">
+                                    <?php
+                                    $wBase  = '/assets/images/wines/';
+                                    $wFile  = $wine['image_path'];
+                                    $wNoExt = (string) preg_replace('/\.[^.]+$/', '', $wFile);
+                                    $wExt   = pathinfo($wFile, PATHINFO_EXTENSION);
+                                    ?>
                                     <picture>
-                                        <source srcset="/assets/images/wines/<?= rawurlencode((string) preg_replace('/\.[^.]+$/', '.webp', $wine['image_path'])) ?>" type="image/webp">
+                                        <source
+                                            srcset="<?= $wBase . rawurlencode($wNoExt . '-400w.webp') ?> 400w, <?= $wBase . rawurlencode($wNoExt . '-800w.webp') ?> 800w"
+                                            sizes="(max-width: 640px) 400px, 300px"
+                                            type="image/webp">
                                         <img
-                                            src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
+                                            src="<?= $wBase . rawurlencode($wFile) ?>"
+                                            srcset="<?= $wBase . rawurlencode($wNoExt . '-400w.' . $wExt) ?> 400w, <?= $wBase . rawurlencode($wNoExt . '-800w.' . $wExt) ?> 800w"
+                                            sizes="(max-width: 640px) 400px, 300px"
                                             alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                                             class="wine-card__image"
                                             <?= $wineIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
@@ -268,7 +286,13 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                             </div>
                         </article>
                     <?php endforeach; ?>
-                </div>
+                <?php if (count($groupWines) > $lazyThreshold) : ?>
+                        </div><!-- end lazy grid -->
+                        </template>
+                        <div class="js-lazy-sentinel" aria-hidden="true"></div>
+                <?php else : ?>
+                </div><!-- end eager grid (all cards) -->
+                <?php endif; ?>
             </div>
         </section>
     <?php endforeach; ?>

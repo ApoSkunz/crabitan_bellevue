@@ -479,10 +479,20 @@ $toWebp = static fn(string $p): string => (string) preg_replace('/\.[^.]+$/', '.
                    class="wine-card__inner"
                    aria-label="<?= $cwName ?>">
                     <div class="wine-card__image-wrap">
-                        <?php $cwWebp = rawurlencode($toWebp((string) ($cw['image_path'] ?? ''))); ?>
+                        <?php
+                        $cwFile  = (string) ($cw['image_path'] ?? '');
+                        $cwNoExt = (string) preg_replace('/\.[^.]+$/', '', $cwFile);
+                        $cwExt2  = pathinfo($cwFile, PATHINFO_EXTENSION);
+                        $cwBase  = '/assets/images/wines/';
+                        ?>
                         <picture>
-                            <source srcset="/assets/images/wines/<?= $cwWebp ?>" type="image/webp">
-                            <img src="/assets/images/wines/<?= $cwImage ?>"
+                            <source
+                                srcset="<?= $cwBase . rawurlencode($cwNoExt . '-400w.webp') ?> 400w"
+                                sizes="200px"
+                                type="image/webp">
+                            <img src="<?= $cwBase . rawurlencode($cwFile) ?>"
+                                 srcset="<?= $cwBase . rawurlencode($cwNoExt . '-400w.' . $cwExt2) ?> 400w"
+                                 sizes="200px"
                                  alt="<?= $cwName ?>"
                                  class="wine-card__image"
                                  width="200" height="280"
