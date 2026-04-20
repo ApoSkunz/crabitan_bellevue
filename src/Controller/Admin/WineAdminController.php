@@ -104,11 +104,7 @@ class WineAdminController extends AdminController
         $vintage    = ($vintageReq !== null && ctype_digit($vintageReq)) ? (int) $vintageReq : null;
         $labelName  = $this->request->get('label_name') ?: null;
         $cuveeReq   = $this->request->get('cuvee');
-        $cuvee      = match ($cuveeReq) {
-            '1'     => true,
-            '0'     => false,
-            default => null,
-        };
+        $cuvee      = $this->resolveCuveeFilter($cuveeReq);
 
         $total      = $this->wines->countForAdmin($color, $available, $vintage, $labelName, $cuvee);
         $wines      = $this->wines->getForAdmin($color, $available, $perPage, ($page - 1) * $perPage, $vintage, $labelName, $cuvee);
@@ -735,6 +731,21 @@ class WineAdminController extends AdminController
 
         return ['nutrition' => 'Déclaration incomplète — si un champ nutritionnel est renseigné, '
             . 'les 8 champs (énergie, lipides, glucides, protéines, sel) doivent tous être complétés.'];
+    }
+
+    /**
+     * Convertit le paramètre GET "cuvee" en booléen ou null.
+     *
+     * @param mixed $req Valeur brute du paramètre
+     * @return bool|null
+     */
+    private function resolveCuveeFilter(mixed $req): ?bool
+    {
+        return match ($req) {
+            '1'     => true,
+            '0'     => false,
+            default => null,
+        };
     }
 
     private function generateSlug(string $name, int $vintage): string

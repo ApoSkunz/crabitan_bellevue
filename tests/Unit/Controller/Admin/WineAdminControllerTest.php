@@ -134,6 +134,33 @@ class WineAdminControllerTest extends TestCase
         $this->assertSame('', $data['ingredients']);
     }
 
+    // ----------------------------------------------------------------
+    // resolveCuveeFilter
+    // ----------------------------------------------------------------
+
+    public function testResolveCuveeFilterReturnsTrue(): void
+    {
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod($ctrl, 'resolveCuveeFilter');
+        $this->assertTrue($method->invoke($ctrl, '1'));
+    }
+
+    public function testResolveCuveeFilterReturnsFalse(): void
+    {
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod($ctrl, 'resolveCuveeFilter');
+        $this->assertFalse($method->invoke($ctrl, '0'));
+    }
+
+    public function testResolveCuveeFilterReturnsNullForOther(): void
+    {
+        $ctrl   = $this->makeController();
+        $method = new \ReflectionMethod($ctrl, 'resolveCuveeFilter');
+        $this->assertNull($method->invoke($ctrl, null));
+        $this->assertNull($method->invoke($ctrl, ''));
+        $this->assertNull($method->invoke($ctrl, 'yes'));
+    }
+
     /**
      * parseNutritionPost() avec seulement ingredients_fr encode le JSON et déclenche auto-translate.
      * Le TranslationService sans clé retourne le texte FR en fallback.

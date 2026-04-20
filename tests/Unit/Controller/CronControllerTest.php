@@ -77,4 +77,87 @@ class CronControllerTest extends TestCase
     {
         $this->assertNull($this->getJob->invoke($this->controller, ''));
     }
+
+    // ----------------------------------------------------------------
+    // applyTrackingLinks
+    // ----------------------------------------------------------------
+
+    public function testApplyTrackingLinksEmptyMapReturnsOriginal(): void
+    {
+        $method = new \ReflectionMethod(CronController::class, 'applyTrackingLinks');
+        $result = $method->invoke($this->controller, 'Hello world', [], 'http://example.com', 1, 'tok');
+        $this->assertSame('Hello world', $result);
+    }
+
+    public function testApplyTrackingLinksReplacesUrlWithTracking(): void
+    {
+        $method  = new \ReflectionMethod(CronController::class, 'applyTrackingLinks');
+        $linkMap = ['http://example.com/wine' => 42];
+        $result  = $method->invoke($this->controller, 'http://example.com/wine', $linkMap, 'http://app.local', 7, 'unsub123');
+        $this->assertStringContainsString('/track/click/7/42/', $result);
+        $this->assertStringContainsString('unsub123', $result);
+    }
+
+    public function testApplyTrackingLinksWithoutUnsubNoTokenInUrl(): void
+    {
+        $method  = new \ReflectionMethod(CronController::class, 'applyTrackingLinks');
+        $linkMap = ['http://example.com/wine' => 5];
+        $result  = $method->invoke($this->controller, 'http://example.com/wine', $linkMap, 'http://app.local', 3, '');
+        $this->assertStringContainsString('/track/click/3/5', $result);
+        $this->assertStringNotContainsString('/track/click/3/5/', $result);
+    }
+
+    // ----------------------------------------------------------------
+    // processNewsletterQueueItem — dry-run branches
+    // ----------------------------------------------------------------
+
+    public function testProcessNewsletterQueueItemDryRunWineType(): void
+    {
+        $method = new \ReflectionMethod(CronController::class, 'processNewsletterQueueItem');
+
+        $logged  = [];
+        $log     = static function (string $msg) use (&$logged): void {
+            $logged[] = $msg;
+        };
+        $context = ['sent' => 0, 'failed' => 0, 'campaignCache' => [], 'linkMapCache' => []];
+        $item    = [
+            'id'              => 1,
+            'wine_id'         => 3,
+            'newsletter_id'   => 10,
+            'recipient_email' => 'test@example.com',
+        ];
+
+        $args   = [[], $log, $item, true, 'http://app.local', 0];
+        $args[] = &$context;
+        $method->invokeArgs($this->controller, $args);
+
+        $this->assertStringContainsString('[DRY-RUN]', $logged[0]);
+        $this->assertStringContainsString('wine#3', $logged[0]);
+        $this->assertSame(0, $context['sent']);
+    }
+
+    public function testProcessNewsletterQueueItemDryRunAdminType(): void
+    {
+        $method = new \ReflectionMethod(CronController::class, 'processNewsletterQueueItem');
+
+        $logged  = [];
+        $log     = static function (string $msg) use (&$logged): void {
+            $logged[] = $msg;
+        };
+        $context = ['sent' => 0, 'failed' => 0, 'campaignCache' => [], 'linkMapCache' => []];
+        $item    = [
+            'id'              => 2,
+            'wine_id'         => null,
+            'newsletter_id'   => 5,
+            'recipient_email' => 'admin@example.com',
+        ];
+
+        $args   = [[], $log, $item, true, 'http://app.local', 0];
+        $args[] = &$context;
+        $method->invokeArgs($this->controller, $args);
+
+        $this->assertStringContainsString('[DRY-RUN]', $logged[0]);
+        $this->assertStringContainsString('admin-nl#5', $logged[0]);
+        $this->assertSame(0, $context['sent']);
+    }
 }

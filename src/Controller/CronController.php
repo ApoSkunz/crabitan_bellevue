@@ -661,10 +661,12 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
 
         $log("Batch newsletter : {$total} destinataire(s) à traiter");
 
-        $sent          = 0;
-        $failed        = 0;
-        $campaignCache = [];
-        $linkMapCache  = [];
+        $context = [
+            'sent'         => 0,
+            'failed'       => 0,
+            'campaignCache' => [],
+            'linkMapCache'  => [],
+        ];
 
         foreach ($pending as $item) {
             $this->processNewsletterQueueItem(
@@ -673,16 +675,13 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                 $item,
                 $dryRun,
                 $appUrl,
-                $campaignCache,
-                $linkMapCache,
-                $sent,
-                $failed,
-                $delayMs
+                $delayMs,
+                $context
             );
         }
 
         if (!$dryRun) {
-            $log("Résultat : {$sent} envoyé(s), {$failed} échec(s)");
+            $log("Résultat : {$context['sent']} envoyé(s), {$context['failed']} échec(s)");
             $remaining = $services['queue']->countPending();
             if ($remaining > 0) {
                 $log("Restants en file : {$remaining}");
@@ -693,16 +692,13 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     /**
      * Traite un élément de la file d'attente newsletter (vin ou admin).
      *
-     * @param array<string,mixed>   $services      Instances des modèles et services
+     * @param array<string,mixed>   $services Instances des modèles et services
      * @param callable(string):void $log
-     * @param array<string,mixed>   $item          Ligne de la queue
+     * @param array<string,mixed>   $item     Ligne de la queue
      * @param bool                  $dryRun
      * @param string                $appUrl
-     * @param array<int,mixed>      $campaignCache Cache des campagnes admin (passé par référence)
-     * @param array<int,mixed>      $linkMapCache  Cache des link maps (passé par référence)
-     * @param int                   $sent          Compteur envois réussis (passé par référence)
-     * @param int                   $failed        Compteur échecs (passé par référence)
-     * @param int                   $delayMs       Délai inter-envoi en ms
+     * @param int                   $delayMs  Délai inter-envoi en ms
+     * @param array<string,mixed>   $context  sent, failed, campaignCache, linkMapCache (passé par référence)
      * @return void
      */
     private function processNewsletterQueueItem(
@@ -711,11 +707,8 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
         array $item,
         bool $dryRun,
         string $appUrl,
-        array &$campaignCache,
-        array &$linkMapCache,
-        int &$sent,
-        int &$failed,
-        int $delayMs
+        int $delayMs,
+        array &$context
     ): void {
         $id     = (int) $item['id'];
         $wineId = $item['wine_id'] !== null ? (int) $item['wine_id'] : null;
@@ -730,9 +723,9 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
         if ($wineId !== null) {
             $ok = $this->sendWineQueueItem($services, $log, $item, $appUrl);
         } else {
-            $ok = $this->sendAdminQueueItem($services, $log, $campaignCache, $linkMapCache, $item, $appUrl);
+            $ok = $this->sendAdminQueueItem($services, $log, $context['campaignCache'], $context['linkMapCache'], $item, $appUrl);
         }
-        $ok ? $sent++ : $failed++;
+        $ok ? $context['sent']++ : $context['failed']++;
 
         if ($delayMs > 0) {
             usleep($delayMs * 1000);
