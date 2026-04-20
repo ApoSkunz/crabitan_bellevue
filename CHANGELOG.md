@@ -2,6 +2,18 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.13.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.12.0...v1.13.0) (2026-04-20)
+
+
+### Bug Fixes
+
+* **test:** adapter AccountModelInactivityTest à last_login_at ([654381f](https://github.com/ApoSkunz/crabitan_bellevue/commit/654381fa9b546622ce6d0af928f03acd299b86ca))
+
+
+### Features
+
+* **auth:** mettre à jour last_login_at à chaque connexion réussie ([1a32ac9](https://github.com/ApoSkunz/crabitan_bellevue/commit/1a32ac95c7e7edd647f2f6ba9060fb666ddf63b1))
+
 # [1.12.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.11.0...v1.12.0) (2026-04-20)
 
 
