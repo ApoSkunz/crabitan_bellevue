@@ -14,7 +14,6 @@
   },
   "overrides": {
     "tmp": "^0.2.4",
-    "brace-expansion": "^2.0.3",
     "picomatch": "^4.0.4"
   },
   "devDependencies": {

@@ -9,9 +9,10 @@ use Core\Response;
 
 class AgeGateController extends Controller
 {
-    private const COOKIE_NAME     = 'age_verified';
-    private const COOKIE_REMEMBER = 'age_remember';
-    private const COOKIE_TTL      = 397 * 24 * 3600; // 13 mois — durée max CNIL/RGPD
+    private const COOKIE_NAME        = 'age_verified';
+    private const COOKIE_REMEMBER    = 'age_remember';
+    private const COOKIE_TTL         = 397 * 24 * 3600; // 13 mois (remember me)
+    private const COOKIE_TTL_DEFAULT = 24 * 3600;        // 24h sans remember me
 
     /**
      * Affiche la page de contrôle d'âge (age gate).
@@ -74,7 +75,7 @@ class AgeGateController extends Controller
         ];
 
         setcookie(self::COOKIE_NAME, '1', array_merge($cookieBase, [
-            'expires' => $remember ? time() + self::COOKIE_TTL : 0,
+            'expires' => time() + ($remember ? self::COOKIE_TTL : self::COOKIE_TTL_DEFAULT),
         ]));
 
         // Cookie marqueur "remember" pour le sliding refresh en navigation

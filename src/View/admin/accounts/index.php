@@ -6,7 +6,7 @@ $roleLabels = ['customer' => 'Client', 'admin' => 'Admin', 'super_admin' => 'Sup
 $isSuperAdmin = $currentRole === 'super_admin';
 
 if (!function_exists('accountUrl')) {
-function accountUrl(int $p, ?string $role, ?string $type, string $search, int $perPage): string
+function accountUrl(int $p, ?string $role, ?string $type, string $search, int $perPage, ?string $sort = null): string
 {
     $q = ['page' => $p];
     if ($role) {
@@ -20,6 +20,9 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
     }
     if ($perPage !== 10) {
         $q['per_page'] = $perPage;
+    }
+    if ($sort !== null) {
+        $q['sort'] = $sort;
     }
     return '/admin/comptes?' . http_build_query($q);
 }
@@ -57,6 +60,13 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
     <input type="text" name="search" class="admin-filters__input"
            placeholder="Email, nom, prénom…"
            value="<?= htmlspecialchars($search) ?>">
+
+    <select name="sort" class="admin-filters__select" aria-label="Trier par">
+        <option value="created_at_desc" <?= ($sort ?? null) === 'created_at_desc' || ($sort ?? null) === null ? 'selected' : '' ?>>Inscription — décroissant</option>
+        <option value="created_at_asc"  <?= ($sort ?? null) === 'created_at_asc'  ? 'selected' : '' ?>>Inscription — croissant</option>
+        <option value="last_connection_desc" <?= ($sort ?? null) === 'last_connection_desc' ? 'selected' : '' ?>>Connexion — décroissant</option>
+        <option value="last_connection_asc"  <?= ($sort ?? null) === 'last_connection_asc'  ? 'selected' : '' ?>>Connexion — croissant</option>
+    </select>
 
     <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
         <?php foreach ([10, 25, 50] as $n) : ?>
@@ -176,13 +186,13 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
 
     <?php if ($totalPages > 1) : ?>
         <div class="admin-pagination">
-            <a href="<?= htmlspecialchars(accountUrl(max(1, $page - 1), $role, $type ?? null, $search, $perPage)) ?>"
+            <a href="<?= htmlspecialchars(accountUrl(max(1, $page - 1), $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
                class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>">‹</a>
             <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
-                <a href="<?= htmlspecialchars(accountUrl($i, $role, $type ?? null, $search, $perPage)) ?>"
+                <a href="<?= htmlspecialchars(accountUrl($i, $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
                    class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"><?= $i ?></a>
             <?php endfor; ?>
-            <a href="<?= htmlspecialchars(accountUrl(min($totalPages, $page + 1), $role, $type ?? null, $search, $perPage)) ?>"
+            <a href="<?= htmlspecialchars(accountUrl(min($totalPages, $page + 1), $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
                class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>">›</a>
         </div>
     <?php endif; ?>

@@ -175,7 +175,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
 
         // Appareil connu ou de confiance : émission du JWT et connexion immédiate.
         $rememberMe   = $this->request->post('remember_me', '') === '1';
-        $jwtExpiry    = $rememberMe ? (30 * 24 * 3600) : (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+        $jwtExpiry    = $rememberMe ? (30 * 24 * 3600) : (int) ($_ENV['JWT_EXPIRY'] ?? 7200);
         $cookieExpiry = $rememberMe ? $jwtExpiry : 86400;
         $token        = Jwt::generate((int) $account['id'], $account['role'], $jwtExpiry);
 

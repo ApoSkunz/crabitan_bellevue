@@ -82,7 +82,7 @@ class MfaController extends Controller
             $this->json(['status' => 'expired']);
         }
 
-        $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+        $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 7200);
         $jwt    = Jwt::generate($userId, $account['role']);
 
         CookieHelper::set($jwt, $expiry);

@@ -91,6 +91,7 @@ jobs:
           MAIL_FROM_NAME="Crabitan Bellevue"
           CA_API_URL=
           CA_API_KEY=
+          DB_ENCRYPT_KEY=ci-lighthouse-encrypt-key
           EOF
 
       - name: Build assets

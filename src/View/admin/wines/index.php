@@ -5,7 +5,7 @@ $totalPages  = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
 $colorLabels = ['red' => 'Rouge', 'white' => 'Blanc', 'rosé' => 'Rosé', 'sweet' => 'Liquoreux'];
 
 if (!function_exists('wineListUrl')) {
-function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): string
+function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?string $vintage = null, ?string $labelName = null, ?string $cuvee = null): string
 {
     $q = ['page' => $page];
     if ($color) {
@@ -16,6 +16,15 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
     }
     if ($perPage !== 10) {
         $q['per_page'] = $perPage;
+    }
+    if ($vintage !== null && $vintage !== '') {
+        $q['vintage'] = $vintage;
+    }
+    if ($labelName !== null && $labelName !== '') {
+        $q['label_name'] = $labelName;
+    }
+    if ($cuvee !== null && $cuvee !== '') {
+        $q['cuvee'] = $cuvee;
     }
     return '/admin/vins?' . http_build_query($q);
 }
@@ -51,6 +60,30 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
         <option value="out"       <?= $available === 'out' ? 'selected' : '' ?>>Indisponible</option>
     </select>
 
+    <select name="vintage" class="admin-filters__select" aria-label="Filtrer par millésime">
+        <option value="">Tous les millésimes</option>
+        <?php foreach ($vintages ?? [] as $v) : ?>
+            <option value="<?= (int) $v ?>" <?= ($vintage ?? '') === (string)(int) $v ? 'selected' : '' ?>>
+                <?= (int) $v ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+
+    <select name="label_name" class="admin-filters__select" aria-label="Filtrer par appellation">
+        <option value="">Toutes les appellations</option>
+        <?php foreach ($labelNames ?? [] as $ln) : ?>
+            <option value="<?= htmlspecialchars($ln) ?>" <?= ($labelName ?? '') === $ln ? 'selected' : '' ?>>
+                <?= htmlspecialchars($ln) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+
+    <select name="cuvee" class="admin-filters__select" aria-label="Filtrer cuvée spéciale">
+        <option value="">Toutes les cuvées</option>
+        <option value="1" <?= ($cuvee ?? '') === '1' ? 'selected' : '' ?>>Cuvée spéciale</option>
+        <option value="0" <?= ($cuvee ?? '') === '0' ? 'selected' : '' ?>>Standard</option>
+    </select>
+
     <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
         <?php foreach ([10, 25, 50] as $n) : ?>
             <option value="<?= $n ?>" <?= (int)$perPage === $n ? 'selected' : '' ?>><?= $n ?> / page</option>
@@ -58,7 +91,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
     </select>
 
     <button type="submit" class="admin-filters__btn js-noscript-only">Filtrer</button>
-    <?php if ($color || $available || $perPage !== 10) : ?>
+    <?php if ($color || $available || ($vintage ?? '') !== '' || ($labelName ?? '') !== '' || ($cuvee ?? '') !== '' || $perPage !== 10) : ?>
         <a href="/admin/vins" class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
     <?php endif; ?>
 </form>
@@ -158,13 +191,13 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage): s
 
     <?php if ($totalPages > 1) : ?>
         <div class="admin-pagination">
-            <a href="<?= htmlspecialchars(wineListUrl(max(1, $page - 1), $color, $available, $perPage)) ?>"
+            <a href="<?= htmlspecialchars(wineListUrl(max(1, $page - 1), $color, $available, $perPage, $vintage ?? null, $labelName ?? null, $cuvee ?? null)) ?>"
                class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>">‹</a>
             <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
-                <a href="<?= htmlspecialchars(wineListUrl($i, $color, $available, $perPage)) ?>"
+                <a href="<?= htmlspecialchars(wineListUrl($i, $color, $available, $perPage, $vintage ?? null, $labelName ?? null, $cuvee ?? null)) ?>"
                    class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"><?= $i ?></a>
             <?php endfor; ?>
-            <a href="<?= htmlspecialchars(wineListUrl(min($totalPages, $page + 1), $color, $available, $perPage)) ?>"
+            <a href="<?= htmlspecialchars(wineListUrl(min($totalPages, $page + 1), $color, $available, $perPage, $vintage ?? null, $labelName ?? null, $cuvee ?? null)) ?>"
                class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>">›</a>
         </div>
     <?php endif; ?>

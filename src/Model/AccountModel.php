@@ -1122,13 +1122,21 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     // ----------------------------------------------------------------
 
     /**
+     * @param string|null $sort Clé de tri : created_at_desc|created_at_asc|last_connection_desc|last_connection_asc
      * @return array<int, array<string, mixed>>
      */
-    public function getForAdmin(int $limit, int $offset, ?string $role, ?string $search, ?string $type = null): array
+    public function getForAdmin(int $limit, int $offset, ?string $role, ?string $search, ?string $type = null, ?string $sort = null): array
     {
         [$where, $params] = $this->buildAdminFilters($role, $search, $type);
         $params[] = $limit;
         $params[] = $offset;
+
+        $orderBy = match ($sort) {
+            'created_at_asc'         => 'a.created_at ASC',
+            'last_connection_desc'   => 'lc.last_connection DESC',
+            'last_connection_asc'    => 'lc.last_connection ASC',
+            default                  => 'a.created_at DESC',
+        };
 
         return $this->db->fetchAll(
             "SELECT a.id, a.email, a.account_type, a.role, a.lang, a.newsletter,
@@ -1146,7 +1154,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
                  GROUP BY user_id
              ) lc ON lc.user_id = a.id
              {$where}
-             ORDER BY a.created_at DESC
+             ORDER BY {$orderBy}
              LIMIT ? OFFSET ?",
             $params
         );

@@ -522,39 +522,76 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
      *
      * @return array<int, array<string, mixed>>
      */
-    public function getForAdmin(?string $color, ?string $available, int $limit, int $offset): array
-    {
-        $where  = [];
-        $params = [];
-
-        $validColors = ['red', 'white', 'rosé', 'sweet'];
-        if ($color !== null && in_array($color, $validColors, true)) {
-            $where[]  = self::COND_COLOR;
-            $params[] = $color;
-        }
-
-        if ($available === 'available') {
-            $where[] = self::COND_AVAILABLE;
-        } elseif ($available === 'out') {
-            $where[] = self::COND_OUT;
-        }
-
-        $whereClause = $this->buildWhereClause($where);
-        $params[]    = $limit;
-        $params[]    = $offset;
+    public function getForAdmin(
+        ?string $color,
+        ?string $available,
+        int $limit,
+        int $offset,
+        ?int $vintage = null,
+        ?string $labelName = null,
+        ?bool $cuvee = null
+    ): array {
+        [$where, $params] = $this->buildAdminWineFilters($color, $available, $vintage, $labelName, $cuvee);
+        $params[] = $limit;
+        $params[] = $offset;
 
         return $this->db->fetchAll(
             "SELECT id, label_name, wine_color, format, vintage, price,
                     production_quantity, stock_quantity, available, image_path, slug, is_cuvee_speciale, featured
              FROM {$this->table}
-             {$whereClause}
+             {$this->buildWhereClause($where)}
              ORDER BY available DESC, featured DESC, id DESC
              LIMIT ? OFFSET ?",
             $params
         );
     }
 
-    public function countForAdmin(?string $color, ?string $available = null): int
+    public function countForAdmin(
+        ?string $color,
+        ?string $available = null,
+        ?int $vintage = null,
+        ?string $labelName = null,
+        ?bool $cuvee = null
+    ): int {
+        [$where, $params] = $this->buildAdminWineFilters($color, $available, $vintage, $labelName, $cuvee);
+
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS total FROM {$this->table} {$this->buildWhereClause($where)}",
+            $params
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /**
+     * Retourne les millésimes distincts (ordre décroissant) pour les filtres admin.
+     *
+     * @return int[]
+     */
+    public function getAdminVintages(): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT DISTINCT vintage FROM {$this->table} ORDER BY vintage DESC"
+        );
+        return array_map(static fn(array $r) => (int) $r['vintage'], $rows);
+    }
+
+    /**
+     * Retourne les appellations distinctes (ordre alphabétique) pour les filtres admin.
+     *
+     * @return string[]
+     */
+    public function getAdminLabelNames(): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT DISTINCT label_name FROM {$this->table} ORDER BY label_name ASC"
+        );
+        return array_map(static fn(array $r) => (string) $r['label_name'], $rows);
+    }
+
+    /**
+     * @return array{0: string[], 1: mixed[]}
+     */
+    private function buildAdminWineFilters(?string $color, ?string $available, ?int $vintage, ?string $labelName, ?bool $cuvee): array
     {
         $where  = [];
         $params = [];
@@ -571,13 +608,22 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
             $where[] = self::COND_OUT;
         }
 
-        $whereClause = $this->buildWhereClause($where);
+        if ($vintage !== null && $vintage > 1900 && $vintage <= (int) date('Y')) {
+            $where[]  = 'vintage = ?';
+            $params[] = $vintage;
+        }
 
-        $row = $this->db->fetchOne(
-            "SELECT COUNT(*) AS total FROM {$this->table} {$whereClause}",
-            $params
-        );
-        return (int) ($row['total'] ?? 0);
+        if ($labelName !== null && $labelName !== '') {
+            $where[]  = 'label_name LIKE ?';
+            $params[] = '%' . $labelName . '%';
+        }
+
+        if ($cuvee !== null) {
+            $where[]  = 'is_cuvee_speciale = ?';
+            $params[] = $cuvee ? 1 : 0;
+        }
+
+        return [$where, $params];
     }
 
     /**
