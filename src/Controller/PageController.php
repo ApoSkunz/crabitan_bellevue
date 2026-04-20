@@ -391,7 +391,7 @@ class PageController extends Controller
     }
 
     /**
-     * Génère le sitemap-media.xml : images des vins + vidéo homepage.
+     * Génère le sitemap-media.xml : images vins/carousel/gallery/news/cv + vidéo homepage.
      *
      * @param array<string, mixed> $_params
      */
@@ -400,7 +400,9 @@ class PageController extends Controller
         $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
         $langs     = ['fr', 'en'];
         $wineModel = new WineModel();
+        $newsModel = new NewsModel();
         $wines     = $wineModel->getAllForMediaSitemap();
+        $news      = $newsModel->getAll();
 
         header('Content-Type: application/xml; charset=utf-8');
         header('X-Robots-Tag: noindex');
@@ -426,10 +428,91 @@ class PageController extends Controller
             }
         }
 
+        // Images actualités — une entrée par langue
+        foreach ($news as $article) {
+            if (empty($article['image_path'])) {
+                continue;
+            }
+            $slug  = htmlspecialchars((string) $article['slug']);
+            $img   = htmlspecialchars($appUrl . '/assets/images/news/' . rawurlencode((string) $article['image_path']));
+            $title = htmlspecialchars((string) $article['title']);
+            foreach ($langs as $lang) {
+                echo "  <url>\n";
+                echo "    <loc>{$appUrl}/{$lang}/actualites/{$slug}</loc>\n";
+                echo "    <image:image>\n";
+                echo "      <image:loc>{$img}</image:loc>\n";
+                echo "      <image:title>{$title}</image:title>\n";
+                echo "    </image:image>\n";
+                echo "  </url>\n";
+            }
+        }
+
+        // Images carousel (1600w uniquement) — homepage FR + EN
+        $carouselImages = [
+            'raisins-recolte-1600w.jpg'   => 'Vendange — Château Crabitan Bellevue',
+            'vignoble-allee-1600w.jpg'    => 'Allée du vignoble — Château Crabitan Bellevue',
+            'vignoble-automne-1600w.jpg'  => 'Vignoble en automne — Château Crabitan Bellevue',
+            'vignoble-ete-1600w.jpg'      => 'Vignoble en été — Château Crabitan Bellevue',
+            'vignoble-hiver-1600w.jpg'    => 'Vignoble en hiver — Château Crabitan Bellevue',
+        ];
+        foreach ($langs as $lang) {
+            echo "  <url>\n";
+            echo "    <loc>{$appUrl}/{$lang}</loc>\n";
+            foreach ($carouselImages as $file => $imgTitle) {
+                $img = htmlspecialchars($appUrl . '/assets/images/carousel/' . $file);
+                echo "    <image:image>\n";
+                echo "      <image:loc>{$img}</image:loc>\n";
+                echo "      <image:title>" . htmlspecialchars($imgTitle) . "</image:title>\n";
+                echo "    </image:image>\n";
+            }
+            echo "  </url>\n";
+        }
+
+        // Images galerie — page /galerie FR + EN
+        $galleryImages = [
+            'anciens-proprietaires-600w.jpg' => 'Anciens propriétaires — Château Crabitan Bellevue',
+            'apercu-vins-600w.jpg'           => 'Aperçu des vins — Château Crabitan Bellevue',
+            'botrytis-cinerea-1200w.jpg'     => 'Botrytis cinerea — Château Crabitan Bellevue',
+            'chai-barriques-1200w.jpg'       => 'Chai à barriques — Château Crabitan Bellevue',
+            'chien-vignes-600w.jpg'          => 'Dans les vignes — Château Crabitan Bellevue',
+            'domaine-ancien-600w.jpg'        => 'Domaine ancien — Château Crabitan Bellevue',
+            'domaine-noir-blanc-600w.jpg'    => 'Domaine en noir et blanc — Château Crabitan Bellevue',
+            'etiquette-1933-600w.jpg'        => 'Étiquette 1933 — Château Crabitan Bellevue',
+            'exposition-vins-600w.jpg'       => 'Exposition des vins — Château Crabitan Bellevue',
+            'premiere-famille-600w.jpg'      => 'Première famille — Château Crabitan Bellevue',
+            'proprietaire-600w.jpg'          => 'Propriétaire — Château Crabitan Bellevue',
+            'vendanges-1956-600w.jpg'        => 'Vendanges 1956 — Château Crabitan Bellevue',
+            'vendanges-cheval-600w.jpg'      => 'Vendanges à cheval — Château Crabitan Bellevue',
+        ];
+        foreach ($langs as $lang) {
+            echo "  <url>\n";
+            echo "    <loc>{$appUrl}/{$lang}/galerie</loc>\n";
+            foreach ($galleryImages as $file => $imgTitle) {
+                $img = htmlspecialchars($appUrl . '/assets/images/gallery/' . $file);
+                echo "    <image:image>\n";
+                echo "      <image:loc>{$img}</image:loc>\n";
+                echo "      <image:title>" . htmlspecialchars($imgTitle) . "</image:title>\n";
+                echo "    </image:image>\n";
+            }
+            echo "  </url>\n";
+        }
+
+        // Image CV — page /webmaster FR + EN
+        foreach ($langs as $lang) {
+            echo "  <url>\n";
+            echo "    <loc>{$appUrl}/{$lang}/webmaster</loc>\n";
+            echo "    <image:image>\n";
+            $img = htmlspecialchars($appUrl . '/assets/images/cv/cv_solane.jpg');
+            echo "      <image:loc>{$img}</image:loc>\n";
+            echo "      <image:title>Alexandre Solane — Webmaster Château Crabitan Bellevue</image:title>\n";
+            echo "    </image:image>\n";
+            echo "  </url>\n";
+        }
+
         // Vidéo homepage — FR + EN
-        $videoUrl   = htmlspecialchars($appUrl . '/assets/videos/chateau-crabitan-bellevue-1.mp4');
-        $thumbUrl   = htmlspecialchars($appUrl . '/assets/images/carousel/vignoble-allee-1600w.jpg');
-        $videoMeta  = [
+        $videoUrl  = htmlspecialchars($appUrl . '/assets/videos/chateau-crabitan-bellevue-1.mp4');
+        $thumbUrl  = htmlspecialchars($appUrl . '/assets/images/carousel/vignoble-allee-1600w.jpg');
+        $videoMeta = [
             'fr' => [
                 'title' => 'Le Château en vidéo',
                 'desc'  => 'Découvrez le Château Crabitan Bellevue et son vignoble en AOC Sainte-Croix-du-Mont.',
