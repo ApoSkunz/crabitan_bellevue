@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.9.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.9.1...v1.9.2) (2026-04-20)
+
+
+### Bug Fixes
+
+* **logger:** éviter le double-log HttpException 500 dans le handler global ([7ee9b1f](https://github.com/ApoSkunz/crabitan_bellevue/commit/7ee9b1ff6b0b52ffa5b5b2d00461f37412968334))
+
 ## [1.9.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.9.0...v1.9.1) (2026-04-20)
 
 
