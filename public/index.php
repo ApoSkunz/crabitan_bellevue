@@ -146,5 +146,11 @@ try {
         'url'       => $_SERVER['REQUEST_URI'] ?? '',
         'method'    => $_SERVER['REQUEST_METHOD'] ?? '',
     ]);
-    \Core\Response::abort(500, 'Internal Server Error');
+    // Response::abort() rend la page d'erreur puis throw HttpException.
+    // On catch localement pour éviter que handleException() la logue une seconde fois.
+    try {
+        \Core\Response::abort(500, 'Internal Server Error');
+    } catch (\Core\Exception\HttpException) {
+        exit;
+    }
 }
