@@ -82,20 +82,15 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
             <div class="wine-detail__visual">
                 <div class="wine-detail__image-wrap">
                     <?php
-                    $wBase  = '/assets/images/wines/';
-                    $wFile  = $wine['image_path'];
-                    $wNoExt = (string) preg_replace('/\.[^.]+$/', '', $wFile);
-                    $wExt   = pathinfo($wFile, PATHINFO_EXTENSION);
+                    $wBase = '/assets/images/wines/';
+                    $wFile = $wine['image_path'];
                     ?>
                     <picture>
                         <source
-                            srcset="<?= $wBase . rawurlencode($wNoExt . '-400w.webp') ?> 400w, <?= $wBase . rawurlencode($wNoExt . '-800w.webp') ?> 800w"
-                            sizes="(max-width: 640px) 400px, 800px"
+                            srcset="<?= $wBase . rawurlencode((string) preg_replace('/\.[^.]+$/', '', $wFile) . '.webp') ?>"
                             type="image/webp">
                         <img
                             src="<?= $wBase . rawurlencode($wFile) ?>"
-                            srcset="<?= $wBase . rawurlencode($wNoExt . '-400w.' . $wExt) ?> 400w, <?= $wBase . rawurlencode($wNoExt . '-800w.' . $wExt) ?> 800w"
-                            sizes="(max-width: 640px) 400px, 800px"
                             alt="<?= htmlspecialchars($wineName) ?>"
                             class="wine-detail__image js-wine-zoom"
                             width="400"
