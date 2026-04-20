@@ -6,6 +6,7 @@ namespace Controller;
 
 use Core\Controller;
 use Core\CookieHelper;
+use Core\DeviceHelper;
 use Core\Exception\GoogleOAuthException;
 use Core\Jwt;
 use Core\Response;
@@ -35,6 +36,8 @@ use Service\MailService;
  */
 class GoogleOAuthController extends Controller
 {
+    use DeviceHelper;
+
     /** Durée de vie du JWT Google OAuth (24h). */
     private const JWT_EXPIRY = 86400;
 
@@ -324,6 +327,7 @@ class GoogleOAuthController extends Controller
     {
         $accountId   = (int) $existing['id'];
         $accountLang = (string) ($existing['lang'] ?? $lang);
+        $token       = '';
 
         try {
             $token       = $this->linkTokens->create($accountId, $googleId, $accountLang);
@@ -343,6 +347,7 @@ class GoogleOAuthController extends Controller
         }
 
         $_SESSION['pending_google_link_email_sent'] = $existing['email'];
+        $_SESSION['pending_google_link_token']      = $token;
         Response::redirect("/{$lang}/auth/google/link");
     }
 
@@ -409,22 +414,10 @@ class GoogleOAuthController extends Controller
 
         $accountId = (int) $record['account_id'];
         $this->accounts->linkGoogleId($accountId, (string) $record['google_id']);
-        $account = $this->accounts->findById($accountId);
 
-        if (!$account) {
-            $this->flash('modal_error', __('auth.google_error'));
-            Response::redirect($loginUrl);
-        }
-
-        // L'email a été validé → device de confiance d'emblée pour éviter un
-        // double challenge MFA lors de l'émission de la session.
-        $deviceToken = $this->resolveDeviceToken();
-        $deviceName  = $this->deriveDeviceName($_SERVER['HTTP_USER_AGENT'] ?? 'unknown');
-        if (!$this->trustedDevices->isTrusted($accountId, $deviceToken)) {
-            $this->trustedDevices->trust($accountId, $deviceToken, $deviceName);
-        }
-
-        $this->issueSession($account, $lang);
+        // La session est émise par le polling côté onglet initiateur (Tab A).
+        // Cet onglet (Tab B — lien email) se contente d'afficher la confirmation.
+        $this->view('auth/google-link-verify-done', ['lang' => $lang]);
     }
 
     // ----------------------------------------------------------------
@@ -443,7 +436,7 @@ class GoogleOAuthController extends Controller
         }
 
         $lang = $this->resolveLang($params);
-        unset($_SESSION['pending_google_link_email_sent']);
+        unset($_SESSION['pending_google_link_email_sent'], $_SESSION['pending_google_link_token']);
 
         if (($_POST['action'] ?? '') === 'cancel') {
             $_SESSION['flash']['modal_error'] = __('auth.google_link_cancel_info');
@@ -631,53 +624,5 @@ class GoogleOAuthController extends Controller
     private function flash(string $key, string $message): void
     {
         $_SESSION['flash'][$key] = $message;
-    }
-
-    /**
-     * Retourne le device token depuis le cookie, ou en génère un nouveau.
-     *
-     * @return string Token hexadécimal de 64 caractères
-     */
-    private function resolveDeviceToken(): string
-    {
-        $token = $_COOKIE['device_token'] ?? null;
-        if ($token !== null) {
-            return $token;
-        }
-        $token = bin2hex(random_bytes(32));
-        setcookie('device_token', $token, [
-            'expires'  => time() + (90 * 24 * 3600),
-            'path'     => '/',
-            'secure'   => (defined('APP_ENV') ? APP_ENV : ($_ENV['APP_ENV'] ?? 'production')) === 'production',
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]);
-        return $token;
-    }
-
-    /**
-     * Dérive un nom lisible d'appareil depuis le User-Agent.
-     *
-     * @param string $ua User-Agent HTTP
-     * @return string Nom au format "Browser · OS"
-     */
-    private function deriveDeviceName(string $ua): string
-    {
-        $browser = match (true) {
-            str_contains($ua, 'Edg')                                        => 'Edge',
-            str_contains($ua, 'Chrome') && !str_contains($ua, 'Chromium')  => 'Chrome',
-            str_contains($ua, 'Firefox')                                    => 'Firefox',
-            str_contains($ua, 'Safari') && !str_contains($ua, 'Chrome')    => 'Safari',
-            default                                                         => 'Browser',
-        };
-        $os = match (true) {
-            str_contains($ua, 'iPhone') || str_contains($ua, 'iPad') => 'iOS',
-            str_contains($ua, 'Android')                              => 'Android',
-            str_contains($ua, 'Windows')                              => 'Windows',
-            str_contains($ua, 'Macintosh')                            => 'macOS',
-            str_contains($ua, 'Linux')                                => 'Linux',
-            default                                                   => 'Unknown',
-        };
-        return "{$browser} · {$os}";
     }
 }

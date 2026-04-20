@@ -37,6 +37,8 @@
           imagesrcset="/assets/images/carousel/vignoble-ete-800w.webp 800w, /assets/images/carousel/vignoble-ete-1600w.webp 1600w"
           imagesizes="100vw">
 <?php endif; ?>
+    <link rel="preload" as="font" href="/assets/fonts/Cinzel-Regular.otf" type="font/otf" crossorigin>
+    <link rel="preload" as="font" href="/assets/fonts/CaviarDreams.woff" type="font/woff" crossorigin>
     <link rel="stylesheet" href="/assets/css/main.css">
     <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">window.__appDebug = <?= (defined('APP_ENV') && APP_ENV === 'development') ? 'true' : 'false' ?>;</script>
 

@@ -1,23 +1,23 @@
 # ZAP scan rules — faux positifs documentés
-# Format : plugin_id<TAB>IGNORE|WARN|FAIL
-# Toute suppression doit être justifiée ci-dessous.
+# Format : plugin_id<TAB>IGNORE|WARN|FAIL<TAB>url_regex  (3 colonnes obligatoires)
+# url_regex = . → toutes les URLs. Toute suppression doit être justifiée ci-dessous.
 
 # 10202 — Absence of Anti-CSRF Tokens
 # CSRF implémenté via $_SESSION['csrf'] + <input name="csrf_token"> sur tous
 # les formulaires POST. ZAP passif ne peut pas inspecter les champs hidden dans
 # le DOM rendu ; false positive structurel sur les pages avec formulaires.
-10202	IGNORE
+10202	IGNORE	.
 
 # 10049 — Non-Storable Content
 # Cache-Control: no-store posé intentionnellement dans public/index.php pour
 # prévenir la restauration bfcache de pages contenant des flash messages périmés.
-10049	IGNORE
+10049	IGNORE	.
 
 # 10015 — Re-examine Cache-control Directives
 # Même raison que 10049 : Cache-Control: no-store intentionnel.
-10015	IGNORE
+10015	IGNORE	.
 
 # 10112 — Session Management Response Identified
 # Cookie auth_token attendu sur un site avec authentification JWT.
 # Pas de fuite de session — cookie HttpOnly + Secure + SameSite=Lax.
-10112	IGNORE
+10112	IGNORE	.
