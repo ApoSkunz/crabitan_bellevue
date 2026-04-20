@@ -150,6 +150,9 @@ jobs:
           echo "ZAP_AUTH_HEADER_VALUE=auth_token=${{ steps.auth-customer.outputs.token }};age_verified=1" >> $GITHUB_ENV
           echo "ZAP_AUTH_HEADER_SITE=http://${{ steps.host-ip.outputs.ip }}:8080" >> $GITHUB_ENV
 
+      - name: Grant ZAP container write access to workspace
+        run: chmod a+w "$GITHUB_WORKSPACE"
+
       - name: ZAP Full Scan — customer (mon-compte, panier, checkout)
         continue-on-error: true
         uses: zaproxy/action-full-scan@v0.12.0  # TODO: pin to SHA — Dependabot le mettra à jour
