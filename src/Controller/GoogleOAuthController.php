@@ -519,6 +519,7 @@ class GoogleOAuthController extends Controller
         }
 
         $this->accounts->resetInactivityWarning($accountId);
+        $this->accounts->updateLastLoginAt($accountId);
 
         if (!$this->accounts->hasDeclaredMajority($accountId)) {
             $_SESSION['majority_pending'] = true;
