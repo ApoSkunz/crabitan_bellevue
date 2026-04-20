@@ -6,6 +6,7 @@ namespace Controller;
 
 use Core\Controller;
 use Core\CookieHelper;
+use Core\DeviceHelper;
 use Core\Jwt;
 use Core\Response;
 use Middleware\GuestMiddleware;
@@ -30,6 +31,8 @@ use ValueObject\Email;
  */
 class AuthController extends Controller // NOSONAR — php:S1448 — controller auth multi-flux nécessite >20 méthodes
 {
+    use DeviceHelper;
+
     /** Fenêtre de rate limiting pour la connexion et l'inscription (15 min). */
     private const WINDOW_LOGIN    = 900;
 
@@ -846,32 +849,6 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
     }
 
     /**
-     * Dérive un nom lisible depuis la chaîne User-Agent.
-     *
-     * @param string $ua Chaîne User-Agent
-     * @return string Nom du navigateur et du système (ex. "Chrome · Windows")
-     */
-    private function deriveDeviceName(string $ua): string
-    {
-        $browser = match (true) {
-            str_contains($ua, 'Edg')                                        => 'Edge',
-            str_contains($ua, 'Chrome') && !str_contains($ua, 'Chromium')  => 'Chrome',
-            str_contains($ua, 'Firefox')                                    => 'Firefox',
-            str_contains($ua, 'Safari') && !str_contains($ua, 'Chrome')    => 'Safari',
-            default                                                         => 'Browser',
-        };
-        $os = match (true) {
-            str_contains($ua, 'iPhone') || str_contains($ua, 'iPad') => 'iOS',
-            str_contains($ua, 'Android')                              => 'Android',
-            str_contains($ua, 'Windows')                              => 'Windows',
-            str_contains($ua, 'Macintosh')                            => 'macOS',
-            str_contains($ua, 'Linux')                                => 'Linux',
-            default                                                   => 'Unknown',
-        };
-        return "{$browser} · {$os}";
-    }
-
-    /**
      * Vérifie la validité du token CSRF.
      *
      * @return bool True si le token est valide
@@ -892,28 +869,6 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
     private function flash(string $key, string $message): void
     {
         $_SESSION['flash'][$key] = $message;
-    }
-
-    /**
-     * Retourne le device token existant depuis le cookie, ou en génère un nouveau.
-     *
-     * @return string Token de 64 caractères hexadécimaux
-     */
-    private function resolveDeviceToken(): string
-    {
-        $token = $_COOKIE['device_token'] ?? null;
-        if ($token !== null) {
-            return $token;
-        }
-        $token = bin2hex(random_bytes(32));
-        setcookie('device_token', $token, [
-            'expires'  => time() + (90 * 24 * 3600),
-            'path'     => '/',
-            'secure'   => APP_ENV === 'production',
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]);
-        return $token;
     }
 
     /**
