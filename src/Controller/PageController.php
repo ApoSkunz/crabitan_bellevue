@@ -306,18 +306,25 @@ class PageController extends Controller
         $today     = date('Y-m-d');
         $langs     = ['fr', 'en'];
 
-        // Pages statiques publiques (noindex exclues : mentions-legales, politique-de-confidentialite, plan-du-site)
+        // Pages statiques — [chemin => [fr_priority, en_priority]]
+        // Hiérarchie : Accueil > Vins > Collection > Château > Savoir-faire > Vin dédié > autres
+        // Noindex exclues : mentions-legales, politique-de-confidentialite
         $staticRoutes = [
-            ''                              => '1.0',
-            '/vins'                         => '0.9',
-            '/vins/collection'              => '0.8',
-            '/actualites'                   => '0.9',
-            '/le-chateau'                   => '0.7',
-            '/savoir-faire'                 => '0.7',
-            '/contact'                      => '0.6',
-            '/conditions-generales-de-vente' => '0.4',
-            '/galerie'                      => '0.5',
-            '/accessibilite'                => '0.3',
+            ''                               => ['1.0', '0.7'],
+            '/vins'                          => ['0.9', '0.6'],
+            '/vins/collection'               => ['0.85','0.6'],
+            '/actualites'                    => ['0.8', '0.5'],
+            '/le-chateau'                    => ['0.8', '0.5'],
+            '/savoir-faire'                  => ['0.8', '0.5'],
+            '/contact'                       => ['0.6', '0.4'],
+            '/galerie'                       => ['0.5', '0.3'],
+            '/conditions-generales-de-vente' => ['0.4', '0.2'],
+            '/jeux'                          => ['0.4', '0.3'],
+            '/plan-du-site'                  => ['0.3', '0.2'],
+            '/support'                       => ['0.3', '0.2'],
+            '/accessibilite'                 => ['0.3', '0.2'],
+            '/credits-medias'                => ['0.2', '0.1'],
+            '/webmaster'                     => ['0.2', '0.1'],
         ];
 
         $wineModel = new WineModel();
@@ -332,45 +339,51 @@ class PageController extends Controller
         echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
         echo '        xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
 
-        // Pages statiques
-        foreach ($staticRoutes as $path => $priority) {
-            echo "  <url>\n";
-            echo "    <loc>" . htmlspecialchars($appUrl . '/fr' . $path) . "</loc>\n";
-            echo "    <lastmod>{$today}</lastmod>\n";
-            echo "    <priority>{$priority}</priority>\n";
-            foreach ($langs as $l) {
-                $alt = htmlspecialchars($appUrl . '/' . $l . $path);
-                echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$alt}\"/>\n";
+        // Pages statiques — une entrée par langue avec priorité différenciée
+        foreach ($staticRoutes as $path => [$prioFr, $prioEn]) {
+            foreach (['fr' => $prioFr, 'en' => $prioEn] as $lang => $prio) {
+                echo "  <url>\n";
+                echo "    <loc>" . htmlspecialchars($appUrl . "/{$lang}" . $path) . "</loc>\n";
+                echo "    <lastmod>{$today}</lastmod>\n";
+                echo "    <priority>{$prio}</priority>\n";
+                foreach ($langs as $l) {
+                    $alt = htmlspecialchars($appUrl . '/' . $l . $path);
+                    echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$alt}\"/>\n";
+                }
+                echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\""
+                    . htmlspecialchars($appUrl . '/fr' . $path) . "\"/>\n";
+                echo "  </url>\n";
             }
-            echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\""
-                . htmlspecialchars($appUrl . '/fr' . $path) . "\"/>\n";
-            echo "  </url>\n";
         }
 
-        // Vins
+        // Vins — FR priorité 0.7, EN 0.4
         foreach ($wineSlugs as $row) {
             $slug = htmlspecialchars((string) $row['slug']);
-            echo "  <url>\n";
-            echo "    <loc>{$appUrl}/fr/vins/{$slug}</loc>\n";
-            echo "    <priority>0.8</priority>\n";
-            foreach ($langs as $l) {
-                echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$appUrl}/{$l}/vins/{$slug}\"/>\n";
+            foreach (['fr' => '0.7', 'en' => '0.4'] as $lang => $prio) {
+                echo "  <url>\n";
+                echo "    <loc>{$appUrl}/{$lang}/vins/{$slug}</loc>\n";
+                echo "    <priority>{$prio}</priority>\n";
+                foreach ($langs as $l) {
+                    echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$appUrl}/{$l}/vins/{$slug}\"/>\n";
+                }
+                echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/vins/{$slug}\"/>\n";
+                echo "  </url>\n";
             }
-            echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/vins/{$slug}\"/>\n";
-            echo "  </url>\n";
         }
 
-        // Actualités
+        // Actualités — FR priorité 0.6, EN 0.3
         foreach ($newsSlugs as $row) {
             $slug = htmlspecialchars((string) $row['slug']);
-            echo "  <url>\n";
-            echo "    <loc>{$appUrl}/fr/actualites/{$slug}</loc>\n";
-            echo "    <priority>0.7</priority>\n";
-            foreach ($langs as $l) {
-                echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$appUrl}/{$l}/actualites/{$slug}\"/>\n";
+            foreach (['fr' => '0.6', 'en' => '0.3'] as $lang => $prio) {
+                echo "  <url>\n";
+                echo "    <loc>{$appUrl}/{$lang}/actualites/{$slug}</loc>\n";
+                echo "    <priority>{$prio}</priority>\n";
+                foreach ($langs as $l) {
+                    echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$appUrl}/{$l}/actualites/{$slug}\"/>\n";
+                }
+                echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/actualites/{$slug}\"/>\n";
+                echo "  </url>\n";
             }
-            echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/actualites/{$slug}\"/>\n";
-            echo "  </url>\n";
         }
 
         echo '</urlset>' . "\n";
