@@ -59,6 +59,26 @@ body {
         display: none;
     }
 
+    // Theme toggle masqué du header sur mobile — déplacé dans le menu burger
+    .header-actions .theme-toggle {
+        display: none;
+    }
+
+    // Theme toggle dans le menu burger mobile
+    .header-nav--mobile__theme-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        .icon-sun  { display: inline; }
+        .icon-moon { display: none; }
+
+        [data-theme='light'] & {
+            .icon-sun  { display: none; }
+            .icon-moon { display: inline; }
+        }
+    }
+
     // Icônes du panier / langue — taille min 44px maintenue sur mobile
     .lang-switch a {
         padding: 0.5em 0.6em;

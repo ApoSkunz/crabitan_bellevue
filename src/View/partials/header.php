@@ -133,7 +133,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
         <div class="header-actions">
             <button
                 id="theme-toggle"
-                class="theme-toggle"
+                class="theme-toggle js-theme-toggle"
                 type="button"
                 aria-label="<?= htmlspecialchars(__('common.toggle_theme')) ?>"
                 title="<?= htmlspecialchars(__('common.toggle_theme')) ?>"
@@ -237,6 +237,17 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
         <a href="/<?= htmlspecialchars($navLang) ?>/savoir-faire"><?= htmlspecialchars(__('nav.savoir_faire')) ?></a>
         <a href="/<?= htmlspecialchars($navLang) ?>/actualites"><?= htmlspecialchars(__('nav.news')) ?></a>
         <a href="/<?= htmlspecialchars($navLang) ?>/contact"><?= htmlspecialchars(__('nav.contact')) ?></a>
+        <button
+            id="theme-toggle-mobile"
+            type="button"
+            class="header-nav--mobile__modal-btn header-nav--mobile__theme-btn js-theme-toggle"
+            aria-label="<?= htmlspecialchars(__('common.toggle_theme')) ?>"
+        >
+            <span class="icon-sun" aria-hidden="true">&#9728;</span>
+            <span class="icon-moon" aria-hidden="true">&#9790;</span>
+            <?= htmlspecialchars(__('common.toggle_theme')) ?>
+        </button>
+
         <?php if ($isLogged) : ?>
             <?php if (!$isAdmin) : ?>
             <a href="/<?= htmlspecialchars($navLang) ?>/panier"><?= htmlspecialchars(__('nav.cart')) ?></a>
