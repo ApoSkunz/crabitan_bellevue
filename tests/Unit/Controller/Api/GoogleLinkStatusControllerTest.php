@@ -177,6 +177,40 @@ class GoogleLinkStatusControllerTest extends TestCase
     }
 
     /**
+     * Token consommé, majorité non déclarée → majority_pending posé en session.
+     */
+    public function testTokenConsumedWithoutMajoritySetsMajorityPending(): void
+    {
+        $_SESSION['pending_google_link_token']    = 'plaintoken123';
+        $_SESSION['google_link_status_last_call'] = 0;
+
+        $record  = ['id' => 1, 'account_id' => 42, 'google_id' => 'gid', 'lang' => 'fr', 'consumed_at' => '2026-04-20'];
+        $account = ['id' => 42, 'role' => 'user', 'lang' => 'fr', 'has_connected' => '1', 'email' => 'test@test.com'];
+
+        $tokenModel = $this->createStub(GoogleLinkTokenModel::class);
+        $tokenModel->method('isConsumed')->willReturn(true);
+        $tokenModel->method('findByHash')->willReturn($record);
+
+        $accountModel = $this->createStub(AccountModel::class);
+        $accountModel->method('findById')->willReturn($account);
+        $accountModel->method('hasDeclaredMajority')->willReturn(false);
+
+        $connModel    = $this->createStub(ConnectionModel::class);
+        $trustedModel = $this->createStub(TrustedDeviceModel::class);
+        $trustedModel->method('isTrusted')->willReturn(false);
+
+        $controller = new GoogleLinkStatusController(new Request());
+        $this->inject($controller, 'linkTokens', $tokenModel);
+        $this->inject($controller, 'accounts', $accountModel);
+        $this->inject($controller, 'connections', $connModel);
+        $this->inject($controller, 'trustedDevices', $trustedModel);
+
+        $this->callStatus($controller);
+
+        $this->assertTrue($_SESSION['majority_pending'] ?? false);
+    }
+
+    /**
      * Rate limit : 2 appels < 1 s → 429 + pending.
      */
     public function testRateLimitReturnsPending429(): void
