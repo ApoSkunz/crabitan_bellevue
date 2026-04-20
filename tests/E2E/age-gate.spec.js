@@ -110,7 +110,7 @@ test.describe('Age Gate — comportements', () => {
         expect(ageCookie?.value).toBe('1');
     });
 
-    test('majeur sans "se souvenir" → cookie session (pas d\'expiry fixe)', async ({ page, context }) => {
+    test('majeur sans "se souvenir" → cookie 24h (pas de cookie persistant 13 mois)', async ({ page, context }) => {
         await resetState(context, page);
         await page.locator('#cookie-refuse').click();
         // Ne pas cocher "se souvenir"
@@ -119,8 +119,10 @@ test.describe('Age Gate — comportements', () => {
         const cookies = await context.cookies();
         const ageCookie = cookies.find(c => c.name === 'age_verified');
         expect(ageCookie).toBeDefined();
-        // Session cookie : expires = -1 dans Playwright
-        expect(ageCookie?.expires).toBe(-1);
+        // Cookie 24h : expires entre now+23h et now+25h
+        const now = Date.now() / 1000;
+        expect(ageCookie?.expires).toBeGreaterThan(now + 23 * 3600);
+        expect(ageCookie?.expires).toBeLessThan(now + 25 * 3600);
 
         const rememberCookie = cookies.find(c => c.name === 'age_remember');
         expect(rememberCookie).toBeUndefined();
