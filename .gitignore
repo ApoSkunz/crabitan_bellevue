@@ -9,7 +9,6 @@
 /storage/logs/*.log
 /storage/invoices/*.pdf
 /storage/newsletters/attachments/*.pdf
-/storage/uploads/
 
 # OS
 .DS_Store

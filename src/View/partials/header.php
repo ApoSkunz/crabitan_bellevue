@@ -133,7 +133,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
         <div class="header-actions">
             <button
                 id="theme-toggle"
-                class="theme-toggle"
+                class="theme-toggle js-theme-toggle"
                 type="button"
                 aria-label="<?= htmlspecialchars(__('common.toggle_theme')) ?>"
                 title="<?= htmlspecialchars(__('common.toggle_theme')) ?>"
@@ -230,6 +230,16 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
     </nav>
 
     <nav id="header-nav-mobile" class="header-nav--mobile" aria-label="Menu mobile">
+        <button
+            id="theme-toggle-mobile"
+            type="button"
+            class="header-nav--mobile__theme-toggle js-theme-toggle"
+            aria-label="<?= htmlspecialchars(__('common.toggle_theme')) ?>"
+        >
+            <span class="icon-sun" aria-hidden="true">&#9728;</span>
+            <span class="icon-moon" aria-hidden="true">&#9790;</span>
+            <?= htmlspecialchars(__('common.toggle_theme')) ?>
+        </button>
         <a href="/<?= htmlspecialchars($navLang) ?>"><?= htmlspecialchars(__('nav.home')) ?></a>
         <a href="/<?= htmlspecialchars($navLang) ?>/vins"><?= htmlspecialchars(__('nav.wines')) ?></a>
         <a href="/<?= htmlspecialchars($navLang) ?>/vins/collection"><?= htmlspecialchars(__('nav.collection')) ?></a>

@@ -128,7 +128,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                                 aria-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                             >
                                 <div class="wine-card__image-wrap">
-                                    <?php require_once SRC_PATH . '/View/partials/wine-card-picture.php'; ?>
+                                    <?php require SRC_PATH . '/View/partials/wine-card-picture.php'; // NOSONAR php:S2003 — require intentionnel dans foreach : inclusion multiple par carte ?>
                                     <?php if (!$wine['available'] || (int) ($wine['stock_quantity'] ?? 0) === 0) : ?>
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
