@@ -67,9 +67,9 @@ require_once __DIR__ . '/../partials/header.php';
         fetch('/api/google-link-status', { credentials: 'same-origin' })
             .then(function (res) { return res.json(); })
             .then(function (data) {
-                if (data.status === 'linked') {
+                if (data.status === 'linked' && data.redirect) {
                     stopPolling();
-                    window.location.reload();
+                    window.location = data.redirect;
                 } else if (data.status === 'expired') {
                     onTimeout();
                 } else {

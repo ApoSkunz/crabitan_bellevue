@@ -411,22 +411,10 @@ class GoogleOAuthController extends Controller
 
         $accountId = (int) $record['account_id'];
         $this->accounts->linkGoogleId($accountId, (string) $record['google_id']);
-        $account = $this->accounts->findById($accountId);
 
-        if (!$account) {
-            $this->flash('modal_error', __('auth.google_error'));
-            Response::redirect($loginUrl);
-        }
-
-        // L'email a été validé → device de confiance d'emblée pour éviter un
-        // double challenge MFA lors de l'émission de la session.
-        $deviceToken = $this->resolveDeviceToken();
-        $deviceName  = $this->deriveDeviceName($_SERVER['HTTP_USER_AGENT'] ?? 'unknown');
-        if (!$this->trustedDevices->isTrusted($accountId, $deviceToken)) {
-            $this->trustedDevices->trust($accountId, $deviceToken, $deviceName);
-        }
-
-        $this->issueSession($account, $lang);
+        // La session est émise par le polling côté onglet initiateur (Tab A).
+        // Cet onglet (Tab B — lien email) se contente d'afficher la confirmation.
+        $this->view('auth/google-link-verify-done', ['lang' => $lang]);
     }
 
     // ----------------------------------------------------------------

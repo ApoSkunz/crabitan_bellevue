@@ -94,4 +94,20 @@ class GoogleLinkTokenModel extends Model
         }
         return $row['consumed_at'] !== null;
     }
+
+    /**
+     * Recherche un token par sa valeur claire, qu'il soit consommé ou non.
+     * Utilisé par le polling pour émettre la session après consommation.
+     *
+     * @param string $token Token clair
+     * @return array<string, mixed>|false
+     */
+    public function findByHash(string $token): array|false
+    {
+        $hash = hash('sha256', $token);
+        return $this->db->fetchOne(
+            "SELECT * FROM {$this->table} WHERE token_hash = ? LIMIT 1",
+            [$hash]
+        );
+    }
 }
