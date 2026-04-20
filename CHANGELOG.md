@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.9.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.9.0...v1.9.1) (2026-04-20)
+
+
+### Bug Fixes
+
+* **rgpd:** réinitialiser inactivity_warning_sent_at à la reconnexion ([0e1943d](https://github.com/ApoSkunz/crabitan_bellevue/commit/0e1943d695874a75d9d7e65d61e7adb0ec79f119))
+
 # [1.9.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.8.0...v1.9.0) (2026-04-20)
 
 
