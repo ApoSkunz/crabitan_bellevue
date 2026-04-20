@@ -106,6 +106,8 @@ $router->get('/{lang}/politique-de-confidentialite', 'PageController@politiqueCo
 $router->get('/{lang}/conditions-generales-de-vente', 'PageController@conditionsGeneralesVente');
 $router->get('/{lang}/plan-du-site', 'PageController@planDuSite');
 $router->get('/sitemap.xml', 'PageController@sitemapXml');
+$router->get('/sitemap-media.xml', 'PageController@sitemapMedia');
+$router->get('/sitemap-index.xml', 'PageController@sitemapIndex');
 $router->get('/{lang}/support', 'PageController@support');
 $router->get('/{lang}/jeux', 'PageController@jeux');
 $router->get('/{lang}/credits-medias', 'PageController@creditsMedias');

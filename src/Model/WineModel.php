@@ -875,6 +875,21 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
     }
 
     /**
+     * Retourne slug, label_name, image_path et vintage pour le sitemap media.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAllForMediaSitemap(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT slug, label_name, image_path, vintage
+             FROM {$this->table}
+             WHERE " . self::COND_IMAGE . "
+             ORDER BY slug"
+        );
+    }
+
+    /**
      * Retourne le vin mis en avant pour la homepage (featured=1 disponible),
      * avec fallback sur cuvée spéciale disponible, puis vin disponible le plus récent.
      *

@@ -391,6 +391,99 @@ class PageController extends Controller
     }
 
     /**
+     * Génère le sitemap-media.xml : images des vins + vidéo homepage.
+     *
+     * @param array<string, mixed> $_params
+     */
+    public function sitemapMedia(array $_params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- NOSONAR S1172
+    {
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $langs     = ['fr', 'en'];
+        $wineModel = new WineModel();
+        $wines     = $wineModel->getAllForMediaSitemap();
+
+        header('Content-Type: application/xml; charset=utf-8');
+        header('X-Robots-Tag: noindex');
+
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
+        echo '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' . "\n";
+        echo '        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">' . "\n";
+
+        // Images vins — une entrée par langue
+        foreach ($wines as $wine) {
+            $slug  = htmlspecialchars((string) $wine['slug']);
+            $img   = htmlspecialchars($appUrl . '/assets/images/wines/' . rawurlencode((string) $wine['image_path']));
+            $title = htmlspecialchars((string) $wine['label_name'] . ' ' . (int) $wine['vintage']);
+            foreach ($langs as $lang) {
+                echo "  <url>\n";
+                echo "    <loc>{$appUrl}/{$lang}/vins/{$slug}</loc>\n";
+                echo "    <image:image>\n";
+                echo "      <image:loc>{$img}</image:loc>\n";
+                echo "      <image:title>{$title}</image:title>\n";
+                echo "    </image:image>\n";
+                echo "  </url>\n";
+            }
+        }
+
+        // Vidéo homepage — FR + EN
+        $videoUrl   = htmlspecialchars($appUrl . '/assets/videos/chateau-crabitan-bellevue-1.mp4');
+        $thumbUrl   = htmlspecialchars($appUrl . '/assets/images/carousel/vignoble-allee-1600w.jpg');
+        $videoMeta  = [
+            'fr' => [
+                'title' => 'Le Château en vidéo',
+                'desc'  => 'Découvrez le Château Crabitan Bellevue et son vignoble en AOC Sainte-Croix-du-Mont.',
+            ],
+            'en' => [
+                'title' => 'The Estate on Video',
+                'desc'  => 'Discover Château Crabitan Bellevue and its vineyard in the Sainte-Croix-du-Mont AOC.',
+            ],
+        ];
+        foreach ($langs as $lang) {
+            $meta = $videoMeta[$lang];
+            echo "  <url>\n";
+            echo "    <loc>{$appUrl}/{$lang}</loc>\n";
+            echo "    <video:video>\n";
+            echo "      <video:thumbnail_loc>{$thumbUrl}</video:thumbnail_loc>\n";
+            echo "      <video:title>" . htmlspecialchars($meta['title']) . "</video:title>\n";
+            echo "      <video:description>" . htmlspecialchars($meta['desc']) . "</video:description>\n";
+            echo "      <video:content_loc>{$videoUrl}</video:content_loc>\n";
+            echo "    </video:video>\n";
+            echo "  </url>\n";
+        }
+
+        echo '</urlset>' . "\n";
+        throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux XML (testable)
+    }
+
+    /**
+     * Génère le sitemap index référençant sitemap.xml et sitemap-media.xml.
+     *
+     * @param array<string, mixed> $_params
+     */
+    public function sitemapIndex(array $_params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- NOSONAR S1172
+    {
+        $appUrl = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $today  = date('Y-m-d');
+
+        header('Content-Type: application/xml; charset=utf-8');
+        header('X-Robots-Tag: noindex');
+
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        echo "  <sitemap>\n";
+        echo "    <loc>{$appUrl}/sitemap.xml</loc>\n";
+        echo "    <lastmod>{$today}</lastmod>\n";
+        echo "  </sitemap>\n";
+        echo "  <sitemap>\n";
+        echo "    <loc>{$appUrl}/sitemap-media.xml</loc>\n";
+        echo "    <lastmod>{$today}</lastmod>\n";
+        echo "  </sitemap>\n";
+        echo '</sitemapindex>' . "\n";
+        throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux XML (testable)
+    }
+
+    /**
      * Génère le fichier security.txt (RFC 9116) dynamiquement depuis les variables d'environnement.
      *
      * @return void
