@@ -80,7 +80,7 @@ require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : r
                 <tr>
                     <td><code>age_verified</code></td>
                     <td>Mémorisation de la déclaration de majorité (barrière d&#8217;âge légale alcool)</td>
-                    <td>Session</td>
+                    <td>24h (13 mois si &#171;&#8239;Se souvenir&#8239;&#187; coché)</td>
                     <td>Non — obligation légale (Art. L3342-1 CSP)</td>
                 </tr>
                 <tr>
