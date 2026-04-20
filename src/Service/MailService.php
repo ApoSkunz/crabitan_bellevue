@@ -1730,6 +1730,7 @@ INNER;
      */
     public function sendReturnRequestedToOwner(array $order, string $clientName, string $clientEmail): void
     {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail   = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef      = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName     = htmlspecialchars($clientName, ENT_QUOTES);
@@ -1797,6 +1798,7 @@ INNER;
      */
     public function sendRefundGaeKoToOwner(string $orderRef, float $amount, int $orderId = 0): void
     {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef    = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeAmount = number_format($amount, 2, ',', ' ');
@@ -1839,6 +1841,7 @@ INNER;
      */
     public function sendRefundRequestedToOwner(array $order, string $clientName, string $clientEmail): void
     {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef    = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName   = htmlspecialchars($clientName, ENT_QUOTES);
@@ -1879,6 +1882,7 @@ INNER;
      */
     public function sendPendingOrdersAlert(array $orders, int $days = 7): void
     {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $count      = count($orders);
@@ -1952,6 +1956,7 @@ INNER;
         string $pdfPath,
         string $lang
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeRef   = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName  = htmlspecialchars($name, ENT_QUOTES);
         $orderedAt = isset($order['ordered_at']) ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['ordered_at'])) : '—';
@@ -2404,6 +2409,7 @@ INNER;
         string $pdfPath,
         string $lang
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeName = htmlspecialchars($toName, ENT_QUOTES);
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeNum  = htmlspecialchars($invoiceNumber, ENT_QUOTES);
@@ -2448,6 +2454,7 @@ INNER;
         string $lang,
         string $appUrl
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeName = htmlspecialchars($toName, ENT_QUOTES);
         $safeUrl  = rtrim($appUrl, '/');
@@ -2738,6 +2745,7 @@ INNER;
         string $filename,
         string $lang
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
 
         if ($lang === 'fr') {
@@ -3209,6 +3217,7 @@ HTML;
         array $items,
         string $lang
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $safeName   = htmlspecialchars($name, ENT_QUOTES);
         $ratingModel = $this->newRatingModel();
@@ -3326,6 +3335,7 @@ HTML;
         string $lang,
         string $cartUrl
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $safeName = htmlspecialchars($name, ENT_QUOTES);
         $safeCart = htmlspecialchars($cartUrl, ENT_QUOTES);
@@ -3775,6 +3785,7 @@ HTML;
         string $updatedAt,
         string $changeNote
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeName  = htmlspecialchars($name, ENT_QUOTES);
         $safeLabel = htmlspecialchars($docLabel, ENT_QUOTES);
         $safeUrl   = htmlspecialchars($docUrl, ENT_QUOTES);
