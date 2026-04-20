@@ -315,15 +315,14 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     </div>
                 <?php endif; ?>
 
-                <a
-                    href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>/fiche-technique"
-                    class="wine-detail__download"
+                <button
+                    type="button"
+                    class="wine-detail__download js-pdf-download"
+                    data-href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>/fiche-technique"
                     aria-label="<?= htmlspecialchars(__('wine.download_sheet') . ' : ' . $wineName) ?>"
-                    target="_blank"
-                    rel="noopener noreferrer"
                 >
                     &#128196; <?= htmlspecialchars(__('wine.download_sheet')) ?>
-                </a>
+                </button>
             </div>
         </div>
     </section>
@@ -447,6 +446,35 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
     <?php endif; ?>
 
 </main>
+
+<!-- PDF progress overlay -->
+<div
+    id="pdf-progress-overlay"
+    class="pdf-progress-overlay"
+    hidden
+    aria-hidden="true"
+    role="status"
+    aria-live="polite"
+>
+    <div class="pdf-progress-overlay__box">
+        <p
+            class="pdf-progress-overlay__msg"
+            id="pdf-progress-msg"
+            data-default="<?= htmlspecialchars(__('wine.pdf_generating')) ?>"
+            data-error="<?= htmlspecialchars(__('wine.pdf_error')) ?>"
+        ><?= htmlspecialchars(__('wine.pdf_generating')) ?></p>
+        <div
+            class="pdf-progress-overlay__track"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+        >
+            <div class="pdf-progress-overlay__bar" id="pdf-progress-bar"></div>
+        </div>
+        <p class="pdf-progress-overlay__label" id="pdf-progress-label">0%</p>
+    </div>
+</div>
 
 <!-- Zoom overlay -->
 <!-- NOSONAR Web:S6819 — custom overlay with full JS focus/keyboard management; <dialog> migration deferred -->
