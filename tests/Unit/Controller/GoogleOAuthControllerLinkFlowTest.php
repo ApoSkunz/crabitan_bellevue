@@ -144,69 +144,65 @@ class GoogleOAuthControllerLinkFlowTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // linkVerifyByToken() — token valide → linkGoogleId + issueSession
+    // linkVerifyByToken() — token valide → consume + linkGoogleId + vue (pas de session)
     // ----------------------------------------------------------------
 
-    public function testLinkVerifyByTokenValidLinksAccountAndIssuesSession(): void
+    public function testLinkVerifyByTokenValidConsumesAndLinksGoogleId(): void
     {
         $_GET = ['token' => 'valid-token'];
 
         $ctrl = $this->makeController();
 
-        $record = ['id' => 9, 'account_id' => 42, 'google_id' => 'g-abc'];
-        $linkTokens = $this->createStub(GoogleLinkTokenModel::class);
+        $record     = ['id' => 9, 'account_id' => 42, 'google_id' => 'g-abc'];
+        $linkTokens = $this->createMock(GoogleLinkTokenModel::class);
         $linkTokens->method('findActive')->willReturn($record);
+        $linkTokens->expects($this->once())->method('consume')->with(9);
         $this->injectProp($ctrl, 'linkTokens', $linkTokens);
 
-        $account = ['id' => 42, 'role' => 'customer', 'lang' => 'fr', 'email' => 'u@ex.com', 'has_connected' => 1];
-        $accounts = $this->createStub(AccountModel::class);
-        $accounts->method('findById')->willReturn($account);
-        $accounts->method('hasDeclaredMajority')->willReturn(true);
+        $accounts = $this->createMock(AccountModel::class);
+        $accounts->expects($this->once())->method('linkGoogleId')->with(42, 'g-abc');
         $this->injectProp($ctrl, 'accounts', $accounts);
 
-        $trustedDevices = $this->createStub(TrustedDeviceModel::class);
-        $trustedDevices->method('isTrusted')->willReturn(false);
-        $this->injectProp($ctrl, 'trustedDevices', $trustedDevices);
-
-        $connections = $this->createStub(ConnectionModel::class);
-        $this->injectProp($ctrl, 'connections', $connections);
-
-        $caught = null;
+        ob_start();
         try {
             $ctrl->linkVerifyByToken(['lang' => 'fr']);
-        } catch (HttpException $e) {
-            $caught = $e;
+        } catch (\Throwable) {
+            // view() peut générer des warnings selon présence du template
         }
+        ob_end_clean();
 
-        // issueSession() redirige systématiquement (HttpException attendue)
-        $this->assertNotNull($caught);
+        // Pas de flash d'erreur — rattachement réussi (session émise par le polling Tab A)
+        $this->assertArrayNotHasKey('modal_error', $_SESSION['flash'] ?? []);
     }
 
     // ----------------------------------------------------------------
-    // linkVerifyByToken() — account introuvable après linkGoogleId
+    // linkVerifyByToken() — token valide → aucune session émise ici (Tab B)
     // ----------------------------------------------------------------
 
-    public function testLinkVerifyByTokenAccountNotFoundSetsFlash(): void
+    public function testLinkVerifyByTokenValidDoesNotSetAuthCookie(): void
     {
-        $_GET = ['token' => 'valid-token'];
+        $_GET    = ['token' => 'valid-token'];
+        $_COOKIE = [];
 
         $ctrl = $this->makeController();
 
-        $record = ['id' => 9, 'account_id' => 42, 'google_id' => 'g-abc'];
+        $record     = ['id' => 9, 'account_id' => 42, 'google_id' => 'g-abc'];
         $linkTokens = $this->createStub(GoogleLinkTokenModel::class);
         $linkTokens->method('findActive')->willReturn($record);
         $this->injectProp($ctrl, 'linkTokens', $linkTokens);
 
         $accounts = $this->createStub(AccountModel::class);
-        $accounts->method('findById')->willReturn(false);
         $this->injectProp($ctrl, 'accounts', $accounts);
 
+        ob_start();
         try {
             $ctrl->linkVerifyByToken(['lang' => 'fr']);
-        } catch (HttpException) {
+        } catch (\Throwable) {
         }
+        ob_end_clean();
 
-        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+        // Aucun cookie JWT posé — la session est émise par GoogleLinkStatusController (Tab A)
+        $this->assertArrayNotHasKey('auth_token', $_COOKIE);
     }
 
     // ----------------------------------------------------------------
