@@ -525,6 +525,8 @@ class GoogleOAuthController extends Controller
             $this->trustedDevices->updateLastSeen($accountId, $deviceToken);
         }
 
+        $this->accounts->resetInactivityWarning($accountId);
+
         if (!$this->accounts->hasDeclaredMajority($accountId)) {
             $_SESSION['majority_pending'] = true;
         } else {
