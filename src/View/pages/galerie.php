@@ -61,11 +61,33 @@ $isEn   = isset($lang) && $lang === 'en';
                     data-src="<?= htmlspecialchars($item['src'], ENT_QUOTES) ?>"
                     data-alt="<?= htmlspecialchars($item['alt'], ENT_QUOTES) ?>"
                     aria-label="<?= htmlspecialchars(__('gallery.enlarge') . ' : ' . $item['alt'], ENT_QUOTES) ?>">
+                <?php
+                $g600w    = $item['src_600w']      ?? null;
+                $g600webp = $item['src_600w_webp'] ?? null;
+                $gPriority = $idx === 0 ? 'fetchpriority="high"' : 'loading="lazy"';
+                $gDims    = $w > 0 ? 'width="' . $w . '" height="' . $h . '"' : '';
+                ?>
+                <?php if ($g600webp || $g600w) : ?>
+                <picture>
+                    <?php if ($g600webp) : ?>
+                    <source srcset="<?= htmlspecialchars($g600webp, ENT_QUOTES) ?>" type="image/webp">
+                    <?php endif; ?>
+                    <?php if ($g600w) : ?>
+                    <source srcset="<?= htmlspecialchars($g600w, ENT_QUOTES) ?>" type="image/jpeg">
+                    <?php endif; ?>
+                    <img src="<?= htmlspecialchars($item['src'], ENT_QUOTES) ?>"
+                         alt="<?= htmlspecialchars($item['alt'], ENT_QUOTES) ?>"
+                         <?= $gPriority ?>
+                         class="gallery-item__img"
+                         <?= $gDims ?>>
+                </picture>
+                <?php else : ?>
                 <img src="<?= htmlspecialchars($item['src'], ENT_QUOTES) ?>"
                      alt="<?= htmlspecialchars($item['alt'], ENT_QUOTES) ?>"
-                     <?= $idx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
+                     <?= $gPriority ?>
                      class="gallery-item__img"
-                     <?= $w > 0 ? 'width="' . $w . '" height="' . $h . '"' : '' ?>>
+                     <?= $gDims ?>>
+                <?php endif; ?>
             </button>
         <?php endforeach; ?>
     </section>
