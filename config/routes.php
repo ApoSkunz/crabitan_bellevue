@@ -22,6 +22,7 @@ $router->get('/admin/commandes/{id}/facture/telecharger', 'Admin\OrderAdminContr
 $router->get('/admin/commandes/{id}/facture/historique/{fileId}', 'Admin\OrderAdminController@downloadInvoiceFile');
 $router->get('/admin/comptes', 'Admin\AccountAdminController@index');
 $router->post('/admin/comptes/{id}/verifier', 'Admin\AccountAdminController@verify');
+$router->post('/admin/comptes/{id}/reset-password', 'Admin\AccountAdminController@resetPassword');
 $router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
 $router->post('/admin/tarifs', 'Admin\PricingAdminController@update');
 $router->get('/admin/actualites', 'Admin\NewsAdminController@index');
