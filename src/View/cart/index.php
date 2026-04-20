@@ -1,6 +1,7 @@
 <?php
 $pageTitle = __('cart.title');
-defined('WINE_IMG_BASE') || define('WINE_IMG_BASE', '/assets/images/wines/');
+defined('WINE_IMG_BASE')  || define('WINE_IMG_BASE',  '/assets/images/wines/');
+defined('WINE_EXT_REGEX') || define('WINE_EXT_REGEX', '/\.[^.]+$/');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
@@ -28,7 +29,7 @@ $crossSellWines   = $crossSellWines   ?? [];
 $featuredWine     = $featuredWine     ?? null;
 $removedCount     = (int) ($removedCount ?? 0);
 /** @var callable(string): string $toWebp */
-$toWebp = static fn(string $p): string => (string) preg_replace('/\.[^.]+$/', '.webp', $p);
+$toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, '.webp', $p);
 ?>
 
 <?php $checkoutStep = 1; require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S2003 : require intentionnel, le partiel est chargé plusieurs fois (vues + tests isolation) ?>
@@ -202,9 +203,9 @@ $toWebp = static fn(string $p): string => (string) preg_replace('/\.[^.]+$/', '.
                             <td class="cart-table__col-image">
                                 <?php if ($image !== '') :
                                     $ctFile  = basename(parse_url($image, PHP_URL_PATH) ?? $image);
-                                    $ctNoExt = (string) preg_replace('/\.[^.]+$/', '', $ctFile);
+                                    $ctNoExt = (string) preg_replace(WINE_EXT_REGEX, '', $ctFile);
                                     $ctExt   = pathinfo($ctFile, PATHINFO_EXTENSION);
-                                    $ctBase  = '/assets/images/wines/';
+                                    $ctBase  = WINE_IMG_BASE;
                                     ?>
                                 <picture>
                                     <source
@@ -492,9 +493,9 @@ $toWebp = static fn(string $p): string => (string) preg_replace('/\.[^.]+$/', '.
                     <div class="wine-card__image-wrap">
                         <?php
                         $cwFile  = (string) ($cw['image_path'] ?? '');
-                        $cwNoExt = (string) preg_replace('/\.[^.]+$/', '', $cwFile);
+                        $cwNoExt = (string) preg_replace(WINE_EXT_REGEX, '', $cwFile);
                         $cwExt2  = pathinfo($cwFile, PATHINFO_EXTENSION);
-                        $cwBase  = '/assets/images/wines/';
+                        $cwBase  = WINE_IMG_BASE;
                         ?>
                         <picture>
                             <source
@@ -530,7 +531,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace('/\.[^.]+$/', '.
                                 data-wine-id="<?= $cwId ?>"
                                 data-wine-name="<?= $cwName ?>"
                                 data-wine-price="<?= htmlspecialchars(number_format($cwPrice, 2, ',', ' ') . ' €') ?>"
-                                data-wine-image="/assets/images/wines/<?= $cwImage ?>"
+                                data-wine-image="<?= WINE_IMG_BASE . htmlspecialchars($cwImage) ?>"
                                 data-wine-cuvee="<?= $cwCuvee ? htmlspecialchars(__('wine.cuvee_speciale')) : '' ?>"
                                 aria-label="<?= htmlspecialchars(__('wine.add_to_cart')) ?> — <?= $cwName ?>">
                             &#128722;

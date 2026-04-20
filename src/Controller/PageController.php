@@ -12,6 +12,7 @@ use Service\MailService;
 
 class PageController extends Controller
 {
+    private const GALLERY_IMG_BASE = '/assets/images/gallery/';
     /**
      * Affiche la page "Le Château".
      *
@@ -257,9 +258,9 @@ class PageController extends Controller
             $size     = @getimagesize($file);
             $base600  = pathinfo($filename, PATHINFO_FILENAME) . '-600w';
             $photos[] = [
-                'src'       => '/assets/images/gallery/' . $filename,
-                'src_600w'  => file_exists($dir . $base600 . '.jpg')  ? '/assets/images/gallery/' . $base600 . '.jpg'  : null,
-                'src_600w_webp' => file_exists($dir . $base600 . '.webp') ? '/assets/images/gallery/' . $base600 . '.webp' : null,
+                'src'           => self::GALLERY_IMG_BASE . $filename,
+                'src_600w'      => file_exists($dir . $base600 . '.jpg')  ? self::GALLERY_IMG_BASE . $base600 . '.jpg'  : null,
+                'src_600w_webp' => file_exists($dir . $base600 . '.webp') ? self::GALLERY_IMG_BASE . $base600 . '.webp' : null,
                 'alt'       => $alt,
                 'width'     => $size ? (int) $size[0] : 0,
                 'height'    => $size ? (int) $size[1] : 0,

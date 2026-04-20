@@ -104,7 +104,11 @@ class WineAdminController extends AdminController
         $vintage    = ($vintageReq !== null && ctype_digit($vintageReq)) ? (int) $vintageReq : null;
         $labelName  = $this->request->get('label_name') ?: null;
         $cuveeReq   = $this->request->get('cuvee');
-        $cuvee      = ($cuveeReq === '1') ? true : (($cuveeReq === '0') ? false : null);
+        $cuvee      = match ($cuveeReq) {
+            '1'     => true,
+            '0'     => false,
+            default => null,
+        };
 
         $total      = $this->wines->countForAdmin($color, $available, $vintage, $labelName, $cuvee);
         $wines      = $this->wines->getForAdmin($color, $available, $perPage, ($page - 1) * $perPage, $vintage, $labelName, $cuvee);
