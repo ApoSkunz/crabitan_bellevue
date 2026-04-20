@@ -18,6 +18,31 @@ function setProgress(bar, label, pct) {
 }
 
 /**
+ * Anime la barre de 0 → 90 % sur `duration` ms, puis s'arrête.
+ * Retourne un cancel() pour stopper l'animation.
+ *
+ * @param {HTMLElement} bar
+ * @param {HTMLElement} label
+ * @param {number} duration ms
+ * @return {{ cancel: () => void }}
+ */
+function startFakeProgress(bar, label, duration) {
+    const steps    = 40;
+    const interval = duration / steps;
+    let   step     = 0;
+
+    const timer = setInterval(() => {
+        step++;
+        // Courbe ease-out : ralentit en approchant 90 %
+        const pct = Math.round(90 * (1 - Math.pow(1 - step / steps, 2)));
+        setProgress(bar, label, Math.min(pct, 90));
+        if (step >= steps) clearInterval(timer);
+    }, interval);
+
+    return { cancel: () => clearInterval(timer) };
+}
+
+/**
  * @param {string} url
  * @return {Promise<void>}
  */
@@ -33,7 +58,8 @@ async function fetchPdfWithProgress(url) {
     overlay.hidden = false;
     overlay.removeAttribute('aria-hidden');
 
-    let fallbackTimer = null;
+    // Animation smooth démarre immédiatement — dure ~2.5 s jusqu'à 90 %
+    const anim = startFakeProgress(bar, label, 2500);
 
     try {
         const response = await fetch(url, { credentials: 'same-origin' });
@@ -42,32 +68,16 @@ async function fetchPdfWithProgress(url) {
             throw new Error('fetch_error');
         }
 
-        const contentLength = response.headers.get('Content-Length');
-        const total         = contentLength ? parseInt(contentLength, 10) : 0;
-        const reader        = response.body.getReader();
-        const chunks        = [];
-        let received        = 0;
-
-        if (total === 0) {
-            // Pas de Content-Length → progression estimée sur ~3 s
-            let fake = 0;
-            fallbackTimer = setInterval(() => {
-                fake = Math.min(fake + 4, 90);
-                setProgress(bar, label, fake);
-            }, 120);
-        }
+        const reader = response.body.getReader();
+        const chunks = [];
 
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
             chunks.push(value);
-            received += value.length;
-            if (total > 0) {
-                setProgress(bar, label, Math.round((received / total) * 100));
-            }
         }
 
-        if (fallbackTimer !== null) clearInterval(fallbackTimer);
+        anim.cancel();
         setProgress(bar, label, 100);
 
         const blob    = new Blob(chunks, { type: 'application/pdf' });
@@ -75,7 +85,7 @@ async function fetchPdfWithProgress(url) {
         window.open(blobUrl, '_blank', 'noopener,noreferrer');
         setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000);
     } catch {
-        if (fallbackTimer !== null) clearInterval(fallbackTimer);
+        anim.cancel();
         if (msg) msg.textContent = msg.dataset.error ?? 'Erreur — veuillez réessayer.';
     } finally {
         setTimeout(() => {
