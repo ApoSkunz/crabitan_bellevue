@@ -2,6 +2,25 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.15.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.14.0...v1.15.0) (2026-04-20)
+
+
+### Bug Fixes
+
+* **ci:** chmod workspace avant ZAP — résout PermissionError rapport JSON ([162e3f6](https://github.com/ApoSkunz/crabitan_bellevue/commit/162e3f69ef35891e8c1a818a68889589a66df900))
+* **security:** ajouter storage/.htaccess — bloquer accès HTTP direct ([03ec90b](https://github.com/ApoSkunz/crabitan_bellevue/commit/03ec90bdf89578d7a2b51030ea8c2681aa837b52))
+* **sonar:** NOSONAR php:S2003 require foreach wine-card-picture ([3775ac7](https://github.com/ApoSkunz/crabitan_bellevue/commit/3775ac7baeb922169771ab508e1db1e4e05d3224))
+* **ux:** masquer theme-toggle header sur mobile, déplacer dans burger menu ([fe50319](https://github.com/ApoSkunz/crabitan_bellevue/commit/fe5031922891fcaa7d29ae9729dfe3016ce840fc))
+* **ux:** theme-toggle mobile — icône seule sans cercle, reste dans header ([210686b](https://github.com/ApoSkunz/crabitan_bellevue/commit/210686b4ec8a7dfc8cfec6b1c2fd653ed49ec813))
+* **ux:** theme-toggle mobile — masqué header, intégré élégamment dans burger menu ([b4aee0f](https://github.com/ApoSkunz/crabitan_bellevue/commit/b4aee0ff9a5c748d4772b76e9d147b2a91921ad5))
+* **view:** require_once → require pour wine-card-picture.php dans le foreach ([88925c9](https://github.com/ApoSkunz/crabitan_bellevue/commit/88925c943ae39b3167b274948443d456f3ee9781))
+
+
+### Features
+
+* **ci:** ZAP context files + ajax_spider + debug auth pour meilleure couverture DAST ([5cf31a0](https://github.com/ApoSkunz/crabitan_bellevue/commit/5cf31a0a82ae81745b173e9e340b848f51ec3b32))
+* **ci:** ZAP seed URLs explicites — résout découverte 2-3 URLs ([7aa38e6](https://github.com/ApoSkunz/crabitan_bellevue/commit/7aa38e6f6ab815527b427a12b0655b51690513a1))
+
 # [1.14.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.13.0...v1.14.0) (2026-04-20)
 
 
