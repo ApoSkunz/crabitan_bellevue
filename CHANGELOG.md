@@ -2,6 +2,28 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.11.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.10.0...v1.11.0) (2026-04-20)
+
+
+### Bug Fixes
+
+* **admin:** différer upload image + traduction après validation complète du formulaire vin ([e517690](https://github.com/ApoSkunz/crabitan_bellevue/commit/e517690ea68fdbfe17b999fc39cf6b0531a8503f))
+* **js:** progress PDF — animation ease-out 0→90% smooth au lieu de chunk tracking ([e9736e5](https://github.com/ApoSkunz/crabitan_bellevue/commit/e9736e5a3610090d60f0633ede2c4f36a632f982))
+* **perf:** fetchpriority sur images vin panier vide (lcp-lazy-loaded) ([1a1a523](https://github.com/ApoSkunz/crabitan_bellevue/commit/1a1a5234afd5d5715d2007c6e0a924c077153b51))
+* **sonar:** éliminer duplication index/collection + S107 generateWidth ([7e39382](https://github.com/ApoSkunz/crabitan_bellevue/commit/7e39382c68185cb76bdf950ea82d8a8cb7fb9978))
+* **sonar:** résoudre 6 code smells + réduire duplication nouveau code ([3b745a9](https://github.com/ApoSkunz/crabitan_bellevue/commit/3b745a9c11af80a69f894003a5e18e8298e68080))
+* **test:** corriger échec CI testUpdateDeletesOldImage + warnings GD ([4da23aa](https://github.com/ApoSkunz/crabitan_bellevue/commit/4da23aa887b33f30b4e2d8bcf9656f2bc2315fd4))
+* **view:** vue détail vin — image originale pour zoom net (sans srcset resize) ([0162b27](https://github.com/ApoSkunz/crabitan_bellevue/commit/0162b278718b91661e5669e050b157adafd8fcf4))
+
+
+### Features
+
+* **js:** module wine-pdf-download — progression fetch+ReadableStream fiche technique PDF ([066926d](https://github.com/ApoSkunz/crabitan_bellevue/commit/066926d1d7ac4fa9204f119963c7e4b5ada37184))
+* **perf:** srcset 400w/800w images vins — réduction payload -11MB (uses-responsive-images) ([9c7f3c3](https://github.com/ApoSkunz/crabitan_bellevue/commit/9c7f3c34a7a4d18d4712c708780ca48b673cac43))
+* **scss:** overlay progression PDF — barre dorée, fond semi-transparent ([971dbda](https://github.com/ApoSkunz/crabitan_bellevue/commit/971dbda4c503dab36df3fab011204eb07df70e3b))
+* **service:** ImageVariantService — génération variantes 400w/800w WebP au upload admin ([941a8d4](https://github.com/ApoSkunz/crabitan_bellevue/commit/941a8d4c5ac8c5f46ea8305ae62682d866b18b85))
+* **view:** bouton PDF + overlay progression sur vue détail vin (i18n fr/en) ([670163c](https://github.com/ApoSkunz/crabitan_bellevue/commit/670163cfa9a8a42ef8db1ff351cdb7b58a54f4cb))
+
 # [1.10.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.9.2...v1.10.0) (2026-04-20)
 
 
