@@ -80,6 +80,8 @@ return [
     'auth.google_link_email_sent_instructions' => 'Open your inbox and click the confirmation link to complete the linking.',
     'auth.google_link_email_sent_ttl'          => 'The link is valid for 15 minutes. Without confirmation, no linking will be performed.',
     'auth.google_link_token_invalid'           => 'The linking link is invalid or has expired. Please start the Google sign-in again.',
+    'auth.google_link_poll_timeout'            => 'The confirmation link has expired. Sign in via Google again to retry.',
+    'auth.google_link_poll_waiting'            => 'Waiting for confirmation…',
     'auth.google_type_title'           => 'Are you an individual or a professional?',
     'auth.google_type_company_name'    => 'Company name',
     'auth.google_type_submit'          => 'Complete registration',

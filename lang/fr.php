@@ -80,6 +80,8 @@ return [
     'auth.google_link_email_sent_instructions' => 'Ouvrez votre boîte mail et cliquez sur le lien de confirmation pour finaliser le rattachement.',
     'auth.google_link_email_sent_ttl'          => 'Le lien est valable 15 minutes. Sans confirmation, aucun rattachement ne sera effectué.',
     'auth.google_link_token_invalid'           => 'Le lien de rattachement est invalide ou a expiré. Recommencez la connexion via Google.',
+    'auth.google_link_poll_timeout'            => 'Le lien de confirmation a expiré. Reconnectez-vous via Google pour réessayer.',
+    'auth.google_link_poll_waiting'            => 'En attente de confirmation…',
     'auth.google_type_title'           => 'Vous êtes un particulier ou un professionnel ?',
     'auth.google_type_company_name'    => 'Nom de la société',
     'auth.google_type_submit'          => 'Finaliser l\'inscription',

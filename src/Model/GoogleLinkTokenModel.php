@@ -75,4 +75,23 @@ class GoogleLinkTokenModel extends Model
             [$id]
         );
     }
+
+    /**
+     * Vérifie si un token a été consommé (rattachement effectué).
+     *
+     * @param string $token Token clair
+     * @return bool|null true = consommé, false = actif (non consommé), null = introuvable/expiré
+     */
+    public function isConsumed(string $token): bool|null
+    {
+        $hash = hash('sha256', $token);
+        $row  = $this->db->fetchOne(
+            "SELECT consumed_at FROM {$this->table} WHERE token_hash = ? LIMIT 1",
+            [$hash]
+        );
+        if ($row === false) {
+            return null;
+        }
+        return $row['consumed_at'] !== null;
+    }
 }

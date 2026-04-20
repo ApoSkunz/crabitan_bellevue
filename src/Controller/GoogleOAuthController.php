@@ -324,6 +324,7 @@ class GoogleOAuthController extends Controller
     {
         $accountId   = (int) $existing['id'];
         $accountLang = (string) ($existing['lang'] ?? $lang);
+        $token       = '';
 
         try {
             $token       = $this->linkTokens->create($accountId, $googleId, $accountLang);
@@ -343,6 +344,7 @@ class GoogleOAuthController extends Controller
         }
 
         $_SESSION['pending_google_link_email_sent'] = $existing['email'];
+        $_SESSION['pending_google_link_token']      = $token;
         Response::redirect("/{$lang}/auth/google/link");
     }
 
@@ -443,7 +445,7 @@ class GoogleOAuthController extends Controller
         }
 
         $lang = $this->resolveLang($params);
-        unset($_SESSION['pending_google_link_email_sent']);
+        unset($_SESSION['pending_google_link_email_sent'], $_SESSION['pending_google_link_token']);
 
         if (($_POST['action'] ?? '') === 'cancel') {
             $_SESSION['flash']['modal_error'] = __('auth.google_link_cancel_info');
