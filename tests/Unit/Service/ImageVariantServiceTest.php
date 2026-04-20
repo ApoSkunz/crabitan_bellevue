@@ -165,4 +165,112 @@ class ImageVariantServiceTest extends TestCase
         $svc = new ImageVariantService();
         $this->assertNull($svc->convertToWebp($path));
     }
+
+    // ----------------------------------------------------------------
+    // generateVariants — PNG
+    // ----------------------------------------------------------------
+
+    /**
+     * generateVariants sur PNG 1000px → crée WebP + variantes 400w + 800w.
+     */
+    public function testGenerateVariantsPng(): void
+    {
+        if (!extension_loaded('gd') || !function_exists('imagewebp')) {
+            $this->markTestSkipped('GD WebP requis');
+        }
+
+        $pngPath = $this->tmpPath('.png');
+        $base    = (string) preg_replace('/\.[^.]+$/', '', $pngPath);
+
+        $this->tmpFiles[] = $base . '.webp';
+        $this->tmpFiles[] = $base . '-400w.png';
+        $this->tmpFiles[] = $base . '-400w.webp';
+        $this->tmpFiles[] = $base . '-800w.png';
+        $this->tmpFiles[] = $base . '-800w.webp';
+
+        $img = imagecreatetruecolor(1000, 1400);
+        imagepng($img, $pngPath);
+        imagedestroy($img);
+
+        (new ImageVariantService())->generateVariants($pngPath);
+
+        $this->assertFileExists($base . '.webp');
+        $this->assertFileExists($base . '-400w.png');
+        $this->assertFileExists($base . '-400w.webp');
+        $this->assertFileExists($base . '-800w.png');
+        $this->assertFileExists($base . '-800w.webp');
+
+        // Dimensions 400w correctes
+        [$w400] = getimagesize($base . '-400w.png');
+        $this->assertSame(400, $w400);
+    }
+
+    // ----------------------------------------------------------------
+    // generateVariants — image source plus petite que la cible
+    // ----------------------------------------------------------------
+
+    /**
+     * generateVariants sur image 200px de large → variantes ≤ 200px (pas d'upscale).
+     */
+    public function testGenerateVariantsNoUpscale(): void
+    {
+        if (!extension_loaded('gd') || !function_exists('imagewebp')) {
+            $this->markTestSkipped('GD WebP requis');
+        }
+
+        $pngPath = $this->tmpPath('.png');
+        $base    = (string) preg_replace('/\.[^.]+$/', '', $pngPath);
+
+        $this->tmpFiles[] = $base . '.webp';
+        $this->tmpFiles[] = $base . '-400w.png';
+        $this->tmpFiles[] = $base . '-400w.webp';
+        $this->tmpFiles[] = $base . '-800w.png';
+        $this->tmpFiles[] = $base . '-800w.webp';
+
+        $img = imagecreatetruecolor(200, 280);
+        imagepng($img, $pngPath);
+        imagedestroy($img);
+
+        (new ImageVariantService())->generateVariants($pngPath);
+
+        // 200px < 400w → copie de l'original, pas d'upscale
+        [$w400] = getimagesize($base . '-400w.png');
+        $this->assertSame(200, $w400);
+    }
+
+    // ----------------------------------------------------------------
+    // deleteVariants
+    // ----------------------------------------------------------------
+
+    /**
+     * deleteVariants supprime original + WebP + variantes 400w/800w.
+     */
+    public function testDeleteVariants(): void
+    {
+        if (!extension_loaded('gd') || !function_exists('imagewebp')) {
+            $this->markTestSkipped('GD WebP requis');
+        }
+
+        $pngPath = $this->tmpPath('.png');
+        $base    = (string) preg_replace('/\.[^.]+$/', '', $pngPath);
+
+        $variants = [
+            $pngPath,
+            $base . '.webp',
+            $base . '-400w.png',
+            $base . '-400w.webp',
+            $base . '-800w.png',
+            $base . '-800w.webp',
+        ];
+
+        foreach ($variants as $f) {
+            file_put_contents($f, 'x');
+        }
+
+        (new ImageVariantService())->deleteVariants($pngPath);
+
+        foreach ($variants as $f) {
+            $this->assertFileDoesNotExist($f);
+        }
+    }
 }
