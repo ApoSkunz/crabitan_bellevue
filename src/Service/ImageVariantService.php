@@ -63,7 +63,7 @@ class ImageVariantService
         $origH = imagesy($source);
 
         foreach (self::WIDTHS as $targetW) {
-            $this->generateWidth($source, $absPath, $base, $ext, $mime, $targetW, $origW, $origH);
+            $this->generateWidth($source, $base, $ext, $mime, $targetW, $origW, $origH);
         }
 
         imagedestroy($source);
@@ -72,10 +72,9 @@ class ImageVariantService
     /**
      * Génère une variante redimensionnée pour une largeur cible donnée.
      *
-     * @param \GdImage $source Image source GD
-     * @param string   $absPath Chemin original (pour copie si pas d'upscale)
-     * @param string   $base    Chemin sans extension
-     * @param string   $ext     Extension format original
+     * @param \GdImage $source  Image source GD
+     * @param string   $base    Chemin sans extension (ex. /path/Wine_X_2022)
+     * @param string   $ext     Extension format original (ex. png)
      * @param string   $mime    MIME type source
      * @param int      $targetW Largeur cible
      * @param int      $origW   Largeur originale
@@ -84,7 +83,6 @@ class ImageVariantService
      */
     private function generateWidth(
         \GdImage $source,
-        string $absPath,
         string $base,
         string $ext,
         string $mime,
@@ -95,7 +93,7 @@ class ImageVariantService
         $suffix = '-' . $targetW . 'w.';
 
         if ($origW <= $targetW) {
-            copy($absPath, $base . $suffix . $ext);
+            copy($base . '.' . $ext, $base . $suffix . $ext);
             imagewebp($source, $base . $suffix . 'webp', self::WEBP_QUALITY);
             return;
         }

@@ -179,28 +179,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                                 aria-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                             >
                                 <div class="wine-card__image-wrap">
-                                    <?php
-                                    $wBase  = '/assets/images/wines/';
-                                    $wFile  = $wine['image_path'];
-                                    $wNoExt = (string) preg_replace('/\.[^.]+$/', '', $wFile);
-                                    $wExt   = pathinfo($wFile, PATHINFO_EXTENSION);
-                                    ?>
-                                    <picture>
-                                        <source
-                                            srcset="<?= $wBase . rawurlencode($wNoExt . '-400w.webp') ?> 400w, <?= $wBase . rawurlencode($wNoExt . '-800w.webp') ?> 800w"
-                                            sizes="(max-width: 640px) 400px, 300px"
-                                            type="image/webp">
-                                        <img
-                                            src="<?= $wBase . rawurlencode($wFile) ?>"
-                                            srcset="<?= $wBase . rawurlencode($wNoExt . '-400w.' . $wExt) ?> 400w, <?= $wBase . rawurlencode($wNoExt . '-800w.' . $wExt) ?> 800w"
-                                            sizes="(max-width: 640px) 400px, 300px"
-                                            alt="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
-                                            class="wine-card__image"
-                                            <?= $wineIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
-                                            width="300"
-                                            height="420"
-                                        >
-                                    </picture>
+                                    <?php require SRC_PATH . '/View/partials/wine-card-picture.php'; ?>
                                     <?php if ($wine['available'] && (int) ($wine['stock_quantity'] ?? 0) === 0) : ?>
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
