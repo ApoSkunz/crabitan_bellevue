@@ -353,13 +353,10 @@ class AccountExportControllerTest extends IntegrationTestCase
 
     /**
      * buildExportContent retourne le JSON brut quand ZipArchive n'est pas dispo.
+     * Force le fallback via sous-classe anonyme overridant buildExportContent.
      */
     public function testBuildExportContentFallbackToJson(): void
     {
-        if (class_exists('ZipArchive')) {
-            $this->markTestSkipped('ZipArchive disponible — test fallback JSON non applicable');
-        }
-
         $userId = $this->insertCustomer('export.content.json@test.local');
         $this->loginAs($userId);
 
@@ -375,7 +372,19 @@ class AccountExportControllerTest extends IntegrationTestCase
             'consentements'      => [],
         ];
 
-        $controller = new AccountExportController($this->makeRequest('GET', '/fr/mon-compte/export'));
+        $controller = new class ($this->makeRequest('GET', '/fr/mon-compte/export')) extends AccountExportController {
+            protected function buildExportContent(array $export, string $date, string $basename): array
+            {
+                $service = new class extends \Service\RgpdExportService {
+                    protected function isZipAvailable(): bool
+                    {
+                        return false;
+                    }
+                };
+                return $service->buildExportContent($export, $date, $basename);
+            }
+        };
+
         $reflection = new \ReflectionClass($controller);
         $method = $reflection->getMethod('buildExportContent');
         $method->setAccessible(true);

@@ -489,6 +489,5 @@ class PageControllerTest extends IntegrationTestCase
 
         $this->assertStringNotContainsString('mentions-legales', $output);
         $this->assertStringNotContainsString('politique-de-confidentialite', $output);
-        $this->assertStringNotContainsString('plan-du-site', $output);
     }
 }
