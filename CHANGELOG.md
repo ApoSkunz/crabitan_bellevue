@@ -2,6 +2,29 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.12.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.11.0...v1.12.0) (2026-04-20)
+
+
+### Bug Fixes
+
+* **auth:** redirect polling Google link vers page d'origine de la modal ([9e08cae](https://github.com/ApoSkunz/crabitan_bellevue/commit/9e08cae304425031ec9bf1cd786332ca772a749f))
+* **auth:** Tab A émet la session OAuth link, Tab B affiche confirmation ([6a141aa](https://github.com/ApoSkunz/crabitan_bellevue/commit/6a141aac68805f99e86f50bf0ceba4769b7e6c15))
+* **dast:** ajouter 3e colonne url_regex dans rules.tsv (format ZAP 3 colonnes obligatoires) ([d41c9b8](https://github.com/ApoSkunz/crabitan_bellevue/commit/d41c9b805b4dda1998b7014d5cc7f222454d5f0f))
+* **security:** CORP cross-origin pour images (clients mail) ([b3e4681](https://github.com/ApoSkunz/crabitan_bellevue/commit/b3e4681712f0084b2932b90648f1ae2e8aeb2aae))
+* **test:** adapter GoogleOAuthControllerLinkFlowTest au flow Tab A/B rattachement ([2170884](https://github.com/ApoSkunz/crabitan_bellevue/commit/2170884b4068c11d985ac15a00a6e8f69a487bf1))
+
+
+### Features
+
+* **auth:** polling rattachement Google OAuth (Cas 2) ([aaf0c82](https://github.com/ApoSkunz/crabitan_bellevue/commit/aaf0c82446df96b89afe9fda83d0f21f2322e5dd))
+
+
+### Performance Improvements
+
+* **gallery:** ACTION-08 — servir variantes 600w optimisées galerie ([e70939d](https://github.com/ApoSkunz/crabitan_bellevue/commit/e70939d6ecd02c222736e10adbcda73f78a406c3))
+* **head:** preload polices critiques Cinzel et Caviar Dreams ([b1cc212](https://github.com/ApoSkunz/crabitan_bellevue/commit/b1cc21218890cf273db3f05f9f6df9986b320fdf))
+* **view:** ajouter srcset WebP sur favoris, fiche vin, panier et homepage ([376e0f6](https://github.com/ApoSkunz/crabitan_bellevue/commit/376e0f6edcc3ceae85fe9074b88464454a6eb0be))
+
 # [1.11.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.10.0...v1.11.0) (2026-04-20)
 
 
