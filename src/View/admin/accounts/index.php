@@ -96,6 +96,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                     <th class="col-hide-tablet">Connecté</th>
                     <th>Inscrit le</th>
                     <th class="col-hide-tablet">Dernière connexion</th>
+                    <th class="col-hide-tablet">Cmdes</th>
                     <?php if ($isSuperAdmin) : ?>
                         <th></th>
                     <?php endif; ?>
@@ -103,7 +104,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
             </thead>
             <tbody>
             <?php if (empty($accounts)) : ?>
-                <tr><td colspan="<?= $isSuperAdmin ? 11 : 10 ?>"
+                <tr><td colspan="<?= $isSuperAdmin ? 12 : 11 ?>"
                         style="text-align:center;color:#8a7a60;padding:2rem;">Aucun compte trouvé</td></tr>
             <?php else : ?>
                 <?php foreach ($accounts as $account) : ?>
@@ -159,8 +160,16 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                                 <span style="color:#8a7a60;">—</span>
                             <?php endif; ?>
                         </td>
+                        <td class="col-hide-tablet" data-label="Cmdes" style="font-size:0.85rem;text-align:center;">
+                            <?php $orderCount = (int) ($account['order_count'] ?? 0); ?>
+                            <?php if ($orderCount > 0) : ?>
+                                <?= $orderCount ?>
+                            <?php else : ?>
+                                <span style="color:#8a7a60;">—</span>
+                            <?php endif; ?>
+                        </td>
                         <?php if ($isSuperAdmin) : ?>
-                            <td>
+                            <td style="white-space:nowrap;">
                                 <?php if (!$verified) : ?>
                                     <form method="POST"
                                           action="/admin/comptes/<?= (int) $account['id'] ?>/verifier"
@@ -172,6 +181,20 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                                                 class="admin-btn admin-btn--outline admin-btn--sm"
                                                 style="color:#15803d;border-color:#15803d;">
                                             Vérifier
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                                <?php if (!empty($account['email_verified_at']) && !empty($account['has_password'])) : ?>
+                                    <form method="POST"
+                                          action="/admin/comptes/<?= (int) $account['id'] ?>/reset-password"
+                                          style="display:inline;"
+                                          data-admin-confirm="Envoyer un lien de réinitialisation à <?= htmlspecialchars($account['email']) ?> ?">
+                                        <input type="hidden" name="csrf_token"
+                                               value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                        <button type="submit"
+                                                class="admin-btn admin-btn--outline admin-btn--sm"
+                                                style="color:#92400e;border-color:#92400e;">
+                                            Réinit. mdp
                                         </button>
                                     </form>
                                 <?php endif; ?>
