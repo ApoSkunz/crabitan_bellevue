@@ -2,6 +2,29 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.18.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.17.0...v1.18.0) (2026-04-21)
+
+
+### Bug Fixes
+
+* **db:** reseed adresses mock avec clé DB_ENCRYPT_KEY courante ([ffa1e3d](https://github.com/ApoSkunz/crabitan_bellevue/commit/ffa1e3d3beb30ece1c2c2e4f503302691509fa07))
+* **mail:** constants SALUTATION_FR/EN + PATH_CATALOG — Sonar S1192 ([a72d150](https://github.com/ApoSkunz/crabitan_bellevue/commit/a72d150ead39989964dc618d0a47c0b4b4ebaff9))
+* **mail:** split ligne preheader emailWrap > 150 chars (PHPCS) ([0429aec](https://github.com/ApoSkunz/crabitan_bellevue/commit/0429aecb12caee4cb985066cb5bb3b2de20483d2))
+* **scss:** checkout sticky CTA visible + wine-nav vintage/cuvee styles ([53751f2](https://github.com/ApoSkunz/crabitan_bellevue/commit/53751f237b256d54d8a1177b71b163f1106b9016))
+* **view:** checkout TTC price sticky CTA + confirmation PHPCS fixes ([8d0d697](https://github.com/ApoSkunz/crabitan_bellevue/commit/8d0d697441a02b5b7d96e8109c38fbd0e9364564))
+
+
+### Features
+
+* **cron:** séquence bienvenue newsletter J+7/J+30 + reconquête + ciblage favoris ([60223aa](https://github.com/ApoSkunz/crabitan_bellevue/commit/60223aa83367940cb9932a207e2b311b7136be66))
+* **i18n:** clés FR+EN marketing/UX — réassurance, upsell, breadcrumb, exit-intent ([2c8a86c](https://github.com/ApoSkunz/crabitan_bellevue/commit/2c8a86cb3703e4ba9aaa92d215d2c3f2b50e3908))
+* **i18n:** exit_intent variant keys FR/EN — show/boutique/collection/cart ([5bd5cbd](https://github.com/ApoSkunz/crabitan_bellevue/commit/5bd5cbd72fb034fcd40887c4e2cf54dc38ac577b))
+* **mail:** séquence newsletter J+7/J+30, reconquête, cross-sell, preheader ([0652096](https://github.com/ApoSkunz/crabitan_bellevue/commit/0652096665d2cc444f8a046f51e03d9be0ff24e0))
+* **model/ctrl:** getAdjacentSlugs + ctx-aware prev/next navigation ([f9bb4e4](https://github.com/ApoSkunz/crabitan_bellevue/commit/f9bb4e45025b9c589c7d6561db3c017de17cbff7))
+* **model:** getPendingSegmented — ciblage newsletter par couleur (favorites) ([01f6240](https://github.com/ApoSkunz/crabitan_bellevue/commit/01f62403b20ecb9e44296bb4fd4010c1f127b271))
+* **view:** exit-intent overlay partial — 4 variants global via footer ([98307d4](https://github.com/ApoSkunz/crabitan_bellevue/commit/98307d4d605d11fde09e37be98b78ab127297253))
+* **view:** marketing/UX batch — breadcrumb, réassurance, upsell, exit-intent, civility ([c44c840](https://github.com/ApoSkunz/crabitan_bellevue/commit/c44c8404bae9d5e6dcb6d1a10845bed1db094a0d)), closes [#6b5f50](https://github.com/ApoSkunz/crabitan_bellevue/issues/6b5f50)
+
 # [1.17.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.16.0...v1.17.0) (2026-04-21)
 
 
