@@ -249,6 +249,7 @@ return [
     'cart.cross_sell.title'     => 'Ces vins pourraient vous plaire',
     'cart.tier_next'            => 'pour le palier suivant',
     'cart.tier_first'           => 'pour votre remise livraison',
+    'cart.nudge'                => 'Plus que %d bouteille(s) pour atteindre votre prochaine remise sur la livraison !',
 
     // Commande
     'order.confirm'   => 'Confirmer la commande',
@@ -387,6 +388,10 @@ return [
     'home.news_tag'   => 'À la une',
     'home.news_title' => 'Actualités',
     'home.news_cta'   => 'Toutes les actualités',
+
+    // Homepage - Section Témoignages
+    'home.testimonials_tag'   => 'Ils nous font confiance',
+    'home.testimonials_title' => 'Avis de nos clients',
 
     // Homepage - Section Localisation
     'home.location_title'   => 'Où sommes-nous ?',
@@ -1036,6 +1041,9 @@ return [
     'wine.nav_prev'              => 'Vin précédent',
     'wine.nav_next'              => 'Vin suivant',
     'exit_intent.dismiss'              => 'Non merci',
+    'exit_intent.newsletter.title'    => 'Avant de partir…',
+    'exit_intent.newsletter.body'     => 'Recevez nos actualités, nouveaux millésimes et offres exclusives directement dans votre boîte mail.',
+    'exit_intent.newsletter.cta'      => 'Je m\'abonne',
     'exit_intent.show.title'          => 'Avant de partir…',
     'exit_intent.show.body'           => 'Ce vin vous intéresse ? Ajoutez-le à votre panier ou à vos favoris pour le retrouver facilement.',
     'exit_intent.show.cta'            => 'Voir nos autres vins',

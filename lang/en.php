@@ -249,6 +249,7 @@ return [
     'cart.cross_sell.title'     => 'You might enjoy these wines',
     'cart.tier_next'            => 'for the next tier',
     'cart.tier_first'           => 'for your delivery discount',
+    'cart.nudge'                => 'Only %d more bottle(s) to unlock your next delivery discount!',
 
     // Order
     'order.confirm'   => 'Confirm order',
@@ -386,6 +387,10 @@ return [
     'home.news_tag'   => 'Latest news',
     'home.news_title' => 'News',
     'home.news_cta'   => 'All news',
+
+    // Homepage - Testimonials section
+    'home.testimonials_tag'   => 'Our customers say',
+    'home.testimonials_title' => 'Reviews',
 
     // Homepage - Location section
     'home.location_title'   => 'Where are we?',
@@ -1035,6 +1040,9 @@ return [
     'wine.nav_prev'              => 'Previous wine',
     'wine.nav_next'              => 'Next wine',
     'exit_intent.dismiss'              => 'No thanks',
+    'exit_intent.newsletter.title'    => 'Before you go…',
+    'exit_intent.newsletter.body'     => 'Get our news, new vintages and exclusive offers straight to your inbox.',
+    'exit_intent.newsletter.cta'      => 'Subscribe',
     'exit_intent.show.title'          => 'Before you leave…',
     'exit_intent.show.body'           => 'Interested in this wine? Add it to your cart or favourites to find it easily.',
     'exit_intent.show.cta'            => 'Browse our other wines',
