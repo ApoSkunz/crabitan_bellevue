@@ -447,7 +447,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     public function updateLastLoginAt(int $id): void
     {
         $this->db->execute(
-            "UPDATE {$this->table} SET last_login_at = NOW() WHERE id = ?",
+            "UPDATE {$this->table} SET last_login_at = NOW(), inactivity_warning_sent_at = NULL WHERE id = ?",
             [$id]
         );
     }
