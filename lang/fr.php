@@ -13,6 +13,7 @@ return [
     'nav.home'        => 'Accueil',
     'nav.contact'     => 'Contact',
     'nav.wines'       => 'Boutique',
+    'wines.h1_seo'    => 'Nos Vins — AOC Sainte-Croix-du-Mont',
     'nav.collection'  => 'Collection des vins',
     'collection.intro' => 'Retrouvez toutes les informations de vos millésimes préférés depuis 2010.',
     'nav.news'        => 'Actualités',
@@ -28,7 +29,7 @@ return [
     // Auth
     'auth.login'             => 'Connexion',
     'auth.register'          => 'Créer un compte',
-    'auth.register_subtitle' => 'Profitez de fonctionnalités supplémentaires',
+    'auth.register_subtitle' => 'Suivez vos commandes · Gérez vos favoris · Téléchargez vos factures',
     'auth.email'             => 'Adresse email',
     'auth.password'          => 'Mot de passe',
     'auth.forgot_password'   => 'Mot de passe oublié ?',
@@ -261,6 +262,7 @@ return [
     'error.csrf_expired'  => 'Session expirée pour des raisons de sécurité. Rechargez la page et validez à nouveau.',
 
     // Formulaires
+    'common.breadcrumb'     => 'Fil d\'Ariane',
     'common.close'          => 'Fermer',
     'common.toggle_theme'   => 'Basculer le thème jour / nuit',
     'form.lastname'         => 'Nom',
@@ -370,7 +372,7 @@ return [
     // Homepage - Vin du moment
     'home.featured_tag'      => 'Sélection',
     'home.featured_title'    => 'Le Vin du Moment',
-    'home.featured_cta'      => 'Découvrir',
+    'home.featured_cta'      => 'Commander ce millésime',
     'home.featured_cart_cta' => 'Ajouter au panier',
     'home.featured_badge'    => 'Cuvée Spéciale',
     'home.featured_vintage'  => 'Millésime',
@@ -1029,6 +1031,15 @@ return [
     'checkout.deferred_order_notice'  => 'Votre commande sera expédiée dès réception de votre paiement.',
     'checkout.view_orders'            => 'Voir mes commandes',
     'checkout.continue_shopping'      => 'Continuer mes achats',
+    'wine.exit_intent_title'     => 'Avant de partir…',
+    'wine.exit_intent_body'      => 'Ce vin vous intéresse ? Ajoutez-le à votre panier ou à vos favoris pour le retrouver facilement.',
+    'wine.exit_intent_cta'       => 'Voir nos autres vins',
+    'wine.exit_intent_dismiss'   => 'Non merci',
+    'checkout.reassurance_ssl'          => 'Paiement 100&#8239;% sécurisé',
+    'checkout.reassurance_ca'           => 'Crédit Agricole — partenaire de paiement',
+    'checkout.reassurance_retractation' => 'Droit de rétractation 14&#8239;jours',
+    'checkout.upsell_title'             => 'Vous aimerez aussi',
+    'checkout.upsell_cta'               => 'Voir tous nos vins',
 
     // Stepper tunnel de commande
     'stepper.cart'         => 'Panier',

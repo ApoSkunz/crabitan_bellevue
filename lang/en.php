@@ -12,7 +12,8 @@ return [
     // Navigation
     'nav.home'        => 'Home',
     'nav.contact'     => 'Contact',
-    'nav.wines'       => 'Shop',
+    'nav.wines'       => 'Our Wines',
+    'wines.h1_seo'    => 'Our Wines — Sainte-Croix-du-Mont AOC',
     'nav.collection'  => 'Wine Collection',
     'collection.intro' => 'Find all the details of your favourite vintages since 2010.',
     'nav.news'        => 'News',
@@ -28,7 +29,7 @@ return [
     // Auth
     'auth.login'             => 'Login',
     'auth.register'          => 'Create an account',
-    'auth.register_subtitle' => 'Enjoy additional features',
+    'auth.register_subtitle' => 'Track your orders · Manage your favourites · Download your invoices',
     'auth.email'             => 'Email address',
     'auth.password'          => 'Password',
     'auth.forgot_password'   => 'Forgot password?',
@@ -261,6 +262,7 @@ return [
     'error.csrf_expired'  => 'Session expired for security reasons. Reload the page and submit again.',
 
     // Forms
+    'common.breadcrumb'     => 'Breadcrumb',
     'common.close'          => 'Close',
     'common.toggle_theme'   => 'Toggle day / night theme',
     'form.lastname'         => 'Last name',
@@ -369,7 +371,7 @@ return [
     // Homepage - Featured wine
     'home.featured_tag'      => 'Selection',
     'home.featured_title'    => 'Wine of the Moment',
-    'home.featured_cta'      => 'View this wine',
+    'home.featured_cta'      => 'Order this vintage',
     'home.featured_cart_cta' => 'Add to cart',
     'home.featured_badge'    => 'Special Cuvée',
     'home.featured_vintage'  => 'Vintage',
@@ -1028,6 +1030,15 @@ return [
     'checkout.deferred_order_notice'  => 'Your order will be shipped once your payment is received.',
     'checkout.view_orders'            => 'View my orders',
     'checkout.continue_shopping'      => 'Continue shopping',
+    'wine.exit_intent_title'     => 'Before you leave…',
+    'wine.exit_intent_body'      => 'Interested in this wine? Add it to your cart or favourites to find it easily.',
+    'wine.exit_intent_cta'       => 'Browse our other wines',
+    'wine.exit_intent_dismiss'   => 'No thanks',
+    'checkout.reassurance_ssl'          => '100% secure payment',
+    'checkout.reassurance_ca'           => 'Crédit Agricole — payment partner',
+    'checkout.reassurance_retractation' => '14-day right of withdrawal',
+    'checkout.upsell_title'             => 'You may also like',
+    'checkout.upsell_cta'               => 'Discover all our wines',
 
     // Checkout stepper
     'stepper.cart'         => 'Cart',
