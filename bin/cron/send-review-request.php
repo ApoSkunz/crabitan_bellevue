@@ -21,6 +21,7 @@ $runner = new \Core\CronRunner('send-review-request');
 exit($runner->run(function (callable $log, bool $dryRun): void {
     $orderModel   = new \Model\OrderModel();
     $accountModel = new \Model\AccountModel();
+    $reviewModel  = new \Model\ReviewModel();
     $mailer       = new \Service\MailService();
 
     $orders = $orderModel->getDeliveredForReviewEmail();
@@ -30,6 +31,12 @@ exit($runner->run(function (callable $log, bool $dryRun): void {
         $account = $accountModel->findById((int) $order['user_id']);
         if (!$account) {
             $log('[SKIP] user_id=' . $order['user_id']);
+            continue;
+        }
+
+        if ($reviewModel->findByAccountId((int) $order['user_id']) !== null) {
+            $log('[SKIP already-reviewed] commande #' . $order['id'] . ' user_id=' . $order['user_id']);
+            $orderModel->markReviewEmailSent((int) $order['id']); // marque pour ne plus repasser
             continue;
         }
 
