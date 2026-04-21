@@ -45,6 +45,7 @@ TRUNCATE TABLE `newsletter_subscriptions`;
 TRUNCATE TABLE `newsletter_attachments`;
 TRUNCATE TABLE `newsletters`;
 TRUNCATE TABLE `newsletter_unsubscribes`;
+TRUNCATE TABLE `customer_reviews`;
 TRUNCATE TABLE `wine_nutrition`;
 TRUNCATE TABLE `wine_ratings`;
 TRUNCATE TABLE `order_rating_tokens`;
@@ -653,3 +654,13 @@ INSERT INTO `wine_ratings` (`account_id`, `wine_id`, `order_id`, `rating`, `toke
 (6, 16, 1, 4, NULL, '2026-02-22 11:00:00'),
 (3, 21, 3, 3, NULL, '2026-02-25 09:00:00'),
 (5, 21, 3, 3, NULL, '2026-02-26 10:00:00');
+
+-- ============================================================
+-- CUSTOMER REVIEWS (avis clients globaux — J+21 post-achat)
+-- ============================================================
+
+INSERT INTO `customer_reviews` (`account_id`, `order_id`, `rating`, `comment`, `display_name`, `location`, `created_at`) VALUES
+(3, 1,    5, 'Un Sainte-Croix-du-Mont absolument exceptionnel ! Ces notes de miel et de fruits confits sont incomparables. Je recommande sans hésitation, une véritable découverte qui sublime chaque repas.', 'Sophie D.', 'Paris', '2026-03-10 14:22:00'),
+(4, NULL, 4, 'Qualité au rendez-vous, cela fait plusieurs commandes que je suis fidèle au château. La livraison est soignée, les bouteilles arrivent parfaitement emballées. Très satisfait de mon expérience.', 'Marc L.', 'Lyon', '2026-03-12 09:15:00'),
+(6, NULL, 5, 'Absolutely outstanding wines! The Sainte-Croix-du-Mont is one of the finest sweet wines I have ever tasted. Excellent service, fast delivery and beautifully packaged. Highly recommended.', 'James S.', 'London', '2026-03-15 16:40:00'),
+(7, NULL, 5, 'On sent immédiatement l\'authenticité de ce domaine familial. Des vins sincères, bien typés, qui reflètent parfaitement leur terroir bordelais. Une adresse à conserver précieusement.', 'Claire M.', 'Bordeaux', '2026-03-18 11:05:00');

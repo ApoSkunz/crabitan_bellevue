@@ -20,6 +20,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ============================================================
 -- DROP (ordre FK inverse pour éviter les contraintes)
 -- ============================================================
+DROP TABLE IF EXISTS `customer_reviews`;
 DROP TABLE IF EXISTS `newsletter_subscriptions`;
 DROP TABLE IF EXISTS `admin_logs`;
 DROP TABLE IF EXISTS `audit_log`;
@@ -945,6 +946,28 @@ CREATE TABLE IF NOT EXISTS `order_rating_tokens` (
   INDEX `idx_ort_expires_at` (`expires_at`),
   CONSTRAINT `fk_ort_order` FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ort_account` FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : customer_reviews
+-- Avis global de l'expérience client (1 par compte).
+-- Alimenté depuis l'email post-achat J+21 via un token order_rating_tokens.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `customer_reviews` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `account_id` INT NOT NULL,
+  `order_id` INT NULL DEFAULT NULL,
+  `rating` TINYINT UNSIGNED NOT NULL,
+  `comment` TEXT NULL DEFAULT NULL,
+  `display_name` VARCHAR(100) NOT NULL COMMENT 'Prénom + 1ère lettre nom, ex: Sophie D.',
+  `location` VARCHAR(100) NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_account` (`account_id`),
+  KEY `idx_rating` (`rating`),
+  CONSTRAINT `fk_cr_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_cr_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `chk_cr_rating` CHECK (`rating` BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
