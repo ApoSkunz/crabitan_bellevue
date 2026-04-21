@@ -4,7 +4,7 @@ $exitIntentVariant = 'boutique';
 $activeCuvee = $activeCuvee ?? false;
 $ratings    = $ratings    ?? [];
 $pageTitle  = __('nav.wines');
-$appUrl = APP_BASE_URL;
+$appUrl         = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
 $metaDescription = $navLang === 'en'
     ? 'Discover all Château Crabitan Bellevue wines — Sainte-Croix-du-Mont AOC. Order online.'
     : 'Découvrez tous les vins du Château Crabitan Bellevue — AOC Sainte-Croix-du-Mont. Commandez en ligne.';

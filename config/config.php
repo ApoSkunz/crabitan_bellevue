@@ -10,8 +10,7 @@ foreach ($env ?: [] as $key => $value) {
 
 // Environnement
 defined('APP_ENV')  || define('APP_ENV', $_ENV['APP_ENV']   ?? 'production');
-defined('APP_URL')      || define('APP_URL',      $_ENV['APP_URL'] ?? '');
-defined('APP_BASE_URL') || define('APP_BASE_URL', rtrim(APP_URL, '/'));
+defined('APP_URL')  || define('APP_URL', $_ENV['APP_URL']   ?? '');
 defined('APP_NAME') || define('APP_NAME', $_ENV['APP_NAME'] ?? 'Crabitan Bellevue');
 
 // Affichage des erreurs selon environnement

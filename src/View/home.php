@@ -2,7 +2,7 @@
 $exitIntentVariant = 'newsletter';
 $pageTitle = null; // Pas de titre dans <title> sur la home (château seul suffit)
 $brandName       = 'Château Crabitan Bellevue';
-$appUrl = APP_BASE_URL;
+$appUrl          = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
 $metaDescription = $navLang === 'en'
     ? "{$brandName} — Sainte-Croix-du-Mont AOC wines. Discover our estate and shop online."
     : "{$brandName} — Vins de Sainte-Croix-du-Mont AOC. Découvrez notre domaine et achetez en ligne.";

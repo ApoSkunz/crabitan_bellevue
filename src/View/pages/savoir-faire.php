@@ -4,7 +4,7 @@ $pageTitle       = __('nav.savoir_faire');
 $metaDescription = $navLang === 'en'
     ? 'From vine to cellar: the winemaking expertise of Château Crabitan Bellevue for exceptional Sainte-Croix-du-Mont wines.'
     : 'De la vigne au chai : le savoir-faire du Château Crabitan Bellevue pour des vins de Sainte-Croix-du-Mont d\'exception.';
-$appUrl = APP_BASE_URL;
+$appUrl        = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
 $canonical     = $appUrl . '/' . $navLang . '/savoir-faire';
 $hreflangFr    = $appUrl . '/fr/savoir-faire';
 $hreflangEn    = $appUrl . '/en/savoir-faire';

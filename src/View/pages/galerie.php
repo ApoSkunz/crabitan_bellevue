@@ -4,7 +4,7 @@ $pageTitle       = __('gallery.title');
 $metaDescription = $navLang === 'en'
     ? 'Photo gallery of Château Crabitan Bellevue — vineyard, cellar and estate life in pictures.'
     : 'Galerie photos du Château Crabitan Bellevue — vignoble, chai et vie du domaine en images.';
-$appUrl = APP_BASE_URL;
+$appUrl        = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
 $canonical     = $appUrl . '/' . $navLang . '/galerie';
 $hreflangFr    = $appUrl . '/fr/galerie';
 $hreflangEn    = $appUrl . '/en/galerie';
