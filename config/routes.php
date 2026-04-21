@@ -210,6 +210,12 @@ $router->get('/{lang}/session-expiree', 'AuthController@sessionExpired');
 $router->get('/{lang}/securite/confirmer', 'Account\AccountSecurityController@confirmSecurityAction');
 $router->get('/{lang}/securite/ce-netait-pas-moi', 'Account\AccountSecurityController@denySecurityAction');
 
+// Espace client — Notes vins + Avis global
+$router->get('/{lang}/mon-compte/mes-notes', 'Account\AccountRatingsController@ratings');
+$router->post('/{lang}/mon-compte/mes-notes', 'Account\AccountRatingsController@updateRating');
+$router->get('/{lang}/mon-compte/mon-avis', 'Account\AccountRatingsController@review');
+$router->post('/{lang}/mon-compte/mon-avis', 'Account\AccountRatingsController@updateReview');
+
 // Espace client — Export RGPD
 $router->get('/{lang}/mon-compte/export', 'Account\AccountExportController@exportPage');
 $router->post('/{lang}/mon-compte/export/envoyer', 'Account\AccountExportController@exportSend');

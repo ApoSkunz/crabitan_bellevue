@@ -72,6 +72,50 @@ class ReviewModel extends Model
      * @param int $minRating Note minimum (1–5)
      * @return array<int, array<string, mixed>>
      */
+    /**
+     * Met à jour l'avis d'un compte (note, commentaire, ville).
+     *
+     * @param int    $accountId Identifiant du compte
+     * @param int    $rating    Note entre 1 et 5
+     * @param string $comment   Commentaire libre
+     * @param string $location  Ville / région
+     * @return void
+     */
+    public function update(int $accountId, int $rating, string $comment, string $location): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table}
+                SET rating = ?, comment = ?, location = ?
+              WHERE account_id = ?",
+            [$rating, $comment, $location, $accountId]
+        );
+    }
+
+    /**
+     * Crée ou met à jour l'avis d'un compte depuis l'espace client (sans token).
+     *
+     * INSERT si aucun avis existant, UPDATE sinon.
+     *
+     * @param int    $accountId   Identifiant du compte
+     * @param int    $rating      Note entre 1 et 5
+     * @param string $comment     Commentaire libre
+     * @param string $displayName Prénom + initiale nom
+     * @param string $location    Ville / région
+     * @return void
+     */
+    public function upsert(int $accountId, int $rating, string $comment, string $displayName, string $location): void
+    {
+        $this->db->execute(
+            "INSERT INTO {$this->table} (account_id, rating, comment, display_name, location)
+             VALUES (?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+                rating = VALUES(rating),
+                comment = VALUES(comment),
+                location = VALUES(location)",
+            [$accountId, $rating, $comment, $displayName, $location]
+        );
+    }
+
     public function getRandom(int $count = 3, int $minRating = 4): array
     {
         return $this->db->fetchAll(

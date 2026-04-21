@@ -299,4 +299,53 @@ class RatingModel extends Model
             [$limit]
         );
     }
+
+    /**
+     * Retourne toutes les notes d'un compte avec les infos du vin associé.
+     *
+     * Utilisé pour la page "Mes notes" de l'espace compte.
+     *
+     * @param int $accountId Identifiant du compte
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAllByAccount(int $accountId): array
+    {
+        return $this->db->fetchAll(
+            "SELECT wr.wine_id, wr.rating, wr.created_at, wr.updated_at,
+                    w.label_name, w.vintage, w.slug, w.image_path
+               FROM {$this->table} wr
+               JOIN wines w ON w.id = wr.wine_id
+              WHERE wr.account_id = ?
+                AND wr.rating > 0
+              ORDER BY wr.updated_at DESC, wr.created_at DESC",
+            [$accountId]
+        );
+    }
+
+    /**
+     * Retourne tous les vins commandés par un compte (distincts), avec leur note éventuelle.
+     *
+     * Utilisé pour proposer la notation de tous les vins achetés depuis le compte.
+     *
+     * @param int $accountId Identifiant du compte
+     * @return array<int, array<string, mixed>>
+     */
+    public function getOrderedWinesWithRating(int $accountId): array
+    {
+        return $this->db->fetchAll(
+            "SELECT DISTINCT
+                    w.id AS wine_id, w.label_name, w.vintage, w.slug, w.image_path,
+                    wr.rating, wr.updated_at
+               FROM orders o
+               JOIN JSON_TABLE(o.content, '\$[*]' COLUMNS (
+                    wine_id INT PATH '\$.wine_id'
+               )) jt ON TRUE
+               JOIN wines w ON w.id = jt.wine_id
+               LEFT JOIN {$this->table} wr ON wr.wine_id = w.id AND wr.account_id = ?
+              WHERE o.user_id = ?
+                AND o.status NOT IN ('cancelled', 'refunded')
+              ORDER BY wr.rating IS NULL DESC, w.label_name, w.vintage",
+            [$accountId, $accountId]
+        );
+    }
 }
