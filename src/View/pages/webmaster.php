@@ -128,6 +128,11 @@ $age   = (new \DateTime())->diff($birth)->y;
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task4')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task5')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task6')) ?></li>
+                        </ul>
+                        <p class="cv-timeline__sub-role">
+                            <em><?= htmlspecialchars(__('webmaster.edf_results_label')) ?></em>
+                        </p>
+                        <ul class="cv-timeline__tasks">
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task7')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task8')) ?></li>
                         </ul>
