@@ -879,3 +879,65 @@
         margin: 0 auto 1.5rem;
     }
 }
+
+// ============================================================
+// Review form — avis client
+// ============================================================
+
+.review-form-page {
+    .auth-card {
+        max-width: 560px;
+    }
+}
+
+.review-stars {
+    border: none;
+    padding: 0;
+    margin: 0 0 1.25rem;
+
+    legend {
+        margin-bottom: 0.5rem;
+    }
+
+    &__inputs {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 0.25rem;
+    }
+}
+
+.review-star-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.review-star-label {
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    transition: color 0.15s ease;
+
+    // Étoile sélectionnée ou survol (sens inverse car flex-direction: row-reverse)
+    .review-star-input:checked ~ & {
+        color: var(--color-gold);
+    }
+
+    &:hover,
+    &:hover ~ & {
+        color: var(--color-gold-light);
+    }
+}
+
+.review-form__textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+}
+
+.review-form__location {
+    font-size: 0.95rem;
+}
