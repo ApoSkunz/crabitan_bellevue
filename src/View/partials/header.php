@@ -122,9 +122,6 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                 <?php endforeach; ?>
             </nav>
 
-            <a href="/<?= htmlspecialchars($navLang) ?>/contact" class="header-contact">
-                <?= htmlspecialchars(__('nav.contact')) ?>
-            </a>
         </div>
 
         <p class="header-title" aria-hidden="true">Château Crabitan Bellevue</p>

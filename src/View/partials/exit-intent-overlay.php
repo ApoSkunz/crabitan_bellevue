@@ -48,11 +48,14 @@ $_eiHref         = '/' . htmlspecialchars($_eiLang) . $_eiCfg['path'];
                 <label for="exit-intent-newsletter-email" class="sr-only">
                     <?= htmlspecialchars(__('newsletter.email_placeholder')) ?>
                 </label>
+                <?php $_eiPrefill = isset($footerUserEmail) && $footerUserEmail !== '' ? $footerUserEmail : ''; ?>
                 <input type="email"
                        id="exit-intent-newsletter-email"
                        name="email"
                        placeholder="<?= htmlspecialchars(__('newsletter.email_placeholder')) ?>"
                        autocomplete="email"
+                       value="<?= htmlspecialchars($_eiPrefill) ?>"
+                       <?= $_eiPrefill !== '' ? 'readonly' : '' ?>
                        required>
                 <button type="submit" class="btn btn--gold">
                     <?= htmlspecialchars(__($_eiCfg['cta'])) ?>

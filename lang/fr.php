@@ -369,7 +369,7 @@ return [
         . ' l\'amour du vin. Au chai, l\'élevage accompagne les vins dans leur développement, leur offrant'
         . ' toute la complexité qu\'ils méritent. C\'est ce savoir-faire, transmis de génération en génération,'
         . ' qui donne au Château Crabitan Bellevue son caractère si particulier.',
-    'home.savoir_cta'   => 'Voir nos pratiques',
+    'home.savoir_cta'   => 'Explorer l\'art de la vigne',
 
     // Homepage - Vin du moment
     'home.featured_tag'      => 'Sélection',

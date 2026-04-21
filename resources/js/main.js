@@ -1062,7 +1062,7 @@ function initNewsletterForm() {
     });
 }
 function initExtraNewsletterForms() {
-    const ids = ['exit-intent-newsletter-form', 'wine-newsletter-form'];
+    const ids = ['exit-intent-newsletter-form'];
     ids.forEach((id) => {
         const form = document.getElementById(id);
         if (!form) return;
