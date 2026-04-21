@@ -2,6 +2,19 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.17.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.16.0...v1.17.0) (2026-04-21)
+
+
+### Bug Fixes
+
+* **auth:** sliding age-gate refresh pour tous les utilisateurs authentifiés ([1915ee2](https://github.com/ApoSkunz/crabitan_bellevue/commit/1915ee2838126b8b31428e31f7ea41caee965eb0))
+* **model:** updateLastLoginAt — reset inactivity_warning_sent_at à NULL ([c455e39](https://github.com/ApoSkunz/crabitan_bellevue/commit/c455e39f4e9cabfa3ba30a5ce4e3c16bfcddc2ba))
+
+
+### Features
+
+* **auth:** sliding refresh cookie age-gate sur JWT_REFRESH_THRESHOLD ([8522443](https://github.com/ApoSkunz/crabitan_bellevue/commit/8522443c9dbe8cadee2f24106eb7319f303fa28b))
+
 # [1.16.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.15.0...v1.16.0) (2026-04-21)
 
 
