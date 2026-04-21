@@ -91,7 +91,10 @@ class CronControllerTest extends IntegrationTestCase
             'alert-pending-orders'           => ['alert-pending-orders'],
             'clean-expired-tokens'           => ['clean-expired-tokens'],
             'purge-newsletter-tracking'      => ['purge-newsletter-tracking'],
-            'send-newsletter-queue'          => ['send-newsletter-queue'],
+            'send-newsletter-queue'            => ['send-newsletter-queue'],
+            'send-newsletter-welcome-sequence' => ['send-newsletter-welcome-sequence'],
+            'send-reconquest'                  => ['send-reconquest'],
+            'send-review-request'              => ['send-review-request'],
         ];
     }
 
@@ -548,6 +551,197 @@ class CronControllerTest extends IntegrationTestCase
             "SELECT id FROM newsletter_send_queue WHERE recipient_email = 'adminnl2@test.local'"
         );
         $this->assertFalse($row);
+    }
+
+    // ----------------------------------------------------------------
+    // send-newsletter-welcome-sequence — file vide → log J+7/J+30 0 envoyés
+    // ----------------------------------------------------------------
+
+    public function testSendNewsletterWelcomeSequenceEmptyReturns200(): void
+    {
+        self::$db->execute('UPDATE newsletter_subscriptions SET welcome_j7_sent_at = NOW(), welcome_j30_sent_at = NOW()', []);
+        $output = $this->runJob('send-newsletter-welcome-sequence', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('J+7', $output);
+        $this->assertStringContainsString('J+30', $output);
+    }
+
+    public function testSendNewsletterWelcomeSequenceDryRunJ7Eligible(): void
+    {
+        self::$db->execute(
+            "INSERT INTO newsletter_subscriptions
+             (email, newsletter_token_hash, newsletter_confirmed, lang, created_at)
+             VALUES (?, ?, 1, 'fr', DATE_SUB(NOW(), INTERVAL 8 DAY))",
+            ['welcome-j7@cron-test.com', bin2hex(random_bytes(16))]
+        );
+
+        $output = $this->runJob('send-newsletter-welcome-sequence', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
+        $this->assertStringContainsString('welcome-j7@cron-test.com', $output);
+    }
+
+    public function testSendNewsletterWelcomeSequenceDryRunJ30Eligible(): void
+    {
+        self::$db->execute(
+            "INSERT INTO newsletter_subscriptions
+             (email, newsletter_token_hash, newsletter_confirmed, lang, welcome_j7_sent_at, created_at)
+             VALUES (?, ?, 1, 'fr', DATE_SUB(NOW(), INTERVAL 25 DAY), DATE_SUB(NOW(), INTERVAL 32 DAY))",
+            ['welcome-j30@cron-test.com', bin2hex(random_bytes(16))]
+        );
+
+        $output = $this->runJob('send-newsletter-welcome-sequence', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
+        $this->assertStringContainsString('welcome-j30@cron-test.com', $output);
+    }
+
+    public function testSendNewsletterWelcomeSequenceRealRunJ7SendsAndMarks(): void
+    {
+        self::$db->execute(
+            "INSERT INTO newsletter_subscriptions
+             (email, newsletter_token_hash, newsletter_confirmed, lang, created_at)
+             VALUES (?, ?, 1, 'fr', DATE_SUB(NOW(), INTERVAL 8 DAY))",
+            ['welcome-j7-real@cron-test.com', bin2hex(random_bytes(16))]
+        );
+
+        $output = $this->runJob('send-newsletter-welcome-sequence', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('J+7', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // send-reconquest — aucun client éligible
+    // ----------------------------------------------------------------
+
+    public function testSendReconquestNoEligibleClientsReturns200(): void
+    {
+        $output = $this->runJob('send-reconquest', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('Aucun', $output);
+    }
+
+    public function testSendReconquestDryRunWithEligibleClient(): void
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at, newsletter)
+             VALUES (?, 'hash', 'customer', 'fr', NOW(), 1)",
+            ['reconquest@cron-test.com']
+        );
+
+        $snapId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots (firstname, lastname, street, city, zip, country, phone)
+             VALUES ('Test', 'User', 'Rue Test', 'Bordeaux', '33000', 'FR', '0600000001')",
+            []
+        );
+        self::$db->execute(
+            "INSERT INTO orders (user_id, order_reference, status, price, content, payment_method, cgv_version, id_billing_snapshot, ordered_at)
+             VALUES (?, 'REF-RCQ1', 'delivered', 50.00, '[]', 'card', '1.0', ?, DATE_SUB(NOW(), INTERVAL 14 MONTH))",
+            [$userId, $snapId]
+        );
+
+        $output = $this->runJob('send-reconquest', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
+    }
+
+    public function testSendReconquestRealRunWithEligibleClient(): void
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at, newsletter)
+             VALUES (?, 'hash', 'customer', 'fr', NOW(), 1)",
+            ['reconquest-real@cron-test.com']
+        );
+
+        $snapId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots (firstname, lastname, street, city, zip, country, phone)
+             VALUES ('Test', 'User', 'Rue Test', 'Bordeaux', '33000', 'FR', '0600000002')",
+            []
+        );
+        self::$db->execute(
+            "INSERT INTO orders (user_id, order_reference, status, price, content, payment_method, cgv_version, id_billing_snapshot, ordered_at)
+             VALUES (?, 'REF-RCQ2', 'delivered', 50.00, '[]', 'card', '1.0', ?, DATE_SUB(NOW(), INTERVAL 14 MONTH))",
+            [$userId, $snapId]
+        );
+
+        $output = $this->runJob('send-reconquest', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('client(s)', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // send-review-request — aucune commande éligible
+    // ----------------------------------------------------------------
+
+    public function testSendReviewRequestNoEligibleOrdersReturns200(): void
+    {
+        $output = $this->runJob('send-review-request', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('éligibles', $output);
+    }
+
+    public function testSendReviewRequestDryRunWithEligibleOrder(): void
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW())",
+            ['review-req@cron-test.com']
+        );
+
+        $snapId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots (firstname, lastname, street, city, zip, country, phone)
+             VALUES ('Test', 'User', 'Rue Test', 'Bordeaux', '33000', 'FR', '0600000003')",
+            []
+        );
+        self::$db->execute(
+            "INSERT INTO orders (user_id, order_reference, status, price, content, payment_method, cgv_version, id_billing_snapshot, delivered_at)
+             VALUES (?, 'REF-RVW1', 'delivered', 50.00, '[]', 'card', '1.0', ?, NOW() - INTERVAL 683 HOUR)",
+            [$userId, $snapId]
+        );
+
+        $output = $this->runJob('send-review-request', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
+    }
+
+    public function testSendReviewRequestSkipsAlreadyReviewedAccount(): void
+    {
+        $userId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, role, lang, email_verified_at)
+             VALUES (?, 'hash', 'customer', 'fr', NOW())",
+            ['review-already@cron-test.com']
+        );
+
+        $snapId = (int) self::$db->insert(
+            "INSERT INTO order_address_snapshots (firstname, lastname, street, city, zip, country, phone)
+             VALUES ('Test', 'User', 'Rue Test', 'Bordeaux', '33000', 'FR', '0600000004')",
+            []
+        );
+        self::$db->execute(
+            "INSERT INTO orders (user_id, order_reference, status, price, content, payment_method, cgv_version, id_billing_snapshot, delivered_at)
+             VALUES (?, 'REF-RVW2', 'delivered', 50.00, '[]', 'card', '1.0', ?, NOW() - INTERVAL 683 HOUR)",
+            [$userId, $snapId]
+        );
+
+        self::$db->execute(
+            "INSERT INTO customer_reviews (account_id, rating, comment, display_name, location)
+             VALUES (?, 5, 'Excellent !', 'Test U.', 'Paris')",
+            [$userId]
+        );
+
+        $output = $this->runJob('send-review-request', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('SKIP', $output);
     }
 
     // ----------------------------------------------------------------

@@ -17,7 +17,10 @@ use Core\CronRunner;
  */
 class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes cohérentes au domaine cron — découpage artificiel sans valeur
 {
-    private const CONTENT_TYPE = 'Content-Type: text/plain; charset=utf-8';
+    private const CONTENT_TYPE    = 'Content-Type: text/plain; charset=utf-8';
+    private const APP_URL_FALLBACK = 'https://crabitanbellevue.fr';
+    private const LOG_OK           = '[OK] ';
+    private const LOG_ORDER_REF    = ' commande #';
 
     /**
      * Exécute le job cron demandé après vérification du token.
@@ -553,7 +556,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     {
         $cartModel = new \Model\CartModel();
         $mailer    = new \Service\MailService();
-        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? self::APP_URL_FALLBACK, '/');
 
         $carts = $cartModel->getAbandonedForEmail();
         $log('Paniers éligibles : ' . count($carts));
@@ -570,7 +573,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             try {
                 $mailer->sendAbandonedCart($data['email'], $data['firstname'], $data['items'], $data['lang'], $cartUrl);
                 $cartModel->markReminderSent($data['cart_id']);
-                $log('[OK] ' . $data['email']);
+                $log(self::LOG_OK . $data['email']);
             } catch (\Throwable $e) {
                 $log('[ERR] ' . $data['email'] . ' : ' . $e->getMessage());
             }
@@ -604,7 +607,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             }
 
             if ($dryRun) {
-                $log('[DRY-RUN] Would send post-purchase to ' . $account['email'] . ' commande #' . $order['id']);
+                $log('[DRY-RUN] Would send post-purchase to ' . $account['email'] . self::LOG_ORDER_REF . $order['id']);
                 continue;
             }
 
@@ -622,7 +625,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                     $lang
                 );
                 $orderModel->markRatingEmailSent((int) $order['id']);
-                $log('[OK] ' . $account['email'] . ' commande #' . $order['id']);
+                $log(self::LOG_OK . $account['email'] . self::LOG_ORDER_REF . $order['id']);
             } catch (\Throwable $e) {
                 $log('[ERR] commande #' . $order['id'] . ' : ' . $e->getMessage());
             }
@@ -650,7 +653,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             'tracking' => new \Model\NewsletterTrackingModel(),
             'mailer'   => new \Service\MailService(),
         ];
-        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? self::APP_URL_FALLBACK, '/');
         $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
         $delayMs   = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
 
@@ -1008,7 +1011,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
         $db        = \Core\Database::getInstance();
         $mailer    = new \Service\MailService();
         $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
-        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? self::APP_URL_FALLBACK, '/');
 
         // J+7 : éducation domaine
         $j7Rows = $db->fetchAll(
@@ -1061,7 +1064,6 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             $lang       = (string) ($row['lang'] ?? 'fr');
             $tokenHash  = (string) ($row['newsletter_token_hash'] ?? '');
             $unsubToken = $tokenHash !== '' ? $tokenHash : bin2hex(random_bytes(16));
-            $unsubUrl   = $appUrl . '/' . $lang . '/newsletter/desabonnement?token=' . urlencode($unsubToken);
 
             if ($dryRun) {
                 $log("[DRY-RUN] J+30 would send to {$email}");
@@ -1097,7 +1099,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
         $db        = \Core\Database::getInstance();
         $mailer    = new \Service\MailService();
         $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
-        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? self::APP_URL_FALLBACK, '/');
 
         $rows = $db->fetchAll(
             "SELECT a.id, a.email, a.lang, a.newsletter_unsubscribe_token
@@ -1114,7 +1116,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                AND NOT EXISTS (
                    SELECT 1 FROM orders o
                    WHERE o.user_id = a.id
-                     AND o.created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+                     AND o.ordered_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
                      AND o.status NOT IN ('cancelled', 'refunded')
                )
              LIMIT {$batchSize}"
@@ -1188,7 +1190,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             }
 
             if ($dryRun) {
-                $log('[DRY-RUN] Would send review-request to ' . $account['email'] . ' commande #' . $order['id']);
+                $log('[DRY-RUN] Would send review-request to ' . $account['email'] . self::LOG_ORDER_REF . $order['id']);
                 continue;
             }
 
@@ -1204,7 +1206,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                     $lang
                 );
                 $orderModel->markReviewEmailSent((int) $order['id']);
-                $log('[OK] ' . $account['email'] . ' commande #' . $order['id']);
+                $log(self::LOG_OK . $account['email'] . self::LOG_ORDER_REF . $order['id']);
             } catch (\Throwable $e) {
                 $log('[ERR] commande #' . $order['id'] . ' : ' . $e->getMessage());
             }
