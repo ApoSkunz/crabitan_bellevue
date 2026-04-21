@@ -4,6 +4,10 @@ $pageTitle       = __('footer.credits_medias');
 $metaDescription = $navLang === 'en'
     ? 'Media credits for the Château Crabitan Bellevue website — photos, icons and third-party resources.'
     : 'Crédits médias du site Château Crabitan Bellevue — photos, icônes et ressources tierces.';
+$appUrl     = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$canonical  = $appUrl . '/' . $navLang . '/credits-medias';
+$hreflangFr = $appUrl . '/fr/credits-medias';
+$hreflangEn = $appUrl . '/en/credits-medias';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 

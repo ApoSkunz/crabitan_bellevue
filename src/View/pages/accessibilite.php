@@ -4,6 +4,10 @@ $pageTitle       = __('accessibility.title');
 $metaDescription = $navLang === 'en'
     ? 'Accessibility statement for the Château Crabitan Bellevue website — our commitment to digital inclusion.'
     : 'Déclaration d\'accessibilité du site Château Crabitan Bellevue — notre engagement pour l\'inclusion numérique.';
+$appUrl     = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$canonical  = $appUrl . '/' . $navLang . '/accessibilite';
+$hreflangFr = $appUrl . '/fr/accessibilite';
+$hreflangEn = $appUrl . '/en/accessibilite';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 

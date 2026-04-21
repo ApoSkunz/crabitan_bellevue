@@ -5,6 +5,10 @@ $metaDescription = $navLang === 'en'
     ? 'Customer support for Château Crabitan Bellevue — FAQ, contact and after-sales service.'
     : 'Support client du Château Crabitan Bellevue — FAQ, contact et service après-vente.';
 $isBare    = $bare ?? false;
+$appUrl    = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$canonical  = $appUrl . '/' . $navLang . '/support';
+$hreflangFr = $appUrl . '/fr/support';
+$hreflangEn = $appUrl . '/en/support';
 
 $faqs = [];
 for ($i = 1; $i <= 13; $i++) {

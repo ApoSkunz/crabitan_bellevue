@@ -4,6 +4,14 @@ $pageTitle       = __('nav.news');
 $metaDescription = $navLang === 'en'
     ? 'Latest news from Château Crabitan Bellevue — harvests, events and estate life.'
     : 'Actualités du Château Crabitan Bellevue — vendanges, événements et vie du domaine.';
+$appUrl        = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$canonical     = $appUrl . '/' . $navLang . '/actualites';
+$hreflangFr    = $appUrl . '/fr/actualites';
+$hreflangEn    = $appUrl . '/en/actualites';
+$ogTitle       = __('nav.news') . ' — ' . APP_NAME;
+$ogDescription = $metaDescription;
+$ogImage       = $appUrl . '/assets/images/logo/crabitan-bellevue-logo.png';
+$ogUrl         = $canonical;
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>
@@ -25,12 +33,13 @@ require_once SRC_PATH . '/View/partials/header.php';
                     $introData = json_decode($item['text_content'], true) ?? [];
                     $newsTitle = $titleData[$navLang] ?? ($titleData['fr'] ?? '');
                     $newsIntro = $introData[$navLang] ?? ($introData['fr'] ?? '');
-                    $newsDate  = (new \DateTimeImmutable($item['created_at']))->format('d/m/Y');
+                    $newsDate    = (new \DateTimeImmutable($item['created_at']))->format('d/m/Y');
+                    $newsDateIso = (new \DateTimeImmutable($item['created_at']))->format('Y-m-d');
                     $newsSlug  = $item['slug'] ?? '';
                     ?>
                     <article class="news-card">
                         <div class="news-card__body">
-                            <time class="news-card__date"><?= htmlspecialchars($newsDate) ?></time>
+                            <time class="news-card__date" datetime="<?= htmlspecialchars($newsDateIso) ?>"><?= htmlspecialchars($newsDate) ?></time>
                             <h2 class="news-card__title"><?= htmlspecialchars($newsTitle) ?></h2>
                             <p class="news-card__intro"><?= htmlspecialchars($newsIntro) ?></p>
                         </div>

@@ -9,6 +9,33 @@ $newsImage = $item['image_path'] ?? '';
 
 $pageTitle       = $newsTitle;
 $metaDescription = mb_substr(strip_tags($newsBody), 0, 155);
+$newsDateIso     = (new \DateTimeImmutable($item['created_at']))->format('Y-m-d');
+$newsSlug        = $item['slug'] ?? '';
+$appUrl          = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$canonical       = $appUrl . '/' . $navLang . '/actualites/' . $newsSlug;
+$hreflangFr      = $appUrl . '/fr/actualites/' . $newsSlug;
+$hreflangEn      = $appUrl . '/en/actualites/' . $newsSlug;
+$ogTitle         = $newsTitle . ' — ' . APP_NAME;
+$ogDescription   = $metaDescription;
+$ogImage         = $newsImage !== ''
+    ? $appUrl . '/assets/images/news/' . $newsImage
+    : $appUrl . '/assets/images/logo/crabitan-bellevue-logo.png';
+$ogUrl           = $canonical;
+$jsonLd          = json_encode([
+    '@context'      => 'https://schema.org',
+    '@type'         => 'NewsArticle',
+    'headline'      => $newsTitle,
+    'url'           => $canonical,
+    'datePublished' => $newsDateIso,
+    'image'         => $newsImage !== '' ? [$appUrl . '/assets/images/news/' . rawurlencode($newsImage)] : [],
+    'author'        => ['@type' => 'Organization', 'name' => 'Château Crabitan Bellevue'],
+    'publisher'     => [
+        '@type' => 'Organization',
+        'name'  => 'Château Crabitan Bellevue',
+        'logo'  => ['@type' => 'ImageObject', 'url' => $appUrl . '/assets/images/logo/crabitan-bellevue-logo.png'],
+    ],
+    'description'   => $metaDescription,
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>
@@ -19,7 +46,7 @@ require_once SRC_PATH . '/View/partials/header.php';
             <a href="/<?= htmlspecialchars($navLang) ?>/actualites" class="news-article__back">
                 &#8592; <?= htmlspecialchars(__('news.back')) ?>
             </a>
-            <time class="news-card__date news-card__date--lg"><?= htmlspecialchars($newsDate) ?></time>
+            <time class="news-card__date news-card__date--lg" datetime="<?= htmlspecialchars($newsDateIso) ?>"><?= htmlspecialchars($newsDate) ?></time>
             <h1 class="home-section__title"><?= htmlspecialchars($newsTitle) ?></h1>
             <div class="home-section__divider"></div>
         </header>

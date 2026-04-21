@@ -25,14 +25,16 @@ $breadcrumbLd  = json_encode([
         ['@type' => 'ListItem', 'position' => 3, 'name' => $wineName,       'item' => $canonical],
     ],
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
-$jsonLd        = json_encode([
-    '@context' => 'https://schema.org',
-    '@type'    => 'Product',
-    'name'     => $wineName,
-    'image'    => $ogImage,
+$_avgRating   = $avgRating   ?? null;
+$_ratingCount = $ratingCount ?? 0;
+$jsonLdData   = [
+    '@context'    => 'https://schema.org',
+    '@type'       => 'Product',
+    'name'        => $wineName,
+    'image'       => $ogImage,
     'description' => $metaDescription,
-    'brand'    => ['@type' => 'Brand', 'name' => 'Château Crabitan Bellevue'],
-    'offers'   => [
+    'brand'       => ['@type' => 'Brand', 'name' => 'Château Crabitan Bellevue'],
+    'offers'      => [
         '@type'         => 'Offer',
         'price'         => number_format((float) ($wine['price'] ?? 0), 2, '.', ''),
         'priceCurrency' => 'EUR',
@@ -41,7 +43,17 @@ $jsonLd        = json_encode([
             : 'https://schema.org/OutOfStock',
         'url'           => $canonical,
     ],
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
+];
+if ($_avgRating !== null && $_ratingCount >= 2) {
+    $jsonLdData['aggregateRating'] = [
+        '@type'       => 'AggregateRating',
+        'ratingValue' => number_format($_avgRating, 1),
+        'reviewCount' => $_ratingCount,
+        'bestRating'  => '5',
+        'worstRating' => '1',
+    ];
+}
+$jsonLd = json_encode($jsonLdData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
