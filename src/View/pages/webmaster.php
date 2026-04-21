@@ -4,6 +4,8 @@ $pageTitle       = __('footer.webmaster');
 $metaDescription = $navLang === 'en'
     ? 'Webmaster information for the Château Crabitan Bellevue website — technical details and contacts.'
     : 'Informations webmaster du site Château Crabitan Bellevue — détails techniques et contacts.';
+$seoSlug = 'webmaster';
+require_once SRC_PATH . '/View/partials/seo-meta.php';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
@@ -31,7 +33,11 @@ $age   = (new \DateTime())->diff($birth)->y;
             <div class="cv-header__info">
                 <h2 class="cv-header__name">Alexandre Solane</h2>
                 <p class="cv-header__title"><?= __('webmaster.job_title') ?></p>
-                <p class="cv-header__intro"><?= htmlspecialchars(__('webmaster.intro')) ?></p>
+                <p class="cv-header__intro">
+                    <?= htmlspecialchars(__('webmaster.intro')) ?>
+                    <br><?= htmlspecialchars(__('webmaster.intro_edf')) ?>
+                    <em class="cv-header__signature">01001000 01100101 01101100 01101100 01101111</em>
+                </p>
                 <ul class="cv-header__meta">
                     <li>
                         <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
@@ -97,8 +103,11 @@ $age   = (new \DateTime())->diff($birth)->y;
                             <span class="cv-timeline__company">EDF</span>
                             <span class="cv-timeline__badge"><?= htmlspecialchars(__('webmaster.badge_cdi')) ?></span>
                         </div>
-                        <p class="cv-timeline__role"><?= htmlspecialchars(__('webmaster.edf_role')) ?></p>
-                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.edf_period')) ?></p>
+                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.edf_total_period')) ?></p>
+                        <p class="cv-timeline__sub-role">
+                            <em><?= htmlspecialchars(__('webmaster.edf_role')) ?></em>
+                            · <?= htmlspecialchars(__('webmaster.edf_period')) ?>
+                        </p>
                         <ul class="cv-timeline__tasks">
                             <li><?= htmlspecialchars(__('webmaster.edf_task1')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.edf_task2')) ?></li>
@@ -117,6 +126,13 @@ $age   = (new \DateTime())->diff($birth)->y;
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task4')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task5')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task6')) ?></li>
+                        </ul>
+                        <p class="cv-timeline__sub-role">
+                            <em><?= htmlspecialchars(__('webmaster.edf_results_label')) ?></em>
+                        </p>
+                        <ul class="cv-timeline__tasks">
+                            <li><?= htmlspecialchars(__('webmaster.edf_sub_task7')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_sub_task8')) ?></li>
                         </ul>
                     </div>
                 </li>
@@ -177,6 +193,30 @@ $age   = (new \DateTime())->diff($birth)->y;
             </ol>
         </section>
 
+        <!-- Projets personnels -->
+        <section class="cv-block" aria-labelledby="cv-perso-title">
+            <h3 id="cv-perso-title" class="cv-block__title">
+                <?= htmlspecialchars(__('webmaster.perso_title')) ?>
+            </h3>
+            <ol class="cv-timeline">
+                <li class="cv-timeline__item">
+                    <div class="cv-timeline__dot"></div>
+                    <div class="cv-timeline__content">
+                        <div class="cv-timeline__header">
+                            <span class="cv-timeline__company">G.F.A Bernard Solane &amp; Fils — Château Crabitan Bellevue</span>
+                            <span class="cv-timeline__badge cv-timeline__badge--stage"><?= htmlspecialchars(__('webmaster.badge_perso')) ?></span>
+                        </div>
+                        <p class="cv-timeline__role"><?= htmlspecialchars(__('webmaster.perso_gfa_role')) ?></p>
+                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.perso_gfa_period')) ?></p>
+                        <ul class="cv-timeline__tasks">
+                            <li><?= htmlspecialchars(__('webmaster.perso_gfa_task1')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.perso_gfa_task2')) ?></li>
+                        </ul>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
         <!-- Formation -->
         <section class="cv-block" aria-labelledby="cv-edu-title">
             <h3 id="cv-edu-title" class="cv-block__title">
@@ -198,7 +238,7 @@ $age   = (new \DateTime())->diff($birth)->y;
                         <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.telecom_period')) ?></p>
                         <ul class="cv-timeline__tasks">
                             <li><?= htmlspecialchars(__('webmaster.telecom_task1')) ?></li>
-                            <li><?= htmlspecialchars(__('webmaster.telecom_task2')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.telecom_task4')) ?></li>
                         </ul>
                     </div>
                 </li>
@@ -256,16 +296,17 @@ $age   = (new \DateTime())->diff($birth)->y;
                     <h4 class="cv-skills__cat">DevSecOps / SRE</h4>
                     <ul class="cv-skills__tags">
                         <li>GitLab CI</li><li>Jenkins</li><li>Ansible</li>
-                        <li>SonarQube</li><li>SAST / SCA</li><li>IaC</li>
+                        <li>Terraform</li><li>Docker</li><li>SonarQube</li>
+                        <li>SAST / SCA / DAST / MAST</li><li>IaC</li>
                         <li>ELK</li><li>Kanban / SAFe</li>
                     </ul>
                 </div>
                 <div class="cv-skills__group">
                     <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.skills_dev')) ?></h4>
                     <ul class="cv-skills__tags">
-                        <li>PHP</li><li>MySQL</li><li>JavaScript</li>
+                        <li>PHP</li><li>JavaScript</li>
                         <li>HTML5</li><li>CSS3 / SCSS</li>
-                        <li>Python</li><li>Shell</li><li>Java</li>
+                        <li>Python</li><li>Shell</li><li>PowerShell</li><li>Java</li>
                     </ul>
                 </div>
                 <div class="cv-skills__group">
@@ -278,7 +319,23 @@ $age   = (new \DateTime())->diff($birth)->y;
                     <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.skills_mw')) ?></h4>
                     <ul class="cv-skills__tags">
                         <li>Apache</li><li>JBoss</li><li>Tomcat</li>
-                        <li>PostgreSQL</li><li>OpenSSL</li>
+                        <li>MySQL</li><li>PostgreSQL</li><li>Oracle</li><li>OpenSSL</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Langues -->
+        <section class="cv-block" aria-labelledby="cv-langs-title">
+            <h3 id="cv-langs-title" class="cv-block__title">
+                <?= htmlspecialchars(__('webmaster.langs_title')) ?>
+            </h3>
+            <div class="cv-skills">
+                <div class="cv-skills__group">
+                    <ul class="cv-skills__tags">
+                        <li><?= htmlspecialchars(__('webmaster.lang_fr')) ?></li>
+                        <li><?= htmlspecialchars(__('webmaster.lang_en')) ?></li>
+                        <li><?= htmlspecialchars(__('webmaster.lang_zh')) ?></li>
                     </ul>
                 </div>
             </div>

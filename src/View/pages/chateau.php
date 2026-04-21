@@ -4,6 +4,10 @@ $pageTitle       = __('nav.chateau');
 $metaDescription = $navLang === 'en'
     ? 'Discover the history of Château Crabitan Bellevue, its vineyard and its commitment to Sainte-Croix-du-Mont AOC wines.'
     : 'Découvrez l\'histoire du Château Crabitan Bellevue, son vignoble et son engagement pour les vins de Sainte-Croix-du-Mont AOC.';
+$seoSlug    = 'le-chateau';
+$seoOgTitle = __('nav.chateau') . ' — ' . APP_NAME;
+$seoOgImage = '/assets/images/gallery/premiere-famille-600w.jpg';
+require_once SRC_PATH . '/View/partials/seo-meta.php';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>

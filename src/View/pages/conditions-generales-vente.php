@@ -7,7 +7,8 @@ $metaDescription = $navLang === 'en'
 $isBare       = $bare ?? false;
 $isFr         = $navLang === 'fr';
 $contactEmail = $_ENV['CONTACT_OWNER_EMAIL'];
-
+$seoSlug = 'conditions-generales-de-vente';
+require_once SRC_PATH . '/View/partials/seo-meta.php';
 require_once SRC_PATH . '/View/partials/legal-open.php';
 ?>
 

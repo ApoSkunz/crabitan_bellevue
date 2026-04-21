@@ -4,6 +4,9 @@ $pageTitle       = __('nav.savoir_faire');
 $metaDescription = $navLang === 'en'
     ? 'From vine to cellar: the winemaking expertise of Château Crabitan Bellevue for exceptional Sainte-Croix-du-Mont wines.'
     : 'De la vigne au chai : le savoir-faire du Château Crabitan Bellevue pour des vins de Sainte-Croix-du-Mont d\'exception.';
+$seoSlug    = 'savoir-faire';
+$seoOgTitle = __('nav.savoir_faire') . ' — ' . APP_NAME;
+require_once SRC_PATH . '/View/partials/seo-meta.php';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>

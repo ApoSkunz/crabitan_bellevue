@@ -4,6 +4,9 @@ $pageTitle       = __('nav.contact');
 $metaDescription = $navLang === 'en'
     ? 'Contact Château Crabitan Bellevue for any enquiry about our wines, visits or orders.'
     : 'Contactez le Château Crabitan Bellevue pour toute question sur nos vins, visites ou commandes.';
+$seoSlug    = 'contact';
+$seoOgTitle = __('nav.contact') . ' — ' . APP_NAME;
+require_once SRC_PATH . '/View/partials/seo-meta.php';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>

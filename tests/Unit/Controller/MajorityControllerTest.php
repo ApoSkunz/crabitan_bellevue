@@ -214,6 +214,60 @@ class MajorityControllerTest extends TestCase
         $this->assertArrayNotHasKey('majority_pending', $_SESSION);
     }
 
+    // ----------------------------------------------------------------
+    // sanitizeRedirect — open redirect prevention (VULN-002)
+    // ----------------------------------------------------------------
+
+    /**
+     * URL externe → repli sur /{lang}.
+     */
+    public function testSanitizeRedirectBlocksExternalUrl(): void
+    {
+        $method = new \ReflectionMethod(MajorityController::class, 'sanitizeRedirect');
+        $ctrl   = new MajorityController(new Request());
+        $this->assertSame('/fr', $method->invoke($ctrl, 'https://evil.com', 'fr'));
+    }
+
+    /**
+     * Protocol-relative URL → repli sur /{lang}.
+     */
+    public function testSanitizeRedirectBlocksProtocolRelative(): void
+    {
+        $method = new \ReflectionMethod(MajorityController::class, 'sanitizeRedirect');
+        $ctrl   = new MajorityController(new Request());
+        $this->assertSame('/en', $method->invoke($ctrl, '//evil.com', 'en'));
+    }
+
+    /**
+     * URL-encoded bypass /%2F%2Fevil.com → repli sur /{lang}.
+     */
+    public function testSanitizeRedirectBlocksEncodedBypass(): void
+    {
+        $method = new \ReflectionMethod(MajorityController::class, 'sanitizeRedirect');
+        $ctrl   = new MajorityController(new Request());
+        $this->assertSame('/fr', $method->invoke($ctrl, '/%2F%2Fevil.com', 'fr'));
+    }
+
+    /**
+     * Chemin interne valide → retourné tel quel.
+     */
+    public function testSanitizeRedirectAllowsInternalPath(): void
+    {
+        $method = new \ReflectionMethod(MajorityController::class, 'sanitizeRedirect');
+        $ctrl   = new MajorityController(new Request());
+        $this->assertSame('/fr/vins', $method->invoke($ctrl, '/fr/vins', 'fr'));
+    }
+
+    /**
+     * Chemin interne EN valide.
+     */
+    public function testSanitizeRedirectAllowsEnPath(): void
+    {
+        $method = new \ReflectionMethod(MajorityController::class, 'sanitizeRedirect');
+        $ctrl   = new MajorityController(new Request());
+        $this->assertSame('/en/wines', $method->invoke($ctrl, '/en/wines', 'en'));
+    }
+
     /**
      * Redirect par défaut vers /fr/mon-compte si POST[redirect] absent.
      */

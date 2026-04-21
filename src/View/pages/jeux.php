@@ -4,6 +4,8 @@ $pageTitle       = __('jeux.title');
 $metaDescription = $navLang === 'en'
     ? 'Wine games and activities at Château Crabitan Bellevue — discover our wines in a playful way.'
     : 'Jeux et activités autour des vins du Château Crabitan Bellevue — découvrez nos vins de façon ludique.';
+$seoSlug = 'jeux';
+require_once SRC_PATH . '/View/partials/seo-meta.php';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 

@@ -5,6 +5,8 @@ $metaDescription = $navLang === 'en'
     ? 'Customer support for Château Crabitan Bellevue — FAQ, contact and after-sales service.'
     : 'Support client du Château Crabitan Bellevue — FAQ, contact et service après-vente.';
 $isBare    = $bare ?? false;
+$seoSlug = 'support';
+require_once SRC_PATH . '/View/partials/seo-meta.php';
 
 $faqs = [];
 for ($i = 1; $i <= 13; $i++) {

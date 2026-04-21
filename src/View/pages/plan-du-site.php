@@ -4,6 +4,8 @@ $pageTitle       = __('footer.sitemap');
 $metaDescription = $navLang === 'en'
     ? 'Sitemap of the Château Crabitan Bellevue website — find all our pages easily.'
     : 'Plan du site du Château Crabitan Bellevue — retrouvez facilement toutes nos pages.';
+$seoSlug = 'plan-du-site';
+require_once SRC_PATH . '/View/partials/seo-meta.php';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 

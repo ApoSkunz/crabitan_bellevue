@@ -7,6 +7,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 // Constantes runtime
 define('APP_ENV', 'testing');
 define('APP_URL', 'http://localhost');
+define('APP_BASE_URL', 'http://localhost');
 define('APP_NAME', 'Crabitan Bellevue Test');
 define('DEFAULT_LANG', 'fr');
 define('SUPPORTED_LANGS', ['fr', 'en']);

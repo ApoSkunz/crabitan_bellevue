@@ -560,8 +560,13 @@ return [
     'webmaster.bio'           => 'Website designed and developed by Alexandre Solane, full-stack web developer.',
     'webmaster.job_title'     => 'Lead Application Integration Engineer — DevSecOps &amp; SRE',
     'webmaster.intro'         =>
-        'Passionate about computing since my first introductory classes in high school,'
-        . ' sparked by a mathematics teacher who ignited my curiosity…',
+        'In secondary school, my mathematics teacher introduced us to programming on the TI-82'
+        . ' — and that is where it all began. Preparatory school deepened this passion through'
+        . ' algorithmics and problem-solving. Engineering school only confirmed it:'
+        . ' I am driven by a discipline that draws me in, intrigues me, and fascinates me.',
+    'webmaster.intro_edf'     =>
+        'Today I have the privilege of putting my skills to use in a stimulating Management / Industrial IS environment,'
+        . ' in service of the public electricity network.',
     'webmaster.years_old'     => 'years old',
     'webmaster.exp_title'     => 'Professional Experience',
     'webmaster.edu_title'     => 'Education',
@@ -575,10 +580,25 @@ return [
     // Webmaster — Badges
     'webmaster.badge_cdi'   => 'Permanent',
     'webmaster.badge_stage' => 'Internship',
+    'webmaster.badge_perso' => 'Personal project',
+
+    // Webmaster — Languages
+    'webmaster.langs_title' => 'Languages',
+    'webmaster.lang_fr'     => 'French — native language',
+    'webmaster.lang_en'     => 'English — TOEIC 830 (B2/C1)',
+    'webmaster.lang_zh'     => 'Mandarin Chinese — LV2',
+
+    // Webmaster — Personal Projects
+    'webmaster.perso_title'       => 'Personal Projects',
+    'webmaster.perso_gfa_role'    => 'Full Stack Developer — Architect & Webmaster',
+    'webmaster.perso_gfa_period'  => '2020 → present · Sainte-Croix-du-Mont',
+    'webmaster.perso_gfa_task1'   => 'Redesign of showcase site into e-commerce (2020): PHP, MySQL, JS, Crédit Agricole payment, OWASP Top 10, ~50 user & admin pages',
+    'webmaster.perso_gfa_task2'   => 'Full 2026 rewrite powered by agentic AI (Claude Code — Sonnet & Opus): custom MVC from scratch, JWT, Google OAuth, MFA, GDPR/CNIL, CI/CD GitHub Actions, SonarCloud, OWASP cyber audit',
 
     // Webmaster — EDF (main role Jan. 2025 → present)
-    'webmaster.edf_role'        => 'Lead Application Integration Engineer — DevSecOps & SRE',
-    'webmaster.edf_period'      => 'Jan. 2025 → present · Digital Division, EDF · Lyon, hybrid',
+    'webmaster.edf_role'         => 'Lead Application Integration Engineer — DevSecOps & SRE',
+    'webmaster.edf_total_period' => 'Nov. 2023 → present · Digital Division, EDF · Lyon, hybrid',
+    'webmaster.edf_period'       => 'Jan. 2025 → present',
     'webmaster.edf_task1'       => 'Strengthening CI/CD pipeline reliability',
     'webmaster.edf_task2'       => 'Launch of the Zéro Obso community: proactive and automated obsolescence management through the PreObs innovation (automated Roadmap: SCA middleware & Infra)',
     'webmaster.edf_task3'       => 'Innovation relay for the Nuclear Production IT department: fostering innovation and recognising talented employees — jury member for the CAP INNO challenge',
@@ -592,12 +612,15 @@ return [
     'webmaster.edf_sub_task3'   => 'Experimenting with DORA metrics to measure DevOps performance',
     'webmaster.edf_sub_task4'   => 'Common architecture for Automated Deployments (Ansible, IaC)',
     'webmaster.edf_sub_task5'   => 'SRE: continuous monitoring, alerting, resilience from scratch, zero obsolescence',
-    'webmaster.edf_sub_task6'   => 'Co-designing on the development of a cyber strategy: Horizon Zéro Vulnérabilité — participation in the DPNT 2025 challenge',
+    'webmaster.edf_sub_task6'   => 'Collaboration on the development and implementation of a cyber strategy: Horizon Zéro Vulnérabilité — participation in the DPNT 2025 challenge',
+    'webmaster.edf_sub_task7'   => '30% reduction in vulnerabilities (critical & high prioritised), +20% progressive software quality improvement, deployment time cut from 2h to 30 min',
+    'webmaster.edf_sub_task8'   => 'Middleware patch / hotfix capability in under 1h across ~10 applications',
+    'webmaster.edf_results_label' => 'Overall outcomes (Nov. 2023 → present)',
 
     // Webmaster — Capgemini (main role)
     'webmaster.capgemini_role'      => 'DevOps Engineer — System Team Leader SAFe',
     'webmaster.capgemini_period'    => 'Aug. 2021 → Nov. 2023 · 2 years 4 months · Lyon',
-    'webmaster.capgemini_task1'     => 'DevOps Team Leader coordinating 3 engineers on a SAFe Train',
+    'webmaster.capgemini_task1'     => 'DevOps Team Leader coordinating 3 engineers on a SAFe Train spanning around ten applications around data and nuclear production visualisation for EDF',
     'webmaster.capgemini_task2'     => 'Automated deployment: GitLab CI, Jenkins, Ansible',
     'webmaster.capgemini_task3'     => 'Automated monitoring: observability, alerting',
     'webmaster.capgemini_task4'     => 'Multi-middleware technical support and continuous integration',
@@ -606,7 +629,7 @@ return [
     'webmaster.capgemini_sub_period' => 'Feb.–Aug. 2021 · 7 months',
     'webmaster.capgemini_sub_task1'  => 'Maintaining a Continuous Integration platform (GitLab, Jenkins) and developing Jenkins CI/CD shared libraries',
     'webmaster.capgemini_sub_task2'  => 'POC Asqatasun / Tanaguru (RGAA & GreenIT compliance), backup and artifact retention policy',
-    'webmaster.capgemini_sub_task3'  => 'Internship focused on CI/CD, automated GreenIT, monitoring, alerting',
+    'webmaster.capgemini_sub_task3'  => 'CI/CD monitoring and alerting setup, security intrusion detection alerts (SEC)',
     'webmaster.capgemini_sub_task4'  => 'GitLab, Jenkins, SonarQube, ELK, Python, Shell',
 
     // Webmaster — GFA Bernard Solane & Fils
@@ -626,12 +649,14 @@ return [
     'webmaster.telecom_period'  => '2018 – 2021 · Saint-Étienne',
     'webmaster.telecom_task1'   => 'Specialisations: Java Academy, High Performance Programming',
     'webmaster.telecom_task2'   => 'TOEIC 830',
+    'webmaster.telecom_task3'   => 'Chinese (LV2 — second language)',
+    'webmaster.telecom_task4'   => 'Treasurer of FATSE (Fédération des Associations de Télécom Saint-Étienne) · Honorary member',
     'webmaster.cpge_degree'     => 'Preparatory School',
     'webmaster.cpge_role'       => 'Physics-Chemistry — Mathematics, physics, engineering sciences',
-    'webmaster.cpge_period'     => '2015 – 2018',
+    'webmaster.cpge_period'     => '2015 – 2018 · Lycée Louis Barthou, Pau',
     'webmaster.bac_degree'      => 'A-levels',
-    'webmaster.bac_role'        => 'Science stream',
-    'webmaster.bac_period'      => '2015',
+    'webmaster.bac_role'        => 'Science stream — Mathematics specialisation',
+    'webmaster.bac_period'      => '2015 · Lycée François Mauriac, Bordeaux',
     'webmaster.oc_badge'        => 'Self-learning',
     'webmaster.oc_role'         => 'Ongoing online courses: web development, DevOps, security, project management',
     'webmaster.oc_period'       => '2015 → present',

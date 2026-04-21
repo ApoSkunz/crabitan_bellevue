@@ -84,7 +84,9 @@ require_once __DIR__ . '/../partials/header.php';
 
             if (data.status === 'ok') {
                 clearInterval(timer);
-                window.location.href = data.redirect || '/';
+                var dest = data.redirect || '/';
+                try { if (new URL(dest, location.origin).origin !== location.origin) { dest = '/'; } } catch (_) { dest = '/'; }
+                window.location.href = dest;
             } else if (data.status === 'expired') {
                 clearInterval(timer);
                 showDenied();
