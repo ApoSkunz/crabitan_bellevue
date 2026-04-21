@@ -4,14 +4,9 @@ $pageTitle       = __('nav.news');
 $metaDescription = $navLang === 'en'
     ? 'Latest news from Château Crabitan Bellevue — harvests, events and estate life.'
     : 'Actualités du Château Crabitan Bellevue — vendanges, événements et vie du domaine.';
-$appUrl = APP_BASE_URL;
-$canonical     = $appUrl . '/' . $navLang . '/actualites';
-$hreflangFr    = $appUrl . '/fr/actualites';
-$hreflangEn    = $appUrl . '/en/actualites';
-$ogTitle       = __('nav.news') . ' — ' . APP_NAME;
-$ogDescription = $metaDescription;
-$ogImage       = $appUrl . '/assets/images/logo/crabitan-bellevue-logo.png';
-$ogUrl         = $canonical;
+$seoSlug    = 'actualites';
+$seoOgTitle = __('nav.news') . ' — ' . APP_NAME;
+require_once SRC_PATH . '/View/partials/seo-meta.php';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>

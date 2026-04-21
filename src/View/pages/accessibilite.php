@@ -4,10 +4,8 @@ $pageTitle       = __('accessibility.title');
 $metaDescription = $navLang === 'en'
     ? 'Accessibility statement for the Château Crabitan Bellevue website — our commitment to digital inclusion.'
     : 'Déclaration d\'accessibilité du site Château Crabitan Bellevue — notre engagement pour l\'inclusion numérique.';
-$appUrl = APP_BASE_URL;
-$canonical  = $appUrl . '/' . $navLang . '/accessibilite';
-$hreflangFr = $appUrl . '/fr/accessibilite';
-$hreflangEn = $appUrl . '/en/accessibilite';
+$seoSlug = 'accessibilite';
+require_once SRC_PATH . '/View/partials/seo-meta.php';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 

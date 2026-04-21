@@ -4,10 +4,8 @@ $pageTitle       = __('footer.webmaster');
 $metaDescription = $navLang === 'en'
     ? 'Webmaster information for the Château Crabitan Bellevue website — technical details and contacts.'
     : 'Informations webmaster du site Château Crabitan Bellevue — détails techniques et contacts.';
-$appUrl = APP_BASE_URL;
-$canonical  = $appUrl . '/' . $navLang . '/webmaster';
-$hreflangFr = $appUrl . '/fr/webmaster';
-$hreflangEn = $appUrl . '/en/webmaster';
+$seoSlug = 'webmaster';
+require_once SRC_PATH . '/View/partials/seo-meta.php';
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
