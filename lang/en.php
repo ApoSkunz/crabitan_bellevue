@@ -614,6 +614,7 @@ return [
     'webmaster.edf_sub_task5'   => 'SRE: continuous monitoring, alerting, resilience from scratch, zero obsolescence',
     'webmaster.edf_sub_task6'   => 'Collaboration on the development and implementation of a cyber strategy: Horizon Zéro Vulnérabilité — participation in the DPNT 2025 challenge',
     'webmaster.edf_sub_task7'   => 'CI/CD outcomes: 30% reduction in vulnerabilities (critical & high prioritised), +20% progressive software quality improvement, deployment time cut from 2h to 30 min',
+    'webmaster.edf_sub_task8'   => 'Automation & industrialisation: middleware patch / hotfix capability in under 1h across 16 applications',
 
     // Webmaster — Capgemini (main role)
     'webmaster.capgemini_role'      => 'DevOps Engineer — System Team Leader SAFe',

@@ -129,6 +129,7 @@ $age   = (new \DateTime())->diff($birth)->y;
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task5')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task6')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task7')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_sub_task8')) ?></li>
                         </ul>
                     </div>
                 </li>
