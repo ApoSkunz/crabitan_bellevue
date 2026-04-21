@@ -348,4 +348,178 @@ class RatingModelTest extends TestCase
         $this->assertCount(2, $result);
         $this->assertSame('4.8', $result[0]['avg_rating']);
     }
+
+    // ----------------------------------------------------------------
+    // getFirstOrderId
+    // ----------------------------------------------------------------
+
+    /**
+     * getFirstOrderId retourne un int si une commande est trouvée.
+     */
+    public function testGetFirstOrderIdReturnsIntWhenFound(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(['id' => 5]);
+
+        $result = $this->model->getFirstOrderId(1, 2);
+        $this->assertSame(5, $result);
+    }
+
+    /**
+     * getFirstOrderId retourne null si aucune commande.
+     */
+    public function testGetFirstOrderIdReturnsNullWhenNotFound(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $this->assertNull($this->model->getFirstOrderId(1, 2));
+    }
+
+    // ----------------------------------------------------------------
+    // allWinesRated
+    // ----------------------------------------------------------------
+
+    /**
+     * allWinesRated retourne true sans query si la liste est vide.
+     */
+    public function testAllWinesRatedReturnsTrueForEmptyList(): void
+    {
+        $this->dbMock
+            ->expects($this->never())
+            ->method('fetchOne');
+
+        $this->assertTrue($this->model->allWinesRated(1, []));
+    }
+
+    /**
+     * allWinesRated retourne true si tous les vins sont notés.
+     */
+    public function testAllWinesRatedReturnsTrueWhenAllRated(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(['cnt' => '3']);
+
+        $this->assertTrue($this->model->allWinesRated(1, [10, 20, 30]));
+    }
+
+    /**
+     * allWinesRated retourne false si la liste est incomplète.
+     */
+    public function testAllWinesRatedReturnsFalseWhenNotAllRated(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(['cnt' => '1']);
+
+        $this->assertFalse($this->model->allWinesRated(1, [10, 20, 30]));
+    }
+
+    // ----------------------------------------------------------------
+    // getOrderedWinesWithRating
+    // ----------------------------------------------------------------
+
+    /**
+     * getOrderedWinesWithRating retourne [] si aucune commande.
+     */
+    public function testGetOrderedWinesWithRatingReturnsEmptyWhenNoOrders(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([]);
+
+        $result = $this->model->getOrderedWinesWithRating(1);
+        $this->assertSame([], $result);
+    }
+
+    /**
+     * getOrderedWinesWithRating fait 2 appels fetchAll et retourne les vins avec notes.
+     */
+    public function testGetOrderedWinesWithRatingReturnsMappedWines(): void
+    {
+        $orders = [
+            ['content' => json_encode([['wine_id' => 3], ['wine_id' => 7]])],
+        ];
+        $wines = [
+            ['wine_id' => 3, 'label_name' => 'Vin A', 'vintage' => 2020, 'slug' => 'vin-a', 'image_path' => null, 'is_cuvee_speciale' => 0, 'rating' => 4, 'updated_at' => null],
+            ['wine_id' => 7, 'label_name' => 'Vin B', 'vintage' => 2021, 'slug' => 'vin-b', 'image_path' => null, 'is_cuvee_speciale' => 0, 'rating' => null, 'updated_at' => null],
+        ];
+
+        $this->dbMock
+            ->expects($this->exactly(2))
+            ->method('fetchAll')
+            ->willReturnOnConsecutiveCalls($orders, $wines);
+
+        $result = $this->model->getOrderedWinesWithRating(1);
+        $this->assertCount(2, $result);
+        $this->assertSame(3, $result[0]['wine_id']);
+    }
+
+    /**
+     * getOrderedWinesWithRating retourne [] si le contenu JSON ne contient aucun wine_id valide.
+     */
+    public function testGetOrderedWinesWithRatingReturnsEmptyWhenNoValidWineIds(): void
+    {
+        $orders = [
+            ['content' => json_encode([['foo' => 'bar']])],
+        ];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn($orders);
+
+        $result = $this->model->getOrderedWinesWithRating(1);
+        $this->assertSame([], $result);
+    }
+
+    // ----------------------------------------------------------------
+    // generateOrderToken
+    // ----------------------------------------------------------------
+
+    /**
+     * generateOrderToken retourne le token existant si déjà présent.
+     */
+    public function testGenerateOrderTokenReturnsExistingToken(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(['token' => 'existingtoken123']);
+
+        $this->dbMock
+            ->expects($this->never())
+            ->method('execute');
+
+        $result = $this->model->generateOrderToken(1, 2);
+        $this->assertSame('existingtoken123', $result);
+    }
+
+    /**
+     * generateOrderToken génère et stocke un nouveau token si aucun n'existe.
+     */
+    public function testGenerateOrderTokenCreatesNewTokenWhenNoneExists(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute');
+
+        $result = $this->model->generateOrderToken(1, 2);
+        $this->assertIsString($result);
+        $this->assertSame(64, strlen($result));
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $result);
+    }
 }

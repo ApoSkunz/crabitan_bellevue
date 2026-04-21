@@ -142,4 +142,65 @@ class ReviewModelTest extends TestCase
 
         $this->makeModel($db)->getRandom(2, 5);
     }
+
+    // ----------------------------------------------------------------
+    // getStats
+    // ----------------------------------------------------------------
+
+    /**
+     * getStats retourne null si aucun avis (cnt = 0).
+     */
+    public function testGetStatsReturnsNullWhenNoReviews(): void
+    {
+        $db = $this->createStub(Database::class);
+        $db->method('fetchOne')->willReturn(['avg' => null, 'cnt' => '0']);
+
+        $this->assertNull($this->makeModel($db)->getStats());
+    }
+
+    /**
+     * getStats retourne null si fetchOne retourne false.
+     */
+    public function testGetStatsReturnsNullWhenFetchOneFalse(): void
+    {
+        $db = $this->createStub(Database::class);
+        $db->method('fetchOne')->willReturn(false);
+
+        $this->assertNull($this->makeModel($db)->getStats());
+    }
+
+    /**
+     * getStats retourne ['avg' => float, 'count' => int] quand des avis existent.
+     */
+    public function testGetStatsReturnsArrayWhenReviewsExist(): void
+    {
+        $db = $this->createStub(Database::class);
+        $db->method('fetchOne')->willReturn(['avg' => '4.5', 'cnt' => '3']);
+
+        $result = $this->makeModel($db)->getStats();
+
+        $this->assertIsArray($result);
+        $this->assertSame(4.5, $result['avg']);
+        $this->assertSame(3, $result['count']);
+    }
+
+    // ----------------------------------------------------------------
+    // upsert
+    // ----------------------------------------------------------------
+
+    /**
+     * upsert appelle execute avec les bons paramètres.
+     */
+    public function testUpsertCallsExecute(): void
+    {
+        $db = $this->createMock(Database::class);
+        $db->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->stringContains('INSERT INTO'),
+                $this->callback(fn($p) => $p[0] === 1 && $p[1] === 5)
+            );
+
+        $this->makeModel($db)->upsert(1, 5, 'Super vin', 'Sophie D.', 'Paris');
+    }
 }
