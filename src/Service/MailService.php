@@ -32,6 +32,9 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private const PAYMENT_LABEL_CHEQUE  = 'Chèque';
     private const WINE_IMAGE_PATH       = '/assets/images/wines/';
     private const COL_UNIT_EN           = 'Unit price';
+    private const SALUTATION_FR         = 'Madame, Monsieur';
+    private const SALUTATION_EN         = 'Dear Customer';
+    private const PATH_CATALOG          = '/vins';
     private const COL_UNIT_FR           = 'Prix unitaire';
     private const SUBJECT_RESET_FR      = 'Réinitialisation de votre mot de passe';
 
@@ -2172,7 +2175,7 @@ INNER;
         string $confirmToken = ''
     ): void {
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
-        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $defaultName = $lang === 'fr' ? self::SALUTATION_FR : self::SALUTATION_EN;
         $safeName    = $firstname !== '' ? htmlspecialchars($firstname, ENT_QUOTES) : $defaultName;
         $greeting    = $lang === 'fr' ? "Bonjour {$safeName}," : "Hello {$safeName},";
 
@@ -2250,7 +2253,7 @@ INNER;
             ? 'Bienvenue dans la newsletter Crabitan Bellevue'
             : 'Welcome to the Crabitan Bellevue newsletter';
 
-        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $defaultName = $lang === 'fr' ? self::SALUTATION_FR : self::SALUTATION_EN;
         $safeName    = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : $defaultName;
         $greeting = $lang === 'fr' ? "Bonjour {$safeName}," : "Hello {$safeName},";
 
@@ -2288,9 +2291,9 @@ INNER;
     {
         $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
-        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $defaultName = $lang === 'fr' ? self::SALUTATION_FR : self::SALUTATION_EN;
         $safeName    = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : $defaultName;
-        $catalogUrl  = htmlspecialchars($appUrl . '/' . $lang . '/vins', ENT_QUOTES);
+        $catalogUrl  = htmlspecialchars($appUrl . '/' . $lang . self::PATH_CATALOG, ENT_QUOTES);
 
         if ($lang === 'fr') {
             $subject  = 'Le savoir-faire de Sainte-Croix-du-Mont — Château Crabitan Bellevue';
@@ -2340,9 +2343,9 @@ INNER;
     {
         $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
-        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $defaultName = $lang === 'fr' ? self::SALUTATION_FR : self::SALUTATION_EN;
         $safeName    = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : $defaultName;
-        $catalogUrl  = htmlspecialchars($appUrl . '/' . $lang . '/vins', ENT_QUOTES);
+        $catalogUrl  = htmlspecialchars($appUrl . '/' . $lang . self::PATH_CATALOG, ENT_QUOTES);
         $unsubUrl    = htmlspecialchars($appUrl . '/' . $lang . '/newsletter/desabonnement?token=' . urlencode($unsubToken), ENT_QUOTES);
 
         if ($lang === 'fr') {
@@ -2395,9 +2398,9 @@ INNER;
     {
         $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
-        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $defaultName = $lang === 'fr' ? self::SALUTATION_FR : self::SALUTATION_EN;
         $safeName    = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : $defaultName;
-        $catalogUrl  = htmlspecialchars($appUrl . '/' . $lang . '/vins', ENT_QUOTES);
+        $catalogUrl  = htmlspecialchars($appUrl . '/' . $lang . self::PATH_CATALOG, ENT_QUOTES);
         $safeUnsub   = htmlspecialchars($unsubUrl, ENT_QUOTES);
 
         if ($lang === 'fr') {
@@ -3528,7 +3531,7 @@ HTML;
             . $winesHtml
             . '</table>';
 
-        $catalogUrl   = htmlspecialchars($appUrl . '/' . $lang . '/vins', ENT_QUOTES);
+        $catalogUrl   = htmlspecialchars($appUrl . '/' . $lang . self::PATH_CATALOG, ENT_QUOTES);
         $crossSellLabel = $lang === 'fr' ? 'Découvrir nos autres cuvées' : 'Explore our other vintages';
         $crossSellBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">'
             . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
