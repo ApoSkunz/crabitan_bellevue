@@ -50,7 +50,7 @@ class ReviewController extends Controller
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
      */
-    public function show(array $params): void
+    public function show(array $params): void // NOSONAR php:S1142 — guard clauses légitimes (token vide / invalide / expiré / déjà évalué)
     {
         $lang  = $this->resolveLang($params);
         $token = trim($this->request->get('token', ''));
@@ -222,7 +222,7 @@ class ReviewController extends Controller
      * @param array<string, mixed>|false $account Ligne compte (avec firstname / lastname)
      * @return string Display name formaté, ex. « Sophie D. »
      */
-    private function buildDisplayName(array|false $account): string
+    private function buildDisplayName(array|false $account): string // NOSONAR php:S1142
     {
         if ($account === false) {
             return 'Client';

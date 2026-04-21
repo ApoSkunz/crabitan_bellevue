@@ -1142,8 +1142,7 @@ INNER;
      * @param string               $lang            Langue du client ('fr' ou 'en')
      * @return void
      */
-    // NOSONAR php:S107 — 8 paramètres requis pour composer l'email de confirmation complet
-    public function sendOrderConfirmationToClient(
+    public function sendOrderConfirmationToClient( // NOSONAR php:S107 — 8 paramètres requis pour composer l'email de confirmation complet
         string $toEmail,
         string $toName,
         string $orderRef,
@@ -1274,8 +1273,7 @@ INNER;
      * @param float                $total         Total TTC en euros
      * @return void
      */
-    // NOSONAR php:S107 — 8 paramètres requis pour le récap commande + PDF joint
-    public function sendOrderConfirmationToOwner(
+    public function sendOrderConfirmationToOwner( // NOSONAR php:S107 — 8 paramètres requis pour le récap commande + PDF joint
         string $clientEmail,
         string $clientName,
         string $orderRef,
@@ -1360,8 +1358,7 @@ INNER;
      * @param string                           $labelTotal Libellé ligne total
      * @return string HTML du tableau
      */
-    // NOSONAR php:S107 — 9 paramètres requis pour générer le tableau articles email
-    private function buildOrderItemsTable(
+    private function buildOrderItemsTable( // NOSONAR php:S107 — 9 paramètres requis pour générer le tableau articles email
         array $items,
         float $total,
         string $colName,
@@ -1439,8 +1436,7 @@ INNER;
      * @param int     $orderId         Identifiant de la commande pour le CTA (optionnel)
      * @return void
      */
-    // NOSONAR php:S107 — 10 paramètres requis (statuts multiples, i18n, tracking, items)
-    public function sendOrderStatusEmail(
+    public function sendOrderStatusEmail( // NOSONAR php:S107 — 10 paramètres requis (statuts multiples, i18n, tracking, items)
         string $toEmail,
         string $toName,
         string $orderRef,
@@ -1544,8 +1540,7 @@ INNER;
      * @param  int    $orderId         ID de la commande pour le CTA direct
      * @return array{string, string, string, string}  [subject, title, greeting, message]
      */
-    // NOSONAR php:S107 — 8 paramètres requis (statuts FR + items + adresse + tracking)
-    private function buildOrderStatusContentFr(
+    private function buildOrderStatusContentFr( // NOSONAR php:S107 — 8 paramètres requis (statuts FR + items + adresse + tracking)
         string $status,
         string $safeRef,
         string $safeName,
@@ -1658,8 +1653,7 @@ INNER;
      * @param  int    $orderId         ID de la commande pour le CTA direct
      * @return array{string, string, string, string}  [subject, title, greeting, message]
      */
-    // NOSONAR php:S107 — 8 paramètres requis (statuts EN + items + adresse + tracking)
-    private function buildOrderStatusContentEn(
+    private function buildOrderStatusContentEn( // NOSONAR php:S107 — 8 paramètres requis (statuts EN + items + adresse + tracking)
         string $status,
         string $safeRef,
         string $safeName,
@@ -4113,8 +4107,7 @@ HTML;
      * @param string $changeNote Résumé des modifications (optionnel)
      * @return void
      */
-    // NOSONAR php:S107 — 8 paramètres nécessaires pour l'email légal bilingue
-    public function sendLegalDocumentUpdate(
+    public function sendLegalDocumentUpdate( // NOSONAR php:S107 — 8 paramètres nécessaires pour l'email légal bilingue
         string $to,
         string $name,
         string $lang,

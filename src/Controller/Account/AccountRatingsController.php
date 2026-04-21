@@ -144,9 +144,11 @@ class AccountRatingsController extends AbstractAccountController
         $account     = $this->userRepo->findById($userId);
         $firstname   = trim((string) ($account['firstname'] ?? ''));
         $lastname    = trim((string) ($account['lastname']  ?? ''));
-        $displayName = $firstname !== '' && $lastname !== ''
-            ? $firstname . ' ' . strtoupper(substr($lastname, 0, 1)) . '.'
-            : ($firstname ?: 'Client');
+        if ($firstname !== '' && $lastname !== '') {
+            $displayName = $firstname . ' ' . strtoupper(substr($lastname, 0, 1)) . '.';
+        } else {
+            $displayName = $firstname !== '' ? $firstname : 'Client';
+        }
 
         $this->reviews->upsert($userId, $rating, $comment, $displayName, $location);
 
