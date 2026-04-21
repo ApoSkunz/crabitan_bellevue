@@ -71,7 +71,23 @@ class AuthMiddleware
             return $model->refreshExpiry($t, $expiry);
         };
 
-        SessionTtlRefresher::maybeRefresh($payload, $token, $isRememberMe, $refresher);
+        $refreshed = SessionTtlRefresher::maybeRefresh($payload, $token, $isRememberMe, $refresher);
+
+        // Sliding refresh du cookie age-gate quand le JWT approche de son expiration.
+        // S'applique à tout utilisateur ayant passé la vérification d'âge (age_verified présent).
+        // TTL : 13 mois si "se souvenir" coché, 24 h sinon — cohérent avec AgeGateController.
+        if ($refreshed && isset($_COOKIE['age_verified'])) {
+            $ageTtl = isset($_COOKIE['age_remember'])
+                ? (397 * 24 * 3600)   // AgeGateController::COOKIE_TTL
+                : (24 * 3600);         // AgeGateController::COOKIE_TTL_DEFAULT
+            setcookie('age_verified', '1', [
+                'expires'  => time() + $ageTtl,
+                'path'     => '/',
+                'secure'   => isset($_SERVER['HTTPS']),
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+        }
 
         return $payload;
     }
