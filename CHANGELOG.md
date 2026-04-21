@@ -2,6 +2,29 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.16.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.15.0...v1.16.0) (2026-04-21)
+
+
+### Bug Fixes
+
+* **mail:** expliciter applySmtpConfig sur 11 fonctions sans canal défini ([5407127](https://github.com/ApoSkunz/crabitan_bellevue/commit/5407127e200ef260103c2b029fff8de8be78242b))
+* **mail:** wording resetAdminBody — "votre demande auprès de l'équipe d'administration" ([e73c745](https://github.com/ApoSkunz/crabitan_bellevue/commit/e73c745403f9725e341590b02426b75fbe98b49a))
+* **seo:** robots.txt — déclarer les 3 sitemaps explicitement ([1952b73](https://github.com/ApoSkunz/crabitan_bellevue/commit/1952b73c0b1c4f3bf6ecd517af34e7c8c2c6ef96))
+* **sonar:** 7 code smells — constantes + NOSONAR S1448 ([8dbd994](https://github.com/ApoSkunz/crabitan_bellevue/commit/8dbd99407f46ca843c9de14907a03b4968e2c054))
+* **tests:** corriger failure getAllSlugs + débloquer 2 tests skipped RGPD ([c82b548](https://github.com/ApoSkunz/crabitan_bellevue/commit/c82b548d8a9f30d9c42992103a21722a9894cbe9))
+* **tests:** corriger failure sitemap + débloquer TI fallback JSON export ([aadb5b6](https://github.com/ApoSkunz/crabitan_bellevue/commit/aadb5b6e3c752e4d8ac2d4fb16d1bebe6f2ba5d3))
+
+
+### Features
+
+* **admin:** colonne nb commandes + has_password dans getForAdmin ([b871b27](https://github.com/ApoSkunz/crabitan_bellevue/commit/b871b27d277adadbcc5b91cc3d08159717ed2041))
+* **admin:** envoi lien réinitialisation mot de passe depuis vue comptes ([c480f91](https://github.com/ApoSkunz/crabitan_bellevue/commit/c480f91327d4dfa376e07706221010ac4c58383b))
+* **admin:** vue comptes — colonne Cmdes + bouton Réinit. mdp ([eb2ee62](https://github.com/ApoSkunz/crabitan_bellevue/commit/eb2ee6240fa3c3f5ad723471ccc8dccbd542fa09))
+* **mail:** sendAdminPasswordReset — texte différencié reset initié par admin ([bc8c5ae](https://github.com/ApoSkunz/crabitan_bellevue/commit/bc8c5aeb1df11ad62779af4ad651de3c661509c1))
+* **seo:** sitemap complet — 39 vins, FR>EN priorités, pages manquantes ([8ad077a](https://github.com/ApoSkunz/crabitan_bellevue/commit/8ad077a889c0bf91e695b434077bfba4c4b15bcc))
+* **seo:** sitemap-media — carousel, gallery, news, cv + titres explicites ([69c60e1](https://github.com/ApoSkunz/crabitan_bellevue/commit/69c60e162388b7d2cce7064fc6e2a6a957103477))
+* **seo:** sitemap-media.xml + sitemap-index.xml — images vins et vidéo ([31b2b67](https://github.com/ApoSkunz/crabitan_bellevue/commit/31b2b67895ea0f8188307481b91bb9169351a52f))
+
 # [1.15.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.14.0...v1.15.0) (2026-04-20)
 
 
