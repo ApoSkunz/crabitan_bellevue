@@ -226,6 +226,14 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                class="header-nav__link<?= $isActive('/vins/collection') ?>">
                 <span><?= htmlspecialchars(__('nav.collection')) ?></span>
             </a>
+            <a href="/<?= htmlspecialchars($navLang) ?>/actualites"
+               class="header-nav__link<?= $isActive('/actualites') ?>">
+                <span><?= htmlspecialchars(__('nav.news')) ?></span>
+            </a>
+            <a href="/<?= htmlspecialchars($navLang) ?>/contact"
+               class="header-nav__link<?= $isActive('/contact') ?>">
+                <span><?= htmlspecialchars(__('nav.contact')) ?></span>
+            </a>
         </div>
     </nav>
 
