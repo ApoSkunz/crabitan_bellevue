@@ -269,22 +269,22 @@ $age   = (new \DateTime())->diff($birth)->y;
                 <div class="cv-skills__group">
                     <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.skills_dev')) ?></h4>
                     <ul class="cv-skills__tags">
-                        <li>PHP</li><li>MySQL</li><li>JavaScript</li>
+                        <li>PHP</li><li>JavaScript</li>
                         <li>HTML5</li><li>CSS3 / SCSS</li>
-                        <li>Python</li><li>Shell</li><li>Java</li>
+                        <li>Python</li><li>Shell</li><li>PowerShell</li><li>Java</li>
                     </ul>
                 </div>
                 <div class="cv-skills__group">
                     <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.skills_sys')) ?></h4>
                     <ul class="cv-skills__tags">
-                        <li>Linux</li><li>AIX</li><li>Windows Server</li><li>PowerShell</li>
+                        <li>Linux</li><li>AIX</li><li>Windows Server</li>
                     </ul>
                 </div>
                 <div class="cv-skills__group">
                     <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.skills_mw')) ?></h4>
                     <ul class="cv-skills__tags">
                         <li>Apache</li><li>JBoss</li><li>Tomcat</li>
-                        <li>PostgreSQL</li><li>Oracle</li><li>OpenSSL</li>
+                        <li>MySQL</li><li>PostgreSQL</li><li>Oracle</li><li>OpenSSL</li>
                     </ul>
                 </div>
             </div>
