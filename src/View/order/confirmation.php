@@ -20,7 +20,8 @@ $isDeferred      = in_array($paymentMethod, ['virement', 'cheque'], true);
 $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
 ?>
 
-<?php $checkoutStep = 3; require_once SRC_PATH . '/View/partials/checkout-stepper.php'; ?>
+<?php $checkoutStep = 3;
+require_once SRC_PATH . '/View/partials/checkout-stepper.php'; ?>
 
 <main class="page-confirmation" id="main-content">
     <div class="page-hero page-hero--dark">
@@ -34,7 +35,10 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
 
         <div class="confirmation-card">
             <div class="confirmation-card__header">
-                <svg class="confirmation-card__icon" aria-hidden="true" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="confirmation-card__icon" aria-hidden="true"
+                     width="48" height="48" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="1.5"
+                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                     <polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
@@ -87,7 +91,9 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
                 </div>
                 <?php else : ?>
                 <div class="confirmation-bank-details">
-                    <h2 class="confirmation-bank-details__title"><?= htmlspecialchars(__('checkout.cheque_send_to')) ?></h2>
+                    <h2 class="confirmation-bank-details__title">
+                        <?= htmlspecialchars(__('checkout.cheque_send_to')) ?>
+                    </h2>
                     <address class="confirmation-bank-details__address">
                         G.F.A Bernard Solane &amp; Fils<br>
                         1 Château Crabitan Bellevue<br>
@@ -113,7 +119,9 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
             <div class="confirmation-addresses">
                 <?php if ($billingName !== '') : ?>
                 <div class="confirmation-address-block">
-                    <h2 class="confirmation-address-block__title"><?= htmlspecialchars(__('checkout.billing_address')) ?></h2>
+                    <h2 class="confirmation-address-block__title">
+                        <?= htmlspecialchars(__('checkout.billing_address')) ?>
+                    </h2>
                     <address class="confirmation-address-block__body">
                         <?= htmlspecialchars($billingName) ?><br>
                         <?= htmlspecialchars((string) ($order['bill_street'] ?? '')) ?><br>
@@ -125,7 +133,9 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
 
                 <?php if ($hasDelivery) : ?>
                 <div class="confirmation-address-block">
-                    <h2 class="confirmation-address-block__title"><?= htmlspecialchars(__('checkout.delivery_address')) ?></h2>
+                    <h2 class="confirmation-address-block__title">
+                        <?= htmlspecialchars(__('checkout.delivery_address')) ?>
+                    </h2>
                     <address class="confirmation-address-block__body">
                         <?= htmlspecialchars($deliveryName) ?><br>
                         <?= htmlspecialchars((string) ($order['del_street'] ?? '')) ?><br>
@@ -147,11 +157,15 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
                         $qty     = (int)   ($item['qty']   ?? 1);
                         $price   = (float) ($item['price'] ?? 0.0);
                         $isCuvee = (bool)  ($item['is_cuvee_speciale'] ?? false);
-                    ?>
+                        ?>
                     <li class="confirmation-items__item">
                         <span>
                             <?= htmlspecialchars($name) ?>
-                            <?php if ($isCuvee) : ?><span class="checkout-summary__item-cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span><?php endif; ?>
+                            <?php if ($isCuvee) : ?>
+                                <span class="checkout-summary__item-cuvee">
+                                    <?= htmlspecialchars(__('wine.cuvee_speciale')) ?>
+                                </span>
+                            <?php endif; ?>
                             × <?= $qty ?>
                         </span>
                         <span><?= number_format($price * $qty, 2, ',', ' ') ?>&nbsp;€</span>
@@ -187,23 +201,25 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
                     <?= htmlspecialchars(__('checkout.continue_shopping')) ?>
                 </a>
             </div>
-            <?php if (!$isDeferred) : ?>
             <p class="confirmation-card__redirect" id="js-redirect-notice">
                 <?= htmlspecialchars(__('checkout.redirect_prefix')) ?>
                 <strong id="js-countdown">45</strong>
                 <?= htmlspecialchars(__('checkout.redirect_suffix')) ?>
+                <button type="button" id="js-redirect-cancel" class="confirmation-card__redirect-cancel">
+                    <?= htmlspecialchars(__('checkout.redirect_cancel')) ?>
+                </button>
             </p>
-            <?php endif; ?>
         </div>
 
     </section>
 </main>
 
-<?php if (!$isDeferred) : ?>
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {
     var seconds  = 45;
     var counter  = document.getElementById('js-countdown');
+    var cancel   = document.getElementById('js-redirect-cancel');
+    var notice   = document.getElementById('js-redirect-notice');
     var url      = '/<?= htmlspecialchars($lang) ?>/mon-compte/commandes';
     var timer    = setInterval(function () {
         seconds--;
@@ -213,8 +229,13 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
             window.location.href = url;
         }
     }, 1000);
+    if (cancel) {
+        cancel.addEventListener('click', function () {
+            clearInterval(timer);
+            if (notice) { notice.style.display = 'none'; }
+        });
+    }
 })();
 </script>
-<?php endif; ?>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

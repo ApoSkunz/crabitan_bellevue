@@ -470,7 +470,8 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                         </p>
                         <?php endif; ?>
                         <button type="submit" class="btn btn--gold checkout-summary__cta">
-                            <?= htmlspecialchars(__('checkout.submit')) ?>
+                            <span><?= htmlspecialchars(__('checkout.submit')) ?></span>
+                            <span class="checkout-summary__cta-price"><?= number_format($total, 2, ',', ' ') ?>&nbsp;€ TTC</span>
                         </button>
 
                         <a href="/<?= htmlspecialchars($lang) ?>/panier" class="checkout-summary__back">
