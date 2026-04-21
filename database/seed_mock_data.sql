@@ -322,20 +322,20 @@ INSERT INTO `addresses`
 VALUES
 -- Sophie (id 3) — facturation + livraison sauvegardées
 -- street/phone chiffrés AES-256-GCM (ENC:) — clé = DB_ENCRYPT_KEY du .env local
-(1, 3, 'billing',  'Sophie', 'Durand',   'F', 'ENC:eaLdtbB9i50+wyewc5P5V8DzjB5FoagKPKMMPL0NzbjlnpTLgQm8xeYnGB4/',    'Bordeaux',  '33000', 'France', 'ENC:9AZgpT9iIv3fEctBebKE/0p8T38b//6FGE08kL9p2UWzgFFl81k=', 1),
-(2, 3, 'delivery', 'Sophie', 'Durand',   'F', 'ENC:uO6OF0/75E15yeBnqcNSRyFzl64xb9Ie4WVtIYQ/0zJUigUjZVw3uGmkUw6c',    'Bordeaux',  '33000', 'France', 'ENC:+I9WHEXwKi06m1fhHMS/51BK9FPiMW1cvraVEgoEWsRqvaHdYZk=', 1),
-(3, 3, 'delivery', 'Sophie', 'Durand',   'F', 'ENC:0E6WybIQ5G0Ck5msFy1jLzCVR21fvOvitlonsIvhr7Trg5MuvkQc2EUhGzFfNwjbfw==', 'Mérignac',  '33700', 'France', 'ENC:uYmpU5EMzJcKzHXv828ugNY/Uf9t+MppnAc2fwloVdK+VXaww9g=', 1),
+(1, 3, 'billing',  'Sophie', 'Durand',   'F', 'ENC:C9FNWsCLQrKRBKuqri8IJ+sjddU3Vuk1XgVlFx4P00vJK0DOJ63VI8DT4okR9R1I',    'Bordeaux',  '33000', 'France', 'ENC:kSeMrb6+EJI2vqZ5cj2QGOrPdfKpsxBNRrAwR2NVlNgGSiTtD8eB5P8jigk2', 1),
+(2, 3, 'delivery', 'Sophie', 'Durand',   'F', 'ENC:TDSE+yMB90EbRUKuVGl9fAOO0Sx9BlntOCKV/UTCCOp7vAN8mJ8R0i/ajgU8k+ft',    'Bordeaux',  '33000', 'France', 'ENC:X7TwXC/KcD1+VkyIqcuAp60kyp0ROo4vEbpqY8WD9hGpSSyK4SpBtpfiXNrT', 1),
+(3, 3, 'delivery', 'Sophie', 'Durand',   'F', 'ENC:nPtUmRXiPRVQ0GcLB6HexU/kzACMkfuF2uTmiANbchGQjDfsdsdGXmRCZ0cIhU2n', 'Mérignac',  '33700', 'France', 'ENC:PAGluEk+XZe1SVprsao3CfKT8x2nn99K38k1w5JyCx6DKtZfZT257lytLWBC', 1),
 -- Les Caves du Sud (id 5)
-(4, 5, 'billing',  'Pierre', 'Moreau',   'M', 'ENC:OFq6GTH+6t7ykRu7ivKvBQ6P/byjLS/8pSOIU7nQZdtpMjtU/q8IoGT5mPACJDkf', 'Toulouse',  '31000', 'France', 'ENC:lRyuzFM2GUSLtq6Xw336PdhetI8vmXDub8eEOck0BFdDCWPPOig=', 1),
-(5, 5, 'delivery', 'Pierre', 'Moreau',   'M', 'ENC:DEjyJF9WvW7Bthk7fJvrDpq9iDD6spdP5/QOHvI8H+/3YUUQWvbsasKtQTzXYcIg', 'Toulouse',  '31000', 'France', 'ENC:A36D9e3KAjZX2ElkayZ8wdbX5F5NekjbNS6rcLCQmDTI6FIUB7o=', 1),
+(4, 5, 'billing',  'Pierre', 'Moreau',   'M', 'ENC:Y8HDGyUoiY4okWQmeNNn9PemjZmWyW1WD6mJJVulw1TXmc3ioVpZDlpB7rvRIZYjZQ==', 'Toulouse',  '31000', 'France', 'ENC:M79NAN3+7IEbksiRgN0UuYHyhxEGYYXrr7D3mX+AOSgvOm0p5Z2Zd6uMNIFz', 1),
+(5, 5, 'delivery', 'Pierre', 'Moreau',   'M', 'ENC:AQs5oIm+T5Y5IbfZYNy/BC5TQH2p+OQgJ8W/5WCq9tyzXKYNHFkT1UE6WcavtBbSdQ==', 'Toulouse',  '31000', 'France', 'ENC:WMO1LgPupJL0rfa0LKFx+ODb0mXdS6O9TPyQPoymtGNB3Uy0U2a66SJA+Gw4', 1),
 -- James Smith (id 6)
-(6, 6, 'billing',  'James',  'Smith',    'M', 'ENC:eEVdCIrKi2r0aStMmeT61oc2yWjTqBeOy0v1X2I58EjKn6p0NYYGMJQLEg==',      'London',    'W1U 3BW', 'United Kingdom', 'ENC:fTXAl/sUc0mt9KUEMT0dho6c39C9QBM4ETWSrkirM42lIbSSFMHUrtE=', 1),
+(6, 6, 'billing',  'James',  'Smith',    'M', 'ENC:rSytDl4Bip3lm2JopZxB6I3QNuXKM1Lpz0XwePBHVTali4lZiTvURKVXSd8=',      'London',    'W1U 3BW', 'United Kingdom', 'ENC:bBaT36YBcoQPwQoISXizqVYaKi/EnIXuCXfBxndW7mRBpqvGM+e6L8L+5Ac=', 1),
 -- Admin (id 2) — pour test admin
-(7, 2, 'billing',  'Admin',  'Test',     'M', 'ENC:PZ8NgMm3kinPDuNWNG4XWV8MxLHxGj95l15+wgJgRNcJL5c4F+5AWgEmr3HOIg==',   'Paris',     '75001', 'France', 'ENC:yu4G+S8gY/0pnwuYhZuFi7ek9Go9q0zmAS2PliwOQKrQJ6OWNok=', 1),
+(7, 2, 'billing',  'Admin',  'Test',     'M', 'ENC:Eg4ZgB1XFjsBeZabfOvRbjWq4PaLl7jMI5jRo8+lPDSsG7SNVMHWA9+JjolUsAEgBfAoUNg=',   'Paris',     '75001', 'France', 'ENC:dw5i91AdzIUc/P44KofbTDsP90AaKQfMlUNdF8G1wMxOVkAB7YSb44R0ECci', 1),
 -- Claire Martin (id 7, soft-deleted) — adresse préservée pour commande livrée → cible purge_addresses.php
-(8, 7, 'delivery', 'Claire', 'Martin',   'F', 'ENC:FhOoFi4WnvN5OEeIGDng0CjBEsvrznDIdAQLFlFaMNfQ3MFNdQlBBpYmZg==',      'Lyon',      '69002', 'France', 'ENC:vsZie93DrCNQkVpYDUour2xWDlR07NkMr3crUQss/efX/0YA=', 0),
+(8, 7, 'delivery', 'Claire', 'Martin',   'F', 'ENC:Mbp3LIGm1WVHUOvOTtEIrc0Gv5FxxVHBUqHcteLwVgKy5SRMNINTLKFGzcI=',      'Lyon',      '69002', 'France', 'ENC:EHM+S0RSepDa/KVIUZpcUvpdOVvhX7t4niOLecVFCadZ8OLsCeLVaCQI/9GN', 0),
 -- Client protégé (id 11) — adresse pour commande pending
-(9, 11, 'billing',  'Test', 'Protege', 'M', 'ENC:XgJthMO5r2mDBYGv37TOHz/3yuOB8bn5xBLYAwE/rKzQitaccd9Vh1uH1w==', 'Paris', '75001', 'France', 'ENC:gWLvNweeEG+JEwinwbYbIe1Uozc0CAnUIVYR68NaEb0hpwavDmM=', 0);
+(9, 11, 'billing',  'Test', 'Protege', 'M', 'ENC:FTBKzEcsYFkgkrGDKDD0Cc0Nl+K6WkMKvmkmvK9j96WFXbXauUbozcGL+vM=', 'Paris', '75001', 'France', 'ENC:12DQ9gMj5x8zzEiexS+umN7vqScGBlM4XvQK+dFahm3RYAvW/QO3wzqsKLRG', 0);
 
 UPDATE `addresses` SET `preserved_for_order` = 1 WHERE `id` = 8;
 
@@ -350,24 +350,24 @@ INSERT INTO `order_address_snapshots`
 VALUES
 -- street/phone chiffrés AES-256-GCM (ENC:) — clé = DB_ENCRYPT_KEY du .env local
 -- snapshot 1 : adresse id=1 (Sophie facturation)
-(1, 1, 'F', 'Sophie', 'Durand', 'ENC:A2vPiRMVkNoyKvNORvLGwYcPGe40pUiAOeY4tOAY7IOXmSmNSkerUjOQxShF', 'Bordeaux', '33000', 'France', 'ENC:Zm5oD5LFblIz3181xF1BomlEHxOAVQuZY6YmORLQd7joR48DNSc='),
+(1, 1, 'F', 'Sophie', 'Durand', 'ENC:TQd/KN5v/3A/Lm3o6lhuw3E88yDTx1PL6awMIuQexWGD5z1IMQ4yR/RgzF8LdP2l', 'Bordeaux', '33000', 'France', 'ENC:lNhrW+9cfS1i2jdi3aprE4uj2EPhmssNDUjdWSHq4Jv2T+t5SYm4zLxrKlvT'),
 -- snapshot 2 : adresse id=2 (Sophie livraison)
-(2, 2, 'F', 'Sophie', 'Durand', 'ENC:NboXs1vRaXrBFT9t/VkjlL3+9Dmu5jNMcATw85faR5JVfK+82OYYP1YC3G3y', 'Bordeaux', '33000', 'France', 'ENC:Zc8JdHwY/phO8L27KtlvO95u+7nnSQQ8QMc3djaFhC8u9YgyIc8='),
+(2, 2, 'F', 'Sophie', 'Durand', 'ENC:031yIHaiaNyPJJRPuMzZu5z5evrdJEjGs/TeT/QTScY4E77go/2lfcby6cAca4jH', 'Bordeaux', '33000', 'France', 'ENC:/SGKyKSd04M0NjHHnNSrYS7vtkocEEDdJsylkSkBsR7NqTYWuWdMow5MkNii'),
 -- snapshot 3 : adresse id=4 (Pierre Moreau facturation)
-(3, 4, 'M', 'Pierre', 'Moreau', 'ENC:MG/6KnCkTi20qAuXjDTo85WpLq4Ce8RJBtfXkbTsAjIkTfxb0y3BmEhZTWeBi4L0', 'Toulouse', '31000', 'France', 'ENC:Bk5seTJ7dKDQMP8JlYhlLdSa5ctI7YG5lZkVntrT1TpVgv9Ua7Y='),
+(3, 4, 'M', 'Pierre', 'Moreau', 'ENC:VLMBW+zvYNPjZyw49QF0jGgey3dOq3Q8gbMrNB8KsoAAaeEtzp7dhPuoJADylaU7gg==', 'Toulouse', '31000', 'France', 'ENC:P7D0F599DS+s8H9sYWr8jVkXmBI0Emq7ddAik4mKRdysw9N6jmtQjVoFOsoy'),
 -- snapshot 4 : adresse id=5 (Pierre Moreau livraison)
-(4, 5, 'M', 'Pierre', 'Moreau', 'ENC:L0iXxuMLb4HKKWbPx86pmbGmvGYGXXpgsqmxXKjfPDkOOaVrVawix44Ev+vUs+8e', 'Toulouse', '31000', 'France', 'ENC:O6pK3L2kXO4OSUhGW/gkdF2o9ta3v2sybhcahsrwzblahXnTCgI='),
+(4, 5, 'M', 'Pierre', 'Moreau', 'ENC:F8BF0mhCC46+Y4iJrO9OtTr3pqSak5826cEyOS64WdiIhcTP3aAG/8ROLSsuADdb9w==', 'Toulouse', '31000', 'France', 'ENC:WAVDgSDwZ5GrtWpacu8MQz/RFe576hN9sAEVEoeMrWnH8aA5y2QkTdGuJsXD'),
 -- snapshot 5 : adresse id=7 (Admin facturation)
-(5, 7, 'M', 'Admin', 'Test', 'ENC:OZeiv+U7YuQMs9o2QnuxhU3ZqkcIZhjPlxXtuBcoQKewXD04MvF8/lv78lsygQ==', 'Paris', '75001', 'France', 'ENC:F5E40e/sPKVdB7ctiLEfo/KuTNUwPNwySziuDWzC2B+qwrfvrkU='),
+(5, 7, 'M', 'Admin', 'Test', 'ENC:XAnH+yIlxtv5drfvW/MxApL0m7ea29Wzapbr4g7QBN0LZL6r9oR55CE3X9Mpe9bTksZkq7Y=', 'Paris', '75001', 'France', 'ENC:yDNQkaqzDjbHFimr+m04AN+KEOjI7zkHaC68Aep3QU2LLxi3uy5wg5uEfP4L'),
 -- snapshots 6-7 : commandes archivées (> 10 ans) — données personnelles non pseudonymisées
-(6, NULL, 'M', 'Henri', 'Archivé', 'ENC:gHJUjT8VQwcF6B/S/tX0KpckZfFymxia1TyaOrPfb4PixgCTH3Sl65llESHFcFKm', 'Lyon', '69001', 'France', 'ENC:GLSo3nzy1Xqb3VysV93S11rU6zaMDFxCx3CXN2nMX0nuiHphrk0='),
-(7, NULL, 'F', 'Lucie', 'Ancienne', 'ENC:/SG6V3mcp4aBk0eOHmJokXYxIm2U5Rp1jFvmOYMmQYUUHlOTqU1rDukK', 'Nantes', '44000', 'France', 'ENC:NbLil67y+X+RYf9CmSGP9Daww5ShXFhjhZFRNksqOj3VXN7LB2I='),
+(6, NULL, 'M', 'Henri', 'Archivé', 'ENC:eg2KeOSVvCBBuzIX02GjDhFj+4i0K4ZTEJQJjw/hLaHp0ysKPAPo5NrIeg8=', 'Lyon', '69001', 'France', 'ENC:RL3mlBNZaq3T1CkQqDcs+axQDPXDGXb/G+sxvM2EooI80meuyLidZEAZ50EK'),
+(7, NULL, 'F', 'Lucie', 'Ancienne', 'ENC:DDk5c4yD4/ZQlL6VvqzK7gJg5MbtY1Brf4v3Wq/Cft8jSVUMSWOoq93WserJKE0=', 'Nantes', '44000', 'France', 'ENC:CCgBp/42MMAidml+AinvRoFoTpiFFfNqhnM1n4lPg/A2q9ypyMBFg+FqDR0+'),
 -- snapshot 8 : déjà pseudonymisé (simule cron déjà passé) — street/phone vides, pseudonymized_at SET plus bas
 (8, NULL, 'M', 'XXXXX', 'XXXXX', 'XXXXX', 'Marseille', '13001', 'France', ''),
 -- snapshot 9 : adresse id=8 (Claire Martin id 7, commande livrée — preserved_for_order=1)
-(9, 8, 'F', 'Claire', 'Martin', 'ENC:+VX/TS/FFhG12GPimt1kc24A7gXQjh9YJyK4LCs14aTPIk3R25ALnelzKw==', 'Lyon', '69002', 'France', 'ENC:4Pgp/ijWk6lL5MTw5Qm63CFXngXnMjO3pBfL7DnDNEEFxc0OxLU='),
+(9, 8, 'F', 'Claire', 'Martin', 'ENC:ZGcHZ44JUw2Oq3EMHJUypiWuvlzjkgI8I9ao6R02KkTqeQ9w+eBmV2vLIxA=', 'Lyon', '69002', 'France', 'ENC:QfIZRlOJZLYCuSfXGTZgmSiSLqElL23/Z37259NGKfOk7wIz+kPcLaom+Z3I'),
 -- snapshot 10 : adresse id=9 (Test Protege id 11, commande pending)
-(10, 9, 'M', 'Test', 'Protege', 'ENC:qX6JSHkNQ3jLp3h63PcpA3/ZpBd+dfl1NkpeFse1LQvVVFCUMGUL2rNsoQ==', 'Paris', '75001', 'France', 'ENC:fTBbO5JZXJyRN/5paivpV5QtPq8R0xCOsH1QkAPXdp+fItgYSPo=');\n\nALTER TABLE `order_address_snapshots` AUTO_INCREMENT = 11;
+(10, 9, 'M', 'Test', 'Protege', 'ENC:+W2iap8kRJRIhTPxS/zeTRAq88gjgCQtNZxpuC+G2FTCkb0b7jJ1FGaGkg0=', 'Paris', '75001', 'France', 'ENC:Gfc4qcEaiBKre86GgjV1vqbcIRIGQhGInhUNTtBB9HSLcP/UiOAe8eSYdxUd');\n\nALTER TABLE `order_address_snapshots` AUTO_INCREMENT = 11;
 
 UPDATE `order_address_snapshots` SET `pseudonymized_at` = '2015-04-05 02:00:00' WHERE `id` = 8;
 
