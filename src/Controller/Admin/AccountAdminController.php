@@ -12,8 +12,9 @@ use Service\MailService;
 
 class AccountAdminController extends AdminController
 {
-    private const ALLOWED_PER_PAGE = [10, 25, 50];
-    private const DEFAULT_PER_PAGE = 10;
+    private const ALLOWED_PER_PAGE   = [10, 25, 50];
+    private const DEFAULT_PER_PAGE   = 10;
+    private const REDIRECT_ACCOUNTS  = '/admin/comptes';
 
     // ----------------------------------------------------------------
     // GET /admin/comptes
@@ -78,7 +79,7 @@ class AccountAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/comptes');
+            Response::redirect(self::REDIRECT_ACCOUNTS);
         }
 
         $id      = (int) $params['id'];
@@ -95,7 +96,7 @@ class AccountAdminController extends AdminController
         );
 
         $this->flash('success', "Compte #{$id} vérifié avec succès.");
-        Response::redirect('/admin/comptes');
+        Response::redirect(self::REDIRECT_ACCOUNTS);
     }
 
     // ----------------------------------------------------------------
@@ -114,7 +115,7 @@ class AccountAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/comptes');
+            Response::redirect(self::REDIRECT_ACCOUNTS);
         }
 
         $id      = (int) $params['id'];
@@ -123,12 +124,12 @@ class AccountAdminController extends AdminController
 
         if (!$row) {
             $this->flash('error', "Compte #{$id} introuvable.");
-            Response::redirect('/admin/comptes');
+            Response::redirect(self::REDIRECT_ACCOUNTS);
         }
 
         if ($row['password'] === null) {
             $this->flash('error', "Compte #{$id} est un compte Google — pas de mot de passe à réinitialiser.");
-            Response::redirect('/admin/comptes');
+            Response::redirect(self::REDIRECT_ACCOUNTS);
         }
 
         $lang        = $row['lang'] ?? 'fr';
@@ -142,12 +143,12 @@ class AccountAdminController extends AdminController
         $resetUrl = ($_ENV['APP_URL'] ?? '') . "/{$lang}/reinitialisation/{$token}";
 
         try {
-            $mail = new MailService();
+            $mail = $this->newMailService();
             $mail->sendAdminPasswordReset($row['email'], $displayName, $resetUrl, $lang);
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e);
             $this->flash('error', "Erreur envoi email pour compte #{$id}.");
-            Response::redirect('/admin/comptes');
+            Response::redirect(self::REDIRECT_ACCOUNTS);
         }
 
         AuditLogger::log(
@@ -160,6 +161,16 @@ class AccountAdminController extends AdminController
         );
 
         $this->flash('success', "Lien de réinitialisation envoyé à {$row['email']}.");
-        Response::redirect('/admin/comptes');
+        Response::redirect(self::REDIRECT_ACCOUNTS);
+    }
+
+    /**
+     * Instancie MailService — seam de testabilité.
+     *
+     * @return MailService
+     */
+    protected function newMailService(): MailService
+    {
+        return new MailService();
     }
 }

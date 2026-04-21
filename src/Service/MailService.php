@@ -33,6 +33,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private const WINE_IMAGE_PATH       = '/assets/images/wines/';
     private const COL_UNIT_EN           = 'Unit price';
     private const COL_UNIT_FR           = 'Prix unitaire';
+    private const SUBJECT_RESET_FR      = 'Réinitialisation de votre mot de passe';
 
     private PHPMailer $mailer;
 
@@ -99,7 +100,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     {
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
-            ? 'Réinitialisation de votre mot de passe'
+            ? self::SUBJECT_RESET_FR
             : 'Reset your password';
 
         $body = $lang === 'fr'
@@ -2972,7 +2973,7 @@ INNER;
         $safeUrl  = htmlspecialchars($url, ENT_QUOTES);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
         return $this->emailLayout(
-            'Réinitialisation de votre mot de passe',
+            self::SUBJECT_RESET_FR,
             "Bonjour {$safeName},",
             'Vous avez demandé la réinitialisation de votre mot de passe.'
             . ' Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.',
@@ -3006,7 +3007,7 @@ INNER;
         $safeUrl  = htmlspecialchars($url, ENT_QUOTES);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
         return $this->emailLayout(
-            'Réinitialisation de votre mot de passe',
+            self::SUBJECT_RESET_FR,
             "Bonjour {$safeName},",
             'Suite à votre demande auprès de l\'équipe d\'administration, un administrateur vient de vous envoyer'
             . ' ce lien de réinitialisation de votre mot de passe.'

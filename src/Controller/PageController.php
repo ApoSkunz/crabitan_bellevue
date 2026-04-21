@@ -10,9 +10,13 @@ use Model\OrderFormModel;
 use Model\WineModel;
 use Service\MailService;
 
-class PageController extends Controller
+class PageController extends Controller // NOSONAR php:S1448 — contrôleur de pages statiques, découpage artificiel sans valeur métier
 {
-    private const GALLERY_IMG_BASE = '/assets/images/gallery/';
+    private const GALLERY_IMG_BASE       = '/assets/images/gallery/';
+    private const DEFAULT_APP_URL        = 'https://crabitanbellevue.fr';
+    private const HEADER_XML_CONTENT     = 'Content-Type: application/xml; charset=utf-8';
+    private const HEADER_NOINDEX         = 'X-Robots-Tag: noindex';
+    private const XML_DECLARATION        = '<?xml version="1.0" encoding="UTF-8"?>';
     /**
      * Affiche la page "Le Château".
      *
@@ -302,7 +306,7 @@ class PageController extends Controller
      */
     public function sitemapXml(array $_params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- NOSONAR S1172
     {
-        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_APP_URL, '/');
         $today     = date('Y-m-d');
         $langs     = ['fr', 'en'];
 
@@ -332,10 +336,10 @@ class PageController extends Controller
         $wineSlugs = $wineModel->getAllSlugs();
         $newsSlugs = $newsModel->getAll();
 
-        header('Content-Type: application/xml; charset=utf-8');
-        header('X-Robots-Tag: noindex');
+        header(self::HEADER_XML_CONTENT);
+        header(self::HEADER_NOINDEX);
 
-        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo self::XML_DECLARATION . "\n";
         echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
         echo '        xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
 
@@ -397,17 +401,17 @@ class PageController extends Controller
      */
     public function sitemapMedia(array $_params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- NOSONAR S1172
     {
-        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_APP_URL, '/');
         $langs     = ['fr', 'en'];
         $wineModel = new WineModel();
         $newsModel = new NewsModel();
         $wines     = $wineModel->getAllForMediaSitemap();
         $news      = $newsModel->getAll();
 
-        header('Content-Type: application/xml; charset=utf-8');
-        header('X-Robots-Tag: noindex');
+        header(self::HEADER_XML_CONTENT);
+        header(self::HEADER_NOINDEX);
 
-        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo self::XML_DECLARATION . "\n";
         echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
         echo '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' . "\n";
         echo '        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">' . "\n";
@@ -546,13 +550,13 @@ class PageController extends Controller
      */
     public function sitemapIndex(array $_params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- NOSONAR S1172
     {
-        $appUrl = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $appUrl = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_APP_URL, '/');
         $today  = date('Y-m-d');
 
-        header('Content-Type: application/xml; charset=utf-8');
-        header('X-Robots-Tag: noindex');
+        header(self::HEADER_XML_CONTENT);
+        header(self::HEADER_NOINDEX);
 
-        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo self::XML_DECLARATION . "\n";
         echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
         echo "  <sitemap>\n";
         echo "    <loc>{$appUrl}/sitemap.xml</loc>\n";
