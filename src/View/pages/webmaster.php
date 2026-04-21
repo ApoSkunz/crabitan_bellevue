@@ -202,8 +202,7 @@ $age   = (new \DateTime())->diff($birth)->y;
                         <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.telecom_period')) ?></p>
                         <ul class="cv-timeline__tasks">
                             <li><?= htmlspecialchars(__('webmaster.telecom_task1')) ?></li>
-                            <li><?= htmlspecialchars(__('webmaster.telecom_task2')) ?></li>
-                            <li><?= htmlspecialchars(__('webmaster.telecom_task3')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.telecom_task2')) ?> · <?= htmlspecialchars(__('webmaster.telecom_task3')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.telecom_task4')) ?></li>
                         </ul>
                     </div>
@@ -262,7 +261,8 @@ $age   = (new \DateTime())->diff($birth)->y;
                     <h4 class="cv-skills__cat">DevSecOps / SRE</h4>
                     <ul class="cv-skills__tags">
                         <li>GitLab CI</li><li>Jenkins</li><li>Ansible</li>
-                        <li>SonarQube</li><li>SAST / SCA</li><li>IaC</li>
+                        <li>Terraform</li><li>Docker</li><li>SonarQube</li>
+                        <li>SAST / SCA / DAST / MAST</li><li>IaC</li>
                         <li>ELK</li><li>Kanban / SAFe</li>
                     </ul>
                 </div>
@@ -277,14 +277,14 @@ $age   = (new \DateTime())->diff($birth)->y;
                 <div class="cv-skills__group">
                     <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.skills_sys')) ?></h4>
                     <ul class="cv-skills__tags">
-                        <li>Linux</li><li>AIX</li><li>Windows Server</li>
+                        <li>Linux</li><li>AIX</li><li>Windows Server</li><li>PowerShell</li>
                     </ul>
                 </div>
                 <div class="cv-skills__group">
                     <h4 class="cv-skills__cat"><?= htmlspecialchars(__('webmaster.skills_mw')) ?></h4>
                     <ul class="cv-skills__tags">
                         <li>Apache</li><li>JBoss</li><li>Tomcat</li>
-                        <li>PostgreSQL</li><li>OpenSSL</li>
+                        <li>PostgreSQL</li><li>Oracle</li><li>OpenSSL</li>
                     </ul>
                 </div>
             </div>
