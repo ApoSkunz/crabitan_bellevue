@@ -33,6 +33,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private const WINE_IMAGE_PATH       = '/assets/images/wines/';
     private const COL_UNIT_EN           = 'Unit price';
     private const COL_UNIT_FR           = 'Prix unitaire';
+    private const SUBJECT_RESET_FR      = 'Réinitialisation de votre mot de passe';
 
     private PHPMailer $mailer;
 
@@ -99,12 +100,35 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     {
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
-            ? 'Réinitialisation de votre mot de passe'
+            ? self::SUBJECT_RESET_FR
             : 'Reset your password';
 
         $body = $lang === 'fr'
             ? $this->resetBodyFr($name, $resetUrl)
             : $this->resetBodyEn($name, $resetUrl);
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Envoie un lien de réinitialisation de mot de passe initié par un administrateur.
+     *
+     * @param string $to       Adresse email du destinataire
+     * @param string $name     Prénom ou nom complet
+     * @param string $resetUrl URL absolue de réinitialisation
+     * @param string $lang     Langue du destinataire (fr|en)
+     * @return void
+     */
+    public function sendAdminPasswordReset(string $to, string $name, string $resetUrl, string $lang): void
+    {
+        $this->applySmtpConfig(MailChannel::SECURITY);
+        $subject = $lang === 'fr'
+            ? 'Réinitialisation de votre mot de passe — demande administrateur'
+            : 'Password reset — administrator request';
+
+        $body = $lang === 'fr'
+            ? $this->resetAdminBodyFr($name, $resetUrl)
+            : $this->resetAdminBodyEn($name, $resetUrl);
 
         $this->send($to, $name, $subject, $body);
     }
@@ -1730,6 +1754,7 @@ INNER;
      */
     public function sendReturnRequestedToOwner(array $order, string $clientName, string $clientEmail): void
     {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail   = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef      = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName     = htmlspecialchars($clientName, ENT_QUOTES);
@@ -1797,6 +1822,7 @@ INNER;
      */
     public function sendRefundGaeKoToOwner(string $orderRef, float $amount, int $orderId = 0): void
     {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef    = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeAmount = number_format($amount, 2, ',', ' ');
@@ -1839,6 +1865,7 @@ INNER;
      */
     public function sendRefundRequestedToOwner(array $order, string $clientName, string $clientEmail): void
     {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef    = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName   = htmlspecialchars($clientName, ENT_QUOTES);
@@ -1879,6 +1906,7 @@ INNER;
      */
     public function sendPendingOrdersAlert(array $orders, int $days = 7): void
     {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $count      = count($orders);
@@ -1952,6 +1980,7 @@ INNER;
         string $pdfPath,
         string $lang
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeRef   = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName  = htmlspecialchars($name, ENT_QUOTES);
         $orderedAt = isset($order['ordered_at']) ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['ordered_at'])) : '—';
@@ -2404,6 +2433,7 @@ INNER;
         string $pdfPath,
         string $lang
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeName = htmlspecialchars($toName, ENT_QUOTES);
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeNum  = htmlspecialchars($invoiceNumber, ENT_QUOTES);
@@ -2448,6 +2478,7 @@ INNER;
         string $lang,
         string $appUrl
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeName = htmlspecialchars($toName, ENT_QUOTES);
         $safeUrl  = rtrim($appUrl, '/');
@@ -2738,6 +2769,7 @@ INNER;
         string $filename,
         string $lang
     ): void {
+        $this->applySmtpConfig(MailChannel::SECURITY);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
 
         if ($lang === 'fr') {
@@ -2941,7 +2973,7 @@ INNER;
         $safeUrl  = htmlspecialchars($url, ENT_QUOTES);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
         return $this->emailLayout(
-            'Réinitialisation de votre mot de passe',
+            self::SUBJECT_RESET_FR,
             "Bonjour {$safeName},",
             'Vous avez demandé la réinitialisation de votre mot de passe.'
             . ' Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.',
@@ -2966,6 +2998,42 @@ INNER;
             'Reset my password',
             'This link is valid for <strong>1 hour</strong>. If you did not request a password reset,'
             . ' please ignore this email — your password will remain unchanged.',
+            'en'
+        );
+    }
+
+    private function resetAdminBodyFr(string $name, string $url): string
+    {
+        $safeUrl  = htmlspecialchars($url, ENT_QUOTES);
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        return $this->emailLayout(
+            self::SUBJECT_RESET_FR,
+            "Bonjour {$safeName},",
+            'Suite à votre demande auprès de l\'équipe d\'administration, un administrateur vient de vous envoyer'
+            . ' ce lien de réinitialisation de votre mot de passe.'
+            . ' Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.',
+            $safeUrl,
+            'Réinitialiser mon mot de passe',
+            'Ce lien est valable <strong>1 heure</strong>. Si vous n\'avez pas sollicité'
+            . ' cette demande, vous pouvez ignorer cet email — votre mot de passe reste inchangé.',
+            'fr'
+        );
+    }
+
+    private function resetAdminBodyEn(string $name, string $url): string
+    {
+        $safeUrl  = htmlspecialchars($url, ENT_QUOTES);
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        return $this->emailLayout(
+            'Password reset',
+            "Hello {$safeName},",
+            'Following your request to the administration team, an administrator has sent you'
+            . ' this password reset link.'
+            . ' Click the button below to set a new password.',
+            $safeUrl,
+            'Reset my password',
+            'This link is valid for <strong>1 hour</strong>. If you did not request this,'
+            . ' you can safely ignore this email — your password will remain unchanged.',
             'en'
         );
     }
@@ -3209,6 +3277,7 @@ HTML;
         array $items,
         string $lang
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $safeName   = htmlspecialchars($name, ENT_QUOTES);
         $ratingModel = $this->newRatingModel();
@@ -3326,6 +3395,7 @@ HTML;
         string $lang,
         string $cartUrl
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $safeName = htmlspecialchars($name, ENT_QUOTES);
         $safeCart = htmlspecialchars($cartUrl, ENT_QUOTES);
@@ -3775,6 +3845,7 @@ HTML;
         string $updatedAt,
         string $changeNote
     ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeName  = htmlspecialchars($name, ENT_QUOTES);
         $safeLabel = htmlspecialchars($docLabel, ENT_QUOTES);
         $safeUrl   = htmlspecialchars($docUrl, ENT_QUOTES);

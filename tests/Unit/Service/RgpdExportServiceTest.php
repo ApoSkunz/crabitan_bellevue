@@ -90,16 +90,19 @@ class RgpdExportServiceTest extends TestCase
 
     /**
      * Vérifie que buildZip retourne un JSON valide quand ZipArchive n'est pas disponible.
-     * On force le fallback en mockant la condition via un sous-classe.
+     * Force le fallback via sous-classe anonyme overridant isZipAvailable().
      */
     public function testBuildZipReturnsFallbackJsonWhenNoZipArchive(): void
     {
-        if (class_exists('ZipArchive')) {
-            $this->markTestSkipped('ZipArchive disponible — test du fallback JSON ignoré.');
-        }
+        $service = new class extends RgpdExportService {
+            protected function isZipAvailable(): bool
+            {
+                return false;
+            }
+        };
 
         $data   = ['foo' => 'bar'];
-        [$content, $filename] = $this->service->buildZip($data, 'test-export');
+        [$content, $filename] = $service->buildZip($data, 'test-export');
 
         $this->assertStringEndsWith('.json', $filename);
         $decoded = json_decode($content, true);
@@ -167,15 +170,19 @@ class RgpdExportServiceTest extends TestCase
 
     /**
      * Vérifie que buildExportContent retourne du JSON si ZipArchive est absent.
+     * Force le fallback via sous-classe anonyme overridant isZipAvailable().
      */
     public function testBuildExportContentFallbackToJsonWhenNoZip(): void
     {
-        if (class_exists('ZipArchive')) {
-            $this->markTestSkipped('ZipArchive disponible — fallback JSON ignoré.');
-        }
+        $service = new class extends RgpdExportService {
+            protected function isZipAvailable(): bool
+            {
+                return false;
+            }
+        };
 
         $export = $this->makeMinimalExportData();
-        [$content, $isZip] = $this->service->buildExportContent($export, '2026-04-12', 'mes-donnees-2026-04-12');
+        [$content, $isZip] = $service->buildExportContent($export, '2026-04-12', 'mes-donnees-2026-04-12');
 
         $this->assertFalse($isZip);
         $decoded = json_decode($content, true);

@@ -10,9 +10,13 @@ use Model\OrderFormModel;
 use Model\WineModel;
 use Service\MailService;
 
-class PageController extends Controller
+class PageController extends Controller // NOSONAR php:S1448 — contrôleur de pages statiques, découpage artificiel sans valeur métier
 {
-    private const GALLERY_IMG_BASE = '/assets/images/gallery/';
+    private const GALLERY_IMG_BASE       = '/assets/images/gallery/';
+    private const DEFAULT_APP_URL        = 'https://crabitanbellevue.fr';
+    private const HEADER_XML_CONTENT     = 'Content-Type: application/xml; charset=utf-8';
+    private const HEADER_NOINDEX         = 'X-Robots-Tag: noindex';
+    private const XML_DECLARATION        = '<?xml version="1.0" encoding="UTF-8"?>';
     /**
      * Affiche la page "Le Château".
      *
@@ -302,22 +306,29 @@ class PageController extends Controller
      */
     public function sitemapXml(array $_params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- NOSONAR S1172
     {
-        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_APP_URL, '/');
         $today     = date('Y-m-d');
         $langs     = ['fr', 'en'];
 
-        // Pages statiques publiques (noindex exclues : mentions-legales, politique-de-confidentialite, plan-du-site)
+        // Pages statiques — [chemin => [fr_priority, en_priority]]
+        // Hiérarchie : Accueil > Vins > Collection > Château > Savoir-faire > Vin dédié > autres
+        // Noindex exclues : mentions-legales, politique-de-confidentialite
         $staticRoutes = [
-            ''                              => '1.0',
-            '/vins'                         => '0.9',
-            '/vins/collection'              => '0.8',
-            '/actualites'                   => '0.9',
-            '/le-chateau'                   => '0.7',
-            '/savoir-faire'                 => '0.7',
-            '/contact'                      => '0.6',
-            '/conditions-generales-de-vente' => '0.4',
-            '/galerie'                      => '0.5',
-            '/accessibilite'                => '0.3',
+            ''                               => ['1.0', '0.7'],
+            '/vins'                          => ['0.9', '0.6'],
+            '/vins/collection'               => ['0.85','0.6'],
+            '/actualites'                    => ['0.8', '0.5'],
+            '/le-chateau'                    => ['0.8', '0.5'],
+            '/savoir-faire'                  => ['0.8', '0.5'],
+            '/contact'                       => ['0.6', '0.4'],
+            '/galerie'                       => ['0.5', '0.3'],
+            '/conditions-generales-de-vente' => ['0.4', '0.2'],
+            '/jeux'                          => ['0.4', '0.3'],
+            '/plan-du-site'                  => ['0.3', '0.2'],
+            '/support'                       => ['0.3', '0.2'],
+            '/accessibilite'                 => ['0.3', '0.2'],
+            '/credits-medias'                => ['0.2', '0.1'],
+            '/webmaster'                     => ['0.2', '0.1'],
         ];
 
         $wineModel = new WineModel();
@@ -325,55 +336,237 @@ class PageController extends Controller
         $wineSlugs = $wineModel->getAllSlugs();
         $newsSlugs = $newsModel->getAll();
 
-        header('Content-Type: application/xml; charset=utf-8');
-        header('X-Robots-Tag: noindex');
+        header(self::HEADER_XML_CONTENT);
+        header(self::HEADER_NOINDEX);
 
-        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo self::XML_DECLARATION . "\n";
         echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
         echo '        xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
 
-        // Pages statiques
-        foreach ($staticRoutes as $path => $priority) {
-            echo "  <url>\n";
-            echo "    <loc>" . htmlspecialchars($appUrl . '/fr' . $path) . "</loc>\n";
-            echo "    <lastmod>{$today}</lastmod>\n";
-            echo "    <priority>{$priority}</priority>\n";
-            foreach ($langs as $l) {
-                $alt = htmlspecialchars($appUrl . '/' . $l . $path);
-                echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$alt}\"/>\n";
+        // Pages statiques — une entrée par langue avec priorité différenciée
+        foreach ($staticRoutes as $path => [$prioFr, $prioEn]) {
+            foreach (['fr' => $prioFr, 'en' => $prioEn] as $lang => $prio) {
+                echo "  <url>\n";
+                echo "    <loc>" . htmlspecialchars($appUrl . "/{$lang}" . $path) . "</loc>\n";
+                echo "    <lastmod>{$today}</lastmod>\n";
+                echo "    <priority>{$prio}</priority>\n";
+                foreach ($langs as $l) {
+                    $alt = htmlspecialchars($appUrl . '/' . $l . $path);
+                    echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$alt}\"/>\n";
+                }
+                echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\""
+                    . htmlspecialchars($appUrl . '/fr' . $path) . "\"/>\n";
+                echo "  </url>\n";
             }
-            echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\""
-                . htmlspecialchars($appUrl . '/fr' . $path) . "\"/>\n";
-            echo "  </url>\n";
         }
 
-        // Vins
+        // Vins — FR priorité 0.7, EN 0.4
         foreach ($wineSlugs as $row) {
             $slug = htmlspecialchars((string) $row['slug']);
-            echo "  <url>\n";
-            echo "    <loc>{$appUrl}/fr/vins/{$slug}</loc>\n";
-            echo "    <priority>0.8</priority>\n";
-            foreach ($langs as $l) {
-                echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$appUrl}/{$l}/vins/{$slug}\"/>\n";
+            foreach (['fr' => '0.7', 'en' => '0.4'] as $lang => $prio) {
+                echo "  <url>\n";
+                echo "    <loc>{$appUrl}/{$lang}/vins/{$slug}</loc>\n";
+                echo "    <priority>{$prio}</priority>\n";
+                foreach ($langs as $l) {
+                    echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$appUrl}/{$l}/vins/{$slug}\"/>\n";
+                }
+                echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/vins/{$slug}\"/>\n";
+                echo "  </url>\n";
             }
-            echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/vins/{$slug}\"/>\n";
+        }
+
+        // Actualités — FR priorité 0.6, EN 0.3
+        foreach ($newsSlugs as $row) {
+            $slug = htmlspecialchars((string) $row['slug']);
+            foreach (['fr' => '0.6', 'en' => '0.3'] as $lang => $prio) {
+                echo "  <url>\n";
+                echo "    <loc>{$appUrl}/{$lang}/actualites/{$slug}</loc>\n";
+                echo "    <priority>{$prio}</priority>\n";
+                foreach ($langs as $l) {
+                    echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$appUrl}/{$l}/actualites/{$slug}\"/>\n";
+                }
+                echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/actualites/{$slug}\"/>\n";
+                echo "  </url>\n";
+            }
+        }
+
+        echo '</urlset>' . "\n";
+        throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux XML (testable)
+    }
+
+    /**
+     * Génère le sitemap-media.xml : images vins/carousel/gallery/news/cv + vidéo homepage.
+     *
+     * @param array<string, mixed> $_params
+     */
+    public function sitemapMedia(array $_params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- NOSONAR S1172
+    {
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_APP_URL, '/');
+        $langs     = ['fr', 'en'];
+        $wineModel = new WineModel();
+        $newsModel = new NewsModel();
+        $wines     = $wineModel->getAllForMediaSitemap();
+        $news      = $newsModel->getAll();
+
+        header(self::HEADER_XML_CONTENT);
+        header(self::HEADER_NOINDEX);
+
+        echo self::XML_DECLARATION . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
+        echo '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' . "\n";
+        echo '        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">' . "\n";
+
+        // Images vins — une entrée par langue
+        foreach ($wines as $wine) {
+            $slug  = htmlspecialchars((string) $wine['slug']);
+            $img   = htmlspecialchars($appUrl . '/assets/images/wines/' . rawurlencode((string) $wine['image_path']));
+            $title = htmlspecialchars((string) $wine['label_name'] . ' ' . (int) $wine['vintage']);
+            foreach ($langs as $lang) {
+                echo "  <url>\n";
+                echo "    <loc>{$appUrl}/{$lang}/vins/{$slug}</loc>\n";
+                echo "    <image:image>\n";
+                echo "      <image:loc>{$img}</image:loc>\n";
+                echo "      <image:title>{$title}</image:title>\n";
+                echo "    </image:image>\n";
+                echo "  </url>\n";
+            }
+        }
+
+        // Images actualités — une entrée par langue
+        foreach ($news as $article) {
+            if (empty($article['image_path'])) {
+                continue;
+            }
+            $slug  = htmlspecialchars((string) $article['slug']);
+            $img   = htmlspecialchars($appUrl . '/assets/images/news/' . rawurlencode((string) $article['image_path']));
+            $title = htmlspecialchars((string) $article['title']);
+            foreach ($langs as $lang) {
+                echo "  <url>\n";
+                echo "    <loc>{$appUrl}/{$lang}/actualites/{$slug}</loc>\n";
+                echo "    <image:image>\n";
+                echo "      <image:loc>{$img}</image:loc>\n";
+                echo "      <image:title>{$title}</image:title>\n";
+                echo "    </image:image>\n";
+                echo "  </url>\n";
+            }
+        }
+
+        // Images carousel (1600w uniquement) — homepage FR + EN
+        $carouselImages = [
+            'raisins-recolte-1600w.jpg'   => 'Vendange — Château Crabitan Bellevue',
+            'vignoble-allee-1600w.jpg'    => 'Allée du vignoble — Château Crabitan Bellevue',
+            'vignoble-automne-1600w.jpg'  => 'Vignoble en automne — Château Crabitan Bellevue',
+            'vignoble-ete-1600w.jpg'      => 'Vignoble en été — Château Crabitan Bellevue',
+            'vignoble-hiver-1600w.jpg'    => 'Vignoble en hiver — Château Crabitan Bellevue',
+        ];
+        foreach ($langs as $lang) {
+            echo "  <url>\n";
+            echo "    <loc>{$appUrl}/{$lang}</loc>\n";
+            foreach ($carouselImages as $file => $imgTitle) {
+                $img = htmlspecialchars($appUrl . '/assets/images/carousel/' . $file);
+                echo "    <image:image>\n";
+                echo "      <image:loc>{$img}</image:loc>\n";
+                echo "      <image:title>" . htmlspecialchars($imgTitle) . "</image:title>\n";
+                echo "    </image:image>\n";
+            }
             echo "  </url>\n";
         }
 
-        // Actualités
-        foreach ($newsSlugs as $row) {
-            $slug = htmlspecialchars((string) $row['slug']);
+        // Images galerie — page /galerie FR + EN
+        $galleryImages = [
+            'anciens-proprietaires-600w.jpg' => 'Anciens propriétaires — Château Crabitan Bellevue',
+            'apercu-vins-600w.jpg'           => 'Aperçu des vins — Château Crabitan Bellevue',
+            'botrytis-cinerea-1200w.jpg'     => 'Botrytis cinerea — Château Crabitan Bellevue',
+            'chai-barriques-1200w.jpg'       => 'Chai à barriques — Château Crabitan Bellevue',
+            'chien-vignes-600w.jpg'          => 'Dans les vignes — Château Crabitan Bellevue',
+            'domaine-ancien-600w.jpg'        => 'Domaine ancien — Château Crabitan Bellevue',
+            'domaine-noir-blanc-600w.jpg'    => 'Domaine en noir et blanc — Château Crabitan Bellevue',
+            'etiquette-1933-600w.jpg'        => 'Étiquette 1933 — Château Crabitan Bellevue',
+            'exposition-vins-600w.jpg'       => 'Exposition des vins — Château Crabitan Bellevue',
+            'premiere-famille-600w.jpg'      => 'Première famille — Château Crabitan Bellevue',
+            'proprietaire-600w.jpg'          => 'Propriétaire — Château Crabitan Bellevue',
+            'vendanges-1956-600w.jpg'        => 'Vendanges 1956 — Château Crabitan Bellevue',
+            'vendanges-cheval-600w.jpg'      => 'Vendanges à cheval — Château Crabitan Bellevue',
+        ];
+        foreach ($langs as $lang) {
             echo "  <url>\n";
-            echo "    <loc>{$appUrl}/fr/actualites/{$slug}</loc>\n";
-            echo "    <priority>0.7</priority>\n";
-            foreach ($langs as $l) {
-                echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$appUrl}/{$l}/actualites/{$slug}\"/>\n";
+            echo "    <loc>{$appUrl}/{$lang}/galerie</loc>\n";
+            foreach ($galleryImages as $file => $imgTitle) {
+                $img = htmlspecialchars($appUrl . '/assets/images/gallery/' . $file);
+                echo "    <image:image>\n";
+                echo "      <image:loc>{$img}</image:loc>\n";
+                echo "      <image:title>" . htmlspecialchars($imgTitle) . "</image:title>\n";
+                echo "    </image:image>\n";
             }
-            echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/actualites/{$slug}\"/>\n";
+            echo "  </url>\n";
+        }
+
+        // Image CV — page /webmaster FR + EN
+        foreach ($langs as $lang) {
+            echo "  <url>\n";
+            echo "    <loc>{$appUrl}/{$lang}/webmaster</loc>\n";
+            echo "    <image:image>\n";
+            $img = htmlspecialchars($appUrl . '/assets/images/cv/cv_solane.jpg');
+            echo "      <image:loc>{$img}</image:loc>\n";
+            echo "      <image:title>Alexandre Solane — Webmaster Château Crabitan Bellevue</image:title>\n";
+            echo "    </image:image>\n";
+            echo "  </url>\n";
+        }
+
+        // Vidéo homepage — FR + EN
+        $videoUrl  = htmlspecialchars($appUrl . '/assets/videos/chateau-crabitan-bellevue-1.mp4');
+        $thumbUrl  = htmlspecialchars($appUrl . '/assets/images/carousel/vignoble-allee-1600w.jpg');
+        $videoMeta = [
+            'fr' => [
+                'title' => 'Le Château en vidéo',
+                'desc'  => 'Découvrez le Château Crabitan Bellevue et son vignoble en AOC Sainte-Croix-du-Mont.',
+            ],
+            'en' => [
+                'title' => 'The Estate on Video',
+                'desc'  => 'Discover Château Crabitan Bellevue and its vineyard in the Sainte-Croix-du-Mont AOC.',
+            ],
+        ];
+        foreach ($langs as $lang) {
+            $meta = $videoMeta[$lang];
+            echo "  <url>\n";
+            echo "    <loc>{$appUrl}/{$lang}</loc>\n";
+            echo "    <video:video>\n";
+            echo "      <video:thumbnail_loc>{$thumbUrl}</video:thumbnail_loc>\n";
+            echo "      <video:title>" . htmlspecialchars($meta['title']) . "</video:title>\n";
+            echo "      <video:description>" . htmlspecialchars($meta['desc']) . "</video:description>\n";
+            echo "      <video:content_loc>{$videoUrl}</video:content_loc>\n";
+            echo "    </video:video>\n";
             echo "  </url>\n";
         }
 
         echo '</urlset>' . "\n";
+        throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux XML (testable)
+    }
+
+    /**
+     * Génère le sitemap index référençant sitemap.xml et sitemap-media.xml.
+     *
+     * @param array<string, mixed> $_params
+     */
+    public function sitemapIndex(array $_params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- NOSONAR S1172
+    {
+        $appUrl = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_APP_URL, '/');
+        $today  = date('Y-m-d');
+
+        header(self::HEADER_XML_CONTENT);
+        header(self::HEADER_NOINDEX);
+
+        echo self::XML_DECLARATION . "\n";
+        echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        echo "  <sitemap>\n";
+        echo "    <loc>{$appUrl}/sitemap.xml</loc>\n";
+        echo "    <lastmod>{$today}</lastmod>\n";
+        echo "  </sitemap>\n";
+        echo "  <sitemap>\n";
+        echo "    <loc>{$appUrl}/sitemap-media.xml</loc>\n";
+        echo "    <lastmod>{$today}</lastmod>\n";
+        echo "  </sitemap>\n";
+        echo '</sitemapindex>' . "\n";
         throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux XML (testable)
     }
 

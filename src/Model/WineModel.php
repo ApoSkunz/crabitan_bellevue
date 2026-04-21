@@ -870,7 +870,22 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
     public function getAllSlugs(): array
     {
         return $this->db->fetchAll(
-            "SELECT slug FROM {$this->table} WHERE available = 1 ORDER BY slug"
+            "SELECT slug FROM {$this->table} ORDER BY slug"
+        );
+    }
+
+    /**
+     * Retourne slug, label_name, image_path et vintage pour le sitemap media.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAllForMediaSitemap(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT slug, label_name, image_path, vintage
+             FROM {$this->table}
+             WHERE " . self::COND_IMAGE . "
+             ORDER BY slug"
         );
     }
 

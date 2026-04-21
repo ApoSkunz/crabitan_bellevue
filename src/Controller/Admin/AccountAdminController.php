@@ -6,12 +6,15 @@ namespace Controller\Admin;
 
 use Core\Response;
 use Model\AccountModel;
+use Model\PasswordResetModel;
 use Service\AuditLogger;
+use Service\MailService;
 
 class AccountAdminController extends AdminController
 {
-    private const ALLOWED_PER_PAGE = [10, 25, 50];
-    private const DEFAULT_PER_PAGE = 10;
+    private const ALLOWED_PER_PAGE   = [10, 25, 50];
+    private const DEFAULT_PER_PAGE   = 10;
+    private const REDIRECT_ACCOUNTS  = '/admin/comptes';
 
     // ----------------------------------------------------------------
     // GET /admin/comptes
@@ -76,7 +79,7 @@ class AccountAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/comptes');
+            Response::redirect(self::REDIRECT_ACCOUNTS);
         }
 
         $id      = (int) $params['id'];
@@ -93,6 +96,81 @@ class AccountAdminController extends AdminController
         );
 
         $this->flash('success', "Compte #{$id} vérifié avec succès.");
-        Response::redirect('/admin/comptes');
+        Response::redirect(self::REDIRECT_ACCOUNTS);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /admin/comptes/{id}/reset-password  (super_admin uniquement)
+    // ----------------------------------------------------------------
+
+    /**
+     * Envoie un lien de réinitialisation de mot de passe à un compte (super_admin uniquement).
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
+    public function resetPassword(array $params): void
+    {
+        $adminUser = $this->requireSuperAdmin();
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', 'Token CSRF invalide.');
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        $id      = (int) $params['id'];
+        $account = new AccountModel();
+        $row     = $account->findById($id);
+
+        if (!$row) {
+            $this->flash('error', "Compte #{$id} introuvable.");
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        if ($row['password'] === null) {
+            $this->flash('error', "Compte #{$id} est un compte Google — pas de mot de passe à réinitialiser.");
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        $lang        = $row['lang'] ?? 'fr';
+        $displayName = $row['account_type'] === 'company'
+            ? ($row['company_name'] ?? 'Client')
+            : trim(($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? ''));
+
+        $token    = bin2hex(random_bytes(32));
+        $resets   = new PasswordResetModel();
+        $resets->create($id, $token);
+        $resetUrl = ($_ENV['APP_URL'] ?? '') . "/{$lang}/reinitialisation/{$token}";
+
+        try {
+            $mail = $this->newMailService();
+            $mail->sendAdminPasswordReset($row['email'], $displayName, $resetUrl, $lang);
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e);
+            $this->flash('error', "Erreur envoi email pour compte #{$id}.");
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        AuditLogger::log(
+            $adminUser['id'],
+            'account.admin_password_reset_sent',
+            'account',
+            $id,
+            [],
+            AuditLogger::getIp()
+        );
+
+        $this->flash('success', "Lien de réinitialisation envoyé à {$row['email']}.");
+        Response::redirect(self::REDIRECT_ACCOUNTS);
+    }
+
+    /**
+     * Instancie MailService — seam de testabilité.
+     *
+     * @return MailService
+     */
+    protected function newMailService(): MailService
+    {
+        return new MailService();
     }
 }

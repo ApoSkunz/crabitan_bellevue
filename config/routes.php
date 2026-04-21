@@ -22,6 +22,7 @@ $router->get('/admin/commandes/{id}/facture/telecharger', 'Admin\OrderAdminContr
 $router->get('/admin/commandes/{id}/facture/historique/{fileId}', 'Admin\OrderAdminController@downloadInvoiceFile');
 $router->get('/admin/comptes', 'Admin\AccountAdminController@index');
 $router->post('/admin/comptes/{id}/verifier', 'Admin\AccountAdminController@verify');
+$router->post('/admin/comptes/{id}/reset-password', 'Admin\AccountAdminController@resetPassword');
 $router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
 $router->post('/admin/tarifs', 'Admin\PricingAdminController@update');
 $router->get('/admin/actualites', 'Admin\NewsAdminController@index');
@@ -105,6 +106,8 @@ $router->get('/{lang}/politique-de-confidentialite', 'PageController@politiqueCo
 $router->get('/{lang}/conditions-generales-de-vente', 'PageController@conditionsGeneralesVente');
 $router->get('/{lang}/plan-du-site', 'PageController@planDuSite');
 $router->get('/sitemap.xml', 'PageController@sitemapXml');
+$router->get('/sitemap-media.xml', 'PageController@sitemapMedia');
+$router->get('/sitemap-index.xml', 'PageController@sitemapIndex');
 $router->get('/{lang}/support', 'PageController@support');
 $router->get('/{lang}/jeux', 'PageController@jeux');
 $router->get('/{lang}/credits-medias', 'PageController@creditsMedias');

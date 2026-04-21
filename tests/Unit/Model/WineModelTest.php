@@ -941,7 +941,7 @@ class WineModelTest extends TestCase
     // getAllSlugs
     // ----------------------------------------------------------------
 
-    public function testGetAllSlugsReturnsAvailableSlugs(): void
+    public function testGetAllSlugsReturnsAllSlugs(): void
     {
         $rows = [
             ['slug' => 'bordeaux-rouge-2020'],
@@ -952,7 +952,10 @@ class WineModelTest extends TestCase
             ->expects($this->once())
             ->method('fetchAll')
             ->with(
-                $this->stringContains('WHERE available = 1'),
+                $this->logicalAnd(
+                    $this->stringContains('SELECT slug FROM'),
+                    $this->logicalNot($this->stringContains('available'))
+                ),
                 $this->equalTo([])
             )
             ->willReturn($rows);
@@ -960,6 +963,40 @@ class WineModelTest extends TestCase
         $result = $this->model->getAllSlugs();
 
         $this->assertCount(2, $result);
+        $this->assertSame('bordeaux-rouge-2020', $result[0]['slug']);
+    }
+
+    // ----------------------------------------------------------------
+    // getAllForMediaSitemap
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que getAllForMediaSitemap sélectionne les bons champs avec filtre image.
+     */
+    public function testGetAllForMediaSitemapSelectsRequiredFields(): void
+    {
+        $rows = [
+            ['slug' => 'bordeaux-rouge-2020', 'label_name' => 'Bordeaux Rouge', 'image_path' => 'img.jpg', 'vintage' => 2020],
+        ];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->logicalAnd(
+                    $this->stringContains('slug'),
+                    $this->stringContains('label_name'),
+                    $this->stringContains('image_path'),
+                    $this->stringContains('vintage'),
+                    $this->stringContains('image_path IS NOT NULL')
+                ),
+                $this->equalTo([])
+            )
+            ->willReturn($rows);
+
+        $result = $this->model->getAllForMediaSitemap();
+
+        $this->assertCount(1, $result);
         $this->assertSame('bordeaux-rouge-2020', $result[0]['slug']);
     }
 

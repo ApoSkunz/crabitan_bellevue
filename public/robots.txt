@@ -14,4 +14,6 @@ Disallow: /
 User-agent: CCBot
 Disallow: /
 
+Sitemap: https://www.crabitanbellevue.fr/sitemap-index.xml
 Sitemap: https://www.crabitanbellevue.fr/sitemap.xml
+Sitemap: https://www.crabitanbellevue.fr/sitemap-media.xml
