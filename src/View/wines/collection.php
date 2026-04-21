@@ -1,5 +1,6 @@
 <?php
-$isAdmin   = $isAdmin ?? false;
+$isAdmin           = $isAdmin ?? false;
+$exitIntentVariant = 'collection';
 $ratings   = $ratings ?? [];
 $navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 $pageTitle       = __('nav.collection');
@@ -50,7 +51,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
             <ol class="breadcrumb__list">
                 <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>"><?= htmlspecialchars(__('nav.home')) ?></a></li>
                 <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>/vins"><?= htmlspecialchars(__('nav.wines')) ?></a></li>
-                <li class="breadcrumb__item breadcrumb__item--current" aria-current="page"><?= htmlspecialchars(__('nav.collection')) ?></li>
+                <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>/vins/collection"><?= htmlspecialchars(__('nav.collection')) ?></a></li>
             </ol>
         </nav>
     </div>
@@ -185,8 +186,8 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                         </div><!-- end eager grid -->
                         <template class="js-lazy-cards">
                         <div class="wines-grid wines-grid--collection wines-grid--lazy">
-                    <?php endif; ?>
-                    <?php
+                        <?php endif; ?>
+                        <?php
                         $comment     = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
                         $description = $comment[$navLang] ?? ($comment['fr'] ?? '');
                         $awardData   = ['fr' => $wine['award_fr'] ?? '', 'en' => $wine['award_en'] ?? ''];
@@ -194,7 +195,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                         ?>
                         <article class="wine-card<?= !$wine['available'] ? ' wine-card--out-of-stock' : '' ?>">
                             <a
-                                href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>"
+                                href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>?ctx=collection"
                                 class="wine-card__inner"
                                 aria-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                             >

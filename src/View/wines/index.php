@@ -1,5 +1,6 @@
 <?php
-$isAdmin    = $isAdmin    ?? false;
+$isAdmin           = $isAdmin    ?? false;
+$exitIntentVariant = 'boutique';
 $activeCuvee = $activeCuvee ?? false;
 $ratings    = $ratings    ?? [];
 $pageTitle  = __('nav.wines');

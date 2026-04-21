@@ -1,5 +1,6 @@
 <?php
-$isAdmin   = $isAdmin ?? false;
+$isAdmin          = $isAdmin ?? false;
+$exitIntentVariant = 'show';
 $wineName  = ($wine['label_name'] ?? '') . ' ' . ($wine['vintage'] ?? '');
 $pageTitle = $wineName;
 $appUrl        = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
@@ -82,13 +83,47 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
 <main class="page-wine-show" id="main-content">
     <section class="wine-detail container" aria-labelledby="wine-title">
 
-        <nav class="breadcrumb" aria-label="<?= htmlspecialchars(__('common.breadcrumb')) ?>">
-            <ol class="breadcrumb__list">
-                <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>"><?= htmlspecialchars(__('nav.home')) ?></a></li>
-                <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>/vins"><?= htmlspecialchars(__('nav.wines')) ?></a></li>
-                <li class="breadcrumb__item breadcrumb__item--current" aria-current="page"><?= htmlspecialchars($wineName) ?></li>
-            </ol>
-        </nav>
+        <?php
+        $prevWine = $prevWine ?? null;
+        $nextWine = $nextWine ?? null;
+        $navCtx   = $navCtx ?? 'boutique';
+        $ctxParam = $navCtx === 'collection' ? '?ctx=collection' : '';
+        ?>
+        <div class="wine-nav">
+            <nav class="breadcrumb" aria-label="<?= htmlspecialchars(__('common.breadcrumb')) ?>">
+                <ol class="breadcrumb__list">
+                    <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>"><?= htmlspecialchars(__('nav.home')) ?></a></li>
+                    <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>/vins"><?= htmlspecialchars(__('nav.wines')) ?></a></li>
+                    <li class="breadcrumb__item breadcrumb__item--current" aria-current="page"><?= htmlspecialchars($wineName) ?></li>
+                </ol>
+            </nav>
+            <div class="wine-nav__arrows">
+                <div>
+                    <?php if ($prevWine !== null) : ?>
+                    <a class="wine-nav__arrow wine-nav__arrow--prev"
+                       href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($prevWine['slug']) ?><?= $ctxParam ?>"
+                       aria-label="<?= htmlspecialchars(__('wine.nav_prev') . ' : ' . $prevWine['label_name'] . ' ' . $prevWine['vintage']) ?>">
+                        &#8592; <span class="wine-nav__label"><?= htmlspecialchars($prevWine['label_name']) ?></span>
+                        <span class="wine-nav__vintage"><?= (int) $prevWine['vintage'] ?></span><?php if (!empty($prevWine['is_cuvee_speciale'])) :
+                            ?><span class="wine-nav__cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span><?php
+                                                        endif; ?>
+                    </a>
+                    <?php endif; ?>
+                </div>
+                <div>
+                    <?php if ($nextWine !== null) : ?>
+                    <a class="wine-nav__arrow wine-nav__arrow--next"
+                       href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($nextWine['slug']) ?><?= $ctxParam ?>"
+                       aria-label="<?= htmlspecialchars(__('wine.nav_next') . ' : ' . $nextWine['label_name'] . ' ' . $nextWine['vintage']) ?>">
+                        <?php if (!empty($nextWine['is_cuvee_speciale'])) :
+                            ?><span class="wine-nav__cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span><?php
+                        endif; ?><span class="wine-nav__vintage"><?= (int) $nextWine['vintage'] ?></span>
+                        <span class="wine-nav__label"><?= htmlspecialchars($nextWine['label_name']) ?></span> &#8594;
+                    </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
 
         <div class="wine-detail__layout">
 
@@ -317,14 +352,16 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                             ];
                             foreach ($nutRows as [$field, $label, $sub]) :
                                 $val  = $nutrition[$field]  ?? null;
-                                if ($val === null) : continue; endif;
+                                if ($val === null) :
+                                    continue;
+                                endif;
                                 if ($field === 'energy_kj') :
                                     $kcal    = (int) round((int) $val / 4.184);
                                     $display = htmlspecialchars((string) $val) . ' kJ / ' . $kcal . ' kcal';
                                 else :
                                     $display = htmlspecialchars((string) $val) . ' g';
                                 endif;
-                            ?>
+                                ?>
                                 <tr class="<?= $sub ? 'wine-nutrition__row--sub' : '' ?>">
                                     <th scope="row"><?= htmlspecialchars($label) ?></th>
                                     <td><?= $display ?></td>
@@ -403,7 +440,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     $swImage   = rawurlencode((string) ($sw['image_path'] ?? ''));
                     $swId      = (int) ($sw['id'] ?? 0);
                     $swCuvee   = !empty($sw['is_cuvee_speciale']);
-                ?>
+                    ?>
                 <article class="wine-card wine-cross-sell__card">
                     <a href="/<?= htmlspecialchars($navLang) ?>/vins/<?= $swSlug ?>"
                        class="wine-card__inner"
@@ -509,79 +546,5 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
     >
 </div>
 
-<?php if (!$isAdmin) : ?>
-<!-- Exit-intent pop-in -->
-<!-- NOSONAR Web:S6819 — custom overlay with full JS focus/keyboard management -->
-<div id="exit-intent-overlay" class="exit-intent-overlay" aria-hidden="true" role="dialog"
-     aria-labelledby="exit-intent-title" aria-modal="true">
-    <div class="exit-intent-overlay__backdrop" id="exit-intent-backdrop"></div>
-    <div class="exit-intent-overlay__box">
-        <button class="exit-intent-overlay__close" id="exit-intent-close" type="button"
-                aria-label="<?= htmlspecialchars(__('common.close')) ?>">&times;</button>
-        <p class="exit-intent-overlay__title" id="exit-intent-title">
-            <?= htmlspecialchars(__('wine.exit_intent_title')) ?>
-        </p>
-        <p class="exit-intent-overlay__body">
-            <?= htmlspecialchars(__('wine.exit_intent_body')) ?>
-        </p>
-        <div class="exit-intent-overlay__actions">
-            <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="btn btn--gold exit-intent-overlay__cta">
-                <?= htmlspecialchars(__('wine.exit_intent_cta')) ?>
-            </a>
-            <button type="button" id="exit-intent-dismiss" class="exit-intent-overlay__dismiss">
-                <?= htmlspecialchars(__('wine.exit_intent_dismiss')) ?>
-            </button>
-        </div>
-    </div>
-</div>
-<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
-(function () {
-    'use strict';
-    var STORAGE_KEY = 'exit_intent_shown';
-    if (sessionStorage.getItem(STORAGE_KEY)) { return; }
-
-    var overlay  = document.getElementById('exit-intent-overlay');
-    var backdrop = document.getElementById('exit-intent-backdrop');
-    var closeBtn = document.getElementById('exit-intent-close');
-    var dismiss  = document.getElementById('exit-intent-dismiss');
-    var shown    = false;
-    var lastY    = 0;
-
-    function show() {
-        if (shown) { return; }
-        shown = true;
-        sessionStorage.setItem(STORAGE_KEY, '1');
-        overlay.removeAttribute('aria-hidden');
-        overlay.setAttribute('aria-hidden', 'false');
-        overlay.classList.add('exit-intent-overlay--visible');
-        if (closeBtn) { closeBtn.focus(); }
-    }
-
-    function hide() {
-        overlay.setAttribute('aria-hidden', 'true');
-        overlay.classList.remove('exit-intent-overlay--visible');
-    }
-
-    // Desktop: mouse leaves viewport through top edge
-    document.documentElement.addEventListener('mouseleave', function (e) {
-        if (e.clientY <= 0) { show(); }
-    });
-
-    // Mobile: rapid scroll up (delta > 80px in < 300ms)
-    document.addEventListener('scroll', function () {
-        var y = window.scrollY;
-        if (lastY - y > 80) { show(); }
-        lastY = y;
-    }, { passive: true });
-
-    if (closeBtn) { closeBtn.addEventListener('click', hide); }
-    if (dismiss)  { dismiss.addEventListener('click', hide); }
-    if (backdrop) { backdrop.addEventListener('click', hide); }
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') { hide(); }
-    });
-}());
-</script>
-<?php endif; ?>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>
