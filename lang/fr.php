@@ -2,7 +2,8 @@
 
 return [
     // Age gate
-    'age_gate.quote'   => 'L\'art et la passion du vin, pour sublimer votre table',
+    'age_gate.quote'    => 'Depuis 1870, Château Crabitan Bellevue s\'invite à votre table',
+    'age_gate.subquote' => 'L\'art et la passion du vin',
     'age_gate.intro'   => 'Pour visiter ce site, vous devez être en âge légal de consommer de l\'alcool dans votre pays de résidence.',
     'age_gate.declare' => 'En cliquant sur Entrer, je certifie avoir l\'âge légal de consommer de l\'alcool dans mon pays de résidence (Art.&#160;L3342-1 CSP).',
     'age_gate.enter'    => 'Entrer',
@@ -357,7 +358,7 @@ return [
         . ' le même soin du travail bien fait. Quatre générations se sont ainsi succédé, chacune apportant'
         . ' sa pierre à l\'édifice. Aujourd\'hui, Nicolas et Corinne perpétuent cet héritage avec passion'
         . ' et humilité, faisant de chaque millésime un nouveau chapitre de cette belle aventure familiale.',
-    'home.history_cta'   => 'En savoir plus',
+    'home.history_cta'   => 'Découvrir l\'histoire du château',
 
     // Homepage - Section Savoir-Faire
     'home.savoir_tag'   => 'Le Métier',
@@ -367,7 +368,7 @@ return [
         . ' l\'amour du vin. Au chai, l\'élevage accompagne les vins dans leur développement, leur offrant'
         . ' toute la complexité qu\'ils méritent. C\'est ce savoir-faire, transmis de génération en génération,'
         . ' qui donne au Château Crabitan Bellevue son caractère si particulier.',
-    'home.savoir_cta'   => 'En savoir plus',
+    'home.savoir_cta'   => 'Voir nos pratiques',
 
     // Homepage - Vin du moment
     'home.featured_tag'      => 'Sélection',

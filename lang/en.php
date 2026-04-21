@@ -2,7 +2,8 @@
 
 return [
     // Age gate
-    'age_gate.quote'   => 'The art and passion of wine, to elevate your table',
+    'age_gate.quote'    => 'Since 1870, Château Crabitan Bellevue brings its wines to your table',
+    'age_gate.subquote' => 'The art and passion of wine',
     'age_gate.intro'   => 'To visit this site, you must be of legal drinking age in your country of residence.',
     'age_gate.declare' => 'By clicking Enter, I confirm I am of legal drinking age in my country of residence (Art.&#160;L3342-1 CSP).',
     'age_gate.enter'    => 'Enter',
