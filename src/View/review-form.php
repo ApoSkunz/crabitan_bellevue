@@ -33,9 +33,10 @@ require_once SRC_PATH . '/View/partials/header.php';
 
                 <!-- Nom affiché (lecture seule) -->
                 <div class="form-group">
-                    <label class="form-label"><?= htmlspecialchars(__('review.your_name')) ?></label>
+                    <label for="review-display-name" class="form-label"><?= htmlspecialchars(__('review.your_name')) ?></label>
                     <input
                         type="text"
+                        id="review-display-name"
                         class="form-input"
                         value="<?= htmlspecialchars($displayName ?? '') ?>"
                         readonly

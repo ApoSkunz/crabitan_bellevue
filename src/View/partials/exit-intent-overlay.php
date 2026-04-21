@@ -63,7 +63,7 @@ $_eiHref         = '/' . htmlspecialchars($_eiLang) . $_eiCfg['path'];
             </div>
             <p class="exit-intent-overlay__newsletter-feedback" aria-live="polite" hidden></p>
         </form>
-        <button type="button" id="exit-intent-dismiss" class="exit-intent-overlay__dismiss">
+        <button type="button" class="exit-intent-overlay__dismiss">
             <?= htmlspecialchars(__('exit_intent.dismiss')) ?>
         </button>
         <?php else : ?>
@@ -71,7 +71,7 @@ $_eiHref         = '/' . htmlspecialchars($_eiLang) . $_eiCfg['path'];
             <a href="<?= $_eiHref ?>" class="btn btn--gold exit-intent-overlay__cta">
                 <?= htmlspecialchars(__($_eiCfg['cta'])) ?>
             </a>
-            <button type="button" id="exit-intent-dismiss" class="exit-intent-overlay__dismiss">
+            <button type="button" class="exit-intent-overlay__dismiss">
                 <?= htmlspecialchars(__('exit_intent.dismiss')) ?>
             </button>
         </div>
@@ -87,7 +87,7 @@ $_eiHref         = '/' . htmlspecialchars($_eiLang) . $_eiCfg['path'];
     var overlay  = document.getElementById('exit-intent-overlay');
     var backdrop = document.getElementById('exit-intent-backdrop');
     var closeBtn = document.getElementById('exit-intent-close');
-    var dismiss  = document.getElementById('exit-intent-dismiss');
+    var dismiss  = document.querySelector('.exit-intent-overlay__dismiss');
     var shown    = false;
     var lastY    = 0;
 
