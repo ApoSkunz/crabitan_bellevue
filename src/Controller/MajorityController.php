@@ -58,7 +58,7 @@ class MajorityController extends Controller
         }
 
         if (($_POST['majority_confirmed'] ?? '') !== '1') {
-            $redirect = $_POST['redirect'] ?? "/{$lang}";
+            $redirect = $this->sanitizeRedirect($_POST['redirect'] ?? "/{$lang}", $lang);
             $_SESSION['majority_pending'] = true;
             Response::redirect($redirect);
         }
@@ -68,7 +68,24 @@ class MajorityController extends Controller
 
         unset($_SESSION['majority_pending']);
 
-        $redirect = $_POST['redirect'] ?? "/{$lang}/mon-compte";
+        $redirect = $this->sanitizeRedirect($_POST['redirect'] ?? "/{$lang}/mon-compte", $lang);
         Response::redirect($redirect);
+    }
+
+    /**
+     * Garantit un chemin relatif interne pour éviter les open redirects.
+     *
+     * @param string $url  URL candidate (depuis $_POST)
+     * @param string $lang Langue de repli (fr|en)
+     * @return string      Chemin sûr
+     */
+    private function sanitizeRedirect(string $url, string $lang): string
+    {
+        $decoded = rawurldecode($url);
+        if (!preg_match('#^/(fr|en)(/[a-zA-Z0-9/_\-\.]*)?$#', $decoded)) {
+            return '/' . $lang;
+        }
+
+        return $decoded;
     }
 }

@@ -69,7 +69,9 @@ require_once __DIR__ . '/../partials/header.php';
             .then(function (data) {
                 if (data.status === 'linked' && data.redirect) {
                     stopPolling();
-                    window.location = data.redirect;
+                    var dest = data.redirect;
+                    try { if (new URL(dest, location.origin).origin !== location.origin) { dest = '/'; } } catch (_) { dest = '/'; }
+                    window.location = dest;
                 } else if (data.status === 'expired') {
                     onTimeout();
                 } else {
