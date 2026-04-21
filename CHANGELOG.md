@@ -2,6 +2,45 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.19.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.18.0...v1.19.0) (2026-04-21)
+
+
+### Bug Fixes
+
+* **i18n:** age-gate slogan + sous-slogan + home CTAs FR + nav.wines EN déjà correct ([a74433f](https://github.com/ApoSkunz/crabitan_bellevue/commit/a74433fe100ba3d125e247f913b8c1e8423b2e83))
+* **phpcs:** HomeController — split view() args array (ligne 151 chars) ([798571c](https://github.com/ApoSkunz/crabitan_bellevue/commit/798571c9168aba94f3b0bacb8412545a9b8461ad))
+* **phpcs:** MailService — 0 warnings ligne longue (38 lignes splittées) ([f66827b](https://github.com/ApoSkunz/crabitan_bellevue/commit/f66827b46abd3c0014d871c9d432a671b522ad85))
+* **phpcs:** TU controllers — MultipleClasses → fichiers séparés + lignes longues RatingModelTest ([1aa32f3](https://github.com/ApoSkunz/crabitan_bellevue/commit/1aa32f3651d46c85f66842db24e9120ab3aa66df))
+* **sonar:** S107 NOSONAR same-line × 7, S3358 nested ternary, S1142 NOSONAR × 2, S6853 label for ([1211498](https://github.com/ApoSkunz/crabitan_bellevue/commit/12114988b69095be3c743aca7f0389323c172ef7))
+* **sonar:** Web:S7930 exit-intent duplicate id → querySelector class ([b1ab52b](https://github.com/ApoSkunz/crabitan_bellevue/commit/b1ab52b329c1e639ba842bb3fd44d417ef8b30fb))
+* **ux:** age-gate slogan une ligne (max-width 820→1100px) + exit-intent skip si déjà abonné newsletter ([b2b9679](https://github.com/ApoSkunz/crabitan_bellevue/commit/b2b9679767742d398607e178fce08324ad05079a))
+* **ux:** retours recette — sous-slogan doré, retrait header-contact, savoir_cta, opt-in wine supprimé, exit-intent prefill email connecté ([706f44a](https://github.com/ApoSkunz/crabitan_bellevue/commit/706f44af4968bdf1cd63c33ec4fd0f642a1695d5))
+
+
+### Features
+
+* **account:** Mes notes + Mon avis — modification depuis l'espace client ([be15c21](https://github.com/ApoSkunz/crabitan_bellevue/commit/be15c21daf1e9282d64d8c1911271d2244d93481))
+* **account:** vue mes-notes mosaïque + badge cuvée spéciale + flash review ([c426e65](https://github.com/ApoSkunz/crabitan_bellevue/commit/c426e6582478ab54354f6fb296d5be41402d9063))
+* **controller:** ReviewController — show/submit/success + routes /{lang}/mon-avis ([ba278a4](https://github.com/ApoSkunz/crabitan_bellevue/commit/ba278a4351ef0b2913e5885090c2f3dfa67dcfa6))
+* **cron:** guards anti-bruit J+21 + J+28 ([c117516](https://github.com/ApoSkunz/crabitan_bellevue/commit/c11751652b338641ebff4425078cfe9c4d93a921))
+* **home:** inject ReviewModel::getRandom(3,4) — section témoignages pilotée par BDD ([054dc2b](https://github.com/ApoSkunz/crabitan_bellevue/commit/054dc2b78636ccba8b9f4d74518761774019aa6a))
+* **i18n:** clés exit_intent.newsletter, cart.nudge, home.testimonials — FR/EN ([9d72107](https://github.com/ApoSkunz/crabitan_bellevue/commit/9d721076a461001929fa0d56a8271cce894d2e85))
+* **i18n:** clés ratings_not_yet, testimonials_reviews, location_placeholder ([17cc25f](https://github.com/ApoSkunz/crabitan_bellevue/commit/17cc25fd7c02ce8ce46cb402666447fc978546c3))
+* **i18n:** clés review.* — formulaire avis, messages FR/EN ([7c2ee17](https://github.com/ApoSkunz/crabitan_bellevue/commit/7c2ee1798c01d143aec3d296c13363fd8e4db99c))
+* **js:** initExtraNewsletterForms — handler AJAX pour exit-intent et wine opt-in forms ([f6644ca](https://github.com/ApoSkunz/crabitan_bellevue/commit/f6644ca1e3640934a9c0bc68803c05b77814d9a5))
+* **mail:** CTA 'Laisser un avis' dans sendPostPurchase J+21 — lien /{lang}/mon-avis?token= ([a9e6ad4](https://github.com/ApoSkunz/crabitan_bellevue/commit/a9e6ad47d6ae0d271f7485df4382a03f83ec72a1))
+* **mail:** split post-achat J+21/J+28 — notation vins vs avis global séparés ([7d5d64e](https://github.com/ApoSkunz/crabitan_bellevue/commit/7d5d64ed863fbd00682e3b9aca3dae263592411e))
+* **model:** ReviewModel — findByAccountId, create, getRandom(count, minRating) ([3b4fbf6](https://github.com/ApoSkunz/crabitan_bellevue/commit/3b4fbf68bc288066a88b0238763d005a0cb58147))
+* **ratings:** getFirstOrderId, allWinesRated, getStats — guards cron + moyenne homepage ([2f9bfff](https://github.com/ApoSkunz/crabitan_bellevue/commit/2f9bfffe58364663ca7b574b88dfe03f911d2bc0))
+* **rgpd:** customer_reviews inclus dans l'export RGPD buildForAccount() ([331eaac](https://github.com/ApoSkunz/crabitan_bellevue/commit/331eaac17b173e28bc6e3fdb5c9873ed4473df73))
+* **scss:** account-ratings-grid mosaïque + home-testimonials__avg ([b383f4a](https://github.com/ApoSkunz/crabitan_bellevue/commit/b383f4a62530acc251956db166df72966ea87ac5))
+* **scss:** age-gate__subquote + header-nav font-size clamp pour 7 items ([659c9b5](https://github.com/ApoSkunz/crabitan_bellevue/commit/659c9b562a72413b7bbbd8a7d945c24ef7e42d86))
+* **scss:** review-form-page — star rating interactif + styles formulaire avis ([75075e6](https://github.com/ApoSkunz/crabitan_bellevue/commit/75075e68dff4535c8b70636cde32499621fa75d0))
+* **scss:** testimonials + wine opt-in + cart nudge + exit-intent newsletter form styles ([a4db713](https://github.com/ApoSkunz/crabitan_bellevue/commit/a4db713b5c9ad3a76cff4826f3a68f56549fbfe7))
+* **view:** age-gate subquote + nav desktop actualites/contact ([9275dc5](https://github.com/ApoSkunz/crabitan_bellevue/commit/9275dc5e3308d2117a359198f056c4fd0a669880))
+* **view:** exit-intent newsletter form + témoignages home + cart nudge + wine opt-in ([a83b47d](https://github.com/ApoSkunz/crabitan_bellevue/commit/a83b47d349ebe41483ade180c6753ff728455904))
+* **view:** formulaire avis client — star rating + commentaire + lieu + pages success/already-done ([92c1d9e](https://github.com/ApoSkunz/crabitan_bellevue/commit/92c1d9ebfe3697d289871cd60c79df75adc43baf))
+
 # [1.18.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.17.0...v1.18.0) (2026-04-21)
 
 
