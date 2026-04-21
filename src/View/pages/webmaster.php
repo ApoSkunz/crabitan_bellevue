@@ -35,7 +35,11 @@ $age   = (new \DateTime())->diff($birth)->y;
             <div class="cv-header__info">
                 <h2 class="cv-header__name">Alexandre Solane</h2>
                 <p class="cv-header__title"><?= __('webmaster.job_title') ?></p>
-                <p class="cv-header__intro"><?= htmlspecialchars(__('webmaster.intro')) ?></p>
+                <p class="cv-header__intro">
+                    <?= htmlspecialchars(__('webmaster.intro')) ?>
+                    <br><?= htmlspecialchars(__('webmaster.intro_edf')) ?>
+                    <em class="cv-header__signature">01001000 01100101 01101100 01101100 01101111</em>
+                </p>
                 <ul class="cv-header__meta">
                     <li>
                         <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">

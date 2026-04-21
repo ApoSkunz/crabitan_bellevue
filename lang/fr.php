@@ -561,8 +561,13 @@ return [
     'webmaster.bio'           => 'Site conçu et développé par Alexandre Solane, développeur web full-stack.',
     'webmaster.job_title'     => 'Lead Intégrateur d\'application DevSecOps &amp; SRE',
     'webmaster.intro'         =>
-        'Passionné d\'informatique depuis mes premiers cours d\'initiation en seconde'
-        . ' générale, grâce à mon professeur de mathématiques qui a su éveiller ma curiosité…',
+        'En seconde, mon professeur de mathématiques nous a initiés à la programmation sur TI-82'
+        . ' — c\'est là que tout a commencé. La classe préparatoire a nourri cette passion à travers'
+        . ' l\'algorithmie et la résolution de problèmes. L\'école d\'ingénieur n\'a fait que la confirmer'
+        . ' : je suis animé par cette discipline qui m\'attire, m\'intrigue et me fascine.',
+    'webmaster.intro_edf'     =>
+        'Aujourd\'hui j\'ai la chance de mettre à contribution mes compétences dans un environnement'
+        . ' SI Gestion / Industriel stimulant, au profit du service public de l\'électricité.',
     'webmaster.years_old'     => 'ans',
     'webmaster.exp_title'     => 'Expérience professionnelle',
     'webmaster.edu_title'     => 'Formation',

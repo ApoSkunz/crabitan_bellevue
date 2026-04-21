@@ -560,8 +560,13 @@ return [
     'webmaster.bio'           => 'Website designed and developed by Alexandre Solane, full-stack web developer.',
     'webmaster.job_title'     => 'Lead Application Integration Engineer — DevSecOps &amp; SRE',
     'webmaster.intro'         =>
-        'Passionate about computing since my first introductory classes in high school,'
-        . ' sparked by a mathematics teacher who ignited my curiosity…',
+        'In secondary school, my mathematics teacher introduced us to programming on the TI-82'
+        . ' — and that is where it all began. Preparatory school deepened this passion through'
+        . ' algorithmics and problem-solving. Engineering school only confirmed it:'
+        . ' I am driven by a discipline that draws me in, intrigues me, and fascinates me.',
+    'webmaster.intro_edf'     =>
+        'Today I have the privilege of putting my skills to use in a stimulating Management / Industrial IS environment,'
+        . ' in service of the public electricity network.',
     'webmaster.years_old'     => 'years old',
     'webmaster.exp_title'     => 'Professional Experience',
     'webmaster.edu_title'     => 'Education',
