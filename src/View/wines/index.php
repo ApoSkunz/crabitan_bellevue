@@ -30,7 +30,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
     <div class="page-hero page-hero--dark">
         <div class="container">
             <span class="home-section__tag"><?= htmlspecialchars(__('home.wines_tag')) ?></span>
-            <h1 class="home-section__title"><?= htmlspecialchars(__('nav.wines')) ?></h1>
+            <h1 class="home-section__title"><?= htmlspecialchars(__('wines.h1_seo')) ?></h1>
             <div class="home-section__divider home-section__divider--center"></div>
         </div>
     </div>

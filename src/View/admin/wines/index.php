@@ -211,7 +211,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
                 max-width:360px;width:90%;text-align:center;position:relative;">
         <button type="button" id="admin-qr-modal-close"
                 style="position:absolute;top:0.75rem;right:1rem;background:none;border:none;
-                       font-size:1.25rem;cursor:pointer;color:#6b5f50;" aria-label="Fermer">✕</button>
+                       font-size:1.25rem;cursor:pointer;color:var(--color-text-muted);" aria-label="Fermer">✕</button>
         <h3 id="admin-qr-modal-title" style="margin:0 0 0.5rem;font-size:0.9rem;"></h3>
         <canvas id="admin-qr-modal-canvas" width="300" height="300"
                 style="border:1px solid #e0d5c0;border-radius:4px;display:block;margin:0 auto 0.75rem;"></canvas>
@@ -230,7 +230,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
                 max-width:440px;width:90%;position:relative;">
         <button type="button" id="admin-confirm-modal-close"
                 style="position:absolute;top:0.75rem;right:1rem;background:none;border:none;
-                       font-size:1.25rem;cursor:pointer;color:#6b5f50;" aria-label="Fermer">✕</button>
+                       font-size:1.25rem;cursor:pointer;color:var(--color-text-muted);" aria-label="Fermer">✕</button>
         <h3 id="admin-confirm-modal-title" style="margin:0 0 1rem;font-size:1rem;color:#1a1208;"></h3>
         <p id="admin-confirm-modal-body" style="margin:0 0 1.5rem;font-size:0.9rem;color:#5a4e3a;"></p>
         <div style="display:flex;gap:0.75rem;justify-content:flex-end;">

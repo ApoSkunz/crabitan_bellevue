@@ -6,6 +6,16 @@ $pageTitle       = __('nav.collection');
 $metaDescription = $navLang === 'en'
     ? 'Explore the full range of Château Crabitan Bellevue wines — sweet, white, red and rosé Bordeaux wines.'
     : 'Découvrez la gamme complète des vins du Château Crabitan Bellevue — vins liquoreux, blancs, rouges et rosés de Bordeaux.';
+$appUrl      = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$breadcrumbLd = json_encode([
+    '@context'        => 'https://schema.org',
+    '@type'           => 'BreadcrumbList',
+    'itemListElement' => [
+        ['@type' => 'ListItem', 'position' => 1, 'name' => __('nav.home'),       'item' => $appUrl . '/' . $navLang],
+        ['@type' => 'ListItem', 'position' => 2, 'name' => __('nav.wines'),      'item' => $appUrl . '/' . $navLang . '/vins'],
+        ['@type' => 'ListItem', 'position' => 3, 'name' => __('nav.collection'), 'item' => $appUrl . '/' . $navLang . '/vins/collection'],
+    ],
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
@@ -33,6 +43,16 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
             <p class="page-hero__intro"><?= htmlspecialchars(__('collection.intro')) ?></p>
             <div class="home-section__divider home-section__divider--center"></div>
         </div>
+    </div>
+
+    <div class="container">
+        <nav class="breadcrumb" aria-label="<?= htmlspecialchars(__('common.breadcrumb')) ?>">
+            <ol class="breadcrumb__list">
+                <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>"><?= htmlspecialchars(__('nav.home')) ?></a></li>
+                <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>/vins"><?= htmlspecialchars(__('nav.wines')) ?></a></li>
+                <li class="breadcrumb__item breadcrumb__item--current" aria-current="page"><?= htmlspecialchars(__('nav.collection')) ?></li>
+            </ol>
+        </nav>
     </div>
 
     <?php require_once SRC_PATH . '/View/partials/wines-case-banner.php'; ?>

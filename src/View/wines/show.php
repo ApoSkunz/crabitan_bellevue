@@ -15,6 +15,15 @@ $winesBase     = '/assets/images/wines/';
 $ogImage       = $appUrl . $winesBase . ($wine['image_path'] ?? '');
 $ogUrl         = $canonical;
 $ogType        = 'product';
+$breadcrumbLd  = json_encode([
+    '@context'        => 'https://schema.org',
+    '@type'           => 'BreadcrumbList',
+    'itemListElement' => [
+        ['@type' => 'ListItem', 'position' => 1, 'name' => __('nav.home'),  'item' => $appUrl . '/' . $navLang],
+        ['@type' => 'ListItem', 'position' => 2, 'name' => __('nav.wines'), 'item' => $appUrl . '/' . $navLang . '/vins'],
+        ['@type' => 'ListItem', 'position' => 3, 'name' => $wineName,       'item' => $canonical],
+    ],
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
 $jsonLd        = json_encode([
     '@context' => 'https://schema.org',
     '@type'    => 'Product',
@@ -73,9 +82,13 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
 <main class="page-wine-show" id="main-content">
     <section class="wine-detail container" aria-labelledby="wine-title">
 
-        <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="news-article__back">
-            &#8592; <?= htmlspecialchars(__('nav.wines')) ?>
-        </a>
+        <nav class="breadcrumb" aria-label="<?= htmlspecialchars(__('common.breadcrumb')) ?>">
+            <ol class="breadcrumb__list">
+                <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>"><?= htmlspecialchars(__('nav.home')) ?></a></li>
+                <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>/vins"><?= htmlspecialchars(__('nav.wines')) ?></a></li>
+                <li class="breadcrumb__item breadcrumb__item--current" aria-current="page"><?= htmlspecialchars($wineName) ?></li>
+            </ol>
+        </nav>
 
         <div class="wine-detail__layout">
 
@@ -495,5 +508,80 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
         class="wine-zoom-overlay__image"
     >
 </div>
+
+<?php if (!$isAdmin) : ?>
+<!-- Exit-intent pop-in -->
+<!-- NOSONAR Web:S6819 — custom overlay with full JS focus/keyboard management -->
+<div id="exit-intent-overlay" class="exit-intent-overlay" aria-hidden="true" role="dialog"
+     aria-labelledby="exit-intent-title" aria-modal="true">
+    <div class="exit-intent-overlay__backdrop" id="exit-intent-backdrop"></div>
+    <div class="exit-intent-overlay__box">
+        <button class="exit-intent-overlay__close" id="exit-intent-close" type="button"
+                aria-label="<?= htmlspecialchars(__('common.close')) ?>">&times;</button>
+        <p class="exit-intent-overlay__title" id="exit-intent-title">
+            <?= htmlspecialchars(__('wine.exit_intent_title')) ?>
+        </p>
+        <p class="exit-intent-overlay__body">
+            <?= htmlspecialchars(__('wine.exit_intent_body')) ?>
+        </p>
+        <div class="exit-intent-overlay__actions">
+            <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="btn btn--gold exit-intent-overlay__cta">
+                <?= htmlspecialchars(__('wine.exit_intent_cta')) ?>
+            </a>
+            <button type="button" id="exit-intent-dismiss" class="exit-intent-overlay__dismiss">
+                <?= htmlspecialchars(__('wine.exit_intent_dismiss')) ?>
+            </button>
+        </div>
+    </div>
+</div>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+(function () {
+    'use strict';
+    var STORAGE_KEY = 'exit_intent_shown';
+    if (sessionStorage.getItem(STORAGE_KEY)) { return; }
+
+    var overlay  = document.getElementById('exit-intent-overlay');
+    var backdrop = document.getElementById('exit-intent-backdrop');
+    var closeBtn = document.getElementById('exit-intent-close');
+    var dismiss  = document.getElementById('exit-intent-dismiss');
+    var shown    = false;
+    var lastY    = 0;
+
+    function show() {
+        if (shown) { return; }
+        shown = true;
+        sessionStorage.setItem(STORAGE_KEY, '1');
+        overlay.removeAttribute('aria-hidden');
+        overlay.setAttribute('aria-hidden', 'false');
+        overlay.classList.add('exit-intent-overlay--visible');
+        if (closeBtn) { closeBtn.focus(); }
+    }
+
+    function hide() {
+        overlay.setAttribute('aria-hidden', 'true');
+        overlay.classList.remove('exit-intent-overlay--visible');
+    }
+
+    // Desktop: mouse leaves viewport through top edge
+    document.documentElement.addEventListener('mouseleave', function (e) {
+        if (e.clientY <= 0) { show(); }
+    });
+
+    // Mobile: rapid scroll up (delta > 80px in < 300ms)
+    document.addEventListener('scroll', function () {
+        var y = window.scrollY;
+        if (lastY - y > 80) { show(); }
+        lastY = y;
+    }, { passive: true });
+
+    if (closeBtn) { closeBtn.addEventListener('click', hide); }
+    if (dismiss)  { dismiss.addEventListener('click', hide); }
+    if (backdrop) { backdrop.addEventListener('click', hide); }
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { hide(); }
+    });
+}());
+</script>
+<?php endif; ?>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

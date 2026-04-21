@@ -171,27 +171,38 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
             </div>
             <?php endif; ?>
 
+            <!-- Upsell -->
+            <div class="confirmation-upsell">
+                <p class="confirmation-upsell__title"><?= htmlspecialchars(__('checkout.upsell_title')) ?></p>
+                <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--ghost confirmation-upsell__cta">
+                    <?= htmlspecialchars(__('checkout.upsell_cta')) ?>
+                </a>
+            </div>
+
             <div class="confirmation-card__actions">
                 <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes" class="btn btn--gold" id="js-orders-btn">
                     <?= htmlspecialchars(__('checkout.view_orders')) ?>
                 </a>
-                <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--gold">
+                <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--ghost">
                     <?= htmlspecialchars(__('checkout.continue_shopping')) ?>
                 </a>
             </div>
+            <?php if (!$isDeferred) : ?>
             <p class="confirmation-card__redirect" id="js-redirect-notice">
                 <?= htmlspecialchars(__('checkout.redirect_prefix')) ?>
-                <strong id="js-countdown">15</strong>
+                <strong id="js-countdown">45</strong>
                 <?= htmlspecialchars(__('checkout.redirect_suffix')) ?>
             </p>
+            <?php endif; ?>
         </div>
 
     </section>
 </main>
 
+<?php if (!$isDeferred) : ?>
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {
-    var seconds  = 15;
+    var seconds  = 45;
     var counter  = document.getElementById('js-countdown');
     var url      = '/<?= htmlspecialchars($lang) ?>/mon-compte/commandes';
     var timer    = setInterval(function () {
@@ -204,5 +215,6 @@ $newsletterOptIn = (bool) ($newsletterOptIn ?? false);
     }, 1000);
 })();
 </script>
+<?php endif; ?>
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

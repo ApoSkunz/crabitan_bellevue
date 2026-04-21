@@ -594,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <?php foreach (['M' => __('form.civility.m'), 'F' => __('form.civility.f'), 'other' => __('form.civility.other')] as $val => $label) : ?>
                                 <label class="register-modal__radio">
                                     <input type="radio" name="civility" value="<?= htmlspecialchars($val) ?>"
-                                        <?= ($registerOld['civility'] ?? '') === $val ? 'checked' : '' ?>>
+                                        <?= (($registerOld['civility'] ?? '') === $val || (empty($registerOld['civility']) && $val === 'M')) ? 'checked' : '' ?>>
                                     <?= htmlspecialchars($label) ?>
                                 </label>
                             <?php endforeach; ?>
@@ -808,18 +808,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
         <nav class="account-panel__nav" aria-label="Navigation compte">
             <?php if ($isAdmin) : ?>
-                <span class="account-panel__section-label">Administration</span>
+                <span class="account-panel__section-label">Tableau de bord</span>
                 <a href="/admin">Tableau de bord</a>
+
+                <span class="account-panel__section-label">Catalogue</span>
                 <a href="/admin/vins">Vins</a>
+                <a href="/admin/tarifs">Tarifs</a>
+                <a href="/admin/bons-de-commande">Bons de commande</a>
+
+                <span class="account-panel__section-label">Commandes</span>
                 <a href="/admin/commandes">Commandes</a>
                 <a href="/admin/factures">Factures</a>
+                <a href="/admin/statistiques">Statistiques CA</a>
+
+                <span class="account-panel__section-label">Clients</span>
                 <a href="/admin/comptes">Comptes</a>
-                <a href="/admin/tarifs">Tarifs</a>
+
+                <span class="account-panel__section-label">Contenu</span>
                 <a href="/admin/actualites">Actualités</a>
                 <a href="/admin/newsletter">Newsletter</a>
-                <a href="/admin/bons-de-commande">Bons de commande</a>
-                <a href="/admin/statistiques">Statistiques CA</a>
                 <a href="/admin/marketing">Marketing</a>
+
+                <span class="account-panel__section-label">Système</span>
                 <a href="/admin/dpo">DPO — RGPD</a>
                 <a href="/admin/securite">Sécurité</a>
                 <?php if ($isSuperAdmin) : ?>

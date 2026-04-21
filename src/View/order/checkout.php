@@ -343,6 +343,19 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                         </div>
                     </section>
 
+                    <!-- === Réassurance === -->
+                    <div class="checkout-reassurance">
+                        <span class="checkout-reassurance__item">
+                            &#128274; <?= htmlspecialchars(__('checkout.reassurance_ssl')) ?>
+                        </span>
+                        <span class="checkout-reassurance__item">
+                            &#127968; <?= htmlspecialchars(__('checkout.reassurance_ca')) ?>
+                        </span>
+                        <span class="checkout-reassurance__item">
+                            &#8617; <?= htmlspecialchars(__('checkout.reassurance_retractation')) ?>
+                        </span>
+                    </div>
+
                     <!-- === CGV + Newsletter === -->
                     <section class="checkout-card checkout-card--terms">
                         <div class="checkout-terms">
@@ -471,8 +484,6 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
     </section>
 </main>
 
-<style>
-</style>
 
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {

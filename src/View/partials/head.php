@@ -31,6 +31,9 @@
 <?php if (!empty($jsonLd)) : ?>
     <script type="application/ld+json" nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>"><?= $jsonLd ?></script>
 <?php endif; ?>
+<?php if (!empty($breadcrumbLd)) : ?>
+    <script type="application/ld+json" nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>"><?= $breadcrumbLd ?></script>
+<?php endif; ?>
     <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
 <?php if (!empty($preloadCarousel)) : ?>
     <link rel="preload" as="image"
