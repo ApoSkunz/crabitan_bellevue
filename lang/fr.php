@@ -1083,4 +1083,19 @@ return [
 
     // Erreurs génériques
     'error.generic' => 'Une erreur est survenue. Veuillez réessayer.',
+
+    // Formulaire avis client
+    'review.page_title'           => 'Laissez votre avis',
+    'review.intro'                => 'Partagez votre expérience avec le Château Crabitan Bellevue.',
+    'review.your_name'            => 'Votre nom',
+    'review.rating_label'         => 'Votre note',
+    'review.comment_label'        => 'Votre commentaire',
+    'review.comment_placeholder'  => 'Décrivez votre expérience en quelques mots...',
+    'review.location_label'       => 'Votre ville',
+    'review.submit'               => 'Envoyer mon avis',
+    'review.already_done'         => 'Vous avez déjà laissé un avis, merci !',
+    'review.success_title'        => 'Merci pour votre avis',
+    'review.success_body'         => 'Votre témoignage a bien été enregistré. Nous vous en remercions chaleureusement.',
+    'review.invalid_token'        => 'Ce lien est invalide ou a déjà été utilisé.',
+    'review.expired_token'        => 'Ce lien a expiré. Les avis peuvent être déposés dans les 90 jours suivant votre commande.',
 ];

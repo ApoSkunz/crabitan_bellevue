@@ -1082,4 +1082,19 @@ return [
 
     // Generic errors
     'error.generic' => 'An error occurred. Please try again.',
+
+    // Customer review form
+    'review.page_title'           => 'Leave a review',
+    'review.intro'                => 'Share your experience with Château Crabitan Bellevue.',
+    'review.your_name'            => 'Your name',
+    'review.rating_label'         => 'Your rating',
+    'review.comment_label'        => 'Your comment',
+    'review.comment_placeholder'  => 'Describe your experience in a few words...',
+    'review.location_label'       => 'Your city',
+    'review.submit'               => 'Submit my review',
+    'review.already_done'         => 'You have already left a review, thank you!',
+    'review.success_title'        => 'Thank you for your review',
+    'review.success_body'         => 'Your feedback has been saved. We truly appreciate it.',
+    'review.invalid_token'        => 'This link is invalid or has already been used.',
+    'review.expired_token'        => 'This link has expired. Reviews can be submitted within 90 days of your order.',
 ];
