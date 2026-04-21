@@ -147,8 +147,11 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             'send-post-purchase'     => fn(callable $log, bool $dryRun) => $this->doJobSendPostPurchase($log, $dryRun),
             'alert-pending-orders'   => fn(callable $log, bool $dryRun) => $this->doJobAlertPendingOrders($log, $dryRun),
             'clean-expired-tokens'   => fn(callable $log, bool $dryRun) => $this->doJobCleanExpiredTokens($log, $dryRun),
-            'send-newsletter-queue'  => fn(callable $log, bool $dryRun) => $this->doJobSendNewsletterQueue($log, $dryRun),
-            default                => null,
+            'send-newsletter-queue'            => fn(callable $log, bool $dryRun) => $this->doJobSendNewsletterQueue($log, $dryRun),
+            'send-newsletter-welcome-sequence' => fn(callable $log, bool $dryRun) => $this->doJobSendNewsletterWelcomeSequence($log, $dryRun),
+            'send-reconquest'                  => fn(callable $log, bool $dryRun) => $this->doJobSendReconquest($log, $dryRun),
+            'send-review-request'              => fn(callable $log, bool $dryRun) => $this->doJobSendReviewRequest($log, $dryRun),
+            default                            => null,
         };
     }
 
@@ -991,5 +994,220 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
         $log("connections           : {$counts['connections']} supprimé(s)");
         $log("email_verification    : {$counts['email_verification']} compte(s) mis à jour");
         $log('Total nettoyé : ' . array_sum($counts) . ' entrée(s)');
+    }
+
+    /**
+     * Séquence de bienvenue newsletter J+7 et J+30 pour abonnés confirmés sans compte.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobSendNewsletterWelcomeSequence(callable $log, bool $dryRun): void
+    {
+        $db        = \Core\Database::getInstance();
+        $mailer    = new \Service\MailService();
+        $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+
+        // J+7 : éducation domaine
+        $j7Rows = $db->fetchAll(
+            "SELECT id, email, lang
+             FROM newsletter_subscriptions
+             WHERE newsletter_confirmed = 1
+               AND welcome_j7_sent_at IS NULL
+               AND created_at <= DATE_SUB(NOW(), INTERVAL 7 DAY)
+             LIMIT {$batchSize}"
+        );
+
+        $sentJ7 = 0;
+        foreach ($j7Rows as $row) {
+            $id    = (int) $row['id'];
+            $email = (string) $row['email'];
+            $lang  = (string) ($row['lang'] ?? 'fr');
+
+            if ($dryRun) {
+                $log("[DRY-RUN] J+7 would send to {$email}");
+                continue;
+            }
+            try {
+                $mailer->sendNewsletterWelcomeJ7($email, '', $lang);
+                $db->execute(
+                    'UPDATE newsletter_subscriptions SET welcome_j7_sent_at = NOW() WHERE id = ?',
+                    [$id]
+                );
+                $sentJ7++;
+                $log("[J+7 OK] {$email}");
+            } catch (\Throwable $e) {
+                $log("[J+7 ERR] {$email} : " . $e->getMessage());
+            }
+        }
+
+        // J+30 : offre découverte
+        $j30Rows = $db->fetchAll(
+            "SELECT id, email, lang, newsletter_token_hash
+             FROM newsletter_subscriptions
+             WHERE newsletter_confirmed = 1
+               AND welcome_j7_sent_at IS NOT NULL
+               AND welcome_j30_sent_at IS NULL
+               AND created_at <= DATE_SUB(NOW(), INTERVAL 30 DAY)
+             LIMIT {$batchSize}"
+        );
+
+        $sentJ30 = 0;
+        foreach ($j30Rows as $row) {
+            $id         = (int) $row['id'];
+            $email      = (string) $row['email'];
+            $lang       = (string) ($row['lang'] ?? 'fr');
+            $tokenHash  = (string) ($row['newsletter_token_hash'] ?? '');
+            $unsubToken = $tokenHash !== '' ? $tokenHash : bin2hex(random_bytes(16));
+            $unsubUrl   = $appUrl . '/' . $lang . '/newsletter/desabonnement?token=' . urlencode($unsubToken);
+
+            if ($dryRun) {
+                $log("[DRY-RUN] J+30 would send to {$email}");
+                continue;
+            }
+            try {
+                $mailer->sendNewsletterWelcomeJ30($email, '', $lang, $unsubToken);
+                $db->execute(
+                    'UPDATE newsletter_subscriptions SET welcome_j30_sent_at = NOW() WHERE id = ?',
+                    [$id]
+                );
+                $sentJ30++;
+                $log("[J+30 OK] {$email}");
+            } catch (\Throwable $e) {
+                $log("[J+30 ERR] {$email} : " . $e->getMessage());
+            }
+        }
+
+        if (!$dryRun) {
+            $log("J+7 : {$sentJ7} envoyé(s) — J+30 : {$sentJ30} envoyé(s)");
+        }
+    }
+
+    /**
+     * Email de reconquête pour clients inactifs (dernier achat > 12 mois, newsletter active).
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobSendReconquest(callable $log, bool $dryRun): void
+    {
+        $db        = \Core\Database::getInstance();
+        $mailer    = new \Service\MailService();
+        $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
+        $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+
+        $rows = $db->fetchAll(
+            "SELECT a.id, a.email, a.lang, a.newsletter_unsubscribe_token
+             FROM accounts a
+             WHERE a.newsletter = 1
+               AND a.deleted_at IS NULL
+               AND a.is_blocked = 0
+               AND (a.reconquest_sent_at IS NULL OR a.reconquest_sent_at < DATE_SUB(NOW(), INTERVAL 1 YEAR))
+               AND EXISTS (
+                   SELECT 1 FROM orders o
+                   WHERE o.user_id = a.id
+                     AND o.status NOT IN ('cancelled', 'refunded')
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM orders o
+                   WHERE o.user_id = a.id
+                     AND o.created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+                     AND o.status NOT IN ('cancelled', 'refunded')
+               )
+             LIMIT {$batchSize}"
+        );
+
+        $total = count($rows);
+        if ($total === 0) {
+            $log('Aucun client à reconquérir');
+            return;
+        }
+
+        $log("Reconquête : {$total} client(s) ciblé(s)");
+        $sent   = 0;
+        $failed = 0;
+
+        foreach ($rows as $row) {
+            $id         = (int) $row['id'];
+            $email      = (string) $row['email'];
+            $lang       = (string) ($row['lang'] ?? 'fr');
+            $unsubToken = (string) ($row['newsletter_unsubscribe_token'] ?? '');
+            $unsubUrl   = $appUrl . '/' . $lang . '/compte/desabonnement?token=' . urlencode($unsubToken);
+
+            if ($dryRun) {
+                $log("[DRY-RUN] Would reconquer {$email}");
+                continue;
+            }
+            try {
+                $mailer->sendReconquest($email, '', $lang, $unsubUrl);
+                $db->execute('UPDATE accounts SET reconquest_sent_at = NOW() WHERE id = ?', [$id]);
+                $sent++;
+                $log("[OK] {$email}");
+            } catch (\Throwable $e) {
+                $failed++;
+                $log("[ERR] {$email} : " . $e->getMessage());
+            }
+        }
+
+        if (!$dryRun) {
+            $log("Résultat : {$sent} envoyé(s), {$failed} échec(s)");
+        }
+    }
+
+    /**
+     * Email de demande d'avis global J+28 après livraison confirmée.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobSendReviewRequest(callable $log, bool $dryRun): void
+    {
+        $orderModel   = new \Model\OrderModel();
+        $accountModel = new \Model\AccountModel();
+        $reviewModel  = new \Model\ReviewModel();
+        $mailer       = new \Service\MailService();
+
+        $orders = $orderModel->getDeliveredForReviewEmail();
+        $log('Commandes éligibles demande avis : ' . count($orders));
+
+        foreach ($orders as $order) {
+            $account = $accountModel->findById((int) $order['user_id']);
+            if (!$account) {
+                $log('[SKIP] user_id=' . $order['user_id']);
+                continue;
+            }
+
+            if ($reviewModel->findByAccountId((int) $order['user_id']) !== null) {
+                $log('[SKIP already-reviewed] commande #' . $order['id'] . ' user_id=' . $order['user_id']);
+                $orderModel->markReviewEmailSent((int) $order['id']);
+                continue;
+            }
+
+            if ($dryRun) {
+                $log('[DRY-RUN] Would send review-request to ' . $account['email'] . ' commande #' . $order['id']);
+                continue;
+            }
+
+            $lang = in_array($account['lang'] ?? '', ['fr', 'en'], true) ? $account['lang'] : 'fr';
+            $name = trim((string) ($account['firstname'] ?? '')) ?: 'Client';
+
+            try {
+                $mailer->sendReviewRequest(
+                    $account['email'],
+                    $name,
+                    (int) $order['user_id'],
+                    (int) $order['id'],
+                    $lang
+                );
+                $orderModel->markReviewEmailSent((int) $order['id']);
+                $log('[OK] ' . $account['email'] . ' commande #' . $order['id']);
+            } catch (\Throwable $e) {
+                $log('[ERR] commande #' . $order['id'] . ' : ' . $e->getMessage());
+            }
+        }
     }
 }
