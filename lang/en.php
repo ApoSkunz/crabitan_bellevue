@@ -389,8 +389,9 @@ return [
     'home.news_cta'   => 'All news',
 
     // Homepage - Testimonials section
-    'home.testimonials_tag'   => 'Our customers say',
-    'home.testimonials_title' => 'Reviews',
+    'home.testimonials_tag'     => 'Our customers say',
+    'home.testimonials_title'   => 'Reviews',
+    'home.testimonials_reviews' => 'reviews',
 
     // Homepage - Location section
     'home.location_title'   => 'Where are we?',
@@ -684,6 +685,7 @@ return [
     'account.ratings_intro'      => 'Rate the wines you have ordered.',
     'account.ratings_empty'      => 'You have not placed any orders yet.',
     'account.ratings_save'       => 'Save',
+    'account.ratings_not_yet'    => 'Not rated yet',
     'account.review_title'       => 'My review',
     'account.review_intro'       => 'Share your overall experience with Château Crabitan Bellevue.',
     'account.review_saved'       => 'Your review has been saved.',
@@ -1102,6 +1104,7 @@ return [
     'review.comment_label'        => 'Your comment',
     'review.comment_placeholder'  => 'Describe your experience in a few words...',
     'review.location_label'       => 'Your city',
+    'review.location_placeholder' => 'Paris, Lyon...',
     'review.submit'               => 'Submit my review',
     'review.already_done'         => 'You have already left a review, thank you!',
     'review.success_title'        => 'Thank you for your review',

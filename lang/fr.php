@@ -390,8 +390,9 @@ return [
     'home.news_cta'   => 'Toutes les actualités',
 
     // Homepage - Section Témoignages
-    'home.testimonials_tag'   => 'Ils nous font confiance',
-    'home.testimonials_title' => 'Avis de nos clients',
+    'home.testimonials_tag'     => 'Ils nous font confiance',
+    'home.testimonials_title'   => 'Avis de nos clients',
+    'home.testimonials_reviews' => 'avis',
 
     // Homepage - Section Localisation
     'home.location_title'   => 'Où sommes-nous ?',
@@ -685,6 +686,7 @@ return [
     'account.ratings_intro'      => 'Notez les vins que vous avez commandés.',
     'account.ratings_empty'      => 'Vous n\'avez pas encore passé de commande.',
     'account.ratings_save'       => 'Enregistrer',
+    'account.ratings_not_yet'    => 'Pas encore noté',
     'account.review_title'       => 'Mon avis',
     'account.review_intro'       => 'Partagez votre expérience globale avec le Château Crabitan Bellevue.',
     'account.review_saved'       => 'Votre avis a bien été enregistré.',
@@ -1103,6 +1105,7 @@ return [
     'review.comment_label'        => 'Votre commentaire',
     'review.comment_placeholder'  => 'Décrivez votre expérience en quelques mots...',
     'review.location_label'       => 'Votre ville',
+    'review.location_placeholder' => 'Paris, Lyon...',
     'review.submit'               => 'Envoyer mon avis',
     'review.already_done'         => 'Vous avez déjà laissé un avis, merci !',
     'review.success_title'        => 'Merci pour votre avis',
