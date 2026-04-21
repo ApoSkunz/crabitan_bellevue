@@ -4,7 +4,7 @@ $pageTitle       = __('jeux.title');
 $metaDescription = $navLang === 'en'
     ? 'Wine games and activities at Château Crabitan Bellevue — discover our wines in a playful way.'
     : 'Jeux et activités autour des vins du Château Crabitan Bellevue — découvrez nos vins de façon ludique.';
-$appUrl     = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$appUrl = APP_BASE_URL;
 $canonical  = $appUrl . '/' . $navLang . '/jeux';
 $hreflangFr = $appUrl . '/fr/jeux';
 $hreflangEn = $appUrl . '/en/jeux';

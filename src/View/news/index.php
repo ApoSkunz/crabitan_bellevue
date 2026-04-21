@@ -4,7 +4,7 @@ $pageTitle       = __('nav.news');
 $metaDescription = $navLang === 'en'
     ? 'Latest news from Château Crabitan Bellevue — harvests, events and estate life.'
     : 'Actualités du Château Crabitan Bellevue — vendanges, événements et vie du domaine.';
-$appUrl        = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$appUrl = APP_BASE_URL;
 $canonical     = $appUrl . '/' . $navLang . '/actualites';
 $hreflangFr    = $appUrl . '/fr/actualites';
 $hreflangEn    = $appUrl . '/en/actualites';

@@ -4,7 +4,7 @@ $pageTitle       = __('footer.sitemap');
 $metaDescription = $navLang === 'en'
     ? 'Sitemap of the Château Crabitan Bellevue website — find all our pages easily.'
     : 'Plan du site du Château Crabitan Bellevue — retrouvez facilement toutes nos pages.';
-$appUrl     = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$appUrl = APP_BASE_URL;
 $canonical  = $appUrl . '/' . $navLang . '/plan-du-site';
 $hreflangFr = $appUrl . '/fr/plan-du-site';
 $hreflangEn = $appUrl . '/en/plan-du-site';
