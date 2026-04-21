@@ -126,4 +126,30 @@ class NewsletterSendQueueModelTest extends TestCase
 
         $this->assertSame(0, $this->makeModel($db)->countPending());
     }
+
+    // ----------------------------------------------------------------
+    // getPendingSegmented
+    // ----------------------------------------------------------------
+
+    public function testGetPendingSegmentedReturnsFetchAll(): void
+    {
+        $expected = [
+            ['id' => 5, 'newsletter_id' => 2, 'wine_id' => 10,
+             'recipient_email' => 'seg@b.com', 'recipient_name' => 'Seg',
+             'unsub_token' => 'u', 'lang' => 'fr'],
+        ];
+
+        $db = $this->createStub(Database::class);
+        $db->method('fetchAll')->willReturn($expected);
+
+        $this->assertSame($expected, $this->makeModel($db)->getPendingSegmented(5));
+    }
+
+    public function testGetPendingSegmentedReturnsEmptyWhenNoMatch(): void
+    {
+        $db = $this->createStub(Database::class);
+        $db->method('fetchAll')->willReturn([]);
+
+        $this->assertSame([], $this->makeModel($db)->getPendingSegmented(20));
+    }
 }
