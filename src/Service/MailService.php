@@ -2277,6 +2277,167 @@ INNER;
     }
 
     /**
+     * Envoie l'email de bienvenue newsletter J+7 (contenu éducatif sur le domaine).
+     *
+     * @param string $to   Adresse email
+     * @param string $name Prénom ou vide
+     * @param string $lang Langue ('fr' ou 'en')
+     * @return void
+     */
+    public function sendNewsletterWelcomeJ7(string $to, string $name, string $lang): void
+    {
+        $this->applySmtpConfig(MailChannel::NEWSLETTER);
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $safeName    = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : $defaultName;
+        $catalogUrl  = htmlspecialchars($appUrl . '/' . $lang . '/vins', ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject  = 'Le savoir-faire de Sainte-Croix-du-Mont — Château Crabitan Bellevue';
+            $greeting = "Bonjour {$safeName},";
+            $message  = "Depuis sa fondation, le Château Crabitan Bellevue perpétue l'art des vins liquoreux"
+                . " de <strong>Sainte-Croix-du-Mont</strong>, AOC unique nichée sur la rive droite de la Garonne.<br><br>"
+                . "Nos vignes, exposées plein sud, bénéficient des brumes matinales propices au botrytis"
+                . " — le champignon à l'origine de la concentration naturelle des sucres qui donne à nos vins"
+                . " leur complexité incomparable.<br><br>"
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$catalogUrl}\" style=\"" . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK
+                . 'Découvrir notre catalogue</a></td></tr></table>';
+        } else {
+            $subject  = 'The art of Sainte-Croix-du-Mont — Château Crabitan Bellevue';
+            $greeting = "Hello {$safeName},";
+            $message  = "Since its founding, Château Crabitan Bellevue has carried on the art of sweet wines"
+                . " from <strong>Sainte-Croix-du-Mont</strong>, a unique AOC on the right bank of the Garonne.<br><br>"
+                . "Our south-facing vines benefit from the morning mists that encourage botrytis"
+                . " — the fungus responsible for the natural concentration of sugars that gives our wines"
+                . " their unmatched complexity.<br><br>"
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$catalogUrl}\" style=\"" . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK
+                . 'Discover our catalogue</a></td></tr></table>';
+        }
+
+        $body = $this->emailSimpleLayout(
+            $lang === 'fr' ? 'Notre domaine' : 'Our estate',
+            $greeting,
+            $message,
+            $lang
+        );
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Envoie l'email de bienvenue newsletter J+30 (offre découverte — premier achat).
+     *
+     * @param string $to         Adresse email
+     * @param string $name       Prénom ou vide
+     * @param string $lang       Langue ('fr' ou 'en')
+     * @param string $unsubToken Token de désabonnement RGPD
+     * @return void
+     */
+    public function sendNewsletterWelcomeJ30(string $to, string $name, string $lang, string $unsubToken): void
+    {
+        $this->applySmtpConfig(MailChannel::NEWSLETTER);
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $safeName    = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : $defaultName;
+        $catalogUrl  = htmlspecialchars($appUrl . '/' . $lang . '/vins', ENT_QUOTES);
+        $unsubUrl    = htmlspecialchars($appUrl . '/' . $lang . '/newsletter/desabonnement?token=' . urlencode($unsubToken), ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject  = 'Votre première commande au Château Crabitan Bellevue — offre découverte';
+            $greeting = "Bonjour {$safeName},";
+            $message  = "Un mois déjà que vous nous lisez ! Pour vous remercier de votre fidélité,"
+                . " nous vous invitons à découvrir notre boutique en ligne.<br><br>"
+                . "Vins liquoreux, rouges, blancs et rosés de Bordeaux — chaque millésime raconte"
+                . " l'histoire d'une saison, d'un terroir, d'un savoir-faire artisanal.<br><br>"
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$catalogUrl}\" style=\"" . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK
+                . 'Commander maintenant</a></td></tr></table>'
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:24px;\">Pour vous désinscrire : "
+                . "<a href=\"{$unsubUrl}\" style=\"color:#8a7a60;\">cliquez ici</a>.</p>";
+        } else {
+            $subject  = 'Your first order at Château Crabitan Bellevue — discovery offer';
+            $greeting = "Hello {$safeName},";
+            $message  = "It has been a month since you joined us! To thank you for your loyalty,"
+                . " we invite you to explore our online shop.<br><br>"
+                . "Sweet, red, white and rosé Bordeaux wines — each vintage tells the story"
+                . " of a season, a terroir and an artisanal craft.<br><br>"
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$catalogUrl}\" style=\"" . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK
+                . 'Shop now</a></td></tr></table>'
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:24px;\">To unsubscribe: "
+                . "<a href=\"{$unsubUrl}\" style=\"color:#8a7a60;\">click here</a>.</p>";
+        }
+
+        $body = $this->emailSimpleLayout(
+            $lang === 'fr' ? 'Offre découverte' : 'Discovery offer',
+            $greeting,
+            $message,
+            $lang
+        );
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Envoie l'email de reconquête pour les clients inactifs (dernier achat > 12 mois).
+     *
+     * @param string $to       Adresse email
+     * @param string $name     Prénom
+     * @param string $lang     Langue ('fr' ou 'en')
+     * @param string $unsubUrl URL de désabonnement complète
+     * @return void
+     */
+    public function sendReconquest(string $to, string $name, string $lang, string $unsubUrl): void
+    {
+        $this->applySmtpConfig(MailChannel::NEWSLETTER);
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $defaultName = $lang === 'fr' ? 'Madame, Monsieur' : 'Dear Customer';
+        $safeName    = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : $defaultName;
+        $catalogUrl  = htmlspecialchars($appUrl . '/' . $lang . '/vins', ENT_QUOTES);
+        $safeUnsub   = htmlspecialchars($unsubUrl, ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject  = 'Vous nous manquez — les nouveaux millésimes du Château Crabitan Bellevue';
+            $greeting = "Bonjour {$safeName},";
+            $message  = "Cela fait un moment que nous n'avons pas eu le plaisir de vous accueillir."
+                . " Notre équipe a travaillé dur cette saison et nous avons hâte de vous faire découvrir"
+                . " nos derniers millésimes.<br><br>"
+                . "Vins liquoreux, blancs et rouges — retrouvez toute notre gamme dans la boutique.<br><br>"
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$catalogUrl}\" style=\"" . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK
+                . 'Revoir notre boutique</a></td></tr></table>'
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:24px;\">Pour ne plus recevoir nos emails : "
+                . "<a href=\"{$safeUnsub}\" style=\"color:#8a7a60;\">se désabonner</a>.</p>";
+        } else {
+            $subject  = 'We miss you — new vintages from Château Crabitan Bellevue';
+            $greeting = "Hello {$safeName},";
+            $message  = "It has been a while since we had the pleasure of welcoming you."
+                . " Our team has been hard at work this season and we can't wait to introduce you"
+                . " to our latest vintages.<br><br>"
+                . "Sweet, white and red wines — discover our full range in the shop.<br><br>"
+                . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">'
+                . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+                . "<a href=\"{$catalogUrl}\" style=\"" . self::BTN_STYLE_PRIMARY . self::BTN_STYLE_LINK
+                . 'Visit our shop</a></td></tr></table>'
+                . "<p style=\"font-size:12px;color:#8a7a60;margin-top:24px;\">To stop receiving our emails: "
+                . "<a href=\"{$safeUnsub}\" style=\"color:#8a7a60;\">unsubscribe</a>.</p>";
+        }
+
+        $body = $this->emailSimpleLayout(
+            $lang === 'fr' ? 'Vous nous manquez' : 'We miss you',
+            $greeting,
+            $message,
+            $lang
+        );
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
      * Envoie l'email de confirmation de changement d'email à la NOUVELLE adresse.
      *
      * Le destinataire doit cliquer sur le lien pour que le changement soit effectif
@@ -3165,6 +3326,7 @@ INNER;
   </style>
 </head>
 <body style="margin:0;padding:0;background-color:#f5f0e8;font-family:Georgia,serif;">
+  <div aria-hidden="true" style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{$title} — Ch&#226;teau Crabitan Bellevue &#8203;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
          style="background-color:#f5f0e8;padding:40px 16px;">
     <tr>
@@ -3365,11 +3527,21 @@ HTML;
             . $winesHtml
             . '</table>';
 
+        $catalogUrl   = htmlspecialchars($appUrl . '/' . $lang . '/vins', ENT_QUOTES);
+        $crossSellLabel = $lang === 'fr' ? 'Découvrir nos autres cuvées' : 'Explore our other vintages';
+        $crossSellBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">'
+            . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
+            . "<a href=\"{$catalogUrl}\" style=\"display:inline-block;padding:10px 24px;"
+            . self::BTN_STYLE_SECONDARY
+            . 'text-transform:uppercase;color:#c9a84c;text-decoration:none;font-weight:bold;">'
+            . $crossSellLabel . '</a></td></tr></table>';
+
         $message = "<p style=\"margin:0 0 24px;font-size:15px;line-height:1.7;color:#3d3425;\">"
             . $intro
             . "</p>"
             . $ctaBtn
-            . $fallbackSection;
+            . $fallbackSection
+            . $crossSellBtn;
 
         $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
         $this->send($to, $name, $subject, $body);
