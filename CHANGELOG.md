@@ -2,6 +2,19 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.20.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.19.0...v1.20.0) (2026-04-21)
+
+
+### Bug Fixes
+
+* **cron:** S1192 constantes APP_URL_FALLBACK/LOG_OK/LOG_ORDER_REF + retrait \$unsubUrl inutilisé + ordered_at ([16a60de](https://github.com/ApoSkunz/crabitan_bellevue/commit/16a60de03c2d3819d3c6b0bb8344fd263283c678))
+
+
+### Features
+
+* **cron:** enregistrer send-newsletter-welcome-sequence, send-reconquest, send-review-request dans CronController ([917229a](https://github.com/ApoSkunz/crabitan_bellevue/commit/917229a13a9644bd38eda8066bc5be23a0c6309d))
+* **ux:** exit-intent — cookie 7 jours par type (newsletter / commerce) ([ee1a9a4](https://github.com/ApoSkunz/crabitan_bellevue/commit/ee1a9a44dbd7749c19629276f1b590deb83bc3b5))
+
 # [1.19.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.18.0...v1.19.0) (2026-04-21)
 
 
