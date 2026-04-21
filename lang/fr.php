@@ -597,8 +597,9 @@ return [
     'webmaster.perso_gfa_task2'   => 'Refonte complète 2026 boostée à l\'IA agentique (Claude Code — Sonnet & Opus) : MVC custom from scratch, JWT, OAuth Google, MFA, RGPD/CNIL, CI/CD GitHub Actions, SonarCloud, audit cyber OWASP',
 
     // Webmaster — EDF (poste principal jan. 2025 → présent)
-    'webmaster.edf_role'        => 'Lead Intégrateur d\'application DevSecOps & SRE',
-    'webmaster.edf_period'      => 'jan. 2025 → présent · Division Numérique, EDF · Lyon, hybride',
+    'webmaster.edf_role'         => 'Lead Intégrateur d\'application DevSecOps & SRE',
+    'webmaster.edf_total_period' => 'nov. 2023 → présent · Division Numérique, EDF · Lyon, hybride',
+    'webmaster.edf_period'       => 'jan. 2025 → présent',
     'webmaster.edf_task1'       => 'Renforcement de la fiabilisation des pipelines CI/CD',
     'webmaster.edf_task2'       => 'Lancement de la communauté Zéro Obso : traitement de l\'obsolescence de manière préventive et automatisée via l\'innovation PreObs (Roadmap automatisée : SCA middleware & Infra)',
     'webmaster.edf_task3'       => 'Relais innovation du département SI Production nucléaire : dynamiser l\'innovation et faire rayonner les salariés innovants - jury du challenge CAP INNO',
@@ -613,6 +614,7 @@ return [
     'webmaster.edf_sub_task4'   => 'Architecture commune pour les Déploiements Automatisés (Ansible, IaC)',
     'webmaster.edf_sub_task5'   => 'SRE : surveillance continue, alerting, résilience from scratch, zéro obsolescence',
     'webmaster.edf_sub_task6'   => 'Collaboration sur le développement et l\'implémentation d\'une stratégie cyber : Horizon Zéro Vulnérabilité - participation au challenge DPNT 2025',
+    'webmaster.edf_sub_task7'   => 'Résultats CI/CD : réduction de 30% des vulnérabilités (critical & high en priorité), qualité logicielle +20% progressive, temps de déploiement réduit de 2h à 30 min',
 
     // Webmaster — Capgemini (poste principal)
     'webmaster.capgemini_role'      => 'Ingénieur DevOps - Team Leader System Team SAFe',

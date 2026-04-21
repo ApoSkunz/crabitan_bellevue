@@ -596,8 +596,9 @@ return [
     'webmaster.perso_gfa_task2'   => 'Full 2026 rewrite powered by agentic AI (Claude Code — Sonnet & Opus): custom MVC from scratch, JWT, Google OAuth, MFA, GDPR/CNIL, CI/CD GitHub Actions, SonarCloud, OWASP cyber audit',
 
     // Webmaster — EDF (main role Jan. 2025 → present)
-    'webmaster.edf_role'        => 'Lead Application Integration Engineer — DevSecOps & SRE',
-    'webmaster.edf_period'      => 'Jan. 2025 → present · Digital Division, EDF · Lyon, hybrid',
+    'webmaster.edf_role'         => 'Lead Application Integration Engineer — DevSecOps & SRE',
+    'webmaster.edf_total_period' => 'Nov. 2023 → present · Digital Division, EDF · Lyon, hybrid',
+    'webmaster.edf_period'       => 'Jan. 2025 → present',
     'webmaster.edf_task1'       => 'Strengthening CI/CD pipeline reliability',
     'webmaster.edf_task2'       => 'Launch of the Zéro Obso community: proactive and automated obsolescence management through the PreObs innovation (automated Roadmap: SCA middleware & Infra)',
     'webmaster.edf_task3'       => 'Innovation relay for the Nuclear Production IT department: fostering innovation and recognising talented employees — jury member for the CAP INNO challenge',
@@ -612,6 +613,7 @@ return [
     'webmaster.edf_sub_task4'   => 'Common architecture for Automated Deployments (Ansible, IaC)',
     'webmaster.edf_sub_task5'   => 'SRE: continuous monitoring, alerting, resilience from scratch, zero obsolescence',
     'webmaster.edf_sub_task6'   => 'Collaboration on the development and implementation of a cyber strategy: Horizon Zéro Vulnérabilité — participation in the DPNT 2025 challenge',
+    'webmaster.edf_sub_task7'   => 'CI/CD outcomes: 30% reduction in vulnerabilities (critical & high prioritised), +20% progressive software quality improvement, deployment time cut from 2h to 30 min',
 
     // Webmaster — Capgemini (main role)
     'webmaster.capgemini_role'      => 'DevOps Engineer — System Team Leader SAFe',

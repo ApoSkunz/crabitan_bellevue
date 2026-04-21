@@ -105,8 +105,11 @@ $age   = (new \DateTime())->diff($birth)->y;
                             <span class="cv-timeline__company">EDF</span>
                             <span class="cv-timeline__badge"><?= htmlspecialchars(__('webmaster.badge_cdi')) ?></span>
                         </div>
-                        <p class="cv-timeline__role"><?= htmlspecialchars(__('webmaster.edf_role')) ?></p>
-                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.edf_period')) ?></p>
+                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.edf_total_period')) ?></p>
+                        <p class="cv-timeline__sub-role">
+                            <em><?= htmlspecialchars(__('webmaster.edf_role')) ?></em>
+                            · <?= htmlspecialchars(__('webmaster.edf_period')) ?>
+                        </p>
                         <ul class="cv-timeline__tasks">
                             <li><?= htmlspecialchars(__('webmaster.edf_task1')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.edf_task2')) ?></li>
@@ -125,6 +128,7 @@ $age   = (new \DateTime())->diff($birth)->y;
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task4')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task5')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.edf_sub_task6')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.edf_sub_task7')) ?></li>
                         </ul>
                     </div>
                 </li>
