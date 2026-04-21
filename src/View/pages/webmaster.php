@@ -4,7 +4,7 @@ $pageTitle       = __('footer.webmaster');
 $metaDescription = $navLang === 'en'
     ? 'Webmaster information for the Château Crabitan Bellevue website — technical details and contacts.'
     : 'Informations webmaster du site Château Crabitan Bellevue — détails techniques et contacts.';
-$appUrl     = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$appUrl = APP_BASE_URL;
 $canonical  = $appUrl . '/' . $navLang . '/webmaster';
 $hreflangFr = $appUrl . '/fr/webmaster';
 $hreflangEn = $appUrl . '/en/webmaster';

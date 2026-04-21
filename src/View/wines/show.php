@@ -3,7 +3,7 @@ $isAdmin          = $isAdmin ?? false;
 $exitIntentVariant = 'show';
 $wineName  = ($wine['label_name'] ?? '') . ' ' . ($wine['vintage'] ?? '');
 $pageTitle = $wineName;
-$appUrl        = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$appUrl = APP_BASE_URL;
 $_oeno         = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
 $_oenoText     = (string) ($_oeno[$navLang] ?? ($_oeno['fr'] ?? ''));
 $metaDescription = mb_substr(strip_tags($_oenoText), 0, 155);

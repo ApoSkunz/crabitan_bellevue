@@ -7,7 +7,7 @@ $pageTitle       = __('nav.collection');
 $metaDescription = $navLang === 'en'
     ? 'Explore the full range of Château Crabitan Bellevue wines — sweet, white, red and rosé Bordeaux wines.'
     : 'Découvrez la gamme complète des vins du Château Crabitan Bellevue — vins liquoreux, blancs, rouges et rosés de Bordeaux.';
-$appUrl      = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$appUrl = APP_BASE_URL;
 $breadcrumbLd = json_encode([
     '@context'        => 'https://schema.org',
     '@type'           => 'BreadcrumbList',

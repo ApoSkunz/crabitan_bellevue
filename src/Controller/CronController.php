@@ -1011,7 +1011,6 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
         $db        = \Core\Database::getInstance();
         $mailer    = new \Service\MailService();
         $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
-        $appUrl    = rtrim($_ENV['APP_URL'] ?? self::APP_URL_FALLBACK, '/');
 
         // J+7 : éducation domaine
         $j7Rows = $db->fetchAll(

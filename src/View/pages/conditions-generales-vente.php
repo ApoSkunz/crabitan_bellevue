@@ -7,7 +7,7 @@ $metaDescription = $navLang === 'en'
 $isBare       = $bare ?? false;
 $isFr         = $navLang === 'fr';
 $contactEmail = $_ENV['CONTACT_OWNER_EMAIL'];
-$appUrl       = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$appUrl = APP_BASE_URL;
 $canonical    = $appUrl . '/' . $navLang . '/conditions-generales-de-vente';
 $hreflangFr   = $appUrl . '/fr/conditions-generales-de-vente';
 $hreflangEn   = $appUrl . '/en/conditions-generales-de-vente';
