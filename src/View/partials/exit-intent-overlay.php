@@ -26,7 +26,8 @@ $_eiHref         = '/' . htmlspecialchars($_eiLang) . $_eiCfg['path'];
 <!-- Exit-intent pop-in -->
 <!-- NOSONAR Web:S6819 — custom overlay with full JS focus/keyboard management -->
 <div id="exit-intent-overlay" class="exit-intent-overlay" aria-hidden="true" role="region"
-     aria-labelledby="exit-intent-title">
+     aria-labelledby="exit-intent-title"
+     data-variant-type="<?= $_eiIsNewsletter ? 'newsletter' : 'commerce' ?>">
     <div class="exit-intent-overlay__backdrop" id="exit-intent-backdrop"></div>
     <div class="exit-intent-overlay__box">
         <button class="exit-intent-overlay__close" id="exit-intent-close" type="button"
@@ -81,28 +82,41 @@ $_eiHref         = '/' . htmlspecialchars($_eiLang) . $_eiCfg['path'];
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {
     'use strict';
-    var STORAGE_KEY = 'exit_intent_shown';
-    if (sessionStorage.getItem(STORAGE_KEY)) { return; }
-
     var overlay  = document.getElementById('exit-intent-overlay');
     var backdrop = document.getElementById('exit-intent-backdrop');
     var closeBtn = document.getElementById('exit-intent-close');
     var dismiss  = document.querySelector('.exit-intent-overlay__dismiss');
-    var shown    = false;
-    var lastY    = 0;
+
+    var variantType = (overlay && overlay.dataset.variantType) || 'commerce';
+    var COOKIE_NAME = variantType === 'newsletter' ? 'eid_nl' : 'eid_commerce';
+    var COOKIE_TTL  = 7 * 24 * 3600; // 7 jours en secondes
+
+    function hasCookie(name) {
+        return document.cookie.split('; ').some(function (c) {
+            return c === name + '=1' || c.indexOf(name + '=') === 0;
+        });
+    }
+
+    function setCookie(name) {
+        document.cookie = name + '=1; path=/; max-age=' + COOKIE_TTL + '; SameSite=Lax; Secure';
+    }
+
+    if (hasCookie(COOKIE_NAME)) { return; }
+
+    var shown = false;
+    var lastY = 0;
 
     function show() {
-        if (shown) { return; }
+        if (shown || hasCookie(COOKIE_NAME)) { return; }
         shown = true;
-        sessionStorage.setItem(STORAGE_KEY, '1');
-        overlay.removeAttribute('aria-hidden');
         overlay.setAttribute('aria-hidden', 'false');
         overlay.classList.add('exit-intent-overlay--visible');
     }
 
-    function hide() {
+    function hide(dismissed) {
         overlay.setAttribute('aria-hidden', 'true');
         overlay.classList.remove('exit-intent-overlay--visible');
+        if (dismissed) { setCookie(COOKIE_NAME); }
     }
 
     document.documentElement.addEventListener('mouseleave', function (e) {
@@ -121,11 +135,11 @@ $_eiHref         = '/' . htmlspecialchars($_eiLang) . $_eiCfg['path'];
         lastY = y;
     }, { passive: true });
 
-    if (closeBtn) { closeBtn.addEventListener('click', hide); }
-    if (dismiss)  { dismiss.addEventListener('click', hide); }
-    if (backdrop) { backdrop.addEventListener('click', hide); }
+    if (closeBtn) { closeBtn.addEventListener('click', function () { hide(true); }); }
+    if (dismiss)  { dismiss.addEventListener('click',   function () { hide(true); }); }
+    if (backdrop) { backdrop.addEventListener('click',  function () { hide(true); }); }
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') { hide(); }
+        if (e.key === 'Escape') { hide(true); }
     });
 }());
 </script>
