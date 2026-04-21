@@ -16,6 +16,10 @@ if ($footerToken) {
         // Token invalide ou expiré — pas de pré-remplissage
     }
 }
+// Si l'utilisateur est déjà abonné, ne pas afficher l'exit-intent newsletter
+if (!$footerShowNewsletter && isset($exitIntentVariant) && $exitIntentVariant === 'newsletter') {
+    $exitIntentVariant = null;
+}
 ?>
 <footer class="site-footer">
     <div class="footer-inner">
