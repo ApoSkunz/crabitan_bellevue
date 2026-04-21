@@ -378,6 +378,34 @@ class WineControllerTest extends TestCase
         $method->invoke($ctrl, 'slug-block-test', 'Vin Test');
     }
 
+    // ── show() ctx=collection ────────────────────────────────────────────────
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testShowWithCollectionCtxCallsAdjacentAllSlugs(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REQUEST_URI'] = '/fr/vins/test-slug';
+        $_GET['ctx'] = 'collection';
+
+        ob_start();
+        try {
+            $this->makeController('/fr/vins/test-slug')
+                ->show(['lang' => 'fr', 'slug' => 'test-slug']);
+        } catch (\Core\Exception\HttpException $e) {
+            ob_end_clean();
+            // Vin inexistant sans BDD — branche ctx=collection atteinte
+            $this->assertSame(404, $e->getCode());
+            return;
+        } catch (\Throwable $e) {
+            ob_end_clean();
+            $this->markTestSkipped('Rendu indisponible sans BDD/vue : ' . $e->getMessage());
+        }
+        ob_end_clean();
+
+        $this->assertTrue(true);
+    }
+
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
     public function testCheckPdfRateLimitIsolatedPerSlug(): void

@@ -1,6 +1,6 @@
 <?php
 $pageTitle = __('cart.title');
-defined('WINE_IMG_BASE')  || define('WINE_IMG_BASE',  '/assets/images/wines/');
+defined('WINE_IMG_BASE')  || define('WINE_IMG_BASE', '/assets/images/wines/');
 defined('WINE_EXT_REGEX') || define('WINE_EXT_REGEX', '/\.[^.]+$/');
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
@@ -20,7 +20,8 @@ $isB2B            = $isB2B            ?? false;
 $pricingRule      = $pricingRule      ?? null;
 $nextTier         = $nextTier         ?? null;
 $totalQty         = $totalQty         ?? 0;
-$lang             = $lang             ?? 'fr';
+$lang              = $lang             ?? 'fr';
+$exitIntentVariant = 'cart';
 $isEn             = ($lang === 'en');
 $subtotal         = $subtotal         ?? 0.0;
 $deliveryDiscount = $deliveryDiscount ?? 0.0;
@@ -32,7 +33,8 @@ $removedCount     = (int) ($removedCount ?? 0);
 $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, '.webp', $p);
 ?>
 
-<?php $checkoutStep = 1; require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S2003 : require intentionnel, le partiel est chargé plusieurs fois (vues + tests isolation) ?>
+<?php $checkoutStep = 1;
+require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S2003 : require intentionnel, le partiel est chargé plusieurs fois (vues + tests isolation) ?>
 
 <main class="page-cart" id="main-content">
     <?php if ($removedCount > 0) : ?>
@@ -80,10 +82,10 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
         </div>
 
         <!-- Notice > 600 bouteilles -->
-        <?php
-        $over600Subject = rawurlencode(__('cart.over_600_subject'));
-        $over600Email   = $_ENV['CONTACT_OWNER_EMAIL'];
-        ?>
+            <?php
+            $over600Subject = rawurlencode(__('cart.over_600_subject'));
+            $over600Email   = $_ENV['CONTACT_OWNER_EMAIL'];
+            ?>
         <div class="cart-notice cart-notice--contact js-notice-600"
              id="cart-notice-600"
              role="note"
@@ -94,7 +96,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
         </div>
 
         <!-- Accordéon remises livraison + barre de progression palier -->
-        <?php if (!empty($pricingRules)) : ?>
+            <?php if (!empty($pricingRules)) : ?>
         <div class="cart-delivery-section">
             <details class="cart-delivery-accordion">
                 <summary class="cart-delivery-accordion__trigger">
@@ -105,7 +107,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
                     <?php foreach ($pricingRules as $rule) :
                         $labelData = json_decode((string) ($rule['label'] ?? '{}'), true) ?? [];
                         $ruleLabel = (string) ($labelData[$lang] ?? $labelData['fr'] ?? '');
-                    ?>
+                        ?>
                     <li class="cart-delivery-accordion__item <?= ($pricingRule !== null && (int)$rule['id'] === (int)($pricingRule['id'] ?? 0)) ? 'cart-delivery-accordion__item--active' : '' ?>">
                         <?= htmlspecialchars($ruleLabel) ?>
                     </li>
@@ -113,31 +115,31 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
                 </ul>
             </details>
 
-            <?php
-            $progressHidden      = true;
-            $progressRemain      = 0;
-            $progressRemainCases = 0;
-            $progressPct         = 0;
-            $isMaxTier           = false;
-            $hasDiscount         = $deliveryDiscount > 0.0;
+                <?php
+                $progressHidden      = true;
+                $progressRemain      = 0;
+                $progressRemainCases = 0;
+                $progressPct         = 0;
+                $isMaxTier           = false;
+                $hasDiscount         = $deliveryDiscount > 0.0;
 
-            if ($totalQty > 0) {
-                if ($nextTier !== null) {
-                    $progressHidden      = false;
-                    $fromQty             = $pricingRule !== null ? (int) ($pricingRule['min_quantity'] ?? 0) : 0;
-                    $toQty               = (int) $nextTier['min_quantity'];
-                    $progressRemain      = $toQty - $totalQty;
-                    $progressRemainCases = (int) ceil($progressRemain / 12);
-                    $range               = $toQty - $fromQty;
-                    $progressPct         = $range > 0 ? min(100, (int) round(($totalQty - $fromQty) / $range * 100)) : 0;
-                } elseif ($pricingRule !== null) {
-                    // Palier maximum atteint
-                    $progressHidden = false;
-                    $progressPct    = 100;
-                    $isMaxTier      = true;
+                if ($totalQty > 0) {
+                    if ($nextTier !== null) {
+                        $progressHidden      = false;
+                        $fromQty             = $pricingRule !== null ? (int) ($pricingRule['min_quantity'] ?? 0) : 0;
+                        $toQty               = (int) $nextTier['min_quantity'];
+                        $progressRemain      = $toQty - $totalQty;
+                        $progressRemainCases = (int) ceil($progressRemain / 12);
+                        $range               = $toQty - $fromQty;
+                        $progressPct         = $range > 0 ? min(100, (int) round(($totalQty - $fromQty) / $range * 100)) : 0;
+                    } elseif ($pricingRule !== null) {
+                        // Palier maximum atteint
+                        $progressHidden = false;
+                        $progressPct    = 100;
+                        $isMaxTier      = true;
+                    }
                 }
-            }
-            ?>
+                ?>
             <div class="cart-progress-bar"
                  id="cart-progress-bar"
                  <?= $progressHidden ? 'hidden' : '' ?>>
@@ -173,7 +175,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
                 </div>
             </div>
         </div>
-        <?php endif; ?>
+            <?php endif; ?>
 
         <div class="cart-layout">
             <div class="cart-table-wrap">
@@ -190,7 +192,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
                     </thead>
                     <tbody id="cart-tbody">
                         <?php foreach ($cartItems as $item) : ?>
-                        <?php
+                            <?php
                             $wineId      = (int)   ($item['wine_id']       ?? 0);
                             $qty         = (int)   ($item['qty']           ?? 1);
                             $name        = (string)($item['name']          ?? '');
@@ -198,7 +200,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
                             $price       = (float) ($item['price']         ?? 0.0);
                             $stock       = (int)   ($item['stock_quantity'] ?? 0);
                             $itemTotal   = $price * $qty;
-                        ?>
+                            ?>
                         <tr class="cart-table__row" data-wine-id="<?= $wineId ?>" data-price="<?= number_format($price, 2, '.', '') ?>" data-stock="<?= $stock ?>">
                             <td class="cart-table__col-image">
                                 <?php if ($image !== '') :
@@ -234,7 +236,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
                                 <?php
                                 $stockLimit = (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300);
                                 if ($stock > 0 && $stock <= $stockLimit) : // NOSONAR — php:S3973 — syntaxe alternative PHP standard dans les vues
-                                ?>
+                                    ?>
                                     <span class="cart-table__stock-notice">
                                         <?= $stock ?> <?= htmlspecialchars(__('wine.low_stock_qty')) ?>
                                     </span>
@@ -354,7 +356,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
         <!-- ======================================================
              Connecté — panier vide
         ====================================================== -->
-        <?php $randomWine = $randomWine ?? null; ?>
+            <?php $randomWine = $randomWine ?? null; ?>
         <div class="cart-empty-state">
             <p class="cart-empty"><?= htmlspecialchars(__('cart.empty')) ?></p>
             <?php if ($featuredWine !== null) : ?>
@@ -415,7 +417,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
             <p><?= htmlspecialchars(__('cart.min_12_notice')) ?></p>
         </div>
 
-        <?php if (!empty($pricingRules)) : ?>
+            <?php if (!empty($pricingRules)) : ?>
         <div class="cart-guest-delivery">
             <details class="cart-delivery-accordion">
                 <summary class="cart-delivery-accordion__trigger">
@@ -426,13 +428,13 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
                     <?php foreach ($pricingRules as $rule) :
                         $labelData = json_decode((string) ($rule['label'] ?? '{}'), true) ?? [];
                         $ruleLabel = (string) ($labelData[$lang] ?? $labelData['fr'] ?? '');
-                    ?>
+                        ?>
                     <li class="cart-delivery-accordion__item"><?= htmlspecialchars($ruleLabel) ?></li>
                     <?php endforeach; ?>
                 </ul>
             </details>
         </div>
-        <?php endif; ?>
+            <?php endif; ?>
 
         <div id="cart-guest" class="cart-guest" aria-live="polite" aria-label="Contenu du panier">
             <p class="cart-guest__loading"><?= htmlspecialchars(__('cart.empty')) ?></p>
@@ -444,7 +446,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
                 <?= htmlspecialchars(__('cart.login_cta')) ?>
             </button>
         </div>
-        <?php if (isset($randomWine) && $randomWine !== null) : ?>
+            <?php if (isset($randomWine) && $randomWine !== null) : ?>
         <div id="cart-guest-recommendation" class="cart-empty-wine" hidden>
             <p class="cart-empty-wine__label"><?= htmlspecialchars(__('cart.you_might_enjoy')) ?></p>
             <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string)($randomWine['slug'] ?? '')) ?>"
@@ -465,7 +467,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
                 <span class="cart-empty-wine__price"><?= number_format((float)($randomWine['price'] ?? 0), 2, ',', ' ') ?>&nbsp;€</span>
             </a>
         </div>
-        <?php endif; ?>
+            <?php endif; ?>
         <div id="cart-guest-browse-cta" class="cart-guest-cta" hidden>
             <a href="/<?= htmlspecialchars($lang) ?>/vins" class="btn btn--gold">
                 <?= htmlspecialchars(__('cart.browse')) ?>
@@ -485,7 +487,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
                 $cwImage   = rawurlencode((string) ($cw['image_path'] ?? ''));
                 $cwId      = (int) ($cw['id'] ?? 0);
                 $cwCuvee   = !empty($cw['is_cuvee_speciale']);
-            ?>
+                ?>
             <article class="wine-card wine-cross-sell__card">
                 <a href="/<?= htmlspecialchars($lang) ?>/vins/<?= $cwSlug ?>"
                    class="wine-card__inner"
@@ -554,7 +556,7 @@ $toWebp = static fn(string $p): string => (string) preg_replace(WINE_EXT_REGEX, 
             'delivery_price' => (float) $r['delivery_price'],
             'price_type'     => (string) $r['price_type'],
         ];
-    }, $pricingRules), JSON_UNESCAPED_UNICODE) ?>;
+                            }, $pricingRules), JSON_UNESCAPED_UNICODE) ?>;
     window.__totalQty = <?= (int) $totalQty ?>;
     window.__isMultiple12Error = <?= ($totalQty > 0 && $totalQty % 12 !== 0) ? 'true' : 'false' ?>;
     window.__multiple12Msg = <?= json_encode(

@@ -20,10 +20,10 @@ $jsonLd      = json_encode([
             '@type' => 'Organization',
             'name'  => $brandName,
             'url'   => $appUrl,
-            'logo'  => $appUrl . '/assets/images/logo/favicon.svg',
+            'logo'  => $appUrl . '/assets/images/logo/crabitan-bellevue-logo.png',
         ],
         [
-            '@type'        => 'LocalBusiness',
+            '@type'        => 'Winery',
             'name'         => $brandName,
             '@id'          => $appUrl,
             'url'          => $appUrl,

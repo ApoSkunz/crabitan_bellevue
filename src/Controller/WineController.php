@@ -673,6 +673,11 @@ class WineController extends Controller
             // RatingModel pas encore disponible
         }
 
+        $ctx      = ($_GET['ctx'] ?? '') === 'collection' ? 'collection' : 'boutique';
+        $adjacent = $ctx === 'collection'
+            ? $model->getAdjacentSlugs((int) $wine['id'])
+            : $model->getAdjacentAvailableSlugs((int) $wine['id']);
+
         $this->view('wines/show', [
             'lang'          => $lang,
             'wine'          => $wine,
@@ -682,6 +687,9 @@ class WineController extends Controller
             'avgRating'     => $avgRating,
             'ratingCount'   => $ratingCount,
             'accountRating' => $accountRating,
+            'prevWine'      => $adjacent['prev'],
+            'nextWine'      => $adjacent['next'],
+            'navCtx'        => $ctx,
         ]);
     }
 

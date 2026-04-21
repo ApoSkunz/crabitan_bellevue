@@ -1317,4 +1317,66 @@ class WineModelTest extends TestCase
 
         $this->assertSame([], $result);
     }
+
+    // ----------------------------------------------------------------
+    // getAdjacentSlugs
+    // ----------------------------------------------------------------
+
+    public function testGetAdjacentSlugsReturnsPrevAndNext(): void
+    {
+        $prev = ['slug' => 'vin-a-2019', 'label_name' => 'Vin A', 'vintage' => 2019, 'is_cuvee_speciale' => 0];
+        $next = ['slug' => 'vin-c-2021', 'label_name' => 'Vin C', 'vintage' => 2021, 'is_cuvee_speciale' => 1];
+
+        $this->dbMock
+            ->method('fetchOne')
+            ->willReturnOnConsecutiveCalls($prev, $next);
+
+        $result = $this->model->getAdjacentSlugs(10);
+
+        $this->assertSame($prev, $result['prev']);
+        $this->assertSame($next, $result['next']);
+    }
+
+    public function testGetAdjacentSlugsReturnsNullWhenNoPrevOrNext(): void
+    {
+        $this->dbMock
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $result = $this->model->getAdjacentSlugs(1);
+
+        $this->assertNull($result['prev']);
+        $this->assertNull($result['next']);
+    }
+
+    // ----------------------------------------------------------------
+    // getAdjacentAvailableSlugs
+    // ----------------------------------------------------------------
+
+    public function testGetAdjacentAvailableSlugsReturnsPrevAndNext(): void
+    {
+        $prev = ['slug' => 'avail-a-2018', 'label_name' => 'Avail A', 'vintage' => 2018, 'is_cuvee_speciale' => 0];
+        $next = ['slug' => 'avail-c-2022', 'label_name' => 'Avail C', 'vintage' => 2022, 'is_cuvee_speciale' => 0];
+
+        $this->dbMock
+            ->method('fetchOne')
+            ->willReturnOnConsecutiveCalls($prev, $next);
+
+        $result = $this->model->getAdjacentAvailableSlugs(5);
+
+        $this->assertSame($prev, $result['prev']);
+        $this->assertSame($next, $result['next']);
+    }
+
+    public function testGetAdjacentAvailableSlugsReturnsNullWhenNoneFound(): void
+    {
+        $this->dbMock
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $result = $this->model->getAdjacentAvailableSlugs(999);
+
+        $this->assertNull($result['prev']);
+        $this->assertNull($result['next']);
+    }
 }

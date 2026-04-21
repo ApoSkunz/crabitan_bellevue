@@ -343,6 +343,19 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                         </div>
                     </section>
 
+                    <!-- === Réassurance === -->
+                    <div class="checkout-reassurance">
+                        <span class="checkout-reassurance__item">
+                            &#128274; <?= htmlspecialchars(__('checkout.reassurance_ssl')) ?>
+                        </span>
+                        <span class="checkout-reassurance__item">
+                            &#127968; <?= htmlspecialchars(__('checkout.reassurance_ca')) ?>
+                        </span>
+                        <span class="checkout-reassurance__item">
+                            &#8617; <?= htmlspecialchars(__('checkout.reassurance_retractation')) ?>
+                        </span>
+                    </div>
+
                     <!-- === CGV + Newsletter === -->
                     <section class="checkout-card checkout-card--terms">
                         <div class="checkout-terms">
@@ -457,7 +470,8 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                         </p>
                         <?php endif; ?>
                         <button type="submit" class="btn btn--gold checkout-summary__cta">
-                            <?= htmlspecialchars(__('checkout.submit')) ?>
+                            <span><?= htmlspecialchars(__('checkout.submit')) ?></span>
+                            <span class="checkout-summary__cta-price"><?= number_format($total, 2, ',', ' ') ?>&nbsp;€ TTC</span>
                         </button>
 
                         <a href="/<?= htmlspecialchars($lang) ?>/panier" class="checkout-summary__back">
@@ -471,8 +485,6 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
     </section>
 </main>
 
-<style>
-</style>
 
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {

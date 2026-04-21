@@ -67,6 +67,45 @@ class NewsletterSendQueueModel extends Model
     }
 
     /**
+     * Retourne les N prochains destinataires en attente avec ciblage par couleur de vin (favorites).
+     *
+     * Inclut :
+     * - Abonnés sans compte (newsletter-only, pas de favoris)
+     * - Abonnés avec compte mais aucun favori
+     * - Abonnés avec compte ayant au moins un favori de la même couleur que le vin envoyé
+     *
+     * @param int $limit Nombre maximum de lignes à retourner
+     * @return array<int, array<string, mixed>>
+     */
+    public function getPendingSegmented(int $limit): array
+    {
+        return $this->db->fetchAll(
+            'SELECT q.id, q.newsletter_id, q.wine_id,
+                    q.recipient_email, q.recipient_name, q.unsub_token, q.lang
+             FROM newsletter_send_queue q
+             INNER JOIN wines w ON w.id = q.wine_id
+             WHERE q.status = \'pending\'
+               AND (
+                 NOT EXISTS (
+                   SELECT 1 FROM accounts a
+                   WHERE a.email = q.recipient_email AND a.deleted_at IS NULL
+                 )
+                 OR NOT EXISTS (
+                   SELECT 1 FROM favorites f
+                   JOIN accounts a2 ON a2.id = f.account_id AND a2.email = q.recipient_email
+                 )
+                 OR EXISTS (
+                   SELECT 1 FROM favorites f
+                   JOIN accounts a3 ON a3.id = f.account_id AND a3.email = q.recipient_email
+                   JOIN wines wf ON wf.id = f.wine_id AND wf.wine_color = w.wine_color
+                 )
+               )
+             ORDER BY q.id ASC
+             LIMIT ' . $limit
+        );
+    }
+
+    /**
      * Enregistre un envoi réussi : incrémente sent_count sur la campagne et supprime la ligne queue.
      * Suppression immédiate = conformité RGPD (pas d'emails en table après traitement).
      *

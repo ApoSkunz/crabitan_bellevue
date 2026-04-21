@@ -26,7 +26,10 @@ exit($runner->run(function (callable $log, bool $dryRun): void {
     $batchSize  = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
     $delayMs    = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
 
-    $pending = $queueModel->getPending($batchSize);
+    $smartTargeting = filter_var($_ENV['NEWSLETTER_SMART_TARGETING'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+    $pending = $smartTargeting
+        ? $queueModel->getPendingSegmented($batchSize)
+        : $queueModel->getPending($batchSize);
     $total   = count($pending);
 
     if ($total === 0) {

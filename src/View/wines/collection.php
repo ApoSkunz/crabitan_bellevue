@@ -1,11 +1,22 @@
 <?php
-$isAdmin   = $isAdmin ?? false;
+$isAdmin           = $isAdmin ?? false;
+$exitIntentVariant = 'collection';
 $ratings   = $ratings ?? [];
 $navLang         = $lang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
 $pageTitle       = __('nav.collection');
 $metaDescription = $navLang === 'en'
     ? 'Explore the full range of Château Crabitan Bellevue wines — sweet, white, red and rosé Bordeaux wines.'
     : 'Découvrez la gamme complète des vins du Château Crabitan Bellevue — vins liquoreux, blancs, rouges et rosés de Bordeaux.';
+$appUrl      = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
+$breadcrumbLd = json_encode([
+    '@context'        => 'https://schema.org',
+    '@type'           => 'BreadcrumbList',
+    'itemListElement' => [
+        ['@type' => 'ListItem', 'position' => 1, 'name' => __('nav.home'),       'item' => $appUrl . '/' . $navLang],
+        ['@type' => 'ListItem', 'position' => 2, 'name' => __('nav.wines'),      'item' => $appUrl . '/' . $navLang . '/vins'],
+        ['@type' => 'ListItem', 'position' => 3, 'name' => __('nav.collection'), 'item' => $appUrl . '/' . $navLang . '/vins/collection'],
+    ],
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 
@@ -33,6 +44,16 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
             <p class="page-hero__intro"><?= htmlspecialchars(__('collection.intro')) ?></p>
             <div class="home-section__divider home-section__divider--center"></div>
         </div>
+    </div>
+
+    <div class="container">
+        <nav class="breadcrumb" aria-label="<?= htmlspecialchars(__('common.breadcrumb')) ?>">
+            <ol class="breadcrumb__list">
+                <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>"><?= htmlspecialchars(__('nav.home')) ?></a></li>
+                <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>/vins"><?= htmlspecialchars(__('nav.wines')) ?></a></li>
+                <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>/vins/collection"><?= htmlspecialchars(__('nav.collection')) ?></a></li>
+            </ol>
+        </nav>
     </div>
 
     <?php require_once SRC_PATH . '/View/partials/wines-case-banner.php'; ?>
@@ -165,8 +186,8 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                         </div><!-- end eager grid -->
                         <template class="js-lazy-cards">
                         <div class="wines-grid wines-grid--collection wines-grid--lazy">
-                    <?php endif; ?>
-                    <?php
+                        <?php endif; ?>
+                        <?php
                         $comment     = ['fr' => $wine['oenological_comment_fr'] ?? '', 'en' => $wine['oenological_comment_en'] ?? ''];
                         $description = $comment[$navLang] ?? ($comment['fr'] ?? '');
                         $awardData   = ['fr' => $wine['award_fr'] ?? '', 'en' => $wine['award_en'] ?? ''];
@@ -174,7 +195,7 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
                         ?>
                         <article class="wine-card<?= !$wine['available'] ? ' wine-card--out-of-stock' : '' ?>">
                             <a
-                                href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>"
+                                href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($wine['slug']) ?>?ctx=collection"
                                 class="wine-card__inner"
                                 aria-label="<?= htmlspecialchars($wine['label_name'] . ' ' . $wine['vintage']) ?>"
                             >

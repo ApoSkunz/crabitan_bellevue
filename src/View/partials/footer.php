@@ -62,7 +62,7 @@ if ($footerToken) {
             </div>
         </div>
 
-        <?php if ($footerShowNewsletter): ?>
+        <?php if ($footerShowNewsletter) : ?>
         <section class="footer-newsletter" aria-label="<?= htmlspecialchars(__('newsletter.footer_title')) ?>">
             <form id="footer-newsletter-form"
                   action="/<?= htmlspecialchars($navLang) ?>/newsletter/inscription"
@@ -136,6 +136,7 @@ if ($footerToken) {
     </div>
 </footer>
 
+<?php require_once SRC_PATH . '/View/partials/exit-intent-overlay.php'; ?>
 <?php require_once SRC_PATH . '/View/partials/cookie-banner.php'; ?>
 
 <script src="/assets/js/main.js" defer></script>

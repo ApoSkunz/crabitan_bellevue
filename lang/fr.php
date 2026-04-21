@@ -13,6 +13,7 @@ return [
     'nav.home'        => 'Accueil',
     'nav.contact'     => 'Contact',
     'nav.wines'       => 'Boutique',
+    'wines.h1_seo'    => 'Nos Vins — Crabitan Bellevue',
     'nav.collection'  => 'Collection des vins',
     'collection.intro' => 'Retrouvez toutes les informations de vos millésimes préférés depuis 2010.',
     'nav.news'        => 'Actualités',
@@ -28,7 +29,7 @@ return [
     // Auth
     'auth.login'             => 'Connexion',
     'auth.register'          => 'Créer un compte',
-    'auth.register_subtitle' => 'Profitez de fonctionnalités supplémentaires',
+    'auth.register_subtitle' => 'Suivez vos commandes · Gérez vos favoris · Téléchargez vos factures',
     'auth.email'             => 'Adresse email',
     'auth.password'          => 'Mot de passe',
     'auth.forgot_password'   => 'Mot de passe oublié ?',
@@ -110,7 +111,7 @@ return [
     'wine.in_stock'     => 'en stock',
     'wine.read_more'    => 'En savoir plus', // NOSONAR php:S1192 - même libellé CTA utilisé intentionnellement sur des clés de traduction distinctes
     'wine.empty'        => 'Aucun vin disponible pour le moment.',
-    'wine.ttc_note'     => 'Prix TTC, livraison comprise en France métropolitaine. Remises appliquées par multiples de 12 bouteilles.',
+    'wine.ttc_note'     => 'Prix TTC, livraison comprise en France métropolitaine (hors Corse et DOM-TOM). Remises appliquées par multiples de 12 bouteilles.',
 
     // Bandeau caisse de 12
     'wine.case_banner.aria'    => 'Composition de caisse assortie',
@@ -261,6 +262,7 @@ return [
     'error.csrf_expired'  => 'Session expirée pour des raisons de sécurité. Rechargez la page et validez à nouveau.',
 
     // Formulaires
+    'common.breadcrumb'     => 'Fil d\'Ariane',
     'common.close'          => 'Fermer',
     'common.toggle_theme'   => 'Basculer le thème jour / nuit',
     'form.lastname'         => 'Nom',
@@ -370,7 +372,7 @@ return [
     // Homepage - Vin du moment
     'home.featured_tag'      => 'Sélection',
     'home.featured_title'    => 'Le Vin du Moment',
-    'home.featured_cta'      => 'Découvrir',
+    'home.featured_cta'      => 'Commander ce millésime',
     'home.featured_cart_cta' => 'Ajouter au panier',
     'home.featured_badge'    => 'Cuvée Spéciale',
     'home.featured_vintage'  => 'Millésime',
@@ -1019,6 +1021,7 @@ return [
     'checkout.payment_processing'     => 'Paiement en cours de traitement',
     'checkout.redirect_prefix'        => 'Redirection vers vos commandes dans ',
     'checkout.redirect_suffix'        => ' secondes.',
+    'checkout.redirect_cancel'        => 'Annuler',
     'account.order_cancel_card_confirm'       => 'Cette action déclenchera un remboursement immédiat par carte bancaire via notre établissement bancaire. Confirmer l\'annulation ?',
     'account.order_cancel_pending_cb_confirm' => 'Votre paiement par carte est en attente de confirmation. Annuler la commande mettra fin à cette transaction. Confirmer ?',
 
@@ -1029,6 +1032,27 @@ return [
     'checkout.deferred_order_notice'  => 'Votre commande sera expédiée dès réception de votre paiement.',
     'checkout.view_orders'            => 'Voir mes commandes',
     'checkout.continue_shopping'      => 'Continuer mes achats',
+    'wine.nav_prev'              => 'Vin précédent',
+    'wine.nav_next'              => 'Vin suivant',
+    'exit_intent.dismiss'              => 'Non merci',
+    'exit_intent.show.title'          => 'Avant de partir…',
+    'exit_intent.show.body'           => 'Ce vin vous intéresse ? Ajoutez-le à votre panier ou à vos favoris pour le retrouver facilement.',
+    'exit_intent.show.cta'            => 'Voir nos autres vins',
+    'exit_intent.boutique.title'      => 'Pas trouvé votre bonheur ?',
+    'exit_intent.boutique.body'       => 'Notre Collection complète présente tous nos millésimes, même les vins non commercialisés.',
+    'exit_intent.boutique.cta'        => 'Voir la Collection',
+    'exit_intent.collection.title'    => 'Vous repartez déjà ?',
+    'exit_intent.collection.body'     => 'Ajoutez un vin à vos favoris pour le retrouver facilement, ou passez commande directement.',
+    'exit_intent.collection.cta'      => 'Voir la boutique',
+    'exit_intent.cart.title'          => 'Votre panier vous attend !',
+    'exit_intent.cart.body'           => 'Vous avez des vins sélectionnés. Ne les abandonnez pas — finalisez votre commande dès maintenant.',
+    'exit_intent.cart.cta'            => 'Voir mon panier',
+    'wines.delivery_zone'               => 'Livraison en France métropolitaine (hors Corse et DOM-TOM)',
+    'checkout.reassurance_ssl'          => 'Paiement 100 % sécurisé',
+    'checkout.reassurance_ca'           => 'Crédit Agricole — partenaire de paiement',
+    'checkout.reassurance_retractation' => 'Droit de rétractation 14 jours',
+    'checkout.upsell_title'             => 'Vous aimerez aussi',
+    'checkout.upsell_cta'               => 'Voir tous nos vins',
 
     // Stepper tunnel de commande
     'stepper.cart'         => 'Panier',

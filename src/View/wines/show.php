@@ -1,5 +1,6 @@
 <?php
-$isAdmin   = $isAdmin ?? false;
+$isAdmin          = $isAdmin ?? false;
+$exitIntentVariant = 'show';
 $wineName  = ($wine['label_name'] ?? '') . ' ' . ($wine['vintage'] ?? '');
 $pageTitle = $wineName;
 $appUrl        = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
@@ -15,6 +16,15 @@ $winesBase     = '/assets/images/wines/';
 $ogImage       = $appUrl . $winesBase . ($wine['image_path'] ?? '');
 $ogUrl         = $canonical;
 $ogType        = 'product';
+$breadcrumbLd  = json_encode([
+    '@context'        => 'https://schema.org',
+    '@type'           => 'BreadcrumbList',
+    'itemListElement' => [
+        ['@type' => 'ListItem', 'position' => 1, 'name' => __('nav.home'),  'item' => $appUrl . '/' . $navLang],
+        ['@type' => 'ListItem', 'position' => 2, 'name' => __('nav.wines'), 'item' => $appUrl . '/' . $navLang . '/vins'],
+        ['@type' => 'ListItem', 'position' => 3, 'name' => $wineName,       'item' => $canonical],
+    ],
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
 $jsonLd        = json_encode([
     '@context' => 'https://schema.org',
     '@type'    => 'Product',
@@ -73,9 +83,47 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
 <main class="page-wine-show" id="main-content">
     <section class="wine-detail container" aria-labelledby="wine-title">
 
-        <a href="/<?= htmlspecialchars($navLang) ?>/vins" class="news-article__back">
-            &#8592; <?= htmlspecialchars(__('nav.wines')) ?>
-        </a>
+        <?php
+        $prevWine = $prevWine ?? null;
+        $nextWine = $nextWine ?? null;
+        $navCtx   = $navCtx ?? 'boutique';
+        $ctxParam = $navCtx === 'collection' ? '?ctx=collection' : '';
+        ?>
+        <div class="wine-nav">
+            <nav class="breadcrumb" aria-label="<?= htmlspecialchars(__('common.breadcrumb')) ?>">
+                <ol class="breadcrumb__list">
+                    <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>"><?= htmlspecialchars(__('nav.home')) ?></a></li>
+                    <li class="breadcrumb__item"><a class="breadcrumb__link" href="/<?= htmlspecialchars($navLang) ?>/vins"><?= htmlspecialchars(__('nav.wines')) ?></a></li>
+                    <li class="breadcrumb__item breadcrumb__item--current" aria-current="page"><?= htmlspecialchars($wineName) ?></li>
+                </ol>
+            </nav>
+            <div class="wine-nav__arrows">
+                <div>
+                    <?php if ($prevWine !== null) : ?>
+                    <a class="wine-nav__arrow wine-nav__arrow--prev"
+                       href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($prevWine['slug']) ?><?= $ctxParam ?>"
+                       aria-label="<?= htmlspecialchars(__('wine.nav_prev') . ' : ' . $prevWine['label_name'] . ' ' . $prevWine['vintage']) ?>">
+                        &#8592; <span class="wine-nav__label"><?= htmlspecialchars($prevWine['label_name']) ?></span>
+                        <span class="wine-nav__vintage"><?= (int) $prevWine['vintage'] ?></span><?php if (!empty($prevWine['is_cuvee_speciale'])) :
+                            ?><span class="wine-nav__cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span><?php
+                                                        endif; ?>
+                    </a>
+                    <?php endif; ?>
+                </div>
+                <div>
+                    <?php if ($nextWine !== null) : ?>
+                    <a class="wine-nav__arrow wine-nav__arrow--next"
+                       href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($nextWine['slug']) ?><?= $ctxParam ?>"
+                       aria-label="<?= htmlspecialchars(__('wine.nav_next') . ' : ' . $nextWine['label_name'] . ' ' . $nextWine['vintage']) ?>">
+                        <?php if (!empty($nextWine['is_cuvee_speciale'])) :
+                            ?><span class="wine-nav__cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span><?php
+                        endif; ?><span class="wine-nav__vintage"><?= (int) $nextWine['vintage'] ?></span>
+                        <span class="wine-nav__label"><?= htmlspecialchars($nextWine['label_name']) ?></span> &#8594;
+                    </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
 
         <div class="wine-detail__layout">
 
@@ -304,14 +352,16 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                             ];
                             foreach ($nutRows as [$field, $label, $sub]) :
                                 $val  = $nutrition[$field]  ?? null;
-                                if ($val === null) : continue; endif;
+                                if ($val === null) :
+                                    continue;
+                                endif;
                                 if ($field === 'energy_kj') :
                                     $kcal    = (int) round((int) $val / 4.184);
                                     $display = htmlspecialchars((string) $val) . ' kJ / ' . $kcal . ' kcal';
                                 else :
                                     $display = htmlspecialchars((string) $val) . ' g';
                                 endif;
-                            ?>
+                                ?>
                                 <tr class="<?= $sub ? 'wine-nutrition__row--sub' : '' ?>">
                                     <th scope="row"><?= htmlspecialchars($label) ?></th>
                                     <td><?= $display ?></td>
@@ -390,7 +440,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     $swImage   = rawurlencode((string) ($sw['image_path'] ?? ''));
                     $swId      = (int) ($sw['id'] ?? 0);
                     $swCuvee   = !empty($sw['is_cuvee_speciale']);
-                ?>
+                    ?>
                 <article class="wine-card wine-cross-sell__card">
                     <a href="/<?= htmlspecialchars($navLang) ?>/vins/<?= $swSlug ?>"
                        class="wine-card__inner"
@@ -495,5 +545,6 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
         class="wine-zoom-overlay__image"
     >
 </div>
+
 
 <?php require_once SRC_PATH . '/View/partials/footer.php'; ?>

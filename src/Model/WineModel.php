@@ -863,6 +863,50 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
     }
 
     /**
+     * Retourne le vin précédent et le vin suivant par ordre d'id (tous les vins — mode collection).
+     *
+     * @param  int $id Identifiant du vin courant
+     * @return array{prev: array{slug:string,label_name:string}|null, next: array{slug:string,label_name:string}|null}
+     */
+    public function getAdjacentSlugs(int $id): array
+    {
+        $prev = $this->db->fetchOne(
+            "SELECT slug, label_name, vintage, is_cuvee_speciale FROM {$this->table} WHERE id < ? ORDER BY id DESC LIMIT 1",
+            [$id]
+        ) ?: null;
+
+        $next = $this->db->fetchOne(
+            "SELECT slug, label_name, vintage, is_cuvee_speciale FROM {$this->table} WHERE id > ? ORDER BY id ASC LIMIT 1",
+            [$id]
+        ) ?: null;
+
+        return ['prev' => $prev, 'next' => $next];
+    }
+
+    /**
+     * Retourne le vin précédent et le vin suivant parmi les vins disponibles (mode boutique).
+     *
+     * @param  int $id Identifiant du vin courant
+     * @return array{prev: array{slug:string,label_name:string}|null, next: array{slug:string,label_name:string}|null}
+     */
+    public function getAdjacentAvailableSlugs(int $id): array
+    {
+        $prev = $this->db->fetchOne(
+            "SELECT slug, label_name, vintage, is_cuvee_speciale FROM {$this->table}
+             WHERE id < ? AND " . self::COND_AVAILABLE . " ORDER BY id DESC LIMIT 1",
+            [$id]
+        ) ?: null;
+
+        $next = $this->db->fetchOne(
+            "SELECT slug, label_name, vintage, is_cuvee_speciale FROM {$this->table}
+             WHERE id > ? AND " . self::COND_AVAILABLE . " ORDER BY id ASC LIMIT 1",
+            [$id]
+        ) ?: null;
+
+        return ['prev' => $prev, 'next' => $next];
+    }
+
+    /**
      * Retourne tous les slugs des vins disponibles (pour sitemap.xml).
      *
      * @return array<int, array{slug: string}>
