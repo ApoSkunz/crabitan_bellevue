@@ -210,6 +210,12 @@ $router->get('/{lang}/session-expiree', 'AuthController@sessionExpired');
 $router->get('/{lang}/securite/confirmer', 'Account\AccountSecurityController@confirmSecurityAction');
 $router->get('/{lang}/securite/ce-netait-pas-moi', 'Account\AccountSecurityController@denySecurityAction');
 
+// Espace client — Notes vins + Avis global
+$router->get('/{lang}/mon-compte/mes-notes', 'Account\AccountRatingsController@ratings');
+$router->post('/{lang}/mon-compte/mes-notes', 'Account\AccountRatingsController@updateRating');
+$router->get('/{lang}/mon-compte/mon-avis', 'Account\AccountRatingsController@review');
+$router->post('/{lang}/mon-compte/mon-avis', 'Account\AccountRatingsController@updateReview');
+
 // Espace client — Export RGPD
 $router->get('/{lang}/mon-compte/export', 'Account\AccountExportController@exportPage');
 $router->post('/{lang}/mon-compte/export/envoyer', 'Account\AccountExportController@exportSend');
@@ -225,6 +231,11 @@ $router->post('/{lang}/newsletter/inscription', 'NewsletterController@subscribe'
 // Newsletter — abonnement depuis email de bienvenue (one-click)
 $router->get('/fr/newsletter/inscription-bienvenue', 'NewsletterController@subscribeFromWelcome');
 $router->get('/en/newsletter/welcome-subscribe', 'NewsletterController@subscribeFromWelcome');
+
+// Avis clients (post-achat J+21)
+$router->get('/{lang}/mon-avis/merci', 'ReviewController@success');
+$router->get('/{lang}/mon-avis', 'ReviewController@show');
+$router->post('/{lang}/mon-avis', 'ReviewController@submit');
 
 // Déclaration de majorité (Art. L3342-1 CSP)
 $router->post('/{lang}/declaration-majorite', 'MajorityController@declare');

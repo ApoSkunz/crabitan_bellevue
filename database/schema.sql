@@ -20,6 +20,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ============================================================
 -- DROP (ordre FK inverse pour éviter les contraintes)
 -- ============================================================
+DROP TABLE IF EXISTS `customer_reviews`;
 DROP TABLE IF EXISTS `newsletter_subscriptions`;
 DROP TABLE IF EXISTS `admin_logs`;
 DROP TABLE IF EXISTS `audit_log`;
@@ -347,7 +348,8 @@ CREATE TABLE `orders` (
   `path_invoice`         VARCHAR(255)   DEFAULT NULL,
   `ordered_at`           DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `delivered_at`         DATETIME       DEFAULT NULL COMMENT 'Date de livraison confirmée ; base du délai de rétractation (14 j — art. L221-18)',
-  `rating_email_sent_at` DATETIME       DEFAULT NULL COMMENT 'Date d\'envoi de l\'email de notation J+7 post-livraison',
+  `rating_email_sent_at`  DATETIME       DEFAULT NULL COMMENT 'Date d\'envoi de l\'email de notation J+21 post-livraison',
+  `review_request_sent_at` DATETIME      DEFAULT NULL COMMENT 'Date d\'envoi de l\'email demande d\'avis global J+28 post-livraison',
   `updated_at`           DATETIME       DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_orders_reference` (`order_reference`),
@@ -945,6 +947,28 @@ CREATE TABLE IF NOT EXISTS `order_rating_tokens` (
   INDEX `idx_ort_expires_at` (`expires_at`),
   CONSTRAINT `fk_ort_order` FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ort_account` FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : customer_reviews
+-- Avis global de l'expérience client (1 par compte).
+-- Alimenté depuis l'email post-achat J+21 via un token order_rating_tokens.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `customer_reviews` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `account_id` INT NOT NULL,
+  `order_id` INT NULL DEFAULT NULL,
+  `rating` TINYINT UNSIGNED NOT NULL,
+  `comment` TEXT NULL DEFAULT NULL,
+  `display_name` VARCHAR(100) NOT NULL COMMENT 'Prénom + 1ère lettre nom, ex: Sophie D.',
+  `location` VARCHAR(100) NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_account` (`account_id`),
+  KEY `idx_rating` (`rating`),
+  CONSTRAINT `fk_cr_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_cr_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `chk_cr_rating` CHECK (`rating` BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================

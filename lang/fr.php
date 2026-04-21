@@ -2,7 +2,8 @@
 
 return [
     // Age gate
-    'age_gate.quote'   => 'L\'art et la passion du vin, pour sublimer votre table',
+    'age_gate.quote'    => 'Depuis 1870, Château Crabitan Bellevue s\'invite à votre table',
+    'age_gate.subquote' => 'L\'art et la passion du vin',
     'age_gate.intro'   => 'Pour visiter ce site, vous devez être en âge légal de consommer de l\'alcool dans votre pays de résidence.',
     'age_gate.declare' => 'En cliquant sur Entrer, je certifie avoir l\'âge légal de consommer de l\'alcool dans mon pays de résidence (Art.&#160;L3342-1 CSP).',
     'age_gate.enter'    => 'Entrer',
@@ -248,6 +249,7 @@ return [
     'cart.cross_sell.title'     => 'Ces vins pourraient vous plaire',
     'cart.tier_next'            => 'pour le palier suivant',
     'cart.tier_first'           => 'pour votre remise livraison',
+    'cart.nudge'                => 'Plus que %d bouteille(s) pour atteindre votre prochaine remise sur la livraison !',
 
     // Commande
     'order.confirm'   => 'Confirmer la commande',
@@ -357,7 +359,7 @@ return [
         . ' le même soin du travail bien fait. Quatre générations se sont ainsi succédé, chacune apportant'
         . ' sa pierre à l\'édifice. Aujourd\'hui, Nicolas et Corinne perpétuent cet héritage avec passion'
         . ' et humilité, faisant de chaque millésime un nouveau chapitre de cette belle aventure familiale.',
-    'home.history_cta'   => 'En savoir plus',
+    'home.history_cta'   => 'Découvrir l\'histoire du château',
 
     // Homepage - Section Savoir-Faire
     'home.savoir_tag'   => 'Le Métier',
@@ -367,7 +369,7 @@ return [
         . ' l\'amour du vin. Au chai, l\'élevage accompagne les vins dans leur développement, leur offrant'
         . ' toute la complexité qu\'ils méritent. C\'est ce savoir-faire, transmis de génération en génération,'
         . ' qui donne au Château Crabitan Bellevue son caractère si particulier.',
-    'home.savoir_cta'   => 'En savoir plus',
+    'home.savoir_cta'   => 'Explorer l\'art de la vigne',
 
     // Homepage - Vin du moment
     'home.featured_tag'      => 'Sélection',
@@ -386,6 +388,11 @@ return [
     'home.news_tag'   => 'À la une',
     'home.news_title' => 'Actualités',
     'home.news_cta'   => 'Toutes les actualités',
+
+    // Homepage - Section Témoignages
+    'home.testimonials_tag'     => 'Ils nous font confiance',
+    'home.testimonials_title'   => 'Avis de nos clients',
+    'home.testimonials_reviews' => 'avis',
 
     // Homepage - Section Localisation
     'home.location_title'   => 'Où sommes-nous ?',
@@ -657,6 +664,8 @@ return [
     'panel.orders'    => 'Mes commandes',
     'panel.addresses' => 'Mes adresses',
     'panel.favorites' => 'Mes favoris',
+    'panel.ratings'   => 'Mes notes',
+    'panel.review'    => 'Mon avis',
     'panel.invoices'  => 'Mes factures',
     'panel.security'  => 'Sécurité',
     'panel.export'    => 'Export RGPD',
@@ -673,6 +682,16 @@ return [
     'account.addresses_empty'    => 'Vous n\'avez pas encore enregistré d\'adresse.',
     'account.favorites_empty'    => 'Vous n\'avez pas encore ajouté de vin en favori.',
     'account.discover_wines'     => 'Découvrir nos vins',
+    'account.ratings_title'      => 'Mes notes',
+    'account.ratings_intro'      => 'Notez les vins que vous avez commandés.',
+    'account.ratings_empty'      => 'Vous n\'avez pas encore passé de commande.',
+    'account.ratings_save'       => 'Enregistrer',
+    'account.ratings_not_yet'    => 'Pas encore noté',
+    'account.review_title'       => 'Mon avis',
+    'account.review_intro'       => 'Partagez votre expérience globale avec le Château Crabitan Bellevue.',
+    'account.review_saved'       => 'Votre avis a bien été enregistré.',
+    'account.review_submit'      => 'Publier mon avis',
+    'account.review_update'      => 'Mettre à jour mon avis',
     'account.remove_favorite'    => 'Retirer des favoris',
     'account.order_ref'          => 'Référence',
     'account.order_date'         => 'Date',
@@ -1035,6 +1054,9 @@ return [
     'wine.nav_prev'              => 'Vin précédent',
     'wine.nav_next'              => 'Vin suivant',
     'exit_intent.dismiss'              => 'Non merci',
+    'exit_intent.newsletter.title'    => 'Avant de partir…',
+    'exit_intent.newsletter.body'     => 'Recevez nos actualités, nouveaux millésimes et offres exclusives directement dans votre boîte mail.',
+    'exit_intent.newsletter.cta'      => 'Je m\'abonne',
     'exit_intent.show.title'          => 'Avant de partir…',
     'exit_intent.show.body'           => 'Ce vin vous intéresse ? Ajoutez-le à votre panier ou à vos favoris pour le retrouver facilement.',
     'exit_intent.show.cta'            => 'Voir nos autres vins',
@@ -1074,4 +1096,20 @@ return [
 
     // Erreurs génériques
     'error.generic' => 'Une erreur est survenue. Veuillez réessayer.',
+
+    // Formulaire avis client
+    'review.page_title'           => 'Laissez votre avis',
+    'review.intro'                => 'Partagez votre expérience avec le Château Crabitan Bellevue.',
+    'review.your_name'            => 'Votre nom',
+    'review.rating_label'         => 'Votre note',
+    'review.comment_label'        => 'Votre commentaire',
+    'review.comment_placeholder'  => 'Décrivez votre expérience en quelques mots...',
+    'review.location_label'       => 'Votre ville',
+    'review.location_placeholder' => 'Paris, Lyon...',
+    'review.submit'               => 'Envoyer mon avis',
+    'review.already_done'         => 'Vous avez déjà laissé un avis, merci !',
+    'review.success_title'        => 'Merci pour votre avis',
+    'review.success_body'         => 'Votre témoignage a bien été enregistré. Nous vous en remercions chaleureusement.',
+    'review.invalid_token'        => 'Ce lien est invalide ou a déjà été utilisé.',
+    'review.expired_token'        => 'Ce lien a expiré. Les avis peuvent être déposés dans les 90 jours suivant votre commande.',
 ];

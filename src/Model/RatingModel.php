@@ -170,15 +170,58 @@ class RatingModel extends Model
      */
     public function hasOrdered(int $accountId, int $wineId): bool
     {
+        return $this->getFirstOrderId($accountId, $wineId) !== null;
+    }
+
+    /**
+     * Retourne l'identifiant de la première commande contenant ce vin pour ce compte.
+     * Utilisé pour satisfaire la contrainte FK order_id NOT NULL de wine_ratings.
+     *
+     * @param int $accountId Identifiant du compte
+     * @param int $wineId    Identifiant du vin
+     * @return int|null
+     */
+    public function getFirstOrderId(int $accountId, int $wineId): ?int
+    {
         $row = $this->db->fetchOne(
-            "SELECT 1 FROM orders
+            "SELECT id FROM orders
              WHERE user_id = ?
                AND status IN ('paid','processing','shipped','delivered')
                AND JSON_CONTAINS(content, JSON_OBJECT('wine_id', CAST(? AS UNSIGNED)))
+             ORDER BY id ASC
              LIMIT 1",
             [$accountId, $wineId]
         );
-        return (bool) $row;
+        return $row ? (int) $row['id'] : null;
+    }
+
+    /**
+     * Vérifie si tous les vins d'une liste ont déjà été notés par ce compte.
+     * Utilisé pour éviter d'envoyer l'email J+21 si tout est déjà noté.
+     *
+     * @param int   $accountId Identifiant du compte
+     * @param int[] $wineIds   Liste des wine_ids à vérifier
+     * @return bool true si chaque vin a une note >= 1
+     */
+    public function allWinesRated(int $accountId, array $wineIds): bool
+    {
+        if ($wineIds === []) {
+            return true;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($wineIds), '?'));
+        $params       = array_merge([$accountId], $wineIds);
+
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS cnt
+               FROM {$this->table}
+              WHERE account_id = ?
+                AND wine_id IN ({$placeholders})
+                AND rating >= 1",
+            $params
+        );
+
+        return (int) ($row['cnt'] ?? 0) >= count($wineIds);
     }
 
     /**
@@ -265,6 +308,22 @@ class RatingModel extends Model
     }
 
     /**
+     * Résout un order token complet — retourne [order_id, account_id, expires_at] ou null.
+     * Utilisé pour vérifier l'expiration côté ReviewController.
+     *
+     * @param string $token Token de commande
+     * @return array<string, mixed>|null
+     */
+    public function resolveOrderTokenFull(string $token): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT order_id, account_id, expires_at FROM order_rating_tokens WHERE token = ?",
+            [$token]
+        );
+        return $row ?: null;
+    }
+
+    /**
      * Top N vins par note moyenne (>= 2 avis minimum).
      *
      * @param int $limit Nombre maximum de résultats
@@ -281,6 +340,74 @@ class RatingModel extends Model
              ORDER BY avg_rating DESC, rating_count DESC
              LIMIT ?",
             [$limit]
+        );
+    }
+
+    /**
+     * Retourne toutes les notes d'un compte avec les infos du vin associé.
+     *
+     * Utilisé pour la page "Mes notes" de l'espace compte.
+     *
+     * @param int $accountId Identifiant du compte
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAllByAccount(int $accountId): array
+    {
+        return $this->db->fetchAll(
+            "SELECT wr.wine_id, wr.rating, wr.created_at, wr.updated_at,
+                    w.label_name, w.vintage, w.slug, w.image_path
+               FROM {$this->table} wr
+               JOIN wines w ON w.id = wr.wine_id
+              WHERE wr.account_id = ?
+                AND wr.rating > 0
+              ORDER BY wr.updated_at DESC, wr.created_at DESC",
+            [$accountId]
+        );
+    }
+
+    /**
+     * Retourne tous les vins commandés par un compte (distincts), avec leur note éventuelle.
+     *
+     * Utilisé pour proposer la notation de tous les vins achetés depuis le compte.
+     *
+     * @param int $accountId Identifiant du compte
+     * @return array<int, array<string, mixed>>
+     */
+    public function getOrderedWinesWithRating(int $accountId): array
+    {
+        $orders = $this->db->fetchAll(
+            "SELECT content FROM orders
+              WHERE user_id = ?
+                AND status NOT IN ('cancelled', 'refunded')",
+            [$accountId]
+        );
+
+        $wineIds = [];
+        foreach ($orders as $order) {
+            $items = json_decode((string) ($order['content'] ?? '[]'), true) ?? [];
+            foreach ($items as $item) {
+                $id = (int) ($item['wine_id'] ?? 0);
+                if ($id > 0) {
+                    $wineIds[$id] = true;
+                }
+            }
+        }
+
+        if ($wineIds === []) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($wineIds), '?'));
+        $params       = array_merge([$accountId], array_keys($wineIds));
+
+        return $this->db->fetchAll(
+            "SELECT w.id AS wine_id, w.label_name, w.vintage, w.slug, w.image_path,
+                    w.is_cuvee_speciale, wr.rating, wr.updated_at
+               FROM wines w
+               LEFT JOIN {$this->table} wr ON wr.wine_id = w.id AND wr.account_id = ?
+              WHERE w.id IN ({$placeholders})
+              ORDER BY wr.rating IS NULL DESC, w.label_name, w.vintage",
+            $params
         );
     }
 }

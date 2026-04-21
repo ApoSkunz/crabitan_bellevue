@@ -122,9 +122,6 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                 <?php endforeach; ?>
             </nav>
 
-            <a href="/<?= htmlspecialchars($navLang) ?>/contact" class="header-contact">
-                <?= htmlspecialchars(__('nav.contact')) ?>
-            </a>
         </div>
 
         <p class="header-title" aria-hidden="true">Château Crabitan Bellevue</p>
@@ -225,6 +222,14 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
             <a href="/<?= htmlspecialchars($navLang) ?>/vins/collection"
                class="header-nav__link<?= $isActive('/vins/collection') ?>">
                 <span><?= htmlspecialchars(__('nav.collection')) ?></span>
+            </a>
+            <a href="/<?= htmlspecialchars($navLang) ?>/actualites"
+               class="header-nav__link<?= $isActive('/actualites') ?>">
+                <span><?= htmlspecialchars(__('nav.news')) ?></span>
+            </a>
+            <a href="/<?= htmlspecialchars($navLang) ?>/contact"
+               class="header-nav__link<?= $isActive('/contact') ?>">
+                <span><?= htmlspecialchars(__('nav.contact')) ?></span>
             </a>
         </div>
     </nav>
@@ -856,6 +861,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 <?php endif; ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/favoris">
                     <?= htmlspecialchars(__('panel.favorites')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/mes-notes">
+                    <?= htmlspecialchars(__('panel.ratings')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/mon-avis">
+                    <?= htmlspecialchars(__('panel.review')) ?>
                 </a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/securite">
                     <?= htmlspecialchars(__('panel.security')) ?>

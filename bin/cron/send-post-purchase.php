@@ -20,6 +20,7 @@ $runner = new \Core\CronRunner('send-post-purchase');
 exit($runner->run(function (callable $log, bool $dryRun): void {
     $orderModel   = new \Model\OrderModel();
     $accountModel = new \Model\AccountModel();
+    $ratingModel  = new \Model\RatingModel();
     $mailer       = new \Service\MailService();
 
     $orders = $orderModel->getDeliveredForRatingEmail();
@@ -32,14 +33,25 @@ exit($runner->run(function (callable $log, bool $dryRun): void {
             continue;
         }
 
+        // items depuis order['content'] (JSON)
+        $items   = json_decode((string) $order['content'], true) ?? [];
+        $wineIds = array_values(array_filter(array_map(
+            static fn($i) => (int) ($i['wine_id'] ?? 0),
+            $items
+        )));
+
+        if ($wineIds !== [] && $ratingModel->allWinesRated((int) $order['user_id'], $wineIds)) {
+            $log('[SKIP already-rated] commande #' . $order['id'] . ' user_id=' . $order['user_id']);
+            $orderModel->markRatingEmailSent((int) $order['id']); // marque pour ne plus repasser
+            continue;
+        }
+
         if ($dryRun) {
             $log('[DRY-RUN] Would send post-purchase to ' . $account['email'] . ' commande #' . $order['id']);
             continue;
         }
 
-        // items depuis order['content'] (JSON)
-        $items = json_decode((string) $order['content'], true) ?? [];
-        $lang  = in_array($account['lang'] ?? '', ['fr','en'], true) ? $account['lang'] : 'fr';
+        $lang = in_array($account['lang'] ?? '', ['fr','en'], true) ? $account['lang'] : 'fr';
 
         try {
             $mailer->sendPostPurchase(

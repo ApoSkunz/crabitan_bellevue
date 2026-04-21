@@ -1,4 +1,5 @@
 <?php
+$exitIntentVariant = 'newsletter';
 $pageTitle = null; // Pas de titre dans <title> sur la home (château seul suffit)
 $brandName       = 'Château Crabitan Bellevue';
 $appUrl          = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
@@ -366,6 +367,42 @@ $carouselSlides = [
             </div>
         </div>
     </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION TÉMOIGNAGES                                          -->
+    <!-- ============================================================ -->
+    <?php if (!empty($reviews)) : ?>
+    <section class="home-testimonials" aria-label="<?= htmlspecialchars(__('home.testimonials_title')) ?>">
+        <div class="container">
+            <span class="home-section__tag home-section__tag--center"><?= htmlspecialchars(__('home.testimonials_tag')) ?></span>
+            <h2 class="home-section__title text-center"><?= htmlspecialchars(__('home.testimonials_title')) ?></h2>
+            <div class="home-section__divider home-section__divider--center"></div>
+            <?php if (!empty($reviewStats)) : ?>
+            <p class="home-testimonials__avg">
+                <span class="home-testimonials__avg-score"><?= number_format((float) $reviewStats['avg'], 1) ?> / 5</span>
+                <span class="home-testimonials__avg-stars" aria-hidden="true"><?= str_repeat('★', (int) round((float) $reviewStats['avg'])) . str_repeat('☆', 5 - (int) round((float) $reviewStats['avg'])) ?></span>
+                <span class="home-testimonials__avg-count">(<?= (int) $reviewStats['count'] ?> <?= htmlspecialchars(__('home.testimonials_reviews')) ?>)</span>
+            </p>
+            <?php endif; ?>
+            <div class="home-testimonials__grid">
+                <?php foreach ($reviews as $review) :
+                    $stars = str_repeat('★', (int) $review['rating']) . str_repeat('☆', 5 - (int) $review['rating']);
+                    ?>
+                <blockquote class="home-testimonials__card">
+                    <div class="home-testimonials__stars" aria-label="<?= (int) $review['rating'] ?>/5" aria-hidden="true"><?= $stars ?></div>
+                    <p class="home-testimonials__quote"><?= htmlspecialchars((string) $review['comment']) ?></p>
+                    <footer class="home-testimonials__author">
+                        <strong><?= htmlspecialchars((string) $review['display_name']) ?></strong>
+                        <?php if (!empty($review['location'])) : ?>
+                        <span class="home-testimonials__location"><?= htmlspecialchars((string) $review['location']) ?></span>
+                        <?php endif; ?>
+                    </footer>
+                </blockquote>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
 
     <!-- ============================================================ -->
     <!-- SECTION LOCALISATION                                         -->

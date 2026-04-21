@@ -2,7 +2,8 @@
 
 return [
     // Age gate
-    'age_gate.quote'   => 'The art and passion of wine, to elevate your table',
+    'age_gate.quote'    => 'Since 1870, Château Crabitan Bellevue brings its wines to your table',
+    'age_gate.subquote' => 'The art and passion of wine',
     'age_gate.intro'   => 'To visit this site, you must be of legal drinking age in your country of residence.',
     'age_gate.declare' => 'By clicking Enter, I confirm I am of legal drinking age in my country of residence (Art.&#160;L3342-1 CSP).',
     'age_gate.enter'    => 'Enter',
@@ -248,6 +249,7 @@ return [
     'cart.cross_sell.title'     => 'You might enjoy these wines',
     'cart.tier_next'            => 'for the next tier',
     'cart.tier_first'           => 'for your delivery discount',
+    'cart.nudge'                => 'Only %d more bottle(s) to unlock your next delivery discount!',
 
     // Order
     'order.confirm'   => 'Confirm order',
@@ -385,6 +387,11 @@ return [
     'home.news_tag'   => 'Latest news',
     'home.news_title' => 'News',
     'home.news_cta'   => 'All news',
+
+    // Homepage - Testimonials section
+    'home.testimonials_tag'     => 'Our customers say',
+    'home.testimonials_title'   => 'Reviews',
+    'home.testimonials_reviews' => 'reviews',
 
     // Homepage - Location section
     'home.location_title'   => 'Where are we?',
@@ -656,6 +663,8 @@ return [
     'panel.orders'    => 'My orders',
     'panel.addresses' => 'My addresses',
     'panel.favorites' => 'My favourites',
+    'panel.ratings'   => 'My ratings',
+    'panel.review'    => 'My review',
     'panel.invoices'  => 'My invoices',
     'panel.security'  => 'Security',
     'panel.export'    => 'GDPR export',
@@ -672,6 +681,16 @@ return [
     'account.addresses_empty'    => 'You have not saved any address yet.',
     'account.favorites_empty'    => 'You have not added any wine to your favourites yet.',
     'account.discover_wines'     => 'Discover our wines',
+    'account.ratings_title'      => 'My ratings',
+    'account.ratings_intro'      => 'Rate the wines you have ordered.',
+    'account.ratings_empty'      => 'You have not placed any orders yet.',
+    'account.ratings_save'       => 'Save',
+    'account.ratings_not_yet'    => 'Not rated yet',
+    'account.review_title'       => 'My review',
+    'account.review_intro'       => 'Share your overall experience with Château Crabitan Bellevue.',
+    'account.review_saved'       => 'Your review has been saved.',
+    'account.review_submit'      => 'Publish my review',
+    'account.review_update'      => 'Update my review',
     'account.remove_favorite'    => 'Remove from favourites',
     'account.order_ref'          => 'Reference',
     'account.order_date'         => 'Date',
@@ -1034,6 +1053,9 @@ return [
     'wine.nav_prev'              => 'Previous wine',
     'wine.nav_next'              => 'Next wine',
     'exit_intent.dismiss'              => 'No thanks',
+    'exit_intent.newsletter.title'    => 'Before you go…',
+    'exit_intent.newsletter.body'     => 'Get our news, new vintages and exclusive offers straight to your inbox.',
+    'exit_intent.newsletter.cta'      => 'Subscribe',
     'exit_intent.show.title'          => 'Before you leave…',
     'exit_intent.show.body'           => 'Interested in this wine? Add it to your cart or favourites to find it easily.',
     'exit_intent.show.cta'            => 'Browse our other wines',
@@ -1073,4 +1095,20 @@ return [
 
     // Generic errors
     'error.generic' => 'An error occurred. Please try again.',
+
+    // Customer review form
+    'review.page_title'           => 'Leave a review',
+    'review.intro'                => 'Share your experience with Château Crabitan Bellevue.',
+    'review.your_name'            => 'Your name',
+    'review.rating_label'         => 'Your rating',
+    'review.comment_label'        => 'Your comment',
+    'review.comment_placeholder'  => 'Describe your experience in a few words...',
+    'review.location_label'       => 'Your city',
+    'review.location_placeholder' => 'Paris, Lyon...',
+    'review.submit'               => 'Submit my review',
+    'review.already_done'         => 'You have already left a review, thank you!',
+    'review.success_title'        => 'Thank you for your review',
+    'review.success_body'         => 'Your feedback has been saved. We truly appreciate it.',
+    'review.invalid_token'        => 'This link is invalid or has already been used.',
+    'review.expired_token'        => 'This link has expired. Reviews can be submitted within 90 days of your order.',
 ];

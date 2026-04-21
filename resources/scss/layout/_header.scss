@@ -255,10 +255,10 @@
 .header-nav__link {
     flex: 1; // répartition équitable sur toute la largeur
     font-family: var(--font-script); // CAC Champagne / Brush Script
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 1.8vw, 2rem);
     letter-spacing: 0.04em;
     color: #2a2218;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 0.6rem;
     text-align: center;
     white-space: nowrap;
     position: relative;

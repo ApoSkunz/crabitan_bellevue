@@ -285,4 +285,109 @@ class OrderModelTest extends TestCase
 
         $this->assertSame(round(5 / 15, 4), $this->model->getConversionRate(30));
     }
+
+    // ----------------------------------------------------------------
+    // getDeliveredForRatingEmail
+    // ----------------------------------------------------------------
+
+    /**
+     * getDeliveredForRatingEmail retourne les lignes renvoyées par fetchAll.
+     */
+    public function testGetDeliveredForRatingEmailReturnsFetchAllResult(): void
+    {
+        $expected = [
+            ['id' => 1, 'user_id' => 10, 'content' => '[]', 'price' => 45.0],
+            ['id' => 2, 'user_id' => 11, 'content' => '[]', 'price' => 60.0],
+        ];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn($expected);
+
+        $result = $this->model->getDeliveredForRatingEmail();
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * getDeliveredForRatingEmail retourne [] si aucune commande éligible.
+     */
+    public function testGetDeliveredForRatingEmailReturnsEmptyWhenNone(): void
+    {
+        $this->dbMock->method('fetchAll')->willReturn([]);
+
+        $this->assertSame([], $this->model->getDeliveredForRatingEmail());
+    }
+
+    // ----------------------------------------------------------------
+    // markRatingEmailSent
+    // ----------------------------------------------------------------
+
+    /**
+     * markRatingEmailSent appelle execute avec l'orderId.
+     */
+    public function testMarkRatingEmailSentCallsExecuteWithOrderId(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->stringContains('rating_email_sent_at'),
+                [42]
+            );
+
+        $this->model->markRatingEmailSent(42);
+    }
+
+    // ----------------------------------------------------------------
+    // getDeliveredForReviewEmail
+    // ----------------------------------------------------------------
+
+    /**
+     * getDeliveredForReviewEmail retourne les lignes renvoyées par fetchAll.
+     */
+    public function testGetDeliveredForReviewEmailReturnsFetchAllResult(): void
+    {
+        $expected = [
+            ['id' => 5, 'user_id' => 20],
+        ];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn($expected);
+
+        $result = $this->model->getDeliveredForReviewEmail();
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * getDeliveredForReviewEmail retourne [] si aucune commande éligible.
+     */
+    public function testGetDeliveredForReviewEmailReturnsEmptyWhenNone(): void
+    {
+        $this->dbMock->method('fetchAll')->willReturn([]);
+
+        $this->assertSame([], $this->model->getDeliveredForReviewEmail());
+    }
+
+    // ----------------------------------------------------------------
+    // markReviewEmailSent
+    // ----------------------------------------------------------------
+
+    /**
+     * markReviewEmailSent appelle execute avec l'orderId.
+     */
+    public function testMarkReviewEmailSentCallsExecuteWithOrderId(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->stringContains('review_request_sent_at'),
+                [99]
+            );
+
+        $this->model->markReviewEmailSent(99);
+    }
 }

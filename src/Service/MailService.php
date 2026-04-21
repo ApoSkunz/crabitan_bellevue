@@ -82,7 +82,9 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
             $this->mailer->SMTPAutoTLS = false;
         }
 
-        $this->mailer->setFrom($user !== '' ? $user : 'noreply@crabitanbellevue.fr', $_ENV['MAIL_FROM_NAME'] ?? 'Crabitan Bellevue');
+        $fromAddress = $user !== '' ? $user : 'noreply@crabitanbellevue.fr';
+        $fromName    = $_ENV['MAIL_FROM_NAME'] ?? 'Crabitan Bellevue';
+        $this->mailer->setFrom($fromAddress, $fromName);
     }
 
     public function sendEmailVerification(string $to, string $name, string $verifyUrl, string $lang): void
@@ -566,7 +568,8 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
             $message = $urgencyNote
                 . "Votre demande de suppression de compte est en cours de traitement."
                 . " Vos données personnelles seront définitivement anonymisées le <strong>{$safeDate}</strong>.<br><br>"
-                . "Si vous avez changé d'avis, vous pouvez annuler cette demande en cliquant sur le bouton ci-dessous.<br><br>"
+                . "Si vous avez changé d'avis, vous pouvez annuler cette demande"
+                . " en cliquant sur le bouton ci-dessous.<br><br>"
                 . $reactBtn
                 . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
                 . 'Passé ce délai, vos données ne pourront plus être récupérées.'
@@ -1139,7 +1142,7 @@ INNER;
      * @param string               $lang            Langue du client ('fr' ou 'en')
      * @return void
      */
-    public function sendOrderConfirmationToClient( // NOSONAR — php:S107 : 8 paramètres requis pour composer l'email de confirmation complet
+    public function sendOrderConfirmationToClient( // NOSONAR php:S107 — 8 paramètres requis pour composer l'email de confirmation complet
         string $toEmail,
         string $toName,
         string $orderRef,
@@ -1270,7 +1273,7 @@ INNER;
      * @param float                $total         Total TTC en euros
      * @return void
      */
-    public function sendOrderConfirmationToOwner( // NOSONAR — php:S107 : 8 paramètres requis pour le récap commande + PDF joint
+    public function sendOrderConfirmationToOwner( // NOSONAR php:S107 — 8 paramètres requis pour le récap commande + PDF joint
         string $clientEmail,
         string $clientName,
         string $orderRef,
@@ -1355,7 +1358,7 @@ INNER;
      * @param string                           $labelTotal Libellé ligne total
      * @return string HTML du tableau
      */
-    private function buildOrderItemsTable( // NOSONAR — php:S107 : 9 paramètres requis pour générer le tableau articles email (colonnes i18n + remise)
+    private function buildOrderItemsTable( // NOSONAR php:S107 — 9 paramètres requis pour générer le tableau articles email
         array $items,
         float $total,
         string $colName,
@@ -1433,7 +1436,7 @@ INNER;
      * @param int     $orderId         Identifiant de la commande pour le CTA (optionnel)
      * @return void
      */
-    public function sendOrderStatusEmail( // NOSONAR — php:S107 : 10 paramètres requis (statuts multiples, i18n, tracking, items)
+    public function sendOrderStatusEmail( // NOSONAR php:S107 — 10 paramètres requis (statuts multiples, i18n, tracking, items)
         string $toEmail,
         string $toName,
         string $orderRef,
@@ -1537,7 +1540,7 @@ INNER;
      * @param  int    $orderId         ID de la commande pour le CTA direct
      * @return array{string, string, string, string}  [subject, title, greeting, message]
      */
-    private function buildOrderStatusContentFr( // NOSONAR — php:S107 : 8 paramètres requis (statuts FR + items + adresse + tracking)
+    private function buildOrderStatusContentFr( // NOSONAR php:S107 — 8 paramètres requis (statuts FR + items + adresse + tracking)
         string $status,
         string $safeRef,
         string $safeName,
@@ -1650,7 +1653,7 @@ INNER;
      * @param  int    $orderId         ID de la commande pour le CTA direct
      * @return array{string, string, string, string}  [subject, title, greeting, message]
      */
-    private function buildOrderStatusContentEn( // NOSONAR — php:S107 : 8 paramètres requis (statuts EN + items + adresse + tracking)
+    private function buildOrderStatusContentEn( // NOSONAR php:S107 — 8 paramètres requis (statuts EN + items + adresse + tracking)
         string $status,
         string $safeRef,
         string $safeName,
@@ -1762,7 +1765,9 @@ INNER;
         $safeRef      = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName     = htmlspecialchars($clientName, ENT_QUOTES);
         $safeEmail    = htmlspecialchars($clientEmail, ENT_QUOTES);
-        $orderedAt    = isset($order['ordered_at']) ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['ordered_at'])) : '—';
+        $orderedAt    = isset($order['ordered_at'])
+            ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['ordered_at']))
+            : '—';
         $items        = json_decode((string) ($order['content'] ?? '[]'), true) ?: [];
         $appUrl       = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $orderId      = (int) ($order['id'] ?? 0);
@@ -1835,7 +1840,8 @@ INNER;
             ? htmlspecialchars($appUrl . self::PATH_ADMIN_ORDERS . $orderId, ENT_QUOTES)
             : '';
         $orderLinkBlock = $orderLink !== ''
-            ? "<br><br><a href=\"{$orderLink}\" style=\"color:#c9a84c;\">Accéder à la commande dans l'administration</a>"
+            ? "<br><br><a href=\"{$orderLink}\" style=\"color:#c9a84c;\">"
+                . "Accéder à la commande dans l'administration</a>"
             : '';
 
         $subject = 'Remboursement GAE KO — action manuelle requise';
@@ -1884,10 +1890,12 @@ INNER;
             ? "<br><br><a href=\"{$orderLink}\" style=\"color:#c9a84c;\">Voir la commande dans l'administration</a>"
             : '';
 
-        $message = "Une demande de remboursement manuel a été soumise pour la commande <strong>{$safeRef}</strong>.<br><br>"
+        $message = "Une demande de remboursement manuel a été soumise"
+            . " pour la commande <strong>{$safeRef}</strong>.<br><br>"
             . "<strong>Client :</strong> {$safeName} (<a href=\"mailto:{$safeEmail}\">{$safeEmail}</a>)<br>"
             . "<strong>Montant :</strong> {$amount}&nbsp;€<br>"
-            . "<strong>Action requise :</strong> Traiter le remboursement dans Vision Air, puis confirmer dans l'administration."
+            . "<strong>Action requise :</strong> Traiter le remboursement dans Vision Air,"
+            . " puis confirmer dans l'administration."
             . $orderLinkBlock;
 
         $body = $this->emailSimpleLayout(
@@ -1930,10 +1938,14 @@ INNER;
         $rows = '';
         foreach ($orders as $order) {
             $ref       = htmlspecialchars($order['order_reference'] ?? '—', ENT_QUOTES);
-            $status    = htmlspecialchars($statusLabels[$order['status'] ?? ''] ?? ($order['status'] ?? '—'), ENT_QUOTES);
+            $rawStatus = $statusLabels[$order['status'] ?? ''] ?? ($order['status'] ?? '—');
+            $status    = htmlspecialchars($rawStatus, ENT_QUOTES);
             $price     = number_format((float) ($order['price'] ?? 0), 2, ',', ' ');
-            $payment   = htmlspecialchars($paymentLabels[$order['payment_method'] ?? ''] ?? ($order['payment_method'] ?? '—'), ENT_QUOTES);
-            $updatedAt = isset($order['updated_at']) ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['updated_at'])) : '—';
+            $rawPayment = $paymentLabels[$order['payment_method'] ?? ''] ?? ($order['payment_method'] ?? '—');
+            $payment    = htmlspecialchars($rawPayment, ENT_QUOTES);
+            $updatedAt = isset($order['updated_at'])
+                ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['updated_at']))
+                : '—';
             $orderId   = (int) ($order['id'] ?? 0);
             $link      = $orderId > 0
                 ? "<a href=\"{$appUrl}" . self::PATH_ADMIN_ORDERS . "{$orderId}\" style=\"color:#c9a84c;\">{$ref}</a>"
@@ -1950,16 +1962,22 @@ INNER;
 
         $tableHtml = "<table style=\"width:100%;border-collapse:collapse;margin-top:12px;\">"
             . "<thead><tr style=\"background:#f5f0e8;\">"
-            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Référence</th>"
-            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Statut</th>"
-            . "<th style=\"padding:6px 8px;text-align:right;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Montant</th>"
-            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Paiement</th>"
-            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;\">Dernière MAJ</th>"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;"
+            . "letter-spacing:1px;color:#8a7a60;\">Référence</th>"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;"
+            . "letter-spacing:1px;color:#8a7a60;\">Statut</th>"
+            . "<th style=\"padding:6px 8px;text-align:right;font-size:11px;"
+            . "letter-spacing:1px;color:#8a7a60;\">Montant</th>"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;"
+            . "letter-spacing:1px;color:#8a7a60;\">Paiement</th>"
+            . "<th style=\"padding:6px 8px;text-align:left;font-size:11px;"
+            . "letter-spacing:1px;color:#8a7a60;\">Dernière MAJ</th>"
             . "</tr></thead><tbody>{$rows}</tbody></table>";
 
         $message = "{$count} commande(s) sans mouvement depuis plus de {$days} jours :<br><br>"
             . $tableHtml
-            . "<br><br><a href=\"{$appUrl}/admin/commandes\" style=\"color:#c9a84c;\">Accéder à la liste des commandes</a>";
+            . "<br><br><a href=\"{$appUrl}/admin/commandes\" style=\"color:#c9a84c;\">"
+            . "Accéder à la liste des commandes</a>";
 
         $body = $this->emailSimpleLayout(
             'Commandes bloquées',
@@ -1986,7 +2004,9 @@ INNER;
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeRef   = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName  = htmlspecialchars($name, ENT_QUOTES);
-        $orderedAt = isset($order['ordered_at']) ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['ordered_at'])) : '—';
+        $orderedAt = isset($order['ordered_at'])
+            ? date(self::DATE_FORMAT_DATE, strtotime((string) $order['ordered_at']))
+            : '—';
         $items     = json_decode((string) ($order['content'] ?? '[]'), true) ?: [];
 
         $rows = '';
@@ -2164,7 +2184,8 @@ INNER;
      * @param string $firstname     Prénom de l'utilisateur (peut être vide)
      * @param string $lang          Langue ('fr' ou 'en')
      * @param bool   $isSubscribed  True si l'utilisateur est déjà abonné à la newsletter
-     * @param string $confirmToken  Token newsletter_confirm_token (brut) à injecter dans le CTA ; requis pour inscription en 1 clic
+     * @param string $confirmToken  Token newsletter_confirm_token (brut) à injecter dans le CTA ;
+     *                              requis pour inscription en 1 clic
      * @return void
      */
     public function sendWelcome(
@@ -2207,19 +2228,23 @@ INNER;
 
         if ($lang === 'fr') {
             $subject = 'Bienvenue au Château Crabitan Bellevue';
-            $message = "Votre adresse email est confirmée — bienvenue dans la famille du Château Crabitan Bellevue !<br><br>"
+            $message = "Votre adresse email est confirmée"
+                . " — bienvenue dans la famille du Château Crabitan Bellevue !<br><br>"
                 . 'Niché au cœur de l\'appellation <strong>Sainte-Croix-du-Mont</strong>, notre château familial'
                 . ' perpétue depuis des générations l\'art des vins de Bordeaux liquoreux et secs.'
-                . ' Chaque bouteille est l\'expression d\'un terroir d\'exception et d\'un savoir-faire artisanal.<br><br>'
+                . ' Chaque bouteille est l\'expression d\'un terroir d\'exception'
+                . ' et d\'un savoir-faire artisanal.<br><br>'
                 . $catalogCta . '<br>'
                 . $newsletterCta
                 . '<br><em>L\'équipe du Château Crabitan Bellevue</em>';
         } else {
             $subject = 'Welcome to Château Crabitan Bellevue';
-            $message = 'Your email address has been confirmed — welcome to the Château Crabitan Bellevue family!<br><br>'
+            $message = 'Your email address has been confirmed'
+                . ' — welcome to the Château Crabitan Bellevue family!<br><br>'
                 . 'Nestled in the heart of the <strong>Sainte-Croix-du-Mont</strong> appellation,'
                 . ' our family estate has been crafting exceptional Bordeaux wines for generations.'
-                . ' Each bottle reflects the unique character of our terroir and our dedication to artisanal winemaking.<br><br>'
+                . ' Each bottle reflects the unique character of our terroir'
+                . ' and our dedication to artisanal winemaking.<br><br>'
                 . $catalogCta . '<br>'
                 . $newsletterCta
                 . '<br><em>The Château Crabitan Bellevue team</em>';
@@ -2259,7 +2284,8 @@ INNER;
 
         if ($lang === 'fr') {
             $message = "Vous êtes désormais inscrit(e) à la newsletter du Château Crabitan Bellevue.<br><br>"
-                . "Vous recevrez en avant-première nos actualités : nouvelles cuvées, événements au château et offres exclusives.<br><br>"
+                . "Vous recevrez en avant-première nos actualités : nouvelles cuvées,"
+                . " événements au château et offres exclusives.<br><br>"
                 . "<p style=\"font-size:12px;color:#8a7a60;margin-top:24px;\">"
                 . "Pour vous désinscrire à tout moment, utilisez le lien présent en bas de chaque newsletter.</p>";
         } else {
@@ -2299,7 +2325,8 @@ INNER;
             $subject  = 'Le savoir-faire de Sainte-Croix-du-Mont — Château Crabitan Bellevue';
             $greeting = "Bonjour {$safeName},";
             $message  = "Depuis sa fondation, le Château Crabitan Bellevue perpétue l'art des vins liquoreux"
-                . " de <strong>Sainte-Croix-du-Mont</strong>, AOC unique nichée sur la rive droite de la Garonne.<br><br>"
+                . " de <strong>Sainte-Croix-du-Mont</strong>, AOC unique"
+                . " nichée sur la rive droite de la Garonne.<br><br>"
                 . "Nos vignes, exposées plein sud, bénéficient des brumes matinales propices au botrytis"
                 . " — le champignon à l'origine de la concentration naturelle des sucres qui donne à nos vins"
                 . " leur complexité incomparable.<br><br>"
@@ -2346,7 +2373,8 @@ INNER;
         $defaultName = $lang === 'fr' ? self::SALUTATION_FR : self::SALUTATION_EN;
         $safeName    = $name !== '' ? htmlspecialchars($name, ENT_QUOTES) : $defaultName;
         $catalogUrl  = htmlspecialchars($appUrl . '/' . $lang . self::PATH_CATALOG, ENT_QUOTES);
-        $unsubUrl    = htmlspecialchars($appUrl . '/' . $lang . '/newsletter/desabonnement?token=' . urlencode($unsubToken), ENT_QUOTES);
+        $rawUnsub    = $appUrl . '/' . $lang . '/newsletter/desabonnement?token=' . urlencode($unsubToken);
+        $unsubUrl    = htmlspecialchars($rawUnsub, ENT_QUOTES);
 
         if ($lang === 'fr') {
             $subject  = 'Votre première commande au Château Crabitan Bellevue — offre découverte';
@@ -2727,10 +2755,12 @@ INNER;
                 $intro      = "Des tentatives de connexion suspectes ont été détectées sur le compte admin "
                     . "<strong>{$safeTarget}</strong>.";
             } else {
-                $intro = "Plusieurs tentatives de connexion suspectes ont été détectées sur votre compte administrateur.";
+                $intro = "Plusieurs tentatives de connexion suspectes ont été"
+                    . " détectées sur votre compte administrateur.";
             }
             $action = $targetName !== null
-                ? "Contactez <strong>" . htmlspecialchars($targetName, ENT_QUOTES) . "</strong> afin d'être sûr de la tentative de connexion."
+                ? "Contactez <strong>" . htmlspecialchars($targetName, ENT_QUOTES)
+                    . "</strong> afin d'être sûr de la tentative de connexion."
                 : "Si vous êtes à l'origine de ces tentatives, vous pouvez ignorer ce message.<br>"
                 . "Dans le cas contraire, changez immédiatement votre mot de passe et signalez l'incident.";
             $message = "{$intro}<br><br>"
@@ -2747,14 +2777,16 @@ INNER;
             $subject = '[ALERT] Suspicious admin login attempts — Crabitan Bellevue';
             if ($targetName !== null) {
                 $safeTarget = htmlspecialchars($targetName, ENT_QUOTES);
-                $intro      = "Suspicious login attempts were detected on admin account <strong>{$safeTarget}</strong>.";
+                $intro = "Suspicious login attempts were detected on admin account"
+                    . " <strong>{$safeTarget}</strong>.";
             } else {
                 $intro = "Multiple suspicious login attempts were detected on your admin account.";
             }
             $action = $targetName !== null
                 ? "Please contact <strong>" . htmlspecialchars($targetName, ENT_QUOTES)
                     . "</strong> to confirm whether the login attempt was legitimate."
-                : "If you made these attempts, you can ignore this message.<br>Otherwise, change your password immediately and report the incident.";
+                : "If you made these attempts, you can ignore this message.<br>"
+                    . "Otherwise, change your password immediately and report the incident.";
             $message = "{$intro}<br><br>"
                 . "<strong>Date:</strong> {$safeDate}<br>"
                 . "<strong>Source IP:</strong> {$safeIp}<br><br>"
@@ -3329,8 +3361,9 @@ INNER;
   </style>
 </head>
 <body style="margin:0;padding:0;background-color:#f5f0e8;font-family:Georgia,serif;">
-  <div aria-hidden="true" style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{$title} — Ch&#226;teau Crabitan Bellevue
-  &#8203;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
+  <div aria-hidden="true" style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{$title}
+  &#8203;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+  &zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
          style="background-color:#f5f0e8;padding:40px 16px;">
     <tr>
@@ -3451,22 +3484,22 @@ HTML;
         $orderPageUrl = htmlspecialchars($appUrl . '/rating/order/' . $orderToken, ENT_QUOTES);
 
         if ($lang === 'fr') {
-            $subject    = 'Comment s\'est passée votre dégustation ? — Château Crabitan Bellevue';
-            $title      = 'Votre avis compte';
-            $greeting   = "Bonjour {$safeName},";
-            $intro      = "Nous espérons que vous avez apprécié votre commande."
+            $subject     = 'Comment s\'est passée votre dégustation ? — Château Crabitan Bellevue';
+            $title       = 'Votre avis compte';
+            $greeting    = "Bonjour {$safeName},";
+            $intro       = "Nous espérons que vous avez apprécié votre commande."
                 . " Votre avis nous aide à progresser — prenez un instant pour noter vos vins :";
-            $rateLabel  = 'Note :';
-            $ctaLabel   = 'Noter mes vins';
+            $rateLabel   = 'Note :';
+            $ctaLabel    = 'Noter mes vins';
             $ctaFallback = 'Vous préférez noter vin par vin ? Utilisez les liens ci-dessous :';
         } else {
-            $subject    = 'How was your tasting experience? — Château Crabitan Bellevue';
-            $title      = 'Your opinion matters';
-            $greeting   = "Hello {$safeName},";
-            $intro      = "We hope you enjoyed your order."
+            $subject     = 'How was your tasting experience? — Château Crabitan Bellevue';
+            $title       = 'Your opinion matters';
+            $greeting    = "Hello {$safeName},";
+            $intro       = "We hope you enjoyed your order."
                 . " Your feedback helps us improve — take a moment to rate your wines:";
-            $rateLabel  = 'Rate:';
-            $ctaLabel   = 'Rate my wines';
+            $rateLabel   = 'Rate:';
+            $ctaLabel    = 'Rate my wines';
             $ctaFallback = 'Prefer to rate wine by wine? Use the links below:';
         }
 
@@ -3546,6 +3579,68 @@ HTML;
             . $ctaBtn
             . $fallbackSection
             . $crossSellBtn;
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Envoie l'email de demande d'avis global J+28.
+     *
+     * Email minimaliste avec un unique CTA vers /mon-avis?token=.
+     * Distinct du sendPostPurchase (notation étoiles par vin J+21).
+     *
+     * @param string $to        Adresse email client
+     * @param string $name      Prénom client
+     * @param int    $accountId Identifiant du compte
+     * @param int    $orderId   Identifiant de la commande
+     * @param string $lang      Langue ('fr' ou 'en')
+     * @return void
+     */
+    public function sendReviewRequest(
+        string $to,
+        string $name,
+        int $accountId,
+        int $orderId,
+        string $lang
+    ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $safeName    = htmlspecialchars($name, ENT_QUOTES);
+        $ratingModel = $this->newRatingModel();
+        $orderToken  = $ratingModel->generateOrderToken($orderId, $accountId);
+        $reviewUrl   = htmlspecialchars($appUrl . '/' . $lang . '/mon-avis?token=' . $orderToken, ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject  = 'Partagez votre expérience — Château Crabitan Bellevue';
+            $title    = 'Votre expérience nous intéresse';
+            $greeting = "Bonjour {$safeName},";
+            $intro    = "Nous espérons que votre commande vous a comblé. Prenez quelques instants"
+                . " pour partager votre expérience avec le Château Crabitan Bellevue — votre avis"
+                . " aide d'autres amateurs de vins à nous découvrir.";
+            $ctaLabel = 'Laisser un avis';
+        } else {
+            $subject  = 'Share your experience — Château Crabitan Bellevue';
+            $title    = 'We\'d love your feedback';
+            $greeting = "Hello {$safeName},";
+            $intro    = "We hope your order exceeded your expectations. Take a moment to share"
+                . " your experience with Château Crabitan Bellevue — your review helps other"
+                . " wine lovers discover us.";
+            $ctaLabel = 'Leave a review';
+        }
+
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$reviewUrl}\" style=\""
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . $ctaLabel
+            . '</a></td></tr></table>';
+
+        $message = "<p style=\"margin:0 0 24px;font-size:15px;line-height:1.7;color:#3d3425;\">"
+            . htmlspecialchars($intro, ENT_QUOTES)
+            . "</p>"
+            . $ctaBtn;
 
         $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
         $this->send($to, $name, $subject, $body);
@@ -3965,7 +4060,8 @@ HTML;
 
         if ($lang === 'fr') {
             $subject = 'Tentative de connexion — votre compte Crabitan est en cours de suppression';
-            $message = 'Nous avons détecté une tentative de connexion à votre compte, qui est actuellement en cours de suppression.'
+            $message = 'Nous avons détecté une tentative de connexion à votre compte,'
+                . ' qui est actuellement en cours de suppression.'
                 . ' Vos données seront définitivement anonymisées le <strong>' . $safeDate . '</strong>.<br><br>'
                 . 'Si vous souhaitez conserver votre compte, cliquez sur le bouton ci-dessous avant cette date.<br><br>'
                 . $reactBtn
@@ -4011,7 +4107,7 @@ HTML;
      * @param string $changeNote Résumé des modifications (optionnel)
      * @return void
      */
-    public function sendLegalDocumentUpdate( // NOSONAR — php:S107 : 8 paramètres nécessaires pour l'email légal bilingue
+    public function sendLegalDocumentUpdate( // NOSONAR php:S107 — 8 paramètres nécessaires pour l'email légal bilingue
         string $to,
         string $name,
         string $lang,

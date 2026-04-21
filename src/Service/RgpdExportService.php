@@ -10,6 +10,8 @@ use Model\ConnectionModel;
 use Model\FavoriteModel;
 use Model\OrderAddressSnapshotModel;
 use Model\OrderModel;
+use Model\RatingModel;
+use Model\ReviewModel;
 use Model\TrustedDeviceModel;
 
 /**
@@ -29,6 +31,8 @@ class RgpdExportService
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
     private OrderAddressSnapshotModel $orderAddressSnapshots;
+    private ReviewModel $reviewModel;
+    private RatingModel $ratingModel;
 
     public function __construct()
     {
@@ -39,6 +43,8 @@ class RgpdExportService
         $this->connections           = new ConnectionModel();
         $this->trustedDevices        = new TrustedDeviceModel();
         $this->orderAddressSnapshots = new OrderAddressSnapshotModel();
+        $this->reviewModel           = new ReviewModel();
+        $this->ratingModel           = new RatingModel();
     }
 
     /**
@@ -58,6 +64,8 @@ class RgpdExportService
         $recentLogs       = $this->connections->getRecentForUser($userId);
         $consentData      = $this->accounts->getConsentData($userId);
         $addressSnapshots = $this->orderAddressSnapshots->getForUserExport($userId);
+        $review           = $this->reviewModel->findByAccountId($userId);
+        $wineRatings      = $this->ratingModel->getAllByAccount($userId);
 
         return [
             'exported_at' => date('c'),
@@ -137,6 +145,17 @@ class RgpdExportService
                 'phone'           => $s['phone'],
                 'ordered_at'      => $s['ordered_at'],
             ], $addressSnapshots),
+            'review' => $review !== null ? [
+                'rating'     => $review['rating'],
+                'comment'    => $review['comment'],
+                'location'   => $review['location'],
+                'created_at' => $review['created_at'],
+            ] : null,
+            'wine_ratings' => array_map(fn($r) => [
+                'wine'       => $r['label_name'] . ' ' . $r['vintage'],
+                'rating'     => $r['rating'],
+                'updated_at' => $r['updated_at'] ?? $r['created_at'],
+            ], $wineRatings),
         ];
     }
 

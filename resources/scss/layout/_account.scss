@@ -995,3 +995,122 @@
         flex-wrap: wrap;
     }
 }
+
+// ----------------------------------------------------------------
+// Mes notes — mosaïque vins commandés
+// ----------------------------------------------------------------
+
+.account-ratings-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+
+    @media (min-width: 640px) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (min-width: 900px) {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.account-rating-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.25rem 1rem 1rem;
+    gap: 0.75rem;
+    text-align: center;
+    transition: box-shadow 0.2s;
+
+    &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    &--unrated {
+        border-color: var(--color-gold-light);
+        border-style: dashed;
+    }
+
+    &__img-wrap {
+        display: block;
+        width: 80px;
+        height: 110px;
+        flex-shrink: 0;
+    }
+
+    &__img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        width: 100%;
+    }
+
+    &__name {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--color-text);
+        margin: 0;
+        line-height: 1.3;
+    }
+
+    &__vintage {
+        font-size: 0.78rem;
+        color: var(--color-text-muted);
+    }
+
+    &__badge {
+        display: inline-block;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-gold);
+        border: 1px solid var(--color-gold-light);
+        border-radius: 3px;
+        padding: 0.1rem 0.4rem;
+    }
+
+    &__unrated-label {
+        font-size: 0.72rem;
+        color: var(--color-gold);
+        font-style: italic;
+        margin: 0;
+
+        &--hidden {
+            visibility: hidden;
+        }
+    }
+
+    &__form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    &__save {
+        font-size: 0.72rem;
+        padding: 0.3rem 0.75rem;
+    }
+}
+
+.account-rating-stars {
+    .review-stars__inputs {
+        justify-content: center;
+    }
+}
+

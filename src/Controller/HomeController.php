@@ -6,6 +6,7 @@ namespace Controller;
 
 use Core\Controller;
 use Model\NewsModel;
+use Model\ReviewModel;
 use Model\WineModel;
 
 class HomeController extends Controller
@@ -28,7 +29,16 @@ class HomeController extends Controller
         $news         = $newsModel->getLatest(3);
         $wineModel    = new WineModel();
         $featuredWine = $wineModel->getFeatured();
+        $reviewModel  = new ReviewModel();
+        $reviews      = $reviewModel->getRandom(3, 4);
+        $reviewStats  = $reviewModel->getStats(4);
 
-        $this->view('home', ['lang' => $lang, 'news' => $news, 'featuredWine' => $featuredWine]);
+        $this->view('home', [
+            'lang'         => $lang,
+            'news'         => $news,
+            'featuredWine' => $featuredWine,
+            'reviews'      => $reviews,
+            'reviewStats'  => $reviewStats,
+        ]);
     }
 }

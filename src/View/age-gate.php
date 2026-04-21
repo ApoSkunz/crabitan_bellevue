@@ -37,6 +37,7 @@
 
 <main class="age-gate" role="main">
     <p class="age-gate__quote"><?= htmlspecialchars(__('age_gate.quote')) ?></p>
+    <p class="age-gate__subquote"><?= htmlspecialchars(__('age_gate.subquote')) ?></p>
 
     <div class="age-gate__card-wrapper">
         <span></span><span></span><span></span><span></span>
