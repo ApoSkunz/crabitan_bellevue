@@ -282,7 +282,7 @@ class RatingModelTest extends TestCase
         $this->dbMock
             ->expects($this->once())
             ->method('fetchOne')
-            ->willReturn(['1' => 1]);
+            ->willReturn(['id' => 1]);
 
         $this->assertTrue($this->model->hasOrdered(1, 2));
     }
@@ -449,8 +449,16 @@ class RatingModelTest extends TestCase
             ['content' => json_encode([['wine_id' => 3], ['wine_id' => 7]])],
         ];
         $wines = [
-            ['wine_id' => 3, 'label_name' => 'Vin A', 'vintage' => 2020, 'slug' => 'vin-a', 'image_path' => null, 'is_cuvee_speciale' => 0, 'rating' => 4, 'updated_at' => null],
-            ['wine_id' => 7, 'label_name' => 'Vin B', 'vintage' => 2021, 'slug' => 'vin-b', 'image_path' => null, 'is_cuvee_speciale' => 0, 'rating' => null, 'updated_at' => null],
+            [
+                'wine_id' => 3, 'label_name' => 'Vin A', 'vintage' => 2020,
+                'slug' => 'vin-a', 'image_path' => null, 'is_cuvee_speciale' => 0,
+                'rating' => 4, 'updated_at' => null,
+            ],
+            [
+                'wine_id' => 7, 'label_name' => 'Vin B', 'vintage' => 2021,
+                'slug' => 'vin-b', 'image_path' => null, 'is_cuvee_speciale' => 0,
+                'rating' => null, 'updated_at' => null,
+            ],
         ];
 
         $this->dbMock
