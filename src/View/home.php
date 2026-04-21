@@ -377,6 +377,13 @@ $carouselSlides = [
             <span class="home-section__tag home-section__tag--center"><?= htmlspecialchars(__('home.testimonials_tag')) ?></span>
             <h2 class="home-section__title text-center"><?= htmlspecialchars(__('home.testimonials_title')) ?></h2>
             <div class="home-section__divider home-section__divider--center"></div>
+            <?php if (!empty($reviewStats)) : ?>
+            <p class="home-testimonials__avg">
+                <span class="home-testimonials__avg-score"><?= number_format((float) $reviewStats['avg'], 1) ?> / 5</span>
+                <span class="home-testimonials__avg-stars" aria-hidden="true"><?= str_repeat('★', (int) round((float) $reviewStats['avg'])) . str_repeat('☆', 5 - (int) round((float) $reviewStats['avg'])) ?></span>
+                <span class="home-testimonials__avg-count">(<?= (int) $reviewStats['count'] ?> <?= htmlspecialchars(__('home.testimonials_reviews')) ?>)</span>
+            </p>
+            <?php endif; ?>
             <div class="home-testimonials__grid">
                 <?php foreach ($reviews as $review) :
                     $stars = str_repeat('★', (int) $review['rating']) . str_repeat('☆', 5 - (int) $review['rating']);

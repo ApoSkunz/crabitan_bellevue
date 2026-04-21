@@ -22,15 +22,17 @@ require_once __DIR__ . '/../partials/header.php';
                     <?= __('account.discover_wines') ?>
                 </a>
             <?php else : ?>
-                <ul class="account-ratings-list">
+                <ul class="account-ratings-grid">
                     <?php foreach ($wines as $wine) : ?>
                     <?php
                     $imgFile  = (string) ($wine['image_path'] ?? '');
                     $imgNoExt = (string) preg_replace('/\.[^.]+$/', '', $imgFile);
                     $imgBase  = '/assets/images/wines/';
-                    $current  = (int) ($wine['rating'] ?? 0);
+                    $current       = (int) ($wine['rating'] ?? 0);
+                    $hasRating     = $current >= 1;
+                    $isCuveeSpec   = (bool) ($wine['is_cuvee_speciale'] ?? false);
                     ?>
-                    <li class="account-rating-card">
+                    <li class="account-rating-card<?= $hasRating ? '' : ' account-rating-card--unrated' ?>">
                         <a class="account-rating-card__img-wrap"
                            href="/<?= htmlspecialchars($lang) ?>/vins/<?= htmlspecialchars((string) $wine['slug']) ?>">
                             <?php if ($imgFile !== '') : ?>
@@ -39,15 +41,23 @@ require_once __DIR__ . '/../partials/header.php';
                                 <img class="account-rating-card__img"
                                      src="<?= $imgBase . rawurlencode($imgFile) ?>"
                                      alt="<?= htmlspecialchars((string) $wine['label_name']) ?>"
-                                     width="64" height="64" loading="lazy">
+                                     width="120" height="120" loading="lazy">
                             </picture>
                             <?php endif; ?>
                         </a>
-                        <div class="account-rating-card__info">
+                        <div class="account-rating-card__body">
                             <p class="account-rating-card__name">
                                 <?= htmlspecialchars((string) $wine['label_name']) ?>
-                                <span class="account-rating-card__vintage"><?= (int) $wine['vintage'] ?></span>
                             </p>
+                            <span class="account-rating-card__vintage"><?= (int) $wine['vintage'] ?></span>
+                            <?php if ($isCuveeSpec) : ?>
+                            <span class="account-rating-card__badge"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span>
+                            <?php endif; ?>
+
+                            <p class="account-rating-card__unrated-label<?= $hasRating ? ' account-rating-card__unrated-label--hidden' : '' ?>">
+                                <?= htmlspecialchars(__('account.ratings_not_yet')) ?>
+                            </p>
+
                             <form method="post"
                                   action="/<?= htmlspecialchars($lang) ?>/mon-compte/mes-notes"
                                   class="account-rating-card__form">

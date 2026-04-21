@@ -862,6 +862,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/favoris">
                     <?= htmlspecialchars(__('panel.favorites')) ?>
                 </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/mes-notes">
+                    <?= htmlspecialchars(__('panel.ratings')) ?>
+                </a>
+                <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/mon-avis">
+                    <?= htmlspecialchars(__('panel.review')) ?>
+                </a>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte/securite">
                     <?= htmlspecialchars(__('panel.security')) ?>
                 </a>

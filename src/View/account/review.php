@@ -21,7 +21,7 @@ $location = (string) ($review['location'] ?? '');
             </header>
 
             <?php if ($saved) : ?>
-            <div class="form-success" role="alert">
+            <div class="alert alert--success js-autohide" role="alert">
                 <?= htmlspecialchars(__('account.review_saved')) ?>
             </div>
             <?php endif; ?>
@@ -76,4 +76,15 @@ $location = (string) ($review['location'] ?? '');
         </div>
     </div>
 </main>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+(function () {
+    var el = document.querySelector('.js-autohide');
+    if (!el) { return; }
+    setTimeout(function () {
+        el.style.transition = 'opacity 0.4s';
+        el.style.opacity = '0';
+        setTimeout(function () { el.remove(); }, 400);
+    }, 4000);
+}());
+</script>
 <?php require_once __DIR__ . '/../partials/footer.php'; ?>
