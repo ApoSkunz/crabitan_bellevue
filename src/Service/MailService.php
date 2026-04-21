@@ -3326,7 +3326,8 @@ INNER;
   </style>
 </head>
 <body style="margin:0;padding:0;background-color:#f5f0e8;font-family:Georgia,serif;">
-  <div aria-hidden="true" style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{$title} — Ch&#226;teau Crabitan Bellevue &#8203;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
+  <div aria-hidden="true" style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{$title} — Ch&#226;teau Crabitan Bellevue
+  &#8203;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
          style="background-color:#f5f0e8;padding:40px 16px;">
     <tr>
