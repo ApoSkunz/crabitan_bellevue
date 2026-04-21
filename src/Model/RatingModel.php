@@ -265,6 +265,22 @@ class RatingModel extends Model
     }
 
     /**
+     * Résout un order token complet — retourne [order_id, account_id, expires_at] ou null.
+     * Utilisé pour vérifier l'expiration côté ReviewController.
+     *
+     * @param string $token Token de commande
+     * @return array<string, mixed>|null
+     */
+    public function resolveOrderTokenFull(string $token): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT order_id, account_id, expires_at FROM order_rating_tokens WHERE token = ?",
+            [$token]
+        );
+        return $row ?: null;
+    }
+
+    /**
      * Top N vins par note moyenne (>= 2 avis minimum).
      *
      * @param int $limit Nombre maximum de résultats
