@@ -967,6 +967,40 @@ class WineModelTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // getAllForMediaSitemap
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que getAllForMediaSitemap sélectionne les bons champs avec filtre image.
+     */
+    public function testGetAllForMediaSitemapSelectsRequiredFields(): void
+    {
+        $rows = [
+            ['slug' => 'bordeaux-rouge-2020', 'label_name' => 'Bordeaux Rouge', 'image_path' => 'img.jpg', 'vintage' => 2020],
+        ];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->logicalAnd(
+                    $this->stringContains('slug'),
+                    $this->stringContains('label_name'),
+                    $this->stringContains('image_path'),
+                    $this->stringContains('vintage'),
+                    $this->stringContains('image_path IS NOT NULL')
+                ),
+                $this->equalTo([])
+            )
+            ->willReturn($rows);
+
+        $result = $this->model->getAllForMediaSitemap();
+
+        $this->assertCount(1, $result);
+        $this->assertSame('bordeaux-rouge-2020', $result[0]['slug']);
+    }
+
+    // ----------------------------------------------------------------
     // getFeatured / setFeatured / unsetFeatured / getCurrentFeatured
     // ----------------------------------------------------------------
 

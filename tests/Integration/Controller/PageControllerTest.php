@@ -490,4 +490,103 @@ class PageControllerTest extends IntegrationTestCase
         $this->assertStringNotContainsString('mentions-legales', $output);
         $this->assertStringNotContainsString('politique-de-confidentialite', $output);
     }
+
+    // ----------------------------------------------------------------
+    // sitemapMedia
+    // ----------------------------------------------------------------
+
+    private function captureSitemapMedia(): string
+    {
+        ob_start();
+        try {
+            $this->makeController('/sitemap-media.xml')->sitemapMedia([]);
+        } catch (\Core\Exception\HttpException) {
+        }
+        return (string) ob_get_clean();
+    }
+
+    public function testSitemapMediaOutputsValidXml(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemapMedia();
+
+        $this->assertStringContainsString('<?xml', $output);
+        $this->assertStringContainsString('<urlset', $output);
+        $this->assertStringContainsString('image', $output);
+    }
+
+    public function testSitemapMediaContainsWineImages(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemapMedia();
+
+        $this->assertStringContainsString('image:image', $output);
+        $this->assertStringContainsString('image:loc', $output);
+        $this->assertStringContainsString('/assets/images/wines/', $output);
+    }
+
+    public function testSitemapMediaContainsCarouselImages(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemapMedia();
+
+        $this->assertStringContainsString('/assets/images/carousel/', $output);
+    }
+
+    public function testSitemapMediaContainsVideoEntry(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemapMedia();
+
+        $this->assertStringContainsString('video:video', $output);
+        $this->assertStringContainsString('video:content_loc', $output);
+    }
+
+    public function testSitemapMediaUsesAppUrlEnvVar(): void
+    {
+        $_ENV['APP_URL'] = 'https://custom.domain.test';
+        $output = $this->captureSitemapMedia();
+
+        $this->assertStringContainsString('custom.domain.test', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // sitemapIndex
+    // ----------------------------------------------------------------
+
+    private function captureSitemapIndex(): string
+    {
+        ob_start();
+        try {
+            $this->makeController('/sitemap-index.xml')->sitemapIndex([]);
+        } catch (\Core\Exception\HttpException) {
+        }
+        return (string) ob_get_clean();
+    }
+
+    public function testSitemapIndexOutputsValidXml(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemapIndex();
+
+        $this->assertStringContainsString('<?xml', $output);
+        $this->assertStringContainsString('<sitemapindex', $output);
+    }
+
+    public function testSitemapIndexReferencesBothSitemaps(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $output = $this->captureSitemapIndex();
+
+        $this->assertStringContainsString('/sitemap.xml', $output);
+        $this->assertStringContainsString('/sitemap-media.xml', $output);
+    }
+
+    public function testSitemapIndexUsesAppUrlEnvVar(): void
+    {
+        $_ENV['APP_URL'] = 'https://custom.domain.test';
+        $output = $this->captureSitemapIndex();
+
+        $this->assertStringContainsString('custom.domain.test', $output);
+    }
 }
