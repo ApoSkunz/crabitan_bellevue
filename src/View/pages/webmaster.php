@@ -203,6 +203,8 @@ $age   = (new \DateTime())->diff($birth)->y;
                         <ul class="cv-timeline__tasks">
                             <li><?= htmlspecialchars(__('webmaster.telecom_task1')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.telecom_task2')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.telecom_task3')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.telecom_task4')) ?></li>
                         </ul>
                     </div>
                 </li>
