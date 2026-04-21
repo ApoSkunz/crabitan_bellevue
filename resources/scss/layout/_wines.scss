@@ -1,4 +1,228 @@
+@use '../abstracts/variables' as *;
 @use '../abstracts/mixins' as m;
+
+// ============================================================
+// Fil d'Ariane (breadcrumb)
+// ============================================================
+
+.breadcrumb {
+    padding: 0.75rem 0;
+    margin-bottom: 0.5rem;
+
+    &__list {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.25rem 0.35rem;
+        padding: 0;
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+
+        &::after {
+            content: '›';
+            color: var(--color-text-muted);
+            opacity: 0.6;
+        }
+
+        &--current {
+            color: var(--color-text);
+
+            &::after { content: none; }
+        }
+    }
+
+    &__link {
+        color: var(--color-text-muted);
+        text-decoration: none;
+        transition: color $transition-fast;
+
+        &:hover {
+            color: var(--color-gold);
+        }
+    }
+}
+
+// ============================================================
+// Navigation précédent / suivant (page fiche vin)
+// ============================================================
+
+.wine-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1.25rem;
+
+    .breadcrumb {
+        margin-bottom: 0;
+        padding: 0.35rem 0;
+    }
+
+    &__arrows {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 1.6rem;
+    }
+
+    &__arrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        transition: color $transition-fast;
+
+        &:hover { color: var(--color-gold); }
+    }
+
+    &__label {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 180px;
+    }
+
+    &__vintage {
+        font-size: 0.75rem;
+        opacity: 0.7;
+        white-space: nowrap;
+    }
+
+    &__cuvee {
+        font-size: 0.7rem;
+        color: var(--color-gold);
+        white-space: nowrap;
+    }
+
+    @media (max-width: 600px) {
+        &__label { max-width: 100px; }
+        &__cuvee { display: none; }
+    }
+}
+
+// Notice zone de livraison métropolitaine
+.wines-delivery-zone {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    padding: 0.5rem 1rem 0;
+    margin: 0;
+    font-style: italic;
+}
+
+// Espacement breadcrumb réduit sur la page collection (pas de wine-nav autour)
+.page-wines-collection .breadcrumb {
+    padding: 0.4rem 0;
+    margin-bottom: 0.25rem;
+}
+
+// ============================================================
+// Exit-intent pop-in (page fiche vin)
+// ============================================================
+
+.exit-intent-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    pointer-events: none;
+
+    &--visible {
+        pointer-events: auto;
+    }
+
+    &__backdrop {
+        position: absolute;
+        inset: 0;
+        background: var(--color-overlay);
+        opacity: 0;
+        transition: opacity $transition-slow;
+
+        .exit-intent-overlay--visible & {
+            opacity: 1;
+        }
+    }
+
+    &__box {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -48%) scale(0.96);
+        opacity: 0;
+        transition: opacity $transition-slow, transform $transition-slow;
+        width: min(480px, 90vw);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border-gold);
+        padding: 2.5rem 2rem 2rem;
+        text-align: center;
+
+        .exit-intent-overlay--visible & {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
+
+    &__close {
+        position: absolute;
+        top: 0.6rem;
+        right: 0.9rem;
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        line-height: 1;
+        cursor: pointer;
+        color: var(--color-text-muted);
+        transition: color $transition-fast;
+
+        &:hover { color: var(--color-text); }
+    }
+
+    &__title {
+        font-family: var(--font-serif);
+        font-size: 1.25rem;
+        letter-spacing: 0.07em;
+        color: var(--color-gold);
+        margin-bottom: 0.75rem;
+    }
+
+    &__body {
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    &__actions {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    &__cta {
+        min-width: 200px;
+    }
+
+    &__dismiss {
+        background: none;
+        border: none;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        text-decoration: underline;
+        transition: color $transition-fast;
+
+        &:hover { color: var(--color-text); }
+    }
+}
 
 // ============================================================
 // Page hero commun (vins, collection, fiche)
