@@ -502,6 +502,34 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
     </section>
     <?php endif; ?>
 
+    <section class="wine-newsletter-optin container" aria-label="<?= htmlspecialchars(__('newsletter.footer_title')) ?>">
+        <div class="wine-newsletter-optin__inner">
+            <p class="wine-newsletter-optin__title"><?= htmlspecialchars(__('newsletter.footer_title')) ?></p>
+            <form id="wine-newsletter-form"
+                  class="wine-newsletter-optin__form"
+                  action="/<?= htmlspecialchars($lang) ?>/newsletter/inscription"
+                  method="post"
+                  data-msg-success="<?= htmlspecialchars(__('newsletter.confirm_sent')) ?>"
+                  data-msg-invalid="<?= htmlspecialchars(__('newsletter.invalid_email')) ?>">
+                <div class="wine-newsletter-optin__row">
+                    <label for="wine-newsletter-email" class="sr-only">
+                        <?= htmlspecialchars(__('newsletter.email_placeholder')) ?>
+                    </label>
+                    <input type="email"
+                           id="wine-newsletter-email"
+                           name="email"
+                           placeholder="<?= htmlspecialchars(__('newsletter.email_placeholder')) ?>"
+                           autocomplete="email"
+                           required>
+                    <button type="submit" class="btn btn--gold">
+                        <?= htmlspecialchars(__('newsletter.subscribe_btn')) ?>
+                    </button>
+                </div>
+                <p class="wine-newsletter-optin__feedback" aria-live="polite" hidden></p>
+            </form>
+        </div>
+    </section>
+
 </main>
 
 <!-- PDF progress overlay -->

@@ -1,4 +1,5 @@
 <?php
+$exitIntentVariant = 'newsletter';
 $pageTitle = null; // Pas de titre dans <title> sur la home (château seul suffit)
 $brandName       = 'Château Crabitan Bellevue';
 $appUrl          = rtrim(defined('APP_URL') ? APP_URL : ($_ENV['APP_URL'] ?? ''), '/');
@@ -363,6 +364,40 @@ $carouselSlides = [
                 <a href="/<?= htmlspecialchars($navLang) ?>/actualites" class="btn btn--gold">
                     <?= htmlspecialchars(__('home.news_cta')) ?>
                 </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION TÉMOIGNAGES                                          -->
+    <!-- ============================================================ -->
+    <?php
+    $testimonials = $navLang === 'en' ? [
+        ['quote' => 'An exceptional wine that sublimes every table. Rich, balanced, with those distinctive honey notes.', 'author' => 'Marie-Claire D.', 'location' => 'Paris'],
+        ['quote' => 'The best Sainte-Croix-du-Mont I have ever tasted. A great discovery, now a family staple.', 'author' => 'Thomas B.', 'location' => 'Lyon'],
+        ['quote' => 'Impeccable service and delivery. The bottles arrived perfectly packaged. A real pleasure.', 'author' => 'Isabelle R.', 'location' => 'Bordeaux'],
+    ] : [
+        ['quote' => 'Un vin exceptionnel qui sublime chaque table. Riche, équilibré, avec ces notes de miel si caractéristiques.', 'author' => 'Marie-Claire D.', 'location' => 'Paris'],
+        ['quote' => 'Le meilleur Sainte-Croix-du-Mont que j\'aie jamais goûté. Une belle découverte, devenue un incontournable familial.', 'author' => 'Thomas B.', 'location' => 'Lyon'],
+        ['quote' => 'Service et livraison impeccables. Les bouteilles sont arrivées parfaitement emballées. Un vrai plaisir.', 'author' => 'Isabelle R.', 'location' => 'Bordeaux'],
+    ];
+    ?>
+    <section class="home-testimonials" aria-label="<?= htmlspecialchars(__('home.testimonials_title')) ?>">
+        <div class="container">
+            <span class="home-section__tag home-section__tag--center"><?= htmlspecialchars(__('home.testimonials_tag')) ?></span>
+            <h2 class="home-section__title text-center"><?= htmlspecialchars(__('home.testimonials_title')) ?></h2>
+            <div class="home-section__divider home-section__divider--center"></div>
+            <div class="home-testimonials__grid">
+                <?php foreach ($testimonials as $t) : ?>
+                <blockquote class="home-testimonials__card">
+                    <div class="home-testimonials__stars" aria-hidden="true">★★★★★</div>
+                    <p class="home-testimonials__quote"><?= htmlspecialchars($t['quote']) ?></p>
+                    <footer class="home-testimonials__author">
+                        <strong><?= htmlspecialchars($t['author']) ?></strong>
+                        <span class="home-testimonials__location"><?= htmlspecialchars($t['location']) ?></span>
+                    </footer>
+                </blockquote>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>

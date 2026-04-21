@@ -177,6 +177,12 @@ require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S20
         </div>
             <?php endif; ?>
 
+        <?php if ($progressRemain > 0 && $progressRemain <= 6) : ?>
+        <p class="cart-nudge" aria-live="polite">
+            <?= htmlspecialchars(sprintf(__('cart.nudge'), $progressRemain)) ?>
+        </p>
+        <?php endif; ?>
+
         <div class="cart-layout">
             <div class="cart-table-wrap">
                 <table class="cart-table" aria-label="<?= htmlspecialchars(__('cart.title')) ?>">
