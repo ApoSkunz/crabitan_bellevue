@@ -76,13 +76,12 @@ class AccountRatingsController extends AbstractAccountController
             $this->redirect('/' . $lang . '/mon-compte/mes-notes');
         }
 
-        $wineId = (int) $this->request->post('wine_id', '0');
-        $rating = (int) $this->request->post('rating', '0');
+        $wineId  = (int) $this->request->post('wine_id', '0');
+        $rating  = (int) $this->request->post('rating', '0');
+        $orderId = $wineId > 0 ? $this->ratings->getFirstOrderId($userId, $wineId) : null;
 
-        if ($wineId > 0 && $rating >= 1 && $rating <= 5
-            && $this->ratings->hasOrdered($userId, $wineId)
-        ) {
-            $this->ratings->upsert($userId, $wineId, 0, $rating);
+        if ($orderId !== null && $rating >= 1 && $rating <= 5) {
+            $this->ratings->upsert($userId, $wineId, $orderId, $rating);
         }
 
         $this->redirect('/' . $lang . '/mon-compte/mes-notes');

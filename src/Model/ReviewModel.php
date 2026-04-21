@@ -122,9 +122,32 @@ class ReviewModel extends Model
             "SELECT id, rating, comment, display_name, location, created_at
              FROM {$this->table}
              WHERE rating >= ?
+               AND TRIM(COALESCE(comment, '')) != ''
              ORDER BY RAND()
              LIMIT ?",
             [$minRating, $count]
         );
+    }
+
+    /**
+     * Retourne la note moyenne et le nombre total d'avis >= minRating.
+     *
+     * @param int $minRating Note minimum à comptabiliser
+     * @return array{avg: float, count: int}|null null si aucun avis
+     */
+    public function getStats(int $minRating = 1): ?array
+    {
+        $row = $this->db->fetchOne(
+            "SELECT ROUND(AVG(rating), 1) AS avg, COUNT(*) AS cnt
+             FROM {$this->table}
+             WHERE rating >= ?",
+            [$minRating]
+        );
+
+        if (!$row || (int) $row['cnt'] === 0) {
+            return null;
+        }
+
+        return ['avg' => (float) $row['avg'], 'count' => (int) $row['cnt']];
     }
 }
