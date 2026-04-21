@@ -3451,25 +3451,23 @@ HTML;
         $orderPageUrl = htmlspecialchars($appUrl . '/rating/order/' . $orderToken, ENT_QUOTES);
 
         if ($lang === 'fr') {
-            $subject         = 'Comment s\'est passée votre dégustation ? — Château Crabitan Bellevue';
-            $title           = 'Votre avis compte';
-            $greeting        = "Bonjour {$safeName},";
-            $intro           = "Nous espérons que vous avez apprécié votre commande."
+            $subject     = 'Comment s\'est passée votre dégustation ? — Château Crabitan Bellevue';
+            $title       = 'Votre avis compte';
+            $greeting    = "Bonjour {$safeName},";
+            $intro       = "Nous espérons que vous avez apprécié votre commande."
                 . " Votre avis nous aide à progresser — prenez un instant pour noter vos vins :";
-            $rateLabel       = 'Note :';
-            $ctaLabel        = 'Noter mes vins';
-            $ctaFallback     = 'Vous préférez noter vin par vin ? Utilisez les liens ci-dessous :';
-            $reviewCtaLabel  = 'Laisser un avis sur votre expérience';
+            $rateLabel   = 'Note :';
+            $ctaLabel    = 'Noter mes vins';
+            $ctaFallback = 'Vous préférez noter vin par vin ? Utilisez les liens ci-dessous :';
         } else {
-            $subject         = 'How was your tasting experience? — Château Crabitan Bellevue';
-            $title           = 'Your opinion matters';
-            $greeting        = "Hello {$safeName},";
-            $intro           = "We hope you enjoyed your order."
+            $subject     = 'How was your tasting experience? — Château Crabitan Bellevue';
+            $title       = 'Your opinion matters';
+            $greeting    = "Hello {$safeName},";
+            $intro       = "We hope you enjoyed your order."
                 . " Your feedback helps us improve — take a moment to rate your wines:";
-            $rateLabel       = 'Rate:';
-            $ctaLabel        = 'Rate my wines';
-            $ctaFallback     = 'Prefer to rate wine by wine? Use the links below:';
-            $reviewCtaLabel  = 'Leave a review';
+            $rateLabel   = 'Rate:';
+            $ctaLabel    = 'Rate my wines';
+            $ctaFallback = 'Prefer to rate wine by wine? Use the links below:';
         }
 
         // CTA principal — page de notation centralisée par commande
@@ -3542,23 +3540,74 @@ HTML;
             . 'text-transform:uppercase;color:#c9a84c;text-decoration:none;font-weight:bold;">'
             . $crossSellLabel . '</a></td></tr></table>';
 
-        // CTA avis global — lien vers la page /mon-avis
-        $reviewUrl = htmlspecialchars($appUrl . '/' . $lang . '/mon-avis?token=' . $orderToken, ENT_QUOTES);
-        $reviewBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0 24px;">'
-            . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
-            . "<a href=\"{$reviewUrl}\" style=\"display:inline-block;padding:10px 24px;"
-            . self::BTN_STYLE_SECONDARY
-            . 'text-transform:uppercase;color:#c9a84c;text-decoration:none;font-weight:bold;">'
-            . htmlspecialchars($reviewCtaLabel, ENT_QUOTES)
-            . '</a></td></tr></table>';
-
         $message = "<p style=\"margin:0 0 24px;font-size:15px;line-height:1.7;color:#3d3425;\">"
             . $intro
             . "</p>"
             . $ctaBtn
-            . $reviewBtn
             . $fallbackSection
             . $crossSellBtn;
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Envoie l'email de demande d'avis global J+28.
+     *
+     * Email minimaliste avec un unique CTA vers /mon-avis?token=.
+     * Distinct du sendPostPurchase (notation étoiles par vin J+21).
+     *
+     * @param string $to        Adresse email client
+     * @param string $name      Prénom client
+     * @param int    $accountId Identifiant du compte
+     * @param int    $orderId   Identifiant de la commande
+     * @param string $lang      Langue ('fr' ou 'en')
+     * @return void
+     */
+    public function sendReviewRequest(
+        string $to,
+        string $name,
+        int $accountId,
+        int $orderId,
+        string $lang
+    ): void {
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
+        $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $safeName    = htmlspecialchars($name, ENT_QUOTES);
+        $ratingModel = $this->newRatingModel();
+        $orderToken  = $ratingModel->generateOrderToken($orderId, $accountId);
+        $reviewUrl   = htmlspecialchars($appUrl . '/' . $lang . '/mon-avis?token=' . $orderToken, ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject  = 'Partagez votre expérience — Château Crabitan Bellevue';
+            $title    = 'Votre expérience nous intéresse';
+            $greeting = "Bonjour {$safeName},";
+            $intro    = "Nous espérons que votre commande vous a comblé. Prenez quelques instants"
+                . " pour partager votre expérience avec le Château Crabitan Bellevue — votre avis"
+                . " aide d'autres amateurs de vins à nous découvrir.";
+            $ctaLabel = 'Laisser un avis';
+        } else {
+            $subject  = 'Share your experience — Château Crabitan Bellevue';
+            $title    = 'We\'d love your feedback';
+            $greeting = "Hello {$safeName},";
+            $intro    = "We hope your order exceeded your expectations. Take a moment to share"
+                . " your experience with Château Crabitan Bellevue — your review helps other"
+                . " wine lovers discover us.";
+            $ctaLabel = 'Leave a review';
+        }
+
+        $ctaBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0;">'
+            . '<tr><td style="background:linear-gradient(135deg,#e8c86a,#c9a84c);border-radius:2px;">'
+            . "<a href=\"{$reviewUrl}\" style=\""
+            . self::BTN_STYLE_PRIMARY
+            . self::BTN_STYLE_LINK
+            . $ctaLabel
+            . '</a></td></tr></table>';
+
+        $message = "<p style=\"margin:0 0 24px;font-size:15px;line-height:1.7;color:#3d3425;\">"
+            . htmlspecialchars($intro, ENT_QUOTES)
+            . "</p>"
+            . $ctaBtn;
 
         $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
         $this->send($to, $name, $subject, $body);

@@ -1255,6 +1255,39 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     }
 
     /**
+     * Retourne les commandes livrées éligibles à l'email demande d'avis global J+28.
+     *
+     * Fenêtre : 672h–696h après livraison confirmée, review_request_sent_at IS NULL.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getDeliveredForReviewEmail(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT id, user_id
+               FROM {$this->table}
+              WHERE status = 'delivered'
+                AND review_request_sent_at IS NULL
+                AND delivered_at <= NOW() - INTERVAL 672 HOUR
+                AND delivered_at >  NOW() - INTERVAL 696 HOUR"
+        );
+    }
+
+    /**
+     * Marque une commande comme ayant reçu l'email de demande d'avis global.
+     *
+     * @param int $orderId Identifiant de la commande
+     * @return void
+     */
+    public function markReviewEmailSent(int $orderId): void
+    {
+        $this->db->execute(
+            "UPDATE {$this->table} SET review_request_sent_at = NOW() WHERE id = ?",
+            [$orderId]
+        );
+    }
+
+    /**
      * Retourne la valeur moyenne des commandes sur N derniers jours (statuts actifs).
      *
      * @param int $days Nombre de jours à considérer
