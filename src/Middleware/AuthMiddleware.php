@@ -71,7 +71,18 @@ class AuthMiddleware
             return $model->refreshExpiry($t, $expiry);
         };
 
-        SessionTtlRefresher::maybeRefresh($payload, $token, $isRememberMe, $refresher);
+        $refreshed = SessionTtlRefresher::maybeRefresh($payload, $token, $isRememberMe, $refresher);
+
+        // Sliding refresh du cookie age-gate si l'utilisateur a coché "se souvenir"
+        if ($refreshed && isset($_COOKIE['age_remember'])) {
+            setcookie('age_verified', '1', [
+                'expires'  => time() + (397 * 24 * 3600), // 13 mois — même TTL que AgeGateController::COOKIE_TTL
+                'path'     => '/',
+                'secure'   => isset($_SERVER['HTTPS']),
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+        }
 
         return $payload;
     }
