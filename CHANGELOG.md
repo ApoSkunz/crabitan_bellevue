@@ -2,6 +2,29 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.21.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.20.0...v1.21.0) (2026-04-21)
+
+
+### Bug Fixes
+
+* **cv:** patch middleware ~10 applications (pas 16) ([f3c2e14](https://github.com/ApoSkunz/crabitan_bellevue/commit/f3c2e14057ca76884ff40da00731f16dbdc53460))
+* **cv:** PowerShell → Développement, MySQL → Middlewares & BDD ([226d2a7](https://github.com/ApoSkunz/crabitan_bellevue/commit/226d2a759c0a9ae8c0bfb2a427b1d0715e6f1952))
+* **security:** VULN-001/002 — validation same-origin JS + sanitizeRedirect MajorityController ([013874d](https://github.com/ApoSkunz/crabitan_bellevue/commit/013874d645c3a4c92b43ebb685e6a85200d93f96))
+* **sonar:** APP_BASE_URL constant + CronController unused var ([4f859e8](https://github.com/ApoSkunz/crabitan_bellevue/commit/4f859e849423cfd01d9ecd6e714e13d4a039b651))
+* **tests:** ajouter APP_BASE_URL dans bootstrap TI — constant manquante ([d91237e](https://github.com/ApoSkunz/crabitan_bellevue/commit/d91237eb4e30b2f4c4972ebc3c52415565a89b1c))
+
+
+### Features
+
+* **cv:** ajustements CV Alexandre Solane — formation + Capgemini + EDF ([c52776b](https://github.com/ApoSkunz/crabitan_bellevue/commit/c52776bc0f0f4827dce3626f1a05a56cc5a1efb0))
+* **cv:** clarté EDF (tenure global + 2 sous-rôles) + métriques CI/CD ([7dc73ba](https://github.com/ApoSkunz/crabitan_bellevue/commit/7dc73ba2a3761903a0b36b003e4c1871a684de5e))
+* **cv:** edf_sub_task8 — patch middleware/hotfix < 1h sur 16 applications ([583b713](https://github.com/ApoSkunz/crabitan_bellevue/commit/583b71347666d75fd6ebead3e861d7fb30619f12))
+* **cv:** intro rewriting + signature binaire + compétences ([e38ae9f](https://github.com/ApoSkunz/crabitan_bellevue/commit/e38ae9f0850d15a1e7dd932dc110ba0586acf05a))
+* **cv:** résultats EDF au niveau company (global nov. 2023 → présent) ([6a80f89](https://github.com/ApoSkunz/crabitan_bellevue/commit/6a80f89d8f4d29362bca6e8bae6f5f5d8a76ace6))
+* **cv:** section Langues + section Projets personnels + retrait TOEIC/Chinois Télécom ([ed9b189](https://github.com/ApoSkunz/crabitan_bellevue/commit/ed9b18976847e3120cc096a000a953132099eff1))
+* **cv:** TOEIC+Chinois même ligne, compétences Terraform/Docker/PowerShell/DAST/MAST/Oracle ([2b760d4](https://github.com/ApoSkunz/crabitan_bellevue/commit/2b760d45f6fdbbe2119249b10100dd5187be1a0a))
+* **seo:** canonical + hreflang + OG + JSON-LD NewsArticle + AggregateRating sur 17 vues ([d05cf44](https://github.com/ApoSkunz/crabitan_bellevue/commit/d05cf4482cb4afd0f0f0a9a703634f5d8f0e8b99))
+
 # [1.20.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.19.0...v1.20.0) (2026-04-21)
 
 
