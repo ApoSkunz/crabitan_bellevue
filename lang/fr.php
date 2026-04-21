@@ -615,7 +615,7 @@ return [
     'webmaster.edf_sub_task5'   => 'SRE : surveillance continue, alerting, résilience from scratch, zéro obsolescence',
     'webmaster.edf_sub_task6'   => 'Collaboration sur le développement et l\'implémentation d\'une stratégie cyber : Horizon Zéro Vulnérabilité - participation au challenge DPNT 2025',
     'webmaster.edf_sub_task7'   => 'Réduction de 30% des vulnérabilités (critical & high en priorité), qualité logicielle +20% progressive, temps de déploiement réduit de 2h à 30 min',
-    'webmaster.edf_sub_task8'   => 'Capacité de patch middleware / hotfix en moins d\'1h sur les 16 applications',
+    'webmaster.edf_sub_task8'   => 'Capacité de patch middleware / hotfix en moins d\'1h sur une dizaine d\'applications',
     'webmaster.edf_results_label' => 'Résultats globaux (nov. 2023 → présent)',
 
     // Webmaster — Capgemini (poste principal)
