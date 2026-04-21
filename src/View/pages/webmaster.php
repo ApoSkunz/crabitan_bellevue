@@ -185,6 +185,30 @@ $age   = (new \DateTime())->diff($birth)->y;
             </ol>
         </section>
 
+        <!-- Projets personnels -->
+        <section class="cv-block" aria-labelledby="cv-perso-title">
+            <h3 id="cv-perso-title" class="cv-block__title">
+                <?= htmlspecialchars(__('webmaster.perso_title')) ?>
+            </h3>
+            <ol class="cv-timeline">
+                <li class="cv-timeline__item">
+                    <div class="cv-timeline__dot"></div>
+                    <div class="cv-timeline__content">
+                        <div class="cv-timeline__header">
+                            <span class="cv-timeline__company">G.F.A Bernard Solane &amp; Fils — Château Crabitan Bellevue</span>
+                            <span class="cv-timeline__badge cv-timeline__badge--stage"><?= htmlspecialchars(__('webmaster.badge_perso')) ?></span>
+                        </div>
+                        <p class="cv-timeline__role"><?= htmlspecialchars(__('webmaster.perso_gfa_role')) ?></p>
+                        <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.perso_gfa_period')) ?></p>
+                        <ul class="cv-timeline__tasks">
+                            <li><?= htmlspecialchars(__('webmaster.perso_gfa_task1')) ?></li>
+                            <li><?= htmlspecialchars(__('webmaster.perso_gfa_task2')) ?></li>
+                        </ul>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
         <!-- Formation -->
         <section class="cv-block" aria-labelledby="cv-edu-title">
             <h3 id="cv-edu-title" class="cv-block__title">
@@ -206,7 +230,6 @@ $age   = (new \DateTime())->diff($birth)->y;
                         <p class="cv-timeline__period"><?= htmlspecialchars(__('webmaster.telecom_period')) ?></p>
                         <ul class="cv-timeline__tasks">
                             <li><?= htmlspecialchars(__('webmaster.telecom_task1')) ?></li>
-                            <li><?= htmlspecialchars(__('webmaster.telecom_task2')) ?> · <?= htmlspecialchars(__('webmaster.telecom_task3')) ?></li>
                             <li><?= htmlspecialchars(__('webmaster.telecom_task4')) ?></li>
                         </ul>
                     </div>
@@ -289,6 +312,22 @@ $age   = (new \DateTime())->diff($birth)->y;
                     <ul class="cv-skills__tags">
                         <li>Apache</li><li>JBoss</li><li>Tomcat</li>
                         <li>MySQL</li><li>PostgreSQL</li><li>Oracle</li><li>OpenSSL</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Langues -->
+        <section class="cv-block" aria-labelledby="cv-langs-title">
+            <h3 id="cv-langs-title" class="cv-block__title">
+                <?= htmlspecialchars(__('webmaster.langs_title')) ?>
+            </h3>
+            <div class="cv-skills">
+                <div class="cv-skills__group">
+                    <ul class="cv-skills__tags">
+                        <li><?= htmlspecialchars(__('webmaster.lang_fr')) ?></li>
+                        <li><?= htmlspecialchars(__('webmaster.lang_en')) ?></li>
+                        <li><?= htmlspecialchars(__('webmaster.lang_zh')) ?></li>
                     </ul>
                 </div>
             </div>

@@ -581,6 +581,20 @@ return [
     // Webmaster — Badges
     'webmaster.badge_cdi'   => 'CDI',
     'webmaster.badge_stage' => 'Stage',
+    'webmaster.badge_perso' => 'Projet personnel',
+
+    // Webmaster — Langues
+    'webmaster.langs_title' => 'Langues',
+    'webmaster.lang_fr'     => 'Français — langue maternelle',
+    'webmaster.lang_en'     => 'Anglais — TOEIC 830 (B2/C1)',
+    'webmaster.lang_zh'     => 'Chinois mandarin — LV2',
+
+    // Webmaster — Projets personnels
+    'webmaster.perso_title'       => 'Projets personnels',
+    'webmaster.perso_gfa_role'    => 'Développeur Full Stack — Architecte & Webmaster',
+    'webmaster.perso_gfa_period'  => '2020 → présent · Sainte-Croix-du-Mont',
+    'webmaster.perso_gfa_task1'   => 'Refonte du site vitrine en e-commerce (2020) : PHP, MySQL, JS, paiement Crédit Agricole, OWASP Top 10, ~50 pages utilisateurs & admin',
+    'webmaster.perso_gfa_task2'   => 'Refonte complète 2026 boostée à l\'IA agentique (Claude Code — Sonnet & Opus) : MVC custom from scratch, JWT, OAuth Google, MFA, RGPD/CNIL, CI/CD GitHub Actions, SonarCloud, audit cyber OWASP',
 
     // Webmaster — EDF (poste principal jan. 2025 → présent)
     'webmaster.edf_role'        => 'Lead Intégrateur d\'application DevSecOps & SRE',
