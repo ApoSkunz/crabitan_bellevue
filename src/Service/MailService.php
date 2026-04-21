@@ -3451,23 +3451,25 @@ HTML;
         $orderPageUrl = htmlspecialchars($appUrl . '/rating/order/' . $orderToken, ENT_QUOTES);
 
         if ($lang === 'fr') {
-            $subject    = 'Comment s\'est passée votre dégustation ? — Château Crabitan Bellevue';
-            $title      = 'Votre avis compte';
-            $greeting   = "Bonjour {$safeName},";
-            $intro      = "Nous espérons que vous avez apprécié votre commande."
+            $subject         = 'Comment s\'est passée votre dégustation ? — Château Crabitan Bellevue';
+            $title           = 'Votre avis compte';
+            $greeting        = "Bonjour {$safeName},";
+            $intro           = "Nous espérons que vous avez apprécié votre commande."
                 . " Votre avis nous aide à progresser — prenez un instant pour noter vos vins :";
-            $rateLabel  = 'Note :';
-            $ctaLabel   = 'Noter mes vins';
-            $ctaFallback = 'Vous préférez noter vin par vin ? Utilisez les liens ci-dessous :';
+            $rateLabel       = 'Note :';
+            $ctaLabel        = 'Noter mes vins';
+            $ctaFallback     = 'Vous préférez noter vin par vin ? Utilisez les liens ci-dessous :';
+            $reviewCtaLabel  = 'Laisser un avis sur votre expérience';
         } else {
-            $subject    = 'How was your tasting experience? — Château Crabitan Bellevue';
-            $title      = 'Your opinion matters';
-            $greeting   = "Hello {$safeName},";
-            $intro      = "We hope you enjoyed your order."
+            $subject         = 'How was your tasting experience? — Château Crabitan Bellevue';
+            $title           = 'Your opinion matters';
+            $greeting        = "Hello {$safeName},";
+            $intro           = "We hope you enjoyed your order."
                 . " Your feedback helps us improve — take a moment to rate your wines:";
-            $rateLabel  = 'Rate:';
-            $ctaLabel   = 'Rate my wines';
-            $ctaFallback = 'Prefer to rate wine by wine? Use the links below:';
+            $rateLabel       = 'Rate:';
+            $ctaLabel        = 'Rate my wines';
+            $ctaFallback     = 'Prefer to rate wine by wine? Use the links below:';
+            $reviewCtaLabel  = 'Leave a review';
         }
 
         // CTA principal — page de notation centralisée par commande
@@ -3540,10 +3542,21 @@ HTML;
             . 'text-transform:uppercase;color:#c9a84c;text-decoration:none;font-weight:bold;">'
             . $crossSellLabel . '</a></td></tr></table>';
 
+        // CTA avis global — lien vers la page /mon-avis
+        $reviewUrl = htmlspecialchars($appUrl . '/' . $lang . '/mon-avis?token=' . $orderToken, ENT_QUOTES);
+        $reviewBtn = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0 24px;">'
+            . '<tr><td style="border:1px solid #c9a84c;border-radius:2px;">'
+            . "<a href=\"{$reviewUrl}\" style=\"display:inline-block;padding:10px 24px;"
+            . self::BTN_STYLE_SECONDARY
+            . 'text-transform:uppercase;color:#c9a84c;text-decoration:none;font-weight:bold;">'
+            . htmlspecialchars($reviewCtaLabel, ENT_QUOTES)
+            . '</a></td></tr></table>';
+
         $message = "<p style=\"margin:0 0 24px;font-size:15px;line-height:1.7;color:#3d3425;\">"
             . $intro
             . "</p>"
             . $ctaBtn
+            . $reviewBtn
             . $fallbackSection
             . $crossSellBtn;
 
