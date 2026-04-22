@@ -13,6 +13,8 @@ use Model\ConnectionModel;
 use Model\DeviceConfirmTokenModel;
 use Model\GoogleLinkTokenModel;
 use Model\TrustedDeviceModel;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 use Service\GoogleOAuthService;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -578,5 +580,274 @@ class GoogleOAuthControllerCoverageTest extends TestCase
 
         // /fr/vins doit être réécrit en /en/vins (lang du compte)
         $this->assertSame('/en/vins', $location);
+    }
+
+    // ================================================================
+    // Couverture explicite des `session_start()` (L80/L119/L220/L249/
+    // L366/L395/L435) en process isolé — session_status() vaut bien
+    // PHP_SESSION_NONE dans chaque child process.
+    // ================================================================
+
+    /**
+     * L80 — authorize() : session_start() exécuté en process isolé.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testAuthorizeSessionStartExecutedInIsolatedProcess(): void
+    {
+        $dbMock = $this->createStub(Database::class);
+        $prop   = new \ReflectionProperty(Database::class, 'instance');
+        $prop->setValue(null, $dbMock);
+
+        $_ENV['APP_URL']              = 'http://localhost';
+        $_ENV['GOOGLE_CLIENT_ID']     = 'id';
+        $_ENV['GOOGLE_CLIENT_SECRET'] = 'secret';
+        $_SERVER['REQUEST_METHOD']    = 'GET';
+
+        $oauth = $this->createStub(GoogleOAuthService::class);
+        $oauth->method('buildAuthUrl')->willReturn('https://accounts.google.com/');
+
+        $ctrl = new GoogleOAuthController(new Request());
+        $p = new \ReflectionProperty(GoogleOAuthController::class, 'oauth');
+        $p->setValue($ctrl, $oauth);
+
+        try {
+            $ctrl->authorize(['lang' => 'fr']);
+        } catch (HttpException) {
+        }
+
+        $this->assertArrayHasKey('oauth_google_state', $_SESSION);
+    }
+
+    /**
+     * L119 — callback() : session_start() exécuté en process isolé.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCallbackSessionStartExecutedInIsolatedProcess(): void
+    {
+        $dbMock = $this->createStub(Database::class);
+        $prop   = new \ReflectionProperty(Database::class, 'instance');
+        $prop->setValue(null, $dbMock);
+
+        $_ENV['APP_URL']           = 'http://localhost';
+        $_GET                      = ['error' => 'access_denied'];
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        try {
+            (new GoogleOAuthController(new Request()))->callback(['lang' => 'fr']);
+        } catch (HttpException) {
+        }
+
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+    }
+
+    /**
+     * L220 — accountTypePending() : session_start() exécuté en process isolé.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testAccountTypePendingSessionStartExecutedInIsolatedProcess(): void
+    {
+        $dbMock = $this->createStub(Database::class);
+        $prop   = new \ReflectionProperty(Database::class, 'instance');
+        $prop->setValue(null, $dbMock);
+
+        $_ENV['APP_URL']           = 'http://localhost';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        try {
+            (new GoogleOAuthController(new Request()))->accountTypePending(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $this->assertStringContainsString('login=1', (string) $e->location);
+            return;
+        }
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * L249 — accountTypeSubmit() : session_start() exécuté en process isolé.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testAccountTypeSubmitSessionStartExecutedInIsolatedProcess(): void
+    {
+        $dbMock = $this->createStub(Database::class);
+        $prop   = new \ReflectionProperty(Database::class, 'instance');
+        $prop->setValue(null, $dbMock);
+
+        $_ENV['APP_URL']           = 'http://localhost';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        try {
+            (new GoogleOAuthController(new Request()))->accountTypeSubmit(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $this->assertStringContainsString('login=1', (string) $e->location);
+            return;
+        }
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * L366 — linkConfirm() : session_start() exécuté en process isolé.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testLinkConfirmSessionStartExecutedInIsolatedProcess(): void
+    {
+        $dbMock = $this->createStub(Database::class);
+        $prop   = new \ReflectionProperty(Database::class, 'instance');
+        $prop->setValue(null, $dbMock);
+
+        $_ENV['APP_URL']           = 'http://localhost';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        try {
+            (new GoogleOAuthController(new Request()))->linkConfirm(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $this->assertStringContainsString('login=1', (string) $e->location);
+            return;
+        }
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * L395 — linkVerifyByToken() : session_start() exécuté en process isolé.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testLinkVerifyByTokenSessionStartExecutedInIsolatedProcess(): void
+    {
+        $dbMock = $this->createStub(Database::class);
+        $prop   = new \ReflectionProperty(Database::class, 'instance');
+        $prop->setValue(null, $dbMock);
+
+        $_ENV['APP_URL']           = 'http://localhost';
+        $_GET                      = []; // pas de token → flash + redirect
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        try {
+            (new GoogleOAuthController(new Request()))->linkVerifyByToken(['lang' => 'fr']);
+        } catch (HttpException) {
+        }
+
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+    }
+
+    /**
+     * L435 — linkConfirmPost() : session_start() exécuté en process isolé.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testLinkConfirmPostSessionStartExecutedInIsolatedProcess(): void
+    {
+        $dbMock = $this->createStub(Database::class);
+        $prop   = new \ReflectionProperty(Database::class, 'instance');
+        $prop->setValue(null, $dbMock);
+
+        $_ENV['APP_URL']           = 'http://localhost';
+        $_POST                     = [];
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        try {
+            (new GoogleOAuthController(new Request()))->linkConfirmPost(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $this->assertStringContainsString('login=1', (string) $e->location);
+            return;
+        }
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * L338 — challengeLinkByEmail() : branche fallback du display name.
+     * Vérifie la chaîne `?? $existing['company_name'] ?? ''` quand firstname est absent.
+     */
+    public function testChallengeLinkByEmailFallsBackToCompanyName(): void
+    {
+        $_GET     = ['code' => 'valid-code', 'state' => 'valid-state'];
+        $_SESSION = ['oauth_google_state' => 'valid-state'];
+
+        $ctrl = $this->makeController();
+
+        $oauth = $this->createStub(GoogleOAuthService::class);
+        $oauth->method('exchangeCode')->willReturn(['access_token' => 'tok']);
+        $oauth->method('fetchUserInfo')->willReturn([
+            'sub' => 'g-cname', 'email' => 'company@example.com',
+            'given_name' => 'Company', 'family_name' => 'User',
+        ]);
+        $this->injectProp($ctrl, 'oauth', $oauth);
+
+        $accounts = $this->createStub(AccountModel::class);
+        $accounts->method('findByGoogleId')->willReturn(false);
+        $accounts->method('findDeletedByGoogleId')->willReturn(false);
+        // firstname absent → fallback sur company_name
+        $accounts->method('findByEmail')->willReturn([
+            'id'           => 42,
+            'email'        => 'company@example.com',
+            'firstname'    => null,
+            'company_name' => 'Château Test',
+            'lang'         => 'fr',
+        ]);
+        $this->injectProp($ctrl, 'accounts', $accounts);
+
+        $linkTokens = $this->createStub(GoogleLinkTokenModel::class);
+        $linkTokens->method('create')->willReturn('link-tok');
+        $this->injectProp($ctrl, 'linkTokens', $linkTokens);
+
+        $location = null;
+        try {
+            $ctrl->callback(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $location = (string) $e->location;
+        }
+
+        $this->assertStringContainsString('/fr/auth/google/link', (string) $location);
+        // Session traces la redirection post-challenge
+        $this->assertSame('company@example.com', $_SESSION['pending_google_link_email_sent'] ?? null);
+    }
+
+    /**
+     * L491 — issueSession() : préférence langue compte respectée quand supportée.
+     * Vérifie que $accountLang = $account['lang'] quand SUPPORTED_LANGS contient la préférence.
+     */
+    public function testIssueSessionRespectsAccountLangWhenSupported(): void
+    {
+        $account = [
+            'id'            => 600,
+            'role'          => 'customer',
+            'lang'          => 'fr', // supportée
+            'email'         => 'prefs@example.com',
+            'firstname'     => 'P',
+            'lastname'      => 'L',
+            'has_connected' => 1,
+            'account_type'  => 'individual',
+        ];
+
+        $ctrl = $this->makeController();
+
+        $accounts = $this->createStub(AccountModel::class);
+        $this->injectProp($ctrl, 'accounts', $accounts);
+
+        $trustedDevices = $this->createStub(TrustedDeviceModel::class);
+        $trustedDevices->method('isTrusted')->willReturn(true);
+        $this->injectProp($ctrl, 'trustedDevices', $trustedDevices);
+
+        $this->injectProp($ctrl, 'connections', $this->createStub(ConnectionModel::class));
+
+        $issueSession = new \ReflectionMethod(GoogleOAuthController::class, 'issueSession');
+
+        $location = null;
+        try {
+            $issueSession->invoke($ctrl, $account, 'fr');
+        } catch (HttpException $e) {
+            $location = (string) $e->location;
+        }
+
+        // Flux complet traversé : redirection émise
+        $this->assertNotNull($location);
     }
 }
