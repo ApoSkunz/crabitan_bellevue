@@ -58,6 +58,10 @@ $cls         = ' is-active'; // single definition — used for radio filter acti
 
     <?php require_once SRC_PATH . '/View/partials/wines-case-banner.php'; ?>
 
+    <div class="container">
+        <?php require_once SRC_PATH . '/View/partials/delivery-discount-flyer.php'; ?>
+    </div>
+
     <!-- Filtres collection -->
     <section class="wines-filters" aria-label="<?= htmlspecialchars(__('wine.filter_label')) ?>">
         <div class="container">

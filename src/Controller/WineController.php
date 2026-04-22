@@ -8,6 +8,7 @@ use Core\Controller;
 use Core\Jwt;
 use Core\Response;
 use Model\FavoriteModel;
+use Model\PricingModel;
 use Model\RatingModel;
 use Model\WineModel;
 use Service\RateLimiterService;
@@ -132,15 +133,23 @@ class WineController extends Controller
             }
         }
 
+        $pricingRules = [];
+        try {
+            $pricingRules = (new PricingModel())->getAll();
+        } catch (\Throwable) {
+            $pricingRules = [];
+        }
+
         $this->view('wines/index', [
-            'lang'        => $lang,
-            'wines'       => $wines,
-            'ratings'     => $ratings,
-            'likedIds'    => $this->getCurrentUserLikedIds(),
-            'activeColor' => $color,
-            'activeSort'  => $sort,
-            'activeCuvee' => $cuveSpeciale === true,
-            'sort'        => $sort,
+            'lang'         => $lang,
+            'wines'        => $wines,
+            'ratings'      => $ratings,
+            'likedIds'     => $this->getCurrentUserLikedIds(),
+            'activeColor'  => $color,
+            'activeSort'   => $sort,
+            'activeCuvee'  => $cuveSpeciale === true,
+            'sort'         => $sort,
+            'pricingRules' => $pricingRules,
         ]);
     }
 
@@ -180,6 +189,13 @@ class WineController extends Controller
             }
         }
 
+        $pricingRules = [];
+        try {
+            $pricingRules = (new PricingModel())->getAll();
+        } catch (\Throwable) {
+            $pricingRules = [];
+        }
+
         $this->view('wines/collection', [
             'lang'         => $lang,
             'winesByColor' => $winesByColor,
@@ -190,6 +206,7 @@ class WineController extends Controller
             'activeAvail'  => $rawAvail,
             'activeCuvee'  => $cuveSpeciale === true,
             'sort'         => $sort,
+            'pricingRules' => $pricingRules,
         ]);
     }
 
