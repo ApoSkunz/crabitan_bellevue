@@ -117,22 +117,34 @@ class AccountAdminControllerCoverageTest extends TestCase
     }
 
     /**
-     * Construit un controller testable avec AccountModel et PasswordResetModel stubbed.
+     * Construit un controller testable. Stubbe Database::instance pour que
+     * AccountModel::findById (instancié dans resetPassword) retourne $accountRow,
+     * et que PasswordResetModel::create (execute) ne fasse pas d'I/O.
      *
      * @param array<string, mixed> $accountRow Données du compte à retourner par findById
      * @return TestableAccountAdminController
      */
     private function makeControllerWithAccount(array $accountRow): TestableAccountAdminController
     {
-        $ctrl = new TestableAccountAdminController(new \Core\Request());
+        $dbMock = $this->createStub(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturn($accountRow);
+        $dbMock->method('execute')->willReturn(1);
+        $this->dbInstanceProp->setValue(null, $dbMock); // NOSONAR — test unitaire
 
+        return new TestableAccountAdminController(new \Core\Request());
+    }
+
+    /**
+     * Sous-classe anonyme historique — conservée pour référence mais plus utilisée
+     * par les tests de coverage (qui appellent le vrai resetPassword).
+     */
+    private function makeLegacyOverride(array $accountRow): TestableAccountAdminController // NOSONAR — tests legacy
+    {
         $accountMock = $this->createStub(AccountModel::class);
         $accountMock->method('findById')->willReturn($accountRow);
 
         $resetMock = $this->createStub(PasswordResetModel::class);
 
-        // Injection via Reflection (propriétés privées instanciées dans resetPassword)
-        // On utilise une sous-classe anonyme pour injecter les dépendances
         return new class (new \Core\Request(), $accountMock, $resetMock) extends TestableAccountAdminController {
             private AccountModel $accountMockInjected;
             private PasswordResetModel $resetMockInjected;
@@ -275,11 +287,6 @@ class AccountAdminControllerCoverageTest extends TestCase
         $mailMock = $this->createMock(MailService::class);
         $mailMock->expects($this->once())->method('sendAdminPasswordReset');
         $ctrl->mailMock = $mailMock;
-
-        // AuditLogger::log nécessite une connexion BDD — on stub execute
-        $dbMock = $this->createStub(\Core\Database::class);
-        $dbMock->method('execute')->willReturn(0);
-        $this->dbInstanceProp->setValue(null, $dbMock);
 
         $caught = null;
         try {
