@@ -56,6 +56,16 @@ class AccountSecurityController extends AbstractAccountController
         $this->rateLimiter         = new RateLimiterService();
     }
 
+    /**
+     * Instancie le MailService (seam de testabilité).
+     *
+     * @return \Service\MailService
+     */
+    protected function newMailService(): \Service\MailService
+    {
+        return new \Service\MailService();
+    }
+
     // ----------------------------------------------------------------
     // GET /{lang}/mon-compte/securite
     // ----------------------------------------------------------------
@@ -172,7 +182,7 @@ class AccountSecurityController extends AbstractAccountController
             $tokenHash = hash('sha256', $rawToken);
             $this->userRepo->saveSecurityConfirmToken($userId, $tokenHash, $expiresAt);
             try {
-                (new \Service\MailService())->sendPasswordChangeConfirmation(
+                $this->newMailService()->sendPasswordChangeConfirmation(
                     (string) $account['email'],
                     (string) $notifName,
                     (string) ($account['lang'] ?? $lang),
@@ -384,7 +394,7 @@ class AccountSecurityController extends AbstractAccountController
         $name             = $account['firstname'] ?? $account['company_name'] ?? 'Client';
         $reactivationToken = $this->accounts->getReactivationToken($userId) ?? '';
         try {
-            (new \Service\MailService())->sendAccountDeletionConfirmation(
+            $this->newMailService()->sendAccountDeletionConfirmation(
                 (string) $account['email'],
                 (string) $name,
                 (string) ($account['lang'] ?? $lang),
@@ -558,7 +568,7 @@ class AccountSecurityController extends AbstractAccountController
         $this->userRepo->consumeSecurityConfirmToken($userId);
 
         try {
-            (new \Service\MailService())->sendPasswordChangeDenied(
+            $this->newMailService()->sendPasswordChangeDenied(
                 (string) $account['email'],
                 (string) $account['lang']
             );

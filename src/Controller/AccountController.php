@@ -501,6 +501,16 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         header('Content-Disposition: inline; filename="' . $filename . '"');
         header('Cache-Control: private, no-cache');
         echo $pdfBytes;
+        $this->doExit();
+    }
+
+    /**
+     * Termine l'exécution du script (seam de testabilité).
+     *
+     * @return never
+     */
+    protected function doExit(): never
+    {
         exit;
     }
 
