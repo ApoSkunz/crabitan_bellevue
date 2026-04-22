@@ -17,3 +17,14 @@ $bannerLang = $navLang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
         </div>
     </div>
 </aside>
+
+<?php if (\Core\FeatureFlags::isClickCollectEnabled()) : ?>
+<div class="click-collect-badge container">
+    <span class="click-collect-badge__icon" aria-hidden="true">&#127984;</span>
+    <span class="click-collect-badge__text">
+        <?= $bannerLang === 'en'
+            ? 'Click &amp; Collect — available at the château within 48h'
+            : 'Click &amp; Collect — disponible au château sous 48h' ?>
+    </span>
+</div>
+<?php endif; ?>
