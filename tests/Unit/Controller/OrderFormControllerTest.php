@@ -189,6 +189,10 @@ class OrderFormControllerTest extends TestCase
         $controller = new class (new Request()) extends OrderFormController {
             public bool $exitCalled = false;
 
+            protected function requireAdminAccess(): void
+            {
+            }
+
             protected function doExit(): never
             {
                 $this->exitCalled = true;
@@ -242,6 +246,10 @@ class OrderFormControllerTest extends TestCase
 
         $controller = new class (new Request()) extends OrderFormController {
             public bool $exitCalled = false;
+
+            protected function requireAdminAccess(): void
+            {
+            }
 
             protected function doExit(): never
             {
