@@ -2,6 +2,18 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.22.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.21.4...v1.22.0) (2026-04-22)
+
+
+### Features
+
+* **admin:** comptes — filtre has_ordered, tri order_count, split colonnes Vérif/Réinit ([9cb77a5](https://github.com/ApoSkunz/crabitan_bellevue/commit/9cb77a5bc4a5ce5cbefd87df25d70ea801e62f8c))
+* **admin:** monitoring emails — table email_rate_log + onglet super_admin + détection rate limit IONOS ([2d1a5b4](https://github.com/ApoSkunz/crabitan_bellevue/commit/2d1a5b4f000ed9fe579c7fecdfa758afa511dfa7))
+* **boutique:** onglet dépliant remises livraison — wines + collection ([f119731](https://github.com/ApoSkunz/crabitan_bellevue/commit/f11973170fbd48379f78fdfc133c1acdae426927))
+* **click-collect:** feature flag CLICK_COLLECT_ENABLED + statuts ready_for_pickup/collected + checkout + badge ([b49c2ad](https://github.com/ApoSkunz/crabitan_bellevue/commit/b49c2adb92d9eb22325d3b41cb8b889e70b76a81))
+* **contact:** champ téléphone facultatif + fix mock sendContactToOwner signature ([db8699f](https://github.com/ApoSkunz/crabitan_bellevue/commit/db8699f79e873384147396b2de470afed294c803))
+* **ux:** spinner chargement QR code admin — modale wines ([f29ffa2](https://github.com/ApoSkunz/crabitan_bellevue/commit/f29ffa254d3791fa1e2e7518547436619f753373))
+
 ## [1.21.4](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.21.3...v1.21.4) (2026-04-22)
 
 ## [1.21.3](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.21.2...v1.21.3) (2026-04-22)
