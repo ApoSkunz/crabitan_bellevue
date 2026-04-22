@@ -143,6 +143,16 @@ class RatingController extends Controller
     // ----------------------------------------------------------------
 
     /**
+     * Retourne le corps brut de la requête (php://input). Seam de test.
+     *
+     * @return string Corps JSON brut
+     */
+    protected function readRequestBody(): string
+    {
+        return (string) file_get_contents('php://input');
+    }
+
+    /**
      * Enregistre la note d'un vin via token email (appel AJAX).
      * Accepte : {token: string, note: int (1-5)}.
      * Retourne : {success: bool, note: int}.
@@ -160,7 +170,7 @@ class RatingController extends Controller
         }
         $limiter->recordAttempt($rlKey, 60);
 
-        $body  = json_decode((string) file_get_contents('php://input'), true) ?? [];
+        $body  = json_decode($this->readRequestBody(), true) ?? [];
         $token = (string) ($body['token'] ?? '');
         $note  = (int) ($body['note']  ?? 0);
 

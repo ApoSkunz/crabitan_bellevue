@@ -1367,7 +1367,7 @@ INNER;
                     'billing'           => (array) ($pdfContext['billing']  ?? []),
                     'delivery'          => $pdfContext['delivery'] ?? null,
                 ];
-                $pdfContent = (new OrderSummaryPdfService())->generate($pdfData);
+                $pdfContent = $this->newOrderSummaryPdfService()->generate($pdfData);
                 $safeRefFile = preg_replace('/[^A-Za-z0-9_\-]/', '_', $orderRef) ?? 'order';
                 $pdfName     = "commande_WEB_{$safeRefFile}.pdf";
             } catch (\Throwable $pdfError) {
@@ -3398,6 +3398,16 @@ INNER;
     protected function newRatingModel(): \Model\RatingModel
     {
         return new \Model\RatingModel();
+    }
+
+    /**
+     * Seam de test pour la génération du PDF récap de commande.
+     *
+     * @return OrderSummaryPdfService
+     */
+    protected function newOrderSummaryPdfService(): OrderSummaryPdfService
+    {
+        return new OrderSummaryPdfService();
     }
 
     private function emailWrap(string $title, string $innerContent, string $lang = 'fr'): string

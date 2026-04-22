@@ -490,4 +490,66 @@ class PaymentServiceTest extends TestCase
 
         $this->assertFalse($service->callGaeRefund('CMD-102', '0000001234', '0000005678', 5000));
     }
+
+    // -------------------------------------------------------------------------
+    // Couverture ciblée — lignes défensives
+    // -------------------------------------------------------------------------
+
+    /**
+     * L159 — verifyIpnSignature() : file_get_contents retourne false.
+     *
+     * On pointe CA_PUBKEY_PATH vers un répertoire existant : file_exists()
+     * retourne true (dir existant), mais file_get_contents() échoue → false.
+     * Les warnings PHP sont neutralisés via un error handler temporaire.
+     */
+    public function testVerifyIpnSignatureReturnsFalseWhenFileGetContentsFails(): void
+    {
+        $dirPath                 = sys_get_temp_dir();
+        $_ENV['CA_PUBKEY_PATH']  = $dirPath; // chemin absolu → pas de concat ROOT_PATH
+
+        $service = $this->makeService();
+        $qs      = 'Mt=500&Ref=CMD-FGC&Sign=' . urlencode(base64_encode('fakesignatureblob'));
+
+        // Supprimer warnings file_get_contents sur un répertoire
+        $prev = set_error_handler(static fn(): bool => true);
+        try {
+            $result = $service->verifyIpnSignature($qs);
+        } finally {
+            if ($prev !== null) {
+                set_error_handler($prev);
+            } else {
+                restore_error_handler();
+            }
+        }
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * L517 — curlPost() : branche de retour nominale.
+     *
+     * Utilise le schéma file:// (supporté par libcurl) pour exécuter la méthode
+     * réelle curlPost() sans appel réseau externe : le corps retourné est la
+     * lecture brute du fichier temporaire.
+     */
+    public function testCurlPostReturnsResponseBodyOnSuccess(): void
+    {
+        $tmpFile = tempnam(sys_get_temp_dir(), 'cb_curlpost_');
+        file_put_contents($tmpFile, 'CODEREPONSE=00000');
+
+        $url = 'file:///' . str_replace('\\', '/', $tmpFile);
+
+        $service = new PaymentService();
+        $method  = (new ReflectionClass(PaymentService::class))->getMethod('curlPost');
+
+        try {
+            $result = $method->invoke($service, $url, 'VERSION=00104');
+        } finally {
+            @unlink($tmpFile);
+        }
+
+        // L517 retourne (string) $response : le contenu brut du fichier
+        $this->assertIsString($result);
+        $this->assertStringContainsString('CODEREPONSE=00000', $result);
+    }
 }

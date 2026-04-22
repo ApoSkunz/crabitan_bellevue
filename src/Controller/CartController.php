@@ -69,14 +69,7 @@ class CartController extends Controller
         $pricingModel    = $pricingModel ?? new PricingRuleModel();
         $pricingRules    = $pricingModel->findAllActive();
 
-        $deliveryDiscount = 0.0;
-        if ($pricingRule !== null) {
-            $deliveryPrice    = (float) ($pricingRule['delivery_price'] ?? 0.0);
-            $priceType        = (string) ($pricingRule['price_type'] ?? 'fixed');
-            $deliveryDiscount = $priceType === 'per_bottle'
-                ? round($deliveryPrice * $totalQty, 2)
-                : $deliveryPrice;
-        }
+        $deliveryDiscount = $this->calculateDeliveryDiscount($pricingRule, $totalQty);
         $subtotal = array_sum(array_map(
             fn(array $i): float => (float)($i['price'] ?? 0.0) * (int)($i['qty'] ?? 1),
             $cartItems
@@ -311,6 +304,31 @@ class CartController extends Controller
         }
 
         return ['crossSellWines' => $crossSellWines, 'featuredWine' => $featuredWine];
+    }
+
+    /**
+     * Calcule la remise livraison à partir d'une règle de tarification.
+     *
+     * - pricingRule null → 0.0
+     * - price_type 'per_bottle' → delivery_price × totalQty (arrondi 2 décimales)
+     * - price_type 'fixed' (ou autre) → delivery_price
+     *
+     * @param array<string, mixed>|null $pricingRule Règle de tarification active, ou null
+     * @param int                       $totalQty    Quantité totale du panier
+     * @return float Montant de la remise livraison
+     */
+    private function calculateDeliveryDiscount(?array $pricingRule, int $totalQty): float
+    {
+        if ($pricingRule === null) {
+            return 0.0;
+        }
+
+        $deliveryPrice = (float) ($pricingRule['delivery_price'] ?? 0.0);
+        $priceType     = (string) ($pricingRule['price_type'] ?? 'fixed');
+
+        return $priceType === 'per_bottle'
+            ? round($deliveryPrice * $totalQty, 2)
+            : $deliveryPrice;
     }
 
     /**

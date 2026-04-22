@@ -789,6 +789,90 @@ class CartControllerTest extends TestCase
         $this->assertNull($result['featuredWine']);
     }
 
+    // ================================================================
+    // calculateDeliveryDiscount — méthode privée (seam testable)
+    // Couvre directement L74-78 de CartController::index() via reflection
+    // ================================================================
+
+    /**
+     * pricingRule null → discount = 0.0 (L74 branche null).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCalculateDeliveryDiscountReturnsZeroWhenRuleIsNull(): void
+    {
+        $this->bootstrapApp();
+
+        $method = new \ReflectionMethod(CartController::class, 'calculateDeliveryDiscount');
+        $result = $method->invoke($this->makeController(), null, 10);
+
+        $this->assertSame(0.0, $result);
+    }
+
+    /**
+     * price_type 'per_bottle' → discount = delivery_price × totalQty, arrondi 2 décimales (L76-77).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCalculateDeliveryDiscountPerBottleMultipliesByQty(): void
+    {
+        $this->bootstrapApp();
+
+        $rule   = ['price_type' => 'per_bottle', 'delivery_price' => '2.50'];
+        $method = new \ReflectionMethod(CartController::class, 'calculateDeliveryDiscount');
+        $result = $method->invoke($this->makeController(), $rule, 12);
+
+        $this->assertSame(30.0, $result);
+    }
+
+    /**
+     * price_type 'fixed' → discount = delivery_price (L76-78 branche else).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCalculateDeliveryDiscountFixedReturnsDeliveryPrice(): void
+    {
+        $this->bootstrapApp();
+
+        $rule   = ['price_type' => 'fixed', 'delivery_price' => '5.00'];
+        $method = new \ReflectionMethod(CartController::class, 'calculateDeliveryDiscount');
+        $result = $method->invoke($this->makeController(), $rule, 12);
+
+        $this->assertSame(5.0, $result);
+    }
+
+    /**
+     * price_type absent → fallback 'fixed' (default '?? fixed').
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCalculateDeliveryDiscountDefaultsToFixedWhenTypeMissing(): void
+    {
+        $this->bootstrapApp();
+
+        $rule   = ['delivery_price' => '7.00']; // pas de price_type
+        $method = new \ReflectionMethod(CartController::class, 'calculateDeliveryDiscount');
+        $result = $method->invoke($this->makeController(), $rule, 12);
+
+        $this->assertSame(7.0, $result);
+    }
+
+    /**
+     * delivery_price absent → 0.0 (default '?? 0.0').
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testCalculateDeliveryDiscountReturnsZeroWhenPriceMissing(): void
+    {
+        $this->bootstrapApp();
+
+        $rule   = ['price_type' => 'fixed']; // pas de delivery_price
+        $method = new \ReflectionMethod(CartController::class, 'calculateDeliveryDiscount');
+        $result = $method->invoke($this->makeController(), $rule, 6);
+
+        $this->assertSame(0.0, $result);
+    }
+
     /**
      * Panier 1 vin unique (non cuvée), similaires sans cuvée, getCuveeSpecialeByColor retourne
      * une cuvée → array_unshift injecte la cuvée en tête (L303).

@@ -717,4 +717,279 @@ class MailServiceCoverageTest extends TestCase
         $this->assertStringContainsString('Remise livraison', $result);
         $this->assertStringContainsString('−', $result);
     }
+
+    // ----------------------------------------------------------------
+    // L258 — sendContactToOwner() : phone non vide → bloc téléphone injecté
+    // ----------------------------------------------------------------
+
+    /**
+     * Couvre la branche positive du ternaire phoneBlock (L257-258) :
+     * un numéro de téléphone non vide doit apparaître dans le corps HTML.
+     * Utilise un sous-classe capturant le corps passé à send().
+     */
+    public function testSendContactToOwnerWithPhoneCoversPhoneBlockBranch(): void
+    {
+        $service = new class extends MailService {
+            /** @var array<string, mixed>|null Capture de l'appel send() pour assertions */
+            public static ?array $capturedCall = null;
+
+            // phpcs:ignore
+            public function __construct() { parent::__construct(); }
+
+            protected function send(
+                string $to,
+                string $name,
+                string $subject,
+                string $body,
+                ?string $attachmentPath = null,
+                ?string $replyTo = null,
+                ?string $attachmentName = null,
+                ?string $attachmentString = null
+            ): void {
+                self::$capturedCall = ['to' => $to, 'subject' => $subject, 'body' => $body];
+            }
+        };
+
+        $service::$capturedCall = null;
+
+        $service->sendContactToOwner(
+            'Jean',
+            'Dupont',
+            'jean@example.com',
+            'Question test',
+            'Message avec téléphone.',
+            'fr',
+            '0612345678' // phone non vide → branche L258 exécutée
+        );
+
+        $this->assertNotNull($service::$capturedCall);
+        $this->assertStringContainsString('Téléphone', $service::$capturedCall['body']);
+        $this->assertStringContainsString('0612345678', $service::$capturedCall['body']);
+    }
+
+    // ----------------------------------------------------------------
+    // L1373-1376 — sendOrderConfirmationToOwner() : PDF generate throw → catch
+    // ----------------------------------------------------------------
+
+    /**
+     * Couvre les lignes 1373-1376 (catch OrderSummaryPdfService Throwable).
+     * Injection d'un OrderSummaryPdfService qui lance une exception via le seam
+     * newOrderSummaryPdfService(). Les champs pdfName/pdfContent doivent être null
+     * et l'email parti malgré l'échec PDF.
+     */
+    public function testSendOrderConfirmationToOwnerCatchesPdfThrowable(): void
+    {
+        $service = new class extends MailService {
+            // phpcs:ignore
+            public function __construct() { parent::__construct(); }
+
+            protected function newOrderSummaryPdfService(): \Service\OrderSummaryPdfService
+            {
+                return new class extends \Service\OrderSummaryPdfService {
+                    public function generate(array $data): string
+                    {
+                        throw new \RuntimeException('pdf-forced-failure');
+                    }
+                };
+            }
+        };
+
+        $this->injectMockMailer($service);
+
+        // Ne doit PAS remonter l'exception : le catch \Throwable la neutralise
+        $service->sendOrderConfirmationToOwner(
+            'client@example.com',
+            'Client Test',
+            'CB-2026-PDFFAIL',
+            'card',
+            [['name' => 'Vin Rouge 2022', 'qty' => 2, 'price' => 24.00]],
+            48.00,
+            0.0,
+            ['ordered_at' => '2026-04-01 10:00:00', 'billing' => ['name' => 'Test'], 'delivery' => null]
+        );
+
+        $this->assertTrue(true); // catch exécuté → pas d'exception propagée
+    }
+
+    // ----------------------------------------------------------------
+    // L3075 — send() : PHPMailer throw rate-limit → RuntimeException 429
+    // ----------------------------------------------------------------
+
+    /**
+     * Couvre L3075 : PHPMailer::send() lève une Exception contenant '421' ou
+     * 'rate' ou 'too many' → send() convertit en RuntimeException('MAIL_RATE_LIMIT', 429).
+     */
+    public function testSendThrowsMailRateLimitWhen421Returned(): void
+    {
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willThrowException(
+            new \PHPMailer\PHPMailer\Exception('SMTP error: 421 Too many connections')
+        );
+
+        $service = new class extends MailService {
+            // phpcs:ignore
+            public function __construct() { parent::__construct(); }
+
+            protected function getRateLogger(): \Model\EmailRateLogModel
+            {
+                return new class extends \Model\EmailRateLogModel {
+                    // phpcs:ignore
+                    public function __construct() {}
+                    public function log(
+                        string $fromAddress,
+                        string $toAddress,
+                        string $subject,
+                        bool $success,
+                        ?string $errorMessage
+                    ): void {
+                        // no-op
+                    }
+                };
+            }
+        };
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setValue($service, $stub);
+
+        $sendMethod = (new ReflectionClass(MailService::class))->getMethod('send');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('MAIL_RATE_LIMIT');
+        $this->expectExceptionCode(429);
+
+        try {
+            $sendMethod->invoke($service, 'to@example.com', 'To', 'Sujet', '<p>Body</p>');
+        } catch (\RuntimeException $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Couvre la branche "throw $e" (L3077) : PHPMailer throw SANS motif rate-limit
+     * → l'exception PHPMailer originale est repropagée telle quelle.
+     */
+    public function testSendRethrowsOriginalWhenNotRateLimit(): void
+    {
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willThrowException(
+            new \PHPMailer\PHPMailer\Exception('SMTP error: Could not authenticate.')
+        );
+
+        $service = new class extends MailService {
+            // phpcs:ignore
+            public function __construct() { parent::__construct(); }
+
+            protected function getRateLogger(): \Model\EmailRateLogModel
+            {
+                return new class extends \Model\EmailRateLogModel {
+                    // phpcs:ignore
+                    public function __construct() {}
+                    public function log(
+                        string $fromAddress,
+                        string $toAddress,
+                        string $subject,
+                        bool $success,
+                        ?string $errorMessage
+                    ): void {
+                        // no-op
+                    }
+                };
+            }
+        };
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setValue($service, $stub);
+
+        $sendMethod = (new ReflectionClass(MailService::class))->getMethod('send');
+
+        $this->expectException(\PHPMailer\PHPMailer\Exception::class);
+
+        $sendMethod->invoke($service, 'to@example.com', 'To', 'Sujet', '<p>Body</p>');
+    }
+
+    /**
+     * Couvre le chemin heureux de send() : PHPMailer réussit → getRateLogger()->log()
+     * en succès (L3080). Vérifie qu'aucune exception n'est remontée.
+     */
+    public function testSendLogsSuccessWhenMailerSucceeds(): void
+    {
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willReturn(true);
+
+        $service = new class extends MailService {
+            // phpcs:ignore
+            public function __construct() { parent::__construct(); }
+
+            protected function getRateLogger(): \Model\EmailRateLogModel
+            {
+                return new class extends \Model\EmailRateLogModel {
+                    // phpcs:ignore
+                    public function __construct() {}
+                    public function log(
+                        string $fromAddress,
+                        string $toAddress,
+                        string $subject,
+                        bool $success,
+                        ?string $errorMessage
+                    ): void {
+                        // no-op
+                    }
+                };
+            }
+        };
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setValue($service, $stub);
+
+        $sendMethod = (new ReflectionClass(MailService::class))->getMethod('send');
+
+        $sendMethod->invoke($service, 'to@example.com', 'To', 'Sujet', '<p>Body</p>');
+
+        $this->assertTrue(true); // pas d'exception = success path exécuté (L3080)
+    }
+
+    /**
+     * Couvre le catch logEx L3071-3073 : le rateLogger->log() (échec) lui-même lève
+     * une exception, absorbée par le catch interne avant de décider du throw final.
+     */
+    public function testSendCatchesLoggerFailureBeforeRateLimitDecision(): void
+    {
+        $stub = $this->createStub(PHPMailer::class);
+        $stub->method('send')->willThrowException(
+            new \PHPMailer\PHPMailer\Exception('SMTP error: rate limit exceeded')
+        );
+
+        $service = new class extends MailService {
+            // phpcs:ignore
+            public function __construct() { parent::__construct(); }
+
+            protected function getRateLogger(): \Model\EmailRateLogModel
+            {
+                return new class extends \Model\EmailRateLogModel {
+                    // phpcs:ignore
+                    public function __construct() {}
+                    public function log(
+                        string $fromAddress,
+                        string $toAddress,
+                        string $subject,
+                        bool $success,
+                        ?string $errorMessage
+                    ): void {
+                        throw new \RuntimeException('logger down');
+                    }
+                };
+            }
+        };
+
+        $prop = new ReflectionProperty(MailService::class, 'mailer');
+        $prop->setValue($service, $stub);
+
+        $sendMethod = (new ReflectionClass(MailService::class))->getMethod('send');
+
+        // L'exception logger est avalée ; seul MAIL_RATE_LIMIT est levé
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('MAIL_RATE_LIMIT');
+
+        $sendMethod->invoke($service, 'to@example.com', 'To', 'Sujet', '<p>Body</p>');
+    }
 }
