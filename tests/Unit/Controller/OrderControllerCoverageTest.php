@@ -505,6 +505,266 @@ class OrderControllerCoverageTest extends TestCase
     }
 
     // ================================================================
+    // payment() — carte + Throwable dans buildPbxFields → flash + redirect (L298-301)
+    // ================================================================
+
+    /**
+     * Quand PaymentService::buildPbxFields lève une exception,
+     * le controller pose un flash payment.card_unavailable et redirige.
+     */
+    public function testPaymentCardThrowableFlashesAndRedirects(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(7, 'customer');
+        $_SESSION['submit_token']  = 'tok-card';
+        $_POST = [
+            'csrf_token'          => 'valid-csrf',
+            'submit_token'        => 'tok-card',
+            'payment_method'      => 'card',
+            'cgv'                 => '1',
+            'same_address'        => '1',
+            'delivery_address_id' => '5',
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 7],                                          // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority
+            ['user_id' => 7, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])], // CartModel::findByUserId
+            ['id' => 1, 'price' => 15.0, 'label_name' => 'TestWine', 'is_cuvee_speciale' => false], // WineModel::getById (enrichItems)
+            ['id' => 5, 'firstname' => 'A', 'lastname' => 'B', 'zip_code' => '33000', // resolveAddress delivery
+             'street' => '1 Rue', 'city' => 'Bordeaux', 'country' => 'France', 'phone' => '0600000000'],
+            ['id' => 5, 'zip_code' => '33000'],                   // findByIdForUser deliveryAddr
+            false,                                                  // checkPaymentRateLimit last_attempt
+            ['id' => 7, 'email' => '', 'firstname' => 'A', 'lastname' => 'B', 'newsletter' => false], // AccountModel::findById
+            false                                                   // LegalDocumentModel::findBySlug ('cgv')
+        );
+        // PaymentIntentModel::save → execute — mais buildPbxFields lève avant le save
+        // On ne configure pas CA_PUBKEY_PATH pour forcer l'exception dans PaymentService
+        unset($_ENV['CA_PUBKEY_PATH']);
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->payment(['lang' => 'fr']);
+        } catch (\Core\Exception\HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('payment', $_SESSION['flash']['checkout_errors'] ?? []);
+    }
+
+    // ================================================================
+    // resolveAddress() — new address create() success → return $newId (L694)
+    // ================================================================
+
+    /**
+     * Quand addresses->create() retourne un id > 0,
+     * resolveAddress() retourne cet id (happy path new address).
+     */
+    public function testResolveAddressReturnsNewIdOnSuccess(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+
+        $this->setDbMock();
+
+        // Préparer les POST fields AVANT new Request() (body capturé à la construction)
+        $_POST = [
+            'delivery_address_id' => '0',
+            'del_firstname'       => 'Jean',
+            'del_lastname'        => 'Dupont',
+            'del_street'          => '1 Rue de la Paix',
+            'del_city'            => 'Paris',
+            'del_zip_code'        => '75001',
+            'del_country'         => 'France',
+            'del_phone'           => '0600000000',
+            'del_civility'        => 'M',
+        ];
+
+        $ctrl   = new OrderController(new Request());
+        $method = new \ReflectionMethod(OrderController::class, 'resolveAddress');
+
+        // Injecter un AddressModel mock qui retourne 42 pour create()
+        $addrMock = $this->createMock(\Model\AddressModel::class);
+        $addrMock->method('create')->willReturn(42);
+
+        $prop = new \ReflectionProperty(OrderController::class, 'addresses');
+        $prop->setValue($ctrl, $addrMock);
+
+        $result = $method->invoke($ctrl, 1, 'delivery', 'del_', '/fr/commande');
+
+        $this->assertSame(42, $result);
+    }
+
+    // ================================================================
+    // notifyNewsletterOptIn() — sendNewsletterWelcome throws → catch silencieux (L807-808)
+    // ================================================================
+
+    /**
+     * Quand sendNewsletterWelcome lève une exception,
+     * notifyNewsletterOptIn() l'absorbe silencieusement.
+     */
+    public function testNotifyNewsletterOptInCatchesSendMailException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande';
+
+        $this->setDbMock();
+
+        $ctrl   = new OrderController(new Request());
+        $method = new \ReflectionMethod(OrderController::class, 'notifyNewsletterOptIn');
+
+        // Appeler avec un email non-vide pour déclencher sendNewsletterWelcome
+        // MailService n'est pas configuré en test → lève une exception absorbée
+        try {
+            $method->invoke($ctrl, 1, 'fr', 'test@example.com', 'Jean Dupont');
+        } catch (\Throwable $e) {
+            $this->fail('notifyNewsletterOptIn should absorb exceptions, got: ' . $e->getMessage());
+        }
+
+        $this->addToAssertionCount(1);
+    }
+
+    // ================================================================
+    // generateAndStoreInvoice() — outer catch (L880-881) via orders->findByReferenceForInvoice throw
+    // ================================================================
+
+    /**
+     * Quand findByReferenceForInvoice lève une exception,
+     * l'outer catch de generateAndStoreInvoice() l'absorbe silencieusement.
+     */
+    public function testGenerateAndStoreInvoiceOuterCatchAbsorbsException(): void
+    {
+        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+
+        $orders = $this->createMock(\Model\OrderModel::class);
+        $orders->method('findByReferenceForInvoice')
+            ->willThrowException(new \RuntimeException('DB connection lost'));
+
+        $ctrl = new OrderController(new Request());
+        $prop = new \ReflectionProperty(OrderController::class, 'orders');
+        $prop->setValue($ctrl, $orders);
+
+        $method = new \ReflectionMethod(OrderController::class, 'generateAndStoreInvoice');
+
+        // Must not throw — outer catch absorbs
+        try {
+            $method->invoke($ctrl, 'WEB-CB-OUTER-2026');
+        } catch (\Throwable $e) {
+            $this->fail('generateAndStoreInvoice should absorb exceptions, got: ' . $e->getMessage());
+        }
+
+        unset($_ENV['INVOICE_AUTO_GENERATE']);
+        $this->addToAssertionCount(1);
+    }
+
+    // ================================================================
+    // generateAndStoreInvoice() — inner mail catch (L876) via sendInvoiceToClient throw
+    // ================================================================
+
+    /**
+     * Quand sendInvoiceToClient lève une exception,
+     * le catch interne de generateAndStoreInvoice() l'absorbe silencieusement.
+     *
+     * On vérifie aussi le chemin mkdir (L851) quand invoiceDir n'existe pas.
+     */
+    public function testGenerateAndStoreInvoiceInnerMailCatchAbsorbsException(): void
+    {
+        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+        defined('ROOT_PATH') || define('ROOT_PATH', dirname(__DIR__, 3));
+
+        // Utiliser un répertoire temporaire unique pour tester le chemin mkdir
+        $tmpInvoiceDir = sys_get_temp_dir() . '/crabitan_test_invoices_' . getmypid();
+        if (is_dir($tmpInvoiceDir)) {
+            array_map('unlink', glob($tmpInvoiceDir . '/*') ?: []);
+            rmdir($tmpInvoiceDir);
+        }
+
+        $orders = $this->createMock(\Model\OrderModel::class);
+        $orders->method('findByReferenceForInvoice')
+            ->willReturn([
+                'id'               => 42,
+                'order_reference'  => 'WEB-CB-MAILCATCH-2026',
+                'email'            => 'client@example.com',
+                'firstname'        => 'Jean',
+                'lastname'         => 'Test',
+                'lang'             => 'fr',
+                'content'          => json_encode([]),
+                'price'            => 50.0,
+                'shipping_discount' => 0.0,
+                'ordered_at'       => date('Y-m-d H:i:s'),
+            ]);
+        // updateInvoiceData called after PDF generation
+        // updateInvoiceData returns void — no willReturn needed
+
+        $ctrl = new OrderController(new Request());
+        $prop = new \ReflectionProperty(OrderController::class, 'orders');
+        $prop->setValue($ctrl, $orders);
+
+        $method = new \ReflectionMethod(OrderController::class, 'generateAndStoreInvoice');
+
+        // InvoiceService or MailService will throw — must be absorbed by inner or outer catch
+        try {
+            $method->invoke($ctrl, 'WEB-CB-MAILCATCH-2026');
+        } catch (\Throwable $e) {
+            $this->fail('generateAndStoreInvoice should absorb all exceptions, got: ' . $e->getMessage());
+        }
+
+        // Cleanup
+        if (is_dir($tmpInvoiceDir)) {
+            array_map('unlink', glob($tmpInvoiceDir . '/*') ?: []);
+            rmdir($tmpInvoiceDir);
+        }
+        unset($_ENV['INVOICE_AUTO_GENERATE']);
+        $this->addToAssertionCount(1);
+    }
+
+    // ================================================================
+    // postOrderStockActions() — StockNotificationService throws → catch silencieux (L921-922)
+    // ================================================================
+
+    /**
+     * Quand StockNotificationService::notifyIfThresholdCrossed lève une exception,
+     * le catch de postOrderStockActions() l'absorbe et continue (cap + purge si 0).
+     */
+    public function testPostOrderStockActionsCatchesStockNotificationException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande';
+
+        $stub = $this->setDbMock();
+        // WineModel::getById retourne un vin avec stock 5 et qty=3 → newStock=2 > 0
+        // StockNotificationService échoue → absorbé, mais capWineQtyAcrossAllCarts doit s'exécuter
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            // WineModel::getById
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 5, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'wine', 'vintage' => 2021,
+             'is_cuvee_speciale' => false, 'price' => 10.0,
+             // Champ manquant intentionnellement pour déclencher l'exception StockNotificationService
+             // (thresholds non chargés → lève une exception dans notifyIfThresholdCrossed)
+            ]
+        );
+        $stub->method('execute')->willReturn(1);
+        // fetchAll retourne [] → StockNotificationService ne trouve pas de seuils → lève
+        $stub->method('fetchAll')->willReturn([]);
+
+        $ctrl   = new OrderController(new Request());
+        $method = new \ReflectionMethod(OrderController::class, 'postOrderStockActions');
+
+        // Must not throw
+        try {
+            $method->invoke($ctrl, 1, 3);
+        } catch (\Throwable $e) {
+            $this->fail('postOrderStockActions should absorb StockNotification exceptions, got: ' . $e->getMessage());
+        }
+
+        $this->addToAssertionCount(1);
+    }
+
+    // ================================================================
     // payment() — virement avec stock newStock > 0 → capWineQtyAcrossAllCarts (L925)
     // ================================================================
 

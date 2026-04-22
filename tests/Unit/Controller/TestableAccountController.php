@@ -52,6 +52,9 @@ class TestableAccountController extends \Controller\AccountController
     /** @var array{0:string,1:bool}|null */
     public ?array $fakeExportContent = null;
 
+    /** Capture les arguments du dernier appel à sendPdfResponse(). */
+    public ?string $lastPdfFilename = null;
+
     /**
      * Configure la session + les cookies pour simuler un utilisateur authentifié.
      * Appelé par makeController() dans les tests.
@@ -103,6 +106,12 @@ class TestableAccountController extends \Controller\AccountController
     protected function newRefundService(): \Service\RefundService
     {
         return $this->fakeRefundService ?? parent::newRefundService();
+    }
+
+    protected function sendPdfResponse(string $pdfBytes, string $filename): never
+    {
+        $this->lastPdfFilename = $filename;
+        throw new HttpException(200, 'pdf-sent');
     }
 
     protected function buildExportData(int $userId): array
