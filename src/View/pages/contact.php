@@ -102,17 +102,6 @@ require_once SRC_PATH . '/View/partials/header.php';
                     </div>
                 </div>
 
-                <div class="contact-form__field">
-                    <label for="contact-phone"><?= htmlspecialchars(__('contact.phone')) ?> <span class="contact-form__optional">(<?= htmlspecialchars(__('contact.optional')) ?>)</span></label>
-                    <input type="tel"
-                           id="contact-phone"
-                           name="phone"
-                           class="contact-form__input"
-                           autocomplete="tel"
-                           placeholder="<?= htmlspecialchars(__('contact.phone_placeholder')) ?>"
-                           maxlength="20">
-                </div>
-
                 <div class="contact-form__group">
                     <label for="contact-message"><?= htmlspecialchars(__('contact.form_message')) ?> *</label>
                     <textarea id="contact-message" name="message" rows="6" required></textarea>

@@ -37,19 +37,12 @@ class AccountAdminController extends AdminController
         $perPageReq = (int) $this->request->get('per_page', self::DEFAULT_PER_PAGE);
         $perPage    = in_array($perPageReq, self::ALLOWED_PER_PAGE, true) ? $perPageReq : self::DEFAULT_PER_PAGE;
 
-        $allowedSorts = [
-            'created_at_desc', 'created_at_asc',
-            'last_connection_desc', 'last_connection_asc',
-            'order_count_desc', 'order_count_asc',
-        ];
+        $allowedSorts = ['created_at_desc', 'created_at_asc', 'last_connection_desc', 'last_connection_asc'];
         $sortReq      = $this->request->get('sort') ?: null;
         $sort         = ($sortReq !== null && in_array($sortReq, $allowedSorts, true)) ? $sortReq : null;
 
-        $hasOrderedReq = $this->request->get('has_ordered');
-        $hasOrdered    = in_array($hasOrderedReq, ['0', '1'], true) ? $hasOrderedReq : null;
-
-        $total = $accounts->countForAdmin($role, $search ?: null, $type, $hasOrdered);
-        $list  = $accounts->getForAdmin($perPage, ($page - 1) * $perPage, $role, $search ?: null, $type, $sort, $hasOrdered);
+        $total = $accounts->countForAdmin($role, $search ?: null, $type);
+        $list  = $accounts->getForAdmin($perPage, ($page - 1) * $perPage, $role, $search ?: null, $type, $sort);
 
         $this->view('admin/accounts/index', [
             'adminUser'    => $adminUser,
@@ -64,7 +57,6 @@ class AccountAdminController extends AdminController
             'type'         => $type,
             'search'       => $search,
             'sort'         => $sort,
-            'hasOrdered'   => $hasOrdered,
             'currentRole'  => $adminUser['role'] ?? '',
             'flash'        => $this->getFlash('success'),
             'flashError'   => $this->getFlash('error'),

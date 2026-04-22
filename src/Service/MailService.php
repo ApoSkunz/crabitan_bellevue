@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Service;
 
 use Core\MailChannel;
-use Model\EmailRateLogModel;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -41,27 +40,12 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
     private PHPMailer $mailer;
 
-    private ?EmailRateLogModel $rateLogger = null;
-
     public function __construct()
     {
         $this->mailer = new PHPMailer(true);
         $this->mailer->isSMTP();
         $this->mailer->CharSet = 'UTF-8';
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
-    }
-
-    /**
-     * Retourne l'instance du logger de rate (lazy init).
-     *
-     * @return EmailRateLogModel
-     */
-    protected function getRateLogger(): EmailRateLogModel
-    {
-        if ($this->rateLogger === null) {
-            $this->rateLogger = new EmailRateLogModel();
-        }
-        return $this->rateLogger;
     }
 
     /**
@@ -222,26 +206,13 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $this->send($to, $name, $subject, $body);
     }
 
-    /**
-     * Envoie le message de contact au propriétaire du site.
-     *
-     * @param string $firstname Prénom de l'expéditeur
-     * @param string $lastname  Nom de l'expéditeur
-     * @param string $email     Email de l'expéditeur
-     * @param string $subject   Sujet du message
-     * @param string $message   Corps du message
-     * @param string $lang      Langue de l'interface
-     * @param string $phone     Numéro de téléphone facultatif
-     * @return void
-     */
     public function sendContactToOwner(
         string $firstname,
         string $lastname,
         string $email,
         string $subject,
         string $message,
-        string $lang,
-        string $phone = ''
+        string $lang
     ): void {
         $this->applySmtpConfig(MailChannel::CONTACT);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
@@ -254,13 +225,8 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $safeSubject = htmlspecialchars($subjectLabel, ENT_QUOTES);
         $safeMessage = nl2br(htmlspecialchars($message, ENT_QUOTES));
 
-        $phoneBlock = $phone !== ''
-            ? "<strong>Téléphone :</strong> " . htmlspecialchars($phone, ENT_QUOTES) . "<br>"
-            : '';
         $msgBody = "<strong>De :</strong> {$safeName} ({$safeEmail})<br>"
-            . "<strong>Objet :</strong> {$safeSubject}<br>"
-            . $phoneBlock
-            . "<br>"
+            . "<strong>Objet :</strong> {$safeSubject}<br><br>"
             . $safeMessage;
 
         $body = $this->emailSimpleLayout(
@@ -3061,26 +3027,7 @@ INNER;
         if ($attachmentString !== null && $attachmentName !== null) {
             $this->mailer->addStringAttachment($attachmentString, $attachmentName);
         }
-        $fromAddress = $this->mailer->From;
-        try {
-            $this->mailer->send();
-        } catch (Exception $e) {
-            $msg = strtolower($e->getMessage());
-            try {
-                $this->getRateLogger()->log($fromAddress, $to, $subject, false, $e->getMessage());
-            } catch (\Throwable $logEx) { // NOSONAR — échec de log non bloquant
-                \Core\ErrorLogger::warning($logEx, '[EmailRateLogModel]');
-            }
-            if (str_contains($msg, '421') || str_contains($msg, 'rate') || str_contains($msg, 'too many')) {
-                throw new \RuntimeException('MAIL_RATE_LIMIT', 429);
-            }
-            throw $e;
-        }
-        try {
-            $this->getRateLogger()->log($fromAddress, $to, $subject, true, null);
-        } catch (\Throwable $logEx) { // NOSONAR — échec de log non bloquant
-            \Core\ErrorLogger::warning($logEx, '[EmailRateLogModel]');
-        }
+        $this->mailer->send();
     }
 
     private function emailSimpleLayout(string $title, string $greeting, string $message, string $lang = 'fr'): string

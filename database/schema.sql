@@ -20,7 +20,6 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ============================================================
 -- DROP (ordre FK inverse pour éviter les contraintes)
 -- ============================================================
-DROP TABLE IF EXISTS `email_rate_log`;
 DROP TABLE IF EXISTS `customer_reviews`;
 DROP TABLE IF EXISTS `newsletter_subscriptions`;
 DROP TABLE IF EXISTS `admin_logs`;
@@ -341,8 +340,7 @@ CREATE TABLE `orders` (
   `shipping_discount`    DECIMAL(10,2)  NOT NULL DEFAULT 0.00 COMMENT 'Remise livraison snapshot au moment de la commande',
   `id_billing_snapshot`  INT            NOT NULL COMMENT 'Snapshot adresse facturation — dissocié du compte',
   `id_delivery_snapshot` INT            DEFAULT NULL COMMENT 'Snapshot adresse livraison — dissocié du compte',
-  `status`               ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested','refund_refused','refund_pending','ready_for_pickup','collected') NOT NULL DEFAULT 'pending',
-  `delivery_method`      ENUM('shipping','pickup') NOT NULL DEFAULT 'shipping' COMMENT 'Mode de livraison : shipping = livraison domicile, pickup = retrait château (Click & Collect)',
+  `status`               ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested','refund_refused','refund_pending') NOT NULL DEFAULT 'pending',
   `cgv_version`          VARCHAR(20)    NOT NULL DEFAULT '1.0' COMMENT 'Version des CGV acceptées au moment de la commande',
   `ca_numappel`          VARCHAR(11)    DEFAULT NULL COMMENT 'NUMAPPEL CA e-Transactions (lettre T PBX_RETOUR) — requis pour remboursement GAE',
   `ca_numtrans`          VARCHAR(11)    DEFAULT NULL COMMENT 'NUMTRANS CA e-Transactions (lettre S PBX_RETOUR) — requis pour remboursement GAE',
@@ -972,25 +970,6 @@ CREATE TABLE IF NOT EXISTS `customer_reviews` (
   CONSTRAINT `fk_cr_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
   CONSTRAINT `chk_cr_rating` CHECK (`rating` BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================================
--- Table : email_rate_log
--- Journal des emails envoyés — rétention 25h (purge auto dans EmailRateLogModel).
--- Monitoring des envois par canal SMTP, détection rate limit IONOS.
--- ============================================================
-CREATE TABLE IF NOT EXISTS `email_rate_log` (
-  `id`            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
-  `from_address`  VARCHAR(255)    NOT NULL COMMENT 'Adresse expéditrice (MAIL_USER du canal)',
-  `to_address`    VARCHAR(255)    NOT NULL COMMENT 'Destinataire',
-  `subject`       VARCHAR(500)    NOT NULL DEFAULT '',
-  `success`       TINYINT(1)      NOT NULL DEFAULT 1,
-  `error_message` VARCHAR(500)    NULL,
-  `sent_at`       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  INDEX `idx_email_rate_log_sent_at` (`sent_at`),
-  INDEX `idx_email_rate_log_from`    (`from_address`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-  COMMENT='Journal des emails envoyés — rétention 25h';
 
 -- ============================================================
 -- Table : rate_limits

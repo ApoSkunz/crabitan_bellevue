@@ -6,7 +6,7 @@ $roleLabels = ['customer' => 'Client', 'admin' => 'Admin', 'super_admin' => 'Sup
 $isSuperAdmin = $currentRole === 'super_admin';
 
 if (!function_exists('accountUrl')) {
-function accountUrl(int $p, ?string $role, ?string $type, string $search, int $perPage, ?string $sort = null, ?string $hasOrdered = null): string
+function accountUrl(int $p, ?string $role, ?string $type, string $search, int $perPage, ?string $sort = null): string
 {
     $q = ['page' => $p];
     if ($role) {
@@ -23,9 +23,6 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
     }
     if ($sort !== null) {
         $q['sort'] = $sort;
-    }
-    if ($hasOrdered !== null) {
-        $q['has_ordered'] = $hasOrdered;
     }
     return '/admin/comptes?' . http_build_query($q);
 }
@@ -60,12 +57,6 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
         <option value="company"    <?= ($type ?? '') === 'company'    ? 'selected' : '' ?>>Société</option>
     </select>
 
-    <select name="has_ordered" class="admin-filters__select" aria-label="Filtrer par commandes">
-        <option value="">Toutes les commandes</option>
-        <option value="1" <?= ($hasOrdered ?? '') === '1' ? 'selected' : '' ?>>A commandé</option>
-        <option value="0" <?= ($hasOrdered ?? '') === '0' ? 'selected' : '' ?>>Jamais commandé</option>
-    </select>
-
     <input type="text" name="search" class="admin-filters__input"
            placeholder="Email, nom, prénom…"
            value="<?= htmlspecialchars($search) ?>">
@@ -75,8 +66,6 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
         <option value="created_at_asc"  <?= ($sort ?? null) === 'created_at_asc'  ? 'selected' : '' ?>>Inscription — croissant</option>
         <option value="last_connection_desc" <?= ($sort ?? null) === 'last_connection_desc' ? 'selected' : '' ?>>Connexion — décroissant</option>
         <option value="last_connection_asc"  <?= ($sort ?? null) === 'last_connection_asc'  ? 'selected' : '' ?>>Connexion — croissant</option>
-        <option value="order_count_desc"     <?= ($sort ?? null) === 'order_count_desc'     ? 'selected' : '' ?>>Commandes — décroissant</option>
-        <option value="order_count_asc"      <?= ($sort ?? null) === 'order_count_asc'      ? 'selected' : '' ?>>Commandes — croissant</option>
     </select>
 
     <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
@@ -109,14 +98,13 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                     <th class="col-hide-tablet">Dernière connexion</th>
                     <th class="col-hide-tablet">Cmdes</th>
                     <?php if ($isSuperAdmin) : ?>
-                        <th>Vérif.</th>
-                        <th>Réinit. mdp</th>
+                        <th></th>
                     <?php endif; ?>
                 </tr>
             </thead>
             <tbody>
             <?php if (empty($accounts)) : ?>
-                <tr><td colspan="<?= $isSuperAdmin ? 13 : 11 ?>"
+                <tr><td colspan="<?= $isSuperAdmin ? 12 : 11 ?>"
                         style="text-align:center;color:#8a7a60;padding:2rem;">Aucun compte trouvé</td></tr>
             <?php else : ?>
                 <?php foreach ($accounts as $account) : ?>
@@ -195,11 +183,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                                             Vérifier
                                         </button>
                                     </form>
-                                <?php else : ?>
-                                    <span style="color:#ccc;">—</span>
                                 <?php endif; ?>
-                            </td>
-                            <td style="white-space:nowrap;">
                                 <?php if (!empty($account['email_verified_at']) && !empty($account['has_password'])) : ?>
                                     <form method="POST"
                                           action="/admin/comptes/<?= (int) $account['id'] ?>/reset-password"
@@ -213,8 +197,6 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                                             Réinit. mdp
                                         </button>
                                     </form>
-                                <?php else : ?>
-                                    <span style="color:#ccc;">—</span>
                                 <?php endif; ?>
                             </td>
                         <?php endif; ?>
@@ -227,13 +209,13 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
 
     <?php if ($totalPages > 1) : ?>
         <div class="admin-pagination">
-            <a href="<?= htmlspecialchars(accountUrl(max(1, $page - 1), $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+            <a href="<?= htmlspecialchars(accountUrl(max(1, $page - 1), $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
                class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>">‹</a>
             <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
-                <a href="<?= htmlspecialchars(accountUrl($i, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+                <a href="<?= htmlspecialchars(accountUrl($i, $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
                    class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"><?= $i ?></a>
             <?php endfor; ?>
-            <a href="<?= htmlspecialchars(accountUrl(min($totalPages, $page + 1), $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+            <a href="<?= htmlspecialchars(accountUrl(min($totalPages, $page + 1), $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
                class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>">›</a>
         </div>
     <?php endif; ?>

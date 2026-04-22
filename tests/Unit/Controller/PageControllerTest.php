@@ -396,8 +396,7 @@ class PageControllerTest extends TestCase
                 string $email,
                 string $subject,
                 string $message,
-                string $lang,
-                string $phone = ''
+                string $lang
             ): void {
                 // no-op — stub de test, pas d'envoi SMTP réel
             }
