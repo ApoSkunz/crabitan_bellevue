@@ -293,6 +293,54 @@ class RgpdExportServiceTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // buildForAccount — branche review !== null (lignes 148-152)
+    // ----------------------------------------------------------------
+
+    /**
+     * buildForAccount avec review non nulle → couvre le ternaire review !== null (lignes 148-152).
+     */
+    public function testBuildForAccountWithNonNullReviewCoversReviewBlock(): void
+    {
+        $dbProp = new \ReflectionProperty(\Core\Database::class, 'instance');
+
+        // Stub Database pour éviter la connexion réelle
+        $dbStub = $this->createStub(\Core\Database::class);
+        $dbStub->method('fetchOne')->willReturn(false);
+        $dbStub->method('fetchAll')->willReturn([]);
+        $dbProp->setValue(null, $dbStub);
+
+        // Créer le service et injecter les modèles via Reflection
+        $service = new RgpdExportService();
+        $ref     = new \ReflectionObject($service);
+
+        $reviewMock = $this->createStub(\Model\ReviewModel::class);
+        $reviewMock->method('findByAccountId')->willReturn([
+            'rating'     => 5,
+            'comment'    => 'Excellent',
+            'location'   => 'Paris',
+            'created_at' => '2026-01-01 10:00:00',
+        ]);
+
+        $ratingMock = $this->createStub(\Model\RatingModel::class);
+        $ratingMock->method('getAllByAccount')->willReturn([]);
+
+        $prop = $ref->getProperty('reviewModel');
+        $prop->setValue($service, $reviewMock);
+
+        $prop2 = $ref->getProperty('ratingModel');
+        $prop2->setValue($service, $ratingMock);
+
+        $result = $service->buildForAccount(1);
+
+        // La branche review !== null a été empruntée
+        $this->assertIsArray($result['review']);
+        $this->assertSame(5, $result['review']['rating']);
+        $this->assertSame('Excellent', $result['review']['comment']);
+
+        $dbProp->setValue(null, null);
+    }
+
+    // ----------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------
 

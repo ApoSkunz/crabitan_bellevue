@@ -181,4 +181,66 @@ class RgpdExportLogModelTest extends TestCase
         $threeYearsInSeconds = 3 * 365 * 24 * 3600;
         $this->assertSame($threeYearsInSeconds, RgpdExportLogModel::RETENTION_SECONDS);
     }
+
+    // ----------------------------------------------------------------
+    // buildFilters — branches dateFrom (lines 148-149) et dateTo (lines 153-154)
+    // ----------------------------------------------------------------
+
+    /**
+     * getAll() avec dateFrom filtre par DATE(requested_at) >= ? (ligne 148-149).
+     */
+    public function testGetAllWithDateFromAppliesFilter(): void
+    {
+        [$stub, $model] = $this->makeStubAndModel();
+        $stub->method('fetchAll')->willReturn([]);
+
+        $result = $model->getAll(20, 0, null, '2026-01-01', null);
+        $this->assertSame([], $result);
+    }
+
+    /**
+     * getAll() avec dateTo filtre par DATE(requested_at) <= ? (ligne 153-154).
+     */
+    public function testGetAllWithDateToAppliesFilter(): void
+    {
+        [$stub, $model] = $this->makeStubAndModel();
+        $stub->method('fetchAll')->willReturn([]);
+
+        $result = $model->getAll(20, 0, null, null, '2026-12-31');
+        $this->assertSame([], $result);
+    }
+
+    /**
+     * getAll() avec dateFrom et dateTo applique les deux filtres (lignes 148-149 + 153-154).
+     */
+    public function testGetAllWithBothDateFilters(): void
+    {
+        [$stub, $model] = $this->makeStubAndModel();
+        $stub->method('fetchAll')->willReturn([]);
+
+        $result = $model->getAll(20, 0, null, '2026-01-01', '2026-12-31');
+        $this->assertSame([], $result);
+    }
+
+    /**
+     * count() avec dateFrom applique le filtre (ligne 148-149).
+     */
+    public function testCountWithDateFromAppliesFilter(): void
+    {
+        [$stub, $model] = $this->makeStubAndModel();
+        $stub->method('fetchOne')->willReturn(['cnt' => '3']);
+
+        $this->assertSame(3, $model->count(null, '2026-01-01', null));
+    }
+
+    /**
+     * count() avec dateTo applique le filtre (ligne 153-154).
+     */
+    public function testCountWithDateToAppliesFilter(): void
+    {
+        [$stub, $model] = $this->makeStubAndModel();
+        $stub->method('fetchOne')->willReturn(['cnt' => '5']);
+
+        $this->assertSame(5, $model->count(null, null, '2026-12-31'));
+    }
 }

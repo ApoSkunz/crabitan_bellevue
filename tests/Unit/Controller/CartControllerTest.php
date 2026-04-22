@@ -788,4 +788,40 @@ class CartControllerTest extends TestCase
         $this->assertNotEmpty($result['crossSellWines']);
         $this->assertNull($result['featuredWine']);
     }
+
+    /**
+     * Panier 1 vin unique (non cuvée), similaires sans cuvée, getCuveeSpecialeByColor retourne
+     * une cuvée → array_unshift injecte la cuvée en tête (L303).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testResolveCrossSellInjectsCuveeWhenAbsentFromSimilar(): void
+    {
+        $this->bootstrapApp();
+        $stub   = $this->setDbMock();
+        $wine   = ['id' => 1, 'wine_color' => 'red', 'price' => '10.00', 'is_cuvee_speciale' => 0];
+        $cuvee  = ['id' => 99, 'label_name' => 'Cuvée Spéciale', 'is_cuvee_speciale' => 1, 'wine_color' => 'red'];
+        $similar = [
+            ['id' => 2, 'label_name' => 'S1', 'is_cuvee_speciale' => 0],
+            ['id' => 3, 'label_name' => 'S2', 'is_cuvee_speciale' => 0],
+            ['id' => 4, 'label_name' => 'S3', 'is_cuvee_speciale' => 0],
+        ];
+        // Séquence fetchOne : getById → wine ; getCuveeSpecialeByColor → cuvee
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls($wine, $cuvee);
+        // getSimilar appelle fetchAll
+        $stub->method('fetchAll')->willReturn($similar);
+
+        $cartItems = [['wine_id' => 1, 'qty' => 2, 'name' => 'Bordeaux', 'image' => '']];
+
+        $method = new \ReflectionMethod(CartController::class, 'resolveCrossSell');
+        $result = $method->invoke($this->makeController(), $cartItems);
+
+        $crossSell = $result['crossSellWines'];
+        $this->assertNotEmpty($crossSell);
+        // La cuvée spéciale doit être en première position (array_unshift)
+        $this->assertSame(99, $crossSell[0]['id']);
+        $this->assertSame(1, (int) $crossSell[0]['is_cuvee_speciale']);
+        // Le tableau doit toujours avoir 3 éléments (array_pop + array_unshift)
+        $this->assertCount(3, $crossSell);
+    }
 }

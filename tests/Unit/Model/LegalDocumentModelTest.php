@@ -164,6 +164,23 @@ class LegalDocumentModelTest extends TestCase
         $this->assertSame([], $result);
     }
 
+    /**
+     * findEligibleAccounts() retourne tous les comptes vérifiés pour politique_confidentialite (lignes 103-110).
+     */
+    public function testFindEligibleAccountsPolitiqueConfidentialite(): void
+    {
+        $rows = [
+            ['id' => 1, 'email' => 'a@test.com', 'lang' => 'fr', 'display_name' => 'Alice'],
+            ['id' => 2, 'email' => 'b@test.com', 'lang' => 'en', 'display_name' => 'Bob'],
+        ];
+        $this->dbMock->method('fetchAll')->willReturn($rows);
+
+        $result = $this->model->findEligibleAccounts('politique_confidentialite');
+
+        $this->assertCount(2, $result);
+        $this->assertSame('a@test.com', $result[0]['email']);
+    }
+
     // ----------------------------------------------------------------
     // logNotification()
     // ----------------------------------------------------------------

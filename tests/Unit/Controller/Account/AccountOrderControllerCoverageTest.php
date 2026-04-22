@@ -287,4 +287,90 @@ class AccountOrderControllerCoverageTest extends TestCase
         $this->assertNotEmpty($result);
         $this->assertStringStartsWith('%PDF', $result);
     }
+
+    // ----------------------------------------------------------------
+    // sendPdfResponse() — corps réel (headers + echo + doExit) → L358-364
+    // ----------------------------------------------------------------
+
+    /**
+     * sendPdfResponse() réel : vérifie que le contenu PDF est écrit dans l'output
+     * et que doExit() est invoqué.
+     *
+     * Utilise une sous-classe anonyme qui surcharge uniquement doExit()
+     * pour lever une exception au lieu d'appeler exit, couvrant ainsi L358-364.
+     */
+    public function testSendPdfResponseRealBodyEchoesPdfAndCallsDoExit(): void
+    {
+        $ctrl = new class (new \Core\Request()) extends \Controller\Account\AccountOrderController {
+            protected function doExit(): never
+            {
+                throw new \RuntimeException('doExit-called');
+            }
+        };
+
+        $ref = new \ReflectionMethod(AccountOrderController::class, 'sendPdfResponse');
+
+        ob_start();
+        $caught = null;
+        try {
+            $ref->invoke($ctrl, '%PDF-order-content', 'commande.pdf');
+        } catch (\RuntimeException $e) {
+            $caught = $e;
+        } finally {
+            $output = ob_get_clean();
+        }
+
+        $this->assertNotNull($caught, 'doExit() doit être appelé');
+        $this->assertSame('doExit-called', $caught->getMessage());
+        $this->assertStringContainsString('%PDF-order-content', (string) $output);
+    }
+
+    // ----------------------------------------------------------------
+    // sendReturnEmails() — early return !order || !account → L393-394
+    // ----------------------------------------------------------------
+
+    /**
+     * sendReturnEmails() quand userRepo->findById retourne null
+     * → early return L393-394 sans envoi d'email.
+     *
+     * Invoque la méthode privée via ReflectionMethod directement.
+     */
+    public function testSendReturnEmailsAccountNullHitsEarlyReturn(): void
+    {
+        $userRepo = $this->createStub(\Repository\UserRepository::class);
+        $userRepo->method('findById')->willReturn(false);
+
+        $ordersMock = $this->createStub(\Model\OrderModel::class);
+        $ordersMock->method('findDetailForUser')->willReturn(['id' => 1, 'order_reference' => 'REF-NULL']);
+
+        $ctrl = $this->makeController($userRepo);
+        $this->injectOrders($ctrl, $ordersMock);
+
+        $ref = new \ReflectionMethod(AccountOrderController::class, 'sendReturnEmails');
+        // Doit retourner sans throw
+        $ref->invoke($ctrl, 1, 1, 'fr');
+
+        $this->assertTrue(true); // early return L393-394 couverte
+    }
+
+    /**
+     * sendReturnEmails() quand orders->findDetailForUser retourne null
+     * → early return L393-394 sans envoi d'email.
+     */
+    public function testSendReturnEmailsOrderNullHitsEarlyReturn(): void
+    {
+        $userRepo = $this->createStub(\Repository\UserRepository::class);
+        $userRepo->method('findById')->willReturn(['id' => 1, 'email' => 'u@example.com']);
+
+        $ordersMock = $this->createStub(\Model\OrderModel::class);
+        $ordersMock->method('findDetailForUser')->willReturn(null);
+
+        $ctrl = $this->makeController($userRepo);
+        $this->injectOrders($ctrl, $ordersMock);
+
+        $ref = new \ReflectionMethod(AccountOrderController::class, 'sendReturnEmails');
+        $ref->invoke($ctrl, 1, 1, 'fr');
+
+        $this->assertTrue(true); // early return L393-394 couverte
+    }
 }

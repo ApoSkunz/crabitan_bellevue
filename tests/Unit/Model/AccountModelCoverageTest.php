@@ -868,4 +868,60 @@ class AccountModelCoverageTest extends TestCase
         $this->assertIsArray($result);
         $this->assertArrayHasKey('email_change_new_email', $result);
     }
+
+    // ----------------------------------------------------------------
+    // decryptRow — branche email_change_new_email (lines 93-94)
+    // et branche majority_declared_ip (lines 98-99)
+    // ----------------------------------------------------------------
+
+    /**
+     * findById avec email_change_new_email dans la ligne → decrypt appelé (ligne 93-94).
+     */
+    public function testFindByIdDecryptsEmailChangeNewEmail(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn([
+            'id'                    => 5,
+            'email'                 => 'user@test.com',
+            'email_change_new_email' => 'encrypted_value',
+        ]);
+
+        $result = $this->model->findById(5);
+        $this->assertIsArray($result);
+        // Le stub EncryptionService retourne l'argument tel quel
+        $this->assertSame('encrypted_value', $result['email_change_new_email']);
+    }
+
+    /**
+     * findById avec majority_declared_ip dans la ligne → decrypt appelé (lignes 98-99).
+     */
+    public function testFindByIdDecryptsMajorityDeclaredIp(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn([
+            'id'                   => 6,
+            'email'                => 'user2@test.com',
+            'majority_declared_ip' => 'encrypted_ip',
+        ]);
+
+        $result = $this->model->findById(6);
+        $this->assertIsArray($result);
+        $this->assertSame('encrypted_ip', $result['majority_declared_ip']);
+    }
+
+    /**
+     * findById avec les deux champs sensibles dans la ligne → les deux branches decrypt.
+     */
+    public function testFindByIdDecryptsBothSensitiveFields(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn([
+            'id'                    => 7,
+            'email'                 => 'user3@test.com',
+            'email_change_new_email' => 'enc_email',
+            'majority_declared_ip'  => 'enc_ip',
+        ]);
+
+        $result = $this->model->findById(7);
+        $this->assertIsArray($result);
+        $this->assertSame('enc_email', $result['email_change_new_email']);
+        $this->assertSame('enc_ip', $result['majority_declared_ip']);
+    }
 }

@@ -472,4 +472,111 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         // MFA désactivé → pas de redirect vers nouvel-appareil, mais vers returnPath
         $this->assertStringNotContainsString('nouvel-appareil', (string) $location);
     }
+
+    // ----------------------------------------------------------------
+    // L518 — issueSession() : appareil déjà trusted (pas 1ère connexion) → updateLastSeen()
+    // ----------------------------------------------------------------
+
+    /**
+     * Couvre la branche elseif ($isAlreadyTrusted) → updateLastSeen() (L518).
+     *
+     * Conditions : has_connected=1 (pas 1ère connexion) + isTrusted=true.
+     * issueSession() est invoqué directement via ReflectionMethod pour isoler la branche.
+     */
+    public function testIssueSessionAlreadyTrustedCallsUpdateLastSeen(): void
+    {
+        $account = [
+            'id'            => 400,
+            'role'          => 'customer',
+            'lang'          => 'fr',
+            'email'         => 'trusted@example.com',
+            'firstname'     => 'T',
+            'lastname'      => 'U',
+            'has_connected' => 1, // pas 1ère connexion
+            'account_type'  => 'individual',
+        ];
+
+        $ctrl = $this->makeController();
+
+        $accounts = $this->createStub(AccountModel::class);
+        $this->injectProp($ctrl, 'accounts', $accounts);
+
+        $trustedDevices = $this->createMock(TrustedDeviceModel::class);
+        $trustedDevices->method('isTrusted')->willReturn(true); // déjà trusted → updateLastSeen
+        $trustedDevices->expects($this->once())->method('updateLastSeen');
+        $this->injectProp($ctrl, 'trustedDevices', $trustedDevices);
+
+        $this->injectProp($ctrl, 'connections', $this->createStub(ConnectionModel::class));
+
+        $issueSession = new \ReflectionMethod(GoogleOAuthController::class, 'issueSession');
+        try {
+            $issueSession->invoke($ctrl, $account, 'fr');
+        } catch (HttpException) {
+        }
+
+        // L'assertion principale est portée par le mock (expects once sur updateLastSeen)
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // L543 — issueSession() : accountLang ≠ lang → réécriture du redirectTarget
+    // ----------------------------------------------------------------
+
+    /**
+     * Couvre la branche de réécriture de langue dans le redirectTarget (L543).
+     *
+     * Conditions : accountLang=en, lang=fr, returnPath=/fr/vins → réécriture en /en/vins.
+     */
+    public function testIssueSessionRewritesRedirectTargetWhenAccountLangDiffersFromUrlLang(): void
+    {
+        $_GET     = ['code' => 'valid-code', 'state' => 'valid-state'];
+        $_SESSION = [
+            'oauth_google_state'  => 'valid-state',
+            'oauth_return_path'   => '/fr/vins',   // chemin avec lang fr
+        ];
+
+        $existingAccount = [
+            'id'            => 500,
+            'role'          => 'customer',
+            'lang'          => 'en', // préférence compte = en, alors que URL = fr
+            'email'         => 'langswitch@example.com',
+            'firstname'     => 'L',
+            'lastname'      => 'S',
+            'has_connected' => 1,
+            'account_type'  => 'individual',
+        ];
+
+        $ctrl = $this->makeController();
+
+        $oauth = $this->createStub(GoogleOAuthService::class);
+        $oauth->method('exchangeCode')->willReturn(['access_token' => 'tok']);
+        $oauth->method('fetchUserInfo')->willReturn([
+            'sub'         => 'g-langswitch',
+            'email'       => 'langswitch@example.com',
+            'given_name'  => 'L',
+            'family_name' => 'S',
+        ]);
+        $this->injectProp($ctrl, 'oauth', $oauth);
+
+        $accounts = $this->createStub(AccountModel::class);
+        $accounts->method('findByGoogleId')->willReturn($existingAccount);
+        $this->injectProp($ctrl, 'accounts', $accounts);
+
+        $trustedDevices = $this->createStub(TrustedDeviceModel::class);
+        $trustedDevices->method('isTrusted')->willReturn(true); // évite le challenge MFA
+        $this->injectProp($ctrl, 'trustedDevices', $trustedDevices);
+
+        $this->injectProp($ctrl, 'deviceConfirmTokens', $this->createStub(DeviceConfirmTokenModel::class));
+        $this->injectProp($ctrl, 'connections', $this->createStub(ConnectionModel::class));
+
+        $location = null;
+        try {
+            $ctrl->callback(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $location = $e->location;
+        }
+
+        // /fr/vins doit être réécrit en /en/vins (lang du compte)
+        $this->assertSame('/en/vins', $location);
+    }
 }

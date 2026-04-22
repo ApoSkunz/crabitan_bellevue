@@ -3404,4 +3404,156 @@ class AccountControllerActionTest extends TestCase
         $this->assertSame('account/security-deny', $ctrl->lastView);
         $this->assertTrue($ctrl->lastViewData['success'] ?? false);
     }
+
+    // ----------------------------------------------------------------
+    // sendReturnEmails() — early return !account → L426
+    // ----------------------------------------------------------------
+
+    /**
+     * sendReturnEmails() appelé via cancelOrder() quand accounts->findById retourne null
+     * → early return L426 (pas d'envoi d'email).
+     * Flash order_return_requested doit quand même être posé.
+     */
+    public function testSendReturnEmailsAccountNullHitsEarlyReturn(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $callCount = 0;
+        $accounts  = $this->createMock(AccountModel::class);
+        // Premier appel : requireIndividual (findById → individual)
+        // Deuxième appel (dans sendReturnEmails) : retourne null → early return L426
+        $accounts->method('findById')->willReturnCallback(
+            function () use (&$callCount): array|false {
+                $callCount++;
+                if ($callCount === 1) {
+                    return ['id' => 1, 'account_type' => 'individual'];
+                }
+                return false;
+            }
+        );
+
+        $order = [
+            'id'              => 20,
+            'payment_method'  => 'check',
+            'status'          => 'delivered',
+            'order_reference' => 'REF-ACCT-NULL',
+        ];
+
+        $orders = $this->createMock(OrderModel::class);
+        $orders->method('findDetailForUser')->willReturn($order);
+        $orders->method('cancelForUser')->willReturn(false);
+        $orders->method('requestReturnForUser')->willReturn(true);
+
+        $ctrl = $this->makeController();
+        $this->inject($ctrl, 'accounts', $accounts);
+        $this->inject($ctrl, 'orders', $orders);
+
+        $this->expectException(HttpException::class);
+
+        ob_start();
+        try {
+            $ctrl->cancelOrder(['lang' => 'fr', 'id' => '20']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // sendPdfResponse() — corps réel (headers + echo + doExit) → L498-504
+    // ----------------------------------------------------------------
+
+    /**
+     * sendPdfResponse() réel : vérifie que le PDF est écrit dans l'output
+     * et que doExit() est appelé.
+     *
+     * Utilise une sous-classe anonyme qui surcharge uniquement doExit()
+     * pour lever une exception au lieu d'appeler exit — les lignes 498-504
+     * sont ainsi toutes exécutées.
+     */
+    public function testSendPdfResponseRealBodyEchoesPdfAndCallsDoExit(): void
+    {
+        $ctrl = new class (new \Core\Request()) extends \Controller\AccountController {
+            /** @var string Contenu capturé par echo. */
+            public string $echoed = '';
+
+            protected function doExit(): never
+            {
+                throw new \RuntimeException('doExit-called');
+            }
+        };
+
+        $ref = new \ReflectionMethod(\Controller\AccountController::class, 'sendPdfResponse');
+
+        ob_start();
+        $caught = null;
+        try {
+            $ref->invoke($ctrl, '%PDF-test-content', 'test.pdf');
+        } catch (\RuntimeException $e) {
+            $caught = $e;
+        } finally {
+            $output = ob_get_clean();
+        }
+
+        $this->assertNotNull($caught, 'doExit() doit être appelé');
+        $this->assertSame('doExit-called', $caught->getMessage());
+        $this->assertStringContainsString('%PDF-test-content', (string) $output);
+    }
+
+    // ----------------------------------------------------------------
+    // changePassword() — company_name fallback → L952
+    // ----------------------------------------------------------------
+
+    /**
+     * changePassword() avec account dont firstname et lastname sont vides
+     * → $notifName utilise company_name (L952 couverte).
+     */
+    public function testChangePasswordCompanyNameFallbackUsed(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'current_password'     => 'OldStr0ng!Pass',
+            'new_password'         => 'NewStr0ng!Pass1',
+            'new_password_confirm' => 'NewStr0ng!Pass1',
+            'csrf_token'           => 'test-csrf-token',
+        ];
+
+        $account = [
+            'id'           => 1,
+            'email'        => 'company@example.com',
+            'firstname'    => '',    // vide → fallback company_name
+            'lastname'     => '',    // vide → fallback company_name
+            'company_name' => 'SARL Vins du Soleil',
+            'lang'         => 'fr',
+            'password'     => password_hash('OldStr0ng!Pass', PASSWORD_BCRYPT),
+        ];
+
+        $accounts = $this->createMock(AccountModel::class);
+        $accounts->method('findById')->willReturn($account);
+        $accounts->method('savePendingPassword');
+        $accounts->method('saveSecurityConfirmToken');
+
+        $rateLimiter = $this->createStub(RateLimiterService::class);
+        $rateLimiter->method('checkLimit')->willReturn(true);
+
+        // MailService lance une exception : l'important est que le catch L963
+        // soit atteint, prouvant que la branche company_name a été exécutée.
+        $mailMock = $this->createMock(\Service\MailService::class);
+        $mailMock->method('sendPasswordChangeConfirmation')
+            ->willThrowException(new \RuntimeException('smtp-down'));
+
+        $ctrl = $this->makeController();
+        $ctrl->fakeMailService = $mailMock;
+        $this->inject($ctrl, 'accounts', $accounts);
+        $ref = new \ReflectionProperty(\Controller\AccountController::class, 'rateLimiter');
+        $ref->setValue($ctrl, $rateLimiter);
+
+        $this->expectException(HttpException::class);
+
+        ob_start();
+        try {
+            $ctrl->changePassword(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
 }

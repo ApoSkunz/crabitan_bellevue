@@ -532,4 +532,43 @@ class RatingModelTest extends TestCase
         $this->assertSame(64, strlen($result));
         $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $result);
     }
+
+    // ----------------------------------------------------------------
+    // resolveOrderTokenFull
+    // ----------------------------------------------------------------
+
+    /**
+     * resolveOrderTokenFull retourne null si le token est inconnu.
+     */
+    public function testResolveOrderTokenFullReturnsNullWhenNotFound(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $this->assertNull($this->model->resolveOrderTokenFull('unknowntoken'));
+    }
+
+    /**
+     * resolveOrderTokenFull retourne le tableau complet si le token existe.
+     */
+    public function testResolveOrderTokenFullReturnsArrayWhenFound(): void
+    {
+        $row = [
+            'order_id'   => 7,
+            'account_id' => 3,
+            'expires_at' => '2099-12-31 23:59:59',
+        ];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn($row);
+
+        $result = $this->model->resolveOrderTokenFull('sometoken');
+        $this->assertIsArray($result);
+        $this->assertSame(7, $result['order_id']);
+        $this->assertArrayHasKey('expires_at', $result);
+    }
 }
