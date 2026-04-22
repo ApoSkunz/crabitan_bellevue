@@ -2,6 +2,15 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.21.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.21.1...v1.21.2) (2026-04-22)
+
+
+### Bug Fixes
+
+* **exit-intent:** délai 15 min avant affichage sur boutique et collection ([11df63f](https://github.com/ApoSkunz/crabitan_bellevue/commit/11df63f6b85892d68382b15d36c9126a1fa54739))
+* **exit-intent:** supprimer pop-in achat si client avec commande(s) ([6e07873](https://github.com/ApoSkunz/crabitan_bellevue/commit/6e078732a0b93e54e59844853ac94248df815df3))
+* **sonar:** S1066 footer.php — fusionner if imbriqués exit-intent ([3f0177b](https://github.com/ApoSkunz/crabitan_bellevue/commit/3f0177b5427ac66c84b45aa94d52c7ee46f2e0b5))
+
 ## [1.21.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.21.0...v1.21.1) (2026-04-22)
 
 
