@@ -65,6 +65,11 @@ class TestableLegalDocumentAdminController extends LegalDocumentAdminController
     {
         throw new HttpException($status);
     }
+
+    protected function newMailService(): MailService
+    {
+        return $this->mailMock ?? parent::newMailService();
+    }
 }
 
 /**
@@ -159,6 +164,7 @@ class LegalDocumentAdminControllerCoverageTest extends TestCase
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SESSION['legal_notify_pending'] = $this->samplePending('cgv');
+        $_POST['csrf_token'] = 'valid-csrf';
 
         $modelMock = $this->createMock(LegalDocumentModel::class);
         $modelMock->method('findEligibleAccounts')->willReturn([
@@ -172,6 +178,39 @@ class LegalDocumentAdminControllerCoverageTest extends TestCase
         // logNotification ne doit pas être appelé (exception avant)
         $modelMock->expects($this->never())->method('logNotification');
         // updateNotificationStats ne doit pas être appelé (success = 0)
+        $modelMock->expects($this->never())->method('updateNotificationStats');
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->method('sendLegalDocumentUpdate')
+            ->willThrowException(new \RuntimeException('SMTP failure'));
+
+        $ctrl = $this->makeControllerWithModel($modelMock);
+        $ctrl->mailMock = $mailMock;
+
+        $caught = null;
+        try {
+            $ctrl->sendNotifications(['slug' => 'cgv']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $success = $ctrl->flashes['success'] ?? [];
+        $this->assertNotEmpty($success);
+        $this->assertStringContainsString('1 échec(s)', $success[0]);
+    }
+
+    /**
+     * Sous-classe anonyme historique — conservée pour référence.
+     *
+     * @return void
+     */
+    public function legacyTestSendNotificationsCountsFailureOnMailException(): void // NOSONAR — test legacy
+    {
+        $modelMock = $this->createMock(LegalDocumentModel::class);
+        $modelMock->method('findEligibleAccounts')->willReturn([]);
+        $modelMock->expects($this->never())->method('logNotification');
         $modelMock->expects($this->never())->method('updateNotificationStats');
 
         $ctrl = $this->makeControllerWithModel($modelMock);
@@ -330,6 +369,7 @@ class LegalDocumentAdminControllerCoverageTest extends TestCase
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SESSION['legal_notify_pending'] = $this->samplePending('cgv');
+        $_POST['csrf_token'] = 'valid-csrf';
 
         $modelMock = $this->createMock(LegalDocumentModel::class);
         $modelMock->method('findEligibleAccounts')->willReturn([
@@ -342,6 +382,34 @@ class LegalDocumentAdminControllerCoverageTest extends TestCase
         ]);
         // updateNotificationStats doit être appelé exactement une fois
         $modelMock->expects($this->once())->method('updateNotificationStats')->with(3, 1);
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->expects($this->once())->method('sendLegalDocumentUpdate');
+
+        $ctrl = $this->makeControllerWithModel($modelMock);
+        $ctrl->mailMock = $mailMock;
+
+        $caught = null;
+        try {
+            $ctrl->sendNotifications(['slug' => 'cgv']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
+
+    /**
+     * Legacy — override anon class pour référence historique.
+     *
+     * @return void
+     */
+    public function legacyTestSendNotificationsCallsUpdateStatsOnSuccess(): void // NOSONAR — test legacy
+    {
+        $modelMock = $this->createMock(LegalDocumentModel::class);
+        $modelMock->method('findEligibleAccounts')->willReturn([]);
+        $modelMock->expects($this->never())->method('updateNotificationStats');
 
         $ctrlFinal = new class (
             new \Core\Request(),

@@ -208,15 +208,31 @@ class AdminGestionAdminsControllerTest extends TestCase
         $dbMock->method('execute')->willReturn(0);
         $this->instanceProp->setValue(null, $dbMock);
 
+        $mailMock = $this->createMock(\Service\MailService::class);
+        $mailMock->method('sendAdminAccountBlocked')
+            ->willThrowException(new \RuntimeException('SMTP down'));
+
         // Sous-classe testable avec MailService qui lève une exception
-        $ctrl = new class (new Request()) extends AdminGestionAdminsController {
+        $ctrl = new class (new Request(), $mailMock) extends AdminGestionAdminsController {
             /** @var array<string, mixed> */
             public array $fakeAdmin = ['id' => 10, 'role' => 'super_admin', 'email' => 'self@test.local', 'name' => 'Self'];
+            private \Service\MailService $mailStub;
+
+            public function __construct(Request $r, \Service\MailService $mailStub)
+            {
+                parent::__construct($r);
+                $this->mailStub = $mailStub;
+            }
 
             /** @return array<string, mixed> */
             protected function requireSuperAdmin(): array
             {
                 return $this->fakeAdmin;
+            }
+
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->mailStub;
             }
 
             protected function view(string $template, array $data = [], int $httpStatus = 200): void
@@ -302,14 +318,30 @@ class AdminGestionAdminsControllerTest extends TestCase
         $dbMock->method('execute')->willReturn(0);
         $this->instanceProp->setValue(null, $dbMock);
 
-        $ctrl = new class (new Request()) extends AdminGestionAdminsController {
+        $mailMock = $this->createMock(\Service\MailService::class);
+        $mailMock->method('sendAdminAccountUnblocked')
+            ->willThrowException(new \RuntimeException('SMTP down'));
+
+        $ctrl = new class (new Request(), $mailMock) extends AdminGestionAdminsController {
             /** @var array<string, mixed> */
             public array $fakeAdmin = ['id' => 10, 'role' => 'super_admin', 'email' => 'self@test.local', 'name' => 'Self'];
+            private \Service\MailService $mailStub;
+
+            public function __construct(Request $r, \Service\MailService $mailStub)
+            {
+                parent::__construct($r);
+                $this->mailStub = $mailStub;
+            }
 
             /** @return array<string, mixed> */
             protected function requireSuperAdmin(): array
             {
                 return $this->fakeAdmin;
+            }
+
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->mailStub;
             }
 
             protected function view(string $template, array $data = [], int $httpStatus = 200): void

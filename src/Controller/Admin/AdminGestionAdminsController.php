@@ -95,7 +95,7 @@ class AdminGestionAdminsController extends AdminController
 
         $blockerName = (string) ($adminUser['name'] ?? 'Super Admin');
         try {
-            (new MailService())->sendAdminAccountBlocked(
+            $this->newMailService()->sendAdminAccountBlocked(
                 (string) $target['email'],
                 trim(($target['firstname'] ?? '') . ' ' . ($target['lastname'] ?? '')) ?: (string) $target['email'],
                 (string) ($target['lang'] ?? 'fr'),
@@ -145,7 +145,7 @@ class AdminGestionAdminsController extends AdminController
 
         $unblockerName = (string) ($adminUser['name'] ?? 'Super Admin');
         try {
-            (new MailService())->sendAdminAccountUnblocked(
+            $this->newMailService()->sendAdminAccountUnblocked(
                 (string) $target['email'],
                 trim(($target['firstname'] ?? '') . ' ' . ($target['lastname'] ?? '')) ?: (string) $target['email'],
                 (string) ($target['lang'] ?? 'fr'),
@@ -157,5 +157,15 @@ class AdminGestionAdminsController extends AdminController
 
         $this->flash('success', sprintf('Le compte %s a été débloqué.', $target['email']));
         Response::redirect(self::ADMINS_URL);
+    }
+
+    /**
+     * Instancie MailService — seam de testabilité.
+     *
+     * @return MailService
+     */
+    protected function newMailService(): MailService
+    {
+        return new MailService();
     }
 }
