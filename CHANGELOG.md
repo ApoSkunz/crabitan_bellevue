@@ -2,6 +2,14 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.22.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.22.0...v1.22.1) (2026-04-22)
+
+
+### Bug Fixes
+
+* **contact:** catch Throwable pour rate limit 429 sans casser fallback 500 ([fd96627](https://github.com/ApoSkunz/crabitan_bellevue/commit/fd9662708d97276247b8570c880126b31a89085a))
+* **phpstan:** retirer return inatteignables après json() (never return type) ([199f6ab](https://github.com/ApoSkunz/crabitan_bellevue/commit/199f6ab58f9055d459483ae58ed7031ad9971791))
+
 # [1.22.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.21.4...v1.22.0) (2026-04-22)
 
 
