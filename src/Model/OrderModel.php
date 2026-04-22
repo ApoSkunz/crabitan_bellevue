@@ -1353,4 +1353,21 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
     {
         return $this->getConversionStats($days)['rate'];
     }
+
+    /**
+     * Vérifie si un utilisateur a au moins une commande (statut hors annulé/remboursé).
+     *
+     * @param int $userId Identifiant de l'utilisateur
+     * @return bool
+     */
+    public function hasOrdersByUserId(int $userId): bool
+    {
+        $row = $this->db->fetchOne(
+            "SELECT 1 FROM {$this->table}
+             WHERE user_id = ? AND status NOT IN ('cancelled', 'refunded')
+             LIMIT 1",
+            [$userId]
+        );
+        return $row !== false;
+    }
 }

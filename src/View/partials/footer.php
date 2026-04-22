@@ -20,6 +20,12 @@ if ($footerToken) {
 if (!$footerShowNewsletter && isset($exitIntentVariant) && $exitIntentVariant === 'newsletter') {
     $exitIntentVariant = null;
 }
+// Client avec commande(s) : pas d'exit-intent achat (boutique/collection)
+if ($footerAccountId > 0 && isset($exitIntentVariant) && in_array($exitIntentVariant, ['boutique', 'collection'], true)) {
+    if ((new \Model\OrderModel())->hasOrdersByUserId($footerAccountId)) {
+        $exitIntentVariant = null;
+    }
+}
 ?>
 <footer class="site-footer">
     <div class="footer-inner">
