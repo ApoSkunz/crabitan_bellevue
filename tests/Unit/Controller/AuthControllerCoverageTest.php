@@ -1175,4 +1175,324 @@ class AuthControllerCoverageTest extends TestCase
         // (même si on ne peut pas facilement le vérifier sans mock précis)
         $this->addToAssertionCount(1);
     }
+
+    // ================================================================
+    // Helper : crée un AuthController avec newMailService() qui throw
+    // ================================================================
+
+    /**
+     * Retourne une instance anonyme d'AuthController dont newMailService()
+     * lève une \RuntimeException, forçant le passage dans les catch \Throwable.
+     *
+     * @return AuthController
+     */
+    private function makeControllerWithThrowingMail(): AuthController
+    {
+        return new class (new \Core\Request()) extends AuthController {
+            protected function newMailService(): \Service\MailService
+            {
+                throw new \RuntimeException('mail-unavailable-in-tests');
+            }
+
+            /** @param array<string,mixed> $data */
+            protected function view(string $tpl, array $data = [], int $httpStatus = 200): void
+            {
+                // Capture silencieuse pour les chemins qui rendent une vue
+            }
+        };
+    }
+
+    // ================================================================
+    // register() — MailService throw dans le bloc "email déjà pris non vérifié"
+    // → catch L422-423 → flash register_success + redirect (L429-430)
+    // ================================================================
+
+    public function testRegisterExistingUnverifiedMailThrowCoveredByCatch(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/inscription';
+        $_POST = [
+            'account_type'     => 'individual',
+            'civility'         => 'M',
+            'lastname'         => 'Doe',
+            'firstname'        => 'John',
+            'email'            => 'unverified@example.com',
+            'password'         => 'Vigilant7#xKqm',
+            'password_confirm' => 'Vigilant7#xKqm',
+            'company_name'     => '',
+            'newsletter'       => '0',
+            'csrf_token'       => 'valid-csrf',
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturn([
+            'id'                => 20,
+            'email'             => 'unverified@example.com',
+            'email_verified_at' => null,
+            'account_type'      => 'individual',
+            'firstname'         => 'John',
+            'lastname'          => 'Doe',
+            'company_name'      => null,
+        ]);
+
+        $caught = null;
+        try {
+            $this->makeControllerWithThrowingMail()->register(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        // MailService a throw → catch L422-423 → flash + redirect
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('register_success', $_SESSION['flash'] ?? []);
+    }
+
+    // ================================================================
+    // register() — MailService throw après inscription nominale
+    // → catch L463-464 → flash register_success + redirect (L467-468)
+    // ================================================================
+
+    public function testRegisterNominalMailThrowCoveredByCatch(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/inscription';
+        $_POST = [
+            'account_type'     => 'individual',
+            'civility'         => 'M',
+            'lastname'         => 'New',
+            'firstname'        => 'User',
+            'email'            => 'newuser463@example.com',
+            'password'         => 'Vigilant7#xKqm',
+            'password_confirm' => 'Vigilant7#xKqm',
+            'company_name'     => '',
+            'newsletter'       => '0',
+            'csrf_token'       => 'valid-csrf',
+        ];
+
+        $stub = $this->setDbMock();
+        // findByEmail → false (email pas encore pris)
+        $stub->method('fetchOne')->willReturn(false);
+
+        $caught = null;
+        try {
+            $this->makeControllerWithThrowingMail()->register(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        // MailService throw → catch L463-464 → flash + redirect
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('register_success', $_SESSION['flash'] ?? []);
+    }
+
+    // ================================================================
+    // verifyEmail() — MailService throw dans sendWelcome
+    // → catch L528-529 → vue verify success quand même
+    // ================================================================
+
+    public function testVerifyEmailMailThrowCoveredByCatch(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/verification/tokenMAILTHROW';
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            [
+                'id'                       => 30,
+                'email'                    => 'mailthrow@example.com',
+                'email_verified_at'        => null,
+                'newsletter'               => 0,
+                'newsletter_optin_pending' => null,
+                'firstname'                => 'MailThrow',
+                'lang'                     => 'fr',
+            ],
+            ['majority_declared_at' => '2025-01-01 00:00:00']
+        );
+
+        $viewData = null;
+        $ctrl = new class (new \Core\Request()) extends AuthController {
+            /** @var array<string,mixed>|null */
+            public ?array $captured = null;
+
+            protected function newMailService(): \Service\MailService
+            {
+                throw new \RuntimeException('smtp-unavailable');
+            }
+
+            /** @param array<string,mixed> $data */
+            protected function view(string $tpl, array $data = [], int $httpStatus = 200): void
+            {
+                $this->captured = $data;
+            }
+        };
+
+        $ctrl->verifyEmail(['lang' => 'fr', 'token' => 'tokenMAILTHROW']);
+
+        // MailService throw → catch L528-529 → vue rendue quand même
+        $this->assertNotNull($ctrl->captured);
+        $this->assertTrue($ctrl->captured['success']);
+    }
+
+    // ================================================================
+    // forgot() — MailService throw dans sendPasswordReset
+    // → catch L619-620 → redirect quand même
+    // ================================================================
+
+    public function testForgotMailThrowCoveredByCatch(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/mot-de-passe-oublie';
+        $_POST = [
+            'email'      => 'forgot619@example.com',
+            'csrf_token' => 'valid-csrf',
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturn([
+            'id'                => 31,
+            'email'             => 'forgot619@example.com',
+            'email_verified_at' => '2024-01-01',
+            'role'              => 'customer',
+            'account_type'      => 'individual',
+            'firstname'         => 'Forgot',
+            'lastname'          => 'User',
+            'company_name'      => null,
+            'password'          => 'some-hash',
+            'lang'              => 'fr',
+        ]);
+
+        $caught = null;
+        try {
+            $this->makeControllerWithThrowingMail()->forgot(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        // MailService throw → catch L619-620 → redirect quand même
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('forgot_success', $_SESSION['flash'] ?? []);
+    }
+
+    // ================================================================
+    // resendActivation() — MailService throw dans sendEmailVerification
+    // → catch L780-781 → redirect quand même
+    // ================================================================
+
+    public function testResendActivationMailThrowCoveredByCatch(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/renvoyer-activation';
+        $_POST = [
+            'email'      => 'resend780@example.com',
+            'csrf_token' => 'valid-csrf',
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturn([
+            'id'                => 32,
+            'email'             => 'resend780@example.com',
+            'email_verified_at' => null,
+            'account_type'      => 'individual',
+            'firstname'         => 'Resend',
+            'lastname'          => 'User',
+            'company_name'      => null,
+        ]);
+
+        $caught = null;
+        try {
+            $this->makeControllerWithThrowingMail()->resendActivation(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        // MailService throw → catch L780-781 → flash + redirect
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('resend_activation_success', $_SESSION['flash'] ?? []);
+    }
+
+    // ================================================================
+    // handleBadCredentialsResult() — compte verrouillé (remaining > 0)
+    // → flash account_locked + redirect (L914-917)
+    // ================================================================
+
+    public function testHandleBadCredentialsResultWithLockedAccountFlashesLockedMessage(): void
+    {
+        $hash = $this->makeHash();
+        $_POST = ['email' => 'locked912@example.com', 'password' => 'WrongPass!', 'csrf_token' => 'valid-csrf'];
+
+        // Placer la clé de lockout pour l'account_id=99 dans la session
+        $_SESSION['_rl']['rl:account_lockout:99:until'] = time() + 600;
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturn([
+            'id'                => 99,
+            'email'             => 'locked912@example.com',
+            'password'          => 'not-a-valid-hash',
+            'role'              => 'customer',
+            'account_type'      => 'individual',
+            'has_connected'     => '1',
+            'email_verified_at' => '2025-01-01 00:00:00',
+            'lang'              => 'fr',
+            'firstname'         => 'Locked',
+            'lastname'          => 'Account',
+            'company_name'      => null,
+        ]);
+
+        $controller = new AuthController(new \Core\Request());
+        $prop = new ReflectionProperty(AuthController::class, 'rateLimiter');
+        $prop->setValue($controller, new class extends \Service\RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+        });
+
+        $caught = null;
+        try {
+            $controller->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+    }
+
+    // ================================================================
+    // handleUntrustedDevice() — MailService throw dans sendNewDeviceAlert
+    // → catch L1001-1002 → pending_device posé + redirect quand même
+    // ================================================================
+
+    public function testHandleUntrustedDeviceMailThrowCoveredByCatch(): void
+    {
+        $_ENV['MFA_EMAIL_ENABLED'] = 'true';
+
+        $hash = $this->makeHash();
+        $_POST = ['email' => 'mfa1001@example.com', 'password' => 'TestPass123!', 'csrf_token' => 'valid-csrf'];
+        // Pas de cookie device_token → appareil inconnu
+        $_COOKIE = [];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            $this->baseAccount(['password' => $hash, 'email' => 'mfa1001@example.com']),
+            false  // TrustedDeviceModel::isTrusted → non de confiance
+        );
+
+        $caught = null;
+        try {
+            $this->makeControllerWithThrowingMail()->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        // MailService throw → catch L1001-1002 → pending_device posé + redirect
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('pending_device', $_SESSION);
+    }
 }

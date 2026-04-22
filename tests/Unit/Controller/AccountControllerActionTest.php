@@ -3046,4 +3046,362 @@ class AccountControllerActionTest extends TestCase
         $decoded = json_decode((string) $output, true);
         $this->assertTrue($decoded['success'] ?? false);
     }
+
+    // ----------------------------------------------------------------
+    // cancelOrder() — sendReturnEmails throw → catch L340-341 (L339 = call site)
+    // ----------------------------------------------------------------
+
+    /**
+     * cancelOrder() cancelForUser=false + requestReturnForUser=true + sendReturnEmails throws
+     * → catch L340-341 swallows exception → redirect (no crash).
+     */
+    public function testCancelOrderSendReturnEmailsThrowSwallowed(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $accounts = $this->createStub(AccountModel::class);
+        $accounts->method('findById')->willReturn(['id' => 1, 'account_type' => 'individual']);
+
+        $order = [
+            'id'              => 10,
+            'payment_method'  => 'check',
+            'status'          => 'delivered',
+            'order_reference' => 'REF-THROW',
+        ];
+
+        $callCount = 0;
+        $orders = $this->createMock(OrderModel::class);
+        $orders->method('findDetailForUser')->willReturnCallback(
+            function () use (&$callCount, $order): mixed {
+                $callCount++;
+                if ($callCount === 1) {
+                    return $order; // Premier appel dans cancelOrder()
+                }
+                // Deuxième appel dans sendReturnEmails() → throw
+                throw new \RuntimeException('db-unavailable-in-test');
+            }
+        );
+        $orders->method('cancelForUser')->willReturn(false);
+        $orders->method('requestReturnForUser')->willReturn(true);
+
+        $ctrl = $this->makeController();
+        $this->inject($ctrl, 'accounts', $accounts);
+        $this->inject($ctrl, 'orders', $orders);
+
+        $this->expectException(HttpException::class);
+
+        ob_start();
+        try {
+            $ctrl->cancelOrder(['lang' => 'fr', 'id' => '10']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // newRefundService() — retourne un RefundService (seam L409-411)
+    // ----------------------------------------------------------------
+
+    /**
+     * newRefundService() retourne un RefundService (appel direct sur AccountController).
+     * Couvre les lignes 409-411 de la méthode protégée (seam de testabilité).
+     */
+    public function testNewRefundServiceReturnsInstance(): void
+    {
+        $ctrl = new \Controller\AccountController(new \Core\Request());
+        $ref  = new \ReflectionMethod(\Controller\AccountController::class, 'newRefundService');
+        $result = $ref->invoke($ctrl);
+        $this->assertInstanceOf(\Service\RefundService::class, $result);
+    }
+
+    // ----------------------------------------------------------------
+    // sendPdfResponse() — headers + body → L498-504
+    // ----------------------------------------------------------------
+
+    /**
+     * returnSlip() appelle sendPdfResponse() qui pose les headers et sort le PDF.
+     * TestableAccountController intercepte sendPdfResponse() (L498-504) et capture le filename.
+     * Note : buildReturnSlipPdf() (qui inclut TCPDF) est aussi exercé ici.
+     */
+    public function testReturnSlipCallsSendPdfResponse(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        $accounts = $this->createStub(AccountModel::class);
+        $accounts->method('findById')->willReturn([
+            'id' => 1, 'account_type' => 'individual',
+        ]);
+
+        $order = [
+            'id'              => 5,
+            'status'          => 'return_requested',
+            'order_reference' => 'PDF-REF-001',
+            'content'         => json_encode([
+                ['label_name' => 'Blanc sec', 'qty' => 6, 'price' => 12.5, 'vintage' => 2022],
+            ]),
+            'ordered_at'      => '2025-01-10 12:00:00',
+            'bill_civility'   => 'M',
+            'bill_firstname'  => 'Jean',
+            'bill_lastname'   => 'Dupont',
+            'bill_street'     => '12 rue de la Vigne',
+            'bill_zip'        => '33000',
+            'bill_city'       => 'Bordeaux',
+            'bill_country'    => 'France',
+        ];
+
+        $orders = $this->createStub(OrderModel::class);
+        $orders->method('findDetailForUser')->willReturn($order);
+
+        $ctrl = $this->makeController();
+        $this->inject($ctrl, 'accounts', $accounts);
+        $this->inject($ctrl, 'orders', $orders);
+
+        try {
+            $ctrl->returnSlip(['lang' => 'fr', 'id' => '5']);
+        } catch (HttpException $e) {
+            // TestableAccountController lance HttpException(200) depuis sendPdfResponse
+            $this->assertSame(200, $e->status);
+            $this->assertStringContainsString('PDF-REF-001', $ctrl->lastPdfFilename ?? '');
+            return;
+        }
+
+        $this->fail('sendPdfResponse() should have thrown HttpException(200)');
+    }
+
+    // ----------------------------------------------------------------
+    // returnSlip() — is_cuvee_speciale branch → L550
+    // ----------------------------------------------------------------
+
+    /**
+     * returnSlip() avec un item is_cuvee_speciale → couvre L550 de buildReturnSlipPdf.
+     */
+    public function testReturnSlipWithCuveeSpecialeCoversBranch(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        $accounts = $this->createStub(AccountModel::class);
+        $accounts->method('findById')->willReturn([
+            'id' => 1, 'account_type' => 'individual',
+        ]);
+
+        $order = [
+            'id'              => 6,
+            'status'          => 'return_requested',
+            'order_reference' => 'PDF-CS-002',
+            'content'         => json_encode([
+                [
+                    'label_name'       => 'Cuvée Or',
+                    'qty'              => 3,
+                    'price'            => 25.0,
+                    'vintage'          => 2021,
+                    'is_cuvee_speciale' => true,  // ← couvre L550
+                ],
+            ]),
+            'ordered_at'      => '2025-03-01 10:00:00',
+            'bill_civility'   => 'Mme',
+            'bill_firstname'  => 'Marie',
+            'bill_lastname'   => 'Martin',
+            'bill_street'     => '5 av. des Vins',
+            'bill_zip'        => '33000',
+            'bill_city'       => 'Bordeaux',
+            'bill_country'    => 'France',
+        ];
+
+        $orders = $this->createStub(OrderModel::class);
+        $orders->method('findDetailForUser')->willReturn($order);
+
+        $ctrl = $this->makeController();
+        $this->inject($ctrl, 'accounts', $accounts);
+        $this->inject($ctrl, 'orders', $orders);
+
+        try {
+            $ctrl->returnSlip(['lang' => 'fr', 'id' => '6']);
+        } catch (HttpException $e) {
+            $this->assertSame(200, $e->status);
+            $this->assertStringContainsString('PDF-CS-002', $ctrl->lastPdfFilename ?? '');
+            return;
+        }
+
+        $this->fail('sendPdfResponse() should have thrown HttpException(200)');
+    }
+
+    // ----------------------------------------------------------------
+    // changePassword() — MailService throw → catch L963-964
+    // ----------------------------------------------------------------
+
+    /**
+     * changePassword() valide + MailService throw dans sendPasswordChangeConfirmation
+     * → catch L963-964 swallows → flash security_success + redirect (L968-969).
+     */
+    public function testChangePasswordMailThrowCoveredByCatch(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'current_password'     => 'OldStr0ng!Pass',
+            'new_password'         => 'NewStr0ng!Pass1',
+            'new_password_confirm' => 'NewStr0ng!Pass1',
+            'csrf_token'           => 'test-csrf-token',
+        ];
+
+        $account = [
+            'id'        => 1,
+            'email'     => 'u@example.com',
+            'firstname' => 'Jean',
+            'lastname'  => 'Dupont',
+            'lang'      => 'fr',
+            'password'  => password_hash('OldStr0ng!Pass', PASSWORD_BCRYPT),
+        ];
+        $accounts = $this->createMock(AccountModel::class);
+        $accounts->method('findById')->willReturn($account);
+        $accounts->method('savePendingPassword');
+        $accounts->method('saveSecurityConfirmToken');
+
+        $rateLimiter = $this->createStub(RateLimiterService::class);
+        $rateLimiter->method('checkLimit')->willReturn(true);
+
+        $mailMock = $this->createMock(\Service\MailService::class);
+        $mailMock->method('sendPasswordChangeConfirmation')
+            ->willThrowException(new \RuntimeException('smtp-unavailable'));
+
+        $ctrl = $this->makeController();
+        $ctrl->fakeMailService = $mailMock;
+        $this->inject($ctrl, 'accounts', $accounts);
+        $ref = new \ReflectionProperty(\Controller\AccountController::class, 'rateLimiter');
+        $ref->setValue($ctrl, $rateLimiter);
+
+        $this->expectException(HttpException::class);
+
+        ob_start();
+        try {
+            $ctrl->changePassword(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // requestEmailChange() — AccountService throw \Throwable → catch L1297-1300
+    // ----------------------------------------------------------------
+
+    /**
+     * requestEmailChange() + AccountService lance \RuntimeException (pas HttpException)
+     * → catch L1297-1300 → flash profile_errors + redirect.
+     *
+     * Stratégie : accounts->findById() lève RuntimeException dans AccountService,
+     * ce qui est capturé par le catch \Throwable (L1297) dans AccountController.
+     */
+    public function testRequestEmailChangeGenericThrowableFlashesError(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'new_email'        => 'newemail@example.com',
+            'current_password' => 'AnyPass',
+            'csrf_token'       => 'test-csrf-token',
+        ];
+
+        // accounts->findById() lance RuntimeException (L65 de AccountService::requestEmailChange)
+        // → ce n'est pas un HttpException → capturé L1297 dans AccountController
+        $accounts = $this->createMock(AccountModel::class);
+        $accounts->method('findById')
+            ->willThrowException(new \RuntimeException('unexpected-db-error'));
+
+        $ctrl = $this->makeController();
+        $this->inject($ctrl, 'accounts', $accounts);
+
+        $this->expectException(HttpException::class);
+
+        ob_start();
+        try {
+            $ctrl->requestEmailChange(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // deleteAccount() — MailService throw → catch L1494-1495
+    // ----------------------------------------------------------------
+
+    /**
+     * deleteAccount() valid + MailService throw dans sendAccountDeletionConfirmation
+     * → catch L1494-1495 swallows → redirect quand même.
+     */
+    public function testDeleteAccountMailThrowCoveredByCatch(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'confirm_text'     => 'SUPPRESSION',
+            'confirm_password' => 'ValidPass1!',
+            'csrf_token'       => 'test-csrf-token',
+        ];
+
+        $accounts = $this->createMock(AccountModel::class);
+        $accounts->method('findById')->willReturn([
+            'id'           => 1,
+            'email'        => 'u@example.com',
+            'password'     => password_hash('ValidPass1!', PASSWORD_BCRYPT),
+            'firstname'    => 'Jean',
+            'lang'         => 'fr',
+            'company_name' => null,
+            'account_type' => 'individual',
+        ]);
+        $accounts->method('revokeAllSessions');
+        $accounts->method('delete');
+        $accounts->method('getReactivationToken')->willReturn('react-tok-123');
+
+        $mailMock = $this->createMock(\Service\MailService::class);
+        $mailMock->method('sendAccountDeletionConfirmation')
+            ->willThrowException(new \RuntimeException('smtp-unavailable'));
+
+        $ctrl = $this->makeController();
+        $ctrl->fakeMailService = $mailMock;
+        $this->inject($ctrl, 'accounts', $accounts);
+
+        $this->expectException(HttpException::class);
+
+        ob_start();
+        try {
+            $ctrl->deleteAccount(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // denySecurityAction() — MailService throw → catch L1595-1596
+    // ----------------------------------------------------------------
+
+    /**
+     * denySecurityAction() token valide + MailService throw dans sendPasswordChangeDenied
+     * → catch L1595-1596 swallows → vue success=true quand même.
+     */
+    public function testDenySecurityActionMailThrowCoveredByCatch(): void
+    {
+        $_GET = ['token' => 'denytoken1595'];
+
+        $account = ['id' => 7, 'email' => 'deny@example.com', 'lang' => 'fr'];
+        $accounts = $this->createMock(AccountModel::class);
+        $accounts->method('findBySecurityConfirmToken')->willReturn($account);
+        $accounts->method('clearPendingPassword');
+        $accounts->method('revokeAllSessions');
+        $accounts->method('consumeSecurityConfirmToken');
+
+        $devices = $this->createMock(\Model\TrustedDeviceModel::class);
+        $devices->method('deleteAllForUser');
+
+        $mailMock = $this->createMock(\Service\MailService::class);
+        $mailMock->method('sendPasswordChangeDenied')
+            ->willThrowException(new \RuntimeException('smtp-unavailable'));
+
+        $ctrl = $this->makeController();
+        $ctrl->fakeMailService = $mailMock;
+        $this->inject($ctrl, 'accounts', $accounts);
+        $this->inject($ctrl, 'trustedDevices', $devices);
+
+        $ctrl->denySecurityAction(['lang' => 'fr']);
+
+        // MailService throw → catch L1595-1596 → vue rendue quand même
+        $this->assertSame('account/security-deny', $ctrl->lastView);
+        $this->assertTrue($ctrl->lastViewData['success'] ?? false);
+    }
 }

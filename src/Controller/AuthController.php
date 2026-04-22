@@ -406,7 +406,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
                 : trim(($existingAccount['firstname'] ?? '') . ' ' . ($existingAccount['lastname'] ?? ''));
 
             try {
-                $mail = new MailService();
+                $mail = $this->newMailService();
                 if (empty($existingAccount['email_verified_at'])) {
                     // Compte créé mais pas encore activé (double-submit, premier mail perdu, relance) :
                     // on rafraîchit le token et on renvoie le mail de vérification — pas le mail "tentative".
@@ -458,7 +458,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
         $verifyUrl = APP_URL . "/{$lang}/verification/{$verificationToken}";
 
         try {
-            $mail = new MailService();
+            $mail = $this->newMailService();
             $mail->sendEmailVerification($email, $displayName, $verifyUrl, $lang);
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e);
@@ -518,7 +518,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
                 $confirmToken = bin2hex(random_bytes(32));
                 $this->accounts->storeNewsletterConfirmToken($accountId, $confirmToken);
             }
-            (new MailService())->sendWelcome(
+            $this->newMailService()->sendWelcome(
                 $account['email'],
                 $firstname,
                 $lang,
@@ -605,7 +605,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
                 : (($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
 
             try {
-                $mail = new MailService();
+                $mail = $this->newMailService();
 
                 if ($account['password'] === null) {
                     // Compte Google-only : pas de mot de passe, informer l'utilisateur
@@ -776,7 +776,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
                 ? ($account['company_name'] ?? '')
                 : trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
             try {
-                (new MailService())->sendEmailVerification($account['email'], $displayName, $verifyUrl, $lang);
+                $this->newMailService()->sendEmailVerification($account['email'], $displayName, $verifyUrl, $lang);
             } catch (\Throwable $e) {
                 \Core\ErrorLogger::warning($e);
             }
@@ -989,7 +989,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
             $displayName = $account['account_type'] === 'company'
                 ? ($account['company_name'] ?? 'Client')
                 : (trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? '')));
-            $mail = new MailService();
+            $mail = $this->newMailService();
             $mail->sendNewDeviceAlert(
                 $account['email'],
                 $displayName,
@@ -1007,5 +1007,15 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
             'mfa_token'   => $confirmToken,
         ];
         Response::redirect("/{$lang}/mon-compte/nouvel-appareil");
+    }
+
+    /**
+     * Instancie le MailService (seam de testabilité).
+     *
+     * @return MailService
+     */
+    protected function newMailService(): MailService
+    {
+        return new MailService();
     }
 }
