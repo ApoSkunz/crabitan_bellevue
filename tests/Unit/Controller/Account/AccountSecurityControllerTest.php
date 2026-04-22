@@ -1225,7 +1225,7 @@ class AccountSecurityControllerTest extends TestCase
         $accountModel->method('getPendingSessionToken')->willReturn('reqtoken');
 
         $connections = $this->createMock(ConnectionModel::class);
-        $connections->method('getDeviceTokenByToken')->with('reqtoken')->willReturn('device-xyz');
+        $connections->expects($this->once())->method('getDeviceTokenByToken')->with('reqtoken')->willReturn('device-xyz');
         $connections->expects($this->once())->method('revoke')->with('reqtoken');
 
         $devices = $this->createMock(TrustedDeviceModel::class);
