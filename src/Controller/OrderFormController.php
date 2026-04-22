@@ -6,6 +6,7 @@ namespace Controller;
 
 use Core\Controller;
 use Core\Response;
+use Middleware\AdminMiddleware;
 use Model\OrderFormModel;
 
 class OrderFormController extends Controller
@@ -13,17 +14,21 @@ class OrderFormController extends Controller
     private const STORAGE_DIR = ROOT_PATH . '/storage/order_forms';
 
     // ----------------------------------------------------------------
-    // GET /bons-de-commande/{id}/telecharger  (accès public)
+    // GET /bons-de-commande/{id}/telecharger  (admin uniquement)
     // ----------------------------------------------------------------
 
     /**
      * Télécharge le bon de commande PDF identifié par $params['id'].
+     * Accès restreint aux administrateurs — le PDF est transmis aux clients
+     * uniquement par email (pièce jointe), jamais via un lien public.
      *
      * @param array<string, string> $params Paramètres de route (id requis)
      * @return void
      */
     public function download(array $params): void
     {
+        AdminMiddleware::handle();
+
         $id   = (int) ($params['id'] ?? 0);
         $form = (new OrderFormModel())->findByIdOrNull($id);
 
@@ -42,7 +47,7 @@ class OrderFormController extends Controller
         header('Content-Type: application/pdf');
         header('Content-Disposition: inline; filename="' . $download . '"');
         header('Content-Length: ' . filesize($path));
-        header('Cache-Control: public, max-age=86400');
+        header('Cache-Control: private, no-store');
         readfile($path);
         $this->doExit();
     }
