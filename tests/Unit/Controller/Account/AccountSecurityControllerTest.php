@@ -448,6 +448,56 @@ class AccountSecurityControllerTest extends TestCase
         $this->assertSame('account.password_change_pending', $_SESSION['flash']['security_success'] ?? null);
     }
 
+    /**
+     * changePassword() valide pour compte entreprise (firstname+lastname vides)
+     * → displayName = company_name (L180). Aussi couvre catch L191-192 (SMTP down).
+     */
+    public function testChangePasswordValidCompanyAccountUsesCompanyNameAndAbsorbsMailException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'current_password'      => 'OldStr0ng!Pass',
+            'new_password'          => 'NewStr0ng!Pass1',
+            'new_password_confirm'  => 'NewStr0ng!Pass1',
+        ];
+
+        $account = [
+            'id'           => 2,
+            'email'        => 'corp@example.com',
+            'firstname'    => null,
+            'lastname'     => null,
+            'company_name' => 'Ma Société',
+            'lang'         => 'fr',
+            'password'     => password_hash('OldStr0ng!Pass', PASSWORD_BCRYPT),
+        ];
+
+        $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findById')->willReturn($account);
+        $userRepo->method('savePendingPassword');
+        $userRepo->method('saveSecurityConfirmToken');
+
+        $rateLimiter = $this->createStub(\Service\RateLimiterService::class);
+        $rateLimiter->method('checkLimit')->willReturn(true);
+
+        $mailMock = $this->createMock(\Service\MailService::class);
+        $mailMock->method('sendPasswordChangeConfirmation')
+            ->willThrowException(new \RuntimeException('SMTP down'));
+
+        $ctrl = $this->makeController($userRepo);
+        $ctrl->fakeMailService = $mailMock;
+        $ref = new \ReflectionProperty(AccountSecurityController::class, 'rateLimiter');
+        $ref->setValue($ctrl, $rateLimiter);
+
+        $this->expectException(HttpException::class);
+
+        ob_start();
+        try {
+            $ctrl->changePassword(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
     // ----------------------------------------------------------------
     // revokeAllUserSessions()
     // ----------------------------------------------------------------

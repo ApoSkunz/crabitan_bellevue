@@ -128,10 +128,41 @@ class RgpdAdminControllerCoverageTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST = ['status' => 'traitee', 'response_note' => ''];
 
-        $ctrl = $this->makeController();
+        // Stub Database::instance : fetchOne retourne findById, execute retourne 0 (updateStatus false)
+        $dbMock = $this->createStub(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturn([
+            'id'              => 5,
+            'type'            => 'acces',
+            'requester_email' => 'user@test.com',
+            'requester_name'  => 'User Test',
+            'status'          => 'nouvelle',
+        ]);
+        $dbMock->method('execute')->willReturn(0); // 0 lignes → updateStatus() retourne false
+        $this->dbInstanceProp->setValue(null, $dbMock);
 
-        // Stub RgpdRequestModel : findById retourne une demande valide,
-        // updateStatus retourne false
+        $realCtrl = $this->makeController();
+
+        $caught = null;
+        try {
+            $realCtrl->updateStatus(['id' => '5']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $errors = $realCtrl->flashes['error'] ?? [];
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('Erreur', $errors[0]);
+    }
+
+    /**
+     * Sous-classe anonyme historique — conservée pour référence.
+     *
+     * @return void
+     */
+    public function legacyTestUpdateStatusFlashesErrorWhenModelUpdateFails(): void // NOSONAR — test legacy
+    {
         $rgpdModel = $this->createMock(RgpdRequestModel::class);
         $rgpdModel->method('findById')->willReturn([
             'id'              => 5,
