@@ -2,6 +2,15 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.21.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.21.0...v1.21.1) (2026-04-22)
+
+
+### Bug Fixes
+
+* **security:** restreindre /bons-de-commande/{id}/telecharger à admin (IDOR) ([9e51fce](https://github.com/ApoSkunz/crabitan_bellevue/commit/9e51fce54408dc6048067898608b35b3b017f9f9))
+* **seo:** whitelister sitemaps et robots.txt dans isPublicPath (age-gate bypass) ([25af07c](https://github.com/ApoSkunz/crabitan_bellevue/commit/25af07c637efdea0e3ddca17d47b983130cec944))
+* **tests:** extraire requireAdminAccess() seam pour débloquer OrderFormControllerTest ([67cdb7d](https://github.com/ApoSkunz/crabitan_bellevue/commit/67cdb7dde83e0344407c76e504dcc9891e03cd65))
+
 # [1.21.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.20.0...v1.21.0) (2026-04-21)
 
 
