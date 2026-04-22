@@ -23,6 +23,19 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     private const LOG_ORDER_REF    = ' commande #';
 
     /**
+     * Seam de testabilité : instancie le service d'envoi d'emails.
+     *
+     * Permet aux tests unitaires d'injecter un mock qui ne tente pas
+     * de se connecter à SMTP, afin de couvrir les branches post-send.
+     *
+     * @return \Service\MailService
+     */
+    protected function newMailService(): \Service\MailService
+    {
+        return new \Service\MailService();
+    }
+
+    /**
      * Exécute le job cron demandé après vérification du token.
      *
      * @param array<string, string> $params Paramètres de route (job)
@@ -323,7 +336,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     private function doJobSendDeletionReminders(callable $log, bool $dryRun): void
     {
         $model   = new \Model\AccountModel();
-        $mailer  = new \Service\MailService();
+        $mailer  = $this->newMailService();
         $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
         $sent    = 0;
 
@@ -594,7 +607,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     {
         $orderModel   = new \Model\OrderModel();
         $accountModel = new \Model\AccountModel();
-        $mailer       = new \Service\MailService();
+        $mailer       = $this->newMailService();
 
         $orders = $orderModel->getDeliveredForRatingEmail();
         $log('Commandes éligibles notation : ' . count($orders));
@@ -954,7 +967,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     private function doJobAlertPendingOrders(callable $log, bool $dryRun): void
     {
         $model       = new \Model\OrderModel();
-        $mailer      = new \Service\MailService();
+        $mailer      = $this->newMailService();
         $staleOrders = $model->getStaleOrders(7);
 
         if (empty($staleOrders)) {
@@ -1170,7 +1183,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
         $orderModel   = new \Model\OrderModel();
         $accountModel = new \Model\AccountModel();
         $reviewModel  = new \Model\ReviewModel();
-        $mailer       = new \Service\MailService();
+        $mailer       = $this->newMailService();
 
         $orders = $orderModel->getDeliveredForReviewEmail();
         $log('Commandes éligibles demande avis : ' . count($orders));

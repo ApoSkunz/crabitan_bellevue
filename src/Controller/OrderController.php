@@ -57,6 +57,26 @@ class OrderController extends Controller
         $this->wines      = new WineModel();
     }
 
+    /**
+     * Retourne le dossier de stockage des factures (seam de testabilité).
+     *
+     * @return string Chemin absolu du dossier de factures
+     */
+    protected function getInvoiceDir(): string
+    {
+        return ROOT_PATH . '/storage/invoices';
+    }
+
+    /**
+     * Instancie le MailService (seam de testabilité).
+     *
+     * @return \Service\MailService
+     */
+    protected function newMailService(): \Service\MailService
+    {
+        return new \Service\MailService();
+    }
+
     // ----------------------------------------------------------------
     // GET /{lang}/commande
     // ----------------------------------------------------------------
@@ -863,7 +883,7 @@ class OrderController extends Controller
                 return;
             }
             $invoiceNumber = sprintf('WEB-INVOICE-%s-%04d', date('Y'), (int) $order['id']);
-            $invoiceDir    = ROOT_PATH . '/storage/invoices';
+            $invoiceDir    = $this->getInvoiceDir();
             if (!is_dir($invoiceDir)) {
                 mkdir($invoiceDir, 0755, true);
             }
@@ -960,7 +980,7 @@ class OrderController extends Controller
         ?array $pdfContext = null
     ): void {
         try {
-            $mailer = new \Service\MailService();
+            $mailer = $this->newMailService();
             $mailer->sendOrderConfirmationToClient(
                 $email,
                 $name,

@@ -65,6 +65,38 @@ class OrderAdminController extends AdminController
         return move_uploaded_file($src, $dest);
     }
 
+    /**
+     * Retourne le dossier de stockage des factures (seam de testabilité).
+     *
+     * @return string Chemin absolu du dossier de factures (sans slash final)
+     */
+    protected function getInvoiceDir(): string
+    {
+        return ROOT_PATH . '/storage/invoices';
+    }
+
+    /**
+     * Envoie le contenu binaire d'un fichier au client (seam de testabilité).
+     *
+     * @param string $path Chemin absolu du fichier à streamer
+     * @return void
+     */
+    protected function streamFile(string $path): void
+    {
+        readfile($path); // nosemgrep: php.lang.security.injection.tainted-filename.tainted-filename
+    }
+
+    /**
+     * Termine l'exécution du script après l'envoi des headers de download
+     * (seam de testabilité).
+     *
+     * @return never
+     */
+    protected function doExit(): never
+    {
+        exit;
+    }
+
     // ----------------------------------------------------------------
     // GET /admin/commandes
     // ----------------------------------------------------------------
@@ -266,7 +298,7 @@ class OrderAdminController extends AdminController
                 );
                 if ($fullOrder !== null) {
                     $invoiceNumber = sprintf('WEB-INVOICE-%s-%04d', date('Y'), $id);
-                    $invoiceDir    = ROOT_PATH . '/storage/invoices';
+                    $invoiceDir    = $this->getInvoiceDir();
                     if (!is_dir($invoiceDir)) {
                         mkdir($invoiceDir, 0755, true);
                     }
@@ -354,7 +386,7 @@ class OrderAdminController extends AdminController
             Response::redirect(self::ADMIN_URL . '/' . $id);
         }
 
-        $destDir = ROOT_PATH . '/storage/invoices/';
+        $destDir = $this->getInvoiceDir() . '/';
         if (!is_dir($destDir)) {
             mkdir($destDir, 0750, true);
         }
@@ -405,8 +437,8 @@ class OrderAdminController extends AdminController
         header('Content-Disposition: inline; filename="facture_' . $order['order_reference'] . '.pdf"');
         header('Content-Length: ' . filesize($filePath));
         header('Cache-Control: private, no-cache');
-        readfile($filePath);
-        exit;
+        $this->streamFile($filePath);
+        $this->doExit();
     }
 
     // ----------------------------------------------------------------
@@ -451,7 +483,7 @@ class OrderAdminController extends AdminController
         header('Content-Disposition: inline; filename="' . $filename . '"');
         header('Content-Length: ' . filesize($filePath));
         header('Cache-Control: private, no-cache');
-        readfile($filePath);
-        exit;
+        $this->streamFile($filePath);
+        $this->doExit();
     }
 }

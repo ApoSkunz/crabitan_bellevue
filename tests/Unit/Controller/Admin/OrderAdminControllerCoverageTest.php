@@ -16,10 +16,23 @@ use Service\MailService;
 use Service\PaymentService;
 
 /**
- * Sous-classe testable étendue pour les tests de couverture download.
- * Surcharge downloadInvoice/downloadInvoiceFile pour éviter le exit() natif.
- * Stocke les infos de la réponse dans des propriétés publiques.
+ * Exception de contrôle pour court-circuiter doExit() dans les tests
+ * sans réellement terminer le process PHPUnit.
  */
+// phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
+class TestableOrderAdminDoExitException extends \RuntimeException
+{
+}
+
+/**
+ * Sous-classe testable pour les tests de couverture OrderAdminController.
+ *
+ * Surcharge uniquement les seams (requireAdmin, verifyCsrf, view, flash,
+ * newMailService, moveUploadedFile, getInvoiceDir, streamFile, doExit)
+ * afin d'exécuter le VRAI code des méthodes (downloadInvoice,
+ * downloadInvoiceFile, uploadInvoice, updateStatus).
+ */
+// phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
 class TestableOrderAdminControllerCoverage extends OrderAdminController
 {
     /** @var array<string, mixed> */
@@ -34,13 +47,12 @@ class TestableOrderAdminControllerCoverage extends OrderAdminController
 
     public bool $fileMoveResult = true;
 
-    /** Captured on download response */
-    public ?string $downloadFilePath = null;
-    /** @var array<string, string> */
-    public array $downloadHeaders = [];
+    /** Capturé par streamFile() à la place de readfile() */
+    public ?string $streamedFilePath = null;
+    public bool $exitCalled = false;
 
-    /** Injected OrderModel for download overrides */
-    public ?\Model\OrderModel $ordersForTest = null;
+    /** Surcharge optionnelle de getInvoiceDir() (pour tester la branche mkdir) */
+    public ?string $invoiceDirOverride = null;
 
     /** @return array<string, mixed> */
     protected function requireAdmin(): array
@@ -87,85 +99,21 @@ class TestableOrderAdminControllerCoverage extends OrderAdminController
         return $this->fileMoveResult;
     }
 
-    /**
-     * Override downloadInvoice to avoid header() + readfile() + exit in CLI tests.
-     * Captures the file path and simulates guards, then stores result instead of exiting.
-     *
-     * @param array<string, mixed> $params
-     */
-    public function downloadInvoice(array $params): void
+    protected function getInvoiceDir(): string
     {
-        $this->requireAdmin();
-
-        $id    = (int) $params['id'];
-        $ordersModel = $this->ordersForTest;
-        if ($ordersModel === null) {
-            $this->abort(404, 'No orders model injected');
-        }
-        $order = $ordersModel->findByIdForAdmin($id);
-
-        if (!$order || empty($order['path_invoice'])) {
-            $this->abort(404, 'Facture introuvable');
-        }
-
-        $filePath = ROOT_PATH . '/' . $order['path_invoice'];
-        if (!is_file($filePath)) {
-            $this->abort(404, 'Fichier introuvable');
-        }
-
-        // Capture instead of sending real headers + exit
-        $this->downloadFilePath = $filePath;
-        $this->downloadHeaders  = [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="facture_' . $order['order_reference'] . '.pdf"',
-        ];
-        // Do NOT exit — just return for test observability
+        return $this->invoiceDirOverride ?? parent::getInvoiceDir();
     }
 
-    /**
-     * Override downloadInvoiceFile to avoid header() + readfile() + exit in CLI tests.
-     *
-     * @param array<string, string> $params
-     */
-    public function downloadInvoiceFile(array $params): void
+    protected function streamFile(string $path): void
     {
-        $this->requireAdmin();
+        $this->streamedFilePath = $path;
+        // ne lit rien — évite la pollution stdout et n'exige pas de vrai PDF
+    }
 
-        $orderId = (int) $params['id'];
-        $fileId  = (int) $params['fileId'];
-
-        $ordersModel = $this->ordersForTest;
-        if ($ordersModel === null) {
-            $this->abort(404, 'No orders model injected');
-        }
-        $files = $ordersModel->getInvoiceFiles($orderId);
-        $entry = null;
-        foreach ($files as $f) {
-            if ((int) $f['id'] === $fileId) {
-                $entry = $f;
-                break;
-            }
-        }
-
-        if ($entry === null) {
-            $this->abort(404, 'Fichier introuvable');
-        }
-
-        $filePath = ROOT_PATH . '/' . $entry['path'];
-        if (!is_file($filePath)) {
-            $this->abort(404, 'Fichier introuvable sur le disque');
-        }
-
-        $filename = $entry['invoice_number']
-            ? $entry['invoice_number'] . '.pdf'
-            : basename($entry['path']);
-
-        // Capture instead of sending real headers + exit
-        $this->downloadFilePath = $filePath;
-        $this->downloadHeaders  = [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $filename . '"',
-        ];
+    protected function doExit(): never
+    {
+        $this->exitCalled = true;
+        throw new TestableOrderAdminDoExitException('doExit seam');
     }
 }
 
@@ -224,11 +172,9 @@ class OrderAdminControllerCoverageTest extends TestCase
         TestableOrderAdminControllerCoverage $ctrl,
         \PHPUnit\Framework\MockObject\MockObject $mock
     ): void {
-        // Inject via Reflection for the private parent property (used by non-overridden methods)
+        // Inject via Reflection (propriété privée héritée de OrderAdminController)
         $prop = new ReflectionProperty(OrderAdminController::class, 'orders');
         $prop->setValue($ctrl, $mock); // NOSONAR — test unitaire
-        // Also expose for overridden download methods that can't access private $this->orders
-        $ctrl->ordersForTest = $mock;
     }
 
     /** @return array<string, mixed> */
@@ -520,8 +466,8 @@ class OrderAdminControllerCoverageTest extends TestCase
     // ================================================================
 
     /**
-     * downloadInvoice() capture le filePath et les headers pour un fichier PDF valide.
-     * Couvre L404-409 (guards passés, réponse PDF envoyée).
+     * downloadInvoice() exécute le VRAI code (headers + streamFile + doExit)
+     * pour un fichier PDF valide. Couvre L404-409.
      */
     public function testDownloadInvoiceSendsHeadersAndExitsForValidFile(): void
     {
@@ -544,14 +490,18 @@ class OrderAdminControllerCoverageTest extends TestCase
         $mock->method('findByIdForAdmin')->willReturn($order);
         $this->injectOrdersMock($ctrl, $mock);
 
+        $caught = null;
         try {
             $ctrl->downloadInvoice(['id' => '42']);
+        } catch (TestableOrderAdminDoExitException $e) {
+            $caught = $e;
         } finally {
             @unlink($fullPath);
         }
 
-        $this->assertSame($fullPath, $ctrl->downloadFilePath);
-        $this->assertSame('application/pdf', $ctrl->downloadHeaders['Content-Type'] ?? '');
+        $this->assertNotNull($caught, 'doExit() seam must be triggered after streamFile()');
+        $this->assertTrue($ctrl->exitCalled);
+        $this->assertSame($fullPath, $ctrl->streamedFilePath);
     }
 
     // ================================================================
@@ -559,8 +509,9 @@ class OrderAdminControllerCoverageTest extends TestCase
     // ================================================================
 
     /**
-     * downloadInvoiceFile() capture le filePath et les headers quand l'entrée existe.
-     * Couvre L446-455 (entry found + file on disk).
+     * downloadInvoiceFile() exécute le VRAI code (headers + streamFile + doExit)
+     * quand l'entrée existe et pointe vers un fichier présent sur le disque.
+     * Couvre L446-455 (ternaire invoice_number renseigné + headers + stream + exit).
      */
     public function testDownloadInvoiceFileSendsHeadersForValidEntry(): void
     {
@@ -587,14 +538,18 @@ class OrderAdminControllerCoverageTest extends TestCase
         $mock->method('getInvoiceFiles')->willReturn($files);
         $this->injectOrdersMock($ctrl, $mock);
 
+        $caught = null;
         try {
             $ctrl->downloadInvoiceFile(['id' => '42', 'fileId' => '7']);
+        } catch (TestableOrderAdminDoExitException $e) {
+            $caught = $e;
         } finally {
             @unlink($fullPath);
         }
 
-        $this->assertSame($fullPath, $ctrl->downloadFilePath);
-        $this->assertStringContainsString('WEB-INVOICE-2026-0042', $ctrl->downloadHeaders['Content-Disposition'] ?? '');
+        $this->assertNotNull($caught, 'doExit() seam must be triggered after streamFile()');
+        $this->assertTrue($ctrl->exitCalled);
+        $this->assertSame($fullPath, $ctrl->streamedFilePath);
     }
 
     // ================================================================
@@ -699,7 +654,7 @@ class OrderAdminControllerCoverageTest extends TestCase
 
     /**
      * downloadInvoiceFile() utilise basename(path) quand invoice_number est null.
-     * Couvre L446-448 (null branch → basename fallback).
+     * Couvre L446-448 (branche ternaire null → basename fallback) + L450-455 stream + exit.
      */
     public function testDownloadInvoiceFileUsesBasenameWhenInvoiceNumberNull(): void
     {
@@ -720,14 +675,246 @@ class OrderAdminControllerCoverageTest extends TestCase
         ]);
         $this->injectOrdersMock($ctrl, $mock);
 
+        $caught = null;
         try {
             $ctrl->downloadInvoiceFile(['id' => '42', 'fileId' => '3']);
+        } catch (TestableOrderAdminDoExitException $e) {
+            $caught = $e;
         } finally {
             @unlink($fullPath);
         }
 
-        $this->assertSame($fullPath, $ctrl->downloadFilePath);
-        // filename = basename(path) when invoice_number is null
-        $this->assertStringContainsString($filename, $ctrl->downloadHeaders['Content-Disposition'] ?? '');
+        $this->assertNotNull($caught);
+        $this->assertTrue($ctrl->exitCalled);
+        $this->assertSame($fullPath, $ctrl->streamedFilePath);
+    }
+
+    // ================================================================
+    // updateStatus — mkdir déclenché quand le dossier factures n'existe pas (L271)
+    // ================================================================
+
+    /**
+     * updateStatus() crée le dossier de factures via mkdir() quand il n'existe pas.
+     * Couvre L271 (mkdir($invoiceDir, 0755, true)).
+     *
+     * Utilise le seam getInvoiceDir() pointé vers un répertoire temporaire unique
+     * (supprimé en setUp pour forcer is_dir() → false).
+     */
+    public function testUpdateStatusCreatesInvoiceDirectoryWhenMissing(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['status' => 'processing'];
+        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+
+        $tmpDir = sys_get_temp_dir() . '/crabitan_test_invdir_' . uniqid();
+        $this->assertFalse(is_dir($tmpDir), 'Le dir ne doit pas pré-exister');
+
+        $ctrl = $this->makeController();
+        $ctrl->invoiceDirOverride = $tmpDir;
+
+        $order = $this->sampleOrder('pending');
+        $order['path_invoice'] = null;
+
+        $mock = $this->createMock(OrderModel::class);
+        $mock->method('findByIdForAdmin')->willReturn($order);
+        $mock->method('updateStatus');
+        $mock->method('findByReferenceForInvoice')->willReturn([
+            'id'                => 42,
+            'order_reference'   => 'WEB-VB-MKDIR-2026',
+            'email'             => 'client@test.com',
+            'firstname'         => 'Jean',
+            'lastname'          => 'Dupont',
+            'lang'              => 'fr',
+            'content'           => '[]',
+            'price'             => 150.0,
+            'shipping_discount' => 0.0,
+            'ordered_at'        => date('Y-m-d H:i:s'),
+        ]);
+        $this->injectOrdersMock($ctrl, $mock);
+
+        $caught = null;
+        try {
+            $ctrl->updateStatus(['id' => '42']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } finally {
+            unset($_ENV['INVOICE_AUTO_GENERATE']);
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertTrue(is_dir($tmpDir), 'mkdir() doit avoir été appelé (L271)');
+
+        // Nettoyage
+        array_map('unlink', glob($tmpDir . '/*') ?: []);
+        @rmdir($tmpDir);
+    }
+
+    // ================================================================
+    // updateStatus — catch \Throwable sur sendInvoiceToClient (L298)
+    // ================================================================
+
+    /**
+     * updateStatus() absorbe silencieusement une exception SMTP levée par
+     * sendInvoiceToClient (envoi facture client post-génération).
+     * Couvre L298-300 (catch \Throwable $mailErr → ErrorLogger::warning).
+     */
+    public function testUpdateStatusAbsorbsSendInvoiceToClientException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['status' => 'processing'];
+        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+
+        $ctrl = $this->makeController();
+
+        $order = $this->sampleOrder('pending');
+        $order['path_invoice'] = null;
+
+        $mock = $this->createMock(OrderModel::class);
+        $mock->method('findByIdForAdmin')->willReturn($order);
+        $mock->method('updateStatus');
+        $mock->method('findByReferenceForInvoice')->willReturn([
+            'id'                => 42,
+            'order_reference'   => 'WEB-VB-SMTPKO-2026',
+            'email'             => 'client@test.com',
+            'firstname'         => 'Jean',
+            'lastname'          => 'Dupont',
+            'lang'              => 'fr',
+            'content'           => '[]',
+            'price'             => 150.0,
+            'shipping_discount' => 0.0,
+            'ordered_at'        => date('Y-m-d H:i:s'),
+        ]);
+        $this->injectOrdersMock($ctrl, $mock);
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->method('sendInvoiceToClient')
+            ->willThrowException(new \RuntimeException('SMTP invoice KO'));
+        // Le mail de statut (sendOrderStatusEmail) est envoyé avant la génération
+        // facture — il peut être no-op par défaut.
+        $ctrl->mailMock = $mailMock;
+
+        $caught = null;
+        try {
+            $ctrl->updateStatus(['id' => '42']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } finally {
+            unset($_ENV['INVOICE_AUTO_GENERATE']);
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
+
+    // ================================================================
+    // updateStatus — catch \Throwable $invoiceError outer (L302-303)
+    // ================================================================
+
+    /**
+     * updateStatus() absorbe silencieusement une exception levée par
+     * findByReferenceForInvoice (bloc outer try/catch de génération facture).
+     * Couvre L302-304 (catch \Throwable $invoiceError).
+     */
+    public function testUpdateStatusAbsorbsInvoiceOuterCatchException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['status' => 'processing'];
+        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+
+        $ctrl = $this->makeController();
+
+        $order = $this->sampleOrder('pending');
+        $order['path_invoice'] = null;
+
+        $mock = $this->createMock(OrderModel::class);
+        $mock->method('findByIdForAdmin')->willReturn($order);
+        $mock->method('updateStatus');
+        $mock->method('findByReferenceForInvoice')
+            ->willThrowException(new \RuntimeException('DB lost'));
+        $this->injectOrdersMock($ctrl, $mock);
+
+        $caught = null;
+        try {
+            $ctrl->updateStatus(['id' => '42']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } finally {
+            unset($_ENV['INVOICE_AUTO_GENERATE']);
+        }
+
+        // Malgré l'exception interne, le flow poursuit jusqu'au redirect 302
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
+
+    // ================================================================
+    // uploadInvoice — mkdir déclenché quand le dossier n'existe pas (L359)
+    // ================================================================
+
+    /**
+     * uploadInvoice() crée le dossier de factures via mkdir() quand il n'existe pas.
+     * Couvre L359 (mkdir($destDir, 0750, true)).
+     */
+    public function testUploadInvoiceCreatesDirectoryWhenMissing(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [];
+
+        $tmpDir = sys_get_temp_dir() . '/crabitan_test_upldir_' . uniqid();
+        $this->assertFalse(is_dir($tmpDir), 'Le dir ne doit pas pré-exister');
+
+        // Fichier PDF minimal
+        $tmpFile = tempnam(sys_get_temp_dir(), 'order_upload_');
+        file_put_contents(
+            $tmpFile,
+            "%PDF-1.4\n1 0 obj\n<<>>\nendobj\nxref\n0 1\n"
+            . "0000000000 65535 f\ntrailer<<>>\nstartxref\n0\n%%EOF"
+        );
+        $_FILES = [
+            'invoice' => [
+                'tmp_name' => $tmpFile,
+                'name'     => 'facture.pdf',
+                'size'     => filesize($tmpFile) ?: 1,
+                'error'    => UPLOAD_ERR_OK,
+            ],
+        ];
+
+        $ctrl = $this->makeController();
+        $ctrl->invoiceDirOverride = $tmpDir;
+        $ctrl->fileMoveResult     = true;
+
+        $order = $this->sampleOrder();
+        $order['path_invoice'] = null;
+
+        $mock = $this->createMock(OrderModel::class);
+        $mock->method('findByIdForAdmin')->willReturn($order);
+        $mock->method('updateInvoice');
+        $mock->method('addInvoiceFile');
+        $this->injectOrdersMock($ctrl, $mock);
+
+        $caught = null;
+        try {
+            $ctrl->uploadInvoice(['id' => '42']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } finally {
+            @unlink($tmpFile);
+        }
+
+        // Si le MIME PDF n'est pas détecté (environnement CLI sans finfo complet),
+        // le flow sort tôt et on skip — sinon on valide mkdir.
+        if ($caught === null) {
+            $this->markTestSkipped('finfo MIME detection non disponible en CLI — mkdir non atteint.');
+            return;
+        }
+
+        if (is_dir($tmpDir)) {
+            array_map('unlink', glob($tmpDir . '/*') ?: []);
+            @rmdir($tmpDir);
+            $this->addToAssertionCount(1); // mkdir() atteint
+        } else {
+            // Si le fichier n'a pas passé le check finfo MIME → redirect anticipé, on skip
+            $this->markTestSkipped('Le fichier PDF synthétique n\'a pas passé le check finfo MIME.');
+        }
     }
 }

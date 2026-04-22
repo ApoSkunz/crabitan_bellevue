@@ -374,7 +374,7 @@ class WineAdminController extends AdminController
                 $this->wines->resetLowStockNotified($id);
             }
             try {
-                (new StockNotificationService())->notifyIfThresholdCrossed($wine, $newStock);
+                $this->newStockNotificationService()->notifyIfThresholdCrossed($wine, $newStock);
             } catch (\Throwable $e) {
                 \Core\ErrorLogger::warning($e);
             }
@@ -782,5 +782,18 @@ class WineAdminController extends AdminController
             'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U',
             'Ý' => 'Y',
         ]);
+    }
+
+    /**
+     * Seam de testabilité : instancie le service de notification stock bas.
+     *
+     * Permet aux tests unitaires d'injecter un mock qui lève une exception
+     * pour couvrir le catch block de update().
+     *
+     * @return StockNotificationService
+     */
+    protected function newStockNotificationService(): StockNotificationService
+    {
+        return new StockNotificationService();
     }
 }
