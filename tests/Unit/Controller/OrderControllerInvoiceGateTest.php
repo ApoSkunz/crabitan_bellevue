@@ -11,6 +11,7 @@ use Model\OrderModel;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use ReflectionProperty;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires OrderController — gating INVOICE_AUTO_GENERATE.
@@ -19,6 +20,7 @@ use ReflectionProperty;
  * avec IpnController et OrderAdminController : la facture n'est pas générée
  * automatiquement quand la variable d'environnement est à "false".
  */
+#[AllowMockObjectsWithoutExpectations]
 class OrderControllerInvoiceGateTest extends TestCase
 {
     private \ReflectionProperty $dbInstanceProp;

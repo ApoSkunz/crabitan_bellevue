@@ -10,11 +10,13 @@ use Model\AccountModel;
 use Model\RatingModel;
 use Model\ReviewModel;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour ReviewController.
  * Utilise une sous-classe de test pour capturer redirects/views/aborts sans rendu réel.
  */
+#[AllowMockObjectsWithoutExpectations]
 class ReviewControllerTest extends TestCase
 {
     private \ReflectionProperty $instanceProp;

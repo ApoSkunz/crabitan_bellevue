@@ -9,12 +9,14 @@ use PHPUnit\Framework\TestCase;
 use Service\GaeApiInterface;
 use Service\MailService;
 use Service\RefundService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires de RefundService.
  *
  * Couvre les deux branches CA_ENABLE_GAE=true et CA_ENABLE_GAE=false.
  */
+#[AllowMockObjectsWithoutExpectations]
 class RefundServiceTest extends TestCase
 {
     private OrderModel&\PHPUnit\Framework\MockObject\MockObject $ordersMock;

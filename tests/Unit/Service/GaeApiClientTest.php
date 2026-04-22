@@ -7,12 +7,14 @@ namespace Tests\Unit\Service;
 use PHPUnit\Framework\TestCase;
 use Service\GaeApiClient;
 use Service\PaymentService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires de GaeApiClient.
  *
  * Vérifie la délégation vers PaymentService::callGaeCancelOrRefund().
  */
+#[AllowMockObjectsWithoutExpectations]
 class GaeApiClientTest extends TestCase
 {
     public function testRefundDelegatesToPaymentServiceAndReturnsTrue(): void

@@ -7,11 +7,13 @@ namespace Tests\Unit\Model;
 use Core\Database;
 use Model\CartModel;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour CartModel.
  * La base de données est mockée — aucune connexion réelle requise.
  */
+#[AllowMockObjectsWithoutExpectations]
 class CartModelTest extends TestCase
 {
     private Database $dbMock;

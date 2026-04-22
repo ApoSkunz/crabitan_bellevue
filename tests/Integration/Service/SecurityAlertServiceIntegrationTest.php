@@ -8,6 +8,7 @@ use Service\MailService;
 use Service\RateLimiterService;
 use Service\SecurityAlertService;
 use Tests\Integration\IntegrationTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests d'intégration de SecurityAlertService.
@@ -15,6 +16,7 @@ use Tests\Integration\IntegrationTestCase;
  * Vérifie que 3 échecs consécutifs déclenchent bien l'envoi de l'alerte email
  * en utilisant la session PHP comme backend (pas APCu en CLI).
  */
+#[AllowMockObjectsWithoutExpectations]
 class SecurityAlertServiceIntegrationTest extends IntegrationTestCase
 {
     private SecurityAlertService $service;

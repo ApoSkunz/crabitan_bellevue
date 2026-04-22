@@ -18,11 +18,13 @@ use Model\RgpdExportLogModel;
 use Model\TrustedDeviceModel;
 use PHPUnit\Framework\TestCase;
 use Service\RateLimiterService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires des actions publiques d'AccountController (legacy).
  * Utilise TestableAccountController pour isoler auth, CSRF, view, redirect, abort.
  */
+#[AllowMockObjectsWithoutExpectations]
 class AccountControllerActionTest extends TestCase
 {
     private \ReflectionProperty $dbInstanceProp;

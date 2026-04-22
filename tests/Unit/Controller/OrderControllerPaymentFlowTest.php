@@ -9,6 +9,7 @@ use Core\Database;
 use Core\Exception\HttpException;
 use Core\Request;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests du flux paiement dans OrderController.
@@ -24,6 +25,7 @@ use PHPUnit\Framework\TestCase;
  * Les branches nécessitant une vraie signature RSA utilisent une paire
  * de clés générée dynamiquement en mémoire dans le setUp.
  */
+#[AllowMockObjectsWithoutExpectations]
 class OrderControllerPaymentFlowTest extends TestCase
 {
     private \ReflectionProperty $instanceProp;

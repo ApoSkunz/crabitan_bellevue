@@ -7,11 +7,13 @@ namespace Tests\Unit\Model;
 use Core\Database;
 use Model\WineNutritionModel;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour WineNutritionModel.
  * La base de données est mockée via Database — aucune connexion réelle requise.
  */
+#[AllowMockObjectsWithoutExpectations]
 class WineNutritionModelTest extends TestCase
 {
     private Database $dbMock;

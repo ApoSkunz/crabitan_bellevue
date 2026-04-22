@@ -12,12 +12,14 @@ use Model\FavoriteModel;
 use Model\OrderModel;
 use PHPUnit\Framework\TestCase;
 use Repository\UserRepository;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour AccountProfileController.
  * Utilise TestableAccountProfileController pour isoler view/requireCustomer/verifyCsrf.
  * Les redirections passant par Response::redirect() lèvent HttpException — on les capture.
  */
+#[AllowMockObjectsWithoutExpectations]
 class AccountProfileControllerTest extends TestCase
 {
     private \ReflectionProperty $instanceProp;

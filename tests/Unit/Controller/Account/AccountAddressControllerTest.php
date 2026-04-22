@@ -11,12 +11,14 @@ use Model\AddressModel;
 use Model\OrderModel;
 use PHPUnit\Framework\TestCase;
 use Repository\UserRepository;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour AccountAddressController.
  * Utilise TestableAccountAddressController pour isoler view/requireCustomer/verifyCsrf.
  * Les redirections passant par Response::redirect() lèvent HttpException — on les capture.
  */
+#[AllowMockObjectsWithoutExpectations]
 class AccountAddressControllerTest extends TestCase
 {
     private \ReflectionProperty $instanceProp;

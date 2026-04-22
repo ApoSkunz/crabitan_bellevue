@@ -7,7 +7,9 @@ namespace Tests\Unit\Core;
 use Core\Database;
 use PHPUnit\Framework\TestCase;
 use Tests\Unit\Stubs\ConcreteModel;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ModelTest extends TestCase
 {
     private Database $dbMock;

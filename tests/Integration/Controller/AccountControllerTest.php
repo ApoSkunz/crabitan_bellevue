@@ -10,11 +10,13 @@ use Core\Exception\HttpException;
 use Core\Jwt;
 use Core\Request;
 use Tests\Integration\IntegrationTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests d'intégration pour AccountController.
  * Chaque test s'exécute dans une transaction rollbackée — BDD propre garantie.
  */
+#[AllowMockObjectsWithoutExpectations]
 class AccountControllerTest extends IntegrationTestCase
 {
     private const CSRF = 'test-account-csrf';

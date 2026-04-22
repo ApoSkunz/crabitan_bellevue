@@ -7,6 +7,7 @@ namespace Tests\Unit\Service;
 use Model\AdminLogModel;
 use PHPUnit\Framework\TestCase;
 use Service\AuditLogger;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour AuditLogger.
@@ -14,6 +15,7 @@ use Service\AuditLogger;
  * Vérifie que log() insère une entrée via AdminLogModel,
  * et que les erreurs BDD sont silencieuses.
  */
+#[AllowMockObjectsWithoutExpectations]
 class AuditLoggerTest extends TestCase
 {
     /**

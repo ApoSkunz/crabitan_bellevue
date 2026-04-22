@@ -8,10 +8,12 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Service\Mail\NewsletterMailer;
 use Service\MailService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires de NewsletterMailer — vérifie la délégation vers MailService.
  */
+#[AllowMockObjectsWithoutExpectations]
 class NewsletterMailerTest extends TestCase
 {
     private MailService&MockObject $mailServiceMock;

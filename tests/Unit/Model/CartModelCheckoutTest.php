@@ -7,6 +7,7 @@ namespace Tests\Unit\Model;
 use Core\Database;
 use Model\CartModel;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests des méthodes de nettoyage du panier pour le checkout.
@@ -15,6 +16,7 @@ use PHPUnit\Framework\TestCase;
  *   - CartModel::removeUnavailableItems()
  *   - CartModel::purgeWineFromAllCarts()
  */
+#[AllowMockObjectsWithoutExpectations]
 class CartModelCheckoutTest extends TestCase
 {
     private \PHPUnit\Framework\MockObject\Stub $dbMock;

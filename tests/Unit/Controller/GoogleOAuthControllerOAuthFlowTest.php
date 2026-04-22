@@ -14,6 +14,7 @@ use Model\ConnectionModel;
 use Model\GoogleLinkTokenModel;
 use PHPUnit\Framework\TestCase;
 use Service\GoogleOAuthService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires GoogleOAuthController — couverture des branches non couvertes.
@@ -21,6 +22,7 @@ use Service\GoogleOAuthService;
  * Couvre : authorize(), callback() erreurs, Cas 2 (rattachement par email),
  *          resolveDeviceToken(), resolveLang(), issueSession() via AccountModel mock.
  */
+#[AllowMockObjectsWithoutExpectations]
 class GoogleOAuthControllerOAuthFlowTest extends TestCase
 {
     private \ReflectionProperty $dbInstanceProp;

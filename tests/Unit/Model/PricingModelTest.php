@@ -7,7 +7,9 @@ namespace Tests\Unit\Model;
 use Core\Database;
 use Model\PricingModel;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PricingModelTest extends TestCase
 {
     private Database $dbMock;

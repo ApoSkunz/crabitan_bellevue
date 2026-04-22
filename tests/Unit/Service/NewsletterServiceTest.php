@@ -10,6 +10,7 @@ use Service\NewsletterService;
 use Service\MailService;
 use Model\AccountModel;
 use Model\NewsletterSubscriptionModel;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour NewsletterService.
@@ -18,6 +19,7 @@ use Model\NewsletterSubscriptionModel;
  *   - createStub()  → retourne une valeur configurée, sans vérification d'appel
  *   - createMock()  → vérifie que la méthode est (ou n'est pas) appelée via expects()
  */
+#[AllowMockObjectsWithoutExpectations]
 class NewsletterServiceTest extends TestCase
 {
     // ----------------------------------------------------------------

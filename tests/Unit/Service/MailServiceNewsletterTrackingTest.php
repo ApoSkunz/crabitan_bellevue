@@ -8,11 +8,13 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use Service\MailService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour les fonctionnalités de tracking newsletter dans MailService.
  * Couvre sendNewsletter() (List-Unsubscribe RFC 8058) et buildNewsletterHtml() (pixel).
  */
+#[AllowMockObjectsWithoutExpectations]
 class MailServiceNewsletterTrackingTest extends TestCase
 {
     private function injectMockMailer(MailService $service): PHPMailer

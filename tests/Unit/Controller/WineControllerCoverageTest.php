@@ -10,11 +10,13 @@ use Model\WineModel;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests de couverture complémentaires pour WineController.
  * Couvre les branches non atteintes par WineControllerTest.
  */
+#[AllowMockObjectsWithoutExpectations]
 class WineControllerCoverageTest extends TestCase
 {
     private \ReflectionProperty $instanceProp;

@@ -8,6 +8,7 @@ use Core\Database;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Service\RateLimiterService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour RateLimiterService.
@@ -16,6 +17,7 @@ use Service\RateLimiterService;
  * via une sous-classe qui force isApcuAvailable() à retourner false.
  * Cela garantit une exécution reproductible sans dépendance à l'extension APCu.
  */
+#[AllowMockObjectsWithoutExpectations]
 class RateLimiterServiceTest extends TestCase
 {
     private RateLimiterService $service;

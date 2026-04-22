@@ -13,12 +13,14 @@ use PHPUnit\Framework\TestCase;
 use Repository\UserRepository;
 use Service\PaymentService;
 use Service\RefundService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour AccountOrderController.
  * Utilise TestableAccountOrderController pour isoler auth, CSRF, redirect et view.
  * Les dépendances OrderModel et UserRepository sont mockées via réflexion.
  */
+#[AllowMockObjectsWithoutExpectations]
 class AccountOrderControllerTest extends TestCase
 {
     private \ReflectionProperty $dbInstanceProp;

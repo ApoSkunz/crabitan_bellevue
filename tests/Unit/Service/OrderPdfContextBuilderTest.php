@@ -7,6 +7,7 @@ namespace Tests\Unit\Service;
 use Model\AddressModel;
 use PHPUnit\Framework\TestCase;
 use Service\OrderPdfContextBuilder;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * TU OrderPdfContextBuilder — couvre toutes les branches de build().

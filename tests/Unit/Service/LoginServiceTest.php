@@ -12,6 +12,7 @@ use Service\LoginService;
 use Service\MailService;
 use Service\RateLimiterService;
 use Service\SecurityAlertService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour LoginService.
@@ -29,6 +30,7 @@ use Service\SecurityAlertService;
  * Les dépendances sans expectation utilisent createStub() (PHPUnit 13).
  * Les dépendances avec expectation utilisent createMock() localement dans le test.
  */
+#[AllowMockObjectsWithoutExpectations]
 class LoginServiceTest extends TestCase
 {
     protected function setUp(): void
