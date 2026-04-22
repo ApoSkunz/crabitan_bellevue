@@ -27,7 +27,7 @@ class OrderFormController extends Controller
      */
     public function download(array $params): void
     {
-        AdminMiddleware::handle();
+        $this->requireAdminAccess();
 
         $id   = (int) ($params['id'] ?? 0);
         $form = (new OrderFormModel())->findByIdOrNull($id);
@@ -50,6 +50,16 @@ class OrderFormController extends Controller
         header('Cache-Control: private, no-store');
         readfile($path);
         $this->doExit();
+    }
+
+    /**
+     * Vérifie que l'appelant est administrateur (seam de testabilité).
+     *
+     * @return void
+     */
+    protected function requireAdminAccess(): void
+    {
+        AdminMiddleware::handle();
     }
 
     /**
