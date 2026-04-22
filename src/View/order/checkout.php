@@ -160,8 +160,52 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                 ================================================ -->
                 <div class="checkout-main">
 
+                    <?php if (\Core\FeatureFlags::isClickCollectEnabled()) :
+                        $selectedDeliveryMethod = (string) ($post['delivery_method'] ?? 'shipping');
+                        $ccDiscount = \Core\FeatureFlags::getClickCollectDiscountPerBottle();
+                        $ccDiscountTotal = round($ccDiscount * $totalQty, 2);
+                    ?>
+                    <!-- === Mode de livraison (Click & Collect) === -->
+                    <section class="checkout-card" aria-labelledby="checkout-delivery-method-title">
+                        <h2 class="checkout-card__title" id="checkout-delivery-method-title">
+                            <?= $isEn ? 'Delivery method' : 'Mode de livraison' ?>
+                        </h2>
+                        <div class="checkout-delivery-method">
+                            <label class="checkout-delivery-method__option <?= $selectedDeliveryMethod === 'shipping' ? 'checkout-delivery-method__option--selected' : '' ?>">
+                                <input type="radio" name="delivery_method" value="shipping"
+                                       class="js-delivery-method-radio"
+                                       <?= $selectedDeliveryMethod === 'shipping' ? 'checked' : '' ?>>
+                                <span class="checkout-delivery-method__label">
+                                    <?= $isEn ? 'Home delivery' : 'Livraison à domicile' ?>
+                                </span>
+                                <span class="checkout-delivery-method__detail">
+                                    <?= $isEn ? 'Mainland France only — 7 to 15 days' : 'France métropolitaine — 7 à 15 jours' ?>
+                                </span>
+                            </label>
+                            <label class="checkout-delivery-method__option <?= $selectedDeliveryMethod === 'pickup' ? 'checkout-delivery-method__option--selected' : '' ?>">
+                                <input type="radio" name="delivery_method" value="pickup"
+                                       class="js-delivery-method-radio"
+                                       <?= $selectedDeliveryMethod === 'pickup' ? 'checked' : '' ?>>
+                                <span class="checkout-delivery-method__label">
+                                    &#127984; Click &amp; Collect — <?= $isEn ? 'Pick up at the château' : 'Retrait au château' ?>
+                                </span>
+                                <span class="checkout-delivery-method__detail">
+                                    <?php if ($ccDiscount > 0) : ?>
+                                    &minus;<?= number_format($ccDiscount, 2, ',', ' ') ?>&nbsp;€/<?= $isEn ? 'btl' : 'btl' ?>
+                                    <?= $totalQty > 0 ? '(−&nbsp;' . number_format($ccDiscountTotal, 2, ',', ' ') . '&nbsp;€)' : '' ?>
+                                    &mdash;
+                                    <?php endif; ?>
+                                    <?= $isEn ? 'available within 48h' : 'disponible sous 48h' ?>
+                                </span>
+                            </label>
+                        </div>
+                    </section>
+                    <?php else : ?>
+                    <input type="hidden" name="delivery_method" value="shipping">
+                    <?php endif; ?>
+
                     <!-- === Adresse de livraison === -->
-                    <section class="checkout-card" aria-labelledby="checkout-delivery-title">
+                    <section class="checkout-card js-shipping-address-section" aria-labelledby="checkout-delivery-title">
                         <h2 class="checkout-card__title" id="checkout-delivery-title">
                             <?= htmlspecialchars(__('checkout.delivery_address')) ?>
                         </h2>

@@ -24,6 +24,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
 
     private const VALID_STATUSES = [
         'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused', 'refund_pending',
+        'ready_for_pickup', 'collected', // Click & Collect
     ];
 
     /** Fenêtre légale de rétractation après livraison (art. L221-18 Code conso). */
@@ -44,6 +45,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param int                              $idBillingAddress  ID adresse de facturation
      * @param int|null                         $idDeliveryAddress ID adresse de livraison (null = même que facturation)
      * @param string                           $cgvVersion        Version des CGV acceptées
+     * @param string                           $deliveryMethod    Mode de livraison : 'shipping' ou 'pickup' (Click & Collect)
      * @return string Référence de commande générée
      */
     public function create( // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
@@ -54,7 +56,8 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         float $shippingDiscount,
         int $idBillingAddress,
         ?int $idDeliveryAddress,
-        string $cgvVersion
+        string $cgvVersion,
+        string $deliveryMethod = 'shipping'
     ): string {
         if (!in_array($paymentMethod, self::VALID_PAYMENT_METHODS, true)) {
             $paymentMethod = 'card';
@@ -78,11 +81,13 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
             $deliverySnapshotId = $snapshots->createFromAddress($deliveryAddr ?: [], $idDeliveryAddress);
         }
 
+        $deliveryMethod = in_array($deliveryMethod, ['shipping', 'pickup'], true) ? $deliveryMethod : 'shipping';
+
         $this->db->insert(
             "INSERT INTO {$this->table}
              (user_id, order_reference, content, price, payment_method, shipping_discount,
-              id_billing_snapshot, id_delivery_snapshot, cgv_version, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')", // phpcs:ignore Generic.Files.LineLength
+              id_billing_snapshot, id_delivery_snapshot, cgv_version, delivery_method, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')", // phpcs:ignore Generic.Files.LineLength
             [
                 $userId,
                 $reference,
@@ -93,6 +98,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                 $billingSnapshotId,
                 $deliverySnapshotId,
                 $cgvVersion,
+                $deliveryMethod,
             ]
         );
 
@@ -161,11 +167,13 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         string $cgvVersion,
         string $reference,
         string $numappel,
-        string $numtrans
+        string $numtrans,
+        string $deliveryMethod = 'shipping'
     ): string {
-        $content  = json_encode($items, JSON_UNESCAPED_UNICODE);
-        $typeCode = 'CB';
-        $maxTries = 3;
+        $content        = json_encode($items, JSON_UNESCAPED_UNICODE);
+        $deliveryMethod = in_array($deliveryMethod, ['shipping', 'pickup'], true) ? $deliveryMethod : 'shipping';
+        $typeCode       = 'CB';
+        $maxTries       = 3;
 
         $snapshots          = new OrderAddressSnapshotModel();
         $billingAddr        = $this->fetchAddressById($billingAddressId);
@@ -178,8 +186,8 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                 $this->db->insert(
                     "INSERT INTO {$this->table}
                      (user_id, order_reference, content, price, payment_method, shipping_discount,
-                      id_billing_snapshot, id_delivery_snapshot, status, cgv_version, ca_numappel, ca_numtrans)
-                     VALUES (?, ?, ?, ?, 'card', ?, ?, ?, 'paid', ?, ?, ?)", // phpcs:ignore Generic.Files.LineLength
+                      id_billing_snapshot, id_delivery_snapshot, status, cgv_version, delivery_method, ca_numappel, ca_numtrans)
+                     VALUES (?, ?, ?, ?, 'card', ?, ?, ?, 'paid', ?, ?, ?, ?)", // phpcs:ignore Generic.Files.LineLength
                     [
                         $userId,
                         $reference,
@@ -189,6 +197,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                         $billingSnapshotId,
                         $deliverySnapshotId,
                         $cgvVersion,
+                        $deliveryMethod,
                         $numappel,
                         $numtrans,
                     ]
