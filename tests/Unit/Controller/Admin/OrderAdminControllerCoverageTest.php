@@ -645,6 +645,58 @@ class OrderAdminControllerCoverageTest extends TestCase
     // downloadInvoiceFile — invoice_number null → basename fallback
     // ================================================================
 
+    // ================================================================
+    // updateStatus — invoice auto-generation active → L271 (mkdir branch)
+    // ================================================================
+
+    /**
+     * updateStatus() tente de générer la facture quand INVOICE_AUTO_GENERATE=true,
+     * status change et path_invoice est vide.
+     * Couvre L271 (mkdir) et L298-303 (génération PDF + envoi mail via InvoiceService).
+     * InvoiceService et MailService échouent en contexte test → catch absorbe.
+     */
+    public function testUpdateStatusTriggersInvoiceGenerationWhenAutoEnabled(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['status' => 'processing'];
+        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+        $ctrl = $this->makeController();
+
+        $order = $this->sampleOrder('pending');
+        $order['path_invoice'] = null; // facture absente → génération déclenchée
+
+        $mock = $this->createMock(OrderModel::class);
+        $mock->method('findByIdForAdmin')->willReturn($order);
+        $mock->method('updateStatus');
+        // findByReferenceForInvoice retourne un fullOrder → entre dans le bloc if ($fullOrder !== null)
+        $mock->method('findByReferenceForInvoice')->willReturn([
+            'id'              => 42,
+            'order_reference' => 'WEB-VB-AABB1234-2026',
+            'email'           => 'client@test.com',
+            'firstname'       => 'Jean',
+            'lastname'        => 'Dupont',
+            'lang'            => 'fr',
+            'content'         => '[]',
+            'price'           => 150.0,
+            'shipping_discount' => 0.0,
+            'ordered_at'      => date('Y-m-d H:i:s'),
+        ]);
+        $this->injectOrdersMock($ctrl, $mock);
+
+        $caught = null;
+        try {
+            $ctrl->updateStatus(['id' => '42']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } finally {
+            unset($_ENV['INVOICE_AUTO_GENERATE']);
+        }
+
+        // Redirige vers /admin/commandes/42 après le flash success
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
+
     /**
      * downloadInvoiceFile() utilise basename(path) quand invoice_number est null.
      * Couvre L446-448 (null branch → basename fallback).

@@ -156,4 +156,191 @@ class AdminGestionAdminsControllerTest extends TestCase
         $this->expectExceptionCode(404);
         $ref->invoke($ctrl);
     }
+
+    // ================================================================
+    // block() — catch Throwable sur sendAdminAccountBlocked (L104-105)
+    // ================================================================
+
+    /**
+     * block() absorbe silencieusement l'exception SMTP lors de l'envoi
+     * de l'email de blocage (L104-105) et redirige avec succès.
+     */
+    public function testBlockAbsorbsMailExceptionAndRedirects(): void
+    {
+        $targetId = 20;
+        $selfId   = 10;
+        $this->withActiveSession($selfId, 'super_admin');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['csrf_token']       = 'valid-token';
+
+        // Configurer le DB mock pour retourner le compte cible avec rôle admin
+        $dbMock = $this->createStub(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturnCallback(
+            static function (string $sql) use ($selfId, $targetId) {
+                if (str_contains($sql, 'connections')) {
+                    return ['id' => 1];
+                }
+                if (str_contains($sql, 'is_blocked')) {
+                    return ['is_blocked' => 0];
+                }
+                if (str_contains($sql, 'accounts') && str_contains($sql, (string) $targetId)) {
+                    return [
+                        'id'         => $targetId,
+                        'email'      => 'target@test.local',
+                        'role'       => 'admin',
+                        'is_blocked' => 0,
+                        'firstname'  => 'Target',
+                        'lastname'   => 'Admin',
+                        'lang'       => 'fr',
+                    ];
+                }
+                return [
+                    'id'        => $selfId,
+                    'email'     => 'self@test.local',
+                    'role'      => 'super_admin',
+                    'is_blocked' => 0,
+                    'firstname' => 'Self',
+                    'lastname'  => 'Admin',
+                ];
+            }
+        );
+        $dbMock->method('fetchAll')->willReturn([]);
+        $dbMock->method('execute')->willReturn(0);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        // Sous-classe testable avec MailService qui lève une exception
+        $ctrl = new class (new Request()) extends AdminGestionAdminsController {
+            /** @var array<string, mixed> */
+            public array $fakeAdmin = ['id' => 10, 'role' => 'super_admin', 'email' => 'self@test.local', 'name' => 'Self'];
+
+            /** @return array<string, mixed> */
+            protected function requireSuperAdmin(): array
+            {
+                return $this->fakeAdmin;
+            }
+
+            protected function view(string $template, array $data = [], int $httpStatus = 200): void
+            {
+                // no-op
+            }
+
+            protected function flash(string $type, string $message): void
+            {
+                $_SESSION['_test_flash'][$type][] = $message;
+            }
+
+            protected function getFlash(string $type): ?string
+            {
+                return null;
+            }
+
+            protected function abort(int $status = 404, string $message = 'Not Found'): never
+            {
+                throw new HttpException($status);
+            }
+        };
+
+        $caught = null;
+        try {
+            $ctrl->block(['id' => (string) $targetId]);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        // La méthode redirige (302) après le catch — succès flash doit être posé
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
+
+    // ================================================================
+    // unblock() — catch Throwable sur sendAdminAccountUnblocked (L154-155)
+    // ================================================================
+
+    /**
+     * unblock() absorbe silencieusement l'exception SMTP lors de l'envoi
+     * de l'email de déblocage (L154-155) et redirige avec succès.
+     */
+    public function testUnblockAbsorbsMailExceptionAndRedirects(): void
+    {
+        $targetId = 20;
+        $selfId   = 10;
+        $this->withActiveSession($selfId, 'super_admin');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['csrf_token']       = 'valid-token';
+
+        $dbMock = $this->createStub(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturnCallback(
+            static function (string $sql) use ($selfId, $targetId) {
+                if (str_contains($sql, 'connections')) {
+                    return ['id' => 1];
+                }
+                if (str_contains($sql, 'is_blocked')) {
+                    return ['is_blocked' => 0];
+                }
+                if (str_contains($sql, 'accounts') && str_contains($sql, (string) $targetId)) {
+                    return [
+                        'id'         => $targetId,
+                        'email'      => 'target@test.local',
+                        'role'       => 'admin',
+                        'is_blocked' => 0,
+                        'firstname'  => 'Target',
+                        'lastname'   => 'Admin',
+                        'lang'       => 'fr',
+                    ];
+                }
+                return [
+                    'id'        => $selfId,
+                    'email'     => 'self@test.local',
+                    'role'      => 'super_admin',
+                    'is_blocked' => 0,
+                    'firstname' => 'Self',
+                    'lastname'  => 'Admin',
+                ];
+            }
+        );
+        $dbMock->method('fetchAll')->willReturn([]);
+        $dbMock->method('execute')->willReturn(0);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        $ctrl = new class (new Request()) extends AdminGestionAdminsController {
+            /** @var array<string, mixed> */
+            public array $fakeAdmin = ['id' => 10, 'role' => 'super_admin', 'email' => 'self@test.local', 'name' => 'Self'];
+
+            /** @return array<string, mixed> */
+            protected function requireSuperAdmin(): array
+            {
+                return $this->fakeAdmin;
+            }
+
+            protected function view(string $template, array $data = [], int $httpStatus = 200): void
+            {
+                // no-op
+            }
+
+            protected function flash(string $type, string $message): void
+            {
+                $_SESSION['_test_flash'][$type][] = $message;
+            }
+
+            protected function getFlash(string $type): ?string
+            {
+                return null;
+            }
+
+            protected function abort(int $status = 404, string $message = 'Not Found'): never
+            {
+                throw new HttpException($status);
+            }
+        };
+
+        $caught = null;
+        try {
+            $ctrl->unblock(['id' => (string) $targetId]);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
 }
