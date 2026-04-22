@@ -38,6 +38,10 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
 
     <?php require_once SRC_PATH . '/View/partials/wines-case-banner.php'; ?>
 
+    <div class="container">
+        <?php require_once SRC_PATH . '/View/partials/delivery-discount-flyer.php'; ?>
+    </div>
+
     <!-- ============================================================ -->
     <!-- FILTRES                                                       -->
     <!-- ============================================================ -->
