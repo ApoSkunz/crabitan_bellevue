@@ -1136,9 +1136,35 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      * @param string|null $sort Clé de tri : created_at_desc|created_at_asc|last_connection_desc|last_connection_asc
      * @return array<int, array<string, mixed>>
      */
-    public function getForAdmin(int $limit, int $offset, ?string $role, ?string $search, ?string $type = null, ?string $sort = null): array
-    {
+    /**
+     * Retourne la liste paginée des comptes pour l'admin.
+     *
+     * @param int         $limit       Nombre de lignes
+     * @param int         $offset      Décalage
+     * @param string|null $role        Filtre rôle
+     * @param string|null $search      Recherche texte libre
+     * @param string|null $type        Filtre type (individual|company)
+     * @param string|null $sort        Clé de tri
+     * @param string|null $hasOrdered  Filtre commandes : '1' = a commandé, '0' = jamais, null = tous
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForAdmin(
+        int $limit,
+        int $offset,
+        ?string $role,
+        ?string $search,
+        ?string $type = null,
+        ?string $sort = null,
+        ?string $hasOrdered = null
+    ): array {
         [$where, $params] = $this->buildAdminFilters($role, $search, $type);
+
+        if ($hasOrdered === '1') {
+            $where .= ($where === '' ? 'WHERE' : ' AND') . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id) > 0';
+        } elseif ($hasOrdered === '0') {
+            $where .= ($where === '' ? 'WHERE' : ' AND') . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id) = 0';
+        }
+
         $params[] = $limit;
         $params[] = $offset;
 
@@ -1146,6 +1172,8 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             'created_at_asc'         => 'a.created_at ASC',
             'last_connection_desc'   => 'a.last_login_at DESC',
             'last_connection_asc'    => 'a.last_login_at ASC',
+            'order_count_desc'       => 'order_count DESC',
+            'order_count_asc'        => 'order_count ASC',
             default                  => 'a.created_at DESC',
         };
 
@@ -1167,9 +1195,25 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         );
     }
 
-    public function countForAdmin(?string $role, ?string $search, ?string $type = null): int
+    /**
+     * Retourne le nombre total de comptes correspondant aux filtres admin.
+     *
+     * @param string|null $role        Filtre rôle
+     * @param string|null $search      Recherche texte libre
+     * @param string|null $type        Filtre type (individual|company)
+     * @param string|null $hasOrdered  Filtre commandes : '1' = a commandé, '0' = jamais, null = tous
+     * @return int
+     */
+    public function countForAdmin(?string $role, ?string $search, ?string $type = null, ?string $hasOrdered = null): int
     {
         [$where, $params] = $this->buildAdminFilters($role, $search, $type);
+
+        if ($hasOrdered === '1') {
+            $where .= ($where === '' ? 'WHERE' : ' AND') . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id) > 0';
+        } elseif ($hasOrdered === '0') {
+            $where .= ($where === '' ? 'WHERE' : ' AND') . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id) = 0';
+        }
+
         $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total FROM {$this->table} a
              LEFT JOIN account_individuals ai ON ai.account_id = a.id
