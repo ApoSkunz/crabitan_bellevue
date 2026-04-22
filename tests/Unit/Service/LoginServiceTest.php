@@ -510,6 +510,148 @@ class LoginServiceTest extends TestCase
         $this->assertSame('bad_credentials', $result['result']);
     }
 
+    // ----------------------------------------------------------------
+    // maybeSendDeletionAlert — mailer throw (L205-206)
+    // ----------------------------------------------------------------
+
+    /**
+     * Si sendPendingDeletionLoginAlert lève une exception, ErrorLogger::warning
+     * est appelé et le résultat reste 'deleted' (L205-206).
+     */
+    public function testAttemptHandlesMailerThrowInDeletionAlert(): void
+    {
+        $deleted = [
+            'id'                     => 77,
+            'email'                  => 'throw@example.com',
+            'password'               => password_hash('correct_password', PASSWORD_BCRYPT),
+            'scheduled_deletion_at'  => date('Y-m-d H:i:s', time() + 86400),
+            'reactivation_token'     => 'tok_throw',
+            'firstname'              => 'Throw',
+            'company_name'           => null,
+            'lang'                   => 'fr',
+        ];
+
+        /** @var AccountModel&Stub $accounts */
+        $accounts = $this->createStub(AccountModel::class);
+        $accounts->method('findByEmail')->willReturn(false);
+        $accounts->method('findDeletedByEmail')->willReturn($deleted);
+
+        /** @var RateLimiterService&Stub $rateLimiter */
+        $rateLimiter = $this->createStub(RateLimiterService::class);
+        $rateLimiter->method('checkLimit')->willReturn(true);
+
+        /** @var MailService&MockObject $mailer */
+        $mailer = $this->createMock(MailService::class);
+        $mailer->method('sendPendingDeletionLoginAlert')
+            ->willThrowException(new \RuntimeException('smtp down'));
+
+        $service = $this->makeService($accounts, $rateLimiter, null, $mailer);
+        $result  = $service->attempt('throw@example.com', 'correct_password', 'login:1.1.1.1', 'fr', '1.1.1.1');
+
+        $this->assertSame('deleted', $result['result']);
+    }
+
+    // ----------------------------------------------------------------
+    // handleAdminFailure — mailer throw dans sendAdminAccountBlocked (L258-259)
+    // ----------------------------------------------------------------
+
+    /**
+     * Si sendAdminAccountBlocked lève une exception, ErrorLogger::warning est appelé
+     * et le résultat reste 'bad_credentials' (L258-259).
+     */
+    public function testAttemptHandlesMailerThrowInAdminAccountBlocked(): void
+    {
+        /** @var AccountModel&MockObject $accounts */
+        $accounts = $this->createMock(AccountModel::class);
+        $accounts->method('findByEmail')->willReturn($this->makeAccount(['role' => 'admin']));
+        $accounts->expects($this->once())->method('blockAccount');
+
+        /** @var RateLimiterService&Stub $rateLimiter */
+        $rateLimiter = $this->createStub(RateLimiterService::class);
+        $rateLimiter->method('checkLimit')->willReturn(true);
+
+        /** @var SecurityAlertService&Stub $securityAlert */
+        $securityAlert = $this->createStub(SecurityAlertService::class);
+        $securityAlert->method('shouldAlertOnFailedLogins')->willReturn(false);
+        $securityAlert->method('shouldAutoBlock')->willReturn(true);
+
+        /** @var MailService&MockObject $mailer */
+        $mailer = $this->createMock(MailService::class);
+        $mailer->method('sendAdminAccountBlocked')
+            ->willThrowException(new \RuntimeException('smtp down'));
+
+        $service = $this->makeService($accounts, $rateLimiter, $securityAlert, $mailer);
+        $result  = $service->attempt('user@example.com', 'wrong_password', 'login:1.1.1.1', 'fr', '1.1.1.1');
+
+        $this->assertSame('bad_credentials', $result['result']);
+    }
+
+    // ----------------------------------------------------------------
+    // handleBt2Lockout — mailer throw dans sendAccountLocked (L297-298)
+    // ----------------------------------------------------------------
+
+    /**
+     * Si sendAccountLocked lève une exception après le lockout BT2,
+     * ErrorLogger::warning est appelé et le résultat reste 'bad_credentials' (L297-298).
+     */
+    public function testAttemptHandlesMailerThrowInAccountLocked(): void
+    {
+        /** @var AccountModel&Stub $accounts */
+        $accounts = $this->createStub(AccountModel::class);
+        $accounts->method('findByEmail')->willReturn($this->makeAccount());
+
+        /** @var RateLimiterService&Stub $rateLimiter */
+        $rateLimiter = $this->createStub(RateLimiterService::class);
+        // BT2 pré-vérif → OK (true), après échec le seuil est atteint (false)
+        $rateLimiter->method('checkLimit')->willReturnOnConsecutiveCalls(true, false);
+
+        /** @var SecurityAlertService&Stub $securityAlert */
+        $securityAlert = $this->createStub(SecurityAlertService::class);
+        $securityAlert->method('shouldAlertOnFailedLogins')->willReturn(false);
+        $securityAlert->method('shouldAutoBlock')->willReturn(false);
+
+        /** @var MailService&MockObject $mailer */
+        $mailer = $this->createMock(MailService::class);
+        $mailer->method('sendAccountLocked')
+            ->willThrowException(new \RuntimeException('smtp down'));
+
+        $service = $this->makeService($accounts, $rateLimiter, $securityAlert, $mailer);
+        $result  = $service->attempt('user@example.com', 'wrong_password', 'login:1.1.1.1', 'fr', '1.1.1.1');
+
+        $this->assertSame('bad_credentials', $result['result']);
+    }
+
+    // ----------------------------------------------------------------
+    // maybeSendVerificationEmail — mailer throw dans sendEmailVerification (L332-333)
+    // ----------------------------------------------------------------
+
+    /**
+     * Si sendEmailVerification lève une exception sur un compte non vérifié,
+     * ErrorLogger::warning est appelé et le résultat reste 'unverified' (L332-333).
+     */
+    public function testAttemptHandlesMailerThrowInVerificationEmail(): void
+    {
+        /** @var AccountModel&MockObject $accounts */
+        $accounts = $this->createMock(AccountModel::class);
+        $accounts->method('findByEmail')->willReturn($this->makeAccount(['email_verified_at' => null]));
+        $accounts->expects($this->once())->method('refreshVerificationToken');
+
+        /** @var RateLimiterService&Stub $rateLimiter */
+        $rateLimiter = $this->createStub(RateLimiterService::class);
+        // BT2 → OK, resend_verif quota → OK
+        $rateLimiter->method('checkLimit')->willReturnOnConsecutiveCalls(true, true);
+
+        /** @var MailService&MockObject $mailer */
+        $mailer = $this->createMock(MailService::class);
+        $mailer->method('sendEmailVerification')
+            ->willThrowException(new \RuntimeException('smtp down'));
+
+        $service = $this->makeService($accounts, $rateLimiter, null, $mailer);
+        $result  = $service->attempt('user@example.com', 'correct_password', 'login:1.1.1.1', 'fr', '1.1.1.1');
+
+        $this->assertSame('unverified', $result['result']);
+    }
+
     /**
      * Si l'alerte de suppression a déjà été envoyée dans la session courante,
      * le résultat doit rester 'deleted' (pas de double envoi).

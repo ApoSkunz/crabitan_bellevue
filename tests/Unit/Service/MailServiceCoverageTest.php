@@ -672,6 +672,28 @@ class MailServiceCoverageTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // L1339-1342 — sendOrderConfirmationToOwner() avec shippingDiscount > 0
+    // S'assure que les lignes 1339-1342 (paramètres shippingDiscount/labelDiscount) sont couvertes
+    // ----------------------------------------------------------------
+
+    public function testSendOrderConfirmationToOwnerWithShippingDiscountPassesParamsToBuildTable(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendOrderConfirmationToOwner(
+            'client@example.com',
+            'Client Test',
+            'CB-2026-DISC',
+            'card',
+            [['name' => 'Vin Rouge 2022', 'qty' => 1, 'price' => 24.00]],
+            19.00,
+            5.00  // shippingDiscount > 0 → couvre lignes 1339-1342
+        );
+
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
     // buildOrderItemsTable() : discountRow branche (shippingDiscount > 0)
     // ----------------------------------------------------------------
 

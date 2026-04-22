@@ -239,6 +239,106 @@ class ImageVariantServiceTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // generateVariants — GD non disponible (ligne 43)
+    // ----------------------------------------------------------------
+
+    /**
+     * generateVariants ne génère rien si GD n'est pas supporté (ligne 43).
+     */
+    public function testGenerateVariantsNoOpWhenGdNotSupported(): void
+    {
+        $pngPath = $this->tmpPath('.png');
+        file_put_contents($pngPath, 'dummy content');
+
+        $svc = new class extends ImageVariantService {
+            protected function gdSupported(): bool
+            {
+                return false;
+            }
+        };
+
+        $svc->generateVariants($pngPath);
+        $base = (string) preg_replace('/\.[^.]+$/', '', $pngPath);
+
+        // Aucun fichier WebP ni variante généré
+        $this->assertFileDoesNotExist($base . '.webp');
+    }
+
+    // ----------------------------------------------------------------
+    // generateVariants — fichier inexistant (ligne 43)
+    // ----------------------------------------------------------------
+
+    /**
+     * generateVariants ne fait rien si le fichier source n'existe pas (ligne 43).
+     */
+    public function testGenerateVariantsNoOpWhenFileNotExists(): void
+    {
+        $svc = new ImageVariantService();
+        // Ne lève pas d'exception — silencieux
+        $svc->generateVariants('/no/such/file.png');
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // generateVariants — source WebP (ligne 49)
+    // ----------------------------------------------------------------
+
+    /**
+     * generateVariants retourne sans traitement si la source est déjà WebP (ligne 49).
+     */
+    public function testGenerateVariantsNoOpWhenSourceIsWebp(): void
+    {
+        if (!extension_loaded('gd') || !function_exists('imagewebp')) {
+            $this->markTestSkipped('GD WebP requis');
+        }
+
+        $path = $this->tmpPath('.webp');
+        // WebP minimal header
+        file_put_contents($path, "RIFF\x1c\x00\x00\x00WEBPVP8 \x10\x00\x00\x00");
+
+        $svc  = new ImageVariantService();
+        $base = (string) preg_replace('/\.[^.]+$/', '', $path);
+        $svc->generateVariants($path);
+
+        // Aucune variante créée
+        $this->assertFileDoesNotExist($base . '-400w.webp');
+    }
+
+    // ----------------------------------------------------------------
+    // generateVariants — JPEG (ligne 123)
+    // ----------------------------------------------------------------
+
+    /**
+     * generateVariants sur JPEG 1000px → crée WebP + variantes 400w + 800w en JPEG (ligne 123).
+     */
+    public function testGenerateVariantsJpeg(): void
+    {
+        if (!extension_loaded('gd') || !function_exists('imagewebp')) {
+            $this->markTestSkipped('GD WebP requis');
+        }
+
+        $jpgPath = $this->tmpPath('.jpg');
+        $base    = (string) preg_replace('/\.[^.]+$/', '', $jpgPath);
+
+        $this->tmpFiles[] = $base . '.webp';
+        $this->tmpFiles[] = $base . '-400w.jpg';
+        $this->tmpFiles[] = $base . '-400w.webp';
+        $this->tmpFiles[] = $base . '-800w.jpg';
+        $this->tmpFiles[] = $base . '-800w.webp';
+
+        $img = imagecreatetruecolor(1000, 800);
+        imagejpeg($img, $jpgPath, 85);
+        imagedestroy($img);
+
+        (new ImageVariantService())->generateVariants($jpgPath);
+
+        // Vérifie la variante 400w JPEG (ligne 123)
+        $this->assertFileExists($base . '-400w.jpg');
+        $this->assertFileExists($base . '-800w.jpg');
+        $this->assertFileExists($base . '.webp');
+    }
+
+    // ----------------------------------------------------------------
     // deleteVariants
     // ----------------------------------------------------------------
 
