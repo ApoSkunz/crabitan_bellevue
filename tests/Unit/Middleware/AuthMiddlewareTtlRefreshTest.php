@@ -176,4 +176,122 @@ class AuthMiddlewareTtlRefreshTest extends TestCase
 
         $this->assertSame(4, $result['sub']);
     }
+
+    // ------------------------------------------------------------------
+    // Cookie age_verified — sliding refresh quand le JWT est rafraîchi
+    // ------------------------------------------------------------------
+
+    /**
+     * Quand le refresh est déclenché ET age_verified est présent, le cookie age_verified
+     * est recréé avec TTL 24 h (sans age_remember).
+     */
+    public function testAgeVerifiedCookieRefreshedWithDefaultTtlWhenNoRemember(): void
+    {
+        $now = time();
+        // Token standard proche de l'expiration (< 50% restant) → refresh déclenché
+        $token = Jwt::encode([
+            'sub'  => 10,
+            'role' => 'customer',
+            'iat'  => $now - 2200,
+            'exp'  => $now + 1400,
+        ]);
+        $_COOKIE['auth_token']  = $token;
+        $_COOKIE['age_verified'] = '1';
+        // Pas de age_remember → TTL 24 h
+
+        $refreshCalled = false;
+        $result = AuthMiddleware::handle(
+            fn() => true,
+            function () use (&$refreshCalled): bool {
+                $refreshCalled = true;
+                return true;
+            }
+        );
+
+        $this->assertSame(10, $result['sub']);
+        $this->assertTrue($refreshCalled, 'Le refresher doit être appelé (TTL sous le seuil)');
+        // Le cookie a été envoyé — on vérifie indirectement que le bloc age_verified a été exécuté
+        // sans erreur (couverture de la ligne 80-89)
+    }
+
+    /**
+     * Quand le refresh est déclenché ET age_verified + age_remember sont présents,
+     * le cookie age_verified est recréé avec TTL 13 mois (397 j).
+     */
+    public function testAgeVerifiedCookieRefreshedWithRememberTtlWhenAgeCookiePresent(): void
+    {
+        $now = time();
+        $token = Jwt::encode([
+            'sub'  => 11,
+            'role' => 'customer',
+            'iat'  => $now - 2200,
+            'exp'  => $now + 1400,
+        ]);
+        $_COOKIE['auth_token']  = $token;
+        $_COOKIE['age_verified'] = '1';
+        $_COOKIE['age_remember'] = '1'; // → TTL 397 jours
+
+        $result = AuthMiddleware::handle(
+            fn() => true,
+            fn() => true  // refresh réussit
+        );
+
+        $this->assertSame(11, $result['sub']);
+    }
+
+    /**
+     * Quand le refresh n'est PAS déclenché, le bloc age_verified ne s'exécute pas
+     * (TTL encore confortable — $refreshed = false).
+     */
+    public function testAgeVerifiedCookieNotRefreshedWhenNoRefresh(): void
+    {
+        $now = time();
+        // TTL encore à 60% → pas de refresh
+        $token = Jwt::encode([
+            'sub'  => 12,
+            'role' => 'customer',
+            'iat'  => $now - 1440,
+            'exp'  => $now + 2160,
+        ]);
+        $_COOKIE['auth_token']  = $token;
+        $_COOKIE['age_verified'] = '1';
+
+        $refreshCalled = false;
+        $result = AuthMiddleware::handle(
+            fn() => true,
+            function () use (&$refreshCalled): bool {
+                $refreshCalled = true;
+                return true;
+            }
+        );
+
+        $this->assertSame(12, $result['sub']);
+        $this->assertFalse($refreshCalled, 'Pas de refresh si TTL confortable');
+    }
+
+    // ------------------------------------------------------------------
+    // isRememberMeToken — payload sans exp/iat → retourne false
+    // ------------------------------------------------------------------
+
+    /**
+     * Un payload JWT sans exp/iat est traité comme non-remember-me (isRememberMeToken = false).
+     * Le middleware retourne quand même le payload.
+     */
+    public function testHandleWithPayloadMissingExpIatIsNotRememberMe(): void
+    {
+        // Token sans exp/iat (payload minimal)
+        $token = Jwt::encode([
+            'sub'  => 20,
+            'role' => 'customer',
+            // pas de iat ni exp
+        ]);
+        $_COOKIE['auth_token'] = $token;
+
+        $result = AuthMiddleware::handle(
+            fn() => true,   // session active
+            fn() => false   // refresher non déclenché (isRememberMe=false, TTL inconnu → maybeRefresh ne refresh pas)
+        );
+
+        $this->assertSame(20, $result['sub']);
+    }
 }

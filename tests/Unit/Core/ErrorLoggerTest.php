@@ -319,4 +319,309 @@ class ErrorLoggerTest extends TestCase
         $files = glob($logDir . '/app-*.log') ?: [];
         $this->assertEmpty($files, 'HttpException 405 ne doit pas créer de fichier log');
     }
+
+    // ----------------------------------------------------------------
+    // errorLevelName() — niveaux non couverts
+    // ----------------------------------------------------------------
+
+    /**
+     * E_WARNING → 'E_WARNING'.
+     */
+    public function testErrorLevelNameEWarning(): void
+    {
+        $this->assertSame('E_WARNING', ErrorLogger::errorLevelName(E_WARNING));
+    }
+
+    /**
+     * E_PARSE → 'E_PARSE'.
+     */
+    public function testErrorLevelNameEParse(): void
+    {
+        $this->assertSame('E_PARSE', ErrorLogger::errorLevelName(E_PARSE));
+    }
+
+    /**
+     * E_CORE_ERROR → 'E_CORE_ERROR'.
+     */
+    public function testErrorLevelNameECoreError(): void
+    {
+        $this->assertSame('E_CORE_ERROR', ErrorLogger::errorLevelName(E_CORE_ERROR));
+    }
+
+    /**
+     * E_CORE_WARNING → 'E_CORE_WARNING'.
+     */
+    public function testErrorLevelNameECoreWarning(): void
+    {
+        $this->assertSame('E_CORE_WARNING', ErrorLogger::errorLevelName(E_CORE_WARNING));
+    }
+
+    /**
+     * E_COMPILE_ERROR → 'E_COMPILE_ERROR'.
+     */
+    public function testErrorLevelNameECompileError(): void
+    {
+        $this->assertSame('E_COMPILE_ERROR', ErrorLogger::errorLevelName(E_COMPILE_ERROR));
+    }
+
+    /**
+     * E_COMPILE_WARNING → 'E_COMPILE_WARNING'.
+     */
+    public function testErrorLevelNameECompileWarning(): void
+    {
+        $this->assertSame('E_COMPILE_WARNING', ErrorLogger::errorLevelName(E_COMPILE_WARNING));
+    }
+
+    /**
+     * E_USER_ERROR → 'E_USER_ERROR'.
+     */
+    public function testErrorLevelNameEUserError(): void
+    {
+        $this->assertSame('E_USER_ERROR', ErrorLogger::errorLevelName(E_USER_ERROR));
+    }
+
+    /**
+     * E_USER_WARNING → 'E_USER_WARNING'.
+     */
+    public function testErrorLevelNameEUserWarning(): void
+    {
+        $this->assertSame('E_USER_WARNING', ErrorLogger::errorLevelName(E_USER_WARNING));
+    }
+
+    /**
+     * E_USER_NOTICE → 'E_USER_NOTICE'.
+     */
+    public function testErrorLevelNameEUserNotice(): void
+    {
+        $this->assertSame('E_USER_NOTICE', ErrorLogger::errorLevelName(E_USER_NOTICE));
+    }
+
+    /**
+     * E_RECOVERABLE_ERROR → 'E_RECOVERABLE_ERROR'.
+     */
+    public function testErrorLevelNameERecoverableError(): void
+    {
+        $this->assertSame('E_RECOVERABLE_ERROR', ErrorLogger::errorLevelName(E_RECOVERABLE_ERROR));
+    }
+
+    /**
+     * E_USER_DEPRECATED → 'E_USER_DEPRECATED'.
+     */
+    public function testErrorLevelNameEUserDeprecated(): void
+    {
+        $this->assertSame('E_USER_DEPRECATED', ErrorLogger::errorLevelName(E_USER_DEPRECATED));
+    }
+
+    // ----------------------------------------------------------------
+    // write() — branche channel déjà défini
+    // ----------------------------------------------------------------
+
+    /**
+     * write() avec channel fourni → channel conservé dans le JSON.
+     */
+    public function testWritePreservesProvidedChannel(): void
+    {
+        ErrorLogger::write([
+            'timestamp' => date('Y-m-d H:i:s'),
+            'level'     => 'INFO',
+            'message'   => 'cron test',
+            'channel'   => 'cron',
+            'file'      => '',
+            'line'      => 0,
+            'trace'     => '',
+            'url'       => '/cron',
+            'method'    => 'GET',
+        ]);
+
+        $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
+        $this->assertNotEmpty($files);
+
+        $content = file_get_contents($files[0]);
+        $this->assertNotFalse($content);
+
+        $lines   = array_filter(explode("\n", trim((string) $content)));
+        $decoded = json_decode((string) end($lines), true);
+        $this->assertSame('cron', $decoded['channel']);
+    }
+
+    /**
+     * write() sans channel → channel = 'php' ajouté par défaut.
+     */
+    public function testWriteDefaultChannelIsPhp(): void
+    {
+        ErrorLogger::write([
+            'timestamp' => date('Y-m-d H:i:s'),
+            'level'     => 'INFO',
+            'message'   => 'no channel',
+            'file'      => '',
+            'line'      => 0,
+            'trace'     => '',
+            'url'       => '/',
+            'method'    => 'GET',
+        ]);
+
+        $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
+        $content = (string) file_get_contents($files[0]);
+        $lines   = array_filter(explode("\n", trim($content)));
+        $decoded = json_decode((string) end($lines), true);
+        $this->assertSame('php', $decoded['channel']);
+    }
+
+    /**
+     * write() avec file non vide et line = 0 → "(Foo.php)" sans numéro de ligne dans la ligne humaine.
+     */
+    public function testWriteHumanLineWithFileButNoLineNumber(): void
+    {
+        ErrorLogger::write([
+            'timestamp' => '2026-01-01 00:00:00',
+            'level'     => 'E_NOTICE',
+            'message'   => 'no line number',
+            'file'      => '/app/src/Foo.php',
+            'line'      => 0,
+            'trace'     => '',
+            'url'       => '/',
+            'method'    => 'GET',
+        ]);
+
+        $files   = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
+        $content = (string) file_get_contents($files[0]);
+
+        // Extraire la ligne humaine (commence par '[')
+        $lines = explode("\n", $content);
+        $humanLine = '';
+        foreach ($lines as $line) {
+            if (str_contains($line, 'no line number')) {
+                $humanLine = $line;
+                break;
+            }
+        }
+
+        // La ligne lisible doit contenir (Foo.php) mais pas (Foo.php:0)
+        $this->assertStringContainsString('(Foo.php)', $humanLine);
+        $this->assertStringNotContainsString('(Foo.php:0)', $humanLine);
+    }
+
+    /**
+     * write() avec message contenant des sauts de ligne → remplacé par espace.
+     */
+    public function testWriteReplacesNewlinesInMessage(): void
+    {
+        ErrorLogger::write([
+            'timestamp' => date('Y-m-d H:i:s'),
+            'level'     => 'E_WARNING',
+            'message'   => "line1\nline2\rline3",
+            'file'      => '',
+            'line'      => 0,
+            'trace'     => '',
+            'url'       => '/',
+            'method'    => 'GET',
+        ]);
+
+        $files   = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
+        $content = (string) file_get_contents($files[0]);
+        // La ligne humaine ne doit pas contenir de saut de ligne dans le message
+        $this->assertStringContainsString('line1 line2 line3', $content);
+    }
+
+    // ----------------------------------------------------------------
+    // handleError() — avec REMOTE_ADDR
+    // ----------------------------------------------------------------
+
+    /**
+     * handleError() anonymise l'IP depuis REMOTE_ADDR.
+     */
+    public function testHandleErrorAnonymizesRemoteAddr(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '192.168.1.42';
+        ErrorLogger::handleError(E_NOTICE, 'addr test', '/app/foo.php', 1);
+
+        $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
+        $this->assertNotEmpty($files);
+
+        $content = (string) file_get_contents($files[0]);
+        $lines   = array_filter(explode("\n", trim($content)));
+        $decoded = json_decode((string) end($lines), true);
+        $this->assertSame('192.168.1.0', $decoded['ip']);
+    }
+
+    // ----------------------------------------------------------------
+    // anonymizeIp — via handleError() — cas limites
+    // ----------------------------------------------------------------
+
+    /**
+     * IP vide → ip vide dans le log.
+     */
+    public function testHandleErrorWithEmptyRemoteAddrLogsEmptyIp(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '';
+        ErrorLogger::handleError(E_NOTICE, 'empty addr', '', 0);
+
+        $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
+        $content = (string) file_get_contents($files[0]);
+        $lines   = array_filter(explode("\n", trim($content)));
+        $decoded = json_decode((string) end($lines), true);
+        $this->assertSame('', $decoded['ip']);
+    }
+
+    /**
+     * IP non-IP (chaîne invalide) → retournée telle quelle (pas d'IPv4 ni IPv6).
+     */
+    public function testHandleErrorWithInvalidIpLogsItUnchanged(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = 'not-an-ip';
+        ErrorLogger::handleError(E_NOTICE, 'bad ip', '', 0);
+
+        $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
+        $content = (string) file_get_contents($files[0]);
+        $lines   = array_filter(explode("\n", trim($content)));
+        $decoded = json_decode((string) end($lines), true);
+        $this->assertSame('not-an-ip', $decoded['ip']);
+    }
+
+    /**
+     * IPv6 valide → dernier groupe anonymisé à 0000.
+     */
+    public function testHandleErrorAnonymizesIpv6(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '2001:db8::1';
+        ErrorLogger::handleError(E_NOTICE, 'ipv6 test', '', 0);
+
+        $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
+        $content = (string) file_get_contents($files[0]);
+        $lines   = array_filter(explode("\n", trim($content)));
+        $decoded = json_decode((string) end($lines), true);
+        // Le dernier groupe doit être 0000
+        $this->assertStringEndsWith(':0000', $decoded['ip']);
+    }
+
+    // ----------------------------------------------------------------
+    // purgeOldLogs() — fichier récent non purgé
+    // ----------------------------------------------------------------
+
+    /**
+     * write() ne supprime pas les fichiers de moins de 90 jours.
+     */
+    public function testPurgeOldLogsKeepsRecentFile(): void
+    {
+        $logDir = ROOT_PATH . '/storage/logs';
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+
+        $recentFile = $logDir . '/app-' . date('Y-m-d', strtotime('-1 day')) . '.log';
+        file_put_contents($recentFile, 'recent entry');
+
+        ErrorLogger::write([
+            'timestamp' => date('Y-m-d H:i:s'),
+            'level'     => 'INFO',
+            'message'   => 'purge recent trigger',
+            'file'      => '',
+            'line'      => 0,
+            'trace'     => '',
+            'url'       => '/test',
+            'method'    => 'GET',
+        ]);
+
+        $this->assertFileExists($recentFile);
+    }
 }
