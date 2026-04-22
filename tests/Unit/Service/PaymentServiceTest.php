@@ -511,15 +511,11 @@ class PaymentServiceTest extends TestCase
         $qs      = 'Mt=500&Ref=CMD-FGC&Sign=' . urlencode(base64_encode('fakesignatureblob'));
 
         // Supprimer warnings file_get_contents sur un répertoire
-        $prev = set_error_handler(static fn(): bool => true);
+        set_error_handler(static fn(): bool => true);
         try {
             $result = $service->verifyIpnSignature($qs);
         } finally {
-            if ($prev !== null) {
-                set_error_handler($prev);
-            } else {
-                restore_error_handler();
-            }
+            restore_error_handler();
         }
 
         $this->assertFalse($result);

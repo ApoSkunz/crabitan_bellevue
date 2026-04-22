@@ -177,30 +177,22 @@ class AdminGestionAdminsControllerTest extends TestCase
         $dbMock = $this->createStub(\Core\Database::class);
         $dbMock->method('fetchOne')->willReturnCallback(
             static function (string $sql) use ($selfId, $targetId) {
-                if (str_contains($sql, 'connections')) {
+                if (str_contains($sql, 'FROM connections')) {
                     return ['id' => 1];
                 }
-                if (str_contains($sql, 'is_blocked')) {
+                if (str_contains($sql, 'SELECT is_blocked')) {
                     return ['is_blocked' => 0];
                 }
-                if (str_contains($sql, 'accounts') && str_contains($sql, (string) $targetId)) {
-                    return [
-                        'id'         => $targetId,
-                        'email'      => 'target@test.local',
-                        'role'       => 'admin',
-                        'is_blocked' => 0,
-                        'firstname'  => 'Target',
-                        'lastname'   => 'Admin',
-                        'lang'       => 'fr',
-                    ];
-                }
+                // findById(targetId) — WHERE a.id = ? (pas de littéral dans SQL)
+                // on renvoie une row complète avec 'role' admin pour le block/unblock
                 return [
-                    'id'        => $selfId,
-                    'email'     => 'self@test.local',
-                    'role'      => 'super_admin',
+                    'id'         => $targetId,
+                    'email'      => 'target@test.local',
+                    'role'       => 'admin',
                     'is_blocked' => 0,
-                    'firstname' => 'Self',
-                    'lastname'  => 'Admin',
+                    'firstname'  => 'Target',
+                    'lastname'   => 'Admin',
+                    'lang'       => 'fr',
                 ];
             }
         );
@@ -287,30 +279,22 @@ class AdminGestionAdminsControllerTest extends TestCase
         $dbMock = $this->createStub(\Core\Database::class);
         $dbMock->method('fetchOne')->willReturnCallback(
             static function (string $sql) use ($selfId, $targetId) {
-                if (str_contains($sql, 'connections')) {
+                if (str_contains($sql, 'FROM connections')) {
                     return ['id' => 1];
                 }
-                if (str_contains($sql, 'is_blocked')) {
+                if (str_contains($sql, 'SELECT is_blocked')) {
                     return ['is_blocked' => 0];
                 }
-                if (str_contains($sql, 'accounts') && str_contains($sql, (string) $targetId)) {
-                    return [
-                        'id'         => $targetId,
-                        'email'      => 'target@test.local',
-                        'role'       => 'admin',
-                        'is_blocked' => 0,
-                        'firstname'  => 'Target',
-                        'lastname'   => 'Admin',
-                        'lang'       => 'fr',
-                    ];
-                }
+                // findById(targetId) — WHERE a.id = ? (pas de littéral dans SQL)
+                // on renvoie une row complète avec 'role' admin pour le block/unblock
                 return [
-                    'id'        => $selfId,
-                    'email'     => 'self@test.local',
-                    'role'      => 'super_admin',
+                    'id'         => $targetId,
+                    'email'      => 'target@test.local',
+                    'role'       => 'admin',
                     'is_blocked' => 0,
-                    'firstname' => 'Self',
-                    'lastname'  => 'Admin',
+                    'firstname'  => 'Target',
+                    'lastname'   => 'Admin',
+                    'lang'       => 'fr',
                 ];
             }
         );

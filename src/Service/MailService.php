@@ -3034,7 +3034,7 @@ INNER;
         $this->mailer->send();
     }
 
-    private function send( // NOSONAR — php:S107 : 8 paramètres requis pour gérer attachement chemin / chaîne / replyTo
+    protected function send( // NOSONAR — php:S107 : 8 paramètres requis pour gérer attachement chemin / chaîne / replyTo
         string $to,
         string $name,
         string $subject,

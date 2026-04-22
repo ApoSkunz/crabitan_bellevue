@@ -442,7 +442,6 @@ class NewsAdminControllerCoverageTest extends TestCase
 
         $newsMock = $this->createStub(NewsModel::class);
         $newsMock->method('getById')->willReturn($existingArticle);
-        $newsMock->method('update')->willReturn(true);
         $prop = new \ReflectionProperty(NewsAdminController::class, 'news');
         $prop->setValue($ctrl, $newsMock); // NOSONAR — test unitaire
 
