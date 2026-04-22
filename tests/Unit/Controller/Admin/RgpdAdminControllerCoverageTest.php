@@ -147,7 +147,7 @@ class RgpdAdminControllerCoverageTest extends TestCase
 
         // On remplace le fetchOne du stub DB pour que RgpdRequestModel ne soit pas réellement appelé.
         // On overridde via une sous-classe anonyme qui injecte le mock directement.
-        $ctrlWithMock = new class(new \Core\Request(), $rgpdModel) extends TestableRgpdAdminController {
+        $ctrlWithMock = new class (new \Core\Request(), $rgpdModel) extends TestableRgpdAdminController {
             private RgpdRequestModel $rgpdModelMock;
 
             /**
@@ -241,7 +241,7 @@ class RgpdAdminControllerCoverageTest extends TestCase
         $mailMock->method('sendRgpdExport');
 
         // Sous-classe anonyme injectant les dépendances
-        $ctrlWithMock = new class(
+        $ctrlWithMock = new class (
             new \Core\Request(),
             $accountMock,
             $exportSvc,
@@ -347,7 +347,7 @@ class RgpdAdminControllerCoverageTest extends TestCase
 
         $mailMock = $this->createStub(MailService::class);
 
-        $ctrlWithMock = new class(
+        $ctrlWithMock = new class (
             new \Core\Request(),
             $accountMock,
             $exportSvc,
@@ -445,7 +445,7 @@ class RgpdAdminControllerCoverageTest extends TestCase
         $mailMock->method('sendRgpdExport')
             ->willThrowException(new \RuntimeException('SMTP failure'));
 
-        $ctrlWithMock = new class(
+        $ctrlWithMock = new class (
             new \Core\Request(),
             $accountMock,
             $exportSvc,

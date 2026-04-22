@@ -21,7 +21,7 @@ class TestableLegalDocumentAdminController extends LegalDocumentAdminController
 {
     /** @var array<string, mixed> */
     public array $fakeAdmin = ['id' => 1, 'role' => 'super_admin', 'email' => 'admin@test.com'];
-    public bool  $csrfValid = true;
+    public bool $csrfValid = true;
 
     /** @var MailService&\PHPUnit\Framework\MockObject\MockObject|null */
     public ?MailService $mailMock = null;
@@ -177,7 +177,7 @@ class LegalDocumentAdminControllerCoverageTest extends TestCase
         $ctrl = $this->makeControllerWithModel($modelMock);
 
         // Sous-classe anonyme pour injecter le MailService qui lève une exception
-        $ctrlFinal = new class(
+        $ctrlFinal = new class (
             new \Core\Request(),
             $modelMock
         ) extends TestableLegalDocumentAdminController {
@@ -343,7 +343,7 @@ class LegalDocumentAdminControllerCoverageTest extends TestCase
         // updateNotificationStats doit être appelé exactement une fois
         $modelMock->expects($this->once())->method('updateNotificationStats')->with(3, 1);
 
-        $ctrlFinal = new class(
+        $ctrlFinal = new class (
             new \Core\Request(),
             $modelMock
         ) extends TestableLegalDocumentAdminController {

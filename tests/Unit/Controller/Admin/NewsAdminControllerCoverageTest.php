@@ -189,7 +189,7 @@ class NewsAdminControllerCoverageTest extends TestCase
         ];
 
         // Sous-classe qui overridde move_uploaded_file pour la testabilité
-        $ctrl = new class(new \Core\Request()) extends TestableNewsAdminController {
+        $ctrl = new class (new \Core\Request()) extends TestableNewsAdminController {
             /**
              * Retourne toujours true pour simuler un move_uploaded_file réussi.
              *
@@ -277,7 +277,7 @@ class NewsAdminControllerCoverageTest extends TestCase
         ];
 
         // Sous-classe avec moveUploadedFile qui copie le fichier
-        $ctrl = new class(new \Core\Request()) extends TestableNewsAdminController {
+        $ctrl = new class (new \Core\Request()) extends TestableNewsAdminController {
             /**
              * Simule move_uploaded_file par une copie.
              *

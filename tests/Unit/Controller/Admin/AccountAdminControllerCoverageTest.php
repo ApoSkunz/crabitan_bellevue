@@ -21,7 +21,7 @@ class TestableAccountAdminController extends AccountAdminController
 {
     /** @var array<string, mixed> */
     public array $fakeAdmin = ['id' => 1, 'role' => 'super_admin', 'email' => 'admin@test.com'];
-    public bool  $csrfValid = true;
+    public bool $csrfValid = true;
 
     /** @var MailService&\PHPUnit\Framework\MockObject\MockObject|null */
     public ?MailService $mailMock = null;
@@ -133,7 +133,7 @@ class AccountAdminControllerCoverageTest extends TestCase
 
         // Injection via Reflection (propriétés privées instanciées dans resetPassword)
         // On utilise une sous-classe anonyme pour injecter les dépendances
-        return new class(new \Core\Request(), $accountMock, $resetMock) extends TestableAccountAdminController {
+        return new class (new \Core\Request(), $accountMock, $resetMock) extends TestableAccountAdminController {
             private AccountModel $accountMockInjected;
             private PasswordResetModel $resetMockInjected;
 
