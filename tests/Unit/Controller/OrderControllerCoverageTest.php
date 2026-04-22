@@ -821,4 +821,102 @@ class OrderControllerCoverageTest extends TestCase
         $this->assertSame(302, $caught->status);
         $this->assertArrayHasKey('last_order_ref', $_SESSION);
     }
+
+    // ================================================================
+    // dispatchOrderEmails() — happy path try block (L957-966)
+    // ================================================================
+
+    /**
+     * dispatchOrderEmails() appelle sendOrderConfirmationToClient et
+     * sendOrderConfirmationToOwner. Quand MailService lève une exception,
+     * elle est absorbée silencieusement (catch Throwable).
+     * Couvre les lignes L957-966 (corps du try).
+     */
+    public function testDispatchOrderEmailsAbsorbsMailServiceException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande';
+
+        $this->setDbMock();
+
+        $ctrl   = new OrderController(new Request());
+        $method = new \ReflectionMethod(OrderController::class, 'dispatchOrderEmails');
+
+        // Appel direct avec email non-vide pour entrer dans le try block.
+        // MailService sans SMTP réel → lève une exception absorbée par le catch.
+        try {
+            $method->invoke(
+                $ctrl,
+                'client@example.com',
+                'Jean Dupont',
+                'WEB-VB-DISPATCH-2026',
+                'virement',
+                [['wine_id' => 1, 'qty' => 12, 'price' => 10.0, 'name' => 'Wine']],
+                120.0,
+                'fr',
+                0.0,
+                null
+            );
+        } catch (\Throwable $e) {
+            $this->fail('dispatchOrderEmails should absorb exceptions, got: ' . $e->getMessage());
+        }
+
+        $this->addToAssertionCount(1);
+    }
+
+    // ================================================================
+    // payment() virement — clientEmail non-vide → dispatchOrderEmails appelée (L957-966)
+    // ================================================================
+
+    /**
+     * Quand le compte a un email non-vide, le flux virement appelle
+     * dispatchOrderEmails(), couvrant les lignes L957-966.
+     */
+    public function testPaymentVirementWithNonEmptyEmailCallsDispatchOrderEmails(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(6, 'customer');
+        $_SESSION['submit_token']  = 'tok-virement-mail';
+        $_POST = [
+            'csrf_token'          => 'valid-csrf',
+            'submit_token'        => 'tok-virement-mail',
+            'payment_method'      => 'virement',
+            'cgv'                 => '1',
+            'same_address'        => '1',
+            'delivery_address_id' => '3',
+        ];
+
+        $stub = $this->setDbMock();
+        $addr = ['id' => 3, 'civility' => 'M', 'firstname' => 'A', 'lastname' => 'B',
+                 'street' => '1 Rue', 'city' => 'Bordeaux', 'zip_code' => '33000',
+                 'country' => 'France', 'phone' => '0600000000'];
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['majority_declared_at' => '2025-01-01 00:00:00'],                   // 1. hasDeclaredMajority
+            ['user_id' => 6, 'content' => json_encode([['wine_id' => 2, 'qty' => 12]])], // 2. CartModel::findByUserId
+            ['id' => 2, 'price' => 25.0, 'label_name' => 'Sauternes', 'is_cuvee_speciale' => false], // 3. enrichItems getById
+            $addr,                                                                // 4. resolveAddress delivery findByIdForUser
+            $addr,                                                                // 5. findByIdForUser zip check
+            null,                                                                 // 6. pricing findForQuantity → no rule
+            ['id' => 1, 'slug' => 'cgv', 'version' => '2.0'],                   // 7. LegalDocumentModel::findBySlug
+            ['id' => 6, 'email' => 'jean@example.com', 'firstname' => 'Jean',   // 8. AccountModel::findById
+             'lastname' => 'Dupont', 'newsletter' => false, 'lang' => 'fr'],
+            // 9. postOrderStockActions : stock > qty → cap, pas setUnavailable
+            ['id' => 2, 'label_name' => 'Sauternes', 'stock_quantity' => 100, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'sauternes', 'vintage' => 2018,
+             'is_cuvee_speciale' => false, 'price' => 25.0],
+            $addr // 10. OrderPdfContextBuilder billing (same_address → delivery=billing)
+        );
+        $stub->method('execute')->willReturn(1);
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->payment(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
 }

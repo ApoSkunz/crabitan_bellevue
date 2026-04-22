@@ -430,6 +430,61 @@ class RatingControllerTest extends TestCase
     }
 
     // ================================================================
+    // rateViaTokenApi — token valide, note valide → ligne 171 + 181
+    // ================================================================
+
+    /**
+     * rateViaTokenApi() avec token valide et note valide retourne 200 success=true (L171+L181).
+     * Utilise TestableRatingControllerWithJsonBody pour injecter le body JSON.
+     */
+    public function testRateViaTokenApiReturns200WithValidTokenAndNote(): void
+    {
+        $dbMock = $this->createStub(Database::class);
+        // Séquence fetchOne : (1) checkLimit :until → false, (2) checkLimit :count → false,
+        // (3) recordAttempt :count → false, (4) findByToken → row valide
+        $calls = 0;
+        $dbMock->method('fetchOne')->willReturnCallback(
+            function () use (&$calls): array|false {
+                $calls++;
+                return $calls === 4
+                    ? ['account_id' => 1, 'wine_id' => 2, 'order_id' => 3]
+                    : false;
+            }
+        );
+        $dbMock->method('execute')->willReturn(1);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        $ctrl = new TestableRatingControllerWithJsonBody(new Request());
+        $ctrl->setBody((string) json_encode(['token' => 'valid-tok', 'note' => 3]));
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(200);
+
+        $ctrl->rateViaTokenApi([]);
+    }
+
+    /**
+     * rateViaTokenApi() retourne 404 quand le token n'est pas trouvé en BDD (L171-175).
+     * Utilise TestableRatingControllerWithJsonBody pour injecter le body JSON.
+     */
+    public function testRateViaTokenApiReturns404WhenTokenNotFoundInDb(): void
+    {
+        // DB retourne false pour tous les fetchOne → findByToken = null
+        $dbMock = $this->createStub(Database::class);
+        $dbMock->method('fetchOne')->willReturn(false);
+        $dbMock->method('execute')->willReturn(0);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        $ctrl = new TestableRatingControllerWithJsonBody(new Request());
+        $ctrl->setBody((string) json_encode(['token' => 'unknown-tok', 'note' => 4]));
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(404);
+
+        $ctrl->rateViaTokenApi([]);
+    }
+
+    // ================================================================
     // rateViaTokenApi — rate-limit 429
     // ================================================================
 

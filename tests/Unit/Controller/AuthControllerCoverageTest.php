@@ -1464,6 +1464,65 @@ class AuthControllerCoverageTest extends TestCase
     }
 
     // ================================================================
+    // handleBadCredentialsResult() — account non null + remaining > 0
+    // → flash account_locked + redirect (L912-917)
+    // ================================================================
+
+    /**
+     * handleBadCredentialsResult() avec attempt['account'] non null et compte locké
+     * → flash auth.account_locked + redirect (L912-917).
+     *
+     * Le LoginService est remplacé par un mock retournant bad_credentials
+     * avec un account non null pour atteindre la branche L911.
+     *
+     * @return void
+     */
+    public function testHandleBadCredentialsResultWithNonNullLockedAccountFlashesLockedMessage(): void
+    {
+        $_POST = [
+            'email'      => 'locked912b@example.com',
+            'password'   => 'WrongPass!',
+            'csrf_token' => 'valid-csrf',
+        ];
+
+        $this->setDbMock();
+
+        // Injecter un LoginService mock retournant bad_credentials avec account non null
+        $controller = new \Controller\AuthController(new \Core\Request());
+
+        /** @var \Service\LoginService&\PHPUnit\Framework\MockObject\MockObject $loginMock */
+        $loginMock = $this->createMock(\Service\LoginService::class);
+        $loginMock->method('attempt')->willReturn([
+            'result'  => 'bad_credentials',
+            'account' => ['id' => 55, 'email' => 'locked912b@example.com'],
+            'wait'    => 0,
+        ]);
+
+        $loginProp = new \ReflectionProperty(\Controller\AuthController::class, 'loginService');
+        $loginProp->setValue($controller, $loginMock);
+
+        // Injecter un RateLimiterService où getRetryAfter retourne > 0 (compte locké)
+        /** @var \Service\RateLimiterService&\PHPUnit\Framework\MockObject\MockObject $rlMock */
+        $rlMock = $this->createMock(\Service\RateLimiterService::class);
+        $rlMock->method('checkLimit')->willReturn(true);   // IP pas bloquée
+        $rlMock->method('getRetryAfter')->willReturn(300); // compte locké 5 min
+
+        $rlProp = new \ReflectionProperty(\Controller\AuthController::class, 'rateLimiter');
+        $rlProp->setValue($controller, $rlMock);
+
+        $caught = null;
+        try {
+            $controller->login(['lang' => 'fr']);
+        } catch (\Core\Exception\HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('modal_error', $_SESSION['flash'] ?? []);
+    }
+
+    // ================================================================
     // handleUntrustedDevice() — MailService throw dans sendNewDeviceAlert
     // → catch L1001-1002 → pending_device posé + redirect quand même
     // ================================================================
