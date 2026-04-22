@@ -397,6 +397,7 @@ class WineModelCoverageTest extends TestCase
             'available' => 1, 'certification_label' => '',
             'area' => 1.0, 'city' => 'Pomerol', 'variety_of_vine' => 'Merlot',
             'age_of_vineyard' => 15,
+            'is_cuvee_speciale' => 0, 'image_path' => '', 'slug' => 'bordeaux-2020',
         ];
 
         $id = $this->model->create($data);

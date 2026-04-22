@@ -2,6 +2,7 @@
 // Pré-remplissage email et masquage formulaire si connecté et déjà abonné
 $footerUserEmail      = '';
 $footerShowNewsletter = true;
+$footerAccountId      = 0;
 $footerToken = $_COOKIE['auth_token'] ?? null;
 if ($footerToken) {
     try {

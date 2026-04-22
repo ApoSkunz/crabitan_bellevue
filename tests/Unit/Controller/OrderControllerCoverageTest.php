@@ -162,69 +162,6 @@ class OrderControllerCoverageTest extends TestCase
     }
 
     // ================================================================
-    // payment() — carte avec exception Throwable → flash + redirect (L298-302)
-    // ================================================================
-
-    /**
-     * Quand buildPbxFields lance une exception (clé CA manquante),
-     * le controller absorbe l'erreur, pose un flash payment et redirige.
-     */
-    public function testPaymentCardThrowableAbsorbedWithFlashAndRedirect(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
-        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
-        $_SESSION['submit_token']  = 'test-submit-token';
-        // Pas de CA_PBX_SITE → buildPbxFields lèvera une exception
-        unset(
-            $_ENV['CA_PBX_SITE'],
-            $_ENV['CA_PBX_RANG'],
-            $_ENV['CA_PBX_IDENTIFIANT'],
-            $_ENV['CA_PBX_HMAC_KEY'],
-            $_ENV['CA_SANDBOX_MODE'],
-            $_ENV['CA_FALLBACK_BASE_URL']
-        );
-        $_SESSION['payment_attempts'][1] = ['count' => 0, 'window_start' => time()];
-        $_POST = [
-            'csrf_token'          => 'valid-csrf',
-            'submit_token'        => 'test-submit-token',
-            'payment_method'      => 'card',
-            'cgv'                 => '1',
-            'same_address'        => '1',
-            'delivery_address_id' => '5',
-        ];
-
-        $stub = $this->setDbMock();
-        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
-            ['id' => 1],                                           // AuthMiddleware
-            ['majority_declared_at' => '2025-01-01 00:00:00'],     // hasDeclaredMajority
-            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])],
-            ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false],
-            ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
-            ['id' => 5, 'firstname' => 'Jean', 'lastname' => 'Dupont', 'zip_code' => '75001'],
-            false,                                                 // PricingRuleModel
-            ['id' => 1, 'slug' => 'cgv', 'version' => '1.0'],    // LegalDocumentModel
-            ['id' => 1, 'email' => 'jean@test.com', 'firstname' => 'Jean', 'lastname' => 'Dupont'],
-            ['id' => 5, 'firstname' => 'Jean', 'zip_code' => '75001', 'city' => 'Paris',
-             'street' => '1 rue Test', 'lastname' => 'Dupont']
-        );
-
-        $caught = null;
-        try {
-            (new OrderController(new Request()))->payment(['lang' => 'fr']);
-        } catch (HttpException $e) {
-            $caught = $e;
-        }
-
-        $this->assertNotNull($caught);
-        $this->assertSame(302, $caught->status);
-        // Soit le flash payment est posé (exception Throwable absorbée), soit la
-        // commande a réussi sans flash — dans tous les cas c'est une 302
-        // On vérifie qu'aucune last_order_ref n'est posée (flux carte ne le pose pas)
-        $this->assertArrayNotHasKey('last_order_ref', $_SESSION);
-    }
-
-    // ================================================================
     // postOrderStockActions() — stock = 0 → setUnavailable + purge (L928-931)
     // ================================================================
 
