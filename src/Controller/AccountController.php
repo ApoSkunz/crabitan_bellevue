@@ -954,7 +954,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             $tokenHash = hash('sha256', $rawToken);
             $this->accounts->saveSecurityConfirmToken($userId, $tokenHash, $expiresAt);
             try {
-                (new \Service\MailService())->sendPasswordChangeConfirmation(
+                $this->newMailService()->sendPasswordChangeConfirmation(
                     (string) $account['email'],
                     (string) $notifName,
                     (string) ($account['lang'] ?? $lang),
@@ -1485,7 +1485,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $name             = $account['firstname'] ?? $account['company_name'] ?? 'Client';
         $reactivationToken = $this->accounts->getReactivationToken($userId) ?? '';
         try {
-            (new \Service\MailService())->sendAccountDeletionConfirmation(
+            $this->newMailService()->sendAccountDeletionConfirmation(
                 (string) $account['email'],
                 (string) $name,
                 (string) ($account['lang'] ?? $lang),
@@ -1588,7 +1588,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $this->accounts->consumeSecurityConfirmToken($userId);
 
         try {
-            (new \Service\MailService())->sendPasswordChangeDenied(
+            $this->newMailService()->sendPasswordChangeDenied(
                 (string) $account['email'],
                 (string) $account['lang']
             );
