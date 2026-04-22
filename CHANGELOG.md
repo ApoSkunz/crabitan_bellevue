@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.21.3](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.21.2...v1.21.3) (2026-04-22)
+
+
+### Bug Fixes
+
+* **tests:** corriger 3 regressions CI chore/coverage-99-v2 ([ebc8599](https://github.com/ApoSkunz/crabitan_bellevue/commit/ebc8599f672dd8c7609d4bdffcb8a70313643c76))
+
 ## [1.21.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.21.1...v1.21.2) (2026-04-22)
 
 
