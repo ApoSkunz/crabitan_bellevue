@@ -25,9 +25,11 @@ $_eiHref         = '/' . htmlspecialchars($_eiLang) . $_eiCfg['path'];
 ?>
 <!-- Exit-intent pop-in -->
 <!-- NOSONAR Web:S6819 — custom overlay with full JS focus/keyboard management -->
+<?php $_eiMinSession = in_array($exitIntentVariant, ['boutique', 'collection'], true) ? 900000 : 0; ?>
 <div id="exit-intent-overlay" class="exit-intent-overlay" aria-hidden="true" role="region"
      aria-labelledby="exit-intent-title"
-     data-variant-type="<?= $_eiIsNewsletter ? 'newsletter' : 'commerce' ?>">
+     data-variant-type="<?= $_eiIsNewsletter ? 'newsletter' : 'commerce' ?>"
+     data-min-session="<?= $_eiMinSession ?>">
     <div class="exit-intent-overlay__backdrop" id="exit-intent-backdrop"></div>
     <div class="exit-intent-overlay__box">
         <button class="exit-intent-overlay__close" id="exit-intent-close" type="button"
@@ -87,9 +89,11 @@ $_eiHref         = '/' . htmlspecialchars($_eiLang) . $_eiCfg['path'];
     var closeBtn = document.getElementById('exit-intent-close');
     var dismiss  = document.querySelector('.exit-intent-overlay__dismiss');
 
-    var variantType = (overlay && overlay.dataset.variantType) || 'commerce';
-    var COOKIE_NAME = variantType === 'newsletter' ? 'eid_nl' : 'eid_commerce';
-    var COOKIE_TTL  = 7 * 24 * 3600; // 7 jours en secondes
+    var variantType  = (overlay && overlay.dataset.variantType) || 'commerce';
+    var COOKIE_NAME  = variantType === 'newsletter' ? 'eid_nl' : 'eid_commerce';
+    var COOKIE_TTL   = 7 * 24 * 3600; // 7 jours en secondes
+    var MIN_SESSION  = overlay ? (parseInt(overlay.dataset.minSession, 10) || 0) : 0;
+    var pageEntryTime = Date.now();
 
     function hasCookie(name) {
         return document.cookie.split('; ').some(function (c) {
@@ -108,6 +112,7 @@ $_eiHref         = '/' . htmlspecialchars($_eiLang) . $_eiCfg['path'];
 
     function show() {
         if (shown || hasCookie(COOKIE_NAME)) { return; }
+        if (MIN_SESSION > 0 && Date.now() - pageEntryTime < MIN_SESSION) { return; }
         shown = true;
         overlay.setAttribute('aria-hidden', 'false');
         overlay.classList.add('exit-intent-overlay--visible');
