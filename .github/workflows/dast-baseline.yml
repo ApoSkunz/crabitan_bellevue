@@ -25,7 +25,7 @@ jobs:
         run: chmod a+w "$GITHUB_WORKSPACE"
 
       - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.14.0  # TODO: pin to SHA — Dependabot le mettra à jour
+        uses: zaproxy/action-baseline@v0.15.0  # TODO: pin to SHA — Dependabot le mettra à jour
         with:
           target: 'https://crabitanbellevue.fr'
           rules_file_name: '.zap/rules.tsv'
