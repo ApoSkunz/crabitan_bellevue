@@ -2,6 +2,8 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.21.4](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.21.3...v1.21.4) (2026-04-22)
+
 ## [1.21.3](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.21.2...v1.21.3) (2026-04-22)
 
 
