@@ -390,4 +390,26 @@ class OrderModelTest extends TestCase
 
         $this->model->markReviewEmailSent(99);
     }
+
+    // ----------------------------------------------------------------
+    // hasOrdersByUserId
+    // ----------------------------------------------------------------
+
+    /**
+     * hasOrdersByUserId retourne true si une commande existe.
+     */
+    public function testHasOrdersByUserIdReturnsTrueWhenOrderExists(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn(['1' => 1]);
+        $this->assertTrue($this->model->hasOrdersByUserId(42));
+    }
+
+    /**
+     * hasOrdersByUserId retourne false si aucune commande.
+     */
+    public function testHasOrdersByUserIdReturnsFalseWhenNoOrder(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn(false);
+        $this->assertFalse($this->model->hasOrdersByUserId(42));
+    }
 }
