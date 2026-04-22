@@ -8,10 +8,12 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Service\Mail\RgpdMailer;
 use Service\MailService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires de RgpdMailer — vérifie la délégation vers MailService.
  */
+#[AllowMockObjectsWithoutExpectations]
 class RgpdMailerTest extends TestCase
 {
     private MailService&MockObject $mailServiceMock;

@@ -7,6 +7,7 @@ namespace Tests\Unit\Model;
 use Core\Database;
 use Model\RgpdExportLogModel;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour RgpdExportLogModel.
@@ -14,6 +15,7 @@ use PHPUnit\Framework\TestCase;
  * Vérifie le comportement de log(), count(), getAll() et purgeExpired()
  * via un stub Database — sans BDD réelle.
  */
+#[AllowMockObjectsWithoutExpectations]
 class RgpdExportLogModelTest extends TestCase
 {
     private \ReflectionProperty $instanceProp;

@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Service\MailService;
 use Service\RateLimiterService;
 use Service\SecurityAlertService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires de SecurityAlertService.
@@ -15,6 +16,7 @@ use Service\SecurityAlertService;
  * Vérifie shouldAlertOnFailedLogins() en simulant le RateLimiterService
  * et l'envoi d'emails via un stub MailService (sans SMTP réel).
  */
+#[AllowMockObjectsWithoutExpectations]
 class SecurityAlertServiceTest extends TestCase
 {
     // ----------------------------------------------------------------

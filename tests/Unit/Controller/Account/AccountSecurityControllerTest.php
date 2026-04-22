@@ -14,11 +14,13 @@ use Model\OrderModel;
 use Model\TrustedDeviceModel;
 use PHPUnit\Framework\TestCase;
 use Repository\UserRepository;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour AccountSecurityController.
  * Utilise TestableAccountSecurityController pour isoler auth, CSRF, view, redirect.
  */
+#[AllowMockObjectsWithoutExpectations]
 class AccountSecurityControllerTest extends TestCase
 {
     private \ReflectionProperty $dbInstanceProp;

@@ -9,6 +9,7 @@ use Model\WineModel;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class WineModelTest extends TestCase
 {
     private Database $dbMock;

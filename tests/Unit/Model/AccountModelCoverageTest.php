@@ -8,10 +8,12 @@ use Core\Database;
 use Model\AccountModel;
 use PHPUnit\Framework\TestCase;
 use Service\EncryptionService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests de couverture pour AccountModel — couvre les lignes non atteintes.
  */
+#[AllowMockObjectsWithoutExpectations]
 class AccountModelCoverageTest extends TestCase
 {
     private \PHPUnit\Framework\MockObject\Stub $dbMock;

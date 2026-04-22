@@ -15,6 +15,7 @@ use Model\GoogleLinkTokenModel;
 use Model\TrustedDeviceModel;
 use PHPUnit\Framework\TestCase;
 use Service\GoogleOAuthService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires GoogleOAuthController — flow rattachement par email.
@@ -25,6 +26,7 @@ use Service\GoogleOAuthService;
  *   - linkConfirmPost() : annulation (cancel) + redirect
  *   - handleUntrustedDevice() (via callback) : MFA non-trusted device
  */
+#[AllowMockObjectsWithoutExpectations]
 class GoogleOAuthControllerLinkFlowTest extends TestCase
 {
     private \ReflectionProperty $dbInstanceProp;

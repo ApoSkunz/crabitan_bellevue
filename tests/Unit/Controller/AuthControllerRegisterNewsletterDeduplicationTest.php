@@ -9,6 +9,7 @@ use Core\Database;
 use Core\Exception\HttpException;
 use Core\Request;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Vérifie le dédoublonnage newsletter lors de l'inscription.
@@ -16,6 +17,7 @@ use PHPUnit\Framework\TestCase;
  * Critère 4 : si newsletter=1, deleteNewsletterSubscriptionByEmail() doit être appelé.
  * Critère 5 : si newsletter=0, l'entrée newsletter_subscriptions est conservée (pas d'appel DELETE).
  */
+#[AllowMockObjectsWithoutExpectations]
 class AuthControllerRegisterNewsletterDeduplicationTest extends TestCase
 {
     private \ReflectionProperty $instanceProp;

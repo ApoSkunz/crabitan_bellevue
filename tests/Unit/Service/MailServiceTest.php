@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionProperty;
 use Service\MailService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires de la logique de construction des corps d'email.
@@ -17,6 +18,7 @@ use Service\MailService;
  * Les méthodes publiques (sendContact*, __construct else branch) sont couvertes
  * sans subprocess pour que Xdebug/PCOV collecte correctement la couverture.
  */
+#[AllowMockObjectsWithoutExpectations]
 class MailServiceTest extends TestCase
 {
     private MailService $service;

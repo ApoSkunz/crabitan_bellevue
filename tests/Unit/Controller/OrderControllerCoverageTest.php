@@ -12,6 +12,7 @@ use Model\OrderModel;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use ReflectionProperty;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests de couverture supplémentaires pour OrderController.
@@ -30,6 +31,7 @@ use ReflectionProperty;
  *   - paymentReturnOk() : intent user_id mismatch → order null → redirect
  *   - checkout() : panier getContent vide → redirect
  */
+#[AllowMockObjectsWithoutExpectations]
 class OrderControllerCoverageTest extends TestCase
 {
     private ReflectionProperty $instanceProp;

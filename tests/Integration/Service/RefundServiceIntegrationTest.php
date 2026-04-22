@@ -9,6 +9,7 @@ use Service\GaeApiInterface;
 use Service\MailService;
 use Service\RefundService;
 use Tests\Integration\IntegrationTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests d'intégration de RefundService.
@@ -16,6 +17,7 @@ use Tests\Integration\IntegrationTestCase;
  * Vérifie les transitions de statut en BDD après appel à refund().
  * Chaque test s'exécute dans une transaction rollbackée.
  */
+#[AllowMockObjectsWithoutExpectations]
 class RefundServiceIntegrationTest extends IntegrationTestCase
 {
     private OrderModel $model;

@@ -7,10 +7,12 @@ namespace Tests\Unit\Model;
 use Core\Database;
 use Model\NewsletterSendQueueModel;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour NewsletterSendQueueModel.
  */
+#[AllowMockObjectsWithoutExpectations]
 class NewsletterSendQueueModelTest extends TestCase
 {
     private function makeModel(Database $db): NewsletterSendQueueModel
