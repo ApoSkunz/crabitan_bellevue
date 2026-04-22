@@ -1445,4 +1445,98 @@ class AccountSecurityControllerTest extends TestCase
         $this->assertSame('account/reactivate', $ctrl->lastView);
         $this->assertTrue($ctrl->lastViewData['success'] ?? false);
     }
+
+    // ----------------------------------------------------------------
+    // deleteAccount() — catch \Throwable sur sendAccountDeletionConfirmation (L403-404)
+    // ----------------------------------------------------------------
+
+    /**
+     * deleteAccount() complet (compte Google password null) — MailService
+     * sendAccountDeletionConfirmation lève une exception → catch \Throwable L403-404,
+     * exception loguée silencieusement, redirect final vers /{lang}.
+     */
+    public function testDeleteAccountAbsorbsMailExceptionOnDeletionConfirmation(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['confirm_text' => 'SUPPRESSION'];
+
+        $account = [
+            'id'           => 1,
+            'email'        => 'u@example.com',
+            'password'     => null, // Google account → pas de check mdp
+            'firstname'    => 'Jean',
+            'lastname'     => 'Dupont',
+            'lang'         => 'fr',
+            'company_name' => null,
+        ];
+
+        $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findById')->willReturn($account);
+        $userRepo->method('revokeAllSessions');
+        $userRepo->method('delete');
+
+        $accountModel = $this->createStub(\Model\AccountModel::class);
+        $accountModel->method('getReactivationToken')->willReturn('reac-tok-xyz');
+
+        $mailMock = $this->createMock(\Service\MailService::class);
+        $mailMock->method('sendAccountDeletionConfirmation')
+            ->willThrowException(new \RuntimeException('SMTP down'));
+
+        $ctrl = $this->makeController($userRepo);
+        $ctrl->fakeMailService = $mailMock;
+        $refAcc = new \ReflectionProperty(AccountSecurityController::class, 'accounts');
+        $refAcc->setValue($ctrl, $accountModel);
+
+        $ex = null;
+        ob_start();
+        try {
+            $ctrl->deleteAccount(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $ex = $e;
+        } finally {
+            ob_end_clean();
+        }
+
+        $this->assertNotNull($ex);
+        $this->assertStringContainsString('/fr', (string) $ex->location);
+    }
+
+    // ----------------------------------------------------------------
+    // denySecurityAction() — catch \Throwable sur sendPasswordChangeDenied (L575-576)
+    // ----------------------------------------------------------------
+
+    /**
+     * denySecurityAction() token valide mais MailService sendPasswordChangeDenied
+     * lève une exception → catch \Throwable L575-576, exception loguée silencieusement,
+     * vue security-deny rendue avec success=true.
+     */
+    public function testDenySecurityActionAbsorbsMailException(): void
+    {
+        $_GET = ['token' => 'validtoken'];
+
+        $account = ['id' => 3, 'email' => 'u@example.com', 'lang' => 'fr'];
+
+        $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findBySecurityConfirmToken')->willReturn($account);
+        $userRepo->method('clearPendingPassword');
+        $userRepo->method('revokeAllSessions');
+        $userRepo->method('consumeSecurityConfirmToken');
+
+        $devices = $this->createMock(TrustedDeviceModel::class);
+        $devices->method('deleteAllForUser');
+
+        $mailMock = $this->createMock(\Service\MailService::class);
+        $mailMock->method('sendPasswordChangeDenied')
+            ->willThrowException(new \RuntimeException('SMTP down'));
+
+        $ctrl = $this->makeController($userRepo);
+        $ctrl->fakeMailService = $mailMock;
+        $this->inject($ctrl, 'trustedDevices', $devices);
+
+        $ctrl->denySecurityAction(['lang' => 'fr']);
+
+        // Vue rendue avec success=true malgré exception mail catchée L575-576
+        $this->assertSame('account/security-deny', $ctrl->lastView);
+        $this->assertTrue($ctrl->lastViewData['success'] ?? false);
+    }
 }

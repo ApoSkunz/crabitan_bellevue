@@ -25,6 +25,36 @@ class RgpdAdminController extends AdminController
     private const ROUTE_LIST = '/admin/rgpd/demandes';
     private const ROUTE_ADD  = '/admin/rgpd/demandes/ajouter';
 
+    /**
+     * Instancie le RgpdExportService (seam de testabilité).
+     *
+     * @return RgpdExportService
+     */
+    protected function newRgpdExportService(): RgpdExportService
+    {
+        return new RgpdExportService();
+    }
+
+    /**
+     * Instancie le MailService (seam de testabilité).
+     *
+     * @return MailService
+     */
+    protected function newMailService(): MailService
+    {
+        return new MailService();
+    }
+
+    /**
+     * Instancie le AccountModel (seam de testabilité).
+     *
+     * @return AccountModel
+     */
+    protected function newAccountModel(): AccountModel
+    {
+        return new AccountModel();
+    }
+
     // ----------------------------------------------------------------
     // GET /admin/rgpd/demandes
     // ----------------------------------------------------------------
@@ -290,9 +320,9 @@ class RgpdAdminController extends AdminController
     {
         $email  = (string) ($request['requester_email'] ?? '');
         $name   = (string) ($request['requester_name']  ?? $email);
-        $svc    = new RgpdExportService();
+        $svc    = $this->newRgpdExportService();
 
-        $accountModel = new AccountModel();
+        $accountModel = $this->newAccountModel();
         $account      = $accountModel->findByEmail($email);
         $sub          = null;
 
@@ -316,7 +346,7 @@ class RgpdAdminController extends AdminController
 
         try {
             $mailLang    = (string) ($account['lang'] ?? $sub['lang'] ?? 'fr');
-            $mailService = new MailService();
+            $mailService = $this->newMailService();
             $mailService->sendRgpdExport($email, $name, $content, $filename, $mailLang);
         } catch (\Exception $e) {
             \Core\ErrorLogger::warning($e);

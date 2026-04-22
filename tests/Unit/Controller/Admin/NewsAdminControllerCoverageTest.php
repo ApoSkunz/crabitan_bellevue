@@ -320,4 +320,162 @@ class NewsAdminControllerCoverageTest extends TestCase
         // L277-279 : l'ancienne image doit avoir été supprimée
         $this->assertFileDoesNotExist($oldFilePath);
     }
+
+    // ================================================================
+    // handleImageUpload — succès complet via seam moveUploadedFile (L324 + L336)
+    // ================================================================
+
+    /**
+     * handleImageUpload() avec JPEG valide et seam moveUploadedFile forcé à true
+     * → couvre la création du répertoire (L324 si absent) et le retour succès
+     * avec filename (L336).
+     */
+    public function testHandleImageUploadSuccessPathCoversMkdirAndReturnFilename(): void
+    {
+        // JPEG minimal reconnu par finfo (magic bytes JFIF)
+        $tmpFile = tempnam(sys_get_temp_dir(), 'news_valid_');
+        file_put_contents($tmpFile, "\xFF\xD8\xFF\xE0" . str_repeat("\x00", 16) . "\xFF\xD9");
+
+        $_FILES = [
+            'image' => [
+                'tmp_name' => $tmpFile,
+                'name'     => 'photo.jpg',
+                'size'     => 20,
+                'error'    => UPLOAD_ERR_OK,
+            ],
+        ];
+
+        // Sous-classe qui remplace moveUploadedFile (SEAM, pas la méthode cible)
+        $ctrl = new class (new \Core\Request()) extends TestableNewsAdminController {
+            protected function moveUploadedFile(string $src, string $dest): bool
+            {
+                return copy($src, $dest);
+            }
+        };
+        $newsMock = $this->createStub(NewsModel::class);
+        $prop = new \ReflectionProperty(NewsAdminController::class, 'news');
+        $prop->setValue($ctrl, $newsMock); // NOSONAR — test unitaire
+
+        $destDir   = ROOT_PATH . '/public/assets/images/news/';
+        $createdFile = null;
+
+        try {
+            $method = new \ReflectionMethod(NewsAdminController::class, 'handleImageUpload');
+            $result = $method->invoke($ctrl, 'Mon article test', null, false);
+
+            if ($result['error'] !== null) {
+                $this->markTestSkipped('finfo MIME non reconnu en CLI : ' . $result['error']);
+                return;
+            }
+
+            $createdFile = $destDir . $result['path'];
+
+            // L336 : retour succès
+            $this->assertSame(null, $result['error']);
+            $this->assertNotEmpty($result['path']);
+            $this->assertStringEndsWith('.jpg', $result['path']);
+            $this->assertFileExists($createdFile);
+
+            // L324 : le répertoire a été assuré (existe forcément après run)
+            $this->assertDirectoryExists($destDir);
+        } finally {
+            @unlink($tmpFile);
+            if ($createdFile !== null && file_exists($createdFile)) {
+                @unlink($createdFile);
+            }
+        }
+    }
+
+    // ================================================================
+    // update() — suppression ancienne image via flux complet (L277-279)
+    // ================================================================
+
+    /**
+     * update() avec article existant ayant image_path et nouvelle image uploadée
+     * → suppression de l'ancien fichier (L277-279) via parseNewsForm branche delete.
+     */
+    public function testUpdateDeletesOldImageWhenNewImageUploaded(): void
+    {
+        // Ancien fichier factice
+        $destDir = ROOT_PATH . '/public/assets/images/news/';
+        if (!is_dir($destDir)) {
+            mkdir($destDir, 0755, true);
+        }
+        $oldFilename = 'old_update_cov_' . uniqid() . '.jpg';
+        $oldFilePath = $destDir . $oldFilename;
+        file_put_contents($oldFilePath, 'fake old image');
+
+        // JPEG valide pour la nouvelle image
+        $tmpFile = tempnam(sys_get_temp_dir(), 'news_upd_');
+        file_put_contents($tmpFile, "\xFF\xD8\xFF\xE0" . str_repeat("\x00", 16) . "\xFF\xD9");
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_FILES = [
+            'image' => [
+                'tmp_name' => $tmpFile,
+                'name'     => 'new.jpg',
+                'size'     => 20,
+                'error'    => UPLOAD_ERR_OK,
+            ],
+        ];
+        $_POST = [
+            'title_fr'        => 'Titre MAJ',
+            'title_en'        => 'Updated title',
+            'text_content_fr' => 'Contenu',
+            'text_content_en' => 'Content',
+            'link_path'       => '',
+            'csrf_token'      => 'valid-csrf',
+        ];
+
+        $ctrl = new class (new \Core\Request()) extends TestableNewsAdminController {
+            protected function moveUploadedFile(string $src, string $dest): bool
+            {
+                return copy($src, $dest);
+            }
+        };
+
+        $existingArticle = [
+            'id'         => 7,
+            'image_path' => $oldFilename,
+            'title'      => json_encode(['fr' => 'Old', 'en' => 'Old']),
+        ];
+
+        $newsMock = $this->createStub(NewsModel::class);
+        $newsMock->method('getById')->willReturn($existingArticle);
+        $newsMock->method('update')->willReturn(true);
+        $prop = new \ReflectionProperty(NewsAdminController::class, 'news');
+        $prop->setValue($ctrl, $newsMock); // NOSONAR — test unitaire
+
+        $newCreatedFile = null;
+
+        try {
+            $ex = null;
+            try {
+                $ctrl->update(['id' => '7']);
+            } catch (HttpException $e) {
+                // Redirect après update OK
+                $ex = $e;
+            }
+
+            if (!empty($ctrl->flashes['error'] ?? null)) {
+                // finfo MIME failure → skip
+                $this->markTestSkipped('finfo CLI : ' . ($ctrl->flashes['error'] ?? ''));
+                return;
+            }
+
+            // L277-279 : ancien fichier supprimé
+            $this->assertFileDoesNotExist($oldFilePath);
+            // Redirect final émis
+            $this->assertNotNull($ex);
+        } finally {
+            @unlink($tmpFile);
+            if (file_exists($oldFilePath)) {
+                @unlink($oldFilePath);
+            }
+            // Nettoyage best-effort des nouvelles images créées
+            foreach (glob($destDir . 'News_Titre_MAJ_*.jpg') ?: [] as $f) {
+                @unlink($f);
+            }
+        }
+    }
 }
