@@ -193,7 +193,8 @@ $paymentMap  = [
                 <?php endif; ?>
             </section>
 
-            <!-- Adresses -->
+            <!-- Adresses (masquées si commande annulée) -->
+            <?php if ($order['status'] !== 'cancelled') : ?>
             <div class="order-addresses">
                 <section class="account-section order-address-block">
                     <h2 class="account-section__title"><?= __('account.order_billing') ?></h2>
@@ -208,7 +209,17 @@ $paymentMap  = [
                     </address>
                 </section>
 
-                <?php if (!empty($order['del_street'])) : ?>
+                <?php if ($isPickupOrder) : ?>
+                    <section class="account-section order-address-block">
+                        <h2 class="account-section__title"><?= $lang === 'en' ? 'Pickup address' : 'Adresse de retrait' ?></h2>
+                        <address class="order-address">
+                            Château Crabitan Bellevue<br>
+                            1 Crabitan Bellevue<br>
+                            33410 Sainte-Croix-du-Mont<br>
+                            France
+                        </address>
+                    </section>
+                <?php elseif (!empty($order['del_street'])) : ?>
                     <section class="account-section order-address-block">
                         <h2 class="account-section__title"><?= __('account.order_delivery') ?></h2>
                         <address class="order-address">
@@ -220,6 +231,7 @@ $paymentMap  = [
                     </section>
                 <?php endif; ?>
             </div>
+            <?php endif; ?>
 
             <!-- Annulation (uniquement si en attente de paiement) -->
             <?php $qs = '?subject='; ?>
