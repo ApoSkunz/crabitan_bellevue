@@ -48,8 +48,11 @@ class AccountAdminController extends AdminController
         $hasOrderedReq = $this->request->get('has_ordered');
         $hasOrdered    = in_array($hasOrderedReq, ['0', '1'], true) ? $hasOrderedReq : null;
 
-        $total = $accounts->countForAdmin($role, $search ?: null, $type, $hasOrdered);
-        $list  = $accounts->getForAdmin($perPage, ($page - 1) * $perPage, $role, $search ?: null, $type, $sort, $hasOrdered);
+        $activityReq = $this->request->get('activity');
+        $activity    = in_array($activityReq, ['active', 'inactive', 'deleted'], true) ? $activityReq : null;
+
+        $total = $accounts->countForAdmin($role, $search ?: null, $type, $hasOrdered, $activity);
+        $list  = $accounts->getForAdmin($perPage, ($page - 1) * $perPage, $role, $search ?: null, $type, $sort, $hasOrdered, $activity);
 
         $this->view('admin/accounts/index', [
             'adminUser'    => $adminUser,
@@ -65,6 +68,7 @@ class AccountAdminController extends AdminController
             'search'       => $search,
             'sort'         => $sort,
             'hasOrdered'   => $hasOrdered,
+            'activity'     => $activity,
             'currentRole'  => $adminUser['role'] ?? '',
             'flash'        => $this->getFlash('success'),
             'flashError'   => $this->getFlash('error'),

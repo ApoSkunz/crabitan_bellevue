@@ -52,6 +52,7 @@ class EmailRateLogModel extends Model
 
     /**
      * Retourne un agrégat par adresse expéditrice sur les 25 dernières heures.
+     * Colonne sent_last_hour pour suivre la limite IONOS (500/h).
      *
      * @return array<int, array<string, mixed>>
      */
@@ -62,6 +63,7 @@ class EmailRateLogModel extends Model
                     COUNT(*) AS total_sent,
                     SUM(success=1) AS success_count,
                     SUM(success=0) AS error_count,
+                    SUM(sent_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR)) AS sent_last_hour,
                     MIN(sent_at) AS first_at,
                     MAX(sent_at) AS last_at
              FROM email_rate_log

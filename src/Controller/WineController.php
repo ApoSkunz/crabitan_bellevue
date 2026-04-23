@@ -250,6 +250,31 @@ class WineController extends Controller
      * @param array<string, string> $params Paramètres de route (lang, slug)
      * @return void
      */
+    /**
+     * Page loader pour le QR code : affiche animation puis auto-download PDF.
+     *
+     * @param array<string, string> $params Paramètres de route (lang, slug)
+     * @return void
+     */
+    public function technicalSheetQrLoader(array $params): void
+    {
+        $lang = $this->resolveLang($params);
+        $slug = $params['slug'] ?? '';
+
+        $model = new WineModel();
+        $wine  = $model->getBySlug($slug);
+
+        if ($wine === null) {
+            Response::abort(404);
+        }
+
+        $this->view('wines/fiche-technique-loader', [
+            'lang'     => $lang,
+            'wineName' => ($wine['label_name'] ?? '') . ($wine['vintage'] ? ' ' . $wine['vintage'] : ''),
+            'pdfUrl'   => '/' . $lang . '/vins/' . $slug . '/fiche-technique',
+        ]);
+    }
+
     public function technicalSheet(array $params): void
     {
         $lang  = $this->resolveLang($params);

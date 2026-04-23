@@ -26,6 +26,8 @@ $navIcons = [
     'logs'         => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="12" height="12" rx="1"/><line x1="4" y1="5" x2="11" y2="5"/><line x1="4" y1="7.5" x2="11" y2="7.5"/><line x1="4" y1="10" x2="8" y2="10"/></svg>',
     'admins'       => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="4" r="2"/><circle cx="10" cy="4" r="2"/><path d="M1 13c0-2.5 2-4 4.5-4"/><path d="M8 10h5.5a1.5 1.5 0 011.5 1.5v1.5"/><line x1="11" y1="9" x2="11" y2="13"/><line x1="9" y1="11" x2="13" y2="11"/></svg>',
     'email_rate'   => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="3.5" width="12" height="8" rx="1"/><path d="M1.5 5l6 4 6-4"/><line x1="10.5" y1="9" x2="13" y2="9"/><line x1="12" y1="7.5" x2="12" y2="10.5"/></svg>',
+    'cron_monitoring' => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="7.5" r="6"/><polyline points="7.5,4 7.5,7.5 10,9"/></svg>',
+    'app_logs'       => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="1.5" width="11" height="12" rx="1"/><line x1="4" y1="4.5" x2="11" y2="4.5"/><line x1="4" y1="7" x2="11" y2="7"/><line x1="4" y1="9.5" x2="9" y2="9.5"/><circle cx="11.5" cy="11.5" r="0.75" fill="currentColor" stroke="none"/></svg>',
 ];
 
 $navItems = [
@@ -44,6 +46,8 @@ $navItems = [
     'profile'     => ['url' => '/admin/securite',             'label' => 'Sécurité'],
     'logs'        => ['url' => '/admin/logs',                 'label' => 'Journal d\'audit'],
     'email_rate'  => ['url' => '/admin/emails-rate',          'label' => 'Monitoring emails'],
+    'cron_monitoring' => ['url' => '/admin/monitoring-crons', 'label' => 'Monitoring crons'],
+    'app_logs'    => ['url' => '/admin/logs-app',             'label' => 'Logs applicatifs'],
     'admins'      => ['url' => '/admin/admins',               'label' => 'Admins'],
 ];
 
@@ -201,7 +205,7 @@ if (empty($_SESSION['csrf'])) {
 
         <nav class="admin-nav" aria-label="Menu principal">
             <?php foreach ($navItems as $key => $item) : ?>
-                <?php if (in_array($key, ['logs', 'admins', 'email_rate'], true) && $adminRole !== 'super_admin') : ?>
+                <?php if (in_array($key, ['logs', 'admins', 'email_rate', 'cron_monitoring', 'app_logs'], true) && $adminRole !== 'super_admin') : ?>
                     <?php continue; // NOSONAR — php:S1763 : continue dans un foreach PHP template, détecté à tort comme inatteignable ?>
                 <?php endif; ?>
                 <a

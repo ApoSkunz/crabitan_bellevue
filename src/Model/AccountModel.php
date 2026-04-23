@@ -1155,7 +1155,8 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         ?string $search,
         ?string $type = null,
         ?string $sort = null,
-        ?string $hasOrdered = null
+        ?string $hasOrdered = null,
+        ?string $activity = null
     ): array {
         [$where, $params] = $this->buildAdminFilters($role, $search, $type);
 
@@ -1163,6 +1164,15 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             $where .= ($where === '' ? 'WHERE' : ' AND') . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id) > 0';
         } elseif ($hasOrdered === '0') {
             $where .= ($where === '' ? 'WHERE' : ' AND') . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id) = 0';
+        }
+
+        if ($activity === 'active') {
+            $where .= ($where === '' ? 'WHERE' : ' AND') . ' a.deleted_at IS NULL AND a.last_login_at >= DATE_SUB(NOW(), INTERVAL 3 YEAR)';
+        } elseif ($activity === 'inactive') {
+            $where .= ($where === '' ? 'WHERE' : ' AND')
+                . ' a.deleted_at IS NULL AND (a.last_login_at IS NULL OR a.last_login_at < DATE_SUB(NOW(), INTERVAL 3 YEAR))';
+        } elseif ($activity === 'deleted') {
+            $where .= ($where === '' ? 'WHERE' : ' AND') . ' a.deleted_at IS NOT NULL';
         }
 
         $params[] = $limit;
@@ -1204,14 +1214,28 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      * @param string|null $hasOrdered  Filtre commandes : '1' = a commandé, '0' = jamais, null = tous
      * @return int
      */
-    public function countForAdmin(?string $role, ?string $search, ?string $type = null, ?string $hasOrdered = null): int
-    {
+    public function countForAdmin(
+        ?string $role,
+        ?string $search,
+        ?string $type = null,
+        ?string $hasOrdered = null,
+        ?string $activity = null
+    ): int {
         [$where, $params] = $this->buildAdminFilters($role, $search, $type);
 
         if ($hasOrdered === '1') {
             $where .= ($where === '' ? 'WHERE' : ' AND') . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id) > 0';
         } elseif ($hasOrdered === '0') {
             $where .= ($where === '' ? 'WHERE' : ' AND') . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id) = 0';
+        }
+
+        if ($activity === 'active') {
+            $where .= ($where === '' ? 'WHERE' : ' AND') . ' a.deleted_at IS NULL AND a.last_login_at >= DATE_SUB(NOW(), INTERVAL 3 YEAR)';
+        } elseif ($activity === 'inactive') {
+            $where .= ($where === '' ? 'WHERE' : ' AND')
+                . ' a.deleted_at IS NULL AND (a.last_login_at IS NULL OR a.last_login_at < DATE_SUB(NOW(), INTERVAL 3 YEAR))';
+        } elseif ($activity === 'deleted') {
+            $where .= ($where === '' ? 'WHERE' : ' AND') . ' a.deleted_at IS NOT NULL';
         }
 
         $row = $this->db->fetchOne(

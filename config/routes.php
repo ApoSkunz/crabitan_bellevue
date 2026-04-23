@@ -64,6 +64,7 @@ $router->get('/admin/logs', 'Admin\AuditLogAdminController@index');
 $router->get('/admin/logs/export', 'Admin\AuditLogAdminController@export');
 $router->get('/admin/emails-rate', 'Admin\EmailRateAdminController@index');
 $router->get('/admin/monitoring-crons', 'Admin\CronMonitoringAdminController@index');
+$router->get('/admin/logs-app', 'Admin\AppLogsAdminController@index');
 $router->get('/admin/admins', 'Admin\AdminGestionAdminsController@index');
 $router->post('/admin/admins/{id}/bloquer', 'Admin\AdminGestionAdminsController@block');
 $router->post('/admin/admins/{id}/debloquer', 'Admin\AdminGestionAdminsController@unblock');
@@ -121,6 +122,7 @@ $router->get('/{lang}/webmaster', 'PageController@webmaster');
 $router->get('/{lang}/vins', 'WineController@index');
 $router->get('/{lang}/vins/collection', 'WineController@collection');
 $router->get('/{lang}/vins/{slug}/fiche-technique', 'WineController@technicalSheet');
+$router->get('/{lang}/vins/{slug}/fiche-technique/qr', 'WineController@technicalSheetQrLoader');
 $router->get('/{lang}/vins/{slug}', 'WineController@show');
 
 // News

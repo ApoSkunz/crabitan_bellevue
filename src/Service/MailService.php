@@ -1300,6 +1300,18 @@ INNER;
         }
 
         $paymentLabel = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
+        $isPickup     = $deliveryMethod === 'pickup';
+
+        // Libellé de remise adapté au mode de livraison
+        if ($isPickup) {
+            $labelDiscount = $lang === 'en' ? 'Click & Collect discount' : 'Remise Click & Collect';
+            // Mode pickup : remplace délai estimé par indication retrait château
+            $labelDelay = $lang === 'en' ? 'Pickup' : 'Retrait';
+            $delayValue = $lang === 'en'
+                ? 'Available at the château within 48h'
+                : 'Disponible au château sous 48h';
+        }
+
         $itemsHtml    = $this->buildOrderItemsTable(
             $items,
             $total,

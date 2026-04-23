@@ -15,6 +15,25 @@ if (!function_exists('emailRateUrl')) {
         return '/admin/emails-rate?' . http_build_query(['page' => $p, 'per_page' => $perPage]);
     }
 }
+
+$typeLabelsFr = [
+    'contact'            => 'Contact',
+    'register'           => 'Inscription',
+    'reset_password'     => 'Réinit. mot de passe',
+    'email_change'       => 'Changement email',
+    'order'              => 'Commande',
+    'invoice'            => 'Facture',
+    'rgpd_export'        => 'Export RGPD',
+    'rgpd_deletion'      => 'Suppression RGPD',
+    'admin_action'       => 'Action admin',
+    'cron_newsletter'    => 'Newsletter (cron)',
+    'cron_inactivity'    => 'Inactivité (cron)',
+    'cron_reminder'      => 'Relance (cron)',
+    'cron_review'        => 'Avis (cron)',
+    'cron_abandoned_cart' => 'Panier abandonné (cron)',
+    'cron_post_purchase' => 'Post-achat (cron)',
+    'other'              => 'Autre',
+];
 ?>
 
 <div class="admin-page-header">
@@ -39,7 +58,8 @@ if (!function_exists('emailRateUrl')) {
                 <thead>
                     <tr>
                         <th>Adresse expéditrice</th>
-                        <th style="text-align:right;">Total</th>
+                        <th style="text-align:right;">Total (25h)</th>
+                        <th style="text-align:right;">Dernière heure / 500</th>
                         <th style="text-align:right;">Succès</th>
                         <th style="text-align:right;">Erreurs</th>
                         <th>Premier envoi</th>
@@ -47,10 +67,21 @@ if (!function_exists('emailRateUrl')) {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($summary as $row) : ?>
+                    <?php foreach ($summary as $row) :
+                        $lastHour = (int) ($row['sent_last_hour'] ?? 0);
+                        $pct      = (int) min(100, round(($lastHour / 500) * 100));
+                        $warn     = $lastHour >= 400;
+                        $danger   = $lastHour >= 475;
+                    ?>
                         <tr>
                             <td><?= htmlspecialchars($row['from_address']) ?></td>
                             <td style="text-align:right;font-weight:600;"><?= (int) $row['total_sent'] ?></td>
+                            <td style="text-align:right;">
+                                <span style="font-weight:600;<?= $danger ? 'color:#c0392b;' : ($warn ? 'color:#d97706;' : '') ?>"><?= $lastHour ?> / 500</span>
+                                <div style="width:100%;height:4px;background:#ede8df;border-radius:2px;margin-top:4px;">
+                                    <div style="width:<?= $pct ?>%;height:100%;background:<?= $danger ? '#c0392b' : ($warn ? '#d97706' : '#2d7a2d') ?>;border-radius:2px;"></div>
+                                </div>
+                            </td>
                             <td style="text-align:right;color:#2d7a2d;"><?= (int) $row['success_count'] ?></td>
                             <td style="text-align:right;<?= (int) $row['error_count'] > 0 ? 'color:#c0392b;font-weight:600;' : '' ?>">
                                 <?= (int) $row['error_count'] ?>
@@ -107,7 +138,7 @@ if (!function_exists('emailRateUrl')) {
                         ?>
                         <tr>
                             <td style="font-size:0.8rem;white-space:nowrap;"><?= htmlspecialchars($log['sent_at']) ?></td>
-                            <td style="font-size:0.72rem;"><span style="background:#f3ede0;color:#5a4a3a;padding:2px 8px;border-radius:12px;letter-spacing:0.04em;"><?= htmlspecialchars($type) ?></span></td>
+                            <td style="font-size:0.72rem;"><span style="background:#f3ede0;color:#5a4a3a;padding:2px 8px;border-radius:12px;letter-spacing:0.04em;"><?= htmlspecialchars($typeLabelsFr[$type] ?? $type) ?></span></td>
                             <td style="font-size:0.8rem;"><?= htmlspecialchars($log['from_address']) ?></td>
                             <td style="font-size:0.8rem;"><?= htmlspecialchars($log['to_address']) ?></td>
                             <td style="font-size:0.8rem;">

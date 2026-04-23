@@ -2474,8 +2474,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const closeBtn      = document.getElementById('admin-qr-modal-close');
 
         function openQrModal(slug, label) {
-            // QR pointe sur la page produit : scan → overlay progression → PDF télécharger
-            const url     = appUrl + '/fr/vins/' + encodeURIComponent(slug);
+            // QR pointe sur la page loader : scan → animation chargement → PDF auto-download
+            const url     = appUrl + '/fr/vins/' + encodeURIComponent(slug) + '/fiche-technique/qr';
             const spinner = document.getElementById('admin-qr-spinner');
             modalTitle.textContent      = label;
             modalUrl.textContent        = url;

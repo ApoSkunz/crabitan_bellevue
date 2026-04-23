@@ -66,6 +66,13 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
         <option value="0" <?= ($hasOrdered ?? '') === '0' ? 'selected' : '' ?>>Jamais commandé</option>
     </select>
 
+    <select name="activity" class="admin-filters__select" aria-label="Filtrer par activité">
+        <option value="">Toute activité</option>
+        <option value="active"   <?= ($activity ?? '') === 'active'   ? 'selected' : '' ?>>Actif</option>
+        <option value="inactive" <?= ($activity ?? '') === 'inactive' ? 'selected' : '' ?>>Inactif (+3 ans)</option>
+        <option value="deleted"  <?= ($activity ?? '') === 'deleted'  ? 'selected' : '' ?>>Supprimé</option>
+    </select>
+
     <input type="text" name="search" class="admin-filters__input"
            placeholder="Email, nom, prénom…"
            value="<?= htmlspecialchars($search) ?>">
@@ -86,10 +93,8 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
     </select>
 
     <noscript><button type="submit" class="admin-filters__btn">Filtrer</button></noscript>
-    <?php if ($role || ($type ?? null) || $search) : ?>
-        <a href="/admin/comptes<?= $perPage !== 10 ? '?per_page=' . $perPage : '' ?>"
-           class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
-    <?php endif; ?>
+    <a href="/admin/comptes<?= $perPage !== 10 ? '?per_page=' . $perPage : '' ?>"
+       class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
 </form>
 
 <div class="admin-card">
@@ -108,6 +113,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                     <th>Inscrit le</th>
                     <th class="col-hide-tablet">Dernière connexion</th>
                     <th class="col-hide-tablet">Cmdes</th>
+                    <th class="col-hide-tablet">Activité</th>
                     <?php if ($isSuperAdmin) : ?>
                         <th>Vérif.</th>
                         <th>Réinit. mdp</th>
@@ -116,7 +122,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
             </thead>
             <tbody>
             <?php if (empty($accounts)) : ?>
-                <tr><td colspan="<?= $isSuperAdmin ? 13 : 11 ?>"
+                <tr><td colspan="<?= $isSuperAdmin ? 14 : 12 ?>"
                         style="text-align:center;color:#8a7a60;padding:2rem;">Aucun compte trouvé</td></tr>
             <?php else : ?>
                 <?php foreach ($accounts as $account) : ?>
@@ -179,6 +185,19 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                             <?php else : ?>
                                 <span style="color:#8a7a60;">—</span>
                             <?php endif; ?>
+                        </td>
+                        <td class="col-hide-tablet" data-label="Activité" style="font-size:0.78rem;">
+                            <?php
+                            if (!empty($account['deleted_at'])) {
+                                echo '<span style="color:#c0392b;">Supprimé</span>';
+                            } else {
+                                $lastConn = $account['last_connection'] ?? null;
+                                $isActive = $lastConn !== null && strtotime((string) $lastConn) >= strtotime('-3 years');
+                                echo $isActive
+                                    ? '<span style="color:#2d7a2d;">Actif</span>'
+                                    : '<span style="color:#8a7060;">Inactif</span>';
+                            }
+                            ?>
                         </td>
                         <?php if ($isSuperAdmin) : ?>
                             <td style="white-space:nowrap;">

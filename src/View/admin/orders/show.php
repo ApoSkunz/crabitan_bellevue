@@ -15,7 +15,11 @@ $statusLabels = [
     'ready_for_pickup' => 'Prêt au retrait',
     'collected'        => 'Retiré',
 ];
-$allStatuses   = array_keys($statusLabels);
+// Workflow statuts selon mode de livraison
+$isPickup       = ($order['delivery_method'] ?? 'shipping') === 'pickup';
+$shippingFlow   = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', 'refund_pending', 'refund_refused', 'refunded', 'cancelled'];
+$pickupFlow     = ['pending', 'paid', 'processing', 'ready_for_pickup', 'collected', 'cancelled', 'refunded'];
+$allStatuses    = $isPickup ? $pickupFlow : $shippingFlow;
 
 // Rang du flux normal (permet de détecter un retour en arrière)
 $statusRank = [

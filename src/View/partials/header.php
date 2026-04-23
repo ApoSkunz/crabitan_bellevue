@@ -842,6 +842,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <a href="/admin/admins">Gestion des admins</a>
                     <a href="/admin/emails-rate">Monitoring emails</a>
                     <a href="/admin/monitoring-crons">Monitoring crons</a>
+                    <a href="/admin/logs-app">Logs applicatifs</a>
                 <?php endif; ?>
             <?php else : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">
