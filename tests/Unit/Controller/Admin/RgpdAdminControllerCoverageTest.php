@@ -27,6 +27,15 @@ class TestableRgpdAdminController extends RgpdAdminController
     /** @var array<string, list<string>> */
     public array $flashes = [];
 
+    /** @var RgpdExportService|null Seam RgpdExportService injecté en test (null → réel). */
+    public ?RgpdExportService $fakeExportSvc = null;
+
+    /** @var MailService|null Seam MailService injecté en test (null → réel). */
+    public ?MailService $fakeMailSvc = null;
+
+    /** @var AccountModel|null Seam AccountModel injecté en test (null → réel). */
+    public ?AccountModel $fakeAccountModel = null;
+
     /** @return array<string, mixed> */
     protected function requireAdmin(): array
     {
@@ -62,6 +71,21 @@ class TestableRgpdAdminController extends RgpdAdminController
     protected function abort(int $status = 404, string $message = 'Not Found'): never
     {
         throw new HttpException($status);
+    }
+
+    protected function newRgpdExportService(): RgpdExportService
+    {
+        return $this->fakeExportSvc ?? parent::newRgpdExportService();
+    }
+
+    protected function newMailService(): MailService
+    {
+        return $this->fakeMailSvc ?? parent::newMailService();
+    }
+
+    protected function newAccountModel(): AccountModel
+    {
+        return $this->fakeAccountModel ?? parent::newAccountModel();
     }
 }
 
@@ -128,10 +152,41 @@ class RgpdAdminControllerCoverageTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST = ['status' => 'traitee', 'response_note' => ''];
 
-        $ctrl = $this->makeController();
+        // Stub Database::instance : fetchOne retourne findById, execute retourne 0 (updateStatus false)
+        $dbMock = $this->createStub(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturn([
+            'id'              => 5,
+            'type'            => 'acces',
+            'requester_email' => 'user@test.com',
+            'requester_name'  => 'User Test',
+            'status'          => 'nouvelle',
+        ]);
+        $dbMock->method('execute')->willReturn(0); // 0 lignes → updateStatus() retourne false
+        $this->dbInstanceProp->setValue(null, $dbMock);
 
-        // Stub RgpdRequestModel : findById retourne une demande valide,
-        // updateStatus retourne false
+        $realCtrl = $this->makeController();
+
+        $caught = null;
+        try {
+            $realCtrl->updateStatus(['id' => '5']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $errors = $realCtrl->flashes['error'] ?? [];
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('Erreur', $errors[0]);
+    }
+
+    /**
+     * Sous-classe anonyme historique — conservée pour référence.
+     *
+     * @return void
+     */
+    public function legacyTestUpdateStatusFlashesErrorWhenModelUpdateFails(): void // NOSONAR — test legacy
+    {
         $rgpdModel = $this->createMock(RgpdRequestModel::class);
         $rgpdModel->method('findById')->willReturn([
             'id'              => 5,
@@ -504,6 +559,125 @@ class RgpdAdminControllerCoverageTest extends TestCase
 
         // Ne doit pas lever d'exception
         $ctrlWithMock->callHandlePortabilite([
+            'requester_email' => 'user@test.com',
+            'requester_name'  => 'User Test',
+        ]);
+
+        $this->assertTrue(true);
+    }
+
+    // ================================================================
+    // handlePortabilite (réel via Reflection + seams) — couvre L300 directement
+    // ================================================================
+
+    /**
+     * Invoque handlePortabilite() réel via Reflection, en injectant des seams
+     * newAccountModel + newRgpdExportService + newMailService. Couvre la branche
+     * L300 (buildForAccount appelé quand account trouvé) sur le vrai code.
+     */
+    public function testHandlePortabiliteRealBuildForAccountBranch(): void
+    {
+        $accountMock = $this->createStub(AccountModel::class);
+        $accountMock->method('findByEmail')->willReturn(['id' => 42, 'lang' => 'fr']);
+
+        $exportSvc = $this->createMock(RgpdExportService::class);
+        $exportSvc->expects($this->once())
+            ->method('buildForAccount')
+            ->with(42)
+            ->willReturn(['exported_at' => '2026-01-01']);
+        $exportSvc->method('buildZip')->willReturn(['content-bin', 'export.zip']);
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->expects($this->once())->method('sendRgpdExport');
+
+        $ctrl = $this->makeController();
+        $ctrl->fakeAccountModel = $accountMock;
+        $ctrl->fakeExportSvc    = $exportSvc;
+        $ctrl->fakeMailSvc      = $mailMock;
+
+        $ref = new \ReflectionMethod(RgpdAdminController::class, 'handlePortabilite');
+        $ref->invoke($ctrl, [
+            'requester_email' => 'user@test.com',
+            'requester_name'  => 'User Test',
+        ]);
+
+        // Les expects() sur buildForAccount + sendRgpdExport portent l'assertion
+        $this->assertTrue(true);
+    }
+
+    // ================================================================
+    // handlePortabilite (réel) — branche buildForSubscriber (L310)
+    // ================================================================
+
+    /**
+     * Invoque handlePortabilite() réel : account absent → fetchOne retourne sub
+     * → buildForSubscriber appelé. Couvre L310 directement sur le vrai code.
+     */
+    public function testHandlePortabiliteRealBuildForSubscriberBranch(): void
+    {
+        $sub = ['email' => 'sub@test.com', 'lang' => 'en', 'newsletter_confirmed' => 1];
+
+        $dbMock = $this->createStub(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturn($sub);
+        $this->dbInstanceProp->setValue(null, $dbMock);
+
+        $accountMock = $this->createStub(AccountModel::class);
+        $accountMock->method('findByEmail')->willReturn(false);
+
+        $exportSvc = $this->createMock(RgpdExportService::class);
+        $exportSvc->expects($this->once())
+            ->method('buildForSubscriber')
+            ->with($sub)
+            ->willReturn(['exported_at' => '2026-01-01']);
+        $exportSvc->method('buildZip')->willReturn(['content-bin', 'export.zip']);
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->method('sendRgpdExport');
+
+        $ctrl = $this->makeController();
+        $ctrl->fakeAccountModel = $accountMock;
+        $ctrl->fakeExportSvc    = $exportSvc;
+        $ctrl->fakeMailSvc      = $mailMock;
+
+        $ref = new \ReflectionMethod(RgpdAdminController::class, 'handlePortabilite');
+        $ref->invoke($ctrl, [
+            'requester_email' => 'sub@test.com',
+            'requester_name'  => 'Sub Name',
+        ]);
+
+        $this->assertTrue(true);
+    }
+
+    // ================================================================
+    // handlePortabilite (réel) — catch \Exception sur sendRgpdExport (L321-322)
+    // ================================================================
+
+    /**
+     * Invoque handlePortabilite() réel : sendRgpdExport lève une exception
+     * → catch \Exception L321-322 exécuté, exception loguée silencieusement.
+     */
+    public function testHandlePortabiliteRealAbsorbsMailException(): void
+    {
+        $accountMock = $this->createStub(AccountModel::class);
+        $accountMock->method('findByEmail')->willReturn(['id' => 99, 'lang' => 'fr']);
+
+        $exportSvc = $this->createStub(RgpdExportService::class);
+        $exportSvc->method('buildForAccount')->willReturn(['exported_at' => '2026-01-01']);
+        $exportSvc->method('buildZip')->willReturn(['content-bin', 'export.zip']);
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->method('sendRgpdExport')
+            ->willThrowException(new \RuntimeException('SMTP failure'));
+
+        $ctrl = $this->makeController();
+        $ctrl->fakeAccountModel = $accountMock;
+        $ctrl->fakeExportSvc    = $exportSvc;
+        $ctrl->fakeMailSvc      = $mailMock;
+
+        $ref = new \ReflectionMethod(RgpdAdminController::class, 'handlePortabilite');
+
+        // Ne doit pas propager l'exception (catch L321-322)
+        $ref->invoke($ctrl, [
             'requester_email' => 'user@test.com',
             'requester_name'  => 'User Test',
         ]);

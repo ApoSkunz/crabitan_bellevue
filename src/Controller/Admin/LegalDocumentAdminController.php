@@ -267,7 +267,7 @@ class LegalDocumentAdminController extends AdminController
         $publicPath = self::LEGAL_PUBLIC_PATHS[$slug] ?? null;
 
         $accounts = $this->model->findEligibleAccounts($slug);
-        $mail     = new MailService();
+        $mail     = $this->newMailService();
         $success  = 0;
         $failure  = 0;
 
@@ -314,5 +314,15 @@ class LegalDocumentAdminController extends AdminController
         }
         $this->flash('success', $msg . '.');
         Response::redirect(self::ADMIN_URL);
+    }
+
+    /**
+     * Instancie MailService — seam de testabilité.
+     *
+     * @return MailService
+     */
+    protected function newMailService(): MailService
+    {
+        return new MailService();
     }
 }

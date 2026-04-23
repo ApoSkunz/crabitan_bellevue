@@ -924,4 +924,26 @@ class AccountModelCoverageTest extends TestCase
         $this->assertSame('enc_email', $result['email_change_new_email']);
         $this->assertSame('enc_ip', $result['majority_declared_ip']);
     }
+
+    /**
+     * findById avec decrypt retournant null → fallback `?? $row[...]` couvre L94 & L99.
+     */
+    public function testFindByIdFallsBackWhenDecryptReturnsNull(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn([
+            'id'                     => 8,
+            'email'                  => 'null@test.com',
+            'email_change_new_email' => 'garbled_enc_email',
+            'majority_declared_ip'   => 'garbled_enc_ip',
+        ]);
+        $enc = $this->createStub(EncryptionService::class);
+        $enc->method('decrypt')->willReturn(null);
+
+        $model  = new AccountModel($enc);
+        $result = $model->findById(8);
+
+        $this->assertIsArray($result);
+        $this->assertSame('garbled_enc_email', $result['email_change_new_email']);
+        $this->assertSame('garbled_enc_ip', $result['majority_declared_ip']);
+    }
 }

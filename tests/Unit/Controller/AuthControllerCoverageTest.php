@@ -1554,4 +1554,99 @@ class AuthControllerCoverageTest extends TestCase
         $this->assertSame(302, $caught->status);
         $this->assertArrayHasKey('pending_device', $_SESSION);
     }
+
+    // ================================================================
+    // handleUntrustedDevice() — L990 : account_type = 'company'
+    // → displayName = company_name (branche ternaire true)
+    // ================================================================
+
+    /**
+     * Couvre L990 : compte B2B (account_type = 'company') → displayName prend
+     * la valeur de company_name (branche ternaire true) au lieu du prénom+nom.
+     *
+     * Utilise makeControllerWithThrowingMail() pour forcer le catch \Throwable
+     * (L1001-1002) sans dépendre du SMTP — l'important est que la ligne 990 soit
+     * exécutée avant le throw.
+     */
+    public function testHandleUntrustedDeviceUsesCompanyNameForCompanyAccount(): void
+    {
+        $_ENV['MFA_EMAIL_ENABLED'] = 'true';
+
+        $hash  = $this->makeHash();
+        $_POST = [
+            'email'      => 'contact@acme.fr',
+            'password'   => 'TestPass123!',
+            'csrf_token' => 'valid-csrf',
+        ];
+        $_COOKIE = []; // pas de cookie device_token → appareil inconnu
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            $this->baseAccount([
+                'id'            => 77,
+                'email'         => 'contact@acme.fr',
+                'password'      => $hash,
+                'account_type'  => 'company',
+                'company_name'  => 'Acme Corp',
+                'firstname'     => null,
+                'lastname'      => null,
+            ]),
+            false   // TrustedDeviceModel::isTrusted → non de confiance
+        );
+
+        $caught = null;
+        try {
+            $this->makeControllerWithThrowingMail()->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        // L990 traversée (account_type='company' → company_name retenu) puis
+        // MailService throw → catch → pending_device posé + redirect
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('pending_device', $_SESSION);
+    }
+
+    /**
+     * Variante fallback : compte 'company' avec company_name vide → fallback 'Client' (L990).
+     */
+    public function testHandleUntrustedDeviceFallsBackToDefaultWhenCompanyNameMissing(): void
+    {
+        $_ENV['MFA_EMAIL_ENABLED'] = 'true';
+
+        $hash  = $this->makeHash();
+        $_POST = [
+            'email'      => 'anon@acme.fr',
+            'password'   => 'TestPass123!',
+            'csrf_token' => 'valid-csrf',
+        ];
+        $_COOKIE = [];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            $this->baseAccount([
+                'id'           => 78,
+                'email'        => 'anon@acme.fr',
+                'password'     => $hash,
+                'account_type' => 'company',
+                'company_name' => null,  // fallback → 'Client'
+                'firstname'    => null,
+                'lastname'     => null,
+            ]),
+            false
+        );
+
+        $caught = null;
+        try {
+            $this->makeControllerWithThrowingMail()->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        // MailService throw → catch L1001-1002 → pending_device posé malgré tout
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('pending_device', $_SESSION);
+    }
 }

@@ -175,6 +175,83 @@ class OrderModelCoverageTest extends TestCase
     }
 
     /**
+     * createFromIpn retry sur 23000 puis succès — couvre L206-210 (catch + nouvelle référence).
+     */
+    public function testCreateFromIpnRetriesOnDuplicateReference(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn(false);
+
+        $call = 0;
+        $this->dbMock->method('insert')->willReturnCallback(
+            function (string $sql) use (&$call) {
+                // Ne cibler que les INSERT INTO orders (skip snapshots)
+                if (!str_contains($sql, 'INSERT INTO') || !str_contains($sql, 'order_reference')) {
+                    return '1';
+                }
+                $call++;
+                if ($call === 1) {
+                    $pdoEx = new \PDOException('Duplicate entry');
+                    $refProp = new \ReflectionProperty($pdoEx, 'code');
+                    $refProp->setValue($pdoEx, '23000');
+                    throw $pdoEx;
+                }
+                return '99';
+            }
+        );
+
+        $ref = $this->model->createFromIpn(
+            userId: 1,
+            items: [],
+            total: 50.0,
+            deliveryDiscount: 0.0,
+            billingAddressId: 1,
+            deliveryAddressId: 1,
+            cgvVersion: '1.0',
+            reference: 'WEB-CB-INITIAL-2026',
+            numappel: 'N1',
+            numtrans: 'T1'
+        );
+        // Après retry 23000, la référence a été régénérée (WEB-CB-<hex>-<year>)
+        $this->assertMatchesRegularExpression('/^WEB-CB-[A-F0-9]+-\d{4}$/', $ref);
+        $this->assertSame(2, $call);
+    }
+
+    /**
+     * createFromIpn épuise maxTries sur 23000 répétés → jette finalement PDOException (L207).
+     */
+    public function testCreateFromIpnThrowsAfterMaxRetriesOnDuplicate(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn(false);
+
+        // Toujours 23000 sur INSERT INTO orders → épuisé après 3 attempts → throw (L208)
+        $this->dbMock->method('insert')->willReturnCallback(
+            function (string $sql) {
+                if (!str_contains($sql, 'INSERT INTO') || !str_contains($sql, 'order_reference')) {
+                    return '1';
+                }
+                $ex = new \PDOException('Duplicate entry forever');
+                $refProp = new \ReflectionProperty($ex, 'code');
+                $refProp->setValue($ex, '23000');
+                throw $ex;
+            }
+        );
+
+        $this->expectException(\PDOException::class);
+        $this->model->createFromIpn(
+            userId: 1,
+            items: [],
+            total: 10.0,
+            deliveryDiscount: 0.0,
+            billingAddressId: 1,
+            deliveryAddressId: 1,
+            cgvVersion: '1.0',
+            reference: 'WEB-CB-DUP-2026',
+            numappel: 'N1',
+            numtrans: 'T1'
+        );
+    }
+
+    /**
      * createFromIpn lève une PDOException non-23000 immédiatement (pas de retry).
      */
     public function testCreateFromIpnThrowsNonDuplicateException(): void

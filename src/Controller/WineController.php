@@ -280,6 +280,19 @@ class WineController extends Controller
         $vintage  = (string) ($wine['vintage'] ?? '');
         $filename = 'Fiche_Technique_' . $label . '_' . $vintage . '_' . $lang . '.pdf';
         $pdf->Output($filename, 'I');
+        $this->doExit();
+    }
+
+    /**
+     * Seam de testabilité : termine le script après l'envoi du PDF.
+     *
+     * Encapsule `exit` pour permettre aux tests unitaires de surcharger
+     * ce comportement sans tuer le process PHPUnit.
+     *
+     * @return never
+     */
+    protected function doExit(): never
+    {
         exit;
     }
 

@@ -177,30 +177,22 @@ class AdminGestionAdminsControllerTest extends TestCase
         $dbMock = $this->createStub(\Core\Database::class);
         $dbMock->method('fetchOne')->willReturnCallback(
             static function (string $sql) use ($selfId, $targetId) {
-                if (str_contains($sql, 'connections')) {
+                if (str_contains($sql, 'FROM connections')) {
                     return ['id' => 1];
                 }
-                if (str_contains($sql, 'is_blocked')) {
+                if (str_contains($sql, 'SELECT is_blocked')) {
                     return ['is_blocked' => 0];
                 }
-                if (str_contains($sql, 'accounts') && str_contains($sql, (string) $targetId)) {
-                    return [
-                        'id'         => $targetId,
-                        'email'      => 'target@test.local',
-                        'role'       => 'admin',
-                        'is_blocked' => 0,
-                        'firstname'  => 'Target',
-                        'lastname'   => 'Admin',
-                        'lang'       => 'fr',
-                    ];
-                }
+                // findById(targetId) — WHERE a.id = ? (pas de littéral dans SQL)
+                // on renvoie une row complète avec 'role' admin pour le block/unblock
                 return [
-                    'id'        => $selfId,
-                    'email'     => 'self@test.local',
-                    'role'      => 'super_admin',
+                    'id'         => $targetId,
+                    'email'      => 'target@test.local',
+                    'role'       => 'admin',
                     'is_blocked' => 0,
-                    'firstname' => 'Self',
-                    'lastname'  => 'Admin',
+                    'firstname'  => 'Target',
+                    'lastname'   => 'Admin',
+                    'lang'       => 'fr',
                 ];
             }
         );
@@ -208,15 +200,31 @@ class AdminGestionAdminsControllerTest extends TestCase
         $dbMock->method('execute')->willReturn(0);
         $this->instanceProp->setValue(null, $dbMock);
 
+        $mailMock = $this->createMock(\Service\MailService::class);
+        $mailMock->method('sendAdminAccountBlocked')
+            ->willThrowException(new \RuntimeException('SMTP down'));
+
         // Sous-classe testable avec MailService qui lève une exception
-        $ctrl = new class (new Request()) extends AdminGestionAdminsController {
+        $ctrl = new class (new Request(), $mailMock) extends AdminGestionAdminsController {
             /** @var array<string, mixed> */
             public array $fakeAdmin = ['id' => 10, 'role' => 'super_admin', 'email' => 'self@test.local', 'name' => 'Self'];
+            private \Service\MailService $mailStub;
+
+            public function __construct(Request $r, \Service\MailService $mailStub)
+            {
+                parent::__construct($r);
+                $this->mailStub = $mailStub;
+            }
 
             /** @return array<string, mixed> */
             protected function requireSuperAdmin(): array
             {
                 return $this->fakeAdmin;
+            }
+
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->mailStub;
             }
 
             protected function view(string $template, array $data = [], int $httpStatus = 200): void
@@ -271,30 +279,22 @@ class AdminGestionAdminsControllerTest extends TestCase
         $dbMock = $this->createStub(\Core\Database::class);
         $dbMock->method('fetchOne')->willReturnCallback(
             static function (string $sql) use ($selfId, $targetId) {
-                if (str_contains($sql, 'connections')) {
+                if (str_contains($sql, 'FROM connections')) {
                     return ['id' => 1];
                 }
-                if (str_contains($sql, 'is_blocked')) {
+                if (str_contains($sql, 'SELECT is_blocked')) {
                     return ['is_blocked' => 0];
                 }
-                if (str_contains($sql, 'accounts') && str_contains($sql, (string) $targetId)) {
-                    return [
-                        'id'         => $targetId,
-                        'email'      => 'target@test.local',
-                        'role'       => 'admin',
-                        'is_blocked' => 0,
-                        'firstname'  => 'Target',
-                        'lastname'   => 'Admin',
-                        'lang'       => 'fr',
-                    ];
-                }
+                // findById(targetId) — WHERE a.id = ? (pas de littéral dans SQL)
+                // on renvoie une row complète avec 'role' admin pour le block/unblock
                 return [
-                    'id'        => $selfId,
-                    'email'     => 'self@test.local',
-                    'role'      => 'super_admin',
+                    'id'         => $targetId,
+                    'email'      => 'target@test.local',
+                    'role'       => 'admin',
                     'is_blocked' => 0,
-                    'firstname' => 'Self',
-                    'lastname'  => 'Admin',
+                    'firstname'  => 'Target',
+                    'lastname'   => 'Admin',
+                    'lang'       => 'fr',
                 ];
             }
         );
@@ -302,14 +302,30 @@ class AdminGestionAdminsControllerTest extends TestCase
         $dbMock->method('execute')->willReturn(0);
         $this->instanceProp->setValue(null, $dbMock);
 
-        $ctrl = new class (new Request()) extends AdminGestionAdminsController {
+        $mailMock = $this->createMock(\Service\MailService::class);
+        $mailMock->method('sendAdminAccountUnblocked')
+            ->willThrowException(new \RuntimeException('SMTP down'));
+
+        $ctrl = new class (new Request(), $mailMock) extends AdminGestionAdminsController {
             /** @var array<string, mixed> */
             public array $fakeAdmin = ['id' => 10, 'role' => 'super_admin', 'email' => 'self@test.local', 'name' => 'Self'];
+            private \Service\MailService $mailStub;
+
+            public function __construct(Request $r, \Service\MailService $mailStub)
+            {
+                parent::__construct($r);
+                $this->mailStub = $mailStub;
+            }
 
             /** @return array<string, mixed> */
             protected function requireSuperAdmin(): array
             {
                 return $this->fakeAdmin;
+            }
+
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->mailStub;
             }
 
             protected function view(string $template, array $data = [], int $httpStatus = 200): void

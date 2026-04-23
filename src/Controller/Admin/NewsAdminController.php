@@ -329,11 +329,23 @@ class NewsAdminController extends AdminController
             $filename = "News_{$safeName}_{$token}.{$ext}";
         } while (file_exists($destDir . $filename));
 
-        if (!move_uploaded_file($file['tmp_name'], $destDir . $filename)) {
+        if (!$this->moveUploadedFile($file['tmp_name'], $destDir . $filename)) {
             return ['path' => $existingPath ?? '', 'error' => 'Erreur lors du téléversement.'];
         }
 
         return ['path' => $filename, 'error' => null];
+    }
+
+    /**
+     * Déplace un fichier uploadé (seam de testabilité).
+     *
+     * @param string $src  Chemin temporaire source
+     * @param string $dest Chemin de destination
+     * @return bool
+     */
+    protected function moveUploadedFile(string $src, string $dest): bool
+    {
+        return move_uploaded_file($src, $dest);
     }
 
     private function generateSlug(string $title): string

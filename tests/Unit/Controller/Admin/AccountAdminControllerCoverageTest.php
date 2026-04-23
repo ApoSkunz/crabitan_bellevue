@@ -306,6 +306,55 @@ class AccountAdminControllerCoverageTest extends TestCase
     // ================================================================
 
     /**
+     * resetPassword() avec compte company → displayName = company_name (L145).
+     */
+    public function testResetPasswordUsesCompanyNameForCompanyAccount(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $ctrl = $this->makeControllerWithAccount([
+            'id'           => 11,
+            'email'        => 'corp@test.com',
+            'password'     => '$2y$10$hashedpw',
+            'lang'         => 'fr',
+            'account_type' => 'company',
+            'firstname'    => null,
+            'lastname'     => null,
+            'company_name' => 'Ma Société SARL',
+        ]);
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->expects($this->once())
+            ->method('sendAdminPasswordReset')
+            ->with('corp@test.com', 'Ma Société SARL');
+        $ctrl->mailMock = $mailMock;
+
+        $caught = null;
+        try {
+            $ctrl->resetPassword(['id' => '11']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertNotEmpty($ctrl->flashes['success'] ?? []);
+    }
+
+    /**
+     * newMailService() seam — invoqué via ReflectionMethod sur la vraie classe.
+     * Couvre L180-182.
+     */
+    public function testNewMailServiceReturnsRealMailService(): void
+    {
+        $ctrl = new AccountAdminController(new \Core\Request());
+        $ref  = new \ReflectionMethod(AccountAdminController::class, 'newMailService');
+        $ref->setAccessible(true);
+        $result = $ref->invoke($ctrl);
+
+        $this->assertInstanceOf(MailService::class, $result);
+    }
+
+    /**
      * resetPassword() absorbe l'exception SMTP et flash une erreur.
      * Couvre L172-174 (catch Throwable → flash erreur + redirect).
      */

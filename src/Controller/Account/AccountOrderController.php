@@ -56,6 +56,16 @@ class AccountOrderController extends AbstractAccountController
         return new \Service\RefundService();
     }
 
+    /**
+     * Instancie le MailService (seam de testabilité).
+     *
+     * @return \Service\MailService
+     */
+    protected function newMailService(): \Service\MailService
+    {
+        return new \Service\MailService();
+    }
+
     // ----------------------------------------------------------------
     // GET /{lang}/mon-compte/commandes
     // ----------------------------------------------------------------
@@ -406,7 +416,7 @@ class AccountOrderController extends AbstractAccountController
 
         try {
             $mailLang = (string) ($account['lang'] ?? $lang);
-            $mailer   = new \Service\MailService();
+            $mailer   = $this->newMailService();
             $mailer->sendReturnRequestedToOwner($order, $clientName, $clientEmail);
             $mailer->sendReturnConfirmedToClient($clientEmail, $clientName, $order, $tmpPath, $mailLang);
         } finally {
