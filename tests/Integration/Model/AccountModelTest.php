@@ -6,6 +6,7 @@ namespace Tests\Integration\Model;
 
 use Model\AccountModel;
 use Tests\Integration\IntegrationTestCase;
+use ValueObject\AccountAdminFilters;
 
 class AccountModelTest extends IntegrationTestCase
 {
@@ -595,7 +596,7 @@ class AccountModelTest extends IntegrationTestCase
     public function testGetForAdminReturnsAccountsWithoutFilters(): void
     {
         $this->createAccount('admin-list@example.com');
-        $results = $this->model->getForAdmin(10, 0, null, null);
+        $results = $this->model->getForAdmin(10, 0, new AccountAdminFilters());
 
         $this->assertIsArray($results);
         $this->assertNotEmpty($results);
@@ -605,7 +606,7 @@ class AccountModelTest extends IntegrationTestCase
     {
         $this->createAccount('admin-role@example.com');
         // All created accounts get default role 'customer'
-        $results = $this->model->getForAdmin(10, 0, 'customer', null);
+        $results = $this->model->getForAdmin(10, 0, new AccountAdminFilters(role: 'customer'));
 
         $this->assertIsArray($results);
         foreach ($results as $row) {
@@ -616,7 +617,7 @@ class AccountModelTest extends IntegrationTestCase
     public function testGetForAdminFiltersbyTypeIndividual(): void
     {
         $this->createAccount('admin-type-ind@example.com');
-        $results = $this->model->getForAdmin(10, 0, null, null, 'individual');
+        $results = $this->model->getForAdmin(10, 0, new AccountAdminFilters(type: 'individual'));
 
         $this->assertIsArray($results);
         foreach ($results as $row) {
@@ -639,7 +640,7 @@ class AccountModelTest extends IntegrationTestCase
             'Test Company'
         );
 
-        $results = $this->model->getForAdmin(10, 0, null, null, 'company');
+        $results = $this->model->getForAdmin(10, 0, new AccountAdminFilters(type: 'company'));
 
         $this->assertIsArray($results);
         foreach ($results as $row) {
@@ -650,7 +651,7 @@ class AccountModelTest extends IntegrationTestCase
     public function testGetForAdminSearchByEmail(): void
     {
         $this->createAccount('searchable@example.com');
-        $results = $this->model->getForAdmin(10, 0, null, 'searchable');
+        $results = $this->model->getForAdmin(10, 0, new AccountAdminFilters(search: 'searchable'));
 
         $this->assertIsArray($results);
         $this->assertNotEmpty($results);
@@ -660,9 +661,9 @@ class AccountModelTest extends IntegrationTestCase
 
     public function testCountForAdminWithNoFilters(): void
     {
-        $before = $this->model->countForAdmin(null, null);
+        $before = $this->model->countForAdmin(new AccountAdminFilters());
         $this->createAccount('cf-admin@example.com');
-        $after = $this->model->countForAdmin(null, null);
+        $after = $this->model->countForAdmin(new AccountAdminFilters());
 
         $this->assertSame($before + 1, $after);
     }
@@ -670,13 +671,13 @@ class AccountModelTest extends IntegrationTestCase
     public function testCountForAdminWithRoleFilter(): void
     {
         $this->createAccount('cf-cust@example.com');
-        $count = $this->model->countForAdmin('customer', null);
+        $count = $this->model->countForAdmin(new AccountAdminFilters(role: 'customer'));
         $this->assertGreaterThanOrEqual(1, $count);
     }
 
     public function testCountForAdminWithInvalidRoleIgnored(): void
     {
-        $count = $this->model->countForAdmin('hacker', null);
+        $count = $this->model->countForAdmin(new AccountAdminFilters(role: 'hacker'));
         $this->assertIsInt($count);
     }
 
