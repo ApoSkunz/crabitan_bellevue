@@ -6,7 +6,7 @@ $roleLabels = ['customer' => 'Client', 'admin' => 'Admin', 'super_admin' => 'Sup
 $isSuperAdmin = $currentRole === 'super_admin';
 
 if (!function_exists('accountUrl')) {
-function accountUrl(int $p, ?string $role, ?string $type, string $search, int $perPage, ?string $sort = null, ?string $hasOrdered = null): string
+function accountUrl(int $p, ?string $role, ?string $type, string $search, int $perPage, ?string $sort = null, ?string $hasOrdered = null, ?string $activity = null): string
 {
     $q = ['page' => $p];
     if ($role) {
@@ -26,6 +26,9 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
     }
     if ($hasOrdered !== null) {
         $q['has_ordered'] = $hasOrdered;
+    }
+    if ($activity !== null) {
+        $q['activity'] = $activity;
     }
     return '/admin/comptes?' . http_build_query($q);
 }
@@ -94,7 +97,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
 
     <noscript><button type="submit" class="admin-filters__btn">Filtrer</button></noscript>
     <a href="/admin/comptes<?= $perPage !== 10 ? '?per_page=' . $perPage : '' ?>"
-       class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
+       class="admin-btn admin-btn--dark admin-btn--sm">Réinitialiser</a>
 </form>
 
 <div class="admin-card">

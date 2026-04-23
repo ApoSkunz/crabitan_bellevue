@@ -100,7 +100,7 @@ function buildPaginationUrl(
     <button type="submit" class="admin-filters__btn">Filtrer</button>
     <?php if ($status || ($payment ?? null) || $search || $perPage !== 10) : ?>
         <a href="/admin/commandes<?= $archived ? '?archived=1' : '' ?>"
-           class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
+           class="admin-btn admin-btn--dark admin-btn--sm">Réinitialiser</a>
     <?php endif; ?>
 </form>
 

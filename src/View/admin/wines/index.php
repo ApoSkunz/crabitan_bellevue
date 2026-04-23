@@ -92,7 +92,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
 
     <button type="submit" class="admin-filters__btn js-noscript-only">Filtrer</button>
     <?php if ($color || $available || ($vintage ?? '') !== '' || ($labelName ?? '') !== '' || ($cuvee ?? '') !== '' || $perPage !== 10) : ?>
-        <a href="/admin/vins" class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
+        <a href="/admin/vins" class="admin-btn admin-btn--dark admin-btn--sm">Réinitialiser</a>
     <?php endif; ?>
 </form>
 

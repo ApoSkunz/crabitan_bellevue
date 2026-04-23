@@ -302,7 +302,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.ca_numappel, o.ca_numtrans,
+                    o.cgv_version, o.ca_numappel, o.ca_numtrans, o.delivery_method,
                     o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     a.email, a.lang,
@@ -434,7 +434,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.ca_numappel, o.ca_numtrans,
+                    o.cgv_version, o.ca_numappel, o.ca_numtrans, o.delivery_method,
                     o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     a.email, a.lang,
@@ -1036,9 +1036,16 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         ?int $month,
         ?int $quarter,
         int $page,
-        int $perPage
+        int $perPage,
+        ?string $search = null
     ): array {
         [$where, $params] = $this->buildInvoicePeriodFilter($year, $month, $quarter);
+        if ($search !== null && $search !== '') {
+            $where .= ' AND (f.invoice_number LIKE ? OR o.order_reference LIKE ?)';
+            $like     = '%' . $search . '%';
+            $params[] = $like;
+            $params[] = $like;
+        }
         $offset   = ($page - 1) * $perPage;
         $params[] = $perPage;
         $params[] = $offset;
@@ -1070,9 +1077,15 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param  int|null $quarter
      * @return int
      */
-    public function countInvoicesForAdmin(int $year, ?int $month, ?int $quarter): int
+    public function countInvoicesForAdmin(int $year, ?int $month, ?int $quarter, ?string $search = null): int
     {
         [$where, $params] = $this->buildInvoicePeriodFilter($year, $month, $quarter);
+        if ($search !== null && $search !== '') {
+            $where .= ' AND (f.invoice_number LIKE ? OR o.order_reference LIKE ?)';
+            $like     = '%' . $search . '%';
+            $params[] = $like;
+            $params[] = $like;
+        }
         $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total
              FROM order_invoice_files f

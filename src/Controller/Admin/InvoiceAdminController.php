@@ -51,8 +51,9 @@ class InvoiceAdminController extends AdminController
             $perPage = self::DEFAULT_PER_PAGE;
         }
 
-        $total          = $this->orders->countInvoicesForAdmin($year, $month, $quarter);
-        $list           = $this->orders->getInvoicesForAdmin($year, $month, $quarter, $page, $perPage);
+        $search         = trim((string) $this->request->get('search', ''));
+        $total          = $this->orders->countInvoicesForAdmin($year, $month, $quarter, $search ?: null);
+        $list           = $this->orders->getInvoicesForAdmin($year, $month, $quarter, $page, $perPage, $search ?: null);
         $availableYears = $this->orders->getAvailableYearsWithInvoices();
         if (empty($availableYears)) {
             $availableYears = [$currentYear];
@@ -74,6 +75,7 @@ class InvoiceAdminController extends AdminController
             'month'          => $month,
             'quarter'        => $quarter,
             'availableYears' => $availableYears,
+            'search'         => $search,
             'flash'          => $this->getFlash('success'),
             'flashError'     => $this->getFlash('error'),
         ]);

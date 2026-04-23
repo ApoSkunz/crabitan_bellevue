@@ -58,7 +58,7 @@ $levelColors = [
         <?php endforeach; ?>
     </select>
     <noscript><button type="submit" class="admin-filters__btn">Filtrer</button></noscript>
-    <a href="/admin/logs-app" class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
+    <a href="/admin/logs-app" class="admin-btn admin-btn--dark admin-btn--sm">Réinitialiser</a>
 </form>
 
 <div class="admin-card">

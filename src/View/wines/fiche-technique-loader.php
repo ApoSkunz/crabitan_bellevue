@@ -55,13 +55,8 @@ body.has-pdf { background:#1a1208; }
     }
 
     function showPdf(blobUrl) {
-        loader.classList.add('hidden');
-        document.body.classList.add('has-pdf');
-        var iframe = document.createElement('iframe');
-        iframe.className = 'pdf-frame';
-        iframe.src = blobUrl;
-        iframe.setAttribute('title', <?= json_encode($title) ?>);
-        document.body.appendChild(iframe);
+        // Navigation directe vers blob URL (CSP frame-src bloque iframe blob:)
+        window.location.href = blobUrl;
     }
 
     if (!('fetch' in window) || !('ReadableStream' in window)) {

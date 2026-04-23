@@ -165,7 +165,13 @@ $paymentMap  = [
                             </tr>
                             <?php if ($shippingDiscount !== null && $shippingDiscount > 0.0) : ?>
                                 <tr class="order-discount-row">
-                                    <td colspan="3"><?= __('account.order_shipping_discount') ?></td>
+                                    <td colspan="3">
+                                        <?php if ($isPickupOrder) : ?>
+                                            <?= $lang === 'en' ? 'Click &amp; Collect discount' : 'Remise Click &amp; Collect' ?>
+                                        <?php else : ?>
+                                            <?= __('account.order_shipping_discount') ?>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>− <?= number_format($shippingDiscount, 2, ',', ' ') ?> €</td>
                                 </tr>
                             <?php endif; ?>

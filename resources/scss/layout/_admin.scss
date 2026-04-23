@@ -580,6 +580,17 @@
     }
 
     &--outline {
+        background: transparent;
+        border-color: rgba(8, 8, 8, 0.2);
+        color: #6b5f50;
+
+        &:hover {
+            border-color: #1a1208;
+            color: #1a1208;
+        }
+    }
+
+    &--dark {
         background: #1a1208;
         border-color: #1a1208;
         color: #f5f0e8;
