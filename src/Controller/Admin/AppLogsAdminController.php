@@ -76,7 +76,7 @@ class AppLogsAdminController extends AdminController
             if (!is_file($file)) {
                 continue;
             }
-            $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            $lines = $this->readLogFile($file);
             if ($lines === false) {
                 continue;
             }
@@ -96,6 +96,19 @@ class AppLogsAdminController extends AdminController
             return strcmp((string) ($b['timestamp'] ?? ''), (string) ($a['timestamp'] ?? ''));
         });
         return $entries;
+    }
+
+    /**
+     * Lit les lignes d'un fichier log.
+     *
+     * Méthode protected pour permettre l'injection dans les tests (seam pattern).
+     *
+     * @param  string $path Chemin absolu du fichier
+     * @return string[]|false Tableau de lignes ou false si lecture impossible
+     */
+    protected function readLogFile(string $path): array|false
+    {
+        return file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     }
 
     /**
