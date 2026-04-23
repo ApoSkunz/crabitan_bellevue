@@ -105,6 +105,7 @@ if (!function_exists('ordersUrl')) {
                                 <th><?= __('account.order_ref') ?></th>
                                 <th><?= __('account.order_date') ?></th>
                                 <th><?= __('account.order_status') ?></th>
+                                <th>Mode</th>
                                 <th><?= __('account.order_price') ?></th>
                                 <th><?= __('account.order_invoice') ?></th>
                                 <th></th>
@@ -123,6 +124,13 @@ if (!function_exists('ordersUrl')) {
                                         <span class="account-badge account-badge--<?= $statusColors[$order['status']] ?? 'grey' ?>">
                                             <?= __('order.status.' . $order['status']) ?>
                                         </span>
+                                    </td>
+                                    <td data-label="Mode" style="font-size:0.82rem;">
+                                        <?php if (($order['delivery_method'] ?? 'shipping') === 'pickup') : ?>
+                                            <span style="background:#f4e9d0;color:#6b4c1a;padding:2px 8px;border-radius:12px;">Retrait château</span>
+                                        <?php else : ?>
+                                            <span style="background:#e8eefd;color:#2a4ab0;padding:2px 8px;border-radius:12px;">Livraison</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td data-label="<?= htmlspecialchars(__('account.order_price')) ?>"><?= number_format((float) $order['price'], 2, ',', ' ') ?> €</td>
                                     <td data-label="<?= htmlspecialchars(__('account.order_invoice')) ?>">

@@ -257,7 +257,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
 
         return $this->db->fetchAll(
             "SELECT o.id, o.order_reference, o.status, o.price,
-                    o.payment_method, o.ordered_at,
+                    o.payment_method, o.ordered_at, o.delivery_method,
                     a.email,
                     COALESCE(ai.firstname, ac.company_name, '') AS firstname,
                     COALESCE(ai.lastname, '', '') AS lastname
@@ -601,7 +601,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $params[] = $perPage;
         $params[] = $offset;
         return $this->db->fetchAll(
-            "SELECT id, order_reference, status, price, payment_method, ordered_at, path_invoice
+            "SELECT id, order_reference, status, price, payment_method, ordered_at, path_invoice, delivery_method
              FROM {$this->table}
              {$where}
              ORDER BY ordered_at DESC
@@ -628,7 +628,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.ca_numappel, o.ca_numtrans,
+                    o.cgv_version, o.ca_numappel, o.ca_numtrans, o.delivery_method,
                     o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     b.civility  AS bill_civility,  b.firstname AS bill_firstname, b.lastname AS bill_lastname,

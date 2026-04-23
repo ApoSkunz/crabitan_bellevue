@@ -41,7 +41,7 @@ body.has-pdf { background:#1a1208; }
     <div class="pct" id="pct">0 %</div>
     <p class="hint"><?= htmlspecialchars($hint) ?></p>
 </main>
-<script>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {
     var url    = <?= json_encode($pdfUrl) ?>;
     var bar    = document.getElementById('bar');
@@ -70,7 +70,11 @@ body.has-pdf { background:#1a1208; }
         return;
     }
 
+    // Safety : si le fetch n'aboutit pas en 15s, redirect direct
+    var timeoutId = setTimeout(function () { window.location.href = url; }, 15000);
+
     fetch(url).then(function (response) {
+        clearTimeout(timeoutId);
         if (!response.ok) throw new Error('HTTP ' + response.status);
         var total = parseInt(response.headers.get('Content-Length') || '0', 10);
         var loaded = 0;

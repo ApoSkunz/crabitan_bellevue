@@ -112,6 +112,7 @@ function buildPaginationUrl(
                     <th>Référence</th>
                     <th>Client</th>
                     <th>Statut</th>
+                    <th class="col-hide-tablet">Mode</th>
                     <th class="col-hide-tablet">Paiement</th>
                     <th>Montant</th>
                     <th>Date</th>
@@ -120,7 +121,7 @@ function buildPaginationUrl(
             </thead>
             <tbody>
             <?php if (empty($orders)) : ?>
-                <tr><td colspan="7" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune commande trouvée</td></tr>
+                <tr><td colspan="8" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune commande trouvée</td></tr>
             <?php else : ?>
                 <?php foreach ($orders as $order) : ?>
                     <tr>
@@ -135,8 +136,12 @@ function buildPaginationUrl(
                         </td>
                         <td data-label="Statut">
                             <span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span>
+                        </td>
+                        <td class="col-hide-tablet" data-label="Mode" style="font-size:0.78rem;">
                             <?php if (($order['delivery_method'] ?? '') === 'pickup') : ?>
-                                <div style="font-size:0.7rem;color:#6b4c1a;margin-top:2px;">Retrait au château</div>
+                                <span style="background:#f4e9d0;color:#6b4c1a;padding:2px 8px;border-radius:12px;">Retrait château</span>
+                            <?php else : ?>
+                                <span style="background:#e8eefd;color:#2a4ab0;padding:2px 8px;border-radius:12px;">Livraison</span>
                             <?php endif; ?>
                         </td>
                         <td class="col-hide-tablet" data-label="Paiement" style="font-size:0.8rem;"><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></td>

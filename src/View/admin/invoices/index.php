@@ -76,7 +76,7 @@ if (!function_exists('buildInvoiceUrl')) {
                 </select>
             </div>
             <button type="submit" class="admin-filters__btn">Filtrer</button>
-            <a href="/admin/factures" style="padding:0.42rem 1rem;font-size:0.82rem;letter-spacing:0.06em;border:1px solid rgba(8,8,8,0.2);color:#1a1208;text-decoration:none;">Réinitialiser</a>
+            <a href="/admin/factures" class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
         </form>
 
         <?php

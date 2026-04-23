@@ -52,11 +52,13 @@ $navSections = [
         'newsletter' => ['url' => '/admin/newsletter', 'label' => 'Newsletter'],
         'marketing'  => ['url' => '/admin/marketing',  'label' => 'Marketing'],
     ],
-    'Système' => [
-        'dpo'             => ['url' => '/admin/dpo',               'label' => 'DPO — RGPD'],
-        'profile'         => ['url' => '/admin/securite',          'label' => 'Sécurité'],
-        'logs'            => ['url' => '/admin/logs',              'label' => 'Journal d\'audit'],
-        'admins'          => ['url' => '/admin/admins',            'label' => 'Gestion des admins'],
+    'Sécurité' => [
+        'dpo'     => ['url' => '/admin/dpo',      'label' => 'DPO — RGPD'],
+        'profile' => ['url' => '/admin/securite', 'label' => 'Sécurité'],
+        'logs'    => ['url' => '/admin/logs',     'label' => 'Journal d\'audit'],
+        'admins'  => ['url' => '/admin/admins',   'label' => 'Gestion des admins'],
+    ],
+    'Monitoring' => [
         'email_rate'      => ['url' => '/admin/emails-rate',       'label' => 'Monitoring emails'],
         'cron_monitoring' => ['url' => '/admin/monitoring-crons',  'label' => 'Monitoring crons'],
         'app_logs'        => ['url' => '/admin/logs-app',          'label' => 'Logs applicatifs'],
@@ -197,6 +199,12 @@ if (empty($_SESSION['csrf'])) {
                 setTimeout(function () { el.remove(); }, 420);
             }, 2500);
         });
+
+        // Scroll item actif dans la sidebar (focus page sélectionnée)
+        var activeNav = document.querySelector('.admin-nav__item.active');
+        if (activeNav && typeof activeNav.scrollIntoView === 'function') {
+            activeNav.scrollIntoView({ block: 'center', behavior: 'instant' });
+        }
     });
     </script>
 </head>
