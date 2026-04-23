@@ -1481,6 +1481,131 @@ class OrderControllerPaymentFlowTest extends TestCase
     }
 
     // ================================================================
+    // paymentReturnOk() — catch (\Throwable $mailError) L527-529
+    // Couvre : RuntimeException injectée via seam newMailService() dans
+    // sendOrderConfirmationToOwner() est absorbée par le catch Throwable ;
+    // le controller redirige vers /fr/commande/confirmation sans propager.
+    // ================================================================
+
+    /**
+     * Quand newMailService() retourne un mock dont sendOrderConfirmationToOwner()
+     * lève une RuntimeException, le catch (\Throwable $mailError) absorbe l'erreur
+     * et le controller redirige normalement vers /fr/commande/confirmation.
+     *
+     * Utilise une anonymous class pour injecter le mock via la seam.
+     *
+     * @return void
+     */
+    public function testPaymentReturnOkMailThrowIsCaughtByErrorLogger(): void
+    {
+        if ($this->privateKey === false || $this->tmpPubkeyPath === '') {
+            $this->markTestSkipped('Génération de clé RSA non disponible dans cet environnement.');
+        }
+
+        $_ENV['CA_PUBKEY_PATH'] = $this->tmpPubkeyPath;
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement-ca/ok';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+
+        $dataQs   = 'Ref=WEB-CB-SEAM-MAIL-2026&Erreur=00000&Appel=3333&Trans=4444';
+        $signedQs = $this->buildSignedQueryString($dataQs);
+        $_SERVER['QUERY_STRING'] = $signedQs;
+        $_GET = [
+            'Ref'    => 'WEB-CB-SEAM-MAIL-2026',
+            'Erreur' => '00000',
+            'Appel'  => '3333',
+            'Trans'  => '4444',
+        ];
+
+        $snapshot    = $this->defaultSnapshot(1, 'WEB-CB-SEAM-MAIL-2026');
+        $snapshotRow = ['snapshot' => json_encode($snapshot)];
+
+        $stub = $this->setDbMock();
+        // Séquence DB pour atteindre le bloc try-mail (L499-529) :
+        // 1. AuthMiddleware
+        // 2. OrderModel::findByReference → commande absente
+        // 3. PaymentIntentModel::findByReference → snapshot valide
+        // 4. OrderModel::findByReferenceOnly → non créée (createFromIpn déclenché)
+        // 5. AddressModel fetch billing   6. dedup billing
+        // 7. AddressModel fetch delivery  8. dedup delivery
+        // 9. postOrderStockActions → WineModel::getById
+        // 10. generateAndStoreInvoice → findByReferenceWithAddresses → null (skip)
+        // 11. buildOwnerPdfContext → AddressModel billing (OrderPdfContextBuilder)
+        // → newMailService() appelé → mock injecté → sendOrderConfirmationToOwner lève RuntimeException
+        // → catch (\Throwable $mailError) L528 absorbe
+        // 12. OrderModel::findByReference après catch → commande trouvée → redirect confirmation
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],    // 1. AuthMiddleware
+            false,           // 2. OrderModel::findByReference → absente
+            $snapshotRow,    // 3. PaymentIntentModel::findByReference
+            false,           // 4. findByReferenceOnly → non créée
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris',
+             'zip_code' => '75001', 'country' => 'France', 'phone' => ''],  // 5. billing fetch
+            false,           // 6. dedup billing
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris',
+             'zip_code' => '75001', 'country' => 'France', 'phone' => ''],  // 7. delivery fetch
+            false,           // 8. dedup delivery
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null,
+             'slug' => 'wine', 'vintage' => 2020],                          // 9. WineModel::getById
+            false,           // 10. findByReferenceWithAddresses → null (facture skippée)
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris',
+             'zip_code' => '75001', 'country' => 'France', 'phone' => ''],  // 11. billing PDF
+            [                // 12. findByReference post-catch → commande trouvée
+                'order_reference' => 'WEB-CB-SEAM-MAIL-2026',
+                'payment_method'  => 'card',
+                'content'         => json_encode($snapshot['items']),
+            ],
+        );
+
+        // Mock MailService : sendOrderConfirmationToClient passe, sendOrderConfirmationToOwner lève
+        $mailMock = $this->createStub(\Service\MailService::class);
+        $mailMock->method('sendOrderConfirmationToOwner')
+                 ->willThrowException(new \RuntimeException('SMTP down'));
+
+        // Anonymous class overridant newMailService() et generateAndStoreInvoice()
+        // pour injecter le mock et contourner la génération de PDF (inutile ici)
+        $controller = new class (new \Core\Request(), $mailMock) extends OrderController {
+            private \Service\MailService $injectedMail;
+
+            public function __construct(\Core\Request $request, \Service\MailService $mail)
+            {
+                parent::__construct($request);
+                $this->injectedMail = $mail;
+            }
+
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->injectedMail;
+            }
+        };
+
+        $mailException = null;
+        $httpException = null;
+        try {
+            $controller->paymentReturnOk(['lang' => 'fr']);
+        } catch (\Core\Exception\HttpException $e) {
+            $httpException = $e;
+        } catch (\Throwable $e) {
+            $mailException = $e;
+        }
+
+        // Le catch L528 doit avoir absorbé la RuntimeException
+        $this->assertNull(
+            $mailException,
+            'Le catch (\Throwable $mailError) L528 doit absorber la RuntimeException SMTP sans la propager'
+        );
+        // Le controller doit rediriger vers la confirmation malgré l'échec mail
+        $this->assertNotNull($httpException, 'Une HttpException 302 doit être levée après le catch mail');
+        $this->assertSame(302, $httpException->status);
+        $this->assertSame('WEB-CB-SEAM-MAIL-2026', $_SESSION['last_order_ref'] ?? '');
+    }
+
+    // ================================================================
     // paymentReturnOk() — catch (\Throwable $mailError) L517-530
     // Couvre : l'exception PHPMailer levée dans sendOrderConfirmationToClient
     // est absorbée silencieusement ; le controller redirige quand même vers

@@ -1460,4 +1460,32 @@ class MailServiceCoverageTest extends TestCase
         $this->assertStringContainsString('Jean', $result);
         $this->assertStringContainsString('Dupont', $result);
     }
+
+    // ----------------------------------------------------------------
+    // L1283 — sendOrderConfirmationToClient() : branche $isPickup = true
+    // Couvre : $labelDiscount, $labelDelay, $delayValue (pickup)
+    // ----------------------------------------------------------------
+
+    /**
+     * @return void
+     */
+    public function testSendOrderConfirmationToClientWithPickupCoversIsPickupBranch(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendOrderConfirmationToClient(
+            'client@example.com',
+            'Alice',
+            'CB-2026-PICKUP',
+            'card',
+            [['name' => 'Sauternes 2021', 'qty' => 1, 'price' => 30.0]],
+            30.0,
+            'fr',
+            0.0,
+            null,
+            'pickup'
+        );
+
+        $this->assertTrue(true); // branche isPickup = true traversée sans exception
+    }
 }

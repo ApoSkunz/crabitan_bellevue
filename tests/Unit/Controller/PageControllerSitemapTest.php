@@ -711,18 +711,16 @@ class PageControllerSitemapTest extends TestCase
     }
 
     // ================================================================
-    // contactPost() — L89 phone lu + L109 phone invalide vidé
+    // contactPost() — L87 phone lu + L88-89 phone invalide vidé
     // ================================================================
 
     /**
-     * contactPost() lit $_POST['phone'] (L89) et vide le champ si le format est invalide (L109).
-     * Comme les champs obligatoires sont manquants, la méthode retourne 422 avant
-     * d'atteindre le mailer — mais L89 et L109 sont traversés avant la validation.
+     * contactPost() lit $_POST['phone'] (L87) et vide le champ si le format est invalide (L88-89).
+     * On utilise une anonymous class qui override json() pour capturer le code HTTP
+     * sans passer par Response::json() — évite RunInSeparateProcess.
      *
      * @return void
      */
-    #[RunInSeparateProcess]
-    #[PreserveGlobalState(false)]
     public function testContactPostWithInvalidPhoneClearsPhoneFieldAndReturns422(): void
     {
         $this->bootstrapApp();
@@ -730,39 +728,59 @@ class PageControllerSitemapTest extends TestCase
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        $_SESSION['csrf'] = 'valid-csrf';
+
+        $csrfToken        = bin2hex(random_bytes(16));
+        $_SESSION['csrf'] = $csrfToken;
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI']    = '/fr/contact';
         $_POST = [
-            'phone'     => 'INVALID!!', // format invalide → L109 : $phone = ''
-            'firstname' => '',           // champ obligatoire vide → 422
-            'lastname'  => '',
-            'email'     => '',
-            'subject'   => '',
-            'message'   => '',
-            'rgpd'      => '0',
+            'csrf_token' => $csrfToken,
+            'phone'      => 'INVALID!!', // format invalide → L88-89 : $phone = ''
+            'firstname'  => '',           // champ obligatoire vide → json 422
+            'lastname'   => '',
+            'email'      => '',
+            'subject'    => '',
+            'message'    => '',
+            'rgpd'       => '0',
+            'website'    => '',           // honeypot vide
         ];
 
+        /** @var \Controller\PageController&object{capturedCode:int|null,capturedData:array<mixed>} $ctrl */
+        $ctrl = new class (new \Core\Request()) extends \Controller\PageController {
+            public ?int $capturedCode     = null;
+            /** @var array<mixed> */
+            public array $capturedData    = [];
+
+            /**
+             * Override json() pour capturer code + data sans appeler Response::json().
+             *
+             * @param mixed $data   Données JSON
+             * @param int   $status Code HTTP
+             * @return never
+             */
+            protected function json(mixed $data, int $status = 200): never
+            {
+                $this->capturedCode = $status;
+                $this->capturedData = is_array($data) ? $data : [];
+                throw new \Core\Exception\HttpException($status);
+            }
+        };
+
         $caught = null;
-        ob_start();
         try {
-            (new \Controller\PageController(new \Core\Request()))->contactPost(['lang' => 'fr']);
-        } catch (HttpException $e) {
+            $ctrl->contactPost(['lang' => 'fr']);
+        } catch (\Core\Exception\HttpException $e) {
             $caught = $e;
-        } catch (\Throwable $e) {
-            ob_end_clean();
-            // json() appelle header() et exit — on attrape l'éventuel exit ou autre
-            $this->assertTrue(true, 'L89 et L109 traversées avant la validation');
-            return;
-        } finally {
-            ob_end_clean();
         }
 
-        // 422 est retourné par json() si les champs requis sont vides
-        $this->assertTrue(true, 'L89 et L109 traversées : phone invalide → vidé avant validation');
+        // L87 et L88-89 traversées : phone invalide → vidé → validation échoue → 422
+        $this->assertNotNull($caught, 'Une HttpException doit être levée');
+        $this->assertSame(422, $ctrl->capturedCode);
+        $this->assertFalse($ctrl->capturedData['success'] ?? true);
 
         $_POST = [];
+        $_SESSION = [];
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
