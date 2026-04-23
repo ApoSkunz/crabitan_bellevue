@@ -1479,4 +1479,108 @@ class OrderControllerPaymentFlowTest extends TestCase
         }
         $this->assertTrue($hasDecrement, 'decrementStock (GREATEST) doit être appelé dans paymentReturnOk');
     }
+
+    // ================================================================
+    // paymentReturnOk() — catch (\Throwable $mailError) L517-530
+    // Couvre : l'exception PHPMailer levée dans sendOrderConfirmationToClient
+    // est absorbée silencieusement ; le controller redirige quand même vers
+    // la confirmation (aucune exception mail ne propage).
+    // ================================================================
+
+    /**
+     * Quand MailService lève une exception SMTP (PHPMailer non configuré),
+     * le catch (\Throwable $mailError) à la ligne 528 absorbe l'erreur et
+     * le controller complète la redirection vers /fr/commande/confirmation
+     * sans propager l'exception.
+     *
+     * @return void
+     */
+    public function testPaymentReturnOkMailExceptionIsCaughtAndDoesNotPropagate(): void
+    {
+        if ($this->privateKey === false || $this->tmpPubkeyPath === '') {
+            $this->markTestSkipped('Génération de clé RSA non disponible dans cet environnement.');
+        }
+
+        $_ENV['CA_PUBKEY_PATH'] = $this->tmpPubkeyPath;
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement-ca/ok';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+
+        $dataQs   = 'Ref=WEB-CB-MAILCATCH-2026&Erreur=00000&Appel=1111&Trans=2222';
+        $signedQs = $this->buildSignedQueryString($dataQs);
+        $_SERVER['QUERY_STRING'] = $signedQs;
+        $_GET = [
+            'Ref'    => 'WEB-CB-MAILCATCH-2026',
+            'Erreur' => '00000',
+            'Appel'  => '1111',
+            'Trans'  => '2222',
+        ];
+
+        $snapshot    = $this->defaultSnapshot(1, 'WEB-CB-MAILCATCH-2026');
+        $snapshotRow = ['snapshot' => json_encode($snapshot)];
+
+        $stub = $this->setDbMock();
+        // Séquence DB permettant d'atteindre le bloc mail (L500-530) :
+        // 1. AuthMiddleware
+        // 2. OrderModel::findByReference → commande absente
+        // 3. PaymentIntentModel::findByReference → snapshot valide
+        // 4. OrderModel::findByReferenceOnly → non créée → createFromIpn s'exécute
+        // 5-8. createFromIpn : fetch + dedup billing & delivery
+        // 9. postOrderStockActions → WineModel::getById
+        // 10. findByReferenceWithAddresses → null (facture skippée)
+        // 11. buildOwnerPdfContext → AddressModel billing
+        // → new MailService() instancié, sendOrderConfirmationToClient() lève PHPMailer\Exception
+        // → catch (\Throwable $mailError) L528 absorbe l'exception (L529 : ErrorLogger::warning)
+        // 12. OrderModel::findByReference après catch → commande trouvée → redirect confirmation
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],    // 1. AuthMiddleware
+            false,           // 2. OrderModel::findByReference → absente
+            $snapshotRow,    // 3. PaymentIntentModel::findByReference
+            false,           // 4. findByReferenceOnly → non créée
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris',
+             'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false,           // 6. dedup lookup billing
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris',
+             'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            false,           // 8. dedup lookup delivery
+            ['id' => 1, 'label_name' => 'Wine', 'stock_quantity' => 500, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null,
+             'slug' => 'wine', 'vintage' => 2020],
+            false,           // 10. findByReferenceWithAddresses → null (facture skippée)
+            ['id' => 1, 'civility' => 'M', 'firstname' => 'Jean', 'lastname' => 'Dupont',
+             'street' => '1 rue Test', 'city' => 'Paris',
+             'zip_code' => '75001', 'country' => 'France', 'phone' => ''],
+            [                // 12. findByReference après catch → commande trouvée
+                'order_reference' => 'WEB-CB-MAILCATCH-2026',
+                'payment_method'  => 'card',
+                'content'         => json_encode($snapshot['items']),
+            ],
+        );
+
+        // On attend une HttpException 302 vers /fr/commande/confirmation.
+        // Si le catch L528 ne fonctionnait pas, une PHPMailer\Exception se propagerait
+        // et ce test lèverait une exception non-HttpException → assertion échouerait.
+        $mailException = null;
+        $httpException = null;
+        try {
+            (new OrderController(new Request()))->paymentReturnOk(['lang' => 'fr']);
+        } catch (\Core\Exception\HttpException $e) {
+            $httpException = $e;
+        } catch (\Throwable $e) {
+            $mailException = $e;
+        }
+
+        // Aucune exception mail ne doit s'être propagée (catch L528 a absorbé)
+        $this->assertNull(
+            $mailException,
+            'Le catch (\Throwable $mailError) L528 doit absorber l\'exception SMTP sans la propager'
+        );
+        // Le controller doit avoir redirigé normalement
+        $this->assertNotNull($httpException, 'Une HttpException 302 doit être levée après le catch mail');
+        $this->assertSame(302, $httpException->status);
+        $this->assertSame('WEB-CB-MAILCATCH-2026', $_SESSION['last_order_ref'] ?? '');
+    }
 }

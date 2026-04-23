@@ -685,6 +685,42 @@ class RateLimiterServiceTest extends TestCase
         $this->assertTrue(true);
     }
 
+    // ----------------------------------------------------------------
+    // startSession() — implémentation réelle (ligne 330)
+    // ----------------------------------------------------------------
+
+    /**
+     * startSession() réelle appelle session_start() et rend la session active.
+     *
+     * On crée une instance normale (sans override de startSession) qui force
+     * isApcuAvailable() = false. Après session_write_close(), checkLimit()
+     * déclenche ensureSession() → startSession() réelle → session_start().
+     *
+     * @return void
+     */
+    public function testStartSessionRealImplementationActivatesSession(): void
+    {
+        $service = new class extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+            // startSession() NON overridée → implémentation réelle couverte
+        };
+
+        // Fermer la session pour forcer le passage dans startSession()
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        // checkLimit → ensureSession() → startSession() réelle → session_start()
+        $service->checkLimit('real:start:session', 5, 60);
+
+        $this->assertSame(PHP_SESSION_ACTIVE, session_status());
+
+        // Nettoyage — la session reste ouverte pour les tests suivants (setUp la gère)
+    }
+
     /**
      * ensureSession() appelle startSession() quand la session est fermée.
      */

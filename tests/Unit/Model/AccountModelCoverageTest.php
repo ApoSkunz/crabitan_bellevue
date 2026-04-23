@@ -442,6 +442,27 @@ class AccountModelCoverageTest extends TestCase
     }
 
     /**
+     * getForAdmin avec hasOrdered='1' — couvre l.1197-1198 (if branch).
+     *
+     * @return void
+     */
+    public function testApplyAdminFlagFiltersHasOrderedOne(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(hasOrdered: '1'));
+        $this->assertStringContainsString('> 0', $capturedSql);
+        // Vérifie la clause "a déjà commandé"
+        $this->assertMatchesRegularExpression('/COUNT\(\*\)\s+FROM\s+orders.*>\s*0/s', $capturedSql);
+    }
+
+    /**
      * getForAdmin avec hasOrdered='0' — couvre l.1199-1200 (elseif branch).
      *
      * @return void
