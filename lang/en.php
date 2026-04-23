@@ -432,7 +432,7 @@ return [
     'contact.error_fields'    => 'Please fill in all required fields.',
     'contact.error_rgpd'      => 'You must accept the processing of your data.',
     'contact.error_smtp'      => 'An error occurred while sending. Please try again or contact us by phone.',
-    'contact.error_rate_limit' => 'Too many emails sent recently. Please try again in a few minutes.',
+    'contact.error_rate_limit' => 'Our server received too many requests in the last hour. Please try again later.',
     'contact.mail_owner_subject'  => 'New contact message',
     'contact.mail_confirm_subject' => 'We have received your message',
     'contact.order_form_title'    => 'Order Form',

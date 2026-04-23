@@ -433,7 +433,7 @@ return [
     'contact.error_fields'    => 'Veuillez remplir tous les champs obligatoires.',
     'contact.error_rgpd'      => 'Vous devez accepter le traitement de vos données.',
     'contact.error_smtp'      => 'Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou nous contacter par téléphone.',
-    'contact.error_rate_limit' => 'Trop d\'emails envoyés récemment. Veuillez réessayer dans quelques minutes.',
+    'contact.error_rate_limit' => 'Notre serveur a reçu trop de demandes sur la dernière heure. Merci de réessayer plus tard.',
     'contact.mail_owner_subject'  => 'Nouveau message de contact',
     'contact.mail_confirm_subject' => 'Nous avons bien reçu votre message',
     'contact.order_form_title'    => 'Bon de commande',
