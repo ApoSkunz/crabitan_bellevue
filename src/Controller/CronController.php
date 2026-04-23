@@ -57,12 +57,33 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
 
         $dryRun = isset($_GET['dry_run']) && $_GET['dry_run'] === '1';
 
+        $runModel = new \Model\CronRunModel();
+        $runId    = 0;
+        try {
+            $runId = $runModel->start($job, $dryRun);
+        } catch (\Throwable $e) { // NOSONAR — journal non bloquant
+            \Core\ErrorLogger::warning($e, '[CronRunModel::start]');
+        }
+
         ob_start();
 
         $runner   = new CronRunner($job, '', $dryRun);
         $exitCode = $runner->run($fn);
 
         $output = (string) ob_get_clean();
+
+        if ($runId > 0) {
+            try {
+                $actions = substr_count($output, '[OK]') + substr_count($output, '[SENT]');
+                if ($exitCode === 0) {
+                    $runModel->finishSuccess($runId, $actions, $output);
+                } else {
+                    $runModel->finishError($runId, 'Exit code ' . $exitCode, $output);
+                }
+            } catch (\Throwable $e) { // NOSONAR — journal non bloquant
+                \Core\ErrorLogger::warning($e, '[CronRunModel::finish]');
+            }
+        }
 
         http_response_code($exitCode === 0 ? 200 : 500);
         header(self::CONTENT_TYPE);
@@ -83,8 +104,18 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             http_response_code(404);
             header(self::CONTENT_TYPE);
             echo "Not Found\n";
-            exit;
+            $this->doExit();
         }
+    }
+
+    /**
+     * Termine l'exécution — seam de testabilité.
+     *
+     * @return never
+     */
+    protected function doExit(): never
+    {
+        throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux binaire
     }
 
     /**

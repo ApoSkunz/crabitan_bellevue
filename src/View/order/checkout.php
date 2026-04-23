@@ -160,8 +160,52 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                 ================================================ -->
                 <div class="checkout-main">
 
+                    <?php if (\Core\FeatureFlags::isClickCollectEnabled()) :
+                        $selectedDeliveryMethod = (string) ($post['delivery_method'] ?? 'shipping');
+                        $ccDiscount      = (new \Model\ClickCollectSettingsModel())->getDiscountPerBottle();
+                        $ccDiscountTotal = round($ccDiscount * $totalQty, 2);
+                    ?>
+                    <!-- === Mode de livraison (Click & Collect) === -->
+                    <section class="checkout-card" aria-labelledby="checkout-delivery-method-title">
+                        <h2 class="checkout-card__title" id="checkout-delivery-method-title">
+                            <?= $isEn ? 'Delivery method' : 'Mode de livraison' ?>
+                        </h2>
+                        <div class="checkout-delivery-method">
+                            <label class="checkout-delivery-method__option <?= $selectedDeliveryMethod === 'shipping' ? 'checkout-delivery-method__option--selected' : '' ?>">
+                                <input type="radio" name="delivery_method" value="shipping"
+                                       class="js-delivery-method-radio"
+                                       <?= $selectedDeliveryMethod === 'shipping' ? 'checked' : '' ?>>
+                                <span class="checkout-delivery-method__label">
+                                    <?= $isEn ? 'Home delivery' : 'Livraison à domicile' ?>
+                                </span>
+                                <span class="checkout-delivery-method__detail">
+                                    <?= $isEn ? 'Mainland France only — 7 to 15 days' : 'France métropolitaine — 7 à 15 jours' ?>
+                                </span>
+                            </label>
+                            <label class="checkout-delivery-method__option <?= $selectedDeliveryMethod === 'pickup' ? 'checkout-delivery-method__option--selected' : '' ?>">
+                                <input type="radio" name="delivery_method" value="pickup"
+                                       class="js-delivery-method-radio"
+                                       <?= $selectedDeliveryMethod === 'pickup' ? 'checked' : '' ?>>
+                                <span class="checkout-delivery-method__label">
+                                    Click &amp; Collect — <?= $isEn ? 'Pick up at the château' : 'Retrait au château' ?>
+                                </span>
+                                <span class="checkout-delivery-method__detail">
+                                    <?php if ($ccDiscount > 0) : ?>
+                                    &minus;<?= number_format($ccDiscount, 2, ',', ' ') ?>&nbsp;€/<?= $isEn ? 'btl' : 'btl' ?>
+                                    <?= $totalQty > 0 ? '(−&nbsp;' . number_format($ccDiscountTotal, 2, ',', ' ') . '&nbsp;€)' : '' ?>
+                                    &mdash;
+                                    <?php endif; ?>
+                                    <?= $isEn ? 'available within 48h' : 'disponible sous 48h' ?>
+                                </span>
+                            </label>
+                        </div>
+                    </section>
+                    <?php else : ?>
+                    <input type="hidden" name="delivery_method" value="shipping">
+                    <?php endif; ?>
+
                     <!-- === Adresse de livraison === -->
-                    <section class="checkout-card" aria-labelledby="checkout-delivery-title">
+                    <section class="checkout-card js-shipping-address-section" aria-labelledby="checkout-delivery-title">
                         <h2 class="checkout-card__title" id="checkout-delivery-title">
                             <?= htmlspecialchars(__('checkout.delivery_address')) ?>
                         </h2>
@@ -450,15 +494,28 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                 <span><?= htmlspecialchars(__('cart.subtotal_label')) ?></span>
                                 <span><?= number_format($subtotal, 2, ',', ' ') ?>&nbsp;€</span>
                             </div>
-                            <?php if ($deliveryDiscount > 0.0) : ?>
-                            <div class="checkout-summary__row checkout-summary__row--discount">
-                                <span><?= htmlspecialchars(__('cart.delivery_discount')) ?></span>
-                                <span>−&nbsp;<?= number_format($deliveryDiscount, 2, ',', ' ') ?>&nbsp;€</span>
+                            <?php
+                                $isPickup = (($post['delivery_method'] ?? 'shipping') === 'pickup');
+                                $discountLabelDelivery = __('cart.delivery_discount');
+                                $discountLabelPickup   = $isEn ? 'Click & Collect discount' : 'Remise Click & Collect';
+                            ?>
+                            <div class="checkout-summary__row checkout-summary__row--discount js-delivery-discount-row"<?= $deliveryDiscount > 0.0 ? '' : ' hidden' ?>>
+                                <span class="js-delivery-discount-label"
+                                      data-label-delivery="<?= htmlspecialchars($discountLabelDelivery) ?>"
+                                      data-label-pickup="<?= htmlspecialchars($discountLabelPickup) ?>">
+                                    <?= htmlspecialchars($isPickup ? $discountLabelPickup : $discountLabelDelivery) ?>
+                                </span>
+                                <span>−&nbsp;<span class="js-delivery-discount-value"><?= number_format(max(0.0, $deliveryDiscount), 2, ',', ' ') ?></span>&nbsp;€</span>
                             </div>
-                            <?php endif; ?>
                             <div class="checkout-summary__row checkout-summary__row--total">
                                 <strong><?= htmlspecialchars(__('cart.total_ttc')) ?></strong>
-                                <strong><?= number_format($total, 2, ',', ' ') ?>&nbsp;€</strong>
+                                <strong>
+                                    <span class="js-checkout-total"
+                                          data-subtotal="<?= number_format($subtotal, 2, '.', '') ?>"
+                                          data-delivery-discount="<?= number_format($deliveryDiscount, 2, '.', '') ?>"
+                                          data-cc-discount-per-bottle="<?= \Core\FeatureFlags::isClickCollectEnabled() ? number_format((new \Model\ClickCollectSettingsModel())->getDiscountPerBottle(), 2, '.', '') : '0.00' ?>"
+                                          data-total-qty="<?= (int) $totalQty ?>"><?= number_format($total, 2, ',', ' ') ?></span>&nbsp;€
+                                </strong>
                             </div>
                         </div>
 
@@ -471,7 +528,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                         <?php endif; ?>
                         <button type="submit" class="btn btn--gold checkout-summary__cta">
                             <span><?= htmlspecialchars(__('checkout.submit')) ?></span>
-                            <span class="checkout-summary__cta-price"><?= number_format($total, 2, ',', ' ') ?>&nbsp;€ TTC</span>
+                            <span class="checkout-summary__cta-price"><span class="js-checkout-cta-total"><?= number_format($total, 2, ',', ' ') ?></span>&nbsp;€ TTC</span>
                         </button>
 
                         <a href="/<?= htmlspecialchars($lang) ?>/panier" class="checkout-summary__back">
@@ -690,6 +747,49 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
             var expanded = aside.classList.toggle('is-expanded');
             this.setAttribute('aria-expanded', expanded ? 'true' : 'false');
         });
+    }
+
+    // Click & Collect : mise à jour dynamique du récap au changement de mode
+    var ccRadios = document.querySelectorAll('.js-delivery-method-radio');
+    var totalEl  = document.querySelector('.js-checkout-total');
+    var ctaEl    = document.querySelector('.js-checkout-cta-total');
+    var discRow  = document.querySelector('.js-delivery-discount-row');
+    var discEl   = document.querySelector('.js-delivery-discount-value');
+    var discLbl  = document.querySelector('.js-delivery-discount-label');
+    if (ccRadios.length && totalEl) {
+        var subtotal = parseFloat(totalEl.dataset.subtotal || '0');
+        var baseDisc = parseFloat(totalEl.dataset.deliveryDiscount || '0');
+        var ccPerBtl = parseFloat(totalEl.dataset.ccDiscountPerBottle || '0');
+        var totalQty = parseInt(totalEl.dataset.totalQty || '0', 10);
+
+        function fmt(n) { return n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+
+        function updateSummary() {
+            var selected = document.querySelector('.js-delivery-method-radio:checked');
+            var mode = selected ? selected.value : 'shipping';
+            var isPickup = mode === 'pickup';
+            var discount = isPickup ? Math.max(baseDisc, ccPerBtl * totalQty) : baseDisc;
+            var total    = subtotal - discount;
+            if (discount > 0) {
+                if (discRow) discRow.hidden = false;
+                if (discEl) discEl.textContent = fmt(discount);
+                if (discLbl) {
+                    discLbl.textContent = isPickup
+                        ? discLbl.dataset.labelPickup
+                        : discLbl.dataset.labelDelivery;
+                }
+            } else if (discRow) {
+                discRow.hidden = true;
+            }
+            totalEl.textContent = fmt(total);
+            if (ctaEl) ctaEl.textContent = fmt(total);
+            // Maj visuel radio sélectionné
+            document.querySelectorAll('.checkout-delivery-method__option').forEach(function (o) {
+                o.classList.toggle('checkout-delivery-method__option--selected', o.contains(selected));
+            });
+        }
+
+        ccRadios.forEach(function (r) { r.addEventListener('change', updateSummary); });
     }
 
 })();

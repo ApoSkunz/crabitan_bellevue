@@ -919,6 +919,22 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
     }
 
     /**
+     * Vins disponibles à la vente pour sitemap produits.
+     * Filtre : available = 1 AND stock > 0.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAvailableForSitemap(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT slug, label_name, vintage, price, updated_at
+             FROM {$this->table}
+             WHERE " . self::COND_AVAILABLE . " AND stock_quantity > 0
+             ORDER BY updated_at DESC"
+        );
+    }
+
+    /**
      * Retourne slug, label_name, image_path et vintage pour le sitemap media.
      *
      * @return array<int, array<string, mixed>>

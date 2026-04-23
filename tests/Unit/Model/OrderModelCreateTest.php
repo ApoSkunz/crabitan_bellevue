@@ -80,6 +80,104 @@ class OrderModelCreateTest extends TestCase
         $this->assertSame('card', $capturedParams[4]);
     }
 
+    // ----------------------------------------------------------------
+    // delivery_method — paramètre validé via in_array(shipping|pickup)
+    // ----------------------------------------------------------------
+
+    /**
+     * create() accepte delivery_method='pickup' et l'insère tel quel.
+     */
+    public function testCreateAcceptsPickupDeliveryMethod(): void
+    {
+        $capturedParams = [];
+        $this->dbMock->method('insert')->willReturnCallback(
+            function (string $sql, array $params) use (&$capturedParams): string {
+                if (str_contains($sql, 'INSERT INTO orders')) {
+                    $capturedParams = $params;
+                }
+                return '1';
+            }
+        );
+
+        $this->model->create(
+            userId: 1,
+            items: [],
+            price: 12.0,
+            paymentMethod: 'card',
+            shippingDiscount: 0.0,
+            idBillingAddress: 1,
+            idDeliveryAddress: null,
+            cgvVersion: '1.0',
+            deliveryMethod: 'pickup'
+        );
+
+        // delivery_method est en position 9 (dernière avant status fixe 'pending')
+        $this->assertSame('pickup', $capturedParams[9]);
+    }
+
+    /**
+     * create() fallback shipping pour delivery_method invalide (anti-tampering).
+     */
+    public function testCreateFallsBackToShippingForInvalidDeliveryMethod(): void
+    {
+        $capturedParams = [];
+        $this->dbMock->method('insert')->willReturnCallback(
+            function (string $sql, array $params) use (&$capturedParams): string {
+                if (str_contains($sql, 'INSERT INTO orders')) {
+                    $capturedParams = $params;
+                }
+                return '1';
+            }
+        );
+
+        $this->model->create(
+            userId: 1,
+            items: [],
+            price: 12.0,
+            paymentMethod: 'card',
+            shippingDiscount: 0.0,
+            idBillingAddress: 1,
+            idDeliveryAddress: null,
+            cgvVersion: '1.0',
+            deliveryMethod: 'drone_delivery'
+        );
+
+        $this->assertSame('shipping', $capturedParams[9]);
+    }
+
+    /**
+     * createFromIpn() valide delivery_method='pickup'.
+     */
+    public function testCreateFromIpnAcceptsPickupDeliveryMethod(): void
+    {
+        $capturedParams = [];
+        $this->dbMock->method('insert')->willReturnCallback(
+            function (string $sql, array $params) use (&$capturedParams): string {
+                if (str_contains($sql, 'INSERT INTO orders')) {
+                    $capturedParams = $params;
+                }
+                return '1';
+            }
+        );
+
+        $this->model->createFromIpn(
+            userId: 1,
+            items: [],
+            total: 10.0,
+            deliveryDiscount: 2.20,
+            billingAddressId: 1,
+            deliveryAddressId: 1,
+            cgvVersion: '1.0',
+            reference: 'WEB-CB-TESTPICK-2026',
+            numappel: 'N1',
+            numtrans: 'T1',
+            deliveryMethod: 'pickup'
+        );
+
+        // position 8 = delivery_method (userId, ref, content, total, discount, bill, del, cgv, delivery, numappel, numtrans)
+        $this->assertSame('pickup', $capturedParams[8]);
+    }
+
     public function testCreateAcceptsAllValidPaymentMethods(): void
     {
         $this->dbMock->method('insert')->willReturn('1');

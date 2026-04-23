@@ -43,7 +43,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
     private const WINDOW_REGISTER = 3600;
 
     /** Nombre maximum de tentatives de connexion par IP par fenêtre. */
-    private const MAX_LOGIN_IP    = 5;
+    private const MAX_LOGIN_IP    = 10;
 
     /** Nombre maximum de demandes mot-de-passe oublié par IP par fenêtre. */
     private const MAX_FORGOT_IP   = 3;

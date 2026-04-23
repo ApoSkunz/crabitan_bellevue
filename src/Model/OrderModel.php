@@ -24,6 +24,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
 
     private const VALID_STATUSES = [
         'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'return_requested', 'refund_refused', 'refund_pending',
+        'ready_for_pickup', 'collected', // Click & Collect
     ];
 
     /** Fenêtre légale de rétractation après livraison (art. L221-18 Code conso). */
@@ -44,6 +45,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param int                              $idBillingAddress  ID adresse de facturation
      * @param int|null                         $idDeliveryAddress ID adresse de livraison (null = même que facturation)
      * @param string                           $cgvVersion        Version des CGV acceptées
+     * @param string                           $deliveryMethod    Mode de livraison : 'shipping' ou 'pickup' (Click & Collect)
      * @return string Référence de commande générée
      */
     public function create( // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
@@ -54,7 +56,8 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         float $shippingDiscount,
         int $idBillingAddress,
         ?int $idDeliveryAddress,
-        string $cgvVersion
+        string $cgvVersion,
+        string $deliveryMethod = 'shipping'
     ): string {
         if (!in_array($paymentMethod, self::VALID_PAYMENT_METHODS, true)) {
             $paymentMethod = 'card';
@@ -78,11 +81,13 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
             $deliverySnapshotId = $snapshots->createFromAddress($deliveryAddr ?: [], $idDeliveryAddress);
         }
 
+        $deliveryMethod = in_array($deliveryMethod, ['shipping', 'pickup'], true) ? $deliveryMethod : 'shipping';
+
         $this->db->insert(
             "INSERT INTO {$this->table}
              (user_id, order_reference, content, price, payment_method, shipping_discount,
-              id_billing_snapshot, id_delivery_snapshot, cgv_version, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')", // phpcs:ignore Generic.Files.LineLength
+              id_billing_snapshot, id_delivery_snapshot, cgv_version, delivery_method, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')", // phpcs:ignore Generic.Files.LineLength
             [
                 $userId,
                 $reference,
@@ -93,6 +98,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                 $billingSnapshotId,
                 $deliverySnapshotId,
                 $cgvVersion,
+                $deliveryMethod,
             ]
         );
 
@@ -161,11 +167,13 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         string $cgvVersion,
         string $reference,
         string $numappel,
-        string $numtrans
+        string $numtrans,
+        string $deliveryMethod = 'shipping'
     ): string {
-        $content  = json_encode($items, JSON_UNESCAPED_UNICODE);
-        $typeCode = 'CB';
-        $maxTries = 3;
+        $content        = json_encode($items, JSON_UNESCAPED_UNICODE);
+        $deliveryMethod = in_array($deliveryMethod, ['shipping', 'pickup'], true) ? $deliveryMethod : 'shipping';
+        $typeCode       = 'CB';
+        $maxTries       = 3;
 
         $snapshots          = new OrderAddressSnapshotModel();
         $billingAddr        = $this->fetchAddressById($billingAddressId);
@@ -178,8 +186,8 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                 $this->db->insert(
                     "INSERT INTO {$this->table}
                      (user_id, order_reference, content, price, payment_method, shipping_discount,
-                      id_billing_snapshot, id_delivery_snapshot, status, cgv_version, ca_numappel, ca_numtrans)
-                     VALUES (?, ?, ?, ?, 'card', ?, ?, ?, 'paid', ?, ?, ?)", // phpcs:ignore Generic.Files.LineLength
+                      id_billing_snapshot, id_delivery_snapshot, status, cgv_version, delivery_method, ca_numappel, ca_numtrans)
+                     VALUES (?, ?, ?, ?, 'card', ?, ?, ?, 'paid', ?, ?, ?, ?)", // phpcs:ignore Generic.Files.LineLength
                     [
                         $userId,
                         $reference,
@@ -189,6 +197,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                         $billingSnapshotId,
                         $deliverySnapshotId,
                         $cgvVersion,
+                        $deliveryMethod,
                         $numappel,
                         $numtrans,
                     ]
@@ -248,7 +257,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
 
         return $this->db->fetchAll(
             "SELECT o.id, o.order_reference, o.status, o.price,
-                    o.payment_method, o.ordered_at,
+                    o.payment_method, o.ordered_at, o.delivery_method,
                     a.email,
                     COALESCE(ai.firstname, ac.company_name, '') AS firstname,
                     COALESCE(ai.lastname, '', '') AS lastname
@@ -293,7 +302,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.ca_numappel, o.ca_numtrans,
+                    o.cgv_version, o.ca_numappel, o.ca_numtrans, o.delivery_method,
                     o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     a.email, a.lang,
@@ -425,7 +434,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.ca_numappel, o.ca_numtrans,
+                    o.cgv_version, o.ca_numappel, o.ca_numtrans, o.delivery_method,
                     o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     a.email, a.lang,
@@ -592,7 +601,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $params[] = $perPage;
         $params[] = $offset;
         return $this->db->fetchAll(
-            "SELECT id, order_reference, status, price, payment_method, ordered_at, path_invoice
+            "SELECT id, order_reference, status, price, payment_method, ordered_at, path_invoice, delivery_method
              FROM {$this->table}
              {$where}
              ORDER BY ordered_at DESC
@@ -619,7 +628,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.ca_numappel, o.ca_numtrans,
+                    o.cgv_version, o.ca_numappel, o.ca_numtrans, o.delivery_method,
                     o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     b.civility  AS bill_civility,  b.firstname AS bill_firstname, b.lastname AS bill_lastname,
@@ -1027,9 +1036,16 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         ?int $month,
         ?int $quarter,
         int $page,
-        int $perPage
+        int $perPage,
+        ?string $search = null
     ): array {
         [$where, $params] = $this->buildInvoicePeriodFilter($year, $month, $quarter);
+        if ($search !== null && $search !== '') {
+            $where .= ' AND (f.invoice_number LIKE ? OR o.order_reference LIKE ?)';
+            $like     = '%' . $search . '%';
+            $params[] = $like;
+            $params[] = $like;
+        }
         $offset   = ($page - 1) * $perPage;
         $params[] = $perPage;
         $params[] = $offset;
@@ -1061,9 +1077,15 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param  int|null $quarter
      * @return int
      */
-    public function countInvoicesForAdmin(int $year, ?int $month, ?int $quarter): int
+    public function countInvoicesForAdmin(int $year, ?int $month, ?int $quarter, ?string $search = null): int
     {
         [$where, $params] = $this->buildInvoicePeriodFilter($year, $month, $quarter);
+        if ($search !== null && $search !== '') {
+            $where .= ' AND (f.invoice_number LIKE ? OR o.order_reference LIKE ?)';
+            $like     = '%' . $search . '%';
+            $params[] = $like;
+            $params[] = $like;
+        }
         $row = $this->db->fetchOne(
             "SELECT COUNT(*) AS total
              FROM order_invoice_files f

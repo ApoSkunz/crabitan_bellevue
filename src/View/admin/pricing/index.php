@@ -23,7 +23,32 @@ function pricingLabel(mixed $raw, string $lang): string
 <?php endif; ?>
 
 <div class="admin-page-header">
-    <h1>Tarifs de livraison &amp; retrait</h1>
+    <h1>Tarifs de livraison</h1>
+</div>
+
+<!-- ================================================================
+     Remise Click & Collect — singleton BDD
+================================================================ -->
+<div class="admin-card" style="margin-bottom:1.5rem;">
+    <div class="admin-card__header"><h2>Remise Click &amp; Collect</h2></div>
+    <div class="admin-card__body">
+        <form method="POST" action="/admin/tarifs/click-collect" style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap;">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
+            <div>
+                <label for="cc-discount" style="display:block;font-size:0.78rem;color:#8a7060;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">
+                    Remise par bouteille (€)
+                </label>
+                <input type="number" id="cc-discount" name="cc_discount"
+                       min="0" step="0.01" required
+                       value="<?= htmlspecialchars(number_format((float) ($ccDiscount ?? 2.20), 2, '.', '')) ?>"
+                       style="width:120px;">
+            </div>
+            <button type="submit" class="admin-btn admin-btn--primary">Enregistrer</button>
+            <p style="font-size:0.78rem;color:#8a7060;margin:0 0 0 0.5rem;align-self:center;">
+                Appliquée sur chaque bouteille des commandes <em>Retrait au château</em>.
+            </p>
+        </form>
+    </div>
 </div>
 
 <!-- ================================================================
@@ -39,8 +64,6 @@ function pricingLabel(mixed $raw, string $lang): string
                     <th>Format</th>
                     <th>Tranche</th>
                     <th>Label (FR)</th>
-                    <th>Livraison (€)</th>
-                    <th>Retrait cave (€)</th>
                     <th>Actif</th>
                 </tr>
             </thead>
@@ -54,8 +77,6 @@ function pricingLabel(mixed $raw, string $lang): string
                         <?= $rule['max_quantity'] !== null ? (int) $rule['max_quantity'] : '∞' ?>
                     </td>
                     <td><?= htmlspecialchars(pricingLabel($rule['label'], 'fr')) ?></td>
-                    <td><?= number_format((float) $rule['delivery_price'], 2, ',', ' ') ?>&nbsp;€</td>
-                    <td><?= number_format((float) $rule['withdrawal_price'], 2, ',', ' ') ?>&nbsp;€</td>
                     <td style="text-align:center;">
                         <?php if ($rule['active']) : ?>
                             <span style="color:#15803d;font-size:0.85rem;">✓</span>
@@ -86,7 +107,6 @@ function pricingLabel(mixed $raw, string $lang): string
                         <th>Qté min</th>
                         <th>Qté max</th>
                         <th>Livraison (€)</th>
-                        <th>Retrait cave (€)</th>
                         <th>Label FR</th>
                         <th>Label EN</th>
                         <th>Actif</th>
@@ -95,7 +115,7 @@ function pricingLabel(mixed $raw, string $lang): string
                 <tbody>
                 <?php if (empty($rules)) : ?>
                     <tr>
-                        <td colspan="8"
+                        <td colspan="7"
                             style="text-align:center;color:#8a7a60;padding:2rem;">
                             Aucune règle de tarification — lancez le seed pricing pour initialiser.
                         </td>
@@ -103,6 +123,8 @@ function pricingLabel(mixed $raw, string $lang): string
                 <?php else : ?>
                     <?php foreach ($rules as $rule) : ?>
                         <input type="hidden" name="id[]" value="<?= (int) $rule['id'] ?>">
+                        <input type="hidden" name="withdrawal_<?= (int) $rule['id'] ?>"
+                               value="<?= htmlspecialchars(number_format((float) $rule['withdrawal_price'], 2, '.', '')) ?>">
                         <tr>
                             <td><?= htmlspecialchars($formatLabels[$rule['format']] ?? $rule['format']) ?></td>
                             <td>
@@ -127,12 +149,6 @@ function pricingLabel(mixed $raw, string $lang): string
                                        name="delivery_<?= (int) $rule['id'] ?>"
                                        min="0" step="0.01"
                                        value="<?= htmlspecialchars(number_format((float) $rule['delivery_price'], 2, '.', '')) ?>">
-                            </td>
-                            <td>
-                                <input type="number"
-                                       name="withdrawal_<?= (int) $rule['id'] ?>"
-                                       min="0" step="0.01"
-                                       value="<?= htmlspecialchars(number_format((float) $rule['withdrawal_price'], 2, '.', '')) ?>">
                             </td>
                             <td>
                                 <input type="text"

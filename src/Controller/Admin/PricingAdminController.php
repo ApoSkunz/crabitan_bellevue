@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Controller\Admin;
 
 use Core\Response;
+use Model\ClickCollectSettingsModel;
 use Model\PricingModel;
 use Service\AuditLogger;
 
 class PricingAdminController extends AdminController
 {
+    private const REDIRECT_URL = '/admin/tarifs';
+
     private PricingModel $pricing;
 
     /**
@@ -38,15 +41,51 @@ class PricingAdminController extends AdminController
         $adminUser = $this->requireAdmin();
 
         $this->view('admin/pricing/index', [
-            'adminUser'    => $adminUser,
-            'adminSection' => 'pricing',
-            'pageTitle'    => 'Tarifs de livraison',
-            'breadcrumbs'  => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Tarifs']],
-            'rules'        => $this->pricing->getAll(),
-            'csrfToken'    => $_SESSION['csrf'] ?? '',
-            'flash'        => $this->getFlash('success'),
-            'flashError'   => $this->getFlash('error'),
+            'adminUser'     => $adminUser,
+            'adminSection'  => 'pricing',
+            'pageTitle'     => 'Tarifs de livraison',
+            'breadcrumbs'   => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Tarifs']],
+            'rules'         => $this->pricing->getAll(),
+            'ccDiscount'    => (new ClickCollectSettingsModel())->getDiscountPerBottle(),
+            'csrfToken'     => $_SESSION['csrf'] ?? '',
+            'flash'         => $this->getFlash('success'),
+            'flashError'    => $this->getFlash('error'),
         ]);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /admin/tarifs/click-collect
+    // ----------------------------------------------------------------
+
+    /**
+     * Enregistre la remise Click & Collect par bouteille.
+     *
+     * @param array<string, mixed> $_params Paramètres de route (non utilisés)
+     * @return void
+     */
+    public function updateClickCollect(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
+    {
+        $adminUser = $this->requireAdmin();
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', 'Token CSRF invalide.');
+            Response::redirect(self::REDIRECT_URL);
+        }
+
+        $discount = (float) str_replace(',', '.', $this->request->post('cc_discount', '0'));
+        (new ClickCollectSettingsModel())->setDiscountPerBottle($discount);
+
+        AuditLogger::log(
+            $adminUser['id'],
+            'pricing.click_collect_updated',
+            'click_collect_settings',
+            1,
+            ['discount_per_bottle' => $discount],
+            AuditLogger::getIp()
+        );
+
+        $this->flash('success', 'Remise Click & Collect mise à jour.');
+        Response::redirect(self::REDIRECT_URL);
     }
 
     // ----------------------------------------------------------------
@@ -65,7 +104,7 @@ class PricingAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/tarifs');
+            Response::redirect(self::REDIRECT_URL);
         }
 
         $ids = $this->request->post('id', []);
@@ -99,6 +138,6 @@ class PricingAdminController extends AdminController
         );
 
         $this->flash('success', 'Tarifs mis à jour avec succès.');
-        Response::redirect('/admin/tarifs');
+        Response::redirect(self::REDIRECT_URL);
     }
 }

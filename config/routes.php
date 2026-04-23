@@ -25,6 +25,7 @@ $router->post('/admin/comptes/{id}/verifier', 'Admin\AccountAdminController@veri
 $router->post('/admin/comptes/{id}/reset-password', 'Admin\AccountAdminController@resetPassword');
 $router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
 $router->post('/admin/tarifs', 'Admin\PricingAdminController@update');
+$router->post('/admin/tarifs/click-collect', 'Admin\PricingAdminController@updateClickCollect');
 $router->get('/admin/actualites', 'Admin\NewsAdminController@index');
 $router->get('/admin/actualites/ajouter', 'Admin\NewsAdminController@create');
 $router->post('/admin/actualites/ajouter', 'Admin\NewsAdminController@store');
@@ -62,6 +63,9 @@ $router->post('/admin/securite/appareils/supprimer-toutes', 'Admin\ProfileAdminC
 $router->post('/admin/securite/reinitialiser', 'Admin\ProfileAdminController@resetSecurity');
 $router->get('/admin/logs', 'Admin\AuditLogAdminController@index');
 $router->get('/admin/logs/export', 'Admin\AuditLogAdminController@export');
+$router->get('/admin/emails-rate', 'Admin\EmailRateAdminController@index');
+$router->get('/admin/monitoring-crons', 'Admin\CronMonitoringAdminController@index');
+$router->get('/admin/logs-app', 'Admin\AppLogsAdminController@index');
 $router->get('/admin/admins', 'Admin\AdminGestionAdminsController@index');
 $router->post('/admin/admins/{id}/bloquer', 'Admin\AdminGestionAdminsController@block');
 $router->post('/admin/admins/{id}/debloquer', 'Admin\AdminGestionAdminsController@unblock');
@@ -107,6 +111,7 @@ $router->get('/{lang}/conditions-generales-de-vente', 'PageController@conditions
 $router->get('/{lang}/plan-du-site', 'PageController@planDuSite');
 $router->get('/sitemap.xml', 'PageController@sitemapXml');
 $router->get('/sitemap-media.xml', 'PageController@sitemapMedia');
+$router->get('/sitemap-products.xml', 'PageController@sitemapProducts');
 $router->get('/sitemap-index.xml', 'PageController@sitemapIndex');
 $router->get('/{lang}/support', 'PageController@support');
 $router->get('/{lang}/jeux', 'PageController@jeux');
@@ -119,6 +124,7 @@ $router->get('/{lang}/webmaster', 'PageController@webmaster');
 $router->get('/{lang}/vins', 'WineController@index');
 $router->get('/{lang}/vins/collection', 'WineController@collection');
 $router->get('/{lang}/vins/{slug}/fiche-technique', 'WineController@technicalSheet');
+$router->get('/{lang}/vins/{slug}/fiche-technique/qr', 'WineController@technicalSheetQrLoader');
 $router->get('/{lang}/vins/{slug}', 'WineController@show');
 
 // News

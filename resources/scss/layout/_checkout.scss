@@ -73,6 +73,52 @@
     }
 }
 
+.checkout-delivery-method {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 520px;
+
+    &__option {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+
+        &:hover {
+            border-color: var(--color-gold);
+        }
+
+        &--selected {
+            border-color: var(--color-gold);
+            background: rgba(160, 132, 77, 0.05);
+        }
+
+        input[type="radio"] {
+            grid-row: span 2;
+            margin: 0;
+            transform: scale(1.15);
+        }
+    }
+
+    &__label {
+        font-weight: 600;
+        color: var(--color-text);
+        font-size: 0.95rem;
+    }
+
+    &__detail {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        grid-column: 2;
+    }
+}
+
 // ---- Notices ----
 
 .checkout-notice {

@@ -92,7 +92,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
 
     <button type="submit" class="admin-filters__btn js-noscript-only">Filtrer</button>
     <?php if ($color || $available || ($vintage ?? '') !== '' || ($labelName ?? '') !== '' || ($cuvee ?? '') !== '' || $perPage !== 10) : ?>
-        <a href="/admin/vins" class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
+        <a href="/admin/vins" class="admin-btn admin-btn--dark admin-btn--sm">Réinitialiser</a>
     <?php endif; ?>
 </form>
 
@@ -213,6 +213,13 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
                 style="position:absolute;top:0.75rem;right:1rem;background:none;border:none;
                        font-size:1.25rem;cursor:pointer;color:var(--color-text-muted);" aria-label="Fermer">✕</button>
         <h3 id="admin-qr-modal-title" style="margin:0 0 0.5rem;font-size:0.9rem;"></h3>
+        <div id="admin-qr-spinner" style="display:none;text-align:center;padding:2rem 0;">
+            <span style="display:inline-block;width:32px;height:32px;border:3px solid #e0d5c0;
+                         border-top-color:var(--color-gold,#a0844d);border-radius:50%;
+                         animation:admin-spin 0.7s linear infinite;"></span>
+            <p style="margin:0.5rem 0 0;font-size:0.78rem;color:#8a7a60;">Génération en cours…</p>
+        </div>
+        <style>@keyframes admin-spin { to { transform: rotate(360deg); } }</style>
         <canvas id="admin-qr-modal-canvas" width="300" height="300"
                 style="border:1px solid #e0d5c0;border-radius:4px;display:block;margin:0 auto 0.75rem;"></canvas>
         <p id="admin-qr-modal-url" style="font-size:0.68rem;color:#8a7a60;word-break:break-all;margin-bottom:0.75rem;"></p>

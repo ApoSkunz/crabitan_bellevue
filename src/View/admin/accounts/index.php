@@ -6,8 +6,16 @@ $roleLabels = ['customer' => 'Client', 'admin' => 'Admin', 'super_admin' => 'Sup
 $isSuperAdmin = $currentRole === 'super_admin';
 
 if (!function_exists('accountUrl')) {
-function accountUrl(int $p, ?string $role, ?string $type, string $search, int $perPage, ?string $sort = null): string
-{
+function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstruire l'URL de pagination avec tous les filtres admin
+    int $p,
+    ?string $role,
+    ?string $type,
+    string $search,
+    int $perPage,
+    ?string $sort = null,
+    ?string $hasOrdered = null,
+    ?string $activity = null
+): string {
     $q = ['page' => $p];
     if ($role) {
         $q['role'] = $role;
@@ -23,6 +31,12 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
     }
     if ($sort !== null) {
         $q['sort'] = $sort;
+    }
+    if ($hasOrdered !== null) {
+        $q['has_ordered'] = $hasOrdered;
+    }
+    if ($activity !== null) {
+        $q['activity'] = $activity;
     }
     return '/admin/comptes?' . http_build_query($q);
 }
@@ -57,6 +71,19 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
         <option value="company"    <?= ($type ?? '') === 'company'    ? 'selected' : '' ?>>Société</option>
     </select>
 
+    <select name="has_ordered" class="admin-filters__select" aria-label="Filtrer par commandes">
+        <option value="">Tous les clients</option>
+        <option value="1" <?= ($hasOrdered ?? '') === '1' ? 'selected' : '' ?>>A commandé</option>
+        <option value="0" <?= ($hasOrdered ?? '') === '0' ? 'selected' : '' ?>>Jamais commandé</option>
+    </select>
+
+    <select name="activity" class="admin-filters__select" aria-label="Filtrer par activité">
+        <option value="">Toute activité</option>
+        <option value="active"   <?= ($activity ?? '') === 'active'   ? 'selected' : '' ?>>Actif</option>
+        <option value="inactive" <?= ($activity ?? '') === 'inactive' ? 'selected' : '' ?>>Inactif (+3 ans)</option>
+        <option value="deleted"  <?= ($activity ?? '') === 'deleted'  ? 'selected' : '' ?>>Supprimé</option>
+    </select>
+
     <input type="text" name="search" class="admin-filters__input"
            placeholder="Email, nom, prénom…"
            value="<?= htmlspecialchars($search) ?>">
@@ -66,6 +93,8 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
         <option value="created_at_asc"  <?= ($sort ?? null) === 'created_at_asc'  ? 'selected' : '' ?>>Inscription — croissant</option>
         <option value="last_connection_desc" <?= ($sort ?? null) === 'last_connection_desc' ? 'selected' : '' ?>>Connexion — décroissant</option>
         <option value="last_connection_asc"  <?= ($sort ?? null) === 'last_connection_asc'  ? 'selected' : '' ?>>Connexion — croissant</option>
+        <option value="order_count_desc"     <?= ($sort ?? null) === 'order_count_desc'     ? 'selected' : '' ?>>Commandes — décroissant</option>
+        <option value="order_count_asc"      <?= ($sort ?? null) === 'order_count_asc'      ? 'selected' : '' ?>>Commandes — croissant</option>
     </select>
 
     <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
@@ -74,11 +103,9 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
         <?php endforeach; ?>
     </select>
 
-    <button type="submit" class="admin-filters__btn">Filtrer</button>
-    <?php if ($role || ($type ?? null) || $search) : ?>
-        <a href="/admin/comptes<?= $perPage !== 10 ? '?per_page=' . $perPage : '' ?>"
-           class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
-    <?php endif; ?>
+    <noscript><button type="submit" class="admin-filters__btn">Filtrer</button></noscript>
+    <a href="/admin/comptes<?= $perPage !== 10 ? '?per_page=' . $perPage : '' ?>"
+       class="admin-btn admin-btn--dark admin-btn--sm">Réinitialiser</a>
 </form>
 
 <div class="admin-card">
@@ -97,14 +124,16 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                     <th>Inscrit le</th>
                     <th class="col-hide-tablet">Dernière connexion</th>
                     <th class="col-hide-tablet">Cmdes</th>
+                    <th class="col-hide-tablet">Activité</th>
                     <?php if ($isSuperAdmin) : ?>
-                        <th></th>
+                        <th>Vérif.</th>
+                        <th>Réinit. mdp</th>
                     <?php endif; ?>
                 </tr>
             </thead>
             <tbody>
             <?php if (empty($accounts)) : ?>
-                <tr><td colspan="<?= $isSuperAdmin ? 12 : 11 ?>"
+                <tr><td colspan="<?= $isSuperAdmin ? 14 : 12 ?>"
                         style="text-align:center;color:#8a7a60;padding:2rem;">Aucun compte trouvé</td></tr>
             <?php else : ?>
                 <?php foreach ($accounts as $account) : ?>
@@ -168,6 +197,19 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                                 <span style="color:#8a7a60;">—</span>
                             <?php endif; ?>
                         </td>
+                        <td class="col-hide-tablet" data-label="Activité" style="font-size:0.78rem;">
+                            <?php
+                            if (!empty($account['deleted_at'])) {
+                                echo '<span style="color:#c0392b;">Supprimé</span>';
+                            } else {
+                                $lastConn = $account['last_connection'] ?? null;
+                                $isActive = $lastConn !== null && strtotime((string) $lastConn) >= strtotime('-3 years');
+                                echo $isActive
+                                    ? '<span style="color:#2d7a2d;">Actif</span>'
+                                    : '<span style="color:#8a7060;">Inactif</span>';
+                            }
+                            ?>
+                        </td>
                         <?php if ($isSuperAdmin) : ?>
                             <td style="white-space:nowrap;">
                                 <?php if (!$verified) : ?>
@@ -177,13 +219,15 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                                           data-admin-confirm="Vérifier ce compte manuellement ?">
                                         <input type="hidden" name="csrf_token"
                                                value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                        <button type="submit"
-                                                class="admin-btn admin-btn--outline admin-btn--sm"
-                                                style="color:#15803d;border-color:#15803d;">
+                                        <button type="submit" class="admin-btn admin-btn--verify admin-btn--sm">
                                             Vérifier
                                         </button>
                                     </form>
+                                <?php else : ?>
+                                    <span style="color:#ccc;">—</span>
                                 <?php endif; ?>
+                            </td>
+                            <td style="white-space:nowrap;">
                                 <?php if (!empty($account['email_verified_at']) && !empty($account['has_password'])) : ?>
                                     <form method="POST"
                                           action="/admin/comptes/<?= (int) $account['id'] ?>/reset-password"
@@ -191,12 +235,12 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                                           data-admin-confirm="Envoyer un lien de réinitialisation à <?= htmlspecialchars($account['email']) ?> ?">
                                         <input type="hidden" name="csrf_token"
                                                value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                        <button type="submit"
-                                                class="admin-btn admin-btn--outline admin-btn--sm"
-                                                style="color:#92400e;border-color:#92400e;">
+                                        <button type="submit" class="admin-btn admin-btn--reset admin-btn--sm">
                                             Réinit. mdp
                                         </button>
                                     </form>
+                                <?php else : ?>
+                                    <span style="color:#ccc;">—</span>
                                 <?php endif; ?>
                             </td>
                         <?php endif; ?>
@@ -207,16 +251,24 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
         </table>
     </div>
 
-    <?php if ($totalPages > 1) : ?>
+    <?php if ($totalPages > 1) :
+        $disabledSuffix = ' disabled';
+        $prevDisabled   = $page <= 1 ? $disabledSuffix : '';
+        $nextDisabled   = $page >= $totalPages ? $disabledSuffix : '';
+        ?>
         <div class="admin-pagination">
-            <a href="<?= htmlspecialchars(accountUrl(max(1, $page - 1), $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
-               class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>">‹</a>
+            <a href="<?= htmlspecialchars(accountUrl(1, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+               class="admin-pagination__item<?= $prevDisabled ?>" aria-label="Première page">«</a>
+            <a href="<?= htmlspecialchars(accountUrl(max(1, $page - 1), $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+               class="admin-pagination__item<?= $prevDisabled ?>">‹</a>
             <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
-                <a href="<?= htmlspecialchars(accountUrl($i, $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
+                <a href="<?= htmlspecialchars(accountUrl($i, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
                    class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"><?= $i ?></a>
             <?php endfor; ?>
-            <a href="<?= htmlspecialchars(accountUrl(min($totalPages, $page + 1), $role, $type ?? null, $search, $perPage, $sort ?? null)) ?>"
-               class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>">›</a>
+            <a href="<?= htmlspecialchars(accountUrl(min($totalPages, $page + 1), $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+               class="admin-pagination__item<?= $nextDisabled ?>">›</a>
+            <a href="<?= htmlspecialchars(accountUrl($totalPages, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+               class="admin-pagination__item<?= $nextDisabled ?>" aria-label="Dernière page">»</a>
         </div>
     <?php endif; ?>
 </div>

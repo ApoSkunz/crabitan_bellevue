@@ -412,4 +412,111 @@ class OrderModelTest extends TestCase
         $this->dbMock->method('fetchOne')->willReturn(false);
         $this->assertFalse($this->model->hasOrdersByUserId(42));
     }
+
+    // ----------------------------------------------------------------
+    // getInvoicesForAdmin / countInvoicesForAdmin — branch search non vide
+    // ----------------------------------------------------------------
+
+    /**
+     * getInvoicesForAdmin() avec $search non vide couvre les lignes L1044-1047
+     * (ajout du filtre LIKE sur invoice_number et order_reference).
+     *
+     * @return void
+     */
+    public function testGetInvoicesForAdminWithSearchAddsLikeFilter(): void
+    {
+        $capturedParams = null;
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql, array $params) use (&$capturedParams): array {
+                $capturedParams = $params;
+                return [];
+            }
+        );
+
+        $result = $this->model->getInvoicesForAdmin(2026, null, null, 1, 25, 'CB-2026');
+
+        $this->assertSame([], $result);
+        $this->assertNotNull($capturedParams, 'fetchAll doit être appelé');
+        // Les 2 paramètres LIKE + LIMIT + OFFSET doivent être dans les params
+        $likeParams = array_filter($capturedParams, fn($p) => is_string($p) && str_contains((string) $p, 'CB-2026'));
+        $this->assertCount(2, $likeParams, 'Deux paramètres LIKE attendus pour invoice_number et order_reference');
+    }
+
+    /**
+     * getInvoicesForAdmin() avec $search null ou vide ne modifie pas la requête.
+     *
+     * @return void
+     */
+    public function testGetInvoicesForAdminWithNullSearchDoesNotAddLike(): void
+    {
+        $capturedParams = null;
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql, array $params) use (&$capturedParams): array {
+                $capturedParams = $params;
+                return [];
+            }
+        );
+
+        $this->model->getInvoicesForAdmin(2026, null, null, 1, 25, null);
+
+        $this->assertNotNull($capturedParams);
+        // Sans search, seuls LIMIT et OFFSET sont des entiers en fin de params
+        $likeParams = array_filter(
+            $capturedParams,
+            fn($p) => is_string($p) && str_contains((string) $p, '%')
+        );
+        $this->assertCount(0, $likeParams, 'Aucun paramètre LIKE sans search');
+    }
+
+    /**
+     * countInvoicesForAdmin() avec $search non vide couvre les lignes L1084-1087
+     * (ajout du filtre LIKE sur invoice_number et order_reference).
+     *
+     * @return void
+     */
+    public function testCountInvoicesForAdminWithSearchAddsLikeFilter(): void
+    {
+        $capturedParams = null;
+        $this->dbMock->method('fetchOne')->willReturnCallback(
+            function (string $sql, array $params) use (&$capturedParams): array {
+                $capturedParams = $params;
+                return ['total' => '0'];
+            }
+        );
+
+        $result = $this->model->countInvoicesForAdmin(2026, null, null, 'REF-TEST');
+
+        $this->assertSame(0, $result);
+        $this->assertNotNull($capturedParams);
+        $likeParams = array_filter(
+            $capturedParams,
+            fn($p) => is_string($p) && str_contains((string) $p, 'REF-TEST')
+        );
+        $this->assertCount(2, $likeParams, 'Deux paramètres LIKE attendus pour invoice_number et order_reference');
+    }
+
+    /**
+     * countInvoicesForAdmin() avec $search null ne modifie pas la requête.
+     *
+     * @return void
+     */
+    public function testCountInvoicesForAdminWithNullSearchDoesNotAddLike(): void
+    {
+        $capturedParams = null;
+        $this->dbMock->method('fetchOne')->willReturnCallback(
+            function (string $sql, array $params) use (&$capturedParams): array {
+                $capturedParams = $params;
+                return ['total' => '5'];
+            }
+        );
+
+        $result = $this->model->countInvoicesForAdmin(2026, null, null, null);
+
+        $this->assertSame(5, $result);
+        $likeParams = array_filter(
+            $capturedParams ?? [],
+            fn($p) => is_string($p) && str_contains((string) $p, '%')
+        );
+        $this->assertCount(0, $likeParams);
+    }
 }

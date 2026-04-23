@@ -418,6 +418,9 @@ return [
     'contact.form_phone'     => 'Phone number',
     'contact.form_subject'   => 'Subject',
     'contact.form_message'   => 'Your message',
+    'contact.phone'             => 'Phone',
+    'contact.optional'          => 'optional',
+    'contact.phone_placeholder' => 'E.g. +33 6 12 34 56 78',
     'contact.form_rgpd'      => 'By sending this message, I agree that the information entered in this form may be used to contact me.',
     'contact.subject.general' => 'General enquiry',
     'contact.subject.order'   => 'Order question',
@@ -429,6 +432,7 @@ return [
     'contact.error_fields'    => 'Please fill in all required fields.',
     'contact.error_rgpd'      => 'You must accept the processing of your data.',
     'contact.error_smtp'      => 'An error occurred while sending. Please try again or contact us by phone.',
+    'contact.error_rate_limit' => 'Our server received too many requests in the last hour. Please try again later.',
     'contact.mail_owner_subject'  => 'New contact message',
     'contact.mail_confirm_subject' => 'We have received your message',
     'contact.order_form_title'    => 'Order Form',
@@ -1000,6 +1004,8 @@ return [
     'order.status.refund_pending'   => 'Refund pending',
     'order.status.return_requested' => 'Return in progress',
     'order.status.refund_refused'   => 'Refund refused',
+    'order.status.ready_for_pickup' => 'Ready for pickup',
+    'order.status.collected'        => 'Collected',
 
     // Transactional emails - order status change
     'mail.order_status_subject_processing' => 'Your order is being prepared — %s',

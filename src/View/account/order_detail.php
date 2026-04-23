@@ -19,11 +19,14 @@ $statusColors = [
     'refund_refused'   => 'red',
     'refund_pending'   => 'orange',
 ];
+$isPickupOrder = ($order['delivery_method'] ?? 'shipping') === 'pickup';
 $isReturnFlow  = in_array($order['status'], ['return_requested', 'refund_refused'], true)
     || ($order['status'] === 'refunded' && !empty($order['delivered_at']));
 $isRefundFlow  = in_array($order['status'], ['refund_pending', 'refunded'], true) && !$isReturnFlow;
 $returnEndStep = $order['status'] === 'refund_refused' ? 'refund_refused' : 'refunded';
-if ($isReturnFlow) {
+if ($isPickupOrder) {
+    $timeline = ['pending', 'paid', 'processing', 'ready_for_pickup', 'collected'];
+} elseif ($isReturnFlow) {
     $timeline = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', $returnEndStep];
 } elseif ($isRefundFlow) {
     $timeline = ['pending', 'paid', 'refund_pending', 'refunded'];
@@ -162,7 +165,13 @@ $paymentMap  = [
                             </tr>
                             <?php if ($shippingDiscount !== null && $shippingDiscount > 0.0) : ?>
                                 <tr class="order-discount-row">
-                                    <td colspan="3"><?= __('account.order_shipping_discount') ?></td>
+                                    <td colspan="3">
+                                        <?php if ($isPickupOrder) : ?>
+                                            <?= $lang === 'en' ? 'Click &amp; Collect discount' : 'Remise Click &amp; Collect' ?>
+                                        <?php else : ?>
+                                            <?= __('account.order_shipping_discount') ?>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>− <?= number_format($shippingDiscount, 2, ',', ' ') ?> €</td>
                                 </tr>
                             <?php endif; ?>
@@ -184,8 +193,8 @@ $paymentMap  = [
                 <?php endif; ?>
             </section>
 
-            <!-- Adresses -->
-            <div class="order-addresses">
+            <!-- Adresses (toujours affichées, pickup = château) -->
+            <div class="order-addresses<?= $order['status'] === 'cancelled' ? ' order-addresses--no-divider' : '' ?>">
                 <section class="account-section order-address-block">
                     <h2 class="account-section__title"><?= __('account.order_billing') ?></h2>
                     <address class="order-address">
@@ -199,7 +208,17 @@ $paymentMap  = [
                     </address>
                 </section>
 
-                <?php if (!empty($order['del_street'])) : ?>
+                <?php if ($isPickupOrder) : ?>
+                    <section class="account-section order-address-block">
+                        <h2 class="account-section__title"><?= $lang === 'en' ? 'Pickup address' : 'Adresse de retrait' ?></h2>
+                        <address class="order-address">
+                            Château Crabitan Bellevue<br>
+                            1 Crabitan Bellevue<br>
+                            33410 Sainte-Croix-du-Mont<br>
+                            France
+                        </address>
+                    </section>
+                <?php elseif (!empty($order['del_street'])) : ?>
                     <section class="account-section order-address-block">
                         <h2 class="account-section__title"><?= __('account.order_delivery') ?></h2>
                         <address class="order-address">

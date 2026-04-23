@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Service;
 
 use Core\MailChannel;
+use Model\EmailRateLogModel;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -40,12 +41,40 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
     private PHPMailer $mailer;
 
+    private ?EmailRateLogModel $rateLogger = null;
+
+    /** @var string Catégorie du prochain envoi (consommée puis réinitialisée par send()). */
+    private string $currentType = 'other';
+
     public function __construct()
     {
         $this->mailer = new PHPMailer(true);
         $this->mailer->isSMTP();
         $this->mailer->CharSet = 'UTF-8';
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
+    }
+
+    /**
+     * Retourne l'instance du logger de rate (lazy init).
+     *
+     * @return EmailRateLogModel
+     */
+    protected function getRateLogger(): EmailRateLogModel
+    {
+        if ($this->rateLogger === null) {
+            $this->rateLogger = new EmailRateLogModel();
+        }
+        return $this->rateLogger;
+    }
+
+    /**
+     * Définit la catégorie du prochain envoi pour le rate log.
+     *
+     * @param string $type contact, register, reset_password, order, invoice, cron_*, etc.
+     */
+    protected function setMailType(string $type): void
+    {
+        $this->currentType = $type;
     }
 
     /**
@@ -89,6 +118,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
     public function sendEmailVerification(string $to, string $name, string $verifyUrl, string $lang): void
     {
+        $this->setMailType('register');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Activez votre compte Crabitan Bellevue'
@@ -103,6 +133,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
 
     public function sendPasswordReset(string $to, string $name, string $resetUrl, string $lang): void
     {
+        $this->setMailType('reset_password');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? self::SUBJECT_RESET_FR
@@ -126,6 +157,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
      */
     public function sendAdminPasswordReset(string $to, string $name, string $resetUrl, string $lang): void
     {
+        $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Réinitialisation de votre mot de passe — demande administrateur'
@@ -149,6 +181,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
      */
     public function sendGoogleLinkConfirmation(string $to, string $name, string $confirmUrl, string $lang): void
     {
+        $this->setMailType('register');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Confirmez le rattachement de votre compte à Google'
@@ -194,6 +227,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
      */
     public function sendGoogleAccountInfo(string $to, string $name, string $lang): void
     {
+        $this->setMailType('register');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Votre compte est associé à Google'
@@ -206,14 +240,28 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $this->send($to, $name, $subject, $body);
     }
 
+    /**
+     * Envoie le message de contact au propriétaire du site.
+     *
+     * @param string $firstname Prénom de l'expéditeur
+     * @param string $lastname  Nom de l'expéditeur
+     * @param string $email     Email de l'expéditeur
+     * @param string $subject   Sujet du message
+     * @param string $message   Corps du message
+     * @param string $lang      Langue de l'interface
+     * @param string $phone     Numéro de téléphone facultatif
+     * @return void
+     */
     public function sendContactToOwner(
         string $firstname,
         string $lastname,
         string $email,
         string $subject,
         string $message,
-        string $lang
+        string $lang,
+        string $phone = ''
     ): void {
+        $this->setMailType('contact');
         $this->applySmtpConfig(MailChannel::CONTACT);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
 
@@ -225,8 +273,13 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         $safeSubject = htmlspecialchars($subjectLabel, ENT_QUOTES);
         $safeMessage = nl2br(htmlspecialchars($message, ENT_QUOTES));
 
+        $phoneBlock = $phone !== ''
+            ? "<strong>Téléphone :</strong> " . htmlspecialchars($phone, ENT_QUOTES) . "<br>"
+            : '';
         $msgBody = "<strong>De :</strong> {$safeName} ({$safeEmail})<br>"
-            . "<strong>Objet :</strong> {$safeSubject}<br><br>"
+            . "<strong>Objet :</strong> {$safeSubject}<br>"
+            . $phoneBlock
+            . "<br>"
             . $safeMessage;
 
         $body = $this->emailSimpleLayout(
@@ -246,6 +299,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $lang,
         string $userMessage = ''
     ): void {
+        $this->setMailType('contact');
         $this->applySmtpConfig(MailChannel::CONTACT);
         $safeName    = htmlspecialchars($firstname, ENT_QUOTES);
         $isOrderForm = $subject === 'bon_commande';
@@ -284,6 +338,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         ?string $attachmentName = null,
         ?string $unsubToken = null
     ): void {
+        $this->setMailType('cron_newsletter');
         $this->applySmtpConfig(MailChannel::NEWSLETTER);
         if ($unsubToken !== null) {
             $appUrl = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
@@ -319,6 +374,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $appUrl,
         string $lang
     ): void {
+        $this->setMailType('cron_newsletter');
         $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $appUrl      = rtrim($appUrl, '/');
         $labelName   = htmlspecialchars((string) ($wine['label_name'] ?? ''), ENT_QUOTES);
@@ -429,6 +485,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $lang,
         string $reactivationToken = ''
     ): void {
+        $this->setMailType('rgpd_deletion');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Confirmation de suppression de votre compte'
@@ -538,6 +595,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $scheduledDeletionAt,
         string $reactivationToken
     ): void {
+        $this->setMailType('cron_inactivity');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $reactUrl    = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
@@ -621,6 +679,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $lang,
         string $deletionDate
     ): void {
+        $this->setMailType('cron_inactivity');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $loginUrl    = $appUrl . '/' . $lang . '?login=1';
@@ -692,6 +751,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $deletionDate,
         string $reactivationToken
     ): void {
+        $this->setMailType('cron_inactivity');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $appUrl       = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $reactUrl     = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
@@ -759,6 +819,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
      */
     public function sendFinalDeletion(string $to, string $name, string $lang): void
     {
+        $this->setMailType('cron_inactivity');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
 
@@ -816,6 +877,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $lang,
         string $confirmToken = ''
     ): void {
+        $this->setMailType('reset_password');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Confirmez votre changement de mot de passe'
@@ -893,6 +955,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
      */
     public function sendPasswordChangeDenied(string $to, string $lang): void
     {
+        $this->setMailType('reset_password');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject  = $lang === 'fr'
             ? 'Sécurité — Demande de changement de mot de passe annulée'
@@ -947,6 +1010,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         string $lang,
         string $deviceToken = ''
     ): void {
+        $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Sécurité — Nouvelle connexion depuis un appareil inconnu'
@@ -1142,7 +1206,7 @@ INNER;
      * @param string               $lang            Langue du client ('fr' ou 'en')
      * @return void
      */
-    public function sendOrderConfirmationToClient( // NOSONAR php:S107 — 8 paramètres requis pour composer l'email de confirmation complet
+    public function sendOrderConfirmationToClient( // NOSONAR php:S107 — 10 paramètres requis pour composer l'email de confirmation complet
         string $toEmail,
         string $toName,
         string $orderRef,
@@ -1150,8 +1214,11 @@ INNER;
         array $items,
         float $total,
         string $lang,
-        float $shippingDiscount = 0.0
+        float $shippingDiscount = 0.0,
+        ?array $addressContext = null,
+        string $deliveryMethod = 'shipping'
     ): void {
+        $this->setMailType('order');
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeName = htmlspecialchars($toName, ENT_QUOTES);
         $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
@@ -1180,21 +1247,7 @@ INNER;
                 'cheque'   => 'Cheque',
             ];
             $withdrawalNote = '<br><em style="font-size:12px;color:#8a7a60;">Under applicable consumer law, you have 14 days from receipt to exercise your right of withdrawal.</em>'; // phpcs:ignore Generic.Files.LineLength
-            $deferredNote   = in_array($paymentMethod, ['virement', 'cheque'], true)
-                ? '<br><em>Your order will be dispatched upon receipt of payment.</em>'
-                : '';
-            if ($paymentMethod === 'virement') {
-                $deferredNote .= '<br><br><strong>Bank details:</strong>'
-                    . '<br>Beneficiary: G.F.A Bernard Solane &amp; Fils'
-                    . '<br>IBAN: FR76 3000 6000 0112 3456 7890 189'
-                    . "<br>Reference: {$safeRef}";
-            } elseif ($paymentMethod === 'cheque') {
-                $deferredNote .= '<br><br><strong>Cheque payable to:</strong>'
-                    . '<br>G.F.A Bernard Solane &amp; Fils'
-                    . '<br>1 Château Crabitan Bellevue'
-                    . '<br>33410 Sainte-Croix-du-Mont, France'
-                    . "<br>Please write your reference on the back: {$safeRef}";
-            }
+            $deferredNote   = $this->buildPaymentInstructions($paymentMethod, 'en', $safeRef);
         } else {
             $subject        = "Votre commande {$safeRef} — Château Crabitan Bellevue";
             $title          = 'Commande confirmée';
@@ -1215,24 +1268,22 @@ INNER;
                 'cheque'   => self::PAYMENT_LABEL_CHEQUE,
             ];
             $withdrawalNote = '<br><em style="font-size:12px;color:#8a7a60;">Conformément à l\'art. L221-18 du Code de la consommation, vous disposez de 14 jours pour exercer votre droit de rétractation à compter de la réception.</em>'; // phpcs:ignore Generic.Files.LineLength
-            $deferredNote   = in_array($paymentMethod, ['virement', 'cheque'], true)
-                ? '<br><em>Commande expédiée dès réception du paiement.</em>'
-                : '';
-            if ($paymentMethod === 'virement') {
-                $deferredNote .= '<br><br><strong>Coordonnées bancaires :</strong>'
-                    . '<br>Bénéficiaire : G.F.A Bernard Solane &amp; Fils'
-                    . '<br>IBAN : FR76 3000 6000 0112 3456 7890 189'
-                    . "<br>Référence à indiquer : {$safeRef}";
-            } elseif ($paymentMethod === 'cheque') {
-                $deferredNote .= '<br><br><strong>Chèque à l\'ordre de :</strong>'
-                    . '<br>G.F.A Bernard Solane &amp; Fils'
-                    . '<br>1 Château Crabitan Bellevue'
-                    . '<br>33410 Sainte-Croix-du-Mont'
-                    . "<br>Merci d'indiquer au dos : {$safeRef}";
-            }
+            $deferredNote   = $this->buildPaymentInstructions($paymentMethod, 'fr', $safeRef);
         }
 
         $paymentLabel = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
+        $isPickup     = $deliveryMethod === 'pickup';
+
+        // Libellé de remise adapté au mode de livraison
+        if ($isPickup) {
+            $labelDiscount = $lang === 'en' ? 'Click & Collect discount' : 'Remise Click & Collect';
+            // Mode pickup : remplace délai estimé par indication retrait château
+            $labelDelay = $lang === 'en' ? 'Pickup' : 'Retrait';
+            $delayValue = $lang === 'en'
+                ? 'Available at the château within 48h'
+                : 'Disponible au château sous 48h';
+        }
+
         $itemsHtml    = $this->buildOrderItemsTable(
             $items,
             $total,
@@ -1245,7 +1296,10 @@ INNER;
             $labelDiscount
         );
 
+        $addressesHtml = $this->buildAddressBlock($addressContext, $deliveryMethod, $lang);
+
         $message = $itemsHtml
+            . $addressesHtml
             . "<br><strong>{$labelPayment} :</strong> {$paymentLabel}{$deferredNote}"
             . "<br><strong>{$labelDelay} :</strong> {$delayValue}"
             . "<br>{$withdrawalNote}"
@@ -1263,6 +1317,178 @@ INNER;
     }
 
     /**
+     * Construit le bloc d'instructions de paiement différé (virement, chèque) pour un email client.
+     *
+     * Retourne une chaîne vide si le paiement est immédiat (carte) ou méthode inconnue.
+     *
+     * @param string $paymentMethod Méthode de paiement ('card', 'virement', 'cheque')
+     * @param string $lang          Langue ('fr' ou 'en')
+     * @param string $safeRef       Référence commande déjà échappée (htmlspecialchars)
+     * @return string HTML du bloc d'instructions ou chaîne vide
+     */
+    private function buildPaymentInstructions(string $paymentMethod, string $lang, string $safeRef): string
+    {
+        if (!in_array($paymentMethod, ['virement', 'cheque'], true)) {
+            return '';
+        }
+
+        $isEn = $lang === 'en';
+
+        $deferredLead = $isEn
+            ? '<br><em>Your order will be dispatched upon receipt of payment.</em>'
+            : '<br><em>Commande expédiée dès réception du paiement.</em>';
+
+        $templates = [
+            'virement' => [
+                'en' => '<br><br><strong>Bank details:</strong>'
+                    . '<br>Beneficiary: G.F.A Bernard Solane &amp; Fils'
+                    . '<br>IBAN: FR76 3000 6000 0112 3456 7890 189'
+                    . "<br>Reference: {$safeRef}",
+                'fr' => '<br><br><strong>Coordonnées bancaires :</strong>'
+                    . '<br>Bénéficiaire : G.F.A Bernard Solane &amp; Fils'
+                    . '<br>IBAN : FR76 3000 6000 0112 3456 7890 189'
+                    . "<br>Référence à indiquer : {$safeRef}",
+            ],
+            'cheque'   => [
+                'en' => '<br><br><strong>Cheque payable to:</strong>'
+                    . '<br>G.F.A Bernard Solane &amp; Fils'
+                    . '<br>1 Château Crabitan Bellevue'
+                    . '<br>33410 Sainte-Croix-du-Mont, France'
+                    . "<br>Please write your reference on the back: {$safeRef}",
+                'fr' => '<br><br><strong>Chèque à l\'ordre de :</strong>'
+                    . '<br>G.F.A Bernard Solane &amp; Fils'
+                    . '<br>1 Château Crabitan Bellevue'
+                    . '<br>33410 Sainte-Croix-du-Mont'
+                    . "<br>Merci d'indiquer au dos : {$safeRef}",
+            ],
+        ];
+
+        $langKey = $isEn ? 'en' : 'fr';
+
+        return $deferredLead . $templates[$paymentMethod][$langKey];
+    }
+
+    /**
+     * Construit le bloc HTML récapitulatif adresses (livraison + facturation) + mode de livraison.
+     *
+     * @param array<string, mixed>|null $ctx  ['billing' => [...], 'delivery' => [...]] ou null
+     * @param string                    $mode 'shipping' ou 'pickup'
+     * @param string                    $lang 'fr' ou 'en'
+     * @return string HTML (vide si $ctx absent)
+     */
+    /**
+     * Formate les champs d'une adresse en lignes HTML.
+     *
+     * @param array<string, mixed> $a Tableau de champs adresse
+     * @return string Lignes HTML séparées par <br>, ou '—' si vide
+     */
+    private function formatAddressHtml(array $a): string
+    {
+        $line = static fn (string $k): string => (string) ($a[$k] ?? '');
+        $name = trim($line('civility') . ' ' . $line('firstname') . ' ' . $line('lastname'));
+        $rows = [];
+        if ($name !== '') {
+            $rows[] = htmlspecialchars($name);
+        }
+        if ($line('company_name') !== '') {
+            $rows[] = htmlspecialchars($line('company_name'));
+        }
+        if ($line('street') !== '') {
+            $rows[] = htmlspecialchars($line('street'));
+        }
+        $cityZip = trim($line('zip') . ' ' . $line('city'));
+        if ($cityZip === '') {
+            $cityZip = trim($line('zip_code') . ' ' . $line('city'));
+        }
+        if ($cityZip !== '') {
+            $rows[] = htmlspecialchars($cityZip);
+        }
+        if ($line('country') !== '') {
+            $rows[] = htmlspecialchars($line('country'));
+        }
+        if ($line('phone') !== '') {
+            $rows[] = '<span style="color:#8a7a60;">☎ ' . htmlspecialchars($line('phone')) . '</span>';
+        }
+        return implode('<br>', $rows) ?: '—';
+    }
+
+    /**
+     * Construit le bloc HTML de la section adresse de livraison ou retrait en château.
+     *
+     * @param array<string, mixed>|null $delivery  Données adresse livraison, ou null
+     * @param bool                      $isPickup  Vrai si mode Click & Collect
+     * @param bool                      $isEn      Vrai si langue anglaise
+     * @param string                    $boxStyle  Style CSS inline de la boîte adresse
+     * @param string                    $titleDeliv Libellé titre livraison
+     * @return string HTML du bloc, ou chaîne vide
+     */
+    private function buildDeliveryHtml(
+        ?array $delivery,
+        bool $isPickup,
+        bool $isEn,
+        string $boxStyle,
+        string $titleDeliv
+    ): string {
+        if ($isPickup) {
+            $chateauTitle = $isEn ? 'Pickup address' : 'Adresse de retrait';
+            $chateauHtml  = 'Château Crabitan Bellevue<br>'
+                . '1 Crabitan Bellevue<br>'
+                . '33410 Sainte-Croix-du-Mont<br>'
+                . 'France';
+            return '<div style="margin-top:10px;"><strong>' . $chateauTitle . '</strong>'
+                . '<div style="' . $boxStyle . '">' . $chateauHtml . '</div></div>';
+        }
+        if (is_array($delivery)) {
+            return '<div style="margin-top:10px;"><strong>' . $titleDeliv . '</strong>'
+                . '<div style="' . $boxStyle . '">' . $this->formatAddressHtml($delivery) . '</div></div>';
+        }
+        return '';
+    }
+
+    /**
+     * Construit le bloc HTML récapitulatif adresses (livraison + facturation) + mode de livraison.
+     *
+     * @param array<string, mixed>|null $ctx  ['billing' => [...], 'delivery' => [...]] ou null
+     * @param string                    $mode 'shipping' ou 'pickup'
+     * @param string                    $lang 'fr' ou 'en'
+     * @return string HTML (vide si $ctx absent)
+     */
+    private function buildAddressBlock(?array $ctx, string $mode, string $lang): string
+    {
+        if ($ctx === null) {
+            return '';
+        }
+        $billing  = (array) ($ctx['billing']  ?? []);
+        $delivery = isset($ctx['delivery']) && is_array($ctx['delivery']) ? $ctx['delivery'] : null;
+        $isEn     = $lang === 'en';
+        $isPickup = $mode === 'pickup';
+
+        if ($isEn && $isPickup) {
+            $titleMode = 'Pickup mode: Click &amp; Collect — available at the château within 48h';
+        } elseif ($isEn) {
+            $titleMode = 'Delivery: home delivery';
+        } elseif ($isPickup) {
+            $titleMode = 'Mode : Click &amp; Collect — disponible au château sous 48h';
+        } else {
+            $titleMode = 'Livraison : à domicile';
+        }
+
+        $titleBill  = $isEn ? 'Billing address' : 'Adresse de facturation';
+        $titleDeliv = $isEn ? 'Delivery address' : 'Adresse de livraison';
+        $boxStyle   = 'padding:12px 14px;background:#f7f3ec;border-radius:4px;font-size:13px;color:#3d3425;line-height:1.5;';
+
+        $modeBadge = '<div style="margin:12px 0 4px;padding:8px 12px;background:'
+            . ($isPickup ? '#f4e9d0' : '#e8eefd') . ';color:'
+            . ($isPickup ? '#6b4c1a' : '#2a4ab0') . ';border-radius:4px;font-size:13px;font-weight:600;">'
+            . $titleMode . '</div>';
+
+        $billHtml = '<div style="margin-top:10px;"><strong>' . $titleBill . '</strong>'
+            . '<div style="' . $boxStyle . '">' . $this->formatAddressHtml($billing) . '</div></div>';
+
+        return $modeBadge . $billHtml . $this->buildDeliveryHtml($delivery, $isPickup, $isEn, $boxStyle, $titleDeliv);
+    }
+
+    /**
      * Notifie le propriétaire de la boutique qu'une nouvelle commande a été passée.
      *
      * @param string               $clientEmail   Adresse email du client
@@ -1273,7 +1499,7 @@ INNER;
      * @param float                $total         Total TTC en euros
      * @return void
      */
-    public function sendOrderConfirmationToOwner( // NOSONAR php:S107 — 8 paramètres requis pour le récap commande + PDF joint
+    public function sendOrderConfirmationToOwner( // NOSONAR php:S107 — 10 paramètres requis pour le récap commande + PDF joint + adresses
         string $clientEmail,
         string $clientName,
         string $orderRef,
@@ -1281,8 +1507,10 @@ INNER;
         array $items,
         float $total,
         float $shippingDiscount = 0.0,
-        ?array $pdfContext = null
+        ?array $pdfContext = null,
+        string $deliveryMethod = 'shipping'
     ): void {
+        $this->setMailType('order');
         $ownerEmail    = $_ENV['CONTACT_OWNER_EMAIL'] ?? '';
         $safeRef       = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeClient    = htmlspecialchars($clientName, ENT_QUOTES);
@@ -1294,6 +1522,7 @@ INNER;
         ];
         $paymentLabel  = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
 
+        $ownerDiscountLabel = $deliveryMethod === 'pickup' ? 'Remise Click & Collect' : 'Remise livraison';
         $itemsHtml = $this->buildOrderItemsTable(
             $items,
             $total,
@@ -1303,13 +1532,19 @@ INNER;
             'Sous-total',
             'Total TTC',
             $shippingDiscount,
-            'Remise livraison'
+            $ownerDiscountLabel
         );
+
+        $ownerAddrCtx = $pdfContext !== null
+            ? ['billing' => (array) ($pdfContext['billing'] ?? []), 'delivery' => $pdfContext['delivery'] ?? null]
+            : null;
+        $addressesHtml = $this->buildAddressBlock($ownerAddrCtx, $deliveryMethod, 'fr');
 
         $message = "<strong>Client :</strong> {$safeClient} ({$safeEmail})<br>"
             . "<strong>Référence :</strong> {$safeRef}<br>"
             . "<strong>Paiement :</strong> {$paymentLabel}<br><br>"
-            . $itemsHtml;
+            . $itemsHtml
+            . $addressesHtml;
 
         $subject = "Nouvelle commande {$safeRef} — {$safeEmail}";
         $body    = $this->emailSimpleLayout(
@@ -1330,6 +1565,7 @@ INNER;
                     'items'             => $items,
                     'total'             => $total,
                     'shipping_discount' => $shippingDiscount,
+                    'delivery_method'   => $deliveryMethod,
                     'billing'           => (array) ($pdfContext['billing']  ?? []),
                     'delivery'          => $pdfContext['delivery'] ?? null,
                 ];
@@ -1448,6 +1684,7 @@ INNER;
         string $trackingUrl = '',
         int $orderId = 0
     ): void {
+        $this->setMailType('order');
         $triggerStatuses = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
         if (!in_array($newStatus, $triggerStatuses, true)) {
             return;
@@ -1760,6 +1997,7 @@ INNER;
      */
     public function sendReturnRequestedToOwner(array $order, string $clientName, string $clientEmail): void
     {
+        $this->setMailType('order');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail   = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef      = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
@@ -1830,6 +2068,7 @@ INNER;
      */
     public function sendRefundGaeKoToOwner(string $orderRef, float $amount, int $orderId = 0): void
     {
+        $this->setMailType('order');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef    = htmlspecialchars($orderRef, ENT_QUOTES);
@@ -1874,6 +2113,7 @@ INNER;
      */
     public function sendRefundRequestedToOwner(array $order, string $clientName, string $clientEmail): void
     {
+        $this->setMailType('order');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $safeRef    = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
@@ -1917,6 +2157,7 @@ INNER;
      */
     public function sendPendingOrdersAlert(array $orders, int $days = 7): void
     {
+        $this->setMailType('cron_reminder');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
@@ -2001,6 +2242,7 @@ INNER;
         string $pdfPath,
         string $lang
     ): void {
+        $this->setMailType('order');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeRef   = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName  = htmlspecialchars($name, ENT_QUOTES);
@@ -2092,6 +2334,7 @@ INNER;
      */
     public function sendNewsletterConfirmation(string $to, string $confirmUrl, string $lang): void
     {
+        $this->setMailType('cron_newsletter');
         $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $subject = $lang === 'fr'
             ? 'Confirmez votre abonnement à la newsletter Crabitan Bellevue'
@@ -2195,6 +2438,7 @@ INNER;
         bool $isSubscribed = false,
         string $confirmToken = ''
     ): void {
+        $this->setMailType('register');
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $defaultName = $lang === 'fr' ? self::SALUTATION_FR : self::SALUTATION_EN;
         $safeName    = $firstname !== '' ? htmlspecialchars($firstname, ENT_QUOTES) : $defaultName;
@@ -2273,6 +2517,7 @@ INNER;
      */
     public function sendNewsletterWelcome(string $to, string $name, string $lang): void
     {
+        $this->setMailType('cron_newsletter');
         $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $subject = $lang === 'fr'
             ? 'Bienvenue dans la newsletter Crabitan Bellevue'
@@ -2315,6 +2560,7 @@ INNER;
      */
     public function sendNewsletterWelcomeJ7(string $to, string $name, string $lang): void
     {
+        $this->setMailType('cron_newsletter');
         $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $defaultName = $lang === 'fr' ? self::SALUTATION_FR : self::SALUTATION_EN;
@@ -2368,6 +2614,7 @@ INNER;
      */
     public function sendNewsletterWelcomeJ30(string $to, string $name, string $lang, string $unsubToken): void
     {
+        $this->setMailType('cron_newsletter');
         $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $defaultName = $lang === 'fr' ? self::SALUTATION_FR : self::SALUTATION_EN;
@@ -2424,6 +2671,7 @@ INNER;
      */
     public function sendReconquest(string $to, string $name, string $lang, string $unsubUrl): void
     {
+        $this->setMailType('cron_reminder');
         $this->applySmtpConfig(MailChannel::NEWSLETTER);
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $defaultName = $lang === 'fr' ? self::SALUTATION_FR : self::SALUTATION_EN;
@@ -2488,6 +2736,7 @@ INNER;
         string $newEmail,
         string $revokeUrl = ''
     ): void {
+        $this->setMailType('email_change');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $safeName     = htmlspecialchars($name, ENT_QUOTES);
         $safeUrl      = htmlspecialchars($confirmUrl, ENT_QUOTES);
@@ -2567,6 +2816,7 @@ INNER;
      */
     public function sendEmailChangeNotification(string $to, string $lang): void
     {
+        $this->setMailType('email_change');
         $this->applySmtpConfig(MailChannel::SECURITY);
         if ($lang === 'fr') {
             $subject  = 'Votre adresse email a été soumise sur Crabitan Bellevue';
@@ -2625,6 +2875,7 @@ INNER;
         string $pdfPath,
         string $lang
     ): void {
+        $this->setMailType('invoice');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeName = htmlspecialchars($toName, ENT_QUOTES);
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
@@ -2670,6 +2921,7 @@ INNER;
         string $lang,
         string $appUrl
     ): void {
+        $this->setMailType('order');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeName = htmlspecialchars($toName, ENT_QUOTES);
@@ -2697,6 +2949,7 @@ INNER;
 
     public function sendIpnSignatureAlert(string $to, string $date, string $ip): void
     {
+        $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $safeDate = htmlspecialchars($date, ENT_QUOTES);
         $safeIp   = htmlspecialchars($ip, ENT_QUOTES);
@@ -2743,6 +2996,7 @@ INNER;
         string $ip,
         ?string $targetName = null
     ): void {
+        $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $safeIp   = htmlspecialchars($ip, ENT_QUOTES);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
@@ -2824,6 +3078,7 @@ INNER;
         string $userAgent,
         ?string $targetName = null
     ): void {
+        $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $safeIp    = htmlspecialchars($ip, ENT_QUOTES);
         $safeUa    = htmlspecialchars(substr($userAgent, 0, 200), ENT_QUOTES);
@@ -2886,6 +3141,7 @@ INNER;
      */
     public function sendAdminAccountBlocked(string $to, string $name, string $lang, string $blockerName): void
     {
+        $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
         $safeBlocker = htmlspecialchars($blockerName, ENT_QUOTES);
@@ -2923,6 +3179,7 @@ INNER;
      */
     public function sendAdminAccountUnblocked(string $to, string $name, string $lang, string $unblockerName): void
     {
+        $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $safeName      = htmlspecialchars($name, ENT_QUOTES);
         $safeUnblocker = htmlspecialchars($unblockerName, ENT_QUOTES);
@@ -2965,6 +3222,7 @@ INNER;
         string $filename,
         string $lang
     ): void {
+        $this->setMailType('rgpd_export');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $safeName = htmlspecialchars($name, ENT_QUOTES);
 
@@ -3027,7 +3285,28 @@ INNER;
         if ($attachmentString !== null && $attachmentName !== null) {
             $this->mailer->addStringAttachment($attachmentString, $attachmentName);
         }
-        $this->mailer->send();
+        $fromAddress = $this->mailer->From;
+        $type        = $this->currentType;
+        $this->currentType = 'other';
+        try {
+            $this->mailer->send();
+        } catch (Exception $e) {
+            $msg = strtolower($e->getMessage());
+            try {
+                $this->getRateLogger()->log($fromAddress, $to, $subject, false, $e->getMessage(), $type);
+            } catch (\Throwable $logEx) { // NOSONAR — échec de log non bloquant
+                \Core\ErrorLogger::warning($logEx, '[EmailRateLogModel]');
+            }
+            if (str_contains($msg, '421') || str_contains($msg, 'rate') || str_contains($msg, 'too many')) {
+                throw new \RuntimeException('MAIL_RATE_LIMIT', 429);
+            }
+            throw $e;
+        }
+        try {
+            $this->getRateLogger()->log($fromAddress, $to, $subject, true, null, $type);
+        } catch (\Throwable $logEx) { // NOSONAR — échec de log non bloquant
+            \Core\ErrorLogger::warning($logEx, '[EmailRateLogModel]');
+        }
     }
 
     private function emailSimpleLayout(string $title, string $greeting, string $message, string $lang = 'fr'): string
@@ -3486,6 +3765,7 @@ HTML;
         array $items,
         string $lang
     ): void {
+        $this->setMailType('cron_post_purchase');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $safeName   = htmlspecialchars($name, ENT_QUOTES);
@@ -3614,6 +3894,7 @@ HTML;
         int $orderId,
         string $lang
     ): void {
+        $this->setMailType('cron_review');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $appUrl      = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $safeName    = htmlspecialchars($name, ENT_QUOTES);
@@ -3676,6 +3957,7 @@ HTML;
         string $lang,
         string $cartUrl
     ): void {
+        $this->setMailType('cron_abandoned_cart');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $safeName = htmlspecialchars($name, ENT_QUOTES);
@@ -3862,6 +4144,7 @@ HTML;
         string $loginUrl,
         string $resetUrl
     ): void {
+        $this->setMailType('register');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Tentative de création de compte — Château Crabitan Bellevue'
@@ -3894,6 +4177,7 @@ HTML;
      */
     public function sendAccountLocked(string $to, string $name, string $lang, string $resetUrl): void
     {
+        $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $subject = $lang === 'fr'
             ? 'Alerte sécurité — Votre compte a été temporairement verrouillé'
@@ -4053,6 +4337,7 @@ HTML;
         string $reactivationToken,
         string $scheduledDeletionAt
     ): void {
+        $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $appUrl   = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $reactUrl = $appUrl . '/' . $lang . self::PATH_REACTIVER . urlencode($reactivationToken);
@@ -4127,6 +4412,7 @@ HTML;
         string $updatedAt,
         string $changeNote
     ): void {
+        $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
         $safeName  = htmlspecialchars($name, ENT_QUOTES);
         $safeLabel = htmlspecialchars($docLabel, ENT_QUOTES);
@@ -4195,6 +4481,7 @@ HTML;
      */
     public function sendLowStockAlert(string $to, string $name, string $subject, string $body): void
     {
+        $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::SECURITY);
         $this->send($to, $name, $subject, $body);
     }

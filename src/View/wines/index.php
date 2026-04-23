@@ -38,6 +38,10 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
 
     <?php require_once SRC_PATH . '/View/partials/wines-case-banner.php'; ?>
 
+    <div class="container">
+        <?php require_once SRC_PATH . '/View/partials/delivery-discount-flyer.php'; ?>
+    </div>
+
     <!-- ============================================================ -->
     <!-- FILTRES                                                       -->
     <!-- ============================================================ -->
@@ -103,6 +107,13 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
             </form>
 
             <p class="wines-filters__ttc-note"><?= htmlspecialchars(__('wine.ttc_note')) ?></p>
+            <?php if (\Core\FeatureFlags::isClickCollectEnabled()) : ?>
+            <p class="click-collect-badge">
+                <?= $navLang === 'en'
+                    ? 'Click &amp; Collect option available — pickup at the château within 48h'
+                    : 'Option Click &amp; Collect disponible — retrait au château sous 48h' ?>
+            </p>
+            <?php endif; ?>
         </div>
     </section>
 

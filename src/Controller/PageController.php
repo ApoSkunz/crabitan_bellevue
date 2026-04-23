@@ -84,6 +84,10 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
         $subject   = trim($this->request->post('subject', ''));
         $message   = trim($this->request->post('message', ''));
         $rgpd      = $this->request->post('rgpd', '');
+        $phone     = trim($_POST['phone'] ?? '');
+        if ($phone !== '' && !preg_match('/^[+\d\s\-()]{1,20}$/', $phone)) {
+            $phone = '';
+        }
 
         if (
             $firstname === '' || $lastname === ''
@@ -96,11 +100,14 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
 
         try {
             $mail = $this->newMailService();
-            $mail->sendContactToOwner($firstname, $lastname, $email, $subject, $message, $lang);
+            $mail->sendContactToOwner($firstname, $lastname, $email, $subject, $message, $lang, $phone);
             $mail->sendContactConfirmation($email, $firstname, $subject, $lang, $message);
         } catch (\Core\Exception\HttpException $e) {
             throw $e;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            if ($e instanceof \RuntimeException && $e->getCode() === 429) {
+                $this->json(['success' => false, 'message' => __('contact.error_rate_limit')], 429);
+            }
             $this->json(['success' => false, 'message' => __('contact.error_smtp')], 500);
         }
         $this->json(['success' => true, 'message' => __('contact.success')]);
@@ -566,7 +573,60 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
         echo "    <loc>{$appUrl}/sitemap-media.xml</loc>\n";
         echo "    <lastmod>{$today}</lastmod>\n";
         echo "  </sitemap>\n";
+        echo "  <sitemap>\n";
+        echo "    <loc>{$appUrl}/sitemap-products.xml</loc>\n";
+        echo "    <lastmod>{$today}</lastmod>\n";
+        echo "  </sitemap>\n";
         echo '</sitemapindex>' . "\n";
+        throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux XML (testable)
+    }
+
+    /**
+     * Génère sitemap-products.xml — uniquement les vins disponibles à la vente.
+     * Priority élevée, changefreq weekly.
+     *
+     * @param array<string, mixed> $_params
+     */
+    public function sitemapProducts(array $_params): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- NOSONAR S1172
+    {
+        $appUrl = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_APP_URL, '/');
+        $wines  = (new WineModel())->getAvailableForSitemap();
+        $langs  = ['fr', 'en'];
+
+        header(self::HEADER_XML_CONTENT);
+        header(self::HEADER_NOINDEX);
+
+        echo self::XML_DECLARATION . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
+        echo '        xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
+
+        foreach ($wines as $wine) {
+            $slug = htmlspecialchars((string) $wine['slug']);
+            if (isset($wine['updated_at'])) {
+                $timestamp = strtotime((string) $wine['updated_at']);
+                if ($timestamp === false) {
+                    $timestamp = time();
+                }
+                $lastmod = date('Y-m-d', $timestamp);
+            } else {
+                $lastmod = date('Y-m-d');
+            }
+
+            foreach (['fr' => '0.85', 'en' => '0.55'] as $lang => $prio) {
+                echo "  <url>\n";
+                echo "    <loc>{$appUrl}/{$lang}/vins/{$slug}</loc>\n";
+                echo "    <lastmod>{$lastmod}</lastmod>\n";
+                echo "    <changefreq>weekly</changefreq>\n";
+                echo "    <priority>{$prio}</priority>\n";
+                foreach ($langs as $l) {
+                    echo "    <xhtml:link rel=\"alternate\" hreflang=\"{$l}\" href=\"{$appUrl}/{$l}/vins/{$slug}\"/>\n";
+                }
+                echo "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$appUrl}/fr/vins/{$slug}\"/>\n";
+                echo "  </url>\n";
+            }
+        }
+
+        echo '</urlset>' . "\n";
         throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux XML (testable)
     }
 

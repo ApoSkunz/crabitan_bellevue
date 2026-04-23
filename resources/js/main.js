@@ -1124,6 +1124,9 @@ function initContactForm() {
         feedback.textContent = msg;
         feedback.className   = 'contact-form__feedback contact-form__feedback--' + (isSuccess ? 'success' : 'error');
         feedback.hidden      = false;
+        feedback.setAttribute('tabindex', '-1');
+        feedback.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        feedback.focus({ preventScroll: true });
         if (isSuccess) {
             feedbackTimer = setTimeout(() => { feedback.hidden = true; }, 5000);
         }
@@ -2471,19 +2474,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const closeBtn      = document.getElementById('admin-qr-modal-close');
 
         function openQrModal(slug, label) {
-            const url = appUrl + '/fr/vins/' + encodeURIComponent(slug) + '/fiche-technique';
-            modalTitle.textContent = label;
-            modalUrl.textContent   = url;
-            qrModal.style.display  = 'flex';
+            // QR pointe sur la page loader : scan → animation chargement → PDF auto-download
+            const url     = appUrl + '/fr/vins/' + encodeURIComponent(slug) + '/fiche-technique/qr';
+            const spinner = document.getElementById('admin-qr-spinner');
+            modalTitle.textContent      = label;
+            modalUrl.textContent        = url;
+            qrModal.style.display       = 'flex';
+            modalCanvas.style.display   = 'none';
+            if (spinner) spinner.style.display = 'block';
 
             import('qrcode').then((QRCode) => {
                 QRCode.default.toCanvas(modalCanvas, url, { width: 300, margin: 2 }, () => {
+                    if (spinner) spinner.style.display = 'none';
+                    modalCanvas.style.display = 'block';
                     if (modalDownload) {
                         modalDownload.href     = modalCanvas.toDataURL('image/png');
                         modalDownload.download = 'qr-' + slug + '.png';
                     }
                 });
-            }).catch(() => {});
+            }).catch(() => {
+                if (spinner) spinner.style.display = 'none';
+                modalCanvas.style.display = 'block';
+            });
         }
 
         function closeQrModal() {

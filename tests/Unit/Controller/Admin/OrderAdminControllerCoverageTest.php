@@ -917,4 +917,20 @@ class OrderAdminControllerCoverageTest extends TestCase
             $this->markTestSkipped('Le fichier PDF synthétique n\'a pas passé le check finfo MIME.');
         }
     }
+
+    /**
+     * doExit() body réel lève HttpException(0) — comportement seam post-refactor
+     * (les tests peuvent catcher au lieu de voir le process mourir).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testDoExitRealBodyThrowsHttpException0(): void
+    {
+        $ctrl = new OrderAdminController(new \Core\Request());
+        $m    = new \ReflectionMethod(OrderAdminController::class, 'doExit');
+        $m->setAccessible(true);
+
+        $this->expectException(HttpException::class);
+        $m->invoke($ctrl);
+    }
 }

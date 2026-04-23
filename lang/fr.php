@@ -419,6 +419,9 @@ return [
     'contact.form_phone'     => 'Numéro de téléphone',
     'contact.form_subject'   => 'Objet du contact',
     'contact.form_message'   => 'Votre message',
+    'contact.phone'             => 'Téléphone',
+    'contact.optional'          => 'facultatif',
+    'contact.phone_placeholder' => 'Ex. 06 12 34 56 78',
     'contact.form_rgpd'      => "En envoyant ce message, j'accepte que les informations saisies dans ce formulaire soient exploitées pour être contacté.",
     'contact.subject.general' => 'Renseignement général',
     'contact.subject.order'   => 'Question sur une commande',
@@ -430,6 +433,7 @@ return [
     'contact.error_fields'    => 'Veuillez remplir tous les champs obligatoires.',
     'contact.error_rgpd'      => 'Vous devez accepter le traitement de vos données.',
     'contact.error_smtp'      => 'Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou nous contacter par téléphone.',
+    'contact.error_rate_limit' => 'Notre serveur a reçu trop de demandes sur la dernière heure. Merci de réessayer plus tard.',
     'contact.mail_owner_subject'  => 'Nouveau message de contact',
     'contact.mail_confirm_subject' => 'Nous avons bien reçu votre message',
     'contact.order_form_title'    => 'Bon de commande',
@@ -1001,6 +1005,8 @@ return [
     'order.status.refund_pending'   => 'Remboursement en attente',
     'order.status.return_requested' => 'Retour en cours',
     'order.status.refund_refused'   => 'Remboursement refusé',
+    'order.status.ready_for_pickup' => 'Prêt au retrait',
+    'order.status.collected'        => 'Retiré',
 
     // Emails transactionnels - changement de statut commande
     'mail.order_status_subject_processing' => 'Votre commande est en préparation - %s',

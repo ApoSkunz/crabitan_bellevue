@@ -130,7 +130,8 @@ class IpnController
                 (string) $snapshot['cgv_version'],
                 $ref,
                 $numappel,
-                $numtrans
+                $numtrans,
+                (string) ($snapshot['delivery_method'] ?? 'shipping')
             );
 
             $this->intents->delete($ref);
@@ -194,6 +195,8 @@ class IpnController
                 $total    = (float)  $snapshot['total'];
                 $discount = (float)  ($snapshot['delivery_discount'] ?? 0.0);
 
+                $pdfContext     = (new \Service\OrderPdfContextBuilder())->build($snapshot);
+                $deliveryMethod = (string) ($snapshot['delivery_method'] ?? 'shipping');
                 $this->mail->sendOrderConfirmationToClient(
                     $email,
                     $name,
@@ -202,9 +205,10 @@ class IpnController
                     $items,
                     $total,
                     $lang,
-                    $discount
+                    $discount,
+                    $pdfContext,
+                    $deliveryMethod
                 );
-                $pdfContext = (new \Service\OrderPdfContextBuilder())->build($snapshot);
                 $this->mail->sendOrderConfirmationToOwner(
                     $email,
                     $name,
@@ -213,7 +217,8 @@ class IpnController
                     $items,
                     $total,
                     $discount,
-                    $pdfContext
+                    $pdfContext,
+                    $deliveryMethod
                 );
             } catch (\Throwable $mailError) {
                 \Core\ErrorLogger::warning($mailError, self::LOG_CONTEXT);

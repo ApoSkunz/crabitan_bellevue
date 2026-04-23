@@ -340,7 +340,7 @@ class AccountModelCoverageTest extends TestCase
         $expected = [['id' => 1, 'email' => 'admin@test.com']];
         $this->dbMock->method('fetchAll')->willReturn($expected);
 
-        $result = $this->model->getForAdmin(10, 0, null, null);
+        $result = $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters());
         $this->assertSame($expected, $result);
     }
 
@@ -351,7 +351,7 @@ class AccountModelCoverageTest extends TestCase
     {
         $this->dbMock->method('fetchAll')->willReturn([]);
 
-        $result = $this->model->getForAdmin(10, 0, 'customer', null);
+        $result = $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(role: 'customer'));
         $this->assertSame([], $result);
     }
 
@@ -362,7 +362,7 @@ class AccountModelCoverageTest extends TestCase
     {
         $this->dbMock->method('fetchAll')->willReturn([]);
 
-        $result = $this->model->getForAdmin(10, 0, null, 'dupont');
+        $result = $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(search: 'dupont'));
         $this->assertSame([], $result);
     }
 
@@ -373,7 +373,11 @@ class AccountModelCoverageTest extends TestCase
     {
         $this->dbMock->method('fetchAll')->willReturn([]);
 
-        $result = $this->model->getForAdmin(10, 0, null, null, 'individual', 'last_connection_desc');
+        $result = $this->model->getForAdmin(
+            10,
+            0,
+            new \ValueObject\AccountAdminFilters(type: 'individual', sort: 'last_connection_desc')
+        );
         $this->assertSame([], $result);
     }
 
@@ -384,7 +388,7 @@ class AccountModelCoverageTest extends TestCase
     {
         $this->dbMock->method('fetchAll')->willReturn([]);
 
-        $result = $this->model->getForAdmin(10, 0, null, null, null, 'created_at_asc');
+        $result = $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(sort: 'created_at_asc'));
         $this->assertSame([], $result);
     }
 
@@ -395,8 +399,88 @@ class AccountModelCoverageTest extends TestCase
     {
         $this->dbMock->method('fetchAll')->willReturn([]);
 
-        $result = $this->model->getForAdmin(10, 0, null, null, null, 'last_connection_asc');
+        $result = $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(sort: 'last_connection_asc'));
         $this->assertSame([], $result);
+    }
+
+    /**
+     * getForAdmin avec tri order_count_desc — couvre l.1162 du match.
+     *
+     * @return void
+     */
+    public function testGetForAdminSortByOrderCountDesc(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(sort: 'order_count_desc'));
+        $this->assertStringContainsString('order_count DESC', $capturedSql);
+    }
+
+    /**
+     * getForAdmin avec tri order_count_asc — couvre l.1163 du match.
+     *
+     * @return void
+     */
+    public function testGetForAdminSortByOrderCountAsc(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(sort: 'order_count_asc'));
+        $this->assertStringContainsString('order_count ASC', $capturedSql);
+    }
+
+    /**
+     * getForAdmin avec hasOrdered='1' — couvre l.1197-1198 (if branch).
+     *
+     * @return void
+     */
+    public function testApplyAdminFlagFiltersHasOrderedOne(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(hasOrdered: '1'));
+        $this->assertStringContainsString('> 0', $capturedSql);
+        // Vérifie la clause "a déjà commandé"
+        $this->assertMatchesRegularExpression('/COUNT\(\*\)\s+FROM\s+orders.*>\s*0/s', $capturedSql);
+    }
+
+    /**
+     * getForAdmin avec hasOrdered='0' — couvre l.1199-1200 (elseif branch).
+     *
+     * @return void
+     */
+    public function testApplyAdminFlagFiltersHasOrderedZero(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(hasOrdered: '0'));
+        $this->assertStringContainsString('= 0', $capturedSql);
+        // Vérifie la clause "jamais commandé"
+        $this->assertMatchesRegularExpression('/COUNT\(\*\)\s+FROM\s+orders.*=\s*0/s', $capturedSql);
     }
 
     /**
@@ -406,7 +490,7 @@ class AccountModelCoverageTest extends TestCase
     {
         $this->dbMock->method('fetchOne')->willReturn(['total' => '42']);
 
-        $this->assertSame(42, $this->model->countForAdmin(null, null));
+        $this->assertSame(42, $this->model->countForAdmin(new \ValueObject\AccountAdminFilters()));
     }
 
     /**
@@ -416,7 +500,146 @@ class AccountModelCoverageTest extends TestCase
     {
         $this->dbMock->method('fetchOne')->willReturn(['total' => '5']);
 
-        $this->assertSame(5, $this->model->countForAdmin(null, null, 'company'));
+        $this->assertSame(5, $this->model->countForAdmin(new \ValueObject\AccountAdminFilters(type: 'company')));
+    }
+
+    // ----------------------------------------------------------------
+    // getForAdmin / countForAdmin — filtre activity (active/inactive/deleted)
+    // via applyAdminFlagFilters()
+    // ----------------------------------------------------------------
+
+    /**
+     * getForAdmin avec activity=active filtre sur deleted_at IS NULL + last_login_at récent.
+     */
+    public function testGetForAdminWithActivityActive(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $filters = new \ValueObject\AccountAdminFilters(activity: 'active');
+        $result  = $this->model->getForAdmin(10, 0, $filters);
+        $this->assertSame([], $result);
+        $this->assertStringContainsString('deleted_at IS NULL', $capturedSql);
+        $this->assertStringContainsString('last_login_at >= DATE_SUB', $capturedSql);
+    }
+
+    /**
+     * getForAdmin avec activity=inactive inclut NULL ou ancien last_login_at.
+     */
+    public function testGetForAdminWithActivityInactive(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $filters = new \ValueObject\AccountAdminFilters(activity: 'inactive');
+        $result  = $this->model->getForAdmin(10, 0, $filters);
+        $this->assertSame([], $result);
+        $this->assertStringContainsString('last_login_at IS NULL', $capturedSql);
+        $this->assertStringContainsString('< DATE_SUB', $capturedSql);
+    }
+
+    /**
+     * getForAdmin avec activity=deleted filtre sur deleted_at IS NOT NULL.
+     */
+    public function testGetForAdminWithActivityDeleted(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $filters = new \ValueObject\AccountAdminFilters(activity: 'deleted');
+        $result  = $this->model->getForAdmin(10, 0, $filters);
+        $this->assertSame([], $result);
+        $this->assertStringContainsString('deleted_at IS NOT NULL', $capturedSql);
+    }
+
+    /**
+     * getForAdmin avec activity null n'ajoute pas de clause DATE_SUB supplémentaire.
+     * (La clause de base `deleted_at IS NULL` est toujours posée par buildAdminFilters.)
+     */
+    public function testGetForAdminWithActivityNullNoActivityFilter(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $filters = new \ValueObject\AccountAdminFilters();
+        $result  = $this->model->getForAdmin(10, 0, $filters);
+        $this->assertSame([], $result);
+        $this->assertStringNotContainsString('DATE_SUB', $capturedSql);
+        $this->assertStringNotContainsString('deleted_at IS NOT NULL', $capturedSql);
+    }
+
+    /**
+     * countForAdmin avec activity=active inclut la clause déléguée.
+     */
+    public function testCountForAdminWithActivityActive(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchOne')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return ['total' => '3'];
+            }
+        );
+
+        $filters = new \ValueObject\AccountAdminFilters(activity: 'active');
+        $this->assertSame(3, $this->model->countForAdmin($filters));
+        $this->assertStringContainsString('last_login_at >= DATE_SUB', $capturedSql);
+    }
+
+    /**
+     * countForAdmin avec activity=inactive.
+     */
+    public function testCountForAdminWithActivityInactive(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchOne')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return ['total' => '2'];
+            }
+        );
+
+        $filters = new \ValueObject\AccountAdminFilters(activity: 'inactive');
+        $this->assertSame(2, $this->model->countForAdmin($filters));
+        $this->assertStringContainsString('last_login_at IS NULL', $capturedSql);
+    }
+
+    /**
+     * countForAdmin avec activity=deleted.
+     */
+    public function testCountForAdminWithActivityDeleted(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchOne')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return ['total' => '1'];
+            }
+        );
+
+        $filters = new \ValueObject\AccountAdminFilters(activity: 'deleted');
+        $this->assertSame(1, $this->model->countForAdmin($filters));
+        $this->assertStringContainsString('deleted_at IS NOT NULL', $capturedSql);
     }
 
     // ----------------------------------------------------------------

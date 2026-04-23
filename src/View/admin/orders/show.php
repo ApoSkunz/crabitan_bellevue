@@ -12,8 +12,14 @@ $statusLabels = [
     'return_requested' => 'Retour en cours',
     'refund_refused'   => 'Remboursement refusé',
     'refund_pending'   => 'Remboursement en attente',
+    'ready_for_pickup' => 'Prêt au retrait',
+    'collected'        => 'Retiré',
 ];
-$allStatuses   = array_keys($statusLabels);
+// Workflow statuts selon mode de livraison
+$isPickup       = ($order['delivery_method'] ?? 'shipping') === 'pickup';
+$shippingFlow   = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', 'refund_pending', 'refund_refused', 'refunded', 'cancelled'];
+$pickupFlow     = ['pending', 'paid', 'processing', 'ready_for_pickup', 'collected', 'cancelled', 'refunded'];
+$allStatuses    = $isPickup ? $pickupFlow : $shippingFlow;
 
 // Rang du flux normal (permet de détecter un retour en arrière)
 $statusRank = [
@@ -26,6 +32,8 @@ $statusRank = [
     'refunded'         => 6,
     'refund_refused'   => 6,
     'refund_pending'   => 5,
+    'ready_for_pickup' => 3, // Click & Collect : équivalent "expédiée" dans le flux
+    'collected'        => 4, // Click & Collect : équivalent "livrée" dans le flux
     'cancelled'        => 99, // toujours terminal, jamais "en arrière"
 ];
 $currentRank = $statusRank[$order['status']] ?? 0;
@@ -118,7 +126,9 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                     </tr>
                     <?php if ($shippingDiscount > 0.0) : ?>
                     <tr>
-                        <th scope="row" style="padding:3px 0;color:#c9a84c;font-weight:normal;text-align:left;">Remise livraison</th>
+                        <th scope="row" style="padding:3px 0;color:#c9a84c;font-weight:normal;text-align:left;">
+                            <?= $isPickup ? 'Remise Click &amp; Collect' : 'Remise livraison' ?>
+                        </th>
                         <td style="padding:3px 0;text-align:right;color:#c9a84c;">− <?= number_format($shippingDiscount, 2, ',', ' ') ?>&nbsp;€</td>
                     </tr>
                     <?php endif; ?>
@@ -172,6 +182,15 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                 <dl class="admin-dl">
                     <dt>Statut</dt>
                     <dd><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span></dd>
+                    <dt>Mode de livraison</dt>
+                    <dd>
+                        <?php $isPickup = ($order['delivery_method'] ?? 'shipping') === 'pickup'; ?>
+                        <?php if ($isPickup) : ?>
+                            <span style="background:#f4e9d0;color:#6b4c1a;font-size:0.78rem;padding:3px 9px;border-radius:12px;letter-spacing:0.04em;">Retrait au château</span>
+                        <?php else : ?>
+                            <span style="background:#e8eefd;color:#2a4ab0;font-size:0.78rem;padding:3px 9px;border-radius:12px;letter-spacing:0.04em;">Livraison à domicile</span>
+                        <?php endif; ?>
+                    </dd>
                     <dt>Client</dt>
                     <dd>
                         <?php $isAnonymized = str_ends_with((string) ($order['email'] ?? ''), '@purged.invalid'); ?>

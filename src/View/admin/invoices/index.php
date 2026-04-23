@@ -42,7 +42,7 @@ if (!function_exists('buildInvoiceUrl')) {
 
 <div class="admin-card" style="margin-bottom:1.5rem;">
     <div class="admin-card__body">
-        <form method="GET" action="/admin/factures" class="admin-filters">
+        <form method="GET" action="/admin/factures" class="admin-filters" data-auto-submit>
             <div>
                 <div style="font-size:0.72rem;color:#8a7060;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Année</div>
                 <select name="year" class="admin-filters__select" aria-label="Année">
@@ -75,8 +75,16 @@ if (!function_exists('buildInvoiceUrl')) {
                     <?php endforeach; ?>
                 </select>
             </div>
-            <button type="submit" class="admin-filters__btn">Filtrer</button>
-            <a href="/admin/factures" style="padding:0.42rem 1rem;font-size:0.82rem;letter-spacing:0.06em;border:1px solid rgba(8,8,8,0.2);color:#1a1208;text-decoration:none;">Réinitialiser</a>
+            <div>
+                <div style="font-size:0.72rem;color:#8a7060;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Recherche</div>
+                <input type="text" name="search" class="admin-filters__input"
+                       placeholder="N° facture, réf. commande…"
+                       value="<?= htmlspecialchars($search ?? '') ?>">
+            </div>
+            <div style="align-self:flex-end;">
+                <noscript><button type="submit" class="admin-filters__btn">Filtrer</button></noscript>
+                <a href="/admin/factures" class="admin-btn admin-btn--dark admin-btn--sm">Réinitialiser</a>
+            </div>
         </form>
 
         <?php

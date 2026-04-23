@@ -8,6 +8,7 @@ use Core\Controller;
 use Core\Jwt;
 use Core\Response;
 use Model\FavoriteModel;
+use Model\PricingModel;
 use Model\RatingModel;
 use Model\WineModel;
 use Service\RateLimiterService;
@@ -132,15 +133,23 @@ class WineController extends Controller
             }
         }
 
+        $pricingRules = [];
+        try {
+            $pricingRules = (new PricingModel())->getAll();
+        } catch (\Throwable) {
+            $pricingRules = [];
+        }
+
         $this->view('wines/index', [
-            'lang'        => $lang,
-            'wines'       => $wines,
-            'ratings'     => $ratings,
-            'likedIds'    => $this->getCurrentUserLikedIds(),
-            'activeColor' => $color,
-            'activeSort'  => $sort,
-            'activeCuvee' => $cuveSpeciale === true,
-            'sort'        => $sort,
+            'lang'         => $lang,
+            'wines'        => $wines,
+            'ratings'      => $ratings,
+            'likedIds'     => $this->getCurrentUserLikedIds(),
+            'activeColor'  => $color,
+            'activeSort'   => $sort,
+            'activeCuvee'  => $cuveSpeciale === true,
+            'sort'         => $sort,
+            'pricingRules' => $pricingRules,
         ]);
     }
 
@@ -180,6 +189,13 @@ class WineController extends Controller
             }
         }
 
+        $pricingRules = [];
+        try {
+            $pricingRules = (new PricingModel())->getAll();
+        } catch (\Throwable) {
+            $pricingRules = [];
+        }
+
         $this->view('wines/collection', [
             'lang'         => $lang,
             'winesByColor' => $winesByColor,
@@ -190,6 +206,7 @@ class WineController extends Controller
             'activeAvail'  => $rawAvail,
             'activeCuvee'  => $cuveSpeciale === true,
             'sort'         => $sort,
+            'pricingRules' => $pricingRules,
         ]);
     }
 
@@ -233,6 +250,31 @@ class WineController extends Controller
      * @param array<string, string> $params Paramètres de route (lang, slug)
      * @return void
      */
+    /**
+     * Page loader pour le QR code : affiche animation puis auto-download PDF.
+     *
+     * @param array<string, string> $params Paramètres de route (lang, slug)
+     * @return void
+     */
+    public function technicalSheetQrLoader(array $params): void
+    {
+        $lang = $this->resolveLang($params);
+        $slug = $params['slug'] ?? '';
+
+        $model = new WineModel();
+        $wine  = $model->getBySlug($slug);
+
+        if ($wine === null) {
+            Response::abort(404);
+        }
+
+        $this->view('wines/fiche-technique-loader', [
+            'lang'     => $lang,
+            'wineName' => ($wine['label_name'] ?? '') . ($wine['vintage'] ? ' ' . $wine['vintage'] : ''),
+            'pdfUrl'   => '/' . $lang . '/vins/' . $slug . '/fiche-technique',
+        ]);
+    }
+
     public function technicalSheet(array $params): void
     {
         $lang  = $this->resolveLang($params);
@@ -276,7 +318,7 @@ class WineController extends Controller
      */
     protected function doExit(): never
     {
-        exit;
+        throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux binaire
     }
 
     // ----------------------------------------------------------------

@@ -67,6 +67,16 @@
     scrollbar-color: rgba(201, 168, 76, 0.2) transparent;
 }
 
+.admin-nav__section-label {
+    padding: 0.7rem 1.25rem 0.3rem;
+    color: rgba(201, 168, 76, 0.55);
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
 .admin-nav__item {
     display: flex;
     align-items: center;
@@ -577,6 +587,42 @@
         &:hover {
             border-color: #1a1208;
             color: #1a1208;
+        }
+    }
+
+    &--dark {
+        background: #1a1208;
+        border-color: #1a1208;
+        color: #f5f0e8;
+
+        &:hover {
+            background: #c9a84c;
+            border-color: #c9a84c;
+            color: #1a1208;
+        }
+    }
+
+    &--verify {
+        background: transparent;
+        border: 1px solid #15803d;
+        color: #15803d;
+
+        &:hover {
+            background: #15803d;
+            border-color: #15803d;
+            color: #fff;
+        }
+    }
+
+    &--reset {
+        background: transparent;
+        border: 1px solid #92400e;
+        color: #92400e;
+
+        &:hover {
+            background: #92400e;
+            border-color: #92400e;
+            color: #fff;
         }
     }
 

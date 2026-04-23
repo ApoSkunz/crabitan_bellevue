@@ -316,7 +316,17 @@ class RateLimiterService
     private function ensureSession(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
-            session_start(); // @codeCoverageIgnore
+            $this->startSession();
         }
+    }
+
+    /**
+     * Démarre la session PHP — seam de testabilité.
+     *
+     * @return void
+     */
+    protected function startSession(): void
+    {
+        session_start();
     }
 }

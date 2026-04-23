@@ -63,6 +63,7 @@ class OrderSummaryPdfService
         $items            = (array)  ($data['items'] ?? []);
         $total            = (float)  ($data['total'] ?? 0.0);
         $shippingDiscount = (float)  ($data['shipping_discount'] ?? 0.0);
+        $deliveryMethod   = (string) ($data['delivery_method'] ?? 'shipping');
         $billing          = (array)  ($data['billing']  ?? []);
         $delivery         = isset($data['delivery']) && is_array($data['delivery']) ? $data['delivery'] : null;
 
@@ -76,7 +77,7 @@ class OrderSummaryPdfService
 
         $logoTag      = $this->buildLogoTag($logoPath, self::APP_NAME);
         $rows         = $this->buildItemsRows($items, true);
-        $discountRow  = $this->buildDiscountRow($shippingDiscount);
+        $discountRow  = $this->buildDiscountRow($shippingDiscount, $deliveryMethod);
         $totalRow     = $this->buildTotalRow($total);
         $billingHtml  = $this->buildAddressBlock($billing);
         $deliveryHtml = $delivery !== null

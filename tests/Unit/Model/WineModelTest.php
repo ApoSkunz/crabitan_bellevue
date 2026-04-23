@@ -968,6 +968,60 @@ class WineModelTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // getAvailableForSitemap — vins disponibles à la vente (sitemap-products.xml)
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que getAvailableForSitemap filtre sur available + stock > 0
+     * et trie par updated_at DESC.
+     */
+    public function testGetAvailableForSitemapReturnsWines(): void
+    {
+        $rows = [
+            [
+                'slug'       => 'bordeaux-rouge-2020',
+                'label_name' => 'Bordeaux Rouge',
+                'vintage'    => 2020,
+                'price'      => 15.0,
+                'updated_at' => '2026-04-01 12:00:00',
+            ],
+        ];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->logicalAnd(
+                    $this->stringContains('SELECT slug, label_name, vintage, price, updated_at'),
+                    $this->stringContains('stock_quantity > 0'),
+                    $this->stringContains('ORDER BY updated_at DESC')
+                )
+            )
+            ->willReturn($rows);
+
+        $result = $this->model->getAvailableForSitemap();
+
+        $this->assertCount(1, $result);
+        $this->assertSame('bordeaux-rouge-2020', $result[0]['slug']);
+        $this->assertSame(2020, $result[0]['vintage']);
+    }
+
+    /**
+     * Vérifie que getAvailableForSitemap retourne [] quand aucun vin éligible.
+     */
+    public function testGetAvailableForSitemapReturnsEmptyArrayWhenNone(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([]);
+
+        $result = $this->model->getAvailableForSitemap();
+
+        $this->assertSame([], $result);
+    }
+
+    // ----------------------------------------------------------------
     // getAllForMediaSitemap
     // ----------------------------------------------------------------
 

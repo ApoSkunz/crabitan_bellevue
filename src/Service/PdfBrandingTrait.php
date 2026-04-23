@@ -61,16 +61,20 @@ trait PdfBrandingTrait
     }
 
     /**
-     * Ligne remise livraison, vide si pas de remise.
+     * Ligne remise livraison / Click & Collect, vide si pas de remise.
+     *
+     * @param float  $shippingDiscount Montant remise (€)
+     * @param string $deliveryMethod   'shipping' ou 'pickup'
      */
-    private function buildDiscountRow(float $shippingDiscount): string
+    private function buildDiscountRow(float $shippingDiscount, string $deliveryMethod = 'shipping'): string
     {
         if ($shippingDiscount <= 0.0) {
             return '';
         }
+        $label = $deliveryMethod === 'pickup' ? 'Remise Click & Collect' : 'Remise livraison';
         return '<tr>'
             . '<td colspan="3" style="padding:4px 6px;border-bottom:1px solid #e8e0d0;">'
-                . '<em>Remise livraison</em></td>'
+                . '<em>' . $label . '</em></td>'
             . '<td style="padding:4px 6px;border-bottom:1px solid #e8e0d0;text-align:right;'
                 . 'font-style:italic;">'
                 . '-' . number_format($shippingDiscount, 2, ',', ' ') . '&nbsp;&euro;'

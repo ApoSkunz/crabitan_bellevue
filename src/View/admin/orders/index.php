@@ -13,6 +13,8 @@ $statusLabels = [
     'return_requested' => 'Retour en cours',
     'refund_refused'   => 'Remboursement refusé',
     'refund_pending'   => 'Remboursement en attente',
+    'ready_for_pickup' => 'Prêt au retrait',
+    'collected'        => 'Retiré',
 ];
 $paymentLabels = [
     'card'     => 'Carte bancaire',
@@ -98,7 +100,7 @@ function buildPaginationUrl(
     <button type="submit" class="admin-filters__btn">Filtrer</button>
     <?php if ($status || ($payment ?? null) || $search || $perPage !== 10) : ?>
         <a href="/admin/commandes<?= $archived ? '?archived=1' : '' ?>"
-           class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>
+           class="admin-btn admin-btn--dark admin-btn--sm">Réinitialiser</a>
     <?php endif; ?>
 </form>
 
@@ -110,6 +112,7 @@ function buildPaginationUrl(
                     <th>Référence</th>
                     <th>Client</th>
                     <th>Statut</th>
+                    <th class="col-hide-tablet">Mode</th>
                     <th class="col-hide-tablet">Paiement</th>
                     <th>Montant</th>
                     <th>Date</th>
@@ -118,7 +121,7 @@ function buildPaginationUrl(
             </thead>
             <tbody>
             <?php if (empty($orders)) : ?>
-                <tr><td colspan="7" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune commande trouvée</td></tr>
+                <tr><td colspan="8" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune commande trouvée</td></tr>
             <?php else : ?>
                 <?php foreach ($orders as $order) : ?>
                     <tr>
@@ -131,7 +134,16 @@ function buildPaginationUrl(
                                 <div style="font-size:0.75rem;color:#8a7a60;"><?= htmlspecialchars($order['email']) ?></div>
                             <?php endif; ?>
                         </td>
-                        <td data-label="Statut"><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span></td>
+                        <td data-label="Statut">
+                            <span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span>
+                        </td>
+                        <td class="col-hide-tablet" data-label="Mode" style="font-size:0.78rem;">
+                            <?php if (($order['delivery_method'] ?? '') === 'pickup') : ?>
+                                <span style="background:#f4e9d0;color:#6b4c1a;padding:2px 8px;border-radius:12px;">Retrait château</span>
+                            <?php else : ?>
+                                <span style="background:#e8eefd;color:#2a4ab0;padding:2px 8px;border-radius:12px;">Livraison</span>
+                            <?php endif; ?>
+                        </td>
                         <td class="col-hide-tablet" data-label="Paiement" style="font-size:0.8rem;"><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></td>
                         <td data-label="Montant"><?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€</td>
                         <td data-label="Date" style="white-space:nowrap;font-size:0.82rem;"><?= date('d/m/Y H:i', strtotime($order['ordered_at'])) ?></td>

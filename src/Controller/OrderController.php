@@ -27,7 +27,7 @@ use Service\StockNotificationService;
  * GET  /{lang}/commande/paiement-ca/refuse → retour CA paiement refusé
  * GET  /{lang}/commande/confirmation       → affiche la confirmation après paiement
  */
-class OrderController extends Controller
+class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohérent checkout+CA+confirmation, refactor sprint futur
 {
     private const LOG_CONTEXT = '[ORDER]';
     private const DATE_FORMAT_LOG = 'Y-m-d H:i:s';
@@ -75,6 +75,16 @@ class OrderController extends Controller
     protected function newMailService(): \Service\MailService
     {
         return new \Service\MailService();
+    }
+
+    /**
+     * Instancie StockNotificationService — seam de testabilité.
+     *
+     * @return StockNotificationService
+     */
+    protected function newStockNotificationService(): StockNotificationService
+    {
+        return new StockNotificationService();
     }
 
     // ----------------------------------------------------------------
@@ -242,11 +252,21 @@ class OrderController extends Controller
             $billingAddressId = $this->resolveAddress($userId, 'billing', '', $back);
         }
 
+        // Lire le mode de livraison (Click & Collect ou domicile)
+        $deliveryMethodRaw = $this->request->post('delivery_method', 'shipping');
+        $deliveryMethod    = in_array($deliveryMethodRaw, ['shipping', 'pickup'], true) ? $deliveryMethodRaw : 'shipping';
+
         // Calculer les totaux (items et totalQty déjà calculés avant la vérification multiple de 12)
         $subtotal         = (float) array_sum(
             array_map(fn(array $i): float => (float) $i['price'] * (int) $i['qty'], $items)
         );
-        $deliveryDiscount = $this->pricing->computeDeliveryDiscount($totalQty);
+        // Click & Collect : remise = valeur BDD (singleton click_collect_settings) × nb bouteilles
+        if ($deliveryMethod === 'pickup' && \Core\FeatureFlags::isClickCollectEnabled()) {
+            $perBottle        = (new \Model\ClickCollectSettingsModel())->getDiscountPerBottle();
+            $deliveryDiscount = round($perBottle * $totalQty, 2);
+        } else {
+            $deliveryDiscount = $this->pricing->computeDeliveryDiscount($totalQty);
+        }
         $total            = round(max(0.0, $subtotal - $deliveryDiscount), 2);
         $cgvDoc           = (new LegalDocumentModel())->findBySlug('cgv');
         $cgvVersion       = (string) ($cgvDoc['version'] ?? '1.0');
@@ -284,6 +304,7 @@ class OrderController extends Controller
                     'newsletter'          => (bool) $this->request->post('newsletter', ''),
                     'client_email'        => $clientEmail,
                     'client_name'         => $clientName,
+                    'delivery_method'     => $deliveryMethod,
                 ];
 
                 // Persister le snapshot en BDD — l'IPN CA (server-to-server) n'a pas
@@ -347,7 +368,8 @@ class OrderController extends Controller
             round($deliveryDiscount, 2),
             $billingAddressId,
             $deliveryAddressId,
-            $cgvVersion
+            $cgvVersion,
+            $deliveryMethod
         );
 
         // Vider le panier + décrémenter le stock
@@ -375,7 +397,8 @@ class OrderController extends Controller
                 $total,
                 (string) (($account !== false ? ($account['lang'] ?? null) : null) ?? $lang),
                 round($deliveryDiscount, 2),
-                $pdfContext
+                $pdfContext,
+                $deliveryMethod
             );
         }
 
@@ -457,7 +480,8 @@ class OrderController extends Controller
                         (string) $snapshot['cgv_version'],
                         $ref,
                         $numappel,
-                        $numtrans
+                        $numtrans,
+                        (string) ($snapshot['delivery_method'] ?? 'shipping')
                     );
 
                     (new \Model\PaymentIntentModel())->delete($ref);
@@ -473,8 +497,10 @@ class OrderController extends Controller
 
                     $this->generateAndStoreInvoice($ref);
                     try {
-                        $discount = (float) ($snapshot['delivery_discount'] ?? 0.0);
-                        $mail     = new \Service\MailService();
+                        $discount       = (float) ($snapshot['delivery_discount'] ?? 0.0);
+                        $deliveryMethod = (string) ($snapshot['delivery_method']   ?? 'shipping');
+                        $pdfContext     = (new \Service\OrderPdfContextBuilder())->build((array) $snapshot);
+                        $mail           = $this->newMailService();
                         $mail->sendOrderConfirmationToClient(
                             (string) ($snapshot['client_email'] ?? ''),
                             (string) ($snapshot['client_name']  ?? ''),
@@ -483,9 +509,10 @@ class OrderController extends Controller
                             (array) $snapshot['items'],
                             (float) $snapshot['total'],
                             $lang,
-                            $discount
+                            $discount,
+                            $pdfContext,
+                            $deliveryMethod
                         );
-                        $pdfContext = (new \Service\OrderPdfContextBuilder())->build((array) $snapshot);
                         $mail->sendOrderConfirmationToOwner(
                             (string) ($snapshot['client_email'] ?? ''),
                             (string) ($snapshot['client_name']  ?? ''),
@@ -494,7 +521,8 @@ class OrderController extends Controller
                             (array) $snapshot['items'],
                             (float) $snapshot['total'],
                             $discount,
-                            $pdfContext
+                            $pdfContext,
+                            $deliveryMethod
                         );
                     } catch (\Throwable $mailError) {
                         \Core\ErrorLogger::warning($mailError, '[RETURN_OK]');
@@ -937,7 +965,7 @@ class OrderController extends Controller
         $newStock = max(0, (int) ($wine['stock_quantity'] ?? 0) - $qty);
 
         try {
-            (new StockNotificationService())->notifyIfThresholdCrossed($wine, $newStock);
+            $this->newStockNotificationService()->notifyIfThresholdCrossed($wine, $newStock);
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }
@@ -951,7 +979,7 @@ class OrderController extends Controller
         }
     }
 
-    private function dispatchOrderEmails( // NOSONAR — php:S107 : 9 paramètres requis pour envoyer les emails de confirmation commande
+    private function dispatchOrderEmails( // NOSONAR — php:S107 : 10 paramètres requis pour envoyer les emails de confirmation commande
         string $email,
         string $name,
         string $reference,
@@ -960,7 +988,8 @@ class OrderController extends Controller
         float $total,
         string $lang,
         float $shippingDiscount = 0.0,
-        ?array $pdfContext = null
+        ?array $pdfContext = null,
+        string $deliveryMethod = 'shipping'
     ): void {
         try {
             $mailer = $this->newMailService();
@@ -972,7 +1001,9 @@ class OrderController extends Controller
                 $items,
                 $total,
                 $lang,
-                $shippingDiscount
+                $shippingDiscount,
+                $pdfContext,
+                $deliveryMethod
             );
             $mailer->sendOrderConfirmationToOwner(
                 $email,
@@ -982,7 +1013,8 @@ class OrderController extends Controller
                 $items,
                 $total,
                 $shippingDiscount,
-                $pdfContext
+                $pdfContext,
+                $deliveryMethod
             );
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);

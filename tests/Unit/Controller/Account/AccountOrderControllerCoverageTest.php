@@ -471,11 +471,11 @@ class AccountOrderControllerCoverageTest extends TestCase
      */
     public function testDoExitRealBodyExitsProcess(): void
     {
-        // Dans un process isolé, on peut appeler doExit() réel.
-        // On capture l'output puis on attend que exit termine le process.
-        // PHPUnit traite exit(0) implicite comme succès du test en runInSeparateProcess.
-        $this->markTestSkipped(
-            'doExit() appelle exit — couverture assurée via sendPdfResponse integration en E2E'
-        );
+        $ctrl = new AccountOrderController(new Request());
+        $m    = new \ReflectionMethod(AccountOrderController::class, 'doExit');
+        $m->setAccessible(true);
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $m->invoke($ctrl);
     }
 }

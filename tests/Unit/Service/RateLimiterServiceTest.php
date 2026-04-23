@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tests\Unit\Service;
 
 use Core\Database;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Service\RateLimiterService;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour RateLimiterService.
@@ -683,5 +685,73 @@ class RateLimiterServiceTest extends TestCase
         // Ne doit pas lever d'exception
         $service->recordAttempt('db:set:error', 900);
         $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // startSession() — implémentation réelle (ligne 330)
+    // ----------------------------------------------------------------
+
+    /**
+     * startSession() réelle appelle session_start() et rend la session active.
+     *
+     * RunInSeparateProcess isole le session_write_close() pour ne pas perturber
+     * les autres tests qui lisent $_SESSION.
+     *
+     * @return void
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testStartSessionRealImplementationActivatesSession(): void
+    {
+        $service = new class extends RateLimiterService {
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+            // startSession() NON overridée → implémentation réelle couverte
+        };
+
+        // Fermer la session pour forcer le passage dans startSession()
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        // checkLimit → ensureSession() → startSession() réelle → session_start()
+        $service->checkLimit('real:start:session', 5, 60);
+
+        $this->assertSame(PHP_SESSION_ACTIVE, session_status());
+
+        // Nettoyage — la session reste ouverte pour les tests suivants (setUp la gère)
+    }
+
+    /**
+     * startSession() est un seam protected overridable — vérifie que la subclass peut l'intercepter.
+     *
+     * @return void
+     */
+    public function testStartSessionIsOverridableSeam(): void
+    {
+        $service = new class extends RateLimiterService {
+            public bool $startCalled = false;
+
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+
+            protected function startSession(): void
+            {
+                $this->startCalled = true;
+            }
+
+            public function callStartSession(): void
+            {
+                $this->startSession();
+            }
+        };
+
+        $service->callStartSession();
+
+        $this->assertTrue($service->startCalled);
     }
 }

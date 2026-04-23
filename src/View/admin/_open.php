@@ -25,25 +25,46 @@ $navIcons = [
     'profile'      => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="11" height="7" rx="1"/><path d="M4.5 7V5a3 3 0 016 0v2"/><circle cx="7.5" cy="10.5" r="1" fill="currentColor" stroke="none"/></svg>',
     'logs'         => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="12" height="12" rx="1"/><line x1="4" y1="5" x2="11" y2="5"/><line x1="4" y1="7.5" x2="11" y2="7.5"/><line x1="4" y1="10" x2="8" y2="10"/></svg>',
     'admins'       => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="4" r="2"/><circle cx="10" cy="4" r="2"/><path d="M1 13c0-2.5 2-4 4.5-4"/><path d="M8 10h5.5a1.5 1.5 0 011.5 1.5v1.5"/><line x1="11" y1="9" x2="11" y2="13"/><line x1="9" y1="11" x2="13" y2="11"/></svg>',
+    'email_rate'   => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="3.5" width="12" height="8" rx="1"/><path d="M1.5 5l6 4 6-4"/><line x1="10.5" y1="9" x2="13" y2="9"/><line x1="12" y1="7.5" x2="12" y2="10.5"/></svg>',
+    'cron_monitoring' => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="7.5" r="6"/><polyline points="7.5,4 7.5,7.5 10,9"/></svg>',
+    'app_logs'       => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="1.5" width="11" height="12" rx="1"/><line x1="4" y1="4.5" x2="11" y2="4.5"/><line x1="4" y1="7" x2="11" y2="7"/><line x1="4" y1="9.5" x2="9" y2="9.5"/><circle cx="11.5" cy="11.5" r="0.75" fill="currentColor" stroke="none"/></svg>',
 ];
 
-$navItems = [
-    'dashboard'  => ['url' => '/admin',             'label' => 'Tableau de bord'],
-    'wines'      => ['url' => '/admin/vins',         'label' => 'Vins'],
-    'orders'     => ['url' => '/admin/commandes',    'label' => 'Commandes'],
-    'invoices'   => ['url' => '/admin/factures',     'label' => 'Factures'],
-    'accounts'   => ['url' => '/admin/comptes',      'label' => 'Comptes'],
-    'pricing'    => ['url' => '/admin/tarifs',       'label' => 'Tarifs'],
-    'news'       => ['url' => '/admin/actualites',   'label' => 'Actualités'],
-    'newsletter'  => ['url' => '/admin/newsletter',          'label' => 'Newsletter'],
-    'order_forms' => ['url' => '/admin/bons-de-commande',    'label' => 'Bons de commande'],
-    'stats'       => ['url' => '/admin/statistiques',          'label' => 'Statistiques CA'],
-    'marketing'   => ['url' => '/admin/marketing',             'label' => 'Marketing'],
-    'dpo'         => ['url' => '/admin/dpo',                  'label' => 'DPO — RGPD'],
-    'profile'     => ['url' => '/admin/securite',             'label' => 'Sécurité'],
-    'logs'        => ['url' => '/admin/logs',                 'label' => 'Journal d\'audit'],
-    'admins'      => ['url' => '/admin/admins',               'label' => 'Admins'],
+$navSections = [
+    'Tableau de bord' => [
+        'dashboard' => ['url' => '/admin', 'label' => 'Tableau de bord'],
+    ],
+    'Catalogue' => [
+        'wines'       => ['url' => '/admin/vins',               'label' => 'Vins'],
+        'pricing'     => ['url' => '/admin/tarifs',             'label' => 'Tarifs'],
+        'order_forms' => ['url' => '/admin/bons-de-commande',   'label' => 'Bons de commande'],
+    ],
+    'Commandes' => [
+        'orders'   => ['url' => '/admin/commandes',       'label' => 'Commandes'],
+        'invoices' => ['url' => '/admin/factures',        'label' => 'Factures'],
+        'stats'    => ['url' => '/admin/statistiques',    'label' => 'Statistiques CA'],
+    ],
+    'Clients' => [
+        'accounts' => ['url' => '/admin/comptes', 'label' => 'Comptes'],
+    ],
+    'Contenu' => [
+        'news'       => ['url' => '/admin/actualites', 'label' => 'Actualités'],
+        'newsletter' => ['url' => '/admin/newsletter', 'label' => 'Newsletter'],
+        'marketing'  => ['url' => '/admin/marketing',  'label' => 'Marketing'],
+    ],
+    'Sécurité' => [
+        'dpo'     => ['url' => '/admin/dpo',      'label' => 'DPO — RGPD'],
+        'profile' => ['url' => '/admin/securite', 'label' => 'Sécurité'],
+        'logs'    => ['url' => '/admin/logs',     'label' => 'Journal d\'audit'],
+        'admins'  => ['url' => '/admin/admins',   'label' => 'Gestion des admins'],
+    ],
+    'Monitoring' => [
+        'email_rate'      => ['url' => '/admin/emails-rate',       'label' => 'Monitoring emails'],
+        'cron_monitoring' => ['url' => '/admin/monitoring-crons',  'label' => 'Monitoring crons'],
+        'app_logs'        => ['url' => '/admin/logs-app',          'label' => 'Logs applicatifs'],
+    ],
 ];
+$superOnlyKeys = ['logs', 'admins', 'email_rate', 'cron_monitoring', 'app_logs'];
 
 $adminInitial = strtoupper(substr($adminUser['name'] ?? 'A', 0, 1));
 $adminRole    = $adminUser['role'] ?? 'admin';
@@ -178,6 +199,12 @@ if (empty($_SESSION['csrf'])) {
                 setTimeout(function () { el.remove(); }, 420);
             }, 2500);
         });
+
+        // Scroll item actif dans la sidebar (focus page sélectionnée)
+        var activeNav = document.querySelector('.admin-nav__item.active');
+        if (activeNav && typeof activeNav.scrollIntoView === 'function') {
+            activeNav.scrollIntoView({ block: 'center', behavior: 'instant' });
+        }
     });
     </script>
 </head>
@@ -198,19 +225,29 @@ if (empty($_SESSION['csrf'])) {
         </div>
 
         <nav class="admin-nav" aria-label="Menu principal">
-            <?php foreach ($navItems as $key => $item) : ?>
-                <?php if (in_array($key, ['logs', 'admins'], true) && $adminRole !== 'super_admin') : ?>
-                    <?php continue; // NOSONAR — php:S1763 : continue dans un foreach PHP template, détecté à tort comme inatteignable ?>
-                <?php endif; ?>
-                <a
-                    href="<?= htmlspecialchars($item['url']) ?>"
-                    class="admin-nav__item<?= $adminSection === $key ? ' active' : '' ?>"
-                    data-label="<?= htmlspecialchars($item['label']) ?>"
-                    <?= $adminSection === $key ? 'aria-current="page"' : '' ?>
-                >
-                    <span class="admin-nav__icon"><?= $navIcons[$key] ?? '' ?></span>
-                    <?= htmlspecialchars($item['label']) ?>
-                </a>
+            <?php foreach ($navSections as $sectionLabel => $items) : ?>
+                <?php
+                $visibleItems = array_filter(
+                    $items,
+                    static fn($_v, $k): bool => !(in_array($k, $superOnlyKeys, true) && $adminRole !== 'super_admin'),
+                    ARRAY_FILTER_USE_BOTH
+                );
+                if (empty($visibleItems)) {
+                    continue;
+                }
+                ?>
+                <div class="admin-nav__section-label"><?= htmlspecialchars($sectionLabel) ?></div>
+                <?php foreach ($visibleItems as $key => $item) : ?>
+                    <a
+                        href="<?= htmlspecialchars($item['url']) ?>"
+                        class="admin-nav__item<?= $adminSection === $key ? ' active' : '' ?>"
+                        data-label="<?= htmlspecialchars($item['label']) ?>"
+                        <?= $adminSection === $key ? 'aria-current="page"' : '' ?>
+                    >
+                        <span class="admin-nav__icon"><?= $navIcons[$key] ?? '' ?></span>
+                        <?= htmlspecialchars($item['label']) ?>
+                    </a>
+                <?php endforeach; ?>
             <?php endforeach; ?>
         </nav>
 

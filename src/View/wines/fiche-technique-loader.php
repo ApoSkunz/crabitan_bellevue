@@ -1,0 +1,115 @@
+<?php
+/**
+ * Page loader QR code : progression % réelle (fetch + ReadableStream) puis PDF inline.
+ */
+$lang     = $lang     ?? 'fr';
+$wineName = $wineName ?? '';
+$pdfUrl   = $pdfUrl   ?? '';
+$title    = htmlspecialchars($wineName !== '' ? $wineName : 'Fiche technique');
+$isEn     = $lang === 'en';
+$loading  = $isEn ? 'Loading technical sheet…' : 'Chargement de la fiche technique…';
+$hint     = $isEn ? 'Your PDF will open in a moment.' : 'Le PDF va s\'afficher dans un instant.';
+?><!DOCTYPE html>
+<html lang="<?= htmlspecialchars($lang) ?>">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title><?= $title ?></title>
+<style>
+html,body { margin:0; padding:0; background:#0c0a06; color:#f5efe2; font-family:Georgia, serif; height:100%; }
+body.has-pdf { background:#1a1208; }
+.loader { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:2rem; text-align:center; transition:opacity 300ms ease; }
+.loader.hidden { display:none; }
+.loader h1 { font-size:1.4rem; margin:0 0 0.5rem; color:#e8c86a; letter-spacing:0.04em; }
+.loader p { font-size:0.92rem; margin:0.3rem 0; color:#d9cfbb; }
+.spinner { width:56px; height:56px; margin:1.25rem auto 0.5rem; border:4px solid rgba(232,200,106,0.2); border-top-color:#e8c86a; border-radius:50%; animation:spin 0.9s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.progress { width:260px; max-width:85%; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; margin:0.75rem auto 0.5rem; }
+.progress__bar { width:0; height:100%; background:linear-gradient(90deg,#c9a84c,#e8c86a); transition:width 180ms ease; }
+.pct { font-size:0.95rem; font-weight:600; color:#e8c86a; margin-top:0.2rem; }
+.hint { margin-top:1rem; font-size:0.82rem; color:#8a7060; font-style:italic; }
+.pdf-frame { width:100vw; height:100vh; border:0; display:block; }
+</style>
+</head>
+<body>
+<main class="loader" id="loader">
+    <h1><?= $title ?></h1>
+    <p><?= htmlspecialchars($loading) ?></p>
+    <div class="spinner" aria-hidden="true"></div>
+    <div class="progress"><div class="progress__bar" id="bar"></div></div>
+    <div class="pct" id="pct">0 %</div>
+    <p class="hint"><?= htmlspecialchars($hint) ?></p>
+</main>
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+(function () {
+    var url    = <?= json_encode($pdfUrl) ?>;
+    var bar    = document.getElementById('bar');
+    var pct    = document.getElementById('pct');
+    var loader = document.getElementById('loader');
+
+    function setProgress(p) {
+        var v = Math.min(100, Math.max(0, Math.round(p)));
+        bar.style.width = v + '%';
+        pct.textContent = v + ' %';
+    }
+
+    function showPdf(blobUrl) {
+        // Navigation directe vers blob URL (CSP frame-src bloque iframe blob:)
+        window.location.href = blobUrl;
+    }
+
+    if (!('fetch' in window) || !('ReadableStream' in window)) {
+        // Fallback browser trop ancien : redirect direct
+        setTimeout(function () { window.location.href = url; }, 800);
+        return;
+    }
+
+    // Safety : si le fetch n'aboutit pas en 15s, redirect direct
+    var timeoutId = setTimeout(function () { window.location.href = url; }, 15000);
+
+    // Progression pseudo toujours visible (min 1.2s) même si PDF très rapide
+    var fakeStart = Date.now();
+    var fakeMax   = 90;
+    var fakeTimer = setInterval(function () {
+        var elapsed = Date.now() - fakeStart;
+        var target  = Math.min(fakeMax, (elapsed / 1200) * fakeMax);
+        var current = parseInt(bar.style.width || '0', 10);
+        if (target > current) setProgress(target);
+    }, 60);
+
+    fetch(url).then(function (response) {
+        clearTimeout(timeoutId);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        var total = parseInt(response.headers.get('Content-Length') || '0', 10);
+        var loaded = 0;
+        var chunks = [];
+        var reader = response.body.getReader();
+
+        function read() {
+            return reader.read().then(function (res) {
+                if (res.done) {
+                    clearInterval(fakeTimer);
+                    setProgress(100);
+                    var blob = new Blob(chunks, { type: 'application/pdf' });
+                    // Min 1.2s d'affichage pour que l'animation soit visible
+                    var minElapsed = Math.max(0, 1200 - (Date.now() - fakeStart));
+                    setTimeout(function () { showPdf(URL.createObjectURL(blob)); }, minElapsed + 200);
+                    return;
+                }
+                chunks.push(res.value);
+                loaded += res.value.length;
+                if (total > 0) {
+                    setProgress(Math.max(parseInt(bar.style.width || '0', 10), (loaded / total) * 90));
+                }
+                return read();
+            });
+        }
+        return read();
+    }).catch(function () {
+        window.location.href = url;
+    });
+})();
+</script>
+</body>
+</html>

@@ -834,12 +834,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/admin/newsletter">Newsletter</a>
                 <a href="/admin/marketing">Marketing</a>
 
-                <span class="account-panel__section-label">Système</span>
+                <span class="account-panel__section-label">Sécurité</span>
                 <a href="/admin/dpo">DPO — RGPD</a>
                 <a href="/admin/securite">Sécurité</a>
                 <?php if ($isSuperAdmin) : ?>
                     <a href="/admin/logs">Journal d'audit</a>
                     <a href="/admin/admins">Gestion des admins</a>
+                <?php endif; ?>
+
+                <?php if ($isSuperAdmin) : ?>
+                    <span class="account-panel__section-label">Monitoring</span>
+                    <a href="/admin/emails-rate">Monitoring emails</a>
+                    <a href="/admin/monitoring-crons">Monitoring crons</a>
+                    <a href="/admin/logs-app">Logs applicatifs</a>
                 <?php endif; ?>
             <?php else : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">
