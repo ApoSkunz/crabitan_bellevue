@@ -746,8 +746,7 @@ class RateLimiterServiceTest extends TestCase
 
             public function callStartSession(): void
             {
-                $ref = new \ReflectionMethod(parent::class, 'startSession');
-                $ref->invoke($this);
+                $this->startSession();
             }
         };
 
