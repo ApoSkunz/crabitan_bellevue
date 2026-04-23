@@ -17,4 +17,3 @@ $bannerLang = $navLang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
         </div>
     </div>
 </aside>
-
