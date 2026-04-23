@@ -211,9 +211,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                                           data-admin-confirm="Vérifier ce compte manuellement ?">
                                         <input type="hidden" name="csrf_token"
                                                value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                        <button type="submit"
-                                                class="admin-btn admin-btn--outline admin-btn--sm"
-                                                style="color:#15803d;border-color:#15803d;">
+                                        <button type="submit" class="admin-btn admin-btn--verify admin-btn--sm">
                                             Vérifier
                                         </button>
                                     </form>
@@ -229,9 +227,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
                                           data-admin-confirm="Envoyer un lien de réinitialisation à <?= htmlspecialchars($account['email']) ?> ?">
                                         <input type="hidden" name="csrf_token"
                                                value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                        <button type="submit"
-                                                class="admin-btn admin-btn--outline admin-btn--sm"
-                                                style="color:#92400e;border-color:#92400e;">
+                                        <button type="submit" class="admin-btn admin-btn--reset admin-btn--sm">
                                             Réinit. mdp
                                         </button>
                                     </form>

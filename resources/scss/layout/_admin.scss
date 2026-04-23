@@ -602,6 +602,30 @@
         }
     }
 
+    &--verify {
+        background: transparent;
+        border: 1px solid #15803d;
+        color: #15803d;
+
+        &:hover {
+            background: #15803d;
+            border-color: #15803d;
+            color: #fff;
+        }
+    }
+
+    &--reset {
+        background: transparent;
+        border: 1px solid #92400e;
+        color: #92400e;
+
+        &:hover {
+            background: #92400e;
+            border-color: #92400e;
+            color: #fff;
+        }
+    }
+
     &--danger {
         background: transparent;
         border-color: rgba(220, 38, 38, 0.3);
