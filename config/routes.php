@@ -111,6 +111,7 @@ $router->get('/{lang}/conditions-generales-de-vente', 'PageController@conditions
 $router->get('/{lang}/plan-du-site', 'PageController@planDuSite');
 $router->get('/sitemap.xml', 'PageController@sitemapXml');
 $router->get('/sitemap-media.xml', 'PageController@sitemapMedia');
+$router->get('/sitemap-products.xml', 'PageController@sitemapProducts');
 $router->get('/sitemap-index.xml', 'PageController@sitemapIndex');
 $router->get('/{lang}/support', 'PageController@support');
 $router->get('/{lang}/jeux', 'PageController@jeux');
