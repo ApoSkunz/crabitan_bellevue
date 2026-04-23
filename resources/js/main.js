@@ -1124,6 +1124,9 @@ function initContactForm() {
         feedback.textContent = msg;
         feedback.className   = 'contact-form__feedback contact-form__feedback--' + (isSuccess ? 'success' : 'error');
         feedback.hidden      = false;
+        feedback.setAttribute('tabindex', '-1');
+        feedback.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        feedback.focus({ preventScroll: true });
         if (isSuccess) {
             feedbackTimer = setTimeout(() => { feedback.hidden = true; }, 5000);
         }

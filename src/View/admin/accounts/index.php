@@ -61,7 +61,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
     </select>
 
     <select name="has_ordered" class="admin-filters__select" aria-label="Filtrer par commandes">
-        <option value="">Toutes les commandes</option>
+        <option value="">Tous les clients</option>
         <option value="1" <?= ($hasOrdered ?? '') === '1' ? 'selected' : '' ?>>A commandé</option>
         <option value="0" <?= ($hasOrdered ?? '') === '0' ? 'selected' : '' ?>>Jamais commandé</option>
     </select>
@@ -85,7 +85,7 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
         <?php endforeach; ?>
     </select>
 
-    <button type="submit" class="admin-filters__btn">Filtrer</button>
+    <noscript><button type="submit" class="admin-filters__btn">Filtrer</button></noscript>
     <?php if ($role || ($type ?? null) || $search) : ?>
         <a href="/admin/comptes<?= $perPage !== 10 ? '?per_page=' . $perPage : '' ?>"
            class="admin-btn admin-btn--outline admin-btn--sm">Réinitialiser</a>

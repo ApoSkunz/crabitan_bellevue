@@ -21,9 +21,9 @@ class Database
     {
         $dsn = sprintf(
             'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
-            $_ENV['DB_HOST'],
+            $_ENV['DB_HOST'] ?? 'localhost',
             $_ENV['DB_PORT'] ?? '3306',
-            $_ENV['DB_NAME']
+            $_ENV['DB_NAME'] ?? 'crabitan_bellevue'
         );
 
         $this->pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? '', [

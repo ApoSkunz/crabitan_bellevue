@@ -73,6 +73,47 @@
     }
 }
 
+.checkout-delivery-method {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    &__option {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        padding: 1rem 1.2rem;
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+
+        &:hover {
+            border-color: var(--color-gold);
+        }
+
+        &--selected {
+            border-color: var(--color-gold);
+            background: rgba(160, 132, 77, 0.05);
+        }
+
+        input[type="radio"] {
+            margin-right: 0.5rem;
+        }
+    }
+
+    &__label {
+        font-weight: 600;
+        color: var(--color-text);
+    }
+
+    &__detail {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        padding-left: 1.75rem;
+    }
+}
+
 // ---- Notices ----
 
 .checkout-notice {

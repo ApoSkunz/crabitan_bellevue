@@ -1564,15 +1564,16 @@
         border-top: 1px solid var(--color-gold-light, #d4b896);
     }
 
-    &__table {
-        width: 100%;
-        font-size: 0.78rem;
-        border-collapse: collapse;
+    &__list {
+        list-style: disc;
+        padding: 0 0 0 1.25rem;
+        margin: 0;
+        font-size: 0.82rem;
+        color: var(--color-text, #3a2f1f);
+    }
 
-        th { text-align: left; font-weight: 600; padding-bottom: 0.25rem; }
-        td { padding: 0.15rem 0.5rem 0.15rem 0; }
-
-        tr:not(:last-child) td { border-bottom: 1px solid #f0e8d8; }
+    &__item {
+        padding: 0.15rem 0;
     }
 }
 
@@ -1581,18 +1582,11 @@
 // Affiché sous le bandeau caisse sur /vins et /vins/collection
 // ============================================================
 .click-collect-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: var(--color-surface, #faf7f2);
-    border: 1px solid var(--color-gold-light, #d4b896);
-    border-radius: 4px;
+    padding: 0.4rem 0;
     font-size: 0.82rem;
+    font-style: italic;
     color: var(--color-text-muted, #7a6a50);
-    margin: 0 0 1rem;
-
-    &__icon { font-size: 1rem; }
-    &__text { font-weight: 500; }
+    text-align: center;
+    margin: 0 0 0.75rem;
 }
 
