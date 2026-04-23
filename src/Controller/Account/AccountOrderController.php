@@ -381,7 +381,7 @@ class AccountOrderController extends AbstractAccountController
      */
     protected function doExit(): never
     {
-        exit;
+        throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux binaire
     }
 
     // ----------------------------------------------------------------

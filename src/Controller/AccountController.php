@@ -511,7 +511,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
      */
     protected function doExit(): never
     {
-        exit;
+        throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux binaire
     }
 
     /**

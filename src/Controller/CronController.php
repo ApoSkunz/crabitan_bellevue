@@ -115,7 +115,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
      */
     protected function doExit(): never
     {
-        exit;
+        throw new \Core\Exception\HttpException(0); // NOSONAR — arrêt propre flux binaire
     }
 
     /**
