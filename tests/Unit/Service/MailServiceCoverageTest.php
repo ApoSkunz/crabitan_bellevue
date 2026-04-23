@@ -840,7 +840,8 @@ class MailServiceCoverageTest extends TestCase
                         string $toAddress,
                         string $subject,
                         bool $success,
-                        ?string $errorMessage
+                        ?string $errorMessage,
+                        string $type = 'other'
                     ): void {
                         // no-op
                     }
@@ -889,7 +890,8 @@ class MailServiceCoverageTest extends TestCase
                         string $toAddress,
                         string $subject,
                         bool $success,
-                        ?string $errorMessage
+                        ?string $errorMessage,
+                        string $type = 'other'
                     ): void {
                         // no-op
                     }
@@ -930,7 +932,8 @@ class MailServiceCoverageTest extends TestCase
                         string $toAddress,
                         string $subject,
                         bool $success,
-                        ?string $errorMessage
+                        ?string $errorMessage,
+                        string $type = 'other'
                     ): void {
                         // no-op
                     }
@@ -973,7 +976,8 @@ class MailServiceCoverageTest extends TestCase
                         string $toAddress,
                         string $subject,
                         bool $success,
-                        ?string $errorMessage
+                        ?string $errorMessage,
+                        string $type = 'other'
                     ): void {
                         throw new \RuntimeException('logger down');
                     }
