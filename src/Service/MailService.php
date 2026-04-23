@@ -1247,21 +1247,7 @@ INNER;
                 'cheque'   => 'Cheque',
             ];
             $withdrawalNote = '<br><em style="font-size:12px;color:#8a7a60;">Under applicable consumer law, you have 14 days from receipt to exercise your right of withdrawal.</em>'; // phpcs:ignore Generic.Files.LineLength
-            $deferredNote   = in_array($paymentMethod, ['virement', 'cheque'], true)
-                ? '<br><em>Your order will be dispatched upon receipt of payment.</em>'
-                : '';
-            if ($paymentMethod === 'virement') {
-                $deferredNote .= '<br><br><strong>Bank details:</strong>'
-                    . '<br>Beneficiary: G.F.A Bernard Solane &amp; Fils'
-                    . '<br>IBAN: FR76 3000 6000 0112 3456 7890 189'
-                    . "<br>Reference: {$safeRef}";
-            } elseif ($paymentMethod === 'cheque') {
-                $deferredNote .= '<br><br><strong>Cheque payable to:</strong>'
-                    . '<br>G.F.A Bernard Solane &amp; Fils'
-                    . '<br>1 Château Crabitan Bellevue'
-                    . '<br>33410 Sainte-Croix-du-Mont, France'
-                    . "<br>Please write your reference on the back: {$safeRef}";
-            }
+            $deferredNote   = $this->buildPaymentInstructions($paymentMethod, 'en', $safeRef);
         } else {
             $subject        = "Votre commande {$safeRef} — Château Crabitan Bellevue";
             $title          = 'Commande confirmée';
@@ -1282,21 +1268,7 @@ INNER;
                 'cheque'   => self::PAYMENT_LABEL_CHEQUE,
             ];
             $withdrawalNote = '<br><em style="font-size:12px;color:#8a7a60;">Conformément à l\'art. L221-18 du Code de la consommation, vous disposez de 14 jours pour exercer votre droit de rétractation à compter de la réception.</em>'; // phpcs:ignore Generic.Files.LineLength
-            $deferredNote   = in_array($paymentMethod, ['virement', 'cheque'], true)
-                ? '<br><em>Commande expédiée dès réception du paiement.</em>'
-                : '';
-            if ($paymentMethod === 'virement') {
-                $deferredNote .= '<br><br><strong>Coordonnées bancaires :</strong>'
-                    . '<br>Bénéficiaire : G.F.A Bernard Solane &amp; Fils'
-                    . '<br>IBAN : FR76 3000 6000 0112 3456 7890 189'
-                    . "<br>Référence à indiquer : {$safeRef}";
-            } elseif ($paymentMethod === 'cheque') {
-                $deferredNote .= '<br><br><strong>Chèque à l\'ordre de :</strong>'
-                    . '<br>G.F.A Bernard Solane &amp; Fils'
-                    . '<br>1 Château Crabitan Bellevue'
-                    . '<br>33410 Sainte-Croix-du-Mont'
-                    . "<br>Merci d'indiquer au dos : {$safeRef}";
-            }
+            $deferredNote   = $this->buildPaymentInstructions($paymentMethod, 'fr', $safeRef);
         }
 
         $paymentLabel = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
@@ -1345,6 +1317,60 @@ INNER;
     }
 
     /**
+     * Construit le bloc d'instructions de paiement différé (virement, chèque) pour un email client.
+     *
+     * Retourne une chaîne vide si le paiement est immédiat (carte) ou méthode inconnue.
+     *
+     * @param string $paymentMethod Méthode de paiement ('card', 'virement', 'cheque')
+     * @param string $lang          Langue ('fr' ou 'en')
+     * @param string $safeRef       Référence commande déjà échappée (htmlspecialchars)
+     * @return string HTML du bloc d'instructions ou chaîne vide
+     */
+    private function buildPaymentInstructions(string $paymentMethod, string $lang, string $safeRef): string
+    {
+        if (!in_array($paymentMethod, ['virement', 'cheque'], true)) {
+            return '';
+        }
+
+        $isEn = $lang === 'en';
+
+        $deferredLead = $isEn
+            ? '<br><em>Your order will be dispatched upon receipt of payment.</em>'
+            : '<br><em>Commande expédiée dès réception du paiement.</em>';
+
+        if ($paymentMethod === 'virement') {
+            if ($isEn) {
+                return $deferredLead
+                    . '<br><br><strong>Bank details:</strong>'
+                    . '<br>Beneficiary: G.F.A Bernard Solane &amp; Fils'
+                    . '<br>IBAN: FR76 3000 6000 0112 3456 7890 189'
+                    . "<br>Reference: {$safeRef}";
+            }
+            return $deferredLead
+                . '<br><br><strong>Coordonnées bancaires :</strong>'
+                . '<br>Bénéficiaire : G.F.A Bernard Solane &amp; Fils'
+                . '<br>IBAN : FR76 3000 6000 0112 3456 7890 189'
+                . "<br>Référence à indiquer : {$safeRef}";
+        }
+
+        // cheque
+        if ($isEn) {
+            return $deferredLead
+                . '<br><br><strong>Cheque payable to:</strong>'
+                . '<br>G.F.A Bernard Solane &amp; Fils'
+                . '<br>1 Château Crabitan Bellevue'
+                . '<br>33410 Sainte-Croix-du-Mont, France'
+                . "<br>Please write your reference on the back: {$safeRef}";
+        }
+        return $deferredLead
+            . '<br><br><strong>Chèque à l\'ordre de :</strong>'
+            . '<br>G.F.A Bernard Solane &amp; Fils'
+            . '<br>1 Château Crabitan Bellevue'
+            . '<br>33410 Sainte-Croix-du-Mont'
+            . "<br>Merci d'indiquer au dos : {$safeRef}";
+    }
+
+    /**
      * Construit le bloc HTML récapitulatif adresses (livraison + facturation) + mode de livraison.
      *
      * @param array<string, mixed>|null $ctx  ['billing' => [...], 'delivery' => [...]] ou null
@@ -1362,9 +1388,15 @@ INNER;
         $isEn     = $lang === 'en';
         $isPickup = $mode === 'pickup';
 
-        $titleMode = $isEn
-            ? ($isPickup ? 'Pickup mode: Click &amp; Collect — available at the château within 48h' : 'Delivery: home delivery')
-            : ($isPickup ? 'Mode : Click &amp; Collect — disponible au château sous 48h' : 'Livraison : à domicile');
+        if ($isEn) {
+            $titleMode = $isPickup
+                ? 'Pickup mode: Click &amp; Collect — available at the château within 48h'
+                : 'Delivery: home delivery';
+        } else {
+            $titleMode = $isPickup
+                ? 'Mode : Click &amp; Collect — disponible au château sous 48h'
+                : 'Livraison : à domicile';
+        }
 
         $titleBill = $isEn ? 'Billing address' : 'Adresse de facturation';
         $titleDeliv = $isEn ? 'Delivery address' : 'Adresse de livraison';

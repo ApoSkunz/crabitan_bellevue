@@ -601,10 +601,16 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
         echo '        xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
 
         foreach ($wines as $wine) {
-            $slug    = htmlspecialchars((string) $wine['slug']);
-            $lastmod = isset($wine['updated_at'])
-                ? date('Y-m-d', strtotime((string) $wine['updated_at']) ?: time())
-                : date('Y-m-d');
+            $slug = htmlspecialchars((string) $wine['slug']);
+            if (isset($wine['updated_at'])) {
+                $timestamp = strtotime((string) $wine['updated_at']);
+                if ($timestamp === false) {
+                    $timestamp = time();
+                }
+                $lastmod = date('Y-m-d', $timestamp);
+            } else {
+                $lastmod = date('Y-m-d');
+            }
 
             foreach (['fr' => '0.85', 'en' => '0.55'] as $lang => $prio) {
                 echo "  <url>\n";

@@ -27,6 +27,7 @@ use Service\StockNotificationService;
  * GET  /{lang}/commande/paiement-ca/refuse → retour CA paiement refusé
  * GET  /{lang}/commande/confirmation       → affiche la confirmation après paiement
  */
+// NOSONAR — php:S1448 : découpage MVC cohérent (checkout + retours CA + confirmation), refactor sprint futur
 class OrderController extends Controller
 {
     private const LOG_CONTEXT = '[ORDER]';
