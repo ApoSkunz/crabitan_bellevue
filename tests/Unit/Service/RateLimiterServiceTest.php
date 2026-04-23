@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tests\Unit\Service;
 
 use Core\Database;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Service\RateLimiterService;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests unitaires pour RateLimiterService.
@@ -692,12 +694,13 @@ class RateLimiterServiceTest extends TestCase
     /**
      * startSession() réelle appelle session_start() et rend la session active.
      *
-     * On crée une instance normale (sans override de startSession) qui force
-     * isApcuAvailable() = false. Après session_write_close(), checkLimit()
-     * déclenche ensureSession() → startSession() réelle → session_start().
+     * RunInSeparateProcess isole le session_write_close() pour ne pas perturber
+     * les autres tests qui lisent $_SESSION.
      *
      * @return void
      */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function testStartSessionRealImplementationActivatesSession(): void
     {
         $service = new class extends RateLimiterService {
@@ -722,12 +725,12 @@ class RateLimiterServiceTest extends TestCase
     }
 
     /**
-     * ensureSession() appelle startSession() quand la session est fermée.
+     * startSession() est un seam protected overridable — vérifie que la subclass peut l'intercepter.
+     *
+     * @return void
      */
-    public function testEnsureSessionCallsStartSessionWhenNone(): void
+    public function testStartSessionIsOverridableSeam(): void
     {
-        $called = false;
-
         $service = new class extends RateLimiterService {
             public bool $startCalled = false;
 
@@ -739,26 +742,16 @@ class RateLimiterServiceTest extends TestCase
             protected function startSession(): void
             {
                 $this->startCalled = true;
-                // Ne pas vraiment appeler session_start() — la session est active
             }
 
-            public function callEnsureSession(): void
+            public function callStartSession(): void
             {
-                // Ferme la session pour simuler PHP_SESSION_NONE
-                if (session_status() === PHP_SESSION_ACTIVE) {
-                    session_write_close();
-                }
-                // Déclenche ensureSession() via checkLimit (utilise la session)
-                $this->checkLimit('ensure:test', 5, 60);
+                $ref = new \ReflectionMethod(parent::class, 'startSession');
+                $ref->invoke($this);
             }
         };
 
-        $service->callEnsureSession();
-
-        // Rouvrir la session pour les tests suivants
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        $service->callStartSession();
 
         $this->assertTrue($service->startCalled);
     }
