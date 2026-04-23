@@ -3556,4 +3556,18 @@ class AccountControllerActionTest extends TestCase
             ob_end_clean();
         }
     }
+
+    /**
+     * doExit() body réel : après le refactor seam, jette HttpException(0)
+     * au lieu d'appeler exit — ceci permet aux tests de catcher l'arrêt propre.
+     */
+    public function testDoExitRealBodyThrowsHttpException0(): void
+    {
+        $ctrl = new AccountController(new Request());
+        $m    = new \ReflectionMethod(AccountController::class, 'doExit');
+        $m->setAccessible(true);
+
+        $this->expectException(HttpException::class);
+        $m->invoke($ctrl);
+    }
 }

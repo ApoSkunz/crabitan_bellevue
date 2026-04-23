@@ -512,6 +512,185 @@ class PageControllerSitemapTest extends TestCase
     }
 
     // ================================================================
+    // sitemapProducts() — génère sitemap-products.xml pour vins disponibles
+    // ================================================================
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSitemapProductsGeneratesXmlAndThrowsHttpException0(): void
+    {
+        $this->bootstrapApp();
+        $_ENV['APP_URL'] = 'https://test.example.com';
+
+        $stub = $this->setDbMock();
+        // WineModel::getAvailableForSitemap → 1 vin disponible
+        $stub->method('fetchAll')->willReturn([
+            [
+                'slug'       => 'bordeaux-rouge-2020',
+                'label_name' => 'Bordeaux Rouge',
+                'vintage'    => 2020,
+                'price'      => 15.0,
+                'updated_at' => '2026-04-01 10:00:00',
+            ],
+        ]);
+
+        $_SERVER['REQUEST_URI'] = '/sitemap-products.xml';
+
+        $caught = null;
+        ob_start();
+        try {
+            (new \Controller\PageController(new \Core\Request()))->sitemapProducts([]);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } finally {
+            $output = ob_get_clean();
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(0, $caught->status);
+        $this->assertStringContainsString('<?xml', $output);
+        $this->assertStringContainsString('urlset', $output);
+        $this->assertStringContainsString('/fr/vins/bordeaux-rouge-2020', $output);
+        $this->assertStringContainsString('/en/vins/bordeaux-rouge-2020', $output);
+        $this->assertStringContainsString('<priority>0.85</priority>', $output);
+        $this->assertStringContainsString('<priority>0.55</priority>', $output);
+        $this->assertStringContainsString('<changefreq>weekly</changefreq>', $output);
+        $this->assertStringContainsString('2026-04-01', $output);
+        $this->assertStringContainsString('hreflang="x-default"', $output);
+
+        unset($_ENV['APP_URL']);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSitemapProductsHandlesMissingUpdatedAtGracefully(): void
+    {
+        $this->bootstrapApp();
+        $_ENV['APP_URL'] = 'https://test.example.com';
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchAll')->willReturn([
+            [
+                'slug'       => 'sans-date-2021',
+                'label_name' => 'Sans Date',
+                'vintage'    => 2021,
+                'price'      => 20.0,
+                // updated_at absent → fallback date('Y-m-d')
+            ],
+        ]);
+
+        $_SERVER['REQUEST_URI'] = '/sitemap-products.xml';
+
+        $caught = null;
+        ob_start();
+        try {
+            (new \Controller\PageController(new \Core\Request()))->sitemapProducts([]);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } finally {
+            $output = ob_get_clean();
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(0, $caught->status);
+        $this->assertStringContainsString('sans-date-2021', $output);
+        // La date du jour doit être présente en fallback
+        $this->assertStringContainsString('<lastmod>' . date('Y-m-d') . '</lastmod>', $output);
+
+        unset($_ENV['APP_URL']);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSitemapProductsWithNoWinesGeneratesEmptyUrlset(): void
+    {
+        $this->bootstrapApp();
+        $_ENV['APP_URL'] = 'https://test.example.com';
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchAll')->willReturn([]);
+
+        $_SERVER['REQUEST_URI'] = '/sitemap-products.xml';
+
+        $caught = null;
+        ob_start();
+        try {
+            (new \Controller\PageController(new \Core\Request()))->sitemapProducts([]);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } finally {
+            $output = ob_get_clean();
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(0, $caught->status);
+        $this->assertStringContainsString('<urlset', $output);
+        $this->assertStringContainsString('</urlset>', $output);
+        // Aucun <url> imbriqué
+        $this->assertStringNotContainsString('<url>', $output);
+
+        unset($_ENV['APP_URL']);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSitemapProductsUsesDefaultAppUrlWhenEnvAbsent(): void
+    {
+        $this->bootstrapApp();
+        unset($_ENV['APP_URL']);
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchAll')->willReturn([
+            ['slug' => 'x', 'label_name' => 'X', 'vintage' => 2020, 'price' => 10.0, 'updated_at' => '2026-01-01'],
+        ]);
+
+        $_SERVER['REQUEST_URI'] = '/sitemap-products.xml';
+
+        $caught = null;
+        ob_start();
+        try {
+            (new \Controller\PageController(new \Core\Request()))->sitemapProducts([]);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } finally {
+            $output = ob_get_clean();
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(0, $caught->status);
+        $this->assertStringContainsString('crabitanbellevue.fr', $output);
+    }
+
+    // ================================================================
+    // sitemapIndex() — intègre sitemap-products.xml dans l'index
+    // ================================================================
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSitemapIndexReferencesProductsSitemap(): void
+    {
+        $this->bootstrapApp();
+        $_ENV['APP_URL'] = 'https://test.example.com';
+
+        $_SERVER['REQUEST_URI'] = '/sitemap-index.xml';
+
+        $caught = null;
+        ob_start();
+        try {
+            (new \Controller\PageController(new \Core\Request()))->sitemapIndex([]);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } finally {
+            $output = ob_get_clean();
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertStringContainsString('sitemap-products.xml', $output);
+
+        unset($_ENV['APP_URL']);
+    }
+
+    // ================================================================
     // sitemapIndex() — APP_URL absent → fallback DEFAULT_APP_URL
     // ================================================================
 

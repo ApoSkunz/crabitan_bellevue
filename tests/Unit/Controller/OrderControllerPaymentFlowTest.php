@@ -1273,6 +1273,78 @@ class OrderControllerPaymentFlowTest extends TestCase
     }
 
     // ================================================================
+    // payment() — mode Click & Collect (pickup) : remise via BDD singleton
+    // Couvre OrderController::payment L263-266 (branche pickup)
+    // ================================================================
+
+    /**
+     * Quand le client choisit le retrait Click & Collect et que le flag est actif,
+     * la remise est calculée via ClickCollectSettingsModel::getDiscountPerBottle()
+     * (× nb bouteilles) au lieu de la table pricing_rules.
+     *
+     * @return void
+     */
+    public function testPaymentPickupUsesClickCollectDiscountFromSingleton(): void
+    {
+        $_ENV['CLICK_COLLECT_ENABLED'] = 'true';
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(3, 'customer');
+        $_SESSION['submit_token']  = 'pickup-test-token';
+        $_POST = [
+            'csrf_token'          => 'valid-csrf',
+            'submit_token'        => 'pickup-test-token',
+            'payment_method'      => 'virement',
+            'cgv'                 => '1',
+            'same_address'        => '1',
+            'delivery_address_id' => '20',
+            'delivery_method'     => 'pickup',
+            'newsletter'          => '',
+        ];
+
+        $stub = $this->setDbMock();
+        // Séquence adaptée pickup : pas d'appel PricingRuleModel::findForQuantity,
+        // mais ClickCollectSettingsModel::getDiscountPerBottle (fetchOne après mainland)
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 3],                                          // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],   // hasDeclaredMajority
+            ['user_id' => 3, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])], // cart 12 bouteilles
+            ['id' => 1, 'price' => 10.0, 'label_name' => 'Vin', 'is_cuvee_speciale' => false],
+            ['id' => 20, 'firstname' => 'Paul', 'lastname' => 'Dupont', 'zip_code' => '33410'], // resolveAddress
+            ['id' => 20, 'firstname' => 'Paul', 'lastname' => 'Dupont', 'zip_code' => '33410'], // mainland check
+            // Click & Collect discount : 2.50€/bouteille × 12 = 30€ de remise
+            ['discount_per_bottle' => '2.50'],
+            ['id' => 1, 'slug' => 'cgv', 'version' => '1.0'],
+            ['id' => 3, 'email' => 'paul@test.com', 'firstname' => 'Paul', 'lastname' => 'Dupont'],
+            ['id' => 20, 'civility' => 'M.', 'firstname' => 'Paul', 'lastname' => 'Dupont',
+             'street' => '1 Rue Test', 'city' => 'Bordeaux', 'zip_code' => '33000',
+             'country' => 'France', 'phone' => ''],
+            false,
+            ['id' => 20, 'civility' => 'M.', 'firstname' => 'Paul', 'lastname' => 'Dupont',
+             'street' => '1 Rue Test', 'city' => 'Bordeaux', 'zip_code' => '33000',
+             'country' => 'France', 'phone' => ''],
+            false,
+            ['id' => 1, 'label_name' => 'Vin', 'stock_quantity' => 200, 'available' => 1,
+             'image_path' => '', 'low_stock_notified_at' => null, 'slug' => 'vin', 'vintage' => 2020],
+        );
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->payment(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        } finally {
+            unset($_ENV['CLICK_COLLECT_ENABLED']);
+        }
+
+        // La commande a été créée (virement → redirect + last_order_ref posé)
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('last_order_ref', $_SESSION);
+    }
+
+    // ================================================================
     // paymentReturnOk() — exception lors de createFromIpn → redirect /fr/commande
     // ================================================================
 

@@ -996,4 +996,252 @@ class MailServiceCoverageTest extends TestCase
 
         $sendMethod->invoke($service, 'to@example.com', 'To', 'Sujet', '<p>Body</p>');
     }
+
+    // ----------------------------------------------------------------
+    // buildAddressBlock() — mode shipping + pickup + ctx null
+    // Couvre le helper introduit pour fiches commande (owner + client).
+    // ----------------------------------------------------------------
+
+    /**
+     * buildAddressBlock() retourne chaîne vide quand $ctx est null.
+     */
+    public function testBuildAddressBlockReturnsEmptyWhenCtxIsNull(): void
+    {
+        $result = $this->callPrivate($this->service, 'buildAddressBlock', null, 'shipping', 'fr');
+        $this->assertSame('', $result);
+    }
+
+    /**
+     * buildAddressBlock() mode shipping FR avec adresses billing et delivery distinctes.
+     */
+    public function testBuildAddressBlockShippingFrIncludesBillingAndDelivery(): void
+    {
+        $ctx = [
+            'billing' => [
+                'civility'  => 'M.',
+                'firstname' => 'Jean',
+                'lastname'  => 'Dupont',
+                'street'    => '1 rue de Bordeaux',
+                'zip'       => '33000',
+                'city'      => 'Bordeaux',
+                'country'   => 'France',
+                'phone'     => '0102030405',
+            ],
+            'delivery' => [
+                'firstname' => 'Marie',
+                'lastname'  => 'Martin',
+                'street'    => '2 avenue des Vignes',
+                'zip'       => '33410',
+                'city'      => 'Sainte-Croix-du-Mont',
+                'country'   => 'France',
+            ],
+        ];
+
+        $result = $this->callPrivate($this->service, 'buildAddressBlock', $ctx, 'shipping', 'fr');
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('Livraison : à domicile', $result);
+        $this->assertStringContainsString('Adresse de facturation', $result);
+        $this->assertStringContainsString('Adresse de livraison', $result);
+        $this->assertStringContainsString('Jean', $result);
+        $this->assertStringContainsString('Marie', $result);
+        $this->assertStringContainsString('Bordeaux', $result);
+        $this->assertStringContainsString('Sainte-Croix-du-Mont', $result);
+        $this->assertStringContainsString('0102030405', $result);
+        // Pas d'adresse château en shipping
+        $this->assertStringNotContainsString('Château Crabitan', $result);
+    }
+
+    /**
+     * buildAddressBlock() mode pickup FR — inclut l'adresse du château en retrait.
+     */
+    public function testBuildAddressBlockPickupFrIncludesChateauAddress(): void
+    {
+        $ctx = [
+            'billing' => [
+                'firstname' => 'Alice',
+                'lastname'  => 'Client',
+                'street'    => '10 rue Test',
+                'zip'       => '33000',
+                'city'      => 'Bordeaux',
+            ],
+            'delivery' => null,
+        ];
+
+        $result = $this->callPrivate($this->service, 'buildAddressBlock', $ctx, 'pickup', 'fr');
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('Click &amp; Collect', $result);
+        $this->assertStringContainsString('Adresse de retrait', $result);
+        $this->assertStringContainsString('Château Crabitan Bellevue', $result);
+        $this->assertStringContainsString('33410 Sainte-Croix-du-Mont', $result);
+        // Pas de "Adresse de livraison" car mode pickup
+        $this->assertStringNotContainsString('Adresse de livraison', $result);
+    }
+
+    /**
+     * buildAddressBlock() mode pickup EN — libellés anglais + château.
+     */
+    public function testBuildAddressBlockPickupEnUsesEnglishLabels(): void
+    {
+        $ctx = ['billing' => ['firstname' => 'John', 'lastname' => 'Doe'], 'delivery' => null];
+        $result = $this->callPrivate($this->service, 'buildAddressBlock', $ctx, 'pickup', 'en');
+
+        $this->assertStringContainsString('Click &amp; Collect', $result);
+        $this->assertStringContainsString('Pickup address', $result);
+        $this->assertStringContainsString('Billing address', $result);
+        $this->assertStringContainsString('Château Crabitan Bellevue', $result);
+    }
+
+    /**
+     * buildAddressBlock() mode shipping EN — libellés anglais, pas de château.
+     */
+    public function testBuildAddressBlockShippingEnUsesEnglishLabels(): void
+    {
+        $ctx = [
+            'billing'  => ['firstname' => 'Ann', 'lastname' => 'Doe', 'city' => 'Paris'],
+            'delivery' => ['firstname' => 'Bob', 'lastname' => 'Doe', 'city' => 'Lyon'],
+        ];
+        $result = $this->callPrivate($this->service, 'buildAddressBlock', $ctx, 'shipping', 'en');
+
+        $this->assertStringContainsString('Delivery: home delivery', $result);
+        $this->assertStringContainsString('Billing address', $result);
+        $this->assertStringContainsString('Delivery address', $result);
+        $this->assertStringNotContainsString('Château', $result);
+    }
+
+    /**
+     * buildAddressBlock() affiche "—" quand l'adresse de facturation est entièrement vide.
+     */
+    public function testBuildAddressBlockFallsBackToDashForEmptyAddress(): void
+    {
+        $ctx = ['billing' => [], 'delivery' => null];
+        $result = $this->callPrivate($this->service, 'buildAddressBlock', $ctx, 'shipping', 'fr');
+
+        $this->assertStringContainsString('—', $result);
+    }
+
+    /**
+     * buildAddressBlock() shipping FR — fallback zip_code si 'zip' absent et pas de city.
+     * (Branche covered quand le premier `zip + city` trim est vide.)
+     */
+    public function testBuildAddressBlockShippingFallsBackToZipCode(): void
+    {
+        $ctx = [
+            'billing' => [
+                'firstname' => 'X',
+                'lastname'  => 'Y',
+                'zip_code'  => '75000',
+            ],
+            'delivery' => null,
+        ];
+        $result = $this->callPrivate($this->service, 'buildAddressBlock', $ctx, 'shipping', 'fr');
+
+        $this->assertStringContainsString('75000', $result);
+    }
+
+    // ----------------------------------------------------------------
+    // sendOrderConfirmationToOwner() — deliveryMethod pickup ⇒ libellé
+    // "Remise Click & Collect" et delivery_method injecté dans pdfData.
+    // ----------------------------------------------------------------
+
+    /**
+     * deliveryMethod='pickup' → label "Remise Click & Collect" dans sendOrderConfirmationToOwner.
+     */
+    public function testSendOrderConfirmationToOwnerWithPickupUsesClickCollectLabel(): void
+    {
+        $service = new class extends MailService {
+            /** @var string Corps capturé via appel send() */
+            public string $capturedBody = '';
+            // phpcs:ignore
+            public function __construct() { parent::__construct(); }
+
+            // phpcs:disable Generic.CodeAnalysis.UnusedFunctionParameter
+            protected function send(
+                string $to,
+                string $name,
+                string $subject,
+                string $body,
+                ?string $attachmentPath = null,
+                ?string $replyTo = null,
+                ?string $attachmentName = null,
+                ?string $attachmentString = null
+            ): void {
+                $this->capturedBody = $body;
+            }
+            // phpcs:enable
+        };
+        $this->injectMockMailer($service);
+
+        $service->sendOrderConfirmationToOwner(
+            'client@example.com',
+            'Client',
+            'CB-2026-CC',
+            'card',
+            [['name' => 'Vin', 'qty' => 2, 'price' => 20.0]],
+            40.0,
+            4.40,
+            null,
+            'pickup'
+        );
+
+        $this->assertStringContainsString('Remise Click & Collect', $service->capturedBody);
+        $this->assertStringNotContainsString('Remise livraison', $service->capturedBody);
+    }
+
+    /**
+     * deliveryMethod='shipping' → label "Remise livraison" (défaut historique).
+     */
+    public function testSendOrderConfirmationToOwnerWithShippingUsesDefaultLabel(): void
+    {
+        $service = new class extends MailService {
+            public string $capturedBody = '';
+            // phpcs:ignore
+            public function __construct() { parent::__construct(); }
+
+            // phpcs:disable Generic.CodeAnalysis.UnusedFunctionParameter
+            protected function send(
+                string $to,
+                string $name,
+                string $subject,
+                string $body,
+                ?string $attachmentPath = null,
+                ?string $replyTo = null,
+                ?string $attachmentName = null,
+                ?string $attachmentString = null
+            ): void {
+                $this->capturedBody = $body;
+            }
+            // phpcs:enable
+        };
+        $this->injectMockMailer($service);
+
+        $service->sendOrderConfirmationToOwner(
+            'client@example.com',
+            'Client',
+            'CB-2026-SH',
+            'card',
+            [['name' => 'Vin', 'qty' => 1, 'price' => 20.0]],
+            20.0,
+            2.20,
+            null,
+            'shipping'
+        );
+
+        $this->assertStringContainsString('Remise livraison', $service->capturedBody);
+    }
+
+    /**
+     * setMailType() seam modifie currentType (rate log) pour les envois ultérieurs.
+     */
+    public function testSetMailTypeUpdatesCurrentType(): void
+    {
+        $this->callPrivate($this->service, 'setMailType', 'order');
+        $prop = (new ReflectionClass(MailService::class))->getProperty('currentType');
+        $prop->setAccessible(true);
+        $this->assertSame('order', $prop->getValue($this->service));
+
+        $this->callPrivate($this->service, 'setMailType', 'contact');
+        $this->assertSame('contact', $prop->getValue($this->service));
+    }
 }

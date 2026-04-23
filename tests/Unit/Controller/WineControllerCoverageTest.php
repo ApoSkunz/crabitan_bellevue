@@ -1190,4 +1190,116 @@ class WineControllerCoverageTest extends TestCase
 
         $this->assertTrue($ctrl->exitCalled, 'doExit() should have been reached after PDF Output');
     }
+
+    // ── technicalSheetQrLoader() — loader QR pour fiche technique ──────────
+
+    /**
+     * technicalSheetQrLoader() rend la vue loader avec lang, wineName et pdfUrl
+     * quand le vin est trouvé.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testTechnicalSheetQrLoaderRendersLoaderViewWhenWineFound(): void
+    {
+        $this->bootstrapApp();
+        $this->setDbMock();
+
+        $wine = $this->makeFakeWine();
+        $dbMock = $this->createMock(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturn($wine);
+        $dbMock->method('fetchAll')->willReturn([]);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        $_SERVER['REQUEST_URI'] = '/fr/vins/sainte-croix-du-mont-2020/fiche-technique/qr';
+
+        $ctrl = new class (new \Core\Request()) extends \Controller\WineController {
+            public ?string $lastTemplate = null;
+            /** @var array<string,mixed> */
+            public array $lastData = [];
+
+            /** @param array<string,mixed> $data */
+            protected function view(string $template, array $data = [], int $httpStatus = 200): void
+            {
+                $this->lastTemplate = $template;
+                $this->lastData     = $data;
+            }
+        };
+
+        $ctrl->technicalSheetQrLoader(['lang' => 'fr', 'slug' => 'sainte-croix-du-mont-2020']);
+
+        $this->assertSame('wines/fiche-technique-loader', $ctrl->lastTemplate);
+        $this->assertArrayHasKey('lang', $ctrl->lastData);
+        $this->assertArrayHasKey('wineName', $ctrl->lastData);
+        $this->assertArrayHasKey('pdfUrl', $ctrl->lastData);
+        $this->assertSame('fr', $ctrl->lastData['lang']);
+        $this->assertStringContainsString('Sainte-Croix-du-Mont', $ctrl->lastData['wineName']);
+        $this->assertStringContainsString('2020', $ctrl->lastData['wineName']);
+        $this->assertSame('/fr/vins/sainte-croix-du-mont-2020/fiche-technique', $ctrl->lastData['pdfUrl']);
+    }
+
+    /**
+     * technicalSheetQrLoader() renvoie 404 quand le vin n'existe pas.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testTechnicalSheetQrLoaderReturns404WhenWineNotFound(): void
+    {
+        $this->bootstrapApp();
+        $dbMock = $this->createMock(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturn(false);
+        $dbMock->method('fetchAll')->willReturn([]);
+        $this->instanceProp = new \ReflectionProperty(\Core\Database::class, 'instance');
+        $this->instanceProp->setValue(null, $dbMock);
+
+        $_SERVER['REQUEST_URI'] = '/fr/vins/inconnu/fiche-technique/qr';
+
+        $ctrl = new \Controller\WineController(new \Core\Request());
+
+        $this->expectException(HttpException::class);
+        try {
+            ob_start();
+            $ctrl->technicalSheetQrLoader(['lang' => 'fr', 'slug' => 'inconnu']);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * technicalSheetQrLoader() construit l'URL PDF en EN également.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testTechnicalSheetQrLoaderBuildsEnPdfUrl(): void
+    {
+        $this->bootstrapApp();
+        $this->setDbMock();
+
+        $wine = $this->makeFakeWine();
+        // vintage = 0 → pas de vintage dans le nom (couvre la branche ternaire)
+        $wine['vintage'] = 0;
+
+        $dbMock = $this->createMock(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturn($wine);
+        $dbMock->method('fetchAll')->willReturn([]);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        $_SERVER['REQUEST_URI'] = '/en/vins/sainte-croix-du-mont-2020/fiche-technique/qr';
+
+        $ctrl = new class (new \Core\Request()) extends \Controller\WineController {
+            /** @var array<string,mixed> */
+            public array $lastData = [];
+            /** @param array<string,mixed> $data */
+            protected function view(string $template, array $data = [], int $httpStatus = 200): void
+            {
+                $this->lastData = $data;
+            }
+        };
+
+        $ctrl->technicalSheetQrLoader(['lang' => 'en', 'slug' => 'sainte-croix-du-mont-2020']);
+
+        $this->assertSame('en', $ctrl->lastData['lang']);
+        $this->assertSame('/en/vins/sainte-croix-du-mont-2020/fiche-technique', $ctrl->lastData['pdfUrl']);
+        // vintage=0 → pas ajouté au wineName
+        $this->assertSame('Sainte-Croix-du-Mont', $ctrl->lastData['wineName']);
+    }
 }
