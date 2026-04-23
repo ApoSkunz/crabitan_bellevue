@@ -1326,7 +1326,8 @@ INNER;
      * @param string $safeRef       Référence commande déjà échappée (htmlspecialchars)
      * @return string HTML du bloc d'instructions ou chaîne vide
      */
-    private function buildPaymentInstructions(string $paymentMethod, string $lang, string $safeRef): string // NOSONAR — php:S1142 : retours multiples justifiés (virement/cheque × fr/en)
+    // NOSONAR — php:S1142 : retours multiples justifiés (virement/cheque × fr/en)
+    private function buildPaymentInstructions(string $paymentMethod, string $lang, string $safeRef): string
     {
         if (!in_array($paymentMethod, ['virement', 'cheque'], true)) {
             return '';
@@ -1378,7 +1379,8 @@ INNER;
      * @param string                    $lang 'fr' ou 'en'
      * @return string HTML (vide si $ctx absent)
      */
-    private function buildAddressBlock(?array $ctx, string $mode, string $lang): string // NOSONAR — php:S3776 : complexité justifiée (adresse × lang × mode × sections)
+    // NOSONAR — php:S3776 : complexité justifiée (adresse × lang × mode × sections)
+    private function buildAddressBlock(?array $ctx, string $mode, string $lang): string
     {
         if ($ctx === null) {
             return '';
