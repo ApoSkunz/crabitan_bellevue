@@ -978,6 +978,24 @@ CREATE TABLE IF NOT EXISTS `customer_reviews` (
 -- Journal des emails envoyés — rétention 25h (purge auto dans EmailRateLogModel).
 -- Monitoring des envois par canal SMTP, détection rate limit IONOS.
 -- ============================================================
+CREATE TABLE IF NOT EXISTS `cron_runs` (
+  `id`           INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `job_name`     VARCHAR(80)   NOT NULL,
+  `started_at`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `finished_at`  DATETIME      NULL,
+  `duration_ms`  INT UNSIGNED  NULL,
+  `status`       ENUM('running','success','error','skipped') NOT NULL DEFAULT 'running',
+  `dry_run`      TINYINT(1)    NOT NULL DEFAULT 0,
+  `actions_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Nombre d''actions effectuées (mails envoyés, lignes purgées…)',
+  `log_output`   TEXT          NULL COMMENT 'Log complet ou extrait des actions',
+  `error_message` VARCHAR(500) NULL,
+  PRIMARY KEY (`id`),
+  INDEX `idx_cron_runs_started_at` (`started_at`),
+  INDEX `idx_cron_runs_job_name`   (`job_name`),
+  INDEX `idx_cron_runs_status`     (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Journal d''exécution des jobs cron — rétention 30 jours';
+
 CREATE TABLE IF NOT EXISTS `email_rate_log` (
   `id`            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   `from_address`  VARCHAR(255)    NOT NULL COMMENT 'Adresse expéditrice (MAIL_USER du canal)',

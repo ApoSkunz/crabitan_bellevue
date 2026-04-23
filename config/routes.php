@@ -63,6 +63,7 @@ $router->post('/admin/securite/reinitialiser', 'Admin\ProfileAdminController@res
 $router->get('/admin/logs', 'Admin\AuditLogAdminController@index');
 $router->get('/admin/logs/export', 'Admin\AuditLogAdminController@export');
 $router->get('/admin/emails-rate', 'Admin\EmailRateAdminController@index');
+$router->get('/admin/monitoring-crons', 'Admin\CronMonitoringAdminController@index');
 $router->get('/admin/admins', 'Admin\AdminGestionAdminsController@index');
 $router->post('/admin/admins/{id}/bloquer', 'Admin\AdminGestionAdminsController@block');
 $router->post('/admin/admins/{id}/debloquer', 'Admin\AdminGestionAdminsController@unblock');

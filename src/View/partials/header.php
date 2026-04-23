@@ -840,6 +840,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <?php if ($isSuperAdmin) : ?>
                     <a href="/admin/logs">Journal d'audit</a>
                     <a href="/admin/admins">Gestion des admins</a>
+                    <a href="/admin/emails-rate">Monitoring emails</a>
+                    <a href="/admin/monitoring-crons">Monitoring crons</a>
                 <?php endif; ?>
             <?php else : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">

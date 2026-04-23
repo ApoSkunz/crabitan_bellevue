@@ -176,6 +176,15 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                 <dl class="admin-dl">
                     <dt>Statut</dt>
                     <dd><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span></dd>
+                    <dt>Mode de livraison</dt>
+                    <dd>
+                        <?php $isPickup = ($order['delivery_method'] ?? 'shipping') === 'pickup'; ?>
+                        <?php if ($isPickup) : ?>
+                            <span style="background:#f4e9d0;color:#6b4c1a;font-size:0.78rem;padding:3px 9px;border-radius:12px;letter-spacing:0.04em;">Click &amp; Collect — Retrait au château</span>
+                        <?php else : ?>
+                            <span style="background:#e8eefd;color:#2a4ab0;font-size:0.78rem;padding:3px 9px;border-radius:12px;letter-spacing:0.04em;">Livraison à domicile</span>
+                        <?php endif; ?>
+                    </dd>
                     <dt>Client</dt>
                     <dd>
                         <?php $isAnonymized = str_ends_with((string) ($order['email'] ?? ''), '@purged.invalid'); ?>

@@ -133,7 +133,12 @@ function buildPaginationUrl(
                                 <div style="font-size:0.75rem;color:#8a7a60;"><?= htmlspecialchars($order['email']) ?></div>
                             <?php endif; ?>
                         </td>
-                        <td data-label="Statut"><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span></td>
+                        <td data-label="Statut">
+                            <span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span>
+                            <?php if (($order['delivery_method'] ?? '') === 'pickup') : ?>
+                                <div style="font-size:0.7rem;color:#6b4c1a;margin-top:2px;">Retrait au château</div>
+                            <?php endif; ?>
+                        </td>
                         <td class="col-hide-tablet" data-label="Paiement" style="font-size:0.8rem;"><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></td>
                         <td data-label="Montant"><?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€</td>
                         <td data-label="Date" style="white-space:nowrap;font-size:0.82rem;"><?= date('d/m/Y H:i', strtotime($order['ordered_at'])) ?></td>
