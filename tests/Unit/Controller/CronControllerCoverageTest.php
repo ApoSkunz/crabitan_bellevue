@@ -1710,4 +1710,133 @@ class CronControllerCoverageTest extends TestCase
         $okLog = array_filter($logged, fn($msg) => str_contains($msg, '[OK]'));
         $this->assertNotEmpty($okLog, 'Expected [OK] log after markReviewEmailSent. Got: ' . implode(', ', $logged));
     }
+
+    // ================================================================
+    // run() — wrap CronRunModel start/finish — lines 60-86
+    // ================================================================
+
+    /**
+     * run() avec un job inconnu retourne 404 sans appeler CronRunModel (early return).
+     */
+    public function testRunReturnsNotFoundForUnknownJob(): void
+    {
+        $_ENV['CRON_SECRET_TOKEN'] = 'ok-token';
+        $_GET['token']             = 'ok-token';
+
+        $this->expectOutputRegex('/Unknown job: unknown-slug/');
+        $this->controller->run(['job' => 'unknown-slug']);
+        $this->assertSame(404, http_response_code());
+    }
+
+    /**
+     * run() avec un job valide appelle start(), exécute le runner, puis finishSuccess.
+     * Couvre L60-63 (start) + L75-79 (finishSuccess branch).
+     */
+    public function testRunCallsStartAndFinishSuccessOnExit0(): void
+    {
+        $_ENV['CRON_SECRET_TOKEN'] = 'ok-token';
+        $_GET['token']             = 'ok-token';
+
+        $dbMock = $this->mockDb();
+        // start() insert → id 42, purge execute
+        $dbMock->method('insert')->willReturn('42');
+        // start purge execute + finishSuccess execute
+        $dbMock->method('execute')->willReturn(0);
+        // pseudonymize-orders → new OrderModel()->pseudonymizeExpired() also calls execute
+        $dbMock->method('fetchOne')->willReturn(false);
+        $dbMock->method('fetchAll')->willReturn([]);
+
+        ob_start();
+        $this->controller->run(['job' => 'pseudonymize-orders']);
+        ob_end_clean();
+
+        // 200 attendu si exitCode=0 (run success)
+        $this->assertSame(200, http_response_code());
+    }
+
+    /**
+     * run() catch Throwable sur start() quand la BDD est KO — continue sans crash.
+     * Couvre L64-66 (catch).
+     */
+    public function testRunCatchesStartExceptionAndContinues(): void
+    {
+        $_ENV['CRON_SECRET_TOKEN'] = 'ok-token';
+        $_GET['token']             = 'ok-token';
+
+        $dbMock = $this->mockDb();
+        // insert() lève → runId reste à 0, finish* non appelé → pas de 2e catch
+        $dbMock->method('insert')->willThrowException(new \PDOException('DB down'));
+        $dbMock->method('execute')->willReturn(0);
+        $dbMock->method('fetchOne')->willReturn(false);
+        $dbMock->method('fetchAll')->willReturn([]);
+
+        ob_start();
+        $this->controller->run(['job' => 'pseudonymize-orders']);
+        ob_end_clean();
+
+        // Malgré l'exception sur start, le job s'est exécuté → 200
+        $this->assertSame(200, http_response_code());
+    }
+
+    /**
+     * run() appelle finishError quand le runner retourne exitCode != 0.
+     * Couvre L80-82 (finishError branch).
+     */
+    public function testRunCallsFinishErrorOnNonZeroExit(): void
+    {
+        $_ENV['CRON_SECRET_TOKEN'] = 'ok-token';
+        $_GET['token']             = 'ok-token';
+
+        $dbMock = $this->mockDb();
+        $dbMock->method('insert')->willReturn('99');
+        // execute() utilisé par start(), finishError(), et le job lui-même
+        $dbMock->method('execute')->willReturn(0);
+        $dbMock->method('fetchOne')->willReturn(false);
+        // getAbandonedForEmail lance exception → callback du runner throw → FATAL → exit=1
+        $dbMock->method('fetchAll')->willThrowException(new \RuntimeException('boom'));
+
+        ob_start();
+        $this->controller->run(['job' => 'send-abandoned-cart']);
+        ob_end_clean();
+
+        // exitCode=1 → 500
+        $this->assertSame(500, http_response_code());
+    }
+
+    /**
+     * run() catch Throwable sur finish() quand la BDD tombe entre start et finish.
+     * Couvre L83-85 (finish catch).
+     *
+     * Utilise send-abandoned-cart avec fetchAll vide → job n'exécute pas d'UPDATE.
+     * Le 1er execute est la purge de start(), le 2e est finishSuccess → throws.
+     */
+    public function testRunCatchesFinishException(): void
+    {
+        $_ENV['CRON_SECRET_TOKEN'] = 'ok-token';
+        $_GET['token']             = 'ok-token';
+
+        $dbMock = $this->mockDb();
+        $dbMock->method('insert')->willReturn('55');
+
+        $executeCount = 0;
+        $dbMock->method('execute')->willReturnCallback(
+            function () use (&$executeCount): int {
+                $executeCount++;
+                if ($executeCount >= 2) {
+                    throw new \PDOException('finish failed');
+                }
+                return 0;
+            }
+        );
+        $dbMock->method('fetchOne')->willReturn(false);
+        // send-abandoned-cart fetchAll vide → aucun envoi → aucun execute côté job
+        $dbMock->method('fetchAll')->willReturn([]);
+
+        ob_start();
+        $this->controller->run(['job' => 'send-abandoned-cart']);
+        ob_end_clean();
+
+        // Exception sur finish absorbée → job réputé OK → 200
+        $this->assertSame(200, http_response_code());
+    }
 }
