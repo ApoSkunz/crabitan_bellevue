@@ -77,6 +77,16 @@ class OrderController extends Controller
         return new \Service\MailService();
     }
 
+    /**
+     * Instancie StockNotificationService — seam de testabilité.
+     *
+     * @return StockNotificationService
+     */
+    protected function newStockNotificationService(): StockNotificationService
+    {
+        return new StockNotificationService();
+    }
+
     // ----------------------------------------------------------------
     // GET /{lang}/commande
     // ----------------------------------------------------------------
@@ -955,7 +965,7 @@ class OrderController extends Controller
         $newStock = max(0, (int) ($wine['stock_quantity'] ?? 0) - $qty);
 
         try {
-            (new StockNotificationService())->notifyIfThresholdCrossed($wine, $newStock);
+            $this->newStockNotificationService()->notifyIfThresholdCrossed($wine, $newStock);
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }

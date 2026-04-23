@@ -137,13 +137,23 @@ class CronControllerCoverageTest extends TestCase
      */
     public function testVerifyTokenOutputsNotFoundWhenTokenWrong(): void
     {
-        // Lines 70-73 contain exit() which is untestable in a standard unit test
-        // without process isolation. We verify via buffer capture that the output
-        // is produced, then catch any process-killing behaviour.
-        $this->markTestSkipped(
-            'verifyToken() calls exit() on invalid token — untestable without #[RunInSeparateProcess]; '
-            . 'covered by integration / E2E tests.'
-        );
+        $_ENV['CRON_SECRET_TOKEN'] = 'expected';
+        $_GET['token']             = 'wrong';
+
+        $ctrl = new class (new Request()) extends CronController {
+            protected function doExit(): never
+            {
+                throw new \RuntimeException('exit');
+            }
+        };
+
+        $m = new \ReflectionMethod(CronController::class, 'verifyToken');
+        $m->setAccessible(true);
+
+        $this->expectOutputRegex('/Not Found/');
+        $this->expectException(\RuntimeException::class);
+
+        $m->invoke($ctrl);
     }
 
     // ── doJobPurgeAccounts — lines 185-186 (catch mailer error) ──────────────
@@ -1088,25 +1098,27 @@ class CronControllerCoverageTest extends TestCase
      *
      * Runs in a separate process so that exit() does not kill the suite.
      */
-    #[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
-    #[\PHPUnit\Framework\Attributes\PreserveGlobalState(false)]
     public function testVerifyTokenExitsWithNotFoundOnInvalidToken(): void
     {
-        $this->markTestSkipped('Test de verifyToken() exit() instable en child process — couvert indirectement');
         $_ENV['CRON_SECRET_TOKEN'] = 'correct-token';
         $_GET['token']             = 'wrong-token';
+
+        // Sous-classe anonyme override doExit() seam pour tester sans tuer le runner
+        $ctrl = new class (new Request()) extends CronController {
+            protected function doExit(): never
+            {
+                throw new \RuntimeException('doExit called');
+            }
+        };
 
         $m = new \ReflectionMethod(CronController::class, 'verifyToken');
         $m->setAccessible(true);
 
         $this->expectOutputRegex('/Not Found/');
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('doExit called');
 
-        try {
-            $m->invoke($this->controller);
-        } catch (\Throwable $t) {
-            // exit() in subprocess mode may manifest as an exception in some
-            // PHPUnit versions; either way the output assertion is the goal.
-        }
+        $m->invoke($ctrl);
     }
 
     // ── processNewsletterQueueItem — line 737 (delayMs) ──────────────────────
@@ -1443,7 +1455,23 @@ class CronControllerCoverageTest extends TestCase
      */
     public function testVerifyTokenExitsWithNotFoundWhenTokenInvalid(): void
     {
-        $this->markTestSkipped('verifyToken() exit() instable en child process CI — couvert via integration/E2E.');
+        $_ENV['CRON_SECRET_TOKEN'] = 'valid-secret';
+        $_GET['token']             = 'invalid';
+
+        $ctrl = new class (new Request()) extends CronController {
+            protected function doExit(): never
+            {
+                throw new \RuntimeException('exited');
+            }
+        };
+
+        $m = new \ReflectionMethod(CronController::class, 'verifyToken');
+        $m->setAccessible(true);
+
+        $this->expectOutputRegex('/Not Found/');
+        $this->expectException(\RuntimeException::class);
+
+        $m->invoke($ctrl);
     }
 
     // ── doJobSendDeletionReminders — L336 : usleep après succès mailer ──────

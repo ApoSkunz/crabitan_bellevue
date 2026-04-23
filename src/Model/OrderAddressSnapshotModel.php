@@ -64,8 +64,9 @@ class OrderAddressSnapshotModel extends Model
                  ORDER BY id DESC LIMIT 1",
                 [$sourceAddressId, $firstname, $lastname, $city, $zip, $country]
             );
-            if ($existing !== false) {
-                $storedStreet = $this->encryption->decrypt((string) $existing['street']) ?? $existing['street'];
+            if (is_array($existing) && isset($existing['street'], $existing['id'])) {
+                $rawStreet    = (string) $existing['street'];
+                $storedStreet = $this->encryption->decrypt($rawStreet) ?? $rawStreet;
                 if ($storedStreet === $street) {
                     return (int) $existing['id'];
                 }

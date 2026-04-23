@@ -104,8 +104,18 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             http_response_code(404);
             header(self::CONTENT_TYPE);
             echo "Not Found\n";
-            exit;
+            $this->doExit();
         }
+    }
+
+    /**
+     * Termine l'exécution — seam de testabilité.
+     *
+     * @return never
+     */
+    protected function doExit(): never
+    {
+        exit;
     }
 
     /**

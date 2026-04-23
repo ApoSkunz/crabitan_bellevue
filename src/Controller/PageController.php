@@ -104,12 +104,10 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
             $mail->sendContactConfirmation($email, $firstname, $subject, $lang, $message);
         } catch (\Core\Exception\HttpException $e) {
             throw $e;
-        } catch (\RuntimeException $e) {
-            if ($e->getCode() === 429) {
+        } catch (\Throwable $e) {
+            if ($e instanceof \RuntimeException && $e->getCode() === 429) {
                 $this->json(['success' => false, 'message' => __('contact.error_rate_limit')], 429);
             }
-            throw $e;
-        } catch (\Exception $e) {
             $this->json(['success' => false, 'message' => __('contact.error_smtp')], 500);
         }
         $this->json(['success' => true, 'message' => __('contact.success')]);

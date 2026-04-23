@@ -992,7 +992,52 @@ class OrderControllerCoverageTest extends TestCase
      */
     public function testPostOrderStockActionsAbsorbsStockNotificationThrow(): void
     {
-        $this->markTestSkipped('StockNotificationService inline instantiation — couvert via seam dans autre controller.');
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande';
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturn([
+            'id'                    => 1,
+            'label_name'            => 'Wine',
+            'stock_quantity'        => 10,
+            'available'             => 1,
+            'image_path'            => '',
+            'low_stock_notified_at' => null,
+            'slug'                  => 'wine',
+            'vintage'               => 2020,
+            'is_cuvee_speciale'     => false,
+            'price'                 => 10.0,
+        ]);
+        $stub->method('fetchAll')->willReturn([]);
+        $stub->method('execute')->willReturn(1);
+
+        $stockMock = $this->createStub(\Service\StockNotificationService::class);
+        $stockMock->method('notifyIfThresholdCrossed')
+            ->willThrowException(new \RuntimeException('Stock config KO'));
+
+        $ctrl = new class (new Request(), $stockMock) extends OrderController {
+            private \Service\StockNotificationService $injected;
+
+            public function __construct(Request $r, \Service\StockNotificationService $s)
+            {
+                parent::__construct($r);
+                $this->injected = $s;
+            }
+
+            protected function newStockNotificationService(): \Service\StockNotificationService
+            {
+                return $this->injected;
+            }
+        };
+        $method = new ReflectionMethod(OrderController::class, 'postOrderStockActions');
+
+        try {
+            $method->invoke($ctrl, 1, 3);
+        } catch (\Throwable $e) {
+            $this->fail('postOrderStockActions should absorb StockNotification exceptions, got: ' . $e->getMessage());
+        }
+
+        $this->addToAssertionCount(1);
     }
 
     /**

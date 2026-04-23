@@ -830,13 +830,16 @@ class WineControllerCoverageTest extends TestCase
 
         $wine = $this->makeFakeWine();
 
-        $dbMock = $this->createMock(\Core\Database::class);
-        $dbMock->method('fetchOne')->willReturnOnConsecutiveCalls(
-            $wine,   // WineModel::getBySlug → wine found
-            null,    // WineNutritionModel::findByWineId
-            null,    // RatingModel::getAvgByWine
-            null,    // RatingModel::countByWine
-            ['prev' => null, 'next' => null] // getAdjacentAvailableSlugs
+        $dbMock = $this->createStub(\Core\Database::class);
+        $callCount = 0;
+        $dbMock->method('fetchOne')->willReturnCallback(
+            function () use (&$callCount, $wine): array|false {
+                $callCount++;
+                if ($callCount === 1) {
+                    return $wine;
+                }
+                return false;
+            }
         );
         $dbMock->method('fetchAll')->willReturn([]);
         $this->instanceProp = new \ReflectionProperty(\Core\Database::class, 'instance');
