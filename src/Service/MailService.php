@@ -1206,7 +1206,7 @@ INNER;
      * @param string               $lang            Langue du client ('fr' ou 'en')
      * @return void
      */
-    public function sendOrderConfirmationToClient( // NOSONAR php:S107 — 8 paramètres requis pour composer l'email de confirmation complet
+    public function sendOrderConfirmationToClient( // NOSONAR php:S107 — 10 paramètres requis pour composer l'email de confirmation complet
         string $toEmail,
         string $toName,
         string $orderRef,
@@ -1214,7 +1214,9 @@ INNER;
         array $items,
         float $total,
         string $lang,
-        float $shippingDiscount = 0.0
+        float $shippingDiscount = 0.0,
+        ?array $addressContext = null,
+        string $deliveryMethod = 'shipping'
     ): void {
         $this->setMailType('order');
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
@@ -1310,7 +1312,10 @@ INNER;
             $labelDiscount
         );
 
+        $addressesHtml = $this->buildAddressBlock($addressContext, $deliveryMethod, $lang);
+
         $message = $itemsHtml
+            . $addressesHtml
             . "<br><strong>{$labelPayment} :</strong> {$paymentLabel}{$deferredNote}"
             . "<br><strong>{$labelDelay} :</strong> {$delayValue}"
             . "<br>{$withdrawalNote}"
@@ -1328,6 +1333,77 @@ INNER;
     }
 
     /**
+     * Construit le bloc HTML récapitulatif adresses (livraison + facturation) + mode de livraison.
+     *
+     * @param array<string, mixed>|null $ctx  ['billing' => [...], 'delivery' => [...]] ou null
+     * @param string                    $mode 'shipping' ou 'pickup'
+     * @param string                    $lang 'fr' ou 'en'
+     * @return string HTML (vide si $ctx absent)
+     */
+    private function buildAddressBlock(?array $ctx, string $mode, string $lang): string
+    {
+        if ($ctx === null) {
+            return '';
+        }
+        $billing  = (array) ($ctx['billing']  ?? []);
+        $delivery = $ctx['delivery'] ?? null;
+        $isEn     = $lang === 'en';
+        $isPickup = $mode === 'pickup';
+
+        $titleMode = $isEn
+            ? ($isPickup ? 'Pickup mode: Click &amp; Collect — available at the château within 48h' : 'Delivery: home delivery')
+            : ($isPickup ? 'Mode : Click &amp; Collect — disponible au château sous 48h' : 'Livraison : à domicile');
+
+        $titleBill = $isEn ? 'Billing address' : 'Adresse de facturation';
+        $titleDeliv = $isEn ? 'Delivery address' : 'Adresse de livraison';
+
+        $fmtAddr = function (array $a): string {
+            $line = static fn (string $k): string => (string) ($a[$k] ?? '');
+            $name = trim($line('civility') . ' ' . $line('firstname') . ' ' . $line('lastname'));
+            $rows = [];
+            if ($name !== '') {
+                $rows[] = htmlspecialchars($name);
+            }
+            if ($line('company_name') !== '') {
+                $rows[] = htmlspecialchars($line('company_name'));
+            }
+            if ($line('street') !== '') {
+                $rows[] = htmlspecialchars($line('street'));
+            }
+            $cityZip = trim($line('zip') . ' ' . $line('city'));
+            if ($cityZip === '') {
+                $cityZip = trim($line('zip_code') . ' ' . $line('city'));
+            }
+            if ($cityZip !== '') {
+                $rows[] = htmlspecialchars($cityZip);
+            }
+            if ($line('country') !== '') {
+                $rows[] = htmlspecialchars($line('country'));
+            }
+            if ($line('phone') !== '') {
+                $rows[] = '<span style="color:#8a7a60;">☎ ' . htmlspecialchars($line('phone')) . '</span>';
+            }
+            return implode('<br>', $rows) ?: '—';
+        };
+
+        $boxStyle  = 'padding:12px 14px;background:#f7f3ec;border-radius:4px;font-size:13px;color:#3d3425;line-height:1.5;';
+        $modeBadge = '<div style="margin:12px 0 4px;padding:8px 12px;background:'
+            . ($isPickup ? '#f4e9d0' : '#e8eefd') . ';color:'
+            . ($isPickup ? '#6b4c1a' : '#2a4ab0') . ';border-radius:4px;font-size:13px;font-weight:600;">'
+            . $titleMode . '</div>';
+
+        $billHtml  = '<div style="margin-top:10px;"><strong>' . $titleBill . '</strong>'
+            . '<div style="' . $boxStyle . '">' . $fmtAddr($billing) . '</div></div>';
+        $delivHtml = '';
+        if (!$isPickup && is_array($delivery)) {
+            $delivHtml = '<div style="margin-top:10px;"><strong>' . $titleDeliv . '</strong>'
+                . '<div style="' . $boxStyle . '">' . $fmtAddr((array) $delivery) . '</div></div>';
+        }
+
+        return $modeBadge . $billHtml . $delivHtml;
+    }
+
+    /**
      * Notifie le propriétaire de la boutique qu'une nouvelle commande a été passée.
      *
      * @param string               $clientEmail   Adresse email du client
@@ -1338,7 +1414,7 @@ INNER;
      * @param float                $total         Total TTC en euros
      * @return void
      */
-    public function sendOrderConfirmationToOwner( // NOSONAR php:S107 — 8 paramètres requis pour le récap commande + PDF joint
+    public function sendOrderConfirmationToOwner( // NOSONAR php:S107 — 10 paramètres requis pour le récap commande + PDF joint + adresses
         string $clientEmail,
         string $clientName,
         string $orderRef,
@@ -1346,7 +1422,8 @@ INNER;
         array $items,
         float $total,
         float $shippingDiscount = 0.0,
-        ?array $pdfContext = null
+        ?array $pdfContext = null,
+        string $deliveryMethod = 'shipping'
     ): void {
         $this->setMailType('order');
         $ownerEmail    = $_ENV['CONTACT_OWNER_EMAIL'] ?? '';
@@ -1372,10 +1449,16 @@ INNER;
             'Remise livraison'
         );
 
+        $ownerAddrCtx = $pdfContext !== null
+            ? ['billing' => (array) ($pdfContext['billing'] ?? []), 'delivery' => $pdfContext['delivery'] ?? null]
+            : null;
+        $addressesHtml = $this->buildAddressBlock($ownerAddrCtx, $deliveryMethod, 'fr');
+
         $message = "<strong>Client :</strong> {$safeClient} ({$safeEmail})<br>"
             . "<strong>Référence :</strong> {$safeRef}<br>"
             . "<strong>Paiement :</strong> {$paymentLabel}<br><br>"
-            . $itemsHtml;
+            . $itemsHtml
+            . $addressesHtml;
 
         $subject = "Nouvelle commande {$safeRef} — {$safeEmail}";
         $body    = $this->emailSimpleLayout(

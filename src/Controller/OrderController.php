@@ -391,7 +391,8 @@ class OrderController extends Controller
                 $total,
                 (string) (($account !== false ? ($account['lang'] ?? null) : null) ?? $lang),
                 round($deliveryDiscount, 2),
-                $pdfContext
+                $pdfContext,
+                $deliveryMethod
             );
         }
 
@@ -490,8 +491,10 @@ class OrderController extends Controller
 
                     $this->generateAndStoreInvoice($ref);
                     try {
-                        $discount = (float) ($snapshot['delivery_discount'] ?? 0.0);
-                        $mail     = new \Service\MailService();
+                        $discount       = (float) ($snapshot['delivery_discount'] ?? 0.0);
+                        $deliveryMethod = (string) ($snapshot['delivery_method']   ?? 'shipping');
+                        $pdfContext     = (new \Service\OrderPdfContextBuilder())->build((array) $snapshot);
+                        $mail           = new \Service\MailService();
                         $mail->sendOrderConfirmationToClient(
                             (string) ($snapshot['client_email'] ?? ''),
                             (string) ($snapshot['client_name']  ?? ''),
@@ -500,9 +503,10 @@ class OrderController extends Controller
                             (array) $snapshot['items'],
                             (float) $snapshot['total'],
                             $lang,
-                            $discount
+                            $discount,
+                            $pdfContext,
+                            $deliveryMethod
                         );
-                        $pdfContext = (new \Service\OrderPdfContextBuilder())->build((array) $snapshot);
                         $mail->sendOrderConfirmationToOwner(
                             (string) ($snapshot['client_email'] ?? ''),
                             (string) ($snapshot['client_name']  ?? ''),
@@ -511,7 +515,8 @@ class OrderController extends Controller
                             (array) $snapshot['items'],
                             (float) $snapshot['total'],
                             $discount,
-                            $pdfContext
+                            $pdfContext,
+                            $deliveryMethod
                         );
                     } catch (\Throwable $mailError) {
                         \Core\ErrorLogger::warning($mailError, '[RETURN_OK]');
@@ -968,7 +973,7 @@ class OrderController extends Controller
         }
     }
 
-    private function dispatchOrderEmails( // NOSONAR — php:S107 : 9 paramètres requis pour envoyer les emails de confirmation commande
+    private function dispatchOrderEmails( // NOSONAR — php:S107 : 10 paramètres requis pour envoyer les emails de confirmation commande
         string $email,
         string $name,
         string $reference,
@@ -977,7 +982,8 @@ class OrderController extends Controller
         float $total,
         string $lang,
         float $shippingDiscount = 0.0,
-        ?array $pdfContext = null
+        ?array $pdfContext = null,
+        string $deliveryMethod = 'shipping'
     ): void {
         try {
             $mailer = $this->newMailService();
@@ -989,7 +995,9 @@ class OrderController extends Controller
                 $items,
                 $total,
                 $lang,
-                $shippingDiscount
+                $shippingDiscount,
+                $pdfContext,
+                $deliveryMethod
             );
             $mailer->sendOrderConfirmationToOwner(
                 $email,
@@ -999,7 +1007,8 @@ class OrderController extends Controller
                 $items,
                 $total,
                 $shippingDiscount,
-                $pdfContext
+                $pdfContext,
+                $deliveryMethod
             );
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
