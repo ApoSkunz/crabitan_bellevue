@@ -74,20 +74,20 @@ $typeLabelsFr = [
                         $danger   = $lastHour >= 475;
                     ?>
                         <tr>
-                            <td><?= htmlspecialchars($row['from_address']) ?></td>
-                            <td style="text-align:right;font-weight:600;"><?= (int) $row['total_sent'] ?></td>
-                            <td style="text-align:right;width:160px;">
-                                <span style="font-weight:600;<?= $danger ? 'color:#c0392b;' : ($warn ? 'color:#d97706;' : '') ?>"><?= $lastHour ?> / 500</span>
-                                <div style="width:120px;margin-left:auto;height:4px;background:#ede8df;border-radius:2px;margin-top:4px;">
+                            <td data-label="Adresse"><?= htmlspecialchars($row['from_address']) ?></td>
+                            <td data-label="Total" style="text-align:right;font-weight:600;"><?= (int) $row['total_sent'] ?></td>
+                            <td data-label="Dernière heure" style="text-align:right;min-width:140px;">
+                                <span style="font-weight:600;white-space:nowrap;<?= $danger ? 'color:#c0392b;' : ($warn ? 'color:#d97706;' : '') ?>"><?= $lastHour ?> / 500</span>
+                                <div style="width:100%;max-width:120px;margin-left:auto;height:4px;background:#ede8df;border-radius:2px;margin-top:4px;">
                                     <div style="width:<?= $pct ?>%;height:100%;background:<?= $danger ? '#c0392b' : ($warn ? '#d97706' : '#2d7a2d') ?>;border-radius:2px;"></div>
                                 </div>
                             </td>
-                            <td style="text-align:right;color:#2d7a2d;"><?= (int) $row['success_count'] ?></td>
-                            <td style="text-align:right;<?= (int) $row['error_count'] > 0 ? 'color:#c0392b;font-weight:600;' : '' ?>">
+                            <td data-label="Succès" style="text-align:right;color:#2d7a2d;"><?= (int) $row['success_count'] ?></td>
+                            <td data-label="Erreurs" style="text-align:right;<?= (int) $row['error_count'] > 0 ? 'color:#c0392b;font-weight:600;' : '' ?>">
                                 <?= (int) $row['error_count'] ?>
                             </td>
-                            <td style="font-size:0.8rem;color:#5a4a3a;"><?= htmlspecialchars($row['first_at'] ?? '—') ?></td>
-                            <td style="font-size:0.8rem;color:#5a4a3a;"><?= htmlspecialchars($row['last_at'] ?? '—') ?></td>
+                            <td data-label="Premier" style="font-size:0.8rem;color:#5a4a3a;"><?= htmlspecialchars($row['first_at'] ?? '—') ?></td>
+                            <td data-label="Dernier" style="font-size:0.8rem;color:#5a4a3a;"><?= htmlspecialchars($row['last_at'] ?? '—') ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

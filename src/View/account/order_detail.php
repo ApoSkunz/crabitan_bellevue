@@ -193,9 +193,8 @@ $paymentMap  = [
                 <?php endif; ?>
             </section>
 
-            <!-- Adresses (masquées si commande annulée) -->
-            <?php if ($order['status'] !== 'cancelled') : ?>
-            <div class="order-addresses">
+            <!-- Adresses (toujours affichées, pickup = château) -->
+            <div class="order-addresses<?= $order['status'] === 'cancelled' ? ' order-addresses--no-divider' : '' ?>">
                 <section class="account-section order-address-block">
                     <h2 class="account-section__title"><?= __('account.order_billing') ?></h2>
                     <address class="order-address">
@@ -231,7 +230,6 @@ $paymentMap  = [
                     </section>
                 <?php endif; ?>
             </div>
-            <?php endif; ?>
 
             <!-- Annulation (uniquement si en attente de paiement) -->
             <?php $qs = '?subject='; ?>

@@ -81,8 +81,10 @@ if (!function_exists('buildInvoiceUrl')) {
                        placeholder="N° facture, réf. commande…"
                        value="<?= htmlspecialchars($search ?? '') ?>">
             </div>
-            <noscript><button type="submit" class="admin-filters__btn">Filtrer</button></noscript>
-            <a href="/admin/factures" class="admin-btn admin-btn--dark admin-btn--sm">Réinitialiser</a>
+            <div style="align-self:flex-end;">
+                <noscript><button type="submit" class="admin-filters__btn">Filtrer</button></noscript>
+                <a href="/admin/factures" class="admin-btn admin-btn--dark admin-btn--sm">Réinitialiser</a>
+            </div>
         </form>
 
         <?php

@@ -68,6 +68,16 @@ body.has-pdf { background:#1a1208; }
     // Safety : si le fetch n'aboutit pas en 15s, redirect direct
     var timeoutId = setTimeout(function () { window.location.href = url; }, 15000);
 
+    // Progression pseudo toujours visible (min 1.2s) même si PDF très rapide
+    var fakeStart = Date.now();
+    var fakeMax   = 90;
+    var fakeTimer = setInterval(function () {
+        var elapsed = Date.now() - fakeStart;
+        var target  = Math.min(fakeMax, (elapsed / 1200) * fakeMax);
+        var current = parseInt(bar.style.width || '0', 10);
+        if (target > current) setProgress(target);
+    }, 60);
+
     fetch(url).then(function (response) {
         clearTimeout(timeoutId);
         if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -79,18 +89,18 @@ body.has-pdf { background:#1a1208; }
         function read() {
             return reader.read().then(function (res) {
                 if (res.done) {
+                    clearInterval(fakeTimer);
                     setProgress(100);
                     var blob = new Blob(chunks, { type: 'application/pdf' });
-                    setTimeout(function () { showPdf(URL.createObjectURL(blob)); }, 200);
+                    // Min 1.2s d'affichage pour que l'animation soit visible
+                    var minElapsed = Math.max(0, 1200 - (Date.now() - fakeStart));
+                    setTimeout(function () { showPdf(URL.createObjectURL(blob)); }, minElapsed + 200);
                     return;
                 }
                 chunks.push(res.value);
                 loaded += res.value.length;
                 if (total > 0) {
-                    setProgress((loaded / total) * 100);
-                } else {
-                    // Pas de Content-Length : progression pseudo
-                    setProgress(Math.min(90, (loaded / 65536) * 10));
+                    setProgress(Math.max(parseInt(bar.style.width || '0', 10), (loaded / total) * 90));
                 }
                 return read();
             });

@@ -866,6 +866,11 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1.5rem;
+
+    &--no-divider .account-section {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
 }
 
 .order-address {
