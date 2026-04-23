@@ -127,20 +127,24 @@ $statusBadge = function (string $status): string {
             </table>
         <?php endif; ?>
     </div>
-    <?php if ($totalPages > 1) : ?>
+    <?php if ($totalPages > 1) :
+        $disabledSuffix = ' disabled';
+        $prevDisabled   = $page <= 1 ? $disabledSuffix : '';
+        $nextDisabled   = $page >= $totalPages ? $disabledSuffix : '';
+        ?>
     <div class="admin-pagination">
         <a href="<?= htmlspecialchars(cronMonUrl(1, $perPage)) ?>"
-           class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>" aria-label="Première page">«</a>
+           class="admin-pagination__item<?= $prevDisabled ?>" aria-label="Première page">«</a>
         <a href="<?= htmlspecialchars(cronMonUrl(max(1, $page - 1), $perPage)) ?>"
-           class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>">‹</a>
+           class="admin-pagination__item<?= $prevDisabled ?>">‹</a>
         <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
             <a href="<?= htmlspecialchars(cronMonUrl($i, $perPage)) ?>"
                class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"><?= $i ?></a>
         <?php endfor; ?>
         <a href="<?= htmlspecialchars(cronMonUrl(min($totalPages, $page + 1), $perPage)) ?>"
-           class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>">›</a>
+           class="admin-pagination__item<?= $nextDisabled ?>">›</a>
         <a href="<?= htmlspecialchars(cronMonUrl($totalPages, $perPage)) ?>"
-           class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>" aria-label="Dernière page">»</a>
+           class="admin-pagination__item<?= $nextDisabled ?>" aria-label="Dernière page">»</a>
     </div>
     <?php endif; ?>
 </div>

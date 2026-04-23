@@ -72,14 +72,24 @@ $typeLabelsFr = [
                         $pct      = (int) min(100, round(($lastHour / 500) * 100));
                         $warn     = $lastHour >= 400;
                         $danger   = $lastHour >= 475;
+                        if ($danger) {
+                            $textColorStyle = 'color:#c0392b;';
+                            $barColor       = '#c0392b';
+                        } elseif ($warn) {
+                            $textColorStyle = 'color:#d97706;';
+                            $barColor       = '#d97706';
+                        } else {
+                            $textColorStyle = '';
+                            $barColor       = '#2d7a2d';
+                        }
                     ?>
                         <tr>
                             <td data-label="Adresse"><?= htmlspecialchars($row['from_address']) ?></td>
                             <td data-label="Total" style="text-align:right;font-weight:600;"><?= (int) $row['total_sent'] ?></td>
                             <td data-label="Dernière heure" style="text-align:right;min-width:140px;">
-                                <span style="font-weight:600;white-space:nowrap;<?= $danger ? 'color:#c0392b;' : ($warn ? 'color:#d97706;' : '') ?>"><?= $lastHour ?> / 500</span>
+                                <span style="font-weight:600;white-space:nowrap;<?= $textColorStyle ?>"><?= $lastHour ?> / 500</span>
                                 <div style="width:100%;max-width:120px;margin-left:auto;height:4px;background:#ede8df;border-radius:2px;margin-top:4px;">
-                                    <div style="width:<?= $pct ?>%;height:100%;background:<?= $danger ? '#c0392b' : ($warn ? '#d97706' : '#2d7a2d') ?>;border-radius:2px;"></div>
+                                    <div style="width:<?= $pct ?>%;height:100%;background:<?= $barColor ?>;border-radius:2px;"></div>
                                 </div>
                             </td>
                             <td data-label="Succès" style="text-align:right;color:#2d7a2d;"><?= (int) $row['success_count'] ?></td>
@@ -164,20 +174,24 @@ $typeLabelsFr = [
         <?php endif; ?>
     </div>
 
-    <?php if ($totalPages > 1) : ?>
+    <?php if ($totalPages > 1) :
+        $disabledSuffix = ' disabled';
+        $prevDisabled   = $page <= 1 ? $disabledSuffix : '';
+        $nextDisabled   = $page >= $totalPages ? $disabledSuffix : '';
+        ?>
     <div class="admin-pagination">
         <a href="<?= htmlspecialchars(emailRateUrl(1, $perPage)) ?>"
-           class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>" aria-label="Première page">«</a>
+           class="admin-pagination__item<?= $prevDisabled ?>" aria-label="Première page">«</a>
         <a href="<?= htmlspecialchars(emailRateUrl(max(1, $page - 1), $perPage)) ?>"
-           class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>">‹</a>
+           class="admin-pagination__item<?= $prevDisabled ?>">‹</a>
         <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
             <a href="<?= htmlspecialchars(emailRateUrl($i, $perPage)) ?>"
                class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"><?= $i ?></a>
         <?php endfor; ?>
         <a href="<?= htmlspecialchars(emailRateUrl(min($totalPages, $page + 1), $perPage)) ?>"
-           class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>">›</a>
+           class="admin-pagination__item<?= $nextDisabled ?>">›</a>
         <a href="<?= htmlspecialchars(emailRateUrl($totalPages, $perPage)) ?>"
-           class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>" aria-label="Dernière page">»</a>
+           class="admin-pagination__item<?= $nextDisabled ?>" aria-label="Dernière page">»</a>
     </div>
     <?php endif; ?>
 </div>
