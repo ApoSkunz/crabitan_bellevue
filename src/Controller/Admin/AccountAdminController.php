@@ -9,6 +9,7 @@ use Model\AccountModel;
 use Model\PasswordResetModel;
 use Service\AuditLogger;
 use Service\MailService;
+use ValueObject\AccountAdminFilters;
 
 class AccountAdminController extends AdminController
 {
@@ -51,8 +52,17 @@ class AccountAdminController extends AdminController
         $activityReq = $this->request->get('activity');
         $activity    = in_array($activityReq, ['active', 'inactive', 'deleted'], true) ? $activityReq : null;
 
-        $total = $accounts->countForAdmin($role, $search ?: null, $type, $hasOrdered, $activity);
-        $list  = $accounts->getForAdmin($perPage, ($page - 1) * $perPage, $role, $search ?: null, $type, $sort, $hasOrdered, $activity);
+        $filters = new AccountAdminFilters(
+            role: $role,
+            search: $search ?: null,
+            type: $type,
+            sort: $sort,
+            hasOrdered: $hasOrdered,
+            activity: $activity
+        );
+
+        $total = $accounts->countForAdmin($filters);
+        $list  = $accounts->getForAdmin($perPage, ($page - 1) * $perPage, $filters);
 
         $this->view('admin/accounts/index', [
             'adminUser'    => $adminUser,

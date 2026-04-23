@@ -11,6 +11,8 @@ use Service\AuditLogger;
 
 class PricingAdminController extends AdminController
 {
+    private const REDIRECT_URL = '/admin/tarifs';
+
     private PricingModel $pricing;
 
     /**
@@ -67,7 +69,7 @@ class PricingAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/tarifs');
+            Response::redirect(self::REDIRECT_URL);
         }
 
         $discount = (float) str_replace(',', '.', $this->request->post('cc_discount', '0'));
@@ -83,7 +85,7 @@ class PricingAdminController extends AdminController
         );
 
         $this->flash('success', 'Remise Click & Collect mise à jour.');
-        Response::redirect('/admin/tarifs');
+        Response::redirect(self::REDIRECT_URL);
     }
 
     // ----------------------------------------------------------------
@@ -102,7 +104,7 @@ class PricingAdminController extends AdminController
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
-            Response::redirect('/admin/tarifs');
+            Response::redirect(self::REDIRECT_URL);
         }
 
         $ids = $this->request->post('id', []);
@@ -136,6 +138,6 @@ class PricingAdminController extends AdminController
         );
 
         $this->flash('success', 'Tarifs mis à jour avec succès.');
-        Response::redirect('/admin/tarifs');
+        Response::redirect(self::REDIRECT_URL);
     }
 }
