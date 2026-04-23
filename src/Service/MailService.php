@@ -1326,7 +1326,6 @@ INNER;
      * @param string $safeRef       Référence commande déjà échappée (htmlspecialchars)
      * @return string HTML du bloc d'instructions ou chaîne vide
      */
-    // NOSONAR — php:S1142 : retours multiples justifiés (virement/cheque × fr/en)
     private function buildPaymentInstructions(string $paymentMethod, string $lang, string $safeRef): string
     {
         if (!in_array($paymentMethod, ['virement', 'cheque'], true)) {
@@ -1339,36 +1338,34 @@ INNER;
             ? '<br><em>Your order will be dispatched upon receipt of payment.</em>'
             : '<br><em>Commande expédiée dès réception du paiement.</em>';
 
-        if ($paymentMethod === 'virement') {
-            if ($isEn) {
-                return $deferredLead
-                    . '<br><br><strong>Bank details:</strong>'
+        $templates = [
+            'virement' => [
+                'en' => '<br><br><strong>Bank details:</strong>'
                     . '<br>Beneficiary: G.F.A Bernard Solane &amp; Fils'
                     . '<br>IBAN: FR76 3000 6000 0112 3456 7890 189'
-                    . "<br>Reference: {$safeRef}";
-            }
-            return $deferredLead
-                . '<br><br><strong>Coordonnées bancaires :</strong>'
-                . '<br>Bénéficiaire : G.F.A Bernard Solane &amp; Fils'
-                . '<br>IBAN : FR76 3000 6000 0112 3456 7890 189'
-                . "<br>Référence à indiquer : {$safeRef}";
-        }
+                    . "<br>Reference: {$safeRef}",
+                'fr' => '<br><br><strong>Coordonnées bancaires :</strong>'
+                    . '<br>Bénéficiaire : G.F.A Bernard Solane &amp; Fils'
+                    . '<br>IBAN : FR76 3000 6000 0112 3456 7890 189'
+                    . "<br>Référence à indiquer : {$safeRef}",
+            ],
+            'cheque'   => [
+                'en' => '<br><br><strong>Cheque payable to:</strong>'
+                    . '<br>G.F.A Bernard Solane &amp; Fils'
+                    . '<br>1 Château Crabitan Bellevue'
+                    . '<br>33410 Sainte-Croix-du-Mont, France'
+                    . "<br>Please write your reference on the back: {$safeRef}",
+                'fr' => '<br><br><strong>Chèque à l\'ordre de :</strong>'
+                    . '<br>G.F.A Bernard Solane &amp; Fils'
+                    . '<br>1 Château Crabitan Bellevue'
+                    . '<br>33410 Sainte-Croix-du-Mont'
+                    . "<br>Merci d'indiquer au dos : {$safeRef}",
+            ],
+        ];
 
-        // cheque
-        if ($isEn) {
-            return $deferredLead
-                . '<br><br><strong>Cheque payable to:</strong>'
-                . '<br>G.F.A Bernard Solane &amp; Fils'
-                . '<br>1 Château Crabitan Bellevue'
-                . '<br>33410 Sainte-Croix-du-Mont, France'
-                . "<br>Please write your reference on the back: {$safeRef}";
-        }
-        return $deferredLead
-            . '<br><br><strong>Chèque à l\'ordre de :</strong>'
-            . '<br>G.F.A Bernard Solane &amp; Fils'
-            . '<br>1 Château Crabitan Bellevue'
-            . '<br>33410 Sainte-Croix-du-Mont'
-            . "<br>Merci d'indiquer au dos : {$safeRef}";
+        $langKey = $isEn ? 'en' : 'fr';
+
+        return $deferredLead . $templates[$paymentMethod][$langKey];
     }
 
     /**
@@ -1379,83 +1376,110 @@ INNER;
      * @param string                    $lang 'fr' ou 'en'
      * @return string HTML (vide si $ctx absent)
      */
-    // NOSONAR — php:S3776 : complexité justifiée (adresse × lang × mode × sections)
-    private function buildAddressBlock(?array $ctx, string $mode, string $lang): string
+    /**
+     * Formate les champs d'une adresse en lignes HTML.
+     *
+     * @param array<string, mixed> $a Tableau de champs adresse
+     * @return string Lignes HTML séparées par <br>, ou '—' si vide
+     */
+    private function formatAddressHtml(array $a): string
     {
-        if ($ctx === null) {
-            return '';
+        $line = static fn (string $k): string => (string) ($a[$k] ?? '');
+        $name = trim($line('civility') . ' ' . $line('firstname') . ' ' . $line('lastname'));
+        $rows = [];
+        if ($name !== '') {
+            $rows[] = htmlspecialchars($name);
         }
-        $billing  = (array) ($ctx['billing']  ?? []);
-        $delivery = $ctx['delivery'] ?? null;
-        $isEn     = $lang === 'en';
-        $isPickup = $mode === 'pickup';
-
-        if ($isEn) {
-            $titleMode = $isPickup
-                ? 'Pickup mode: Click &amp; Collect — available at the château within 48h'
-                : 'Delivery: home delivery';
-        } else {
-            $titleMode = $isPickup
-                ? 'Mode : Click &amp; Collect — disponible au château sous 48h'
-                : 'Livraison : à domicile';
+        if ($line('company_name') !== '') {
+            $rows[] = htmlspecialchars($line('company_name'));
         }
-
-        $titleBill = $isEn ? 'Billing address' : 'Adresse de facturation';
-        $titleDeliv = $isEn ? 'Delivery address' : 'Adresse de livraison';
-
-        $fmtAddr = function (array $a): string {
-            $line = static fn (string $k): string => (string) ($a[$k] ?? '');
-            $name = trim($line('civility') . ' ' . $line('firstname') . ' ' . $line('lastname'));
-            $rows = [];
-            if ($name !== '') {
-                $rows[] = htmlspecialchars($name);
-            }
-            if ($line('company_name') !== '') {
-                $rows[] = htmlspecialchars($line('company_name'));
-            }
-            if ($line('street') !== '') {
-                $rows[] = htmlspecialchars($line('street'));
-            }
-            $cityZip = trim($line('zip') . ' ' . $line('city'));
-            if ($cityZip === '') {
-                $cityZip = trim($line('zip_code') . ' ' . $line('city'));
-            }
-            if ($cityZip !== '') {
-                $rows[] = htmlspecialchars($cityZip);
-            }
-            if ($line('country') !== '') {
-                $rows[] = htmlspecialchars($line('country'));
-            }
-            if ($line('phone') !== '') {
-                $rows[] = '<span style="color:#8a7a60;">☎ ' . htmlspecialchars($line('phone')) . '</span>';
-            }
-            return implode('<br>', $rows) ?: '—';
-        };
-
-        $boxStyle  = 'padding:12px 14px;background:#f7f3ec;border-radius:4px;font-size:13px;color:#3d3425;line-height:1.5;';
-        $modeBadge = '<div style="margin:12px 0 4px;padding:8px 12px;background:'
-            . ($isPickup ? '#f4e9d0' : '#e8eefd') . ';color:'
-            . ($isPickup ? '#6b4c1a' : '#2a4ab0') . ';border-radius:4px;font-size:13px;font-weight:600;">'
-            . $titleMode . '</div>';
-
-        $billHtml  = '<div style="margin-top:10px;"><strong>' . $titleBill . '</strong>'
-            . '<div style="' . $boxStyle . '">' . $fmtAddr($billing) . '</div></div>';
-        $delivHtml = '';
-        if (!$isPickup && is_array($delivery)) {
-            $delivHtml = '<div style="margin-top:10px;"><strong>' . $titleDeliv . '</strong>'
-                . '<div style="' . $boxStyle . '">' . $fmtAddr((array) $delivery) . '</div></div>';
+        if ($line('street') !== '') {
+            $rows[] = htmlspecialchars($line('street'));
         }
+        $cityZip = trim($line('zip') . ' ' . $line('city'));
+        if ($cityZip === '') {
+            $cityZip = trim($line('zip_code') . ' ' . $line('city'));
+        }
+        if ($cityZip !== '') {
+            $rows[] = htmlspecialchars($cityZip);
+        }
+        if ($line('country') !== '') {
+            $rows[] = htmlspecialchars($line('country'));
+        }
+        if ($line('phone') !== '') {
+            $rows[] = '<span style="color:#8a7a60;">☎ ' . htmlspecialchars($line('phone')) . '</span>';
+        }
+        return implode('<br>', $rows) ?: '—';
+    }
+
+    /**
+     * Construit le bloc HTML de la section adresse de livraison ou retrait en château.
+     *
+     * @param array<string, mixed>|null $delivery  Données adresse livraison, ou null
+     * @param bool                      $isPickup  Vrai si mode Click & Collect
+     * @param bool                      $isEn      Vrai si langue anglaise
+     * @param string                    $boxStyle  Style CSS inline de la boîte adresse
+     * @param string                    $titleDeliv Libellé titre livraison
+     * @return string HTML du bloc, ou chaîne vide
+     */
+    private function buildDeliveryHtml(
+        ?array $delivery,
+        bool $isPickup,
+        bool $isEn,
+        string $boxStyle,
+        string $titleDeliv
+    ): string {
         if ($isPickup) {
             $chateauTitle = $isEn ? 'Pickup address' : 'Adresse de retrait';
             $chateauHtml  = 'Château Crabitan Bellevue<br>'
                 . '1 Crabitan Bellevue<br>'
                 . '33410 Sainte-Croix-du-Mont<br>'
                 . 'France';
-            $delivHtml = '<div style="margin-top:10px;"><strong>' . $chateauTitle . '</strong>'
+            return '<div style="margin-top:10px;"><strong>' . $chateauTitle . '</strong>'
                 . '<div style="' . $boxStyle . '">' . $chateauHtml . '</div></div>';
         }
+        if (is_array($delivery)) {
+            return '<div style="margin-top:10px;"><strong>' . $titleDeliv . '</strong>'
+                . '<div style="' . $boxStyle . '">' . $this->formatAddressHtml($delivery) . '</div></div>';
+        }
+        return '';
+    }
 
-        return $modeBadge . $billHtml . $delivHtml;
+    /**
+     * Construit le bloc HTML récapitulatif adresses (livraison + facturation) + mode de livraison.
+     *
+     * @param array<string, mixed>|null $ctx  ['billing' => [...], 'delivery' => [...]] ou null
+     * @param string                    $mode 'shipping' ou 'pickup'
+     * @param string                    $lang 'fr' ou 'en'
+     * @return string HTML (vide si $ctx absent)
+     */
+    private function buildAddressBlock(?array $ctx, string $mode, string $lang): string
+    {
+        if ($ctx === null) {
+            return '';
+        }
+        $billing  = (array) ($ctx['billing']  ?? []);
+        $delivery = isset($ctx['delivery']) && is_array($ctx['delivery']) ? $ctx['delivery'] : null;
+        $isEn     = $lang === 'en';
+        $isPickup = $mode === 'pickup';
+
+        $titleMode = $isEn
+            ? ($isPickup ? 'Pickup mode: Click &amp; Collect — available at the château within 48h' : 'Delivery: home delivery')
+            : ($isPickup ? 'Mode : Click &amp; Collect — disponible au château sous 48h' : 'Livraison : à domicile');
+
+        $titleBill  = $isEn ? 'Billing address' : 'Adresse de facturation';
+        $titleDeliv = $isEn ? 'Delivery address' : 'Adresse de livraison';
+        $boxStyle   = 'padding:12px 14px;background:#f7f3ec;border-radius:4px;font-size:13px;color:#3d3425;line-height:1.5;';
+
+        $modeBadge = '<div style="margin:12px 0 4px;padding:8px 12px;background:'
+            . ($isPickup ? '#f4e9d0' : '#e8eefd') . ';color:'
+            . ($isPickup ? '#6b4c1a' : '#2a4ab0') . ';border-radius:4px;font-size:13px;font-weight:600;">'
+            . $titleMode . '</div>';
+
+        $billHtml = '<div style="margin-top:10px;"><strong>' . $titleBill . '</strong>'
+            . '<div style="' . $boxStyle . '">' . $this->formatAddressHtml($billing) . '</div></div>';
+
+        return $modeBadge . $billHtml . $this->buildDeliveryHtml($delivery, $isPickup, $isEn, $boxStyle, $titleDeliv);
     }
 
     /**

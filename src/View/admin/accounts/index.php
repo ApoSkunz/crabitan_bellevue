@@ -6,9 +6,16 @@ $roleLabels = ['customer' => 'Client', 'admin' => 'Admin', 'super_admin' => 'Sup
 $isSuperAdmin = $currentRole === 'super_admin';
 
 if (!function_exists('accountUrl')) {
-// NOSONAR — php:S107 : params nécessaires pour reconstruire l'URL de pagination avec tous les filtres admin
-function accountUrl(int $p, ?string $role, ?string $type, string $search, int $perPage, ?string $sort = null, ?string $hasOrdered = null, ?string $activity = null): string
-{
+function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstruire l'URL de pagination avec tous les filtres admin
+    int $p,
+    ?string $role,
+    ?string $type,
+    string $search,
+    int $perPage,
+    ?string $sort = null,
+    ?string $hasOrdered = null,
+    ?string $activity = null
+): string {
     $q = ['page' => $p];
     if ($role) {
         $q['role'] = $role;
