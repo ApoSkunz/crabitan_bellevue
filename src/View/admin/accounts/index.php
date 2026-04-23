@@ -227,6 +227,8 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
 
     <?php if ($totalPages > 1) : ?>
         <div class="admin-pagination">
+            <a href="<?= htmlspecialchars(accountUrl(1, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+               class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>" aria-label="Première page">«</a>
             <a href="<?= htmlspecialchars(accountUrl(max(1, $page - 1), $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
                class="admin-pagination__item<?= $page <= 1 ? ' disabled' : '' ?>">‹</a>
             <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
@@ -235,6 +237,8 @@ function accountUrl(int $p, ?string $role, ?string $type, string $search, int $p
             <?php endfor; ?>
             <a href="<?= htmlspecialchars(accountUrl(min($totalPages, $page + 1), $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
                class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>">›</a>
+            <a href="<?= htmlspecialchars(accountUrl($totalPages, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+               class="admin-pagination__item<?= $page >= $totalPages ? ' disabled' : '' ?>" aria-label="Dernière page">»</a>
         </div>
     <?php endif; ?>
 </div>

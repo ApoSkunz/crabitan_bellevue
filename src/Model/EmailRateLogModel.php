@@ -22,6 +22,7 @@ class EmailRateLogModel extends Model
      * @param string      $subject      Sujet de l'email
      * @param bool        $success      true si envoi réussi, false sinon
      * @param string|null $errorMessage Message d'erreur en cas d'échec
+     * @param string      $type         Catégorie d'email (contact, register, reset_password, cron_*, other)
      * @return void
      */
     public function log(
@@ -29,15 +30,17 @@ class EmailRateLogModel extends Model
         string $toAddress,
         string $subject,
         bool $success,
-        ?string $errorMessage
+        ?string $errorMessage,
+        string $type = 'other'
     ): void {
         $this->db->execute(
-            'INSERT INTO email_rate_log (from_address, to_address, subject, success, error_message)
-             VALUES (:from, :to, :subject, :success, :error)',
+            'INSERT INTO email_rate_log (from_address, to_address, subject, type, success, error_message)
+             VALUES (:from, :to, :subject, :type, :success, :error)',
             [
                 ':from'    => $fromAddress,
                 ':to'      => $toAddress,
                 ':subject' => mb_substr($subject, 0, 500),
+                ':type'    => mb_substr($type, 0, 40),
                 ':success' => $success ? 1 : 0,
                 ':error'   => $errorMessage !== null ? mb_substr($errorMessage, 0, 500) : null,
             ]
@@ -69,6 +72,32 @@ class EmailRateLogModel extends Model
     }
 
     /**
+     * Retourne le nombre total de logs (pour pagination).
+     */
+    public function countAll(): int
+    {
+        $row = $this->db->fetchOne('SELECT COUNT(*) AS cnt FROM email_rate_log');
+        return (int) ($row['cnt'] ?? 0);
+    }
+
+    /**
+     * Retourne une page de logs triés par date décroissante.
+     *
+     * @param int $limit  Nombre d'entrées par page
+     * @param int $offset Décalage
+     * @return array<int, array<string, mixed>>
+     */
+    public function getPage(int $limit, int $offset): array
+    {
+        $safeLimit  = max(1, $limit);
+        $safeOffset = max(0, $offset);
+
+        return $this->db->fetchAll(
+            "SELECT * FROM email_rate_log ORDER BY sent_at DESC LIMIT {$safeLimit} OFFSET {$safeOffset}"
+        );
+    }
+
+    /**
      * Retourne les N derniers logs triés par date décroissante.
      *
      * @param int $limit Nombre maximum d'entrées (défaut : 100)
@@ -76,10 +105,6 @@ class EmailRateLogModel extends Model
      */
     public function getRecentLogs(int $limit = 100): array
     {
-        $safeLimit = max(1, (int) $limit);
-
-        return $this->db->fetchAll(
-            "SELECT * FROM email_rate_log ORDER BY sent_at DESC LIMIT {$safeLimit}"
-        );
+        return $this->getPage($limit, 0);
     }
 }

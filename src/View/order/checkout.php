@@ -494,17 +494,19 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                 <span><?= htmlspecialchars(__('cart.subtotal_label')) ?></span>
                                 <span><?= number_format($subtotal, 2, ',', ' ') ?>&nbsp;€</span>
                             </div>
-                            <?php if ($deliveryDiscount > 0.0) : ?>
-                            <div class="checkout-summary__row checkout-summary__row--discount js-delivery-discount-row">
-                                <span><?= htmlspecialchars(__('cart.delivery_discount')) ?></span>
-                                <span>−&nbsp;<span class="js-delivery-discount-value"><?= number_format($deliveryDiscount, 2, ',', ' ') ?></span>&nbsp;€</span>
+                            <?php
+                                $isPickup = (($post['delivery_method'] ?? 'shipping') === 'pickup');
+                                $discountLabelDelivery = __('cart.delivery_discount');
+                                $discountLabelPickup   = $isEn ? 'Click & Collect discount' : 'Remise Click & Collect';
+                            ?>
+                            <div class="checkout-summary__row checkout-summary__row--discount js-delivery-discount-row"<?= $deliveryDiscount > 0.0 ? '' : ' hidden' ?>>
+                                <span class="js-delivery-discount-label"
+                                      data-label-delivery="<?= htmlspecialchars($discountLabelDelivery) ?>"
+                                      data-label-pickup="<?= htmlspecialchars($discountLabelPickup) ?>">
+                                    <?= htmlspecialchars($isPickup ? $discountLabelPickup : $discountLabelDelivery) ?>
+                                </span>
+                                <span>−&nbsp;<span class="js-delivery-discount-value"><?= number_format(max(0.0, $deliveryDiscount), 2, ',', ' ') ?></span>&nbsp;€</span>
                             </div>
-                            <?php else : ?>
-                            <div class="checkout-summary__row checkout-summary__row--discount js-delivery-discount-row" hidden>
-                                <span><?= htmlspecialchars(__('cart.delivery_discount')) ?></span>
-                                <span>−&nbsp;<span class="js-delivery-discount-value">0,00</span>&nbsp;€</span>
-                            </div>
-                            <?php endif; ?>
                             <div class="checkout-summary__row checkout-summary__row--total">
                                 <strong><?= htmlspecialchars(__('cart.total_ttc')) ?></strong>
                                 <strong>
@@ -753,6 +755,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
     var ctaEl    = document.querySelector('.js-checkout-cta-total');
     var discRow  = document.querySelector('.js-delivery-discount-row');
     var discEl   = document.querySelector('.js-delivery-discount-value');
+    var discLbl  = document.querySelector('.js-delivery-discount-label');
     if (ccRadios.length && totalEl) {
         var subtotal = parseFloat(totalEl.dataset.subtotal || '0');
         var baseDisc = parseFloat(totalEl.dataset.deliveryDiscount || '0');
@@ -764,11 +767,17 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
         function updateSummary() {
             var selected = document.querySelector('.js-delivery-method-radio:checked');
             var mode = selected ? selected.value : 'shipping';
-            var discount = mode === 'pickup' ? Math.max(baseDisc, ccPerBtl * totalQty) : baseDisc;
+            var isPickup = mode === 'pickup';
+            var discount = isPickup ? Math.max(baseDisc, ccPerBtl * totalQty) : baseDisc;
             var total    = subtotal - discount;
             if (discount > 0) {
                 if (discRow) discRow.hidden = false;
                 if (discEl) discEl.textContent = fmt(discount);
+                if (discLbl) {
+                    discLbl.textContent = isPickup
+                        ? discLbl.dataset.labelPickup
+                        : discLbl.dataset.labelDelivery;
+                }
             } else if (discRow) {
                 discRow.hidden = true;
             }

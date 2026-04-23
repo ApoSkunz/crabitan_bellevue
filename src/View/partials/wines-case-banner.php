@@ -18,10 +18,3 @@ $bannerLang = $navLang ?? (defined('CURRENT_LANG') ? CURRENT_LANG : 'fr');
     </div>
 </aside>
 
-<?php if (\Core\FeatureFlags::isClickCollectEnabled()) : ?>
-<p class="click-collect-badge container">
-    <?= $bannerLang === 'en'
-        ? 'Click &amp; Collect option available — pickup at the château within 48h'
-        : 'Option Click &amp; Collect disponible — retrait au château sous 48h' ?>
-</p>
-<?php endif; ?>

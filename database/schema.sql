@@ -983,12 +983,14 @@ CREATE TABLE IF NOT EXISTS `email_rate_log` (
   `from_address`  VARCHAR(255)    NOT NULL COMMENT 'Adresse expéditrice (MAIL_USER du canal)',
   `to_address`    VARCHAR(255)    NOT NULL COMMENT 'Destinataire',
   `subject`       VARCHAR(500)    NOT NULL DEFAULT '',
+  `type`          VARCHAR(40)     NOT NULL DEFAULT 'other' COMMENT 'contact, register, reset_password, email_change, order, invoice, rgpd_export, rgpd_deletion, admin_action, cron_newsletter, cron_inactivity, cron_reminder, cron_review, cron_abandoned_cart, cron_post_purchase, other',
   `success`       TINYINT(1)      NOT NULL DEFAULT 1,
   `error_message` VARCHAR(500)    NULL,
   `sent_at`       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   INDEX `idx_email_rate_log_sent_at` (`sent_at`),
-  INDEX `idx_email_rate_log_from`    (`from_address`)
+  INDEX `idx_email_rate_log_from`    (`from_address`),
+  INDEX `idx_email_rate_log_type`    (`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Journal des emails envoyés — rétention 25h';
 
