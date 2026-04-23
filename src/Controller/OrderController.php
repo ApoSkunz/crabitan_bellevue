@@ -500,7 +500,7 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
                         $discount       = (float) ($snapshot['delivery_discount'] ?? 0.0);
                         $deliveryMethod = (string) ($snapshot['delivery_method']   ?? 'shipping');
                         $pdfContext     = (new \Service\OrderPdfContextBuilder())->build((array) $snapshot);
-                        $mail           = new \Service\MailService();
+                        $mail           = $this->newMailService();
                         $mail->sendOrderConfirmationToClient(
                             (string) ($snapshot['client_email'] ?? ''),
                             (string) ($snapshot['client_name']  ?? ''),

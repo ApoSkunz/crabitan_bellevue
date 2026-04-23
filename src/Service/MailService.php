@@ -1463,9 +1463,15 @@ INNER;
         $isEn     = $lang === 'en';
         $isPickup = $mode === 'pickup';
 
-        $titleMode = $isEn
-            ? ($isPickup ? 'Pickup mode: Click &amp; Collect — available at the château within 48h' : 'Delivery: home delivery')
-            : ($isPickup ? 'Mode : Click &amp; Collect — disponible au château sous 48h' : 'Livraison : à domicile');
+        if ($isEn && $isPickup) {
+            $titleMode = 'Pickup mode: Click &amp; Collect — available at the château within 48h';
+        } elseif ($isEn) {
+            $titleMode = 'Delivery: home delivery';
+        } elseif ($isPickup) {
+            $titleMode = 'Mode : Click &amp; Collect — disponible au château sous 48h';
+        } else {
+            $titleMode = 'Livraison : à domicile';
+        }
 
         $titleBill  = $isEn ? 'Billing address' : 'Adresse de facturation';
         $titleDeliv = $isEn ? 'Delivery address' : 'Adresse de livraison';
