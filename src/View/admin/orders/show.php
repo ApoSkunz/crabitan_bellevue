@@ -12,8 +12,6 @@ $statusLabels = [
     'return_requested' => 'Retour en cours',
     'refund_refused'   => 'Remboursement refusé',
     'refund_pending'   => 'Remboursement en attente',
-    'ready_for_pickup' => 'Prêt au retrait',
-    'collected'        => 'Retiré',
 ];
 $allStatuses   = array_keys($statusLabels);
 
@@ -28,8 +26,6 @@ $statusRank = [
     'refunded'         => 6,
     'refund_refused'   => 6,
     'refund_pending'   => 5,
-    'ready_for_pickup' => 3, // Click & Collect : équivalent "expédiée" dans le flux
-    'collected'        => 4, // Click & Collect : équivalent "livrée" dans le flux
     'cancelled'        => 99, // toujours terminal, jamais "en arrière"
 ];
 $currentRank = $statusRank[$order['status']] ?? 0;

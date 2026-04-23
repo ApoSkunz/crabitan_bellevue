@@ -130,8 +130,7 @@ class IpnController
                 (string) $snapshot['cgv_version'],
                 $ref,
                 $numappel,
-                $numtrans,
-                (string) ($snapshot['delivery_method'] ?? 'shipping')
+                $numtrans
             );
 
             $this->intents->delete($ref);

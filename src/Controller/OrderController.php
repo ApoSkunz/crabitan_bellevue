@@ -242,25 +242,11 @@ class OrderController extends Controller
             $billingAddressId = $this->resolveAddress($userId, 'billing', '', $back);
         }
 
-        // Lire le mode de livraison (Click & Collect ou domicile)
-        $deliveryMethodRaw = $this->request->post('delivery_method', 'shipping');
-        $deliveryMethod    = in_array($deliveryMethodRaw, ['shipping', 'pickup'], true) ? $deliveryMethodRaw : 'shipping';
-
         // Calculer les totaux (items et totalQty déjà calculés avant la vérification multiple de 12)
         $subtotal         = (float) array_sum(
             array_map(fn(array $i): float => (float) $i['price'] * (int) $i['qty'], $items)
         );
-        // Click & Collect : remise basée sur withdrawal_price de la règle de tarification
-        if ($deliveryMethod === 'pickup' && \Core\FeatureFlags::isClickCollectEnabled()) {
-            $pickupRule       = $this->pricing->findForQuantity($totalQty);
-            $withdrawalPrice  = (float) ($pickupRule['withdrawal_price'] ?? \Core\FeatureFlags::getClickCollectDiscountPerBottle());
-            $priceType        = (string) ($pickupRule['price_type'] ?? 'per_bottle');
-            $deliveryDiscount = $priceType === 'per_bottle'
-                ? round($withdrawalPrice * $totalQty, 2)
-                : $withdrawalPrice;
-        } else {
-            $deliveryDiscount = $this->pricing->computeDeliveryDiscount($totalQty);
-        }
+        $deliveryDiscount = $this->pricing->computeDeliveryDiscount($totalQty);
         $total            = round(max(0.0, $subtotal - $deliveryDiscount), 2);
         $cgvDoc           = (new LegalDocumentModel())->findBySlug('cgv');
         $cgvVersion       = (string) ($cgvDoc['version'] ?? '1.0');
@@ -298,7 +284,6 @@ class OrderController extends Controller
                     'newsletter'          => (bool) $this->request->post('newsletter', ''),
                     'client_email'        => $clientEmail,
                     'client_name'         => $clientName,
-                    'delivery_method'     => $deliveryMethod,
                 ];
 
                 // Persister le snapshot en BDD — l'IPN CA (server-to-server) n'a pas
@@ -362,8 +347,7 @@ class OrderController extends Controller
             round($deliveryDiscount, 2),
             $billingAddressId,
             $deliveryAddressId,
-            $cgvVersion,
-            $deliveryMethod
+            $cgvVersion
         );
 
         // Vider le panier + décrémenter le stock
@@ -473,8 +457,7 @@ class OrderController extends Controller
                         (string) $snapshot['cgv_version'],
                         $ref,
                         $numappel,
-                        $numtrans,
-                        (string) ($snapshot['delivery_method'] ?? 'shipping')
+                        $numtrans
                     );
 
                     (new \Model\PaymentIntentModel())->delete($ref);

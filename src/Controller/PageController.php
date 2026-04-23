@@ -84,10 +84,6 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
         $subject   = trim($this->request->post('subject', ''));
         $message   = trim($this->request->post('message', ''));
         $rgpd      = $this->request->post('rgpd', '');
-        $phone     = trim($_POST['phone'] ?? '');
-        if ($phone !== '' && !preg_match('/^[+\d\s\-()]{1,20}$/', $phone)) {
-            $phone = '';
-        }
 
         if (
             $firstname === '' || $lastname === ''
@@ -100,14 +96,11 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
 
         try {
             $mail = $this->newMailService();
-            $mail->sendContactToOwner($firstname, $lastname, $email, $subject, $message, $lang, $phone);
+            $mail->sendContactToOwner($firstname, $lastname, $email, $subject, $message, $lang);
             $mail->sendContactConfirmation($email, $firstname, $subject, $lang, $message);
         } catch (\Core\Exception\HttpException $e) {
             throw $e;
-        } catch (\Throwable $e) {
-            if ($e instanceof \RuntimeException && $e->getCode() === 429) {
-                $this->json(['success' => false, 'message' => __('contact.error_rate_limit')], 429);
-            }
+        } catch (\Exception $e) {
             $this->json(['success' => false, 'message' => __('contact.error_smtp')], 500);
         }
         $this->json(['success' => true, 'message' => __('contact.success')]);

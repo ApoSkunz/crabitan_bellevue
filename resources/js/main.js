@@ -2471,27 +2471,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const closeBtn      = document.getElementById('admin-qr-modal-close');
 
         function openQrModal(slug, label) {
-            const url     = appUrl + '/fr/vins/' + encodeURIComponent(slug) + '/fiche-technique';
-            const spinner = document.getElementById('admin-qr-spinner');
-            modalTitle.textContent      = label;
-            modalUrl.textContent        = url;
-            qrModal.style.display       = 'flex';
-            modalCanvas.style.display   = 'none';
-            if (spinner) spinner.style.display = 'block';
+            const url = appUrl + '/fr/vins/' + encodeURIComponent(slug) + '/fiche-technique';
+            modalTitle.textContent = label;
+            modalUrl.textContent   = url;
+            qrModal.style.display  = 'flex';
 
             import('qrcode').then((QRCode) => {
                 QRCode.default.toCanvas(modalCanvas, url, { width: 300, margin: 2 }, () => {
-                    if (spinner) spinner.style.display = 'none';
-                    modalCanvas.style.display = 'block';
                     if (modalDownload) {
                         modalDownload.href     = modalCanvas.toDataURL('image/png');
                         modalDownload.download = 'qr-' + slug + '.png';
                     }
                 });
-            }).catch(() => {
-                if (spinner) spinner.style.display = 'none';
-                modalCanvas.style.display = 'block';
-            });
+            }).catch(() => {});
         }
 
         function closeQrModal() {
