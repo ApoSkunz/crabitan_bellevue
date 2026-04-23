@@ -1005,6 +1005,8 @@ return [
     'order.status.refund_pending'   => 'Remboursement en attente',
     'order.status.return_requested' => 'Retour en cours',
     'order.status.refund_refused'   => 'Remboursement refusé',
+    'order.status.ready_for_pickup' => 'Prêt au retrait',
+    'order.status.collected'        => 'Retiré',
 
     // Emails transactionnels - changement de statut commande
     'mail.order_status_subject_processing' => 'Votre commande est en préparation - %s',

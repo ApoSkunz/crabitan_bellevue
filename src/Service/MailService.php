@@ -1411,6 +1411,15 @@ INNER;
             $delivHtml = '<div style="margin-top:10px;"><strong>' . $titleDeliv . '</strong>'
                 . '<div style="' . $boxStyle . '">' . $fmtAddr((array) $delivery) . '</div></div>';
         }
+        if ($isPickup) {
+            $chateauTitle = $isEn ? 'Pickup address' : 'Adresse de retrait';
+            $chateauHtml  = 'Château Crabitan Bellevue<br>'
+                . '1 Crabitan Bellevue<br>'
+                . '33410 Sainte-Croix-du-Mont<br>'
+                . 'France';
+            $delivHtml = '<div style="margin-top:10px;"><strong>' . $chateauTitle . '</strong>'
+                . '<div style="' . $boxStyle . '">' . $chateauHtml . '</div></div>';
+        }
 
         return $modeBadge . $billHtml . $delivHtml;
     }

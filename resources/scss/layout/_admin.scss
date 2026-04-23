@@ -67,6 +67,16 @@
     scrollbar-color: rgba(201, 168, 76, 0.2) transparent;
 }
 
+.admin-nav__section-label {
+    padding: 0.7rem 1.25rem 0.3rem;
+    color: rgba(201, 168, 76, 0.55);
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
 .admin-nav__item {
     display: flex;
     align-items: center;
@@ -570,13 +580,14 @@
     }
 
     &--outline {
-        background: transparent;
+        background: #fff;
         border-color: rgba(8, 8, 8, 0.2);
         color: #6b5f50;
 
         &:hover {
             border-color: #1a1208;
             color: #1a1208;
+            background: #f7f3ec;
         }
     }
 

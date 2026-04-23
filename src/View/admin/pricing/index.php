@@ -39,8 +39,6 @@ function pricingLabel(mixed $raw, string $lang): string
                     <th>Format</th>
                     <th>Tranche</th>
                     <th>Label (FR)</th>
-                    <th>Livraison (€)</th>
-                    <th>Retrait cave (€)</th>
                     <th>Actif</th>
                 </tr>
             </thead>
@@ -54,8 +52,6 @@ function pricingLabel(mixed $raw, string $lang): string
                         <?= $rule['max_quantity'] !== null ? (int) $rule['max_quantity'] : '∞' ?>
                     </td>
                     <td><?= htmlspecialchars(pricingLabel($rule['label'], 'fr')) ?></td>
-                    <td><?= number_format((float) $rule['delivery_price'], 2, ',', ' ') ?>&nbsp;€</td>
-                    <td><?= number_format((float) $rule['withdrawal_price'], 2, ',', ' ') ?>&nbsp;€</td>
                     <td style="text-align:center;">
                         <?php if ($rule['active']) : ?>
                             <span style="color:#15803d;font-size:0.85rem;">✓</span>

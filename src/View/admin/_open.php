@@ -30,26 +30,39 @@ $navIcons = [
     'app_logs'       => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="1.5" width="11" height="12" rx="1"/><line x1="4" y1="4.5" x2="11" y2="4.5"/><line x1="4" y1="7" x2="11" y2="7"/><line x1="4" y1="9.5" x2="9" y2="9.5"/><circle cx="11.5" cy="11.5" r="0.75" fill="currentColor" stroke="none"/></svg>',
 ];
 
-$navItems = [
-    'dashboard'  => ['url' => '/admin',             'label' => 'Tableau de bord'],
-    'wines'      => ['url' => '/admin/vins',         'label' => 'Vins'],
-    'orders'     => ['url' => '/admin/commandes',    'label' => 'Commandes'],
-    'invoices'   => ['url' => '/admin/factures',     'label' => 'Factures'],
-    'accounts'   => ['url' => '/admin/comptes',      'label' => 'Comptes'],
-    'pricing'    => ['url' => '/admin/tarifs',       'label' => 'Tarifs'],
-    'news'       => ['url' => '/admin/actualites',   'label' => 'Actualités'],
-    'newsletter'  => ['url' => '/admin/newsletter',          'label' => 'Newsletter'],
-    'order_forms' => ['url' => '/admin/bons-de-commande',    'label' => 'Bons de commande'],
-    'stats'       => ['url' => '/admin/statistiques',          'label' => 'Statistiques CA'],
-    'marketing'   => ['url' => '/admin/marketing',             'label' => 'Marketing'],
-    'dpo'         => ['url' => '/admin/dpo',                  'label' => 'DPO — RGPD'],
-    'profile'     => ['url' => '/admin/securite',             'label' => 'Sécurité'],
-    'logs'        => ['url' => '/admin/logs',                 'label' => 'Journal d\'audit'],
-    'email_rate'  => ['url' => '/admin/emails-rate',          'label' => 'Monitoring emails'],
-    'cron_monitoring' => ['url' => '/admin/monitoring-crons', 'label' => 'Monitoring crons'],
-    'app_logs'    => ['url' => '/admin/logs-app',             'label' => 'Logs applicatifs'],
-    'admins'      => ['url' => '/admin/admins',               'label' => 'Admins'],
+$navSections = [
+    'Tableau de bord' => [
+        'dashboard' => ['url' => '/admin', 'label' => 'Tableau de bord'],
+    ],
+    'Catalogue' => [
+        'wines'       => ['url' => '/admin/vins',               'label' => 'Vins'],
+        'pricing'     => ['url' => '/admin/tarifs',             'label' => 'Tarifs'],
+        'order_forms' => ['url' => '/admin/bons-de-commande',   'label' => 'Bons de commande'],
+    ],
+    'Commandes' => [
+        'orders'   => ['url' => '/admin/commandes',       'label' => 'Commandes'],
+        'invoices' => ['url' => '/admin/factures',        'label' => 'Factures'],
+        'stats'    => ['url' => '/admin/statistiques',    'label' => 'Statistiques CA'],
+    ],
+    'Clients' => [
+        'accounts' => ['url' => '/admin/comptes', 'label' => 'Comptes'],
+    ],
+    'Contenu' => [
+        'news'       => ['url' => '/admin/actualites', 'label' => 'Actualités'],
+        'newsletter' => ['url' => '/admin/newsletter', 'label' => 'Newsletter'],
+        'marketing'  => ['url' => '/admin/marketing',  'label' => 'Marketing'],
+    ],
+    'Système' => [
+        'dpo'             => ['url' => '/admin/dpo',               'label' => 'DPO — RGPD'],
+        'profile'         => ['url' => '/admin/securite',          'label' => 'Sécurité'],
+        'logs'            => ['url' => '/admin/logs',              'label' => 'Journal d\'audit'],
+        'admins'          => ['url' => '/admin/admins',            'label' => 'Gestion des admins'],
+        'email_rate'      => ['url' => '/admin/emails-rate',       'label' => 'Monitoring emails'],
+        'cron_monitoring' => ['url' => '/admin/monitoring-crons',  'label' => 'Monitoring crons'],
+        'app_logs'        => ['url' => '/admin/logs-app',          'label' => 'Logs applicatifs'],
+    ],
 ];
+$superOnlyKeys = ['logs', 'admins', 'email_rate', 'cron_monitoring', 'app_logs'];
 
 $adminInitial = strtoupper(substr($adminUser['name'] ?? 'A', 0, 1));
 $adminRole    = $adminUser['role'] ?? 'admin';
@@ -204,19 +217,29 @@ if (empty($_SESSION['csrf'])) {
         </div>
 
         <nav class="admin-nav" aria-label="Menu principal">
-            <?php foreach ($navItems as $key => $item) : ?>
-                <?php if (in_array($key, ['logs', 'admins', 'email_rate', 'cron_monitoring', 'app_logs'], true) && $adminRole !== 'super_admin') : ?>
-                    <?php continue; // NOSONAR — php:S1763 : continue dans un foreach PHP template, détecté à tort comme inatteignable ?>
-                <?php endif; ?>
-                <a
-                    href="<?= htmlspecialchars($item['url']) ?>"
-                    class="admin-nav__item<?= $adminSection === $key ? ' active' : '' ?>"
-                    data-label="<?= htmlspecialchars($item['label']) ?>"
-                    <?= $adminSection === $key ? 'aria-current="page"' : '' ?>
-                >
-                    <span class="admin-nav__icon"><?= $navIcons[$key] ?? '' ?></span>
-                    <?= htmlspecialchars($item['label']) ?>
-                </a>
+            <?php foreach ($navSections as $sectionLabel => $items) : ?>
+                <?php
+                $visibleItems = array_filter(
+                    $items,
+                    static fn($_v, $k): bool => !(in_array($k, $superOnlyKeys, true) && $adminRole !== 'super_admin'),
+                    ARRAY_FILTER_USE_BOTH
+                );
+                if (empty($visibleItems)) {
+                    continue;
+                }
+                ?>
+                <div class="admin-nav__section-label"><?= htmlspecialchars($sectionLabel) ?></div>
+                <?php foreach ($visibleItems as $key => $item) : ?>
+                    <a
+                        href="<?= htmlspecialchars($item['url']) ?>"
+                        class="admin-nav__item<?= $adminSection === $key ? ' active' : '' ?>"
+                        data-label="<?= htmlspecialchars($item['label']) ?>"
+                        <?= $adminSection === $key ? 'aria-current="page"' : '' ?>
+                    >
+                        <span class="admin-nav__icon"><?= $navIcons[$key] ?? '' ?></span>
+                        <?= htmlspecialchars($item['label']) ?>
+                    </a>
+                <?php endforeach; ?>
             <?php endforeach; ?>
         </nav>
 

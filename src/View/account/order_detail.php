@@ -19,11 +19,14 @@ $statusColors = [
     'refund_refused'   => 'red',
     'refund_pending'   => 'orange',
 ];
+$isPickupOrder = ($order['delivery_method'] ?? 'shipping') === 'pickup';
 $isReturnFlow  = in_array($order['status'], ['return_requested', 'refund_refused'], true)
     || ($order['status'] === 'refunded' && !empty($order['delivered_at']));
 $isRefundFlow  = in_array($order['status'], ['refund_pending', 'refunded'], true) && !$isReturnFlow;
 $returnEndStep = $order['status'] === 'refund_refused' ? 'refund_refused' : 'refunded';
-if ($isReturnFlow) {
+if ($isPickupOrder) {
+    $timeline = ['pending', 'paid', 'processing', 'ready_for_pickup', 'collected'];
+} elseif ($isReturnFlow) {
     $timeline = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'return_requested', $returnEndStep];
 } elseif ($isRefundFlow) {
     $timeline = ['pending', 'paid', 'refund_pending', 'refunded'];

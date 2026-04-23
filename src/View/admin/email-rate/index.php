@@ -76,9 +76,9 @@ $typeLabelsFr = [
                         <tr>
                             <td><?= htmlspecialchars($row['from_address']) ?></td>
                             <td style="text-align:right;font-weight:600;"><?= (int) $row['total_sent'] ?></td>
-                            <td style="text-align:right;">
+                            <td style="text-align:right;width:160px;">
                                 <span style="font-weight:600;<?= $danger ? 'color:#c0392b;' : ($warn ? 'color:#d97706;' : '') ?>"><?= $lastHour ?> / 500</span>
-                                <div style="width:100%;height:4px;background:#ede8df;border-radius:2px;margin-top:4px;">
+                                <div style="width:120px;margin-left:auto;height:4px;background:#ede8df;border-radius:2px;margin-top:4px;">
                                     <div style="width:<?= $pct ?>%;height:100%;background:<?= $danger ? '#c0392b' : ($warn ? '#d97706' : '#2d7a2d') ?>;border-radius:2px;"></div>
                                 </div>
                             </td>

@@ -1004,6 +1004,8 @@ return [
     'order.status.refund_pending'   => 'Refund pending',
     'order.status.return_requested' => 'Return in progress',
     'order.status.refund_refused'   => 'Refund refused',
+    'order.status.ready_for_pickup' => 'Ready for pickup',
+    'order.status.collected'        => 'Collected',
 
     // Transactional emails - order status change
     'mail.order_status_subject_processing' => 'Your order is being prepared — %s',
