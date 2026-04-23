@@ -1458,6 +1458,7 @@ INNER;
         ];
         $paymentLabel  = $paymentLabels[$paymentMethod] ?? htmlspecialchars($paymentMethod, ENT_QUOTES);
 
+        $ownerDiscountLabel = $deliveryMethod === 'pickup' ? 'Remise Click & Collect' : 'Remise livraison';
         $itemsHtml = $this->buildOrderItemsTable(
             $items,
             $total,
@@ -1467,7 +1468,7 @@ INNER;
             'Sous-total',
             'Total TTC',
             $shippingDiscount,
-            'Remise livraison'
+            $ownerDiscountLabel
         );
 
         $ownerAddrCtx = $pdfContext !== null
@@ -1500,6 +1501,7 @@ INNER;
                     'items'             => $items,
                     'total'             => $total,
                     'shipping_discount' => $shippingDiscount,
+                    'delivery_method'   => $deliveryMethod,
                     'billing'           => (array) ($pdfContext['billing']  ?? []),
                     'delivery'          => $pdfContext['delivery'] ?? null,
                 ];

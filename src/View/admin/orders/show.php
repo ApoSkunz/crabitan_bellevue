@@ -126,7 +126,9 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                     </tr>
                     <?php if ($shippingDiscount > 0.0) : ?>
                     <tr>
-                        <th scope="row" style="padding:3px 0;color:#c9a84c;font-weight:normal;text-align:left;">Remise livraison</th>
+                        <th scope="row" style="padding:3px 0;color:#c9a84c;font-weight:normal;text-align:left;">
+                            <?= $isPickup ? 'Remise Click &amp; Collect' : 'Remise livraison' ?>
+                        </th>
                         <td style="padding:3px 0;text-align:right;color:#c9a84c;">− <?= number_format($shippingDiscount, 2, ',', ' ') ?>&nbsp;€</td>
                     </tr>
                     <?php endif; ?>
