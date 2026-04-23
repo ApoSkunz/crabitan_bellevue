@@ -23,7 +23,11 @@ function pricingLabel(mixed $raw, string $lang): string
 <?php endif; ?>
 
 <div class="admin-page-header">
-    <h1>Tarifs de livraison &amp; retrait</h1>
+    <h1>Tarifs de livraison &amp; Click &amp; Collect</h1>
+    <p class="admin-page-header__sub">
+        La colonne <strong>Click &amp; Collect (€/btl)</strong> définit la remise appliquée sur les commandes retrait château.
+        Cette valeur en BDD override la variable d'environnement <code>CLICK_COLLECT_DISCOUNT_PER_BOTTLE</code>.
+    </p>
 </div>
 
 <!-- ================================================================
@@ -39,6 +43,7 @@ function pricingLabel(mixed $raw, string $lang): string
                     <th>Format</th>
                     <th>Tranche</th>
                     <th>Label (FR)</th>
+                    <th style="text-align:right;">Click &amp; Collect (€/btl)</th>
                     <th>Actif</th>
                 </tr>
             </thead>
@@ -52,6 +57,9 @@ function pricingLabel(mixed $raw, string $lang): string
                         <?= $rule['max_quantity'] !== null ? (int) $rule['max_quantity'] : '∞' ?>
                     </td>
                     <td><?= htmlspecialchars(pricingLabel($rule['label'], 'fr')) ?></td>
+                    <td style="text-align:right;font-weight:600;color:#6b4c1a;">
+                        <?= number_format((float) $rule['withdrawal_price'], 2, ',', ' ') ?>&nbsp;€
+                    </td>
                     <td style="text-align:center;">
                         <?php if ($rule['active']) : ?>
                             <span style="color:#15803d;font-size:0.85rem;">✓</span>
@@ -82,7 +90,7 @@ function pricingLabel(mixed $raw, string $lang): string
                         <th>Qté min</th>
                         <th>Qté max</th>
                         <th>Livraison (€)</th>
-                        <th>Retrait cave (€)</th>
+                        <th title="Remise Click &amp; Collect par bouteille — override la variable CLICK_COLLECT_DISCOUNT_PER_BOTTLE">Click &amp; Collect (€/btl)</th>
                         <th>Label FR</th>
                         <th>Label EN</th>
                         <th>Actif</th>
