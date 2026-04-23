@@ -404,6 +404,46 @@ class AppLogsAdminControllerTest extends TestCase
     }
 
     /**
+     * readLogFile() retournant false : la ligne L81 (continue) est couverte.
+     *
+     * Un fichier est créé, enregistré dans le répertoire logs pour la date d'aujourd'hui,
+     * puis un sous-type anonyme surcharge readLogFile() pour retourner false sur ce fichier.
+     * Le résultat doit être un tableau vide (le fichier est ignoré).
+     *
+     * @return void
+     */
+    public function testReadLogFileReturnsFalseSkipsFile(): void
+    {
+        $today = date('Y-m-d');
+        $this->writeLogFile($today, [
+            ['timestamp' => $today . ' 10:00:00', 'level' => 'INFO', 'message' => 'should be skipped'],
+        ]);
+
+        $targetFile = $this->logsDir . '/app-' . $today . '.log';
+
+        $ctrl = new class (new Request(), $targetFile) extends TestableAppLogsAdminController {
+            public function __construct(Request $request, private string $skipFile)
+            {
+                parent::__construct($request);
+            }
+
+            /** @return string[]|false */
+            protected function readLogFile(string $path): array|false
+            {
+                if ($path === $this->skipFile) {
+                    return false; // simulate unreadable file → L81 continue
+                }
+                return parent::readLogFile($path);
+            }
+        };
+
+        $ctrl->index([]);
+
+        // readLogFile returned false → file skipped → no entries loaded
+        $this->assertSame(0, $ctrl->viewCall['data']['totalEntries']);
+    }
+
+    /**
      * search avec espaces est trim() avant d'être transmis/utilisé.
      */
     public function testSearchIsTrimmed(): void

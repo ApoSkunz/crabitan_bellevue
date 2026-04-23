@@ -1447,6 +1447,25 @@ class CronControllerCoverageTest extends TestCase
         $this->assertNotEmpty($errFound, 'Expected [ERR] when mailer throws. Got: ' . implode(', ', $logged));
     }
 
+    // ── doExit() réel — couvre le corps HttpException de la méthode parente ────
+
+    /**
+     * Appelle doExit() via ReflectionMethod sur une instance réelle de CronController
+     * (sans override anonymous), ce qui couvre le corps de la méthode parente
+     * (lève HttpException(0)).
+     *
+     * @return void
+     */
+    public function testDoExitOnRealInstanceThrowsHttpException(): void
+    {
+        $realCtrl = new CronController(new Request());
+        $ref      = new \ReflectionMethod(CronController::class, 'doExit');
+        $ref->setAccessible(true);
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $ref->invoke($realCtrl);
+    }
+
     // ── verifyToken — L70-73 : exit en cas de token invalide ────────────────
 
     /**

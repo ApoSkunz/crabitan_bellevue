@@ -404,6 +404,65 @@ class AccountModelCoverageTest extends TestCase
     }
 
     /**
+     * getForAdmin avec tri order_count_desc — couvre l.1162 du match.
+     *
+     * @return void
+     */
+    public function testGetForAdminSortByOrderCountDesc(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(sort: 'order_count_desc'));
+        $this->assertStringContainsString('order_count DESC', $capturedSql);
+    }
+
+    /**
+     * getForAdmin avec tri order_count_asc — couvre l.1163 du match.
+     *
+     * @return void
+     */
+    public function testGetForAdminSortByOrderCountAsc(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(sort: 'order_count_asc'));
+        $this->assertStringContainsString('order_count ASC', $capturedSql);
+    }
+
+    /**
+     * getForAdmin avec hasOrdered='0' — couvre l.1199-1200 (elseif branch).
+     *
+     * @return void
+     */
+    public function testApplyAdminFlagFiltersHasOrderedZero(): void
+    {
+        $capturedSql = '';
+        $this->dbMock->method('fetchAll')->willReturnCallback(
+            function (string $sql) use (&$capturedSql): array {
+                $capturedSql = $sql;
+                return [];
+            }
+        );
+
+        $this->model->getForAdmin(10, 0, new \ValueObject\AccountAdminFilters(hasOrdered: '0'));
+        $this->assertStringContainsString('= 0', $capturedSql);
+        // Vérifie la clause "jamais commandé"
+        $this->assertMatchesRegularExpression('/COUNT\(\*\)\s+FROM\s+orders.*=\s*0/s', $capturedSql);
+    }
+
+    /**
      * countForAdmin retourne la valeur entière.
      */
     public function testCountForAdminReturnsInteger(): void

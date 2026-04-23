@@ -100,6 +100,28 @@ class WineControllerCoverageTest extends TestCase
         ];
     }
 
+    // ── doExit() réel — couvre le corps HttpException de la méthode parente ────
+
+    /**
+     * Appelle doExit() via ReflectionMethod sur une instance réelle de WineController
+     * (sans override anonymous), ce qui couvre le corps de la méthode parente
+     * (lève HttpException(0)).
+     *
+     * @return void
+     */
+    public function testDoExitOnRealInstanceThrowsHttpException(): void
+    {
+        $this->bootstrapApp();
+        $this->setDbMock();
+
+        $realCtrl = $this->makeController();
+        $ref      = new \ReflectionMethod(\Controller\WineController::class, 'doExit');
+        $ref->setAccessible(true);
+
+        $this->expectException(HttpException::class);
+        $ref->invoke($realCtrl);
+    }
+
     // ── buildCrossSell() — via réflexion ────────────────────────────────────
 
     #[RunInSeparateProcess]

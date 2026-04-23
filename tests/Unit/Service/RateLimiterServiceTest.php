@@ -684,4 +684,46 @@ class RateLimiterServiceTest extends TestCase
         $service->recordAttempt('db:set:error', 900);
         $this->assertTrue(true);
     }
+
+    /**
+     * ensureSession() appelle startSession() quand la session est fermée.
+     */
+    public function testEnsureSessionCallsStartSessionWhenNone(): void
+    {
+        $called = false;
+
+        $service = new class extends RateLimiterService {
+            public bool $startCalled = false;
+
+            public function isApcuAvailable(): bool
+            {
+                return false;
+            }
+
+            protected function startSession(): void
+            {
+                $this->startCalled = true;
+                // Ne pas vraiment appeler session_start() — la session est active
+            }
+
+            public function callEnsureSession(): void
+            {
+                // Ferme la session pour simuler PHP_SESSION_NONE
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    session_write_close();
+                }
+                // Déclenche ensureSession() via checkLimit (utilise la session)
+                $this->checkLimit('ensure:test', 5, 60);
+            }
+        };
+
+        $service->callEnsureSession();
+
+        // Rouvrir la session pour les tests suivants
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $this->assertTrue($service->startCalled);
+    }
 }
