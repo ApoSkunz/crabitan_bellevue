@@ -25,6 +25,7 @@ $router->post('/admin/comptes/{id}/verifier', 'Admin\AccountAdminController@veri
 $router->post('/admin/comptes/{id}/reset-password', 'Admin\AccountAdminController@resetPassword');
 $router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
 $router->post('/admin/tarifs', 'Admin\PricingAdminController@update');
+$router->post('/admin/tarifs/click-collect', 'Admin\PricingAdminController@updateClickCollect');
 $router->get('/admin/actualites', 'Admin\NewsAdminController@index');
 $router->get('/admin/actualites/ajouter', 'Admin\NewsAdminController@create');
 $router->post('/admin/actualites/ajouter', 'Admin\NewsAdminController@store');

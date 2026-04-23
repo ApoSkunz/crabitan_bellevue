@@ -978,6 +978,17 @@ CREATE TABLE IF NOT EXISTS `customer_reviews` (
 -- Journal des emails envoyés — rétention 25h (purge auto dans EmailRateLogModel).
 -- Monitoring des envois par canal SMTP, détection rate limit IONOS.
 -- ============================================================
+CREATE TABLE IF NOT EXISTS `click_collect_settings` (
+  `id`                  TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  `discount_per_bottle` DECIMAL(5, 2)    NOT NULL DEFAULT 2.20 COMMENT 'Remise par bouteille appliquée sur commande retrait château',
+  `updated_at`          DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `chk_click_collect_singleton` CHECK (`id` = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Configuration Click & Collect — singleton (id=1)';
+
+INSERT IGNORE INTO `click_collect_settings` (`id`, `discount_per_bottle`) VALUES (1, 2.20);
+
 CREATE TABLE IF NOT EXISTS `cron_runs` (
   `id`           INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   `job_name`     VARCHAR(80)   NOT NULL,

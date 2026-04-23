@@ -250,15 +250,10 @@ class OrderController extends Controller
         $subtotal         = (float) array_sum(
             array_map(fn(array $i): float => (float) $i['price'] * (int) $i['qty'], $items)
         );
-        // Click & Collect : remise = prix retrait × nb bouteilles (toujours par bouteille)
+        // Click & Collect : remise = valeur BDD (singleton click_collect_settings) × nb bouteilles
         if ($deliveryMethod === 'pickup' && \Core\FeatureFlags::isClickCollectEnabled()) {
-            $pickupRule       = $this->pricing->findForQuantity($totalQty);
-            $withdrawalPrice  = (float) ($pickupRule['withdrawal_price'] ?? \Core\FeatureFlags::getClickCollectDiscountPerBottle());
-            if ($withdrawalPrice <= 0.0) {
-                $withdrawalPrice = \Core\FeatureFlags::getClickCollectDiscountPerBottle();
-            }
-            // Click & Collect : remise ALWAYS per bouteille (ignore price_type rule)
-            $deliveryDiscount = round($withdrawalPrice * $totalQty, 2);
+            $perBottle        = (new \Model\ClickCollectSettingsModel())->getDiscountPerBottle();
+            $deliveryDiscount = round($perBottle * $totalQty, 2);
         } else {
             $deliveryDiscount = $this->pricing->computeDeliveryDiscount($totalQty);
         }

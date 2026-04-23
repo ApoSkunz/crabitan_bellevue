@@ -215,7 +215,6 @@ TRANSLATION_API_KEY=             # clé API traduction — NE PAS VERSIONNER
 
 # ── Feature Flags ─────────────────────────────────────────────────────────
 CLICK_COLLECT_ENABLED=false      # true pour activer l'option retrait au château
-CLICK_COLLECT_DISCOUNT_PER_BOTTLE=2.20  # remise par bouteille en euros
 ```
 
 ---

@@ -162,7 +162,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
 
                     <?php if (\Core\FeatureFlags::isClickCollectEnabled()) :
                         $selectedDeliveryMethod = (string) ($post['delivery_method'] ?? 'shipping');
-                        $ccDiscount = \Core\FeatureFlags::getClickCollectDiscountPerBottle();
+                        $ccDiscount      = (new \Model\ClickCollectSettingsModel())->getDiscountPerBottle();
                         $ccDiscountTotal = round($ccDiscount * $totalQty, 2);
                     ?>
                     <!-- === Mode de livraison (Click & Collect) === -->
@@ -513,7 +513,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                     <span class="js-checkout-total"
                                           data-subtotal="<?= number_format($subtotal, 2, '.', '') ?>"
                                           data-delivery-discount="<?= number_format($deliveryDiscount, 2, '.', '') ?>"
-                                          data-cc-discount-per-bottle="<?= \Core\FeatureFlags::isClickCollectEnabled() ? number_format(\Core\FeatureFlags::getClickCollectDiscountPerBottle(), 2, '.', '') : '0.00' ?>"
+                                          data-cc-discount-per-bottle="<?= \Core\FeatureFlags::isClickCollectEnabled() ? number_format((new \Model\ClickCollectSettingsModel())->getDiscountPerBottle(), 2, '.', '') : '0.00' ?>"
                                           data-total-qty="<?= (int) $totalQty ?>"><?= number_format($total, 2, ',', ' ') ?></span>&nbsp;€
                                 </strong>
                             </div>
