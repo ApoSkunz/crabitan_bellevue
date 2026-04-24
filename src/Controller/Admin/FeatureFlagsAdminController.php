@@ -50,6 +50,14 @@ class FeatureFlagsAdminController extends AdminController
             );
         }
 
+        $remainingAttempts = null;
+        if ($otpBatch && $isSuperAdmin) {
+            $otpRow = (new AdminOtpModel())->find((int) $adminUser['id'], 'ff_batch');
+            if ($otpRow !== null) {
+                $remainingAttempts = self::MAX_OTP_ATTEMPTS - (int) $otpRow['attempts'];
+            }
+        }
+
         $this->view('admin/feature-flags/index', [
             'adminUser'         => $adminUser,
             'adminSection'      => 'feature_flags',
@@ -60,6 +68,7 @@ class FeatureFlagsAdminController extends AdminController
             'otpBatch'          => $otpBatch,
             'isSuperAdmin'      => $isSuperAdmin,
             'superAdminEmails'  => $superAdminEmails,
+            'remainingAttempts' => $remainingAttempts,
         ]);
     }
 

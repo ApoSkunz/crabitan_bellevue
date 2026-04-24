@@ -11,6 +11,7 @@
  * @var bool                             $otpBatch
  * @var bool                             $isSuperAdmin
  * @var array<int, string>               $superAdminEmails
+ * @var int|null                         $remainingAttempts
  */
 require_once ROOT_PATH . '/src/View/admin/_open.php';
 $csrf = $_SESSION['csrf'] ?? '';
@@ -53,7 +54,7 @@ $categories = [
 <main class="admin-main" id="main-content">
     <div class="admin-content">
 
-        <?php if (!empty($_SESSION['flash'])): ?>
+        <?php if (!$otpBatch && !empty($_SESSION['flash'])): ?>
             <?php foreach ($_SESSION['flash'] as $type => $msg): unset($_SESSION['flash'][$type]); ?>
                 <div class="admin-alert admin-alert--<?= htmlspecialchars($type) ?>" role="alert">
                     <?= htmlspecialchars((string) $msg) ?>
@@ -75,23 +76,45 @@ $categories = [
         <div id="ff-otp-overlay" role="dialog" aria-modal="true" aria-labelledby="ff-otp-title"
              style="position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.55);
                     display:flex;align-items:center;justify-content:center;">
-            <div style="background:#fff;border-radius:10px;padding:2rem 2.5rem;max-width:420px;
-                        width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.25);position:relative;">
+            <div id="ff-otp-card" style="background:#fff;border-radius:10px;padding:2rem 2.5rem;
+                        max-width:420px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.25);
+                        position:relative;transition:opacity 0.25s;">
 
                 <h2 id="ff-otp-title" style="font-size:1rem;font-weight:600;color:#3d3425;
                                               margin:0 0 0.25rem;">Confirmation OTP requise</h2>
-                <p style="font-size:0.8rem;color:#888;margin:0 0 1.5rem;">
-                    Entrez le code à 6 chiffres reçu par email — 3 tentatives max.
+                <p style="font-size:0.8rem;color:#888;margin:0 0 1rem;">
+                    Entrez le code à 6 chiffres reçu par email.
                 </p>
 
-                <div style="display:flex;align-items:center;justify-content:center;
-                            gap:0.5rem;margin-bottom:1.5rem;">
-                    <span style="font-size:0.8rem;color:#888;">Expire dans</span>
-                    <span id="ff-otp-countdown"
-                          style="font-size:1rem;font-weight:700;color:#c9a84c;
-                                 font-variant-numeric:tabular-nums;min-width:2.2em;text-align:right;">
-                        2:00
+                <?php if (!empty($_SESSION['flash'])): ?>
+                    <?php foreach ($_SESSION['flash'] as $type => $msg): unset($_SESSION['flash'][$type]); ?>
+                    <div style="padding:0.6rem 0.9rem;border-radius:6px;font-size:0.82rem;
+                                margin-bottom:1rem;
+                                <?= $type === 'error'
+                                    ? 'background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;'
+                                    : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;' ?>">
+                        <?= htmlspecialchars((string) $msg) ?>
+                    </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;
+                            margin-bottom:1.25rem;">
+                    <div style="display:flex;align-items:center;gap:0.4rem;">
+                        <span style="font-size:0.8rem;color:#888;">Expire dans</span>
+                        <span id="ff-otp-countdown"
+                              style="font-size:1rem;font-weight:700;color:#c9a84c;
+                                     font-variant-numeric:tabular-nums;min-width:2.2em;">
+                            2:00
+                        </span>
+                    </div>
+                    <?php if ($remainingAttempts !== null): ?>
+                    <span id="ff-otp-attempts"
+                          style="font-size:0.78rem;font-weight:600;
+                                 <?= $remainingAttempts <= 1 ? 'color:#b91c1c;' : 'color:#888;' ?>">
+                        <?= (int) $remainingAttempts ?> tentative<?= $remainingAttempts > 1 ? 's' : '' ?> restante<?= $remainingAttempts > 1 ? 's' : '' ?>
                     </span>
+                    <?php endif; ?>
                 </div>
 
                 <form method="POST" action="/admin/feature-flags/batch-confirm" id="ff-otp-form">
@@ -128,21 +151,32 @@ $categories = [
                     <div id="ff-otp-expired"
                          style="display:none;color:#b91c1c;font-size:0.85rem;
                                 margin-bottom:1rem;text-align:center;">
-                        Code expiré — <a href="/admin/feature-flags" style="color:#b91c1c;">
-                            demandez un nouveau code
-                        </a>
+                        Code expiré —
+                        <a href="/admin/feature-flags" style="color:#b91c1c;">demandez un nouveau code</a>
                     </div>
 
                     <div style="display:flex;gap:0.75rem;align-items:center;">
                         <button type="submit" id="ff-otp-submit"
-                                class="admin-btn admin-btn--primary">
-                            Valider les modifications
+                                class="admin-btn admin-btn--primary"
+                                style="display:flex;align-items:center;gap:0.5rem;">
+                            <span id="ff-otp-btn-text">Valider les modifications</span>
+                            <svg id="ff-otp-spinner" xmlns="http://www.w3.org/2000/svg"
+                                 width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5"
+                                 style="display:none;animation:ff-spin 0.7s linear infinite;">
+                                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83
+                                         M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                            </svg>
                         </button>
                         <a href="/admin/feature-flags" class="admin-btn admin-btn--ghost">
                             Annuler
                         </a>
                     </div>
                 </form>
+
+                <style>
+                @keyframes ff-spin { to { transform: rotate(360deg); } }
+                </style>
             </div>
         </div>
 
@@ -158,7 +192,7 @@ $categories = [
             var elapsed   = Math.floor((now - started) / 1000);
             var remaining = Math.max(0, TOTAL - elapsed);
 
-            var countEl  = document.getElementById('ff-otp-countdown');
+            var countEl   = document.getElementById('ff-otp-countdown');
             var expiredEl = document.getElementById('ff-otp-expired');
             var submitBtn = document.getElementById('ff-otp-submit');
 
@@ -191,6 +225,8 @@ $categories = [
             var digits  = Array.from(document.querySelectorAll('#ff-otp-digits input'));
             var hidden  = document.getElementById('otp-input');
             var otpForm = document.getElementById('ff-otp-form');
+            var spinner = document.getElementById('ff-otp-spinner');
+            var btnText = document.getElementById('ff-otp-btn-text');
 
             function collectOtp() {
                 hidden.value = digits.map(function (d) { return d.value; }).join('');
@@ -223,7 +259,14 @@ $categories = [
                 });
             });
 
-            otpForm.addEventListener('submit', function () { collectOtp(); });
+            otpForm.addEventListener('submit', function () {
+                collectOtp();
+                // Animation soumission
+                submitBtn.disabled = true;
+                spinner.style.display = 'inline';
+                btnText.textContent   = 'Vérification…';
+                document.getElementById('ff-otp-card').style.opacity = '0.6';
+            });
         }());
         </script>
         <?php endif; ?>
