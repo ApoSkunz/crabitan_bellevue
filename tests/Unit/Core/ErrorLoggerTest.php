@@ -631,49 +631,43 @@ class ErrorLoggerTest extends TestCase
 
     /**
      * write() appelle mkdir() quand storage/logs n'existe pas encore.
-     *
-     * On supprime tout le sous-arbre storage/ avant l'appel (processus isolé)
-     * pour garantir que la branche mkdir (ligne 161) est exécutée.
+     * Renomme temporairement le dossier réel pour simuler son absence.
+     * Couvre ErrorLogger.php:161.
      */
-    #[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
-    #[\PHPUnit\Framework\Attributes\PreserveGlobalState(false)]
     public function testWriteCreatesLogDirWhenMissing(): void
     {
-        // ROOT_PATH est défini par le bootstrap du processus enfant
-        $logDir     = ROOT_PATH . '/storage/logs';
-        $storageDir = ROOT_PATH . '/storage';
+        $logDir  = ROOT_PATH . '/storage/logs';
+        $backDir = ROOT_PATH . '/storage/logs_errlog_bak';
 
-        // Supprimer récursivement tous les fichiers .log puis les dossiers
-        if (is_dir($logDir)) {
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($logDir, \FilesystemIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::CHILD_FIRST
-            );
-            foreach ($iterator as $file) {
-                $file->isDir() ? rmdir((string) $file) : unlink((string) $file);
+        $existed = is_dir($logDir);
+        if ($existed) {
+            rename($logDir, $backDir);
+        }
+
+        try {
+            $this->assertDirectoryDoesNotExist($logDir);
+
+            \Core\ErrorLogger::write([
+                'timestamp' => date('Y-m-d H:i:s'),
+                'level'     => 'INFO',
+                'message'   => 'mkdir branch test',
+                'file'      => '',
+                'line'      => 0,
+                'trace'     => '',
+                'url'       => '/test',
+                'method'    => 'GET',
+            ]);
+
+            $this->assertDirectoryExists($logDir);
+        } finally {
+            foreach (glob($logDir . '/*.log') ?: [] as $f) {
+                unlink($f);
             }
-            rmdir($logDir);
+            @rmdir($logDir);
+            if ($existed && is_dir($backDir)) {
+                rename($backDir, $logDir);
+            }
         }
-
-        // Si storage/ est vide, le supprimer aussi pour que mkdir puisse recréer storage/logs
-        if (is_dir($storageDir) && count(scandir($storageDir) ?: []) <= 2) {
-            rmdir($storageDir);
-        }
-
-        $this->assertDirectoryDoesNotExist($logDir);
-
-        \Core\ErrorLogger::write([
-            'timestamp' => date('Y-m-d H:i:s'),
-            'level'     => 'INFO',
-            'message'   => 'mkdir branch test',
-            'file'      => '',
-            'line'      => 0,
-            'trace'     => '',
-            'url'       => '/test',
-            'method'    => 'GET',
-        ]);
-
-        $this->assertDirectoryExists($logDir);
     }
 
     // ----------------------------------------------------------------
