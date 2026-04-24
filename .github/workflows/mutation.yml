@@ -40,13 +40,24 @@ jobs:
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Create build directories
-        run: mkdir -p build/infection
+        run: mkdir -p build/infection build/coverage
 
-      - name: Run Infection
+      - name: PHPUnit TU — coverage pour Infection
         env:
           XDEBUG_MODE: coverage
         run: |
+          vendor/bin/phpunit \
+            --testsuite Unit \
+            --coverage-xml build/coverage/xml \
+            --coverage-php build/coverage/infection.cov \
+            --display-warnings
+
+      - name: Run Infection
+        env:
+          XDEBUG_MODE: off
+        run: |
           vendor/bin/infection \
+            --coverage build/coverage \
             --min-msi=60 \
             --threads=4 \
             --show-mutations \
