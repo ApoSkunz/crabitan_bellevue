@@ -86,18 +86,18 @@ class AccountAdminController extends AdminController
     }
 
     // ----------------------------------------------------------------
-    // POST /admin/comptes/{id}/verifier  (admin + super_admin)
+    // POST /admin/comptes/{id}/verifier  (super_admin uniquement)
     // ----------------------------------------------------------------
 
     /**
-     * Force la vérification email d'un compte (admin et super_admin).
+     * Force la vérification email d'un compte (super_admin uniquement).
      *
      * @param array<string, mixed> $params Paramètres de route (id)
      * @return void
      */
     public function verify(array $params): void
     {
-        $adminUser = $this->requireAdmin();
+        $adminUser = $this->requireSuperAdmin();
 
         if (!$this->verifyCsrf()) {
             $this->flash('error', 'Token CSRF invalide.');
