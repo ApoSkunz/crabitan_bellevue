@@ -30,6 +30,7 @@ DROP TABLE IF EXISTS `newsletter_attachments`;
 DROP TABLE IF EXISTS `newsletters`;
 DROP TABLE IF EXISTS `game_scores`;
 DROP TABLE IF EXISTS `order_forms`;
+DROP TABLE IF EXISTS `admin_otps`;
 DROP TABLE IF EXISTS `password_reset`;
 DROP TABLE IF EXISTS `news`;
 DROP TABLE IF EXISTS `favorites`;
@@ -559,6 +560,26 @@ CREATE TABLE `password_reset` (
   CONSTRAINT `fk_password_reset_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
   INDEX `idx_password_reset_token` (`token`),
   INDEX `idx_password_reset_expires` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : admin_otps
+-- OTP à usage unique pour actions sensibles (feature flags…)
+-- Un seul OTP actif par (admin_id, purpose) — UNIQUE constraint
+-- ============================================================
+CREATE TABLE `admin_otps` (
+  `id`         INT          NOT NULL AUTO_INCREMENT,
+  `admin_id`   INT          NOT NULL,
+  `purpose`    VARCHAR(50)  NOT NULL,
+  `otp_hash`   CHAR(64)     NOT NULL COMMENT 'SHA-256 du code à 6 chiffres',
+  `payload`    TEXT         NULL     COMMENT 'JSON des changements en attente',
+  `attempts`   TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `expires_at` DATETIME     NOT NULL,
+  `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_admin_purpose` (`admin_id`, `purpose`),
+  INDEX `idx_admin_otps_expires` (`expires_at`),
+  CONSTRAINT `fk_admin_otps_account` FOREIGN KEY (`admin_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================

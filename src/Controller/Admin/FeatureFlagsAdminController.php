@@ -7,6 +7,7 @@ namespace Controller\Admin;
 use Core\FeatureFlags;
 use Core\Response;
 use Model\AccountModel;
+use Model\AdminOtpModel;
 use Model\FeatureFlagsModel;
 use Service\AuditLogger;
 use Service\MailService;
@@ -246,11 +247,15 @@ class FeatureFlagsAdminController extends AdminController
         }
         $rl->recordAttempt($requestKey, self::WINDOW_REQUESTS);
 
-        $otp        = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $otpKey     = 'ff_batch_otp:' . $adminUser['id'];
-        $pendingKey = 'ff_batch_pending:' . $adminUser['id'];
-        $rl->remember($otpKey, $otp, self::OTP_TTL);
-        $rl->remember($pendingKey, (string) json_encode($changes), self::OTP_TTL);
+        $otp     = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $otpHash = hash('sha256', $otp);
+        (new AdminOtpModel())->create(
+            (int) $adminUser['id'],
+            'ff_batch',
+            $otpHash,
+            (string) json_encode($changes),
+            self::OTP_TTL
+        );
 
         try {
             $mail = $this->newMailService();
@@ -281,28 +286,30 @@ class FeatureFlagsAdminController extends AdminController
             Response::redirect(self::REDIRECT);
         }
 
-        $rl          = $this->newRateLimiter();
-        $attemptsKey = 'ff_batch_otp_attempts:' . $adminUser['id'];
-        $otpKey      = 'ff_batch_otp:' . $adminUser['id'];
-        $pendingKey  = 'ff_batch_pending:' . $adminUser['id'];
+        $otpModel     = new AdminOtpModel();
+        $submittedOtp = trim((string) ($_POST['otp'] ?? ''));
+        $otpRow       = $otpModel->find((int) $adminUser['id'], 'ff_batch');
 
-        if (!$rl->checkLimit($attemptsKey, self::MAX_OTP_ATTEMPTS, self::OTP_TTL)) {
+        if ($otpRow === null) {
+            $this->flash('error', 'Code OTP expiré ou introuvable. Recommencez.');
+            Response::redirect(self::REDIRECT);
+        }
+
+        if ((int) $otpRow['attempts'] >= self::MAX_OTP_ATTEMPTS) {
+            $otpModel->delete((int) $adminUser['id'], 'ff_batch');
             $this->flash('error', 'Trop de tentatives. Redemandez un nouveau code.');
             Response::redirect(self::REDIRECT);
         }
 
-        $submittedOtp = trim((string) ($_POST['otp'] ?? ''));
-        $storedOtp    = (string) ($rl->recall($otpKey) ?? '');
-        $pendingJson  = (string) ($rl->recall($pendingKey) ?? '');
-
-        if ($storedOtp === '' || !hash_equals($storedOtp, $submittedOtp)) {
-            $rl->recordAttempt($attemptsKey, self::OTP_TTL);
-            $this->flash('error', 'Code invalide ou expiré.');
+        if (!hash_equals((string) $otpRow['otp_hash'], hash('sha256', $submittedOtp))) {
+            $otpModel->incrementAttempts((int) $otpRow['id']);
+            $remaining = self::MAX_OTP_ATTEMPTS - (int) $otpRow['attempts'] - 1;
+            $this->flash('error', "Code invalide. {$remaining} tentative(s) restante(s).");
             Response::redirect(self::REDIRECT . '?otp_batch=1');
         }
 
         /** @var array<int, array{key: string, old: string, new: string, label: string}> $changes */
-        $changes = (array) (json_decode($pendingJson, true) ?? []);
+        $changes = (array) (json_decode((string) ($otpRow['payload'] ?? ''), true) ?? []);
         $model   = $this->newModel();
         $applied = 0;
 
@@ -326,9 +333,7 @@ class FeatureFlagsAdminController extends AdminController
         }
 
         FeatureFlags::flush();
-        $rl->reset($otpKey);
-        $rl->reset($pendingKey);
-        $rl->reset($attemptsKey);
+        $otpModel->delete((int) $adminUser['id'], 'ff_batch');
 
         $this->flash('success', "{$applied} flag(s) mis à jour avec succès.");
         Response::redirect(self::REDIRECT);
