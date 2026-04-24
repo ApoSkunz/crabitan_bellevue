@@ -60,9 +60,9 @@ class CronControllerCoverageTest extends TestCase
         $_ENV['MAIL_FROM_NAME']         = 'Test';
         $_ENV['APP_URL']                = 'http://test.local';
         $_ENV['CRON_SECRET_TOKEN']      = 'secret-test-token';
+        $_ENV['RGPD_INACTIVITY_MONTHS'] = '36';
         FeatureFlags::setCache([
-            'rgpd_inactivity_months' => ['key' => 'rgpd_inactivity_months', 'value' => '36', 'type' => 'int'],
-            'cron_mail_delay_ms'     => ['key' => 'cron_mail_delay_ms', 'value' => '0', 'type' => 'int'],
+            'cron_mail_delay_ms' => ['key' => 'cron_mail_delay_ms', 'value' => '0', 'type' => 'int'],
         ]);
 
         $this->controller   = new CronController(new Request());
@@ -75,7 +75,8 @@ class CronControllerCoverageTest extends TestCase
         $_GET = [];
         unset(
             $_ENV['CRON_SECRET_TOKEN'],
-            $_ENV['APP_URL']
+            $_ENV['APP_URL'],
+            $_ENV['RGPD_INACTIVITY_MONTHS']
         );
         FeatureFlags::flush();
     }

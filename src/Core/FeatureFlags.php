@@ -12,7 +12,7 @@ namespace Core;
  * seuls les comportements clients sont conditionnés par ces flags.
  *
  * Usage :
- *   FeatureFlags::getBool('customer_mfa_enabled', true)
+ *   FeatureFlags::getBool('invoice_auto_generate', true)
  *   FeatureFlags::getInt('rate_limit_login_max', 10)
  *   FeatureFlags::getFloat('jwt_refresh_threshold', 0.5)
  */

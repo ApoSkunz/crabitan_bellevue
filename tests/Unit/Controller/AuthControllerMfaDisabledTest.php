@@ -42,7 +42,7 @@ class AuthControllerMfaDisabledTest extends TestCase
         $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 PHPUnit';
         $_SERVER['REMOTE_ADDR']     = '127.0.0.1';
 
-        FeatureFlags::setCache(['customer_mfa_enabled' => ['key' => 'customer_mfa_enabled', 'value' => 'false', 'type' => 'bool']]);
+        $_ENV['MFA_EMAIL_ENABLED'] = 'false';
     }
 
     protected function tearDown(): void
@@ -51,7 +51,7 @@ class AuthControllerMfaDisabledTest extends TestCase
         $_SESSION = [];
         $_POST    = [];
         $_COOKIE  = [];
-        unset($_SERVER['REMOTE_ADDR']);
+        unset($_SERVER['REMOTE_ADDR'], $_ENV['MFA_EMAIL_ENABLED']);
         FeatureFlags::flush();
     }
 
@@ -119,7 +119,7 @@ class AuthControllerMfaDisabledTest extends TestCase
 
     public function testLoginRedirectsToMfaWhenMfaEnabledAndUntrustedDevice(): void
     {
-        FeatureFlags::setCache(['customer_mfa_enabled' => ['key' => 'customer_mfa_enabled', 'value' => 'true', 'type' => 'bool']]);
+        $_ENV['MFA_EMAIL_ENABLED'] = 'true';
 
         $_POST = [
             'email'      => 'jean@example.com',

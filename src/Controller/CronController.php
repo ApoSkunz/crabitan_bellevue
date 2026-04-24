@@ -248,7 +248,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     {
         $model          = new \Model\AccountModel();
         $mailer         = new \Service\MailService();
-        $inactiveMonths = \Core\FeatureFlags::getInt('rgpd_inactivity_months', 36);
+        $inactiveMonths = (int)($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
 
         $log("Seuil d'inactivité : {$inactiveMonths} mois");
 

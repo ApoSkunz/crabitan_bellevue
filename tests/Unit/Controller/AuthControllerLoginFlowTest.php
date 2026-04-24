@@ -40,7 +40,7 @@ class AuthControllerLoginFlowTest extends TestCase
         $_SERVER['REQUEST_URI']     = '/fr/connexion';
         $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit/Test';
         $_SERVER['REMOTE_ADDR']     = '127.0.0.1';
-        FeatureFlags::setCache(['customer_mfa_enabled' => ['key' => 'customer_mfa_enabled', 'value' => 'true', 'type' => 'bool']]); // force MFA on indépendamment du .env local
+        $_ENV['MFA_EMAIL_ENABLED'] = 'true';
     }
 
     protected function tearDown(): void
@@ -49,7 +49,7 @@ class AuthControllerLoginFlowTest extends TestCase
         $_SESSION = [];
         $_POST    = [];
         $_COOKIE  = [];
-        unset($_SERVER['REMOTE_ADDR']);
+        unset($_SERVER['REMOTE_ADDR'], $_ENV['MFA_EMAIL_ENABLED']);
         FeatureFlags::flush();
     }
 

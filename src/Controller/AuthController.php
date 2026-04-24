@@ -162,14 +162,14 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
 
         // MFA requis : appareil non de confiance, qu'il soit connu ou non.
         // Le JWT n'est PAS émis ici — la connexion est bloquée jusqu'à validation du lien email.
-        // customer_mfa_enabled=false : auto-trust temporaire (limite SMTP IONOS < 30 jours).
+        // MFA_EMAIL_ENABLED=false : auto-trust temporaire (limite SMTP IONOS < 30 jours).
         if (!$trusted) {
-            $mfaEnabled = \Core\FeatureFlags::getBool('customer_mfa_enabled', true);
+            $mfaEnabled = ($_ENV['MFA_EMAIL_ENABLED'] ?? 'true') !== 'false';
             if ($mfaEnabled) {
                 $this->handleUntrustedDevice($account, $deviceToken, $deviceName, $lang, $safeBack);
             } else {
                 \Core\ErrorLogger::warning(
-                    new \RuntimeException('[MFA_DISABLED] Auto-trust device — customer_mfa_enabled=false'),
+                    new \RuntimeException('[MFA_DISABLED] Auto-trust device — MFA_EMAIL_ENABLED=false'),
                     '[MFA_DISABLED]'
                 );
                 $this->trustedDevices->trust((int) $account['id'], $deviceToken, $deviceName);

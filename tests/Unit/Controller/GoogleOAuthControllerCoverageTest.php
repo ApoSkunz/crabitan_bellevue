@@ -60,7 +60,7 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         $_COOKIE  = [];
         $_GET     = [];
         $_POST    = [];
-        unset($_ENV['GOOGLE_FR_FALBACK'], $_ENV['GOOGLE_EN_FALBACK']);
+        unset($_ENV['GOOGLE_FR_FALBACK'], $_ENV['GOOGLE_EN_FALBACK'], $_ENV['MFA_EMAIL_ENABLED']);
         FeatureFlags::flush();
     }
 
@@ -436,7 +436,7 @@ class GoogleOAuthControllerCoverageTest extends TestCase
     {
         $_GET     = ['code' => 'valid-code', 'state' => 'valid-state'];
         $_SESSION = ['oauth_google_state' => 'valid-state'];
-        FeatureFlags::setCache(['customer_mfa_enabled' => ['key' => 'customer_mfa_enabled', 'value' => 'false', 'type' => 'bool']]);
+        $_ENV['MFA_EMAIL_ENABLED'] = 'false';
 
         $existingAccount = [
             'id' => 300, 'role' => 'customer', 'lang' => 'fr',

@@ -66,7 +66,7 @@ class AuthControllerCoverageTest extends TestCase
         $_SERVER['REQUEST_URI']     = '/fr/connexion';
         $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 PHPUnit';
         $_SERVER['REMOTE_ADDR']     = '127.0.0.1';
-        FeatureFlags::setCache(['customer_mfa_enabled' => ['key' => 'customer_mfa_enabled', 'value' => 'true', 'type' => 'bool']]);
+        $_ENV['MFA_EMAIL_ENABLED']  = 'true';
     }
 
     protected function tearDown(): void
@@ -75,7 +75,7 @@ class AuthControllerCoverageTest extends TestCase
         $_SESSION = [];
         $_POST    = [];
         $_COOKIE  = [];
-        unset($_SERVER['REMOTE_ADDR']);
+        unset($_SERVER['REMOTE_ADDR'], $_ENV['MFA_EMAIL_ENABLED']);
         FeatureFlags::flush();
     }
 
@@ -167,7 +167,7 @@ class AuthControllerCoverageTest extends TestCase
 
     public function testLoginAutoTrustsDeviceWhenMfaDisabled(): void
     {
-        FeatureFlags::setCache(['customer_mfa_enabled' => ['key' => 'customer_mfa_enabled', 'value' => 'false', 'type' => 'bool']]);
+        $_ENV['MFA_EMAIL_ENABLED'] = 'false';
 
         $hash = $this->makeHash();
         $_POST = ['email' => 'jean@example.com', 'password' => 'TestPass123!', 'csrf_token' => 'valid-csrf'];
@@ -1531,7 +1531,7 @@ class AuthControllerCoverageTest extends TestCase
 
     public function testHandleUntrustedDeviceMailThrowCoveredByCatch(): void
     {
-        FeatureFlags::setCache(['customer_mfa_enabled' => ['key' => 'customer_mfa_enabled', 'value' => 'true', 'type' => 'bool']]);
+        $_ENV['MFA_EMAIL_ENABLED'] = 'true';
 
         $hash = $this->makeHash();
         $_POST = ['email' => 'mfa1001@example.com', 'password' => 'TestPass123!', 'csrf_token' => 'valid-csrf'];
@@ -1572,7 +1572,7 @@ class AuthControllerCoverageTest extends TestCase
      */
     public function testHandleUntrustedDeviceUsesCompanyNameForCompanyAccount(): void
     {
-        FeatureFlags::setCache(['customer_mfa_enabled' => ['key' => 'customer_mfa_enabled', 'value' => 'true', 'type' => 'bool']]);
+        $_ENV['MFA_EMAIL_ENABLED'] = 'true';
 
         $hash  = $this->makeHash();
         $_POST = [
@@ -1615,7 +1615,7 @@ class AuthControllerCoverageTest extends TestCase
      */
     public function testHandleUntrustedDeviceFallsBackToDefaultWhenCompanyNameMissing(): void
     {
-        FeatureFlags::setCache(['customer_mfa_enabled' => ['key' => 'customer_mfa_enabled', 'value' => 'true', 'type' => 'bool']]);
+        $_ENV['MFA_EMAIL_ENABLED'] = 'true';
 
         $hash  = $this->makeHash();
         $_POST = [

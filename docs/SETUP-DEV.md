@@ -213,10 +213,13 @@ CA_PUBKEY_PATH=config/ca-pubkey.pem  # chemin vers la clé publique RSA CA (vér
 WEATHER_API_KEY=                 # clé OpenWeatherMap — NE PAS VERSIONNER
 TRANSLATION_API_KEY=             # clé API traduction — NE PAS VERSIONNER
 
+# ── Sécurité / RGPD ───────────────────────────────────────────────────────
+MFA_EMAIL_ENABLED=true           # false = auto-trust appareil (désactive challenge email MFA)
+RGPD_INACTIVITY_MONTHS=36        # durée d'inactivité avant pseudonymisation automatique
+
 # ── Feature Flags ─────────────────────────────────────────────────────────
-# Tous les feature flags sont gérés en BDD via /admin/feature-flags (table feature_flags).
-# Les anciens toggles .env (click_collect_enabled, customer_mfa_enabled, stock_alert_limit…)
-# ne sont plus lues par le code.
+# La plupart des feature flags sont gérés en BDD via /admin/feature-flags (table feature_flags).
+# Exception : MFA_EMAIL_ENABLED et RGPD_INACTIVITY_MONTHS restent en .env (invariants sécurité/légal).
 ```
 
 ---
