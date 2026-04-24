@@ -80,7 +80,13 @@ class AccountPreferenceController extends AbstractAccountController
             : 'Se désabonner de la newsletter du Château Crabitan Bellevue.';
 
         if ($token === '' || !$this->userRepo->findByUnsubscribeToken($token)) {
-            $this->view(self::VIEW_UNSUBSCRIBE, ['lang' => $lang, 'metaDescription' => $unsubMeta, 'noindex' => true, 'success' => false, 'confirm' => false]);
+            $this->view(self::VIEW_UNSUBSCRIBE, [
+                'lang'            => $lang,
+                'metaDescription' => $unsubMeta,
+                'noindex'         => true,
+                'success'         => false,
+                'confirm'         => false,
+            ]);
             return;
         }
 
