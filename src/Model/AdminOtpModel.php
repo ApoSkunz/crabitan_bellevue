@@ -100,11 +100,11 @@ class AdminOtpModel
     /**
      * Purge les OTP expirés (maintenance, appelable depuis un cron).
      *
-     * @return void
+     * @return int Nombre de lignes supprimées
      */
-    public function purgeExpired(): void
+    public function purgeExpired(): int
     {
-        $this->db->execute(
+        return $this->db->execute(
             "DELETE FROM `" . self::TABLE . "` WHERE expires_at <= NOW()",
             []
         );
