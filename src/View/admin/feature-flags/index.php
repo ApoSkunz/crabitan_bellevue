@@ -147,6 +147,9 @@ $categories = [
                                     <div class="ff-row__control">
                                         <?php if ($type === 'bool'): ?>
                                             <label class="ff-toggle" aria-label="<?= htmlspecialchars($label) ?>">
+                                                <span class="ff-toggle__label">
+                                                    <?= $value === 'true' ? 'Activé' : 'Désactivé' ?>
+                                                </span>
                                                 <input type="hidden" name="<?= htmlspecialchars($key) ?>" value="false">
                                                 <input
                                                     type="checkbox"
@@ -157,9 +160,6 @@ $categories = [
                                                 >
                                                 <span class="ff-toggle__track">
                                                     <span class="ff-toggle__thumb"></span>
-                                                </span>
-                                                <span class="ff-toggle__label">
-                                                    <?= $value === 'true' ? 'Activé' : 'Désactivé' ?>
                                                 </span>
                                             </label>
                                         <?php elseif ($type === 'int'): ?>
@@ -206,7 +206,7 @@ $categories = [
 
         <script>
         // Update toggle label dynamically on change
-        document.querySelectorAll('.ff-toggle__input').forEach(function(cb) {
+        document.querySelectorAll('.ff-toggle__input[type="checkbox"]').forEach(function(cb) {
             cb.addEventListener('change', function() {
                 var lbl = this.closest('.ff-toggle').querySelector('.ff-toggle__label');
                 if (lbl) lbl.textContent = this.checked ? 'Activé' : 'Désactivé';
