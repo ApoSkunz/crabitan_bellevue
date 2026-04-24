@@ -169,7 +169,7 @@ $categories = [
                 <?php
                 $otpFlashMessages = $_SESSION['admin_flash'] ?? [];
                 unset($_SESSION['admin_flash']);
-                foreach ($otpFlashMessages as $fType => $fMsg):
+                foreach ($otpFlashMessages as $fType => $fMsg): // NOSONAR — php:S3973 : syntaxe alternative PHP standard dans les vues
                 ?>
                 <div style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.65rem 0.9rem;
                             border-radius:6px;font-size:0.82rem;font-weight:500;margin-bottom:1rem;
@@ -216,7 +216,7 @@ $categories = [
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 
                     <div id="ff-otp-field" style="margin-bottom:1.25rem;">
-                        <label style="display:block;font-size:0.8rem;font-weight:600;
+                        <label for="ff-otp-digit-0" style="display:block;font-size:0.8rem;font-weight:600;
                                       color:#3d3425;margin-bottom:0.75rem;">
                             Code OTP
                         </label>
@@ -229,6 +229,7 @@ $categories = [
                                 inputmode="numeric"
                                 maxlength="1"
                                 pattern="[0-9]"
+                                <?= $i === 0 ? 'id="ff-otp-digit-0"' : '' ?>
                                 autocomplete="<?= $i === 0 ? 'one-time-code' : 'off' ?>"
                                 <?= $i === 0 ? 'autofocus' : '' ?>
                                 style="width:2.5rem;height:3rem;border:none;
@@ -480,7 +481,7 @@ $categories = [
                     type="submit"
                     class="admin-btn admin-btn--primary"
                     id="ff-save-btn"
-                    <?= $otpBlockSecondsLeft > 0 ? 'disabled' : 'disabled' ?>
+                    disabled
                 >
                     Enregistrer mes modifications
                 </button>

@@ -13,6 +13,8 @@ class ConnectionModel extends Model
 {
     protected string $table = 'connections';
 
+    private const DATE_FORMAT_MYSQL = 'Y-m-d H:i:s';
+
     /**
      * Enregistre une nouvelle connexion en base.
      *
@@ -48,7 +50,7 @@ class ConnectionModel extends Model
                 $userAgent !== null ? substr($userAgent, 0, 65535) : null,
                 $deviceName,
                 $authMethod,
-                date('Y-m-d H:i:s', time() + $expiry),
+                date(self::DATE_FORMAT_MYSQL, time() + $expiry),
             ]
         );
     }
@@ -192,7 +194,7 @@ class ConnectionModel extends Model
             "UPDATE {$this->table}
              SET expired_at = ?
              WHERE token = ? AND status = 'active' AND expired_at > NOW()",
-            [date('Y-m-d H:i:s', time() + $expiry), $token]
+            [date(self::DATE_FORMAT_MYSQL, time() + $expiry), $token]
         );
         return $affected > 0;
     }
@@ -214,7 +216,7 @@ class ConnectionModel extends Model
             "UPDATE {$this->table}
              SET token = ?, expired_at = ?
              WHERE token = ? AND status = 'active' AND expired_at > NOW()",
-            [$newToken, date('Y-m-d H:i:s', time() + $expiry), $oldToken]
+            [$newToken, date(self::DATE_FORMAT_MYSQL, time() + $expiry), $oldToken]
         );
         return $affected > 0;
     }

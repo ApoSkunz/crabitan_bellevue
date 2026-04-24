@@ -22,12 +22,11 @@ class FeatureFlagsModel extends Model
      */
     public function getAll(): array
     {
-        $rows = $this->db->fetchAll(
+        return $this->db->fetchAll(
             'SELECT `key`, `value`, `type`, `label`, `description`, `updated_at`, `updated_by`
              FROM `feature_flags`
              ORDER BY `key`'
         );
-        return $rows;
     }
 
     /**
