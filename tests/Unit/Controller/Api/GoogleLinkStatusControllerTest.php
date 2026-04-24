@@ -219,7 +219,7 @@ class GoogleLinkStatusControllerTest extends TestCase
     public function testRateLimitReturnsPending429(): void
     {
         $_SESSION['pending_google_link_token']    = 'plaintoken123';
-        $_SESSION['google_link_status_last_call'] = time();
+        $_SESSION['google_link_status_last_call'] = time() + 5; // futur proche → $now - $lastCall < 0 < 1 toujours
 
         $ctrl   = $this->makeController(false);
         $result = $this->callStatus($ctrl);
