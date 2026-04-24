@@ -942,9 +942,9 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
     public function getAvailableForLlms(): array
     {
         return $this->db->fetchAll(
-            "SELECT slug, label_name, vintage, price, wine_color, is_for_sale
+            "SELECT slug, label_name, vintage, price, wine_color
              FROM {$this->table}
-             WHERE " . self::COND_AVAILABLE . " AND stock_quantity > 0 AND is_for_sale = 1
+             WHERE " . self::COND_AVAILABLE . " AND stock_quantity > 0
              ORDER BY wine_color DESC, vintage DESC"
         );
     }

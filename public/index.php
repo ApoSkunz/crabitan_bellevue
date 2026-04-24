@@ -53,7 +53,9 @@ $isPublicPath = str_starts_with($path, '/age-gate')
     || $path === '/sitemap.xml'
     || $path === '/sitemap-index.xml'
     || $path === '/sitemap-media.xml'
-    || $path === '/robots.txt';
+    || $path === '/sitemap-products.xml'
+    || $path === '/robots.txt'
+    || $path === '/llms.txt';
 
 // Crawlers SEO connus : vérification DNS inverse pour éviter l'usurpation du User-Agent (VULN-004)
 $ua        = $_SERVER['HTTP_USER_AGENT'] ?? '';
