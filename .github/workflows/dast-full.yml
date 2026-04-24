@@ -13,10 +13,13 @@ on:
 permissions: read-all
 
 jobs:
-  zap-full:
-    name: ZAP Full Scan — PHP server ISO prod (3 rôles)
+  # ══════════════════════════════════════════════════════════════
+  # JOB 1 — Scan customer (mon-compte, panier, checkout)
+  # ══════════════════════════════════════════════════════════════
+  zap-full-customer:
+    name: ZAP Full Scan — customer
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     permissions:
       issues: write
 
@@ -174,6 +177,95 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           artifact_name: zap-full-customer-${{ github.run_number }}
 
+  # ══════════════════════════════════════════════════════════════
+  # JOB 2 — Scan admin (/admin/*)
+  # ══════════════════════════════════════════════════════════════
+  zap-full-admin:
+    name: ZAP Full Scan — admin
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      issues: write
+
+    services:
+      mysql:
+        image: mysql:8.0.40
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: crabitan_bellevue
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, gd, zip, intl, mbstring
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install JS dependencies & build
+        run: npm ci --ignore-scripts && npm run build
+
+      - name: Apply schema & seed
+        run: |
+          mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/schema.sql
+          mysql -h 127.0.0.1 -u root -proot crabitan_bellevue < database/seed_mock_data.sql
+
+      - name: Create .env (APP_ENV=test — cookies non-secure pour HTTP local)
+        run: |
+          cat > .env << 'EOF'
+          APP_ENV=test
+          APP_URL=http://localhost:8080
+          APP_NAME="Château Crabitan Bellevue"
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_NAME=crabitan_bellevue
+          DB_USER=root
+          DB_PASS=root
+          JWT_SECRET=dast-ci-jwt-secret-not-for-prod
+          JWT_EXPIRY=3600
+          MAIL_HOST=localhost
+          MAIL_PORT=1025
+          MAIL_FROM_NAME="Château Crabitan Bellevue"
+          MAIL_NOREPLY_USER=noreply@crabitanbellevue.fr
+          MAIL_NOREPLY_PASS=unused
+          CONTACT_OWNER_EMAIL=owner@crabitanbellevue.fr
+          DPO_EMAIL=dpo@crabitanbellevue.fr
+          SECURITY_EMAIL=security@crabitanbellevue.fr
+          DB_ENCRYPT_KEY=dast-ci-encrypt-key-not-for-prod
+          DEFAULT_LANG=fr
+          EOF
+
+      - name: Start PHP built-in server
+        run: php -S 0.0.0.0:8080 -t public/ public/router.php &
+
+      - name: Wait for server
+        run: curl --retry 15 --retry-delay 1 --retry-connrefused --silent --output /dev/null http://localhost:8080/
+
+      - name: Resolve host IP for ZAP Docker target
+        id: host-ip
+        run: echo "ip=$(ip route show default | awk '/default/{print $3}')" >> $GITHUB_OUTPUT
+
       # ── Authentification admin (admin@dev.local) ──────────────────────────────
       - name: Login — admin
         id: auth-admin
@@ -216,6 +308,9 @@ jobs:
           echo "ZAP_AUTH_HEADER=Cookie" >> $GITHUB_ENV
           echo "ZAP_AUTH_HEADER_VALUE=auth_token=${{ steps.auth-admin.outputs.token }};age_verified=1" >> $GITHUB_ENV
           echo "ZAP_AUTH_HEADER_SITE=http://${{ steps.host-ip.outputs.ip }}:8080" >> $GITHUB_ENV
+
+      - name: Grant ZAP container write access to workspace
+        run: chmod a+w "$GITHUB_WORKSPACE"
 
       - name: Debug — vérifier auth admin avant scan
         run: |
