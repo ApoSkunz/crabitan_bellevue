@@ -204,10 +204,11 @@ if (empty($_SESSION['csrf'])) {
             }, 2500);
         });
 
-        // Scroll item actif dans la sidebar (focus page sélectionnée)
+        // Scroll item actif dans la sidebar sans scroller la page
         var activeNav = document.querySelector('.admin-nav__item.active');
-        if (activeNav && typeof activeNav.scrollIntoView === 'function') {
-            activeNav.scrollIntoView({ block: 'center', behavior: 'instant' });
+        var navContainer = activeNav && activeNav.closest('.admin-nav');
+        if (activeNav && navContainer) {
+            navContainer.scrollTop = activeNav.offsetTop - (navContainer.clientHeight / 2) + (activeNav.offsetHeight / 2);
         }
     });
     </script>

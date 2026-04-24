@@ -56,20 +56,90 @@ $categories = [
     <div class="admin-content">
 
         <?php if (!$otpBatch && !empty($_SESSION['admin_flash'])): ?>
-            <?php foreach ($_SESSION['admin_flash'] as $type => $msg): unset($_SESSION['admin_flash'][$type]); ?>
-                <div class="admin-alert admin-alert--<?= htmlspecialchars($type) ?>" role="alert">
-                    <?= htmlspecialchars((string) $msg) ?>
+            <?php $resultFlash = $_SESSION['admin_flash']; unset($_SESSION['admin_flash']); ?>
+            <div id="ff-result-overlay" role="dialog" aria-modal="true" aria-live="polite"
+                 style="position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.55);
+                        display:flex;align-items:center;justify-content:center;">
+                <div style="background:#fff;border-radius:10px;padding:2rem 2.5rem;
+                            max-width:400px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.25);
+                            text-align:center;">
+                    <?php foreach ($resultFlash as $fType => $fMsg): ?>
+                    <?php $isSuccess = $fType === 'success'; ?>
+                    <div style="width:3rem;height:3rem;border-radius:50%;margin:0 auto 1rem;
+                                display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+                                <?= $isSuccess ? 'background:#f0fdf4;color:#15803d;' : 'background:#fef2f2;color:#b91c1c;' ?>">
+                        <?= $isSuccess ? '✓' : '✕' ?>
+                    </div>
+                    <p style="font-size:0.95rem;font-weight:600;color:#3d3425;margin:0 0 0.5rem;">
+                        <?= htmlspecialchars((string) $fMsg) ?>
+                    </p>
+                    <?php endforeach; ?>
+                    <p style="font-size:0.82rem;color:#aaa;margin:1rem 0 1.25rem;">
+                        Fermeture automatique dans <strong id="ff-result-timer"
+                            style="color:#3d3425;">15</strong>s
+                    </p>
+                    <button id="ff-result-close"
+                            class="admin-btn admin-btn--outline"
+                            style="width:100%;justify-content:center;">
+                        Fermer
+                    </button>
                 </div>
-            <?php endforeach; ?>
+            </div>
+            <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+            (function () {
+                var t       = 15;
+                var timerEl = document.getElementById('ff-result-timer');
+                var overlay = document.getElementById('ff-result-overlay');
+                var closeBtn = document.getElementById('ff-result-close');
+
+                function dismiss() { clearInterval(iv); if (overlay) { overlay.remove(); } }
+
+                if (closeBtn) { closeBtn.addEventListener('click', dismiss); }
+
+                var iv = setInterval(function () {
+                    t--;
+                    if (timerEl) { timerEl.textContent = t; }
+                    if (t <= 0) { dismiss(); }
+                }, 1000);
+            }());
+            </script>
         <?php endif; ?>
 
         <?php if ($otpBlockSecondsLeft > 0): ?>
-            <?php $blockMinutes = (int) ceil($otpBlockSecondsLeft / 60); ?>
-            <div class="admin-alert admin-alert--error" role="alert" style="margin-bottom:1.5rem;">
-                <strong>Accès temporairement bloqué.</strong>
-                Trop de tentatives OTP incorrectes — nouvelles demandes bloquées pendant
-                encore <strong><?= $blockMinutes ?> minute<?= $blockMinutes > 1 ? 's' : '' ?></strong>.
-            </div>
+            <p id="ff-block-banner"
+               style="color:#b91c1c;font-size:0.85rem;font-weight:500;margin-bottom:1.5rem;
+                      border:none;outline:none;background:none;padding:0;">
+                Accès bloqué — nouvelle demande possible dans
+                <strong id="ff-block-countdown">…</strong>.
+            </p>
+            <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+            (function () {
+                var remaining = <?= (int) $otpBlockSecondsLeft ?>;
+                var el       = document.getElementById('ff-block-countdown');
+                var bannerEl = document.getElementById('ff-block-banner');
+                function fmt(s) {
+                    return Math.ceil(s / 60) + ' min';
+                }
+                function tick() {
+                    if (remaining <= 0) {
+                        bannerEl.remove();
+                        document.querySelectorAll('#ff-form input, #ff-form button').forEach(function (e) {
+                            e.disabled = false;
+                        });
+                        var sb = document.getElementById('ff-savebar-countdown');
+                        if (sb) { sb.closest('.ff-save-bar__hint') && (sb.closest('.ff-save-bar__hint').textContent = 'Un code OTP sera envoyé à votre adresse email pour confirmer les modifications.'); }
+                        return;
+                    }
+                    var fmtd = fmt(remaining);
+                    el.textContent = fmtd;
+                    var savebarEl = document.getElementById('ff-savebar-countdown');
+                    if (savebarEl) { savebarEl.textContent = fmtd; }
+                    remaining--;
+                    setTimeout(tick, 1000);
+                }
+                tick();
+            }());
+            </script>
         <?php endif; ?>
 
         <?php if (!$isSuperAdmin): ?>
@@ -114,10 +184,11 @@ $categories = [
                 <?php if ($remainingAttempts !== null && $remainingAttempts <= 0): ?>
                 <div style="padding:0.75rem 1rem;background:#fef2f2;border:1px solid #fecaca;
                             border-radius:6px;color:#b91c1c;font-size:0.85rem;margin-bottom:1.25rem;">
-                    <strong>Tentatives épuisées.</strong>
-                    Vos modifications ont été annulées. Fermez et recommencez.
+                    <strong>Compte bloqué 1 heure.</strong>
+                    3 tentatives incorrectes — vos modifications ont été annulées.
+                    Nouvelle demande possible dans 1 heure.
                 </div>
-                <a href="/admin/feature-flags" class="admin-btn admin-btn--ghost"
+                <a href="/admin/feature-flags" class="admin-btn admin-btn--outline"
                    style="width:100%;justify-content:center;">
                     Retour à la liste
                 </a>
@@ -144,7 +215,7 @@ $categories = [
                 <form method="POST" action="/admin/feature-flags/batch-confirm" id="ff-otp-form">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 
-                    <div style="margin-bottom:1.25rem;">
+                    <div id="ff-otp-field" style="margin-bottom:1.25rem;">
                         <label style="display:block;font-size:0.8rem;font-weight:600;
                                       color:#3d3425;margin-bottom:0.75rem;">
                             Code OTP
@@ -179,7 +250,7 @@ $categories = [
                         <a href="/admin/feature-flags" style="color:#b91c1c;">demandez un nouveau code</a>
                     </div>
 
-                    <div style="display:flex;gap:0.75rem;align-items:center;">
+                    <div id="ff-otp-actions" style="display:flex;gap:0.75rem;align-items:center;">
                         <button type="submit" id="ff-otp-submit"
                                 class="admin-btn admin-btn--primary"
                                 style="display:flex;align-items:center;gap:0.5rem;">
@@ -192,7 +263,7 @@ $categories = [
                                          M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                             </svg>
                         </button>
-                        <a href="/admin/feature-flags" class="admin-btn admin-btn--ghost">
+                        <a href="/admin/feature-flags" class="admin-btn admin-btn--outline">
                             Annuler
                         </a>
                     </div>
@@ -233,11 +304,19 @@ $categories = [
                 if (remaining <= 0) {
                     countEl.textContent = '0:00';
                     countEl.style.color = '#b91c1c';
+                    document.getElementById('ff-otp-field').style.display = 'none';
                     expiredEl.style.display = 'block';
-                    submitBtn.disabled = true;
-                    document.querySelectorAll('#ff-otp-digits input').forEach(function (d) {
-                        d.disabled = true;
+                    var closeBtn = document.createElement('button');
+                    closeBtn.type = 'button';
+                    closeBtn.className = 'admin-btn admin-btn--outline';
+                    closeBtn.style.cssText = 'width:100%;justify-content:center;';
+                    closeBtn.textContent = 'Fermer';
+                    closeBtn.addEventListener('click', function () {
+                        window.location.href = '/admin/feature-flags';
                     });
+                    var actionsEl = document.getElementById('ff-otp-actions');
+                    actionsEl.innerHTML = '';
+                    actionsEl.appendChild(closeBtn);
                     return;
                 }
                 countEl.textContent = fmt(remaining);
@@ -257,7 +336,9 @@ $categories = [
 
             function collectOtp() {
                 hidden.value = digits.map(function (d) { return d.value; }).join('');
+                submitBtn.disabled = hidden.value.length < 6;
             }
+            submitBtn.disabled = true;
 
             digits.forEach(function (el, idx) {
                 el.addEventListener('input', function () {
@@ -339,9 +420,10 @@ $categories = [
                                         <?php endif; ?>
                                     </div>
                                     <div class="ff-row__control">
-                                        <?php $ro = !$isSuperAdmin ? 'disabled' : ''; ?>
+                                        <?php $blocked = !$isSuperAdmin || $otpBlockSecondsLeft > 0; ?>
+                                        <?php $ro = $blocked ? 'disabled' : ''; ?>
                                         <?php if ($type === 'bool'): ?>
-                                            <label class="ff-toggle<?= !$isSuperAdmin ? ' ff-toggle--readonly' : '' ?>" aria-label="<?= htmlspecialchars($label) ?>">
+                                            <label class="ff-toggle<?= $blocked ? ' ff-toggle--readonly' : '' ?>" aria-label="<?= htmlspecialchars($label) ?>">
                                                 <input type="hidden" name="<?= htmlspecialchars($key) ?>" value="false">
                                                 <input
                                                     type="checkbox"
@@ -388,13 +470,17 @@ $categories = [
             <?php if ($isSuperAdmin): ?>
             <div class="ff-save-bar">
                 <span class="ff-save-bar__hint">
-                    Un code OTP sera envoyé à votre adresse email pour confirmer les modifications.
+                    <?php if ($otpBlockSecondsLeft > 0): ?>
+                        Nouvelles modifications bloquées — réessayez dans <strong id="ff-savebar-countdown">…</strong>.
+                    <?php else: ?>
+                        Un code OTP sera envoyé à votre adresse email pour confirmer les modifications.
+                    <?php endif; ?>
                 </span>
                 <button
                     type="submit"
                     class="admin-btn admin-btn--primary"
                     id="ff-save-btn"
-                    disabled
+                    <?= $otpBlockSecondsLeft > 0 ? 'disabled' : 'disabled' ?>
                 >
                     Enregistrer mes modifications
                 </button>
