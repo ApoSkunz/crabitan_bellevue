@@ -230,7 +230,7 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
     }
 
     /**
-     * Affiche la page webmaster (documentation technique, noindex).
+     * Affiche la page webmaster (CV technique — indexée).
      *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
@@ -293,7 +293,7 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
     }
 
     /**
-     * Affiche la page webmaster (documentation technique, noindex).
+     * Affiche la page webmaster (CV technique — indexée).
      *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
@@ -301,7 +301,7 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
     public function webmaster(array $params): void
     {
         $lang = $this->resolveLang($params);
-        $this->view('pages/webmaster', ['lang' => $lang, 'noindex' => true]);
+        $this->view('pages/webmaster', ['lang' => $lang]);
     }
 
     /**

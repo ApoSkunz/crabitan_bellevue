@@ -1644,12 +1644,13 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
         $cid   = (int) $this->request->get('cid', 0);
 
         if ($token === '' || !$this->accounts->findByUnsubscribeToken($token)) {
-            $this->view(self::VIEW_UNSUBSCRIBE, ['lang' => $lang, 'success' => false, 'confirm' => false]);
+            $this->view(self::VIEW_UNSUBSCRIBE, ['lang' => $lang, 'noindex' => true, 'success' => false, 'confirm' => false]);
             return;
         }
 
         $this->view(self::VIEW_UNSUBSCRIBE, [
             'lang'       => $lang,
+            'noindex'    => true,
             'success'    => false,
             'confirm'    => true,
             'unsubToken' => $token,
@@ -1679,6 +1680,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
         $this->view(self::VIEW_UNSUBSCRIBE, [
             'lang'    => $lang,
+            'noindex' => true,
             'success' => $success,
             'confirm' => false,
         ]);
