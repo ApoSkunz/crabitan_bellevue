@@ -10,8 +10,8 @@ use Model\OrderModel;
 /**
  * Orchestre le remboursement d'une commande.
  *
- * - Si CA_ENABLE_GAE=true  → appel API GAE → statut `refunded`.
- * - Si CA_ENABLE_GAE=false → statut `refund_pending`, traitement manuel dans Vision Air.
+ * - Si ca_enable_gae=true  → appel API GAE → statut `refunded`.
+ * - Si ca_enable_gae=false → statut `refund_pending`, traitement manuel dans Vision Air.
  */
 class RefundService
 {
@@ -39,7 +39,7 @@ class RefundService
     /**
      * Déclenche le remboursement d'une commande.
      *
-     * Selon la valeur de CA_ENABLE_GAE :
+     * Selon la valeur de ca_enable_gae :
      * - true  : appel API GAE, passage à `refunded` si succès, exception si échec.
      * - false : passage à `refund_pending`, log PHP, email "remboursement initié".
      *

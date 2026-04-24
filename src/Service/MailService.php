@@ -2104,7 +2104,7 @@ INNER;
     }
 
     /**
-     * Notifie le propriétaire qu'une demande de remboursement manuel a été soumise (CA_ENABLE_GAE=false).
+     * Notifie le propriétaire qu'une demande de remboursement manuel a été soumise (ca_enable_gae=false).
      *
      * @param array<string, mixed> $order       Données de la commande
      * @param string               $clientName  Nom du client
@@ -2905,7 +2905,7 @@ INNER;
     /**
      * Notifie le client que son remboursement a été initié (statut refund_pending).
      *
-     * Envoyée lorsque CA_ENABLE_GAE=false — le remboursement sera traité manuellement.
+     * Envoyée lorsque ca_enable_gae=false — le remboursement sera traité manuellement.
      *
      * @param string $toEmail  Adresse email du client
      * @param string $toName   Nom affiché du client

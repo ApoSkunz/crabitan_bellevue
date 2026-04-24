@@ -16,7 +16,7 @@ class AuthMiddleware
     /**
      * Vérifie le JWT en cookie et retourne le payload.
      * Vérifie aussi que la session est toujours active en base (non révoquée).
-     * Prolonge expired_at si le TTL restant est inférieur au seuil JWT_REFRESH_THRESHOLD.
+     * Prolonge expired_at si le TTL restant est inférieur au seuil jwt_refresh_threshold.
      * Redirige vers /connexion si absent, invalide ou révoqué.
      *
      * @param  callable(string):bool|null      $sessionChecker  Injectable pour les tests unitaires.

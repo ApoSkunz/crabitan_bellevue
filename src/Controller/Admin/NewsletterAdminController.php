@@ -219,7 +219,7 @@ class NewsletterAdminController extends AdminController
             $trackingModel->saveLink($campaignId, $url);
         }
 
-        // Enfile tous les abonnés — le cron envoie ensuite par batch (CRON_NEWSLETTER_BATCH_SIZE)
+        // Enfile tous les abonnés — le cron envoie ensuite par batch (cron_newsletter_batch_size)
         $queueModel = new \Model\NewsletterSendQueueModel();
         $batchSize  = 1000;
         $offset     = 0;

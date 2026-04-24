@@ -681,8 +681,8 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
 
     /**
      * Envoie un batch de la file d'attente newsletter (nouveau vin).
-     * Taille du batch : CRON_NEWSLETTER_BATCH_SIZE (défaut 30).
-     * Délai inter-envoi : CRON_MAIL_DELAY_MS (défaut 0).
+     * Taille du batch : cron_newsletter_batch_size (défaut 30).
+     * Délai inter-envoi : cron_mail_delay_ms (défaut 0).
      *
      * @param callable(string):void $log
      * @param bool                  $dryRun
@@ -699,7 +699,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
         ];
         $appUrl    = rtrim($_ENV['APP_URL'] ?? self::APP_URL_FALLBACK, '/');
         $batchSize = max(1, \Core\FeatureFlags::getInt('cron_newsletter_batch_size', 30));
-        $delayMs   = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+        $delayMs   = max(0, \Core\FeatureFlags::getInt('cron_mail_delay_ms', 0));
 
         $pending = $services['queue']->getPending($batchSize);
         $total   = count($pending);

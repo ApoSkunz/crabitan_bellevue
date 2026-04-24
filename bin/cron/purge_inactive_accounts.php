@@ -4,7 +4,7 @@
  * Script RGPD — purge des comptes inactifs (Art. 5 §1e — minimisation des données).
  *
  * Deux phases :
- *   Phase 1 — Avertissement : envoie un email aux comptes inactifs depuis RGPD_INACTIVITY_MONTHS
+ *   Phase 1 — Avertissement : envoie un email aux comptes inactifs depuis rgpd_inactivity_months
  *             (défaut 36 mois) et non encore avertis.
  *   Phase 2 — Soft-delete  : soft-delete les comptes avertis il y a plus de 30 jours
  *             et n'ayant pas reconnecté.
@@ -23,7 +23,7 @@ $runner = new \Core\CronRunner('purge_inactive_accounts');
 exit($runner->run(function (callable $log, bool $dryRun): void {
     $model          = new \Model\AccountModel();
     $mailer         = new \Service\MailService();
-    $inactiveMonths = (int) ($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
+    $inactiveMonths = \Core\FeatureFlags::getInt('rgpd_inactivity_months', 36);
 
     $log("Seuil d'inactivité : {$inactiveMonths} mois");
 

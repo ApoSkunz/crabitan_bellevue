@@ -4,8 +4,8 @@
  * Cron — Envoi de la file d'attente newsletter (nouveau vin).
  *
  * Traite un batch de destinataires en attente dans newsletter_send_queue.
- * Batch size : CRON_NEWSLETTER_BATCH_SIZE (défaut 30).
- * Délai inter-envoi : CRON_MAIL_DELAY_MS (défaut 0, recommandé 1500 sur IONOS < 30 jours).
+ * Batch size : cron_newsletter_batch_size (défaut 30).
+ * Délai inter-envoi : cron_mail_delay_ms (défaut 0, recommandé 1500 sur IONOS < 30 jours).
  *
  * À planifier toutes les heures (ou plus souvent si volume élevé) :
  *   0 * * * * php /var/www/crabitan_bellevue/bin/cron/send-newsletter-queue.php >> /var/log/crabitan/cron.log 2>&1
@@ -23,8 +23,8 @@ exit($runner->run(function (callable $log, bool $dryRun): void {
     $wineModel  = new \Model\WineModel();
     $mailer     = new \Service\MailService();
     $appUrl     = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
-    $batchSize  = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
-    $delayMs    = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+    $batchSize  = max(1, \Core\FeatureFlags::getInt('cron_newsletter_batch_size', 30));
+    $delayMs    = max(0, \Core\FeatureFlags::getInt('cron_mail_delay_ms', 0));
 
     $smartTargeting = filter_var($_ENV['NEWSLETTER_SMART_TARGETING'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
     $pending = $smartTargeting

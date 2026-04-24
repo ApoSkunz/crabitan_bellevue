@@ -10,7 +10,7 @@ use Model\WineModel;
  * Service de notification email lors du franchissement du seuil de stock bas.
  *
  * Envoie un email uniquement aux clients ayant le vin dans leur panier BDD
- * quand le stock passe sous STOCK_ALERTE_LIMIT.
+ * quand le stock passe sous stock_alert_limit.
  * Les abonnés newsletter sont exclus : leur consentement couvre la newsletter,
  * pas les alertes stock (scope RGPD distinct).
  * La colonne low_stock_notified_at évite les doublons de notification.
