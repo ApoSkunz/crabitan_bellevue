@@ -4529,4 +4529,57 @@ HTML;
 
         $this->send($to, $name, $subject, $body);
     }
+
+    /**
+     * Envoie un OTP à l'administrateur pour confirmer un batch de modifications de feature flags.
+     *
+     * @param string                                                    $to      Adresse email
+     * @param string                                                    $name    Nom de l'administrateur
+     * @param array<int, array{key: string, old: string, new: string, label: string}> $changes Modifications en attente
+     * @param string                                                    $otp     Code OTP à 6 chiffres
+     * @return void
+     */
+    public function sendFeatureFlagBatchOtp(
+        string $to,
+        string $name,
+        array $changes,
+        string $otp
+    ): void {
+        $this->setMailType('admin_action');
+        $this->applySmtpConfig(MailChannel::SECURITY);
+
+        $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+        $count    = count($changes);
+        $subject  = "Code de confirmation — {$count} modification(s) feature flags";
+
+        $rows = '';
+        foreach ($changes as $c) {
+            $lbl = htmlspecialchars((string)($c['label'] ?? $c['key']), ENT_QUOTES, 'UTF-8');
+            $old = htmlspecialchars((string)($c['old'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $new = htmlspecialchars((string)($c['new'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $rows .= "<tr>"
+                . "<td style=\"padding:4px 8px;border-bottom:1px solid #e5e7eb;\">{$lbl}</td>"
+                . "<td style=\"padding:4px 8px;border-bottom:1px solid #e5e7eb;color:#b91c1c;\">{$old}</td>"
+                . "<td style=\"padding:4px 8px;border-bottom:1px solid #e5e7eb;color:#15803d;\">→ {$new}</td>"
+                . "</tr>";
+        }
+
+        $message = "Bonjour {$safeName},<br><br>"
+            . "Une demande de modification de <strong>{$count} feature flag(s)</strong> "
+            . "a été initiée depuis le back-office.<br><br>"
+            . "<table style=\"border-collapse:collapse;font-size:0.875em;\">"
+            . "<thead><tr>"
+            . "<th style=\"padding:4px 8px;text-align:left;\">Flag</th>"
+            . "<th style=\"padding:4px 8px;text-align:left;\">Avant</th>"
+            . "<th style=\"padding:4px 8px;text-align:left;\">Après</th>"
+            . "</tr></thead><tbody>{$rows}</tbody></table><br>"
+            . "Votre code de confirmation :<br><br>"
+            . "<div style=\"font-size:2em;font-weight:bold;letter-spacing:0.3em;"
+            . "text-align:center;padding:16px 0;\">{$otp}</div><br>"
+            . "Ce code est valable <strong>120 secondes</strong>.<br>"
+            . "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.";
+
+        $body = $this->emailSimpleLayout($subject, "Bonjour {$safeName},", $message, 'fr');
+        $this->send($to, $name, $subject, $body);
+    }
 }
