@@ -166,6 +166,7 @@ $langSwitch   = static function (string $targetLang) use ($pathSegments): string
                     type="button"
                     class="header-cart js-cart-login-prompt"
                     data-login-url="/<?= htmlspecialchars($navLang) ?>/connexion"
+                    aria-label="<?= htmlspecialchars(__('nav.cart')) ?>"
                 >
                     <span class="header-cart__wrap">
                         <span class="header-cart__badge header-cart__count" aria-hidden="true">0</span>
