@@ -1050,6 +1050,14 @@
         }
     }
 
+    // Cellule "Extrait log" du monitoring cron — empile excerpt / erreur / bouton
+    .cron-log-cell {
+        flex-direction: column;
+        align-items: flex-start;
+
+        &::before { margin-bottom: 0.25rem; }
+    }
+
     // Page header — empile sur petit écran
     .admin-page-header {
         flex-direction: column;
