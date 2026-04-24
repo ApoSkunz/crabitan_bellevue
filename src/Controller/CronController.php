@@ -248,7 +248,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     {
         $model          = new \Model\AccountModel();
         $mailer         = new \Service\MailService();
-        $inactiveMonths = (int) ($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
+        $inactiveMonths = \Core\FeatureFlags::getInt('rgpd_inactivity_months', 36);
 
         $log("Seuil d'inactivité : {$inactiveMonths} mois");
 
@@ -292,7 +292,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                 $log("[DRY-RUN] Would send inactivity warning to {$account['email']} (id={$id})");
                 continue;
             }
-            $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+            $delayMs = max(0, \Core\FeatureFlags::getInt('cron_mail_delay_ms', 0));
             try {
                 $mailer->sendInactivityWarning(
                     (string) $account['email'],
@@ -368,7 +368,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     {
         $model   = new \Model\AccountModel();
         $mailer  = $this->newMailService();
-        $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+        $delayMs = max(0, \Core\FeatureFlags::getInt('cron_mail_delay_ms', 0));
         $sent    = 0;
 
         foreach ([7, 1] as $days) {
@@ -613,7 +613,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                 continue;
             }
 
-            $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+            $delayMs = max(0, \Core\FeatureFlags::getInt('cron_mail_delay_ms', 0));
             try {
                 $mailer->sendAbandonedCart($data['email'], $data['firstname'], $data['items'], $data['lang'], $cartUrl);
                 $cartModel->markReminderSent($data['cart_id']);
@@ -658,7 +658,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             $items = json_decode((string) $order['content'], true) ?? [];
             $lang  = in_array($account['lang'] ?? '', ['fr', 'en'], true) ? $account['lang'] : 'fr';
 
-            $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+            $delayMs = max(0, \Core\FeatureFlags::getInt('cron_mail_delay_ms', 0));
             try {
                 $mailer->sendPostPurchase(
                     $account['email'],
@@ -698,7 +698,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             'mailer'   => new \Service\MailService(),
         ];
         $appUrl    = rtrim($_ENV['APP_URL'] ?? self::APP_URL_FALLBACK, '/');
-        $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
+        $batchSize = max(1, \Core\FeatureFlags::getInt('cron_newsletter_batch_size', 30));
         $delayMs   = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
 
         $pending = $services['queue']->getPending($batchSize);
@@ -1054,7 +1054,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     {
         $db        = \Core\Database::getInstance();
         $mailer    = new \Service\MailService();
-        $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
+        $batchSize = max(1, \Core\FeatureFlags::getInt('cron_newsletter_batch_size', 30));
 
         // J+7 : éducation domaine
         $j7Rows = $db->fetchAll(
@@ -1141,7 +1141,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     {
         $db        = \Core\Database::getInstance();
         $mailer    = new \Service\MailService();
-        $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
+        $batchSize = max(1, \Core\FeatureFlags::getInt('cron_newsletter_batch_size', 30));
         $appUrl    = rtrim($_ENV['APP_URL'] ?? self::APP_URL_FALLBACK, '/');
 
         $rows = $db->fetchAll(

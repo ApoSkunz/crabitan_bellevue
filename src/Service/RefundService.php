@@ -55,8 +55,7 @@ class RefundService
             throw new \InvalidArgumentException("Commande introuvable : {$orderId}");
         }
 
-        $gaeRaw     = $_ENV['CA_ENABLE_GAE'] ?? false;
-        $gaeEnabled = filter_var($gaeRaw, FILTER_VALIDATE_BOOLEAN);
+        $gaeEnabled = \Core\FeatureFlags::getBool('ca_enable_gae', false);
 
         if ($gaeEnabled) {
             return $this->refundViaGae($orderId, $order);

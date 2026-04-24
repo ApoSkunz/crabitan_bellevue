@@ -880,10 +880,7 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
      */
     private function generateAndStoreInvoice(string $reference): void
     {
-        // Désactivable via INVOICE_AUTO_GENERATE=false — cohérent avec IpnController et OrderAdminController.
-        // NB : parse_ini_file() convertit 'false' en chaîne vide → on traite '' comme désactivé.
-        $envFlag     = strtolower(trim((string) ($_ENV['INVOICE_AUTO_GENERATE'] ?? 'true')));
-        $autoInvoice = !in_array($envFlag, ['', 'false', '0', 'no', 'off'], true);
+        $autoInvoice = \Core\FeatureFlags::getBool('invoice_auto_generate', true);
         if (!$autoInvoice) {
             return;
         }

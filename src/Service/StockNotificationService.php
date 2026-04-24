@@ -41,7 +41,7 @@ class StockNotificationService
      */
     public function getStockAlertLimit(): int
     {
-        return (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? self::DEFAULT_STOCK_LIMIT);
+        return \Core\FeatureFlags::getInt('stock_alert_limit', self::DEFAULT_STOCK_LIMIT);
     }
 
     /**

@@ -287,10 +287,7 @@ class OrderAdminController extends AdminController
         }
 
         // Génération automatique de la facture dès le premier changement de statut actif (virement/chèque)
-        // Désactivable via INVOICE_AUTO_GENERATE=false — cohérent avec IpnController.
-        // NB : parse_ini_file() convertit 'false' en chaîne vide → on traite '' comme désactivé.
-        $envFlag     = strtolower(trim((string) ($_ENV['INVOICE_AUTO_GENERATE'] ?? 'true')));
-        $autoInvoice = !in_array($envFlag, ['', 'false', '0', 'no', 'off'], true);
+        $autoInvoice = \Core\FeatureFlags::getBool('invoice_auto_generate', true);
         if ($autoInvoice && $status !== $oldStatus && empty($order['path_invoice'])) {
             try {
                 $fullOrder = $this->orders->findByReferenceForInvoice(

@@ -466,14 +466,14 @@ class GoogleOAuthController extends Controller
         $trusted          = $isFirstEverLogin || $isAlreadyTrusted;
 
         // MFA requis : appareil non de confiance et pas la 1ʳᵉ connexion → challenge email
-        // MFA_EMAIL_ENABLED=false : auto-trust temporaire (limite SMTP IONOS < 30 jours).
+        // customer_mfa_enabled=false : auto-trust temporaire (limite SMTP IONOS < 30 jours).
         if (!$trusted) {
-            $mfaEnabled = filter_var($_ENV['MFA_EMAIL_ENABLED'] ?? 'true', FILTER_VALIDATE_BOOLEAN);
+            $mfaEnabled = \Core\FeatureFlags::getBool('customer_mfa_enabled', true);
             if ($mfaEnabled) {
                 $this->handleUntrustedDevice($account, $deviceToken, $deviceName, $lang);
             } else {
                 \Core\ErrorLogger::warning(
-                    new \RuntimeException('[MFA_DISABLED] Auto-trust device — MFA_EMAIL_ENABLED=false'),
+                    new \RuntimeException('[MFA_DISABLED] Auto-trust device — customer_mfa_enabled=false'),
                     '[MFA_DISABLED]'
                 );
                 $this->trustedDevices->trust($accountId, $deviceToken, $deviceName);
