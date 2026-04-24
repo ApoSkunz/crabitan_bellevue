@@ -935,6 +935,21 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
     }
 
     /**
+     * Retourne les vins disponibles à la vente pour le fichier llms.txt.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAvailableForLlms(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT slug, label_name, vintage, price, wine_color, is_for_sale
+             FROM {$this->table}
+             WHERE " . self::COND_AVAILABLE . " AND stock_quantity > 0 AND is_for_sale = 1
+             ORDER BY wine_color DESC, vintage DESC"
+        );
+    }
+
+    /**
      * Retourne slug, label_name, image_path et vintage pour le sitemap media.
      *
      * @return array<int, array<string, mixed>>
