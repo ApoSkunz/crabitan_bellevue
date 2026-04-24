@@ -120,7 +120,7 @@ INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `fat_g`, `saturated_fat_g`
 SELECT `id`, 310, '0', '0', '0,5', '0,5', '< 0,2', '< 0,2', '{"fr":"Raisins, Agent stabilisant : Carboxyméthylcellulose, Sulfites","en":"Grapes, Stabilising agent: Carboxymethylcellulose, Sulphites"}'
 FROM `wines` WHERE `slug` = 'bordeaux-blanc-2018';
 
--- Rosé 2017 : sans ingrédients (ENABLE_EXTRA_INFO désactivé)
+-- Rosé 2017 : sans ingrédients (enable_extra_info désactivé)
 INSERT INTO `wine_nutrition` (`wine_id`, `energy_kj`, `fat_g`, `saturated_fat_g`, `carbohydrate_g`, `sugars_g`, `protein_g`, `salt_g`)
 SELECT `id`, 295, '0', '0', '1,2', '1,2', '< 0,2', '< 0,2'
 FROM `wines` WHERE `slug` = 'vin-pays-atlantique-rose-2017';

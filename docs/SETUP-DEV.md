@@ -215,7 +215,7 @@ TRANSLATION_API_KEY=             # clé API traduction — NE PAS VERSIONNER
 
 # ── Feature Flags ─────────────────────────────────────────────────────────
 # Tous les feature flags sont gérés en BDD via /admin/feature-flags (table feature_flags).
-# Les anciennes variables .env (CLICK_COLLECT_ENABLED, MFA_EMAIL_ENABLED, STOCK_ALERTE_LIMIT…)
+# Les anciens toggles .env (click_collect_enabled, customer_mfa_enabled, stock_alert_limit…)
 # ne sont plus lues par le code.
 ```
 
