@@ -4530,8 +4530,13 @@ HTML;
             . "<th style=\"padding:4px 8px;text-align:left;\">Après</th>"
             . "</tr></thead><tbody>{$rows}</tbody></table><br>"
             . "Votre code de confirmation :<br><br>"
-            . "<div style=\"font-size:2em;font-weight:bold;letter-spacing:0.3em;"
-            . "text-align:center;padding:16px 0;\">{$otp}</div><br>"
+            . "<table style=\"border-collapse:separate;border-spacing:6px 0;margin:16px auto;\">"
+            . "<tr>" . implode('', array_map(
+                fn(string $d) => "<td style=\"width:36px;text-align:center;font-size:1.8em;"
+                    . "font-weight:bold;border-bottom:2px solid #3d3425;padding:4px 2px;"
+                    . "line-height:1.2;\">{$d}</td>",
+                str_split($otp)
+            )) . "</tr></table><br>"
             . "Ce code est valable <strong>120 secondes</strong>.<br>"
             . "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.";
 

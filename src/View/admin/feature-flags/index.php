@@ -72,49 +72,117 @@ $categories = [
         <?php endif; ?>
 
         <?php if ($otpBatch): ?>
-            <div class="admin-card" style="margin-bottom:1.5rem;border-left:3px solid #c9a84c;">
-                <div class="admin-card__header">
-                    <h2 class="admin-card__title" style="font-size:1rem;">Confirmation OTP requise</h2>
-                    <p class="admin-card__subtitle">
-                        Entrez le code à 6 chiffres reçu par email (valable 120 s, 3 tentatives max).
-                    </p>
+        <div id="ff-otp-overlay" role="dialog" aria-modal="true" aria-labelledby="ff-otp-title"
+             style="position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.55);
+                    display:flex;align-items:center;justify-content:center;">
+            <div style="background:#fff;border-radius:10px;padding:2rem 2.5rem;max-width:420px;
+                        width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.25);position:relative;">
+
+                <h2 id="ff-otp-title" style="font-size:1rem;font-weight:600;color:#3d3425;
+                                              margin:0 0 0.25rem;">Confirmation OTP requise</h2>
+                <p style="font-size:0.8rem;color:#888;margin:0 0 1.5rem;">
+                    Entrez le code à 6 chiffres reçu par email — 3 tentatives max.
+                </p>
+
+                <div style="display:flex;align-items:center;justify-content:center;
+                            gap:0.5rem;margin-bottom:1.5rem;">
+                    <span style="font-size:0.8rem;color:#888;">Expire dans</span>
+                    <span id="ff-otp-countdown"
+                          style="font-size:1rem;font-weight:700;color:#c9a84c;
+                                 font-variant-numeric:tabular-nums;min-width:2.2em;text-align:right;">
+                        2:00
+                    </span>
                 </div>
-                <div class="admin-card__body">
-                    <form
-                        method="POST"
-                        action="/admin/feature-flags/batch-confirm"
-                        class="admin-form"
-                        style="max-width:320px;"
-                    >
-                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-                        <div class="admin-form__group">
-                            <label class="admin-form__label" for="otp-input">Code OTP</label>
-                            <input
-                                type="text"
-                                id="otp-input"
-                                name="otp"
-                                class="admin-form__input"
-                                maxlength="6"
-                                pattern="[0-9]{6}"
-                                placeholder="000000"
-                                autocomplete="one-time-code"
-                                inputmode="numeric"
-                                required
-                                autofocus
-                                style="letter-spacing:0.35em;font-size:1.5rem;text-align:center;"
-                            >
-                        </div>
-                        <div style="display:flex;gap:.75rem;align-items:center;margin-top:1rem;">
-                            <button type="submit" class="admin-btn admin-btn--primary">
-                                Valider les modifications
-                            </button>
-                            <a href="/admin/feature-flags" class="admin-btn admin-btn--ghost">
-                                Annuler
-                            </a>
-                        </div>
-                    </form>
-                </div>
+
+                <form method="POST" action="/admin/feature-flags/batch-confirm" id="ff-otp-form">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+
+                    <div style="margin-bottom:1.25rem;">
+                        <label style="display:block;font-size:0.8rem;font-weight:600;
+                                      color:#3d3425;margin-bottom:0.5rem;" for="otp-input">
+                            Code OTP
+                        </label>
+                        <input
+                            type="text"
+                            id="otp-input"
+                            name="otp"
+                            maxlength="6"
+                            pattern="[0-9]{6}"
+                            placeholder="0 0 0 0 0 0"
+                            autocomplete="one-time-code"
+                            inputmode="numeric"
+                            required
+                            autofocus
+                            style="width:100%;box-sizing:border-box;
+                                   font-size:2rem;font-weight:700;letter-spacing:0.5em;
+                                   text-align:center;border:none;border-bottom:2px solid #3d3425;
+                                   outline:none;padding:0.25rem 0;background:transparent;
+                                   color:#3d3425;"
+                        >
+                    </div>
+
+                    <div id="ff-otp-expired"
+                         style="display:none;color:#b91c1c;font-size:0.85rem;
+                                margin-bottom:1rem;text-align:center;">
+                        Code expiré — <a href="/admin/feature-flags" style="color:#b91c1c;">
+                            demandez un nouveau code
+                        </a>
+                    </div>
+
+                    <div style="display:flex;gap:0.75rem;align-items:center;">
+                        <button type="submit" id="ff-otp-submit"
+                                class="admin-btn admin-btn--primary">
+                            Valider les modifications
+                        </button>
+                        <a href="/admin/feature-flags" class="admin-btn admin-btn--ghost">
+                            Annuler
+                        </a>
+                    </div>
+                </form>
             </div>
+        </div>
+
+        <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+        (function () {
+            var TOTAL = 120;
+            var stKey = 'ff_otp_ts';
+            var now   = Date.now();
+            if (!sessionStorage.getItem(stKey)) {
+                sessionStorage.setItem(stKey, now.toString());
+            }
+            var started   = parseInt(sessionStorage.getItem(stKey), 10);
+            var elapsed   = Math.floor((now - started) / 1000);
+            var remaining = Math.max(0, TOTAL - elapsed);
+
+            var countEl  = document.getElementById('ff-otp-countdown');
+            var expiredEl = document.getElementById('ff-otp-expired');
+            var submitBtn = document.getElementById('ff-otp-submit');
+            var otpInput  = document.getElementById('otp-input');
+
+            function fmt(s) {
+                var m = Math.floor(s / 60);
+                var sec = s % 60;
+                return m + ':' + (sec < 10 ? '0' : '') + sec;
+            }
+
+            function tick() {
+                if (remaining <= 0) {
+                    countEl.textContent = '0:00';
+                    countEl.style.color = '#b91c1c';
+                    expiredEl.style.display = 'block';
+                    submitBtn.disabled = true;
+                    otpInput.disabled  = true;
+                    return;
+                }
+                countEl.textContent = fmt(remaining);
+                if (remaining <= 30) { countEl.style.color = '#b91c1c'; }
+                remaining--;
+                setTimeout(tick, 1000);
+            }
+
+            tick();
+        }());
+        </script>
         <?php endif; ?>
 
         <form method="POST" action="/admin/feature-flags/batch-request" id="ff-form"
@@ -246,6 +314,9 @@ $categories = [
 
             form.addEventListener('change', checkDirty);
             form.addEventListener('input', checkDirty);
+            form.addEventListener('submit', function () {
+                sessionStorage.removeItem('ff_otp_ts');
+            });
         }());
         </script>
 
