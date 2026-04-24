@@ -229,10 +229,9 @@ class DpoAdminControllerTest extends TestCase
     // ----------------------------------------------------------------
 
     /**
-     * buildPdf() lève TcpdfNotAvailableException quand ROOT_PATH ne contient
-     * pas vendor/tecnickcom/tcpdf/tcpdf.php.
-     * Exécuté en processus séparé pour redéfinir ROOT_PATH sur un dossier vide.
-     * Couvre L169.
+     * buildPdf() lève TcpdfNotAvailableException quand le fichier TCPDF est absent.
+     * Surcharge file_exists dans le namespace Controller\Admin pour simuler l'absence.
+     * Couvre DpoAdminController.php:169.
      *
      * @return void
      */
@@ -240,31 +239,12 @@ class DpoAdminControllerTest extends TestCase
     #[\PHPUnit\Framework\Attributes\PreserveGlobalState(false)]
     public function testBuildPdfThrowsTcpdfNotAvailableExceptionWhenTcpdfMissing(): void
     {
-        // Dans ce processus ROOT_PATH n'est pas encore défini.
-        // On le pointe vers sys_get_temp_dir() qui ne contient pas TCPDF.
-        $fakeRoot = sys_get_temp_dir();
-        define('ROOT_PATH', $fakeRoot);
-        define('SRC_PATH', $fakeRoot . '/src');
-        define('LANG_PATH', $fakeRoot . '/lang');
-
-        $realRoot = dirname(__DIR__, 4);
-        require_once $realRoot . '/vendor/autoload.php';
-        @include_once $realRoot . '/src/helpers.php';
-        @include_once $realRoot . '/config/config.php';
-
-        $dbMock = $this->createStub(\Core\Database::class);
-        $prop   = new \ReflectionProperty(\Core\Database::class, 'instance');
-        $prop->setValue(null, $dbMock); // NOSONAR — test unitaire
-
-        $_ENV['DPO_EMAIL']         = 'dpo@test.local';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REQUEST_URI']    = '/admin/dpo';
-
-        $ctrl = new \Controller\Admin\DpoAdminController(new \Core\Request());
+        // Surcharge file_exists dans le namespace du contrôleur → TCPDF toujours "absent"
+        eval('namespace Controller\Admin; function file_exists(string $f): bool { return false; }');
 
         $buildPdf = new \ReflectionMethod(\Controller\Admin\DpoAdminController::class, 'buildPdf');
 
         $this->expectException(\Exception\TcpdfNotAvailableException::class);
-        $buildPdf->invoke($ctrl, 'Titre test', '<p>Contenu</p>');
+        $buildPdf->invoke($this->ctrl, 'Titre test', '<p>Contenu</p>');
     }
 }
