@@ -42,7 +42,7 @@ $statusBadge = function (string $status): string {
             Agrégat 24&nbsp;h par job
         </h2>
     </div>
-    <div class="admin-card__body" style="padding:0;">
+    <div class="admin-card__body" style="padding:0;overflow-x:auto;">
         <?php if (empty($summary)) : ?>
             <p style="padding:1.5rem;color:#8a7060;font-size:0.875rem;">Aucun run cron dans les 24 dernières heures.</p>
         <?php else : ?>
@@ -86,7 +86,7 @@ $statusBadge = function (string $status): string {
 </form>
 
 <div class="admin-card">
-    <div class="admin-card__body" style="padding:0;">
+    <div class="admin-card__body" style="padding:0;overflow-x:auto;">
         <?php if (empty($runs)) : ?>
             <p style="padding:1.5rem;color:#8a7060;font-size:0.875rem;">Aucun run disponible.</p>
         <?php else : ?>
@@ -115,10 +115,19 @@ $statusBadge = function (string $status): string {
                             <td style="text-align:right;font-size:0.8rem;"><?= $duration ?></td>
                             <td style="text-align:right;"><?= (int) $run['actions_count'] ?></td>
                             <td><?= $run['dry_run'] ? '<span style="color:#8a7060;font-size:0.75rem;">DRY</span>' : '' ?></td>
-                            <td style="font-size:0.75rem;color:#5a4a3a;max-width:320px;">
-                                <?= htmlspecialchars($excerpt) ?><?= $logTrunc ? '&hellip;' : '' ?>
+                            <td class="cron-log-cell" data-label="Log" style="font-size:0.75rem;color:#5a4a3a;max-width:320px;">
+                                <div class="cron-log-excerpt"><?= htmlspecialchars($excerpt) ?><?= $logTrunc ? '&hellip;' : '' ?></div>
                                 <?php if (!empty($run['error_message'])) : ?>
-                                    <br><span style="color:#c0392b;"><?= htmlspecialchars(mb_substr((string) $run['error_message'], 0, 200)) ?></span>
+                                    <div class="cron-log-error"><?= htmlspecialchars(mb_substr((string) $run['error_message'], 0, 200)) ?></div>
+                                <?php endif; ?>
+                                <?php if ($logTrunc) : ?>
+                                    <div><button type="button"
+                                        class="cron-log-btn"
+                                        data-log="<?= htmlspecialchars((string) $run['log_output'], ENT_QUOTES) ?>"
+                                        data-job="<?= htmlspecialchars($run['job_name'], ENT_QUOTES) ?>"
+                                        data-date="<?= htmlspecialchars($run['started_at'], ENT_QUOTES) ?>">
+                                        Voir tout
+                                    </button></div>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -136,17 +145,126 @@ $statusBadge = function (string $status): string {
         <a href="<?= htmlspecialchars(cronMonUrl(1, $perPage)) ?>"
            class="admin-pagination__item<?= $prevDisabled ?>" aria-label="Première page">«</a>
         <a href="<?= htmlspecialchars(cronMonUrl(max(1, $page - 1), $perPage)) ?>"
-           class="admin-pagination__item<?= $prevDisabled ?>">‹</a>
+           class="admin-pagination__item<?= $prevDisabled ?>" aria-label="Page précédente">‹</a>
         <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
             <a href="<?= htmlspecialchars(cronMonUrl($i, $perPage)) ?>"
-               class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"><?= $i ?></a>
+               class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"
+               aria-label="Page <?= $i ?>"><?= $i ?></a>
         <?php endfor; ?>
         <a href="<?= htmlspecialchars(cronMonUrl(min($totalPages, $page + 1), $perPage)) ?>"
-           class="admin-pagination__item<?= $nextDisabled ?>">›</a>
+           class="admin-pagination__item<?= $nextDisabled ?>" aria-label="Page suivante">›</a>
         <a href="<?= htmlspecialchars(cronMonUrl($totalPages, $perPage)) ?>"
            class="admin-pagination__item<?= $nextDisabled ?>" aria-label="Dernière page">»</a>
     </div>
     <?php endif; ?>
 </div>
+
+<!-- Modale log complet -->
+<dialog id="cron-log-modal" aria-labelledby="cron-log-modal-title">
+    <div class="cron-log-modal__panel">
+        <div class="cron-log-modal__header">
+            <div>
+                <span id="cron-log-modal-title" class="cron-log-modal__job"></span>
+                <span class="cron-log-modal__date"></span>
+            </div>
+            <button type="button" class="cron-log-modal__close" aria-label="Fermer">✕</button>
+        </div>
+        <pre class="cron-log-modal__body"></pre>
+    </div>
+</dialog>
+
+<style>
+.cron-log-btn {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 0.7rem;
+    color: #8a7060;
+    background: none;
+    border: 1px solid #c9b99a;
+    border-radius: 4px;
+    padding: 1px 6px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+.cron-log-btn:hover { background: #f4f0e6; }
+.cron-log-error { color: #c0392b; margin-top: 2px; }
+.cron-log-btn { margin-top: 4px; }
+
+#cron-log-modal { position: fixed; inset: 0; margin: auto; border: none; border-radius: 8px; padding: 0; width: min(860px, 95vw); max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+#cron-log-modal::backdrop { background: rgba(0,0,0,.45); }
+.cron-log-modal__panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.cron-log-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e8ddd0;
+    gap: 1rem;
+}
+.cron-log-modal__job { font-family: monospace; font-size: 0.9rem; font-weight: 600; color: #3a2a1a; }
+.cron-log-modal__date { font-size: 0.75rem; color: #8a7060; margin-left: 0.5rem; }
+.cron-log-modal__close {
+    background: none; border: none; cursor: pointer;
+    font-size: 1.1rem; color: #8a7060; padding: 4px 8px; border-radius: 4px;
+    flex-shrink: 0;
+}
+.cron-log-modal__close:hover { background: #f4f0e6; color: #3a2a1a; }
+.cron-log-modal__body {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1rem 1.25rem;
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: #2a1a0a;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #faf8f5;
+}
+</style>
+
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+(function () {
+    const modal   = document.getElementById('cron-log-modal');
+    const body    = modal.querySelector('.cron-log-modal__body');
+    const jobEl   = modal.querySelector('.cron-log-modal__job');
+    const dateEl  = modal.querySelector('.cron-log-modal__date');
+    const closeBtn = modal.querySelector('.cron-log-modal__close');
+
+    function open(log, job, date) {
+        body.textContent   = log;
+        jobEl.textContent  = job;
+        dateEl.textContent = date;
+        modal.showModal();
+        document.body.style.overflow = 'hidden';
+        closeBtn.focus();
+    }
+
+    function close() {
+        modal.close();
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.cron-log-btn');
+        if (btn) open(btn.dataset.log, btn.dataset.job, btn.dataset.date);
+    });
+
+    closeBtn.addEventListener('click', close);
+    /* clic sur le backdrop natif <dialog> */
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) close();
+    });
+    /* Escape natif du <dialog> remet aussi l'overflow */
+    modal.addEventListener('close', function () {
+        document.body.style.overflow = '';
+    });
+}());
+</script>
 
 <?php require_once SRC_PATH . '/View/admin/_close.php'; ?>
