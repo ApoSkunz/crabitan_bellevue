@@ -450,6 +450,77 @@ class PageControllerTest extends TestCase
     }
 
     /**
+     * Tous les champs valides + mailer lève RuntimeException code 429 → 429.
+     * Couvre L109 (branche rate-limit dans le catch Throwable).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testContactPostReturnsRateLimitErrorOn429(): void
+    {
+        $this->bootstrapApp();
+
+        $rateLimitMail = new class extends \Service\MailService {
+            public function __construct()
+            {
+            }
+            public function sendContactToOwner(
+                string $firstname,
+                string $lastname,
+                string $email,
+                string $subject,
+                string $message,
+                string $lang,
+                string $phone = ''
+            ): void {
+                throw new \RuntimeException('Too Many Requests', 429);
+            }
+            public function sendContactConfirmation(
+                string $to,
+                string $firstname,
+                string $subject,
+                string $lang,
+                string $userMessage = ''
+            ): void {
+            }
+        };
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SESSION['csrf'] = 'tok';
+        $_POST = [
+            'csrf_token' => 'tok',
+            'firstname'  => 'Jean',
+            'lastname'   => 'Dupont',
+            'email'      => 'jean@example.com',
+            'subject'    => 'general',
+            'message'    => 'Test rate limit.',
+            'rgpd'       => '1',
+        ];
+
+        $controller = new class (new \Core\Request(), $rateLimitMail) extends \Controller\PageController {
+            public function __construct(\Core\Request $req, private \Service\MailService $stub)
+            {
+                parent::__construct($req);
+            }
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->stub;
+            }
+        };
+
+        $caught = null;
+        ob_start();
+        try {
+            $controller->contactPost(['lang' => 'fr']);
+        } catch (\Core\Exception\HttpException $e) {
+            $caught = $e;
+        }
+        ob_end_clean();
+
+        $this->assertNotNull($caught, 'contactPost() doit retourner 429 sur rate-limit');
+        $this->assertSame(429, $caught->status);
+    }
+
+    /**
      * Tous les champs valides + CSRF valide, mais SMTP injoignable → 500.
      */
     #[RunInSeparateProcess]

@@ -224,4 +224,5 @@ class OrderFormControllerCoverageTest extends TestCase
         $this->assertSame('doExit_intercepted_for_coverage', $caught->getMessage());
         $this->assertTrue($controller->doExitCalled);
     }
+
 }

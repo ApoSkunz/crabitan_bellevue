@@ -624,4 +624,79 @@ class ErrorLoggerTest extends TestCase
 
         $this->assertFileExists($recentFile);
     }
+
+    // ----------------------------------------------------------------
+    // write() — création du répertoire (process isolé)
+    // ----------------------------------------------------------------
+
+    /**
+     * write() appelle mkdir() quand storage/logs n'existe pas encore.
+     *
+     * On supprime tout le sous-arbre storage/ avant l'appel (processus isolé)
+     * pour garantir que la branche mkdir (ligne 161) est exécutée.
+     */
+    #[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
+    #[\PHPUnit\Framework\Attributes\PreserveGlobalState(false)]
+    public function testWriteCreatesLogDirWhenMissing(): void
+    {
+        // ROOT_PATH est défini par le bootstrap du processus enfant
+        $logDir     = ROOT_PATH . '/storage/logs';
+        $storageDir = ROOT_PATH . '/storage';
+
+        // Supprimer récursivement tous les fichiers .log puis les dossiers
+        if (is_dir($logDir)) {
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($logDir, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach ($iterator as $file) {
+                $file->isDir() ? rmdir((string) $file) : unlink((string) $file);
+            }
+            rmdir($logDir);
+        }
+
+        // Si storage/ est vide, le supprimer aussi pour que mkdir puisse recréer storage/logs
+        if (is_dir($storageDir) && count(scandir($storageDir) ?: []) <= 2) {
+            rmdir($storageDir);
+        }
+
+        $this->assertDirectoryDoesNotExist($logDir);
+
+        \Core\ErrorLogger::write([
+            'timestamp' => date('Y-m-d H:i:s'),
+            'level'     => 'INFO',
+            'message'   => 'mkdir branch test',
+            'file'      => '',
+            'line'      => 0,
+            'trace'     => '',
+            'url'       => '/test',
+            'method'    => 'GET',
+        ]);
+
+        $this->assertDirectoryExists($logDir);
+    }
+
+    // ----------------------------------------------------------------
+    // anonymizeIpv6() — branche inet_ntop retourne false (processus isolé)
+    // ----------------------------------------------------------------
+
+    /**
+     * anonymizeIpv6() retourne l'IP originale quand inet_ntop retourne false.
+     *
+     * On surcharge inet_ntop dans le namespace Core avant le chargement de la classe.
+     */
+    #[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
+    #[\PHPUnit\Framework\Attributes\PreserveGlobalState(false)]
+    public function testAnonymizeIpv6ReturnOriginalWhenInetNtopReturnsFalse(): void
+    {
+        // Déclarer inet_ntop dans le namespace Core pour shadower la built-in
+        // → simule le cas où inet_ntop retourne false (branche ligne 219 : return $ip)
+        eval('namespace Core; function inet_ntop(string $in_addr): string|false { return false; }');
+
+        $method = new \ReflectionMethod(\Core\ErrorLogger::class, 'anonymizeIpv6');
+        $result = $method->invoke(null, '2001:db8::1');
+
+        // La branche "return $ip" (ligne 219) doit retourner l'IP sans modification
+        $this->assertSame('2001:db8::1', $result);
+    }
 }

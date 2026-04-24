@@ -936,4 +936,44 @@ class OrderAdminControllerCoverageTest extends TestCase
         $this->expectException(HttpException::class);
         $m->invoke($ctrl);
     }
+
+    // ================================================================
+    // streamFile — body réel appelle readfile() (L84-86)
+    // ================================================================
+
+    /**
+     * streamFile() corps réel : appelle readfile($path) et envoie le contenu du fichier.
+     * Couvre L84-86.
+     *
+     * Utilise un process séparé pour isoler les headers/sortie binaire.
+     * Le contenu est capturé via ob_start() afin de vérifier que readfile() est
+     * bien exécuté sur le fichier temporaire.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testStreamFileRealBodyCallsReadfile(): void
+    {
+        defined('ROOT_PATH') || define('ROOT_PATH', dirname(__DIR__, 4));
+        require_once ROOT_PATH . '/vendor/autoload.php';
+        require_once ROOT_PATH . '/src/helpers.php';
+        require_once ROOT_PATH . '/config/config.php';
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'crab_stream_');
+        $content = 'PDF-binary-content-for-streamFile-test';
+        file_put_contents($tmpFile, $content);
+
+        $ctrl = new OrderAdminController(new \Core\Request());
+        $m    = new \ReflectionMethod(OrderAdminController::class, 'streamFile');
+        $m->setAccessible(true);
+
+        ob_start();
+        try {
+            $m->invoke($ctrl, $tmpFile);
+        } finally {
+            $output = ob_get_clean();
+            @unlink($tmpFile);
+        }
+
+        $this->assertSame($content, $output, 'streamFile() doit envoyer le contenu du fichier via readfile()');
+    }
 }

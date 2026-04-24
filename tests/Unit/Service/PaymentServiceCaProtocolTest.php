@@ -800,4 +800,59 @@ class PaymentServiceCaProtocolTest extends TestCase
         $this->assertStringNotContainsString('CURLOPT_SSL_VERIFYHOST, 0', $source);
         $this->assertStringNotContainsString('CURLOPT_SSL_VERIFYHOST, 1', $source);
     }
+
+    // -------------------------------------------------------------------------
+    // verifyIpnSignature — line 159 ($pemContent === false)
+    // -------------------------------------------------------------------------
+
+    /**
+     * verifyIpnSignature() retourne false quand file_get_contents échoue (fichier inexistant).
+     * Couvre PaymentService.php:159.
+     *
+     * On fournit un chemin absolu vers un fichier qui n'existe pas → file_get_contents = false.
+     */
+    public function testVerifyIpnSignatureReturnsFalseWhenPemFileNotFound(): void
+    {
+        // Chemin absolu (contient '/') pour éviter la résolution ROOT_PATH
+        $_ENV['CA_PUBKEY_PATH'] = '/tmp/nonexistent_pem_' . uniqid() . '.pem';
+        $service = $this->makeService();
+
+        $qs = 'Mt=1000&Ref=CMD-001&Sign=' . urlencode(base64_encode('fakesignaturedata'));
+
+        $this->assertFalse($service->verifyIpnSignature($qs));
+    }
+
+    // -------------------------------------------------------------------------
+    // verifyIpnSignature — payment method fallback dans buildHtml
+    // -------------------------------------------------------------------------
+
+    /**
+     * OrderSummaryPdfService::buildHtml() utilise la valeur brute du payment_method
+     * quand il n'est pas dans la liste connue (card/virement/cheque).
+     * Couvre OrderSummaryPdfService.php:76.
+     */
+    public function testOrderSummaryPdfBuildHtmlUsesRawPaymentMethodWhenUnknown(): void
+    {
+        if (!defined('ROOT_PATH')) {
+            $this->markTestSkipped('ROOT_PATH non défini');
+        }
+
+        $service = new \Service\OrderSummaryPdfService();
+        $method  = new \ReflectionMethod(\Service\OrderSummaryPdfService::class, 'buildHtml');
+
+        $data = [
+            'reference'         => 'CB-TEST-001',
+            'ordered_at'        => '2026-04-24 10:00:00',
+            'payment_method'    => 'paypal', // non dans la liste connue
+            'items'             => [['label_name' => 'Vin Test', 'qty' => 1, 'price' => 10.0, 'vintage' => 2022]],
+            'total'             => 10.0,
+            'shipping_discount' => 0.0,
+            'billing'           => ['firstname' => 'Jean', 'lastname' => 'Dupont', 'street' => 'rue', 'zip_code' => '33000', 'city' => 'Bordeaux', 'country' => 'France', 'phone' => ''],
+        ];
+
+        $html = $method->invoke($service, $data, null);
+
+        // Le payment_method brut 'paypal' doit apparaître dans le HTML (branche ?? fallback)
+        $this->assertStringContainsString('paypal', $html);
+    }
 }

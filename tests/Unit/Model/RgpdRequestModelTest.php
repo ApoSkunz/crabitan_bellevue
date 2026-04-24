@@ -49,6 +49,16 @@ class RgpdRequestModelTest extends TestCase
         $this->assertSame(25, RgpdRequestModel::ALERT_DAYS);
     }
 
+    /**
+     * isOverdue() retourne false quand received_at est absent (null).
+     * Couvre RgpdRequestModel.php:280.
+     */
+    public function testIsOverdueReturnsFalseWhenReceivedAtIsNull(): void
+    {
+        $request = ['status' => 'nouvelle', 'received_at' => null];
+        $this->assertFalse($this->model->isOverdue($request));
+    }
+
     public function testValidStatusesContainsFourValues(): void
     {
         $this->assertCount(4, RgpdRequestModel::VALID_STATUSES);

@@ -136,6 +136,29 @@ class TranslationServiceTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // Closure par défaut — line 33
+    // ----------------------------------------------------------------
+
+    /**
+     * TranslationService sans httpFetch personnalisé utilise la closure par défaut (line 33).
+     * La closure appelle @file_get_contents sur l'endpoint DeepL — échec réseau attendu en CI.
+     * L'erreur est supprimée par @ et translate() retourne le texte original.
+     * Couvre TranslationService.php:33.
+     */
+    public function testDefaultHttpFetchClosureIsUsedWhenNotInjected(): void
+    {
+        // Création sans custom httpFetch → la closure par défaut (line 32-34) sera utilisée
+        $service = new TranslationService('fake-api-key-for-coverage');
+
+        // L'appel HTTP échoue (réseau indisponible ou clé invalide → 4xx → file_get_contents false)
+        // La closure tente d'appeler DeepL, @file_get_contents retourne false → fallback texte original
+        $result = $service->translate('Bonjour');
+
+        // Le résultat doit être le texte original (fallback car HTTP échoue)
+        $this->assertSame('Bonjour', $result);
+    }
+
+    // ----------------------------------------------------------------
     // mapTarget — EN-US spécifique à DeepL
     // ----------------------------------------------------------------
 

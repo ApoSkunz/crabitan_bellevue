@@ -280,6 +280,39 @@ class ReviewControllerTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // submit() — token expiré (ligne 154)
+    // ----------------------------------------------------------------
+
+    /**
+     * submit() avec token valide mais expiré → abort(410) (ligne 154).
+     *
+     * resolveOrderToken retourne un résultat valide mais resolveOrderTokenFull
+     * retourne un tokenRow avec expires_at dans le passé.
+     */
+    public function testSubmitWithExpiredTokenAborts410(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SESSION['csrf'] = 'validcsrf';
+        $_POST = ['csrf_token' => 'validcsrf', 'token' => 'expiredtoken'];
+
+        $ratingMock = $this->createStub(RatingModel::class);
+        $ratingMock->method('resolveOrderToken')->willReturn(['order_id' => 1, 'account_id' => 2]);
+        $ratingMock->method('resolveOrderTokenFull')->willReturn([
+            'order_id'   => 1,
+            'account_id' => 2,
+            'expires_at' => '2020-01-01 00:00:00', // dans le passé
+        ]);
+
+        $ctrl = $this->makeController();
+        $this->injectMocks($ctrl, ratingModel: $ratingMock);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('abort:410');
+
+        $ctrl->submit(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
     // submit() — déjà évalué
     // ----------------------------------------------------------------
 

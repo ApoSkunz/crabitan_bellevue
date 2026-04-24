@@ -124,6 +124,41 @@ class GameScoreControllerTest extends TestCase
     }
 
     /**
+     * Couvre line 31 : rate limit atteint → json(['error'=>'Too Many Requests'], 429).
+     *
+     * On pré-remplit la session avec un compteur ≥ MAX_SAVE_RATE (20) pour que
+     * RateLimiterService (backend session) retourne false à checkLimit().
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSaveReturns429WhenRateLimitExceeded(): void
+    {
+        $this->bootstrapApp();
+
+        $_SERVER['REMOTE_ADDR'] = '192.0.2.42';
+        $ip  = '192.0.2.42';
+        $key = 'rl:gamescore:' . $ip . ':count'; // backend session : PREFIX='rl:' + key + SUFFIX_COUNT
+
+        // Forcer le compteur à 20 (MAX_SAVE_RATE) pour déclencher le blocage
+        if (!isset($_SESSION)) {
+            $_SESSION = [];
+        }
+        $_SESSION['_rl'][$key] = 20;
+
+        $caught = null;
+        ob_start();
+        try {
+            $this->makeController()->save([]);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+        ob_end_clean();
+
+        $this->assertNotNull($caught, 'save() doit lancer HttpException(429) quand le rate limit est atteint');
+        $this->assertSame(429, $caught->status);
+    }
+
+    /**
      * Score mémo > MEMO_MAX_SCORE (119) → 400 Invalid payload.
      */
     #[RunInSeparateProcess]

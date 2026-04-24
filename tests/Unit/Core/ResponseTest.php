@@ -121,4 +121,85 @@ class ResponseTest extends TestCase
 
         $this->assertTrue(true);
     }
+
+    // ----------------------------------------------------------------
+    // abort() — branche fallback echo (ligne 59)
+    // ----------------------------------------------------------------
+
+    /**
+     * abort() affiche le message via echo quand la vue d'erreur est absente (branche else ligne 59).
+     *
+     * On surcharge file_exists dans le namespace Core pour simuler l'absence de la vue.
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
+    #[\PHPUnit\Framework\Attributes\PreserveGlobalState(false)]
+    public function testAbortEchosFallbackMessageWhenNoErrorView(): void
+    {
+        // Surcharger file_exists dans le namespace Core avant le chargement de la classe
+        eval('namespace Core; function file_exists(string $filename): bool { return false; }');
+
+        ob_start();
+        try {
+            \Core\Response::abort(500, 'Internal Error');
+        } catch (\Core\Exception\HttpException $e) {
+            // attendu
+        }
+        $output = ob_get_clean();
+
+        $this->assertSame('Internal Error', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // abortWithData() — branche fallback echo (ligne 80)
+    // ----------------------------------------------------------------
+
+    /**
+     * abortWithData() affiche le message via echo quand la vue d'erreur est absente (branche else ligne 80).
+     *
+     * On surcharge file_exists dans le namespace Core pour simuler l'absence de la vue.
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
+    #[\PHPUnit\Framework\Attributes\PreserveGlobalState(false)]
+    public function testAbortWithDataEchosFallbackMessageWhenNoErrorView(): void
+    {
+        eval('namespace Core; function file_exists(string $filename): bool { return false; }');
+
+        ob_start();
+        try {
+            \Core\Response::abortWithData(429, [], 'Too Many Requests');
+        } catch (\Core\Exception\HttpException $e) {
+            // attendu
+        }
+        $output = ob_get_clean();
+
+        $this->assertSame('Too Many Requests', $output);
+    }
+
+    /**
+     * abortWithData() affiche le $status quand $message est vide (branche `$message ?: $status`).
+     *
+     * On surcharge file_exists dans le namespace Core pour simuler l'absence de la vue.
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
+    #[\PHPUnit\Framework\Attributes\PreserveGlobalState(false)]
+    public function testAbortWithDataEchoStatusWhenMessageEmpty(): void
+    {
+        eval('namespace Core; function file_exists(string $filename): bool { return false; }');
+
+        ob_start();
+        try {
+            \Core\Response::abortWithData(503, [], '');
+        } catch (\Core\Exception\HttpException $e) {
+            // attendu
+        }
+        $output = ob_get_clean();
+
+        $this->assertSame('503', $output);
+    }
 }

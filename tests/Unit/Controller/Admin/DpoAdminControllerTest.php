@@ -223,4 +223,48 @@ class DpoAdminControllerTest extends TestCase
         // L'email DPO est lu depuis $_ENV['DPO_EMAIL']
         $this->assertStringContainsString($_ENV['DPO_EMAIL'], $html);
     }
+
+    // ----------------------------------------------------------------
+    // buildPdf() — L169 : TcpdfNotAvailableException quand TCPDF absent
+    // ----------------------------------------------------------------
+
+    /**
+     * buildPdf() lève TcpdfNotAvailableException quand ROOT_PATH ne contient
+     * pas vendor/tecnickcom/tcpdf/tcpdf.php.
+     * Exécuté en processus séparé pour redéfinir ROOT_PATH sur un dossier vide.
+     * Couvre L169.
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
+    #[\PHPUnit\Framework\Attributes\PreserveGlobalState(false)]
+    public function testBuildPdfThrowsTcpdfNotAvailableExceptionWhenTcpdfMissing(): void
+    {
+        // Dans ce processus ROOT_PATH n'est pas encore défini.
+        // On le pointe vers sys_get_temp_dir() qui ne contient pas TCPDF.
+        $fakeRoot = sys_get_temp_dir();
+        define('ROOT_PATH', $fakeRoot);
+        define('SRC_PATH', $fakeRoot . '/src');
+        define('LANG_PATH', $fakeRoot . '/lang');
+
+        $realRoot = dirname(__DIR__, 4);
+        require_once $realRoot . '/vendor/autoload.php';
+        @include_once $realRoot . '/src/helpers.php';
+        @include_once $realRoot . '/config/config.php';
+
+        $dbMock = $this->createStub(\Core\Database::class);
+        $prop   = new \ReflectionProperty(\Core\Database::class, 'instance');
+        $prop->setValue(null, $dbMock); // NOSONAR — test unitaire
+
+        $_ENV['DPO_EMAIL']         = 'dpo@test.local';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/admin/dpo';
+
+        $ctrl = new \Controller\Admin\DpoAdminController(new \Core\Request());
+
+        $buildPdf = new \ReflectionMethod(\Controller\Admin\DpoAdminController::class, 'buildPdf');
+
+        $this->expectException(\Exception\TcpdfNotAvailableException::class);
+        $buildPdf->invoke($ctrl, 'Titre test', '<p>Contenu</p>');
+    }
 }
