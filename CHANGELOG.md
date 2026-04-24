@@ -2,6 +2,14 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.25.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.25.0...v1.25.1) (2026-04-24)
+
+
+### Bug Fixes
+
+* **ci:** ZAP v0.13.0 — retirer context_file_name/ajax_spider/url-list invalides ([e3a0eec](https://github.com/ApoSkunz/crabitan_bellevue/commit/e3a0eecdb3c7b361d2129002bee3dcad858124df))
+* **test:** aligner sendOrderConfirmationToClient sur signature 10 params ([c4db157](https://github.com/ApoSkunz/crabitan_bellevue/commit/c4db1571e126f7d5067283db1fab51693a8dd296))
+
 # [1.25.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.24.0...v1.25.0) (2026-04-24)
 
 
