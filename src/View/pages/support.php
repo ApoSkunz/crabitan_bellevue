@@ -14,6 +14,18 @@ for ($i = 1; $i <= 13; $i++) {
 }
 
 if (!$isBare) {
+    $faqItems = [];
+    foreach ($faqs as $item) {
+        $faqItems[] = [
+            '@type'          => 'Question',
+            'name'           => $item['q'],
+            'acceptedAnswer' => ['@type' => 'Answer', 'text' => $item['a']],
+        ];
+    }
+    $jsonLd = json_encode(
+        ['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => $faqItems],
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    );
     require_once SRC_PATH . '/View/partials/head.php';
     require_once SRC_PATH . '/View/partials/header.php';
 }
