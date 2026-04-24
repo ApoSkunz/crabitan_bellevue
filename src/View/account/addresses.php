@@ -1,6 +1,7 @@
 <?php
 $pageTitle     = __('account.addresses_title');
 $activeSection = 'addresses';
+$noindex       = true;
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 

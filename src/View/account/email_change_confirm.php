@@ -1,5 +1,6 @@
 <?php
 $pageTitle = __('account.email_change_confirm_title');
+$noindex   = true;
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 

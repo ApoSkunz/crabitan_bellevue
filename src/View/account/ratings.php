@@ -1,6 +1,7 @@
 <?php
 $pageTitle     = __('account.ratings_title');
 $activeSection = 'ratings';
+$noindex       = true;
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 

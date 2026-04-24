@@ -1,5 +1,6 @@
 <?php
 $pageTitle = __($success ? 'account.reactivate_success_title' : 'account.reactivate_error_title');
+$noindex   = true;
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 
