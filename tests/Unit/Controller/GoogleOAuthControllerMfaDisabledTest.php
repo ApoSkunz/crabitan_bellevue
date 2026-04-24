@@ -12,7 +12,7 @@ use Core\Request;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Couvre la branche MFA_EMAIL_ENABLED=false dans GoogleOAuthController::issueSession().
+ * Couvre la branche customer_mfa_enabled=false dans GoogleOAuthController::issueSession().
  *
  * Quand l'env var est false, un appareil non de confiance est auto-approuvé
  * (trustedDevices->trust() appelé) et la session OAuth est émise sans challenge email.
@@ -63,7 +63,7 @@ class GoogleOAuthControllerMfaDisabledTest extends TestCase
     }
 
     // ================================================================
-    // MFA_EMAIL_ENABLED=false + appareil non de confiance → session émise
+    // customer_mfa_enabled=false + appareil non de confiance → session émise
     // sans redirection vers /nouvel-appareil
     // ================================================================
 
@@ -105,7 +105,7 @@ class GoogleOAuthControllerMfaDisabledTest extends TestCase
     }
 
     // ================================================================
-    // MFA_EMAIL_ENABLED=true → handleUntrustedDevice → /nouvel-appareil
+    // customer_mfa_enabled=true → handleUntrustedDevice → /nouvel-appareil
     // ================================================================
 
     public function testIssueSessionChallengesMfaWhenEnabled(): void

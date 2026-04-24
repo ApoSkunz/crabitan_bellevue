@@ -25,7 +25,7 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
  *   - payment()  : stock à 0 → setUnavailable + purge paniers
  *   - postOrderStockActions() : wine null → return immédiat
  *   - notifyNewsletterOptIn() : email vide → skip sendNewsletterWelcome
- *   - generateAndStoreInvoice() : INVOICE_AUTO_GENERATE='' → skip
+ *   - generateAndStoreInvoice() : invoice_auto_generate='' → skip
  *   - generateAndStoreInvoice() : clientEmail vide dans ordre → skip envoi mail
  *   - dispatchOrderEmails() : catch Throwable → silencieux
  *   - validateCsrfAndSubmitToken() : submit_token absent en session → redirect
@@ -266,11 +266,11 @@ class OrderControllerCoverageTest extends TestCase
     }
 
     // ================================================================
-    // generateAndStoreInvoice() — INVOICE_AUTO_GENERATE='' → skip (L838-840)
+    // generateAndStoreInvoice() — invoice_auto_generate='' → skip (L838-840)
     // ================================================================
 
     /**
-     * Quand INVOICE_AUTO_GENERATE est une chaîne vide (parse_ini_file comportement),
+     * Quand invoice_auto_generate est une chaîne vide (parse_ini_file comportement),
      * generateAndStoreInvoice() retourne immédiatement sans appel BDD.
      */
     public function testGenerateAndStoreInvoiceSkipsWhenEnvIsEmptyString(): void
@@ -289,7 +289,7 @@ class OrderControllerCoverageTest extends TestCase
     }
 
     // ================================================================
-    // generateAndStoreInvoice() — INVOICE_AUTO_GENERATE='0' → skip
+    // generateAndStoreInvoice() — invoice_auto_generate='0' → skip
     // ================================================================
 
     public function testGenerateAndStoreInvoiceSkipsWhenEnvIsZero(): void

@@ -608,7 +608,7 @@ class OrderAdminControllerCoverageTest extends TestCase
     // ================================================================
 
     /**
-     * updateStatus() tente de générer la facture quand INVOICE_AUTO_GENERATE=true,
+     * updateStatus() tente de générer la facture quand invoice_auto_generate=true,
      * status change et path_invoice est vide.
      * Couvre L271 (mkdir) et L298-303 (génération PDF + envoi mail via InvoiceService).
      * InvoiceService et MailService échouent en contexte test → catch absorbe.

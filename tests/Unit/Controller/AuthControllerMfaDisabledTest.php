@@ -12,7 +12,7 @@ use Core\Request;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Couvre la branche MFA_EMAIL_ENABLED=false dans AuthController::login().
+ * Couvre la branche customer_mfa_enabled=false dans AuthController::login().
  *
  * Quand l'env var est false, un appareil non de confiance est auto-approuvé
  * (trustedDevices->trust() appelé) et la connexion s'effectue sans challenge email.
@@ -63,7 +63,7 @@ class AuthControllerMfaDisabledTest extends TestCase
     }
 
     // ================================================================
-    // MFA_EMAIL_ENABLED=false + appareil non de confiance → login réussi (302)
+    // customer_mfa_enabled=false + appareil non de confiance → login réussi (302)
     // sans redirection vers /nouvel-appareil
     // ================================================================
 
@@ -114,7 +114,7 @@ class AuthControllerMfaDisabledTest extends TestCase
     }
 
     // ================================================================
-    // MFA_EMAIL_ENABLED=true (défaut) → comportement inchangé → MFA
+    // customer_mfa_enabled=true (défaut) → comportement inchangé → MFA
     // ================================================================
 
     public function testLoginRedirectsToMfaWhenMfaEnabledAndUntrustedDevice(): void

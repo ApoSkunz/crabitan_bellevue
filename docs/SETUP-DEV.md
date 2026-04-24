@@ -182,7 +182,7 @@ DB_PASS=                         # vide en dev local XAMPP
 # ── Authentification JWT ───────────────────────────────────────────────────
 JWT_SECRET=                      # chaîne aléatoire ≥ 32 caractères — NE PAS VERSIONNER
 JWT_EXPIRY=3600                  # durée de vie du token en secondes (optionnel)
-JWT_REFRESH_THRESHOLD=0.5        # seuil de refresh TTL session : rafraîchir quand il reste moins de X% du TTL (0.5 = 50%)
+# jwt_refresh_threshold (géré via BDD feature_flags — admin /admin/feature-flags)
 
 # ── Emails (MailHog en dev, SMTP IONOS en prod) ────────────────────────────
 MAIL_HOST=localhost
@@ -214,7 +214,9 @@ WEATHER_API_KEY=                 # clé OpenWeatherMap — NE PAS VERSIONNER
 TRANSLATION_API_KEY=             # clé API traduction — NE PAS VERSIONNER
 
 # ── Feature Flags ─────────────────────────────────────────────────────────
-CLICK_COLLECT_ENABLED=false      # true pour activer l'option retrait au château
+# Tous les feature flags sont gérés en BDD via /admin/feature-flags (table feature_flags).
+# Les anciennes variables .env (CLICK_COLLECT_ENABLED, MFA_EMAIL_ENABLED, STOCK_ALERTE_LIMIT…)
+# ne sont plus lues par le code.
 ```
 
 ---

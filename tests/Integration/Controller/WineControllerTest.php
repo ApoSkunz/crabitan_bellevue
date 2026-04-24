@@ -935,7 +935,7 @@ class WineControllerTest extends IntegrationTestCase
     }
 
     /**
-     * buildPdfSections() avec ENABLE_EXTRA_INFO=true couvre le bloc nutritionnel dans les sections.
+     * buildPdfSections() avec enable_extra_info=true couvre le bloc nutritionnel dans les sections.
      */
     public function testBuildPdfSectionsWithExtraInfoEnabledIncludesNutritionSection(): void
     {

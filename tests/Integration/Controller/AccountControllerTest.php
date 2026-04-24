@@ -1025,8 +1025,8 @@ class AccountControllerTest extends IntegrationTestCase
     }
 
     /**
-     * Commande 'processing' par carte avec CA_ENABLE_GAE=false → bouton remboursement affiché.
-     * (CA_ENABLE_GAE=false : la voie de remboursement passe par /remboursement, pas /annuler)
+     * Commande 'processing' par carte avec ca_enable_gae=false → bouton remboursement affiché.
+     * (ca_enable_gae=false : la voie de remboursement passe par /remboursement, pas /annuler)
      *
      * @return void
      */
@@ -5075,7 +5075,7 @@ class AccountControllerTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Une commande "paid" avec CA_ENABLE_GAE=false doit passer à refund_pending en BDD
+     * Une commande "paid" avec ca_enable_gae=false doit passer à refund_pending en BDD
      * et poser un flash success.
      */
     public function testRequestRefundWithGaeDisabledSetsRefundPendingInDb(): void

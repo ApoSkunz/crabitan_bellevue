@@ -278,7 +278,7 @@ class WineAdminControllerCoverageTest extends TestCase
 
     /**
      * update() appelle resetLowStockNotified quand le nouveau stock
-     * dépasse le seuil STOCK_ALERTE_LIMIT. Couvre L374.
+     * dépasse le seuil stock_alert_limit. Couvre L374.
      */
     public function testUpdateCallsResetLowStockNotifiedWhenStockAboveThreshold(): void
     {

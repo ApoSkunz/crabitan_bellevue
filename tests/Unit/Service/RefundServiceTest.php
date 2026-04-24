@@ -15,7 +15,7 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 /**
  * Tests unitaires de RefundService.
  *
- * Couvre les deux branches CA_ENABLE_GAE=true et CA_ENABLE_GAE=false.
+ * Couvre les deux branches ca_enable_gae=true et ca_enable_gae=false.
  */
 #[AllowMockObjectsWithoutExpectations]
 class RefundServiceTest extends TestCase
@@ -55,7 +55,7 @@ class RefundServiceTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // CA_ENABLE_GAE = true
+    // ca_enable_gae = true
     // ----------------------------------------------------------------
 
     public function testRefundWithGaeEnabledCallsApiAndSetsRefunded(): void
@@ -103,7 +103,7 @@ class RefundServiceTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // CA_ENABLE_GAE = false
+    // ca_enable_gae = false
     // ----------------------------------------------------------------
 
     public function testRefundWithGaeDisabledSetsRefundPendingAndLogs(): void

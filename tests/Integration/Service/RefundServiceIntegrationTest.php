@@ -96,7 +96,7 @@ class RefundServiceIntegrationTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
-    // CA_ENABLE_GAE = false → statut refund_pending en BDD
+    // ca_enable_gae = false → statut refund_pending en BDD
     // ----------------------------------------------------------------
 
     public function testRefundWithGaeDisabledStoresRefundPendingInDb(): void

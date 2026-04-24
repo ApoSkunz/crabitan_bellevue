@@ -315,7 +315,7 @@ class SessionTtlRefresherTest extends TestCase
     }
 
     /**
-     * Absence de JWT_REFRESH_THRESHOLD → valeur par défaut 0.5.
+     * Absence de jwt_refresh_threshold → valeur par défaut 0.5.
      */
     public function testDefaultThresholdUsedWhenEnvAbsent(): void
     {

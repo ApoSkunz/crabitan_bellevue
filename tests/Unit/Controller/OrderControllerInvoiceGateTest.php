@@ -15,7 +15,7 @@ use ReflectionProperty;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
- * Tests unitaires OrderController — gating INVOICE_AUTO_GENERATE.
+ * Tests unitaires OrderController — gating invoice_auto_generate.
  *
  * Couvre la branche `if (!$autoInvoice) { return; }` ajoutée pour cohérence
  * avec IpnController et OrderAdminController : la facture n'est pas générée
