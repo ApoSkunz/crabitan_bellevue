@@ -6,6 +6,7 @@ namespace Tests\Unit\Controller\Admin;
 
 use Controller\Admin\OrderAdminController;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Model\OrderModel;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -148,11 +149,13 @@ class OrderAdminControllerCoverageTest extends TestCase
         $_FILES   = [];
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI']    = '/admin/commandes';
+        FeatureFlags::flush();
     }
 
     protected function tearDown(): void
     {
         $this->dbInstanceProp->setValue(null, null);
+        FeatureFlags::flush();
         $_SESSION = [];
         $_POST    = [];
         $_GET     = [];
@@ -614,7 +617,7 @@ class OrderAdminControllerCoverageTest extends TestCase
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST = ['status' => 'processing'];
-        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'true', 'type' => 'bool']]);
         $ctrl = $this->makeController();
 
         $order = $this->sampleOrder('pending');
@@ -644,7 +647,7 @@ class OrderAdminControllerCoverageTest extends TestCase
         } catch (HttpException $e) {
             $caught = $e;
         } finally {
-            unset($_ENV['INVOICE_AUTO_GENERATE']);
+            FeatureFlags::flush();
         }
 
         // Redirige vers /admin/commandes/42 après le flash success
@@ -704,7 +707,7 @@ class OrderAdminControllerCoverageTest extends TestCase
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST = ['status' => 'processing'];
-        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'true', 'type' => 'bool']]);
 
         $tmpDir = sys_get_temp_dir() . '/crabitan_test_invdir_' . uniqid();
         $this->assertFalse(is_dir($tmpDir), 'Le dir ne doit pas pré-exister');
@@ -738,7 +741,7 @@ class OrderAdminControllerCoverageTest extends TestCase
         } catch (HttpException $e) {
             $caught = $e;
         } finally {
-            unset($_ENV['INVOICE_AUTO_GENERATE']);
+            FeatureFlags::flush();
         }
 
         $this->assertNotNull($caught);
@@ -762,7 +765,7 @@ class OrderAdminControllerCoverageTest extends TestCase
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST = ['status' => 'processing'];
-        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'true', 'type' => 'bool']]);
 
         $ctrl = $this->makeController();
 
@@ -799,7 +802,7 @@ class OrderAdminControllerCoverageTest extends TestCase
         } catch (HttpException $e) {
             $caught = $e;
         } finally {
-            unset($_ENV['INVOICE_AUTO_GENERATE']);
+            FeatureFlags::flush();
         }
 
         $this->assertNotNull($caught);
@@ -819,7 +822,7 @@ class OrderAdminControllerCoverageTest extends TestCase
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST = ['status' => 'processing'];
-        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'true', 'type' => 'bool']]);
 
         $ctrl = $this->makeController();
 
@@ -839,7 +842,7 @@ class OrderAdminControllerCoverageTest extends TestCase
         } catch (HttpException $e) {
             $caught = $e;
         } finally {
-            unset($_ENV['INVOICE_AUTO_GENERATE']);
+            FeatureFlags::flush();
         }
 
         // Malgré l'exception interne, le flow poursuit jusqu'au redirect 302
