@@ -35,8 +35,10 @@ final class FeatureFlagsModelTest extends TestCase
     public function testGetAllReturnsMappedRows(): void
     {
         $rows = [
-            ['key' => 'foo', 'value' => 'true', 'type' => 'bool', 'label' => 'Foo', 'description' => null, 'updated_at' => null, 'updated_by' => null],
-            ['key' => 'bar', 'value' => '42',   'type' => 'int',  'label' => 'Bar', 'description' => null, 'updated_at' => null, 'updated_by' => null],
+            ['key' => 'foo', 'value' => 'true', 'type' => 'bool',
+             'label' => 'Foo', 'description' => null, 'updated_at' => null, 'updated_by' => null],
+            ['key' => 'bar', 'value' => '42',   'type' => 'int',
+             'label' => 'Bar', 'description' => null, 'updated_at' => null, 'updated_by' => null],
         ];
         $this->db->method('fetchAll')->willReturn($rows);
 
@@ -58,7 +60,8 @@ final class FeatureFlagsModelTest extends TestCase
 
     public function testFindByKeyReturnsRowWhenFound(): void
     {
-        $row = ['key' => 'foo', 'value' => 'true', 'type' => 'bool', 'label' => 'Foo', 'description' => null, 'updated_at' => null, 'updated_by' => null];
+        $row = ['key' => 'foo', 'value' => 'true', 'type' => 'bool',
+                'label' => 'Foo', 'description' => null, 'updated_at' => null, 'updated_by' => null];
         $this->db->method('fetchOne')->willReturn($row);
 
         $result = $this->model->findByKey('foo');

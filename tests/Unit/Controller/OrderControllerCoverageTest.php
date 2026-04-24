@@ -1217,7 +1217,10 @@ class OrderControllerCoverageTest extends TestCase
         $tmpPath = sys_get_temp_dir() . '/test_happy_' . getmypid() . '.pem';
         file_put_contents($tmpPath, $details['key']);
         $_ENV['CA_PUBKEY_PATH']         = $tmpPath;
-        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'false', 'type' => 'bool']]); // désactive generateAndStoreInvoice
+        // désactive generateAndStoreInvoice
+        FeatureFlags::setCache([
+            'invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'false', 'type' => 'bool'],
+        ]);
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI']    = '/fr/commande/paiement-ca/ok';
