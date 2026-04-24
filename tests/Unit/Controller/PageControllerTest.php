@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controller;
 
+use Core\Database;
 use Core\Exception\HttpException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -653,5 +654,27 @@ class PageControllerTest extends TestCase
         $output = ob_get_clean();
 
         $this->assertStringContainsString('0 références', $output);
+    }
+
+    /**
+     * newWineModel() retourne une instance de WineModel (couvre la seam réelle).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testNewWineModelReturnsWineModelInstance(): void
+    {
+        $this->bootstrapApp();
+
+        $dbStub   = $this->createStub(Database::class);
+        $dbProp   = new \ReflectionProperty(Database::class, 'instance');
+        $dbProp->setValue(null, $dbStub); // NOSONAR — S3011 : Reflection requise pour mocker le singleton Database en TU isolé
+
+        $controller = new \Controller\PageController(new \Core\Request());
+        $method     = new \ReflectionMethod(\Controller\PageController::class, 'newWineModel');
+
+        $result = $method->invoke($controller);
+
+        $this->assertInstanceOf(\Model\WineModel::class, $result);
+        $dbProp->setValue(null, null); // NOSONAR — S3011 : teardown du singleton Database mocké
     }
 }
