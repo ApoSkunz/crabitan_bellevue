@@ -9,7 +9,7 @@ $isBare       = $bare ?? false;
 $legal        = require ROOT_PATH . '/config/legal.php'; // NOSONAR — php:S2003 : require_once retourne true au 2e appel (re-rendu tests)
 $legalVersion = $legal['politique_confidentialite']['version'];
 $legalDate    = $legal['politique_confidentialite']['updated_at'];
-$contactEmail = $_ENV['DPO_EMAIL'];
+$contactEmail = $_ENV['DPO_EMAIL'] ?? 'dpo@crabitanbellevue.fr';
 $safeEmail    = htmlspecialchars($contactEmail, ENT_QUOTES);
 
 require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : require_once bloquerait le re-rendu entre tests (même convention que Response::view)

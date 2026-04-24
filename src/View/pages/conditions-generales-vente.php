@@ -6,7 +6,7 @@ $metaDescription = $navLang === 'en'
     : 'Conditions générales de vente du Château Crabitan Bellevue — commande, livraison et droit de rétractation.';
 $isBare       = $bare ?? false;
 $isFr         = $navLang === 'fr';
-$contactEmail = $_ENV['CONTACT_OWNER_EMAIL'];
+$contactEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr';
 $seoSlug = 'conditions-generales-de-vente';
 require_once SRC_PATH . '/View/partials/seo-meta.php';
 require_once SRC_PATH . '/View/partials/legal-open.php';

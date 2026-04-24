@@ -162,7 +162,7 @@ class AccountAdminController extends AdminController
         $token    = bin2hex(random_bytes(32));
         $resets   = new PasswordResetModel();
         $resets->create($id, $token);
-        $resetUrl = ($_ENV['APP_URL'] ?? '') . "/{$lang}/reinitialisation/{$token}";
+        $resetUrl = ($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr') . "/{$lang}/reinitialisation/{$token}";
 
         try {
             $mail = $this->newMailService();
