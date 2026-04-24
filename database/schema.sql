@@ -1039,4 +1039,40 @@ CREATE TABLE IF NOT EXISTS `rate_limits` (
   KEY `idx_expires_at` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ============================================================
+-- Table : feature_flags
+-- Feature flipping runtime — toggleable depuis /admin/feature-flags.
+-- Modification protégée par OTP email (120 s, max 3 tentatives).
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `feature_flags` (
+  `key`         VARCHAR(64)               NOT NULL,
+  `value`       VARCHAR(255)              NOT NULL,
+  `type`        ENUM('bool','int','float') NOT NULL DEFAULT 'bool',
+  `label`       VARCHAR(128)              NOT NULL,
+  `description` TEXT                      NULL,
+  `updated_at`  TIMESTAMP                 NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_by`  INT                       NULL,
+  PRIMARY KEY (`key`),
+  CONSTRAINT `fk_feature_flags_updated_by`
+    FOREIGN KEY (`updated_by`) REFERENCES `accounts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Feature flags — modifiables en production via l\'admin';
+
+INSERT INTO `feature_flags` (`key`, `value`, `type`, `label`, `description`) VALUES
+('jwt_refresh_threshold',      '0.5',   'float', 'Seuil renouvellement JWT',            'Ratio TTL restant déclenchant le renouvellement automatique (0.1–0.9)'),
+('ca_enable_gae',              'false', 'bool',  'Remboursement CA GAE',                'Activer l\'API GAE Crédit Agricole pour les remboursements automatiques'),
+('enable_extra_info',          'false', 'bool',  'Informations nutritionnelles',         'Afficher les données nutritionnelles sur les fiches et exports vins'),
+('stock_alert_limit',          '300',   'int',   'Seuil alerte stock',                  'Quantité sous laquelle l\'alerte stock faible s\'affiche sur les pages vins'),
+('rgpd_inactivity_months',     '36',    'int',   'Inactivité RGPD (mois)',              'Durée d\'inactivité avant pseudonymisation automatique du compte'),
+('invoice_auto_generate',      'true',  'bool',  'Génération facture auto',             'Générer automatiquement la facture PDF à la validation de commande'),
+('customer_mfa_enabled',       'true',  'bool',  'MFA clients',                         'Activer l\'authentification double facteur par email pour les clients'),
+('cron_mail_delay_ms',         '0',     'int',   'Délai inter-mail cron (ms)',          'Délai entre chaque envoi d\'email dans les jobs cron (0 = sans délai)'),
+('cron_newsletter_batch_size', '30',    'int',   'Taille batch newsletter',             'Nombre d\'emails newsletter envoyés par cycle de cron'),
+('click_collect_enabled',      'false', 'bool',  'Click & Collect',                     'Activer le retrait en cave (click & collect)'),
+('stock_notification_enabled', 'true',  'bool',  'Notifications stock',                 'Envoyer des alertes email quand le stock passe sous le seuil'),
+('rate_limit_login_max',       '10',    'int',   'Tentatives connexion max',            'Nombre max de tentatives de connexion par IP par fenêtre de temps'),
+('rate_limit_login_window',    '900',   'int',   'Fenêtre rate limiting connexion (s)', 'Durée de la fenêtre de rate limiting pour la connexion en secondes'),
+('newsletter_enabled',         'true',  'bool',  'Newsletter activée',                  'Activer l\'inscription à la newsletter et les envois automatiques')
+ON DUPLICATE KEY UPDATE `value` = `value`;
+
 COMMIT;
