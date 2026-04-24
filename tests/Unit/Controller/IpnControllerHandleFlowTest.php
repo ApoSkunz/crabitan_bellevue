@@ -716,13 +716,16 @@ class IpnControllerHandleFlowTest extends TestCase
         $mailMock->expects($this->once())
             ->method('sendOrderConfirmationToClient')
             ->with(
-                '',       // client_email par défaut
-                '',       // client_name par défaut
-                $this->anything(),
+                '',                 // client_email par défaut
+                '',                 // client_name par défaut
+                $this->anything(),  // ref
                 'card',
                 [],
                 10.0,
-                'fr'      // lang par défaut
+                'fr',               // lang par défaut
+                0.0,                // delivery_discount par défaut
+                $this->anything(),  // pdfContext (null si AddressModel indisponible)
+                'shipping'          // delivery_method par défaut
             );
 
         $caught = null;
