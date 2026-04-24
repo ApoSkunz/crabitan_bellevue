@@ -44,7 +44,7 @@ class FeatureFlagsAdminController extends AdminController
 
         $superAdminEmails = [];
         if (!$isSuperAdmin) {
-            $allAdmins        = (new AccountModel())->findAdmins();
+            $allAdmins        = $this->newAccountModel()->findAdmins();
             $superAdminEmails = array_column(
                 array_filter($allAdmins, fn($a) => ($a['role'] ?? '') === 'super_admin'),
                 'email'
@@ -53,7 +53,7 @@ class FeatureFlagsAdminController extends AdminController
 
         $remainingAttempts = null;
         if ($otpBatch && $isSuperAdmin) {
-            $otpRow = (new AdminOtpModel())->find((int) $adminUser['id'], 'ff_batch');
+            $otpRow = $this->newAdminOtpModel()->find((int) $adminUser['id'], 'ff_batch');
             if ($otpRow !== null) {
                 $remainingAttempts = self::MAX_OTP_ATTEMPTS - (int) $otpRow['attempts'];
             }
@@ -141,7 +141,7 @@ class FeatureFlagsAdminController extends AdminController
 
         $otp     = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $otpHash = hash('sha256', $otp);
-        (new AdminOtpModel())->create(
+        $this->newAdminOtpModel()->create(
             (int) $adminUser['id'],
             'ff_batch',
             $otpHash,
@@ -178,7 +178,7 @@ class FeatureFlagsAdminController extends AdminController
             Response::redirect(self::REDIRECT);
         }
 
-        $otpModel     = new AdminOtpModel();
+        $otpModel     = $this->newAdminOtpModel();
         $submittedOtp = trim((string) ($_POST['otp'] ?? ''));
         $otpRow       = $otpModel->find((int) $adminUser['id'], 'ff_batch');
 
@@ -277,6 +277,26 @@ class FeatureFlagsAdminController extends AdminController
     protected function newModel(): FeatureFlagsModel
     {
         return new FeatureFlagsModel();
+    }
+
+    /**
+     * Instancie AdminOtpModel — seam de testabilité.
+     *
+     * @return AdminOtpModel
+     */
+    protected function newAdminOtpModel(): AdminOtpModel
+    {
+        return new AdminOtpModel();
+    }
+
+    /**
+     * Instancie AccountModel — seam de testabilité.
+     *
+     * @return AccountModel
+     */
+    protected function newAccountModel(): AccountModel
+    {
+        return new AccountModel();
     }
 
     /**

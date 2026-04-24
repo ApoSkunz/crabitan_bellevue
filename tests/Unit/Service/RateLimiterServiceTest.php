@@ -724,6 +724,37 @@ class RateLimiterServiceTest extends TestCase
         // Nettoyage — la session reste ouverte pour les tests suivants (setUp la gère)
     }
 
+    // ----------------------------------------------------------------
+    // blockFor() — pose un lockout explicite
+    // ----------------------------------------------------------------
+
+    /**
+     * blockFor() pose directement :until dans le futur,
+     * indépendamment du compteur.
+     */
+    public function testBlockForSetsActiveLockou(): void
+    {
+        $this->service->blockFor('block:direct:ip', 300);
+
+        $remaining = $this->service->getRetryAfter('block:direct:ip');
+        $this->assertGreaterThanOrEqual(299, $remaining);
+        $this->assertLessThanOrEqual(300, $remaining);
+    }
+
+    /**
+     * blockFor() bloque checkLimit immédiatement après appel.
+     */
+    public function testBlockForCausesCheckLimitToReturnFalse(): void
+    {
+        $this->service->blockFor('block:check:ip', 300);
+
+        $this->assertFalse($this->service->checkLimit('block:check:ip', 5, 900));
+    }
+
+    // ----------------------------------------------------------------
+    // startSession() — seam overridable
+    // ----------------------------------------------------------------
+
     /**
      * startSession() est un seam protected overridable — vérifie que la subclass peut l'intercepter.
      *

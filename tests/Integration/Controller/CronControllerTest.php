@@ -95,6 +95,8 @@ class CronControllerTest extends IntegrationTestCase
             'send-newsletter-welcome-sequence' => ['send-newsletter-welcome-sequence'],
             'send-reconquest'                  => ['send-reconquest'],
             'send-review-request'              => ['send-review-request'],
+            'purge-admin-otps'                 => ['purge-admin-otps'],
+            'purge-order-rating-tokens'        => ['purge-order-rating-tokens'],
         ];
     }
 
@@ -767,5 +769,45 @@ class CronControllerTest extends IntegrationTestCase
         $this->assertStringContainsString('DRY-RUN', $output);
         $this->assertStringContainsString('admin-nl#', $output);
         $this->assertStringContainsString('dryrun.admin@test.local', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // purge-admin-otps — exécution réelle
+    // ----------------------------------------------------------------
+
+    public function testPurgeAdminOtpsRealRunReturns200(): void
+    {
+        $output = $this->runJob('purge-admin-otps', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('OTP', $output);
+    }
+
+    public function testPurgeAdminOtpsDryRunDoesNotWrite(): void
+    {
+        $output = $this->runJob('purge-admin-otps', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // purge-order-rating-tokens — exécution réelle
+    // ----------------------------------------------------------------
+
+    public function testPurgeOrderRatingTokensRealRunReturns200(): void
+    {
+        $output = $this->runJob('purge-order-rating-tokens', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('order_rating_tokens', $output);
+    }
+
+    public function testPurgeOrderRatingTokensDryRunDoesNotWrite(): void
+    {
+        $output = $this->runJob('purge-order-rating-tokens', dryRun: true);
+
+        $this->assertSame(200, http_response_code());
+        $this->assertStringContainsString('DRY-RUN', $output);
     }
 }
