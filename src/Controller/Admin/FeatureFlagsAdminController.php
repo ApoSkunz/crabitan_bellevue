@@ -6,6 +6,7 @@ namespace Controller\Admin;
 
 use Core\FeatureFlags;
 use Core\Response;
+use Model\AccountModel;
 use Model\FeatureFlagsModel;
 use Service\AuditLogger;
 use Service\MailService;
@@ -13,8 +14,7 @@ use Service\RateLimiterService;
 
 /**
  * Gestion des feature flags depuis l'interface admin.
- * Toute modification est protégée par un OTP email (120 s, max 3 tentatives).
- * Accès super_admin uniquement.
+ * Lecture : admin + super_admin. Modification : super_admin uniquement (OTP).
  */
 class FeatureFlagsAdminController extends AdminController
 {
@@ -32,20 +32,33 @@ class FeatureFlagsAdminController extends AdminController
      */
     public function index(array $_params): void // NOSONAR — php:S1172 : signature imposée par le routeur MVC
     {
-        $adminUser = $this->requireSuperAdmin();
-        $model     = $this->newModel();
-        $flags     = $model->getAll();
+        $adminUser    = $this->requireAdmin();
+        $isSuperAdmin = ($adminUser['role'] ?? '') === 'super_admin';
+
+        $model    = $this->newModel();
+        $flags    = $model->getAll();
         $otpKey   = trim((string) ($_GET['otp_key'] ?? ''));
         $otpBatch = isset($_GET['otp_batch']);
 
+        $superAdminEmails = [];
+        if (!$isSuperAdmin) {
+            $allAdmins        = (new AccountModel())->findAdmins();
+            $superAdminEmails = array_column(
+                array_filter($allAdmins, fn($a) => ($a['role'] ?? '') === 'super_admin'),
+                'email'
+            );
+        }
+
         $this->view('admin/feature-flags/index', [
-            'adminUser'    => $adminUser,
-            'adminSection' => 'feature_flags',
-            'pageTitle'    => 'Feature flags',
-            'breadcrumbs'  => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Feature flags']],
-            'flags'        => $flags,
-            'otpKey'       => $otpKey !== '' ? $otpKey : null,
-            'otpBatch'     => $otpBatch,
+            'adminUser'         => $adminUser,
+            'adminSection'      => 'feature_flags',
+            'pageTitle'         => 'Feature flags',
+            'breadcrumbs'       => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Feature flags']],
+            'flags'             => $flags,
+            'otpKey'            => $otpKey !== '' ? $otpKey : null,
+            'otpBatch'          => $otpBatch,
+            'isSuperAdmin'      => $isSuperAdmin,
+            'superAdminEmails'  => $superAdminEmails,
         ]);
     }
 

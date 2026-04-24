@@ -9,6 +9,8 @@
  * @var array<int, array<string,mixed>>  $flags
  * @var string|null                      $otpKey
  * @var bool                             $otpBatch
+ * @var bool                             $isSuperAdmin
+ * @var array<int, string>               $superAdminEmails
  */
 require_once ROOT_PATH . '/src/View/admin/_open.php';
 $csrf = $_SESSION['csrf'] ?? '';
@@ -57,6 +59,16 @@ $categories = [
                     <?= htmlspecialchars((string) $msg) ?>
                 </div>
             <?php endforeach; ?>
+        <?php endif; ?>
+
+        <?php if (!$isSuperAdmin): ?>
+            <div class="admin-alert admin-alert--info" role="note" style="margin-bottom:1.5rem;">
+                <strong>Lecture seule.</strong>
+                Pour modifier ces paramètres, contactez un super administrateur :
+                <?php foreach ($superAdminEmails as $i => $email): ?>
+                    <a href="mailto:<?= htmlspecialchars($email) ?>"><?= htmlspecialchars($email) ?></a><?= $i < count($superAdminEmails) - 1 ? ', ' : '' ?>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
 
         <?php if ($otpBatch): ?>
@@ -145,8 +157,9 @@ $categories = [
                                         <?php endif; ?>
                                     </div>
                                     <div class="ff-row__control">
+                                        <?php $ro = !$isSuperAdmin ? 'disabled' : ''; ?>
                                         <?php if ($type === 'bool'): ?>
-                                            <label class="ff-toggle" aria-label="<?= htmlspecialchars($label) ?>">
+                                            <label class="ff-toggle<?= !$isSuperAdmin ? ' ff-toggle--readonly' : '' ?>" aria-label="<?= htmlspecialchars($label) ?>">
                                                 <input type="hidden" name="<?= htmlspecialchars($key) ?>" value="false">
                                                 <input
                                                     type="checkbox"
@@ -154,6 +167,7 @@ $categories = [
                                                     name="<?= htmlspecialchars($key) ?>"
                                                     value="true"
                                                     <?= $value === 'true' ? 'checked' : '' ?>
+                                                    <?= $ro ?>
                                                 >
                                                 <span class="ff-toggle__track">
                                                     <span class="ff-toggle__thumb"></span>
@@ -166,6 +180,7 @@ $categories = [
                                                 value="<?= htmlspecialchars($value) ?>"
                                                 class="ff-input"
                                                 step="1"
+                                                <?= $ro ?>
                                             >
                                         <?php else: ?>
                                             <input
@@ -176,6 +191,7 @@ $categories = [
                                                 step="0.01"
                                                 min="0.01"
                                                 max="0.99"
+                                                <?= $ro ?>
                                             >
                                         <?php endif; ?>
                                     </div>
@@ -187,6 +203,7 @@ $categories = [
                 </div>
             </div>
 
+            <?php if ($isSuperAdmin): ?>
             <div class="ff-save-bar">
                 <span class="ff-save-bar__hint">
                     Un code OTP sera envoyé à votre adresse email pour confirmer les modifications.
@@ -201,6 +218,7 @@ $categories = [
                     Enregistrer mes modifications
                 </button>
             </div>
+            <?php endif; ?>
         </form>
 
         <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
