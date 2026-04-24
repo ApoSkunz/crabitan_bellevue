@@ -147,9 +147,6 @@ $categories = [
                                     <div class="ff-row__control">
                                         <?php if ($type === 'bool'): ?>
                                             <label class="ff-toggle" aria-label="<?= htmlspecialchars($label) ?>">
-                                                <span class="ff-toggle__label">
-                                                    <?= $value === 'true' ? 'Activé' : 'Désactivé' ?>
-                                                </span>
                                                 <input type="hidden" name="<?= htmlspecialchars($key) ?>" value="false">
                                                 <input
                                                     type="checkbox"
@@ -198,20 +195,40 @@ $categories = [
                     type="submit"
                     class="admin-btn admin-btn--primary"
                     data-admin-confirm="Envoyer un code OTP pour enregistrer toutes les modifications ?"
+                    id="ff-save-btn"
+                    disabled
                 >
                     Enregistrer mes modifications
                 </button>
             </div>
         </form>
 
-        <script>
-        // Update toggle label dynamically on change
-        document.querySelectorAll('.ff-toggle__input[type="checkbox"]').forEach(function(cb) {
-            cb.addEventListener('change', function() {
-                var lbl = this.closest('.ff-toggle').querySelector('.ff-toggle__label');
-                if (lbl) lbl.textContent = this.checked ? 'Activé' : 'Désactivé';
-            });
-        });
+        <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+        (function () {
+            var form = document.getElementById('ff-form');
+            var btn  = document.getElementById('ff-save-btn');
+
+            function serialize() {
+                var data = {};
+                form.querySelectorAll('input[name]').forEach(function (el) {
+                    if (el.type === 'checkbox') {
+                        data[el.name] = el.checked ? 'true' : 'false';
+                    } else if (el.type !== 'hidden') {
+                        data[el.name] = el.value;
+                    }
+                });
+                return JSON.stringify(data);
+            }
+
+            var initial = serialize();
+
+            function checkDirty() {
+                btn.disabled = serialize() === initial;
+            }
+
+            form.addEventListener('change', checkDirty);
+            form.addEventListener('input', checkDirty);
+        }());
         </script>
 
     </div>
