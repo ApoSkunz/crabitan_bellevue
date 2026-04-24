@@ -429,7 +429,7 @@ class GoogleOAuthControllerCoverageTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // L491 — issueSession() : customer_mfa_enabled=false → auto-trust + warning
+    // L491 — issueSession() : MFA_EMAIL_ENABLED=false → auto-trust + warning
     // ----------------------------------------------------------------
 
     public function testIssueSessionWithMfaDisabledAutoTrustsDevice(): void

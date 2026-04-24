@@ -10,7 +10,7 @@
  *
  * Puis réinitialise inactivity_warning_sent_at = NULL si et seulement si :
  *   - last_login_at IS NOT NULL
- *   - last_login_at > NOW() - rgpd_inactivity_months (compte encore "actif" sur l'échelle RGPD)
+ *   - last_login_at > NOW() - RGPD_INACTIVITY_MONTHS (compte encore "actif" sur l'échelle RGPD)
  *   → l'avertissement envoyé était un faux positif (données corrompues avant migration 005)
  *
  * Si last_login_at IS NULL après backfill (impossible en pratique — fallback created_at) :
@@ -102,7 +102,7 @@ $ok("{$filled} compte(s) backfillé(s)" . ($dryRun ? ' [simulé]' : ''));
 // ------------------------------------------------------------
 // Étape 2 — Purge inactivity_warning_sent_at
 // Condition : last_login_at IS NOT NULL
-//             AND last_login_at > NOW() - rgpd_inactivity_months
+//             AND last_login_at > NOW() - RGPD_INACTIVITY_MONTHS
 // → avertissement envoyé alors que le compte était actif = faux positif
 // ------------------------------------------------------------
 $log("Étape 2 — Purge inactivity_warning_sent_at (comptes actifs < {$inactivityMonths} mois)...");
