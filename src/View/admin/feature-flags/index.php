@@ -86,17 +86,32 @@ $categories = [
                     Entrez le code à 6 chiffres reçu par email.
                 </p>
 
-                <?php if (!empty($_SESSION['flash'])): ?>
-                    <?php foreach ($_SESSION['flash'] as $type => $msg): unset($_SESSION['flash'][$type]); ?>
-                    <div style="padding:0.6rem 0.9rem;border-radius:6px;font-size:0.82rem;
-                                margin-bottom:1rem;
-                                <?= $type === 'error'
-                                    ? 'background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;'
-                                    : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;' ?>">
-                        <?= htmlspecialchars((string) $msg) ?>
-                    </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                <?php
+                $otpFlashMessages = $_SESSION['flash'] ?? [];
+                unset($_SESSION['flash']);
+                foreach ($otpFlashMessages as $fType => $fMsg):
+                ?>
+                <div style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.65rem 0.9rem;
+                            border-radius:6px;font-size:0.82rem;font-weight:500;margin-bottom:1rem;
+                            <?= $fType === 'error'
+                                ? 'background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;'
+                                : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;' ?>">
+                    <span><?= $fType === 'error' ? '✕' : '✓' ?></span>
+                    <span><?= htmlspecialchars((string) $fMsg) ?></span>
+                </div>
+                <?php endforeach; ?>
+
+                <?php if ($remainingAttempts !== null && $remainingAttempts <= 0): ?>
+                <div style="padding:0.75rem 1rem;background:#fef2f2;border:1px solid #fecaca;
+                            border-radius:6px;color:#b91c1c;font-size:0.85rem;margin-bottom:1.25rem;">
+                    <strong>Tentatives épuisées.</strong>
+                    Vos modifications ont été annulées. Fermez et recommencez.
+                </div>
+                <a href="/admin/feature-flags" class="admin-btn admin-btn--ghost"
+                   style="width:100%;justify-content:center;">
+                    Retour à la liste
+                </a>
+                <?php else: ?>
 
                 <div style="display:flex;align-items:center;justify-content:space-between;
                             margin-bottom:1.25rem;">
@@ -109,9 +124,8 @@ $categories = [
                         </span>
                     </div>
                     <?php if ($remainingAttempts !== null): ?>
-                    <span id="ff-otp-attempts"
-                          style="font-size:0.78rem;font-weight:600;
-                                 <?= $remainingAttempts <= 1 ? 'color:#b91c1c;' : 'color:#888;' ?>">
+                    <span style="font-size:0.78rem;font-weight:600;
+                                 <?= $remainingAttempts === 1 ? 'color:#b91c1c;' : 'color:#888;' ?>">
                         <?= (int) $remainingAttempts ?> tentative<?= $remainingAttempts > 1 ? 's' : '' ?> restante<?= $remainingAttempts > 1 ? 's' : '' ?>
                     </span>
                     <?php endif; ?>
@@ -174,12 +188,13 @@ $categories = [
                     </div>
                 </form>
 
-                <style>
-                @keyframes ff-spin { to { transform: rotate(360deg); } }
-                </style>
+                <?php endif; ?>
+
+                <style>@keyframes ff-spin { to { transform: rotate(360deg); } }</style>
             </div>
         </div>
 
+        <?php if ($remainingAttempts === null || $remainingAttempts > 0): ?>
         <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
         (function () {
             var TOTAL = 120;
@@ -269,7 +284,8 @@ $categories = [
             });
         }());
         </script>
-        <?php endif; ?>
+        <?php endif; // remainingAttempts > 0 ?>
+        <?php endif; // otpBatch ?>
 
         <form method="POST" action="/admin/feature-flags/batch-request" id="ff-form"
               data-admin-confirm="Envoyer un code OTP pour enregistrer toutes les modifications ?">

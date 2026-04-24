@@ -175,15 +175,19 @@ class FeatureFlagsAdminController extends AdminController
         }
 
         if ((int) $otpRow['attempts'] >= self::MAX_OTP_ATTEMPTS) {
+            $cancelledCount = count((array) (json_decode((string) ($otpRow['payload'] ?? ''), true) ?? []));
             $otpModel->delete((int) $adminUser['id'], 'ff_batch');
-            $this->flash('error', 'Trop de tentatives. Redemandez un nouveau code.');
+            $this->flash(
+                'error',
+                "Trop de tentatives incorrectes — {$cancelledCount} modification(s) annulée(s). "
+                . "Recommencez depuis la liste des feature flags."
+            );
             Response::redirect(self::REDIRECT);
         }
 
         if (!hash_equals((string) $otpRow['otp_hash'], hash('sha256', $submittedOtp))) {
             $otpModel->incrementAttempts((int) $otpRow['id']);
-            $remaining = self::MAX_OTP_ATTEMPTS - (int) $otpRow['attempts'] - 1;
-            $this->flash('error', "Code invalide. {$remaining} tentative(s) restante(s).");
+            $this->flash('error', 'Code OTP erroné.');
             Response::redirect(self::REDIRECT . '?otp_batch=1');
         }
 
