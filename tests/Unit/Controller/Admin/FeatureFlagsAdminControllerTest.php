@@ -438,6 +438,22 @@ final class FeatureFlagsAdminControllerTest extends TestCase
         }
     }
 
+    public function testRequestBatchSkipsMissingPostKey(): void
+    {
+        // Flag 'foo' existe dans le model mais absent de $_POST → ligne 107 continue exécutée
+        $model = $this->buildModelStub([$this->flagBool('foo', 'true')]);
+        // $_POST vide — 'foo' non soumis
+
+        $this->expectException(HttpException::class);
+        $ctrl = $this->makeController(model: $model);
+        try {
+            $ctrl->requestBatch([]);
+        } catch (HttpException $e) {
+            $this->assertSame('Aucune modification détectée.', $_SESSION['flash']['info'] ?? '');
+            throw $e;
+        }
+    }
+
     // ----------------------------------------------------------------
     // confirmBatch()
     // ----------------------------------------------------------------
@@ -590,5 +606,53 @@ final class FeatureFlagsAdminControllerTest extends TestCase
             $this->assertStringContainsString('0 flag', $_SESSION['flash']['success'] ?? '');
             throw $e;
         }
+    }
+
+    // ----------------------------------------------------------------
+    // Seam factory methods (L277-319) — instanciation réelle via sous-classe concrète
+    // ----------------------------------------------------------------
+
+    public function testFactoryMethodsReturnCorrectInstances(): void
+    {
+        // Mock DB singleton pour que les Model::__construct() n'échouent pas
+        $dbMock  = $this->createStub(\Core\Database::class);
+        $dbProp  = new \ReflectionProperty(\Core\Database::class, 'instance');
+        $dbProp->setValue(null, $dbMock);
+
+        $_ENV['MAIL_USER'] = 'noreply@test.local';
+
+        $ctrl = new class extends FeatureFlagsAdminController {
+            // phpcs:ignore
+            public function __construct() {}
+            public function exposedNewModel(): FeatureFlagsModel
+            {
+                return $this->newModel();
+            }
+            public function exposedNewAdminOtpModel(): AdminOtpModel
+            {
+                return $this->newAdminOtpModel();
+            }
+            public function exposedNewAccountModel(): AccountModel
+            {
+                return $this->newAccountModel();
+            }
+            public function exposedNewRateLimiter(): RateLimiterService
+            {
+                return $this->newRateLimiter();
+            }
+            public function exposedNewMailService(): MailService
+            {
+                return $this->newMailService();
+            }
+        };
+
+        $this->assertInstanceOf(FeatureFlagsModel::class, $ctrl->exposedNewModel());
+        $this->assertInstanceOf(AdminOtpModel::class, $ctrl->exposedNewAdminOtpModel());
+        $this->assertInstanceOf(AccountModel::class, $ctrl->exposedNewAccountModel());
+        $this->assertInstanceOf(RateLimiterService::class, $ctrl->exposedNewRateLimiter());
+        $this->assertInstanceOf(MailService::class, $ctrl->exposedNewMailService());
+
+        $dbProp->setValue(null, null);
+        unset($_ENV['MAIL_USER']);
     }
 }

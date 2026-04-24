@@ -417,6 +417,66 @@ class NewsletterControllerTest extends TestCase
     }
 
     /**
+     * subscribeFromWelcome() — le service lève HttpException → re-throwée (ligne 145).
+     */
+    public function testSubscribeFromWelcomeRethrowsHttpException(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/fr/newsletter/inscription-bienvenue';
+        $_GET['email']          = 'test@example.com';
+
+        // findByEmail retourne false → pas encore confirmé → on entre dans le try
+        $this->instanceProp->setValue(null, null);
+        $dbMock = $this->createStub(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturn(false);
+        $dbMock->method('fetchAll')->willReturn([]);
+        $this->instanceProp->setValue(null, $dbMock);
+
+        $controller  = new \Controller\NewsletterController(new Request());
+        $serviceMock = $this->createStub(\Service\NewsletterService::class);
+        $serviceMock->method('subscribe')
+            ->willThrowException(new HttpException(503, '/error'));
+
+        $prop = new \ReflectionProperty(\Controller\NewsletterController::class, 'newsletterService');
+        $prop->setValue($controller, $serviceMock);
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(503); // HttpException re-throwée telle quelle (ligne 145)
+
+        ob_start();
+        try {
+            $controller->subscribeFromWelcome([]);
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * subscribe() — feature flag newsletter_enabled=false → JSON 503 (ligne 183).
+     */
+    public function testSubscribeReturnsWith503WhenNewsletterDisabled(): void
+    {
+        // Cache indexé par clé (format interne FeatureFlags::row())
+        \Core\FeatureFlags::setCache([
+            'newsletter_enabled' => ['key' => 'newsletter_enabled', 'value' => 'false', 'type' => 'bool'],
+        ]);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['email']            = 'test@example.com';
+
+        $controller = new \Controller\NewsletterController(new Request());
+
+        ob_start();
+        try {
+            $this->expectException(HttpException::class);
+            $this->expectExceptionCode(503);
+            $controller->subscribe(['lang' => 'fr']);
+        } finally {
+            ob_end_clean();
+            \Core\FeatureFlags::flush();
+        }
+    }
+
+    /**
      * subscribeFromWelcome() — lang détectée depuis /en/ URI.
      */
     public function testSubscribeFromWelcomeDetectsEnglishLangFromUri(): void

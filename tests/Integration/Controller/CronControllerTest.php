@@ -97,6 +97,7 @@ class CronControllerTest extends IntegrationTestCase
             'send-review-request'              => ['send-review-request'],
             'purge-admin-otps'                 => ['purge-admin-otps'],
             'purge-order-rating-tokens'        => ['purge-order-rating-tokens'],
+            'purge-logs'                       => ['purge-logs'],
         ];
     }
 
@@ -809,5 +810,77 @@ class CronControllerTest extends IntegrationTestCase
 
         $this->assertSame(200, http_response_code());
         $this->assertStringContainsString('DRY-RUN', $output);
+    }
+
+    // ----------------------------------------------------------------
+    // purge-logs — exécution réelle + dry run avec fichier artificiellement vieux
+    // ----------------------------------------------------------------
+
+    public function testPurgeLogsRealRunWithNoOldFilesLogsZero(): void
+    {
+        $output = $this->runJob('purge-logs', dryRun: false);
+
+        $this->assertSame(200, http_response_code());
+        // Soit "X fichier(s) de log purgé(s)" si le répertoire existe,
+        // soit "storage/logs introuvable" si ROOT_PATH non défini
+        $this->assertNotEmpty($output);
+    }
+
+    public function testPurgeLogsDryRunWithOldFileCoversLoopBody(): void
+    {
+        if (!defined('ROOT_PATH')) {
+            $this->markTestSkipped('ROOT_PATH non défini dans ce contexte TI');
+        }
+
+        $logDir = ROOT_PATH . '/storage/logs';
+
+        if (!is_dir($logDir)) {
+            $this->markTestSkipped('storage/logs introuvable');
+        }
+
+        $tmpFile = $logDir . '/test-old-' . uniqid() . '.log';
+        file_put_contents($tmpFile, 'test log content purge-logs TI');
+        touch($tmpFile, time() - 31 * 86400); // 31 jours → éligible
+
+        try {
+            $output = $this->runJob('purge-logs', dryRun: true);
+
+            $this->assertSame(200, http_response_code());
+            $this->assertStringContainsString('DRY-RUN', $output);
+            $this->assertFileExists($tmpFile); // dry run → non supprimé
+        } finally {
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
+            }
+        }
+    }
+
+    public function testPurgeLogsRealRunDeletesOldFile(): void
+    {
+        if (!defined('ROOT_PATH')) {
+            $this->markTestSkipped('ROOT_PATH non défini dans ce contexte TI');
+        }
+
+        $logDir = ROOT_PATH . '/storage/logs';
+
+        if (!is_dir($logDir)) {
+            $this->markTestSkipped('storage/logs introuvable');
+        }
+
+        $tmpFile = $logDir . '/test-old-' . uniqid() . '.log';
+        file_put_contents($tmpFile, 'test log content purge-logs real run');
+        touch($tmpFile, time() - 31 * 86400);
+
+        try {
+            $output = $this->runJob('purge-logs', dryRun: false);
+
+            $this->assertSame(200, http_response_code());
+            $this->assertStringContainsString('purgé', $output);
+            $this->assertFileDoesNotExist($tmpFile);
+        } finally {
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
+            }
+        }
     }
 }
