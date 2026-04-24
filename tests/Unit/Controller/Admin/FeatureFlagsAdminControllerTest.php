@@ -56,8 +56,13 @@ final class FeatureFlagsAdminControllerTest extends TestCase
         $superUser        = $superAdminUser ?? $_SESSION['admin_user'] ?? [];
 
         return new class (
-            $stubModel, $stubRl, $stubMail, $stubOtpModel, $stubAccountModel,
-            $csrfValid, $superUser
+            $stubModel,
+            $stubRl,
+            $stubMail,
+            $stubOtpModel,
+            $stubAccountModel,
+            $csrfValid,
+            $superUser
         ) extends FeatureFlagsAdminController {
             public ?string $viewName = null;
             /** @var array<string, mixed> */
