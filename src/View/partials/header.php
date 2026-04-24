@@ -339,7 +339,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <!-- ============================================================ -->
 <!-- Modal ajout au panier                                         -->
 <!-- ============================================================ -->
-<!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
 <div
     id="cart-modal"
     class="cart-modal"
@@ -352,7 +351,6 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="cart-modal__inner">
         <div class="cart-modal__header">
             <div class="cart-modal__title-wrap">
-                <!-- NOSONAR Web:S6850 — title content set dynamically by JS before modal opens -->
                 <h2 id="cart-modal-title" class="cart-modal__title"></h2>
                 <p id="cart-modal-cuvee" class="cart-modal__cuvee" hidden></p>
             </div>
@@ -398,7 +396,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <!-- Modal connexion                                               -->
 <!-- ============================================================ -->
 <?php if (!$isLogged) : ?>
-<!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
 <div
     id="login-modal"
     class="login-modal"
@@ -411,7 +408,6 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="login-modal__backdrop" id="login-modal-backdrop"></div>
     <div class="login-modal__inner">
         <div class="login-modal__header">
-            <!-- NOSONAR Web:S6850 — title updated dynamically by JS when switching panels -->
             <h2 id="login-modal-title" class="login-modal__title"
                 data-title-login="<?= htmlspecialchars(__('auth.login')) ?>"
                 data-title-forgot="<?= htmlspecialchars(__('auth.forgot_password')) ?>"
@@ -534,7 +530,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <!-- ============================================================ -->
 <!-- Modal inscription                                             -->
 <!-- ============================================================ -->
-<!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
 <div
     id="register-modal"
     class="register-modal"
@@ -547,7 +542,6 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="register-modal__backdrop" id="register-modal-backdrop"></div>
     <div class="register-modal__inner">
         <div class="register-modal__header">
-            <!-- NOSONAR Web:S6850 — title is static translated string -->
             <h2 id="register-modal-title" class="register-modal__title"><?= htmlspecialchars(__('auth.register')) ?></h2>
             <button id="register-modal-close" class="register-modal__close" type="button" aria-label="<?= __('common.close') ?>">&times;</button>
         </div>
@@ -715,7 +709,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <!-- ============================================================ -->
 <!-- Modal réinitialisation mot de passe                          -->
 <!-- ============================================================ -->
-<!-- NOSONAR Web:S6819 — custom modal with full JS focus/keyboard management; <dialog> migration deferred -->
 <div
     id="reset-modal"
     class="login-modal"
@@ -727,7 +720,6 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="login-modal__backdrop" id="reset-modal-backdrop"></div>
     <div class="login-modal__inner">
         <div class="login-modal__header">
-            <!-- NOSONAR Web:S6850 — title is static translated string -->
             <h2 id="reset-modal-title" class="login-modal__title">
                 <?= htmlspecialchars(__('auth.reset_password')) ?>
             </h2>

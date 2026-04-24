@@ -21,7 +21,7 @@ return [
     'nav.savoir_faire' => 'Know-How',
     'nav.chateau'     => 'Le Château',
     'nav.cart'        => 'Cart',
-    'nav.account'     => 'My account', // NOSONAR php:S1192 - i18n file: 'My account' is intentionally repeated across multiple translation keys
+    'nav.account'     => 'My account',
     'nav.login'       => 'Login',
     'nav.support'     => 'Support',
     'nav.logout'      => 'Logout',
@@ -110,7 +110,7 @@ return [
     'wine.vintage'      => 'Vintage',
     'wine.price'        => 'Price',
     'wine.in_stock'     => 'in stock',
-    'wine.read_more'    => 'Learn more', // NOSONAR php:S1192 - same CTA label used intentionally across distinct translation keys
+    'wine.read_more'    => 'Learn more',
     'wine.empty'        => 'No wines available at the moment.',
     'wine.ttc_note'     => 'Prices inclusive of VAT, delivery included within mainland France. Discounts apply for orders in multiples of 12 bottles.',
 
