@@ -3,11 +3,6 @@ name: Mutation Testing
 on:
   push:
     branches: [main]
-  pull_request:
-    paths:
-      - 'src/Model/**'
-      - 'src/Service/**'
-      - 'tests/Unit/**'
 
 permissions: read-all
 
