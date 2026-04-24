@@ -162,6 +162,8 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             'purge-addresses'           => fn(callable $log, bool $dryRun) => $this->doJobPurgeAddresses($log, $dryRun),
             'purge-rate-limits'         => fn(callable $log, bool $dryRun) => $this->doJobPurgeRateLimits($log, $dryRun),
             'purge-order-rating-tokens' => fn(callable $log, bool $dryRun) => $this->doJobPurgeOrderRatingTokens($log, $dryRun),
+            'purge-admin-otps'          => fn(callable $log, bool $dryRun) => $this->doJobPurgeAdminOtps($log, $dryRun),
+            'purge-logs'                => fn(callable $log, bool $dryRun) => $this->doJobPurgeLogs($log, $dryRun),
             default                     => null,
         };
     }
@@ -526,6 +528,65 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
 
         $deleted = $db->execute('DELETE FROM rate_limits WHERE expires_at < UNIX_TIMESTAMP()');
         $log("rate_limits : {$deleted} entrée(s) expirée(s) supprimée(s)");
+    }
+
+    /**
+     * Purge les OTP admin expirés (table admin_otps).
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeAdminOtps(callable $log, bool $dryRun): void
+    {
+        $model = new \Model\AdminOtpModel();
+
+        if ($dryRun) {
+            $log('[DRY-RUN] Would purge expired admin OTPs — aucune écriture BDD');
+            return;
+        }
+
+        $purged = $model->purgeExpired();
+        $log("{$purged} OTP(s) admin expiré(s) purgé(s)");
+    }
+
+    /**
+     * Purge tous les fichiers *.log de storage/logs/ datant de plus de 90 jours.
+     *
+     * Couvre les logs applicatifs (app-*.log) et les logs cron ({job}-*.log).
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeLogs(callable $log, bool $dryRun): void
+    {
+        $logDir = defined('ROOT_PATH') ? ROOT_PATH . '/storage/logs' : '';
+        if ($logDir === '' || !is_dir($logDir)) {
+            $log('storage/logs introuvable — rien à purger');
+            return;
+        }
+
+        $cutoff  = time() - 90 * 86400;
+        $files   = glob($logDir . '/*.log') ?: [];
+        $deleted = 0;
+
+        foreach ($files as $file) {
+            if (filemtime($file) < $cutoff) {
+                if ($dryRun) {
+                    $log('[DRY-RUN] Would delete ' . basename($file));
+                } else {
+                    unlink($file);
+                    $deleted++;
+                }
+            }
+        }
+
+        if ($dryRun) {
+            $log('[DRY-RUN] ' . count(array_filter($files, fn($f) => filemtime($f) < $cutoff)) . ' fichier(s) à purger — aucune écriture');
+        } else {
+            $log("{$deleted} fichier(s) de log purgé(s) (> 90 jours)");
+        }
     }
 
     /**
