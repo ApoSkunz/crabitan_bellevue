@@ -2,6 +2,30 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.26.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.25.2...v1.26.0) (2026-04-24)
+
+
+### Bug Fixes
+
+* **a11y:** add aria-label on header cart button — button-name LHCI P1 fix (all pages) ([90b8094](https://github.com/ApoSkunz/crabitan_bellevue/commit/90b80940819fa3e436ed394a34cb5b4822b120c3))
+* **cs:** PHPCS PSR12 — split long line in AccountPreferenceController::unsubscribePage ([7b6caf0](https://github.com/ApoSkunz/crabitan_bellevue/commit/7b6caf0288888057431a1897d2037669e32879f1))
+* **geo:** allow AI crawlers (GPTBot, Google-Extended, anthropic-ai) — GEO visibility ([69e6d65](https://github.com/ApoSkunz/crabitan_bellevue/commit/69e6d65735d845a1b213e967084f184a0acb045b))
+* **geo:** llms.txt — retirer is_for_sale (colonne inexistante) + bypass age-gate ([0a34adc](https://github.com/ApoSkunz/crabitan_bellevue/commit/0a34adcc602b917fbdc246438d786034707f8fce))
+* **legal:** directeur de publication → Nicolas Solane (gérant GFA — LCEN Art. 6 III) ([0181b6f](https://github.com/ApoSkunz/crabitan_bellevue/commit/0181b6f8eab323359472da15449276a9f5b13dcf))
+* **sonar:** S3923 checkout identical branches + S112 MailRateLimitException ([177a7d2](https://github.com/ApoSkunz/crabitan_bellevue/commit/177a7d29c41491f38bd2a63fda38ca548f730fba))
+* **tests:** DB singleton mock before model construction — 74 CI tests (PDOException) ([c744cac](https://github.com/ApoSkunz/crabitan_bellevue/commit/c744cace6de2af13e86ecc394791174db4b56d59))
+* **test:** testRateLimitReturnsPending429 — time() + 5 pour éviter le timing race sur second boundary ([bf1cbb7](https://github.com/ApoSkunz/crabitan_bellevue/commit/bf1cbb7449d25dc12dac52180c41a584403184a4))
+
+
+### Features
+
+* **ci:** DAST — split customer/admin en 2 jobs parallèles (timeout 120 min chacun) ([301e7ed](https://github.com/ApoSkunz/crabitan_bellevue/commit/301e7ed3fec822b90c0220ac546472bd354192e8))
+* **geo:** FAQPage JSON-LD on /support + Article schema on /le-chateau and /savoir-faire ([47c9d42](https://github.com/ApoSkunz/crabitan_bellevue/commit/47c9d4264bcca34268381aa5190cd803e593c053))
+* **geo:** LocalBusiness fusionné Winery home — telephone, geo, hasMap (GEO 9.5/10) ([ad21421](https://github.com/ApoSkunz/crabitan_bellevue/commit/ad2142114aa0354e03fb7631c91a96da67e43f72))
+* **geo:** Twitter cards, llms.txt dynamic route, AI crawler blocking ([87dc3db](https://github.com/ApoSkunz/crabitan_bellevue/commit/87dc3db948a02d3e2c4985b94702595e1f68198d))
+* **seo:** noindex controllers — panier, checkout, confirmation, rating, newsletter, désabonnement ([48197f0](https://github.com/ApoSkunz/crabitan_bellevue/commit/48197f0dad6de9de1e15d9daed34c547c8e4fc56))
+* **seo:** noindex toutes les vues mon-compte — 17 fichiers ([bb23dc2](https://github.com/ApoSkunz/crabitan_bellevue/commit/bb23dc228916e37e191a1ebe87ef39a7282740ec))
+
 ## [1.25.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.25.1...v1.25.2) (2026-04-24)
 
 
