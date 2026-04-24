@@ -2,6 +2,53 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.23.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.22.1...v1.23.0) (2026-04-24)
+
+
+### Bug Fixes
+
+* **age-gate:** ajout /fiche-technique/qr en whitelist (loader QR) ([e376773](https://github.com/ApoSkunz/crabitan_bellevue/commit/e3767737688c75d0a1e3ba9d4dc56b67e9b570a6))
+* **db:** null coalesce sur DB_USER + DB_PASS pour éviter E_WARNING local ([b8e80e0](https://github.com/ApoSkunz/crabitan_bellevue/commit/b8e80e07eeb7fbeacfcb7cdbde4f48c2580d7070))
+* **i18n:** wording contact.error_rate_limit — "trop de demandes sur la dernière heure" ([b9cc4bb](https://github.com/ApoSkunz/crabitan_bellevue/commit/b9cc4bb8351262152063eb4dd8345aa517ae8a59))
+* **orders:** label "Remise Click & Collect" aussi mail owner + PDF + admin show ([f1e03f5](https://github.com/ApoSkunz/crabitan_bellevue/commit/f1e03f5c370e5d29606deef9d4732c7e5c6e7c36))
+* **seam+sonar:** newMailService() dans paymentReturnOk + S3358 buildAddressBlock titleMode ([1124931](https://github.com/ApoSkunz/crabitan_bellevue/commit/11249319d506ef6083b50abb0bada8a1958eda02))
+* **tests:** corriger testStartSessionIsOverridableSeam — appel $this->startSession() direct ([9227743](https://github.com/ApoSkunz/crabitan_bellevue/commit/92277430cb700dbbeb8c94ff5dcbcd8d4ec22e50))
+* **tests:** isoler session_write_close dans RateLimiterServiceTest — fix testRateLimitReturnsPending429 ([b2131df](https://github.com/ApoSkunz/crabitan_bellevue/commit/b2131df7a34509f5e800871ffc070691d551f7ed))
+* **tests:** migrer AccountModelTest TI vers AccountAdminFilters DTO ([516e657](https://github.com/ApoSkunz/crabitan_bellevue/commit/516e657ff180c88210f857877322d65d79c56ec1))
+* **tests:** résoudre 3 erreurs CI + 1 failure + risky + warnings ([9d4e262](https://github.com/ApoSkunz/crabitan_bellevue/commit/9d4e262fc4747c310f35c3ca5774af6f1558607b))
+* **tests:** résout failure + warning + 4 skipped ([34560fa](https://github.com/ApoSkunz/crabitan_bellevue/commit/34560fa0918f73af12fd62d3e564875df1445e97))
+* **tests:** retire dernier skipped — doExit() throw HttpException(0) pour testabilité ([9670306](https://github.com/ApoSkunz/crabitan_bellevue/commit/96703061c39efb9cfdffddef7a30bcb50a87032e))
+* **tests:** signature log() compatible avec EmailRateLogModel::log() (+ $type param) + login rate limit 10 ([99c29e9](https://github.com/ApoSkunz/crabitan_bellevue/commit/99c29e9a06fce23c3b9be016078b0cc284ab1af5))
+* **ux:** aligner Réinitialiser factures + label pickup admin + adresses cancelled + QR progression + responsive ([26d4b20](https://github.com/ApoSkunz/crabitan_bellevue/commit/26d4b206c8573faf61f58e274ebd3044005c7e27))
+* **ux:** effet hover Vérifier (vert) + Réinit. mdp (orange) + retrait border adresses ([b7529fc](https://github.com/ApoSkunz/crabitan_bellevue/commit/b7529fc5e1ac013923e06a3b6f936c3e664f440e)), closes [#15803d](https://github.com/ApoSkunz/crabitan_bellevue/issues/15803d) [#92400e](https://github.com/ApoSkunz/crabitan_bellevue/issues/92400e)
+* **ux:** feedback recette post-prod-1 batch 1 ([8b9ce3d](https://github.com/ApoSkunz/crabitan_bellevue/commit/8b9ce3d70b33e2439830781b68117f41d8e199ec))
+* **ux:** masquer adresses + bloc pickup château sur commande annulée + adresse château si pickup ([e736c26](https://github.com/ApoSkunz/crabitan_bellevue/commit/e736c26fd21613df8793943b2d07f2d4c818dfcc))
+* **ux:** menu admin sections + QR loader % réel + timeline pickup + adresse château + pricing ([8f3644b](https://github.com/ApoSkunz/crabitan_bellevue/commit/8f3644bdbcedbc55af99e0c93439dcc990a13d7a))
+* **ux:** menu sections split + colonne mode orders + QR loader CSP nonce + delivery_method queries ([8023d3b](https://github.com/ApoSkunz/crabitan_bellevue/commit/8023d3b98330a6f68b78d9e52a5c881ff09bc114))
+* **ux:** variante admin-btn--dark (retour outline transparent) + factures recherche + QR blob fallback + label remise C&C ([dace47d](https://github.com/ApoSkunz/crabitan_bellevue/commit/dace47d7238d900592dce459b56f77190921fea0))
+
+
+### Features
+
+* **admin:** afficher + éditer remise Click & Collect (€/btl) depuis vue tarifs ([07cbb2a](https://github.com/ApoSkunz/crabitan_bellevue/commit/07cbb2a20cb0cd28bdfff1fdc070cc2472ad074e))
+* **admin:** comptes — filtre has_ordered, tri order_count, split colonnes Vérif/Réinit ([400cd3e](https://github.com/ApoSkunz/crabitan_bellevue/commit/400cd3e52e455a71f417ccd275699e3250a5fea6))
+* **admin:** monitoring crons + mode livraison orders + menu admin ([28ecc73](https://github.com/ApoSkunz/crabitan_bellevue/commit/28ecc73cac090d56f64a1cc641ba95c64be90430))
+* **admin:** monitoring emails — pagination 25/50/100 + colonne type ([3879751](https://github.com/ApoSkunz/crabitan_bellevue/commit/3879751d59c04c243eca1ca623270034c932e382))
+* **admin:** monitoring emails — table email_rate_log + onglet super_admin + détection rate limit IONOS ([65a91c1](https://github.com/ApoSkunz/crabitan_bellevue/commit/65a91c15bc9bc6443449b1740ea3b0777dd1cbdc))
+* **admin:** remise Click & Collect configurable BDD (singleton) + retire env var ([6f31f0e](https://github.com/ApoSkunz/crabitan_bellevue/commit/6f31f0e83ef3916de9b5331486e997fdeae68e9d))
+* **admin:** types emails i18n + quota 500/h + activité comptes + logs apps + workflow C&C ([f6f49da](https://github.com/ApoSkunz/crabitan_bellevue/commit/f6f49da0602ed845aa2e463f341303e25b633798))
+* **boutique:** onglet dépliant remises livraison — wines + collection ([635d3f9](https://github.com/ApoSkunz/crabitan_bellevue/commit/635d3f9be55d91f35bc3bd05585fff0282ea45be))
+* **click-collect:** feature flag CLICK_COLLECT_ENABLED + statuts ready_for_pickup/collected + checkout + badge ([3a18e81](https://github.com/ApoSkunz/crabitan_bellevue/commit/3a18e8172a47a36dacd39ecc32e53f2349c4b963))
+* **contact:** champ téléphone facultatif + fix mock sendContactToOwner signature ([0bf42c0](https://github.com/ApoSkunz/crabitan_bellevue/commit/0bf42c0d3bac2ee6521c9aa9e14afb0766373983))
+* **mail:** récap adresses livraison/facturation + mode dans mails commande client + owner ([b89b809](https://github.com/ApoSkunz/crabitan_bellevue/commit/b89b8091f0c65073ace5be04f3da0a716bbb63f6))
+* **seo:** sitemap-products.xml — vins disponibles à la vente ([3562c01](https://github.com/ApoSkunz/crabitan_bellevue/commit/3562c01da847aa77a3456774bd9d0dada28d0c23))
+* **ux:** spinner chargement QR code admin — modale wines ([a305fe8](https://github.com/ApoSkunz/crabitan_bellevue/commit/a305fe8340004326dd14cb376145fac77aec3212))
+
+
+### Reverts
+
+* Revert "feat(admin): monitoring emails — table email_rate_log + onglet super_admin + détection rate limit IONOS" ([f5ef866](https://github.com/ApoSkunz/crabitan_bellevue/commit/f5ef8664d32c2f2ee40f2e7b9b92acb56995159a))
+
 ## [1.22.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.22.0...v1.22.1) (2026-04-22)
 
 
