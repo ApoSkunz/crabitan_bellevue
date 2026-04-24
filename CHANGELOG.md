@@ -2,6 +2,47 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.24.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.23.0...v1.24.0) (2026-04-24)
+
+
+### Bug Fixes
+
+* **admin:** nav Configuration visible admin + super_admin, retrait doublon footer ([9464af3](https://github.com/ApoSkunz/crabitan_bellevue/commit/9464af333bb62b6deae032cc4a60b981779c8f45))
+* **admin:** verify() requiert super_admin (était requireAdmin) ([6e50e80](https://github.com/ApoSkunz/crabitan_bellevue/commit/6e50e80a01e5695470b8c69dfd9d7d5e3d2e35ba))
+* **auth:** aligne fallback JWT_EXPIRY à 7200s (2h) dans tous les fichiers ([61e1e3c](https://github.com/ApoSkunz/crabitan_bellevue/commit/61e1e3cedf9eec29ea3320c2edb10db7f0fe170a))
+* **auth:** JWT sliding refresh — régénérer token + cookie à chaque refresh standard ([d4ad85a](https://github.com/ApoSkunz/crabitan_bellevue/commit/d4ad85af944376029dfe474cc607c0fdce08e8c1))
+* **cs:** PHPCS PSR12 — un argument par ligne dans l'anonymous class makeController ([ae047fc](https://github.com/ApoSkunz/crabitan_bellevue/commit/ae047fcb6a53b042d93b696f24ec4f01a3fe4388))
+* **feature-flags:** blocage 1h après 3 échecs OTP + fix flash admin_flash + CSP style ([c9cebdb](https://github.com/ApoSkunz/crabitan_bellevue/commit/c9cebdb23241ff11916602ddfcfc4228a35ec454))
+* **feature-flags:** CSRF token name + data-admin-confirm sur le form ([0073dc0](https://github.com/ApoSkunz/crabitan_bellevue/commit/0073dc0cc4edccdbd73863aaf5c0c639db033880))
+* **feature-flags:** OTP modal — bloquer à 0 tentatives + flash visible + message annulation ([76eb44a](https://github.com/ApoSkunz/crabitan_bellevue/commit/76eb44af40fbc677af5eb690adc019ff63927fbd))
+* **scss:** contrast WCAG AA sur bouton et input disabled (css:S7924) ([3e452bd](https://github.com/ApoSkunz/crabitan_bellevue/commit/3e452bd5b604383810df54cc5dba6f1ccc6c51c9)), closes [#e5e7eb](https://github.com/ApoSkunz/crabitan_bellevue/issues/e5e7eb) [#ffffff](https://github.com/ApoSkunz/crabitan_bellevue/issues/ffffff) [#9ca3af](https://github.com/ApoSkunz/crabitan_bellevue/issues/9ca3af) [#6b7280](https://github.com/ApoSkunz/crabitan_bellevue/issues/6b7280)
+* **scss:** input disabled color [#6](https://github.com/ApoSkunz/crabitan_bellevue/issues/6)b7280→[#4](https://github.com/ApoSkunz/crabitan_bellevue/issues/4)b5563 (ratio 4.3→6.4:1, WCAG AA) ([e7b3eda](https://github.com/ApoSkunz/crabitan_bellevue/commit/e7b3eda6f3dc88aec8ea0461a120a44f26449d7f)), closes [#4b5563](https://github.com/ApoSkunz/crabitan_bellevue/issues/4b5563) [#6b7280](https://github.com/ApoSkunz/crabitan_bellevue/issues/6b7280) [#f3f4f6](https://github.com/ApoSkunz/crabitan_bellevue/issues/f3f4f6) [#4b5563](https://github.com/ApoSkunz/crabitan_bellevue/issues/4b5563)
+* **scss:** revert couleurs disabled — faux positifs S7924 (WCAG exempte disabled) ([58bbad8](https://github.com/ApoSkunz/crabitan_bellevue/commit/58bbad8d5f6f789d8029ad4f15e580662de9ad8b)), closes [9ca3af/#e5e7eb](https://github.com/ApoSkunz/crabitan_bellevue/issues/e5e7eb) [#9ca3af](https://github.com/ApoSkunz/crabitan_bellevue/issues/9ca3af)
+* **sonar:** corrige 8 issues PR[#215](https://github.com/ApoSkunz/crabitan_bellevue/issues/215) (bug, smells, contraste, a11y) ([0637f52](https://github.com/ApoSkunz/crabitan_bellevue/commit/0637f5219f2317256a563e500f44e976f38e3a16)), closes [e5e7eb/#9ca3af](https://github.com/ApoSkunz/crabitan_bellevue/issues/9ca3af) [fff/#6b7280](https://github.com/ApoSkunz/crabitan_bellevue/issues/6b7280) [#9ca3af](https://github.com/ApoSkunz/crabitan_bellevue/issues/9ca3af) [#4b5563](https://github.com/ApoSkunz/crabitan_bellevue/issues/4b5563)
+
+
+### Features
+
+* **admin:** feature-flags — batch save + toggle switches + catégories UI ([069c032](https://github.com/ApoSkunz/crabitan_bellevue/commit/069c0320762d447e5316a5994048b16638492e16))
+* **admin:** feature-flags — section Configuration sidebar + alignement vue ([f4d0815](https://github.com/ApoSkunz/crabitan_bellevue/commit/f4d08159bb03c7416a590676ad07c470777e1fa2))
+* **admin:** feature-flags lecture-seule pour admin, modification super_admin uniquement ([db0cec8](https://github.com/ApoSkunz/crabitan_bellevue/commit/db0cec8be2cab0b3d5350ce361923dd6ae1061f6))
+* **admin:** feature-flags UI — toggle aligné, responsive, bouton disabled, CSP nonce ([4a09da7](https://github.com/ApoSkunz/crabitan_bellevue/commit/4a09da7fd48ac49842e63d4ee626c95f84bb69d9))
+* **admin:** vérification email compte — accessible à admin + super_admin ([ce642d0](https://github.com/ApoSkunz/crabitan_bellevue/commit/ce642d006be97853cad883d84f824d9eeadfef9c))
+* **controller:** FeatureFlagsAdminController — gestion flags OTP email ([d70967f](https://github.com/ApoSkunz/crabitan_bellevue/commit/d70967f9321528067c9f741b50a17819df06b808))
+* **core:** FeatureFlags — cache statique BDD, seams de test ([25716a8](https://github.com/ApoSkunz/crabitan_bellevue/commit/25716a8f6173d9ca413a6b980053d30d414066d2))
+* **cron:** purge_admin_otps — nettoyage horaire des OTP admin expirés ([5f2fcb0](https://github.com/ApoSkunz/crabitan_bellevue/commit/5f2fcb0ae428ec0395d3a567e419e713d60827fd))
+* **cron:** purge-logs + purge-admin-otps HTTP + rotation 90j cohérente ([d8020a1](https://github.com/ApoSkunz/crabitan_bellevue/commit/d8020a18ca974504824898b4fdaba968aadc0235))
+* **cron:** purge-logs 30j — bin CLI + HTTP + CronRunner::rotate aligné ([93e31d3](https://github.com/ApoSkunz/crabitan_bellevue/commit/93e31d3ce1310a8e8d849e08086278c14e57c631))
+* **feature-flags:** flash dans modal OTP + tentatives restantes + animation soumission ([b79f39a](https://github.com/ApoSkunz/crabitan_bellevue/commit/b79f39afa8cfc336e9584612990189be9acf01d0))
+* **feature-flags:** OTP email tirets par chiffre + modal admin avec compte à rebours ([661d3ef](https://github.com/ApoSkunz/crabitan_bellevue/commit/661d3ef1ee227f5c4a0f67de3d57150f5c75a02d))
+* **feature-flags:** OTP modal — 6 inputs individuels avec tiret par chiffre ([6ab6b32](https://github.com/ApoSkunz/crabitan_bellevue/commit/6ab6b324b72328b119f9ff4e849fb027ea5b4c53))
+* **mail:** sendFeatureFlagOtp — OTP modification feature flag ([ea9d4e7](https://github.com/ApoSkunz/crabitan_bellevue/commit/ea9d4e71f14bb12057aacd1159ed3870c5f50bfb))
+* **routes:** /admin/feature-flags + nav admin feature_flags ([ceceb11](https://github.com/ApoSkunz/crabitan_bellevue/commit/ceceb115f8fd456702ca60bb16047010d0c99c60))
+* **security:** OTP feature-flags — blocage 1h immédiat au 3e échec + email alerte ([a1def1b](https://github.com/ApoSkunz/crabitan_bellevue/commit/a1def1bbb43d66e4984ab9be0739b75c867b0deb))
+* **security:** table admin_otps — OTP feature flags stocké en BDD ([28fe699](https://github.com/ApoSkunz/crabitan_bellevue/commit/28fe699213977f5ba22d3a1ec703b4479b188d01))
+* **ui:** feature-flags — UX OTP complète + menu front + sidebar scroll fix ([c2236ce](https://github.com/ApoSkunz/crabitan_bellevue/commit/c2236ce6ad1b32ea7d66b7c4877f5b71f9511f1a))
+* **view:** admin/feature-flags/index.php — liste flags + formulaire OTP ([6e42774](https://github.com/ApoSkunz/crabitan_bellevue/commit/6e42774613c92379f0d6f3a9c7ddde1158e5539a))
+
 # [1.23.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.22.1...v1.23.0) (2026-04-24)
 
 
