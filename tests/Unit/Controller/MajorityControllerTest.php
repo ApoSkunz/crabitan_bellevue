@@ -128,6 +128,36 @@ class MajorityControllerTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // JWT valide mais sub = 0 → accountId <= 0 → redirect /fr (line 57)
+    // ----------------------------------------------------------------
+
+    /**
+     * JWT valide mais sub = 0 → accountId <= 0 → redirect vers /fr sans aucune action.
+     *
+     * Couvre la branche ligne 57 : `if ($accountId <= 0)`.
+     */
+    public function testDeclareRedirectsWhenAccountIdIsZero(): void
+    {
+        $_ENV['JWT_SECRET'] ??= 'test-secret-key-for-unit-tests';
+
+        // Générer un JWT valide avec sub = 0 (accountId invalide)
+        $jwt = \Core\Jwt::generate(0, 'customer', 3600);
+        $_COOKIE['auth_token'] = $jwt;
+        $_POST = ['csrf_token' => 'valid-token'];
+
+        $caught = null;
+        try {
+            (new MajorityController(new Request()))->declare(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertSame('/fr', $caught->location);
+    }
+
+    // ----------------------------------------------------------------
     // Checkbox non cochée → majority_pending rétabli
     // ----------------------------------------------------------------
 

@@ -207,6 +207,97 @@ class AccountProfileControllerCoverageTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // requestEmailChange() — succès (lines 226-228)
+    // ----------------------------------------------------------------
+
+    /**
+     * requestEmailChange() quand AccountService complète sans exception
+     * → flash profile_success + email_change_sent + redirect vers #email-change.
+     *
+     * AccountModel mocké pour que AccountService::requestEmailChange retourne normalement :
+     * findById renvoie un compte valide, findByEmail renvoie un compte existant (anti-enum branch)
+     * → saveEmailChangeToken + logAuditEvent appelés + return sans throw.
+     */
+    public function testRequestEmailChangeSuccessSetsSuccessFlashAndRedirects(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'new_email'        => 'new@example.com',
+            'current_password' => 'Password1!',
+        ];
+
+        // Compte existant avec mdp valide
+        $hashedPw = password_hash('Password1!', PASSWORD_BCRYPT);
+        $accounts = $this->createStub(AccountModel::class);
+        $accounts->method('findById')->willReturn([
+            'id'        => 1,
+            'email'     => 'old@example.com',
+            'password'  => $hashedPw,
+            'google_id' => null,
+        ]);
+        $accounts->method('countEmailChangeRequestsLast24h')->willReturn(0);
+        // findByEmail retourne non-false → branche anti-énumération → return sans email
+        $accounts->method('findByEmail')->willReturn(['id' => 99, 'email' => 'new@example.com']);
+        $accounts->method('saveEmailChangeToken');
+        $accounts->method('logAuditEvent');
+
+        $ctrl = $this->makeController();
+        $this->injectAccounts($ctrl, $accounts);
+
+        try {
+            $ctrl->requestEmailChange(['lang' => 'fr']);
+            $this->fail('Expected redirect exception');
+        } catch (HttpException $e) {
+            // Response::redirect lève HttpException(302) — redirect normale
+            $this->assertSame(302, $e->getCode());
+        } catch (\RuntimeException $e) {
+            // Fallback si la sous-classe testable intercepte via protected redirect()
+            $this->assertStringStartsWith('redirect:', $e->getMessage());
+        }
+
+        $this->assertArrayHasKey('profile_success', $_SESSION['flash'] ?? []);
+        $this->assertTrue($_SESSION['flash']['email_change_sent'] ?? false);
+    }
+
+    // ----------------------------------------------------------------
+    // AbstractAccountController::requireCustomer() — rôle non-customer → abort 404 (line 48)
+    // ----------------------------------------------------------------
+
+    /**
+     * requireCustomer() lève HttpException(404) quand le JWT contient un rôle != 'customer'.
+     *
+     * Utilise AccountProfileController directement (sous-classe concrète d'AbstractAccountController)
+     * avec un cookie JWT admin. AuthMiddleware retourne le payload, puis requireCustomer() vérifie
+     * le rôle et appelle Response::abort(404).
+     */
+    public function testRequireCustomerAborts404WhenRoleIsNotCustomer(): void
+    {
+        $_ENV['JWT_SECRET'] ??= 'test-secret-key-for-unit-tests';
+
+        // Générer un JWT valide avec rôle 'admin'
+        $jwt = \Core\Jwt::generate(42, 'admin', 3600);
+        $_COOKIE['auth_token'] = $jwt;
+
+        // AuthMiddleware::handle() appelle Database::fetchOne() pour vérifier la session active
+        $dbStub = $this->createStub(Database::class);
+        $dbStub->method('fetchOne')->willReturn(['id' => 42]);
+        $this->instanceProp->setValue(null, $dbStub);
+
+        $request = new Request();
+        $ctrl     = new AccountProfileController($request);
+
+        $caught = null;
+        try {
+            $ctrl->index(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught, 'requireCustomer() doit lancer HttpException(404) pour un admin');
+        $this->assertSame(404, $caught->status);
+    }
+
+    // ----------------------------------------------------------------
     // confirmEmailChange() — succès (lines 268-274)
     // ----------------------------------------------------------------
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service;
 
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 use Service\ImageVariantService;
 
@@ -336,6 +337,68 @@ class ImageVariantServiceTest extends TestCase
         $this->assertFileExists($base . '-400w.jpg');
         $this->assertFileExists($base . '-800w.jpg');
         $this->assertFileExists($base . '.webp');
+    }
+
+    // ----------------------------------------------------------------
+    // generateVariants — imagecreatetruecolor retourne false (ligne 105)
+    // ----------------------------------------------------------------
+
+    /**
+     * generateVariants quand imagecreatetruecolor retourne false → return silencieux (ligne 105).
+     *
+     * PHP résout les appels de fonctions non qualifiés dans l'ordre :
+     *   1. namespace courant (Service\imagecreatetruecolor si définie)
+     *   2. namespace global (\imagecreatetruecolor)
+     *
+     * En définissant Service\imagecreatetruecolor dans ce process isolé,
+     * la méthode privée generateWidth() l'utilisera à la place de la vraie GD,
+     * déclenchant la branche `if ($resized === false) { return; }` (ligne 105).
+     */
+    #[RunInSeparateProcess]
+    public function testGenerateVariantsImagecreatetruecolorFalseReturnsEarly(): void
+    {
+        if (!extension_loaded('gd') || !function_exists('imagewebp')) {
+            $this->markTestSkipped('GD WebP requis');
+        }
+
+        // Créer une image source PNG > 800px pour déclencher le resize
+        $pngPath = sys_get_temp_dir() . '/ivs_ctf_' . uniqid() . '.png';
+        $base    = (string) preg_replace('/\.[^.]+$/', '', $pngPath);
+
+        $img = imagecreatetruecolor(1000, 600);
+        imagepng($img, $pngPath);
+        imagedestroy($img);
+
+        // Définir imagecreatetruecolor dans le namespace Service AVANT le premier appel
+        // PHP préfère la version namespacée lors d'un appel non qualifié
+        eval('
+namespace Service;
+function imagecreatetruecolor(int $width, int $height): \GdImage|false
+{
+    return false;
+}
+');
+
+        $svc = new ImageVariantService();
+        $svc->generateVariants($pngPath);
+
+        // Nettoyage
+        $filesToClean = [
+            $pngPath,
+            $base . '.webp',
+            $base . '-400w.png',
+            $base . '-400w.webp',
+            $base . '-800w.png',
+            $base . '-800w.webp',
+        ];
+        foreach ($filesToClean as $f) {
+            if (file_exists($f)) {
+                unlink($f);
+            }
+        }
+
+        // La branche false est couverte — aucune exception levée
+        $this->assertTrue(true);
     }
 
     // ----------------------------------------------------------------

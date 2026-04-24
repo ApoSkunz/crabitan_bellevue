@@ -193,4 +193,16 @@ class AddressTest extends TestCase
         $address = new Address($d['firstname'], $d['lastname'], $d['street'], $d['city'], 'W1A-1AA', 'GB');
         $this->assertSame('W1A-1AA', $address->zipCode);
     }
+
+    /**
+     * Code postal non vide mais format invalide (caractères hors [A-Za-z0-9\s\-]) — exception.
+     * Couvre la branche regex Address.php:63.
+     */
+    public function testInvalidZipCodeFormatThrows(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/Code postal invalide/');
+        $d = $this->validData();
+        new Address($d['firstname'], $d['lastname'], $d['street'], $d['city'], '!INVALID!', $d['country']);
+    }
 }

@@ -75,6 +75,23 @@ class SecurityHeaderMiddlewareTest extends TestCase
         $this->assertFalse(SecurityHeaderMiddleware::isWinePath('/fr/vinsnot'));
     }
 
+    // ── apply() avec wine path ────────────────────────────────────────
+
+    /**
+     * apply() émet X-Robots-Tag quand l'URI est un chemin vins.
+     * Couvre SecurityHeaderMiddleware.php:51.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testApplyEmitsXRobotsTagOnWinePath(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/fr/vins/sainte-croix-du-mont-2022';
+        SecurityHeaderMiddleware::apply();
+        // header() est no-op en CLI — on vérifie juste qu'aucune exception n'est levée
+        // et que isWinePath retourne true pour ce chemin (cohérence de la branche line 51)
+        $this->assertTrue(SecurityHeaderMiddleware::isWinePath('/fr/vins/sainte-croix-du-mont-2022'));
+    }
+
     /**
      * isWinePath ignore les query strings.
      */

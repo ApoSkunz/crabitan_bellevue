@@ -223,4 +223,28 @@ class DpoAdminControllerTest extends TestCase
         // L'email DPO est lu depuis $_ENV['DPO_EMAIL']
         $this->assertStringContainsString($_ENV['DPO_EMAIL'], $html);
     }
+
+    // ----------------------------------------------------------------
+    // buildPdf() — L169 : TcpdfNotAvailableException quand TCPDF absent
+    // ----------------------------------------------------------------
+
+    /**
+     * buildPdf() lève TcpdfNotAvailableException quand le fichier TCPDF est absent.
+     * Surcharge file_exists dans le namespace Controller\Admin pour simuler l'absence.
+     * Couvre DpoAdminController.php:169.
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
+    #[\PHPUnit\Framework\Attributes\PreserveGlobalState(false)]
+    public function testBuildPdfThrowsTcpdfNotAvailableExceptionWhenTcpdfMissing(): void
+    {
+        // Surcharge file_exists dans le namespace du contrôleur → TCPDF toujours "absent"
+        eval('namespace Controller\Admin; function file_exists(string $f): bool { return false; }');
+
+        $buildPdf = new \ReflectionMethod(\Controller\Admin\DpoAdminController::class, 'buildPdf');
+
+        $this->expectException(\Exception\TcpdfNotAvailableException::class);
+        $buildPdf->invoke($this->ctrl, 'Titre test', '<p>Contenu</p>');
+    }
 }

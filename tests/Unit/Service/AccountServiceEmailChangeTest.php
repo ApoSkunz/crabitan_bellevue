@@ -40,6 +40,41 @@ class AccountServiceEmailChangeTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // resolveDisplayName — fallback company_name (line 212)
+    // ----------------------------------------------------------------
+
+    /**
+     * resolveDisplayName() retourne company_name quand firstname et lastname sont vides.
+     * Couvre AccountService.php:212.
+     */
+    public function testResolveDisplayNameReturnsCompanyNameWhenPersonalNamesEmpty(): void
+    {
+        $method = new \ReflectionMethod(AccountService::class, 'resolveDisplayName');
+        $result = $method->invoke($this->service, ['company_name' => 'ACME Corp']);
+        $this->assertSame('ACME Corp', $result);
+    }
+
+    /**
+     * resolveDisplayName() retourne 'Client' quand toutes les clés sont absentes.
+     */
+    public function testResolveDisplayNameReturnsFallbackClientWhenAllNamesAbsent(): void
+    {
+        $method = new \ReflectionMethod(AccountService::class, 'resolveDisplayName');
+        $result = $method->invoke($this->service, []);
+        $this->assertSame('Client', $result);
+    }
+
+    /**
+     * resolveDisplayName() retourne le nom complet quand firstname est présent.
+     */
+    public function testResolveDisplayNameReturnsFullNameWhenFirstnamePresent(): void
+    {
+        $method = new \ReflectionMethod(AccountService::class, 'resolveDisplayName');
+        $result = $method->invoke($this->service, ['firstname' => 'Jean', 'lastname' => 'Dupont']);
+        $this->assertSame('Jean Dupont', $result);
+    }
+
+    // ----------------------------------------------------------------
     // requestEmailChange — cas nominaux
     // ----------------------------------------------------------------
 

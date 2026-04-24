@@ -115,4 +115,52 @@ class OrderSummaryPdfServiceTest extends TestCase
 
         $this->assertStringContainsString('<span', $html);
     }
+
+    /**
+     * buildAddressBlock() avec un numéro de téléphone non-vide affiche la ligne Tél.
+     * Couvre OrderSummaryPdfService.php:191.
+     */
+    public function testBuildAddressBlockIncludesPhoneLineWhenPhonePresent(): void
+    {
+        $service = new OrderSummaryPdfService();
+        $method  = new \ReflectionMethod(OrderSummaryPdfService::class, 'buildAddressBlock');
+
+        $address = [
+            'firstname' => 'Jean',
+            'lastname'  => 'Dupont',
+            'street'    => '12 rue de la Paix',
+            'zip_code'  => '75001',
+            'city'      => 'Paris',
+            'country'   => 'France',
+            'phone'     => '0600000000',
+        ];
+
+        $html = $method->invoke($service, $address);
+
+        $this->assertStringContainsString('Tél', $html);
+        $this->assertStringContainsString('0600000000', $html);
+    }
+
+    /**
+     * buildAddressBlock() sans téléphone n'affiche pas la ligne Tél.
+     */
+    public function testBuildAddressBlockOmitsPhoneLineWhenPhoneEmpty(): void
+    {
+        $service = new OrderSummaryPdfService();
+        $method  = new \ReflectionMethod(OrderSummaryPdfService::class, 'buildAddressBlock');
+
+        $address = [
+            'firstname' => 'Jean',
+            'lastname'  => 'Dupont',
+            'street'    => '12 rue de la Paix',
+            'zip_code'  => '75001',
+            'city'      => 'Paris',
+            'country'   => 'France',
+            'phone'     => '',
+        ];
+
+        $html = $method->invoke($service, $address);
+
+        $this->assertStringNotContainsString('Tél', $html);
+    }
 }

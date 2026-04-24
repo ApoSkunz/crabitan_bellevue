@@ -185,43 +185,113 @@ class LogApiControllerCoverageTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // line 133 — mkdir() dans writeLog() quand le répertoire de logs n'existe pas
+    // ----------------------------------------------------------------
+
+    /**
+     * Couvre line 133 : mkdir() est appelé dans writeLog() quand logDir absent.
+     *
+     * On renomme temporairement storage/logs pour simuler son absence,
+     * puis on soumet un payload valide. writeLog() doit recréer le dossier via mkdir().
+     *
+     * @return void
+     */
+    public function testWriteLogCreatesDirWhenMissing(): void
+    {
+        $logDir    = ROOT_PATH . '/storage/logs';
+        $hiddenDir = ROOT_PATH . '/storage/logs-hidden-' . uniqid();
+
+        // Déplacer storage/logs pour forcer la branche mkdir (line 133)
+        if (is_dir($logDir)) {
+            rename($logDir, $hiddenDir);
+        }
+
+        try {
+            $controller = $this->makeController(json_encode([
+                'message'   => 'mkdir branch coverage',
+                'source'    => 'test.js',
+                'lineno'    => 1,
+                'colno'     => 1,
+                'stack'     => '',
+                'url'       => 'https://crabitan.local/',
+                'userAgent' => 'PHPUnit',
+            ]) ?: '');
+
+            $caught = null;
+            try {
+                $controller->clientError([]);
+            } catch (HttpException $e) {
+                $caught = $e;
+            }
+
+            // 204 = writeLog a réussi (mkdir appelé et fichier créé)
+            $this->assertNotNull($caught);
+            $this->assertSame(204, $caught->status);
+            $this->assertTrue(is_dir($logDir), 'mkdir() devrait avoir recréé storage/logs');
+        } finally {
+            // Nettoyage : supprimer le dossier recréé et restaurer l'original
+            $logFile = $logDir . '/js-' . date('Y-m-d') . '.log';
+            if (file_exists($logFile)) {
+                unlink($logFile);
+            }
+            if (is_dir($logDir)) {
+                @rmdir($logDir);
+            }
+            if (is_dir($hiddenDir)) {
+                rename($hiddenDir, $logDir);
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------
     // line 155 — return dans purgeOldLogs() quand logDir n'existe pas
     // ----------------------------------------------------------------
 
     /**
      * Couvre line 155 : purgeOldLogs() retourne immédiatement si logDir absent.
      *
-     * On force la branche en créant un contrôleur qui utilise un ROOT_PATH fictif
-     * où storage/logs n'existe pas, en surchargeant writeLog pour qu'il écrive ailleurs,
-     * et en déclenchant une purge via la méthode privée par réflexion.
+     * On renomme temporairement storage/logs puis on appelle purgeOldLogs via réflexion.
+     * Le return précoce (line 155) est atteint car is_dir() retourne false.
+     *
+     * @return void
      */
     public function testPurgeOldLogsReturnsEarlyWhenDirMissing(): void
     {
-        // Appel direct via réflexion — surcharge de ROOT_PATH impossible,
-        // donc on crée un contexte ad-hoc via sous-classe qui expose purgeOldLogs
-        $controller = new class (new Request()) extends LogApiController {
-            public function exposePurge(): void
-            {
-                $ref = new \ReflectionMethod(LogApiController::class, 'purgeOldLogs');
-                // On modifie temporairement ROOT_PATH vers un répertoire inexistant
-                $tmpConst = ROOT_PATH . '/storage/__nonexistent_purge_' . uniqid();
-                // Pas possible de redéfinir une constante — on appelle purgeOldLogs
-                // normalement; si logDir n'existe pas (pas de fichier js-*.log), la boucle
-                // glob retourne [] et aucun unlink n'est appelé.
-                // Pour couvrir line 155, on crée un contrôleur avec logDir fictif via
-                // la visibilité reflection
-                $ref->invoke($this);
-            }
+        $logDir    = ROOT_PATH . '/storage/logs';
+        $hiddenDir = ROOT_PATH . '/storage/logs-hidden-purge-' . uniqid();
 
-            protected function readInput(): string
-            {
-                return '';
-            }
-        };
+        if (is_dir($logDir)) {
+            rename($logDir, $hiddenDir);
+        }
 
-        // L'appel ne doit pas lever d'exception même si logDir n'existe pas
-        $controller->exposePurge();
-        $this->addToAssertionCount(1);
+        try {
+            $controller = new class (new Request()) extends LogApiController {
+                /**
+                 * @return void
+                 */
+                public function runPurge(): void
+                {
+                    $ref = new \ReflectionMethod(LogApiController::class, 'purgeOldLogs');
+                    $ref->invoke($this);
+                }
+
+                /**
+                 * @return string
+                 */
+                protected function readInput(): string
+                {
+                    return '';
+                }
+            };
+
+            // Aucune exception ne doit être levée (early return silencieux)
+            $controller->runPurge();
+            $this->assertFalse(is_dir($logDir), 'logDir ne doit pas exister');
+        } finally {
+            if (is_dir($hiddenDir)) {
+                rename($hiddenDir, $logDir);
+            }
+        }
     }
 
     // ----------------------------------------------------------------

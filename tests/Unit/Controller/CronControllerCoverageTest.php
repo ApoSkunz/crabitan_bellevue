@@ -1824,6 +1824,45 @@ class CronControllerCoverageTest extends TestCase
         $this->assertSame(500, http_response_code());
     }
 
+    // ── doJobPurgeLogs — L566-567 : logDir introuvable ──────────────────────
+
+    /**
+     * doJobPurgeLogs() logue "introuvable" quand storage/logs n'est pas un répertoire.
+     * Renomme temporairement le dossier pour simuler son absence.
+     * Couvre CronController.php:566-567.
+     *
+     * @return void
+     */
+    public function testDoJobPurgeLogsLogsWhenDirNotFound(): void
+    {
+        $logDir  = ROOT_PATH . '/storage/logs';
+        $backDir = ROOT_PATH . '/storage/logs_cron_test_bak';
+
+        $existed = is_dir($logDir);
+        if ($existed) {
+            rename($logDir, $backDir);
+        }
+
+        try {
+            $ctrl = new CronController(new \Core\Request());
+            $m    = new \ReflectionMethod(CronController::class, 'doJobPurgeLogs');
+            $m->setAccessible(true);
+
+            $logged = [];
+            $log    = static function (string $msg) use (&$logged): void {
+                $logged[] = $msg;
+            };
+
+            $m->invoke($ctrl, $log, false);
+
+            $this->assertStringContainsString('introuvable', implode('', $logged));
+        } finally {
+            if ($existed && is_dir($backDir)) {
+                rename($backDir, $logDir);
+            }
+        }
+    }
+
     /**
      * run() catch Throwable sur finish() quand la BDD tombe entre start et finish.
      * Couvre L83-85 (finish catch).

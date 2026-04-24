@@ -725,4 +725,25 @@ class WineModelCoverageTest extends TestCase
 
         $this->assertNull($this->model->getRandom());
     }
+
+    // ----------------------------------------------------------------
+    // getRandomForMemo — pickedIds vides après slice (line 485)
+    // ----------------------------------------------------------------
+
+    /**
+     * getRandomForMemo(0) → array_slice($ids, 0, 0) = [] → pickedIds = [] → return [] (line 485).
+     * Couvre WineModel.php:485.
+     */
+    public function testGetRandomForMemoReturnsEmptyWhenLimitIsZero(): void
+    {
+        // fetchAll retourne des IDs (non-empty) mais limit=0 → slice vide → pickedIds = []
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([['id' => 1], ['id' => 2], ['id' => 3]]);
+
+        $result = $this->model->getRandomForMemo(0);
+
+        $this->assertSame([], $result);
+    }
 }

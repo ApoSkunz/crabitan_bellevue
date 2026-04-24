@@ -107,6 +107,43 @@ class ProfileAdminControllerTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    // changePassword() — rate limit compte (ligne 116-119)
+    // ----------------------------------------------------------------
+
+    /**
+     * Couvre lines 117-119 : rate limit par compte admin atteint
+     * → flash error + redirect /admin/securite.
+     *
+     * checkLimit : 1er appel (IP) → true, 2e appel (compte) → false.
+     */
+    public function testChangePasswordAccountRateLimitRedirectsToSecurity(): void
+    {
+        $_POST['current_password']    = 'OldPass1!';
+        $_POST['new_password']        = 'NewPass99!';
+        $_POST['new_password_confirm'] = 'NewPass99!';
+        $_SERVER['REMOTE_ADDR']       = '127.0.0.1';
+
+        $ctrl = $this->makeController();
+
+        $rateLimiter = $this->createMock(RateLimiterService::class);
+        // Premier checkLimit (IP) → autorisé ; deuxième (compte) → bloqué
+        $rateLimiter->method('checkLimit')
+            ->willReturnOnConsecutiveCalls(true, false);
+        $rateLimiter->method('getRetryAfter')->willReturn(3600);
+        $rateLimiter->method('recordAttempt');
+        $this->injectProp($ctrl, 'rateLimiter', $rateLimiter);
+
+        $location = null;
+        try {
+            $ctrl->changePassword([]);
+        } catch (\Core\Exception\HttpException $e) {
+            $location = (string) $e->location;
+        }
+
+        $this->assertSame('/admin/securite', $location);
+    }
+
+    // ----------------------------------------------------------------
     // revokeSession() — révocation de la session COURANTE → redirect /fr
     // ----------------------------------------------------------------
 
