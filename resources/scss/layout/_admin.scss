@@ -1204,6 +1204,7 @@
 // ── Feature flags — layout catégories ────────────────────────────────────────
 .ff-category {
     margin-bottom: 2rem;
+    max-width: 820px;
 
     &__title {
         font-size: 0.7rem;
@@ -1219,11 +1220,12 @@
 
 .ff-row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr 200px;
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
     padding: 0.875rem 0;
     border-bottom: 1px solid #f3f4f6;
+    max-width: 820px;
 
     &:last-child {
         border-bottom: none;

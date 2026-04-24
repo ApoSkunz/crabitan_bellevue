@@ -63,7 +63,9 @@ $navSections = [
         'email_rate'      => ['url' => '/admin/emails-rate',       'label' => 'Monitoring emails'],
         'cron_monitoring' => ['url' => '/admin/monitoring-crons',  'label' => 'Monitoring crons'],
         'app_logs'        => ['url' => '/admin/logs-app',          'label' => 'Logs applicatifs'],
-        'feature_flags'   => ['url' => '/admin/feature-flags',     'label' => 'Feature flags'],
+    ],
+    'Configuration' => [
+        'feature_flags' => ['url' => '/admin/feature-flags', 'label' => 'Feature flags'],
     ],
 ];
 $superOnlyKeys = ['logs', 'admins', 'email_rate', 'cron_monitoring', 'app_logs', 'feature_flags'];
@@ -261,6 +263,16 @@ if (empty($_SESSION['csrf'])) {
                     <div class="admin-sidebar__user-role"><?= htmlspecialchars($adminRole) ?></div>
                 </div>
             </div>
+            <?php if (in_array($adminUser['role'] ?? '', ['super_admin'], true)): ?>
+                <a
+                    href="/admin/feature-flags"
+                    class="admin-nav__item<?= $adminSection === 'feature_flags' ? ' active' : '' ?>"
+                    style="margin:0.25rem 0 0;font-size:0.72rem;opacity:0.75;"
+                >
+                    <?= $navIcons['feature_flags'] ?? '' ?>
+                    Feature flags
+                </a>
+            <?php endif; ?>
             <form method="POST" action="/fr/deconnexion" class="admin-logout-form">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
                 <button type="submit" class="admin-logout">
