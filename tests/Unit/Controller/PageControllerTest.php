@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controller;
 
+use Core\Database;
 use Core\Exception\HttpException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -462,6 +463,7 @@ class PageControllerTest extends TestCase
         $rateLimitMail = new class extends \Service\MailService {
             public function __construct()
             {
+                // no-op — stub de test, contourne l'injection SMTP
             }
             public function sendContactToOwner(
                 string $firstname,
@@ -472,7 +474,7 @@ class PageControllerTest extends TestCase
                 string $lang,
                 string $phone = ''
             ): void {
-                throw new \RuntimeException('Too Many Requests', 429);
+                throw new \RuntimeException('Too Many Requests', 429); // NOSONAR — S112
             }
             public function sendContactConfirmation(
                 string $to,
@@ -481,6 +483,7 @@ class PageControllerTest extends TestCase
                 string $lang,
                 string $userMessage = ''
             ): void {
+                // no-op — stub de test, non appelé lors d'un rate-limit
             }
         };
 
@@ -554,5 +557,124 @@ class PageControllerTest extends TestCase
 
         $this->assertNotNull($caught, 'contactPost() doit retourner 500 quand le SMTP est indisponible');
         $this->assertSame(500, $caught->status);
+    }
+
+    // ── llmsTxt() ───────────────────────────────────────────────────────────
+
+    /**
+     * llmsTxt() génère du texte/plain avec la liste des vins et lève HttpException(0).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testLlmsTxtOutputsPlainTextWithWines(): void
+    {
+        $this->bootstrapApp();
+
+        $stubWineModel = new class extends \Model\WineModel {
+            public function __construct()
+            {
+                // no-op — stub de test, contourne l'injection BDD
+            }
+            /** @return array<int, array<string, mixed>> */
+            public function getAvailableForLlms(): array
+            {
+                return [
+                    ['slug' => 'sainte-croix-2022', 'label_name' => 'Sainte-Croix-du-Mont',
+                        'vintage' => 2022, 'price' => 25.0, 'wine_color' => 'sweet'],
+                ];
+            }
+        };
+
+        $controller = new class (new \Core\Request(), $stubWineModel) extends \Controller\PageController {
+            public function __construct(\Core\Request $req, private \Model\WineModel $stub)
+            {
+                parent::__construct($req);
+            }
+            protected function newWineModel(): \Model\WineModel
+            {
+                return $this->stub;
+            }
+        };
+
+        $caught = null;
+        ob_start();
+        try {
+            $controller->llmsTxt([]);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+        $output = ob_get_clean();
+
+        $this->assertNotNull($caught, 'llmsTxt() doit lever HttpException(0)');
+        $this->assertSame(0, $caught->status);
+        $this->assertIsString($output);
+        $this->assertStringContainsString('Château Crabitan Bellevue', $output);
+        $this->assertStringContainsString('Sainte-Croix-du-Mont', $output);
+        $this->assertStringContainsString('1 références', $output);
+    }
+
+    /**
+     * llmsTxt() avec zéro vin disponible → section "0 références".
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testLlmsTxtWithNoWinesShowsZeroReferences(): void
+    {
+        $this->bootstrapApp();
+
+        $stubWineModel = new class extends \Model\WineModel {
+            public function __construct()
+            {
+                // no-op — stub de test, contourne l'injection BDD
+            }
+            /** @return array<int, array<string, mixed>> */
+            public function getAvailableForLlms(): array
+            {
+                return [];
+            }
+        };
+
+        $controller = new class (new \Core\Request(), $stubWineModel) extends \Controller\PageController {
+            public function __construct(\Core\Request $req, private \Model\WineModel $stub)
+            {
+                parent::__construct($req);
+            }
+            protected function newWineModel(): \Model\WineModel
+            {
+                return $this->stub;
+            }
+        };
+
+        ob_start();
+        try {
+            $controller->llmsTxt([]);
+        } catch (HttpException) {
+            // attendu — llmsTxt() lève toujours HttpException(0)
+        }
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('0 références', $output);
+    }
+
+    /**
+     * newWineModel() retourne une instance de WineModel (couvre la seam réelle).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testNewWineModelReturnsWineModelInstance(): void
+    {
+        $this->bootstrapApp();
+
+        $dbStub   = $this->createStub(Database::class);
+        $dbProp   = new \ReflectionProperty(Database::class, 'instance');
+        $dbProp->setValue(null, $dbStub); // NOSONAR — S3011 : Reflection requise pour mocker le singleton Database en TU isolé
+
+        $controller = new \Controller\PageController(new \Core\Request());
+        $method     = new \ReflectionMethod(\Controller\PageController::class, 'newWineModel');
+
+        $result = $method->invoke($controller);
+
+        $this->assertInstanceOf(\Model\WineModel::class, $result);
+        $dbProp->setValue(null, null); // NOSONAR — S3011 : teardown du singleton Database mocké
     }
 }

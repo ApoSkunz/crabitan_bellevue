@@ -27,6 +27,12 @@
 <?php if (!empty($ogImage)) : ?>
     <meta property="og:image" content="<?= htmlspecialchars($ogImage) ?>">
 <?php endif; ?>
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= htmlspecialchars($ogTitle) ?>">
+    <meta name="twitter:description" content="<?= htmlspecialchars($ogDescription ?? ($metaDescription ?? '')) ?>">
+<?php if (!empty($ogImage)) : ?>
+    <meta name="twitter:image" content="<?= htmlspecialchars($ogImage) ?>">
+<?php endif; ?>
 <?php endif; ?>
 <?php if (!empty($jsonLd)) : ?>
     <script type="application/ld+json" nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>"><?= $jsonLd ?></script>

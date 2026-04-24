@@ -17,9 +17,17 @@ class RgpdExportServiceTest extends TestCase
 {
     private RgpdExportService $service;
     private string|false $savedEncryptKey;
+    private \ReflectionProperty $dbInstanceProp;
 
     protected function setUp(): void
     {
+        $this->dbInstanceProp = new \ReflectionProperty(\Core\Database::class, 'instance');
+
+        $dbStub = $this->createStub(\Core\Database::class);
+        $dbStub->method('fetchOne')->willReturn(false);
+        $dbStub->method('fetchAll')->willReturn([]);
+        $this->dbInstanceProp->setValue(null, $dbStub);
+
         $this->savedEncryptKey = $_ENV['DB_ENCRYPT_KEY'] ?? false;
         if ($this->savedEncryptKey === false || $this->savedEncryptKey === '') {
             $_ENV['DB_ENCRYPT_KEY'] = 'test-key-rgpd-export-service';
@@ -29,6 +37,8 @@ class RgpdExportServiceTest extends TestCase
 
     protected function tearDown(): void
     {
+        $this->dbInstanceProp->setValue(null, null);
+
         if ($this->savedEncryptKey !== false) {
             $_ENV['DB_ENCRYPT_KEY'] = $this->savedEncryptKey;
         } else {

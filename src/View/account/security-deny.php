@@ -1,5 +1,6 @@
 <?php
 $pageTitle = __($success ? 'account.security_deny_success_title' : 'account.security_deny_error_title');
+$noindex   = true;
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 

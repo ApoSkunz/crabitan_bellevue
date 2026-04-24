@@ -23,7 +23,7 @@ require SRC_PATH . '/View/partials/legal-open.php'; // NOSONAR — php:S2003 : r
         <p>Le site internet crabitanbellevue.fr est publié par la Société Civile GFA Bernard Solane et Fils, de droit français et dont le siège social est sis Château Crabitan 33410 Sainte-Croix-du-Mont &ndash; FRANCE.</p>
         <p>La Société Civile GFA Bernard Solane et Fils est immatriculée au Registre du commerce et des sociétés de Bordeaux sous le numéro 398 341 701. Son capital social est de 472&nbsp;591,95 euros (mention obligatoire en vertu de la loi n°2004-575 du 21 juin 2004).</p>
         <p>Le numéro de TVA intracommunautaire de la Société Civile GFA Bernard Solane et Fils est le FR53398341701.</p>
-        <p>Directeur de la publication&nbsp;: Bernard Solane.</p>
+        <p>Directeur de la publication&nbsp;: Nicolas Solane.</p>
         <p>Téléphone&nbsp;: <a href="tel:+33556620153">+33 (0)5 56 62 01 53</a></p>
         <p>e-mail&nbsp;: <a href="mailto:<?= $safeEmail ?>"><?= $safeEmail ?></a></p>
         <p>Contact RGPD&nbsp;: <a href="mailto:<?= $safeEmail ?>"><?= $safeEmail ?></a></p>

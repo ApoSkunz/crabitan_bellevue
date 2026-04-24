@@ -119,9 +119,17 @@ class IpnControllerTest extends TestCase
         ];
     }
 
+    private \ReflectionProperty $dbInstanceProp;
+
     protected function setUp(): void
     {
         $this->bootstrapApp();
+
+        $this->dbInstanceProp = new \ReflectionProperty(\Core\Database::class, 'instance');
+        $dbStub = $this->createStub(\Core\Database::class);
+        $dbStub->method('fetchOne')->willReturn(false);
+        $dbStub->method('fetchAll')->willReturn([]);
+        $this->dbInstanceProp->setValue(null, $dbStub);
 
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -139,6 +147,7 @@ class IpnControllerTest extends TestCase
 
     protected function tearDown(): void
     {
+        $this->dbInstanceProp->setValue(null, null);
         $_GET     = [];
         $_SESSION = [];
         $_SERVER['QUERY_STRING'] = '';

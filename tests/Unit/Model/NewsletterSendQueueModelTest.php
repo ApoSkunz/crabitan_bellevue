@@ -15,8 +15,21 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 #[AllowMockObjectsWithoutExpectations]
 class NewsletterSendQueueModelTest extends TestCase
 {
+    private \ReflectionProperty $dbInstanceProp;
+
+    protected function setUp(): void
+    {
+        $this->dbInstanceProp = new \ReflectionProperty(Database::class, 'instance');
+    }
+
+    protected function tearDown(): void
+    {
+        $this->dbInstanceProp->setValue(null, null);
+    }
+
     private function makeModel(Database $db): NewsletterSendQueueModel
     {
+        $this->dbInstanceProp->setValue(null, $db);
         $model = new NewsletterSendQueueModel();
         $ref   = new \ReflectionProperty(NewsletterSendQueueModel::class, 'db');
         $ref->setAccessible(true);

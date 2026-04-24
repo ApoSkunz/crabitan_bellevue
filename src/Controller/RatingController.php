@@ -36,7 +36,7 @@ class RatingController extends Controller
         $note = (int) ($params['note'] ?? 0);
 
         if ($note < 1 || $note > 5) {
-            $this->view(self::ERROR_VIEW, ['lang' => $lang, 'reason' => 'invalid_note']);
+            $this->view(self::ERROR_VIEW, ['lang' => $lang, 'noindex' => true, 'reason' => 'invalid_note']);
             return;
         }
 
@@ -44,7 +44,7 @@ class RatingController extends Controller
         $row = $ratingModel->findByToken($params['token'] ?? '');
 
         if ($row === null) {
-            $this->view(self::ERROR_VIEW, ['lang' => $lang, 'reason' => 'invalid_token']);
+            $this->view(self::ERROR_VIEW, ['lang' => $lang, 'noindex' => true, 'reason' => 'invalid_token']);
             return;
         }
 
@@ -55,7 +55,7 @@ class RatingController extends Controller
         $ratingModel->upsert($accountId, $wineId, $orderId, $note);
         $ratingModel->markTokenUsed($params['token']);
 
-        $this->view('rating/confirm', ['note' => $note, 'lang' => $lang]);
+        $this->view('rating/confirm', ['note' => $note, 'lang' => $lang, 'noindex' => true]);
     }
 
     // ----------------------------------------------------------------

@@ -14,15 +14,25 @@ final class FeatureFlagsModelTest extends TestCase
 {
     private Database $db;
     private FeatureFlagsModel $model;
+    private \ReflectionProperty $dbInstanceProp;
 
     protected function setUp(): void
     {
-        $this->db    = $this->createStub(Database::class);
+        $this->dbInstanceProp = new \ReflectionProperty(Database::class, 'instance');
+
+        $this->db = $this->createStub(Database::class);
+        $this->dbInstanceProp->setValue(null, $this->db);
+
         $this->model = new FeatureFlagsModel();
 
         $ref = new \ReflectionProperty(FeatureFlagsModel::class, 'db');
         $ref->setAccessible(true);
         $ref->setValue($this->model, $this->db);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->dbInstanceProp->setValue(null, null);
     }
 
     private function injectDb(Database $db): void

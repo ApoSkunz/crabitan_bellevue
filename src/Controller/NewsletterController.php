@@ -112,6 +112,7 @@ class NewsletterController extends Controller
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
+                'noindex' => true,
                 'success' => false,
                 'reason'  => 'invalid',
             ]);
@@ -125,6 +126,7 @@ class NewsletterController extends Controller
         if ($subscriber && (int) $subscriber['newsletter_confirmed'] === 1) {
             $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
+                'noindex' => true,
                 'success' => true,
                 'reason'  => null,
             ]);
@@ -138,6 +140,7 @@ class NewsletterController extends Controller
 
             $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
+                'noindex' => true,
                 'success' => true,
                 'reason'  => null,
             ]);
@@ -147,6 +150,7 @@ class NewsletterController extends Controller
             if ($e->getMessage() === 'already_confirmed') {
                 $this->view(self::CONFIRM_VIEW, [
                     'lang'    => $lang,
+                    'noindex' => true,
                     'success' => true,
                     'reason'  => null,
                 ]);
@@ -155,6 +159,7 @@ class NewsletterController extends Controller
 
             $this->view(self::CONFIRM_VIEW, [
                 'lang'    => $lang,
+                'noindex' => true,
                 'success' => false,
                 'reason'  => 'invalid',
             ]);

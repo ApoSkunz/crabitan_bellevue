@@ -1,6 +1,7 @@
 <?php
 $pageTitle     = __('account.address_form_title_edit');
 $activeSection = 'addresses';
+$noindex       = true;
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 

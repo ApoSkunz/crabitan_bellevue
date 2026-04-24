@@ -7,6 +7,14 @@ $metaDescription = $navLang === 'en'
 $seoSlug    = 'savoir-faire';
 $seoOgTitle = __('nav.savoir_faire') . ' — ' . APP_NAME;
 require_once SRC_PATH . '/View/partials/seo-meta.php';
+
+$articleHeadline      = __('nav.savoir_faire') . ' — ' . APP_NAME;
+$articleDatePublished = '2020-01-01';
+$articleImage         = '/assets/images/carousel/vignoble-ete-800w.jpg';
+$articleAbout         = 'Vinification et élevage — Sainte-Croix-du-Mont AOP';
+$articleSlug          = 'savoir-faire';
+require_once SRC_PATH . '/View/partials/article-jsonld.php';
+
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>

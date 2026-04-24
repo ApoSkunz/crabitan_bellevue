@@ -230,7 +230,7 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
     }
 
     /**
-     * Affiche la page webmaster (documentation technique, noindex).
+     * Affiche la page webmaster (CV technique — indexée).
      *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
@@ -293,7 +293,7 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
     }
 
     /**
-     * Affiche la page webmaster (documentation technique, noindex).
+     * Affiche la page webmaster (CV technique — indexée).
      *
      * @param array<string, string> $params Paramètres de route (lang)
      * @return void
@@ -301,7 +301,7 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
     public function webmaster(array $params): void
     {
         $lang = $this->resolveLang($params);
-        $this->view('pages/webmaster', ['lang' => $lang, 'noindex' => true]);
+        $this->view('pages/webmaster', ['lang' => $lang]);
     }
 
     /**
@@ -648,6 +648,78 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
         echo "Preferred-Languages: fr, en\n";
         echo "Policy: {$appUrl}/fr/mentions-legales\n";
         echo "Canonical: {$appUrl}/.well-known/security.txt\n";
+    }
+
+    /**
+     * Génère le fichier llms.txt dynamique (catalogue des vins en vente + structure du site).
+     * Servi via route /llms.txt — remplace le fichier statique pour rester à jour.
+     *
+     * @return void
+     */
+    public function llmsTxt(): void
+    {
+        $appUrl = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_APP_URL, '/');
+        $wines  = $this->newWineModel()->getAvailableForLlms();
+
+        $colorLabels = ['red' => 'Rouge', 'white' => 'Blanc', 'rosé' => 'Rosé', 'sweet' => 'Liquoreux'];
+
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Cache-Control: public, max-age=3600');
+
+        echo "# Château Crabitan Bellevue — llms.txt\n";
+        echo "# Domaine viticole AOP Sainte-Croix-du-Mont, Gironde (33)\n";
+        echo "# Domaine familial depuis 1870, certifié HVE — SIRET 398 341 701 00017\n";
+        echo "\n";
+        echo "> Château Crabitan Bellevue produit des vins liquoreux et secs dans l'appellation\n";
+        echo "> Sainte-Croix-du-Mont. Domaine familial fondé en 1870, certifié Haute Valeur\n";
+        echo "> Environnementale (HVE).\n";
+        echo "\n";
+        echo "## Vins en vente (" . count($wines) . " références)\n";
+        foreach ($wines as $wine) {
+            $label   = htmlspecialchars_decode($wine['label_name'] ?? '', ENT_QUOTES);
+            $vintage = (int) ($wine['vintage'] ?? 0);
+            $price   = number_format((float) ($wine['price'] ?? 0), 2, ',', ' ');
+            $color   = $colorLabels[$wine['wine_color'] ?? ''] ?? ($wine['wine_color'] ?? '');
+            $slug    = $wine['slug'] ?? '';
+            $vintageStr = $vintage > 0 ? " $vintage" : '';
+            echo "- [{$label}{$vintageStr}]({$appUrl}/fr/vins/{$slug}): {$color}, {$price}\u{00A0}€, en stock\n";
+        }
+        echo "\n";
+        echo "## Catalogue complet\n";
+        echo "- [Tous les vins]({$appUrl}/fr/vins): Fiches techniques — appellation, cépage, vinification, élevage, notes de dégustation\n";
+        echo "- [Collection]({$appUrl}/fr/vins/collection): Cuvées non commercialisées — patrimoine du domaine\n";
+        echo "\n";
+        echo "## Le Domaine\n";
+        echo "- [Le Château]({$appUrl}/fr/le-chateau): Histoire depuis 1870, famille Solane, vignoble Sainte-Croix-du-Mont\n";
+        echo "- [Savoir-Faire]({$appUrl}/fr/savoir-faire): Vignoble, vinification, élevage en fût\n";
+        echo "\n";
+        echo "## Actualités\n";
+        echo "- [Actualités]({$appUrl}/fr/actualites): Millésimes, événements, distinctions\n";
+        echo "\n";
+        echo "## Support\n";
+        echo "- [FAQ]({$appUrl}/fr/support): 13 questions fréquentes — commandes, livraison, retours, paiement\n";
+        echo "\n";
+        echo "## Légal\n";
+        echo "- [Mentions légales]({$appUrl}/fr/mentions-legales): GFA Bernard Solane et Fils — hébergeur IONOS\n";
+        echo "- [CGV]({$appUrl}/fr/conditions-generales-de-vente): Rétractation 14j, Loi Évin\n";
+        echo "- [Politique de confidentialité]({$appUrl}/fr/politique-de-confidentialite): RGPD — traitements, droits, DPO\n";
+        echo "\n";
+        echo "## English\n";
+        echo "- [Our Wines]({$appUrl}/en/vins): Full catalogue with tasting notes\n";
+        echo "- [The Château]({$appUrl}/en/le-chateau): History and estate\n";
+        echo "- [Expertise]({$appUrl}/en/savoir-faire): Winemaking and ageing\n";
+
+        throw new \Core\Exception\HttpException(0);
+    }
+
+    /**
+     * Instancie le WineModel (seam de testabilité).
+     *
+     * @return WineModel
+     */
+    protected function newWineModel(): WineModel
+    {
+        return new WineModel();
     }
 
     /**

@@ -21,7 +21,7 @@ return [
     'nav.savoir_faire' => 'Savoir-Faire',
     'nav.chateau'     => 'Le Château',
     'nav.cart'        => 'Panier',
-    'nav.account'     => 'Mon compte', // NOSONAR php:S1192 - fichier i18n : la valeur 'Mon compte' est intentionnellement répétée dans plusieurs clés
+    'nav.account'     => 'Mon compte',
     'nav.login'       => 'Connexion',
     'nav.support'     => 'Support',
     'nav.logout'      => 'Déconnexion',
@@ -110,7 +110,7 @@ return [
     'wine.vintage'      => 'Millésime',
     'wine.price'        => 'Prix',
     'wine.in_stock'     => 'en stock',
-    'wine.read_more'    => 'En savoir plus', // NOSONAR php:S1192 - même libellé CTA utilisé intentionnellement sur des clés de traduction distinctes
+    'wine.read_more'    => 'En savoir plus',
     'wine.empty'        => 'Aucun vin disponible pour le moment.',
     'wine.ttc_note'     => 'Prix TTC, livraison comprise en France métropolitaine (hors Corse et DOM-TOM). Remises appliquées par multiples de 12 bouteilles.',
 
@@ -274,7 +274,7 @@ return [
     'form.account_type'            => 'Statut',
     'form.account_type.individual' => 'Particulier',
     'form.account_type.company'    => 'Professionnel',
-    'form.gender'                  => 'Civilité', // NOSONAR php:S1192 - fichier i18n : 'Civilité' est une valeur de traduction répétée dans plusieurs clés
+    'form.gender'                  => 'Civilité',
     'form.gender.m'                => 'Monsieur',
     'form.gender.f'                => 'Madame',
     'form.gender.other'            => 'Autre',

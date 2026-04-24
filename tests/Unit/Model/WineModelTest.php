@@ -1434,4 +1434,54 @@ class WineModelTest extends TestCase
         $this->assertNull($result['prev']);
         $this->assertNull($result['next']);
     }
+
+    // ----------------------------------------------------------------
+    // getAvailableForLlms
+    // ----------------------------------------------------------------
+
+    /**
+     * Vérifie que getAvailableForLlms filtre sur available + stock > 0
+     * et trie par wine_color DESC, vintage DESC.
+     */
+    public function testGetAvailableForLlmsReturnsSortedWines(): void
+    {
+        $rows = [
+            ['slug' => 'sainte-croix-2022', 'label_name' => 'Sainte-Croix', 'vintage' => 2022, 'price' => 25.0, 'wine_color' => 'sweet'],
+            ['slug' => 'bordeaux-rouge-2021', 'label_name' => 'Bordeaux Rouge', 'vintage' => 2021, 'price' => 18.0, 'wine_color' => 'red'],
+        ];
+
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(
+                $this->logicalAnd(
+                    $this->stringContains('SELECT slug, label_name, vintage, price, wine_color'),
+                    $this->stringContains('available = 1'),
+                    $this->stringContains('stock_quantity > 0'),
+                    $this->stringContains('ORDER BY wine_color DESC, vintage DESC')
+                )
+            )
+            ->willReturn($rows);
+
+        $result = $this->model->getAvailableForLlms();
+
+        $this->assertCount(2, $result);
+        $this->assertSame('sainte-croix-2022', $result[0]['slug']);
+        $this->assertSame('sweet', $result[0]['wine_color']);
+    }
+
+    /**
+     * Vérifie que getAvailableForLlms retourne [] quand aucun vin éligible.
+     */
+    public function testGetAvailableForLlmsReturnsEmptyWhenNone(): void
+    {
+        $this->dbMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->willReturn([]);
+
+        $result = $this->model->getAvailableForLlms();
+
+        $this->assertSame([], $result);
+    }
 }

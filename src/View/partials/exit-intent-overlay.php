@@ -24,7 +24,6 @@ $_eiCfg          = $_eiConfig[$exitIntentVariant] ?? $_eiConfig['show'];
 $_eiHref         = '/' . htmlspecialchars($_eiLang) . $_eiCfg['path'];
 ?>
 <!-- Exit-intent pop-in -->
-<!-- NOSONAR Web:S6819 — custom overlay with full JS focus/keyboard management -->
 <?php $_eiMinSession = in_array($exitIntentVariant, ['boutique', 'collection'], true) ? 900000 : 0; ?>
 <div id="exit-intent-overlay" class="exit-intent-overlay" aria-hidden="true" role="region"
      aria-labelledby="exit-intent-title"

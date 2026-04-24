@@ -8,6 +8,7 @@ if ($account) {
 }
 $pageTitle     = __('account.title');
 $activeSection = 'index';
+$noindex       = true;
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 ?>

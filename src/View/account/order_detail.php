@@ -1,6 +1,7 @@
 <?php
 $pageTitle     = __('account.order_detail') . ' ' . htmlspecialchars($order['order_reference'] ?? '');
 $activeSection = 'orders';
+$noindex       = true;
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 

@@ -32,6 +32,9 @@ class GoogleLinkStatusControllerCoverageTest extends TestCase
     {
         $this->dbInstanceProp = new \ReflectionProperty(Database::class, 'instance');
 
+        $dbMock = $this->createStub(Database::class);
+        $this->dbInstanceProp->setValue(null, $dbMock);
+
         // S'assurer que la session est active — ne pas la fermer, sinon session_start()
         // dans le contrôleur (line 63) réinitialiserait $_SESSION et perdrait nos fixtures.
         if (session_status() === PHP_SESSION_NONE) {

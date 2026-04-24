@@ -56,7 +56,7 @@ class InvoiceControllerCoverageTest extends TestCase
 
         $dbMock = $this->createStub(Database::class);
         $this->dbInstanceProp = new \ReflectionProperty(Database::class, 'instance');
-        $this->dbInstanceProp->setValue(null, $dbMock); // NOSONAR — test unitaire
+        $this->dbInstanceProp->setValue(null, $dbMock);
 
         $_SESSION = ['csrf' => 'valid-csrf'];
         $_POST    = [];
@@ -102,7 +102,7 @@ class InvoiceControllerCoverageTest extends TestCase
         // puis OrderModel::findByIdForAdmin retourne null → abort(404)
         $dbMock = $this->createStub(Database::class);
         $dbMock->method('fetchOne')->willReturn(['id' => 1]);
-        $this->dbInstanceProp->setValue(null, $dbMock); // NOSONAR — test unitaire
+        $this->dbInstanceProp->setValue(null, $dbMock);
 
         $ordersMock = $this->createMock(OrderModel::class);
         $ordersMock->expects($this->once())
@@ -139,7 +139,7 @@ class InvoiceControllerCoverageTest extends TestCase
 
         $dbMock = $this->createStub(Database::class);
         $dbMock->method('fetchOne')->willReturn(['id' => 2]);
-        $this->dbInstanceProp->setValue(null, $dbMock); // NOSONAR — test unitaire
+        $this->dbInstanceProp->setValue(null, $dbMock);
 
         $ordersMock = $this->createMock(OrderModel::class);
         $ordersMock->expects($this->once())

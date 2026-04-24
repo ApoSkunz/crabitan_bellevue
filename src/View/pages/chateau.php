@@ -8,6 +8,14 @@ $seoSlug    = 'le-chateau';
 $seoOgTitle = __('nav.chateau') . ' — ' . APP_NAME;
 $seoOgImage = '/assets/images/gallery/premiere-famille-600w.jpg';
 require_once SRC_PATH . '/View/partials/seo-meta.php';
+
+$articleHeadline      = __('nav.chateau') . ' — ' . APP_NAME;
+$articleDatePublished = '1870-01-01';
+$articleImage         = '/assets/images/gallery/premiere-famille-600w.jpg';
+$articleAbout         = 'Château Crabitan Bellevue — Histoire et vignoble';
+$articleSlug          = 'le-chateau';
+require_once SRC_PATH . '/View/partials/article-jsonld.php';
+
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
 ?>

@@ -1,6 +1,7 @@
 <?php
 $pageTitle     = __('account.favorites_title');
 $activeSection = 'favorites';
+$noindex       = true;
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 

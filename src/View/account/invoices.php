@@ -1,6 +1,7 @@
 <?php
 $pageTitle     = __('panel.invoices');
 $activeSection = 'invoices';
+$noindex       = true;
 require_once __DIR__ . '/../partials/head.php';
 require_once __DIR__ . '/../partials/header.php';
 

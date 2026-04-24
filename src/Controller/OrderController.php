@@ -155,6 +155,7 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
 
         $this->view('order/checkout', [
             'lang'                   => $lang,
+            'noindex'                => true,
             'items'                  => $items,
             'totalQty'               => $totalQty,
             'subtotal'               => $subtotal,
@@ -646,6 +647,7 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
 
         $this->view('order/confirmation', [
             'lang'            => $lang,
+            'noindex'         => true,
             'order'           => $order,
             'items'           => $items,
             'newsletterOptIn' => $newsletterOptIn,
