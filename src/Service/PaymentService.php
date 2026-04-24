@@ -142,7 +142,7 @@ class PaymentService
             return false;
         }
 
-        $pubkeyPath = $this->getEnv('CA_PUBKEY_PATH');
+        $pubkeyPath = $this->getEnv('CA_PUBKEY_PATH', 'config/ca-pubkey.pem');
 
         // Résoudre les chemins relatifs depuis ROOT_PATH (le CWD Apache est public/)
         if ($pubkeyPath !== '' && !str_starts_with($pubkeyPath, '/') && !preg_match('/^[A-Za-z]:/', $pubkeyPath)) {
