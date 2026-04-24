@@ -567,9 +567,9 @@
         }
 
         &:disabled {
-            background: #9ca3af;
-            border-color: #9ca3af;
-            color: #e5e7eb; // scss:S7924 — faux positif : WCAG 1.4.3 exempte les éléments disabled
+            background: #6b7280;
+            border-color: #6b7280;
+            color: #ffffff;
             cursor: not-allowed;
             opacity: 0.7;
         }
@@ -1288,7 +1288,7 @@
 
     &:disabled {
         background: #f3f4f6;
-        color: #9ca3af; // scss:S7924 — faux positif : WCAG 1.4.3 exempte les éléments disabled
+        color: #6b7280;
         cursor: not-allowed;
         opacity: 0.7;
     }
