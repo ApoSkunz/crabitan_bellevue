@@ -24,6 +24,7 @@ class FeatureFlagsAdminController extends AdminController
     private const MAX_OTP_ATTEMPTS = 3;
     private const MAX_REQUESTS    = 5;
     private const WINDOW_REQUESTS = 3600;
+    private const OTP_BLOCK_WINDOW = 3600;
 
     /**
      * Affiche la liste des feature flags.
@@ -58,17 +59,23 @@ class FeatureFlagsAdminController extends AdminController
             }
         }
 
+        $otpBlockSecondsLeft = 0;
+        if ($isSuperAdmin) {
+            $otpBlockSecondsLeft = $this->newRateLimiter()->getRetryAfter('ff_otp_block:' . $adminUser['id']);
+        }
+
         $this->view('admin/feature-flags/index', [
-            'adminUser'         => $adminUser,
-            'adminSection'      => 'feature_flags',
-            'pageTitle'         => 'Feature flags',
-            'breadcrumbs'       => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Feature flags']],
-            'flags'             => $flags,
-            'otpKey'            => $otpKey !== '' ? $otpKey : null,
-            'otpBatch'          => $otpBatch,
-            'isSuperAdmin'      => $isSuperAdmin,
-            'superAdminEmails'  => $superAdminEmails,
-            'remainingAttempts' => $remainingAttempts,
+            'adminUser'           => $adminUser,
+            'adminSection'        => 'feature_flags',
+            'pageTitle'           => 'Feature flags',
+            'breadcrumbs'         => [['label' => 'Admin', 'url' => '/admin'], ['label' => 'Feature flags']],
+            'flags'               => $flags,
+            'otpKey'              => $otpKey !== '' ? $otpKey : null,
+            'otpBatch'            => $otpBatch,
+            'isSuperAdmin'        => $isSuperAdmin,
+            'superAdminEmails'    => $superAdminEmails,
+            'remainingAttempts'   => $remainingAttempts,
+            'otpBlockSecondsLeft' => $otpBlockSecondsLeft,
         ]);
     }
 
@@ -118,7 +125,13 @@ class FeatureFlagsAdminController extends AdminController
             Response::redirect(self::REDIRECT);
         }
 
-        $rl         = $this->newRateLimiter();
+        $rl       = $this->newRateLimiter();
+        $blockKey = 'ff_otp_block:' . $adminUser['id'];
+        if (!$rl->checkLimit($blockKey, 1, self::OTP_BLOCK_WINDOW)) {
+            $this->flash('error', 'Trop de tentatives OTP incorrectes. Nouvelle demande bloquée pendant 1 heure.');
+            Response::redirect(self::REDIRECT);
+        }
+
         $requestKey = 'ff_batch_req:' . $adminUser['id'];
         if (!$rl->checkLimit($requestKey, self::MAX_REQUESTS, self::WINDOW_REQUESTS)) {
             $this->flash('error', 'Trop de demandes. Réessayez dans une heure.');
@@ -177,10 +190,11 @@ class FeatureFlagsAdminController extends AdminController
         if ((int) $otpRow['attempts'] >= self::MAX_OTP_ATTEMPTS) {
             $cancelledCount = count((array) (json_decode((string) ($otpRow['payload'] ?? ''), true) ?? []));
             $otpModel->delete((int) $adminUser['id'], 'ff_batch');
+            $this->newRateLimiter()->recordAttempt('ff_otp_block:' . $adminUser['id'], self::OTP_BLOCK_WINDOW);
             $this->flash(
                 'error',
                 "Trop de tentatives incorrectes — {$cancelledCount} modification(s) annulée(s). "
-                . "Recommencez depuis la liste des feature flags."
+                . "Nouvelle demande bloquée 1 heure."
             );
             Response::redirect(self::REDIRECT);
         }

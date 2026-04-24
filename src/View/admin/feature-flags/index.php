@@ -12,6 +12,7 @@
  * @var bool                             $isSuperAdmin
  * @var array<int, string>               $superAdminEmails
  * @var int|null                         $remainingAttempts
+ * @var int                             $otpBlockSecondsLeft
  */
 require_once ROOT_PATH . '/src/View/admin/_open.php';
 $csrf = $_SESSION['csrf'] ?? '';
@@ -54,12 +55,21 @@ $categories = [
 <main class="admin-main" id="main-content">
     <div class="admin-content">
 
-        <?php if (!$otpBatch && !empty($_SESSION['flash'])): ?>
-            <?php foreach ($_SESSION['flash'] as $type => $msg): unset($_SESSION['flash'][$type]); ?>
+        <?php if (!$otpBatch && !empty($_SESSION['admin_flash'])): ?>
+            <?php foreach ($_SESSION['admin_flash'] as $type => $msg): unset($_SESSION['admin_flash'][$type]); ?>
                 <div class="admin-alert admin-alert--<?= htmlspecialchars($type) ?>" role="alert">
                     <?= htmlspecialchars((string) $msg) ?>
                 </div>
             <?php endforeach; ?>
+        <?php endif; ?>
+
+        <?php if ($otpBlockSecondsLeft > 0): ?>
+            <?php $blockMinutes = (int) ceil($otpBlockSecondsLeft / 60); ?>
+            <div class="admin-alert admin-alert--error" role="alert" style="margin-bottom:1.5rem;">
+                <strong>Accès temporairement bloqué.</strong>
+                Trop de tentatives OTP incorrectes — nouvelles demandes bloquées pendant
+                encore <strong><?= $blockMinutes ?> minute<?= $blockMinutes > 1 ? 's' : '' ?></strong>.
+            </div>
         <?php endif; ?>
 
         <?php if (!$isSuperAdmin): ?>
@@ -87,8 +97,8 @@ $categories = [
                 </p>
 
                 <?php
-                $otpFlashMessages = $_SESSION['flash'] ?? [];
-                unset($_SESSION['flash']);
+                $otpFlashMessages = $_SESSION['admin_flash'] ?? [];
+                unset($_SESSION['admin_flash']);
                 foreach ($otpFlashMessages as $fType => $fMsg):
                 ?>
                 <div style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.65rem 0.9rem;
@@ -190,9 +200,11 @@ $categories = [
 
                 <?php endif; ?>
 
-                <style>@keyframes ff-spin { to { transform: rotate(360deg); } }</style>
             </div>
         </div>
+        <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+        (function(){var s=document.createElement('style');s.textContent='@keyframes ff-spin{to{transform:rotate(360deg)}}';document.head.appendChild(s);}());
+        </script>
 
         <?php if ($remainingAttempts === null || $remainingAttempts > 0): ?>
         <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
@@ -287,8 +299,7 @@ $categories = [
         <?php endif; // remainingAttempts > 0 ?>
         <?php endif; // otpBatch ?>
 
-        <form method="POST" action="/admin/feature-flags/batch-request" id="ff-form"
-              data-admin-confirm="Envoyer un code OTP pour enregistrer toutes les modifications ?">
+        <form method="POST" action="/admin/feature-flags/batch-request" id="ff-form">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 
             <div class="admin-card">
@@ -409,6 +420,7 @@ $categories = [
             }
 
             var initial = serialize();
+            var confirmed = false;
 
             function checkDirty() {
                 btn.disabled = serialize() === initial;
@@ -416,8 +428,17 @@ $categories = [
 
             form.addEventListener('change', checkDirty);
             form.addEventListener('input', checkDirty);
-            form.addEventListener('submit', function () {
+
+            form.addEventListener('submit', function (e) {
                 sessionStorage.removeItem('ff_otp_ts');
+                if (confirmed) { return; }
+                e.preventDefault();
+                var msg = 'Envoyer un code OTP pour enregistrer toutes les modifications ?';
+                if (typeof window.__openConfirm === 'function' && window.__confirmModal) {
+                    window.__openConfirm(msg, function () { confirmed = true; form.submit(); });
+                } else {
+                    if (window.confirm(msg)) { confirmed = true; form.submit(); }
+                }
             });
         }());
         </script>
