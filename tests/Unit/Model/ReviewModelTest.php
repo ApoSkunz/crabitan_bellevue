@@ -15,6 +15,18 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 #[AllowMockObjectsWithoutExpectations]
 class ReviewModelTest extends TestCase
 {
+    private \ReflectionProperty $dbInstanceProp;
+
+    protected function setUp(): void
+    {
+        $this->dbInstanceProp = new \ReflectionProperty(Database::class, 'instance');
+    }
+
+    protected function tearDown(): void
+    {
+        $this->dbInstanceProp->setValue(null, null);
+    }
+
     /**
      * Injecte un mock Database dans ReviewModel via réflexion.
      *
@@ -23,6 +35,7 @@ class ReviewModelTest extends TestCase
      */
     private function makeModel(Database $db): ReviewModel
     {
+        $this->dbInstanceProp->setValue(null, $db);
         $model = new ReviewModel();
         $ref   = new \ReflectionProperty(ReviewModel::class, 'db');
         $ref->setAccessible(true);

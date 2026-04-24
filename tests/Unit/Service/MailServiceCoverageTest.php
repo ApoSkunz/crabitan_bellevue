@@ -34,9 +34,15 @@ class MailServiceCoverageTest extends TestCase
 {
     private MailService $service;
     private ReflectionClass $reflection;
+    private ReflectionProperty $dbInstanceProp;
 
     protected function setUp(): void
     {
+        $this->dbInstanceProp = new ReflectionProperty(\Core\Database::class, 'instance');
+
+        $dbStub = $this->createStub(\Core\Database::class);
+        $this->dbInstanceProp->setValue(null, $dbStub);
+
         $_ENV['MAIL_USER']           = 'noreply@test.local';
         $_ENV['APP_URL']             = 'http://crabitan.local';
         $_ENV['CONTACT_OWNER_EMAIL'] = 'owner@test.local';
@@ -46,6 +52,7 @@ class MailServiceCoverageTest extends TestCase
 
     protected function tearDown(): void
     {
+        $this->dbInstanceProp->setValue(null, null);
         unset($_ENV['MAIL_USER'], $_ENV['CONTACT_OWNER_EMAIL'], $_ENV['APP_URL']);
     }
 

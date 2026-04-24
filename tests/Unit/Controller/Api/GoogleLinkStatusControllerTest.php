@@ -26,6 +26,9 @@ class GoogleLinkStatusControllerTest extends TestCase
     {
         $this->dbInstanceProp = new \ReflectionProperty(Database::class, 'instance');
 
+        $dbMock = $this->createStub(Database::class);
+        $this->dbInstanceProp->setValue(null, $dbMock);
+
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
