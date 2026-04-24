@@ -4,7 +4,7 @@
  * Cron — Email de reconquête pour clients inactifs (dernier achat > 12 mois, jamais reconquis).
  *
  * Cible : comptes avec newsletter=1, dernier achat > 12 mois, reconquest_sent_at NULL (ou > 1 an).
- * Batch size : CRON_NEWSLETTER_BATCH_SIZE (défaut 30).
+ * Batch size : cron_newsletter_batch_size (défaut 30).
  *
  * À planifier hebdomadairement (faible fréquence pour éviter la fatigue) :
  *   0 10 * * 1 php /var/www/crabitan_bellevue/bin/cron/send-reconquest.php >> /var/log/crabitan/cron.log 2>&1
@@ -18,7 +18,7 @@ $runner = new \Core\CronRunner('send-reconquest');
 exit($runner->run(function (callable $log, bool $dryRun): void {
     $pdo       = \Core\Database::getInstance();
     $mailer    = new \Service\MailService();
-    $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
+    $batchSize = max(1, \Core\FeatureFlags::getInt('cron_newsletter_batch_size', 30));
     $appUrl    = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
 
     // Clients inactifs : dernier achat > 12 mois, newsletter active, non reconquis dans l'année

@@ -847,6 +847,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     <a href="/admin/emails-rate">Monitoring emails</a>
                     <a href="/admin/monitoring-crons">Monitoring crons</a>
                     <a href="/admin/logs-app">Logs applicatifs</a>
+
+                    <span class="account-panel__section-label">Configuration</span>
+                    <a href="/admin/feature-flags">Feature flags</a>
                 <?php endif; ?>
             <?php else : ?>
                 <a href="/<?= htmlspecialchars($navLang) ?>/mon-compte">

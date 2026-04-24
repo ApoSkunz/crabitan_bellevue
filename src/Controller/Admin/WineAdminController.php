@@ -366,7 +366,7 @@ class WineAdminController extends AdminController
 
         try {
             $newStock  = (int) ($data['stock_quantity'] ?? 0);
-            $threshold = (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300);
+            $threshold = \Core\FeatureFlags::getInt('stock_alert_limit', 300);
             $this->wines->update($id, $data);
             $this->nutrition->upsert($id, $nutritionPost);
             // Stock remonte au-dessus du seuil → réarmer la notification pour la prochaine descente

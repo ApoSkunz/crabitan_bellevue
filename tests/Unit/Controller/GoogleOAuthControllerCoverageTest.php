@@ -7,6 +7,7 @@ namespace Tests\Unit\Controller;
 use Controller\GoogleOAuthController;
 use Core\Database;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Core\Request;
 use Model\AccountModel;
 use Model\ConnectionModel;
@@ -48,7 +49,8 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         $_SERVER['HTTP_USER_AGENT']   = 'Mozilla/5.0 Chrome/120';
         $_SERVER['REMOTE_ADDR']       = '127.0.0.1';
 
-        unset($_ENV['GOOGLE_FR_FALBACK'], $_ENV['GOOGLE_EN_FALBACK'], $_ENV['MFA_EMAIL_ENABLED']);
+        unset($_ENV['GOOGLE_FR_FALBACK'], $_ENV['GOOGLE_EN_FALBACK']);
+        FeatureFlags::flush();
     }
 
     protected function tearDown(): void
@@ -59,6 +61,7 @@ class GoogleOAuthControllerCoverageTest extends TestCase
         $_GET     = [];
         $_POST    = [];
         unset($_ENV['GOOGLE_FR_FALBACK'], $_ENV['GOOGLE_EN_FALBACK'], $_ENV['MFA_EMAIL_ENABLED']);
+        FeatureFlags::flush();
     }
 
     private function makeController(): GoogleOAuthController

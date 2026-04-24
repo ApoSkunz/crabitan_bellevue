@@ -7,6 +7,7 @@ namespace Tests\Unit\Controller;
 use Controller\AuthController;
 use Core\Database;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Core\Request;
 use PHPUnit\Framework\TestCase;
 
@@ -50,7 +51,8 @@ class AuthControllerMfaDisabledTest extends TestCase
         $_SESSION = [];
         $_POST    = [];
         $_COOKIE  = [];
-        unset($_ENV['MFA_EMAIL_ENABLED'], $_SERVER['REMOTE_ADDR']);
+        unset($_SERVER['REMOTE_ADDR'], $_ENV['MFA_EMAIL_ENABLED']);
+        FeatureFlags::flush();
     }
 
     private function setDbMock(): \PHPUnit\Framework\MockObject\Stub

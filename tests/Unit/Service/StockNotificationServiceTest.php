@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service;
 
+use Core\FeatureFlags;
 use PHPUnit\Framework\TestCase;
 use Service\StockNotificationService;
 
@@ -31,13 +32,14 @@ class StockNotificationServiceTest extends TestCase
         $this->wineModel   = new StubWineModelForStock();
         $this->mailService = new StubMailServiceForStock();
         $this->service     = new StockNotificationService($this->wineModel, $this->mailService);
-        $_ENV['STOCK_ALERTE_LIMIT'] = '300';
+        FeatureFlags::setCache(['stock_alert_limit' => ['key' => 'stock_alert_limit', 'value' => '300', 'type' => 'int']]);
         $_ENV['APP_URL'] = 'https://crabitanbellevue.fr';
     }
 
     protected function tearDown(): void
     {
         $this->dbInstanceProp->setValue(null, null);
+        FeatureFlags::flush();
     }
 
     // ----------------------------------------------------------------
@@ -46,14 +48,14 @@ class StockNotificationServiceTest extends TestCase
 
     public function testGetStockAlertLimitReadsFromEnv(): void
     {
-        $_ENV['STOCK_ALERTE_LIMIT'] = '150';
+        FeatureFlags::setCache(['stock_alert_limit' => ['key' => 'stock_alert_limit', 'value' => '150', 'type' => 'int']]);
         $service = new StockNotificationService($this->wineModel, $this->mailService);
         $this->assertSame(150, $service->getStockAlertLimit());
     }
 
     public function testGetStockAlertLimitDefaultsTo300WhenEnvMissing(): void
     {
-        unset($_ENV['STOCK_ALERTE_LIMIT']);
+        FeatureFlags::flush();
         $service = new StockNotificationService($this->wineModel, $this->mailService);
         $this->assertSame(300, $service->getStockAlertLimit());
     }

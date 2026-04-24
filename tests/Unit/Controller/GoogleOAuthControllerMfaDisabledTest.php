@@ -7,6 +7,7 @@ namespace Tests\Unit\Controller;
 use Controller\GoogleOAuthController;
 use Core\Database;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Core\Request;
 use PHPUnit\Framework\TestCase;
 
@@ -46,7 +47,8 @@ class GoogleOAuthControllerMfaDisabledTest extends TestCase
         $_SESSION = [];
         $_COOKIE  = [];
         $_GET     = [];
-        unset($_ENV['MFA_EMAIL_ENABLED'], $_SERVER['REMOTE_ADDR']);
+        unset($_SERVER['REMOTE_ADDR'], $_ENV['MFA_EMAIL_ENABLED']);
+        FeatureFlags::flush();
     }
 
     private function makeController(): GoogleOAuthController

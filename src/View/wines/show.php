@@ -70,7 +70,7 @@ $extra   = ['fr' => $wine['extra_comment_fr'] ?? '',       'en' => $wine['extra_
 $nutrition       = $nutrition ?? [];
 $avgRating       = $avgRating   ?? null;
 $ratingCount     = $ratingCount ?? 0;
-$enableExtraInfo = filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+$enableExtraInfo = \Core\FeatureFlags::getBool('enable_extra_info', false);
 $hasAlcohol      = !empty($wine['alcohol_degree']);
 $hasAging        = !empty($wine['aging_potential']);
 
@@ -187,7 +187,7 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                                 <span class="wine-card__rating"><?= number_format($avgRating, 1) ?>/5 (<?= $ratingCount ?> <?= htmlspecialchars(__('wine.reviews')) ?>)</span>
                             <?php endif; ?>
                         </strong>
-                        <?php if ((int) ($wine['stock_quantity'] ?? 0) <= (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300)) : ?>
+                        <?php if ((int) ($wine['stock_quantity'] ?? 0) <= \Core\FeatureFlags::getInt('stock_alert_limit', 300)) : ?>
                             <span class="wine-detail__stock wine-detail__stock--low-stock">
                                 <?= htmlspecialchars(__('wine.low_stock')) ?>
                             </span>

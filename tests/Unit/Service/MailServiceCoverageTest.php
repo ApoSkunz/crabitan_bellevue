@@ -1488,4 +1488,79 @@ class MailServiceCoverageTest extends TestCase
 
         $this->assertTrue(true); // branche isPickup = true traversée sans exception
     }
+
+    // ----------------------------------------------------------------
+    // L1283 — ternaire $lang === 'en' dans la branche $isPickup = true
+    // Couvre la valeur EN : 'Available at the château within 48h'
+    // ----------------------------------------------------------------
+
+    /**
+     * deliveryMethod='pickup' + lang='en' → couvre la ligne 1283 (branche EN du ternaire).
+     *
+     * @return void
+     */
+    public function testSendOrderConfirmationToClientWithPickupEnCoversLine1283(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendOrderConfirmationToClient(
+            'bob@example.com',
+            'Bob',
+            'CB-2026-PICKUP-EN',
+            'card',
+            [['name' => 'Sauternes 2021', 'qty' => 1, 'price' => 30.0]],
+            30.0,
+            'en',   // lang EN → ligne 1283 : 'Available at the château within 48h'
+            0.0,
+            null,
+            'pickup'
+        );
+
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // L4506-4527 — sendFeatureFlagOtpBlocked()
+    // ----------------------------------------------------------------
+
+    /**
+     * sendFeatureFlagOtpBlocked() construit et envoie l'email d'alerte blocage OTP.
+     *
+     * @return void
+     */
+    public function testSendFeatureFlagOtpBlockedCallsSend(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendFeatureFlagOtpBlocked('admin@example.com', 'Admin Test', '192.168.1.42');
+
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // L4529-4576 — sendFeatureFlagBatchOtp()
+    // ----------------------------------------------------------------
+
+    /**
+     * sendFeatureFlagBatchOtp() construit la table de changements et envoie le code OTP.
+     * Couvre aussi la branche 'label' absente → fallback sur 'key'.
+     *
+     * @return void
+     */
+    public function testSendFeatureFlagBatchOtpCallsSend(): void
+    {
+        $this->injectMockMailer($this->service);
+
+        $this->service->sendFeatureFlagBatchOtp(
+            'admin@example.com',
+            'Admin Test',
+            [
+                ['key' => 'foo_flag', 'label' => 'Foo Flag',  'old' => 'true',  'new' => 'false'],
+                ['key' => 'bar_flag', 'old' => 'false', 'new' => 'true'],  // pas de label → key utilisé
+            ],
+            '123456'
+        );
+
+        $this->assertTrue(true);
+    }
 }

@@ -84,6 +84,21 @@ class RateLimiterService
     }
 
     /**
+     * Pose un lockout explicite pour une durée donnée, indépendamment du compteur.
+     *
+     * À utiliser quand le blocage doit être déclenché immédiatement (ex. : 3 OTP erronés)
+     * sans passer par checkLimit. Écrit directement la clé :until.
+     *
+     * @param string $key     Identifiant du bucket
+     * @param int    $seconds Durée du blocage en secondes
+     * @return void
+     */
+    public function blockFor(string $key, int $seconds): void
+    {
+        $this->set($key . self::SUFFIX_UNTIL, time() + $seconds, $seconds + 60);
+    }
+
+    /**
      * Réinitialise toutes les entrées associées à la clé (compteur + lockout).
      *
      * @param string $key Identifiant du bucket

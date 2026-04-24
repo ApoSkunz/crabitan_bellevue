@@ -56,7 +56,7 @@ $log('backfill_last_login_at.php — démarrage' . ($dryRun ? ' (DRY-RUN)' : '')
 /** @var \Core\Database $db */
 $db = \Core\Database::getInstance();
 
-$inactivityMonths = (int) ($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
+$inactivityMonths = (int)($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
 $log("Seuil inactivité RGPD : {$inactivityMonths} mois");
 
 // ------------------------------------------------------------

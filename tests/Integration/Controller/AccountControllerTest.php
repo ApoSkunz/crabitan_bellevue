@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Tests\Integration\Controller;
 
 use Controller\AccountController;
-use Service\RgpdExportService;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Core\Jwt;
 use Core\Request;
+use Service\RgpdExportService;
 use Tests\Integration\IntegrationTestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
@@ -1024,14 +1025,14 @@ class AccountControllerTest extends IntegrationTestCase
     }
 
     /**
-     * Commande 'processing' par carte avec CA_ENABLE_GAE=false → bouton remboursement affiché.
-     * (CA_ENABLE_GAE=false : la voie de remboursement passe par /remboursement, pas /annuler)
+     * Commande 'processing' par carte avec ca_enable_gae=false → bouton remboursement affiché.
+     * (ca_enable_gae=false : la voie de remboursement passe par /remboursement, pas /annuler)
      *
      * @return void
      */
     public function testOrderDetailProcessingCardGaeDisabledShowsRefundButton(): void
     {
-        unset($_ENV['CA_ENABLE_GAE']); // GAE désactivé par défaut
+        FeatureFlags::flush(); // GAE désactivé par défaut
         $userId    = $this->insertCustomer('odtl.proc@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
         $orderId   = $this->insertOrder($userId, $addressId, 'processing');
@@ -5074,12 +5075,12 @@ class AccountControllerTest extends IntegrationTestCase
     // ----------------------------------------------------------------
 
     /**
-     * Une commande "paid" avec CA_ENABLE_GAE=false doit passer à refund_pending en BDD
+     * Une commande "paid" avec ca_enable_gae=false doit passer à refund_pending en BDD
      * et poser un flash success.
      */
     public function testRequestRefundWithGaeDisabledSetsRefundPendingInDb(): void
     {
-        $_ENV['CA_ENABLE_GAE'] = 'false';
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'false', 'type' => 'bool']]);
 
         $userId    = $this->insertCustomer('req.refund.ok@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
@@ -5128,7 +5129,7 @@ class AccountControllerTest extends IntegrationTestCase
             $this->assertSame('refund_pending', $row['status']);
             throw $e;
         } finally {
-            unset($_ENV['CA_ENABLE_GAE']);
+            FeatureFlags::flush();
         }
     }
 
@@ -5181,7 +5182,7 @@ class AccountControllerTest extends IntegrationTestCase
      */
     public function testRequestRefundServiceExceptionFlashesError(): void
     {
-        $_ENV['CA_ENABLE_GAE'] = 'true';
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'true', 'type' => 'bool']]);
 
         $userId    = $this->insertCustomer('req.refund.fail@test.local', 'individual');
         $addressId = $this->insertAddress($userId);
@@ -5222,7 +5223,7 @@ class AccountControllerTest extends IntegrationTestCase
             $this->assertSame('paid', $row['status']);
             throw $e;
         } finally {
-            unset($_ENV['CA_ENABLE_GAE']);
+            FeatureFlags::flush();
         }
     }
 

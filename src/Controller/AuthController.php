@@ -127,7 +127,9 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
         // R1 — Rate limiting par IP
         $ip    = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         $ipKey = 'login:' . $ip;
-        if (!$this->rateLimiter->checkLimit($ipKey, self::MAX_LOGIN_IP, self::WINDOW_LOGIN)) {
+        $maxAttempts = \Core\FeatureFlags::getInt('rate_limit_login_max', self::MAX_LOGIN_IP);
+        $windowSecs  = \Core\FeatureFlags::getInt('rate_limit_login_window', self::WINDOW_LOGIN);
+        if (!$this->rateLimiter->checkLimit($ipKey, $maxAttempts, $windowSecs)) {
             $wait = (int) ceil($this->rateLimiter->getRetryAfter($ipKey) / 60);
             $this->flash('modal_error', sprintf(__('auth.too_many_attempts'), max(1, $wait)));
             Response::redirect($safeBack);
@@ -164,7 +166,7 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
         // Le JWT n'est PAS émis ici — la connexion est bloquée jusqu'à validation du lien email.
         // MFA_EMAIL_ENABLED=false : auto-trust temporaire (limite SMTP IONOS < 30 jours).
         if (!$trusted) {
-            $mfaEnabled = filter_var($_ENV['MFA_EMAIL_ENABLED'] ?? 'true', FILTER_VALIDATE_BOOLEAN);
+            $mfaEnabled = ($_ENV['MFA_EMAIL_ENABLED'] ?? 'true') !== 'false';
             if ($mfaEnabled) {
                 $this->handleUntrustedDevice($account, $deviceToken, $deviceName, $lang, $safeBack);
             } else {

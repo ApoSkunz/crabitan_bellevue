@@ -7,6 +7,7 @@ namespace Tests\Unit\Controller;
 use Controller\OrderController;
 use Core\Database;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Core\Request;
 use Model\OrderModel;
 use PHPUnit\Framework\TestCase;
@@ -24,7 +25,7 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
  *   - payment()  : stock à 0 → setUnavailable + purge paniers
  *   - postOrderStockActions() : wine null → return immédiat
  *   - notifyNewsletterOptIn() : email vide → skip sendNewsletterWelcome
- *   - generateAndStoreInvoice() : INVOICE_AUTO_GENERATE='' → skip
+ *   - generateAndStoreInvoice() : invoice_auto_generate='' → skip
  *   - generateAndStoreInvoice() : clientEmail vide dans ordre → skip envoi mail
  *   - dispatchOrderEmails() : catch Throwable → silencieux
  *   - validateCsrfAndSubmitToken() : submit_token absent en session → redirect
@@ -52,11 +53,13 @@ class OrderControllerCoverageTest extends TestCase
         $_GET     = [];
         $_SERVER['REMOTE_ADDR']     = '127.0.0.1';
         $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit';
+        FeatureFlags::flush();
     }
 
     protected function tearDown(): void
     {
         $this->instanceProp->setValue(null, null);
+        FeatureFlags::flush();
         $_SESSION = [];
         $_POST    = [];
         $_COOKIE  = [];
@@ -263,16 +266,16 @@ class OrderControllerCoverageTest extends TestCase
     }
 
     // ================================================================
-    // generateAndStoreInvoice() — INVOICE_AUTO_GENERATE='' → skip (L838-840)
+    // generateAndStoreInvoice() — invoice_auto_generate='' → skip (L838-840)
     // ================================================================
 
     /**
-     * Quand INVOICE_AUTO_GENERATE est une chaîne vide (parse_ini_file comportement),
+     * Quand invoice_auto_generate est une chaîne vide (parse_ini_file comportement),
      * generateAndStoreInvoice() retourne immédiatement sans appel BDD.
      */
     public function testGenerateAndStoreInvoiceSkipsWhenEnvIsEmptyString(): void
     {
-        $_ENV['INVOICE_AUTO_GENERATE'] = '';
+        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'false', 'type' => 'bool']]);
 
         $orders = $this->createMock(OrderModel::class);
         $orders->expects($this->never())->method('findByReferenceForInvoice');
@@ -283,17 +286,15 @@ class OrderControllerCoverageTest extends TestCase
 
         $method = new ReflectionMethod(OrderController::class, 'generateAndStoreInvoice');
         $method->invoke($ctrl, 'WEB-CB-EMPTY-2026');
-
-        unset($_ENV['INVOICE_AUTO_GENERATE']);
     }
 
     // ================================================================
-    // generateAndStoreInvoice() — INVOICE_AUTO_GENERATE='0' → skip
+    // generateAndStoreInvoice() — invoice_auto_generate='0' → skip
     // ================================================================
 
     public function testGenerateAndStoreInvoiceSkipsWhenEnvIsZero(): void
     {
-        $_ENV['INVOICE_AUTO_GENERATE'] = '0';
+        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'false', 'type' => 'bool']]);
 
         $orders = $this->createMock(OrderModel::class);
         $orders->expects($this->never())->method('findByReferenceForInvoice');
@@ -304,8 +305,6 @@ class OrderControllerCoverageTest extends TestCase
 
         $method = new ReflectionMethod(OrderController::class, 'generateAndStoreInvoice');
         $method->invoke($ctrl, 'WEB-CB-ZERO-2026');
-
-        unset($_ENV['INVOICE_AUTO_GENERATE']);
     }
 
     // ================================================================
@@ -318,7 +317,7 @@ class OrderControllerCoverageTest extends TestCase
      */
     public function testGenerateAndStoreInvoiceSkipsMailWhenClientEmailEmpty(): void
     {
-        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'true', 'type' => 'bool']]);
         defined('ROOT_PATH') || define('ROOT_PATH', dirname(__DIR__, 3));
 
         $orders = $this->createMock(OrderModel::class);
@@ -350,7 +349,7 @@ class OrderControllerCoverageTest extends TestCase
             // L'exception interne est absorbée par le catch de generateAndStoreInvoice
         }
 
-        unset($_ENV['INVOICE_AUTO_GENERATE']);
+        FeatureFlags::flush();
         $this->addToAssertionCount(1);
     }
 
@@ -638,7 +637,7 @@ class OrderControllerCoverageTest extends TestCase
      */
     public function testGenerateAndStoreInvoiceOuterCatchAbsorbsException(): void
     {
-        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'true', 'type' => 'bool']]);
 
         $orders = $this->createMock(\Model\OrderModel::class);
         $orders->method('findByReferenceForInvoice')
@@ -657,7 +656,7 @@ class OrderControllerCoverageTest extends TestCase
             $this->fail('generateAndStoreInvoice should absorb exceptions, got: ' . $e->getMessage());
         }
 
-        unset($_ENV['INVOICE_AUTO_GENERATE']);
+        FeatureFlags::flush();
         $this->addToAssertionCount(1);
     }
 
@@ -673,7 +672,7 @@ class OrderControllerCoverageTest extends TestCase
      */
     public function testGenerateAndStoreInvoiceInnerMailCatchAbsorbsException(): void
     {
-        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'true', 'type' => 'bool']]);
         defined('ROOT_PATH') || define('ROOT_PATH', dirname(__DIR__, 3));
 
         // Utiliser un répertoire temporaire unique pour tester le chemin mkdir
@@ -718,7 +717,7 @@ class OrderControllerCoverageTest extends TestCase
             array_map('unlink', glob($tmpInvoiceDir . '/*') ?: []);
             rmdir($tmpInvoiceDir);
         }
-        unset($_ENV['INVOICE_AUTO_GENERATE']);
+        FeatureFlags::flush();
         $this->addToAssertionCount(1);
     }
 
@@ -931,7 +930,7 @@ class OrderControllerCoverageTest extends TestCase
      */
     public function testGenerateAndStoreInvoiceCreatesInvoiceDirViaSeam(): void
     {
-        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'true', 'type' => 'bool']]);
         defined('ROOT_PATH') || define('ROOT_PATH', dirname(__DIR__, 3));
 
         $tmpDir = sys_get_temp_dir() . '/crabitan_test_oc_invdir_' . uniqid();
@@ -978,7 +977,7 @@ class OrderControllerCoverageTest extends TestCase
         // Cleanup
         array_map('unlink', glob($tmpDir . '/*') ?: []);
         @rmdir($tmpDir);
-        unset($_ENV['INVOICE_AUTO_GENERATE']);
+        FeatureFlags::flush();
     }
 
     // ================================================================
@@ -1218,7 +1217,10 @@ class OrderControllerCoverageTest extends TestCase
         $tmpPath = sys_get_temp_dir() . '/test_happy_' . getmypid() . '.pem';
         file_put_contents($tmpPath, $details['key']);
         $_ENV['CA_PUBKEY_PATH']         = $tmpPath;
-        $_ENV['INVOICE_AUTO_GENERATE']  = 'false'; // désactive generateAndStoreInvoice
+        // désactive generateAndStoreInvoice
+        FeatureFlags::setCache([
+            'invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'false', 'type' => 'bool'],
+        ]);
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI']    = '/fr/commande/paiement-ca/ok';
@@ -1283,7 +1285,8 @@ class OrderControllerCoverageTest extends TestCase
             // exécuté le bloc L472-498 au moins partiellement.
         } finally {
             @unlink($tmpPath);
-            unset($_ENV['CA_PUBKEY_PATH'], $_ENV['INVOICE_AUTO_GENERATE']);
+            unset($_ENV['CA_PUBKEY_PATH']);
+            FeatureFlags::flush();
         }
 
         // Même en cas d'exception interne absorbée, on atteint au moins la signature.

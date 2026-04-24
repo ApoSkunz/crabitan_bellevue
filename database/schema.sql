@@ -30,6 +30,7 @@ DROP TABLE IF EXISTS `newsletter_attachments`;
 DROP TABLE IF EXISTS `newsletters`;
 DROP TABLE IF EXISTS `game_scores`;
 DROP TABLE IF EXISTS `order_forms`;
+DROP TABLE IF EXISTS `admin_otps`;
 DROP TABLE IF EXISTS `password_reset`;
 DROP TABLE IF EXISTS `news`;
 DROP TABLE IF EXISTS `favorites`;
@@ -243,7 +244,7 @@ CREATE TABLE `wines` (
 -- Table : wine_nutrition
 -- Valeurs nutritionnelles + informations complémentaires (1:1 wines)
 -- Champs VARCHAR(20) pour supporter les valeurs "<", "traces", etc.
--- ingredients stocké en JSON {"fr":"...","en":"..."} — affiché si ENABLE_EXTRA_INFO=true (règl. UE 2019/787)
+-- ingredients stocké en JSON {"fr":"...","en":"..."} — affiché si enable_extra_info=true (règl. UE 2019/787)
 -- ============================================================
 CREATE TABLE `wine_nutrition` (
   `id`               INT           NOT NULL AUTO_INCREMENT,
@@ -255,7 +256,7 @@ CREATE TABLE `wine_nutrition` (
   `sugars_g`         VARCHAR(20)   DEFAULT NULL,
   `protein_g`        VARCHAR(20)   DEFAULT NULL,
   `salt_g`           VARCHAR(20)   DEFAULT NULL,
-  `ingredients`      TEXT          DEFAULT NULL COMMENT 'Liste ingrédients — affiché si ENABLE_EXTRA_INFO=true',
+  `ingredients`      TEXT          DEFAULT NULL COMMENT 'Liste ingrédients — affiché si enable_extra_info=true',
   `updated_at`       DATETIME      DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_wine_nutrition_wine` (`wine_id`),
@@ -559,6 +560,26 @@ CREATE TABLE `password_reset` (
   CONSTRAINT `fk_password_reset_user` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
   INDEX `idx_password_reset_token` (`token`),
   INDEX `idx_password_reset_expires` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : admin_otps
+-- OTP à usage unique pour actions sensibles (feature flags…)
+-- Un seul OTP actif par (admin_id, purpose) — UNIQUE constraint
+-- ============================================================
+CREATE TABLE `admin_otps` (
+  `id`         INT          NOT NULL AUTO_INCREMENT,
+  `admin_id`   INT          NOT NULL,
+  `purpose`    VARCHAR(50)  NOT NULL,
+  `otp_hash`   CHAR(64)     NOT NULL COMMENT 'SHA-256 du code à 6 chiffres',
+  `payload`    TEXT         NULL     COMMENT 'JSON des changements en attente',
+  `attempts`   TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `expires_at` DATETIME     NOT NULL,
+  `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_admin_purpose` (`admin_id`, `purpose`),
+  INDEX `idx_admin_otps_expires` (`expires_at`),
+  CONSTRAINT `fk_admin_otps_account` FOREIGN KEY (`admin_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -1038,5 +1059,39 @@ CREATE TABLE IF NOT EXISTS `rate_limits` (
   UNIQUE KEY `uq_rate_limit_key` (`cache_key`),
   KEY `idx_expires_at` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table : feature_flags
+-- Feature flipping runtime — toggleable depuis /admin/feature-flags.
+-- Modification protégée par OTP email (120 s, max 3 tentatives).
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `feature_flags` (
+  `key`         VARCHAR(64)               NOT NULL,
+  `value`       VARCHAR(255)              NOT NULL,
+  `type`        ENUM('bool','int','float') NOT NULL DEFAULT 'bool',
+  `label`       VARCHAR(128)              NOT NULL,
+  `description` TEXT                      NULL,
+  `updated_at`  TIMESTAMP                 NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_by`  INT                       NULL,
+  PRIMARY KEY (`key`),
+  CONSTRAINT `fk_feature_flags_updated_by`
+    FOREIGN KEY (`updated_by`) REFERENCES `accounts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Feature flags — modifiables en production via l\'admin';
+
+INSERT INTO `feature_flags` (`key`, `value`, `type`, `label`, `description`) VALUES
+('jwt_refresh_threshold',      '0.5',   'float', 'Seuil renouvellement JWT',            'Ratio TTL restant déclenchant le renouvellement automatique (0.1–0.9)'),
+('ca_enable_gae',              'false', 'bool',  'Remboursement CA GAE',                'Activer l\'API GAE Crédit Agricole pour les remboursements automatiques'),
+('enable_extra_info',          'false', 'bool',  'Informations nutritionnelles',         'Afficher les données nutritionnelles sur les fiches et exports vins'),
+('stock_alert_limit',          '300',   'int',   'Seuil alerte stock',                  'Quantité sous laquelle l\'alerte stock faible s\'affiche sur les pages vins'),
+('invoice_auto_generate',      'true',  'bool',  'Génération facture auto',             'Générer automatiquement la facture PDF à la validation de commande'),
+('cron_mail_delay_ms',         '0',     'int',   'Délai inter-mail cron (ms)',          'Délai entre chaque envoi d\'email dans les jobs cron (0 = sans délai)'),
+('cron_newsletter_batch_size', '30',    'int',   'Taille batch newsletter',             'Nombre d\'emails newsletter envoyés par cycle de cron'),
+('click_collect_enabled',      'false', 'bool',  'Click & Collect',                     'Activer le retrait en cave (click & collect)'),
+('stock_notification_enabled', 'true',  'bool',  'Notifications stock',                 'Envoyer des alertes email quand le stock passe sous le seuil'),
+('rate_limit_login_max',       '10',    'int',   'Tentatives connexion max',            'Nombre max de tentatives de connexion par IP par fenêtre de temps'),
+('rate_limit_login_window',    '900',   'int',   'Fenêtre rate limiting connexion (s)', 'Durée de la fenêtre de rate limiting pour la connexion en secondes'),
+('newsletter_enabled',         'true',  'bool',  'Newsletter activée',                  'Activer l\'inscription à la newsletter et les envois automatiques')
+ON DUPLICATE KEY UPDATE `value` = `value`;
 
 COMMIT;

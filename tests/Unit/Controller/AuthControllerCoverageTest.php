@@ -7,6 +7,7 @@ namespace Tests\Unit\Controller;
 use Controller\AuthController;
 use Core\Database;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Core\Request;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
@@ -75,6 +76,7 @@ class AuthControllerCoverageTest extends TestCase
         $_POST    = [];
         $_COOKIE  = [];
         unset($_SERVER['REMOTE_ADDR'], $_ENV['MFA_EMAIL_ENABLED']);
+        FeatureFlags::flush();
     }
 
     private function setDbMock(): \PHPUnit\Framework\MockObject\Stub

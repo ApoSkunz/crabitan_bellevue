@@ -358,7 +358,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
      * Initie une demande de remboursement depuis l'espace-compte client.
      *
      * Délègue à RefundService qui applique la logique GAE/Vision Air
-     * selon CA_ENABLE_GAE et envoie l'email de confirmation au client.
+     * selon ca_enable_gae et envoie l'email de confirmation au client.
      *
      * @param array<string, string> $params Paramètres de route (lang, id)
      * @return void

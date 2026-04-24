@@ -162,6 +162,8 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             'purge-addresses'           => fn(callable $log, bool $dryRun) => $this->doJobPurgeAddresses($log, $dryRun),
             'purge-rate-limits'         => fn(callable $log, bool $dryRun) => $this->doJobPurgeRateLimits($log, $dryRun),
             'purge-order-rating-tokens' => fn(callable $log, bool $dryRun) => $this->doJobPurgeOrderRatingTokens($log, $dryRun),
+            'purge-admin-otps'          => fn(callable $log, bool $dryRun) => $this->doJobPurgeAdminOtps($log, $dryRun),
+            'purge-logs'                => fn(callable $log, bool $dryRun) => $this->doJobPurgeLogs($log, $dryRun),
             default                     => null,
         };
     }
@@ -248,7 +250,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     {
         $model          = new \Model\AccountModel();
         $mailer         = new \Service\MailService();
-        $inactiveMonths = (int) ($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
+        $inactiveMonths = (int)($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
 
         $log("Seuil d'inactivité : {$inactiveMonths} mois");
 
@@ -292,7 +294,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                 $log("[DRY-RUN] Would send inactivity warning to {$account['email']} (id={$id})");
                 continue;
             }
-            $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+            $delayMs = max(0, \Core\FeatureFlags::getInt('cron_mail_delay_ms', 0));
             try {
                 $mailer->sendInactivityWarning(
                     (string) $account['email'],
@@ -368,7 +370,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     {
         $model   = new \Model\AccountModel();
         $mailer  = $this->newMailService();
-        $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+        $delayMs = max(0, \Core\FeatureFlags::getInt('cron_mail_delay_ms', 0));
         $sent    = 0;
 
         foreach ([7, 1] as $days) {
@@ -529,6 +531,65 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     }
 
     /**
+     * Purge les OTP admin expirés (table admin_otps).
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeAdminOtps(callable $log, bool $dryRun): void
+    {
+        $model = new \Model\AdminOtpModel();
+
+        if ($dryRun) {
+            $log('[DRY-RUN] Would purge expired admin OTPs — aucune écriture BDD');
+            return;
+        }
+
+        $purged = $model->purgeExpired();
+        $log("{$purged} OTP(s) admin expiré(s) purgé(s)");
+    }
+
+    /**
+     * Purge tous les fichiers *.log de storage/logs/ datant de plus de 30 jours.
+     *
+     * Couvre les logs applicatifs (app-*.log) et les logs cron ({job}-*.log).
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobPurgeLogs(callable $log, bool $dryRun): void
+    {
+        $logDir = defined('ROOT_PATH') ? ROOT_PATH . '/storage/logs' : '';
+        if ($logDir === '' || !is_dir($logDir)) {
+            $log('storage/logs introuvable — rien à purger');
+            return;
+        }
+
+        $cutoff  = time() - 30 * 86400;
+        $files   = glob($logDir . '/*.log') ?: [];
+        $deleted = 0;
+
+        foreach ($files as $file) {
+            if (filemtime($file) < $cutoff) {
+                if ($dryRun) {
+                    $log('[DRY-RUN] Would delete ' . basename($file));
+                } else {
+                    unlink($file);
+                    $deleted++;
+                }
+            }
+        }
+
+        if ($dryRun) {
+            $log('[DRY-RUN] ' . count(array_filter($files, fn($f) => filemtime($f) < $cutoff)) . ' fichier(s) à purger — aucune écriture');
+        } else {
+            $log("{$deleted} fichier(s) de log purgé(s) (> 30 jours)");
+        }
+    }
+
+    /**
      * Purge les tokens de notation de commande expirés (TTL 90 jours).
      *
      * @param callable(string):void $log
@@ -613,7 +674,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
                 continue;
             }
 
-            $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+            $delayMs = max(0, \Core\FeatureFlags::getInt('cron_mail_delay_ms', 0));
             try {
                 $mailer->sendAbandonedCart($data['email'], $data['firstname'], $data['items'], $data['lang'], $cartUrl);
                 $cartModel->markReminderSent($data['cart_id']);
@@ -658,7 +719,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             $items = json_decode((string) $order['content'], true) ?? [];
             $lang  = in_array($account['lang'] ?? '', ['fr', 'en'], true) ? $account['lang'] : 'fr';
 
-            $delayMs = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+            $delayMs = max(0, \Core\FeatureFlags::getInt('cron_mail_delay_ms', 0));
             try {
                 $mailer->sendPostPurchase(
                     $account['email'],
@@ -681,8 +742,8 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
 
     /**
      * Envoie un batch de la file d'attente newsletter (nouveau vin).
-     * Taille du batch : CRON_NEWSLETTER_BATCH_SIZE (défaut 30).
-     * Délai inter-envoi : CRON_MAIL_DELAY_MS (défaut 0).
+     * Taille du batch : cron_newsletter_batch_size (défaut 30).
+     * Délai inter-envoi : cron_mail_delay_ms (défaut 0).
      *
      * @param callable(string):void $log
      * @param bool                  $dryRun
@@ -698,8 +759,8 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             'mailer'   => new \Service\MailService(),
         ];
         $appUrl    = rtrim($_ENV['APP_URL'] ?? self::APP_URL_FALLBACK, '/');
-        $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
-        $delayMs   = max(0, (int) ($_ENV['CRON_MAIL_DELAY_MS'] ?? 0));
+        $batchSize = max(1, \Core\FeatureFlags::getInt('cron_newsletter_batch_size', 30));
+        $delayMs   = max(0, \Core\FeatureFlags::getInt('cron_mail_delay_ms', 0));
 
         $pending = $services['queue']->getPending($batchSize);
         $total   = count($pending);
@@ -1054,7 +1115,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     {
         $db        = \Core\Database::getInstance();
         $mailer    = new \Service\MailService();
-        $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
+        $batchSize = max(1, \Core\FeatureFlags::getInt('cron_newsletter_batch_size', 30));
 
         // J+7 : éducation domaine
         $j7Rows = $db->fetchAll(
@@ -1141,7 +1202,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     {
         $db        = \Core\Database::getInstance();
         $mailer    = new \Service\MailService();
-        $batchSize = max(1, (int) ($_ENV['CRON_NEWSLETTER_BATCH_SIZE'] ?? 30));
+        $batchSize = max(1, \Core\FeatureFlags::getInt('cron_newsletter_batch_size', 30));
         $appUrl    = rtrim($_ENV['APP_URL'] ?? self::APP_URL_FALLBACK, '/');
 
         $rows = $db->fetchAll(

@@ -125,15 +125,15 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                     <th class="col-hide-tablet">Dernière connexion</th>
                     <th class="col-hide-tablet">Cmdes</th>
                     <th class="col-hide-tablet">Activité</th>
+                    <th>Vérif.</th>
                     <?php if ($isSuperAdmin) : ?>
-                        <th>Vérif.</th>
                         <th>Réinit. mdp</th>
                     <?php endif; ?>
                 </tr>
             </thead>
             <tbody>
             <?php if (empty($accounts)) : ?>
-                <tr><td colspan="<?= $isSuperAdmin ? 14 : 12 ?>"
+                <tr><td colspan="<?= $isSuperAdmin ? 14 : 13 ?>"
                         style="text-align:center;color:#8a7a60;padding:2rem;">Aucun compte trouvé</td></tr>
             <?php else : ?>
                 <?php foreach ($accounts as $account) : ?>
@@ -210,23 +210,23 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                             }
                             ?>
                         </td>
+                        <td style="white-space:nowrap;">
+                            <?php if (!$verified) : ?>
+                                <form method="POST"
+                                      action="/admin/comptes/<?= (int) $account['id'] ?>/verifier"
+                                      style="display:inline;"
+                                      data-admin-confirm="Vérifier ce compte manuellement ?">
+                                    <input type="hidden" name="csrf_token"
+                                           value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                    <button type="submit" class="admin-btn admin-btn--verify admin-btn--sm">
+                                        Vérifier
+                                    </button>
+                                </form>
+                            <?php else : ?>
+                                <span style="color:#ccc;">—</span>
+                            <?php endif; ?>
+                        </td>
                         <?php if ($isSuperAdmin) : ?>
-                            <td style="white-space:nowrap;">
-                                <?php if (!$verified) : ?>
-                                    <form method="POST"
-                                          action="/admin/comptes/<?= (int) $account['id'] ?>/verifier"
-                                          style="display:inline;"
-                                          data-admin-confirm="Vérifier ce compte manuellement ?">
-                                        <input type="hidden" name="csrf_token"
-                                               value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                        <button type="submit" class="admin-btn admin-btn--verify admin-btn--sm">
-                                            Vérifier
-                                        </button>
-                                    </form>
-                                <?php else : ?>
-                                    <span style="color:#ccc;">—</span>
-                                <?php endif; ?>
-                            </td>
                             <td style="white-space:nowrap;">
                                 <?php if (!empty($account['email_verified_at']) && !empty($account['has_password'])) : ?>
                                     <form method="POST"

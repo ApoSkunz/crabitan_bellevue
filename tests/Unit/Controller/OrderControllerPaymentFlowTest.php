@@ -7,6 +7,7 @@ namespace Tests\Unit\Controller;
 use Controller\OrderController;
 use Core\Database;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Core\Request;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -1286,7 +1287,7 @@ class OrderControllerPaymentFlowTest extends TestCase
      */
     public function testPaymentPickupUsesClickCollectDiscountFromSingleton(): void
     {
-        $_ENV['CLICK_COLLECT_ENABLED'] = 'true';
+        FeatureFlags::setCache(['click_collect_enabled' => ['key' => 'click_collect_enabled', 'value' => 'true', 'type' => 'bool']]);
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
@@ -1335,7 +1336,7 @@ class OrderControllerPaymentFlowTest extends TestCase
         } catch (HttpException $e) {
             $caught = $e;
         } finally {
-            unset($_ENV['CLICK_COLLECT_ENABLED']);
+            FeatureFlags::flush();
         }
 
         // La commande a été créée (virement → redirect + last_order_ref posé)

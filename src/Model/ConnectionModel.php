@@ -13,6 +13,8 @@ class ConnectionModel extends Model
 {
     protected string $table = 'connections';
 
+    private const DATE_FORMAT_MYSQL = 'Y-m-d H:i:s';
+
     /**
      * Enregistre une nouvelle connexion en base.
      *
@@ -48,7 +50,7 @@ class ConnectionModel extends Model
                 $userAgent !== null ? substr($userAgent, 0, 65535) : null,
                 $deviceName,
                 $authMethod,
-                date('Y-m-d H:i:s', time() + $expiry),
+                date(self::DATE_FORMAT_MYSQL, time() + $expiry),
             ]
         );
     }
@@ -192,7 +194,29 @@ class ConnectionModel extends Model
             "UPDATE {$this->table}
              SET expired_at = ?
              WHERE token = ? AND status = 'active' AND expired_at > NOW()",
-            [date('Y-m-d H:i:s', time() + $expiry), $token]
+            [date(self::DATE_FORMAT_MYSQL, time() + $expiry), $token]
+        );
+        return $affected > 0;
+    }
+
+    /**
+     * Remplace le token JWT et prolonge expired_at atomiquement (sliding refresh).
+     *
+     * Utilisé lors du refresh standard : le JWT est régénéré avec un nouveau claim exp,
+     * l'ancien token est remplacé en base pour maintenir la cohérence session ↔ cookie.
+     *
+     * @param string $oldToken JWT expirant
+     * @param string $newToken Nouveau JWT généré
+     * @param int    $expiry   Durée en secondes à partir de maintenant
+     * @return bool            true si la ligne a été mise à jour
+     */
+    public function refreshToken(string $oldToken, string $newToken, int $expiry): bool
+    {
+        $affected = $this->db->execute(
+            "UPDATE {$this->table}
+             SET token = ?, expired_at = ?
+             WHERE token = ? AND status = 'active' AND expired_at > NOW()",
+            [$newToken, date(self::DATE_FORMAT_MYSQL, time() + $expiry), $oldToken]
         );
         return $affected > 0;
     }

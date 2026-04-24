@@ -546,7 +546,7 @@ class WineController extends Controller
         ];
         $colorStr = $colorMap[$wine['wine_color'] ?? ''][$lang] ?? (string) ($wine['wine_color'] ?? '');
 
-        $nutritionEnabled = filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+        $nutritionEnabled = \Core\FeatureFlags::getBool('enable_extra_info', false);
         $nutritionLabel   = $isEn ? 'NUTRITIONAL INFORMATION' : 'INFORMATIONS NUTRITIONNELLES';
         $nutritionSection = $nutritionEnabled
             ? [$nutritionLabel => array_filter($this->buildNutritionFields($nutrition, $isEn))]

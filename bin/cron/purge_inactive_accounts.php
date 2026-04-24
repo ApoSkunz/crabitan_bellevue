@@ -23,7 +23,7 @@ $runner = new \Core\CronRunner('purge_inactive_accounts');
 exit($runner->run(function (callable $log, bool $dryRun): void {
     $model          = new \Model\AccountModel();
     $mailer         = new \Service\MailService();
-    $inactiveMonths = (int) ($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
+    $inactiveMonths = (int)($_ENV['RGPD_INACTIVITY_MONTHS'] ?? 36);
 
     $log("Seuil d'inactivité : {$inactiveMonths} mois");
 

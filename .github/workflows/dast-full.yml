@@ -82,16 +82,13 @@ jobs:
           MAIL_FROM_NAME="Crabitan Bellevue"
           MAIL_NOREPLY_USER=noreply@crabitanbellevue.fr
           MAIL_NOREPLY_PASS=unused
-          MFA_EMAIL_ENABLED=false
           CONTACT_OWNER_EMAIL=owner@crabitanbellevue.fr
           DPO_EMAIL=dpo@crabitanbellevue.fr
           SECURITY_EMAIL=security@crabitanbellevue.fr
           CA_API_URL=
           CA_API_KEY=
-          CA_ENABLE_GAE=false
           DB_ENCRYPT_KEY=dast-ci-encrypt-key-not-for-prod
           DEFAULT_LANG=fr
-          INVOICE_AUTO_GENERATE=false
           EOF
 
       - name: Start PHP built-in server

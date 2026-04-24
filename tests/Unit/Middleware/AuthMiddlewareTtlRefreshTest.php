@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Middleware;
 
+use Core\FeatureFlags;
 use Core\Jwt;
 use Middleware\AuthMiddleware;
 use PHPUnit\Framework\TestCase;
@@ -20,9 +21,14 @@ class AuthMiddlewareTtlRefreshTest extends TestCase
     protected function setUp(): void
     {
         $_COOKIE = [];
-        $_ENV['JWT_SECRET']            = 'test-secret-key-for-unit-tests';
-        $_ENV['JWT_EXPIRY']            = '3600';
-        $_ENV['JWT_REFRESH_THRESHOLD'] = '0.5';
+        $_ENV['JWT_SECRET']  = 'test-secret-key-for-unit-tests';
+        $_ENV['JWT_EXPIRY']  = '3600';
+        FeatureFlags::setCache(['jwt_refresh_threshold' => ['key' => 'jwt_refresh_threshold', 'value' => '0.5', 'type' => 'float']]);
+    }
+
+    protected function tearDown(): void
+    {
+        FeatureFlags::flush();
     }
 
     // ------------------------------------------------------------------

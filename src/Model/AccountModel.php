@@ -858,7 +858,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      * Critères d'exclusion : admin/super_admin, déjà soft-deleted,
      * avertissement déjà envoyé, commande pending/processing active.
      *
-     * @param int $months Durée d'inactivité en mois (lu depuis RGPD_INACTIVITY_MONTHS)
+     * @param int $months Durée d'inactivité en mois (lu depuis $_ENV['RGPD_INACTIVITY_MONTHS'])
      * @return array<int, array<string, mixed>>
      */
     public function getInactiveAccounts(int $months): array

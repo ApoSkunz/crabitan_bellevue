@@ -6,6 +6,7 @@ namespace Tests\Unit\Controller;
 
 use Controller\IpnController;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Model\CartModel;
 use Model\OrderModel;
 use Model\PaymentIntentModel;
@@ -140,7 +141,7 @@ class IpnControllerHandleFlowTest extends TestCase
         $_SESSION = [];
 
         // Force la génération de facture pour que les tests vérifient bien le flux complet
-        $_ENV['INVOICE_AUTO_GENERATE'] = 'true';
+        FeatureFlags::setCache(['invoice_auto_generate' => ['key' => 'invoice_auto_generate', 'value' => 'true', 'type' => 'bool']]);
     }
 
     protected function tearDown(): void
@@ -149,7 +150,7 @@ class IpnControllerHandleFlowTest extends TestCase
         $_SESSION = [];
         $_SERVER['QUERY_STRING'] = '';
         unset($_ENV['MAINTAINER_MAIL']);
-        unset($_ENV['INVOICE_AUTO_GENERATE']);
+        FeatureFlags::flush();
     }
 
     // ================================================================

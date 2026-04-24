@@ -13,7 +13,7 @@ abstract class AdminController extends Controller
     /**
      * Vérifie le JWT admin et retourne les infos de l'utilisateur courant.
      *
-     * @return array{id: int, role: string, name: string}
+     * @return array{id: int, role: string, name: string, email: string}
      */
     protected function requireAdmin(): array
     {
@@ -21,16 +21,19 @@ abstract class AdminController extends Controller
         $this->resolveLang(['lang' => 'fr']);
 
         $account = (new AccountModel())->findById((int) $payload['sub']);
-        $name = 'Admin';
+        $name  = 'Admin';
+        $email = '';
         if ($account) {
-            $full = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
-            $name = $full !== '' ? $full : ($account['company_name'] ?? 'Admin');
+            $full  = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? ''));
+            $name  = $full !== '' ? $full : ($account['company_name'] ?? 'Admin');
+            $email = (string) ($account['email'] ?? '');
         }
 
         return [
-            'id'   => (int) $payload['sub'],
-            'role' => $payload['role'] ?? 'admin',
-            'name' => $name,
+            'id'    => (int) $payload['sub'],
+            'role'  => $payload['role'] ?? 'admin',
+            'name'  => $name,
+            'email' => $email,
         ];
     }
 
@@ -38,7 +41,7 @@ abstract class AdminController extends Controller
      * Vérifie le JWT admin ET que le rôle est super_admin.
      * Renvoie une 404 sinon (évite de révéler l'existence de la route).
      *
-     * @return array{id: int, role: string, name: string}
+     * @return array{id: int, role: string, name: string, email: string}
      */
     protected function requireSuperAdmin(): array
     {

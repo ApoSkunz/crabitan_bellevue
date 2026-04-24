@@ -178,6 +178,11 @@ class NewsletterController extends Controller
     public function subscribe(array $params): void
     {
         $lang  = $this->resolveLang($params);
+
+        if (!\Core\FeatureFlags::getBool('newsletter_enabled', true)) {
+            $this->json(['success' => false, 'error' => __('newsletter.disabled')], 503);
+        }
+
         $email = strtolower(trim($this->request->post('email', '')));
         $ip    = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
+use Core\FeatureFlags;
 use Core\SessionTtlRefresher;
 use PHPUnit\Framework\TestCase;
 
@@ -18,8 +19,13 @@ class SessionTtlRefresherTest extends TestCase
 {
     protected function setUp(): void
     {
-        $_ENV['JWT_EXPIRY']            = '3600';
-        $_ENV['JWT_REFRESH_THRESHOLD'] = '0.5';
+        $_ENV['JWT_EXPIRY'] = '3600';
+        FeatureFlags::setCache(['jwt_refresh_threshold' => ['key' => 'jwt_refresh_threshold', 'value' => '0.5', 'type' => 'float']]);
+    }
+
+    protected function tearDown(): void
+    {
+        FeatureFlags::flush();
     }
 
     // ------------------------------------------------------------------
@@ -269,7 +275,7 @@ class SessionTtlRefresherTest extends TestCase
      */
     public function testCustomThresholdLow(): void
     {
-        $_ENV['JWT_REFRESH_THRESHOLD'] = '0.2';
+        FeatureFlags::setCache(['jwt_refresh_threshold' => ['key' => 'jwt_refresh_threshold', 'value' => '0.2', 'type' => 'float']]);
         $now = time();
         // 30% restant > seuil 20% → pas de refresh
         $payload = ['iat' => $now - 2520, 'exp' => $now + 1080]; // 30% de 3600
@@ -291,7 +297,7 @@ class SessionTtlRefresherTest extends TestCase
      */
     public function testCustomThresholdHigh(): void
     {
-        $_ENV['JWT_REFRESH_THRESHOLD'] = '0.8';
+        FeatureFlags::setCache(['jwt_refresh_threshold' => ['key' => 'jwt_refresh_threshold', 'value' => '0.8', 'type' => 'float']]);
         $now = time();
         // 60% restant < seuil 80% → refresh déclenché
         $payload = ['iat' => $now - 1440, 'exp' => $now + 2160]; // 60% de 3600
@@ -309,11 +315,11 @@ class SessionTtlRefresherTest extends TestCase
     }
 
     /**
-     * Absence de JWT_REFRESH_THRESHOLD → valeur par défaut 0.5.
+     * Absence de jwt_refresh_threshold → valeur par défaut 0.5.
      */
     public function testDefaultThresholdUsedWhenEnvAbsent(): void
     {
-        unset($_ENV['JWT_REFRESH_THRESHOLD']);
+        FeatureFlags::flush();
         $now = time();
         // 40% restant < seuil 0.5 par défaut → refresh déclenché
         $payload = ['iat' => $now - 2160, 'exp' => $now + 1440];

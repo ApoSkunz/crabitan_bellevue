@@ -2104,7 +2104,7 @@ INNER;
     }
 
     /**
-     * Notifie le propriétaire qu'une demande de remboursement manuel a été soumise (CA_ENABLE_GAE=false).
+     * Notifie le propriétaire qu'une demande de remboursement manuel a été soumise (ca_enable_gae=false).
      *
      * @param array<string, mixed> $order       Données de la commande
      * @param string               $clientName  Nom du client
@@ -2905,7 +2905,7 @@ INNER;
     /**
      * Notifie le client que son remboursement a été initié (statut refund_pending).
      *
-     * Envoyée lorsque CA_ENABLE_GAE=false — le remboursement sera traité manuellement.
+     * Envoyée lorsque ca_enable_gae=false — le remboursement sera traité manuellement.
      *
      * @param string $toEmail  Adresse email du client
      * @param string $toName   Nom affiché du client
@@ -4483,6 +4483,95 @@ HTML;
     {
         $this->setMailType('admin_action');
         $this->applySmtpConfig(MailChannel::SECURITY);
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Envoie un OTP à l'administrateur pour confirmer un batch de modifications de feature flags.
+     *
+     * @param string                                                    $to      Adresse email
+     * @param string                                                    $name    Nom de l'administrateur
+     * @param array<int, array{key: string, old: string, new: string, label: string}> $changes Modifications en attente
+     * @param string                                                    $otp     Code OTP à 6 chiffres
+     * @return void
+     */
+    /**
+     * Alerte sécurité : compte super_admin bloqué 1h après 3 échecs OTP feature flags.
+     *
+     * @param string $to   Email du super_admin
+     * @param string $name Nom du super_admin
+     * @param string $ip   IP source de la dernière tentative
+     * @return void
+     */
+    public function sendFeatureFlagOtpBlocked(string $to, string $name, string $ip): void
+    {
+        $this->setMailType('admin_action');
+        $this->applySmtpConfig(MailChannel::SECURITY);
+
+        $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+        $safeIp   = htmlspecialchars($ip, ENT_QUOTES, 'UTF-8');
+        $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
+        $subject  = '[ALERTE] Feature flags — Compte bloqué 1 heure (3 tentatives OTP échouées)';
+
+        $message = "Bonjour {$safeName},<br><br>"
+            . "Votre compte a été temporairement bloqué suite à <strong>3 tentatives OTP incorrectes</strong> "
+            . "lors d'une demande de modification de feature flags.<br><br>"
+            . "<strong>Date :</strong> {$safeDate}<br>"
+            . "<strong>IP source :</strong> {$safeIp}<br><br>"
+            . "Toute nouvelle demande de modification est bloquée pendant <strong>1 heure</strong>.<br><br>"
+            . "Si vous êtes à l'origine de ces tentatives, vous pouvez ignorer ce message.<br>"
+            . "Dans le cas contraire, signalez immédiatement cet incident à votre équipe de sécurité.";
+
+        $body = $this->emailSimpleLayout($subject, "Bonjour {$safeName},", $message, 'fr');
+        $this->send($to, $name, $subject, $body);
+    }
+
+    public function sendFeatureFlagBatchOtp(
+        string $to,
+        string $name,
+        array $changes,
+        string $otp
+    ): void {
+        $this->setMailType('admin_action');
+        $this->applySmtpConfig(MailChannel::SECURITY);
+
+        $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+        $count    = count($changes);
+        $subject  = "Code de confirmation — {$count} modification(s) feature flags";
+
+        $rows = '';
+        foreach ($changes as $c) {
+            $lbl = htmlspecialchars((string)($c['label'] ?? $c['key']), ENT_QUOTES, 'UTF-8');
+            $old = htmlspecialchars((string)($c['old'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $new = htmlspecialchars((string)($c['new'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $rows .= "<tr>"
+                . "<td style=\"padding:4px 8px;border-bottom:1px solid #e5e7eb;\">{$lbl}</td>"
+                . "<td style=\"padding:4px 8px;border-bottom:1px solid #e5e7eb;color:#b91c1c;\">{$old}</td>"
+                . "<td style=\"padding:4px 8px;border-bottom:1px solid #e5e7eb;color:#15803d;\">→ {$new}</td>"
+                . "</tr>";
+        }
+
+        $message = "Bonjour {$safeName},<br><br>"
+            . "Une demande de modification de <strong>{$count} feature flag(s)</strong> "
+            . "a été initiée depuis le back-office.<br><br>"
+            . "<table style=\"border-collapse:collapse;font-size:0.875em;\">"
+            . "<thead><tr>"
+            . "<th style=\"padding:4px 8px;text-align:left;\">Flag</th>"
+            . "<th style=\"padding:4px 8px;text-align:left;\">Avant</th>"
+            . "<th style=\"padding:4px 8px;text-align:left;\">Après</th>"
+            . "</tr></thead><tbody>{$rows}</tbody></table><br>"
+            . "Votre code de confirmation :<br><br>"
+            . "<table style=\"border-collapse:separate;border-spacing:6px 0;margin:16px auto;\">"
+            . "<tr>" . implode('', array_map(
+                fn(string $d) => "<td style=\"width:36px;text-align:center;font-size:1.8em;"
+                    . "font-weight:bold;border-bottom:2px solid #3d3425;padding:4px 2px;"
+                    . "line-height:1.2;\">{$d}</td>",
+                str_split($otp)
+            )) . "</tr></table><br>"
+            . "Ce code est valable <strong>120 secondes</strong>.<br>"
+            . "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.";
+
+        $body = $this->emailSimpleLayout($subject, "Bonjour {$safeName},", $message, 'fr');
         $this->send($to, $name, $subject, $body);
     }
 }

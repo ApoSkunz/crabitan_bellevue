@@ -16,7 +16,7 @@ class AuthMiddleware
     /**
      * Vérifie le JWT en cookie et retourne le payload.
      * Vérifie aussi que la session est toujours active en base (non révoquée).
-     * Prolonge expired_at si le TTL restant est inférieur au seuil JWT_REFRESH_THRESHOLD.
+     * Prolonge expired_at si le TTL restant est inférieur au seuil jwt_refresh_threshold.
      * Redirige vers /connexion si absent, invalide ou révoqué.
      *
      * @param  callable(string):bool|null      $sessionChecker  Injectable pour les tests unitaires.
@@ -65,13 +65,32 @@ class AuthMiddleware
         // Les sessions remember-me ont auth_method = 'password' avec TTL 30j :
         // on les détecte par comparaison entre la durée JWT et JWT_EXPIRY standard.
         $isRememberMe = self::isRememberMeToken($payload);
+        $newToken     = null;
 
-        $refresher = $ttlRefresher ?? static function (string $t, int $expiry): bool {
+        $refresher = $ttlRefresher ?? static function (string $t, int $expiry) use ($payload, $isRememberMe, &$newToken): bool {
             $model = new ConnectionModel();
-            return $model->refreshExpiry($t, $expiry);
+            if ($isRememberMe) {
+                // Remember-me : on ne régénère pas le JWT (durée 30j volontaire)
+                return $model->refreshExpiry($t, $expiry);
+            }
+            // Session standard : régénérer le JWT avec nouveau exp pour éviter le kick
+            $newPayload        = $payload;
+            $newPayload['exp'] = time() + $expiry;
+            $generated         = Jwt::encode($newPayload);
+            $ok                = $model->refreshToken($t, $generated, $expiry);
+            if ($ok) {
+                $newToken = $generated;
+            }
+            return $ok;
         };
 
         $refreshed = SessionTtlRefresher::maybeRefresh($payload, $token, $isRememberMe, $refresher);
+
+        // Émettre le nouveau cookie si le JWT a été régénéré
+        if ($newToken !== null) {
+            $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 7200);
+            CookieHelper::set($newToken, $expiry);
+        }
 
         // Sliding refresh du cookie age-gate quand le JWT approche de son expiration.
         // S'applique à tout utilisateur ayant passé la vérification d'âge (age_verified présent).
@@ -131,7 +150,7 @@ class AuthMiddleware
             return false;
         }
 
-        $standardExpiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+        $standardExpiry = (int) ($_ENV['JWT_EXPIRY'] ?? 7200);
         $tokenTtl       = (int) $payload['exp'] - (int) $payload['iat'];
 
         // Si la durée totale du token dépasse la durée standard, c'est un remember-me
