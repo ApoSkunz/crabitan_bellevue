@@ -4485,4 +4485,48 @@ HTML;
         $this->applySmtpConfig(MailChannel::SECURITY);
         $this->send($to, $name, $subject, $body);
     }
+
+    /**
+     * Envoie un OTP à l'administrateur pour confirmer la modification d'un feature flag.
+     *
+     * @param string $to       Adresse email de l'administrateur
+     * @param string $name     Nom de l'administrateur
+     * @param string $label    Libellé humain du flag modifié
+     * @param string $oldValue Valeur actuelle du flag
+     * @param string $newValue Nouvelle valeur souhaitée
+     * @param string $otp      Code OTP à 6 chiffres (valable 120 s)
+     * @return void
+     */
+    public function sendFeatureFlagOtp(
+        string $to,
+        string $name,
+        string $label,
+        string $oldValue,
+        string $newValue,
+        string $otp
+    ): void {
+        $this->setMailType('admin_action');
+        $this->applySmtpConfig(MailChannel::SECURITY);
+
+        $safeName     = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+        $safeLabel    = htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
+        $safeOldValue = htmlspecialchars($oldValue, ENT_QUOTES, 'UTF-8');
+        $safeNewValue = htmlspecialchars($newValue, ENT_QUOTES, 'UTF-8');
+
+        $subject = 'Code de confirmation — modification feature flag';
+        $message = "Bonjour {$safeName},<br><br>"
+            . "Une demande de modification du flag <strong>{$safeLabel}</strong> "
+            . "a été initiée depuis le back-office.<br><br>"
+            . "<strong>Valeur actuelle :</strong> {$safeOldValue}<br>"
+            . "<strong>Nouvelle valeur :</strong> {$safeNewValue}<br><br>"
+            . "Votre code de confirmation :<br><br>"
+            . "<div style=\"font-size:2em;font-weight:bold;letter-spacing:0.3em;"
+            . "text-align:center;padding:16px 0;\">{$otp}</div><br>"
+            . "Ce code est valable <strong>120 secondes</strong>.<br>"
+            . "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.";
+
+        $body = $this->emailSimpleLayout($subject, "Bonjour {$safeName},", $message, 'fr');
+
+        $this->send($to, $name, $subject, $body);
+    }
 }
