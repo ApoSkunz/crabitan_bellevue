@@ -145,7 +145,7 @@ $cls = ' is-active'; // single definition — used for radio/checkbox filter act
                                         <span class="wine-card__badge wine-card__badge--out">
                                             <?= htmlspecialchars(__('wine.out_of_stock')) ?>
                                         </span>
-                                    <?php elseif ((int) ($wine['stock_quantity'] ?? 0) <= (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300)) : ?>
+                                    <?php elseif ((int) ($wine['stock_quantity'] ?? 0) <= \Core\FeatureFlags::getInt('stock_alert_limit', 300)) : ?>
                                         <span class="wine-card__badge wine-card__badge--low-stock">
                                             <?= htmlspecialchars(__('wine.low_stock')) ?>
                                         </span>

@@ -321,7 +321,7 @@ $maxYear = (int) date('Y');
         ══════════════════════════════════════════════════════ -->
         <?php
         $wn = $wineNutrition ?? [];
-        $enableExtraInfo = filter_var($_ENV['ENABLE_EXTRA_INFO'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+        $enableExtraInfo = \Core\FeatureFlags::getBool('enable_extra_info', false);
         ?>
         <div class="admin-section">
             <h2 class="admin-section__title">Informations complémentaires</h2>

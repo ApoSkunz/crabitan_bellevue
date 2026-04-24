@@ -234,7 +234,7 @@ require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S20
                                     <span class="cart-table__cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span>
                                 <?php endif; ?>
                                 <?php
-                                $stockLimit = (int) ($_ENV['STOCK_ALERTE_LIMIT'] ?? 300);
+                                $stockLimit = \Core\FeatureFlags::getInt('stock_alert_limit', 300);
                                 if ($stock > 0 && $stock <= $stockLimit) : // NOSONAR — php:S3973 — syntaxe alternative PHP standard dans les vues
                                     ?>
                                     <span class="cart-table__stock-notice">

@@ -34,7 +34,7 @@ if ($isPickupOrder) {
     $timeline = ['pending', 'paid', 'processing', 'shipped', 'delivered'];
 }
 $currentIdx  = array_search($order['status'], $timeline, true);
-$gaeEnabled           = filter_var($_ENV['CA_ENABLE_GAE'] ?? false, FILTER_VALIDATE_BOOLEAN);
+$gaeEnabled           = \Core\FeatureFlags::getBool('ca_enable_gae', false);
 $cancellable          = $order['status'] === 'pending' && ($order['payment_method'] ?? '') !== 'card';
 $cancellablePendingCb = $order['status'] === 'pending' && ($order['payment_method'] ?? '') === 'card';
 $cancellableRefund    = $order['status'] === 'paid'    && ($order['payment_method'] ?? '') === 'card' && $gaeEnabled;
