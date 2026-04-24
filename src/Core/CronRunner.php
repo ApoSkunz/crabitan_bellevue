@@ -110,7 +110,7 @@ class CronRunner
             return;
         }
 
-        $cutoff = time() - 90 * 86400;
+        $cutoff = time() - 30 * 86400;
         $files  = glob($this->logDir . '/' . $this->name . '-*.log') ?: [];
 
         foreach ($files as $file) {

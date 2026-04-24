@@ -551,7 +551,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     }
 
     /**
-     * Purge tous les fichiers *.log de storage/logs/ datant de plus de 90 jours.
+     * Purge tous les fichiers *.log de storage/logs/ datant de plus de 30 jours.
      *
      * Couvre les logs applicatifs (app-*.log) et les logs cron ({job}-*.log).
      *
@@ -567,7 +567,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             return;
         }
 
-        $cutoff  = time() - 90 * 86400;
+        $cutoff  = time() - 30 * 86400;
         $files   = glob($logDir . '/*.log') ?: [];
         $deleted = 0;
 
@@ -585,7 +585,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
         if ($dryRun) {
             $log('[DRY-RUN] ' . count(array_filter($files, fn($f) => filemtime($f) < $cutoff)) . ' fichier(s) à purger — aucune écriture');
         } else {
-            $log("{$deleted} fichier(s) de log purgé(s) (> 90 jours)");
+            $log("{$deleted} fichier(s) de log purgé(s) (> 30 jours)");
         }
     }
 
