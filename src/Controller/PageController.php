@@ -637,7 +637,7 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
      */
     public function securityTxt(): void
     {
-        $email   = $_ENV['SECURITY_EMAIL'];
+        $email   = $_ENV['SECURITY_EMAIL'] ?? 'cybersecurity@crabitanbellevue.fr';
         $appUrl  = rtrim($_ENV['APP_URL'], '/');
         $expires = (new \DateTimeImmutable('+1 year'))->format(\DateTimeInterface::RFC3339);
 

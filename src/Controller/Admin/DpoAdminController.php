@@ -17,7 +17,7 @@ class DpoAdminController extends AdminController
     /** @return string Email DPO lu depuis la variable d'environnement DPO_EMAIL */
     private function dpoEmail(): string
     {
-        return $_ENV['DPO_EMAIL'];
+        return $_ENV['DPO_EMAIL'] ?? 'dpo@crabitanbellevue.fr';
     }
     private const DATE_FORMAT = 'd/m/Y';
     // Offset révision annuelle (S1192)

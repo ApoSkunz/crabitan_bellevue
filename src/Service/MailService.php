@@ -12,6 +12,7 @@ use PHPMailer\PHPMailer\Exception;
 class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormModel/newMailService), pas de logique métier
 {
     private const DEFAULT_URL       = 'https://crabitanbellevue.fr';
+    private const OWNER_EMAIL_DEFAULT = 'crabitan.bellevue@orange.fr';
     private const PATH_SECURITY     = '/mon-compte/securite';
     private const PATH_REACTIVER    = '/compte/reactiver?token=';
     private const BTN_ANCHOR_STYLE_ATTR = '" style="';
@@ -95,10 +96,10 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         // HOST/PORT/ENCRYPTION partagés — USER/PASS spécifiques au canal
         $user = $_ENV[$prefix . 'USER'] ?? '';
         $pass = $_ENV[$prefix . 'PASS'] ?? '';
-        $enc  = $_ENV['MAIL_ENCRYPTION'] ?? '';
+        $enc  = $_ENV['MAIL_ENCRYPTION'] ?? 'ssl';
 
-        $this->mailer->Host = $_ENV['MAIL_HOST'] ?? 'crabitanbellevue.fr';
-        $this->mailer->Port = (int) ($_ENV['MAIL_PORT'] ?? 25);
+        $this->mailer->Host = $_ENV['MAIL_HOST'] ?? 'smtp.ionos.fr';
+        $this->mailer->Port = (int) ($_ENV['MAIL_PORT'] ?? 465);
 
         if ($user !== '') {
             $this->mailer->SMTPAuth   = true;
@@ -112,7 +113,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
         }
 
         $fromAddress = $user !== '' ? $user : 'noreply@crabitanbellevue.fr';
-        $fromName    = $_ENV['MAIL_FROM_NAME'] ?? 'Crabitan Bellevue';
+        $fromName    = $_ENV['MAIL_FROM_NAME'] ?? 'Château Crabitan Bellevue';
         $this->mailer->setFrom($fromAddress, $fromName);
     }
 
@@ -263,7 +264,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     ): void {
         $this->setMailType('contact');
         $this->applySmtpConfig(MailChannel::CONTACT);
-        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? self::OWNER_EMAIL_DEFAULT;
 
         $subjectLabel = $this->resolveSubjectLabel($subject, $lang);
         $subjectLine  = 'Contact site : ' . $subjectLabel;
@@ -1511,7 +1512,7 @@ INNER;
         string $deliveryMethod = 'shipping'
     ): void {
         $this->setMailType('order');
-        $ownerEmail    = $_ENV['CONTACT_OWNER_EMAIL'] ?? '';
+        $ownerEmail    = $_ENV['CONTACT_OWNER_EMAIL'] ?? self::OWNER_EMAIL_DEFAULT;
         $safeRef       = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeClient    = htmlspecialchars($clientName, ENT_QUOTES);
         $safeEmail     = htmlspecialchars($clientEmail, ENT_QUOTES);
@@ -1999,7 +2000,7 @@ INNER;
     {
         $this->setMailType('order');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
-        $ownerEmail   = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
+        $ownerEmail   = $_ENV['CONTACT_OWNER_EMAIL'] ?? self::OWNER_EMAIL_DEFAULT;
         $safeRef      = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName     = htmlspecialchars($clientName, ENT_QUOTES);
         $safeEmail    = htmlspecialchars($clientEmail, ENT_QUOTES);
@@ -2070,7 +2071,7 @@ INNER;
     {
         $this->setMailType('order');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
-        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? self::OWNER_EMAIL_DEFAULT;
         $safeRef    = htmlspecialchars($orderRef, ENT_QUOTES);
         $safeAmount = number_format($amount, 2, ',', ' ');
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
@@ -2115,7 +2116,7 @@ INNER;
     {
         $this->setMailType('order');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
-        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? self::OWNER_EMAIL_DEFAULT;
         $safeRef    = htmlspecialchars($order['order_reference'] ?? '', ENT_QUOTES);
         $safeName   = htmlspecialchars($clientName, ENT_QUOTES);
         $safeEmail  = htmlspecialchars($clientEmail, ENT_QUOTES);
@@ -2159,7 +2160,7 @@ INNER;
     {
         $this->setMailType('cron_reminder');
         $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
-        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '';
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? self::OWNER_EMAIL_DEFAULT;
         $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
         $count      = count($orders);
         $statusLabels = [

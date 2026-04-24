@@ -185,7 +185,7 @@ class AccountOrderController extends AbstractAccountController
             'success'           => $success,
             'error'             => $error,
             'csrf'              => $_SESSION['csrf'] ?? '',
-            'ownerEmail'        => $_ENV['CONTACT_OWNER_EMAIL'] ?? $_ENV['MAIL_USER'] ?? '',
+            'ownerEmail'        => $_ENV['CONTACT_OWNER_EMAIL'] ?? 'crabitan.bellevue@orange.fr',
             'cancellableReturn' => $cancellableReturn,
             'returnDeadline'    => $returnDeadline,
             'returnExpired'     => $returnExpired,

@@ -61,7 +61,7 @@ class IpnController
 
             if (!$this->payment->verifyIpnSignature($rawQuery)) {
                 try {
-                    $maintainerMail = $_ENV['MAINTAINER_MAIL'] ?? getenv('MAINTAINER_MAIL');
+                    $maintainerMail = $_ENV['MAINTAINER_MAIL'] ?? 'alexandresolane.web@gmail.com';
                     if (is_string($maintainerMail) && $maintainerMail !== '') {
                         $this->mail->sendIpnSignatureAlert(
                             $maintainerMail,

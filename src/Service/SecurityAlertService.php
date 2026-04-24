@@ -147,7 +147,7 @@ class SecurityAlertService
             \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }
 
-        $maintainerMail = $_ENV['MAINTAINER_MAIL'] ?? '';
+        $maintainerMail = $_ENV['MAINTAINER_MAIL'] ?? 'alexandresolane.web@gmail.com';
         if ($maintainerMail !== '' && $maintainerMail !== $to) {
             try {
                 $this->mail->sendAdminLoginFailureAlert($maintainerMail, 'Mainteneur', 'fr', $ip, $name);
@@ -177,7 +177,7 @@ class SecurityAlertService
             \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }
 
-        $maintainerMail = $_ENV['MAINTAINER_MAIL'] ?? '';
+        $maintainerMail = $_ENV['MAINTAINER_MAIL'] ?? 'alexandresolane.web@gmail.com';
         if ($maintainerMail !== '' && $maintainerMail !== $to) {
             try {
                 $this->mail->sendAdminPasswordChangeAlert(

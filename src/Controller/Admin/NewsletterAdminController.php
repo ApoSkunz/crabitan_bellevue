@@ -192,7 +192,7 @@ class NewsletterAdminController extends AdminController
         $bodyEn        = $translator->translate($body);
 
         $allowed  = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-        $appUrl   = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
         $destDir  = ROOT_PATH . '/public/assets/images/newsletter/';
         $imageUrl = $this->uploadNewsletterImage($_FILES['nl_image'] ?? [], $allowed, $destDir, $appUrl);
 

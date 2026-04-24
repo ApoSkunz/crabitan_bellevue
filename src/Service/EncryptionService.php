@@ -44,7 +44,7 @@ class EncryptionService
      */
     public static function fromEnv(): self
     {
-        $key = $_ENV['DB_ENCRYPT_KEY'] ?? (string) getenv('DB_ENCRYPT_KEY');
+        $key = $_ENV['DB_ENCRYPT_KEY'] ?? '';
         if (!is_string($key) || $key === '') {
             throw new \RuntimeException('EncryptionService: DB_ENCRYPT_KEY manquante ou vide.'); // NOSONAR — php:S112
         }

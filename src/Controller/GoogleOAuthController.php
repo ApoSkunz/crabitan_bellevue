@@ -331,7 +331,7 @@ class GoogleOAuthController extends Controller
 
         try {
             $token       = $this->linkTokens->create($accountId, $googleId, $accountLang);
-            $base        = rtrim($_ENV['APP_URL'] ?? '', '/');
+            $base        = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
             $confirmUrl  = $base . "/{$accountLang}/auth/google/link/verify?token=" . urlencode($token);
             $displayName = $existing['firstname']
                 ?? $existing['company_name']

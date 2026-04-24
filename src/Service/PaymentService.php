@@ -142,7 +142,7 @@ class PaymentService
             return false;
         }
 
-        $pubkeyPath = $this->getEnv('CA_PUBKEY_PATH');
+        $pubkeyPath = $this->getEnv('CA_PUBKEY_PATH', 'config/ca-pubkey.pem');
 
         // Résoudre les chemins relatifs depuis ROOT_PATH (le CWD Apache est public/)
         if ($pubkeyPath !== '' && !str_starts_with($pubkeyPath, '/') && !preg_match('/^[A-Za-z]:/', $pubkeyPath)) {
@@ -534,7 +534,7 @@ class PaymentService
     private function isSandbox(): bool
     {
         return in_array(
-            strtolower($this->getEnv('CA_SANDBOX_MODE')),
+            strtolower($this->getEnv('CA_SANDBOX_MODE', 'no')),
             ['true', '1', 'yes', 'on'],
             true
         );
@@ -546,9 +546,9 @@ class PaymentService
      * @param string $key Nom de la variable
      * @return string Valeur ou chaîne vide
      */
-    private function getEnv(string $key): string
+    private function getEnv(string $key, string $default = ''): string
     {
         $value = $_ENV[$key] ?? getenv($key);
-        return is_scalar($value) ? (string) $value : '';
+        return is_scalar($value) && $value !== false ? (string) $value : $default;
     }
 }
