@@ -69,8 +69,6 @@ $router->get('/admin/logs-app', 'Admin\AppLogsAdminController@index');
 $router->get('/admin/feature-flags', 'Admin\FeatureFlagsAdminController@index');
 $router->post('/admin/feature-flags/batch-request', 'Admin\FeatureFlagsAdminController@requestBatch');
 $router->post('/admin/feature-flags/batch-confirm', 'Admin\FeatureFlagsAdminController@confirmBatch');
-$router->post('/admin/feature-flags/{key}/request-change', 'Admin\FeatureFlagsAdminController@requestChange');
-$router->post('/admin/feature-flags/{key}/confirm-change', 'Admin\FeatureFlagsAdminController@confirmChange');
 $router->get('/admin/admins', 'Admin\AdminGestionAdminsController@index');
 $router->post('/admin/admins/{id}/bloquer', 'Admin\AdminGestionAdminsController@block');
 $router->post('/admin/admins/{id}/debloquer', 'Admin\AdminGestionAdminsController@unblock');
