@@ -2,6 +2,18 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.25.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.24.0...v1.25.0) (2026-04-24)
+
+
+### Bug Fixes
+
+* **env:** DB_ENCRYPT_KEY sans fallback getenv + CA_PUBKEY_PATH fallback config/ca-pubkey.pem ([584265e](https://github.com/ApoSkunz/crabitan_bellevue/commit/584265eca0085b1172a67dc60b8795a9934e05c3))
+
+
+### Features
+
+* **env:** fallbacks prod — mail, emails métier, APP_URL/NAME, CA_SANDBOX_MODE ([ed8a532](https://github.com/ApoSkunz/crabitan_bellevue/commit/ed8a5327f395860a782d6403f1b93832f176f7ee))
+
 # [1.24.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.23.0...v1.24.0) (2026-04-24)
 
 
