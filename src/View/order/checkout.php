@@ -191,7 +191,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                 </span>
                                 <span class="checkout-delivery-method__detail">
                                     <?php if ($ccDiscount > 0) : ?>
-                                    &minus;<?= number_format($ccDiscount, 2, ',', ' ') ?>&nbsp;€/<?= $isEn ? 'btl' : 'btl' ?>
+                                    &minus;<?= number_format($ccDiscount, 2, ',', ' ') ?>&nbsp;€/btl
                                     <?= $totalQty > 0 ? '(−&nbsp;' . number_format($ccDiscountTotal, 2, ',', ' ') . '&nbsp;€)' : '' ?>
                                     &mdash;
                                     <?php endif; ?>

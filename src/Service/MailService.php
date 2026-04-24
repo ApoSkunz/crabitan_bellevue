@@ -3299,7 +3299,7 @@ INNER;
                 \Core\ErrorLogger::warning($logEx, '[EmailRateLogModel]');
             }
             if (str_contains($msg, '421') || str_contains($msg, 'rate') || str_contains($msg, 'too many')) {
-                throw new \RuntimeException('MAIL_RATE_LIMIT', 429);
+                throw new \Exception\MailRateLimitException('MAIL_RATE_LIMIT', 429);
             }
             throw $e;
         }
