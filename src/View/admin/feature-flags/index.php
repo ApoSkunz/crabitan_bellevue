@@ -99,26 +99,30 @@ $categories = [
 
                     <div style="margin-bottom:1.25rem;">
                         <label style="display:block;font-size:0.8rem;font-weight:600;
-                                      color:#3d3425;margin-bottom:0.5rem;" for="otp-input">
+                                      color:#3d3425;margin-bottom:0.75rem;">
                             Code OTP
                         </label>
-                        <input
-                            type="text"
-                            id="otp-input"
-                            name="otp"
-                            maxlength="6"
-                            pattern="[0-9]{6}"
-                            placeholder="0 0 0 0 0 0"
-                            autocomplete="one-time-code"
-                            inputmode="numeric"
-                            required
-                            autofocus
-                            style="width:100%;box-sizing:border-box;
-                                   font-size:2rem;font-weight:700;letter-spacing:0.5em;
-                                   text-align:center;border:none;border-bottom:2px solid #3d3425;
-                                   outline:none;padding:0.25rem 0;background:transparent;
-                                   color:#3d3425;"
-                        >
+                        <input type="hidden" id="otp-input" name="otp">
+                        <div id="ff-otp-digits"
+                             style="display:flex;gap:0.75rem;justify-content:center;">
+                            <?php for ($i = 0; $i < 6; $i++): ?>
+                            <input
+                                type="text"
+                                inputmode="numeric"
+                                maxlength="1"
+                                pattern="[0-9]"
+                                autocomplete="<?= $i === 0 ? 'one-time-code' : 'off' ?>"
+                                <?= $i === 0 ? 'autofocus' : '' ?>
+                                style="width:2.5rem;height:3rem;border:none;
+                                       border-bottom:2px solid #c5b99a;
+                                       outline:none;background:transparent;
+                                       font-size:1.75rem;font-weight:700;text-align:center;
+                                       color:#3d3425;transition:border-color 0.15s;"
+                                onfocus="this.style.borderBottomColor='#3d3425'"
+                                onblur="this.style.borderBottomColor='#c5b99a'"
+                            >
+                            <?php endfor; ?>
+                        </div>
                     </div>
 
                     <div id="ff-otp-expired"
@@ -157,7 +161,6 @@ $categories = [
             var countEl  = document.getElementById('ff-otp-countdown');
             var expiredEl = document.getElementById('ff-otp-expired');
             var submitBtn = document.getElementById('ff-otp-submit');
-            var otpInput  = document.getElementById('otp-input');
 
             function fmt(s) {
                 var m = Math.floor(s / 60);
@@ -171,7 +174,9 @@ $categories = [
                     countEl.style.color = '#b91c1c';
                     expiredEl.style.display = 'block';
                     submitBtn.disabled = true;
-                    otpInput.disabled  = true;
+                    document.querySelectorAll('#ff-otp-digits input').forEach(function (d) {
+                        d.disabled = true;
+                    });
                     return;
                 }
                 countEl.textContent = fmt(remaining);
@@ -181,6 +186,44 @@ $categories = [
             }
 
             tick();
+
+            // ── OTP digit inputs — auto-advance, backspace, paste ──────
+            var digits  = Array.from(document.querySelectorAll('#ff-otp-digits input'));
+            var hidden  = document.getElementById('otp-input');
+            var otpForm = document.getElementById('ff-otp-form');
+
+            function collectOtp() {
+                hidden.value = digits.map(function (d) { return d.value; }).join('');
+            }
+
+            digits.forEach(function (el, idx) {
+                el.addEventListener('input', function () {
+                    var v = el.value.replace(/[^0-9]/g, '');
+                    el.value = v.slice(-1);
+                    collectOtp();
+                    if (v && idx < digits.length - 1) { digits[idx + 1].focus(); }
+                });
+                el.addEventListener('keydown', function (e) {
+                    if (e.key === 'Backspace' && !el.value && idx > 0) {
+                        digits[idx - 1].focus();
+                        digits[idx - 1].value = '';
+                        collectOtp();
+                    }
+                });
+                el.addEventListener('paste', function (e) {
+                    e.preventDefault();
+                    var text = (e.clipboardData || window.clipboardData).getData('text');
+                    var nums = text.replace(/[^0-9]/g, '').slice(0, 6);
+                    nums.split('').forEach(function (ch, i) {
+                        if (digits[idx + i]) { digits[idx + i].value = ch; }
+                    });
+                    collectOtp();
+                    var next = Math.min(idx + nums.length, digits.length - 1);
+                    digits[next].focus();
+                });
+            });
+
+            otpForm.addEventListener('submit', function () { collectOtp(); });
         }());
         </script>
         <?php endif; ?>
