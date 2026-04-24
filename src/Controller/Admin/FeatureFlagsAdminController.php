@@ -187,20 +187,33 @@ class FeatureFlagsAdminController extends AdminController
             Response::redirect(self::REDIRECT);
         }
 
-        if ((int) $otpRow['attempts'] >= self::MAX_OTP_ATTEMPTS) {
-            $cancelledCount = count((array) (json_decode((string) ($otpRow['payload'] ?? ''), true) ?? []));
-            $otpModel->delete((int) $adminUser['id'], 'ff_batch');
-            $this->newRateLimiter()->recordAttempt('ff_otp_block:' . $adminUser['id'], self::OTP_BLOCK_WINDOW);
-            $this->flash(
-                'error',
-                "Trop de tentatives incorrectes — {$cancelledCount} modification(s) annulée(s). "
-                . "Nouvelle demande bloquée 1 heure."
-            );
-            Response::redirect(self::REDIRECT);
-        }
-
         if (!hash_equals((string) $otpRow['otp_hash'], hash('sha256', $submittedOtp))) {
             $otpModel->incrementAttempts((int) $otpRow['id']);
+            $newAttempts    = (int) $otpRow['attempts'] + 1;
+            $cancelledCount = count((array) (json_decode((string) ($otpRow['payload'] ?? ''), true) ?? []));
+
+            if ($newAttempts >= self::MAX_OTP_ATTEMPTS) {
+                $otpModel->delete((int) $adminUser['id'], 'ff_batch');
+                $this->newRateLimiter()->blockFor('ff_otp_block:' . $adminUser['id'], self::OTP_BLOCK_WINDOW);
+
+                try {
+                    $this->newMailService()->sendFeatureFlagOtpBlocked(
+                        $adminUser['email'],
+                        $adminUser['name'],
+                        \Service\AuditLogger::getIp()
+                    );
+                } catch (\Throwable $e) {
+                    \Core\ErrorLogger::warning($e, '[FeatureFlags]');
+                }
+
+                $this->flash(
+                    'error',
+                    "Trop de tentatives incorrectes — {$cancelledCount} modification(s) annulée(s). "
+                    . "Nouvelle demande bloquée 1 heure."
+                );
+                Response::redirect(self::REDIRECT);
+            }
+
             $this->flash('error', 'Code OTP erroné.');
             Response::redirect(self::REDIRECT . '?otp_batch=1');
         }

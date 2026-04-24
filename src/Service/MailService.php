@@ -4495,6 +4495,37 @@ HTML;
      * @param string                                                    $otp     Code OTP à 6 chiffres
      * @return void
      */
+    /**
+     * Alerte sécurité : compte super_admin bloqué 1h après 3 échecs OTP feature flags.
+     *
+     * @param string $to   Email du super_admin
+     * @param string $name Nom du super_admin
+     * @param string $ip   IP source de la dernière tentative
+     * @return void
+     */
+    public function sendFeatureFlagOtpBlocked(string $to, string $name, string $ip): void
+    {
+        $this->setMailType('admin_action');
+        $this->applySmtpConfig(MailChannel::SECURITY);
+
+        $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+        $safeIp   = htmlspecialchars($ip, ENT_QUOTES, 'UTF-8');
+        $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
+        $subject  = '[ALERTE] Feature flags — Compte bloqué 1 heure (3 tentatives OTP échouées)';
+
+        $message = "Bonjour {$safeName},<br><br>"
+            . "Votre compte a été temporairement bloqué suite à <strong>3 tentatives OTP incorrectes</strong> "
+            . "lors d'une demande de modification de feature flags.<br><br>"
+            . "<strong>Date :</strong> {$safeDate}<br>"
+            . "<strong>IP source :</strong> {$safeIp}<br><br>"
+            . "Toute nouvelle demande de modification est bloquée pendant <strong>1 heure</strong>.<br><br>"
+            . "Si vous êtes à l'origine de ces tentatives, vous pouvez ignorer ce message.<br>"
+            . "Dans le cas contraire, signalez immédiatement cet incident à votre équipe de sécurité.";
+
+        $body = $this->emailSimpleLayout($subject, "Bonjour {$safeName},", $message, 'fr');
+        $this->send($to, $name, $subject, $body);
+    }
+
     public function sendFeatureFlagBatchOtp(
         string $to,
         string $name,
