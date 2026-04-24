@@ -88,7 +88,7 @@ class AuthMiddleware
 
         // Émettre le nouveau cookie si le JWT a été régénéré
         if ($newToken !== null) {
-            $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+            $expiry = (int) ($_ENV['JWT_EXPIRY'] ?? 7200);
             CookieHelper::set($newToken, $expiry);
         }
 
@@ -150,7 +150,7 @@ class AuthMiddleware
             return false;
         }
 
-        $standardExpiry = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+        $standardExpiry = (int) ($_ENV['JWT_EXPIRY'] ?? 7200);
         $tokenTtl       = (int) $payload['exp'] - (int) $payload['iat'];
 
         // Si la durée totale du token dépasse la durée standard, c'est un remember-me

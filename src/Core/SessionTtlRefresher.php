@@ -41,7 +41,7 @@ class SessionTtlRefresher
         }
 
         $remaining = (int) $payload['exp'] - time();
-        $expiry    = (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+        $expiry    = (int) ($_ENV['JWT_EXPIRY'] ?? 7200);
         $threshold = \Core\FeatureFlags::getFloat('jwt_refresh_threshold', 0.5);
 
         return self::needsRefresh($remaining, $isRememberMe, $payload, $expiry, $threshold)

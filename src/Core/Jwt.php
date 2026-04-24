@@ -79,7 +79,7 @@ class Jwt
      */
     public static function generate(int $userId, string $role, int $ttl = 0): string
     {
-        $expiry = $ttl > 0 ? $ttl : (int) ($_ENV['JWT_EXPIRY'] ?? 3600);
+        $expiry = $ttl > 0 ? $ttl : (int) ($_ENV['JWT_EXPIRY'] ?? 7200);
 
         return self::encode([
             'sub'  => $userId,
