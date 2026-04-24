@@ -847,7 +847,10 @@ class PaymentServiceCaProtocolTest extends TestCase
             'items'             => [['label_name' => 'Vin Test', 'qty' => 1, 'price' => 10.0, 'vintage' => 2022]],
             'total'             => 10.0,
             'shipping_discount' => 0.0,
-            'billing'           => ['firstname' => 'Jean', 'lastname' => 'Dupont', 'street' => 'rue', 'zip_code' => '33000', 'city' => 'Bordeaux', 'country' => 'France', 'phone' => ''],
+            'billing'           => [
+                'firstname' => 'Jean', 'lastname' => 'Dupont', 'street' => 'rue',
+                'zip_code' => '33000', 'city' => 'Bordeaux', 'country' => 'France', 'phone' => '',
+            ],
         ];
 
         $html = $method->invoke($service, $data, null);
