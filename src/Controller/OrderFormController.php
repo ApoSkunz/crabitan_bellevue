@@ -49,7 +49,6 @@ class OrderFormController extends Controller
         header('Content-Length: ' . filesize($path));
         header('Cache-Control: private, no-store');
         readfile($path);
-        $this->doExit();
     }
 
     /**
@@ -60,15 +59,5 @@ class OrderFormController extends Controller
     protected function requireAdminAccess(): void
     {
         AdminMiddleware::handle();
-    }
-
-    /**
-     * Termine l'exécution du script (seam de testabilité).
-     *
-     * @return never
-     */
-    protected function doExit(): never
-    {
-        exit; // NOSONAR php:S1147 — seam de testabilité, override dans les tests
     }
 }
