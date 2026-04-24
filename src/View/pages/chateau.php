@@ -9,23 +9,12 @@ $seoOgTitle = __('nav.chateau') . ' — ' . APP_NAME;
 $seoOgImage = '/assets/images/gallery/premiere-famille-600w.jpg';
 require_once SRC_PATH . '/View/partials/seo-meta.php';
 
-$jsonLd = json_encode([
-    '@context'      => 'https://schema.org',
-    '@type'         => 'Article',
-    'headline'      => __('nav.chateau') . ' — ' . APP_NAME,
-    'description'   => $metaDescription,
-    'datePublished' => '1870-01-01',
-    'dateModified'  => '2026-01-01',
-    'author'        => ['@type' => 'Organization', 'name' => 'GFA Bernard Solane et Fils'],
-    'publisher'     => [
-        '@type' => 'Organization',
-        'name'  => APP_NAME,
-        'logo'  => ['@type' => 'ImageObject', 'url' => APP_BASE_URL . '/assets/images/logo/crabitan-bellevue-logo.png'],
-    ],
-    'image'         => APP_BASE_URL . '/assets/images/gallery/premiere-famille-600w.jpg',
-    'about'         => ['@type' => 'Thing', 'name' => 'Château Crabitan Bellevue — Histoire et vignoble'],
-    'url'           => APP_BASE_URL . '/' . $navLang . '/le-chateau',
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+$articleHeadline      = __('nav.chateau') . ' — ' . APP_NAME;
+$articleDatePublished = '1870-01-01';
+$articleImage         = '/assets/images/gallery/premiere-famille-600w.jpg';
+$articleAbout         = 'Château Crabitan Bellevue — Histoire et vignoble';
+$articleSlug          = 'le-chateau';
+require_once SRC_PATH . '/View/partials/article-jsonld.php';
 
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';

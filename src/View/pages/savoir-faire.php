@@ -8,23 +8,12 @@ $seoSlug    = 'savoir-faire';
 $seoOgTitle = __('nav.savoir_faire') . ' — ' . APP_NAME;
 require_once SRC_PATH . '/View/partials/seo-meta.php';
 
-$jsonLd = json_encode([
-    '@context'      => 'https://schema.org',
-    '@type'         => 'Article',
-    'headline'      => __('nav.savoir_faire') . ' — ' . APP_NAME,
-    'description'   => $metaDescription,
-    'datePublished' => '2020-01-01',
-    'dateModified'  => '2026-01-01',
-    'author'        => ['@type' => 'Organization', 'name' => 'GFA Bernard Solane et Fils'],
-    'publisher'     => [
-        '@type' => 'Organization',
-        'name'  => APP_NAME,
-        'logo'  => ['@type' => 'ImageObject', 'url' => APP_BASE_URL . '/assets/images/logo/crabitan-bellevue-logo.png'],
-    ],
-    'image'         => APP_BASE_URL . '/assets/images/carousel/vignoble-ete-800w.jpg',
-    'about'         => ['@type' => 'Thing', 'name' => 'Vinification et élevage — Sainte-Croix-du-Mont AOP'],
-    'url'           => APP_BASE_URL . '/' . $navLang . '/savoir-faire',
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+$articleHeadline      = __('nav.savoir_faire') . ' — ' . APP_NAME;
+$articleDatePublished = '2020-01-01';
+$articleImage         = '/assets/images/carousel/vignoble-ete-800w.jpg';
+$articleAbout         = 'Vinification et élevage — Sainte-Croix-du-Mont AOP';
+$articleSlug          = 'savoir-faire';
+require_once SRC_PATH . '/View/partials/article-jsonld.php';
 
 require_once SRC_PATH . '/View/partials/head.php';
 require_once SRC_PATH . '/View/partials/header.php';
