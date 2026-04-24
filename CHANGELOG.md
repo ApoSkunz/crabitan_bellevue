@@ -2,6 +2,17 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.25.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.25.1...v1.25.2) (2026-04-24)
+
+
+### Bug Fixes
+
+* **ci:** mutation.yml — PHPUnit génère coverage, Infection le réutilise ([c2b30c7](https://github.com/ApoSkunz/crabitan_bellevue/commit/c2b30c71256c5937353e7e599bd0ba5f823781b9))
+* **ci:** mutation.yml — supprime trigger pull_request, main uniquement ([ebdf817](https://github.com/ApoSkunz/crabitan_bellevue/commit/ebdf81702350025588e07e3ba5cdcf48a95131ed))
+* **cs:** PHPCS — brace vide + ligne trop longue dans tests coverage ([40684b5](https://github.com/ApoSkunz/crabitan_bellevue/commit/40684b5a91d3a6d20ce2ac9295704e982eca0aa9))
+* **test:** DpoAdminControllerTest — namespace file_exists override au lieu de ROOT_PATH ([23468c5](https://github.com/ApoSkunz/crabitan_bellevue/commit/23468c51985cdbd30989f2c9c7dabb4a18a14a9b))
+* **test:** ErrorLoggerTest — rename au lieu de rm pour testWriteCreatesLogDirWhenMissing ([2972c2a](https://github.com/ApoSkunz/crabitan_bellevue/commit/2972c2ad4b89776bdc7ebf164af479743ee644d8))
+
 ## [1.25.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.25.0...v1.25.1) (2026-04-24)
 
 
