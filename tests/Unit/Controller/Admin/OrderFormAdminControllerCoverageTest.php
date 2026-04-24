@@ -16,23 +16,21 @@ use ReflectionProperty;
 /**
  * Sous-classe testable de OrderFormAdminController.
  * Bypass requireAdmin / verifyCsrf / view / flash / abort.
- * Surcharge doExit() pour couvrir la seam sans appeler exit réel.
  */
 class TestableOrderFormAdminController extends OrderFormAdminController
 {
-    public bool $exitCalled = false;
-    public bool $csrfValid  = true;
+    public bool $csrfValid = true;
 
     /** @var array<string, mixed> */
     public array $fakeAdmin = ['id' => 1, 'role' => 'admin', 'name' => 'Admin', 'email' => 'admin@test.com'];
 
     public function __construct(Request $request)
     {
-        // Bypass parent::__construct pour éviter instanciation OrderFormModel + storageDir
+        // NOSONAR — S3011 : bypass intentionnel en test unitaire
         $reflRequest = new ReflectionProperty(\Core\Controller::class, 'request');
         $reflRequest->setValue($this, $request);
 
-        // Initialiser storageDir via Reflection pour éviter l'erreur
+        // NOSONAR — S3011 : bypass intentionnel en test unitaire
         $reflStorage = new ReflectionProperty(OrderFormAdminController::class, 'storageDir');
         $reflStorage->setValue($this, ROOT_PATH . '/storage/order_forms');
     }
@@ -50,7 +48,7 @@ class TestableOrderFormAdminController extends OrderFormAdminController
 
     protected function view(string $template, array $data = [], int $status = 200): void
     {
-        // noop dans les tests
+        /* noop en test unitaire */
     }
 
     protected function flash(string $key, string $message): void
@@ -62,19 +60,10 @@ class TestableOrderFormAdminController extends OrderFormAdminController
     {
         throw new HttpException($status, $message);
     }
-
-    protected function doExit(): never
-    {
-        $this->exitCalled = true;
-        // Couvre lines 223-225 — le corps réel serait "exit"
-        throw new \RuntimeException('doExit_seam_intercepted');
-    }
 }
 
 /**
  * Tests de couverture pour OrderFormAdminController.
- *
- * Cible principale : lines 223-225 (doExit() seam).
  */
 #[AllowMockObjectsWithoutExpectations]
 // phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
@@ -118,21 +107,20 @@ class OrderFormAdminControllerCoverageTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // download() → doExit() seam — lines 223-225
+    // download() → happy path : envoie le PDF et retourne
     // ----------------------------------------------------------------
 
     /**
-     * Couvre lines 223-225 : download() atteint doExit() après readfile().
-     * On crée un vrai fichier PDF temporaire dans storage/order_forms.
+     * download() envoie le contenu PDF et retourne normalement.
      */
-    public function testDownloadCallsDoExitSeam(): void
+    public function testDownloadSendsPdf(): void
     {
         $storageDir = ROOT_PATH . '/storage/order_forms';
         if (!is_dir($storageDir)) {
             mkdir($storageDir, 0755, true);
         }
 
-        $tmpName = 'cov_admin_doExit_' . uniqid() . '.pdf';
+        $tmpName = 'cov_admin_dl_' . uniqid() . '.pdf';
         $tmpPath = $storageDir . '/' . $tmpName;
         file_put_contents($tmpPath, '%PDF-1.4 test coverage');
 
@@ -147,24 +135,23 @@ class OrderFormAdminControllerCoverageTest extends TestCase
         ]);
         $this->formsProp->setValue($ctrl, $formsMock);
 
-        $caught = null;
         ob_start();
         try {
             $ctrl->download(['id' => '99']);
-        } catch (\RuntimeException $e) {
-            $caught = $e;
+            $output = ob_get_clean();
         } finally {
-            ob_end_clean();
             @unlink($tmpPath);
         }
 
-        $this->assertTrue($ctrl->exitCalled, 'doExit() doit avoir été appelé');
-        $this->assertNotNull($caught);
-        $this->assertSame('doExit_seam_intercepted', $caught->getMessage());
+        $this->assertStringContainsString('%PDF', $output ?? '');
     }
 
+    // ----------------------------------------------------------------
+    // download() → abort(404) quand le bon de commande est introuvable
+    // ----------------------------------------------------------------
+
     /**
-     * Couvre download() → abort(404) quand le bon de commande est introuvable.
+     * download() lève HttpException 404 quand le bon de commande est introuvable.
      */
     public function testDownloadAborts404WhenFormNotFound(): void
     {

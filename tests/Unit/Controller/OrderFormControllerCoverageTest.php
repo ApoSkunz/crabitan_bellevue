@@ -15,7 +15,6 @@ use PHPUnit\Framework\TestCase;
  * Couvre les branches non atteintes dans OrderFormControllerTest :
  *   - line 36 : Response::abort(404) quand le formulaire est null (via sous-classe sans auth)
  *   - line 41 : Response::abort(404) quand le fichier PDF est absent (via sous-classe sans auth)
- *   - lines 70-72 : corps réel de doExit() — testé en processus isolé
  */
 #[AllowMockObjectsWithoutExpectations]
 class OrderFormControllerCoverageTest extends TestCase
@@ -163,65 +162,5 @@ class OrderFormControllerCoverageTest extends TestCase
             ob_end_clean();
         }
     }
-
-    // ----------------------------------------------------------------
-    // lines 70-72 — doExit() seam réel appelé via sous-classe
-    // ----------------------------------------------------------------
-
-    /**
-     * Couvre lines 70-72 : doExit() est la seam testable.
-     * On la surcharge pour lever une exception traçable
-     * (exit réel ne peut pas être testé sans process isolé).
-     */
-    public function testDoExitSeamIsCalledOnSuccess(): void
-    {
-        $storageDir = ROOT_PATH . '/storage/order_forms';
-        if (!is_dir($storageDir)) {
-            mkdir($storageDir, 0755, true);
-        }
-        $tmpName = 'cov_doExit_' . uniqid() . '.pdf';
-        $tmpPath = $storageDir . '/' . $tmpName;
-        file_put_contents($tmpPath, '%PDF-1.4 test');
-
-        $this->instanceProp->setValue(null, null);
-        $dbMock = $this->createStub(Database::class);
-        $dbMock->method('fetchOne')->willReturn([
-            'id'       => 50,
-            'year'     => 2025,
-            'label'    => 'Coverage',
-            'filename' => $tmpName,
-        ]);
-        $this->instanceProp->setValue(null, $dbMock);
-
-        // Sous-classe surchargeant requireAdminAccess() ET doExit() pour couvrir les deux
-        $controller = new class (new Request()) extends OrderFormController {
-            public bool $doExitCalled = false;
-
-            protected function requireAdminAccess(): void
-            {
-            }
-
-            protected function doExit(): never
-            {
-                $this->doExitCalled = true;
-                // Couvre lines 70-72 (le corps réel serait "exit")
-                throw new \RuntimeException('doExit_intercepted_for_coverage');
-            }
-        };
-
-        ob_start();
-        $caught = null;
-        try {
-            $controller->download(['id' => '50']);
-        } catch (\RuntimeException $e) {
-            $caught = $e;
-        } finally {
-            ob_end_clean();
-            @unlink($tmpPath);
-        }
-
-        $this->assertNotNull($caught);
-        $this->assertSame('doExit_intercepted_for_coverage', $caught->getMessage());
-        $this->assertTrue($controller->doExitCalled);
-    }
 }
+
