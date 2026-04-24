@@ -86,7 +86,7 @@ $categories = [
                         class="admin-form"
                         style="max-width:320px;"
                     >
-                        <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
                         <div class="admin-form__group">
                             <label class="admin-form__label" for="otp-input">Code OTP</label>
                             <input
@@ -117,8 +117,9 @@ $categories = [
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="/admin/feature-flags/batch-request" id="ff-form">
-            <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
+        <form method="POST" action="/admin/feature-flags/batch-request" id="ff-form"
+              data-admin-confirm="Envoyer un code OTP pour enregistrer toutes les modifications ?">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 
             <div class="admin-card">
                 <div class="admin-card__header">
@@ -211,7 +212,6 @@ $categories = [
                 <button
                     type="submit"
                     class="admin-btn admin-btn--primary"
-                    data-admin-confirm="Envoyer un code OTP pour enregistrer toutes les modifications ?"
                     id="ff-save-btn"
                     disabled
                 >
