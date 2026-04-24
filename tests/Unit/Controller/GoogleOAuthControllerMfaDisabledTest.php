@@ -7,6 +7,7 @@ namespace Tests\Unit\Controller;
 use Controller\GoogleOAuthController;
 use Core\Database;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Core\Request;
 use PHPUnit\Framework\TestCase;
 
@@ -33,7 +34,7 @@ class GoogleOAuthControllerMfaDisabledTest extends TestCase
         $_ENV['GOOGLE_CLIENT_ID']     = 'test-id';
         $_ENV['GOOGLE_CLIENT_SECRET'] = 'test-secret';
         $_ENV['APP_URL']              = 'http://localhost';
-        $_ENV['MFA_EMAIL_ENABLED']    = 'false';
+        FeatureFlags::setCache(['customer_mfa_enabled' => ['key' => 'customer_mfa_enabled', 'value' => 'false', 'type' => 'bool']]);
         $_SERVER['REQUEST_METHOD']    = 'GET';
         $_SERVER['REQUEST_URI']       = '/fr/auth/google/callback';
         $_SERVER['HTTP_USER_AGENT']   = 'Mozilla/5.0 (Windows NT 10.0) Chrome/120';
@@ -46,7 +47,8 @@ class GoogleOAuthControllerMfaDisabledTest extends TestCase
         $_SESSION = [];
         $_COOKIE  = [];
         $_GET     = [];
-        unset($_ENV['MFA_EMAIL_ENABLED'], $_SERVER['REMOTE_ADDR']);
+        unset($_SERVER['REMOTE_ADDR']);
+        FeatureFlags::flush();
     }
 
     private function makeController(): GoogleOAuthController
@@ -108,7 +110,7 @@ class GoogleOAuthControllerMfaDisabledTest extends TestCase
 
     public function testIssueSessionChallengesMfaWhenEnabled(): void
     {
-        $_ENV['MFA_EMAIL_ENABLED'] = 'true';
+        FeatureFlags::setCache(['customer_mfa_enabled' => ['key' => 'customer_mfa_enabled', 'value' => 'true', 'type' => 'bool']]);
 
         $stub = $this->createStub(Database::class);
         $this->dbInstanceProp->setValue(null, $stub);

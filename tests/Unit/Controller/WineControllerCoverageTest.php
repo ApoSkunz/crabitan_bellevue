@@ -6,6 +6,7 @@ namespace Tests\Unit\Controller;
 
 use Core\Database;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Model\WineModel;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -398,7 +399,7 @@ class WineControllerCoverageTest extends TestCase
         $this->bootstrapApp();
         $this->requireTcpdf();
 
-        $_ENV['ENABLE_EXTRA_INFO'] = 'true';
+        FeatureFlags::setCache(['enable_extra_info' => ['key' => 'enable_extra_info', 'value' => 'true', 'type' => 'bool']]);
 
         $ctrl   = $this->makeController();
         $method = new \ReflectionMethod(\Controller\WineController::class, 'buildPdfSections');
@@ -418,7 +419,7 @@ class WineControllerCoverageTest extends TestCase
 
         $this->assertArrayHasKey('INFORMATIONS NUTRITIONNELLES', $result);
 
-        unset($_ENV['ENABLE_EXTRA_INFO']);
+        FeatureFlags::flush();
     }
 
     // ── buildNutritionFields() — with energy_kj ─────────────────────────────

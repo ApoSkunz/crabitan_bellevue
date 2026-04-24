@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Service;
 
+use Core\FeatureFlags;
 use Model\OrderModel;
 use Service\GaeApiInterface;
 use Service\MailService;
@@ -34,13 +35,15 @@ class RefundServiceIntegrationTest extends IntegrationTestCase
         $this->model    = new OrderModel();
         $this->gaeMock  = $this->createMock(GaeApiInterface::class);
         $this->mailerMock = $this->createMock(MailService::class);
-        unset($_ENV['CA_ENABLE_GAE'], $_ENV['APP_URL']);
+        unset($_ENV['APP_URL']);
+        FeatureFlags::flush();
     }
 
     protected function tearDown(): void
     {
         parent::tearDown();
-        unset($_ENV['CA_ENABLE_GAE'], $_ENV['APP_URL']);
+        unset($_ENV['APP_URL']);
+        FeatureFlags::flush();
     }
 
     // ----------------------------------------------------------------
@@ -98,7 +101,7 @@ class RefundServiceIntegrationTest extends IntegrationTestCase
 
     public function testRefundWithGaeDisabledStoresRefundPendingInDb(): void
     {
-        $_ENV['CA_ENABLE_GAE'] = 'false';
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'false', 'type' => 'bool']]);
 
         $userId  = $this->insertAccount();
         $orderId = $this->insertOrder($userId);
@@ -120,7 +123,7 @@ class RefundServiceIntegrationTest extends IntegrationTestCase
 
     public function testRefundWithGaeEnabledStoresRefundedInDb(): void
     {
-        $_ENV['CA_ENABLE_GAE'] = 'true';
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'true', 'type' => 'bool']]);
         $_ENV['APP_URL']       = 'https://crabitanbellevue.fr';
 
         $userId  = $this->insertAccount('refund_gae_ti@example.com');
@@ -145,7 +148,7 @@ class RefundServiceIntegrationTest extends IntegrationTestCase
 
     public function testRefundWithGaeEnabledButApiFailsDoesNotUpdateDb(): void
     {
-        $_ENV['CA_ENABLE_GAE'] = 'true';
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'true', 'type' => 'bool']]);
 
         $userId  = $this->insertAccount('refund_fail_ti@example.com');
         $orderId = $this->insertOrder($userId, 'paid', 'REF-REFUND-003');

@@ -7,6 +7,7 @@ namespace Tests\Unit\Controller\Admin;
 use Controller\Admin\WineAdminController;
 use Core\Database;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Model\WineModel;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
@@ -105,6 +106,7 @@ class WineAdminControllerCoverageTest extends TestCase
         $_FILES   = [];
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI']    = '/admin/vins';
+        FeatureFlags::flush();
     }
 
     protected function tearDown(): void
@@ -114,6 +116,7 @@ class WineAdminControllerCoverageTest extends TestCase
         $_POST    = [];
         $_GET     = [];
         $_FILES   = [];
+        FeatureFlags::flush();
     }
 
     private function makeController(): TestableWineAdminController
@@ -280,7 +283,7 @@ class WineAdminControllerCoverageTest extends TestCase
     public function testUpdateCallsResetLowStockNotifiedWhenStockAboveThreshold(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_ENV['STOCK_ALERTE_LIMIT'] = '10';
+        FeatureFlags::setCache(['stock_alert_limit' => ['key' => 'stock_alert_limit', 'value' => '10', 'type' => 'int']]);
 
         $_POST = [
             'appellation'         => 'Bordeaux Rouge',
@@ -346,7 +349,7 @@ class WineAdminControllerCoverageTest extends TestCase
     public function testUpdatePurgesCartAndUnsetsFeaturedWhenUnavailable(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_ENV['STOCK_ALERTE_LIMIT'] = '1000';
+        FeatureFlags::setCache(['stock_alert_limit' => ['key' => 'stock_alert_limit', 'value' => '1000', 'type' => 'int']]);
 
         $_POST = [
             'appellation'         => 'Bordeaux Rouge',
@@ -608,7 +611,7 @@ class WineAdminControllerCoverageTest extends TestCase
     public function testUpdateAbsorbsStockNotificationServiceException(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_ENV['STOCK_ALERTE_LIMIT'] = '300';
+        FeatureFlags::setCache(['stock_alert_limit' => ['key' => 'stock_alert_limit', 'value' => '300', 'type' => 'int']]);
 
         $_POST = [
             'appellation'            => 'Bordeaux Rouge',
@@ -773,7 +776,7 @@ class WineAdminControllerCoverageTest extends TestCase
     public function testUpdateAbsorbsStockNotificationServiceThrowViaSeam(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_ENV['STOCK_ALERTE_LIMIT'] = '300';
+        FeatureFlags::setCache(['stock_alert_limit' => ['key' => 'stock_alert_limit', 'value' => '300', 'type' => 'int']]);
 
         $_POST = [
             'appellation'            => 'Bordeaux Rouge',

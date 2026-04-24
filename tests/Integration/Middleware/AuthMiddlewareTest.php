@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Integration\Middleware;
 
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Core\Jwt;
 use Middleware\AuthMiddleware;
 use Tests\Integration\IntegrationTestCase;
@@ -19,9 +20,9 @@ class AuthMiddlewareTest extends IntegrationTestCase
     {
         parent::setUp();
         $_COOKIE = [];
-        $_ENV['JWT_SECRET']            = $_ENV['JWT_SECRET']            ?? 'integration-test-secret';
-        $_ENV['JWT_EXPIRY']            = $_ENV['JWT_EXPIRY']            ?? '3600';
-        $_ENV['JWT_REFRESH_THRESHOLD'] = $_ENV['JWT_REFRESH_THRESHOLD'] ?? '0.5';
+        $_ENV['JWT_SECRET'] = $_ENV['JWT_SECRET'] ?? 'integration-test-secret';
+        $_ENV['JWT_EXPIRY'] = $_ENV['JWT_EXPIRY'] ?? '3600';
+        FeatureFlags::setCache(['jwt_refresh_threshold' => ['key' => 'jwt_refresh_threshold', 'value' => '0.5', 'type' => 'float']]);
         $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit/Test';
         $_SERVER['REMOTE_ADDR']     = '127.0.0.1';
     }
@@ -30,6 +31,7 @@ class AuthMiddlewareTest extends IntegrationTestCase
     {
         parent::tearDown();
         $_COOKIE = [];
+        FeatureFlags::flush();
     }
 
     // ----------------------------------------------------------------

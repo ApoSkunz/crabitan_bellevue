@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service;
 
+use Core\FeatureFlags;
 use Model\OrderModel;
 use PHPUnit\Framework\TestCase;
 use Service\GaeApiInterface;
@@ -49,7 +50,8 @@ class RefundServiceTest extends TestCase
 
     protected function tearDown(): void
     {
-        unset($_ENV['CA_ENABLE_GAE'], $_ENV['APP_URL']);
+        unset($_ENV['APP_URL']);
+        FeatureFlags::flush();
     }
 
     // ----------------------------------------------------------------
@@ -58,7 +60,7 @@ class RefundServiceTest extends TestCase
 
     public function testRefundWithGaeEnabledCallsApiAndSetsRefunded(): void
     {
-        $_ENV['CA_ENABLE_GAE'] = 'true';
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'true', 'type' => 'bool']]);
         $_ENV['APP_URL']       = 'https://crabitanbellevue.fr';
 
         $this->ordersMock->expects($this->once())
@@ -86,7 +88,7 @@ class RefundServiceTest extends TestCase
 
     public function testRefundWithGaeEnabledThrowsWhenApiFails(): void
     {
-        $_ENV['CA_ENABLE_GAE'] = '1';
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'true', 'type' => 'bool']]);
 
         $this->ordersMock->method('findByIdForAdmin')->willReturn($this->fakeOrder);
         $this->gaeMock->method('refund')->willReturn(false);
@@ -106,7 +108,7 @@ class RefundServiceTest extends TestCase
 
     public function testRefundWithGaeDisabledSetsRefundPendingAndLogs(): void
     {
-        $_ENV['CA_ENABLE_GAE'] = 'false';
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'false', 'type' => 'bool']]);
         $_ENV['APP_URL']       = 'https://crabitanbellevue.fr';
 
         $this->ordersMock->expects($this->once())
@@ -131,7 +133,7 @@ class RefundServiceTest extends TestCase
 
     public function testRefundWithGaeDefaultsToDisabled(): void
     {
-        unset($_ENV['CA_ENABLE_GAE']);
+        FeatureFlags::flush();
         $_ENV['APP_URL'] = 'https://crabitanbellevue.fr';
 
         $this->ordersMock->method('findByIdForAdmin')->willReturn($this->fakeOrder);
@@ -161,7 +163,7 @@ class RefundServiceTest extends TestCase
 
     public function testRefundSkipsEmailForPurgedAccount(): void
     {
-        $_ENV['CA_ENABLE_GAE'] = 'false';
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'false', 'type' => 'bool']]);
 
         $purgedOrder         = $this->fakeOrder;
         $purgedOrder['email'] = 'user@purged.invalid';
@@ -190,7 +192,7 @@ class RefundServiceTest extends TestCase
      */
     public function testRefundPendingSmtpErrorInSendRefundInitiatedEmailIsSwallowed(): void
     {
-        $_ENV['CA_ENABLE_GAE'] = 'false';
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'false', 'type' => 'bool']]);
         $_ENV['APP_URL']       = 'https://crabitanbellevue.fr';
 
         $this->ordersMock->method('findByIdForAdmin')->willReturn($this->fakeOrder);
@@ -215,7 +217,7 @@ class RefundServiceTest extends TestCase
      */
     public function testRefundPendingSmtpErrorInNotifyOwnerIsSwallowed(): void
     {
-        $_ENV['CA_ENABLE_GAE'] = 'false';
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'false', 'type' => 'bool']]);
         $_ENV['APP_URL']       = 'https://crabitanbellevue.fr';
 
         $this->ordersMock->method('findByIdForAdmin')->willReturn($this->fakeOrder);

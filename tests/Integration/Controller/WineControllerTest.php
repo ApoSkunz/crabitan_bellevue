@@ -6,6 +6,7 @@ namespace Tests\Integration\Controller;
 
 use Controller\WineController;
 use Core\Exception\HttpException;
+use Core\FeatureFlags;
 use Core\Request;
 use Tests\Integration\IntegrationTestCase;
 
@@ -938,7 +939,7 @@ class WineControllerTest extends IntegrationTestCase
      */
     public function testBuildPdfSectionsWithExtraInfoEnabledIncludesNutritionSection(): void
     {
-        $_ENV['ENABLE_EXTRA_INFO'] = 'true';
+        FeatureFlags::setCache(['enable_extra_info' => ['key' => 'enable_extra_info', 'value' => 'true', 'type' => 'bool']]);
         try {
             $ctrl = $this->makeController();
             $ref  = new \ReflectionMethod($ctrl, 'buildPdfSections');
@@ -956,7 +957,7 @@ class WineControllerTest extends IntegrationTestCase
             $this->assertArrayHasKey('Ingrédients', $nutFields);
             $this->assertSame('Raisins, Sulfites', $nutFields['Ingrédients']);
         } finally {
-            $_ENV['ENABLE_EXTRA_INFO'] = 'false';
+            FeatureFlags::flush();
         }
     }
 

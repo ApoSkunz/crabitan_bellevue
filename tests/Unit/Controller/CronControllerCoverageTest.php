@@ -6,6 +6,7 @@ namespace Tests\Unit\Controller;
 
 use Controller\CronController;
 use Core\Database;
+use Core\FeatureFlags;
 use Core\Request;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
@@ -59,8 +60,10 @@ class CronControllerCoverageTest extends TestCase
         $_ENV['MAIL_FROM_NAME']         = 'Test';
         $_ENV['APP_URL']                = 'http://test.local';
         $_ENV['CRON_SECRET_TOKEN']      = 'secret-test-token';
-        $_ENV['RGPD_INACTIVITY_MONTHS'] = '36';
-        $_ENV['CRON_MAIL_DELAY_MS']     = '0';
+        FeatureFlags::setCache([
+            'rgpd_inactivity_months' => ['key' => 'rgpd_inactivity_months', 'value' => '36', 'type' => 'int'],
+            'cron_mail_delay_ms'     => ['key' => 'cron_mail_delay_ms', 'value' => '0', 'type' => 'int'],
+        ]);
 
         $this->controller   = new CronController(new Request());
         $this->instanceProp = new \ReflectionProperty(Database::class, 'instance');
@@ -72,11 +75,9 @@ class CronControllerCoverageTest extends TestCase
         $_GET = [];
         unset(
             $_ENV['CRON_SECRET_TOKEN'],
-            $_ENV['CRON_MAIL_DELAY_MS'],
-            $_ENV['APP_URL'],
-            $_ENV['RGPD_INACTIVITY_MONTHS'],
-            $_ENV['CRON_NEWSLETTER_BATCH_SIZE']
+            $_ENV['APP_URL']
         );
+        FeatureFlags::flush();
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -217,7 +218,7 @@ class CronControllerCoverageTest extends TestCase
 
     public function testDoJobPurgeInactivePhase1UsleepBranchExecuted(): void
     {
-        $_ENV['CRON_MAIL_DELAY_MS'] = '1'; // > 0 triggers usleep
+        FeatureFlags::setCache(['cron_mail_delay_ms' => ['key' => 'cron_mail_delay_ms', 'value' => '1', 'type' => 'int']]); // > 0 triggers usleep
 
         $mailerMock = $this->createMock(\Service\MailService::class);
         // sendInactivityWarning returns void
@@ -317,7 +318,7 @@ class CronControllerCoverageTest extends TestCase
         // With dryRun=false and mailer throwing, result=0 → no usleep.
         // We test the delayMs>0 branch indirectly through doSendReminderForAccount
         // with a successful mailer mock.
-        $_ENV['CRON_MAIL_DELAY_MS'] = '1';
+        FeatureFlags::setCache(['cron_mail_delay_ms' => ['key' => 'cron_mail_delay_ms', 'value' => '1', 'type' => 'int']]);
 
         $mailerMock = $this->createMock(\Service\MailService::class);
         // sendDeletionReminder is void
@@ -594,7 +595,7 @@ class CronControllerCoverageTest extends TestCase
 
     public function testDoJobSendAbandonedCartUsleepBranchEmpty(): void
     {
-        $_ENV['CRON_MAIL_DELAY_MS'] = '1';
+        FeatureFlags::setCache(['cron_mail_delay_ms' => ['key' => 'cron_mail_delay_ms', 'value' => '1', 'type' => 'int']]);
         $dbMock = $this->mockDb();
         $dbMock->method('fetchAll')->willReturn([]);
 
@@ -1179,7 +1180,7 @@ class CronControllerCoverageTest extends TestCase
      */
     public function testDoJobSendDeletionRemindersLoopRunsWithAccounts(): void
     {
-        $_ENV['CRON_MAIL_DELAY_MS'] = '1';
+        FeatureFlags::setCache(['cron_mail_delay_ms' => ['key' => 'cron_mail_delay_ms', 'value' => '1', 'type' => 'int']]);
 
         $dbMock = $this->mockDb();
         // getAccountsPendingDeletionReminder called twice (days=7, days=1)
@@ -1212,7 +1213,7 @@ class CronControllerCoverageTest extends TestCase
      */
     public function testDoJobSendAbandonedCartUsleepExecutedAfterCatch(): void
     {
-        $_ENV['CRON_MAIL_DELAY_MS'] = '1';
+        FeatureFlags::setCache(['cron_mail_delay_ms' => ['key' => 'cron_mail_delay_ms', 'value' => '1', 'type' => 'int']]);
 
         $dbMock  = $this->mockDb();
         $cartRow = [
@@ -1249,7 +1250,7 @@ class CronControllerCoverageTest extends TestCase
      */
     public function testDoJobSendPostPurchaseUsleepExecutedAfterCatch(): void
     {
-        $_ENV['CRON_MAIL_DELAY_MS'] = '1';
+        FeatureFlags::setCache(['cron_mail_delay_ms' => ['key' => 'cron_mail_delay_ms', 'value' => '1', 'type' => 'int']]);
 
         $dbMock = $this->mockDb();
         $dbMock->method('fetchAll')->willReturn([
@@ -1501,7 +1502,7 @@ class CronControllerCoverageTest extends TestCase
      */
     public function testDoJobSendDeletionRemindersUsleepAfterSuccess(): void
     {
-        $_ENV['CRON_MAIL_DELAY_MS'] = '1';
+        FeatureFlags::setCache(['cron_mail_delay_ms' => ['key' => 'cron_mail_delay_ms', 'value' => '1', 'type' => 'int']]);
 
         $dbMock = $this->mockDb();
         $account = [
