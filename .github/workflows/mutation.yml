@@ -3,6 +3,7 @@ name: Mutation Testing
 on:
   push:
     branches: [main]
+  pull_request:
 
 permissions: read-all
 
@@ -52,7 +53,7 @@ jobs:
           XDEBUG_MODE: off
         run: |
           vendor/bin/infection \
-            --coverage build/coverage \
+            --coverage=build/coverage \
             --min-msi=60 \
             --threads=4 \
             --show-mutations \
