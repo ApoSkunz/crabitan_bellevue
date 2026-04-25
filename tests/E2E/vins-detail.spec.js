@@ -189,20 +189,21 @@ test.describe('Fiche technique', () => {
         expect(href).toMatch(/\/fiche-technique/);
     });
 
-    test('naviguer vers /fr/vins/{slug}/fiche-technique charge la page loader', async ({ page }) => {
+    test('la route /fiche-technique retourne un PDF (statut 200, content-type pdf)', async ({ page }) => {
         const slug = await getFirstWineSlug(page);
-        // La route fiche-technique retourne la page loader (HTML, pas un PDF brut)
-        await page.goto(`/fr/vins/${slug}/fiche-technique`);
-        await page.waitForLoadState('load');
-        // La page loader affiche un .loader et le titre du vin
-        await expect(page.locator('#loader')).toBeVisible();
+        // La route génère un PDF TCPDF directement — tester via API (page.goto déclencherait un download)
+        const response = await page.request.get(`/fr/vins/${slug}/fiche-technique`);
+        expect(response.status()).toBe(200);
+        const ct = response.headers()['content-type'] ?? '';
+        expect(ct).toMatch(/pdf/i);
     });
 
-    test('la page fiche-technique contient des informations techniques (title, spinner)', async ({ page }) => {
+    test('la route /fiche-technique/qr charge la page loader HTML', async ({ page }) => {
         const slug = await getFirstWineSlug(page);
-        await page.goto(`/fr/vins/${slug}/fiche-technique`);
+        // La route /qr affiche la page loader HTML (fiche-technique-loader.php) avec #loader
+        await page.goto(`/fr/vins/${slug}/fiche-technique/qr`);
         await page.waitForLoadState('load');
-        // Le loader affiche le nom du vin et la barre de progression
+        await expect(page.locator('#loader')).toBeVisible();
         await expect(page.locator('#loader h1')).toBeVisible();
         await expect(page.locator('.progress')).toBeVisible();
         const title = await page.locator('#loader h1').innerText();

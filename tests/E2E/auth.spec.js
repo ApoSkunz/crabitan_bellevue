@@ -114,13 +114,15 @@ test.describe('Connexion — flux complet (customer mock)', () => {
     test('connexion réussie → redirigé vers homepage ou /fr/mon-compte, modal fermé', async ({ page, context }) => {
         await loginAsCustomer(page, context);
 
-        // Le modal doit être fermé (ou absent de l'état visible)
-        const modal = page.locator('#login-modal');
-        const ariaHidden = await modal.getAttribute('aria-hidden');
-        expect(ariaHidden).not.toBe('false');
-
         // On doit être sur une page connue de l'app
         await expect(page).toHaveURL(/\/(fr|en)/);
+
+        // Le modal doit être fermé — seulement s'il est dans le DOM (certaines pages le retirent)
+        const modalCount = await page.locator('#login-modal').count();
+        if (modalCount > 0) {
+            const ariaHidden = await page.locator('#login-modal').getAttribute('aria-hidden');
+            expect(ariaHidden).not.toBe('false');
+        }
     });
 
     test('après connexion, le header affiche l\'espace utilisateur (pas le bouton connexion)', async ({ page, context }) => {
@@ -142,8 +144,12 @@ test.describe('Connexion — flux complet (customer mock)', () => {
         const formCount = await logoutForms.count();
 
         if (formCount > 0) {
-            await logoutForms.first().evaluate(form => form.submit());
-            await page.waitForURL(/\/(fr|en)/, { timeout: 10000 });
+            // waitForLoadState('load') plutôt que waitForURL car l'URL de départ est déjà /fr
+            // et le redirect post-logout retourne aussi vers /fr → waitForURL ne détecte pas le changement
+            await Promise.all([
+                page.waitForLoadState('load', { timeout: 10000 }),
+                logoutForms.first().evaluate(form => form.submit()),
+            ]);
         } else {
             // Fallback : lien de déconnexion
             const logoutLink = page.locator('a[href*="/deconnexion"]');

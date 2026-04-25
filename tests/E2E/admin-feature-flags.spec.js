@@ -272,8 +272,8 @@ test.describe('Monitoring Crons', () => {
         const hasTable = await tables.first().isVisible().catch(() => false);
 
         if (!hasTable) {
-            // Aucun run disponible — passer le test
-            await expect(page.locator('text=Aucun run')).toBeVisible();
+            // Aucun run disponible — les deux messages "Aucun run*" coexistent, prendre le premier
+            await expect(page.locator('text=Aucun run').first()).toBeVisible();
             return;
         }
 
@@ -459,7 +459,7 @@ test.describe('Email Rate', () => {
 test.describe('RGPD demandes', () => {
 
     test.beforeEach(async ({ page, context }) => {
-        await loginAsAdmin(page, context);
+        await loginAsAdmin(page, context, SUPER_ADMIN_EMAIL);
     });
 
     test('/admin/rgpd/demandes se charge', async ({ page }) => {
