@@ -178,6 +178,17 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           artifact_name: zap-full-customer-${{ github.run_number }}
 
+      - name: Upload ZAP report — customer
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: zap-report-customer-${{ github.run_number }}
+          path: |
+            report_html.html
+            report_json.json
+          if-no-files-found: warn
+          retention-days: 30
+
   # ══════════════════════════════════════════════════════════════
   # JOB 2 — Scan admin (/admin/*)
   # ══════════════════════════════════════════════════════════════
@@ -339,3 +350,14 @@ jobs:
           issue_title: '[DAST] ZAP Full Scan (admin) — alertes'
           token: ${{ secrets.GITHUB_TOKEN }}
           artifact_name: zap-full-admin-${{ github.run_number }}
+
+      - name: Upload ZAP report — admin
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: zap-report-admin-${{ github.run_number }}
+          path: |
+            report_html.html
+            report_json.json
+          if-no-files-found: warn
+          retention-days: 30
