@@ -26,6 +26,11 @@ class ErrorLoggerTest extends TestCase
             define('ROOT_PATH', dirname($this->logDir));
         }
 
+        // Purge des logs avant chaque test — évite les faux positifs en ordre aléatoire (Infection)
+        foreach (glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [] as $f) {
+            unlink($f);
+        }
+
         $_SERVER['REQUEST_URI']    = '/test';
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -270,11 +275,6 @@ class ErrorLoggerTest extends TestCase
      */
     public function testInfoLogsWithInfoLevel(): void
     {
-        // Purge avant appel pour que l'entrée INFO soit la dernière ligne
-        foreach (glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [] as $f) {
-            unlink($f);
-        }
-
         ErrorLogger::info('Vérification âge validée ip=1.2.3.0');
 
         $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
