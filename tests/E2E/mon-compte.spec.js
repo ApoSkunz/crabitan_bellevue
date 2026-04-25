@@ -46,13 +46,13 @@ async function loginAsCustomer(page, context) {
     await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
 
     // 4. Remplir les champs
-    await page.locator('#login-modal input[name="email"]').fill('client.verifie@dev.local');
-    await page.locator('#login-modal input[name="password"]').fill('Dev123456789!');
+    await page.locator('#login-modal-email').fill('client.verifie@dev.local');
+    await page.locator('#login-modal-password').fill('Dev123456789!');
 
     // 5. Soumettre et attendre la navigation (modal ferme ou redirect vers mon-compte)
     await Promise.all([
-        page.waitForNavigation({ waitUntil: 'load' }),
-        page.locator('#login-modal button[type="submit"]').click(),
+        page.waitForURL(/.+/, { timeout: 15000 }),
+        page.locator('form[action*="/connexion"] button[type="submit"]').click(),
     ]);
 }
 
@@ -175,7 +175,7 @@ test.describe('Profil', () => {
 
         // Soumettre
         await Promise.all([
-            page.waitForNavigation({ waitUntil: 'load' }),
+            page.waitForURL(/.+/, { timeout: 15000 }),
             page.locator('.account-form button[type="submit"]').first().click(),
         ]);
 
@@ -303,7 +303,7 @@ test.describe('Sécurité', () => {
         await page.locator('#new_password_confirm').fill('NouveauMotDePasse12!');
 
         await Promise.all([
-            page.waitForNavigation({ waitUntil: 'load' }),
+            page.waitForURL(/.+/, { timeout: 15000 }),
             page.locator('form[action*="/securite/mot-de-passe"] button[type="submit"]').click(),
         ]);
 

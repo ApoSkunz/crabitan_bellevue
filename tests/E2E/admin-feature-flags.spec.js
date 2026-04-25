@@ -35,12 +35,12 @@ async function loginAsAdmin(page, context, email = ADMIN_EMAIL) {
     await page.locator('#login-modal-trigger').click();
     await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
 
-    await page.locator('#login-modal input[name="email"]').fill(email);
-    await page.locator('#login-modal input[name="password"]').fill(ADMIN_PASSWORD);
+    await page.locator('#login-modal-email').fill(email);
+    await page.locator('#login-modal-password').fill(ADMIN_PASSWORD);
 
     await Promise.all([
         page.waitForURL(/\/(fr|en|admin)/, { timeout: 15000 }),
-        page.locator('#login-modal button[type="submit"]').click(),
+        page.locator('form[action*="/connexion"] button[type="submit"]').click(),
     ]);
 }
 

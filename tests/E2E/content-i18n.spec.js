@@ -33,12 +33,12 @@ async function loginAsCustomer(page, context) {
     await page.locator('#login-modal-trigger').click();
     await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
 
-    await page.locator('#login-modal input[name="email"]').fill(CUSTOMER_EMAIL);
-    await page.locator('#login-modal input[name="password"]').fill(CUSTOMER_PASSWORD);
+    await page.locator('#login-modal-email').fill(CUSTOMER_EMAIL);
+    await page.locator('#login-modal-password').fill(CUSTOMER_PASSWORD);
 
     await Promise.all([
         page.waitForURL(/\/(fr|en)/, { timeout: 10000 }),
-        page.locator('#login-modal button[type="submit"]').click(),
+        page.locator('form[action*="/connexion"] button[type="submit"]').click(),
     ]);
 }
 

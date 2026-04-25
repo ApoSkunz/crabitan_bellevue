@@ -1,5 +1,5 @@
 // @ts-check
-import { test, expect, setVerifiedCookie } from './support/fixtures.js';
+import { test, expect } from './support/fixtures.js';
 
 // ============================================================
 // Constants
@@ -33,13 +33,13 @@ async function loginAsAdmin(page, context) {
     await page.locator('#login-modal-trigger').click();
     await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
 
-    await page.locator('#login-modal input[name="email"]').fill(ADMIN_EMAIL);
-    await page.locator('#login-modal input[name="password"]').fill(ADMIN_PASSWORD);
+    await page.locator('#login-modal-email').fill(ADMIN_EMAIL);
+    await page.locator('#login-modal-password').fill(ADMIN_PASSWORD);
 
     // Admin est redirigé vers /admin après connexion
     await Promise.all([
         page.waitForURL(/\/admin|\/fr|\/en/, { timeout: 12000 }),
-        page.locator('#login-modal button[type="submit"]').click(),
+        page.locator('form[action*="/connexion"] button[type="submit"]').click(),
     ]);
 
     // Si redirigé vers la homepage (pas /admin), naviguer explicitement
@@ -56,36 +56,29 @@ async function loginAsAdmin(page, context) {
 
 test.describe('Accès admin — non connecté', () => {
 
-    test('/admin sans auth redirige vers la page de connexion', async ({ page, context }) => {
-        await setVerifiedCookie(context);
+    test('/admin sans auth → 404 (route non révélée)', async ({ page }) => {
+        // AdminMiddleware : abort(404) si pas de JWT valide — ne redirige pas
         const response = await page.goto('/admin');
-        // Soit 302 → /fr?login=1, soit la page finale n'est pas /admin
-        await expect(page).not.toHaveURL(/^http:\/\/crabitan\.local\/admin\/?$/);
+        expect(response?.status()).toBe(404);
     });
 
-    test('un customer normal ne peut pas accéder à /admin', async ({ page, context }) => {
+    test('customer connecté → /admin retourne 404', async ({ page, context }) => {
         const domain = new URL(process.env.APP_URL || 'http://crabitan.local').hostname;
-
-        // Cookie device d'un customer (pas admin)
         await context.addCookies([
-            { name: 'age_verified', value: '1',                       domain, path: '/', httpOnly: true,  sameSite: 'Lax' },
+            { name: 'age_verified', value: '1',                         domain, path: '/', httpOnly: true,  sameSite: 'Lax' },
             { name: 'device_token', value: 'mock-jwt-sophie-active-001', domain, path: '/', httpOnly: false, sameSite: 'Lax' },
         ]);
-
-        // Connexion customer
         await page.goto('/fr');
         await page.locator('#login-modal-trigger').click();
         await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
-        await page.locator('#login-modal input[name="email"]').fill('client.verifie@dev.local');
-        await page.locator('#login-modal input[name="password"]').fill('Dev123456789!');
+        await page.locator('#login-modal-email').fill('client.verifie@dev.local');
+        await page.locator('#login-modal-password').fill('Dev123456789!');
         await Promise.all([
             page.waitForURL(/\/(fr|en)/, { timeout: 10000 }),
-            page.locator('#login-modal button[type="submit"]').click(),
+            page.locator('form[action*="/connexion"] button[type="submit"]').click(),
         ]);
-
-        // Tenter d'accéder à /admin
-        await page.goto('/admin');
-        await expect(page).not.toHaveURL(/\/admin\/?$/);
+        const response = await page.goto('/admin');
+        expect(response?.status()).toBe(404);
     });
 
 });
@@ -142,23 +135,18 @@ test.describe('Dashboard admin — connecté', () => {
 // Suite : Navigation admin — pages qui se chargent
 // ============================================================
 
+/** @param {import('@playwright/test').Page} page @param {string} path */
+async function expectAdminPageOk(page, path) {
+    await page.goto(path);
+    await expect(page.locator('.admin-sidebar'), `Sidebar manquante sur ${path}`).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('#admin-main-content'), `Contenu principal manquant sur ${path}`).toBeVisible();
+}
+
 test.describe('Navigation admin — pages qui se chargent', () => {
 
     test.beforeEach(async ({ page, context }) => {
         await loginAsAdmin(page, context);
     });
-
-    /**
-     * Vérifie qu'une page admin répond correctement et affiche le layout admin.
-     *
-     * @param {import('@playwright/test').Page} page
-     * @param {string} path
-     */
-    async function expectAdminPageOk(page, path) {
-        await page.goto(path);
-        await expect(page.locator('.admin-sidebar'), `Sidebar manquante sur ${path}`).toBeVisible({ timeout: 8000 });
-        await expect(page.locator('#admin-main-content'), `Contenu principal manquant sur ${path}`).toBeVisible();
-    }
 
     test('/admin/vins se charge', async ({ page }) => {
         await expectAdminPageOk(page, '/admin/vins');
@@ -196,16 +184,33 @@ test.describe('Navigation admin — pages qui se chargent', () => {
         await expectAdminPageOk(page, '/admin/factures');
     });
 
-    test('/admin/logs se charge', async ({ page }) => {
-        await expectAdminPageOk(page, '/admin/logs');
+});
+
+// ============================================================
+// Suite : Routes super_admin — accès refusé pour admin simple
+// (super_admin n'a pas de trusted_device en seed → login MFA bloqué)
+// Ces tests vérifient le contrôle d'accès côté serveur (abort 404)
+// ============================================================
+
+test.describe('Routes super_admin — 404 pour admin simple', () => {
+
+    test.beforeEach(async ({ page, context }) => {
+        await loginAsAdmin(page, context);
     });
 
-    test('/admin/monitoring-crons se charge', async ({ page }) => {
-        await expectAdminPageOk(page, '/admin/monitoring-crons');
+    test('/admin/logs → 404 pour admin simple', async ({ page }) => {
+        const response = await page.goto('/admin/logs');
+        expect(response?.status()).toBe(404);
     });
 
-    test('/admin/admins se charge', async ({ page }) => {
-        await expectAdminPageOk(page, '/admin/admins');
+    test('/admin/monitoring-crons → 404 pour admin simple', async ({ page }) => {
+        const response = await page.goto('/admin/monitoring-crons');
+        expect(response?.status()).toBe(404);
+    });
+
+    test('/admin/admins → 404 pour admin simple', async ({ page }) => {
+        const response = await page.goto('/admin/admins');
+        expect(response?.status()).toBe(404);
     });
 
 });

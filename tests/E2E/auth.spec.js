@@ -7,7 +7,7 @@ import { test, expect, setVerifiedCookie } from './support/fixtures.js';
 
 const CUSTOMER_EMAIL    = 'client.verifie@dev.local';
 const CUSTOMER_PASSWORD = 'Dev123456789!';
-const CUSTOMER_DEVICE   = 'mock-jwt-sophie-active-001';
+const CUSTOMER_DEVICE   = 'device-uuid-sophie-macbook';
 
 // ============================================================
 // Helpers
@@ -35,13 +35,13 @@ async function loginAsCustomer(page, context) {
     await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
 
     // Remplir le formulaire
-    await page.locator('#login-modal input[name="email"]').fill(CUSTOMER_EMAIL);
-    await page.locator('#login-modal input[name="password"]').fill(CUSTOMER_PASSWORD);
+    await page.locator('#login-modal-email').fill(CUSTOMER_EMAIL);
+    await page.locator('#login-modal-password').fill(CUSTOMER_PASSWORD);
 
     // Soumettre et attendre la fermeture du modal OU la redirection
     await Promise.all([
         page.waitForURL(/\/(fr|en)/, { timeout: 10000 }),
-        page.locator('#login-modal button[type="submit"]').click(),
+        page.locator('form[action*="/connexion"] button[type="submit"]').click(),
     ]);
 }
 
@@ -66,10 +66,10 @@ test.describe('Connexion — modal UI', () => {
         await page.locator('#login-modal-trigger').click();
         await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
 
-        await expect(page.locator('#login-modal input[name="email"]')).toBeVisible();
-        await expect(page.locator('#login-modal input[name="password"]')).toBeVisible();
-        await expect(page.locator('#login-modal input[name="csrf_token"]')).toBeAttached();
-        await expect(page.locator('#login-modal button[type="submit"]')).toBeVisible();
+        await expect(page.locator('#login-modal-email')).toBeVisible();
+        await expect(page.locator('#login-modal-password')).toBeVisible();
+        await expect(page.locator('form[action*="/connexion"] input[name="csrf_token"]')).toBeAttached();
+        await expect(page.locator('form[action*="/connexion"] button[type="submit"]')).toBeVisible();
     });
 
     test('connexion avec mauvais mot de passe → erreur visible dans le modal', async ({ page }) => {
@@ -77,9 +77,9 @@ test.describe('Connexion — modal UI', () => {
         await page.locator('#login-modal-trigger').click();
         await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
 
-        await page.locator('#login-modal input[name="email"]').fill(CUSTOMER_EMAIL);
-        await page.locator('#login-modal input[name="password"]').fill('MauvaisMotDePasse!');
-        await page.locator('#login-modal button[type="submit"]').click();
+        await page.locator('#login-modal-email').fill(CUSTOMER_EMAIL);
+        await page.locator('#login-modal-password').fill('MauvaisMotDePasse!');
+        await page.locator('form[action*="/connexion"] button[type="submit"]').click();
 
         // Le modal reste ouvert avec une alerte d'erreur
         await expect(page.locator('#login-modal .alert--error')).toBeVisible({ timeout: 8000 });
@@ -91,10 +91,10 @@ test.describe('Connexion — modal UI', () => {
         await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
 
         // Ne pas remplir l'email, remplir seulement le mot de passe
-        await page.locator('#login-modal input[name="password"]').fill(CUSTOMER_PASSWORD);
+        await page.locator('#login-modal-password').fill(CUSTOMER_PASSWORD);
 
         // Tenter de soumettre
-        await page.locator('#login-modal button[type="submit"]').click();
+        await page.locator('form[action*="/connexion"] button[type="submit"]').click();
 
         // La validation HTML5 doit bloquer (le champ est required) : on reste sur la même page,
         // le modal est toujours ouvert et aucune erreur serveur n'apparaît.
@@ -191,8 +191,8 @@ test.describe('Inscription — modal UI', () => {
         await page.locator('#login-to-register').click();
         await expect(page.locator('#register-modal')).toHaveAttribute('aria-hidden', 'false');
 
-        await expect(page.locator('#register-modal input[name="first_name"]')).toBeVisible();
-        await expect(page.locator('#register-modal input[name="last_name"]')).toBeVisible();
+        await expect(page.locator('#register-modal input[name="firstname"]')).toBeVisible();
+        await expect(page.locator('#register-modal input[name="lastname"]')).toBeVisible();
         await expect(page.locator('#register-modal input[name="email"]')).toBeVisible();
         await expect(page.locator('#register-modal input[name="password"]')).toBeVisible();
         await expect(page.locator('#register-modal input[name="password_confirm"]')).toBeVisible();
@@ -206,31 +206,47 @@ test.describe('Inscription — modal UI', () => {
         await page.locator('#login-to-register').click();
         await expect(page.locator('#register-modal')).toHaveAttribute('aria-hidden', 'false');
 
-        await page.locator('#register-modal input[name="first_name"]').fill('Test');
-        await page.locator('#register-modal input[name="last_name"]').fill('User');
+        await page.locator('#register-modal input[name="account_type"][value="individual"]').check();
+        await page.locator('#register-modal input[name="firstname"]').fill('Test');
+        await page.locator('#register-modal input[name="lastname"]').fill('User');
         await page.locator('#register-modal input[name="email"]').fill(`mismatch+${Date.now()}@test.local`);
+        // Remplir d'abord des mots de passe identiques pour activer le bouton
         await page.locator('#register-modal input[name="password"]').fill('Dev123456789!');
+        await page.locator('#register-modal input[name="password_confirm"]').fill('Dev123456789!');
+        // Puis changer la confirmation pour créer le mismatch — soumettre via form.submit() car le bouton est disabled par JS
         await page.locator('#register-modal input[name="password_confirm"]').fill('AutreMotDePasse999!');
-        await page.locator('#register-modal button[type="submit"]').click();
+        await Promise.all([
+            page.waitForURL(/.+/, { timeout: 10000 }),
+            page.locator('#register-modal .register-modal__form').evaluate(form => form.submit()),
+        ]);
 
-        await expect(page.locator('#register-modal .alert--error')).toBeVisible({ timeout: 8000 });
+        // JS rouvre le modal automatiquement quand __authRegisterOpen=true
+        await expect(page.locator('#register-modal')).toHaveAttribute('aria-hidden', 'false', { timeout: 5000 });
+        await expect(page.locator('#register-modal .alert--error')).toBeVisible({ timeout: 5000 });
     });
 
-    test('soumettre avec email déjà utilisé → erreur', async ({ page }) => {
+    test('soumettre avec email déjà utilisé → message générique (anti-énumération)', async ({ page }) => {
         await page.goto('/fr');
         await page.locator('#login-modal-trigger').click();
         await page.locator('#login-to-register').click();
         await expect(page.locator('#register-modal')).toHaveAttribute('aria-hidden', 'false');
 
         // Utiliser un email déjà présent en base (seed)
-        await page.locator('#register-modal input[name="first_name"]').fill('Sophie');
-        await page.locator('#register-modal input[name="last_name"]').fill('Dupont');
+        await page.locator('#register-modal input[name="account_type"][value="individual"]').check();
+        await page.locator('#register-modal input[name="firstname"]').fill('Sophie');
+        await page.locator('#register-modal input[name="lastname"]').fill('Dupont');
         await page.locator('#register-modal input[name="email"]').fill(CUSTOMER_EMAIL);
         await page.locator('#register-modal input[name="password"]').fill('Dev123456789!');
         await page.locator('#register-modal input[name="password_confirm"]').fill('Dev123456789!');
-        await page.locator('#register-modal button[type="submit"]').click();
+        await Promise.all([
+            page.waitForURL(/.+/, { timeout: 10000 }),
+            page.locator('.register-modal__submit').click(),
+        ]);
 
-        await expect(page.locator('#register-modal .alert--error')).toBeVisible({ timeout: 8000 });
+        // Anti-énumération : le serveur affiche un succès générique (même message qu'une vraie inscription)
+        // JS rouvre le modal automatiquement quand __authRegisterOpen=true
+        await expect(page.locator('#register-modal')).toHaveAttribute('aria-hidden', 'false', { timeout: 5000 });
+        await expect(page.locator('#register-modal .alert--success')).toBeVisible({ timeout: 5000 });
     });
 
     test('inscription avec données valides → message de succès (email d\'activation envoyé)', async ({ page }) => {
@@ -241,12 +257,16 @@ test.describe('Inscription — modal UI', () => {
 
         const uniqueEmail = `nouveau+${Date.now()}@test.local`;
 
-        await page.locator('#register-modal input[name="first_name"]').fill('Nouveau');
-        await page.locator('#register-modal input[name="last_name"]').fill('Testeur');
+        await page.locator('#register-modal input[name="account_type"][value="individual"]').check();
+        await page.locator('#register-modal input[name="firstname"]').fill('Nouveau');
+        await page.locator('#register-modal input[name="lastname"]').fill('Testeur');
         await page.locator('#register-modal input[name="email"]').fill(uniqueEmail);
         await page.locator('#register-modal input[name="password"]').fill('Dev123456789!');
         await page.locator('#register-modal input[name="password_confirm"]').fill('Dev123456789!');
-        await page.locator('#register-modal button[type="submit"]').click();
+        await Promise.all([
+            page.waitForURL(/.+/, { timeout: 10000 }),
+            page.locator('.register-modal__submit').click(),
+        ]);
 
         // Un message de succès doit apparaître (email d'activation envoyé)
         await expect(
@@ -257,8 +277,17 @@ test.describe('Inscription — modal UI', () => {
 });
 
 // ============================================================
-// Suite : Mot de passe oublié
+// Suite : Mot de passe oublié (formulaire dans le modal login)
 // ============================================================
+
+/** Ouvre le modal login puis bascule sur le panel mot-de-passe-oublié. */
+async function openForgotPanel(page) {
+        await page.goto('/fr');
+        await page.locator('#login-modal-trigger').click();
+        await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
+        await page.locator('#forgot-password-btn').click();
+        await expect(page.locator('#forgot-modal-email')).toBeVisible({ timeout: 5000 });
+}
 
 test.describe('Mot de passe oublié', () => {
 
@@ -266,42 +295,35 @@ test.describe('Mot de passe oublié', () => {
         await setVerifiedCookie(context);
     });
 
-    test('page /fr/mot-de-passe-oublie se charge', async ({ page }) => {
-        await page.goto('/fr/mot-de-passe-oublie');
-        await expect(page.locator('main')).toBeVisible();
-        await expect(page.locator('.site-header')).toBeVisible();
+    test('panel mot de passe oublié accessible depuis le modal connexion', async ({ page }) => {
+        await openForgotPanel(page);
+        await expect(page.locator('#forgot-panel')).not.toHaveAttribute('hidden');
     });
 
     test('formulaire avec champ email visible', async ({ page }) => {
-        await page.goto('/fr/mot-de-passe-oublie');
-        await expect(page.locator('input[name="email"]')).toBeVisible();
-        await expect(page.locator('button[type="submit"], input[type="submit"]').first()).toBeVisible();
+        await openForgotPanel(page);
+        await expect(page.locator('#forgot-modal-email')).toBeVisible();
+        await expect(page.locator('#forgot-modal-form button[type="submit"]')).toBeVisible();
     });
 
     test('soumettre avec email valide → message de succès (email envoyé)', async ({ page }) => {
-        await page.goto('/fr/mot-de-passe-oublie');
-        await page.locator('input[name="email"]').fill(CUSTOMER_EMAIL);
-        await page.locator('button[type="submit"], input[type="submit"]').first().click();
+        await openForgotPanel(page);
+        await page.locator('#forgot-modal-email').fill(CUSTOMER_EMAIL);
+        await page.locator('#forgot-modal-form button[type="submit"]').click();
 
-        await expect(page.locator('.alert--success')).toBeVisible({ timeout: 8000 });
+        await expect(page.locator('#login-modal .alert--success')).toBeVisible({ timeout: 8000 });
     });
 
-    test('soumettre avec email au mauvais format → erreur de validation', async ({ page }) => {
-        await page.goto('/fr/mot-de-passe-oublie');
+    test('soumettre avec email au mauvais format → validation HTML5 bloque', async ({ page }) => {
+        await openForgotPanel(page);
 
-        const emailInput = page.locator('input[name="email"]');
+        const emailInput = page.locator('#forgot-modal-email');
         await emailInput.fill('pas-un-email');
+        await page.locator('#forgot-modal-form button[type="submit"]').click();
 
-        await page.locator('button[type="submit"], input[type="submit"]').first().click();
-
-        // La validation HTML5 (type=email) ou côté serveur doit bloquer
-        // On vérifie qu'aucun message de succès n'est apparu
-        await expect(page.locator('.alert--success')).not.toBeVisible({ timeout: 3000 }).catch(() => {
-            // Si la validation HTML5 bloque côté navigateur, on n'arrive même pas au serveur — OK
-        });
-
-        // Le champ email doit toujours être sur la page (pas de redirection)
-        await expect(emailInput).toBeAttached();
+        // Validation HTML5 type=email bloque : le panel reste visible, pas de succès
+        await expect(page.locator('#login-modal .alert--success')).not.toBeVisible({ timeout: 2000 }).catch(() => {});
+        await expect(emailInput).toBeVisible();
     });
 
 });

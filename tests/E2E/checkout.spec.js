@@ -24,11 +24,12 @@ async function loginAsCustomer(page, context) {
     await page.goto('/fr');
     await page.locator('#login-modal-trigger').click();
     await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
-    await page.locator('#login-modal input[type="email"], #login-modal input[name="email"]').fill(CUSTOMER_EMAIL);
-    await page.locator('#login-modal input[type="password"], #login-modal input[name="password"]').fill(CUSTOMER_PASSWORD);
-    await page.locator('#login-modal button[type="submit"], #login-modal [type="submit"]').click();
-    // Attendre la fin de la navigation post-login (redirection ou fermeture du modal)
-    await page.waitForLoadState('networkidle');
+    await page.locator('#login-modal-email').fill(CUSTOMER_EMAIL);
+    await page.locator('#login-modal-password').fill(CUSTOMER_PASSWORD);
+    await Promise.all([
+        page.waitForURL(/\/(fr|en)/, { timeout: 15000 }),
+        page.locator('form[action*="/connexion"] button[type="submit"]').click(),
+    ]);
 }
 
 /**
