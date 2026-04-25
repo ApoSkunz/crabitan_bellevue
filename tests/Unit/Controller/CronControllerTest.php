@@ -64,6 +64,7 @@ class CronControllerTest extends TestCase
             'send-newsletter-welcome-sequence' => ['send-newsletter-welcome-sequence'],
             'send-reconquest'                  => ['send-reconquest'],
             'send-review-request'              => ['send-review-request'],
+            'send-wine-stock-report'           => ['send-wine-stock-report'],
         ];
     }
 

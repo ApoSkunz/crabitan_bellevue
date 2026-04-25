@@ -1899,4 +1899,70 @@ class CronControllerCoverageTest extends TestCase
         // Exception sur finish absorbée → job réputé OK → 200
         $this->assertSame(200, http_response_code());
     }
+
+    // ── send-wine-stock-report ────────────────────────────────────────────────
+
+    public function testSendWineStockReportCatalogueVide(): void
+    {
+        $dbMock = $this->mockDb();
+        $dbMock->method('fetchOne')->willReturn(false);
+        $dbMock->method('fetchAll')->willReturn([]);
+
+        $method = new \ReflectionMethod(CronController::class, 'doJobSendWineStockReport'); // NOSONAR — php:S3011 : accès privé requis en test
+        $method->setAccessible(true); // NOSONAR — php:S3011
+
+        $logs = [];
+        $method->invoke($this->controller, function (string $m) use (&$logs): void { $logs[] = $m; }, false);
+
+        $this->assertStringContainsString('Catalogue vide', $logs[0] ?? '');
+    }
+
+    public function testSendWineStockReportDryRun(): void
+    {
+        $dbMock = $this->mockDb();
+        $dbMock->method('fetchOne')->willReturn(false);
+        $dbMock->method('fetchAll')->willReturn([
+            ['id' => 1, 'label_name' => 'Sémillon', 'wine_color' => 'white', 'vintage' => 2021,
+             'certification_label' => 'AOC', 'is_cuvee_speciale' => 0, 'price' => '18.50', 'stock_quantity' => 12, 'available' => 1],
+        ]);
+
+        $method = new \ReflectionMethod(CronController::class, 'doJobSendWineStockReport'); // NOSONAR — php:S3011 : accès privé requis en test
+        $method->setAccessible(true); // NOSONAR — php:S3011
+
+        $logs = [];
+        $method->invoke($this->controller, function (string $m) use (&$logs): void { $logs[] = $m; }, true);
+
+        $this->assertStringContainsString('DRY-RUN', $logs[0] ?? '');
+    }
+
+    public function testSendWineStockReportEnvoi(): void
+    {
+        $wines = [
+            ['id' => 1, 'label_name' => 'Muscadelle', 'wine_color' => 'sweet', 'vintage' => 2020,
+             'certification_label' => 'AOC', 'is_cuvee_speciale' => 1, 'price' => '22.00', 'stock_quantity' => 4, 'available' => 1],
+        ];
+
+        $dbMock = $this->mockDb();
+        $dbMock->method('fetchOne')->willReturn(false);
+        $dbMock->method('fetchAll')->willReturn($wines);
+
+        $mailerMock = $this->createStub(\Service\MailService::class);
+
+        $controller = new class (new \Core\Request()) extends CronController {
+            public ?\Service\MailService $mailerOverride = null;
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->mailerOverride ?? parent::newMailService();
+            }
+        };
+        $controller->mailerOverride = $mailerMock;
+
+        $method = new \ReflectionMethod(CronController::class, 'doJobSendWineStockReport'); // NOSONAR — php:S3011 : accès privé requis en test
+        $method->setAccessible(true); // NOSONAR — php:S3011
+
+        $logs = [];
+        $method->invoke($controller, function (string $m) use (&$logs): void { $logs[] = $m; }, false);
+
+        $this->assertStringContainsString('[OK]', $logs[0] ?? '');
+    }
 }
