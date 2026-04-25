@@ -1912,7 +1912,10 @@ class CronControllerCoverageTest extends TestCase
         $method->setAccessible(true); // NOSONAR — php:S3011
 
         $logs = [];
-        $method->invoke($this->controller, function (string $m) use (&$logs): void { $logs[] = $m; }, false);
+        $log  = function (string $m) use (&$logs): void {
+            $logs[] = $m;
+        };
+        $method->invoke($this->controller, $log, false);
 
         $this->assertStringContainsString('Catalogue vide', $logs[0] ?? '');
     }
@@ -1930,7 +1933,10 @@ class CronControllerCoverageTest extends TestCase
         $method->setAccessible(true); // NOSONAR — php:S3011
 
         $logs = [];
-        $method->invoke($this->controller, function (string $m) use (&$logs): void { $logs[] = $m; }, true);
+        $log  = function (string $m) use (&$logs): void {
+            $logs[] = $m;
+        };
+        $method->invoke($this->controller, $log, true);
 
         $this->assertStringContainsString('DRY-RUN', $logs[0] ?? '');
     }
@@ -1961,7 +1967,10 @@ class CronControllerCoverageTest extends TestCase
         $method->setAccessible(true); // NOSONAR — php:S3011
 
         $logs = [];
-        $method->invoke($controller, function (string $m) use (&$logs): void { $logs[] = $m; }, false);
+        $log  = function (string $m) use (&$logs): void {
+            $logs[] = $m;
+        };
+        $method->invoke($controller, $log, false);
 
         $this->assertStringContainsString('[OK]', $logs[0] ?? '');
     }
