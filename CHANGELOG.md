@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.27.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.27.0...v1.27.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* **test:** ErrorLoggerTest — purge logs dans setUp() pour ordre aléatoire Infection ([c594847](https://github.com/ApoSkunz/crabitan_bellevue/commit/c5948478195750c18246649f17ac251dd9b773ee))
+
 # [1.27.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.26.0...v1.27.0) (2026-04-25)
 
 
