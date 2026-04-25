@@ -29,7 +29,7 @@ async function loginAsCustomer(page, context) {
         },
         {
             name: 'device_token',
-            value: 'mock-jwt-sophie-active-001',
+            value: 'device-uuid-sophie-macbook',
             domain: DOMAIN,
             path: '/',
             httpOnly: true,

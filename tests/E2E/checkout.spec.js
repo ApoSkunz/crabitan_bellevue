@@ -7,7 +7,7 @@ import { test, expect, setVerifiedCookie } from './support/fixtures.js';
 
 const CUSTOMER_EMAIL    = 'client.verifie@dev.local';
 const CUSTOMER_PASSWORD = 'Dev123456789!';
-const DEVICE_TOKEN      = 'mock-jwt-sophie-active-001';
+const DEVICE_TOKEN      = 'device-uuid-sophie-macbook';
 
 /**
  * Pose les cookies age_verified + device_token, puis connecte le client via le modal login.
@@ -104,7 +104,7 @@ test.describe('Panier — actions', () => {
             // (présence du contrôle est l'assertion clé)
         } else {
             // Invité sans controls rendus : vérifier au moins que la section panier est visible
-            await expect(page.locator('#cart-guest, .cart-guest-cta')).toBeVisible();
+            await expect(page.locator('#cart-guest')).toBeVisible();
         }
     });
 

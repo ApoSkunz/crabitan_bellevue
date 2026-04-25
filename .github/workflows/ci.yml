@@ -218,6 +218,9 @@ jobs:
           MAIL_PASS=unused
           MAIL_FROM_NAME="Château Crabitan Bellevue"
           DB_ENCRYPT_KEY=ci-test-encrypt-key-e2e
+          MFA_EMAIL_ENABLED=false
+          CRON_SECRET_TOKEN=ci-cron-secret
+          CONTACT_OWNER_EMAIL=owner@dev.local
           EOF
 
       - name: Build (instrumented for coverage)

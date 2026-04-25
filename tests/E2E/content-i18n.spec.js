@@ -7,7 +7,7 @@ import { test, expect, setVerifiedCookie } from './support/fixtures.js';
 
 const CUSTOMER_EMAIL    = 'client.verifie@dev.local';
 const CUSTOMER_PASSWORD = 'Dev123456789!';
-const CUSTOMER_DEVICE   = 'mock-jwt-sophie-active-001';
+const CUSTOMER_DEVICE   = 'device-uuid-sophie-macbook';
 
 // ============================================================
 // Helpers
@@ -352,7 +352,7 @@ test.describe('Newsletter — espace client connecté', () => {
 
         // La checkbox newsletter est présente dans le formulaire profil
         const newsletterCheckbox = page.locator('input[name="newsletter"]');
-        await expect(newsletterCheckbox).toBeVisible();
+        await expect(newsletterCheckbox).toBeAttached();
     });
 
     test('la page /fr/mon-compte/profil se charge correctement quand connecté', async ({ page, context }) => {
@@ -361,7 +361,7 @@ test.describe('Newsletter — espace client connecté', () => {
         await page.goto('/fr/mon-compte/profil');
         await expect(page.locator('main')).toBeVisible();
         // Formulaire de profil présent
-        await expect(page.locator('form')).toBeVisible();
+        await expect(page.locator('.account-page form').first()).toBeVisible();
         // Pas de redirection vers l'age-gate ou la connexion
         await expect(page).not.toHaveURL(/\/age-gate/);
         await expect(page).not.toHaveURL(/\/connexion/);

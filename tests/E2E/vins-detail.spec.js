@@ -7,7 +7,7 @@ import { test, expect, setVerifiedCookie } from './support/fixtures.js';
 
 const CUSTOMER_EMAIL    = 'client.verifie@dev.local';
 const CUSTOMER_PASSWORD = 'Dev123456789!';
-const CUSTOMER_DEVICE   = 'mock-jwt-sophie-active-001';
+const CUSTOMER_DEVICE   = 'device-uuid-sophie-macbook';
 
 // ============================================================
 // Helpers

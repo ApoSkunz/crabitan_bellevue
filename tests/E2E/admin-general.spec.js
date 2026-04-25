@@ -7,7 +7,7 @@ import { test, expect } from './support/fixtures.js';
 
 const ADMIN_EMAIL    = 'admin@dev.local';
 const ADMIN_PASSWORD = 'Dev123456789!';
-const ADMIN_DEVICE   = 'mock-jwt-admin-active-001';
+const ADMIN_DEVICE   = 'device-uuid-admin-chrome';
 
 // ============================================================
 // Helpers
@@ -66,7 +66,7 @@ test.describe('Accès admin — non connecté', () => {
         const domain = new URL(process.env.APP_URL || 'http://crabitan.local').hostname;
         await context.addCookies([
             { name: 'age_verified', value: '1',                         domain, path: '/', httpOnly: true,  sameSite: 'Lax' },
-            { name: 'device_token', value: 'mock-jwt-sophie-active-001', domain, path: '/', httpOnly: false, sameSite: 'Lax' },
+            { name: 'device_token', value: 'device-uuid-sophie-macbook', domain, path: '/', httpOnly: false, sameSite: 'Lax' },
         ]);
         await page.goto('/fr');
         await page.locator('#login-modal-trigger').click();

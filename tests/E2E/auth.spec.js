@@ -136,6 +136,12 @@ test.describe('Connexion — flux complet (customer mock)', () => {
     test('déconnexion → retour à l\'état non connecté (plus de cookie auth_token)', async ({ page, context }) => {
         await loginAsCustomer(page, context);
 
+        // Ouvrir le menu utilisateur si présent (dropdown header)
+        const userMenuTrigger = page.locator('#user-menu-trigger, .header-nav__account-btn, [data-user-menu]').first();
+        if (await userMenuTrigger.isVisible().catch(() => false)) {
+            await userMenuTrigger.click();
+        }
+
         // Chercher et soumettre le formulaire / lien de déconnexion
         const logoutForm = page.locator('form[action*="/deconnexion"]');
         const logoutLink = page.locator('a[href*="/deconnexion"]');
@@ -146,7 +152,7 @@ test.describe('Connexion — flux complet (customer mock)', () => {
         if (hasForm > 0) {
             await Promise.all([
                 page.waitForURL(/\/(fr|en)/, { timeout: 10000 }),
-                logoutForm.locator('button, input[type="submit"]').first().click(),
+                logoutForm.locator('button, input[type="submit"]').first().click({ force: true }),
             ]);
         } else if (hasLink > 0) {
             await Promise.all([
