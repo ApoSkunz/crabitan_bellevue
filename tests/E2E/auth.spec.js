@@ -136,32 +136,23 @@ test.describe('Connexion — flux complet (customer mock)', () => {
     test('déconnexion → retour à l\'état non connecté (plus de cookie auth_token)', async ({ page, context }) => {
         await loginAsCustomer(page, context);
 
-        // Ouvrir le menu utilisateur si présent (dropdown header)
-        const userMenuTrigger = page.locator('#user-menu-trigger, .header-nav__account-btn, [data-user-menu]').first();
-        if (await userMenuTrigger.isVisible().catch(() => false)) {
-            await userMenuTrigger.click();
-        }
+        // Le formulaire de déconnexion est toujours dans le DOM (dans le header, même si visuellement caché).
+        // On le soumet via locator.evaluate() pour éviter les problèmes de visibilité du dropdown.
+        const logoutForms = page.locator('form[action*="/deconnexion"]');
+        const formCount = await logoutForms.count();
 
-        // Chercher et soumettre le formulaire / lien de déconnexion
-        const logoutForm = page.locator('form[action*="/deconnexion"]');
-        const logoutLink = page.locator('a[href*="/deconnexion"]');
-
-        const hasForm = await logoutForm.count();
-        const hasLink = await logoutLink.count();
-
-        if (hasForm > 0) {
-            await Promise.all([
-                page.waitForURL(/\/(fr|en)/, { timeout: 10000 }),
-                logoutForm.locator('button, input[type="submit"]').first().click({ force: true }),
-            ]);
-        } else if (hasLink > 0) {
-            await Promise.all([
-                page.waitForURL(/\/(fr|en)/, { timeout: 10000 }),
-                logoutLink.first().click(),
-            ]);
+        if (formCount > 0) {
+            await logoutForms.first().evaluate(form => form.submit());
+            await page.waitForURL(/\/(fr|en)/, { timeout: 10000 });
         } else {
-            // Fallback : naviguer directement vers l'endpoint de déconnexion
-            await page.goto('/fr/deconnexion');
+            // Fallback : lien de déconnexion
+            const logoutLink = page.locator('a[href*="/deconnexion"]');
+            if (await logoutLink.count() > 0) {
+                await Promise.all([
+                    page.waitForURL(/\/(fr|en)/, { timeout: 10000 }),
+                    logoutLink.first().click(),
+                ]);
+            }
         }
 
         // Le cookie auth_token doit avoir disparu

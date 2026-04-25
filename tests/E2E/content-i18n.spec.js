@@ -384,8 +384,8 @@ test.describe('Newsletter — espace client connecté', () => {
             await checkbox.check();
         }
 
-        // Soumettre le formulaire profil (premier form avec button[type=submit])
-        const submitBtn = page.locator('button[type="submit"]').first();
+        // Soumettre le formulaire profil — cibler spécifiquement le form profil (évite le bouton logout du header)
+        const submitBtn = page.locator('.account-form button[type="submit"], form[action*="/profil"] button[type="submit"]').first();
         await expect(submitBtn).toBeVisible();
 
         await Promise.all([

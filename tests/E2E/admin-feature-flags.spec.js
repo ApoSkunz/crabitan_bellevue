@@ -127,10 +127,10 @@ test.describe('Feature Flags — UI (super_admin connecté)', () => {
 
     test('modifier un flag active le bouton soumettre', async ({ page }) => {
         await page.goto('/admin/feature-flags');
-        // Trouver le premier toggle actif (type checkbox)
         const firstToggle = page.locator('.ff-toggle__input').first();
         await expect(firstToggle).toBeAttached({ timeout: 8000 });
-        await firstToggle.check({ force: true });
+        // Cliquer via evaluate pour déclencher l'événement change natif (toggle visuellement masqué)
+        await firstToggle.evaluate(el => el.click());
         const saveBtn = page.locator('#ff-save-btn');
         await expect(saveBtn).toBeEnabled({ timeout: 3000 });
     });
@@ -153,7 +153,7 @@ test.describe('Feature Flags — OTP flow', () => {
         // Modifier un flag pour activer le bouton soumettre
         const firstToggle = page.locator('.ff-toggle__input').first();
         await expect(firstToggle).toBeAttached({ timeout: 8000 });
-        await firstToggle.check({ force: true });
+        await firstToggle.evaluate(el => el.click());
 
         const saveBtn = page.locator('#ff-save-btn');
         await expect(saveBtn).toBeEnabled({ timeout: 3000 });
@@ -246,7 +246,7 @@ test.describe('Feature Flags — OTP flow', () => {
 test.describe('Monitoring Crons', () => {
 
     test.beforeEach(async ({ page, context }) => {
-        await loginAsAdmin(page, context);
+        await loginAsAdmin(page, context, SUPER_ADMIN_EMAIL);
     });
 
     test('/admin/monitoring-crons se charge', async ({ page }) => {
@@ -305,7 +305,7 @@ test.describe('Monitoring Crons', () => {
 test.describe('Cron log modal', () => {
 
     test.beforeEach(async ({ page, context }) => {
-        await loginAsAdmin(page, context);
+        await loginAsAdmin(page, context, SUPER_ADMIN_EMAIL);
     });
 
     test('la page monitoring-crons se charge correctement', async ({ page }) => {
@@ -381,7 +381,7 @@ test.describe('Cron log modal', () => {
 test.describe('App Logs', () => {
 
     test.beforeEach(async ({ page, context }) => {
-        await loginAsAdmin(page, context);
+        await loginAsAdmin(page, context, SUPER_ADMIN_EMAIL);
     });
 
     test('/admin/logs-app se charge', async ({ page }) => {
@@ -430,13 +430,13 @@ test.describe('App Logs', () => {
 test.describe('Email Rate', () => {
 
     test.beforeEach(async ({ page, context }) => {
-        await loginAsAdmin(page, context);
+        await loginAsAdmin(page, context, SUPER_ADMIN_EMAIL);
     });
 
     test('/admin/emails-rate se charge', async ({ page }) => {
         await page.goto('/admin/emails-rate');
         await expect(page).toHaveURL('/admin/emails-rate');
-        await expect(page.locator('main')).toBeVisible({ timeout: 8000 });
+        await expect(page.locator('#admin-main-content')).toBeVisible({ timeout: 8000 });
     });
 
     test('affiche un tableau de logs email ou un message vide', async ({ page }) => {
@@ -486,8 +486,9 @@ test.describe('RGPD demandes', () => {
 
     test('les filtres statut et type sont présents', async ({ page }) => {
         await page.goto('/admin/rgpd/demandes');
-        await expect(page.locator('select[name="status"]')).toBeVisible({ timeout: 8000 });
-        await expect(page.locator('select[name="type"]')).toBeVisible({ timeout: 8000 });
+        // aria-label unique — évite le strict-mode avec les selects dans les lignes de tableau
+        await expect(page.locator('select[aria-label="Filtrer par statut"]')).toBeVisible({ timeout: 8000 });
+        await expect(page.locator('select[aria-label="Filtrer par type de droit"]')).toBeVisible({ timeout: 8000 });
     });
 
     test('si des demandes existent, le tableau a les colonnes attendues', async ({ page }) => {
