@@ -166,6 +166,7 @@ class OrderFormControllerTest extends TestCase
      */
     public function testDownloadSendsFileWithLabel(): void
     {
+        // Créer un fichier temporaire dans le répertoire de stockage
         $storageDir = ROOT_PATH . '/storage/order_forms';
         if (!is_dir($storageDir)) {
             mkdir($storageDir, 0755, true);
@@ -184,22 +185,36 @@ class OrderFormControllerTest extends TestCase
         ]);
         $this->instanceProp->setValue(null, $dbMock);
 
+        // Sous-classe anonyme qui overrides doExit() pour éviter exit
         $controller = new class (new Request()) extends OrderFormController {
+            public bool $exitCalled = false;
+
             protected function requireAdminAccess(): void
             {
-                /* bypass auth in unit test */
+            }
+
+            protected function doExit(): never
+            {
+                $this->exitCalled = true;
+                throw new \RuntimeException('exit_intercepted');
             }
         };
 
         ob_start();
+        $caught = null;
         try {
             $controller->download(['id' => '10']);
-            $output = ob_get_clean();
+        } catch (\RuntimeException $e) {
+            $caught = $e;
         } finally {
+            $output = ob_get_clean();
             @unlink($tmpPath);
         }
 
-        $this->assertStringContainsString('%PDF', $output ?? '');
+        $this->assertNotNull($caught);
+        $this->assertSame('exit_intercepted', $caught->getMessage());
+        $this->assertTrue($controller->exitCalled);
+        $this->assertStringContainsString('%PDF', $output);
     }
 
     // ----------------------------------------------------------------
@@ -230,20 +245,33 @@ class OrderFormControllerTest extends TestCase
         $this->instanceProp->setValue(null, $dbMock);
 
         $controller = new class (new Request()) extends OrderFormController {
+            public bool $exitCalled = false;
+
             protected function requireAdminAccess(): void
             {
-                /* bypass auth in unit test */
+            }
+
+            protected function doExit(): never
+            {
+                $this->exitCalled = true;
+                throw new \RuntimeException('exit_intercepted');
             }
         };
 
         ob_start();
+        $caught = null;
         try {
             $controller->download(['id' => '11']);
-            $output = ob_get_clean();
+        } catch (\RuntimeException $e) {
+            $caught = $e;
         } finally {
+            $output = ob_get_clean();
             @unlink($tmpPath);
         }
 
-        $this->assertStringContainsString('%PDF', $output ?? '');
+        $this->assertNotNull($caught);
+        $this->assertSame('exit_intercepted', $caught->getMessage());
+        $this->assertTrue($controller->exitCalled);
+        $this->assertStringContainsString('%PDF', $output);
     }
 }

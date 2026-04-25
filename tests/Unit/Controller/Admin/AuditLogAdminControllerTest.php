@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
  * Sous-classe testable qui contourne les dépendances infrastructure :
  * - requireSuperAdmin() retourne un faux admin sans appel JWT
  * - view() est neutralisé (no-op)
+ * - doExit() lève une exception sentinelle au lieu de exit (couvre lines 106-108)
  * - logModel est remplaçable via propriété publique
  */
 // phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
@@ -31,6 +32,8 @@ class TestableAuditLogAdminController extends AuditLogAdminController
     /** @var array{template: string, data: array<string, mixed>}|null */
     public ?array $viewCall = null;
 
+    public bool $exitCalled = false;
+
     /** @return array<string, mixed> */
     protected function requireSuperAdmin(): array
     {
@@ -45,6 +48,19 @@ class TestableAuditLogAdminController extends AuditLogAdminController
     protected function view(string $template, array $data = [], int $httpStatus = 200): void
     {
         $this->viewCall = ['template' => $template, 'data' => $data];
+    }
+
+    /**
+     * Override doExit() pour éviter que exit tue le processus PHPUnit.
+     * Marque exitCalled = true et lève une exception sentinelle.
+     * Ceci couvre les lines 106-108 de AuditLogAdminController.
+     *
+     * @return never
+     */
+    protected function doExit(): never
+    {
+        $this->exitCalled = true;
+        throw new \RuntimeException('__exit_called__');
     }
 
     /**
@@ -118,23 +134,55 @@ class AuditLogAdminControllerTest extends TestCase
     }
 
     // ----------------------------------------------------------------
-    // export() — sortie CSV complète
+    // doExit() — lines 106-108 : exit volontaire après export CSV
     // ----------------------------------------------------------------
 
     /**
-     * export() échoue le CSV complet et retourne sans exception.
+     * Couvre les lines 106-108 : doExit() est appelé depuis export().
+     *
+     * La sous-classe override doExit() pour lever une exception sentinelle
+     * au lieu d'appeler exit (qui tuerait le processus PHPUnit).
      *
      * @return void
      */
-    public function testExportEchoesCsv(): void
+    public function testExportCallsDoExit(): void
     {
         $csvContent = "\xEF\xBB\xBFID;Date;Admin\n1;2026-01-01;admin\n";
         $ctrl       = new TestableAuditLogAdminController(new Request());
         $ctrl->setLogModel($this->makeLogModelStub(0, [], $csvContent));
 
-        ob_start();
-        $ctrl->export([]);
-        $output = ob_get_clean();
+        $caught = null;
+        try {
+            ob_start();
+            $ctrl->export([]);
+        } catch (\RuntimeException $e) {
+            ob_end_clean();
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame('__exit_called__', $caught->getMessage());
+        $this->assertTrue($ctrl->exitCalled, 'doExit() should have been called');
+    }
+
+    /**
+     * Couvre export() : les headers CSV sont posés et le CSV est échoé avant doExit().
+     *
+     * @return void
+     */
+    public function testExportEchesCsvBeforeExit(): void
+    {
+        $csvContent = "\xEF\xBB\xBFID;Date\n1;2026-01-01\n";
+        $ctrl       = new TestableAuditLogAdminController(new Request());
+        $ctrl->setLogModel($this->makeLogModelStub(0, [], $csvContent));
+
+        $output = '';
+        try {
+            ob_start();
+            $ctrl->export([]);
+        } catch (\RuntimeException $e) {
+            $output = (string) ob_get_clean();
+        }
 
         $this->assertSame($csvContent, $output);
     }

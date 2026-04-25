@@ -199,6 +199,7 @@ class OrderFormAdminController extends AdminController
         header('Content-Length: ' . filesize($path));
         header('Cache-Control: private, no-cache');
         readfile($path);
+        $this->doExit();
     }
 
     /**
@@ -211,5 +212,16 @@ class OrderFormAdminController extends AdminController
     protected function moveUploadedFile(string $src, string $dest): bool
     {
         return move_uploaded_file($src, $dest);
+    }
+
+    /**
+     * Termine le processus courant.
+     * Méthode protégée pour permettre l'override dans les tests.
+     *
+     * @return never
+     */
+    protected function doExit(): never
+    {
+        exit; // NOSONAR — php:S1763 : sortie volontaire après envoi PDF (réponse HTTP complète)
     }
 }
