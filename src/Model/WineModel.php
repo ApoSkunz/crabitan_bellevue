@@ -1169,6 +1169,7 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
             "SELECT id, label_name, wine_color, vintage, certification_label,
                     is_cuvee_speciale, price, stock_quantity, available
              FROM {$this->table}
+             WHERE available = 1
              ORDER BY wine_color DESC, vintage DESC, label_name ASC"
         );
     }
