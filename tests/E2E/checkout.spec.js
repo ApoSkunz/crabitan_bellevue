@@ -83,7 +83,7 @@ test.describe('Panier — actions', () => {
         expect(countAfter).toBeGreaterThan(countBefore);
     });
 
-    test('modifier la quantité dans le panier recalcule le total', async ({ page, context }) => {
+    test('modifier la quantité dans le panier recalcule le total', async ({ page }) => {
         // Invité : ajouter un article pour avoir un panier non vide côté cookie
         await addFirstWineToCart(page);
         await page.goto('/fr/panier');
@@ -94,7 +94,6 @@ test.describe('Panier — actions', () => {
         const hasPlus = await plusBtn.isVisible().catch(() => false);
 
         if (hasPlus) {
-            const subtotalBefore = await page.locator('.js-cart-subtotal').first().textContent();
             await plusBtn.click();
             // Attendre la mise à jour DOM (requête AJAX ou rechargement)
             await page.waitForTimeout(600);

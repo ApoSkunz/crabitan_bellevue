@@ -1,5 +1,5 @@
 // @ts-check
-import { test, expect, setVerifiedCookie } from './support/fixtures.js';
+import { test, expect } from './support/fixtures.js';
 
 // ============================================================
 // Constants
@@ -180,7 +180,7 @@ test.describe('Feature Flags — OTP flow', () => {
         expect(hasOtpOverlay || hasFlash || page.url().includes('otp_batch')).toBeTruthy();
     });
 
-    test('batch-confirm avec OTP invalide (000000) → message d\'erreur', async ({ page, request }) => {
+    test('batch-confirm avec OTP invalide (000000) → message d\'erreur', async ({ page }) => {
         // Naviguer d'abord sur la page admin pour obtenir un cookie de session valide
         await page.goto('/admin/feature-flags');
 
@@ -190,9 +190,6 @@ test.describe('Feature Flags — OTP flow', () => {
         // POST direct vers batch-confirm avec un OTP invalide
         // La réponse sera une redirection (302) vers ?otp_batch=1 avec un flash d'erreur
         // On utilise page.goto pour suivre la redirection et lire le résultat
-        const cookies = await page.context().cookies();
-        const cookieStr = cookies.map(c => `${c.name}=${c.value}`).join('; ');
-
         // Soumettre le formulaire OTP avec une valeur invalide via fetch côté navigateur
         const response = await page.evaluate(async ({ csrf }) => {
             const body = new URLSearchParams({ csrf_token: csrf, otp: '000000' });
