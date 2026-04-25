@@ -4595,13 +4595,6 @@ HTML;
         $date       = date(self::DATE_FORMAT_DATE);
         $count      = count($wines);
 
-        $colorLabels = [
-            'red'   => 'Rouge',
-            'white' => 'Blanc',
-            'rosé'  => 'Rosé',
-            'sweet' => 'Liquoreux',
-        ];
-
         $rows = '';
         foreach ($wines as $w) {
             $vintage   = htmlspecialchars((string) ($w['vintage'] ?? '—'), ENT_QUOTES);
