@@ -2,10 +2,16 @@
     "$schema": "vendor/infection/infection/resources/schema.json",
     "source": {
         "directories": [
-            "src/Service"
+            "src/Service",
+            "src/Controller",
+            "src/Model",
+            "src/Core"
+        ],
+        "excludes": [
+            "src/Service/MailService.php"
         ]
     },
-    "timeout": 10,
+    "timeout": 5,
     "logs": {
         "text": "build/infection/infection-log.txt",
         "html": "build/infection/infection-report.html",
