@@ -2,6 +2,25 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.27.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.26.0...v1.27.0) (2026-04-25)
+
+
+### Bug Fixes
+
+* **ci:** mutation.yml — coverage-xml path + junit pour Infection ([e11c1c2](https://github.com/ApoSkunz/crabitan_bellevue/commit/e11c1c23f68f5cefc14e91e547bd3008e160c1ad))
+* **test:** ErrorLoggerTest::testInfoLogsWithInfoLevel — purge log avant appel ([751ee05](https://github.com/ApoSkunz/crabitan_bellevue/commit/751ee0579fbf784a393c381c23b15e8231fac832))
+
+
+### Features
+
+* **admin:** cron monitoring — modal log complet, CSP nonce, responsive ([5ea9b58](https://github.com/ApoSkunz/crabitan_bellevue/commit/5ea9b582a1a37c855c431866f3fcf3d6515f6e42))
+* **scss:** cron-log-cell — empilement vertical excerpt/erreur/bouton sur mobile ([cb3b887](https://github.com/ApoSkunz/crabitan_bellevue/commit/cb3b8879d0a3865df7c81b9be3b110430607ec19))
+
+
+### Reverts
+
+* **controller:** restaurer doExit() — suppression non autorisée ([d16c63e](https://github.com/ApoSkunz/crabitan_bellevue/commit/d16c63e54427d3b14f97ac1d765d2afe389df4c4))
+
 # [1.26.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.25.2...v1.26.0) (2026-04-24)
 
 
