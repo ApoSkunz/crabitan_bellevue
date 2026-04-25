@@ -5,9 +5,10 @@ export default defineConfig({
     testDir: './tests/E2E',
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
-    retries: process.env.CI ? 1 : 0,
+    retries: 0,
     workers: process.env.CI ? 1 : undefined,
     reporter: 'html',
+    timeout: 20000,
 
     use: {
         baseURL: process.env.APP_URL || 'http://crabitan.local',
