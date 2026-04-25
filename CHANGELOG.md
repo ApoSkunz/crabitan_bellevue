@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.27.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.27.1...v1.27.2) (2026-04-25)
+
+
+### Bug Fixes
+
+* **ci:** dast-full — upload explicite rapport ZAP HTML+JSON après chaque scan ([8771d11](https://github.com/ApoSkunz/crabitan_bellevue/commit/8771d1144b72ab5c1aea96de10f11aedbb51ceb6))
+
 ## [1.27.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.27.0...v1.27.1) (2026-04-25)
 
 
