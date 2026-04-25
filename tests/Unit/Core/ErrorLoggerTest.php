@@ -270,6 +270,11 @@ class ErrorLoggerTest extends TestCase
      */
     public function testInfoLogsWithInfoLevel(): void
     {
+        // Purge avant appel pour que l'entrée INFO soit la dernière ligne
+        foreach (glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [] as $f) {
+            unlink($f);
+        }
+
         ErrorLogger::info('Vérification âge validée ip=1.2.3.0');
 
         $files = glob(ROOT_PATH . '/storage/logs/app-*.log') ?: [];
