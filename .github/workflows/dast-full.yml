@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 120
     permissions:
       issues: write
+      actions: write
 
     services:
       mysql:
@@ -186,6 +187,7 @@ jobs:
     timeout-minutes: 120
     permissions:
       issues: write
+      actions: write
 
     services:
       mysql:

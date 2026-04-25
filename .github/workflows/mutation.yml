@@ -43,7 +43,8 @@ jobs:
         run: |
           vendor/bin/phpunit \
             --testsuite Unit \
-            --coverage-xml build/coverage/xml \
+            --coverage-xml build/coverage/coverage-xml \
+            --log-junit build/coverage/phpunit.junit.xml \
             --coverage-php build/coverage/infection.cov \
             --display-warnings
 
@@ -52,7 +53,7 @@ jobs:
           XDEBUG_MODE: off
         run: |
           vendor/bin/infection \
-            --coverage build/coverage \
+            --coverage=build/coverage \
             --min-msi=60 \
             --threads=4 \
             --show-mutations \
