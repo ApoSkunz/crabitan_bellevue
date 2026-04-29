@@ -2,6 +2,31 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.28.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.27.2...v1.28.0) (2026-04-29)
+
+
+### Bug Fixes
+
+* **ci:** E2E — retries=0, timeout 20s/test, continue-on-error (non bloquant) ([071b55a](https://github.com/ApoSkunz/crabitan_bellevue/commit/071b55a1f2756168cb5ec929f2a54846162df640))
+* **ci:** E2E timeout 30→60min + retries 2→1 pour éviter l'annulation CI ([c7ac827](https://github.com/ApoSkunz/crabitan_bellevue/commit/c7ac827f04bf8fc6269c69d49db5cf64668ec93f))
+* **ci:** job e2e — timeout 30→60min + continue-on-error (c'est ci.yml qui pilote, pas e2e.yml) ([933b7d8](https://github.com/ApoSkunz/crabitan_bellevue/commit/933b7d849ed2ae146b3b694c677f5f78b4d9d8fc))
+* **cron:** rapport stock — filtrer WHERE available = 1 (vins dispo à la vente uniquement) ([7007d5c](https://github.com/ApoSkunz/crabitan_bellevue/commit/7007d5cecaa474ad4465316a76b7659f84476e1a))
+* **e2e:** auth.spec — device token, form.submit() mismatch, anti-énumération alert ([56518c4](https://github.com/ApoSkunz/crabitan_bellevue/commit/56518c4a37c2d035b137f2997dd12099c4479762))
+* **e2e:** corriger les 10 tests restants (round 2) ([7c8c96a](https://github.com/ApoSkunz/crabitan_bellevue/commit/7c8c96a7a4a3ab1da11d78774a42800501256530)), closes [#loader](https://github.com/ApoSkunz/crabitan_bellevue/issues/loader)
+* **e2e:** corriger les 24 tests Playwright restants ([1674dba](https://github.com/ApoSkunz/crabitan_bellevue/commit/1674dba11b0418d5b34ccfe36ecc616c40dc3d25))
+* **e2e:** corriger race condition déconnexion — waitForResponse au lieu de waitForLoadState ([8c20910](https://github.com/ApoSkunz/crabitan_bellevue/commit/8c20910658f7555a34169847da0712dce6db0bf5))
+* **e2e:** device tokens trusted_devices + MFA_EMAIL_ENABLED=false CI + strict mode ([2391963](https://github.com/ApoSkunz/crabitan_bellevue/commit/2391963c4079acb5dcd1823fd6188bbc5ba5a503)), closes [#admin-main-content](https://github.com/ApoSkunz/crabitan_bellevue/issues/admin-main-content) [#cart-guest](https://github.com/ApoSkunz/crabitan_bellevue/issues/cart-guest)
+* **e2e:** lint — supprimer vars inutilisées (setVerifiedCookie, request, cookieStr, context, subtotalBefore) ([d18003f](https://github.com/ApoSkunz/crabitan_bellevue/commit/d18003fb76829e7e3c54efe1d236452ce7de40f8))
+* **mail:** supprimer \$colorLabels inutilisé + couvrir sendWineStockReport ([3aa78ea](https://github.com/ApoSkunz/crabitan_bellevue/commit/3aa78eadaa33fcabfb2634d0bdbf64174f284d65))
+* **mutation:** exclure MailService, timeout 5s, job 60min — supprime les T-timeouts massifs ([6b9bc99](https://github.com/ApoSkunz/crabitan_bellevue/commit/6b9bc9940ca4e8a917be3db16f84542175b924a7))
+* **test:** PHPCS — extraire closures inline en variables (brace sur ligne séparée) ([4e925da](https://github.com/ApoSkunz/crabitan_bellevue/commit/4e925da8f5be055660af517dcc89686988a5d007))
+
+
+### Features
+
+* **cron:** rapport stock vins hebdo — WineModel + MailService + bin + CronController ([e4cd965](https://github.com/ApoSkunz/crabitan_bellevue/commit/e4cd965e3541ef392288bee67e65153a32f63016))
+* **e2e:** ajout 8 specs Playwright — couverture complète auth, compte, checkout, admin, jeux, vins, contenu, i18n ([6e16b85](https://github.com/ApoSkunz/crabitan_bellevue/commit/6e16b8551c24be549531047fd13351491ec78f27))
+
 ## [1.27.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.27.1...v1.27.2) (2026-04-25)
 
 
