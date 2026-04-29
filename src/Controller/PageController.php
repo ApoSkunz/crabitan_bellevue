@@ -9,11 +9,14 @@ use Model\NewsModel;
 use Model\OrderFormModel;
 use Model\WineModel;
 use Service\MailService;
+use Service\RateLimiterService;
 
 class PageController extends Controller // NOSONAR php:S1448 — contrôleur de pages statiques, découpage artificiel sans valeur métier
 {
     private const GALLERY_IMG_BASE       = '/assets/images/gallery/';
     private const DEFAULT_APP_URL        = 'https://crabitanbellevue.fr';
+    private const MAX_CONTACT_IP         = 5;
+    private const WINDOW_CONTACT         = 3600;
     private const HEADER_XML_CONTENT     = 'Content-Type: application/xml; charset=utf-8';
     private const HEADER_NOINDEX         = 'X-Robots-Tag: noindex';
     private const XML_DECLARATION        = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -69,6 +72,12 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
 
         if (!$this->csrfValid()) {
             $this->json(['success' => false, 'message' => __('error.csrf')], 400);
+        }
+
+        $ip      = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $limiter = new RateLimiterService();
+        if (!$limiter->checkLimit('contact:' . $ip, self::MAX_CONTACT_IP, self::WINDOW_CONTACT)) {
+            $this->json(['success' => false, 'message' => __('contact.error_rate_limit')], 429);
         }
 
         // Honeypot anti-bot : champ caché dans le formulaire — doit rester vide
