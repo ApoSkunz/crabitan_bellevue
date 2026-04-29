@@ -200,6 +200,7 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             'send-newsletter-welcome-sequence' => fn(callable $log, bool $dryRun) => $this->doJobSendNewsletterWelcomeSequence($log, $dryRun),
             'send-reconquest'                  => fn(callable $log, bool $dryRun) => $this->doJobSendReconquest($log, $dryRun),
             'send-review-request'              => fn(callable $log, bool $dryRun) => $this->doJobSendReviewRequest($log, $dryRun),
+            'send-wine-stock-report'           => fn(callable $log, bool $dryRun) => $this->doJobSendWineStockReport($log, $dryRun),
             default                            => null,
         };
     }
@@ -1047,6 +1048,34 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
             );
         }
         return $safeContent;
+    }
+
+    /**
+     * Envoie le rapport hebdomadaire de stock vins (tous vins) au propriétaire.
+     *
+     * @param callable(string):void $log
+     * @param bool                  $dryRun
+     * @return void
+     */
+    private function doJobSendWineStockReport(callable $log, bool $dryRun): void
+    {
+        $model  = new \Model\WineModel();
+        $mailer = $this->newMailService();
+        $wines  = $model->getForStockReport();
+        $count  = count($wines);
+
+        if ($count === 0) {
+            $log('Catalogue vide — aucun email envoyé');
+            return;
+        }
+
+        if ($dryRun) {
+            $log("[DRY-RUN] Would send stock report ({$count} vin(s)) au propriétaire — aucun email envoyé");
+            return;
+        }
+
+        $mailer->sendWineStockReport($wines);
+        $log("[OK] Rapport stock ({$count} vin(s)) envoyé au propriétaire");
     }
 
     /**

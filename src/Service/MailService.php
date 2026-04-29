@@ -4575,4 +4575,78 @@ HTML;
         $body = $this->emailSimpleLayout($subject, "Bonjour {$safeName},", $message, 'fr');
         $this->send($to, $name, $subject, $body);
     }
+
+    /**
+     * Envoie le rapport hebdomadaire de stock vins au propriétaire.
+     *
+     * Tableau complet : millésime · nom · label · cuvée spéciale · prix · stock.
+     * Un seul email par exécution, aucun envoi si le catalogue est vide.
+     *
+     * @param array<int, array<string, mixed>> $wines Résultat de WineModel::getForStockReport()
+     * @return void
+     */
+    public function sendWineStockReport(array $wines): void
+    {
+        $this->setMailType('cron_reminder');
+        $this->applySmtpConfig(MailChannel::TRANSACTIONNEL);
+
+        $ownerEmail = $_ENV['CONTACT_OWNER_EMAIL'] ?? self::OWNER_EMAIL_DEFAULT;
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? self::DEFAULT_URL, '/');
+        $date       = date(self::DATE_FORMAT_DATE);
+        $count      = count($wines);
+
+        $rows = '';
+        foreach ($wines as $w) {
+            $vintage   = htmlspecialchars((string) ($w['vintage'] ?? '—'), ENT_QUOTES);
+            $name      = htmlspecialchars((string) ($w['label_name'] ?? '—'), ENT_QUOTES);
+            $label     = htmlspecialchars((string) ($w['certification_label'] ?? '—'), ENT_QUOTES);
+            $cuvee     = ($w['is_cuvee_speciale'] ?? 0) ? '✦' : '';
+            $price     = number_format((float) ($w['price'] ?? 0), 2, ',', '\u{202F}');
+            $stock     = (int) ($w['stock_quantity'] ?? 0);
+            $available = (bool) ($w['available'] ?? false);
+
+            $stockColor = match (true) {
+                $stock === 0          => '#c0392b',
+                $stock <= 6           => '#e67e22',
+                default               => '#27ae60',
+            };
+
+            $availBadge = $available ? '' : '<span style="color:#888;font-size:10px;"> (indispo)</span>';
+
+            $rows .= '<tr style="border-bottom:1px solid #ede8df;">'
+                . '<td style="padding:4px 8px;font-size:13px;color:#3d3425;">' . $vintage . '</td>'
+                . '<td style="padding:4px 8px;font-size:13px;color:#3d3425;">'
+                . $name . $availBadge
+                . ($cuvee !== '' ? ' <span style="color:#c9a84c;">' . $cuvee . '</span>' : '')
+                . '</td>'
+                . '<td style="padding:4px 8px;font-size:13px;color:#3d3425;">' . $label . '</td>'
+                . '<td style="padding:4px 8px;text-align:right;font-size:13px;color:#3d3425;">' . $price . '&nbsp;€</td>'
+                . '<td style="padding:4px 8px;text-align:right;font-size:13px;font-weight:bold;color:' . $stockColor . ';">' . $stock . '</td>'
+                . '</tr>';
+        }
+
+        $tableHtml = '<table style="width:100%;border-collapse:collapse;margin-top:12px;">'
+            . '<thead><tr style="background:#f5f0e8;">'
+            . '<th style="padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;">Millésime</th>'
+            . '<th style="padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;">Nom (✦ = Cuvée spéciale)</th>'
+            . '<th style="padding:6px 8px;text-align:left;font-size:11px;letter-spacing:1px;color:#8a7a60;">Label</th>'
+            . '<th style="padding:6px 8px;text-align:right;font-size:11px;letter-spacing:1px;color:#8a7a60;">Prix TTC</th>'
+            . '<th style="padding:6px 8px;text-align:right;font-size:11px;letter-spacing:1px;color:#8a7a60;">Stock</th>'
+            . '</tr></thead><tbody>' . $rows . '</tbody></table>';
+
+        $message = 'Récapitulatif du catalogue ({$count} vin(s)) au ' . $date . ' :<br><br>'
+            . $tableHtml
+            . '<br><br><a href="' . $appUrl . '/admin/vins" style="color:#c9a84c;">Gérer le catalogue</a>';
+
+        $message = str_replace('{$count}', (string) $count, $message);
+
+        $body = $this->emailSimpleLayout(
+            'Rapport stock hebdomadaire',
+            'Rapport stock hebdomadaire — ' . $date,
+            $message,
+            'fr'
+        );
+
+        $this->send($ownerEmail, APP_NAME, 'Rapport stock vins — ' . $date . ' (' . $count . ' réf.)', $body);
+    }
 }

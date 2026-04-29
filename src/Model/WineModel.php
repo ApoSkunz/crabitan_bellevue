@@ -1155,4 +1155,22 @@ class WineModel extends Model // NOSONAR — php:S1448 : 33 méthodes cohérente
         );
         return $row ?: null;
     }
+
+    /**
+     * Retourne tous les vins pour le rapport hebdomadaire de stock propriétaire.
+     *
+     * Triés par couleur (DESC), millésime (DESC), nom (ASC).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForStockReport(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT id, label_name, wine_color, vintage, certification_label,
+                    is_cuvee_speciale, price, stock_quantity, available
+             FROM {$this->table}
+             WHERE available = 1
+             ORDER BY wine_color DESC, vintage DESC, label_name ASC"
+        );
+    }
 }

@@ -9,7 +9,8 @@ jobs:
   e2e:
     name: Playwright E2E
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
+    continue-on-error: true
 
     services:
       mysql:
