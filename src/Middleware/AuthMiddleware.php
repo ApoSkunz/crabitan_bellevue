@@ -73,8 +73,11 @@ class AuthMiddleware
                 // Remember-me : on ne régénère pas le JWT (durée 30j volontaire)
                 return $model->refreshExpiry($t, $expiry);
             }
-            // Session standard : régénérer le JWT avec nouveau exp pour éviter le kick
+            // Session standard : régénérer le JWT avec nouveau exp/iat pour éviter le kick
+            // iat doit être mis à jour pour que isRememberMeToken() (exp-iat vs JWT_EXPIRY)
+            // ne détecte pas à tort la session comme remember-me après le premier refresh.
             $newPayload        = $payload;
+            $newPayload['iat'] = time();
             $newPayload['exp'] = time() + $expiry;
             $generated         = Jwt::encode($newPayload);
             $ok                = $model->refreshToken($t, $generated, $expiry);
