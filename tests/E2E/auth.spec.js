@@ -144,12 +144,14 @@ test.describe('Connexion — flux complet (customer mock)', () => {
         const formCount = await logoutForms.count();
 
         if (formCount > 0) {
-            // waitForLoadState('load') plutôt que waitForURL car l'URL de départ est déjà /fr
-            // et le redirect post-logout retourne aussi vers /fr → waitForURL ne détecte pas le changement
+            // waitForResponse(/deconnexion/) plutôt que waitForLoadState('load') car la page
+            // est déjà en état 'load' avant la soumission → waitForLoadState résout immédiatement
+            // sans attendre la réponse du serveur ni le Set-Cookie de suppression du auth_token.
             await Promise.all([
-                page.waitForLoadState('load', { timeout: 10000 }),
+                page.waitForResponse(r => r.url().includes('/deconnexion'), { timeout: 10000 }),
                 logoutForms.first().evaluate(form => form.submit()),
             ]);
+            await page.waitForLoadState('load', { timeout: 5000 });
         } else {
             // Fallback : lien de déconnexion
             const logoutLink = page.locator('a[href*="/deconnexion"]');
