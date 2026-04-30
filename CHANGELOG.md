@@ -2,6 +2,26 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.29.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.28.0...v1.29.0) (2026-04-30)
+
+
+### Bug Fixes
+
+* **auth:** reset iat au refresh JWT pour éviter fausse détection remember-me ([004b439](https://github.com/ApoSkunz/crabitan_bellevue/commit/004b4395f210e476334bef58c5a2862eba18d561))
+* **carousel:** météo non tronquée sur mobile — max-width + white-space wrap ([d5fdebf](https://github.com/ApoSkunz/crabitan_bellevue/commit/d5fdebf7e9141c2f86e4f313244fe9e45336647e))
+* **contact:** seam newRateLimiterService + recordAttempt manquant ([f3fa400](https://github.com/ApoSkunz/crabitan_bellevue/commit/f3fa4001d842edb2d2b76af22dbc41a8951aec88))
+
+
+### Features
+
+* **contact:** rate limit formulaire contact 5 req/h par IP ([1fa1e71](https://github.com/ApoSkunz/crabitan_bellevue/commit/1fa1e71aee8d006b0b81c10ccea7d11d29919e4f))
+* **ux:** badges médaille/cuvée-spéciale + nav inter-vins ([5991219](https://github.com/ApoSkunz/crabitan_bellevue/commit/5991219096aa51cf5adcb925a04f7436e8f0f669))
+
+
+### Reverts
+
+* **auth:** annuler reset iat JWT — cause expiration non confirmée ([7a8259b](https://github.com/ApoSkunz/crabitan_bellevue/commit/7a8259b0e814fad6d55b23a22744a757a813886f))
+
 # [1.28.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.27.2...v1.28.0) (2026-04-29)
 
 
