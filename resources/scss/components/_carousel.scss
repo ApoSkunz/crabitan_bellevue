@@ -150,6 +150,7 @@
     flex-direction: column;
     gap: 0.2rem;
     pointer-events: none;
+    max-width: calc(100% - 3rem); // évite le dépassement sur écrans étroits
 
     &[hidden] { display: none; }
 
@@ -167,6 +168,12 @@
     color: #f5f0e8;
     text-shadow: 0 1px 3px rgba(8, 8, 8, 0.9);
     white-space: nowrap;
+
+    @media (max-width: 575px) {
+        white-space: normal;
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+    }
 }
 
 .carousel__weather-bottom {
@@ -178,6 +185,12 @@
     color: rgba(245, 240, 232, 0.95);
     text-shadow: 0 1px 3px rgba(8, 8, 8, 0.9);
     white-space: nowrap;
+
+    @media (max-width: 575px) {
+        white-space: normal;
+        font-size: 0.63rem;
+        letter-spacing: 0.09em;
+    }
 }
 
 .carousel__weather-credit {

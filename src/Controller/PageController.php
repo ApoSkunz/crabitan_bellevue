@@ -9,11 +9,14 @@ use Model\NewsModel;
 use Model\OrderFormModel;
 use Model\WineModel;
 use Service\MailService;
+use Service\RateLimiterService;
 
 class PageController extends Controller // NOSONAR php:S1448 — contrôleur de pages statiques, découpage artificiel sans valeur métier
 {
     private const GALLERY_IMG_BASE       = '/assets/images/gallery/';
     private const DEFAULT_APP_URL        = 'https://crabitanbellevue.fr';
+    private const MAX_CONTACT_IP         = 5;
+    private const WINDOW_CONTACT         = 3600;
     private const HEADER_XML_CONTENT     = 'Content-Type: application/xml; charset=utf-8';
     private const HEADER_NOINDEX         = 'X-Robots-Tag: noindex';
     private const XML_DECLARATION        = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -71,12 +74,21 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
             $this->json(['success' => false, 'message' => __('error.csrf')], 400);
         }
 
+        $ip      = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $rlKey   = 'contact:' . $ip;
+        $limiter = $this->newRateLimiterService();
+        if (!$limiter->checkLimit($rlKey, self::MAX_CONTACT_IP, self::WINDOW_CONTACT)) {
+            $this->json(['success' => false, 'message' => __('contact.error_rate_limit')], 429);
+        }
+
         // Honeypot anti-bot : champ caché dans le formulaire — doit rester vide
         $honeypot = $this->request->post('website', '');
         if ($honeypot !== '') {
             // Rejet silencieux : réponse succès pour ne pas informer le bot
             $this->json(['success' => true, 'message' => __('contact.success')]);
         }
+
+        $limiter->recordAttempt($rlKey, self::WINDOW_CONTACT);
 
         $firstname = trim($this->request->post('firstname', ''));
         $lastname  = trim($this->request->post('lastname', ''));
@@ -730,5 +742,15 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
     protected function newMailService(): MailService
     {
         return new MailService();
+    }
+
+    /**
+     * Instancie le RateLimiterService (seam de testabilité).
+     *
+     * @return RateLimiterService
+     */
+    protected function newRateLimiterService(): RateLimiterService
+    {
+        return new RateLimiterService();
     }
 }
