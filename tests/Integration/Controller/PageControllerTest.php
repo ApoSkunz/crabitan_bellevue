@@ -211,6 +211,139 @@ class PageControllerTest extends IntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // contactPost — rate limit IP (session backend en CLI)
+    // ----------------------------------------------------------------
+
+    public function testContactPostRateLimitedAfterMaxAttempts(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/contact';
+        $_SERVER['REMOTE_ADDR']    = '192.168.99.1';
+        $_GET = [];
+
+        $stub = $this->createStub(\Service\MailService::class);
+
+        // Sous-classe qui injecte un MailService no-op et expose newRateLimiterService
+        $makeController = function () use ($stub): PageController {
+            return new class (new Request(), $stub) extends PageController {
+                public function __construct(Request $r, private \Service\MailService $m)
+                {
+                    parent::__construct($r);
+                }
+                protected function newMailService(): \Service\MailService
+                {
+                    return $this->m;
+                }
+            };
+        };
+
+        $validPost = static function (string $ip): void {
+            $_SERVER['REMOTE_ADDR'] = $ip;
+            $_SESSION['csrf'] = 'rltok';
+            $_POST = [
+                'csrf_token' => 'rltok',
+                'firstname'  => 'Test',
+                'lastname'   => 'User',
+                'email'      => 'rl@example.com',
+                'subject'    => 'general',
+                'message'    => 'Rate limit test.',
+                'rgpd'       => '1',
+                'website'    => '',
+            ];
+        };
+
+        $ip = '192.168.99.1';
+
+        // MAX_CONTACT_IP = 5 : les 5 premiers appels doivent passer (200)
+        for ($i = 0; $i < 5; $i++) {
+            $validPost($ip);
+            try {
+                ob_start();
+                $makeController()->contactPost(['lang' => 'fr']);
+                ob_end_clean();
+                $this->fail("contactPost() doit lever HttpException");
+            } catch (\Core\Exception\HttpException $e) {
+                ob_end_clean();
+                $this->assertSame(200, $e->status, "Appel #" . ($i + 1) . " doit retourner 200");
+            }
+        }
+
+        // Le 6e appel doit être bloqué (429)
+        $validPost($ip);
+        try {
+            ob_start();
+            $makeController()->contactPost(['lang' => 'fr']);
+            ob_end_clean();
+            $this->fail("Le 6e appel doit lever HttpException 429");
+        } catch (\Core\Exception\HttpException $e) {
+            ob_end_clean();
+            $this->assertSame(429, $e->status, "Le 6e appel doit retourner 429");
+        }
+    }
+
+    public function testContactPostRateLimitNotTriggeredByHoneypotBots(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/contact';
+        $_SERVER['REMOTE_ADDR']    = '192.168.99.2';
+        $_GET = [];
+
+        // Les requêtes avec honeypot rempli ne doivent pas consommer le rate limit
+        for ($i = 0; $i < 10; $i++) {
+            $_SESSION['csrf'] = 'bottok';
+            $_POST = [
+                'csrf_token' => 'bottok',
+                'firstname'  => 'Bot',
+                'lastname'   => 'Scraper',
+                'email'      => 'bot@evil.com',
+                'subject'    => 'general',
+                'message'    => 'Spam',
+                'rgpd'       => '1',
+                'website'    => 'http://evil.com',  // honeypot rempli
+            ];
+            try {
+                ob_start();
+                (new PageController(new Request()))->contactPost(['lang' => 'fr']);
+                ob_end_clean();
+                $this->fail("Doit lever HttpException");
+            } catch (\Core\Exception\HttpException $e) {
+                ob_end_clean();
+                // 200 = rejet silencieux bot, pas de rate limit atteint
+                $this->assertSame(200, $e->status);
+            }
+        }
+
+        // Une vraie requête depuis la même IP doit encore passer (rate limit non consommé)
+        $stub = $this->createStub(\Service\MailService::class);
+        $_SESSION['csrf'] = 'realtok';
+        $_POST = [
+            'csrf_token' => 'realtok',
+            'firstname'  => 'Jean',
+            'lastname'   => 'Dupont',
+            'email'      => 'jean@example.com',
+            'subject'    => 'general',
+            'message'    => 'Message réel.',
+            'rgpd'       => '1',
+            'website'    => '',
+        ];
+
+        $controller = new class (new Request(), $stub) extends PageController {
+            public function __construct(Request $r, private \Service\MailService $m)
+            {
+                parent::__construct($r);
+            }
+            protected function newMailService(): \Service\MailService
+            {
+                return $this->m;
+            }
+        };
+
+        $this->expectException(\Core\Exception\HttpException::class);
+        $this->expectExceptionCode(200);
+        $controller->contactPost(['lang' => 'fr']);
+    }
+
+    // ----------------------------------------------------------------
     // contactPost — chemin succès (SMTP via mailhog sur localhost:1025)
     // ----------------------------------------------------------------
 

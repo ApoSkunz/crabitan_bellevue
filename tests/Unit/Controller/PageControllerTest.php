@@ -216,6 +216,115 @@ class PageControllerTest extends TestCase
     // ── contactPost() ────────────────────────────────────────────────────────
 
     /**
+     * IP rate-limitée → 429 avant tout traitement.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testContactPostReturnsTooManyRequestsWhenRateLimited(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REMOTE_ADDR']    = '10.0.0.1';
+        $_SESSION['csrf'] = 'tok';
+        $_POST = [
+            'csrf_token' => 'tok',
+            'firstname'  => 'Jean',
+            'lastname'   => 'Dupont',
+            'email'      => 'jean@example.com',
+            'subject'    => 'general',
+            'message'    => 'Message test.',
+            'rgpd'       => '1',
+        ];
+
+        $blockedLimiter = new class extends \Service\RateLimiterService {
+            public function checkLimit(string $key, int $maxAttempts, int $windowSeconds): bool
+            {
+                return false; // toujours bloqué
+            }
+        };
+
+        $controller = new class (new \Core\Request(), $blockedLimiter) extends \Controller\PageController {
+            public function __construct(\Core\Request $req, private \Service\RateLimiterService $stub)
+            {
+                parent::__construct($req);
+            }
+            protected function newRateLimiterService(): \Service\RateLimiterService
+            {
+                return $this->stub;
+            }
+        };
+
+        $caught = null;
+        ob_start();
+        try {
+            $controller->contactPost(['lang' => 'fr']);
+        } catch (\Core\Exception\HttpException $e) {
+            $caught = $e;
+        }
+        ob_end_clean();
+
+        $this->assertNotNull($caught, 'contactPost() doit retourner 429 quand le rate limiter bloque');
+        $this->assertSame(429, $caught->status);
+    }
+
+    /**
+     * IP non limitée → recordAttempt() appelé exactement une fois.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testContactPostRecordsAttemptWhenCheckPasses(): void
+    {
+        $this->bootstrapApp();
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REMOTE_ADDR']    = '10.0.0.2';
+        $_SESSION['csrf'] = 'tok';
+        $_POST = [
+            'csrf_token' => 'tok',
+            'firstname'  => '',  // manquant → 422, mais recordAttempt est avant la validation
+            'lastname'   => 'Dupont',
+            'email'      => 'jean@example.com',
+            'subject'    => 'general',
+            'message'    => 'Message.',
+            'rgpd'       => '1',
+            'website'    => '',  // honeypot vide
+        ];
+
+        $recorded = 0;
+        $spyLimiter = new class ($recorded) extends \Service\RateLimiterService {
+            public function __construct(private int &$count) {}
+            public function checkLimit(string $key, int $maxAttempts, int $windowSeconds): bool
+            {
+                return true;
+            }
+            public function recordAttempt(string $key, int $windowSeconds): void
+            {
+                $this->count++;
+            }
+        };
+
+        $controller = new class (new \Core\Request(), $spyLimiter) extends \Controller\PageController {
+            public function __construct(\Core\Request $req, private \Service\RateLimiterService $stub)
+            {
+                parent::__construct($req);
+            }
+            protected function newRateLimiterService(): \Service\RateLimiterService
+            {
+                return $this->stub;
+            }
+        };
+
+        ob_start();
+        try {
+            $controller->contactPost(['lang' => 'fr']);
+        } catch (\Core\Exception\HttpException) {
+            // 422 attendu (champ manquant), mais recordAttempt doit avoir été appelé avant
+        }
+        ob_end_clean();
+
+        $this->assertSame(1, $recorded, 'recordAttempt() doit être appelé une fois par requête non limitée');
+    }
+
+    /**
      * Honeypot rempli → rejet silencieux (200 succès, pas d'envoi réel).
      */
     #[RunInSeparateProcess]
@@ -599,7 +708,7 @@ class PageControllerTest extends TestCase
         $caught = null;
         ob_start();
         try {
-            $controller->llmsTxt([]);
+            $controller->llmsTxt();
         } catch (HttpException $e) {
             $caught = $e;
         }
@@ -647,7 +756,7 @@ class PageControllerTest extends TestCase
 
         ob_start();
         try {
-            $controller->llmsTxt([]);
+            $controller->llmsTxt();
         } catch (HttpException) {
             // attendu — llmsTxt() lève toujours HttpException(0)
         }
