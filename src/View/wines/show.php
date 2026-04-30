@@ -127,10 +127,10 @@ $colorLabel = $colorLabels[$wine['wine_color']] ?? $wine['wine_color'];
                     <a class="wine-nav__arrow wine-nav__arrow--next"
                        href="/<?= htmlspecialchars($navLang) ?>/vins/<?= htmlspecialchars($nextWine['slug']) ?><?= $ctxParam ?>"
                        aria-label="<?= htmlspecialchars(__('wine.nav_next') . ' : ' . $nextWine['label_name'] . ' ' . $nextWine['vintage']) ?>">
-                        <?php if (!empty($nextWine['is_cuvee_speciale'])) :
+                        <span class="wine-nav__label"><?= htmlspecialchars($nextWine['label_name']) ?></span>
+                        <span class="wine-nav__vintage"><?= (int) $nextWine['vintage'] ?></span><?php if (!empty($nextWine['is_cuvee_speciale'])) :
                             ?><span class="wine-nav__cuvee"><?= htmlspecialchars(__('wine.cuvee_speciale')) ?></span><?php
-                        endif; ?><span class="wine-nav__vintage"><?= (int) $nextWine['vintage'] ?></span>
-                        <span class="wine-nav__label"><?= htmlspecialchars($nextWine['label_name']) ?></span> &#8594;
+                        endif; ?> &#8594;
                     </a>
                     <?php endif; ?>
                 </div>

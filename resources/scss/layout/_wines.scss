@@ -92,14 +92,10 @@
     }
 
     &__vintage {
-        font-size: 0.75rem;
-        opacity: 0.7;
         white-space: nowrap;
     }
 
     &__cuvee {
-        font-size: 0.7rem;
-        color: var(--color-gold);
         white-space: nowrap;
     }
 
@@ -638,17 +634,36 @@
 
     &__extra {
         font-size: 0.75rem;
-        font-style: italic;
-        color: var(--color-text-muted);
-        letter-spacing: 0.04em;
+        color: var(--color-gold);
+        background: #f5f0e8;
+        border: 1px solid var(--color-gold);
+        border-radius: 3px;
+        padding: 0.1rem 0.4rem;
+        display: inline-block;
+        width: fit-content;
         margin: 0.1rem 0 0;
+
+        [data-theme='light'] & {
+            color: #080808;
+            background: var(--color-gold);
+        }
     }
 
     &__award {
         font-size: 0.75rem;
-        color: var(--color-gold-light);
-        font-style: italic;
+        color: var(--color-gold);
+        background: #f5f0e8;
+        border: 1px solid var(--color-gold);
+        border-radius: 3px;
+        padding: 0.15rem 0.45rem;
+        display: inline-block;
+        width: fit-content;
         margin: 0;
+
+        [data-theme='light'] & {
+            color: #080808;
+            background: var(--color-gold);
+        }
     }
 
     &__footer {
@@ -1004,13 +1019,23 @@
 
     &__award {
         font-size: 0.85rem;
-        color: var(--color-gold-light);
-        font-style: italic;
+        color: var(--color-gold);
+        background: #f5f0e8;
+        border: 1px solid var(--color-gold);
+        border-radius: 3px;
+        padding: 0.2rem 0.5rem;
+        display: inline-block;
+        width: fit-content;
         margin: 0.5rem 0 1rem;
+
+        [data-theme='light'] & {
+            color: #080808;
+            background: var(--color-gold);
+        }
     }
 
     .wine-card__extra {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 
     &__section {
