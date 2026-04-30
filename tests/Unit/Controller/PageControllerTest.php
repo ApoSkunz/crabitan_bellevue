@@ -291,7 +291,9 @@ class PageControllerTest extends TestCase
 
         $recorded = 0;
         $spyLimiter = new class ($recorded) extends \Service\RateLimiterService {
-            public function __construct(private int &$count) {}
+            public function __construct(private int &$count)
+            {
+            }
             public function checkLimit(string $key, int $maxAttempts, int $windowSeconds): bool
             {
                 return true;
