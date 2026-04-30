@@ -75,8 +75,9 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
         }
 
         $ip      = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $limiter = new RateLimiterService();
-        if (!$limiter->checkLimit('contact:' . $ip, self::MAX_CONTACT_IP, self::WINDOW_CONTACT)) {
+        $rlKey   = 'contact:' . $ip;
+        $limiter = $this->newRateLimiterService();
+        if (!$limiter->checkLimit($rlKey, self::MAX_CONTACT_IP, self::WINDOW_CONTACT)) {
             $this->json(['success' => false, 'message' => __('contact.error_rate_limit')], 429);
         }
 
@@ -86,6 +87,8 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
             // Rejet silencieux : réponse succès pour ne pas informer le bot
             $this->json(['success' => true, 'message' => __('contact.success')]);
         }
+
+        $limiter->recordAttempt($rlKey, self::WINDOW_CONTACT);
 
         $firstname = trim($this->request->post('firstname', ''));
         $lastname  = trim($this->request->post('lastname', ''));
@@ -739,5 +742,15 @@ class PageController extends Controller // NOSONAR php:S1448 — contrôleur de 
     protected function newMailService(): MailService
     {
         return new MailService();
+    }
+
+    /**
+     * Instancie le RateLimiterService (seam de testabilité).
+     *
+     * @return RateLimiterService
+     */
+    protected function newRateLimiterService(): RateLimiterService
+    {
+        return new RateLimiterService();
     }
 }
