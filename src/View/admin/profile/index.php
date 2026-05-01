@@ -222,30 +222,6 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
     </div>
 </div>
 
-<style>
-.admin-field__pwd-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-.admin-field__pwd-wrap .admin-field__input {
-    flex: 1;
-    padding-right: 2.5rem;
-}
-.admin-field__eye {
-    position: absolute;
-    right: 0.625rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    color: #8a7a60;
-    display: flex;
-    align-items: center;
-    transition: color 150ms ease;
-}
-.admin-field__eye:hover { color: #1a1208; }
-</style>
 
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 // Validation formulaire changement mot de passe

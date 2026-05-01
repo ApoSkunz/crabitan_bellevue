@@ -405,3 +405,21 @@
         }
     }
 }
+
+// ---- Login modal — état chargement ------------------------
+
+@keyframes cb-spin {
+    to { transform: rotate(360deg); }
+}
+
+.login-modal__inner {
+    &.cb-loading {
+        opacity: .6;
+        pointer-events: none;
+    }
+
+    &.cb-loading .login-modal__submit {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}

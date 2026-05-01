@@ -331,11 +331,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Auto-open géré par main.js (initLoginModal) via window.__resendActivationSuccess
 });
 </script>
-<style>
-@keyframes cb-spin{to{transform:rotate(360deg)}}
-.login-modal__inner.cb-loading{opacity:.6;pointer-events:none;}
-.login-modal__inner.cb-loading .login-modal__submit{opacity:1;pointer-events:auto;}
-</style>
 
 <!-- ============================================================ -->
 <!-- Modal ajout au panier                                         -->

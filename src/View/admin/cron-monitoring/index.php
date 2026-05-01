@@ -173,60 +173,6 @@ $statusBadge = function (string $status): string {
     </div>
 </dialog>
 
-<style>
-.cron-log-btn {
-    display: inline-block;
-    margin-left: 6px;
-    font-size: 0.7rem;
-    color: #8a7060;
-    background: none;
-    border: 1px solid #c9b99a;
-    border-radius: 4px;
-    padding: 1px 6px;
-    cursor: pointer;
-    vertical-align: middle;
-}
-.cron-log-btn:hover { background: #f4f0e6; }
-.cron-log-error { color: #c0392b; margin-top: 2px; }
-.cron-log-btn { margin-top: 4px; }
-
-#cron-log-modal { position: fixed; inset: 0; margin: auto; border: none; border-radius: 8px; padding: 0; width: min(860px, 95vw); max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
-#cron-log-modal::backdrop { background: rgba(0,0,0,.45); }
-.cron-log-modal__panel {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-.cron-log-modal__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e8ddd0;
-    gap: 1rem;
-}
-.cron-log-modal__job { font-family: monospace; font-size: 0.9rem; font-weight: 600; color: #3a2a1a; }
-.cron-log-modal__date { font-size: 0.75rem; color: #8a7060; margin-left: 0.5rem; }
-.cron-log-modal__close {
-    background: none; border: none; cursor: pointer;
-    font-size: 1.1rem; color: #8a7060; padding: 4px 8px; border-radius: 4px;
-    flex-shrink: 0;
-}
-.cron-log-modal__close:hover { background: #f4f0e6; color: #3a2a1a; }
-.cron-log-modal__body {
-    flex: 1;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: 1rem 1.25rem;
-    margin: 0;
-    font-size: 0.78rem;
-    line-height: 1.6;
-    color: #2a1a0a;
-    white-space: pre-wrap;
-    word-break: break-word;
-    background: #faf8f5;
-}
-</style>
 
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {

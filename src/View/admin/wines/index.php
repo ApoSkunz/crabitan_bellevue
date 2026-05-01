@@ -219,7 +219,6 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
                          animation:admin-spin 0.7s linear infinite;"></span>
             <p style="margin:0.5rem 0 0;font-size:0.78rem;color:#8a7a60;">Génération en cours…</p>
         </div>
-        <style>@keyframes admin-spin { to { transform: rotate(360deg); } }</style>
         <canvas id="admin-qr-modal-canvas" width="300" height="300"
                 style="border:1px solid #e0d5c0;border-radius:4px;display:block;margin:0 auto 0.75rem;"></canvas>
         <p id="admin-qr-modal-url" style="font-size:0.68rem;color:#8a7a60;word-break:break-all;margin-bottom:0.75rem;"></p>

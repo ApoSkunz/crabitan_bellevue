@@ -16,27 +16,13 @@ $hint     = $isEn ? 'Your PDF will open in a moment.' : 'Le PDF va s\'afficher d
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title><?= $title ?></title>
-<style nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
-html,body { margin:0; padding:0; background:#0c0a06; color:#f5efe2; font-family:Georgia, serif; height:100%; }
-body.has-pdf { background:#1a1208; }
-.loader { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:2rem; text-align:center; transition:opacity 300ms ease; }
-.loader.hidden { display:none; }
-.loader h1 { font-size:1.4rem; margin:0 0 0.5rem; color:#e8c86a; letter-spacing:0.04em; }
-.loader p { font-size:0.92rem; margin:0.3rem 0; color:#d9cfbb; }
-.spinner { width:56px; height:56px; margin:1.25rem auto 0.5rem; border:4px solid rgba(232,200,106,0.2); border-top-color:#e8c86a; border-radius:50%; animation:spin 0.9s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
-.progress { width:260px; max-width:85%; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; margin:0.75rem auto 0.5rem; }
-.progress__bar { width:0; height:100%; background:linear-gradient(90deg,#c9a84c,#e8c86a); transition:width 180ms ease; }
-.pct { font-size:0.95rem; font-weight:600; color:#e8c86a; margin-top:0.2rem; }
-.hint { margin-top:1rem; font-size:0.82rem; color:#8a7060; font-style:italic; }
-.pdf-frame { width:100vw; height:100vh; border:0; display:block; }
-</style>
+<link rel="stylesheet" href="/assets/css/main.css">
 </head>
-<body>
+<body class="page-pdf-loader">
 <main class="loader" id="loader">
     <h1><?= $title ?></h1>
     <p><?= htmlspecialchars($loading) ?></p>
-    <div class="spinner" aria-hidden="true"></div>
+    <div class="pdf-spinner" aria-hidden="true"></div>
     <div class="progress"><div class="progress__bar" id="bar"></div></div>
     <div class="pct" id="pct">0 %</div>
     <p class="hint"><?= htmlspecialchars($hint) ?></p>
