@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars(__('payment.success_title')) ?></title>
     <link rel="stylesheet" href="/assets/css/app.css">
-    <style>
+    <style nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
         .payment-wait {
             display: flex;
             flex-direction: column;

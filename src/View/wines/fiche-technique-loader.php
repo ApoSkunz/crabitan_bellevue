@@ -16,7 +16,7 @@ $hint     = $isEn ? 'Your PDF will open in a moment.' : 'Le PDF va s\'afficher d
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title><?= $title ?></title>
-<style>
+<style nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 html,body { margin:0; padding:0; background:#0c0a06; color:#f5efe2; font-family:Georgia, serif; height:100%; }
 body.has-pdf { background:#1a1208; }
 .loader { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:2rem; text-align:center; transition:opacity 300ms ease; }

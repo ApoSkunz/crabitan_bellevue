@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars(__('payment.redirect_title')) ?></title>
-    <style>
+    <style nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
         /* styles inline minimalistes — pas de dépendance CSS externe */
         body {
             font-family: sans-serif;
