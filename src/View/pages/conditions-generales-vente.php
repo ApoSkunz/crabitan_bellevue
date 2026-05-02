@@ -15,7 +15,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
 <?php if ($isFr) : ?>
 
         <p class="legal-update">
-            <em>Dernière mise à jour : 3 avril 2026</em>
+            <em>Dernière mise à jour : 2 mai 2026</em>
         </p>
 
         <p>
@@ -299,11 +299,36 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             Il vous appartient de vérifier auprès des autorités locales les conditions d'importation
             des boissons alcoolisées dans votre pays.
         </p>
+
+        <h3>Conservation post-livraison</h3>
         <p>
-            GFA Bernard Solane &amp; Fils ne saurait être tenu responsable des dommages résultant
-            d'une mauvaise conservation (température, luminosité, position des bouteilles)
-            ou d'une consommation inappropriée de ses produits.
+            Dès la prise de possession physique des produits, leur conservation relève de la seule
+            responsabilité de l'acheteur.
+            GFA Bernard Solane &amp; Fils ne saurait être tenu responsable de toute dégradation
+            des qualités organoleptiques des vins résultant de conditions de stockage inadaptées
+            après livraison, notamment en cas de température excessive ou instable, d'exposition
+            à la lumière, d'humidité insuffisante ou de vibrations.
         </p>
+        <p>
+            Pour préserver au mieux la qualité de nos vins, nous recommandons de respecter
+            les conditions de conservation suivantes :
+        </p>
+        <ul>
+            <li><strong>Température :</strong> entre 10 et 15&nbsp;°C, constante, sans variations brutales ;</li>
+            <li><strong>Lumière :</strong> à l'abri de toute lumière directe, naturelle ou artificielle ;</li>
+            <li><strong>Hygrométrie :</strong> entre 70 et 85&nbsp;% d'humidité relative,
+                afin d'éviter le dessèchement des bouchons ;</li>
+            <li><strong>Vibrations :</strong> dans un endroit exempt de trépidations ou de vibrations répétées ;</li>
+            <li><strong>Odeurs :</strong> loin de toute source d'odeur forte susceptible de pénétrer
+                à travers le bouchon ;</li>
+            <li><strong>Position :</strong> bouteilles bouchées au liège conservées horizontalement,
+                afin de maintenir le bouchon humide et d'assurer une bonne étanchéité.</li>
+        </ul>
+        <p>
+            Le non-respect de ces recommandations peut altérer irrémédiablement les caractéristiques
+            du vin et prive l'acheteur de tout recours fondé sur la dégradation ainsi occasionnée.
+        </p>
+
         <p>
             L'abus d'alcool est dangereux pour la santé — à consommer avec modération.
             La vente d'alcool est interdite aux mineurs (art. L. 3342-1 du Code de la santé publique).
@@ -365,7 +390,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
 <?php else : ?>
 
         <p class="legal-update">
-            <em>Last updated: April 3, 2026</em>
+            <em>Last updated: May 2, 2026</em>
         </p>
 
         <p>
@@ -615,10 +640,34 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             responsible for non-compliance with the laws of the customer's country of delivery.
             It is your responsibility to verify local import conditions for alcoholic beverages.
         </p>
+
+        <h3>Post-delivery storage</h3>
         <p>
-            GFA Bernard Solane &amp; Fils cannot be held liable for damage resulting from improper storage
-            (temperature, light exposure, bottle position) or inappropriate consumption of its products.
+            Once physical possession of the products has been taken, responsibility for their storage
+            rests solely with the buyer.
+            GFA Bernard Solane &amp; Fils cannot be held liable for any deterioration in the
+            organoleptic qualities of the wines resulting from inadequate storage conditions
+            after delivery, including excessive or unstable temperature, light exposure,
+            insufficient humidity or vibration.
         </p>
+        <p>
+            To preserve the quality of our wines, we recommend the following storage conditions:
+        </p>
+        <ul>
+            <li><strong>Temperature:</strong> between 10°C and 15°C (50°F–59°F), stable, without sudden fluctuations;</li>
+            <li><strong>Light:</strong> away from direct natural or artificial light;</li>
+            <li><strong>Humidity:</strong> relative humidity between 70% and 85%
+                to prevent corks from drying out;</li>
+            <li><strong>Vibration:</strong> stored in a vibration-free environment;</li>
+            <li><strong>Odours:</strong> away from strong odours that could penetrate through the cork;</li>
+            <li><strong>Position:</strong> cork-stoppered bottles stored horizontally
+                to keep the cork moist and maintain a proper seal.</li>
+        </ul>
+        <p>
+            Failure to follow these guidelines may irreparably alter the wine's characteristics,
+            in which case the buyer may not hold the seller liable for any resulting degradation.
+        </p>
+
         <p>
             Alcohol abuse is dangerous for your health — to be consumed in moderation.
             The sale of alcohol to minors is prohibited.
