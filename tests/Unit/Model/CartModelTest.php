@@ -328,4 +328,55 @@ class CartModelTest extends TestCase
 
         $this->model->capWineQtyAcrossAllCarts(3, 5);
     }
+
+    // ----------------------------------------------------------------
+    // countAll
+    // ----------------------------------------------------------------
+
+    public function testCountAllReturnsInteger(): void
+    {
+        $this->dbMock
+            ->method('fetchOne')
+            ->willReturn(['cnt' => '17']);
+
+        $this->assertSame(17, $this->model->countAll());
+    }
+
+    public function testCountAllReturnsZeroWhenFetchOneReturnsFalse(): void
+    {
+        $this->dbMock
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        $this->assertSame(0, $this->model->countAll());
+    }
+
+    // ----------------------------------------------------------------
+    // findAllPaginated
+    // ----------------------------------------------------------------
+
+    public function testFindAllPaginatedReturnsFetchAllResult(): void
+    {
+        $rows = [
+            ['id' => 1, 'user_id' => 10, 'total_quantity' => 12, 'email' => 'a@example.com', 'owner_name' => 'Alice'],
+            ['id' => 2, 'user_id' => 11, 'total_quantity' => 6,  'email' => 'b@example.com', 'owner_name' => 'Bob'],
+        ];
+
+        $this->dbMock
+            ->method('fetchAll')
+            ->willReturn($rows);
+
+        $result = $this->model->findAllPaginated(1, 25);
+
+        $this->assertSame($rows, $result);
+    }
+
+    public function testFindAllPaginatedReturnsEmptyArrayWhenNoCarts(): void
+    {
+        $this->dbMock
+            ->method('fetchAll')
+            ->willReturn([]);
+
+        $this->assertSame([], $this->model->findAllPaginated(1, 25));
+    }
 }
