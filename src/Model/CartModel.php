@@ -374,6 +374,41 @@ class CartModel extends Model
     }
 
     /**
+     * Nombre total de paniers en base.
+     *
+     * @return int
+     */
+    public function countAll(): int
+    {
+        $row = $this->db->fetchOne("SELECT COUNT(*) AS cnt FROM {$this->table}", []);
+        return (int) ($row['cnt'] ?? 0);
+    }
+
+    /**
+     * Liste paginée de tous les paniers, avec email et prénom/raison sociale du titulaire.
+     *
+     * @param int $page    Numéro de page (commence à 1)
+     * @param int $perPage Nombre de résultats par page
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAllPaginated(int $page, int $perPage): array
+    {
+        $offset = (int) (($page - 1) * $perPage);
+        return $this->db->fetchAll(
+            "SELECT c.id, c.user_id, c.total_quantity, c.content, c.created_at, c.updated_at, c.reminder_sent_at,
+                    a.email,
+                    COALESCE(ai.firstname, ac.company_name, '') AS owner_name
+               FROM {$this->table} c
+               LEFT JOIN accounts a            ON a.id = c.user_id
+               LEFT JOIN account_individuals ai ON ai.account_id = c.user_id
+               LEFT JOIN account_companies   ac ON ac.account_id = c.user_id
+              ORDER BY c.updated_at DESC
+              LIMIT " . (int) $perPage . " OFFSET " . $offset,
+            []
+        );
+    }
+
+    /**
      * Plafonne la quantité d'un vin dans tous les paniers BDD au nouveau stock disponible.
      *
      * Appelé après une décrémentation de stock (commande passée) pour éviter

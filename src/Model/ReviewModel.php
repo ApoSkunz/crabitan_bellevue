@@ -150,4 +150,36 @@ class ReviewModel extends Model
 
         return ['avg' => (float) $row['avg'], 'count' => (int) $row['cnt']];
     }
+
+    /**
+     * Nombre total d'avis en base.
+     *
+     * @return int
+     */
+    public function countAll(): int
+    {
+        $row = $this->db->fetchOne("SELECT COUNT(*) AS cnt FROM {$this->table}", []);
+        return (int) ($row['cnt'] ?? 0);
+    }
+
+    /**
+     * Liste paginée de tous les avis, avec l'email du compte associé.
+     *
+     * @param int $page    Numéro de page (commence à 1)
+     * @param int $perPage Nombre de résultats par page
+     * @return array<int, array<string, mixed>>
+     */
+    public function findPaginated(int $page, int $perPage): array
+    {
+        $offset = (int) (($page - 1) * $perPage);
+        return $this->db->fetchAll(
+            "SELECT r.id, r.account_id, r.rating, r.comment, r.display_name, r.location, r.created_at,
+                    a.email
+               FROM {$this->table} r
+               LEFT JOIN accounts a ON a.id = r.account_id
+              ORDER BY r.created_at DESC
+              LIMIT " . (int) $perPage . " OFFSET " . $offset,
+            []
+        );
+    }
 }
