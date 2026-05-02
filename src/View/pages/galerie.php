@@ -149,12 +149,12 @@ $isEn   = isset($lang) && $lang === 'en';
         current = idx;
         img.src = photos[idx].src;
         img.alt = photos[idx].alt;
-        lb.style.display = 'flex';
+        lb.classList.remove('u-hidden');
         document.body.style.overflow = 'hidden';
     }
 
     function close() {
-        lb.style.display = 'none';
+        lb.classList.add('u-hidden');
         document.body.style.overflow = '';
     }
 
@@ -175,7 +175,7 @@ $isEn   = isset($lang) && $lang === 'en';
     lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
 
     document.addEventListener('keydown', function (e) {
-        if (lb.style.display === 'none') return;
+        if (lb.classList.contains('u-hidden')) return;
         if (e.key === 'Escape') close();
         if (e.key === 'ArrowLeft') nav(-1);
         if (e.key === 'ArrowRight') nav(1);

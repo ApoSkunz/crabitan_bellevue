@@ -10,7 +10,7 @@
 .u-flex           { display: flex; }
 .u-inline-flex    { display: inline-flex; }
 .u-grid           { display: grid; }
-.u-hidden         { display: none; }
+.u-hidden         { display: none !important; }
 
 // ---- Flex -------------------------------------------------
 
