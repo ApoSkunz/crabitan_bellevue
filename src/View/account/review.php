@@ -32,7 +32,7 @@ $location = (string) ($review['location'] ?? '');
                   class="review-form-page auth-card">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
 
-                <fieldset class="review-stars" style="margin-bottom:1.5rem;">
+                <fieldset class="review-stars u-mb-6">
                     <legend class="form-label"><?= htmlspecialchars(__('review.rating_label')) ?></legend>
                     <div class="review-stars__inputs">
                         <?php for ($i = 5; $i >= 1; $i--) : ?>
@@ -57,7 +57,7 @@ $location = (string) ($review['location'] ?? '');
                               maxlength="1000"><?= htmlspecialchars($comment) ?></textarea>
                 </div>
 
-                <div class="form-group review-form__location" style="margin-bottom:2rem;">
+                <div class="form-group review-form__location u-mb-8">
                     <label class="form-label" for="account-review-location">
                         <?= htmlspecialchars(__('review.location_label')) ?>
                     </label>

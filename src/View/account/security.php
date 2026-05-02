@@ -143,7 +143,7 @@ $deleteError = $errors['delete'] ?? null;
                     <form method="POST"
                           action="/<?= htmlspecialchars($lang) ?>/mon-compte/securite/sessions/revoquer-toutes"
                           data-confirm="<?= htmlspecialchars(__('account.revoke_all_sessions_confirm')) ?>"
-                          style="margin-top:1rem;">
+                          class="u-mt-4">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
                         <button type="submit" class="btn btn--ghost btn--sm btn--danger">
                             <?= __('account.revoke_all_sessions') ?>
@@ -190,12 +190,12 @@ $deleteError = $errors['delete'] ?? null;
                     <form method="POST"
                           action="/<?= htmlspecialchars($lang) ?>/mon-compte/securite/appareils/supprimer-toutes"
                           data-confirm="<?= htmlspecialchars(__('account.untrust_all_devices_confirm')) ?>"
-                          style="margin-top:1rem;">
+                          class="u-mt-4">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
                         <button type="submit" class="btn btn--ghost btn--sm btn--danger">
                             <?= __('account.untrust_all_devices') ?>
                         </button>
-                        <p class="account-hint" style="margin-top:0.4rem;">
+                        <p class="account-hint u-mt-1">
                             <?= __('account.untrust_all_devices_hint') ?>
                         </p>
                     </form>
@@ -242,7 +242,7 @@ $deleteError = $errors['delete'] ?? null;
         <p class="account-delete-modal__body"><?= __('account.security_reset_info') ?></p>
 
         <?php if (isset($errors['reset_password'])) : ?>
-            <div class="alert alert--error" role="alert" style="margin-bottom:1rem;">
+            <div class="alert alert--error u-mb-4" role="alert">
                 <?= htmlspecialchars($errors['reset_password']) ?>
             </div>
         <?php endif; ?>
@@ -251,7 +251,7 @@ $deleteError = $errors['delete'] ?? null;
               action="/<?= htmlspecialchars($lang) ?>/mon-compte/securite/reinitialiser">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 
-            <div class="form-group form-group--pwd" style="margin-bottom:1.25rem;">
+            <div class="form-group form-group--pwd u-mb-5">
                 <label for="reset_security_password"><?= __('account.security_reset_pwd_label') ?></label>
                 <div class="form-pwd-wrap">
                     <input type="password" id="reset_security_password" name="password"
@@ -289,13 +289,13 @@ $deleteError = $errors['delete'] ?? null;
         <p class="account-delete-modal__body"><?= __('account.delete_modal_body') ?></p>
 
         <?php if ($activeOrdersCount > 0) : ?>
-            <div class="alert alert--warning" role="alert" style="margin-bottom:1rem;">
+            <div class="alert alert--warning u-mb-4" role="alert">
                 <?= sprintf(__('account.delete_active_orders_warning'), $activeOrdersCount) ?>
             </div>
         <?php endif; ?>
 
         <?php if ($deleteError) : ?>
-            <div class="alert alert--error" role="alert" style="margin-bottom:1rem;">
+            <div class="alert alert--error u-mb-4" role="alert">
                 <?= htmlspecialchars($deleteError) ?>
             </div>
         <?php endif; ?>
@@ -304,16 +304,15 @@ $deleteError = $errors['delete'] ?? null;
               action="/<?= htmlspecialchars($lang) ?>/mon-compte/securite/supprimer-compte">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 
-            <div class="form-group" style="margin-bottom:1.25rem;">
+            <div class="form-group u-mb-5">
                 <label for="confirm_text"><?= __('account.delete_confirm_text_label') ?></label>
                 <input type="text" id="confirm_text" name="confirm_text"
                        autocomplete="off" spellcheck="false"
-                       placeholder="SUPPRESSION" style="text-transform:uppercase;">
+                       placeholder="SUPPRESSION" class="u-uppercase">
             </div>
 
             <?php if ($hasPassword) : ?>
-            <div class="form-group form-group--pwd" id="js-delete-pwd-group"
-                 style="margin-bottom:1.25rem;display:none;">
+            <div class="form-group form-group--pwd u-mb-5 u-hidden" id="js-delete-pwd-group">
                 <label for="confirm_password"><?= __('account.delete_confirm_password') ?></label>
                 <div class="form-pwd-wrap">
                     <input type="password" id="confirm_password" name="confirm_password"

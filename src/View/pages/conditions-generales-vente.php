@@ -176,7 +176,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             Vous pouvez également utiliser le formulaire type de rétractation ci-dessous
             (Annexe A — Art. L221-5 du Code de la consommation) :
         </p>
-        <blockquote style="border-left:3px solid #ccc;padding-left:1rem;margin:1rem 0;font-size:0.9rem;">
+        <blockquote class="u-border-left-quote u-px-4 u-my-4 u-text-9">
             À l'attention de GFA Bernard Solane et Fils, Château Crabitan Bellevue,
             33410 Sainte-Croix-du-Mont —
             <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a><br><br>
@@ -504,7 +504,7 @@ require_once SRC_PATH . '/View/partials/legal-open.php';
             You may also use the standard withdrawal form below
             (Annex A — Directive 2011/83/EU, transposed to Art. L221-5 Consumer Code):
         </p>
-        <blockquote style="border-left:3px solid #ccc;padding-left:1rem;margin:1rem 0;font-size:0.9rem;">
+        <blockquote class="u-border-left-quote u-px-4 u-my-4 u-text-9">
             To: GFA Bernard Solane et Fils, Château Crabitan Bellevue,
             33410 Sainte-Croix-du-Mont, France —
             <a href="mailto:<?= htmlspecialchars($contactEmail) ?>"><?= htmlspecialchars($contactEmail) ?></a><br><br>

@@ -432,7 +432,7 @@ $carouselSlides = [
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d362595.44420850335!2d-0.5876012943361956!3d44.76496434602363!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd556ceb75abc90d%3A0x56c6cb9d5cb560f4!2sCh%C3%A2teau%20Crabitan%20Bellevue!5e0!3m2!1sfr!2sfr!4v1586246850971!5m2!1sfr!2sfr"
                         width="100%"
                         height="400"
-                        style="border:0;"
+                        class="u-border-0"
                         allowfullscreen=""
                         loading="lazy"
                         referrerpolicy="no-referrer-when-downgrade"

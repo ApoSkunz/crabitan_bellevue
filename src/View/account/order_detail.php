@@ -302,7 +302,7 @@ $paymentMap  = [
                         ?>
                         <a href="<?= $mailtoHref ?>"><?= __('account.order_contact_link') ?></a>
                     </p>
-                    <p class="order-contact-notice" style="margin-top:0.5rem;">
+                    <p class="order-contact-notice u-mt-2">
                         <?= __('account.order_return_after_delivery') ?>
                     </p>
                 </section>
@@ -313,7 +313,7 @@ $paymentMap  = [
                 <section class="account-section account-section--danger">
                     <h2 class="account-section__title"><?= __('account.order_return_request_btn') ?></h2>
                     <p><?= sprintf(__('account.order_return_window'), htmlspecialchars($returnDeadline ?? '')) ?></p>
-                    <p style="margin-bottom:1rem;">
+                    <p class="u-mb-4">
                         <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/fiche-retour"
                            class="btn btn--ghost btn--sm" target="_blank" rel="noopener noreferrer">
                             <?= __('account.order_return_slip_btn') ?>
@@ -361,7 +361,7 @@ $paymentMap  = [
                         ?>
                         <a href="<?= $mailtoHrefReturn ?>"><?= __('account.order_contact_link') ?></a>
                     </p>
-                    <p style="margin-top:0.75rem;">
+                    <p class="u-mt-3">
                         <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/fiche-retour"
                            class="btn btn--ghost btn--sm" target="_blank" rel="noopener noreferrer">
                             <?= __('account.order_return_slip_btn') ?>
