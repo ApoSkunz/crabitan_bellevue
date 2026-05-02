@@ -1,0 +1,353 @@
+// ============================================================
+// Classes utilitaires — migration style="" vers CSS
+// Préfixe u- pour éviter les conflits avec les classes composants
+// ============================================================
+
+// ---- Display ----------------------------------------------
+
+.u-block          { display: block; }
+.u-inline-block   { display: inline-block; }
+.u-flex           { display: flex; }
+.u-inline-flex    { display: inline-flex; }
+.u-grid           { display: grid; }
+.u-hidden         { display: none; }
+
+// ---- Flex -------------------------------------------------
+
+.u-flex-col       { display: flex; flex-direction: column; }
+.u-flex-wrap      { display: flex; flex-wrap: wrap; }
+.u-flex-1         { flex: 1; }
+.u-flex-shrink-0  { flex-shrink: 0; }
+
+.u-items-center   { align-items: center; }
+.u-items-start    { align-items: flex-start; }
+.u-items-stretch  { align-items: stretch; }
+.u-justify-center { justify-content: center; }
+.u-justify-between { justify-content: space-between; }
+.u-justify-end    { justify-content: flex-end; }
+
+// ---- Gap --------------------------------------------------
+
+.u-gap-1  { gap: 0.25rem; }
+.u-gap-2  { gap: 0.5rem; }
+.u-gap-3  { gap: 0.75rem; }
+.u-gap-4  { gap: 1rem; }
+.u-gap-5  { gap: 1.25rem; }
+.u-gap-6  { gap: 1.5rem; }
+.u-gap-8  { gap: 2rem; }
+
+// ---- Margin -----------------------------------------------
+
+.u-m-0    { margin: 0; }
+.u-mt-0   { margin-top: 0; }
+.u-mt-1   { margin-top: 0.25rem; }
+.u-mt-2   { margin-top: 0.5rem; }
+.u-mt-3   { margin-top: 0.75rem; }
+.u-mt-4   { margin-top: 1rem; }
+.u-mt-5   { margin-top: 1.25rem; }
+.u-mt-6   { margin-top: 1.5rem; }
+.u-mt-8   { margin-top: 2rem; }
+.u-mb-0   { margin-bottom: 0; }
+.u-mb-1   { margin-bottom: 0.25rem; }
+.u-mb-2   { margin-bottom: 0.5rem; }
+.u-mb-3   { margin-bottom: 0.75rem; }
+.u-mb-4   { margin-bottom: 1rem; }
+.u-mb-5   { margin-bottom: 1.25rem; }
+.u-mb-6   { margin-bottom: 1.5rem; }
+.u-mb-8   { margin-bottom: 2rem; }
+.u-ml-1   { margin-left: 0.25rem; }
+.u-ml-2   { margin-left: 0.5rem; }
+.u-ml-3   { margin-left: 0.75rem; }
+.u-ml-4   { margin-left: 1rem; }
+.u-mr-1   { margin-right: 0.25rem; }
+.u-mr-2   { margin-right: 0.5rem; }
+.u-mr-3   { margin-right: 0.75rem; }
+.u-ml-auto { margin-left: auto; }
+.u-mr-auto { margin-right: auto; }
+.u-mx-auto { margin-left: auto; margin-right: auto; }
+
+// ---- Padding ----------------------------------------------
+
+.u-p-0    { padding: 0; }
+.u-p-2    { padding: 0.5rem; }
+.u-p-3    { padding: 0.75rem; }
+.u-p-4    { padding: 1rem; }
+.u-p-5    { padding: 1.25rem; }
+.u-p-6    { padding: 1.5rem; }
+.u-p-8    { padding: 2rem; }
+.u-px-2   { padding-left: 0.5rem; padding-right: 0.5rem; }
+.u-px-3   { padding-left: 0.75rem; padding-right: 0.75rem; }
+.u-px-4   { padding-left: 1rem; padding-right: 1rem; }
+.u-px-6   { padding-left: 1.5rem; padding-right: 1.5rem; }
+.u-py-1   { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+.u-py-2   { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.u-py-3   { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+.u-py-4   { padding-top: 1rem; padding-bottom: 1rem; }
+.u-pt-0   { padding-top: 0; }
+.u-pt-1   { padding-top: 0.25rem; }
+.u-pt-2   { padding-top: 0.5rem; }
+.u-pb-0   { padding-bottom: 0; }
+.u-pb-2   { padding-bottom: 0.5rem; }
+
+// ---- Width / Height ---------------------------------------
+
+.u-w-full { width: 100%; }
+.u-w-auto { width: auto; }
+
+// ---- Font size --------------------------------------------
+
+.u-text-xs      { font-size: 0.68rem; }
+.u-text-xxs     { font-size: 0.72rem; }
+.u-text-2xs     { font-size: 0.75rem; }
+.u-text-sm      { font-size: 0.8rem; }
+.u-text-sm-plus { font-size: 0.82rem; }
+.u-text-85      { font-size: 0.85rem; }
+.u-text-87      { font-size: 0.87rem; }
+.u-text-9       { font-size: 0.9rem; }
+.u-text-95      { font-size: 0.95rem; }
+.u-text-base    { font-size: 1rem; }
+.u-text-lg      { font-size: 1.1rem; }
+.u-text-xl      { font-size: 1.75rem; }
+.u-text-2xl     { font-size: 2rem; }
+
+// ---- Font weight ------------------------------------------
+
+.u-font-normal   { font-weight: 400; }
+.u-font-medium   { font-weight: 500; }
+.u-font-semibold { font-weight: 600; }
+.u-font-bold     { font-weight: 700; }
+
+// ---- Text align -------------------------------------------
+
+.u-text-left   { text-align: left; }
+.u-text-right  { text-align: right; }
+
+// ---- Text decoration / transform --------------------------
+
+.u-uppercase      { text-transform: uppercase; }
+.u-no-underline   { text-decoration: none; }
+.u-line-through   { text-decoration: line-through; }
+.u-italic         { font-style: italic; }
+.u-font-normal-style { font-style: normal; }
+
+// ---- White-space / overflow --------------------------------
+
+.u-nowrap         { white-space: nowrap; }
+.u-break-word     { word-break: break-word; }
+
+// ---- Line-height ------------------------------------------
+
+.u-leading-tight   { line-height: 1.2; }
+.u-leading-normal  { line-height: 1.5; }
+.u-leading-relaxed { line-height: 1.6; }
+.u-leading-loose   { line-height: 1.7; }
+.u-leading-wide    { line-height: 1.8; }
+
+// ---- Letter-spacing ---------------------------------------
+
+.u-tracking-wide    { letter-spacing: 0.04em; }
+.u-tracking-wider   { letter-spacing: 0.08em; }
+.u-tracking-widest  { letter-spacing: 0.12em; }
+.u-tracking-mono    { letter-spacing: 1.5px; }
+
+// ---- Text colors ------------------------------------------
+
+.u-text-primary     { color: #1a1208; }
+.u-text-brown-light { color: #6b4c1a; }
+.u-text-brown-warm  { color: #5a4a3a; }
+.u-text-brown-mid   { color: #5a5040; }
+.u-text-amber       { color: #8a6a2e; }
+.u-text-blue-dark   { color: #2a4ab0; }
+.u-text-error       { color: #c0392b; }
+.u-text-error-alt   { color: #dc2626; }
+.u-text-success     { color: #2d7a2d; }
+.u-text-warning     { color: #b38a00; }
+.u-text-warning-dk  { color: #92400e; }
+.u-text-warning-dkr { color: #78350f; }
+.u-text-gray        { color: #3d3425; }
+.u-text-soft        { color: #8a7060; }
+.u-text-muted-88    { color: #888; }
+.u-text-muted-aa    { color: #aaa; }
+.u-text-white       { color: #fff; }
+.u-text-green       { color: #2d7a2d; }    // alias de u-text-success
+.u-text-gold        { color: #c9a84c; }
+.u-text-brown       { color: #5a4a3a; }    // alias de u-text-brown-warm
+.u-text-brown-50    { color: #5a5040; }    // alias de u-text-brown-mid
+.u-text-error-dk    { color: #c62828; }
+.u-text-amber-dk    { color: #b45309; }
+.u-text-78          { font-size: 0.78rem; }
+
+// ---- Backgrounds ------------------------------------------
+
+.u-bg-disabled      { background: rgba(0, 0, 0, 0.03); }
+.u-bg-black-overlay { background: rgba(0, 0, 0, 0.92); }
+
+// ---- Borders ----------------------------------------------
+
+.u-border-0         { border: 0; }
+.u-border-top-light { border-top: 1px solid rgba(8, 8, 8, 0.06); }
+.u-border-top-md    { border-top: 1px solid rgba(8, 8, 8, 0.08); }
+.u-border-bottom-light { border-bottom: 1px solid rgba(8, 8, 8, 0.04); }
+.u-border-left-quote { border-left: 3px solid #ccc; padding-left: 1rem; }
+.u-border-collapse  { border-collapse: collapse; }
+
+// ---- Border-radius ----------------------------------------
+
+.u-rounded-sm   { border-radius: 4px; }
+.u-rounded      { border-radius: 6px; }
+.u-rounded-lg   { border-radius: 8px; }
+.u-rounded-xl   { border-radius: 12px; }
+.u-rounded-full { border-radius: 50%; }
+
+// ---- Positioning ------------------------------------------
+
+.u-relative     { position: relative; }
+.u-absolute     { position: absolute; }
+.u-fixed        { position: fixed; }
+
+// ---- Effects ----------------------------------------------
+
+.u-cursor-pointer { cursor: pointer; }
+.u-cursor-default { cursor: default; }
+.u-align-middle   { vertical-align: middle; }
+.u-object-contain { object-fit: contain; }
+.u-opacity-55     { opacity: 0.55; }
+.u-shadow-lg      { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18); }
+
+// ---- Overflow ---------------------------------------------
+
+.u-overflow-hidden  { overflow: hidden; }
+.u-overflow-x-auto  { overflow-x: auto; }
+
+// ============================================================
+// Composants sémantiques — extraits de style="" spécifiques
+// ============================================================
+
+// ---- Badges mode de livraison -----------------------------
+
+.badge-pickup {
+    background: #f4e9d0;
+    color: #6b4c1a;
+    font-size: 0.78rem;
+    padding: 3px 9px;
+    border-radius: 12px;
+    letter-spacing: 0.04em;
+}
+
+.badge-delivery {
+    background: #e8eefd;
+    color: #2a4ab0;
+    font-size: 0.78rem;
+    padding: 3px 9px;
+    border-radius: 12px;
+    letter-spacing: 0.04em;
+}
+
+// ---- Alert boxes ------------------------------------------
+
+.u-alert-warning {
+    background: #fff8e1;
+    border: 1px solid #f59e0b;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-size: 0.87rem;
+    color: #92400e;
+}
+
+.u-alert-error-ring {
+    background: rgba(192, 57, 43, 0.10);
+    border: 2px solid #c0392b;
+    border-radius: 50%;
+    width: 4.5rem;
+    height: 4.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.u-alert-error-bar {
+    background: rgba(192, 57, 43, 0.06);
+    border-left: 3px solid #c0392b;
+    padding: 0.75rem 1rem;
+}
+
+// ---- Info boxes -------------------------------------------
+
+.u-info-box {
+    background: #fff6dd;
+    border: 1px solid #e5c86a;
+    border-radius: 4px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.8rem;
+    color: #6b5a15;
+}
+
+// ---- Spinner inline (ex : bouton chargement) --------------
+
+@keyframes u-spin {
+    to { transform: rotate(360deg); }
+}
+
+.u-spinner {
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: u-spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 0.4em;
+}
+
+// ---- Barre de progression dynamique -----------------------
+// Usage : <div class="u-progress-bar" style="--progress: <?= $pct ?>%"></div>
+
+.u-progress-bar {
+    width: var(--progress, 0%);
+    height: 100%;
+    background: var(--color-gold, #c9a84c);
+    border-radius: 2px;
+    transition: width 200ms ease;
+}
+
+// ---- Lightbox / overlay -----------------------------------
+
+.u-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.u-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(10, 8, 4, 0.45);
+}
+
+// ---- Grille admin 2 colonnes ------------------------------
+
+.u-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+// ---- Table utilitaires ------------------------------------
+
+.u-table-full {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+// ---- Misc -------------------------------------------------
+
+.u-font-mono  { font-family: monospace; }
+.u-min-w-0   { min-width: 0; }
