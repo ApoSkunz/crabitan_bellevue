@@ -90,7 +90,7 @@ $maxYear = (int) date('Y');
                 <?php if (hasError($errors, 'appellation')) : ?>
                     <span class="admin-field__error"><?= htmlspecialchars($errors['appellation']) ?></span>
                 <?php endif; ?>
-                <p id="color-preview" style="margin-top:0.35rem;font-size:0.8rem;color:#8a7a60;">
+                <p id="color-preview" class="u-mt-2 u-text-sm text-muted">
                     <?php
                     $initColor = $appellations[$currentAppellation] ?? '';
                     echo $initColor !== '' ? 'Couleur : <strong>' . htmlspecialchars($colorLabels[$initColor] ?? $initColor) . '</strong>' : '';
@@ -198,10 +198,9 @@ $maxYear = (int) date('Y');
             <div class="admin-field">
                 <label class="admin-field__label" for="slug-preview">Slug (généré automatiquement)</label>
                 <input type="text" id="slug-preview" readonly
-                       class="admin-field__input"
-                       style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                       class="admin-field__input admin-field__input--readonly"
                        value="<?= fieldVal($wine, 'slug') ?>">
-                <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.25rem;">
+                <p class="u-text-2xs text-muted u-mt-1">
                     Généré depuis l'appellation + millésime<?= $isEdit ? ' — mis à jour à chaque modification' : '' ?>.
                 </p>
             </div>
@@ -250,18 +249,14 @@ $maxYear = (int) date('Y');
             <h3>Image du vin <?= !$isEdit ? '*' : '' ?></h3>
 
             <?php if ($isEdit && !empty($wine['image_path'])) : ?>
-                <div style="margin-bottom:1rem;">
-                    <p style="font-size:0.75rem;color:#8a7a60;margin-bottom:0.5rem;">Image actuelle :</p>
-                    <img class="js-image-preview"
+                <div class="u-mb-4">
+                    <p class="u-text-2xs text-muted u-mb-2">Image actuelle :</p>
+                    <img class="js-image-preview admin-image-preview admin-image-preview--wine"
                          src="/assets/images/wines/<?= rawurlencode($wine['image_path']) ?>"
-                         alt="Aperçu actuel"
-                         style="max-height:160px;max-width:240px;object-fit:contain;
-                                border:1px solid rgba(0,0,0,0.1);border-radius:4px;">
+                         alt="Aperçu actuel">
                 </div>
             <?php else : ?>
-                <img class="js-image-preview" src="" alt=""
-                     style="display:none;max-height:160px;max-width:240px;object-fit:contain;
-                            border:1px solid rgba(0,0,0,0.1);border-radius:4px;margin-bottom:0.75rem;">
+                <img class="js-image-preview admin-image-preview admin-image-preview--wine u-hidden u-mb-3" src="" alt="">
             <?php endif; ?>
 
             <div class="admin-field">
@@ -274,7 +269,7 @@ $maxYear = (int) date('Y');
                 <?php if (hasError($errors, 'image')) : ?>
                     <span class="admin-field__error"><?= htmlspecialchars($errors['image']) ?></span>
                 <?php endif; ?>
-                <p style="font-size:0.73rem;color:#8a7a60;margin-top:0.3rem;">
+                <p class="u-text-2xs text-muted u-mt-1">
                     Nom généré automatiquement : <code>Wine_Appellation_Millésime_token.ext</code>
                 </p>
             </div>
@@ -283,18 +278,17 @@ $maxYear = (int) date('Y');
         <!-- ---- Descriptions bilingues ---- -->
         <div class="admin-form__section">
             <h3>Descriptions bilingues</h3>
-            <p style="font-size:0.75rem;color:#8a7a60;margin-bottom:1rem;">
+            <p class="u-text-2xs text-muted u-mb-4">
                 Les champs marqués * sont obligatoires. La version EN est traduite automatiquement
                 lors de l'enregistrement (champ non éditable).
             </p>
             <?php foreach ($jsonFields as $field) : ?>
                 <?php $isRequired = in_array($field, $jsonRequired, true); ?>
-                <div style="margin-bottom:1.5rem;">
-                    <p style="font-family:var(--font-sans);font-size:0.72rem;font-weight:700;
-                               letter-spacing:0.1em;text-transform:uppercase;color:#6b5f50;margin-bottom:0.5rem;">
+                <div class="u-mb-6">
+                    <p class="admin-json-field-label">
                         <?= htmlspecialchars($jsonLabels[$field]) ?><?= $isRequired ? ' *' : '' ?>
                     </p>
-                    <div class="admin-form__grid" style="align-items:start;">
+                    <div class="admin-form__grid u-items-start">
                         <div class="admin-field">
                             <label class="admin-field__label" for="<?= $field ?>_fr">Français<?= $isRequired ? ' *' : '' ?></label>
                             <textarea id="<?= $field ?>_fr" name="<?= $field ?>_fr"
@@ -305,10 +299,9 @@ $maxYear = (int) date('Y');
                             <?php endif; ?>
                         </div>
                         <div class="admin-field">
-                            <label class="admin-field__label" for="<?= $field ?>_en">Anglais <span style="font-weight:400;font-size:0.72rem;">(traduit automatiquement)</span></label>
+                            <label class="admin-field__label" for="<?= $field ?>_en">Anglais <span class="u-font-normal u-text-2xs">(traduit automatiquement)</span></label>
                             <textarea id="<?= $field ?>_en" name="<?= $field ?>_en"
-                                      class="admin-field__textarea"
-                                      style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                                      class="admin-field__textarea admin-field__textarea--readonly"
                                       rows="3" readonly><?= htmlspecialchars($decoded[$field]['en'] ?? '') ?></textarea>
                         </div>
                     </div>
@@ -343,8 +336,7 @@ $maxYear = (int) date('Y');
                            placeholder="ex : 336">
                     <?php $kcalDisplay = !empty($wn['energy_kj']) ? (string) (int) round((int) $wn['energy_kj'] / 4.184) . ' kcal' : ''; ?>
                     <input type="text" id="energy_kcal_hint" readonly
-                           class="admin-field__input"
-                           style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;margin-top:0.4rem;"
+                           class="admin-field__input admin-field__input--readonly u-mt-2"
                            value="<?= htmlspecialchars($kcalDisplay) ?>"
                            placeholder="kcal calculé automatiquement">
                 </div>
@@ -386,18 +378,17 @@ $maxYear = (int) date('Y');
                 $ingFr = (string) ($ingDecoded['fr'] ?? ($wn['ingredients'] ?? ''));
                 $ingEn = (string) ($ingDecoded['en'] ?? '');
                 ?>
-                <div class="admin-field" style="margin-top:1.5rem;">
+                <div class="admin-field u-mt-6">
                     <label class="admin-field__label" for="ingredients_fr">Liste des ingrédients — Français</label>
                     <textarea id="ingredients_fr" name="ingredients_fr"
                               class="admin-field__textarea"
                               rows="3"
                               placeholder="ex : Raisins, Agent stabilisant : Carboxyméthylcellulose, Sulfites"><?= htmlspecialchars($ingFr) ?></textarea>
                 </div>
-                <div class="admin-field" style="margin-top:0.75rem;">
-                    <label class="admin-field__label" for="ingredients_en">Liste des ingrédients — Anglais <span style="font-weight:400;font-size:0.72rem;">(traduit automatiquement)</span></label>
+                <div class="admin-field u-mt-3">
+                    <label class="admin-field__label" for="ingredients_en">Liste des ingrédients — Anglais <span class="u-font-normal u-text-2xs">(traduit automatiquement)</span></label>
                     <textarea id="ingredients_en" name="ingredients_en"
-                              class="admin-field__textarea"
-                              style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                              class="admin-field__textarea admin-field__textarea--readonly"
                               rows="3" readonly><?= htmlspecialchars($ingEn) ?></textarea>
                 </div>
             <?php endif; ?>
@@ -459,7 +450,7 @@ function previewImage(input) {
     const preview = document.querySelector('.js-image-preview');
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) { preview.src = e.target.result; preview.style.display = ''; };
+        reader.onload = function(e) { preview.src = e.target.result; preview.classList.remove('u-hidden'); };
         reader.readAsDataURL(input.files[0]);
     }
 }

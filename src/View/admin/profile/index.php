@@ -20,9 +20,9 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
 <!-- ================================================================
      Changement de mot de passe
 ================================================================ -->
-<div class="admin-card" style="max-width:480px;margin-bottom:2rem;">
+<div class="admin-card admin-card--narrow u-mb-8">
     <div class="admin-card__body">
-        <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;color:#1a1208;">Changer mon mot de passe</h2>
+        <h2 class="admin-profile-section-title">Changer mon mot de passe</h2>
 
         <form method="POST" action="/admin/securite/mot-de-passe" class="admin-form" novalidate id="profile-pwd-form">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
@@ -35,24 +35,24 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                     <button type="button" class="admin-field__eye" aria-label="Afficher le mot de passe"
                             data-pwd-target="current_password">
                         <svg class="eye-icon eye-icon--show" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
-                        <svg class="eye-icon eye-icon--hide" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
+                        <svg class="eye-icon eye-icon--hide u-hidden" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
                     </button>
                 </div>
-                <span class="admin-field__error" id="err-current" style="display:none;">Ce champ est obligatoire.</span>
+                <span class="admin-field__error u-hidden" id="err-current">Ce champ est obligatoire.</span>
             </div>
 
             <div class="admin-field">
-                <label class="admin-field__label" for="new_password">Nouveau mot de passe * <span style="font-weight:400;font-size:0.72rem;">(12 caractères minimum)</span></label>
+                <label class="admin-field__label" for="new_password">Nouveau mot de passe * <span class="u-font-normal u-text-xxs">(12 caractères minimum)</span></label>
                 <div class="admin-field__pwd-wrap">
                     <input type="password" id="new_password" name="new_password"
                            class="admin-field__input" autocomplete="new-password">
                     <button type="button" class="admin-field__eye" aria-label="Afficher le mot de passe"
                             data-pwd-target="new_password">
                         <svg class="eye-icon eye-icon--show" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
-                        <svg class="eye-icon eye-icon--hide" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
+                        <svg class="eye-icon eye-icon--hide u-hidden" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
                     </button>
                 </div>
-                <span class="admin-field__error" id="err-new" style="display:none;">Minimum 12 caractères.</span>
+                <span class="admin-field__error u-hidden" id="err-new">Minimum 12 caractères.</span>
             </div>
 
             <div class="admin-field">
@@ -63,10 +63,10 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                     <button type="button" class="admin-field__eye" aria-label="Afficher le mot de passe"
                             data-pwd-target="new_password_confirm">
                         <svg class="eye-icon eye-icon--show" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
-                        <svg class="eye-icon eye-icon--hide" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
+                        <svg class="eye-icon eye-icon--hide u-hidden" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
                     </button>
                 </div>
-                <span class="admin-field__error" id="err-confirm" style="display:none;">Les mots de passe ne correspondent pas.</span>
+                <span class="admin-field__error u-hidden" id="err-confirm">Les mots de passe ne correspondent pas.</span>
             </div>
 
             <div class="admin-form__actions">
@@ -79,33 +79,33 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
 <!-- ================================================================
      Sessions actives
 ================================================================ -->
-<div class="admin-card" style="margin-bottom:2rem;">
+<div class="admin-card u-mb-8">
     <div class="admin-card__body">
-        <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;color:#1a1208;">Sessions actives</h2>
+        <h2 class="admin-profile-section-title">Sessions actives</h2>
 
         <?php if ($sessions === []) : ?>
-            <p style="color:#8a7a60;font-size:0.875rem;">Aucune session active.</p>
+            <p class="admin-profile-empty">Aucune session active.</p>
         <?php else : ?>
-            <div style="display:flex;flex-direction:column;gap:0.625rem;">
+            <div class="admin-profile-list">
                 <?php foreach ($sessions as $session) :
                     $isCurrent       = isset($currentToken) && isset($session['token']) && $session['token'] === $currentToken;
                     $isDeviceTrusted = in_array($session['device_token'] ?? '', $trustedTokens, true);
                 ?>
-                    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:0.75rem;border:1px solid #e8e0d0;border-radius:6px;<?= $isCurrent ? 'background:#fdf9f0;' : '' ?>">
-                        <div style="flex:1;min-width:0;">
-                            <strong style="font-size:0.875rem;color:#1a1208;display:block;">
+                    <div class="admin-profile-row<?= $isCurrent ? ' admin-profile-row--current' : '' ?>">
+                        <div class="admin-profile-row__info">
+                            <strong class="admin-profile-row__name">
                                 <?= htmlspecialchars($session['device_name'] ?? 'Appareil inconnu') ?>
                             </strong>
-                            <span style="font-size:0.8rem;color:#8a7a60;">
+                            <span class="admin-profile-row__meta">
                                 <?= htmlspecialchars($session['ip_address'] ?? '—') ?>
                                 &nbsp;·&nbsp;
                                 <?= htmlspecialchars(date('d/m/Y H:i', strtotime($session['created_at']))) ?>
                             </span>
                             <?php if ($isCurrent) : ?>
-                                <span style="display:inline-block;margin-top:0.2rem;font-size:0.7rem;background:#c9a84c;color:#fff;padding:0.1rem 0.45rem;border-radius:3px;">Session actuelle</span>
+                                <span class="admin-profile-badge admin-profile-badge--session">Session actuelle</span>
                             <?php endif; ?>
                             <?php if ($isDeviceTrusted) : ?>
-                                <span style="display:inline-block;margin-top:0.2rem;font-size:0.7rem;background:#2d7a4f;color:#fff;padding:0.1rem 0.45rem;border-radius:3px;">Appareil de confiance</span>
+                                <span class="admin-profile-badge admin-profile-badge--device">Appareil de confiance</span>
                             <?php endif; ?>
                         </div>
                         <form method="POST" action="/admin/securite/session/<?= (int) $session['id'] ?>/revoquer"
@@ -118,7 +118,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
             </div>
             <form method="POST" action="/admin/securite/sessions/revoquer-toutes"
                   data-admin-confirm="Toutes vos sessions seront révoquées et vous serez déconnecté. Continuer ?"
-                  style="margin-top:1rem;">
+                  class="u-mt-4">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Révoquer toutes les sessions</button>
             </form>
@@ -129,27 +129,27 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
 <!-- ================================================================
      Appareils de confiance
 ================================================================ -->
-<div class="admin-card" style="margin-bottom:2rem;" id="appareils">
+<div class="admin-card u-mb-8" id="appareils">
     <div class="admin-card__body">
-        <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;color:#1a1208;">Appareils de confiance</h2>
+        <h2 class="admin-profile-section-title">Appareils de confiance</h2>
 
         <?php if ($trustedDevices === []) : ?>
-            <p style="color:#8a7a60;font-size:0.875rem;">Aucun appareil de confiance enregistré.</p>
+            <p class="admin-profile-empty">Aucun appareil de confiance enregistré.</p>
         <?php else : ?>
-            <div style="display:flex;flex-direction:column;gap:0.625rem;">
+            <div class="admin-profile-list">
                 <?php foreach ($trustedDevices as $device) :
                     $isCurrentDevice = isset($currentDeviceToken) && $device['device_token'] === $currentDeviceToken;
                 ?>
-                    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:0.75rem;border:1px solid #e8e0d0;border-radius:6px;<?= $isCurrentDevice ? 'background:#fdf9f0;' : '' ?>">
-                        <div style="flex:1;min-width:0;">
-                            <strong style="font-size:0.875rem;color:#1a1208;display:block;">
+                    <div class="admin-profile-row<?= $isCurrentDevice ? ' admin-profile-row--current' : '' ?>">
+                        <div class="admin-profile-row__info">
+                            <strong class="admin-profile-row__name">
                                 <?= htmlspecialchars($device['device_name'] ?? 'Appareil inconnu') ?>
                             </strong>
-                            <span style="font-size:0.8rem;color:#8a7a60;">
+                            <span class="admin-profile-row__meta">
                                 Dernière activité : <?= htmlspecialchars(date('d/m/Y', strtotime($device['last_seen']))) ?>
                             </span>
                             <?php if ($isCurrentDevice) : ?>
-                                <span style="display:inline-block;margin-top:0.2rem;font-size:0.7rem;background:#c9a84c;color:#fff;padding:0.1rem 0.45rem;border-radius:3px;">Appareil actuel</span>
+                                <span class="admin-profile-badge admin-profile-badge--session">Appareil actuel</span>
                             <?php endif; ?>
                         </div>
                         <form method="POST" action="/admin/securite/appareils/retirer-confiance"
@@ -163,7 +163,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
             </div>
             <form method="POST" action="/admin/securite/appareils/supprimer-toutes"
                   data-admin-confirm="Tous les appareils de confiance seront supprimés. Vous resterez connecté pour cette session, mais devrez revalider chaque appareil à la prochaine connexion. Continuer ?"
-                  style="margin-top:1rem;">
+                  class="u-mt-4">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Supprimer tous les appareils de confiance</button>
             </form>
@@ -174,10 +174,10 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
 <!-- ================================================================
      Réinitialiser la sécurité
 ================================================================ -->
-<div class="admin-card" style="border-color:#fca5a5;max-width:480px;margin-bottom:2rem;">
+<div class="admin-card admin-card--danger u-mb-8">
     <div class="admin-card__body">
-        <h2 style="font-size:1rem;font-weight:600;margin-bottom:0.5rem;color:#991b1b;">Réinitialiser la sécurité</h2>
-        <p style="font-size:0.875rem;color:#8a7a60;margin-bottom:1.25rem;">
+        <h2 class="admin-profile-section-title admin-profile-section-title--danger">Réinitialiser la sécurité</h2>
+        <p class="u-text-87 admin-muted u-mb-5">
             Révoque toutes les sessions actives ET supprime tous les appareils de confiance. Vous serez déconnecté immédiatement.
         </p>
 
@@ -201,7 +201,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
         <form method="POST" action="/admin/securite/reinitialiser">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
-            <div class="admin-field" style="margin-bottom:1.25rem;">
+            <div class="admin-field u-mb-5">
                 <label class="admin-field__label" for="admin_reset_password">Mot de passe</label>
                 <div class="admin-field__pwd-wrap">
                     <input type="password" id="admin_reset_password" name="password"
@@ -209,7 +209,7 @@ $trustedTokens = array_column($trustedDevices, 'device_token');
                     <button type="button" class="admin-field__eye" aria-label="Afficher le mot de passe"
                             data-pwd-target="admin_reset_password">
                         <svg class="eye-icon eye-icon--show" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
-                        <svg class="eye-icon eye-icon--hide" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
+                        <svg class="eye-icon eye-icon--hide u-hidden" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/><line x1="2" y1="2" x2="14" y2="14"/></svg>
                     </button>
                 </div>
             </div>
@@ -230,24 +230,24 @@ document.getElementById('profile-pwd-form').addEventListener('submit', function 
     const current = document.getElementById('current_password');
     const errCurrent = document.getElementById('err-current');
     if (!current.value.trim()) {
-        current.classList.add('is-error'); errCurrent.style.display = 'block'; hasError = true;
-    } else { current.classList.remove('is-error'); errCurrent.style.display = 'none'; }
+        current.classList.add('is-error'); errCurrent.classList.remove('u-hidden'); hasError = true;
+    } else { current.classList.remove('is-error'); errCurrent.classList.add('u-hidden'); }
 
     const newPwd = document.getElementById('new_password');
     const errNew = document.getElementById('err-new');
     if (newPwd.value.length < 12) {
-        newPwd.classList.add('is-error'); errNew.style.display = 'block'; hasError = true;
-    } else { newPwd.classList.remove('is-error'); errNew.style.display = 'none'; }
+        newPwd.classList.add('is-error'); errNew.classList.remove('u-hidden'); hasError = true;
+    } else { newPwd.classList.remove('is-error'); errNew.classList.add('u-hidden'); }
 
     const conf = document.getElementById('new_password_confirm');
     const errConf = document.getElementById('err-confirm');
     if (conf.value !== newPwd.value || !conf.value) {
-        conf.classList.add('is-error'); errConf.style.display = 'block'; hasError = true;
-    } else { conf.classList.remove('is-error'); errConf.style.display = 'none'; }
+        conf.classList.add('is-error'); errConf.classList.remove('u-hidden'); hasError = true;
+    } else { conf.classList.remove('is-error'); errConf.classList.add('u-hidden'); }
 
     if (hasError) {
         e.preventDefault();
-        document.querySelector('#profile-pwd-form .admin-field__error[style*="block"]')
+        document.querySelector('#profile-pwd-form .admin-field__error:not(.u-hidden)')
             ?.closest('.admin-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 });

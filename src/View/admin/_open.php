@@ -313,7 +313,7 @@ if (empty($_SESSION['csrf'])) {
                 <?php endforeach; ?>
             </nav>
 
-            <a href="/fr" class="admin-btn admin-btn--outline admin-btn--sm" style="margin-left:auto;">
+            <a href="/fr" class="admin-btn admin-btn--outline admin-btn--sm u-ml-auto">
                 Voir le site
             </a>
         </header>

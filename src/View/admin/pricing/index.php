@@ -29,22 +29,22 @@ function pricingLabel(mixed $raw, string $lang): string
 <!-- ================================================================
      Remise Click & Collect — singleton BDD
 ================================================================ -->
-<div class="admin-card" style="margin-bottom:1.5rem;">
+<div class="admin-card u-mb-6">
     <div class="admin-card__header"><h2>Remise Click &amp; Collect</h2></div>
     <div class="admin-card__body">
-        <form method="POST" action="/admin/tarifs/click-collect" style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap;">
+        <form method="POST" action="/admin/tarifs/click-collect" class="u-flex u-gap-3 u-items-end u-flex-wrap">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
             <div>
-                <label for="cc-discount" style="display:block;font-size:0.78rem;color:#8a7060;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">
+                <label for="cc-discount" class="admin-pricing-cc-label">
                     Remise par bouteille (€)
                 </label>
                 <input type="number" id="cc-discount" name="cc_discount"
                        min="0" step="0.01" required
                        value="<?= htmlspecialchars(number_format((float) ($ccDiscount ?? 2.20), 2, '.', '')) ?>"
-                       style="width:120px;">
+                       class="admin-pricing-cc-input">
             </div>
             <button type="submit" class="admin-btn admin-btn--primary">Enregistrer</button>
-            <p style="font-size:0.78rem;color:#8a7060;margin:0 0 0 0.5rem;align-self:center;">
+            <p class="admin-pricing-cc-note">
                 Appliquée sur chaque bouteille des commandes <em>Retrait au château</em>.
             </p>
         </form>
@@ -55,7 +55,7 @@ function pricingLabel(mixed $raw, string $lang): string
      Tableau de référence lisible
 ================================================================ -->
 <?php if (!empty($rules)) : ?>
-<div class="admin-card" style="margin-bottom:1.5rem;">
+<div class="admin-card u-mb-6">
     <div class="admin-card__header"><h2>Récapitulatif des tarifs actuels</h2></div>
     <div class="admin-table-wrap">
         <table class="admin-table">
@@ -69,19 +69,19 @@ function pricingLabel(mixed $raw, string $lang): string
             </thead>
             <tbody>
             <?php foreach ($rules as $rule) : ?>
-                <tr style="<?= $rule['active'] ? '' : 'opacity:0.45;' ?>">
+                <tr class="<?= $rule['active'] ? '' : 'u-opacity-55' ?>">
                     <td><?= htmlspecialchars($formatLabels[$rule['format']] ?? $rule['format']) ?></td>
-                    <td style="white-space:nowrap;">
+                    <td class="u-nowrap">
                         <?= (int) $rule['min_quantity'] ?>
                         -
                         <?= $rule['max_quantity'] !== null ? (int) $rule['max_quantity'] : '∞' ?>
                     </td>
                     <td><?= htmlspecialchars(pricingLabel($rule['label'], 'fr')) ?></td>
-                    <td style="text-align:center;">
+                    <td class="text-center">
                         <?php if ($rule['active']) : ?>
-                            <span style="color:#15803d;font-size:0.85rem;">✓</span>
+                            <span class="u-text-85 u-text-success">✓</span>
                         <?php else : ?>
-                            <span style="color:#b91c1c;font-size:0.85rem;">✗</span>
+                            <span class="u-text-85 u-text-error">✗</span>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -115,8 +115,7 @@ function pricingLabel(mixed $raw, string $lang): string
                 <tbody>
                 <?php if (empty($rules)) : ?>
                     <tr>
-                        <td colspan="7"
-                            style="text-align:center;color:#8a7a60;padding:2rem;">
+                        <td colspan="7" class="admin-table-empty-cell">
                             Aucune règle de tarification — lancez le seed pricing pour initialiser.
                         </td>
                     </tr>
@@ -140,7 +139,7 @@ function pricingLabel(mixed $raw, string $lang): string
                                            min="1" step="1"
                                            value="<?= (int) $rule['max_quantity'] ?>">
                                 <?php else : ?>
-                                    <span title="Illimité" style="color:#8a7a60;">∞</span>
+                                    <span title="Illimité" class="text-muted">∞</span>
                                     <input type="hidden" name="max_qty_<?= (int) $rule['id'] ?>" value="">
                                 <?php endif; ?>
                             </td>
@@ -160,13 +159,13 @@ function pricingLabel(mixed $raw, string $lang): string
                                        name="label_en_<?= (int) $rule['id'] ?>"
                                        value="<?= htmlspecialchars(pricingLabel($rule['label'], 'en')) ?>">
                             </td>
-                            <td style="text-align:center;">
+                            <td class="text-center">
                                 <input type="hidden"
                                        name="active_<?= (int) $rule['id'] ?>" value="0">
                                 <input type="checkbox"
                                        name="active_<?= (int) $rule['id'] ?>" value="1"
                                        <?= $rule['active'] ? 'checked' : '' ?>
-                                       style="accent-color:#c9a84c;width:1rem;height:1rem;">
+                                       class="admin-pricing-checkbox">
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -176,8 +175,7 @@ function pricingLabel(mixed $raw, string $lang): string
         </div>
 
         <?php if (!empty($rules)) : ?>
-        <div style="padding:1.25rem 1.5rem;border-top:1px solid rgba(8,8,8,0.07);
-                    display:flex;justify-content:flex-end;">
+        <div class="admin-form__actions u-justify-end">
             <button type="submit" class="admin-btn admin-btn--primary">
                 Enregistrer les tarifs
             </button>

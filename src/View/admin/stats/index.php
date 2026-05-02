@@ -23,15 +23,15 @@ $chartLabelsFormatted = array_map(function (string $label) use ($granularity): s
 }, $chartLabels);
 ?>
 
-<div class="admin-page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+<div class="admin-page-header">
     <h1>Statistiques CA</h1>
-    <span style="font-size:0.875rem;color:#8a7a60;"><?= htmlspecialchars($periodLabel) ?></span>
+    <span class="u-text-95 text-muted"><?= htmlspecialchars($periodLabel) ?></span>
 </div>
 
 <!-- ================================================================
      Filtres période
 ================================================================ -->
-<div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:2rem;">
+<div class="u-flex u-flex-wrap u-gap-2 u-mb-8">
     <?php
     $filters = [
         '30d' => '30 jours',
@@ -66,36 +66,36 @@ $chartLabelsFormatted = array_map(function (string $label) use ($granularity): s
 <!-- ================================================================
      KPI cards
 ================================================================ -->
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;">
+<div class="admin-stats-kpi-grid">
 
     <div class="admin-card">
-        <div class="admin-card__body" style="text-align:center;">
-            <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:#8a7a60;margin-bottom:0.5rem;">
+        <div class="admin-card__body text-center">
+            <div class="admin-kpi-label">
                 Chiffre d'affaires
             </div>
-            <div style="font-size:1.75rem;font-weight:700;color:#1a1208;font-family:Georgia,serif;">
+            <div class="admin-kpi-value">
                 <?= number_format($stats['ca'], 2, ',', '&nbsp;') ?>&nbsp;€ <?php // NOSONAR php:S1192 — '&nbsp;' est une entité HTML, pas une constante métier ?>
             </div>
         </div>
     </div>
 
     <div class="admin-card">
-        <div class="admin-card__body" style="text-align:center;">
-            <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:#8a7a60;margin-bottom:0.5rem;">
+        <div class="admin-card__body text-center">
+            <div class="admin-kpi-label">
                 Commandes
             </div>
-            <div style="font-size:1.75rem;font-weight:700;color:#1a1208;font-family:Georgia,serif;">
+            <div class="admin-kpi-value">
                 <?= number_format($stats['count'], 0, ',', '&nbsp;') ?>
             </div>
         </div>
     </div>
 
     <div class="admin-card">
-        <div class="admin-card__body" style="text-align:center;">
-            <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:#8a7a60;margin-bottom:0.5rem;">
+        <div class="admin-card__body text-center">
+            <div class="admin-kpi-label">
                 Panier moyen
             </div>
-            <div style="font-size:1.75rem;font-weight:700;color:#1a1208;font-family:Georgia,serif;">
+            <div class="admin-kpi-value">
                 <?= $stats['count'] > 0 ? number_format($stats['avg'], 2, ',', '&nbsp;') . '&nbsp;€' : '—' ?>
             </div>
         </div>
@@ -108,28 +108,26 @@ $chartLabelsFormatted = array_map(function (string $label) use ($granularity): s
 ================================================================ -->
 <div class="admin-card">
     <div class="admin-card__body">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem;">
-            <h2 style="font-size:1rem;font-weight:600;color:#1a1208;margin:0;">
+        <div class="u-flex u-items-center u-justify-between u-mb-5 u-flex-wrap u-gap-3">
+            <h2 class="admin-chart-title">
                 Évolution du CA — <?= htmlspecialchars($periodLabel) ?>
             </h2>
-            <div style="display:flex;gap:0.5rem;">
+            <div class="u-flex u-gap-2">
                 <button type="button" id="js-chart-bar"
-                        class="admin-btn admin-btn--sm admin-btn--outline"
-                        style="min-width:80px;">
+                        class="admin-btn admin-btn--sm admin-btn--outline admin-chart-toggle-btn">
                     Barres
                 </button>
                 <button type="button" id="js-chart-line"
-                        class="admin-btn admin-btn--sm admin-btn--primary"
-                        style="min-width:80px;">
+                        class="admin-btn admin-btn--sm admin-btn--primary admin-chart-toggle-btn">
                     Courbe
                 </button>
             </div>
         </div>
 
         <?php if ($chartData === []) : ?>
-            <p style="text-align:center;color:#8a7a60;padding:3rem 0;">Aucune donnée pour cette période</p>
+            <p class="text-center text-muted admin-chart-empty">Aucune donnée pour cette période</p>
         <?php else : ?>
-            <div style="position:relative;height:320px;">
+            <div class="admin-chart-wrap">
                 <canvas id="ca-chart"></canvas>
             </div>
         <?php endif; ?>

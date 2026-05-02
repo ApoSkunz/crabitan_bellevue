@@ -42,27 +42,24 @@ $errClass = ' is-error';
                     <input type="text" id="title_fr" name="title_fr"
                            class="admin-field__input<?= hasError($errors, 'title_fr') ? $errClass : '' ?>"
                            value="<?= htmlspecialchars($titleData['fr'] ?? '') ?>">
-                    <span class="admin-field__error"
-                          id="err-title_fr"
-                          style="display:<?= hasError($errors, 'title_fr') ? 'block' : 'none' ?>;">
+                    <span class="admin-field__error<?= hasError($errors, 'title_fr') ? '' : ' u-hidden' ?>"
+                          id="err-title_fr">
                         <?= hasError($errors, 'title_fr') ? htmlspecialchars($errors['title_fr']) : 'Ce champ est obligatoire.' ?>
                     </span>
                 </div>
                 <div class="admin-field">
-                    <label class="admin-field__label" for="title_en">Anglais <span style="font-weight:400;font-size:0.72rem;">(traduit automatiquement)</span></label>
+                    <label class="admin-field__label" for="title_en">Anglais <span class="u-font-normal u-text-2xs">(traduit automatiquement)</span></label>
                     <input type="text" id="title_en" name="title_en"
-                           class="admin-field__input"
-                           style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                           class="admin-field__input admin-field__input--readonly"
                            value="<?= htmlspecialchars($titleData['en'] ?? '') ?>" readonly>
                 </div>
             </div>
-            <div class="admin-field" style="margin-top:0.75rem;">
+            <div class="admin-field u-mt-3">
                 <label class="admin-field__label" for="news-slug-preview">Slug (généré depuis le titre FR)</label>
                 <input type="text" id="news-slug-preview" readonly
-                       class="admin-field__input"
-                       style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                       class="admin-field__input admin-field__input--readonly"
                        value="<?= htmlspecialchars($article['slug'] ?? '') ?>">
-                <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.25rem;">
+                <p class="u-text-2xs u-mt-1 text-muted">
                     Mis à jour automatiquement depuis le titre FR à chaque enregistrement.
                 </p>
             </div>
@@ -71,23 +68,21 @@ $errClass = ' is-error';
         <!-- ---- Contenu bilingue ---- -->
         <div class="admin-form__section">
             <h3>Contenu *</h3>
-            <div class="admin-form__grid" style="align-items:start;">
+            <div class="admin-form__grid u-items-start">
                 <div class="admin-field">
                     <label class="admin-field__label" for="text_content_fr">Français *</label>
                     <textarea id="text_content_fr" name="text_content_fr"
                               class="admin-field__textarea<?= hasError($errors, 'text_content_fr') ? $errClass : '' ?>"
                               rows="8"><?= htmlspecialchars($contentData['fr'] ?? '') ?></textarea>
-                    <span class="admin-field__error"
-                          id="err-text_content_fr"
-                          style="display:<?= hasError($errors, 'text_content_fr') ? 'block' : 'none' ?>;">
+                    <span class="admin-field__error<?= hasError($errors, 'text_content_fr') ? '' : ' u-hidden' ?>"
+                          id="err-text_content_fr">
                         <?= hasError($errors, 'text_content_fr') ? htmlspecialchars($errors['text_content_fr']) : 'Ce champ est obligatoire.' ?>
                     </span>
                 </div>
                 <div class="admin-field">
-                    <label class="admin-field__label" for="text_content_en">Anglais <span style="font-weight:400;font-size:0.72rem;">(traduit automatiquement)</span></label>
+                    <label class="admin-field__label" for="text_content_en">Anglais <span class="u-font-normal u-text-2xs">(traduit automatiquement)</span></label>
                     <textarea id="text_content_en" name="text_content_en"
-                              class="admin-field__textarea"
-                              style="background:rgba(0,0,0,0.03);color:#8a7a60;cursor:default;"
+                              class="admin-field__textarea admin-field__textarea--readonly"
                               rows="8" readonly><?= htmlspecialchars($contentData['en'] ?? '') ?></textarea>
                 </div>
             </div>
@@ -98,30 +93,26 @@ $errClass = ' is-error';
             <h3>Image</h3>
 
             <?php if ($isEdit && !empty($article['image_path'])) : ?>
-                <div style="margin-bottom:1rem;">
-                    <p style="font-size:0.75rem;color:#8a7a60;margin-bottom:0.5rem;">Image actuelle :</p>
-                    <img class="js-image-preview"
+                <div class="u-mb-4">
+                    <p class="u-text-2xs text-muted u-mb-2">Image actuelle :</p>
+                    <img class="js-image-preview admin-image-preview"
                          src="/assets/images/news/<?= htmlspecialchars($article['image_path']) ?>"
-                         alt="" style="max-height:140px;max-width:220px;object-fit:cover;
-                                       border:1px solid rgba(0,0,0,0.1);border-radius:4px;">
+                         alt="">
                 </div>
             <?php else : ?>
-                <img class="js-image-preview" src="" alt=""
-                     style="display:none;max-height:140px;max-width:220px;object-fit:cover;
-                            border:1px solid rgba(0,0,0,0.1);border-radius:4px;margin-bottom:0.75rem;">
+                <img class="js-image-preview admin-image-preview u-hidden u-mb-3" src="" alt="">
             <?php endif; ?>
 
             <div class="admin-field">
                 <label class="admin-field__label" for="image">
                     <?= $isEdit ? 'Changer l\'image (l\'ancienne sera supprimée)' : 'Téléverser une image (optionnel)' ?>
-                    <span style="font-weight:400;font-size:0.75rem;"> — jpg / png / webp</span>
+                    <span class="u-font-normal u-text-2xs"> — jpg / png / webp</span>
                 </label>
                 <input type="file" id="image" name="image"
                        accept="image/jpeg,image/png,image/webp"
                        class="admin-field__input<?= hasError($errors, 'image') ? $errClass : '' ?>">
-                <span class="admin-field__error"
-                      id="err-image"
-                      style="display:<?= hasError($errors, 'image') ? 'block' : 'none' ?>;">
+                <span class="admin-field__error<?= hasError($errors, 'image') ? '' : ' u-hidden' ?>"
+                      id="err-image">
                     <?= hasError($errors, 'image') ? htmlspecialchars($errors['image']) : '' ?>
                 </span>
             </div>
@@ -163,16 +154,16 @@ document.getElementById('news-form').addEventListener('submit', function(e) {
         if (!el || !err) return;
         if (!check.getValue(el)) {
             el.classList.add('is-error');
-            err.style.display = 'block';
+            err.classList.remove('u-hidden');
             hasError = true;
         } else {
             el.classList.remove('is-error');
-            err.style.display = 'none';
+            err.classList.add('u-hidden');
         }
     });
     if (hasError) {
         e.preventDefault();
-        document.querySelector('.admin-field__error[style*="block"]')
+        document.querySelector('.admin-field__error:not(.u-hidden)')
             ?.closest('.admin-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 });
@@ -193,7 +184,7 @@ function previewImage(input) {
     const preview = document.querySelector('.js-image-preview');
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) { preview.src = e.target.result; preview.style.display = ''; };
+        reader.onload = function(e) { preview.src = e.target.result; preview.classList.remove('u-hidden'); };
         reader.readAsDataURL(input.files[0]);
     }
 }

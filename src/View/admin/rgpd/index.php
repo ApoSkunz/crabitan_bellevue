@@ -39,17 +39,17 @@ if (!function_exists('rgpdUrl')) {
 <?php endif; ?>
 
 <?php if (($overdue ?? 0) > 0) : ?>
-    <div class="admin-flash admin-flash--warning" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:10px 14px;border-radius:4px;margin-bottom:16px;">
+    <div class="admin-flash admin-flash--warning">
         &#9888; <?= (int) $overdue ?> demande<?= $overdue > 1 ? 's' : '' ?> en attente depuis plus de <?= \Model\RgpdRequestModel::ALERT_DAYS ?> jours (J-5 du délai légal d'1 mois).
     </div>
 <?php endif; ?>
 
-<div class="admin-page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
-    <h1>Demandes RGPD <small style="font-size:0.75rem;font-variant:normal;letter-spacing:0;color:#8a7a60;">(<?= (int) $total ?>)</small></h1>
+<div class="admin-page-header">
+    <h1>Demandes RGPD <small class="admin-section-count">(<?= (int) $total ?>)</small></h1>
     <a href="/admin/rgpd/demandes/ajouter" class="admin-btn admin-btn--primary admin-btn--sm">+ Nouvelle demande</a>
 </div>
 
-<form method="GET" action="/admin/rgpd/demandes" class="admin-filters" data-auto-submit style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+<form method="GET" action="/admin/rgpd/demandes" class="admin-filters" data-auto-submit>
     <select name="status" class="admin-filters__select" aria-label="Filtrer par statut">
         <option value="">Tous les statuts</option>
         <?php foreach ($statusLabels as $val => $label) : ?>
@@ -79,10 +79,10 @@ if (!function_exists('rgpdUrl')) {
 </form>
 
 <?php if (empty($requests)) : ?>
-    <p style="color:#8a7a60;">Aucune demande RGPD trouvée.</p>
+    <p class="admin-muted">Aucune demande RGPD trouvée.</p>
 <?php else : ?>
     <div class="admin-table-wrapper">
-        <table class="admin-table" style="width:100%;border-collapse:collapse;">
+        <table class="admin-table">
             <thead>
                 <tr>
                     <th>#</th>
@@ -100,7 +100,8 @@ if (!function_exists('rgpdUrl')) {
                 <?php foreach ($requests as $req) :
                     $isOverdue    = in_array($req['status'], ['nouvelle', 'en_cours'], true)
                                     && (int) ($req['days_since_received'] ?? 0) >= \Model\RgpdRequestModel::ALERT_DAYS;
-                    $rowStyle     = $isOverdue ? 'background:#fff8e1;' : '';
+                    $rowClass     = $isOverdue ? 'admin-row--overdue' : '';
+                    $delayClass   = $isOverdue ? 'admin-text--overdue' : '';
                     $treatedName  = $req['treated_by_firstname'] ?? ($req['treated_by_company'] ?? '—');
                     if (($req['treated_by_lastname'] ?? '') !== '') {
                         $treatedName = $req['treated_by_firstname'] . ' ' . $req['treated_by_lastname'];
@@ -108,15 +109,14 @@ if (!function_exists('rgpdUrl')) {
                     $receivedFmt  = $req['received_at'] ? date('d/m/Y', strtotime($req['received_at'])) : '—';
                     $days         = (int) ($req['days_since_received'] ?? 0);
                     $delayLabel   = "{$days} j";
-                    $delayStyle   = $isOverdue ? 'color:#c62828;font-weight:bold;' : '';
                 ?>
-                    <tr style="<?= $rowStyle ?>">
+                    <tr class="<?= $rowClass ?>">
                         <td><?= (int) $req['id'] ?></td>
                         <td><?= htmlspecialchars($typeLabels[$req['type']] ?? $req['type']) ?></td>
                         <td><?= htmlspecialchars($req['requester_name'] ?? '—') ?></td>
                         <td><?= htmlspecialchars($req['requester_email'] ?? '—') ?></td>
                         <td><?= htmlspecialchars($receivedFmt) ?></td>
-                        <td style="<?= $delayStyle ?>">
+                        <td class="<?= $delayClass ?>">
                             <?= htmlspecialchars($delayLabel) ?>
                             <?php if ($isOverdue) : ?>
                                 <span title="Délai légal dépassé de plus de 5 jours" aria-label="Alerte délai">&#9888;</span>
@@ -129,12 +129,12 @@ if (!function_exists('rgpdUrl')) {
                         </td>
                         <td><?= htmlspecialchars((string) $treatedName) ?></td>
                         <td>
-                            <details class="rgpd-actions-details" style="position:relative;">
-                                <summary class="admin-btn admin-btn--outline admin-btn--xs" style="cursor:pointer;list-style:none;">Actions &#9660;</summary>
-                                <div style="position:absolute;z-index:10;background:#fff;border:1px solid #ddd;border-radius:4px;padding:8px;min-width:220px;right:0;top:100%;box-shadow:0 2px 8px rgba(0,0,0,.1);">
-                                    <form method="POST" action="/admin/rgpd/demandes/<?= (int) $req['id'] ?>/statut" style="margin-bottom:6px;">
+                            <details class="rgpd-actions">
+                                <summary class="admin-btn admin-btn--outline admin-btn--xs">Actions &#9660;</summary>
+                                <div class="rgpd-actions__dropdown">
+                                    <form method="POST" action="/admin/rgpd/demandes/<?= (int) $req['id'] ?>/statut" class="u-mb-1">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                        <select name="status" class="admin-filters__select" style="width:100%;margin-bottom:4px;">
+                                        <select name="status" class="admin-filters__select u-w-full u-mb-1">
                                             <?php foreach ($statusLabels as $val => $label) : ?>
                                                 <option value="<?= htmlspecialchars($val) ?>" <?= $req['status'] === $val ? 'selected' : '' ?>>
                                                     <?= htmlspecialchars($label) ?>
@@ -142,24 +142,23 @@ if (!function_exists('rgpdUrl')) {
                                             <?php endforeach; ?>
                                         </select>
                                         <textarea name="response_note" placeholder="Note de réponse (optionnel)"
-                                            style="width:100%;font-size:0.8rem;padding:4px;border:1px solid #ddd;border-radius:3px;resize:vertical;"
+                                            class="rgpd-note-textarea"
                                             rows="2"><?= htmlspecialchars($req['response_note'] ?? '') ?></textarea>
-                                        <button type="submit" class="admin-btn admin-btn--primary admin-btn--xs" style="width:100%;margin-top:4px;">Enregistrer statut</button>
+                                        <button type="submit" class="admin-btn admin-btn--primary admin-btn--xs u-w-full u-mt-1">Enregistrer statut</button>
                                     </form>
 
                                     <?php if ($req['type'] === 'portabilite') : ?>
                                         <a href="/admin/rgpd/demandes/<?= (int) $req['id'] ?>/export-portabilite"
-                                           class="admin-btn admin-btn--outline admin-btn--xs"
-                                           style="display:block;text-align:center;margin-bottom:6px;"
+                                           class="admin-btn admin-btn--outline admin-btn--xs u-block text-center u-mb-1"
                                            data-admin-confirm="Envoyer l'export RGPD ?">
                                             &#128228; Envoyer export
                                         </a>
                                     <?php endif; ?>
 
                                     <?php if (!in_array($req['response_note'] ?? '', ['', null], true)) : ?>
-                                        <details style="font-size:0.8rem;color:#5a4030;background:#fafaf8;border:1px solid #e8e0d0;border-radius:3px;padding:4px 6px;">
+                                        <details class="rgpd-note-details">
                                             <summary>Voir la note</summary>
-                                            <p style="margin:4px 0 0;"><?= nl2br(htmlspecialchars($req['response_note'])) ?></p>
+                                            <p class="u-mt-1"><?= nl2br(htmlspecialchars($req['response_note'])) ?></p>
                                         </details>
                                     <?php endif; ?>
 
@@ -173,7 +172,7 @@ if (!function_exists('rgpdUrl')) {
     </div>
 
     <?php if ($totalPages > 1) : ?>
-        <nav class="admin-pagination" aria-label="Pagination des demandes RGPD" style="margin-top:16px;display:flex;gap:6px;flex-wrap:wrap;">
+        <nav class="admin-pagination u-mt-4 u-flex u-flex-wrap" aria-label="Pagination des demandes RGPD">
             <?php if ($page > 1) : ?>
                 <a href="<?= htmlspecialchars(rgpdUrl($page - 1, $statusFilter, $typeFilter, $perPage)) ?>"
                    class="admin-btn admin-btn--outline admin-btn--sm">&#8592; Précédent</a>
@@ -197,7 +196,7 @@ if (!function_exists('rgpdUrl')) {
 
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 document.addEventListener('click', function (e) {
-    document.querySelectorAll('.rgpd-actions-details[open]').forEach(function (d) {
+    document.querySelectorAll('.rgpd-actions[open]').forEach(function (d) {
         if (!d.contains(e.target)) { d.removeAttribute('open'); }
     });
 });
@@ -210,20 +209,20 @@ document.addEventListener('click', function (e) {
 $logTotalPages = \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE > 0 ? (int) ceil(($logTotal ?? 0) / \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE) : 1;
 ?>
 
-<hr style="margin:32px 0;border:none;border-top:1px solid #e8e0d0;">
+<hr class="admin-divider">
 
-<h2 style="font-size:1.1rem;margin-bottom:16px;">
+<h2 class="u-text-lg u-mb-4">
     Journal des exports automatiques — Art. 20
-    <small style="font-size:0.75rem;font-variant:normal;letter-spacing:0;color:#8a7a60;">(<?= (int) ($logTotal ?? 0) ?>)</small>
+    <small class="admin-section-count">(<?= (int) ($logTotal ?? 0) ?>)</small>
 </h2>
 
-<form method="GET" action="/admin/rgpd/demandes" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+<form method="GET" action="/admin/rgpd/demandes" class="admin-filters">
     <?php foreach (['status' => $statusFilter ?? null, 'type' => $typeFilter ?? null, 'page' => $page ?? 1, 'per_page' => $perPage ?? 20] as $k => $v) : ?>
         <?php if ($v) : ?><input type="hidden" name="<?= htmlspecialchars($k) ?>" value="<?= htmlspecialchars((string) $v) ?>"><?php endif; ?>
     <?php endforeach; ?>
     <input type="text" name="log_email" placeholder="Filtrer par email"
            value="<?= htmlspecialchars($logEmail ?? '') ?>"
-           class="admin-filters__select" style="min-width:200px;">
+           class="admin-filters__select admin-filters__input--wide">
     <input type="date" name="log_date_from" value="<?= htmlspecialchars($logDateFrom ?? '') ?>" class="admin-filters__select">
     <input type="date" name="log_date_to"   value="<?= htmlspecialchars($logDateTo   ?? '') ?>" class="admin-filters__select">
     <button type="submit" class="admin-btn admin-btn--outline admin-btn--sm">Filtrer</button>
@@ -231,10 +230,10 @@ $logTotalPages = \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE > 0 ? (
 </form>
 
 <?php if (empty($exportLogs)) : ?>
-    <p style="color:#8a7a60;">Aucun export enregistré.</p>
+    <p class="admin-muted">Aucun export enregistré.</p>
 <?php else : ?>
     <div class="admin-table-wrapper">
-        <table class="admin-table" style="width:100%;border-collapse:collapse;">
+        <table class="admin-table">
             <thead>
                 <tr>
                     <th>#</th>
@@ -250,10 +249,10 @@ $logTotalPages = \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE > 0 ? (
                     <tr>
                         <td><?= (int) $log['id'] ?></td>
                         <td><?= htmlspecialchars($log['email']) ?></td>
-                        <td style="font-family:monospace;font-size:0.85rem;"><?= htmlspecialchars($log['ip'] ?? '—') ?></td>
-                        <td style="font-size:0.85rem;"><?= htmlspecialchars($log['filename']) ?></td>
+                        <td class="admin-td--mono"><?= htmlspecialchars($log['ip'] ?? '—') ?></td>
+                        <td class="u-text-85"><?= htmlspecialchars($log['filename']) ?></td>
                         <td><?= htmlspecialchars(date('d/m/Y H:i', strtotime($log['requested_at']))) ?></td>
-                        <td style="color:#8a7a60;font-size:0.8rem;"><?= htmlspecialchars(date('d/m/Y', strtotime($log['expires_at']))) ?></td>
+                        <td class="admin-muted u-text-sm"><?= htmlspecialchars(date('d/m/Y', strtotime($log['expires_at']))) ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -261,7 +260,7 @@ $logTotalPages = \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE > 0 ? (
     </div>
 
     <?php if (($logTotalPages ?? 1) > 1) : ?>
-        <nav aria-label="Pagination des exports RGPD" style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
+        <nav aria-label="Pagination des exports RGPD" class="u-mt-3 u-flex u-flex-wrap">
             <?php
             $logPerPage = \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE;
             $buildLogUrl = static function (int $p) use ($statusFilter, $typeFilter, $perPage, $page, $logEmail, $logDateFrom, $logDateTo, $logPerPage): string {

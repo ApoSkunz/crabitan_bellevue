@@ -40,11 +40,11 @@ if (!function_exists('buildInvoiceUrl')) {
 }
 ?>
 
-<div class="admin-card" style="margin-bottom:1.5rem;">
+<div class="admin-card u-mb-6">
     <div class="admin-card__body">
         <form method="GET" action="/admin/factures" class="admin-filters" data-auto-submit>
             <div>
-                <div style="font-size:0.72rem;color:#8a7060;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Année</div>
+                <div class="admin-filters-sublabel">Année</div>
                 <select name="year" class="admin-filters__select" aria-label="Année">
                     <?php foreach ($availableYears as $yr) : ?>
                         <option value="<?= (int) $yr ?>" <?= (int) $yr === $year ? 'selected' : '' ?>>
@@ -54,7 +54,7 @@ if (!function_exists('buildInvoiceUrl')) {
                 </select>
             </div>
             <div>
-                <div style="font-size:0.72rem;color:#8a7060;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Mois</div>
+                <div class="admin-filters-sublabel">Mois</div>
                 <select name="month" class="admin-filters__select" aria-label="Mois">
                     <option value="">— Tous —</option>
                     <?php foreach ($months as $num => $label) : ?>
@@ -65,7 +65,7 @@ if (!function_exists('buildInvoiceUrl')) {
                 </select>
             </div>
             <div>
-                <div style="font-size:0.72rem;color:#8a7060;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Trimestre</div>
+                <div class="admin-filters-sublabel">Trimestre</div>
                 <select name="quarter" class="admin-filters__select" aria-label="Trimestre">
                     <option value="">— Tous —</option>
                     <?php foreach ($quarters as $num => $label) : ?>
@@ -76,12 +76,12 @@ if (!function_exists('buildInvoiceUrl')) {
                 </select>
             </div>
             <div>
-                <div style="font-size:0.72rem;color:#8a7060;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Recherche</div>
+                <div class="admin-filters-sublabel">Recherche</div>
                 <input type="text" name="search" class="admin-filters__input"
                        placeholder="N° facture, réf. commande…"
                        value="<?= htmlspecialchars($search ?? '') ?>">
             </div>
-            <div style="align-self:flex-end;">
+            <div class="u-items-end">
                 <noscript><button type="submit" class="admin-filters__btn">Filtrer</button></noscript>
                 <a href="/admin/factures" class="admin-btn admin-btn--dark admin-btn--sm">Réinitialiser</a>
             </div>
@@ -95,13 +95,13 @@ if (!function_exists('buildInvoiceUrl')) {
         ], fn ($v) => $v !== null);
         $exportUrl = '/admin/factures/export?' . http_build_query($exportParams);
         ?>
-        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(8,8,8,0.06);">
+        <div class="admin-export-bar">
             <a href="<?= htmlspecialchars($exportUrl) ?>"
                class="admin-btn admin-btn--primary"
                title="Télécharger un ZIP contenant les PDFs + un fichier CSV pour la période sélectionnée">
                 ↓ Exporter ZIP (PDFs + CSV)
             </a>
-            <span style="font-size:0.75rem;color:var(--color-text-muted);margin-left:0.75rem;">
+            <span class="u-text-2xs text-muted u-ml-3">
                 Période : <?= (int) $year ?>
                 <?php if ($month !== null) : ?>
                     — <?= htmlspecialchars($months[$month] ?? '') ?>
@@ -122,9 +122,9 @@ if (!function_exists('buildInvoiceUrl')) {
             <?= number_format($total, 0, ',', ' ') ?> fichier<?= $total > 1 ? 's' : '' ?>
         </h2>
     </div>
-    <div class="admin-card__body" style="padding:0;">
+    <div class="admin-card__body admin-card__body--flush">
         <?php if (empty($invoices)) : ?>
-            <p style="padding:1.5rem;color:var(--color-text-muted);text-align:center;">
+            <p class="admin-empty-message text-center text-muted">
                 Aucune facture pour cette période.
             </p>
         <?php else : ?>
@@ -134,12 +134,12 @@ if (!function_exists('buildInvoiceUrl')) {
                         <th>N° Facture</th>
                         <th>Réf. commande</th>
                         <th>Date commande</th>
-                        <th style="text-align:right;">Montant TTC</th>
+                        <th class="u-text-right">Montant TTC</th>
                         <th>Client</th>
                         <th>Source</th>
                         <th>Générée le</th>
-                        <th style="text-align:center;" title="Facture en vigueur pour cette commande">Valide</th>
-                        <th style="text-align:center;">PDF</th>
+                        <th class="text-center" title="Facture en vigueur pour cette commande">Valide</th>
+                        <th class="text-center">PDF</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -147,41 +147,41 @@ if (!function_exists('buildInvoiceUrl')) {
                         <tr>
                             <td data-label="N° Facture">
                                 <?php if ($inv['invoice_number']) : ?>
-                                    <code style="font-size:0.75rem;"><?= htmlspecialchars((string) $inv['invoice_number']) ?></code>
+                                    <code class="u-text-2xs"><?= htmlspecialchars((string) $inv['invoice_number']) ?></code>
                                 <?php else : ?>
-                                    <span style="color:var(--color-text-muted);font-size:0.8rem;"><?= htmlspecialchars(basename((string) $inv['path'])) ?></span>
+                                    <span class="u-text-sm text-muted"><?= htmlspecialchars(basename((string) $inv['path'])) ?></span>
                                 <?php endif; ?>
                             </td>
                             <td data-label="Réf. commande">
                                 <a href="/admin/commandes/<?= (int) $inv['order_id'] ?>"
-                                   style="font-size:0.8rem;">
+                                   class="u-text-sm">
                                     <?= htmlspecialchars((string) $inv['order_reference']) ?>
                                 </a>
                             </td>
-                            <td data-label="Date" style="font-size:0.8rem;white-space:nowrap;">
+                            <td data-label="Date" class="u-text-sm u-nowrap">
                                 <?= date('d/m/Y', strtotime((string) $inv['ordered_at'])) ?>
                             </td>
-                            <td data-label="Montant" style="font-size:0.85rem;font-weight:600;">
+                            <td data-label="Montant" class="u-text-85 u-font-semibold">
                                 <?= number_format((float) $inv['price'], 2, ',', '&nbsp;') ?>&nbsp;&euro;
                             </td>
-                            <td data-label="Client" style="font-size:0.8rem;">
+                            <td data-label="Client" class="u-text-sm">
                                 <?= htmlspecialchars(trim($inv['firstname'] . ' ' . $inv['lastname'])) ?><br>
-                                <span style="color:var(--color-text-muted);font-size:0.72rem;"><?= htmlspecialchars((string) $inv['email']) ?></span>
+                                <span class="u-text-xxs text-muted"><?= htmlspecialchars((string) $inv['email']) ?></span>
                             </td>
-                            <td data-label="Source" style="font-size:0.8rem;" title="<?= $inv['source'] === 'auto' ? 'Générée automatiquement' : 'Téléversée manuellement' ?>">
+                            <td data-label="Source" class="u-text-sm" title="<?= $inv['source'] === 'auto' ? 'Générée automatiquement' : 'Téléversée manuellement' ?>">
                                 <?= $inv['source'] === 'auto' ? '⚙ Auto' : '⬆ Manuel' ?>
                             </td>
-                            <td data-label="Générée le" style="font-size:0.78rem;white-space:nowrap;color:var(--color-text-muted);">
+                            <td data-label="Générée le" class="u-text-sm u-nowrap text-muted">
                                 <?= date('d/m/Y H:i', strtotime((string) $inv['uploaded_at'])) ?>
                             </td>
-                            <td style="text-align:center;">
+                            <td class="text-center">
                                 <?php if ((int) $inv['invoice_rank'] === 1) : ?>
-                                    <span style="color:#27ae60;font-size:1rem;" title="Facture en vigueur">✓</span>
+                                    <span class="u-text-success" title="Facture en vigueur">✓</span>
                                 <?php else : ?>
-                                    <span style="color:var(--color-text-muted);font-size:0.8rem;" title="Version remplacée">Historique</span>
+                                    <span class="u-text-sm text-muted" title="Version remplacée">Historique</span>
                                 <?php endif; ?>
                             </td>
-                            <td style="text-align:center;">
+                            <td class="text-center">
                                 <a href="/admin/commandes/<?= (int) $inv['order_id'] ?>/facture/historique/<?= (int) $inv['id'] ?>"
                                    class="admin-btn admin-btn--outline admin-btn--sm"
                                    target="_blank" rel="noopener"

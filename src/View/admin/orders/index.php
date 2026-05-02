@@ -55,10 +55,10 @@ function buildPaginationUrl(
     <div class="admin-flash admin-flash--success"><?= htmlspecialchars($flash) ?></div>
 <?php endif; ?>
 
-<div class="admin-page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
+<div class="admin-page-header u-flex u-items-center u-justify-between u-flex-wrap u-gap-3">
     <h1>
         <?= $archived ? 'Commandes archivées' : 'Commandes' ?>
-        <small style="font-size:0.75rem;font-variant:normal;letter-spacing:0;color:#8a7a60;">(<?= $total ?>)</small>
+        <small class="u-text-2xs u-text-soft admin-subcount-alt">(<?= $total ?>)</small>
     </h1>
     <?php if ($archived) : ?>
         <a href="/admin/commandes" class="admin-btn admin-btn--outline admin-btn--sm">← Commandes actives</a>
@@ -68,7 +68,7 @@ function buildPaginationUrl(
 </div>
 
 <?php if ($archived) : ?>
-    <div style="background:#fff8e1;border:1px solid #f59e0b;border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.87rem;color:#92400e;">
+    <div class="u-alert-warning u-text-87 u-mb-4">
         &#9432; Ces commandes datent de plus de 10 ans (Art. L123-22 C.com.). Les données personnelles ont été pseudonymisées conformément au RGPD Art. 5.
     </div>
 <?php endif; ?>
@@ -121,32 +121,32 @@ function buildPaginationUrl(
             </thead>
             <tbody>
             <?php if (empty($orders)) : ?>
-                <tr><td colspan="8" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune commande trouvée</td></tr>
+                <tr><td colspan="8" class="text-center u-text-soft u-p-8">Aucune commande trouvée</td></tr>
             <?php else : ?>
                 <?php foreach ($orders as $order) : ?>
                     <tr>
-                        <td data-label="Référence"><code style="font-size:0.8rem;"><?= htmlspecialchars($order['order_reference']) ?></code></td>
+                        <td data-label="Référence"><code class="u-text-sm"><?= htmlspecialchars($order['order_reference']) ?></code></td>
                         <td data-label="Client">
                             <?php if (str_ends_with((string) ($order['email'] ?? ''), '@purged.invalid')) : ?>
-                                <em style="color:#8a7a60;font-size:0.85rem;">Compte anonymisé</em>
+                                <em class="u-text-soft u-text-85">Compte anonymisé</em>
                             <?php else : ?>
                                 <div><?= htmlspecialchars(trim($order['firstname'] . ' ' . $order['lastname'])) ?></div>
-                                <div style="font-size:0.75rem;color:#8a7a60;"><?= htmlspecialchars($order['email']) ?></div>
+                                <div class="u-text-2xs u-text-soft"><?= htmlspecialchars($order['email']) ?></div>
                             <?php endif; ?>
                         </td>
                         <td data-label="Statut">
                             <span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span>
                         </td>
-                        <td class="col-hide-tablet" data-label="Mode" style="font-size:0.78rem;">
+                        <td class="col-hide-tablet u-text-78" data-label="Mode">
                             <?php if (($order['delivery_method'] ?? '') === 'pickup') : ?>
-                                <span style="background:#f4e9d0;color:#6b4c1a;padding:2px 8px;border-radius:12px;">Retrait château</span>
+                                <span class="badge-pickup">Retrait château</span>
                             <?php else : ?>
-                                <span style="background:#e8eefd;color:#2a4ab0;padding:2px 8px;border-radius:12px;">Livraison</span>
+                                <span class="badge-delivery">Livraison</span>
                             <?php endif; ?>
                         </td>
-                        <td class="col-hide-tablet" data-label="Paiement" style="font-size:0.8rem;"><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></td>
+                        <td class="col-hide-tablet u-text-sm" data-label="Paiement"><?= htmlspecialchars($paymentLabels[$order['payment_method']] ?? $order['payment_method']) ?></td>
                         <td data-label="Montant"><?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€</td>
-                        <td data-label="Date" style="white-space:nowrap;font-size:0.82rem;"><?= date('d/m/Y H:i', strtotime($order['ordered_at'])) ?></td>
+                        <td data-label="Date" class="u-nowrap u-text-sm-plus"><?= date('d/m/Y H:i', strtotime($order['ordered_at'])) ?></td>
                         <td><a href="/admin/commandes/<?= (int) $order['id'] ?>" class="admin-btn admin-btn--outline admin-btn--sm">Voir</a></td>
                     </tr>
                 <?php endforeach; ?>

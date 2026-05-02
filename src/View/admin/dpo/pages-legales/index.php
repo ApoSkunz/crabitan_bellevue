@@ -18,40 +18,40 @@ $labelRequires = [1 => 'Oui', 0 => 'Non'];
 
 <div class="admin-card">
     <div class="admin-card__body">
-        <div style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+        <div class="admin-table-wrap">
+            <table class="admin-legal-table">
                 <thead>
-                    <tr style="border-bottom:2px solid #e8e0d0;color:#6b5f50;font-weight:600;text-align:left;">
-                        <th style="padding:0.5rem 0.75rem 0.5rem 0;">Document</th>
-                        <th style="padding:0.5rem 0.75rem;">Version</th>
-                        <th style="padding:0.5rem 0.75rem;">Mise à jour</th>
-                        <th style="padding:0.5rem 0.75rem;">Notification</th>
-                        <th style="padding:0.5rem 0;">Action</th>
+                    <tr class="admin-legal-table__head-row">
+                        <th class="admin-legal-table__th admin-legal-table__th--first">Document</th>
+                        <th class="admin-legal-table__th">Version</th>
+                        <th class="admin-legal-table__th">Mise à jour</th>
+                        <th class="admin-legal-table__th">Notification</th>
+                        <th class="admin-legal-table__th admin-legal-table__th--last">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($documents as $slug => $doc) : ?>
-                    <tr style="border-bottom:1px solid #f0ece4;">
-                        <td style="padding:0.5rem 0.75rem 0.5rem 0;font-weight:500;">
+                    <tr class="admin-legal-table__row">
+                        <td class="admin-legal-table__td admin-legal-table__td--first u-font-medium">
                             <?= htmlspecialchars($doc['label']) ?>
-                            <span style="display:block;font-size:0.75rem;color:#9a8f80;"><?= htmlspecialchars($slug) ?></span>
+                            <span class="admin-legal-table__slug"><?= htmlspecialchars($slug) ?></span>
                         </td>
-                        <td style="padding:0.5rem 0.75rem;font-weight:600;color:#8a6a2e;">
+                        <td class="admin-legal-table__td admin-legal-table__td--version">
                             v<?= htmlspecialchars($doc['version']) ?>
                         </td>
-                        <td style="padding:0.5rem 0.75rem;color:#5a5040;">
+                        <td class="admin-legal-table__td admin-legal-table__td--date">
                             <?= htmlspecialchars(date('d/m/Y', strtotime($doc['updated_at']))) ?>
                         </td>
-                        <td style="padding:0.5rem 0.75rem;">
+                        <td class="admin-legal-table__td">
                             <?php if ((int) $doc['requires_notification'] === 1) : ?>
-                                <span style="color:#2e7d32;font-weight:600;">Oui</span>
+                                <span class="admin-legal-table__notif-yes">Oui</span>
                             <?php else : ?>
-                                <span style="color:#9a8f80;">Non</span>
+                                <span class="admin-legal-table__notif-no">Non</span>
                             <?php endif; ?>
                         </td>
-                        <td style="padding:0.5rem 0;">
+                        <td class="admin-legal-table__td admin-legal-table__td--last">
                             <a href="/admin/dpo/pages-legales/<?= rawurlencode($slug) ?>/modifier"
-                               style="font-size:0.85rem;color:#8a6a2e;text-decoration:underline;">
+                               class="admin-legal-table__link">
                                 Modifier
                             </a>
                         </td>

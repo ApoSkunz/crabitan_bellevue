@@ -12,7 +12,7 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
 <?php endif; ?>
 
 <div class="admin-page-header">
-    <h1>Actualités <small style="font-size:0.75rem;font-variant:normal;letter-spacing:0;color:#8a7a60;">(<?= $total ?>)</small></h1>
+    <h1>Actualités <small class="u-text-2xs admin-subcount-alt">(<?= $total ?>)</small></h1>
     <a href="/admin/actualites/ajouter" class="admin-btn admin-btn--gold">+ Ajouter un article</a>
 </div>
 
@@ -31,7 +31,7 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
             </thead>
             <tbody>
             <?php if (empty($articles)) : ?>
-                <tr><td colspan="6" style="text-align:center;color:#8a7a60;padding:2rem;">Aucun article</td></tr>
+                <tr><td colspan="6" class="text-center u-text-soft u-p-8">Aucun article</td></tr>
             <?php else : ?>
                 <?php foreach ($articles as $article) : ?>
                     <?php
@@ -39,18 +39,18 @@ $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
                     $titleFr   = $titleData['fr'] ?? '—';
                     ?>
                     <tr>
-                        <td data-label="ID" style="color:#8a7a60;"><?= (int) $article['id'] ?></td>
+                        <td data-label="ID" class="u-text-soft"><?= (int) $article['id'] ?></td>
                         <td data-label="Titre"><strong><?= htmlspecialchars($titleFr) ?></strong></td>
-                        <td data-label="Slug" style="font-size:0.78rem;color:#8a7a60;"><?= htmlspecialchars($article['slug']) ?></td>
+                        <td data-label="Slug" class="u-text-78 u-text-soft"><?= htmlspecialchars($article['slug']) ?></td>
                         <td data-label="Image">
                             <?php if (!empty($article['image_path'])) : ?>
                                 <img src="/assets/images/news/<?= htmlspecialchars($article['image_path']) ?>"
-                                     alt="" style="height:36px;width:54px;object-fit:cover;border-radius:3px;">
+                                     alt="" class="admin-news-thumb">
                             <?php else : ?>
-                                <span style="color:#8a7a60;font-size:0.75rem;">—</span>
+                                <span class="u-text-soft u-text-2xs">—</span>
                             <?php endif; ?>
                         </td>
-                        <td data-label="Date" style="white-space:nowrap;font-size:0.8rem;">
+                        <td data-label="Date" class="u-nowrap u-text-sm">
                             <?= date('d/m/Y', strtotime($article['created_at'])) ?>
                         </td>
                         <td>
