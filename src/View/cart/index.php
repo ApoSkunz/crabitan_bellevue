@@ -344,6 +344,15 @@ require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S20
                    class="btn btn--gold cart-summary__cta">
                     <?= htmlspecialchars(__('cart.checkout')) ?>
                 </a>
+                <p class="cart-summary__delivery-note">
+                    <?php if ($isEn) : ?>
+                        Delivery outside mainland France?
+                        <a href="/en/contact" class="cart-summary__delivery-link">Contact us</a>.
+                    <?php else : ?>
+                        Livraison hors France métropolitaine&nbsp;?
+                        <a href="/fr/contact" class="cart-summary__delivery-link">Contactez-nous</a>.
+                    <?php endif; ?>
+                </p>
                 <p id="cart-checkout-over600-error" class="cart-checkout-error" hidden>
                     <?= htmlspecialchars(__('cart.over_600_checkout_error')) ?>
                 </p>
