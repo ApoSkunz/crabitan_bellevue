@@ -2347,3 +2347,15 @@
 // ---- DPO forms — label color -----------------------------
 
 .admin-dpo-label { color: #6b5f50; }
+
+// ---- Avis clients — étoiles de notation -----------------
+
+.admin-review-stars {
+    color: #c9a84c;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+
+    &--1, &--2 { color: #c0392b; }
+    &--3        { color: #b38a00; }
+    &--4, &--5  { color: #c9a84c; }
+}
