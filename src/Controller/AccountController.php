@@ -315,6 +315,25 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
 
                 // Remboursement réussi → statut 'refunded'
                 $this->orders->updateStatus($id, 'refunded');
+                try {
+                    $account = $this->accounts->findById($userId);
+                    if ($account && ($account['email'] ?? '') !== '') {
+                        $clientEmail = (string) $account['email'];
+                        $clientName  = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? '')) ?: $clientEmail;
+                        $clientLang  = (string) ($account['lang'] ?? $lang);
+                        $orderRef    = (string) ($order['order_reference'] ?? '');
+                        $appUrl      = rtrim($_ENV['APP_URL'] ?? '', '/');
+                        $mailer      = $this->newMailService();
+                        $mailer->sendOrderStatusEmail($clientEmail, $clientName, $orderRef, 'refunded', $clientLang, $appUrl);
+                        $ownerEmail  = (string) ($_ENV['CONTACT_OWNER_EMAIL'] ?? '');
+                        if ($ownerEmail !== '') {
+                            // phpcs:ignore Generic.Files.LineLength
+                            $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'refunded', $clientName, $clientEmail, (float) ($order['price'] ?? 0), $appUrl, $id);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    \Core\ErrorLogger::warning($e);
+                }
                 $_SESSION['flash']['order_success'] = __('account.order_cancelled');
                 Response::redirect($back);
             } else {

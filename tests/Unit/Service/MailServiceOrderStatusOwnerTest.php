@@ -67,11 +67,13 @@ class MailServiceOrderStatusOwnerTest extends TestCase
     public static function triggerStatusProvider(): array
     {
         return [
-            'processing' => ['processing'],
-            'shipped'    => ['shipped'],
-            'delivered'  => ['delivered'],
-            'cancelled'  => ['cancelled'],
-            'refunded'   => ['refunded'],
+            'processing'     => ['processing'],
+            'shipped'        => ['shipped'],
+            'delivered'      => ['delivered'],
+            'cancelled'      => ['cancelled'],
+            'refunded'       => ['refunded'],
+            'paid'           => ['paid'],
+            'refund_refused' => ['refund_refused'],
         ];
     }
 

@@ -18,7 +18,7 @@ class OrderAdminController extends AdminController
     private const ALLOWED_PER_PAGES = [10, 25, 50];
     private const ORDER_NOT_FOUND   = 'Commande introuvable';
 
-    private const TRIGGER_STATUSES = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+    private const TRIGGER_STATUSES = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'paid', 'refund_refused'];
 
     private OrderModel $orders;
 
