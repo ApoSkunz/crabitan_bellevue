@@ -2,6 +2,23 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.31.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.30.0...v1.31.0) (2026-06-13)
+
+
+### Bug Fixes
+
+* **ci:** DAST baseline scan monthly instead of weekly ([aab52d7](https://github.com/ApoSkunz/crabitan_bellevue/commit/aab52d732c02145d275c2759b151b8edd3973d08))
+* **mail:** close all notification gaps for order status changes ([0df3866](https://github.com/ApoSkunz/crabitan_bellevue/commit/0df38665821f35be4eea839e887005030fb1b801))
+* **order:** send cancellation emails when client cancels their own order ([963fc84](https://github.com/ApoSkunz/crabitan_bellevue/commit/963fc84db50ecf450776ab2e8f94a7164df34bb4))
+* **view:** add missing refund_pending and refund_refused French labels ([c220b98](https://github.com/ApoSkunz/crabitan_bellevue/commit/c220b98b27149041fb378043e4679f531b7eea1f))
+* **view:** translate order statuses to French in admin dashboard ([19f78c3](https://github.com/ApoSkunz/crabitan_bellevue/commit/19f78c322674845961e808e3b2028f6a62e2fe71))
+
+
+### Features
+
+* **mail:** add owner notification on all order status changes ([e7794ec](https://github.com/ApoSkunz/crabitan_bellevue/commit/e7794ec476d3506ece99dea069e58b87215fa335))
+* **pdf:** show cuvée spéciale marker in order summary PDF item rows ([6933754](https://github.com/ApoSkunz/crabitan_bellevue/commit/6933754d11f6ed0a2f72730d6c6b3932e837f38a))
+
 # [1.30.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.29.0...v1.30.0) (2026-06-13)
 
 
