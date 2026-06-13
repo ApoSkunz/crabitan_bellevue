@@ -345,6 +345,25 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
             }
         } else {
             $_SESSION['flash']['order_success'] = __('account.order_cancelled');
+            try {
+                $account = $this->accounts->findById($userId);
+                if ($account && ($account['email'] ?? '') !== '') {
+                    $clientEmail = (string) $account['email'];
+                    $clientName  = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? '')) ?: $clientEmail;
+                    $clientLang  = (string) ($account['lang'] ?? $lang);
+                    $orderRef    = (string) ($order['order_reference'] ?? '');
+                    $appUrl      = rtrim($_ENV['APP_URL'] ?? '', '/');
+                    $mailer      = $this->newMailService();
+                    $mailer->sendOrderStatusEmail($clientEmail, $clientName, $orderRef, 'cancelled', $clientLang, $appUrl);
+                    $ownerEmail = (string) ($_ENV['CONTACT_OWNER_EMAIL'] ?? '');
+                    if ($ownerEmail !== '') {
+                        // phpcs:ignore Generic.Files.LineLength
+                        $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'cancelled', $clientName, $clientEmail, (float) ($order['price'] ?? 0), $appUrl, $id);
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Core\ErrorLogger::warning($e);
+            }
         }
 
         Response::redirect($back);
