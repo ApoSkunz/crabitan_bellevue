@@ -11,6 +11,7 @@ use Model\AccountModel;
 use Model\ConnectionModel;
 use Model\TrustedDeviceModel;
 use Model\DeviceConfirmTokenModel;
+use Service\RateLimiterService;
 
 class MfaController extends Controller
 {
@@ -18,6 +19,7 @@ class MfaController extends Controller
     private ConnectionModel $connections;
     private TrustedDeviceModel $trustedDevices;
     private DeviceConfirmTokenModel $deviceConfirmTokens;
+    private RateLimiterService $rateLimiter;
 
     /**
      * Initialise le contrôleur MFA avec les modèles nécessaires.
@@ -31,6 +33,7 @@ class MfaController extends Controller
         $this->connections         = new ConnectionModel();
         $this->trustedDevices      = new TrustedDeviceModel();
         $this->deviceConfirmTokens = new DeviceConfirmTokenModel();
+        $this->rateLimiter         = new RateLimiterService();
     }
 
     /**
@@ -50,6 +53,14 @@ class MfaController extends Controller
      */
     public function poll(array $params): void // NOSONAR — $params requis par le router
     {
+        // VULN-011 : limiter le polling à 30 requêtes/minute par IP
+        $ip    = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $rlKey = 'mfa-poll:' . $ip;
+        if (!$this->rateLimiter->checkLimit($rlKey, 30, 60)) {
+            $this->json(['error' => 'Too Many Requests'], 429);
+        }
+        $this->rateLimiter->recordAttempt($rlKey, 60);
+
         $token  = $_GET['token'] ?? '';
 
         if ($token === '') {

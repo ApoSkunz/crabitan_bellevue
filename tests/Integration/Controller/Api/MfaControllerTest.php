@@ -25,6 +25,7 @@ class MfaControllerTest extends IntegrationTestCase
         $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit/Test';
         $_SERVER['REQUEST_METHOD']  = 'GET';
         $_SERVER['REQUEST_URI']     = '/api/mfa/poll';
+        $_SERVER['REMOTE_ADDR']     = '127.0.0.1';
 
         $this->userId = (int) self::$db->insert(
             "INSERT INTO accounts (email, password, role, lang, email_verified_at)
