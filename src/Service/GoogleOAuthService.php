@@ -86,6 +86,10 @@ class GoogleOAuthService
             throw new GoogleOAuthException('Google userinfo missing required fields');
         }
 
+        if (($data['email_verified'] ?? false) !== true) {
+            throw new GoogleOAuthException('Google email not verified');
+        }
+
         return $data;
     }
 
