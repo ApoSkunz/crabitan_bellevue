@@ -194,11 +194,12 @@ class PaymentServiceTest extends TestCase
     }
 
     /**
-     * Vérifie que PBX_EFFECTUE, PBX_REFUSE, PBX_ANNULE et PBX_REPONDRE sont présents
-     * et construits correctement lorsque CA_FALLBACK_BASE_URL est défini.
+     * Vérifie que PBX_EFFECTUE, PBX_REFUSE, PBX_ANNULE sont construits depuis CA_FALLBACK_BASE_URL
+     * et que PBX_REPONDRE utilise le fallback CA_FALLBACK_BASE_URL lorsque APP_URL est absent.
      */
     public function testBuildPbxFieldsContainsReturnUrlsWhenBaseUrlSet(): void
     {
+        unset($_ENV['APP_URL']); // APP_URL absent → PBX_REPONDRE utilise le fallback CA_FALLBACK_BASE_URL
         $service = $this->makeService();
 
         $result = $service->buildPbxFields(
@@ -228,12 +229,46 @@ class PaymentServiceTest extends TestCase
     }
 
     /**
-     * Vérifie que les champs d'URL sont absents lorsque CA_FALLBACK_BASE_URL est vide
-     * (CA utilise alors les URLs configurées dans Vision Air).
+     * PBX_REPONDRE (IPN) utilise APP_URL quand les deux variables sont définies —
+     * évite les redirections www→non-www que CA ne suit pas.
+     */
+    public function testBuildPbxFieldsIpnUsesAppUrlWhenBothSet(): void
+    {
+        $_ENV['APP_URL'] = 'https://crabitanbellevue.fr';
+
+        $service = $this->makeService();
+
+        $result = $service->buildPbxFields(
+            'CMD-IPN-APPURL',
+            3000,
+            'buyer@example.com',
+            'Sophie',
+            'Martin',
+            '5 place Gambetta',
+            '33000',
+            'Bordeaux',
+            1,
+            'fr'
+        );
+
+        $fields = $result['fields'];
+
+        // URLs navigateur → CA_FALLBACK_BASE_URL
+        $this->assertSame('https://test.example.com/fr/commande/paiement-ca/ok', $fields['PBX_EFFECTUE']);
+        // IPN → APP_URL (pas CA_FALLBACK_BASE_URL)
+        $this->assertSame('https://crabitanbellevue.fr/payment/ipn', $fields['PBX_REPONDRE']);
+
+        unset($_ENV['APP_URL']);
+    }
+
+    /**
+     * Vérifie que les champs d'URL navigateur sont absents lorsque CA_FALLBACK_BASE_URL est vide
+     * mais que PBX_REPONDRE reste absent uniquement si APP_URL est également absent.
      */
     public function testBuildPbxFieldsOmitsReturnUrlsWhenBaseUrlEmpty(): void
     {
         $_ENV['CA_FALLBACK_BASE_URL'] = '';
+        unset($_ENV['APP_URL']);
 
         $service = $this->makeService();
 
@@ -255,6 +290,37 @@ class PaymentServiceTest extends TestCase
         $this->assertArrayNotHasKey('PBX_REFUSE', $fields);
         $this->assertArrayNotHasKey('PBX_ANNULE', $fields);
         $this->assertArrayNotHasKey('PBX_REPONDRE', $fields);
+    }
+
+    /**
+     * PBX_REPONDRE est présent si APP_URL est défini même quand CA_FALLBACK_BASE_URL est vide.
+     */
+    public function testBuildPbxFieldsIpnPresentWhenOnlyAppUrlSet(): void
+    {
+        $_ENV['CA_FALLBACK_BASE_URL'] = '';
+        $_ENV['APP_URL']              = 'https://crabitanbellevue.fr';
+
+        $service = $this->makeService();
+
+        $result = $service->buildPbxFields(
+            'CMD-IPN-ONLY',
+            800,
+            'buyer@example.com',
+            'Marc',
+            'Blanc',
+            '1 rue Victor Hugo',
+            '69001',
+            'Lyon',
+            1
+        );
+
+        $fields = $result['fields'];
+
+        $this->assertArrayNotHasKey('PBX_EFFECTUE', $fields);
+        $this->assertArrayHasKey('PBX_REPONDRE', $fields);
+        $this->assertSame('https://crabitanbellevue.fr/payment/ipn', $fields['PBX_REPONDRE']);
+
+        unset($_ENV['APP_URL']);
     }
 
     /**

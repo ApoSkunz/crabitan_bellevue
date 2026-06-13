@@ -102,12 +102,20 @@ class PaymentService
             'PBX_BILLING'        => $billingXml,
         ];
 
-        // URLs de retour dynamiques — prioritaires sur la config Vision Air.
+        // URLs de retour navigateur — prioritaires sur la config Vision Air.
         $baseUrl = rtrim($this->getEnv('CA_FALLBACK_BASE_URL'), '/');
         if ($baseUrl !== '') {
             $fields['PBX_EFFECTUE'] = $baseUrl . '/' . $lang . '/commande/paiement-ca/ok';
             $fields['PBX_REFUSE']   = $baseUrl . '/' . $lang . '/commande/paiement-ca/refuse';
             $fields['PBX_ANNULE']   = $baseUrl . '/' . $lang . '/commande/paiement-ca/annule';
+        }
+
+        // PBX_REPONDRE (IPN server-to-server) : toujours APP_URL pour éviter les
+        // redirections www→non-www que CA ne suit pas (→ "Impossible de joindre").
+        $appUrl = rtrim($this->getEnv('APP_URL'), '/');
+        if ($appUrl !== '') {
+            $fields['PBX_REPONDRE'] = $appUrl . '/payment/ipn';
+        } elseif ($baseUrl !== '') {
             $fields['PBX_REPONDRE'] = $baseUrl . '/payment/ipn';
         }
 
