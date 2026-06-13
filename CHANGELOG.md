@@ -2,6 +2,37 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.30.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.29.0...v1.30.0) (2026-06-13)
+
+
+### Bug Fixes
+
+* **ci:** composer audit --locked — no install required ([96ff183](https://github.com/ApoSkunz/crabitan_bellevue/commit/96ff183f39ff3075e16465b1ed76b98662d846a0))
+* **ci:** fix DAST auth CSRF source and reduce ZAP thread count ([846f2ab](https://github.com/ApoSkunz/crabitan_bellevue/commit/846f2abd08a40195b6cec5dff2c330abef21ebc8))
+* **csp:** add nonce to inline <style> blocks, drop style-src unsafe-inline ([8366f7c](https://github.com/ApoSkunz/crabitan_bellevue/commit/8366f7c07d6cb6023c2f6430e510f8c471d4c6b8))
+* **csp:** move carbon-badge CSS to SCSS, remove JS <style> injection ([9c5ce1f](https://github.com/ApoSkunz/crabitan_bellevue/commit/9c5ce1fc811bb4a8cbd8aad23f9d43179dd2a64f))
+* **csp:** restrict img-src from https: wildcard to self data: ([3e93772](https://github.com/ApoSkunz/crabitan_bellevue/commit/3e937721921624f98873794c9c6ee5a9b7bc844b))
+* **csp:** retirer unsafe-inline de style-src ([0f59ab7](https://github.com/ApoSkunz/crabitan_bellevue/commit/0f59ab716b22785e496e974f35d820a84663ed2b))
+* **csp:** revert style-src nonce-only — 318 style= attrs not yet migrated ([c0c722a](https://github.com/ApoSkunz/crabitan_bellevue/commit/c0c722a7f9aa344431746ef71ef456eafd93ccde))
+* **csp:** u-hidden !important + lightbox classList — correctif E2E galerie ([77605e4](https://github.com/ApoSkunz/crabitan_bellevue/commit/77605e48a18b7f7d37f7c6638a3ecdcf374392d5))
+* **scss:** restore gallery lightbox button positioning ([7c32743](https://github.com/ApoSkunz/crabitan_bellevue/commit/7c327439ee7b8ef1c1d7416408701ce214ece91b))
+* **security:** add security headers to maintenance 503 page ([ef63c51](https://github.com/ApoSkunz/crabitan_bellevue/commit/ef63c517358c0b9d019133d2918e3252da458001))
+
+
+### Features
+
+* **admin:** add Paniers and Avis entries to sidebar Commandes section ([a823feb](https://github.com/ApoSkunz/crabitan_bellevue/commit/a823febc00ef1d1a36e44eda6088a7b688349958))
+* **cart:** add delivery note for outside metropolitan France ([ce9553b](https://github.com/ApoSkunz/crabitan_bellevue/commit/ce9553b57d6056c7e45f5bc173e3d16f3105b8f3))
+* **controller:** add ReviewAdminController and CartAdminController ([58bcd4e](https://github.com/ApoSkunz/crabitan_bellevue/commit/58bcd4e6e6127fafc6c43c4b01f86e254a5ef07d))
+* **header:** add Paniers and Avis links to admin account panel menu ([abde19b](https://github.com/ApoSkunz/crabitan_bellevue/commit/abde19bc17414057ac1be863f3689abda3e5ceb6))
+* **model:** add countAll + findPaginated to ReviewModel and CartModel ([44966bd](https://github.com/ApoSkunz/crabitan_bellevue/commit/44966bd8c346ed486659fe6c4c9180a5506f7590))
+* **routes:** register GET /admin/paniers and GET /admin/avis ([3b511cb](https://github.com/ApoSkunz/crabitan_bellevue/commit/3b511cb17013e68c8bd2997f9de3e7d224a0dc2e))
+* **scss:** cart delivery note + admin review stars styles ([b85294f](https://github.com/ApoSkunz/crabitan_bellevue/commit/b85294f5f2ec568473f6cc233d683e0368d5a45a))
+* **scss:** migration style="" → classes CSS — utilitaires et admin ([89a17ca](https://github.com/ApoSkunz/crabitan_bellevue/commit/89a17ca2816888ac5f8eba9171d09d96d23d3356))
+* **view:** add admin reviews and carts paginated views ([e0e759f](https://github.com/ApoSkunz/crabitan_bellevue/commit/e0e759f0a379224ec967c5e2170e2c9df3a85e72))
+* **view:** migration style="" → classes CSS — vues account et pages ([185bd2d](https://github.com/ApoSkunz/crabitan_bellevue/commit/185bd2da326b4133e2eb4c40bab91de00eacd871))
+* **view:** migration style="" → classes CSS — vues admin ([4296e39](https://github.com/ApoSkunz/crabitan_bellevue/commit/4296e39ab72376a99f7fa980ebd7438266eca995))
+
 # [1.29.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.28.0...v1.29.0) (2026-04-30)
 
 
